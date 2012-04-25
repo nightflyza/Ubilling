@@ -1,0 +1,21 @@
+#!/usr/local/bin/php
+<?php
+$login=$argv[1];
+$config=parse_ini_file(dirname(__FILE__)."/config");
+$link = mysql_connect($config['host'], $config['username'], $config['password']);
+mysql_select_db($config['database']);
+$ipq='SELECT `IP` FROM `users` WHERE `login`="'.$login.'"';
+$ip=mysql_query($ipq);
+           while ($line2 = mysql_fetch_array($ip, MYSQL_ASSOC)) {
+                foreach($line2 as $ipval) {
+                                $macq='SELECT `mac` from `nethosts` WHERE `ip`="'.$ipval.'"';
+                                $mac=mysql_query($macq);
+                                   while ($line3 = mysql_fetch_array($mac, MYSQL_ASSOC)) {
+                                   foreach($line3 as $macval) {
+                                   print($macval);
+                                   }
+                                  }
+                           }    
+                        }
+
+?>

@@ -1,0 +1,1 @@
+$taskbar.=build_task('RULES','?module=rules','routing.jpg',__('Traffic classes'));

@@ -1,0 +1,1 @@
+$taskbar.=build_task('DHCP','?module=dhcp','dhcp.jpg',__('DHCP'));

@@ -1,0 +1,1 @@
+$taskbar.=build_task('PAYFIND','?module=payfind','payfind.png',__('Payment search')); 

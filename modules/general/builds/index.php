@@ -1,0 +1,58 @@
+<?php
+// check for right of current admin on this module
+if (cfr('BUILDS')) {
+
+  if (!isset ($_GET['action'])) {
+  show_window(__('Builds editor'),  web_StreetListerBuildsEdit());
+  } else {
+   if (isset($_GET['streetid'])) {
+       $streetid=vf($_GET['streetid']);
+       if ($_GET['action']=='edit') {
+           if (isset($_POST['newbuildnum'])) {
+               zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+           }
+           $streetname=zb_AddressGetStreetData($streetid);
+           $streetname=$streetname['streetname'];
+           show_window(__('Add build'),web_BuildAddForm());
+           show_window(__('Available buildings on street').' '.$streetname,web_BuildLister($streetid));
+       }
+       if ($_GET['action']=='delete') {
+           if (!zb_AddressBuildProtected($_GET['buildid'])) {
+           zb_AddressDeleteBuild($_GET['buildid']);
+           rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
+           } else {
+               show_error(__('You can not delete a building if there are users of the apartment'));
+           }
+
+       }
+       
+       if ($_GET['action']=='editbuild') {
+           $buildid=vf($_GET['buildid']);
+           $streetid=vf($_GET['streetid']);
+           
+           //build edit subroutine
+           if (isset($_POST['editbuildnum'])) {
+               simple_update_field('build', 'buildnum', $_POST['editbuildnum'], "WHERE `id`='".$buildid."'");
+               log_register("CHANGE AddressBuild ".$buildid." ".  mysql_real_escape_string($_POST['editbuildnum']));
+               rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
+           }
+               
+          
+           //construct edit form
+           $builddata=zb_AddressGetBuildData($buildid);
+           $streetname=zb_AddressGetStreetData($streetid);
+           $streetname=$streetname['streetname'];
+           $editinputs=$streetname." ".$builddata['buildnum'].'<hr>';
+           $editinputs.=wf_TextInput('editbuildnum', 'Building number', $builddata['buildnum'], true, '10');
+           $editinputs.=wf_Submit('Save');
+           $editform=wf_Form('', 'POST', $editinputs, 'glamour');
+           show_window(__('Edit').' '.__('Build'), $editform);
+           show_window('',  wf_Link("?module=builds&action=edit&streetid=".$streetid, 'Back', true, 'ubButton'));
+       }
+   }
+  }
+
+    
+    
+}
+?>

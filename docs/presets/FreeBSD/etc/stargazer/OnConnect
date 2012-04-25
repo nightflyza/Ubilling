@@ -1,0 +1,48 @@
+#OnConnect
+
+IFACE="rl0"
+LOGIN=$1
+IP=$2
+CASH=$3
+ID=$4
+SPEED=`/etc/stargazer/GetSpeed $LOGIN`
+UPSPEED=`/etc/stargazer/GetUpSpeed $LOGIN`
+MAC=`/etc/stargazer/GetMac $LOGIN`
+SCOUNT="Kbit/s"
+
+fwcmd="/sbin/ipfw -q"
+arpcmd="/usr/sbin/arp"
+cur_date=`date \+\%Y.\%m.\%d`
+cur_time=`date \+\%H:\%M:\%S`
+
+# DELETE RULEZ
+${fwcmd} delete `expr $ID '*' 10 + 10001`
+${fwcmd} delete `expr $ID '*' 10 + 10002`
+${fwcmd} delete `expr $ID '*' 10 + 10003`
+${fwcmd} delete `expr $ID '*' 10 + 10004`
+${fwcmd} delete `expr $ID '*' 10 + 10005`
+
+# ADD RULEZ
+
+# fix user mac to ip
+${arpcmd} -S $IP $MAC
+
+#SPEED CONTROL
+${fwcmd} pipe `expr $ID + 101` config bw $UPSPEED$SCOUNT queue 32Kbytes
+${fwcmd} pipe `expr $ID + 4101` config bw $SPEED$SCOUNT queue 32Kbytes
+
+# ALLOWS CONTROL
+${fwcmd} add `expr $ID '*' 10 + 10002` pipe `expr $ID + 101` ip from $IP to any via $IFACE in
+${fwcmd} add `expr $ID '*' 10 + 10003` pipe `expr $ID + 4101` ip from any to $IP via $IFACE out
+${fwcmd} add `expr $ID '*' 10 + 10004` allow ip from $IP to any
+${fwcmd} add `expr $ID '*' 10 + 10005` allow ip from any to $IP
+${fwcmd} table 47 delete $IP
+
+
+# DAY/NIGHT switcher
+/bin/echo $SPEED:`expr $ID + 4101` > /etc/stargazer/dn/$LOGIN
+/bin/chmod 777 /etc/stargazer/dn/$LOGIN
+
+
+# ADD TO LOG
+echo "$cur_date $cur_time CONNECT: ID-$ID;LOGIN-$LOGIN;IP-$IP;CASH-$CASH;SPEED-$SPEED;UPSPEED-$UPSPEED,MAC-$MAC" >> /var/stargazer/allconnect.log
