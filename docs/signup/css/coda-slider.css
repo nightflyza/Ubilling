@@ -1,0 +1,114 @@
+#slider {
+    width: 940px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#header {
+	width: 960px;
+	height: 100px;
+	background: url(../images/templatemo_header.jpg) no-repeat;	
+}
+
+#header #sitetite {
+	float: left;
+	width: 240px;
+	height: 65px;
+	padding-top: 35px;
+	margin-right: 80px;
+	text-align: center;
+}
+
+#header #sitetite h1 {
+	margin: 0;
+	padding: 0;
+}
+
+#header #sitetite a {
+	margin: 0px;
+	padding: 0px;
+	font-size: 30px;
+	color: #edecec;
+	font-weight: normal;
+	text-decoration: none;
+}
+
+#header #sitetite a span {
+	display: block;
+	font-size: 12px;
+	color: #edecec;
+	font-weight: normal;
+	margin-top: 5px;
+	margin-left: 5px;
+}
+
+
+.scroll {
+    height: 480px;
+    width: 940px;
+    overflow: auto;
+   /* overflow-x: hidden; */
+    position: relative;
+    clear: left;
+    background: url(../images/templatemo_content.jpg) repeat-y;
+}
+
+.scrollContainer div.panel {
+    padding: 20px 50px;
+    height: 440px;
+    width: 840px;
+}
+
+ul.navigation {
+	float: left;
+	width: 560px;
+	height: 40px;
+    list-style: none;
+    margin: 22px 0 0 0;
+    padding: 0;
+}
+
+ul.navigation li {
+    display: inline;
+    margin-right: 10px;
+}
+
+ul.navigation a {
+	float: left;
+	display: block;
+	width: 104px;
+	height: 30px;
+	padding-top: 9px;
+	color: #FB4;
+	font-size: 14px;
+	font-weight: bold;
+	text-align: center;
+    text-decoration: none;
+}
+
+ul.navigation a:hover, ul.navigation a.selected {
+	color: #fff;
+	background: url(../images/templatemo_menu_hover.jpg) no-repeat;
+}
+
+ul.navigation a:focus {
+    outline: none;
+}
+
+.scrollButtons {
+    position: absolute;
+    top: 300px;
+    cursor: pointer;
+}
+
+.scrollButtons.left {
+    left: -50px;
+}
+
+.scrollButtons.right {
+    right: -50px;
+}
+
+.hide {
+    display: none;
+}
