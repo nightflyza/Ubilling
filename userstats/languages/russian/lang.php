@@ -82,13 +82,36 @@ $lang['def']['Actions'] = 'Действия';
 $lang['def']['Open'] = 'Открыт';
 $lang['def']['Closed'] = 'Закрыт';
 $lang['def']['View'] = 'Просмотр';
-$lang['def']['Unfortunately helpdesk is now disabled'] = 'К сожелению обращения в техническую поддержку сейчас отключены';
+$lang['def']['Unfortunately helpdesk is now disabled'] = 'К сожалению обращения в техническую поддержку сейчас отключены';
 $lang['def']['No such ticket'] = 'Нету такого тикета';
 $lang['def']['Reply'] = 'Ответить';
 $lang['def']['Messages from administration'] = 'Сообщения от администрации';
 $lang['def']['Message'] = 'Сообщение';
 $lang['def']['Sorry sum of money in the account does not allow to continue working in the credit'] = 'Извините сумма денег на счету не позволяет продолжить работу в кредит';
 $lang['def']['Your current tariff does not provide an independent tariff change'] = 'Ваш текущий тарифный план не предусматривает самостоятельную смену тарифа';
+$lang['def']['Login with your account'] = 'Введите свои учетные данные';
+$lang['def']['Enter'] = 'Войти';
+$lang['def']['Logout'] = 'Выйти';
+$lang['def']['Speed test'] = 'Тест скорости';
+$lang['def']['Unfortunately speedtest is now disabled'] = 'К сожалению тест скорости сейчас отключен';
+$lang['def']['Downloads'] = 'Загрузки';
+$lang['def']['Unfortunately downloads is now disabled'] = 'К сожалению раздел закачек сейчас отключен';
+$lang['def']['Tariff price'] = 'Стоимость тарифа';
+
+$lang['def']['Account state'] = 'Состояние счета';
+$lang['def']['Account active'] = 'Счет активен';
+$lang['def']['Disabled'] = 'Отключен';
+$lang['def']['Account frozen'] = 'Счет заморожен';
+$lang['def']['Account freezing'] = 'Заморозка счета';
+$lang['def']['Unfortunately account freeze is now disabled'] = 'К сожалению заморозка счета сейчас отключена';
+$lang['def']['Service "account freeze" will allow you to suspend the charge of the monthly fee during your long absence - such as holidays or vacations. The cost of this service is:'] = 'Услуга "заморозка счета" позволит вам приостановить начисление месячной абонплаты за услуги на время вашего длительного отсутствия - например отпуска или каникул. Стоимость этой услуги составляет:';
+$lang['def']['Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.'] = 'Будьте внимательны, доступ к сети будет ограничен сразу после подтверждения вами своего желания заморозить счет. Для разморозки счета  вам необходимо обратиться в наше ближайшее представительство.';
+$lang['def']['For your service plan does not provide this service'] = 'Для вашего тарифного плана не предусмотрено использование данной услуги';
+$lang['def']['Your account is now a negative amount'] = 'На вашем счету сейчас отрицательная сумма';
+$lang['def']['Your account has been frozen'] = 'Ваш счет уже заморожен';
+$lang['def']['I want freeze my account right now'] = 'Я хочу заморозить свой счет прямо сейчас';
+
+
 
 
 ?>

@@ -76,16 +76,25 @@ function web_SettingsAlterForm() {
          '.web_bool_led($alterconf['ONLINE_LAT']).' '.__('LAT column in online module').' <br>
          '.web_bool_led($alterconf['MASSSEND_ENABLED']).' '.__('Mass sender enabled').' <br>
          '.web_bool_led($alterconf['MASSSEND_SAFE']).' '.__('Mass sender use ticketing').' <br>
+         '.web_bool_led($alterconf['SAFE_REGMODE']).' '.__('Safe user register mode').' <br>
          '.web_bool_led($alterconf['ARPDIAG_ENABLED']).' '.__('Enabled arpdiag module').' <br>
+         <input type="text" value="'.$alterconf['ARPDIAG_LOG'].'" readonly> '.__('arpdiag log file').' <br>
          '.web_bool_led($alterconf['TB_ICONCUSTOMSIZE']).' '.__('Administrators can set the size of icons on their own').' <br>
          '.web_bool_led($alterconf['MACCHANGERANDOMDEFAULT']).' '.__('Substitute the random MAC in the change dialog').' <br>
          '.web_bool_led($alterconf['RESETONCFCHANGE']).' '.__('Reset users on custom field change').' <br>
          '.web_bool_led($alterconf['RESETONTAGCHANGE']).' '.__('Reset users on tag change').' <br>
+         '.web_bool_led($alterconf['MTSIGMON_ENABLED']).' '.__('Mikrokik signal monitor enabled').' <br>
+         '.web_bool_led($alterconf['SIGREQ_ENABLED']).' '.__('Signup requests service enabled').' <br>
          '.web_bool_led($alterconf['TB_NEWTICKETNOTIFY']).' '.__('Taskbar notify for new tickets').' <br>
+         '.web_bool_led($alterconf['TB_SWITCHMON']).' '.__('Taskbar notify for dead switches').' <br>    
+         <input type="text" name="editNMLEASEMARK" value="'.$alterconf['TICKETS_PERPAGE'].'" readonly>  '.__('Tickets per page in helpdesk').' <br>
+         '.web_bool_led($alterconf['ONLINE_HP_MODE']).' '.__('High perfomance online module mode').' <br>
+         '.web_bool_led($alterconf['FAST_CASH_LINK']).' '.__('Fast financial links in online and search modules').' <br>
          <input type="text" name="editNMLEASEMARK" value="'.$alterconf['NMLEASEMARK'].'" readonly> '.__('The criterion to search for new MAC').' <br> 
          <input type="text" name="editARPING" value="'.$alterconf['ARPING'].'" readonly> '.__('arping path').' <br> 
          <input type="text" name="editARPING_IFACE" value="'.$alterconf['ARPING_IFACE'].'" readonly> '.__('arping interface').' <br> 
          <input type="text" name="editNOBACKUPTABLESLIKE" value="'.$alterconf['NOBACKUPTABLESLIKE'].'" readonly> '.__('Mask for tables to skip in backup').' <br> 
+         <input type="text" name="editSW_PINGTIMEOUT" value="'.$alterconf['SW_PINGTIMEOUT'].'" readonly> '.__('Switches ping cache timeout').' <br> 
          <h3>'.__('User linking').'</h3>
          '.web_bool_led($alterconf['USER_LINKING_ENABLED']).' '.__('User linking enabled').' <br>
          <input type="text" name="editUSER_LINKING_FIELD" value="'.$alterconf['USER_LINKING_FIELD'].'" readonly> '.__('User linking field').' <br>
@@ -109,6 +118,16 @@ function web_SettingsAlterForm() {
          '.web_bool_led($alterconf['OPENPAYZ_SUPPORT']).' '.__('OpenPayz support').' <br>
          <input type="text" name="editOPENPAYZ_MANUAL" value="'.$alterconf['OPENPAYZ_MANUAL'].'" readonly> '.__('OpenPayz manual mode').' <br>
          <input type="text" name="editOPENPAYZ_CASHTYPEID" value="'.$alterconf['OPENPAYZ_CASHTYPEID'].'" readonly> '.__('OpenPayz cash type ID').' <br>
+         <h3>'.__('Bank statements processing').'</h3>  
+        '.web_bool_led($alterconf['BS_ENABLED']).' '.__('Bank statements support').' <br>
+        <input type="text" value="'.$alterconf['BS_INCHARSET'].'" readonly> '.__('Import encoding').' <br>
+        <input type="text" value="'.$alterconf['BS_OUTCHARSET'].'" readonly> '.__('Export encoding').' <br>
+        <input type="text" value="'.$alterconf['BS_CASHTYPE'].'" readonly> '.__('Cash type').' <br>
+        <input type="text" value="'.$alterconf['BS_OPTIONS'].'" readonly> '.__('Bank statements options').' <br>
+        <h3>'.__('NDS processing').'</h3>      
+        '.web_bool_led($alterconf['NDS_ENABLED']).' '.__('NDS processing support enabled').' <br>
+        <input type="text" value="'.$alterconf['NDS_TAGID'].'" readonly> '.__('NDS tag ID').' <br>
+        <input type="text" value="'.$alterconf['NDS_TAX_PERCENT'].'" readonly> '.__('NDS tax rate').' <br>
         ';
     return($form);
 }
@@ -171,15 +190,15 @@ prefix = "billing"
   }
     
 $sysconfforms='
-    <table width="100%" border="0">
+    <table width="100%" border="0" class="glamour">
     <tr>
        <td valign="top">'
        .  web_SettingsMysqlForm()
        .web_SettingsBillingForm().'
         </td>
-        <td valign="top">'
-         .web_SettingsAlterForm().
-        '</td>
+        <td valign="top">
+        '.web_SettingsAlterForm().'
+        </td>
         </tr>
     </table>
     ';

@@ -40,15 +40,129 @@ function web_list_admins() {
      $frm->hidden('save', '1');
      if($system->getRightsForUser($login, $rights, $root, $level)){
     if($root){
-        $frm->addrow(__('Root administrator'), $frm->checkbox('rootuser', '1', '', true));
+        $frm->addrow('', $frm->checkbox('rootuser', '1', __('Root administrator'), true));
     } else {
-        $frm->addrow(__('Root administrator'), $frm->checkbox('rootuser', '1', '', false));
+        $frm->addrow('', $frm->checkbox('rootuser', '1',__('Root administrator'), false));
         foreach ($system->rights_database as $right_id => $right_desc){
-            $frm->addrow($right_desc, $frm->checkbox('_rights[' . $right_id . ']', '1', '', user_check_right($login, $right_id)));
+            $frm->addrow('', $frm->checkbox('_rights[' . $right_id . ']', '1', $right_desc, user_check_right($login, $right_id)));
         }
     }
     }
      show_window(__('Rights for').' '.$login,$frm->show(true));
+ }
+ 
+ 
+ // new custom permissions form
+ function zb_PermissionGroup($groupname) {
+     $path=CONFIG_PATH."permgroups.ini";
+     $result=array();
+     $rawdata=rcms_parse_ini_file($path);
+     $rawperms=explode(',', $rawdata[$groupname]);
+     if (!empty($groupname)) {
+         $result=$rawperms;
+         $result=array_flip($result);
+     }
+     return ($result);
+ }
+ 
+ 
+  function web_permissions_editor($login) {
+     global $system;
+     $regperms=  zb_PermissionGroup('USERREG');
+     $geoperms=  zb_PermissionGroup('GEO');
+     $sysperms=  zb_PermissionGroup('SYSTEM');
+     $finperms=  zb_PermissionGroup('FINANCE');
+     $repperms=  zb_PermissionGroup('REPORTS');
+     $catvperms= zb_PermissionGroup('CATV');
+     
+     $reginputs='';
+     $geoinputs='';
+     $sysinputs='';
+     $fininputs='';
+     $repinputs='';
+     $catvinputs='';
+     $miscinputs='';
+     
+    
+     $inputs=  wf_Link('?module=permissions', 'Back', true, 'ubButton').'<br>';
+     
+     $inputs.=wf_HiddenInput('save', '1');
+     if($system->getRightsForUser($login, $rights, $root, $level)){
+      if($root){
+          $inputs.='<p class="glamour">'.wf_CheckInput('rootuser', __('Root administrator'), true, true).'</p><div style="clear:both;"></div>';
+        } else {
+          $inputs.='<p class="glamour">'.wf_CheckInput('rootuser', __('Root administrator'), true, false).'</p><div style="clear:both;"></div>';
+        foreach ($system->rights_database as $right_id => $right_desc){
+            //sorting inputs
+            if ((!isset($regperms[$right_id])) AND (!isset($geoperms[$right_id])) AND (!isset($sysperms[$right_id])) AND (!isset($finperms[$right_id])) AND (!isset($repperms[$right_id])) AND (!isset($catvperms[$right_id]))) {
+                $miscinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+            }
+            //user register rights
+                if (isset($regperms[$right_id])) {
+                    $reginputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+           //geo rights     
+                if (isset($geoperms[$right_id])) {
+                    $geoinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+           //system config perms     
+                if (isset($sysperms[$right_id])) {
+                    $sysinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+           //financial inputs     
+           if (isset($finperms[$right_id])) {
+                    $fininputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+                
+           //reports rights     
+           if (isset($repperms[$right_id])) {
+                    $repinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+                
+            //catv rights     
+           if (isset($catvperms[$right_id])) {
+                    $catvinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc, true, user_check_right($login, $right_id));
+                }
+
+                
+                
+            }
+        }
+    }
+    
+    
+    //rights grid
+    $label='<h3>'.__('Users registration').'</h3>';
+    $tablecells=wf_TableCell($label.$reginputs,'','','valign="top"');
+    $label='<h3>'.__('System settings').'</h3>';
+    $tablecells.=wf_TableCell($label.$sysinputs,'','','valign="top"');
+    $label='<h3>'.__('Reports').'</h3>';
+    $tablecells.=wf_TableCell($label.$repinputs,'','','valign="top"');
+    $tablerows=  wf_TableRow($tablecells);
+    
+    $label='<h3>'.__('Financial management').'</h3>';
+    $tablecells=wf_TableCell($label.$fininputs,'','','valign="top"');
+    $label='<h3>'.__('CaTV').'</h3>';
+    $tablecells.=wf_TableCell($label.$catvinputs,'','','valign="top"');
+    $label='<h3>'.__('Geography').'</h3>';
+    $tablecells.=wf_TableCell($label.$geoinputs,'','','valign="top"');
+    $tablerows.=  wf_TableRow($tablecells);
+    
+    $label='<h3>'.__('Misc rights').'</h3>';
+    $tablecells=wf_TableCell($label.$miscinputs,'','','valign="top"');
+    $tablerows.=  wf_TableRow($tablecells);
+    
+    
+    $rightsgrid=$inputs;
+    $rightsgrid.=wf_Submit('Save');
+    
+    
+    $rightsgrid.= wf_TableBody($tablerows, '100%', 0, 'glamour');
+    
+    $permission_forms=  wf_Form("", 'POST', $rightsgrid, '');
+    
+    show_window(__('Rights for').' '.$login,$permission_forms);
+    
  }
  
  function web_admineditform($login) {
@@ -74,12 +188,13 @@ function web_list_admins() {
     if($system->setRightsForUser($editname, @$_POST['_rights'], @$_POST['rootuser'], @$_POST['level'])) {
        show_window('',__('Rights changed'));
        log_register("CHANGE AdminPermissions ".$editname);
+       rcms_redirect("?module=permissions&edit=".$editname);
     } else {
        show_error(__('Error occurred'));
     }
   }
 
-     web_permissions_box($editname);
+     web_permissions_editor($editname);
      }
      
     //if someone deleting admin

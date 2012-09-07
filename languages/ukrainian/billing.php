@@ -851,7 +851,7 @@ $lang['def']['right to genocide']='Право на геноцид';
 $lang['def']['right to view streets report']='Право переглядати звіт по вулицях';
 
 //rev 1360
-$lang['def']['This MAC is currently used']='Ця MAC адрека вже кимось використовується';
+$lang['def']['This MAC is currently used']='Ця MAC адреса вже кимось використовується';
 $lang['def']['This MAC have wrong format']='Отримано MAC невірного формату';
 $lang['def']['This will create a backup copy of all tables in the database, except those whose names are found']='Буде створено резервну копію всіх таблиць БД, за винятком тих, в іменах яких зустрічаються';
 $lang['def']['You are not mentally prepared for this']='Ви морально до цього не готові';
@@ -888,5 +888,132 @@ $lang['def']['Serial key']='Серійний номер';
 $lang['def']['Ubilling version']='Версія Ubilling';
 $lang['def']['I want to help make Ubilling better']='Я хотів би допомогти зробити Ubilling кращим';
 $lang['def']['Billing info']='Інформація про біллінг';
+
+//rev 1451
+$lang['def']['Import bank statement']='Імпорт виписки з банку';
+$lang['def']['File']='Файл';
+$lang['def']['Previously uploaded statements']='Раніше завантажені виписки';
+$lang['def']['Bank statement processing']='Обробка нових виписок';
+$lang['def']['Login poroposal']='Пропонований логін';
+$lang['def']['right to import bank statements']='Привілей на обробку банкових виписок';
+$lang['def']['Showing']='Показано';
+$lang['def']['Filtered']='Відфільтровано';
+$lang['def']['from']='з';
+$lang['def']['users']='користувачів';
+$lang['def']['of']='з';
+$lang['def']['to']='до';
+$lang['def']['Processing']='Обробка';
+$lang['def']['Stats']='Статистика';
+$lang['def']['Any statements uploaded']='Немає ще завантажених виписок';
+$lang['def']['Duplicate file detected']='Виявлено спробу завантажити одну й ту ж виписку двіччі, це підступно :(';
+$lang['def']['Multiple users found']='Надто багато співпадінь';
+$lang['def']['Process all payments for which the user defined']='Обробити всі оплати, для яких визначено користувачів';
+$lang['def']['Bank statements import not enabled']='Імпорт виписок зараз вимкнено';
+$lang['def']['Lock']='Заблокувати';
+$lang['def']['Bank statement']='Банківська виписка';
+$lang['def']['Bank statements processing']='Обробка виписок з банку';
+$lang['def']['Bank statements options']='Параметри виписок';
+$lang['def']['High perfomance online module mode']='Режим продуктивного модулю "Онлайн"';
+$lang['def']['arpdiag log file']='Шлях до логу ARPдіагностики';
+$lang['def']['Bank statements support']='Пітримку виписок увімкнено?';
+
+
+//rev 1547
+$lang['def']['Empty login']='Порожній логін';
+$lang['def']['Radius attribute templates']='Шаблони атрибутів Radius';
+$lang['def']['Available NAS Radius attribute templates']='Наявні шаблони атрибутів Radius';
+$lang['def']['Add new template']='Додати новий шаблон';
+$lang['def']['Edit template']='Редагування шаблону';
+$lang['def']['User attributes']='Атрибути користувача';
+$lang['def']['Radius attributes']='Атрибути Radius';
+$lang['def']['right to manage user radius attributes']='Право змінювати атрибути користувача Radius';
+$lang['def']['right to control radius templates']='Право керувати шаблонами атрибутів Radius';
+$lang['def']['Rebuild attributes for all NAS']='Перебудувати атрибути для всіх NAS';
+$lang['def']['The apartment has one lives, we have nothing against, just be warned']='В цій квартирі вже хтось живе, ми нічого не маємо проти, просто попереджаємо';
+$lang['def']['Are you sure you want to keep the homeless from this user']='Ви, що дійсно збираєтесь залишити цього користувача бездомним?';
+$lang['def']['which should be enough for another']='чого повинно вистачити, ще на';
+$lang['def']['months of service use']='місяців користування послугою';
+$lang['def']['Payment cards usage report']='Звіт по використанню карток оплати';
+$lang['def']['payments']='оплат';
+$lang['def']['with total amount']='загальною сумою';
+$lang['def']['Create new document template']='Створити новий шаблон документу';
+$lang['def']['Available document templates']='Шаблони документів в наявності';
+$lang['def']['Document name']='Ім`я документу';
+$lang['def']['Edit document template']='Редагування шаблону документу';
+$lang['def']['Edit template title']='Заголовок документу, що редагується';
+$lang['def']['New template title']='Заголовок нового документу';
+$lang['def']['Create new template']='Створення нового шаблону';
+$lang['def']['Document printing']='Друк документів';
+$lang['def']['right to view payment cards report']='Право переглядати звіт по платіжних картках';
+$lang['def']['right to view and print user documents']='Право друку документів користувачів';
+$lang['def']['NDS']='ПДВ';
+$lang['def']['ELVs for all payments of']='ПДВ по всіх оплатах складає';
+$lang['def']['NDS tax rates']='Розрахунок ПДВ';
+$lang['def']['Without NDS']='За вирахуванням ПДВ';
+$lang['def']['right to control NDS users report']='Право переглядати звіт по платниках ПДВ';
+$lang['def']['Safe user register mode']='Режим безпечної реєстрації користувачів';
+$lang['def']['Tickets per page in helpdesk']='Тікетів на сторінку в хелпдеску';
+$lang['def']['NDS processing']='Облік ПДВ';
+$lang['def']['NDS processing support enabled']='Підтримку обліку ПДВ увімкнено';
+$lang['def']['NDS tag ID']='ID тега платників ПДВ';
+$lang['def']['NDS tax rate']='Процентна ставка ПДВ';
+$lang['def']['Fast financial links in online and search modules']='Швидкий перехід з модулів Онлайн та Пошук до фінансових операцій';
+
+
+//rev 1633
+$lang['def']['Export userbase']='Експорт абонбази';
+$lang['def']['Empty city name']='Ви не заповнили ім`я нового міста';
+$lang['def']['Empty street name']='Ви не заповнили ім`я нової вулиці';
+$lang['def']['Empty building number']='Ви не заповнили номер будинку';
+$lang['def']['Financial management']='Керування фінансами';
+$lang['def']['CaTV']='КТБ';
+$lang['def']['Geography']='Географія';
+$lang['def']['Misc rights']='Інші привілегії';
+$lang['def']['Available code templates']='Шаблони коду в наявності';
+$lang['def']['Template name']='Назва шаблону';
+$lang['def']['Create template']='Створити шаблон';
+$lang['def']['Insert this template into PHP console']='Вставити цей шаблон коду в PHP консоль?';
+$lang['def']['Difference']='Різниця';
+$lang['def']['The network that you are trying to remove - contains live users. We can not afford to do so with them.']='Мережа котру ви намагаєтесь видалити - містить живих користувачів. Ми не можемо дозволити так вчинити з ними';
+$lang['def']['Signal']='Сигнал';
+$lang['def']['Empty reply received']='Запит повернув порожній результат';
+$lang['def']['Mikrotik signal monitor']='Моніторинг сигналу на Mikrotik';
+$lang['def']['This module disabled']='Цей модуль зараз відключено';
+$lang['def']['Available signup requests']='Заявки на підключення в наявності';
+$lang['def']['Signup request']='Заявка на підключення';
+$lang['def']['signup requests expected processing']='Заявок на підключення очікують обробки';
+$lang['def']['right to manage signup requests']='Право переглядати заявки на підключення';
+$lang['def']['right to use Mikrotik signal monitor']='Право користуватись моніторингом сигналу Mikrotik';
+$lang['def']['Mikrokik signal monitor enabled']='Моніторинг сигналу Mikrokik';
+$lang['def']['Signup requests service enabled']='Сервіс прийому заявок на підключення';
+
+
+//rev 1712
+$lang['def']['Freezing fee']='Вартість заморозки';
+$lang['def']['No devices for signal monitoring found']='Не знайдено пристроїв для моніторингу сигналу';
+$lang['def']['Today']='Сьогодні';
+$lang['def']['Week']='Тиждень';
+$lang['def']['Undone tasks']='Невиконані завдання';
+$lang['def']['Done tasks']='Завершені завдання';
+$lang['def']['Who should do']='Хто мав би зробити';
+$lang['def']['Create new task']='Створити нове завдання';
+$lang['def']['All fields marked with an asterisk are mandatory']='Усі поля відмічені зірочкою є обов`язковими для заповнення';
+$lang['def']['Task creation date']='Дата створення';
+$lang['def']['View task']='Перегляд задачі';
+$lang['def']['If task is done']='Якщо роботу уже завершено';
+$lang['def']['This task is done']='Роботу завершено';
+$lang['def']['Task is done']='Задачу виконано';
+$lang['def']['No work was done']='Роботу не виконано';
+$lang['def']['Remove this task - it is an mistake']='Видалити це завдання - воно помилка';
+$lang['def']['right to import bank statements for CaTV']='Право керувати банківськими виписками для КТБ';
+$lang['def']['Statements']='Виписки';
+$lang['def']['User poroposal']='Пропонований користувач';
+$lang['def']['Force ping']='Добровільно-примусовий опит';
+$lang['def']['Dead switches']='Мертві комутатори';
+$lang['def']['Switches are okay, everything is fine - I guarantee']='Усе зі всіма свічами добре, гарантую. Життя прекрасне.';
+$lang['def']['All switches alive']='Комутатори живенькі';
+$lang['def']['Taskbar notify for dead switches']='Функція скорботи для панелі задач';
+$lang['def']['Switches ping cache timeout']='Час оновлення кешу живості комутаторів';
+
 
 ?>

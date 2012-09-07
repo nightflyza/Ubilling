@@ -63,43 +63,43 @@ $tablerows=wf_TableRow($tablecells, 'row1');
 
 $tablecells=wf_TableCell(__('Current month signups'));
 $tablecells.=wf_TableCell($regc);
-$tablecells.=wf_TableCell(($regc/$cday));
+$tablecells.=wf_TableCell(round($regc/$cday,2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('MAC changes'));
 $tablecells.=wf_TableCell(($macc-$regc));
-$tablecells.=wf_TableCell((($macc-$regc)/$cday));
+$tablecells.=wf_TableCell(round( (($macc-$regc)/$cday) ,2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('Switches added'));
 $tablecells.=wf_TableCell(($switchc));
-$tablecells.=wf_TableCell(($switchc/$cday));
+$tablecells.=wf_TableCell(round( ($switchc/$cday),2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('Credits set'));
 $tablecells.=wf_TableCell($creditc);
-$tablecells.=wf_TableCell(($creditc/$cday));
+$tablecells.=wf_TableCell(round( ($creditc/$cday) ,2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 
 $tablecells=wf_TableCell(__('Payments processed'));
 $tablecells.=wf_TableCell($payc);
-$tablecells.=wf_TableCell(($payc/$cday));
+$tablecells.=wf_TableCell(round( ($payc/$cday),2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('Planned changes to tariffs'));
 $tablecells.=wf_TableCell($tarchc);
-$tablecells.=wf_TableCell(($tarchc/$cday));
+$tablecells.=wf_TableCell(round( ($tarchc/$cday),2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('External billing events'));
 $tablecells.=wf_TableCell($eventsc);
-$tablecells.=wf_TableCell(($eventsc/$cday));
+$tablecells.=wf_TableCell( round( ($eventsc/$cday) ,2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $tablecells=wf_TableCell(__('Internal billing events'));
 $tablecells.=wf_TableCell($stgc);
-$tablecells.=wf_TableCell(($stgc/$cday));
+$tablecells.=wf_TableCell(round( ($stgc/$cday),2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $template=wf_TableBody($tablerows, '50%', '0');

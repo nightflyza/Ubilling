@@ -16,6 +16,9 @@ if (cfr('CATVACT')) {
         $curday=date("d");
         $curtime=curtime();
         
+
+      $address=$userdata['street'].' '.$userdata['build'].'/'.$userdata['apt'];
+        
         //if creating new activity
         if (wf_CheckPost(array('newacttime','newactday'))) {
             $customdate=$_POST['newactyear'].'-'.$_POST['newactmonth'].'-'.$_POST['newactday'].' '.$_POST['newacttime'];
@@ -35,7 +38,7 @@ if (cfr('CATVACT')) {
         
         $actform=wf_Form('', 'POST', $actinputs, 'glamour');
         
-        show_window(__('User activity'),$actform);
+        show_window(__('User activity').' '.$address,$actform);
         catv_ActivityShowAll($userid);
         
         catv_ProfileBack($userid);

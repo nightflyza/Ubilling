@@ -683,3 +683,34 @@ a:hover {
 }
 
 
+.siglight {
+    font-size: 24px;
+    font-weight:bold;
+
+/* IE10 Consumer Preview */ 
+background-image: -ms-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Mozilla Firefox */ 
+background-image: -moz-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Opera */ 
+background-image: -o-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Webkit (Safari/Chrome 10) */ 
+background-image: -webkit-gradient(radial, center center, 0, center center, 497, color-stop(0, #FFFFFF), color-stop(1, #FFB914));
+
+/* Webkit (Chrome 11+) */ 
+background-image: -webkit-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* W3C Markup, IE10 Release Preview */ 
+background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%, #FFB914 100%);
+
+}
+
+.undone,
+.undone div,
+.undone span {
+    background-color: #f8bb00; 
+    border-color: #f8bb00;
+    color: #000000;           
+}

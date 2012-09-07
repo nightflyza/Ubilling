@@ -17,12 +17,20 @@ if(cfr('DHCP')) {
        $query="SELECT * from `dhcp`";
        $allnets=simple_queryall($query);
        if (!empty ($allnets)) {
-       $dhcpdconf='#dhcpd.conf <br>'.str_replace("\n",'<br>',file_get_contents('multinet/dhcpd.conf'));
-       $previews=web_Overlay('dhcpd.conf', $dhcpdconf,0.90);
+       $dhcpdconf=str_replace("\n",'<br>',file_get_contents('multinet/dhcpd.conf'));
+        // old overlay
+        //$previews=web_Overlay('dhcpd.conf', $dhcpdconf,0.90);
+       // new modal dialog
+       $previews=  wf_modal('dhcpd.conf', 'dhcpd.conf', $dhcpdconf, 'ubButton', 800, 600)."<br> <br>";
+       
        foreach ($allnets as $io=>$eachnet) {
            $subconfname=trim($eachnet['confname']);
-           @$subconfdata='#'.$subconfname.' <br>'.str_replace("\n", '<br>', file_get_contents('multinet/'.$subconfname));
-           $previews.=web_Overlay($subconfname, $subconfdata,0.90);
+           @$subconfdata=str_replace("\n", '<br>', file_get_contents('multinet/'.$subconfname));
+            // old overlay
+            //$previews.=web_Overlay($subconfname, $subconfdata,0.90);
+            // new modal dialog
+            $previews.=wf_modal($subconfname, $subconfname, $subconfdata, 'ubButton', 800, 600)."<br> <br>";
+            
        }
        show_window(__('Generated configs preview'),$previews);
        }

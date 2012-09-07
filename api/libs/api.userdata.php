@@ -69,6 +69,41 @@ function zb_UserGetAllIPs() {
     return($ips);
 }
 
+
+function zb_UserGetAllIpMACs() {
+    $query="SELECT `ip`,`mac` from `nethosts`";
+    $all=simple_queryall($query);
+    $result=array();
+    if (!empty ($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['ip']]=$each['mac'];
+          }
+    }
+    return($result);
+}
+
+function zb_UserGetAllMACs() {
+   $alluserips= zb_UserGetAllIPs();
+   $alluserips=array_flip($alluserips);
+   $allmac=zb_UserGetAllIpMACs();
+   
+   $result=array();
+   
+   //filling mac array
+   if (!empty($allmac)) {
+       foreach ($allmac as $eachip=>$eachmac) {
+           
+           if (isset($alluserips[$eachip])) {
+               $result[$alluserips[$eachip]]=$eachmac;
+           }
+       }
+   }
+   
+   return ($result);
+}
+
+
+
 /*
  * User Phone and Mobile management
  * Create, Delete, Get, Change
@@ -181,7 +216,7 @@ $query="
     (NULL, '".$login."','".$contract."');
     ";
 nr_query($query);
-log_register('CREATE UserContract '.$login.' '.$contract);
+log_register('CREATE UserContract ('.$login.') '.$contract);
 }
 
 
@@ -189,7 +224,7 @@ function zb_UserDeleteContract($login) {
     $login=vf($login);
     $query="DELETE from `contracts` WHERE `login` = '".$login."';";
     nr_query($query);
-    log_register('DELETE UserContract '.$login);
+    log_register('DELETE UserContract ('.$login.')');
 }
 
 function zb_UserGetContract($login) {
@@ -204,7 +239,7 @@ function zb_UserChangeContract($login,$contract) {
     $contract=mysql_real_escape_string($contract);
     $query="UPDATE `contracts` SET `contract` = '".$contract."' WHERE `login`= '".$login."' ;";
     nr_query($query);
-    log_register('CHANGE UserContracts '.$login.' '.$contract);
+    log_register('CHANGE UserContracts ('.$login.') '.$contract);
 }
 
 function zb_UserGetAllContracts() {
@@ -214,6 +249,18 @@ function zb_UserGetAllContracts() {
     if (!empty ($allcontracts)) {
         foreach ($allcontracts as $io=>$eachcontract) {
             $result[$eachcontract['contract']]=$eachcontract['login'];
+        }
+    }
+    return ($result);
+}
+
+function zb_UserGetAllEmails() {
+    $result=array();
+    $query="SELECT * from `emails`"; 
+    $all=simple_queryall($query);
+    if (!empty ($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['login']]=$each['email'];
         }
     }
     return ($result);
@@ -257,7 +304,7 @@ function zb_UserCreateSpeedOverride($login,$speed) {
             );
         ";
     nr_query($query);
-    log_register('CREATE UserSpeedOverride '.$login.' '.$speed);
+    log_register('CREATE UserSpeedOverride ('.$login.') '.$speed);
  }
  
 function zb_UserDeleteSpeedOverride($login) {
@@ -313,6 +360,21 @@ function zb_UserGetNotes($login) {
         }
         return ($result);
     }
+    
+     
+// returns all of user LAT and logins pairs
+    function zb_LatGetAllUsers () {
+        $query="SELECT `login`,`LastActivityTime` from `users`";
+        $result=array();
+        $allpairs=simple_queryall($query);
+        if (!empty ($allpairs)) {
+            foreach ($allpairs as $io=>$eachuser) {
+                $result[$eachuser['login']]=$eachuser['LastActivityTime'];
+            }
+        }
+        return ($result);
+    }   
+    
     
     
  // returns all of user cash and logins pairs
@@ -383,10 +445,24 @@ function zb_UserGetNotes($login) {
     
    
  function zb_TariffGetPrice($tariff) {
-    $login=mysql_real_escape_string($tariff);
+    $tariff=mysql_real_escape_string($tariff);
     $query="SELECT `Fee` from `tariffs` WHERE `name`='".$tariff."'";
     $res=simple_query($query);
     return($res['Fee']); 
+ }  
+ 
+  function zb_TariffGetPricesAll() {
+    $query="SELECT `name`,`Fee` from `tariffs`";
+    $allprices=simple_queryall($query);
+    $result=array();
+    
+    if (!empty ($allprices)) {
+        foreach ($allprices as $io=>$eachtariff) {
+            $result[$eachtariff['name']]=$eachtariff['Fee'];
+        }
+    }
+    
+    return ($result);
  }  
   
 ?>

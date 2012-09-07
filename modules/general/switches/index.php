@@ -22,7 +22,9 @@ if (isset($_GET['switchdelete'])) {
 
 
 if (!isset($_GET['edit'])) {
-show_window('',  wf_Link('?module=switchmodels', 'Available switch models', true, 'ubButton'));
+$swlinks=wf_Link('?module=switchmodels', 'Available switch models', false, 'ubButton');
+$swlinks.=wf_Link('?module=switches&forcereping=true', 'Force ping', false, 'ubButton');
+show_window('',  $swlinks);
 show_window(__('Available switches'), web_SwitchesShow());
 show_window(__('Add switch'),  web_SwitchFormAdd());
 

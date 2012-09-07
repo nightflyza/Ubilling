@@ -86,6 +86,15 @@ if ($altconf['TB_NEWTICKETNOTIFY']) {
     $ticketnotify='';
 }
 
+//new signups notify
+if ($altconf['SIGREQ_ENABLED']) {
+    $newreqcount= zb_SigreqsGetAllNewCount();
+    if ($newreqcount!=0) {
+        $ticketnotify.=  wf_Link('?module=sigreq', ' <img src="skins/sigreqnotify.gif" title="'.$newreqcount.' '.__('signup requests expected processing').'" border="0">', false);
+    } else {
+        $ticketnotify.='';
+    } 
+} 
 
   show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
 

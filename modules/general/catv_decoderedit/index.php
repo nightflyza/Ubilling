@@ -9,7 +9,9 @@ if (cfr('CATVDECODEREDIT')) {
   
       $userdata=catv_UserGetData($userid);
       $currentdecoder=$currenttariff=$userdata['decoder'];
-       
+      
+      $realname=$userdata['realname'];
+      $address=$userdata['street'].' '.$userdata['build'].'/'.$userdata['apt'];
       
       //if someone changing decoder
       if (wf_CheckPost(array('newuserdecoder'))) {
@@ -18,7 +20,7 @@ if (cfr('CATVDECODEREDIT')) {
           rcms_redirect("?module=catv_decoderedit&userid=".$userid);
       }
       
-      
+      show_window($address, $realname);
       //form construct
       $editinputs=wf_TextInput('newuserdecoder', 'Decoder', $currentdecoder, false, '20');
       $editinputs.=wf_Submit('Change');

@@ -129,11 +129,13 @@ function curlang() {
     
 //function for show localized calendar control
 function web_CalendarControl($field) {
-    $lang=curlang();
-    $result='
-        <script src="modules/jsc/CalendarControl_'.$lang.'.js" language="javascript"></script> 
-        <input name="'.$field.'"  onfocus="showCalendarControl(this);" type="text" size="10">
-        ';
+//    $lang=curlang();
+//    $result='
+//        <script src="modules/jsc/CalendarControl_'.$lang.'.js" language="javascript"></script> 
+//        <input name="'.$field.'"  onfocus="showCalendarControl(this);" type="text" size="10">
+//        ';
+    
+    $result=  wf_DatePicker($field);
     return ($result);
 }
 
@@ -163,6 +165,45 @@ function web_EditorStringDataForm($fieldnames,$fieldkey,$useraddress,$olddata=''
         <tr>
         <td class="row2">'.$field2.'</td>
         <td class="row3"><input type="text" name="'.$fieldkey.'"></td>
+        </tr>
+        </table>
+        <input type="submit" value="'.__('Change').'">
+        </form>
+        <br><br>
+        ';
+return($form);
+}
+
+function web_EditorStringDataFormCredit($fieldnames,$fieldkey,$useraddress,$olddata='') {
+    $field1=$fieldnames['fieldname1'];
+    $field2=$fieldnames['fieldname2'];
+    
+    if (empty ($olddata)) {
+    $allcontracts=zb_UserGetAllContracts();
+    for ($i=1;$i<10000;$i++) {
+        if (!isset($allcontracts[$i])) {
+            $contract_proposal=$i;
+            break;
+        }
+    }
+    } else {
+        $contract_proposal='';
+    }
+    
+    $form='
+        <form action="" method="POST">
+        <table width="100%" border="0">
+        <tr>
+        <td class="row2">'.__('User').'</td>
+        <td class="row3">'.$useraddress.'</td>
+        </tr>
+        <tr>
+        <td class="row2">'.$field1.'</td>
+        <td class="row3">'.$olddata.'</td>
+        </tr>
+        <tr>
+        <td class="row2">'.$field2.'</td>
+        <td class="row3"><input type="text" name="'.$fieldkey.'" value="'.$contract_proposal.'"></td>
         </tr>
         </table>
         <input type="submit" value="'.__('Change').'">
@@ -316,6 +357,13 @@ function web_CashTypeSelector() {
 function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$tariff_price='') {
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
+    
+    if ($tariff_price!=0) {
+        $expected_time=', '.__('which should be enough for another').' '.intval($olddata/$tariff_price).' '.__('months of service use');
+    } else {
+        $expected_time='';
+    }
+    
     $radio='
         <input type="radio" name="operation" value="add" CHECKED> '.__('Add cash').'
         <input type="radio" name="operation" value="correct"> '.__('Correct saldo').'
@@ -331,7 +379,7 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
         </tr>
         <tr>
         <td class="row2">'.$field1.'</td>
-        <td class="row3">'.$olddata.'</td>
+        <td class="row3"><b>'.$olddata.'</b>'.$expected_time.'</td>
         </tr>
         <tr>
         <td class="row2">'.$field2.'</td>
@@ -658,7 +706,10 @@ return($form);
             foreach ($plugins as $io=>$eachplugin) {
              if (isset($eachplugin['overlay'])) {
              $overlaydata=web_ProfilePluginsShowOverlay($login, $eachplugin['overlaydata']).'<br><br>';
-             $result.=web_Overlay('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', $overlaydata, '0.95');
+             // old style
+             // $result.=web_Overlay('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', $overlaydata, '0.95');
+             // try move black magic to jquery UI
+              $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 400);   
              } else {
               $result.='<a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> <br><br>';   
              }
@@ -678,7 +729,7 @@ return($form);
             $hightlight_end='</b>';
         }
         $userdata=zb_ProfileGetStgData($login);
-        $alladdress=zb_AddressGetFulladdresslist();
+        $alladdress=zb_AddressGetFullCityaddresslist();
         @$useraddress=$alladdress[$login];
         $realname=zb_UserGetRealName($login);
         $phone=zb_UserGetPhone($login);
@@ -736,6 +787,20 @@ return($form);
             }
             
         }
+        
+        //cosmetic issues
+        if ($userdata['Passive']) {
+            $passiveicon=  wf_img('skins/icon_passive.gif').' ';
+        } else {
+            $passiveicon='';
+        }
+        
+          if ($userdata['Down']) {
+            $downicon=  wf_img('skins/icon_down.gif').' ';
+        } else {
+            $downicon='';
+        }
+        
          
          
         $profile.='
@@ -839,12 +904,12 @@ return($form);
                 <td class="row3">'.web_trigger($userdata['DisabledDetailStat']).'</td>
             </tr>
             <tr>
-                <td class="row2">'.__('Freezed').'</td>
-                <td class="row3">'.web_trigger($userdata['Passive']).'</td>
+                <td class="row2"> '.$hightlight_start.''.__('Freezed').''.$hightlight_end.'</td>
+                <td class="row3"> '.$hightlight_start.''.$passiveicon.web_trigger($userdata['Passive']).''.$hightlight_end.'</td>
             </tr>
             <tr>
                 <td class="row2"> '.$hightlight_start.''.__('Disabled').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.web_trigger($userdata['Down']).''.$hightlight_end.'</td>
+                <td class="row3"> '.$hightlight_start.' '.$downicon.web_trigger($userdata['Down']).''.$hightlight_end.'</td>
             </tr>
               <tr>
                 <td class="row2">'.__('Notes').'</td>
@@ -925,9 +990,18 @@ return($form);
                     $eachpayment['note']=__('Credit fee');
                  }
                  
+                 if (ispos($eachpayment['note'], 'AFFEE')) {
+                    $eachpayment['note']=__('Freezing fee');
+                 }
+                 
                  if (ispos($eachpayment['note'], 'TCHANGE:')) {
                     $tariff=explode(':', $eachpayment['note']);
                     $eachpayment['note']=__('Tariff change')." ".$tariff[1];
+                 }
+                 
+                   if (ispos($eachpayment['note'], 'BANKSTA:')) {
+                    $banksta=explode(':', $eachpayment['note']);
+                    $eachpayment['note']=__('Bank statement')." ".$banksta[1];
                  }
             }
             
@@ -1059,8 +1133,8 @@ function web_DirectionsShow() {
                     '.$eachrule['rulename'].'
                     </td>
                      <td>
-                    '.  wf_JSAlert('?module=rules&delete='.$eachrule['id'], web_delete_icon(), 'Are you serious').'
-                    '.  wf_Link("?module=rules&edit=".$eachrule['id'], web_edit_icon(), false).'    
+                    '.  wf_JSAlert('?module=rules&delete='.$eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
+                    '.  wf_JSAlert("?module=rules&edit=".$eachrule['id'], web_edit_icon(), 'Are you serious').'    
                     </td>
                   </tr>
                   ';
@@ -1150,9 +1224,18 @@ function web_DirectionsShow() {
                     $eachpayment['note']=__('Credit fee');
                  }
                  
+                 if (ispos($eachpayment['note'], 'AFFEE')) {
+                    $eachpayment['note']=__('Freezing fee');
+                 }
+                 
                  if (ispos($eachpayment['note'], 'TCHANGE:')) {
                     $tariff=explode(':', $eachpayment['note']);
                     $eachpayment['note']=__('Tariff change')." ".$tariff[1];
+                 }
+                 
+                 if (ispos($eachpayment['note'], 'BANKSTA:')) {
+                    $banksta=explode(':', $eachpayment['note']);
+                    $eachpayment['note']=__('Bank statement')." ".$banksta[1];
                  }
                  
             }
@@ -1191,7 +1274,7 @@ function web_bar($count,$total) {
     return($code);
 }
 
-//retunt all months with names
+//retunt all months with names in two digit notation
 function months_array() {
     $months=array(
         '01'=>'January',
@@ -1203,6 +1286,24 @@ function months_array() {
         '07'=>'July',
         '08'=>'August',
         '09'=>'September',
+        '10'=>'October',
+        '11'=>'November',
+        '12'=>'December');
+    return($months);
+}
+
+//retunt all months with names without begin zeros
+function months_array_wz() {
+    $months=array(
+        '1'=>'January',
+        '2'=>'February',
+        '3'=>'March',
+        '4'=>'April',
+        '5'=>'May',
+        '6'=>'June',
+        '7'=>'July',
+        '8'=>'August',
+        '9'=>'September',
         '10'=>'October',
         '11'=>'November',
         '12'=>'December');
@@ -1425,7 +1526,7 @@ function web_PaymentsShowGraph($year) {
                             <option value="rscriptd">rscriptd</option>
                             <option value="radius">radius</option>
                             <option value="mtdirect">Mikrotik Direct</option>
-                            <option value="mtradius">Mikrotik Radius</option>
+                            <option value="local">Local NAS</option>
                         </select>'.__('NAS type').'
                 <br>    <input type="text" name="newnasip"> '.__('IP').'
                 <br>    <input type="text" name="newnasname"> '.__('NAS name').'
@@ -1635,20 +1736,35 @@ function web_BackupForm() {
        $bandwidthd=zb_BandwidthdGetUrl($ip);
        if ($bandwidthd) {
            $bwd=zb_BandwidthdGenLinks($ip);
-            $daybw=__('Downloaded').'<br><img src="'.$bwd['dayr'].'"> <br> '.__('Uploaded').' <br> <img src="'.$bwd['days'].'"> <br> ';
-            $weekbw=__('Downloaded').'<br><img src="'.$bwd['weekr'].'"> <br> '.__('Uploaded').' <br> <img src="'.$bwd['weeks'].'"> <br> ';
-            $monthbw=__('Downloaded').'<br><img src="'.$bwd['monthr'].'"> <br> '.__('Uploaded').' <br> <img src="'.$bwd['months'].'"> <br> ';
-            $yearbw=__('Downloaded').'<br><img src="'.$bwd['yearr'].'"> <br> '.__('Uploaded').' <br> <img src="'.$bwd['years'].'"> <br> ';
+           
+            $daybw=__('Downloaded').'<br><img src="'.$bwd['dayr'].'"> <br>
+             '.__('Uploaded').' <br> <img src="'.$bwd['days'].'"> <br> ';
+            $weekbw=__('Downloaded').'<br><img src="'.$bwd['weekr'].'"> <br>
+                '.__('Uploaded').' <br> <img src="'.$bwd['weeks'].'"> <br> ';
+            $monthbw=__('Downloaded').'<br><img src="'.$bwd['monthr'].'"> <br>
+                '.__('Uploaded').' <br> <img src="'.$bwd['months'].'"> <br> ';
+            $yearbw=__('Downloaded').'<br><img src="'.$bwd['yearr'].'"> <br>
+                '.__('Uploaded').' <br> <img src="'.$bwd['years'].'"> <br> ';
                 $result.='<br> <h3> '.__('Graphs').' </h3>';
-                $result.='<table  border="0" width="50%">';
-                $result.='<tr class="row3">';
-                $result.='<td>'.web_Overlay(__('Graph by day'), $daybw,0.85).'</td>';
-                $result.='<td>'.web_Overlay(__('Graph by week'), $weekbw,0.85).'</td>';
+// deprecated web overlay                 
+//                $result.='<table  border="0" width="50%">';
+//                $result.='<tr class="row3">';
+//                $result.='<td>'.web_Overlay(__('Graph by day'), $daybw,0.85).'</td>';
+//                $result.='<td>'.web_Overlay(__('Graph by week'), $weekbw,0.85).'</td>';
+//                $result.='<tr>';
+//                $result.='<tr class="row3">';
+//                $result.='<td>'.web_Overlay(__('Graph by month'), $monthbw,0.85).'</td>';
+//                $result.='<td>'.web_Overlay(__('Graph by year'),  $yearbw,0.85).'</td>';
+//                $result.='<tr>';
+//                
+                // jquery UI style
+                $result.='<table  border="0" >';
                 $result.='<tr>';
-                $result.='<tr class="row3">';
-                $result.='<td>'.web_Overlay(__('Graph by month'), $monthbw,0.85).'</td>';
-                $result.='<td>'.web_Overlay(__('Graph by year'),  $yearbw,0.85).'</td>';
-                $result.='<tr>';
+                $result.='<td>'. wf_modal(__('Graph by day'), __('Graph by day'), $daybw, 'ubButton', 920, 650).'</td>';
+                $result.='<td>'. wf_modal(__('Graph by week'), __('Graph by week'), $weekbw, 'ubButton', 920, 650).'</td>';
+                $result.='<td>'. wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', 920, 650).'</td>';
+                $result.='<td>'. wf_modal(__('Graph by year'), __('Graph by year'), $yearbw, 'ubButton', 920, 650).'</td>';
+                $result.='</tr>';
                $result.='</table> <br>';
        } else {
            $result.=__('No user graphs because no NAS with bandwidthd for his network');
@@ -1761,36 +1877,70 @@ function web_BackupForm() {
        $query="SELECT `login`,`Tariff`,`TariffChange` from `users` WHERE `TariffChange` !=''";
        $allmoves=simple_queryall($query);
        $alladdrz=zb_AddressGetFulladdresslist();
-       $result='<table width="100%" class="sortable" border="0">';
-       $result.='
-               <tr class="row1">
-                    <td>'.__('Login').'</td>
-                    <td>'.__('Full address').'</td>
-                    <td>'.__('Current tariff').'</td>
-                    <td>'.__('Next month').'</td>    
-               </tr>
-               ';
+       $allrealnames=  zb_UserGetAllRealnames();
+       $alltariffprices=  zb_TariffGetPricesAll();
+       $totaldiff=0;
+       $movecount=0;
+       
+      
+       $tablecells=  wf_TableCell(__('Login'));
+       $tablecells.=  wf_TableCell(__('Full address'));
+       $tablecells.=  wf_TableCell(__('Real name'));
+       $tablecells.=  wf_TableCell(__('Tariff'));
+       $tablecells.=  wf_TableCell(__('Next month'));
+       $tablecells.=  wf_TableCell(__('Difference'));
+       $tablerows=  wf_TableRow($tablecells, 'row1');
+       
        if (!empty ($allmoves)) {
            foreach ($allmoves as $io=>$eachmove) {
                //generate NMCHANGE option
                if ($alter_conf['NMCHANGE']) {
-                $nmchange.=$sgconf.' set -s '.$stg_host.' -p '.$stg_port.' -a'.$stg_login.' -w'.$stg_passwd.' -u'.$eachmove['login'].' -d 1'."\n";   
-                $nmchange.=$sgconf.' set -s '.$stg_host.' -p '.$stg_port.' -a'.$stg_login.' -w'.$stg_passwd.' -u'.$eachmove['login'].' -d 0'."\n";
+                $nmchange.=$sgconf.' set -s '.$stg_host.' -p '.$stg_port.' -a'.$stg_login.' -w'.$stg_passwd.' -u'.$eachmove['login'].' --always-online 0'."\n";   
+                $nmchange.=$sgconf.' set -s '.$stg_host.' -p '.$stg_port.' -a'.$stg_login.' -w'.$stg_passwd.' -u'.$eachmove['login'].' --always-online 1'."\n";
                }
-               $result.='
-               <tr class="row3">
-                    <td><a href="?module=userprofile&username='.$eachmove['login'].'">'.web_profile_icon().' '.$eachmove['login'].'</a></td>
-                    <td>'.@$alladdrz[$eachmove['login']].'</td>
-                    <td>'.$eachmove['Tariff'].'</td>
-                    <td>'.$eachmove['TariffChange'].'</td>    
-               </tr>
-               ';
+               
+               @$current_price=$alltariffprices[$eachmove['Tariff']];
+               @$next_price=$alltariffprices[$eachmove['TariffChange']];
+               @$difference=$next_price-$current_price;
+               //coloring movements
+               if ($difference<0) {
+                   $cashcolor='#a90000';
+               } else {
+                   $cashcolor='#005304';
+               }
+               $totaldiff=$totaldiff+$difference;
+               $movecount++;
+               
+               $tablecells=  wf_TableCell(wf_Link('?module=userprofile&username='.$eachmove['login'], web_profile_icon().' '.$eachmove['login'], false));
+               $tablecells.=  wf_TableCell(@$alladdrz[$eachmove['login']]);
+               $tablecells.=  wf_TableCell(@$allrealnames[$eachmove['login']]);
+               $tablecells.=  wf_TableCell($eachmove['Tariff']);
+               $tablecells.=  wf_TableCell($eachmove['TariffChange']);
+               $tablecells.=  wf_TableCell('<font color="'.$cashcolor.'">'.$difference.'</font>');
+               $tablerows.=  wf_TableRow($tablecells, 'row3');
+         
            }
        }
-       $result.='</table>';
+      
+       $result= wf_TableBody($tablerows, '100%', 0, 'sortable');
+       
+       
+         //coloring profit
+               if ($totaldiff<0) {
+                   $profitcolor='#a90000';
+               } else {
+                   $profitcolor='#005304';
+               }
+       $result.='<b>'.__('Total').': '.$movecount.'</b><br>';
+       $result.='<font color="'.$profitcolor.'">'.__('PROFIT').': '.$totaldiff.'</font>';
+               
        //yep, lets write nmchange
          if ($alter_conf['NMCHANGE']) {
-             file_put_contents(CONFIG_PATH.'nmchange.sh', $nmchange);
+             if (date("d")!=1) {
+                 // protect of override on 1st day
+                 file_put_contents(CONFIG_PATH.'nmchange.sh', $nmchange);
+             }
+             
              }
        
        return($result);
@@ -1905,6 +2055,8 @@ function zb_NumUnEncode($data) {
 
 
  function web_UserArrayShower($usersarr) {
+     $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+     
         if (!empty ($usersarr)) {
             $alladdress=zb_AddressGetFulladdresslist();
             $allrealnames=zb_UserGetAllRealnames();
@@ -1913,14 +2065,36 @@ function zb_NumUnEncode($data) {
             $allusercredits=zb_CreditGetAllUsers();
             $alluserips=zb_UserGetAllIPs();
             
+            if ($alterconf['ONLINE_LAT']) {
+                $alluserlat=zb_LatGetAllUsers();
+            }
+            
+            
+            //additional finance links
+    if ($alterconf['FAST_CASH_LINK']) {
+           $fastcash=true;
+       } else {
+           $fastcash=false;
+       }
+            
             $tablecells=wf_TableCell(__('Login'));
             $tablecells.=wf_TableCell(__('Address'));
             $tablecells.=wf_TableCell(__('Real Name'));
             $tablecells.=wf_TableCell(__('IP'));
             $tablecells.=wf_TableCell(__('Tariff'));
+            // last activity time
+            if ($alterconf['ONLINE_LAT']) {
+               $tablecells.=wf_TableCell(__('LAT'));
+            }
             $tablecells.=wf_TableCell(__('Active'));
+            //online detect
+            if ($alterconf['DN_ONLINE_DETECT']) {
+               $tablecells.=wf_TableCell(__('Users online'));
+            }
             $tablecells.=wf_TableCell(__('Balance'));
             $tablecells.=wf_TableCell(__('Credit'));
+            
+           
             
             $tablerows=wf_TableRow($tablecells, 'row1');
             
@@ -1935,21 +2109,40 @@ function zb_NumUnEncode($data) {
                  $activity_flag=0;
                 }
                 
-                $profilelink=wf_Link('?module=userprofile&username='.$eachlogin, web_profile_icon().' '.$eachlogin);
+                 //fast cash link
+            if ($fastcash) {
+                $financelink=' <a href="?module=addcash&username='.$eachlogin.'"><img src="skins/icon_dollar.gif" border="0" title="'.__('Finance operations').'"></a> ';
+             } else {
+             $financelink='';
+            } 
+            
+                $profilelink=$financelink.wf_Link('?module=userprofile&username='.$eachlogin, web_profile_icon().' '.$eachlogin);
                 $tablecells=wf_TableCell($profilelink);
                 $tablecells.=wf_TableCell(@$alladdress[$eachlogin]);
                 $tablecells.=wf_TableCell(@$allrealnames[$eachlogin]);
                 $tablecells.=wf_TableCell(@$alluserips[$eachlogin],'','','sorttable_customkey="'.  ip2int(@$alluserips[$eachlogin]).'"');
                 $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
+                 if ($alterconf['ONLINE_LAT']) {
+                        $tablecells.=wf_TableCell(date("Y-m-d H:i:s",$alluserlat[$eachlogin]));
+                    }
                 $tablecells.=wf_TableCell($activity,'','','sorttable_customkey="'.$activity_flag.'"');
+                if ($alterconf['DN_ONLINE_DETECT']) {
+                   if (file_exists(DATA_PATH.'dn/'.$eachlogin)) {
+                        $online_flag=1;
+                        } else {
+                        $online_flag=0;
+                        }
+                $tablecells.=wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="'.$online_flag.'"');
+                }
                 $tablecells.=wf_TableCell($usercash);
                 $tablecells.=wf_TableCell($usercredit);
                 
+               
                 $tablerows.=wf_TableRow($tablecells, 'row3');
             }
             
             $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
-
+            $result.='<b>'.__('Total').':</b> '.sizeof($usersarr);
             } else {
             $result=__('Any users found');
            }
@@ -1964,14 +2157,14 @@ function strtolower_utf8($string){
     "v", "w", "x", "y", "z", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è", "é", "ê", "ë", "ì", "í", "î", "ï",
     "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "ø", "ù", "ú", "û", "ü", "ý", "а", "б", "в", "г", "д", "е", "ё", "ж",
     "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы",
-    "ь", "э", "ю", "я"
+    "ь", "э", "ю", "я", "ы"
   );
   $convert_from = array(
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
     "V", "W", "X", "Y", "Z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È", "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï",
     "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "Ø", "Ù", "Ú", "Û", "Ü", "Ý", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж",
     "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ъ",
-    "Ь", "Э", "Ю", "Я"
+    "Ь", "Э", "Ю", "Я", "Ы"
   );
 
   return str_replace($convert_from, $convert_to, $string);
@@ -2034,6 +2227,8 @@ function strtolower_utf8($string){
      $paycount_q="SELECT COUNT(`id`) from `payments`";
      $paycount=simple_query($paycount_q);
      $paycount=$paycount['COUNT(`id`)'];
+     $paycount=$paycount/100;
+     $paycount=round($paycount);
      
      //detect ubilling actions count
      $eventcount_q="SELECT COUNT(`id`) from `weblogs`";
@@ -2065,6 +2260,21 @@ function strtolower_utf8($string){
          show_window('',$tracking_code);
      }
     }
+    
+    
+ function crc16($string) {
+  $crc = 0xFFFF;
+  for ($x = 0; $x < strlen ($string); $x++) {
+    $crc = $crc ^ ord($string[$x]);
+    for ($y = 0; $y < 8; $y++) {
+      if (($crc & 0x0001) == 0x0001) {
+        $crc = (($crc >> 1) ^ 0xA001);
+      } else { $crc = $crc >> 1; }
+    }
+  }
+  return $crc;
+} 
+
 
 
 

@@ -684,3 +684,94 @@ CREATE TABLE `ubstats` (
 `key` VARCHAR( 40 ) NULL ,
 `value` VARCHAR ( 255 ) NULL
 ) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.2.7 update
+CREATE TABLE `bankstaraw` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`filename` VARCHAR( 255 ) NOT NULL ,
+`rawdata` TEXT NOT NULL
+) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `bankstaparsed` (
+  `id` int(11) NOT NULL auto_increment,
+  `hash` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `row` int(11) NOT NULL,
+  `realname` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `summ` float NOT NULL,
+  `state` int(11) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.2.8 update
+
+CREATE TABLE `nastemplates` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`nasid` INT NOT NULL ,
+`template` TEXT NOT NULL
+) ENGINE = MYISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+
+CREATE TABLE `radattr` (
+  `id` int(11) NOT NULL auto_increment,
+  `login` varchar(255) NOT NULL,
+  `attr` varchar(255) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.2.9 update
+
+CREATE TABLE `ubstorage` (
+  `id` int(11) NOT NULL auto_increment,
+  `key` varchar(255) default NULL,
+  `value` text,
+  PRIMARY KEY  (`id`),
+  KEY `key` (`key`),
+  FULLTEXT KEY `value` (`value`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE `sigreq` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`date` DATETIME NOT NULL ,
+`state` TINYINT NOT NULL ,
+`ip` VARCHAR( 40 ) NOT NULL ,
+`street` VARCHAR( 255 ) NOT NULL ,
+`build` VARCHAR( 40 ) NOT NULL ,
+`apt` VARCHAR( 40 ) NOT NULL ,
+`realname` VARCHAR( 255 ) NOT NULL ,
+`phone` VARCHAR( 255 ) NOT NULL ,
+`service` VARCHAR( 255 ) NOT NULL ,
+`notes` TEXT default NULL
+) ENGINE = MYISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.3.0 Updates
+
+ALTER TABLE `taskman` CHANGE `jobnote` `jobnote` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `taskman` CHANGE `donenote` `donenote` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+ALTER TABLE `taskman` ADD `status` INT NOT NULL , ADD INDEX ( STATUS );
+
+
+CREATE TABLE `catv_bankstaraw` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`filename` VARCHAR( 255 ) NOT NULL ,
+`rawdata` TEXT NOT NULL
+) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `catv_bankstaparsed` (
+  `id` int(11) NOT NULL auto_increment,
+  `hash` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `row` int(11) NOT NULL,
+  `realname` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+   `summ` float NOT NULL,
+  `state` int(11) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

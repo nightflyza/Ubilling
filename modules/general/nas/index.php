@@ -5,6 +5,7 @@ if (cfr('NAS')) {
             $deletenas=$_GET['delete'];
             zb_NasDelete($deletenas);
             zb_NasConfigSave();
+            ra_NasRebuildAll();
             rcms_redirect("?module=nas");
         }
         
@@ -17,6 +18,7 @@ if (cfr('NAS')) {
             if ((!empty ($newnasip)) AND (!empty ($newnasname))) {
                 zb_NasAdd($newnetid, $newnasip, $newnasname, $newnastype, $newbandw);
                 zb_NasConfigSave();
+                ra_NasRebuildAll();
                 rcms_redirect("?module=nas");
             }
         }
@@ -66,6 +68,7 @@ if (cfr('NAS')) {
            simple_update_field('nas', 'netid', $netid, $targetnas);
            zb_NasConfigSave();
            log_register("NAS EDIT ".$nasip);
+           ra_NasRebuildAll();
            rcms_redirect("?module=nas&edit=".$nasid);
        }
        
@@ -80,7 +83,7 @@ if (cfr('NAS')) {
            'rscriptd'=>'rscriptd',
            'radius'=>'Radius',
            'mtdirect'=>'Mikrotik Direct',
-           'mtradius'=>'Mikrotik Radius'
+           'local'=>'Local NAS'
            );
        
        

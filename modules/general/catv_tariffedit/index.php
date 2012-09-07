@@ -12,6 +12,9 @@ if (cfr('CATVTARIFFEDIT')) {
       $userdata=catv_UserGetData($userid);
       $currenttariff=$userdata['tariff'];
       
+      $realname=$userdata['realname'];
+      $address=$userdata['street'].' '.$userdata['build'].'/'.$userdata['apt'];
+      
       //if someone changing tariff next month
       if (wf_CheckPost(array('newusertariffnm'))) {
           catv_UserSetTariffNM($userid, $_POST['newusertariffnm']);
@@ -25,7 +28,7 @@ if (cfr('CATVTARIFFEDIT')) {
           rcms_redirect("?module=catv_tariffedit&userid=".$userid);
       }
           
-          
+       show_window($address, $realname);    
           
       $nowinputs=wf_Selector('newusertariffnow', $alltariffs, 'Tariff', $currenttariff, false);
       $nowinputs.=wf_Submit('Change right now');

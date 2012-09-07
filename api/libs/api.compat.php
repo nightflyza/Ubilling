@@ -77,7 +77,10 @@ function curyear() {
 // dummy webmorda logging
 function log_register($event) {
     $admin_login=whoami();
-    $ip=$_SERVER['REMOTE_ADDR'];
+    @$ip=$_SERVER['REMOTE_ADDR'];
+    if (!$ip) {
+        $ip='127.0.0.1';
+    }
     $current_time=curdatetime();
     $event=mysql_real_escape_string($event);
     $query="INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'".$current_time."','".$admin_login."','".$ip."','".$event."')";
@@ -112,7 +115,7 @@ function cfr($right) {
 // replace for $system->user['username']
 function whoami() {
     global $system;
-    $mylogin=$system->user['username'];
+    @$mylogin=$system->user['username'];
     if (empty($mylogin)) {
     $mylogin='external';
     }

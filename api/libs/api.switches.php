@@ -167,11 +167,65 @@ function zb_SwitchAlive($ip) {
     }
     return ($result);
 }
+
+
+function zb_SwitchesRepingAll() {
+    $allswitches=zb_SwitchesGetAll();
+    $deadswitches=array();
+    
+    if (!empty($allswitches)) {
+        foreach ($allswitches as $io=>$eachswitch) {
+            
+              if (!ispos($eachswitch['desc'], 'NP')) {
+                    if (!zb_PingICMP($eachswitch['ip'])) {
+                    $deadswitches[$eachswitch['ip']]=$eachswitch['location'];
+                    }
+                } 
+        }
+    }
+    
+    $newdata=serialize($deadswitches);
+    zb_StorageSet('SWDEAD', $newdata);
+    
+}
     
         
 function web_SwitchesShow() {
+    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $allswitches=zb_SwitchesGetAll();
         $modelnames=zb_SwitchModelsGetAllTag();
+        $currenttime=time();
+        $reping_timeout=$alterconf['SW_PINGTIMEOUT'];
+        
+        //non realtime switches pinging
+        $last_pingtime=zb_StorageGet('SWPINGTIME');
+        
+        if (!$last_pingtime) {
+            zb_SwitchesRepingAll();
+            zb_StorageSet('SWPINGTIME', $currenttime);
+            $last_pingtime=$currenttime;
+        } else {
+            if ($currenttime>($last_pingtime+($reping_timeout*60))) {
+            // normal timeout reping sub here
+            zb_SwitchesRepingAll();
+            zb_StorageSet('SWPINGTIME', $currenttime);
+            }
+        }
+        
+        //force total reping and update cache
+        if (wf_CheckGet(array('forcereping'))) {
+            zb_SwitchesRepingAll();
+            zb_StorageSet('SWPINGTIME', $currenttime);
+        }
+        
+        //load dead switches cache
+        $dead_switches_raw=  zb_StorageGet('SWDEAD');
+        if (!$dead_switches_raw) {
+            $dead_switches=array();
+        } else {
+            $dead_switches=  unserialize($dead_switches_raw);
+        }
+        
 			
         $tablecells=wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('IP'));
@@ -186,18 +240,26 @@ function web_SwitchesShow() {
 	if (!empty($allswitches)) {
             foreach ($allswitches as $io=>$eachswitch) {
                 //check switch alive state
-                if (!ispos($eachswitch['desc'], 'NP')) {
-                if (zb_PingICMP($eachswitch['ip'])) {
-                $aliveled=web_green_led();
-                $aliveflag='1';
+// realtime switch check deprecated in release 0.3.0                
+//                if (!ispos($eachswitch['desc'], 'NP')) {
+//                if (zb_PingICMP($eachswitch['ip'])) {
+//                $aliveled=web_green_led();
+//                $aliveflag='1';
+//                } else {
+//                $aliveled=web_red_led();
+//                $aliveflag='0';
+//                }
+//                } else {
+//                // if switch have NP flag
+//                $aliveled=web_green_led();
+//                $aliveflag='1';
+//                }
+                if (isset($dead_switches[$eachswitch['ip']])) {
+                  $aliveled=web_red_led();
+                  $aliveflag='0';  
                 } else {
-                $aliveled=web_red_led();
-                $aliveflag='0';
-                }
-                } else {
-                // if switch have NP flag
-                $aliveled=web_green_led();
-                $aliveflag='1';
+                  $aliveled=  web_green_led();
+                  $aliveflag='1';
                 }
                 
     

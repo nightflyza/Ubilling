@@ -18,7 +18,7 @@
          $result.='<td>'.$eachemployee['appointment'].'</td>';
          $result.='<td>
                  '.  wf_JSAlert('?module=employee&delete='.$eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                 <a href="?module=employee&edit='.$eachemployee['id'].'">'.  web_edit_icon().'</a>
+                 '.  wf_JSAlert('?module=employee&edit='.$eachemployee['id'], web_edit_icon(), 'Are you serious').'
                  </td>';
          $result.='</tr>';
          }
@@ -51,10 +51,13 @@ function stg_show_jobtype_form() {
          $result.='<tr class="row3">';
          $result.='<td>'.$eachjob['id'].'</td>';
          $result.='<td>'.$eachjob['jobname'].'</td>';
-         $result.='<td>'.  wf_JSAlert('?module=employee&deletejob='.$eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'</td>';
+         $actionlinks= wf_JSAlert('?module=employee&deletejob='.$eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') .' ';
+         $actionlinks.=wf_JSAlert('?module=employee&editjob='.$eachjob['id'], web_edit_icon(), 'Are you serious');
+         $result.='<td>'. $actionlinks.'</td>';
          $result.='</tr>';
          }
        }
+       
       $result.='
           <form action="" method="POST">
           <input type="hidden" name="addjobtype" value="true">
@@ -239,5 +242,408 @@ nr_query($query);
 log_register("ADD JOB ".$worker_id." ".$jobtype_id." ".$login);
 }
 
+//
+// New Task management API - old is shitty and exists only for backward compatibility
+//
+
+function ts_DetectUserByAddress($address) {
+    $alladdress= zb_AddressGetFulladdresslist();
+    $alladdress=  array_flip($alladdress);
+    if (isset($alladdress[$address])) {
+        return ($alladdress[$address]);
+    } else {
+        return(false);
+    }
+}
+
+   function ts_GetAllEmployee() {
+        $query="SELECT * from `employee`";
+        $allemployee=  simple_queryall($query);
+        $result=array();
+        if (!empty($allemployee)) {
+            foreach ($allemployee as $io=>$each) {
+                $result[$each['id']]=$each['name'];
+            }
+        }
+        return ($result);
+    }
+    
+    function ts_GetAllJobtypes() {
+        $query="SELECT * from `jobtypes`";
+        $alljt=  simple_queryall($query);
+        $result=array();
+        if (!empty($alljt)) {
+            foreach ($alljt as $io=>$each) {
+                $result[$each['id']]=$each['jobname'];
+            }
+        }
+        return ($result);
+    }
+    
+       function ts_GetActiveEmployee () {
+        $query="SELECT * from `employee` WHERE `active`='1'";
+        $allemployee=  simple_queryall($query);
+        $result=array();
+        if (!empty($allemployee)) {
+            foreach ($allemployee as $io=>$each) {
+                $result[$each['id']]=$each['name'];
+            }
+        }
+        return ($result);
+    }
+    
+       function ts_JGetJobsReport() {
+       $allemployee=  ts_GetAllEmployee();
+       $alljobtypes= ts_GetAllJobtypes();
+       $cyear=  curyear();
+       
+       $query="SELECT * from `jobs` WHERE `date` LIKE '".$cyear."-%' ORDER BY `id` DESC";
+       $alljobs=  simple_queryall($query);
+       
+       $i=1;
+       $jobcount=sizeof($alljobs);
+       $result='';
+       
+       if (!empty($alljobs)) {
+           foreach ($alljobs as $io=>$eachjob) {
+               if ($i!=$jobcount) {
+                    $thelast=',';
+                } else {
+                    $thelast='';
+                }
+               
+               $startdate=strtotime($eachjob['date']);
+               $startdate=date("Y, n-1, j",$startdate);
+               
+               $result.="
+                      {
+                        title: '".$allemployee[$eachjob['workerid']]." - ".@$alljobtypes[$eachjob['jobid']]."',
+                        start: new Date(".$startdate."),
+                        end: new Date(".$startdate."),
+                        url: '?module=userprofile&username=".$eachjob['login']."'
+		      }
+                    ".$thelast;
+               $i++;
+           }
+       }
+       return ($result);
+   } 
+   
+   
+    function ts_JGetUndoneTasks() {
+        $allemployee=  ts_GetAllEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        
+        $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+        $allundone=  simple_queryall($query);
+        $result='';
+        $i=1;
+        $taskcount=sizeof($allundone);
+        
+        if (!empty($allundone)) {
+            foreach ($allundone as $io=>$eachtask) {
+                if ($i!=$taskcount) {
+                    $thelast=',';
+                } else {
+                    $thelast='';
+                }
+                
+                $startdate=strtotime($eachtask['startdate']);
+                $startdate=date("Y, n-1, j",$startdate);
+                if ($eachtask['enddate']!='') {
+                    $enddate=strtotime($eachtask['enddate']);
+                    $enddate=date("Y, n-1, j",$enddate);
+                } else {
+                    $enddate=$startdate;
+                }
+          
+                $result.="
+                      {
+                        title: '".$eachtask['address']." - ".@$alljobtypes[$eachtask['jobtype']]."',
+                        start: new Date(".$startdate."),
+                        end: new Date(".$enddate."),
+                        className : 'undone',
+                        url: '?module=taskman&edittask=".$eachtask['id']."'
+                        
+		      } 
+                    ".$thelast;
+            }
+        }
+     
+        return ($result);
+    }
+    
+    function ts_JGetDoneTasks() {
+        $allemployee=  ts_GetAllEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        
+        $query="SELECT * from `taskman` WHERE `status`='1' ORDER BY `date` ASC";
+        $allundone=  simple_queryall($query);
+        $result='';
+        $i=1;
+        $taskcount=sizeof($allundone);
+        
+        if (!empty($allundone)) {
+            foreach ($allundone as $io=>$eachtask) {
+                if ($i!=$taskcount) {
+                    $thelast=',';
+                } else {
+                    $thelast='';
+                }
+                
+                $startdate=strtotime($eachtask['startdate']);
+                $startdate=date("Y, n-1, j",$startdate);
+                if ($eachtask['enddate']!='') {
+                    $enddate=strtotime($eachtask['enddate']);
+                    $enddate=date("Y, n-1, j",$enddate);
+                } else {
+                    $enddate=$startdate;
+                }
+          
+                $result.="
+                      {
+                        title: '".$eachtask['address']." - ".@$allemployee[$eachtask['employeedone']]."',
+                        start: new Date(".$startdate."),
+                        end: new Date(".$enddate."),
+                        url: '?module=taskman&edittask=".$eachtask['id']."'
+		      }
+                    ".$thelast;
+            }
+        }
+     
+        return ($result);
+    }
+    
+    function ts_JGetAllTasks() {
+        $allemployee=  ts_GetAllEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        
+        $query="SELECT * from `taskman`  ORDER BY `id` ASC";
+        $allundone=  simple_queryall($query);
+        $result='';
+        $i=1;
+        $taskcount=sizeof($allundone);
+        
+        if (!empty($allundone)) {
+            foreach ($allundone as $io=>$eachtask) {
+                if ($i!=$taskcount) {
+                    $thelast=',';
+                } else {
+                    $thelast='';
+                }
+                
+                $startdate=strtotime($eachtask['startdate']);
+                $startdate=date("Y, n-1, j",$startdate);
+                if ($eachtask['enddate']!='') {
+                    $enddate=strtotime($eachtask['enddate']);
+                    $enddate=date("Y, n-1, j",$enddate);
+                } else {
+                    $enddate=$startdate;
+                }
+                
+                if ($eachtask['status']==0) {
+                    $coloring="className : 'undone',";
+                } else {
+                    $coloring='';
+                }
+          
+                $result.="
+                      {
+                        title: '".$eachtask['address']." - ".@$alljobtypes[$eachtask['jobtype']]."',
+                        start: new Date(".$startdate."),
+                        end: new Date(".$enddate."),
+                        ".$coloring."
+                        url: '?module=taskman&edittask=".$eachtask['id']."'
+		      }
+                    ".$thelast;
+            }
+        }
+     
+        return ($result);
+    }
+    
+    
+    function ts_TaskCreateForm() {
+        $alljobtypes= ts_GetAllJobtypes();
+        $allemployee= ts_GetActiveEmployee();
+        $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs.=  wf_HiddenInput('createtask', 'true');
+        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+        $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', '', true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs.='<br>';
+        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=wf_Submit(__('Create new task'));
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        $result.=__('All fields marked with an asterisk are mandatory');
+        return ($result);
+    }
+    
+    
+    function ts_ShowPanel() {
+        $createform=  ts_TaskCreateForm();
+        $result=  wf_modal(__('Create task'), __('Create task'), $createform, 'ubButton', '420', '500');
+        $result.=wf_Link('?module=taskman&show=undone', __('Undone tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&show=done', __('Done tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&show=all', __('List all tasks'), false, 'ubButton');
+        return ($result);
+    }
+    
+    
+     function ts_CreateTask($startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
+        $curdate=curdatetime();
+        $admin=  whoami();
+        $address=  str_replace('\'', '`', $address);
+        $address=  mysql_real_escape_string($address);
+        $phone=  mysql_real_escape_string($phone);
+        $jobtypeid=vf($jobtypeid,3);
+        $employeeid=vf($employeeid,3);
+        $jobnote=  mysql_real_escape_string($jobnote);
+        
+        $query="INSERT INTO `taskman` (
+                            `id` ,
+                            `date` ,
+                            `address` ,
+                            `jobtype` ,
+                            `jobnote` ,
+                            `phone` ,
+                            `employee` ,
+                            `employeedone` ,
+                            `donenote` ,
+                            `startdate` ,
+                            `enddate` ,
+                            `admin` ,
+                            `status`
+                                       )
+                                VALUES (
+                                    NULL ,
+                                    '".$curdate."',
+                                    '".$address."',
+                                    '".$jobtypeid."',
+                                    '".$jobnote."',
+                                    '".$phone."',
+                                    '".$employeeid."',
+                                    'NULL',
+                                    NULL ,
+                                    '".$startdate."',
+                                    NULL ,
+                                    '".$admin."',
+                                    '0'
+                    );";
+        nr_query($query);
+        log_register("TASKMAN CREATE ".$address);
+    }
+    
+ function ts_GetTaskData($taskid) {
+        $taskid=vf($taskid,3);
+        $query="SELECT * from `taskman` WHERE `id`='".$taskid."'";
+        $result=  simple_query($query);
+        return ($result);
+    }   
+    
+    
+      function ts_TaskChangeForm($taskid) {
+        $taskid=vf($taskid,3);
+        $taskdata=  ts_GetTaskData($taskid);
+        $result='';
+        $allemployee= ts_GetAllEmployee();
+        $activeemployee=  ts_GetActiveEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        
+        if (!empty($taskdata)) {
+            //not done task
+            $login_detected=ts_DetectUserByAddress($taskdata['address']);
+            if ($login_detected) {
+                $addresslink=wf_Link("?module=userprofile&username=".$login_detected, web_profile_icon().' '.$taskdata['address'], false);
+            } else {
+                $addresslink=$taskdata['address'];
+            }
+            
+            $tablecells=  wf_TableCell(__('Task creation date').' / '.__('Administrator'),'30%');
+            $tablecells.=  wf_TableCell($taskdata['date'].' / '.$taskdata['admin']);
+            $tablerows=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Target date'));
+            $tablecells.=  wf_TableCell('<strong>'.$taskdata['startdate'].'</strong>');
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Task address'));
+            $tablecells.=  wf_TableCell($addresslink);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Phone'));
+            $tablecells.=  wf_TableCell($taskdata['phone']);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Job type'));
+            $tablecells.=  wf_TableCell(@$alljobtypes[$taskdata['jobtype']]);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Who should do'));
+            $tablecells.=  wf_TableCell(@$allemployee[$taskdata['employee']]);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Job note'));
+            $tablecells.=  wf_TableCell($taskdata['jobnote']);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
+            // show task preview
+            show_window(__('View task'),$result);
+            
+            //if task undone
+            if ($taskdata['status']==0) {
+            
+            $inputs=  wf_HiddenInput('changetask', $taskid);
+            $inputs.=wf_DatePicker('editenddate').' <label>'.__('Finish date').'<sup>*</sup></label> <br>';
+            $inputs.='<br>';
+            $inputs.=wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
+            $inputs.='<br>';
+            $inputs.='<label>'.__('Finish note').'</label> <br>';
+            $inputs.=wf_TextArea('editdonenote', '', '', true, '35x3');
+            $inputs.='<br>';
+            $inputs.=wf_Submit(__('This task is done'));
+            
+            $form=  wf_Form("", 'POST', $inputs, 'glamour');
+                
+            //show editing form
+            show_window(__('If task is done'),$form);
+            
+            } else {
+                $donecells=  wf_TableCell(__('Finish date'),'30%');
+                $donecells.=wf_TableCell($taskdata['enddate']);
+                $donerows=  wf_TableRow($donecells,'row3');
+                
+                $donecells=  wf_TableCell(__('Worker done'));
+                $donecells.=wf_TableCell($allemployee[$taskdata['employeedone']]);
+                $donerows.=wf_TableRow($donecells,'row3');
+                
+                $donecells=  wf_TableCell(__('Finish note'));
+                $donecells.=wf_TableCell($taskdata['donenote']);
+                $donerows.=wf_TableRow($donecells,'row3');
+                
+               $doneresult= wf_TableBody($donerows,'100%','0','glamour');
+               $doneresult.=wf_JSAlert('?module=taskman&deletetask='.$taskid, web_delete_icon(__('Remove this task - it is an mistake')),__('Removing this may lead to irreparable results'));
+               $doneresult.=wf_JSAlert('?module=taskman&setundone='.$taskid,  wf_img('skins/icon_key.gif',__('No work was done')),__('Are you serious'));
+               
+               show_window(__('Task is done'),$doneresult);
+            }
+        }
+        
+    }
+    
+    function ts_DeleteTask($taskid) {
+      $taskid=vf($taskid,3);
+      $query="DELETE from `taskman` WHERE `id`='".$taskid."'";
+      nr_query($query);
+      log_register("TASKMAN DELETE ".$taskid);
+      
+  }
 
 ?>

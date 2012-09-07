@@ -19,8 +19,32 @@ if (cfr('EMPLOYEE')) {
    }
    
    if (!wf_CheckGet(array('edit'))) {
+       if (!wf_CheckGet(array('editjob'))) {
+           //display normal tasks
        stg_show_employee_form();
        stg_show_jobtype_form();
+       
+       } else {
+           //show jobeditor
+           $editjob=vf($_GET['editjob']);
+           
+           //edit job subroutine
+           if (wf_CheckPost(array('editjobtype'))) {
+               simple_update_field('jobtypes', 'jobname', $_POST['editjobtype'], "WHERE `id`='".$editjob."'");
+               log_register('JOBTYPE CHANGE '.$editjob);
+               rcms_redirect("?module=employee");
+           }
+           
+           //edit jobtype form
+           $jobdata=  stg_get_jobtype_name($editjob);
+           $jobinputs=  wf_TextInput('editjobtype', 'Job type', $jobdata, true, 20);
+           $jobinputs.=wf_Submit('Save');
+           $jobform=  wf_Form("", "POST", $jobinputs, 'glamour');
+           show_window(__('Edit'), $jobform);
+           show_window('', wf_Link('?module=employee', 'Back', true, 'ubButton'));
+           
+       }
+       
    } else {
        $editemployee=vf($_GET['edit']);
        

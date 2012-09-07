@@ -1,8 +1,9 @@
 <?php
 if (cfr('ARPDIAG')) {
     
-     $config=rcms_parse_ini_file(CONFIG_PATH.'billing.ini');
-     $log_path='/var/log/messages';
+     $config=rcms_parse_ini_file(CONFIG_PATH."billing.ini");
+     $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+     $log_path=$alterconf['ARPDIAG_LOG'];
      $sudo_path=$config['SUDO'];
      $cat_path=$config['CAT'];
      $grep_path=$config['GREP'];

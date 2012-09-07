@@ -1,26 +1,5 @@
 <?php
 
-/*
- *  Shows help icon if context chapter 
- *  available for current language
- * 
- *  @return  string
- */
-
-function web_HelpIconShow() {
-    $lang=curlang();
-    $result='';
-    if (cfr('HELP')) {
-    if (isset($_GET['module'])) {
-        $modulename=vf($_GET['module']);
-        if (file_exists(DATA_PATH."help/".$lang."/".$modulename)) {
-            $result='<a href="?module=help&chapter='.$modulename.'" target="_BLANK"><img src="skins/help.gif" title="'.__('Context help').'"></a>';
-         }
-       }
-    }
-    return ($result);
-}
-
 
 /*
  *  Returns help chapter in current locale
@@ -39,6 +18,32 @@ function web_HelpIconShow() {
          return ($result);
    }
     
+
+
+/*
+ *  Shows help icon if context chapter 
+ *  available for current language
+ * 
+ *  @return  string
+ */
+
+function web_HelpIconShow() {
+    $lang=curlang();
+    $result='';
+    if (cfr('HELP')) {
+    if (isset($_GET['module'])) {
+        $modulename=vf($_GET['module']);
+        if (file_exists(DATA_PATH."help/".$lang."/".$modulename)) {
+        //    $result='<a href="?module=help&chapter='.$modulename.'" ><img src="skins/help.gif" title="'.__('Context help').'"></a>';
+//      modal method not works now           
+          $help_chapter=  web_HelpChapterGet($modulename);  
+          $result=  wf_modal(wf_img("skins/help.gif", __('Context help')), __('Context help'), $help_chapter, '', '600','300');
+         }
+       }
+    }
+    return ($result);
+}
+
 
 
 

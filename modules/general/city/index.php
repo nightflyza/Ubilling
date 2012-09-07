@@ -32,8 +32,8 @@ if (cfr('CITY')) {
             <td>'.$eachcity['cityname'].'</td>
             <td>'.$eachcity['cityalias'].'</td>
             <td>
-            <a href="?module=city&action=delete&cityid='.$eachcity['id'].'">'.  web_delete_icon().'</a>
-            <a href="?module=city&action=edit&cityid='.$eachcity['id'].'">'.  web_edit_icon().'</a>
+            '.  wf_JSAlert('?module=city&action=delete&cityid='.$eachcity['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
+            '.  wf_JSAlert('?module=city&action=edit&cityid='.$eachcity['id'], web_edit_icon(), 'Are you serious').'
             <a href="?module=streets">'.  web_street_icon().'</a>
             </td>
         </tr>
@@ -56,6 +56,7 @@ if (cfr('CITY')) {
             <input type="submit" value="'.__('Save').'">
             </form>
             ';
+        $form.=wf_Link('?module=city', 'Back', true, 'ubButton');
         return($form);
     }
     ///// routines
@@ -66,8 +67,15 @@ if (cfr('CITY')) {
         } else {
         $newcityalias='';
         }
+        
+        if (!empty($newcityname)) {
          zb_AddressCreateCity($newcityname, $newcityalias);
+         rcms_redirect('?module=city');
+        } else {
+            show_error(__('Empty city name'));
+        }
     }
+    
     if (isset($_GET['action'])) {
         if (isset($_GET['cityid'])) {
         $cityid=$_GET['cityid'];
@@ -82,7 +90,10 @@ if (cfr('CITY')) {
         }
         if ($_GET['action']=='edit') {
             if (isset ($_POST['editcityname'])) {
-                zb_AddressChangeCityName($cityid, $_POST['editcityname']);
+                if (!empty($_POST['editcityname'])) {
+                    zb_AddressChangeCityName($cityid, $_POST['editcityname']);
+                }
+                
                 zb_AddressChangeCityAlias($cityid, $_POST['editcityalias']);
                 rcms_redirect('?module=city');
           }

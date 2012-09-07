@@ -490,8 +490,8 @@ function zb_AddressGetAptDataById($aptid) {
             <td>'.$eachstreet['streetname'].'</td>
             <td>'.$eachstreet['streetalias'].'</td>
             <td>
-            <a href="?module=streets&action=delete&streetid='.$eachstreet['id'].'">'.web_delete_icon().'</a>
-            <a href="?module=streets&action=edit&streetid='.$eachstreet['id'].'">'.  web_edit_icon().'</a>
+            '.  wf_JSAlert('?module=streets&action=delete&streetid='.$eachstreet['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
+            '.  wf_JSAlert('?module=streets&action=edit&streetid='.$eachstreet['id'], web_edit_icon(), 'Are you serious').'
                 <a href="?module=builds&action=edit&streetid='.$eachstreet['id'].'">'.web_build_icon().'</a>
             </td>
         </tr>
@@ -551,8 +551,8 @@ function zb_AddressGetAptDataById($aptid) {
                         <td>'.$eachbuild['id'].'</td>
                         <td>'.$eachbuild['buildnum'].'</td>
                         <td>
-                        <a href="?module=builds&action=delete&streetid='.$streetid.'&buildid='.$eachbuild['id'].'">'.  web_delete_icon().'</a>
-                        <a href="?module=builds&action=editbuild&streetid='.$streetid.'&buildid='.$eachbuild['id'].'">'.  web_edit_icon().'</a>
+                        '.  wf_JSAlert('?module=builds&action=delete&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
+                        '.  wf_JSAlert('?module=builds&action=editbuild&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_edit_icon(), 'Are you serious').'
                         </td>
                         </tr>
                        ';
@@ -591,12 +591,12 @@ function zb_AddressGetAptDataById($aptid) {
             $form='
                 <input type="text" name="entrance"> '.__('Entrance').'<br>
                 <input type="text" name="floor"> '.__('Floor').'<br>
-                <input type="text" name="apt"> '.__('Apartment').'<br>
+                <input type="text" id="apt" name="apt" onchange="checkapt();"> '.__('Apartment').'<br>
                 ';
               return($form);
     }
 
-    // returns all addres array in view like login=>address
+// returns all addres array in view like login=>address
 function zb_AddressGetFulladdresslist() {
 $alterconf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
 $result=array();
@@ -648,6 +648,62 @@ if (!empty ($alladdrz)) {
         } else {
         $result[$eachaddress['login']]=$cities[$cityid].' '.$streetname.' '.$building.$apartment_filtered;
         }
+    }
+}
+
+return($result);
+}
+
+// returns all addres array in view like login=>city address
+function zb_AddressGetFullCityaddresslist() {
+$alterconf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+$result=array();
+$apts=array();
+$builds=array();
+$city_q="SELECT * from `city`";
+$adrz_q="SELECT * from `address`";
+$apt_q="SELECT * from `apt`";
+$build_q="SELECT * from build";
+$streets_q="SELECT * from `street`";
+$alladdrz=simple_queryall($adrz_q);
+$allapt=simple_queryall($apt_q);
+$allbuilds=simple_queryall($build_q);
+$allstreets=simple_queryall($streets_q);
+if (!empty ($alladdrz)) {
+    $cities=zb_AddressGetFullCityNames();
+    
+        foreach ($alladdrz as $io1=>$eachaddress) {
+        $address[$eachaddress['id']]=array('login'=>$eachaddress['login'],'aptid'=>$eachaddress['aptid']);
+        }
+        foreach ($allapt as $io2=>$eachapt) {
+        $apts[$eachapt['id']]=array('apt'=>$eachapt['apt'],'buildid'=>$eachapt['buildid']);
+        }
+        foreach ($allbuilds as $io3=>$eachbuild) {
+        $builds[$eachbuild['id']]=array('buildnum'=>$eachbuild['buildnum'],'streetid'=>$eachbuild['streetid']);
+        }
+        foreach ($allstreets as $io4=>$eachstreet) {
+        $streets[$eachstreet['id']]=array('streetname'=>$eachstreet['streetname'],'cityid'=>$eachstreet['cityid']);
+        }
+
+    foreach ($address as $io5=>$eachaddress) {
+        $apartment=$apts[$eachaddress['aptid']]['apt'];
+        $building=$builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
+        $streetname=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
+        $cityid=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+        // zero apt handle
+        if ($alterconf['ZERO_TOLERANCE']) {
+            if ($apartment==0) {
+            $apartment_filtered='';
+            } else {
+            $apartment_filtered='/'.$apartment;
+            }
+        } else {
+        $apartment_filtered='/'.$apartment;    
+        }
+    
+       //only city display option
+        $result[$eachaddress['login']]=$cities[$cityid].' '.$streetname.' '.$building.$apartment_filtered;
+     
     }
 }
 

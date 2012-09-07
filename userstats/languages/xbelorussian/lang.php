@@ -89,5 +89,25 @@ $lang['def']['Messages from administration'] = 'Паведамленні ад а
 $lang['def']['Message'] = 'Паведамленне';
 $lang['def']['Sorry sum of money in the account does not allow to continue working in the credit'] = 'Выбачайце сума грошай на рахунку не дазваляе працягнуць працу ў крэдыт';
 $lang['def']['Your current tariff does not provide an independent tariff change'] = 'Ваш бягучы тарыфны план не прадугледжвае самастойную змену тарыфу';
+$lang['def']['Login with your account'] = 'Калі ласка, увядзіце свае ўліковыя дадзеныя';
+$lang['def']['Enter'] = 'Увайсці';
+$lang['def']['Logout'] = 'Выйсці';
+$lang['def']['Speed test'] = 'Тэст хуткасці';
+$lang['def']['Unfortunately speedtest is now disabled'] = 'Да сожелению тэст хуткасці зараз адключаны';
+$lang['def']['Downloads'] = 'Спампаваць';
+$lang['def']['Unfortunately downloads is now disabled'] = 'Да сожелению профіль запамповак зараз адключаны';
+$lang['def']['Tariff price'] = 'Кошт тарыфу';
 
+$lang['def']['Account state'] = 'Стан рахунку';
+$lang['def']['Account active'] = 'Рахунак актыўны';
+$lang['def']['Disabled'] = 'Адключаны';
+$lang['def']['Account frozen'] = 'Рахунак замарожаны';
+$lang['def']['Account freezing'] = 'Замаразкі рахункі';
+$lang['def']['Unfortunately account freeze is now disabled'] = 'На жаль замарозка рахункі зараз адключаная';
+$lang['def']['Service "account freeze" will allow you to suspend the charge of the monthly fee during your long absence - such as holidays or vacations. The cost of this service is:'] ='Паслуга "замарозка рахункі" дазволіць вам прыпыніць налічэнне месячнай абанплата за паслугі на час вашага працяглага адсутнасці - напрыклад водпуску або канікулаў. Кошт гэтай паслугі складае:';
+$lang['def']['Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.'] =' Будзьце ўважлівыя, доступ да сеткі будзе абмежаваны адразу пасля пацверджання вамі свайго жадання замарозіць рахунак. Для размарозкі рахунку вам неабходна звярнуцца ў наш бліжэйшы прадстаўніцтва.';
+$lang['def']['For your service plan does not provide this service'] = 'Для вашага тарыфнага плану не прадугледжана выкарыстанне дадзенай паслугі';
+$lang['def']['Your account is now a negative amount'] = 'На вашым рахунку зараз адмоўная сума';
+$lang['def']['Your account has been frozen'] = 'Ваш рахунак ўжо замарожаны';
+$lang['def']['I want freeze my account right now'] = 'Я хачу замарозіць свой кошт прама цяпер';
 ?>

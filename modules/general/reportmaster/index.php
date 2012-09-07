@@ -262,8 +262,73 @@ function zb_RMEditReport($editreportsavefile,$editreportname,$editsqlquery,$edit
 }
 
 
+function zb_RMExportUserbaseCsv() {
+    $allusers=  zb_UserGetAllStargazerData();
+    $allrealnames=  zb_UserGetAllRealnames();
+    $alladdress=  zb_AddressGetFulladdresslist();
+    $allcontracts=  zb_UserGetAllContracts();
+    $allmac=array();
+    $mac_q="SELECT * from `nethosts`";
+            $allnh=  simple_queryall($mac_q);
+            
+            if (!empty($allnh)) {
+                foreach ($allnh as $nh=>$eachnh) {
+                    $allmac[$eachnh['ip']]=$eachnh['mac'];
+                }
+            }
+            
+    $result='';
+    //options
+    $delimiter=";";
+    $in_charset='utf-8';
+    $out_charset='windows-1251';
+    /////////////////////
+    if (!empty($allusers)) {
+        $result.=__('Login').$delimiter.__('Password').$delimiter.__('IP').$delimiter.__('MAC').$delimiter.__('Tariff').$delimiter.__('Cash').$delimiter.__('Credit').$delimiter.__('Credit expire').$delimiter.__('Address').$delimiter.__('Real Name').$delimiter.__('Contract').$delimiter.__('AlwaysOnline').$delimiter.__('Disabled').$delimiter.__('User passive')."\n";
+        foreach ($allusers as $io=>$eachuser) {
+            //credit expirity
+            if ($eachuser['CreditExpire']!=0) {
+                $creditexpire=date("Y-m-d",$eachuser['CreditExpire']);
+            } else {
+                $creditexpire='';
+            }
+            //user mac
+            if (isset($allmac[$eachuser['IP']])) {
+                $usermac=$allmac[$eachuser['IP']];
+            } else {
+                $usermac='';
+            }
+            
+            $result.=$eachuser['login'].$delimiter.$eachuser['Password'].$delimiter.$eachuser['IP'].$delimiter.$usermac.$delimiter.$eachuser['Tariff'].$delimiter.$eachuser['Cash'].$delimiter.$eachuser['Credit'].$delimiter.$creditexpire.$delimiter.@$alladdress[$eachuser['login']].$delimiter.@$allrealnames[$eachuser['login']].$delimiter.@$allcontracts[$eachuser['login']].$delimiter.$eachuser['AlwaysOnline'].$delimiter.$eachuser['Down'].$delimiter.$eachuser['Passive']."\n";
+        }
+    if ($in_charset!=$out_charset) {
+        $result=  iconv($in_charset, $out_charset, $result);
+    }
+    // push data for excel handler
+    header('Content-type: application/ms-excel');
+    header('Content-Disposition: attachment; filename=userbase.csv');
+    echo $result;
+    die();
+    }
+
+}
+
 // show reports list
-show_window(__('Available reports').' <a href="?module=reportmaster&add=true">'.  web_add_icon().'</a>', web_ReportMasterShowReportsList());
+if (cfr('REPORTMASTERADM')) {
+    $export_link= wf_Link('?module=reportmaster&exportuserbase=excel',wf_img("skins/excel.gif",__('Export userbase')),false);
+} else {
+    $export_link='';
+}
+
+$newreport_link=  wf_Link('?module=reportmaster&add=true', web_add_icon(), false);
+$action_links=' '.$export_link.' '.$newreport_link;
+show_window(__('Available reports').$action_links, web_ReportMasterShowReportsList());
+
+//userbase exporting
+if (wf_CheckGet(array('exportuserbase'))) {
+   zb_RMExportUserbaseCsv();
+}
+
 
 //create new report
 if ((isset($_POST['newreportname'])) AND (isset($_POST['newsqlquery'])) AND (isset($_POST['newdatakeys'])) AND (isset($_POST['newfieldnames']))) {

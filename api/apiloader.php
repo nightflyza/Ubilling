@@ -3,6 +3,7 @@
  * Including all needed APIs and Libs
  */
 include('api/libs/api.mysql.php');
+include('api/libs/api.ubstorage.php');
 include ('api/api.stargazer.php');
 include('api/libs/api.compat.php');
 include('api/libs/api.astral.php');
@@ -22,6 +23,9 @@ include('api/libs/api.ticketing.php');
 include('api/libs/api.catv.php');
 include('api/libs/api.corporate.php');
 include('api/libs/api.lousytariffs.php');
+include('api/libs/api.banksta.php');
+include('api/libs/api.templatize.php');
+include('api/libs/api.radius.php');
 include('api/libs/api.help.php');
 
 /*

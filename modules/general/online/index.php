@@ -1,5 +1,9 @@
 <?php
 if($system->checkForRight('ONLINE')) {
+// HP mode
+$alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+$hp_mode=$alterconf['ONLINE_HP_MODE'];
+    
 function stg_show_fulluserlist2() {
     $query="SELECT * from `users`";
     $query_fio="SELECT * from `realname`";
@@ -49,6 +53,13 @@ function stg_show_fulluserlist2() {
    } else {
        $extfilters='';
    }
+   //additional finance links
+    if ($alter_conf['FAST_CASH_LINK']) {
+       $fastcash=true;
+   } else {
+       $fastcash=false;
+   }
+   
  
    
    $result=$extfilters;
@@ -114,7 +125,7 @@ function stg_show_fulluserlist2() {
      } else {
          $lighter='';
      }
-     
+          
      //user linking indicator 
      if ($alter_conf['USER_LINKING_ENABLED']) {
   
@@ -134,11 +145,20 @@ function stg_show_fulluserlist2() {
        $corporate='';  
      }
      
+     //fast cash link
+     if ($fastcash) {
+         $financelink='<a href="?module=addcash&username='.$eachuser['login'].'"><img src="skins/icon_dollar.gif" border="0" title="'.__('Finance operations').'"></a>';
+     } else {
+         $financelink='';
+     }
+     
      $result.='
         <tr class="row3" '.$lighter.'>
          <td>
      <a href="?module=traffstats&username='.$eachuser['login'].'">'.  web_stats_icon().'</a>
+     '.$financelink.'         
      <a href="?module=userprofile&username='.$eachuser['login'].'">'.  web_profile_icon().'</a>
+     
       '.$corporate.'
          '.@$detect_address[$eachuser['login']].'</td>
          <td>'.@$fioz[$eachuser['login']].'</td>
@@ -191,7 +211,277 @@ return ($result);
 }
 
 
-show_window(__('Users online'),stg_show_fulluserlist2());
+
+// hp mode 
+function stg_show_fulluserlist_hp() {
+    $query="SELECT * from `users`";
+    $query_fio="SELECT * from `realname`";
+    $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+   $dtcode='
+       		<script type="text/javascript" charset="utf-8">
+                
+                jQuery.fn.dataTableExt.oSort[\'file-size-asc\']  = function(a,b) {
+                var x = a.substring(0,a.length - 2);
+                var y = b.substring(0,b.length - 2);
+                
+                var x_unit = (a.substring(a.length - 2, a.length) == "Mb" ?
+                1000 : (a.substring(a.length - 2, a.length) == "Gb" ? 1000000 : 1));
+                var y_unit = (b.substring(b.length - 2, b.length) == "Mb" ?
+                1000 : (b.substring(b.length - 2, b.length) == "Gb" ? 1000000 : 1));
+     
+                x = parseInt( x * x_unit );
+                y = parseInt( y * y_unit );
+     
+                return ((x < y) ? -1 : ((x > y) ?  1 : 0));
+                };
+ 
+                jQuery.fn.dataTableExt.oSort[\'file-size-desc\'] = function(a,b) {
+                var x = a.substring(0,a.length - 2);
+                var y = b.substring(0,b.length - 2);
+                
+                var x_unit = (a.substring(a.length - 2, a.length) == "Mb" ?
+                1000 : (a.substring(a.length - 2, a.length) == "Gb" ? 1000000 : 1));
+                var y_unit = (b.substring(b.length - 2, b.length) == "Mb" ?
+                1000 : (b.substring(b.length - 2, b.length) == "Gb" ? 1000000 : 1));
+ 
+                x = parseInt( x * x_unit);
+                y = parseInt( y * y_unit);
+ 
+                return ((x < y) ?  1 : ((x > y) ? -1 : 0));
+                };
+                
+                jQuery.fn.dataTableExt.oSort[\'ip-address-asc\']  = function(a,b) {
+                var m = a.split("."), x = "";
+                var n = b.split("."), y = "";
+                for(var i = 0; i < m.length; i++) {
+                var item = m[i];
+                if(item.length == 1) {
+                x += "00" + item;
+                } else if(item.length == 2) {
+                x += "0" + item;
+                } else {
+                x += item;
+                }
+            }
+            for(var i = 0; i < n.length; i++) {
+                var item = n[i];
+                if(item.length == 1) {
+                y += "00" + item;
+                } else if(item.length == 2) {
+                y += "0" + item;
+                } else {
+                y += item;
+            }
+        }
+        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        };
+ 
+        jQuery.fn.dataTableExt.oSort[\'ip-address-desc\']  = function(a,b) {
+            var m = a.split("."), x = "";
+            var n = b.split("."), y = "";
+            for(var i = 0; i < m.length; i++) {
+                var item = m[i];
+                if(item.length == 1) {
+                    x += "00" + item;
+                } else if (item.length == 2) {
+                    x += "0" + item;
+                } else {
+                    x += item;
+                }
+            }
+            for(var i = 0; i < n.length; i++) {
+                var item = n[i];
+                if(item.length == 1) {
+                y += "00" + item;
+            } else if (item.length == 2) {
+            y += "0" + item;
+            } else {
+            y += item;
+            }
+        }
+        return ((x < y) ? 1 : ((x > y) ? -1 : 0));
+    };
+    
+
+
+
+		$(document).ready(function() {
+		$(\'#onlineusershp\').dataTable( {
+ 	       "oLanguage": {
+			"sLengthMenu": "'.__('Show').' _MENU_",
+			"sZeroRecords": "'.__('Nothing found').'",
+			"sInfo": "'.__('Showing').' _START_ '.__('to').' _END_ '.__('of').' _TOTAL_ '.__('users').'",
+			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('users').'",
+			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
+                        "sSearch":       "'.__('Search').'",
+                        "sProcessing":   "'.__('Processing').'..."
+		},
+            "aoColumns": [
+                null,
+                null,
+                { "sType": "ip-address" },
+                null,
+                null,
+                { "sType": "file-size" },
+                null,
+                null
+            ],      
+        
+                
+        "bPaginate": true,
+        "bLengthChange": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": true,
+        "bAutoWidth": false,
+        "bProcessing": true,
+        "bStateSave": false,
+        "iDisplayLength": 50,
+        "sAjaxSource": \'?module=online&ajax\',
+	"bDeferRender": true,
+        "bJQueryUI": true
+
+                } );
+		} );
+		</script>
+
+       '; 
+   $result=$dtcode;
+   $result.='<table width="100%" id="onlineusershp">';
+   $result.='
+  <thead>
+  <tr class="row2">
+  <td>'.__('Full address').'</td>
+  <td>'.__('Real Name').'</td>
+  <td>'.__('IP').'</ip></td>
+  <td>'.__('Tariff').'</td>
+  <td>'.__('Active').'</td>
+  <td>'.__('Traffic').'</td>
+  <td>'.__('Balance').'</td>
+  <td>'.__('Credit').'</td>
+  
+  </tr>
+  </thead>';
+   
+    $result.='
+    </table>   
+        ';
+
+    
+
+    
+return ($result);
+}
+
+function zb_AjaxOnlineDataSource() {
+   // Speed debug
+   /*
+   $mtime = microtime();
+   $mtime = explode(" ",$mtime);
+   $mtime = $mtime[1] + $mtime[0];
+   $starttime = $mtime; 
+    * 
+    */
+   
+    $query="SELECT * from `users`";
+    $query_fio="SELECT * from `realname`";
+    $allusers=simple_queryall($query);
+    $allfioz=simple_queryall($query_fio);
+    $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+    $fioz=zb_UserGetAllRealnames();
+    $detect_address=zb_AddressGetFulladdresslist();
+    $ucount=0;
+    
+  
+
+  
+   
+   $result='{';
+   $result.='
+       "aaData": [
+  ';
+   if (!empty ($allusers)) {
+   $totalusers=sizeof($allusers);    
+   foreach ($allusers as $io=>$eachuser) {
+     $tinet=0;
+     $ucount++;
+     $cash=$eachuser['Cash'];
+     $credit=$eachuser['Credit'];
+     
+     for ($classcounter=0;$classcounter<=9;$classcounter++) {
+         $dc='D'.$classcounter.'';
+         $uc='U'.$classcounter.'';
+         $tinet=$tinet+($eachuser[$dc]+$eachuser[$uc]);
+     }
+     
+     
+     $act='<img src=skins/icon_active.gif>'.__('Yes');
+     //finance check
+     if ($cash<'-'.$credit) {
+     $act='<img src=skins/icon_inactive.gif>'.__('No');
+     }
+      
+     if ($ucount<$totalusers) {
+         $ending=',';
+     } else {
+         $ending='';
+     }   
+     
+     $result.='
+     [
+     "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.@mysql_real_escape_string(trim($detect_address[$eachuser['login']])).'",
+     
+         "'.@mysql_real_escape_string(trim($fioz[$eachuser['login']])).'",
+         "'.$eachuser['IP'].'",
+         "'.$eachuser['Tariff'].'",
+         "'.$act.'",
+         "'.zb_TraffToGb($tinet).'",
+         "'.round($eachuser['Cash'],2).'",
+         "'.round($eachuser['Credit'],2).'"
+         ]'.$ending.'
+        ';  
+     
+    }  
+    }
+      
+     
+    
+    $result.='
+    
+    ]
+    }
+        ';
+   
+
+    
+print($result);
+  /*
+   $mtime = microtime();
+   $mtime = explode(" ",$mtime);
+   $mtime = $mtime[1] + $mtime[0];
+   $endtime = $mtime;
+   $totaltime = ($endtime - $starttime);
+   echo "This result generated in ".$totaltime." seconds"; 
+  */
+   
+die();
+}
+
+// Ajax data source display
+if (isset($_GET['ajax'])) {
+    if ($hp_mode) {
+    zb_AjaxOnlineDataSource();
+    }
+}
+    
+
+if (!$hp_mode) {
+    show_window(__('Users online'),stg_show_fulluserlist2());
+   } else {
+      show_window(__('Users online'),stg_show_fulluserlist_hp());
+   }
+   
+
 
 }
 else {

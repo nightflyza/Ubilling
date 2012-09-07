@@ -282,7 +282,7 @@ NULL , '".$login."', '".$tagid."'
         $alltagnames=stg_get_alltagnames();
         if (!empty ($allservices)) {
             foreach ($allservices as $io=>$eachservice) {
-                @$result['vservice:'.$eachservice['id']]=$alltagnames[$eachservice['tagid']];
+                @$result['Service:'.$eachservice['id']]=$alltagnames[$eachservice['tagid']];
             }
         }
         return ($result);

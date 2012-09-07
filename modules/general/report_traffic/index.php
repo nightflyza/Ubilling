@@ -59,10 +59,22 @@ if (cfr('REPORTTRAFFIC')) {
                 $u_week=$bwd.'Total-2-S.png';
                 $u_month=$bwd.'Total-3-S.png';
                 $u_year=$bwd.'Total-4-S.png';
-                $gday=web_Overlay(__('Graph by day'), __('Downloaded').'<br><img src="'.$d_day.'"><br>'.__('Uploaded').'<br><img src="'.$u_day.'">','0.90');
-                $gweek=web_Overlay(__('Graph by week'), __('Downloaded').'<br><img src="'.$d_week.'"><br>'.__('Uploaded').'<br><img src="'.$u_week.'">','0.90');
-                $gmonth=web_Overlay(__('Graph by month'), __('Downloaded').'<br><img src="'.$d_month.'"><br>'.__('Uploaded').'<br><img src="'.$u_month.'">','0.90');
-                $gyear=web_Overlay(__('Graph by year'), __('Downloaded').'<br><img src="'.$d_year.'"><br>'.__('Uploaded').'<br><img src="'.$u_year.'">','0.90');
+// old overlay style
+//                $gday=web_Overlay(__('Graph by day'), __('Downloaded').'<br><img src="'.$d_day.'"><br>'.__('Uploaded').'<br><img src="'.$u_day.'">','0.90');
+//                $gweek=web_Overlay(__('Graph by week'), __('Downloaded').'<br><img src="'.$d_week.'"><br>'.__('Uploaded').'<br><img src="'.$u_week.'">','0.90');
+//                $gmonth=web_Overlay(__('Graph by month'), __('Downloaded').'<br><img src="'.$d_month.'"><br>'.__('Uploaded').'<br><img src="'.$u_month.'">','0.90');
+//                $gyear=web_Overlay(__('Graph by year'), __('Downloaded').'<br><img src="'.$d_year.'"><br>'.__('Uploaded').'<br><img src="'.$u_year.'">','0.90');
+                // jq modal dialog
+                $daygraph=  wf_img($d_day).'<br>'.__('Uploaded').'<br>'.  wf_img($u_day);
+                $weekgraph=  wf_img($d_week).'<br>'.__('Uploaded').'<br>'.  wf_img($u_week);
+                $monthgraph=  wf_img($d_month).'<br>'.__('Uploaded').'<br>'.  wf_img($u_month);
+                $yeargraph=  wf_img($d_year).'<br>'.__('Uploaded').'<br>'.  wf_img($u_year);
+                
+                $gday=   wf_modal(__('Graph by day'), __('Graph by day'), $daygraph, '', 920, 600);
+                $gweek=  wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph, '', 920, 600);
+                $gmonth= wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph, '', 920, 600);
+                $gyear=  wf_modal(__('Graph by year'), __('Graph by year'), $yeargraph, '', 920, 600);
+                
                 $result.='
                     <tr class="row3">
                     <td class="row2">'.$eachnas['nasname'].'</td>

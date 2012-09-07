@@ -257,7 +257,7 @@ $lang['def']['Message by'] = 'Сообщил(а)';
 $lang['def']['Read more...'] = 'Подробнее...';
 $lang['def']['Latest news'] = 'Последние новости';
 $lang['def']['Index'] = 'Главная';
-$lang['def']['Right to manage modules, edit configuration and upload files'] = 'Право управлять настройками сайта';
+$lang['def']['Right to manage modules, edit configuration and upload files'] = 'Право управлять настройками фреймворка';
 $lang['def']['Right to upload files'] = 'Право загружать файлы';
 $lang['def']['Navigation'] = 'Навигация';
 $lang['def']['Minichat'] = 'Миничат';
@@ -502,7 +502,7 @@ $lang['def']['Cache timeout (seconds)'] = 'Время жизни кеша в с�
 $lang['def']['Length limit for title'] = 'Ограничение длины заголовка';
 $lang['def']['Length limit for description'] = 'Ограничение длины описания';
 $lang['def']['Feeds to aggregate (One URL per line)'] = 'Фиды для агрегации (По одному URL в строке)';
-$lang['def']['Right to send e-mails to users and manage feedback requests'] = 'Право отправлять письма пользователям и обрабатывать запросы обратной связи';
+$lang['def']['Right to send e-mails to users and manage feedback requests'] = 'Право на фидбек фреймворка';
 $lang['def']['Edit It'] = 'Редактировать';
 //1.2.7
 //Search

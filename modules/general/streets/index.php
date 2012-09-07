@@ -3,14 +3,20 @@
 if (cfr('STREETS')) {
 
     if (isset($_POST['newstreetname'])) {
-        $newstreetname=$_POST['newstreetname'];
+        $newstreetname=trim($_POST['newstreetname']);
         $newstreetcityid=$_POST['citysel'];
         if (isset($_POST['newstreetalias'])) {
-        $newstreetalias=$_POST['newstreetalias'];
+        $newstreetalias=trim($_POST['newstreetalias']);
         } else {
         $newstreetalias='';
         }
-         zb_AddressCreateStreet($newstreetcityid, $newstreetname, $newstreetalias);
+        
+        if (!empty($newstreetname)) {
+            zb_AddressCreateStreet($newstreetcityid, $newstreetname, $newstreetalias);
+        } else {
+            show_error(__('Empty street name'));
+        }
+         
     }
     if (isset($_GET['action'])) {
         if (isset($_GET['streetid'])) {
@@ -27,11 +33,15 @@ if (cfr('STREETS')) {
         if ($_GET['action']=='edit') {
             if (isset ($_POST['editstreetname'])) {
                 //$newstreetcityid=$_POST['citysel'];
-                zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
+                if (!empty($_POST['editstreetname'])) {
+                    zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
+                }
+                
                 zb_AddressChangeStreetAlias($streetid, $_POST['editstreetalias']);
                 rcms_redirect('?module=streets');
           }
             show_window(__('Edit Street'),web_StreetEditForm($streetid));
+            show_window('',  wf_Link("?module=streets", 'Back', true, 'ubButton'));
         }
         }
     }

@@ -10,6 +10,59 @@
     return ($string);
  }
 
+ function zb_AddressGetBuildApts($buildid) {
+     $buildid=vf($buildid,3);
+     $query="SELECT * from `apt` WHERE `buildid`='".$buildid."'";
+     $allapts=simple_queryall($query);
+     $result=array();
+     if (!empty ($allapts)) {
+         foreach ($allapts as $io=>$each) {
+             $result[$each['apt']]=$each['id'];
+         }
+     }
+     return ($result);
+ }
+ 
+ //apt check javascript code
+ function web_AddressBuildShowAptsCheck($buildid) {
+     $buildid=vf($buildid,3);
+     $allapts=zb_AddressGetBuildApts($buildid);
+     $result='
+         <script type="text/javascript">
+        function aptusedalert() {
+              alert(\''.__('The apartment has one lives, we have nothing against, just be warned').'\');
+        }
+        
+        function aptemptyalert() {
+            alert(\''.__('Are you sure you want to keep the homeless from this user').'\');
+        }
+
+
+        function checkapt()
+        {
+        var x=document.getElementById("apt").value;
+        
+        if (x == \'\') {
+            aptemptyalert();
+        }
+  
+         ';
+     if (!empty ($allapts)) {
+         foreach ($allapts as $aptnum=>$aptid) {
+             if (!empty ($aptnum)) {
+             $result.='
+                 if (x == '.$aptnum.') {
+                     aptusedalert();
+                 }
+                 ';
+             }
+         }
+     }
+     
+     $result.='}
+        </script>';
+     return ($result);
+ }
 
 
 function web_UserRegFormLocation() {
@@ -36,7 +89,7 @@ function web_UserRegFormLocation() {
      if (isset($_POST['buildsel'])) {
         $builddata=zb_AddressGetBuildData($_POST['buildsel']);
         $buildsel=$builddata['buildnum'].'<input type="hidden" name="buildsel" value="'.$builddata['id'].'">';
-        $aptsel=web_AptCreateForm();
+        $aptsel=web_AddressBuildShowAptsCheck($builddata['id']).web_AptCreateForm();
         $servicesel=multinet_service_selector();
         $submit_btn='
             <tr class="row3">
@@ -75,6 +128,8 @@ function web_UserRegFormLocation() {
 }
 
 function web_UserRegFormNetData($newuser_data) {
+$alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+$safe_mode=$alterconf['SAFE_REGMODE'];
 $citydata=zb_AddressGetCityData($newuser_data['city']);
 $cityalias=translit_string($citydata['cityalias']);
 $streetdata=zb_AddressGetStreetData($newuser_data['street']);
@@ -94,12 +149,20 @@ if (empty ($ip_proposal)) {
         rcms_redirect("?module=multinet");
         die();
 }
+
+//protect important options
+if ($safe_mode) {
+    $modifier='READONLY';
+} else {
+    $modifier='';
+}
+
 $form='
     <table width="100%" border="0">
     <form action="" method="POST">
     <tr class="row3">
     <td width="50%">
-    <input type="text" name="login" value="'.$login_proposal.'">
+    <input type="text" name="login" value="'.$login_proposal.'" '.$modifier.'>
     </td>
     <td>
     '.__('Login').'
@@ -107,7 +170,7 @@ $form='
     </tr>
     <tr class="row3">
     <td>
-    <input tyle="text" name="password" value="'.  zb_rand_string(8).'">
+    <input tyle="text" name="password" value="'.  zb_rand_string(8).'" '.$modifier.'>
     </td>
     <td>
     '.__('Password').'
@@ -115,7 +178,7 @@ $form='
     </tr>
     <tr class="row3">
     <td>
-    <input tyle="text" name="IP" value="'.$ip_proposal.'">
+    <input tyle="text" name="IP" value="'.$ip_proposal.'" '.$modifier.'>
     </td>
     <td>
     '.__('IP').'
@@ -178,8 +241,8 @@ function zb_mac_unique($mac) {
 function zb_UserRegister($user_data) {
     global $billing;
     // Init all of needed user data
-    $login=$user_data['login'];
-    $password=$user_data['password'];
+    $login=vf($user_data['login']);
+    $password=vf($user_data['password']);
     $ip=$user_data['IP'];
     $cityid=$user_data['city'];
     $streetid=$user_data['street'];
@@ -189,6 +252,18 @@ function zb_UserRegister($user_data) {
     $apt=$user_data['apt'];
     $serviceid=$user_data['service'];
     $netid=multinet_get_service_networkid($serviceid);
+    // empty login validation
+    if (empty($login)) {
+       $alert='
+            <script type="text/javascript">
+                alert("'.__('Error').': '.__('Empty login').'");
+            </script>
+            ';
+        print($alert);
+        rcms_redirect("?module=userreg");
+        die();
+    }
+    
     //last check
     if (!zb_ip_unique($ip)) {
           $alert='

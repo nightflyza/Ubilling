@@ -89,5 +89,26 @@ $lang['def']['Messages from administration'] = 'Повідомлення від 
 $lang['def']['Message'] = 'Повідомлення';
 $lang['def']['Sorry sum of money in the account does not allow to continue working in the credit'] = 'Вибачте, ваша заборгованість не дозволяє продовжити роботу в кредит';
 $lang['def']['Your current tariff does not provide an independent tariff change'] = 'Ваш поточний тарифний план не передбачає можливості самостійної зміни тарифу';
+$lang['def']['Login with your account'] = 'Введіть ваші облікові дані';
+$lang['def']['Enter'] = 'Увійти';
+$lang['def']['Logout'] = 'Вийти';
+$lang['def']['Speed test'] = 'Тест швидкості';
+$lang['def']['Unfortunately speedtest is now disabled'] = 'Нажаль тест швидкості зараз вимкнено';
+$lang['def']['Downloads'] = 'Завантаження';
+$lang['def']['Unfortunately downloads is now disabled'] = 'Нажаль розділ закачок зараз неактивний';
+$lang['def']['Tariff price'] = 'Вартість тарифу';
+
+$lang['def']['Account state'] = 'Стан рахунку';
+$lang['def']['Account active'] = 'Рахунок активний';
+$lang['def']['Disabled'] = 'Відключено';
+$lang['def']['Account frozen'] = 'Рахунок заморожено';
+$lang['def']['Account freezing'] = 'Заморожування рахунку';
+$lang['def']['Unfortunately account freeze is now disabled'] = 'Нажаль заморожування зараз відключено';
+$lang['def']['Service "account freeze" will allow you to suspend the charge of the monthly fee during your long absence - such as holidays or vacations. The cost of this service is:'] = 'Послуга "Заморожування рахунку" дозволить вам призупинити нарахування місячної абонплати за послуги на час вашої тривалої відсутності - наприклад відпустки або канікул. Вартість цієї послуги становить:';
+$lang['def']['Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.'] = 'Будьте уважні, доступ до мережі буде обмежений відразу після підтвердження вами свого бажання заморозити рахунок. Для розморожування рахунку вам необхідно звернутися до найближчого представництва.';
+$lang['def']['For your service plan does not provide this service'] = 'Для вашого тарифного плану не передбачено використання цієї послуги';
+$lang['def']['Your account is now a negative amount'] = 'На вашому рахунку зараз відємна сума';
+$lang['def']['Your account has been frozen'] = 'Ваш рахунок вже заморожено';
+$lang['def']['I want freeze my account right now'] = 'Я бажаю заморозити рахунок цієї миті';
 
 ?>

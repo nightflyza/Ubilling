@@ -1,7 +1,5 @@
 <?php
 
-
-
 function rcms_redirect($url, $header = false) {
     if($header){ 
         @header('Location: ' . $url); 
@@ -50,7 +48,23 @@ if($statsconfig['allowclang']) { // if language change is allowed
 setcookie("zbs_lang", $lang, time() + 3600);
 $langglobal = zbs_LoadLang($lang);
 
+//setting auth cookies subroutine
+if ($statsconfig['auth']=='login') { //if enabled login based auth
+    if ((isset($_POST['ulogin'])) AND isset($_POST['upassword'])) {
+        $ulogin=trim(vf($_POST['ulogin']));
+        $upassword=trim(vf($_POST['upassword']));
+        $upassword=md5($upassword);
+        setcookie("ulogin", $ulogin, time() + 3600);
+        setcookie("upassword", $upassword, time() + 3600);
+        rcms_redirect("index.php");
 
+    }
+    
+    if (isset($_POST['ulogout'])) {
+        setcookie("upassword", 'nopassword', time() + 3600);
+        rcms_redirect("index.php");
+    }
+}
 
 function zbs_LoadConfig() {
     $config=parse_ini_file('config/userstats.ini');
@@ -58,6 +72,8 @@ function zbs_LoadConfig() {
 }
 
 function zbs_LoadLang($language) {
+   $language=vf($language);
+   $language=preg_replace('/\0/s', '', $language);
  if (file_exists('languages/'.$language.'/lang.php')) {
  include('languages/'.$language.'/lang.php');
  } else {
@@ -148,7 +164,7 @@ function curdatetime() {
     return($currenttime);
 }
 
-  function ip2int($src){
+function ip2int($src){
   $t = explode('.', $src);
   return count($t) != 4 ? 0 : 256 * (256 * ((float)$t[0] * 256 + (float)$t[1]) + (float)$t[2]) + (float)$t[3];
 }

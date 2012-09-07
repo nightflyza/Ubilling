@@ -4,6 +4,7 @@ if (cfr('MAC')) {
 $altercfg=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
 $newmac_report=$altercfg['NMREP_INMACCHG'];
 $newmacselector=$altercfg['SIMPLENEWMACSELECTOR'];
+
 if (isset ($_GET['username'])) {
     $login=vf($_GET['username']);
        // change mac if need
@@ -14,8 +15,9 @@ if (isset ($_GET['username'])) {
          //validate mac format
          if (check_mac_format($mac)) {   
         $ip=zb_UserGetIP($login);
+        $old_mac=zb_MultinetGetMAC($ip);
         multinet_change_mac($ip, $mac);
-        log_register("MAC CHANGE (".$login.") ".$ip." ".$mac);
+        log_register("MAC CHANGE (".$login.") ".$ip." FROM  ".$old_mac." ON ".$mac);
         multinet_rebuild_all_handlers();
         // need reset after mac change
         $billing->resetuser($login);

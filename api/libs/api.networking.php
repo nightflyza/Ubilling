@@ -2,40 +2,43 @@
 function multinet_show_available_networks() {
 $query="SELECT * from `networks`";
 $allnets=simple_queryall($query);
-    $result='<table width="100%"  class="sortable" border="0">';
-    $result.='
-        <tr class="row1">
-        <td>ID</td>
-        <td>'.__('First IP').'</td>
-        <td>'.__('Last IP').'</td>
-        <td>'.__('Network').'/CIDR</td>
-        <td>'.__('Network type').'</td>
-        <td>'.__('Actions').'</td>
-        </tr>
-        ';
+    
+    $tablecells=  wf_TableCell(__('ID'));
+    $tablecells.=  wf_TableCell(__('First IP'));
+    $tablecells.=  wf_TableCell(__('Last IP'));
+    $tablecells.=  wf_TableCell(__('Network'));
+    $tablecells.=  wf_TableCell(__('Network type'));
+    $tablecells.=  wf_TableCell(__('Actions'));
+    $tablerows=  wf_TableRow($tablecells, 'row1');
+    
+    
     if (!empty ($allnets)) {
         foreach ($allnets as $io=>$eachnet) {
-    $result.='
-        <tr class="row3">
-        <td>'.$eachnet['id'].'</td>
-        <td>'.$eachnet['startip'].'</td>
-        <td>'.$eachnet['endip'].'</td>
-        <td>'.$eachnet['desc'].'</td>
-        <td>'.$eachnet['nettype'].'</td>
-        <td><a href="?module=multinet&editnet='.$eachnet['id'].'">'. web_edit_icon().'</a></td>
-        </tr>
-        ';
+            
+                $tablecells=  wf_TableCell($eachnet['id']);
+                $tablecells.=  wf_TableCell($eachnet['startip']);
+                $tablecells.=  wf_TableCell($eachnet['endip']);
+                $tablecells.=  wf_TableCell($eachnet['desc']);
+                $tablecells.=  wf_TableCell($eachnet['nettype']);
+                
+                $actionlinks=  wf_JSAlert('?module=multinet&deletenet='.$eachnet['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+                $actionlinks.=  wf_JSAlert('?module=multinet&editnet='.$eachnet['id'], web_edit_icon(), 'Are you serious');
+                
+                $tablecells.=  wf_TableCell($actionlinks);
+                $tablerows.=  wf_TableRow($tablecells, 'row3');
         }
 
     }
-    $result.='</table>';
+    
+    $result= wf_TableBody($tablerows,'100%','0','sortable');
+    
 show_window(__('Networks'), $result);
 }
 
 function multinet_show_neteditform($netid) {
     $netid=vf($netid);
     $netdata=multinet_get_network_params($netid);
-    $form='<form method="POST" action="" class="row3">
+    $form='<form method="POST" action="" class="glamour">
         <input type="hidden" name="netedit" value="true">
         <input type="text" size="20" name="editstartip" value="'.$netdata['startip'].'"> '.__('First IP').'<sup>*</sup><br>
         <input type="text" size="20" name="editendip" value="'.$netdata['endip'].'"> '.__('Last IP').'<sup>*</sup><br>
@@ -43,6 +46,7 @@ function multinet_show_neteditform($netid) {
         <input type="text" size="20" name="editdesc" value="'.$netdata['desc'].'"> '.__('Network').'/CIDR<sup>*</sup><br>
         <input type="submit" value="'.__('Save').'"><br>
         </form>
+        <div style="clear:both;"></div>
         ';
     $form.=wf_Link('?module=multinet', 'Back', true, 'ubButton');
     show_window(__('Edit'), $form);
@@ -52,12 +56,13 @@ function multinet_show_serviceeditform($serviceid) {
     $serviceid=vf($serviceid);
     $servicedata=multinet_get_service_params($serviceid);
     $form='
-        <form action="" method="POST" class="row3">
+        <form action="" method="POST" class="glamour">
         <input type="hidden" name="serviceedit" value="true">
         '.multinet_network_selector($servicedata['netid']).' '.__('Service network').' <br>
         <input type="text" name="editservicename" size="15" value="'.$servicedata['desc'].'"> '.__('Service description').'<sup>*</sup> <br>
         <input type="submit" value="'.__('Save').'">
         </form>
+         <div style="clear:both;"></div>
         ';
     $form.=wf_Link('?module=multinet', 'Back', true, 'ubButton');
     
@@ -147,7 +152,7 @@ function multinet_nettype_selector($curnettype='') {
 }
 
 function multinet_show_networks_form() {
-    $form='<form method="POST" action="" class="row3">
+    $form='<form method="POST" action="" class="glamour">
         <input type="hidden" name="addnet" value="true">
         <input type="text" size="20" name="firstip"> '.__('First IP').'<sup>*</sup><br>
         <input type="text" size="20" name="lastip"> '.__('Last IP').'<sup>*</sup><br>
@@ -155,36 +160,38 @@ function multinet_show_networks_form() {
         <input type="text" size="20" name="desc"> '.__('Network/CIDR').'<sup>*</sup><br>
         <input type="submit" value="'.__('Add').'"><br>
         </form>
+       <div style="clear:both;"></div>
         ';
     show_window(__('Add network'),$form);
 }
 
 function multinet_show_available_services() {
  $allservices=multinet_get_services();
- $result='<table width="100%" border="0">';
-  $result.='
-         <tr class="row1">
-         <td>ID</td>
-         <td>'.__('Network').'</td>
-         <td>'.__('Service name').'</td>
-         <td>'.__('Actions').'</td>
-         </tr>
-         ';
+  
+  $tablecells=  wf_TableCell(__('ID'));
+  $tablecells.=  wf_TableCell(__('Network'));
+  $tablecells.=  wf_TableCell(__('Service name'));
+  $tablecells.=  wf_TableCell(__('Actions'));
+  $tablerows=  wf_TableRow($tablecells, 'row1');
+  
  if (!empty ($allservices)) {
      foreach ($allservices as $io=>$eachservice) {
      $netdesc=multinet_get_network_params($eachservice['netid']);
-     $result.='
-         <tr class="row3">
-         <td>'.$eachservice['id'].'</td>
-         <td>'.$netdesc['desc'].'</td>
-         <td>'.$eachservice['desc'].'</td>
-         <td><a href="?module=multinet&editservice='.$eachservice['id'].'">'.  web_edit_icon().'</a></td>
-         </tr>
-         ';
+     
+     
+    $tablecells=  wf_TableCell($eachservice['id']);
+    $tablecells.=  wf_TableCell($netdesc['desc']);
+    $tablecells.=  wf_TableCell($eachservice['desc']);
+    
+    $actionlinks=  wf_JSAlert('?module=multinet&deleteservice='.$eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+    $actionlinks.=  wf_JSAlert('?module=multinet&editservice='.$eachservice['id'], web_edit_icon(), 'Are you serious');
+    
+    $tablecells.=  wf_TableCell($actionlinks);
+    $tablerows.=  wf_TableRow($tablecells, 'row3');
      }
  }
 
- $result.='</table>';
+ $result=  wf_TableBody($tablerows,'100%','0','sortable');
  show_window(__('Services'), $result);
 }
 
@@ -222,12 +229,13 @@ function multinet_service_selector() {
 
 function multinet_show_service_add_form() {
     $form='
-        <form action="" method="POST" class="row3">
+        <form action="" method="POST" class="glamour">
         <input type="hidden" name="serviceadd" value="true">
         '.multinet_network_selector().' '.__('Service network').' <br>
         <input type="text" name="sevicename" size="15"> '.__('Service description').'<sup>*</sup> <br>
         <input type="submit" value="'.__('Add').'">
         </form>
+        <div style="clear:both;"></div>
         ';
 
     show_window(__('Add service'), $form);
@@ -250,6 +258,17 @@ $query=" INSERT INTO `networks` (
     ";
 nr_query($query);
 log_register('ADD MultiNetNet '.$desc);
+}
+
+function multinet_network_is_used($network_id) {
+    $network_id=vf($network_id,3);
+    $query="SELECT * from `nethosts` WHERE `netid`='".$network_id."'";
+    $allhosts=  simple_query($query);
+    if (!empty($allhosts)) {
+        return (true);
+    } else {
+        return (false);
+    }
 }
 
 function multinet_delete_network($network_id) {
@@ -354,6 +373,7 @@ function dhcp_add_network($netid,$dhcpconfig,$dhcpconfname) {
   $netid=vf($netid);
   $dhcpconfig=mysql_real_escape_string($dhcpconfig);
   $dhcpconfname=vf($dhcpconfname);
+  $dhcpconfname=trim($dhcpconfname);
   $query="
       INSERT INTO `dhcp` (
         `id` ,
@@ -412,6 +432,7 @@ function dhcp_get_data_by_netid($netid) {
     function dhcp_update_data($dhcpid,$dhcpconfname,$dhcpconfig) {
         $dhcpid=vf($dhcpid);
         $dhcpconfname=mysql_real_escape_string($dhcpconfname);
+        $dhcpconfname=trim($dhcpconfname);
         $dhcpconfig=mysql_real_escape_string($dhcpconfig);
         $query="UPDATE `dhcp` SET `dhcpconfig` = '".$dhcpconfig."',
          `confname` = '".$dhcpconfname."' WHERE `id` ='".$dhcpid."';";
@@ -592,6 +613,7 @@ function multinet_rebuild_all_handlers() {
     //restarting dhcpd
     multinet_RestartDhcp();
     //debarr(dhcp_get_data_by_netid(5));
+    
 }
 
 function multinet_add_host($netid,$ip,$mac='NULL',$option='NULL') {
@@ -612,6 +634,7 @@ log_register("ADD MultiNetHost ".$ip);
 }
 
 function multinet_change_mac($ip,$newmac) {
+    $newmac=strtolower($newmac);
     $query="UPDATE `nethosts` SET `mac` = '".$newmac."' WHERE `ip` = '".$ip."' ;";
     nr_query($query);
     log_register("CHANGE MultiNetHostMac ".$ip." ".$newmac);
@@ -726,6 +749,12 @@ function stg_convert_size($fs)
     }
          
      
+}
+
+// convert to only Gb, speedup mode
+function zb_TraffToGb($fs) {
+    $fs = round($fs / 1073741824,2)." Gb";
+    return ($fs);
 }
 
 function zb_TariffGetAllSpeeds() {
@@ -934,6 +963,25 @@ function zb_TariffGetAllSpeeds() {
     //gen some bandwidth links
     function zb_BandwidthdGenLinks($ip) {
         $bandwidthd_url=zb_BandwidthdGetUrl($ip);
+        $netid=zb_NetworkGetByIp($ip);
+        $nasid=zb_NasGetByNet($netid);
+        $nasdata= zb_NasGetData($nasid);
+        $nastype=$nasdata['nastype'];
+        
+        if ($nastype=='mtdirect') {
+        $alluserips= zb_UserGetAllIPs();
+        $alluserips=array_flip($alluserips);
+        
+        $urls['dayr']=$bandwidthd_url.'/'.$alluserips[$ip].'/daily.gif';
+        $urls['days']=$bandwidthd_url.'/'.$alluserips[$ip].'/daily.gif';
+        $urls['weekr']=$bandwidthd_url.'/'.$alluserips[$ip].'/weekly.gif';
+        $urls['weeks']=$bandwidthd_url.'/'.$alluserips[$ip].'/weekly.gif';
+        $urls['monthr']=$bandwidthd_url.'/'.$alluserips[$ip].'/monthly.gif';
+        $urls['months']=$bandwidthd_url.'/'.$alluserips[$ip].'/monthly.gif';
+        $urls['yearr']=$bandwidthd_url.'/'.$alluserips[$ip].'/yearly.gif';
+        $urls['years']=$bandwidthd_url.'/'.$alluserips[$ip].'/yearly.gif';
+            
+        } else {
         $urls['dayr']=$bandwidthd_url.'/'.$ip.'-1-R.png';
         $urls['days']=$bandwidthd_url.'/'.$ip.'-1-S.png';
         $urls['weekr']=$bandwidthd_url.'/'.$ip.'-2-R.png';
@@ -942,6 +990,8 @@ function zb_TariffGetAllSpeeds() {
         $urls['months']=$bandwidthd_url.'/'.$ip.'-3-S.png';
         $urls['yearr']=$bandwidthd_url.'/'.$ip.'-4-R.png';
         $urls['years']=$bandwidthd_url.'/'.$ip.'-4-S.png';
+        }
+        
         return($urls);
     }
     
@@ -1016,5 +1066,19 @@ function check_mac_format($mac) {
         return (false);
     }
 }   
+
+//get all userips and netids
+function zb_UserGetNetidsAll() {
+    $query="SELECT * from `nethosts`";
+    $result=array();
+    $allhosts=simple_queryall($query);
+    if (!empty ($allhosts)) {
+        foreach ($allhosts as $io=>$eachhost) {
+            $result[$eachhost['ip']]=$eachhost['netid'];
+        }
+    }
+    return ($result);
+}
+
     
 ?>

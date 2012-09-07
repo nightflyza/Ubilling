@@ -217,6 +217,16 @@
       }
       return ($result);
    }
+   
+   function cf_FieldsGetAll() {
+      $result=array();
+      $query="SELECT * from `cfitems`";
+      $content=simple_queryall($query);
+      if (!empty ($content)) {
+        $result=$content;
+      }
+      return ($result);
+   }
   
    
    function cf_FieldDisplay($type,$data) {

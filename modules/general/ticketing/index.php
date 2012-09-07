@@ -1,7 +1,26 @@
 <?php
 if (cfr('TICKETING')) {
   function web_TicketsShow() {
-      $alltickets=zb_TicketsGetAll();
+      
+      $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+      //pagination section
+      $totalcount=zb_TicketsGetCount();
+      $perpage=$alterconf['TICKETS_PERPAGE'];
+      
+      if (!isset ($_GET['page'])) {
+          $current_page=1;
+      } else {
+          $current_page=vf($_GET['page'],3);
+      }
+      
+      if ($totalcount>$perpage) {
+          $paginator=wf_pagination($totalcount, $perpage, $current_page, "?module=ticketing",'ubButton');
+          $alltickets=zb_TicketsGetLimited($perpage*($current_page-1),$perpage);
+      } else {
+          $paginator='';
+          $alltickets=zb_TicketsGetAll();
+      }
+      
     
       $tablecells=wf_TableCell(__('ID'));
       $tablecells.=wf_TableCell(__('Date'));
@@ -42,6 +61,9 @@ if (cfr('TICKETING')) {
           }
       }
       $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
+      $result.=$paginator;
+      
+      
       return ($result);
   }
   
@@ -58,6 +80,20 @@ if (cfr('TICKETING')) {
           $replyform=__('Ticket is closed');
       }
       return ($replyform);
+  }
+  
+  
+    function web_TicketReplyEditForm($replyid) {
+      $replyid=vf($replyid);
+      $ticketdata=zb_TicketGetData($replyid);
+      $replytext=$ticketdata['text'];
+     
+      $inputs=wf_HiddenInput('editreply', $replyid);
+      $inputs.=wf_TextArea('editreplytext', '', $replytext, true, '60x10');
+      $inputs.=wf_Submit('Save');
+      $form=wf_Form('', 'POST', $inputs, 'glamour');
+      
+      return ($form);
   }
   
   function web_TicketDialogue($ticketid) {
@@ -103,7 +139,10 @@ if (cfr('TICKETING')) {
           $tablerows.=wf_TableRow($tablecells, 'row3');
           $result.=wf_TableBody($tablerows, '100%', '0');
           
+          //
           //ticket body
+          // 
+
           $tickettext=strip_tags($ticketdata['text']);
           $tablecells=wf_TableCell('', '20%');
           $tablecells.=wf_TableCell($ticketdata['date']);
@@ -125,21 +164,6 @@ if (cfr('TICKETING')) {
       if (!empty ($ticketreplies)) {
           $result.='<h2>'.__('Replies').'</h2>';
           foreach ($ticketreplies as $io=>$eachreply) {
-              
-              $resultx='
-              <tr class="row2">
-              <td>'.__('Date').'</td>
-              <td>'.$eachreply['date'].'</td>
-              <td>'.$eachreply['admin'].'</td>
-              </tr>
-              
-              <tr class="row3">
-              <td>'.__('Ticket').'</td>
-              <td>'.strip_tags($eachreply['text']).'</td>
-              <td></td>
-              </tr>
-              ';
-              
            //reply
           if ($eachreply['admin']) {
               $replyauthor='<center><b>'.$eachreply['admin'].'</b></center>';    
@@ -149,8 +173,33 @@ if (cfr('TICKETING')) {
               $replyavatar='<center><img src="skins/userava.png"></center>';
           }
           
-          $replytext=strip_tags($eachreply['text']);
-          $replypanel=$replyauthor.'<br>'.$replyavatar;
+          $replyactions='<center>';
+          $replyactions.=  wf_JSAlert('?module=ticketing&showticket='.$ticketdata['id'].'&deletereply='.$eachreply['id'], web_delete_icon(), 'Are you serious').' ';
+          $replyactions.=  wf_JSAlert('?module=ticketing&showticket='.$ticketdata['id'].'&editreply='.$eachreply['id'], web_edit_icon(), 'Are you serious');
+          $replyactions.='</center>';
+          
+          //
+          // reply body 
+          //
+          
+          if (isset($_GET['editreply'])) {
+              
+              if ($_GET['editreply']==$eachreply['id']) {
+                  //is this reply editing?
+                  $replytext=  web_TicketReplyEditForm($eachreply['id']);
+              } else {
+                  //not this ticket edit
+                  $replytext=strip_tags($eachreply['text']);
+              }
+          } else {
+              //normal text by default
+              $replytext=strip_tags($eachreply['text']);
+          }
+          
+          $replypanel=$replyauthor.'<br>'.$replyavatar.'<br>'.$replyactions;
+          
+              
+         
           
           $tablecells=wf_TableCell('', '20%');
           $tablecells.=wf_TableCell($eachreply['date']);
@@ -223,6 +272,17 @@ if (cfr('TICKETING')) {
           rcms_redirect("?module=ticketing&showticket=".$_POST['postreply']);
       }
       
+      //maybe someone deleting reply
+      if (isset($_GET['deletereply'])) {
+          zb_TicketDeleteReply($_GET['deletereply']);
+          rcms_redirect("?module=ticketing&showticket=".$ticketid);
+      }
+      
+      //reply editing sub 
+      if (isset($_POST['editreply'])) {
+          zb_TicketUpdateReply($_POST['editreply'], $_POST['editreplytext']);
+          rcms_redirect("?module=ticketing&showticket=".$ticketid);
+      }
   }
   
     

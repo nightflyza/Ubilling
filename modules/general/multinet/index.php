@@ -8,10 +8,20 @@
           multinet_add_network($desc, $firstip, $lastip, $nettype);
           rcms_redirect('?module=multinet');
       }
-      if (isset($_POST['deletenet'])) {
-          $network_id=$_POST['networkselect'];
-          multinet_delete_network($network_id);
-          rcms_redirect('?module=multinet');
+      if (isset($_GET['deletenet'])) {
+          
+          $network_id=$_GET['deletenet'];
+          
+          // check have net any users?
+          if (!multinet_network_is_used($network_id)) {
+              multinet_delete_network($network_id);
+              rcms_redirect('?module=multinet');
+          } else {
+              //if is any users - go back
+              show_window(__('Error'),__('The network that you are trying to remove - contains live users. We can not afford to do so with them.'));
+              show_window('',  wf_Link('?module=multinet', 'Back', true, 'ubButton'));
+          }
+          
       }
 
       if (isset ($_POST['serviceadd'])) {
@@ -20,18 +30,17 @@
       multinet_add_service($net, $desc);
       rcms_redirect('?module=multinet');
       }
-      if (isset ($_POST['servicedelete'])) {
-          $service_id=$_POST['serviceselect'];
+      if (isset ($_GET['deleteservice'])) {
+          $service_id=$_GET['deleteservice'];
           multinet_delete_service($service_id);
           rcms_redirect('?module=multinet');
       }
       
       if ((!isset($_GET['editnet'])) AND (!isset($_GET['editservice'])))  {
       multinet_show_available_networks();
-      multinet_show_network_delete_form();
       multinet_show_networks_form();
+      
       multinet_show_available_services();
-      multinet_show_service_delete_form();
       multinet_show_service_add_form();
       multinet_rebuild_all_handlers();
       } else {

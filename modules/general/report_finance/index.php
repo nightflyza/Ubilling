@@ -49,9 +49,7 @@ show_window(__('Today payments'),  web_PaymentsShow("SELECT * from `payments` WH
 }
     
 
-
-
-
+ zb_BillingStats(true);
 
 } else {
       show_error(__('You cant control this module'));

@@ -226,6 +226,7 @@ if(cfr('USERSEARCH')) {
         }
     }
     
+     zb_BillingStats(true);
 }
 else {
 	show_error(__('Access denied'));

@@ -12,7 +12,7 @@ if (cfr('PLFEES')) {
        $stglog=$alter_conf['STG_LOG_PATH'];
        
        // monthly fees output
-       $command=$sudo.' '.$cat.' '.$stglog.' | '.$grep.' "fee charge"'.' | '.$grep.' "'.$login.'" ';
+       $command=$sudo.' '.$cat.' '.$stglog.' | '.$grep.' "fee charge"'.' | '.$grep.' "User \''.$login.'\'" ';
        $rawdata=shell_exec($command);
 
         $tablecells=wf_TableCell(__('Date'));

@@ -9,7 +9,12 @@ if (cfr('BUILDS')) {
        $streetid=vf($_GET['streetid']);
        if ($_GET['action']=='edit') {
            if (isset($_POST['newbuildnum'])) {
-               zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+               if (!empty($_POST['newbuildnum'])) {
+                   zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+               } else {
+                   show_error(__('Empty building number'));
+               }
+               
            }
            $streetname=zb_AddressGetStreetData($streetid);
            $streetname=$streetname['streetname'];
@@ -21,8 +26,9 @@ if (cfr('BUILDS')) {
            zb_AddressDeleteBuild($_GET['buildid']);
            rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
            } else {
+               show_window('', wf_Link("?module=builds&action=edit&streetid=".$streetid, 'Back', false, 'ubButton'));               
                show_error(__('You can not delete a building if there are users of the apartment'));
-           }
+            }
 
        }
        
@@ -32,7 +38,9 @@ if (cfr('BUILDS')) {
            
            //build edit subroutine
            if (isset($_POST['editbuildnum'])) {
+               if (!empty($_POST['editbuildnum'])) {
                simple_update_field('build', 'buildnum', $_POST['editbuildnum'], "WHERE `id`='".$buildid."'");
+               }
                log_register("CHANGE AddressBuild ".$buildid." ".  mysql_real_escape_string($_POST['editbuildnum']));
                rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
            }

@@ -4,6 +4,9 @@ if (cfr('DSHAPER')) {
 function web_DshapeShowTimeRules() {
     $query="SELECT * from `dshape_time`";
     $allrules=simple_queryall($query);
+//    $alltariffs=zb_TariffsGetAll();
+//    $shaperules=array();
+    $result='';
     $result='<table width="100%" border="0" class="sortable">';
     $result.='
                 <tr class="row1">
@@ -15,6 +18,7 @@ function web_DshapeShowTimeRules() {
                 <td>'.__('Actions').'</td>
                 </tr>
                 ';
+    
     if (!empty ($allrules)) {
         foreach ($allrules as $io=>$eachrule) {
             $result.='
@@ -33,6 +37,41 @@ function web_DshapeShowTimeRules() {
         }
     }
     $result.='</table>';
+    
+    //new interface
+//        if (!empty ($allrules)) {
+//        foreach ($allrules as $io=>$eachrule) {
+//            $shaperules[$eachrule['tariff']]['id']=$eachrule['id'];
+//            $shaperules[$eachrule['tariff']]['tariff']=$eachrule['tariff'];
+//            $shaperules[$eachrule['tariff']]['threshold1']=$eachrule['threshold1'];
+//            $shaperules[$eachrule['tariff']]['threshold2']=$eachrule['threshold2'];
+//            $shaperules[$eachrule['tariff']]['speed']=$eachrule['speed'];
+//        }
+//    }
+//    
+//    
+//       
+//    if (!empty($alltariffs)) {
+//        foreach ($alltariffs as $ia=>$eachtariff) {
+//            if (isset($shaperules[$eachtariff['name']])) {
+//               $content='<h3>'.$eachtariff['name'].'</h3>';
+//               $tablecells=  wf_TableCell(__('ID'));
+//               $tablecells.=  wf_TableCell(__('Tariff'));
+//               $tablecells.=  wf_TableCell(__('Time from'));
+//               $tablecells.=  wf_TableCell(__('Time to'));
+//               $tablecells.=  wf_TableCell(__('Speed'));
+//               $tablecells.=  wf_TableCell(__('Actions'));
+//               $tablerows=  wf_TableRow($tablecells, 'row2');
+//               
+//               
+//               $content.=wf_TableBody($tablerows, '100%', '0');
+//               
+//               $result.=wf_Plate($content, '400px', '200px', 'glamour');
+//            }
+//        }
+//    }
+//    $result.='<br clear="both" /> ';
+
     show_window(__('Available dynamic shaper time rules'),$result);
 }
 
@@ -45,7 +84,7 @@ function zb_DshapeDeleteTimeRule($ruleid) {
 
 function web_DshapeShowTimeRuleAddForm() {
     $form='
-        <form action="" method="POST">
+        <form action="" method="POST" class="glamour">
         '.  web_tariffselector('newdshapetariff').' '.__('Tariff').'<br>
         <input type="text" name="newthreshold1"> '.__('Time from').'<sup>*</sup> <br>
         <input type="text" name="newthreshold2"> '.__('Time to').'<sup>*</sup> <br>
@@ -106,7 +145,7 @@ function zb_DshapeEditTimeRule($timeruleid,$threshold1,$threshold2,$speed) {
         `speed` = '".$speed."' WHERE `id` ='".$timeruleid."' LIMIT 1;
        ";
     nr_query($query);
-    log_register("DSHAPE CHANGE ".$timeruleid);
+    log_register("DSHAPE CHANGE ".$timeruleid.' ON '.$speed);
 }
 
 //debug

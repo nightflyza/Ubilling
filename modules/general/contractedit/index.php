@@ -30,7 +30,7 @@ if (isset ($_GET['username'])) {
 // Edit form construct
 $fieldnames=array('fieldname1'=>__('Current contract'),'fieldname2'=>__('New contract'));
 $fieldkey='newcontract';
-$form=web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_contract);
+$form=web_EditorStringDataFormCredit($fieldnames, $fieldkey, $useraddress, $current_contract);
 $form.=web_UserControls($login);
 
 show_window(__('Edit contract'), $form);

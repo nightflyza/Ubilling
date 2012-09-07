@@ -1,26 +1,88 @@
 <?php
 
+function zbs_UserCheckLoginAuth($login,$password) {
+    $login=vf($login);
+    $password=vf($password);
+    $query="SELECT `IP` from `users` WHERE `login`='".$login."' AND MD5(`password`)='".$password."'";
+    $data=  simple_query($query);
+    if (!empty($data)) {
+        $result=$data['IP'];
+    } else {
+        $result='';
+    }
+    return ($result);
+}
+
+
 function zbs_UserDetectIp($debug=false)  {
-    $ip=$_SERVER['REMOTE_ADDR'];
-    if (!$ip) {
-        die('Strange error');
+    $glob_conf=zbs_LoadConfig();
+    $ip='';
+    
+    //default auth method
+    if ($glob_conf['auth']=='ip') {
+       $ip=$_SERVER['REMOTE_ADDR'];
     }
-    if ($debug=='debug') {
-     //$ip='172.30.0.2';   
+    //password based auth
+    if ($glob_conf['auth']=='login') {
+       if((isset($_COOKIE['ulogin'])) AND(isset($_COOKIE['upassword']))) {
+           $ulogin=trim(vf($_COOKIE['ulogin']));
+           $upassword=trim(vf($_COOKIE['upassword']));
+           $ip=zbs_UserCheckLoginAuth($ulogin, $upassword);
+       }
+     }
+    if ($debug) {
+      // $ip='172.30.0.2';    
     }
+       
     return($ip);
 }
 
 function zbs_UserGetLoginByIp($ip) {
+    $glob_conf=zbs_LoadConfig();
     $query="SELECT `login` from `users` where `IP`='".$ip."'";
     $result=simple_query($query);
     if (!empty ($result)) {
         return($result['login']);
     } else {
-        die('Unknown user');
-    }
+        if ($glob_conf['auth']=='ip') {
+          die('Unknown user');    
+        }
+        
+      }
 }
 
+function zbs_LoginForm() {
+    $form='
+        <table width="100%" border="0">
+        <tr>
+        <td align="center">
+        
+        <form action="" method="POST" class="loginform">
+        <label>'.__('Login').'</label><br>
+        <input type="text" name="ulogin"> 
+        <br>
+        <label>'.__('Password').'</label> <br>
+        <input type="password" name="upassword"> 
+        <br>
+        <input type="submit" value="'.__('Enter').'">
+        </form>
+        
+        </td>
+        </tr>
+        </table>
+         ';
+    show_window(__('Login with your account'), $form);
+}
+
+function zbs_LogoutForm() {
+    $form='
+        <form action="" method="POST">
+        <input type="hidden" name="ulogout" value="true"> 
+        <input type="submit" value="'.__('Logout').'">
+        </form>
+         ';
+    show_window('', $form);
+}
 
 
 function zbs_LangSelector() {
@@ -160,6 +222,140 @@ function zbs_UserGetPhone($login) {
     return($phone_arr['phone']);
 }
 
+function zbs_UserShowAgentData($login) {
+    if (isset($_GET['payments'])) {
+       $allpayments=zbs_CashGetUserPayments($login);
+       $paycount=(sizeof($allpayments))*3;
+       $i=1;
+       $cn=0;
+        $payments='<?xml version="1.0"?>
+                <CONFIG>
+                <grid version="3">
+                <saveoptions create="False" content="True" position="False"/>
+                <content>
+                <cells cellcount="'.$paycount.'">
+            '."\n";
+        if (!empty($allpayments)) {
+            foreach ($allpayments as $io=>$eachpayment) {
+                $cn++;
+                $payments.='<cell'.$cn.' row="'.$i.'" text="'.$eachpayment['date'].'" column="1"/>'."\n";
+                $cn++;
+                $payments.='<cell'.$cn.' row="'.$i.'" text="'.$eachpayment['summ'].'" column="2"/>'."\n";
+                $cn++;
+                $payments.='<cell'.$cn.' row="'.$i.'" text="'.$eachpayment['balance'].'" column="3"/>'."\n";
+                $i++;
+            }
+        }
+        $payments.='</cells>
+                </content>
+                </grid>
+                </CONFIG>';
+        print($payments);
+        die();
+        
+    }
+    
+        if (isset($_GET['paymentsplain'])) {
+       $allpayments=zbs_CashGetUserPayments($login);
+       $payments='';
+        if (!empty($allpayments)) {
+            foreach ($allpayments as $io=>$eachpayment) {
+                $payments.=$eachpayment['date'].' '.$eachpayment['summ'].' '.$eachpayment['balance']."\n";
+            }
+        }
+       
+        print($payments);
+        die();
+        
+    }
+    
+    if (isset($_GET['messages'])) {
+          $msg_result='';
+          $msg_query="SELECT * from `ticketing` WHERE `to`= '".$login."' AND `from`='NULL' AND `status`='1' ORDER BY `date` DESC";
+          $allmessages=simple_queryall($msg_query);
+          if (!empty($allmessages)) {
+              foreach ($allmessages as $io=>$eachmessage) {
+                  $msg_result.=$eachmessage['date']."\r\n";
+                  $msg_result.=$eachmessage['text']."\r\n";
+                  $msg_result.="\n";
+                  $msg_result.="\n";
+                  $msg_result.="\n";
+              }
+          }
+          print($msg_result);
+          die();
+    }
+    
+    
+    $us_config=zbs_LoadConfig();
+    $us_currency=$us_config['currency'];
+    $userdata=zbs_UserGetStargazerData($login);
+    $alladdress=zbs_AddressGetFulladdresslist();
+    $allrealnames=zbs_UserGetAllRealnames();
+    $contract=zbs_UserGetContract($login);
+    $email=zbs_UserGetEmail($login);
+    $mobile=zbs_UserGetMobile($login);
+    $phone=zbs_UserGetPhone($login);
+    if ($userdata['CreditExpire']!=0) {
+    $credexpire=date("d-m-Y",$userdata['CreditExpire']);
+    } else {
+    $credexpire='';    
+    }
+    
+    $traffdown=0;
+    $traffup=0;
+    $traffdgb=0;
+    $traffugb=0;
+    
+    for ($i=0;$i<=9;$i++) {
+        $traffdown=$traffdown+$userdata['D'.$i];
+        $traffup=$traffup+$userdata['U'.$i];
+    }
+    
+     $traffdgb = round($traffdown / 1073741824);
+     $traffugb = round($traffup / 1073741824);
+     
+     if ($traffdgb==0) {
+        $traffdgb=1;    
+     }
+     
+     if ($traffugb==0) {
+        $traffugb=1;    
+     }
+    
+    $result='[USERINFO]'."\n";
+    $result.='fulladdress='.@$alladdress[$login]."\n";
+    $result.='realname='.@$allrealnames[$login]."\n";
+    $result.='login='.$login."\n";
+    $result.='password='.@$userdata['Password']."\n";
+    $result.='cash='.@round($userdata['Cash'],2)."\n";
+    $result.='login='.$login."\n";
+    $result.='password='.@$userdata['Password']."\n";
+    $result.='ip='.@$userdata['IP']."\n";
+    $result.='phone='.$phone."\n";
+    $result.='mobile='.$mobile."\n";
+    $result.='email='.$email."\n";
+    $result.='credit='.@$userdata['Credit']."\n";
+    $result.='creditexpire='.$credexpire."\n";
+    $result.='payid='.ip2int($userdata['IP'])."\n";
+    $result.='contract='.$contract."\n";
+    $result.='tariff='.$userdata['Tariff']."\n";
+    $result.='tariffnm='.$userdata['TariffChange']."\n";
+    $result.='traffd='.$traffdgb."\n";
+    $result.='traffu='.$traffugb."\n";
+    $result.='traffd_conv='.zbs_convert_size($traffdown)."\n";
+    $result.='traffu_conv='.zbs_convert_size($traffup)."\n";
+    $result.='trafftotal_conv='.zbs_convert_size($traffdown+$traffup)."\n";
+    
+    
+    
+    $result.="\n";
+    $result.='[CONF]'."\n";
+    $result.='currency='.$us_currency;
+    print($result);
+    die();
+}
+
 function zbs_UserShowProfile($login) {
     $us_config=zbs_LoadConfig();
     $us_currency=$us_config['currency'];
@@ -170,14 +366,30 @@ function zbs_UserShowProfile($login) {
     $email=zbs_UserGetEmail($login);
     $mobile=zbs_UserGetMobile($login);
     $phone=zbs_UserGetPhone($login);
+    $passive=$userdata['Passive'];
+    $down=$userdata['Down'];
     
     if ($userdata['CreditExpire']!=0) {
-    $credexpire=date("d-m-Y",$userdata['CreditExpire']);
+        $credexpire=date("d-m-Y",$userdata['CreditExpire']);
     } else {
-    $credexpire='';    
+        $credexpire='';    
     }
+    //pasive state check
+    if ($passive) {
+        $passive_state=__('Account frozen');
+    } else {
+        $passive_state=__('Account active');
+    }
+    
+    //down state check
+    if ($down) {
+        $down_state=' + '.__('Disabled');
+    } else {
+        $down_state='';
+    }
+    
     $profile='
-        <table width="100%" border="0">
+        <table width="100%" border="0" cellpadding="2" cellspacing="3">
             <tr>
             <td class="row1">'.__('Address').'</td>
             <td>'.@$alladdress[$login].'</td>
@@ -251,8 +463,18 @@ function zbs_UserShowProfile($login) {
             </tr>
             
             <tr>
+            <td class="row1">'.__('Tariff price').'</td>
+            <td>'.@zbs_UserGetTariffPrice($userdata['Tariff']).' '.$us_currency.'</td>
+            </tr>
+            
+            <tr>
             <td class="row1">'.__('Tariff change').'</td>
             <td>'.$userdata['TariffChange'].'</td>
+            </tr>
+            
+            <tr>
+            <td class="row1">'.__('Account state').'</td>
+            <td>'.$passive_state.$down_state.'</td>
             </tr>
             </table>
         ';
@@ -357,8 +579,14 @@ function zbs_CashGetUserPayments($login) {
 }
 
 function zbs_ModulesMenuShow ($icons=false) {
+    $globconf=zbs_LoadConfig();
+    $maxnoicon=$globconf['MENUNOICONMAX'];
+    $menuhide=$globconf['MENUHIDE'];
+    $menuhide=explode(',', $menuhide);
+    
     $mod_path="config/modules.d/";
     $all_modules=rcms_scandir($mod_path);
+    $count=1;
     $result='';
     if (!empty ($all_modules))  {
         foreach ($all_modules as $eachmodule) {
@@ -371,8 +599,21 @@ function zbs_ModulesMenuShow ($icons=false) {
             } else {
                 $iconlink='';
             }
-            $mod_name=trim(file_get_contents($mod_path.$eachmodule));
-            $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+            if (!$icons) {
+            if ($count<=$maxnoicon) {
+              if (!in_array($eachmodule, $menuhide)) { // hide some modules
+              $mod_name=trim(file_get_contents($mod_path.$eachmodule));
+              $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+              }
+             }
+            } else {
+             if (!in_array($eachmodule, $menuhide)) {   // hide some modules
+             $mod_name=trim(file_get_contents($mod_path.$eachmodule));
+             $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+               }
+            }
+                
+            $count++;
         }
     }
     return($result);   
@@ -442,6 +683,10 @@ function billing_settariffnm($login,$tariff) {
    executor('-u'.$login.' -t '.$tariff.':delayed');
 }
 
+function billing_freeze($login) {
+    executor('-u'.$login.' -i 1');
+}
+
 function whoami() {
     $mylogin='external';
     return($mylogin);
@@ -491,6 +736,7 @@ function zbs_CashGetUserCredit($login) {
     $res=simple_query($query);
     return($res['Fee']); 
  }
+ 
 
 function zbs_CashAdd($login,$cash,$note) {
     $login=vf($login);

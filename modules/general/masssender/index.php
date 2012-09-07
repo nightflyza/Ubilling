@@ -1,7 +1,8 @@
 <?php
-if(cfr('MASSEND')) {
+if(cfr('MASSSEND')) {
  
  $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+ set_time_limit(0);
  
  function ms_SendMessage($login,$message) {
    $globconf=parse_ini_file('config/billing.ini');
@@ -10,7 +11,7 @@ if(cfr('MASSEND')) {
    $STG_PORT=$globconf['STG_PORT'];
    $STG_LOGIN=$globconf['STG_LOGIN'];
    $STG_PASSWD=$globconf['STG_PASSWD'];
-   $configurator=$SGCONF.' set -s '.$STG_HOST.' -p '.$STG_PORT.' -a'.$STG_LOGIN.' -w'.$STG_PASSWD.' -u '.$login.' -m "'.$message.'"';
+   $configurator='LANG=ru_UA.utf8 '.$SGCONF.' set -s '.$STG_HOST.' -p '.$STG_PORT.' -a'.$STG_LOGIN.' -w'.$STG_PASSWD.' -u '.$login.' -m "'.$message.'"';
    shell_exec($configurator);
 }
 

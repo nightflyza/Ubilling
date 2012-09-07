@@ -131,7 +131,7 @@ if (cfr('PLDETAILS')) {
                         <tr class="row3">
                         <td>'.$eachtraff['startTime'].'</td>
                         <td>'.$eachtraff['endTime'].'</td>
-                        <td><a href="https://apps.db.ripe.net/dbweb/search/query.html?searchtext='.$eachtraff['IP'].'" target="_BLANK">
+                        <td><a href="http://whois.domaintools.com/'.$eachtraff['IP'].'" target="_BLANK">
                        <img src="skins/icon_whois_small.jpg"></a>
                        <a href="http://'.$eachtraff['IP'].'">'.$eachtraff['IP'].'</td>
                         <td>'.@$tc[$eachtraff['dir']].'</td>

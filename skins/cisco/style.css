@@ -418,17 +418,17 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .ubButton {
-	-moz-box-shadow:inset 0px 1px 0px 0px #a4e271;
-	-webkit-box-shadow:inset 0px 1px 0px 0px #a4e271;
-	box-shadow:inset 0px 1px 0px 0px #a4e271;
-	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #89c403), color-stop(1, #77a809) );
-	background:-moz-linear-gradient( center top, #89c403 5%, #77a809 100% );
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#89c403', endColorstr='#77a809');
-	background-color:#89c403;
+	-moz-box-shadow:inset 0px 1px 0px 0px #628f3b;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #628f3b;
+	box-shadow:inset 0px 1px 0px 0px #628f3b;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #8bb5b3), color-stop(1, #8bb5b3) );
+	background:-moz-linear-gradient( center top, #8bb5b3 5%, #8bb5b3 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#447848', endColorstr='#436937');
+	background-color:#8bb5b3;
 	-moz-border-radius:6px;
 	-webkit-border-radius:6px;
 	border-radius:6px;
-	border:1px solid #74b807;
+	border:1px solid #8bb5b3;
 	display:inline-block;
 	color:#ffffff;
 	font-family:arial;
@@ -436,13 +436,15 @@ div.dhtml_menu div.vert_menu a.active:hover
 	font-weight:bold;
 	padding:6px 24px;
 	text-decoration:none;
-	text-shadow:1px 1px 0px #528009;
-}.ubButton:hover {
-	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #77a809), color-stop(1, #89c403) );
-	background:-moz-linear-gradient( center top, #77a809 5%, #89c403 100% );
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#77a809', endColorstr='#89c403');
-	background-color:#77a809;
-}.ubButton:active {
+	text-shadow:1px 1px 0px #466612;
+}
+.ubButton:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #4b8d89), color-stop(1, #4b8d89) );
+	background:-moz-linear-gradient( center top, #4b8d89 5%, #4b8d89 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#436937', endColorstr='#447848');
+	background-color:#436937;
+}
+.ubButton:active {
 	position:relative;
 	top:1px;
 }
@@ -488,4 +490,36 @@ div.dhtml_menu div.vert_menu a.active:hover
     background-color: #000000;
     color: #FFFFFF;
     text-align: center;
+}
+
+.siglight {
+    font-size: 24px;
+    font-weight:bold;
+
+/* IE10 Consumer Preview */ 
+background-image: -ms-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Mozilla Firefox */ 
+background-image: -moz-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Opera */ 
+background-image: -o-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* Webkit (Safari/Chrome 10) */ 
+background-image: -webkit-gradient(radial, center center, 0, center center, 497, color-stop(0, #FFFFFF), color-stop(1, #FFB914));
+
+/* Webkit (Chrome 11+) */ 
+background-image: -webkit-radial-gradient(center, ellipse farthest-corner, #FFFFFF 0%, #FFB914 100%);
+
+/* W3C Markup, IE10 Release Preview */ 
+background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%, #FFB914 100%);
+
+}
+
+.undone,
+.undone div,
+.undone span {
+    background-color: #f8bb00; 
+    border-color: #f8bb00;
+    color: #000000;           
 }

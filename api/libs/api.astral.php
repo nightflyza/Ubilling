@@ -590,4 +590,350 @@ function wf_CheckGet($params) {
     return ($result);
 }
 
+
+ /*
+ * 
+ * Returns filled paginator
+ * 
+ * @param $total Total items count
+ * @param $perpage Per page items count
+ * @param $current current page
+ * @param $link module link which use paginator
+ * @param $class page links class
+ * @return string
+ *  
+ */
+function wf_pagination($total, $perpage, $current, $link,$class=''){
+    if ($class!='') {
+        $pageclass='class="'.$class.'"';
+    } else {
+        $pageclass='';
+    }
+    
+    $return = '';
+    $link = preg_replace("/((&amp;|&)page=(\d*))/", '', $link);
+    if(!empty($perpage)) {
+        $pages = ceil($total/$perpage);
+        if($pages != 1){
+            $c = 1;
+            while($c <= $pages){
+                if($c != $current) $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" '.$pageclass.'>' . $c . '</a> ';
+                else $return .= ' ' . '<a href="#" '.$pageclass.' style="color: #ff0000;">' . $c . '</a> ';
+                $c++;
+            }
+        }
+    }
+    return $return;
+}
+
+
+ /*
+ * 
+ * Returns image body
+ * 
+ * @param $url image url
+ * @return string
+ *  
+ */
+
+function wf_img($url,$title='') {
+    if ($title!='') {
+        $imgtitle='title="'.$title.'"';
+    } else {
+        $imgtitle='';
+    }
+    $result='<img src="'.$url.'" '.$imgtitle.' border="0">';
+    return ($result);
+}
+
+
+
+ /*
+ * 
+ * Returns link that calls new modal window
+ * 
+ * @param $link link text
+ * @param $title modal window title
+ * @param $content modal window content
+ * @param $linkclass link class
+ * @param $width modal window width 
+ * @return string
+ *  
+ */
+
+function wf_modal($link, $title, $content, $linkclass = '', $width = '',$height='') {
+
+    $wid = wf_inputid();
+//    $content=  str_replace("'", '', $content);
+//    $content=  str_replace('"', '', $content);    
+//    $content=  str_replace('’', '', $content);   
+     
+    
+//setting link class
+    if ($linkclass != '') {
+        $link_class = 'class="' . $linkclass . '"';
+    } else {
+        $link_class = '';
+    }
+
+//setting auto width if not specified
+    if ($width == '') {
+        $width = '600';
+    }
+    
+//setting auto width if not specified
+    if ($height == '') {
+        $height = '400';
+    }    
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: false,
+			width: ' . $width . ',
+                        height: '.$height.',
+			modal: true,
+			show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        '.$content.'
+        </p>
+</div>
+
+<a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
+';
+
+    return($dialog);
+}
+
+
+ /*
+ * 
+ * Returns calendar widget
+ * 
+ * @param $field field name to insert calendar
+ * @return string
+ *  
+ */
+function wf_DatePicker($field) {
+    $inputid=wf_InputId();
+    $curlang=curlang();
+    $result='<script>
+	$(function() {
+		$( "#'.$inputid.'" ).datepicker({
+			showOn: "both",
+			buttonImage: "skins/icon_calendar.gif",
+			buttonImageOnly: true,
+                        dateFormat:  "yy-mm-dd",
+                        showAnim: "slideDown"
+		});
+               
+                    
+                $.datepicker.regional[\'en\'] = {
+		closeText: \'Done\',
+		prevText: \'Prev\',
+		nextText: \'Next\',
+		currentText: \'Today\',
+		monthNames: [\'January\',\'February\',\'March\',\'April\',\'May\',\'June\',
+		\'July\',\'August\',\'September\',\'October\',\'November\',\'December\'],
+		monthNamesShort: [\'Jan\', \'Feb\', \'Mar\', \'Apr\', \'May\', \'Jun\',
+		\'Jul\', \'Aug\', \'Sep\', \'Oct\', \'Nov\', \'Dec\'],
+		dayNames: [\'Sunday\', \'Monday\', \'Tuesday\', \'Wednesday\', \'Thursday\', \'Friday\', \'Saturday\'],
+		dayNamesShort: [\'Sun\', \'Mon\', \'Tue\', \'Wed\', \'Thu\', \'Fri\', \'Sat\'],
+		dayNamesMin: [\'Su\',\'Mo\',\'Tu\',\'We\',\'Th\',\'Fr\',\'Sa\'],
+		weekHeader: \'Wk\',
+		dateFormat: \'dd/mm/yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                    
+                $.datepicker.regional[\'ru\'] = {
+		closeText: \'Закрыть\',
+		prevText: \'&#x3c;Пред\',
+		nextText: \'След&#x3e;\',
+		currentText: \'Сегодня\',
+		monthNames: [\'Январь\',\'Февраль\',\'Март\',\'Апрель\',\'Май\',\'Июнь\',
+		\'Июль\',\'Август\',\'Сентябрь\',\'Октябрь\',\'Ноябрь\',\'Декабрь\'],
+		monthNamesShort: [\'Янв\',\'Фев\',\'Мар\',\'Апр\',\'Май\',\'Июн\',
+		\'Июл\',\'Авг\',\'Сен\',\'Окт\',\'Ноя\',\'Дек\'],
+		dayNames: [\'воскресенье\',\'понедельник\',\'вторник\',\'среда\',\'четверг\',\'пятница\',\'суббота\'],
+		dayNamesShort: [\'вск\',\'пнд\',\'втр\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
+		dayNamesMin: [\'Вс\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
+		weekHeader: \'Нед\',
+		dateFormat: \'dd.mm.yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                    
+                $.datepicker.regional[\'uk\'] = {
+		closeText: \'Закрити\',
+		prevText: \'&#x3c;\',
+		nextText: \'&#x3e;\',
+		currentText: \'Сьогодні\',
+		monthNames: [\'Січень\',\'Лютий\',\'Березень\',\'Квітень\',\'Травень\',\'Червень\',
+		\'Липень\',\'Серпень\',\'Вересень\',\'Жовтень\',\'Листопад\',\'Грудень\'],
+		monthNamesShort: [\'Січ\',\'Лют\',\'Бер\',\'Кві\',\'Тра\',\'Чер\',
+		\'Лип\',\'Сер\',\'Вер\',\'Жов\',\'Лис\',\'Гру\'],
+		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п’ятниця\',\'субота\'],
+		dayNamesShort: [\'нед\',\'пнд\',\'вів\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
+		dayNamesMin: [\'Нд\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
+		weekHeader: \'Тиж\',
+		dateFormat: \'dd/mm/yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                
+	$.datepicker.setDefaults($.datepicker.regional[\''.$curlang.'\']);
+      
+
+	});
+	</script>
+        
+        <input type="text" id="'.$inputid.'" name="'.$field.'" size="10">
+        ';
+    return($result);
+}
+
+
+ /*
+ * 
+ * Returns FullCalendar widget
+ * 
+ * @param $data prepeared data to show
+ * @return string
+ *  
+ */
+function wf_FullCalendar($data) {
+    
+    $elementid=wf_InputId();
+   
+    $calendar="<script type='text/javascript'>
+
+	$(document).ready(function() {
+	
+		var date = new Date();
+		var d = date.getDate();
+		var m = date.getMonth();
+		var y = date.getFullYear();
+         
+		$('#".$elementid."').fullCalendar({
+			editable: false,
+                        theme: true,
+                        
+                        monthNamesShort: [
+                        '".  rcms_date_localise('Jan')."',
+                        '".  rcms_date_localise('Feb')."',
+                        '".  rcms_date_localise('Mar')."',
+                        '".  rcms_date_localise('Apr')."',
+                        '".  rcms_date_localise('May')."',
+                        '".  rcms_date_localise('Jun')."',
+                        '".  rcms_date_localise('Jul')."',
+                        '".  rcms_date_localise('Aug')."',
+                        '".  rcms_date_localise('Sep')."',
+                        '".  rcms_date_localise('Oct')."',
+                        '".  rcms_date_localise('Nov')."',
+                        '".  rcms_date_localise('Dec')."'
+                        ],
+
+                        monthNames: [
+                        '".  rcms_date_localise('January')."',
+                        '".  rcms_date_localise('February')."',
+                        '".  rcms_date_localise('March')."',
+                        '".  rcms_date_localise('April')."',
+                        '".  rcms_date_localise('May')."',
+                        '".  rcms_date_localise('June')."',
+                        '".  rcms_date_localise('July')."',
+                        '".  rcms_date_localise('August')."',
+                        '".  rcms_date_localise('September')."',
+                        '".  rcms_date_localise('October')."',
+                        '".  rcms_date_localise('November')."',
+                        '".  rcms_date_localise('December')."'
+                        ],
+                        
+                        dayNamesShort: [
+                        '".  rcms_date_localise('Sun')."',
+                        '".  rcms_date_localise('Mon')."',
+                        '".  rcms_date_localise('Tue')."',
+                        '".  rcms_date_localise('Wed')."',
+                        '".  rcms_date_localise('Thu')."',
+                        '".  rcms_date_localise('Fri')."',
+                        '".  rcms_date_localise('Sat')."'
+                        ],
+                        
+                        dayNames: [
+                        '".  rcms_date_localise('Sunday')."',
+                        '".  rcms_date_localise('Monday')."',
+                        '".  rcms_date_localise('Tuesday')."',
+                        '".  rcms_date_localise('Wednesday')."',
+                        '".  rcms_date_localise('Thursday')."',
+                        '".  rcms_date_localise('Friday')."',
+                        '".  rcms_date_localise('Saturday')."'
+                        ],
+                        
+                        buttonText: {
+                            today:    '".__('Today')."',
+                            month:    '".__('Month')."',
+                            week:     '".__('Week')."',
+                            day:      '".__('Day')."'
+                        },
+
+                        header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,basicWeek,basicDay'
+			},
+                        
+			events: [
+				".$data."
+			
+			]
+                        
+		});
+		
+	});
+
+</script>
+<div id='".$elementid."'></div>
+";
+    
+return($calendar);
+}
+
+function wf_Plate($content, $width='', $height='', $class='') {
+    if ($width!='') {
+        $width='width: '.$width.';';
+    } 
+    
+    if ($height!='') {
+        $height='height: '.$height.';';
+    } 
+    
+       
+    if ($class!='') {
+        $class='class="'.$class.'"';
+    } 
+    
+    $result='
+        <div style="'.$width.' '.$height.' float: left;" '.$class.'>
+		'.$content.'
+        </div>
+        ';
+    return ($result);
+ }
+
+
 ?>

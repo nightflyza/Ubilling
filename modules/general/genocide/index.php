@@ -61,8 +61,8 @@ function gen_check_users() {
     $i=0;
     
     foreach ($control_tariffs as $eachtariff) {
-     $cspeed_k=$etalon_speed/$eachtariff;
-     $cband_k=$etalon_day_band/$cspeed_k;
+     @$cspeed_k=$etalon_speed/$eachtariff;
+     @$cband_k=$etalon_day_band/$cspeed_k;
      $dband_l=$cband_k*$cur_day;
      $band_arr[$i][$tariff_names[$i]]=($dband_l*1024)*1024;
      
