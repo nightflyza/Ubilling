@@ -3,18 +3,14 @@
 if($system->checkForRight('PAYFIND')) {
     
 function pf_showform() {
-    $form='
-        <form action="" method="POST">
-        <input type="text" name="searchid" size="20"> ID <br>
-        <input type="checkbox" name="enc"> IDENC?
-        <br>
-        <input type="submit" value="'.__('Search').'">
-        </form>
-        ';
+    $inputs=  wf_TextInput('searchid', __('ID'), '', true, '20');
+    $inputs.=wf_CheckInput('enc', __('IDENC').'?', true, false);
+    $inputs.=wf_Submit(__('Search'));
+    $form=  wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Payment search'),$form);
 }
     
-pf_showform();
+
 
 function pf_search($searchid,$enc=true) {
     $searchid=vf($searchid);
@@ -26,30 +22,31 @@ function pf_search($searchid,$enc=true) {
     if (!empty ($payment)) {
         $alladdress=zb_AddressGetFulladdresslist();
         $allnames=zb_UserGetAllRealnames();
-        $result='
-            <table width="100%" border="0">
-            <tr class="row1">
-            <td>'.__('ID').'</td>
-            <td>'.__('IDENC').'</td>
-            <td>'.__('Date').'</td>
-            <td>'.__('Cash').'</td>
-            <td>'.__('Login').'</td>
-            <td>'.__('Real Name').'</td>
-            <td>'.__('Full address').'</td>
-            <td>'.__('Notes').'</td>
-            </tr>
-            <tr class="row3">
-            <td>'.$payment['id'].'</td>
-            <td>'.zb_NumEncode($payment['id']).'</td>
-            <td>'.$payment['date'].'</td>
-            <td>'.$payment['summ'].'</td>
-            <td><a href="?module=userprofile&username='.$payment['login'].'">'.  web_profile_icon().'</a> '.$payment['login'].'</td>
-            <td>'.$allnames[$payment['login']].'</td>
-            <td>'.$alladdress[$payment['login']].'</td>
-            <td>'.$payment['note'].'</td>
-            </tr>
-            </table>
-            ';
+        
+        $cells=  wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('IDENC'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Cash'));
+        $cells.= wf_TableCell(__('Login'));
+        $cells.= wf_TableCell(__('Real Name'));
+        $cells.= wf_TableCell(__('Full address'));
+        $cells.= wf_TableCell(__('Notes'));
+        $cells.= wf_TableCell(__('Admin'));
+        $rows=  wf_TableRow($cells, 'row1');
+        
+        $cells=  wf_TableCell($payment['id']);
+        $cells.= wf_TableCell(zb_NumEncode($payment['id']));
+        $cells.= wf_TableCell($payment['date']);
+        $cells.= wf_TableCell($payment['summ']);
+        $cells.= wf_TableCell(wf_Link("?module=userprofile&username=".$payment['login'], web_profile_icon(), false));
+        $cells.= wf_TableCell(@$allnames[$payment['login']]);
+        $cells.= wf_TableCell(@$alladdress[$payment['login']]);
+        $cells.= wf_TableCell($payment['note']);
+        $cells.= wf_TableCell($payment['admin']);
+        $rows.=  wf_TableRow($cells, 'row3');
+        
+        $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+    
     } else {
         $result=__('Nothing found');
     }
@@ -57,14 +54,17 @@ function pf_search($searchid,$enc=true) {
 }
 
 
-if (isset ($_POST['searchid'])) {
+pf_showform();
+show_window('',  wf_Link("?module=report_finance", __('Back'), true, 'ubButton'));
+
+if (wf_CheckPost(array('searchid'))) {
      $enc=false;
     if (isset($_POST['enc'])) {
-        $enc=true;
+     $enc=true;
     } 
     pf_search($_POST['searchid'],$enc);
 }
-    
+   
     
 } else {
 	show_error(__('Access denied'));

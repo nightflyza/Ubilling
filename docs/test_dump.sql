@@ -500,7 +500,7 @@ CREATE TABLE `ahenassign` (
 -- ALTER TABLE `weblogs` ADD `ip` VARCHAR( 64 ) NULL AFTER `admin`;
 INSERT INTO `cashtype` (`Id`, `cashtype`) VALUES (1, 'Cash money');
 
-
+INSERT INTO `directions` (`id`, `rulenumber`, `rulename`) VALUES (1, 0, 'Internet');
 
 
 -- indexes tuning
@@ -775,3 +775,43 @@ CREATE TABLE IF NOT EXISTS `catv_bankstaparsed` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.3.1 update
+
+CREATE TABLE `uhw_log` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`date` DATETIME NOT NULL ,
+`password` VARCHAR( 255 ) NOT NULL ,
+`login` VARCHAR( 255 ) NOT NULL ,
+`ip` VARCHAR( 255 ) NOT NULL ,
+`nhid` INT NOT NULL ,
+`oldmac` VARCHAR( 255 ) NULL ,
+`newmac` VARCHAR( 255 ) NOT NULL
+) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE `uhw_brute` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`date` DATETIME NOT NULL ,
+`password` VARCHAR( 255 ) NOT NULL ,
+`mac` VARCHAR( 255 ) NOT NULL
+) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.3.2 update
+
+CREATE TABLE IF NOT EXISTS `paymentscorr` (
+  `id` int(11) NOT NULL auto_increment,
+  `login` varchar(45) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(255) default NULL,
+  `balance` varchar(45) NOT NULL,
+  `summ` varchar(45) NOT NULL,
+  `cashtypeid` int(11) NOT NULL,
+  `note` varchar(45) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `login` (`login`),
+  KEY `date` (`date`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.3.4 update
+ALTER TABLE `switches` ADD `geo` VARCHAR( 255 ) NULL DEFAULT NULL AFTER `snmp` ;

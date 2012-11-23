@@ -930,8 +930,9 @@ function zb_TariffGetAllSpeeds() {
         return($nasid);
     }
     
-    function zb_NetworkGetByIp ($ip) {
+    function zb_NetworkGetByIp($ip) {
         $allnets=multinet_get_all_networks();
+        $result=false;
         if (!empty ($allnets)) {
             foreach ($allnets as $io=>$eachnet) {
                 $completenet=multinet_expand_network($eachnet['startip'], $eachnet['endip']);
@@ -1060,6 +1061,11 @@ function zb_NewMacShow() {
 //check mac for valid format   
 function check_mac_format($mac) {
      $mask='/^[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}$/i';
+    //really shitty mac
+    if ($mac=='00:00:00:00:00:00') {
+        return (false);
+    } 
+    
     if (preg_match($mask, $mac)) {
         return (true);
     } else {
@@ -1079,6 +1085,7 @@ function zb_UserGetNetidsAll() {
     }
     return ($result);
 }
+
 
     
 ?>

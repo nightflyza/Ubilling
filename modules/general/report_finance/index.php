@@ -1,29 +1,38 @@
 <?php
 if (cfr('REPORTFINANCE')) {
 
-    if (!isset($_POST['yearsel'])) {
+    if (!wf_CheckPost(array('yearsel'))) {
         $show_year=curyear();
         } else {
         $show_year=$_POST['yearsel'];
         }
         
-      $dateform='
-<form action="?module=report_finance" method="POST">
-'.  web_CalendarControl('showdatepayments').'
-<input type="submit" value="'.__('Show').'">
-</form>
-<br>
-';
+
       
-      $yearform='
-        <form action="?module=report_finance" method="POST">
-         '.web_year_selector().'
-        <input type="submit" value="'.__('Show').'">
-        </form>
-          ';
+      $dateinputs= wf_DatePicker('showdatepayments');
+      $dateinputs.=wf_Submit(__('Show'));
+      $dateform=  wf_Form("?module=report_finance", 'POST', $dateinputs, 'glamour');
       
-show_window(__('Year'),$yearform);
-show_window(__('Payments by date'),$dateform);
+      
+      $yearinputs=  wf_YearSelector('yearsel');
+      $yearinputs.=wf_Submit(__('Show'));
+      $yearform=  wf_Form("?module=report_finance", 'POST', $yearinputs, 'glamour');
+      
+      
+      $controlcells=  wf_TableCell(wf_tag('h3',false,'title').__('Year').  wf_tag('h3', true));
+      $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payments by date').  wf_tag('h3', true));
+      $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payment search').  wf_tag('h3', true));
+      $controlrows=  wf_TableRow($controlcells);
+      
+      $controlcells=  wf_TableCell($yearform);
+      $controlcells.=  wf_TableCell($dateform);
+      $controlcells.=  wf_TableCell(wf_Link("?module=payfind", 'Find', false, 'ubButton'));
+      $controlrows.=  wf_TableRow($controlcells);
+      
+      $controlgrid=  wf_TableBody($controlrows, '100%', 0, '');
+      show_window('',$controlgrid);
+      
+
 web_PaymentsShowGraph($show_year);
 
 

@@ -5,7 +5,7 @@ if (isset ($_GET['username'])) {
     $login=vf($_GET['username']);
        // reset user if need
        $billing->resetuser($login);
-       log_register("RESET User ".$login);
+       log_register("RESET User (".$login.")");
        rcms_redirect("?module=userprofile&username=".$login);   
       
 }

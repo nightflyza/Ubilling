@@ -7,12 +7,29 @@ if(cfr('TASKMAN')) {
     if (isset($_POST['createtask'])) {
     if (wf_CheckPost(array('newstartdate','newtaskaddress','newtaskphone'))) {
         ts_CreateTask($_POST['newstartdate'], $_POST['newtaskaddress'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $_POST['newjobnote']);
-        rcms_redirect("?module=taskman");
+        if (!isset($_GET['gotolastid'])) {
+            rcms_redirect("?module=taskman");
+        } else {
+            $lasttaskid=  simple_get_lastid('taskman');
+            rcms_redirect("?module=taskman&edittask=".$lasttaskid);
+        }
+        
     } else {
         show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
      }
     }
     
+    
+    //modify task sub
+    if (isset($_POST['modifytask'])) {
+       if (wf_CheckPost(array('modifystartdate','modifytaskaddress','modifytaskphone'))) {
+        $taskid=$_POST['modifytask'];
+        ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifytaskaddress'], $_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
+        rcms_redirect("?module=taskman&edittask=".$taskid);
+    } else {
+        show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
+     }
+    }
     
     //if marking task as done
     if (isset($_POST['changetask'])) {

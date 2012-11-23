@@ -60,7 +60,7 @@ if (cfr('PLVCASH')) {
            $date=curdatetime();
            $cashtype=$_POST['cashtype'];
            $vserviceid=$_POST['vserviceid'];
-           $note='vservice:'.$vserviceid;
+           $note='Service:'.$vserviceid;
            $admin=whoami();
            
            if ($cash) {

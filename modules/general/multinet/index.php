@@ -39,7 +39,7 @@
       if ((!isset($_GET['editnet'])) AND (!isset($_GET['editservice'])))  {
       multinet_show_available_networks();
       multinet_show_networks_form();
-      
+
       multinet_show_available_services();
       multinet_show_service_add_form();
       multinet_rebuild_all_handlers();

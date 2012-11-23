@@ -7,7 +7,11 @@ if (cfr('CATV')) {
            $userid=vf($_GET['userid'],3);
            $userdata=catv_UserGetData($userid);
            $tariffnames=catv_TariffGetAllNames();
+           if ($userdata['apt']=='') {
+           $address=$userdata['street'].' '.$userdata['build'];    
+           } else {
            $address=$userdata['street'].' '.$userdata['build'].'/'.$userdata['apt'];
+           }
            
            //if someone edits user
            if (wf_CheckPost(array('realyedit'))) {

@@ -36,7 +36,9 @@ function zb_UserGetRealName($login) {
 
 function zb_UserChangeRealName($login,$realname) {
     $login=vf($login);
+    $realname= str_replace("'",'`',$realname);
     $realname=mysql_real_escape_string($realname);
+    
     $query="UPDATE `realname` SET `realname` = '".$realname."' WHERE `login`= '".$login."' ;";
     nr_query($query);
     log_register('CHANGE UserRealName '.$login.' '.$realname);

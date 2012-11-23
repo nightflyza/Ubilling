@@ -93,7 +93,11 @@ function sn_CheckPost($params) {
 
 function sn_CheckFields() {
     if (sn_CheckPost(array('street','build','realname','phone','service'))) {
-        return (true);
+        if (!sn_CheckPost(array('lastname'))) {
+           return (true);
+        } else {
+           return (false); 
+        }
     } else {
         return (false);
     }
@@ -186,7 +190,7 @@ function sn_CreateRequest() {
   
   $notifybody='
 DATE:      '.$date.'
-SERVICE:   '.$service.'
+PHONE:     '.$phone.'
 ';
   
   sn_MailNotify($notifybody);

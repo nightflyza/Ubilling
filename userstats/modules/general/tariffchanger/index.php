@@ -13,13 +13,62 @@ $tc_pricedown=$us_config['TC_PRICEDOWN'];
 $tc_pricesimilar=$us_config['TC_PRICESIMILAR'];
 $tc_credit=$us_config['TC_CREDIT'];
 $tc_cashtypeid=$us_config['TC_CASHTYPEID'];
-$tc_tariffsallowed=explode(',',$us_config['TC_TARIFFSALLOWED']);
-$tc_tariffenabledfrom=explode(',',$us_config['TC_TARIFFENABLEDFROM']);
 $user_data=zbs_UserGetStargazerData($user_login);
 $user_cash=$user_data['Cash'];
 $user_credit=$user_data['Credit'];
 $user_tariff=zbs_UserGetTariff($user_login);
 $user_tariffnm=$user_data['TariffChange'];
+
+/////////////// Loading tariff move matrix API
+
+
+
+function zbs_MatrixGetAllowed($user_tariff) {
+    $matrix=parse_ini_file('config/tariffmatrix.ini');
+    $result=false;
+    if (!empty($matrix)) {
+        if (isset($matrix[$user_tariff])) {
+            //extract tariff movement rules
+            $result=explode(',',$matrix[$user_tariff]);
+        } else {
+            //no tariff match
+            $result=false;
+        }
+    } else {
+        //no matrix entries
+        $result=false;
+    }
+    return ($result);
+}
+
+
+function zbs_MatrixGetAllowedFrom() {
+    $matrix=parse_ini_file('config/tariffmatrix.ini');
+    $result=array();
+    if (!empty($matrix)) {
+        foreach ($matrix as $io=>$each) {
+            $result[]=$io;
+        }
+    }
+    return ($result);
+}
+
+
+
+//////////////// allowed tariffs permissions
+$tc_extended_matrix=$us_config['TC_EXTENDED_MATRIX'];
+if (!$tc_extended_matrix) {
+    //old 2 opts style
+    $tc_tariffsallowed=explode(',',$us_config['TC_TARIFFSALLOWED']);
+    $tc_tariffenabledfrom=explode(',',$us_config['TC_TARIFFENABLEDFROM']);
+} else {
+    //extended tariffs move matrix
+    $tc_tariffsallowed=  zbs_MatrixGetAllowed($user_tariff);
+    $tc_tariffenabledfrom=  zbs_MatrixGetAllowedFrom();
+}
+
+
+////////////////////////////////
 
 function zbs_TariffSelector($tc_tariffsallowed,$user_tariff) {
     $result='<select name="newtariff">';

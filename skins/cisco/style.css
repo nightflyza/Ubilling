@@ -334,6 +334,7 @@ div.dhtml_menu div.vert_menu
 {
   margin-right:  -1px;
   border-bottom: 1px solid #000000;
+    z-index: 9999;
 }
 
 div.dhtml_menu div.horz_menu a,
@@ -522,4 +523,28 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     background-color: #f8bb00; 
     border-color: #f8bb00;
     color: #000000;           
+}
+
+
+.dashboard{
+    width:100%;
+}
+
+.dashtask {
+    float: left;
+    display: block;
+    padding: 10px;
+    margin: 5px;
+    border:solid 1px #EEE;
+    border-radius:10px;
+    text-align: center;
+    font-size: 8pt;
+    overflow: hidden;
+}
+
+.dashtask:hover {
+    -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    3px 3px 4px rgba(50, 50, 50, 0.75);
+    box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
+    
 }

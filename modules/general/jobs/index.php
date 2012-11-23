@@ -1,5 +1,5 @@
 <?php
-if(cfr('STGEMPLOYEE')) {
+if(cfr('EMPLOYEE')) {
 if (isset($_GET['username'])) {
 $username=$_GET['username'];
 

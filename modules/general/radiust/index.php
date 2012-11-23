@@ -1,7 +1,9 @@
 <?php
 if (cfr('RADIUST')) {
 
-
+$alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+//check is openpayz enabled?
+if ($alter_conf['RADIUST_ENABLED']) {
 
 // delete subroutine
 if (isset($_GET['delete'])) {
@@ -45,7 +47,9 @@ if (!isset($_GET['edit'])) {
     web_NasTemplateEditForm($_GET['edit']);
     show_window('',  wf_Link("?module=radiust", 'Back', true, 'ubButton'));
 }
-    
+ } else {
+     show_error(__('This module is disabled'));
+ }
     
 } else {
       show_error(__('You cant control this module'));

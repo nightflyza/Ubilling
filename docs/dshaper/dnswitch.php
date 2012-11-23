@@ -114,7 +114,7 @@ function dshape_SwitchSpeed($speed,$mark,$interface,$method,$speed_size='Kbit/s'
      }    
        
      if ($method=='tc') {
-         $shape_command='/sbin/tc  add dev '.$interface.' parent 1:1 classid 1:'.$mark.' htb rate '.$speed.' '.$speed.' burst '.$speed.' '.$speed_size.' prio 2 2'."\n";
+         $shape_command='/sbin/tc class change dev '.$interface.' parent 1:1 classid 1:'.$mark.' htb rate '.$speed.' '.$speed_size.' burst '.$speed.' '.$speed_size.' prio 2 2'."\n";
      }
      //print($shape_command);
      shell_exec($shape_command);

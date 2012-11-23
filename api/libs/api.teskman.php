@@ -485,6 +485,28 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
+    function ts_TaskCreateFormProfile($address,$mobile,$phone) {
+        $alljobtypes= ts_GetAllJobtypes();
+        $allemployee= ts_GetActiveEmployee();
+        $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs.=wf_HiddenInput('createtask', 'true');
+        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+        $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $mobile.' '.$phone, true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs.='<br>';
+        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=wf_Submit(__('Create new task'));
+        $result=  wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+        $result.=__('All fields marked with an asterisk are mandatory');
+        return ($result);
+    }
+    
     
     function ts_ShowPanel() {
         $createform=  ts_TaskCreateForm();
@@ -548,6 +570,58 @@ function ts_DetectUserByAddress($address) {
     }   
     
     
+    function ts_TaskModifyForm($taskid) {
+        $taskid=vf($taskid,3);
+        $taskdata=  ts_GetTaskData($taskid);
+        $result='';
+        $allemployee= ts_GetAllEmployee();
+        $activeemployee=  ts_GetActiveEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        if (!empty($taskdata)) {
+        $inputs=wf_HiddenInput('modifytask', $taskid);
+        $inputs.=wf_TextInput('modifystartdate', __('Target date').'<sup>*</sup>', $taskdata['startdate'], false);
+        $inputs.='<br>';
+        $inputs.=wf_TextInput('modifytaskaddress', __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_TextInput('modifytaskphone', __('Phone').'<sup>*</sup>', $taskdata['phone'], true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
+        $inputs.='<br>';
+        $inputs.=wf_Selector('modifytaskemployee', $activeemployee, __('Who should do'), $taskdata['employee'], true);
+        $inputs.='<br>';
+        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_TextArea('modifytaskjobnote', '', $taskdata['jobnote'], true, '35x5');
+        $inputs.=wf_Submit(__('Save'));
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        $result.=__('All fields marked with an asterisk are mandatory');
+            
+        }
+        
+        
+        return ($result);
+    }
+    
+    
+        function ts_ModifyTask($taskid,$startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
+        $taskid=vf($taskid,3);
+        $startdate=  mysql_real_escape_string($startdate);
+        $address=  str_replace('\'', '`', $address);
+        $address=  mysql_real_escape_string($address);
+        $phone=  mysql_real_escape_string($phone);
+        $jobtypeid=vf($jobtypeid,3);
+        $employeeid=vf($employeeid,3);
+        $jobnote=  mysql_real_escape_string($jobnote);
+        
+        simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'address', $address, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'phone', $phone, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'jobtype', $jobtypeid, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'employee', $employeeid, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='".$taskid."'");
+        log_register("TASKMAN MODIFY ".$address);
+        
+    }
+    
       function ts_TaskChangeForm($taskid) {
         $taskid=vf($taskid,3);
         $taskdata=  ts_GetTaskData($taskid);
@@ -564,6 +638,10 @@ function ts_DetectUserByAddress($address) {
             } else {
                 $addresslink=$taskdata['address'];
             }
+            
+            //modify form handlers
+            $modform=  wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '420', '500');
+            //modform end
             
             $tablecells=  wf_TableCell(__('Task creation date').' / '.__('Administrator'),'30%');
             $tablecells.=  wf_TableCell($taskdata['date'].' / '.$taskdata['admin']);
@@ -595,7 +673,7 @@ function ts_DetectUserByAddress($address) {
             
             $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
             // show task preview
-            show_window(__('View task'),$result);
+            show_window(__('View task').' '.$modform,$result);
             
             //if task undone
             if ($taskdata['status']==0) {
@@ -630,6 +708,7 @@ function ts_DetectUserByAddress($address) {
                 
                $doneresult= wf_TableBody($donerows,'100%','0','glamour');
                $doneresult.=wf_JSAlert('?module=taskman&deletetask='.$taskid, web_delete_icon(__('Remove this task - it is an mistake')),__('Removing this may lead to irreparable results'));
+               $doneresult.='&nbsp;';
                $doneresult.=wf_JSAlert('?module=taskman&setundone='.$taskid,  wf_img('skins/icon_key.gif',__('No work was done')),__('Are you serious'));
                
                show_window(__('Task is done'),$doneresult);

@@ -13,11 +13,11 @@ if (isset ($_GET['username'])) {
         if ($credit_limit!='DISABLED') {
                 if ($credit<=$credit_limit) {
                     $billing->setcredit($login,$credit);
-                    log_register('CHANGE Credit '.$login.' ON '.$credit);
+                    log_register('CHANGE Credit ('.$login.') ON '.$credit);
                 }
         } else {
         $billing->setcredit($login,$credit);
-        log_register('CHANGE Credit '.$login.' ON '.$credit);
+        log_register('CHANGE Credit ('.$login.') ON '.$credit);
         }
         rcms_redirect("?module=creditedit&username=".$login);
     }

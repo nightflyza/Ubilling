@@ -7,15 +7,6 @@ include('modules/engine/api.userstats.php');
 $db=new MySQLDB;
 
 
-
-
-// Send main headers
-header('Last-Modified: ' . date('r')); 
-header("Cache-Control: no-store, no-cache, must-revalidate"); 
-header("Pragma: no-cache");
-
-
-
 //actions hander
 $user_ip=zbs_UserDetectIp('debug');
 $user_login=zbs_UserGetLoginByIp($user_ip);

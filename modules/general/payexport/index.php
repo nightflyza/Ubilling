@@ -10,14 +10,22 @@ if ($alter_conf['EXPORT_ENABLED']) {
        $from_date=$_POST['fromdate'];
        $to_date=$_POST['todate'];
        
-       // we must debug it clearly
+       //export types
+       //xml
+       if ($alter_conf['EXPORT_FORMAT']=='xml') {
        $export_result=zb_ExportPayments($from_date, $to_date);
+       }
+       
+       //dbf
+       if ($alter_conf['EXPORT_FORMAT']=='dbf') {
+       //need to be written
+       }
+       
        $export_file='exports/'.time().'.export';
        $exported_link='<a href="'.$export_file.'">'.__('Download').'</a>';
        file_write_contents($export_file, $export_result);
        show_window(__('Exported data download'), $exported_link);
-       $deb_res='<textarea cols="150" rows="50">'.$export_result.'</textarea>';
-       //deb($deb_res);
+       
 
    }
 } else {

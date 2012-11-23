@@ -38,9 +38,11 @@ if (!empty ($alltags)) {
     foreach ($alltags as $key=>$eachtag) {
        $power=fn_get_tag_power($eachtag['tagid']);
        $fsize=$power/2;
+       if (isset($allnames[$eachtag['tagid']])) {
        $result.='<font size="'.$fsize.'">
            <a href="?module=tagcloud&tagid='.$eachtag['tagid'].'">'.$allnames[$eachtag['tagid']].'<sup>'.$power.'</sup></a>
            </font> ';
+       }
     }
  
  

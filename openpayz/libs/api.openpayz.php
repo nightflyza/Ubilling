@@ -217,6 +217,7 @@ function op_HandleStg($virtualid,$cash) {
     $stg_port=$opconfig['STG_PORT'];
     $stg_login=$opconfig['STG_LOGIN'];
     $stg_passwd=$opconfig['STG_PASSWD'];
+   
     if (isset ($allcustomers[$virtualid])) {
         $login=$allcustomers[$virtualid];
     //adding cash if login exists

@@ -1,6 +1,16 @@
 <?php
 
 ////////////////////// switch models managment
+
+function web_SwitchModelAddForm() {
+    $addinputs=wf_TextInput('newsm', 'Model', '', true);
+    $addinputs.=wf_TextInput('newsmp', 'Ports', '', true,'5');
+    $addinputs.=web_add_icon().' '.wf_Submit('Create');
+    $addform=wf_Form('', 'POST', $addinputs, 'glamour');
+    $result=$addform;
+    return ($result);
+}
+
 function web_SwitchModelsShow() {
 	$query='SELECT * from `switchmodels`';
 	$allmodels=simple_queryall($query);
@@ -28,13 +38,7 @@ function web_SwitchModelsShow() {
     $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
 
 
-$addinputs=wf_TextInput('newsm', 'Model', '', true);
-$addinputs.=wf_TextInput('newsmp', 'Ports', '', true,'5');
-$addinputs.=web_add_icon().' '.wf_Submit('Create');
-$addform=wf_Form('', 'POST', $addinputs, 'glamour');
 
-
-$result.=$addform;
 
 return ($result);
 }
@@ -104,6 +108,7 @@ function web_SwitchFormAdd() {
     $addinputs.=wf_TextInput('newlocation', 'Location', '', true);
     $addinputs.=wf_TextInput('newdesc', 'Description', '', true);
     $addinputs.=wf_TextInput('newsnmp', 'SNMP community', '', true);
+    $addinputs.=wf_TextInput('newgeo', 'Geo location', '', true);
     $addinputs.=web_SwitchModelSelector('newswitchmodel').' '.__('Model');
     $addinputs.='<br>';
     $addinputs.=web_add_icon().' '.wf_Submit('Save');
@@ -233,6 +238,7 @@ function web_SwitchesShow() {
         $tablecells.=wf_TableCell(__('Active'));
         $tablecells.=wf_TableCell(__('Model'));
         $tablecells.=wf_TableCell(__('SNMP community'));
+        $tablecells.=wf_TableCell(__('Geo location'));
         $tablecells.=wf_TableCell(__('Description'));
         $tablecells.=wf_TableCell(__('Actions'));
         $tablerows=wf_TableRow($tablecells, 'row1');
@@ -269,6 +275,7 @@ function web_SwitchesShow() {
                 $tablecells.=wf_TableCell($aliveled, '', '', 'sorttable_customkey="'.$aliveflag.'"');
                 $tablecells.=wf_TableCell(@$modelnames[$eachswitch['modelid']]);
                 $tablecells.=wf_TableCell($eachswitch['snmp']);
+                $tablecells.=wf_TableCell($eachswitch['geo']);
                 $tablecells.=wf_TableCell($eachswitch['desc']);
                 $switchcontrols=wf_JSAlert('?module=switches&switchdelete='.$eachswitch['id'], web_delete_icon(), 'Are you serious');
                 $switchcontrols.=wf_Link('?module=switches&edit='.$eachswitch['id'], web_edit_icon());
@@ -283,7 +290,7 @@ function web_SwitchesShow() {
 }
 
 
-function ub_SwitchAdd($modelid,$ip,$desc,$location,$snmp) {
+function ub_SwitchAdd($modelid,$ip,$desc,$location,$snmp,$geo) {
     $modelid=vf($modelid);
     $ip=mysql_real_escape_string($ip);
     $desc=mysql_real_escape_string($desc);
@@ -296,14 +303,16 @@ function ub_SwitchAdd($modelid,$ip,$desc,$location,$snmp) {
             `ip` ,
             `desc` ,
             `location` ,
-             `snmp`
+             `snmp`,
+             `geo`
             )
             VALUES (
-                '', '".$modelid."', '".$ip."', '".$desc."', '".$location."', '".$snmp."'
+                '', '".$modelid."', '".$ip."', '".$desc."', '".$location."', '".$snmp."','".$geo."'
                 );
             ";
 	nr_query($query);
-	stg_putlogevent('SWITCH ADD '.$ip.' ON ADDRESS '.$location);
+        $lastid=  simple_get_lastid('switches');
+	stg_putlogevent('SWITCH ADD ['.$lastid.'] IP '.$ip.' ON LOC '.$location);
 	show_window(__('Add switch'),__('Was added new switch').' '.$ip.' '.$location);
 }
 
@@ -311,9 +320,10 @@ function ub_SwitchAdd($modelid,$ip,$desc,$location,$snmp) {
 
 function ub_SwitchDelete($switchid) {
     $switchid=vf($switchid);
+    $switchdata=zb_SwitchGetData($switchid);
     $query="DELETE from `switches` WHERE `id`='".$switchid."'";
     nr_query($query);
-    log_register('SWITCH DELETE '.$switchid);
+    log_register('SWITCH DELETE ['.$switchid.'] IP '.$switchdata['ip'].' LOC '.$switchdata['location']);
 }
 
 ?>

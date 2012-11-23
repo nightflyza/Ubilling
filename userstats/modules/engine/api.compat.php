@@ -1,36 +1,24 @@
 <?php
 
+// Send main headers
+header('Last-Modified: ' . date('r')); 
+header("Cache-Control: no-store, no-cache, must-revalidate"); 
+header("Pragma: no-cache");
+
 function rcms_redirect($url, $header = false) {
     if($header){ 
         @header('Location: ' . $url); 
         } else { 
-         echo '<script language="javascript">document.location.href="' . $url . '";</script>'; 
+          print('<script language="javascript">document.location.href="' . $url . '";</script>'); 
          }
 }
-
-function cookie_check(){
-   setcookie("coockie_test", "justatest", 0);
-   if (@isset($_COOKIE['coockie_test']))  {
-    
-    } else {
-    die(__('Error: Cookies and JavaScript must be enabled!'));
-   }
-
-   
-}
-
-
-//checking is cookie enabled?
-//cookie_check();
-
-
 
 $ContentContainer='';
 $statsconfig=zbs_LoadConfig();
 
 
 
-$statsconfig = zbs_LoadConfig();
+
  
 // set default lang
 $lang = $statsconfig['lang'];

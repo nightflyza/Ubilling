@@ -714,3 +714,27 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     border-color: #f8bb00;
     color: #000000;           
 }
+
+
+.dashboard{
+    width:100%;
+}
+
+.dashtask {
+    float: left;
+    display: block;
+    padding: 10px;
+    margin: 5px;
+    border:solid 1px #EEE;
+    border-radius:10px;
+    text-align: center;
+    font-size: 8pt;
+    overflow: hidden;
+}
+
+.dashtask:hover {
+    -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    3px 3px 4px rgba(50, 50, 50, 0.75);
+    box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
+    
+}

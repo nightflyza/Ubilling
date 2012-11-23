@@ -126,6 +126,35 @@ function curlang() {
     return ($result);
 }
 
+
+function zb_GetNonUniquePasswordUsers() {
+    $query_p="SELECT `Password`,count(*) as cnt from `users` GROUP BY `Password` having cnt >1;";
+    $duppasswords=  simple_queryall($query_p);
+    $result=array();
+    if (!empty($duppasswords)) {
+        foreach ($duppasswords as $io=>$each) {
+            $query_l="SELECT `login` from `users` WHERE `Password`='".$each['Password']."'";
+            $userlogins=  simple_queryall($query_l);
+            if (!empty($userlogins)) {
+                foreach ($userlogins as $ia=>$eachlogin) {
+                    $result[]=$eachlogin['login'];
+                }
+            }
+        }
+    }
+    return ($result);
+}
+    
+function zb_CheckPasswordUnique($password) {
+    $password=  mysql_real_escape_string($password);
+    $query="SELECT `login` from `users` WHERE `Password`='".$password."'";
+    $data=  simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } else {
+        return (false);
+    }
+}
     
 //function for show localized calendar control
 function web_CalendarControl($field) {
@@ -165,6 +194,66 @@ function web_EditorStringDataForm($fieldnames,$fieldkey,$useraddress,$olddata=''
         <tr>
         <td class="row2">'.$field2.'</td>
         <td class="row3"><input type="text" name="'.$fieldkey.'"></td>
+        </tr>
+        </table>
+        <input type="submit" value="'.__('Change').'">
+        </form>
+        <br><br>
+        ';
+return($form);
+}
+
+
+//apt check javascript code
+ function js_CashCheck($suspect) {
+     $suspect=vf($suspect,3);
+     
+     $result='
+       <script type="text/javascript">
+        function cashsuspectalert() {
+              alert(\''.__('You try to bring to account suspiciously large amount of money. We have nothing against, but please check that all is correct').'\');
+        }
+
+        function checkcashfield()
+        {
+        var cashfield=document.getElementById("cashfield").value;
+        
+        if (cashfield > '.$suspect.') {
+            cashsuspectalert();
+        }
+       }
+   </script>
+        ';
+     
+     return ($result);
+ }
+
+function web_EditorStringDataFormPassword($fieldnames,$fieldkey,$useraddress,$olddata='') {
+    $field1=$fieldnames['fieldname1'];
+    $field2=$fieldnames['fieldname2'];
+    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    if (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) {
+        $password_proposal=  zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
+    } else {
+        //default size
+        $password_proposal=  zb_rand_string(8);
+    }
+    
+
+    $form='
+        <form action="" method="POST">
+        <table width="100%" border="0">
+        <tr>
+        <td class="row2">'.__('User').'</td>
+        <td class="row3">'.$useraddress.'</td>
+        </tr>
+        <tr>
+        <td class="row2">'.$field1.'</td>
+        <td class="row3">'.$olddata.'</td>
+        </tr>
+        <tr>
+        <td class="row2">'.$field2.'</td>
+        <td class="row3"><input type="text" name="'.$fieldkey.'" value="'.$password_proposal.'"></td>
         </tr>
         </table>
         <input type="submit" value="'.__('Change').'">
@@ -218,6 +307,18 @@ function web_EditorStringDataFormMAC($fieldnames,$fieldkey,$useraddress,$olddata
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
     $altconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+      //mac vendor search
+      if ($altconf['MACVEN_ENABLED']) {
+            $backlogin=$_GET['username'];
+            // old style
+           // $lookuplink=  wf_Link('?module=macvendor&mac='.$olddata.'&username='.$backlogin, wf_img("skins/macven.gif"), false, '');
+              $vendorframe='<iframe src="?module=macvendor&mac='.$olddata.'&username='.$backlogin.'" width="360" height="160" frameborder="0"></iframe';
+             $lookuplink=  wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+        } else {
+            $lookuplink='';
+        }
+    
+    
     if ($altconf['MACCHANGERANDOMDEFAULT']) {
         // funny random mac, yeah? :)
         $randommac='14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
@@ -238,7 +339,7 @@ function web_EditorStringDataFormMAC($fieldnames,$fieldkey,$useraddress,$olddata
         <td class="row3">'.$useraddress.'</td>
         </tr>
         <tr>
-        <td class="row2">'.$field1.'</td>
+        <td class="row2">'.$field1.' '.$lookuplink.'</td>
         <td class="row3">'.$olddata.'</td>
         </tr>
         <tr>
@@ -292,6 +393,19 @@ function zb_NewMacSelect($name='newmac') {
 function web_EditorStringDataFormMACSelect($fieldnames,$fieldkey,$useraddress,$olddata='') {
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
+    //mac vendor search
+    $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+      if ($alterconf['MACVEN_ENABLED']) {
+            $backlogin=$_GET['username'];
+            // old style
+            //$lookuplink=  wf_Link('?module=macvendor&mac='.$olddata.'&username='.$backlogin, wf_img("skins/macven.gif"), false, '');
+             $vendorframe='<iframe src="?module=macvendor&mac='.$olddata.'&username='.$backlogin.'" width="360" height="160" frameborder="0"></iframe';
+             $lookuplink=  wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+        } else {
+            $lookuplink='';
+        }
+        
+        
     $form='
         <form action="" method="POST">
         <table width="100%" border="0">
@@ -300,7 +414,7 @@ function web_EditorStringDataFormMACSelect($fieldnames,$fieldkey,$useraddress,$o
         <td class="row3">'.$useraddress.'</td>
         </tr>
         <tr>
-        <td class="row2">'.$field1.'</td>
+        <td class="row2">'.$field1.' '.$lookuplink.'</td>
         <td class="row3">'.$olddata.'</td>
         </tr>
         <tr>
@@ -354,6 +468,13 @@ function web_CashTypeSelector() {
     return($selector);
 }
 
+
+ function zb_CheckTableExists($tablename) {
+            $query="SELECT CASE WHEN (SELECT COUNT(*) AS STATUS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = (SELECT DATABASE()) AND TABLE_NAME = '".$tablename."') = 1 THEN (SELECT 1)  ELSE (SELECT 0) END AS result;";
+            $result=simple_query($query);
+            return ($result['result']);
+        }
+
 function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$tariff_price='') {
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
@@ -363,6 +484,15 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
     } else {
         $expected_time='';
     }
+    //cash suspect checking 
+    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    if ($alterconf['SUSP_PAYMENTS_NOTIFY']) {
+        $suspnotifyscript=js_CashCheck($alterconf['SUSP_PAYMENTS_NOTIFY']);
+        $cashfieldanchor='onchange="checkcashfield();"';
+    } else {
+        $suspnotifyscript='';
+        $cashfieldanchor='';
+    }
     
     $radio='
         <input type="radio" name="operation" value="add" CHECKED> '.__('Add cash').'
@@ -370,7 +500,9 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
         <input type="radio" name="operation" value="mock"> '.__('Mock payment').'
         <input type="radio" name="operation" value="set"> '.__('Set cash').'
         ';
+    
     $form='
+        '.$suspnotifyscript.'
         <form action="" method="POST">
         <table width="100%" border="0">
         <tr>
@@ -383,7 +515,7 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
         </tr>
         <tr>
         <td class="row2">'.$field2.'</td>
-        <td class="row3"><input type="text" name="'.$fieldkey.'" size="5"> '.__('The expected payment').': '. $tariff_price.'</td>
+        <td class="row3"><input type="text" name="'.$fieldkey.'" size="5" id="cashfield" '.$cashfieldanchor.'> '.__('The expected payment').': '. $tariff_price.'</td>
         </tr>
         <tr>
         <td class="row2">'.__('Actions').'</td>
@@ -584,6 +716,56 @@ return($form);
 }
 
 
+ function zb_TranslatePaymentNote($paynote,$allservicenames) {
+          if ($paynote=='') {
+                    $paynote=__('Internet');
+                }
+                  
+                if (isset ($allservicenames[$paynote])) {
+                    $paynote=$allservicenames[$paynote];
+                }
+                
+                 if (ispos($paynote, 'CARD:')) {
+                    $cardnum=explode(':', $paynote);
+                    $paynote=__('Card')." ".$cardnum[1];
+                 }
+                 
+                 if (ispos($paynote, 'SCFEE')) {
+                    $paynote=__('Credit fee');
+                 }
+                 
+                 if (ispos($paynote, 'AFFEE')) {
+                    $paynote=__('Freezing fee');
+                 }
+                 
+                 if (ispos($paynote, 'TCHANGE:')) {
+                    $tariff=explode(':', $paynote);
+                    $paynote=__('Tariff change')." ".$tariff[1];
+                 }
+                 
+                 if (ispos($paynote, 'BANKSTA:')) {
+                    $banksta=explode(':', $paynote);
+                    $paynote=__('Bank statement')." ".$banksta[1];
+                 }
+                 
+                 if (ispos($paynote, 'MOCK:')) {
+                     $mock=  explode(':',$paynote);
+                     $paynote=__('Mock payment').' '.$mock[1];
+                 }
+                 
+                 if (ispos($paynote, 'BALANCESET:')) {
+                     $balset=  explode(':',$paynote);
+                     $paynote=__('Set cash').' '.$balset[1];
+                 }
+                 
+                 if (ispos($paynote, 'DISCOUNT:')) {
+                     $disountset=  explode(':',$paynote);
+                     $paynote=__('Discount').' '.$disountset[1].'%';
+                 }
+                 
+                 return ($paynote);
+  }
+
     
     function web_TariffSpeedForm() {
         $alltariffnames_q="SELECT `name` from `tariffs`";
@@ -649,7 +831,7 @@ return($form);
 	<td><a href="?module=traffstats&username='.$login.'"><img src="skins/icon_stats_big.gif" title="'.__('Traffic stats').'" border="0"></a>
 	<br>'.__('Traffic stats').'
 	</td>
-	<td><a href="?module=addcash&username='.$login.'"><img src="skins/icon_cash_big.gif" title="'.__('Cash').'" border="0"></a>
+	<td><a href="?module=addcash&username='.$login.'#profileending"><img src="skins/icon_cash_big.gif" title="'.__('Cash').'" border="0"></a>
 	<br>'.__('Cash').'
 	</td>
 	<td><a href="?module=macedit&username='.$login.'"><img src="skins/icon_ether_big.gif" title="'.__('Change MAC').'" border="0"></a>
@@ -719,6 +901,8 @@ return($form);
         return($result);
     }
     
+  
+    
     function web_ProfileShow($login) {
         $alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $hightlight_start='';
@@ -739,6 +923,15 @@ return($form);
         $aptdata=zb_AddressGetAptData($login);
         $speedoverride=zb_UserGetSpeedOverride($login);
         $mac=zb_MultinetGetMAC($userdata['IP']);
+        if ($alter_conf['MACVEN_ENABLED']) {
+            // external module style
+            //$lookuplink=  wf_Link('?module=macvendor&mac='.$mac.'&username='.$login, wf_img("skins/macven.gif"), false, '');
+            $vendorframe='<iframe src="?module=macvendor&mac='.$mac.'&username='.$login.'" width="360" height="160" frameborder="0"></iframe';
+            $lookuplink=  wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+        } else {
+            $lookuplink='';
+        }
+        
         $creditexpire=$userdata['CreditExpire'];
         if ($creditexpire>0) {
             $creditexpire=date("Y-m-d",$creditexpire);
@@ -801,6 +994,14 @@ return($form);
             $downicon='';
         }
         
+        //profile task creation icon
+        if ($alter_conf['CREATETASK_IN_PROFILE']) {
+           $shortaddress=  zb_UserGetFullAddress($login);
+           $taskcreatelink=wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortaddress,$mobile,$phone), '', '420', '500'); 
+        } else {
+            $taskcreatelink='';
+        }
+        
          
          
         $profile.='
@@ -811,7 +1012,7 @@ return($form);
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
         <tbody>
             <tr>
-                <td class="row2" width="30%">'.__('Full address').'</td>
+                <td class="row2" width="30%">'.__('Full address').$taskcreatelink.'</td>
                 <td class="row3">'.$useraddress.'</td>
             </tr>
            <tr>
@@ -860,7 +1061,7 @@ return($form);
                 <td class="row3"> '.$hightlight_start.' '.$userdata['IP'].''.$hightlight_end.'</td>
             </tr>
             <tr>
-                <td class="row2">'.__('MAC').'</td>
+                <td class="row2">'.__('MAC').' '.$lookuplink.'</td>
                 <td class="row3">'.$mac.'</td>
             </tr>
              <tr>
@@ -912,7 +1113,7 @@ return($form);
                 <td class="row3"> '.$hightlight_start.' '.$downicon.web_trigger($userdata['Down']).''.$hightlight_end.'</td>
             </tr>
               <tr>
-                <td class="row2">'.__('Notes').'</td>
+                <td class="row2">'.__('Notes').'<a id="profileending"></a></td>
                 <td class="row3">'.zb_UserGetNotes($login).'</td>
             </tr>
            
@@ -972,37 +1173,7 @@ return($form);
         if (!empty ($allpayments)) {
             foreach ($allpayments as $io=>$eachpayment) {
                 if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
-                if ($eachpayment['note']=='') {
-                    $eachpayment['note']=__('Internet');
-                }
-                
-                if (isset ($allservicenames[$eachpayment['note']])) {
-                    $eachpayment['note']=$allservicenames[$eachpayment['note']];
-                }
-                
-                if (strpos($eachpayment['note'], 'ARD:')) {
-                    $cardnum=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Card')." ".$cardnum[1];
-                }
-                
-                
-                 if (ispos($eachpayment['note'], 'SCFEE')) {
-                    $eachpayment['note']=__('Credit fee');
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'AFFEE')) {
-                    $eachpayment['note']=__('Freezing fee');
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'TCHANGE:')) {
-                    $tariff=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Tariff change')." ".$tariff[1];
-                 }
-                 
-                   if (ispos($eachpayment['note'], 'BANKSTA:')) {
-                    $banksta=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Bank statement')." ".$banksta[1];
-                 }
+              $eachpayment['note']=  zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
             
             //hightlight of today payments
@@ -1161,7 +1332,7 @@ function web_DirectionsShow() {
        $selector.='</select>';
        
       $form='
-          <form action="" method="POST">
+          <form action="" method="POST" class="glamour">
             '.$selector.' '.__('Direction number').'<br>
             <input type="text" name="newrulename"> '.__('Direction name').' <br>
            <input type="submit" value="'.__('Create').'">
@@ -1181,6 +1352,7 @@ function web_DirectionsShow() {
       $editform.=wf_Link('?module=rules', 'Back', true, 'ubButton');
       show_window(__('Edit').' '.__('Rule name'),$editform);
   }
+  
   
  
   function web_PaymentsShow($query) {
@@ -1206,39 +1378,11 @@ function web_DirectionsShow() {
                 ';
     if (!empty ($allapayments)) {
         foreach ($allapayments as $io=>$eachpayment) {
+           
             if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
-                if ($eachpayment['note']=='') {
-                    $eachpayment['note']=__('Internet');
-                }
-                
-                if (isset ($allservicenames[$eachpayment['note']])) {
-                    $eachpayment['note']=$allservicenames[$eachpayment['note']];
-                }
-                
-                 if (ispos($eachpayment['note'], 'CARD:')) {
-                    $cardnum=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Card')." ".$cardnum[1];
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'SCFEE')) {
-                    $eachpayment['note']=__('Credit fee');
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'AFFEE')) {
-                    $eachpayment['note']=__('Freezing fee');
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'TCHANGE:')) {
-                    $tariff=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Tariff change')." ".$tariff[1];
-                 }
-                 
-                 if (ispos($eachpayment['note'], 'BANKSTA:')) {
-                    $banksta=explode(':', $eachpayment['note']);
-                    $eachpayment['note']=__('Bank statement')." ".$banksta[1];
-                 }
-                 
+            $eachpayment['note']=  zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
+            
             $result.='
                 <tr class="row3">
                 <td>'.$eachpayment['id'].'</td>
@@ -1691,7 +1835,7 @@ function web_BackupForm() {
                            $buildnum=zb_AddressGetBuildData($_POST['buildsel']);
                            $buildnum=$buildnum['buildnum'];
                            $form.=web_ok_icon().'<input type="hidden" name="buildsel" value="'.$_POST['buildsel'].'"> '.$buildnum.'<br>';
-                           $form.=web_AptCreateForm();
+                           $form.=web_AddressBuildShowAptsCheck($_POST['buildsel']).web_AptCreateForm();
                            $form.='<input type="submit" value="'.__('Create').'">';
                        }
                    }
@@ -2275,7 +2419,174 @@ function strtolower_utf8($string){
   return $crc;
 } 
 
+//lookups vendor by mac
+  function zb_MacVendorLookup($mac) {
+        $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $result='';
+        
+        if (!empty($altcfg['MACVENAPI_KEY'])) {
+        $apikey=$altcfg['MACVENAPI_KEY'];
+        $url='http://www.macvendorlookup.com/api/'.$apikey.'/';
+        $mac=  str_replace(':', '', $mac);
+        @$rawdata=file_get_contents($url.$mac);
+        
+        if (!empty($rawdata)) {
+            $data=  explode("|", $rawdata);
+            if (!empty($data)) {
+               $result=$data[0];
+                }
+            }
+            
+        } else {
+            $result=__('No macvendorlookup.com API key set');
+        }
+        
+        return ($result);
+    }
+
+///////////////////////
+// discounts support //
+///////////////////////
+
+function zb_DiscountsGetAllUsers() {
+    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $cfid=$alterconf['DISCOUNT_PERCENT_CFID'];
+    $cfid=vf($cfid,3);
+    $result=array();
+    if (!empty($cfid)) {
+        $query="SELECT * from `cfitems` WHERE `typeid`='".$cfid."'";
+        $alldiscountusers=  simple_queryall($query);
+        if (!empty($alldiscountusers)) {
+            foreach ($alldiscountusers as $io=>$each) {
+                $result[$each['login']]=vf($each['content']);
+            }
+        }
+    }
+    return ($result);
+}
 
 
+function zb_DiscountsGetMonthPayments($month) {
+    $query="SELECT * from `payments` WHERE `date` LIKE '".$month."%' AND `summ`>0";
+    $allpayments=  simple_queryall($query);
+    $result=array();
+    if (!empty($allpayments)) {
+        foreach ($allpayments as $io=>$each) {
+            //if not only one payment
+            if (isset($result[$each['login']])) {
+              $result[$each['login']]=$result[$each['login']]+$each['summ'];  
+            } else {
+               $result[$each['login']]=$each['summ'];
+            }
+            
+            
+        }
+    }
+    return ($result);
+}
+
+
+function zb_DiscountProcessPayments($debug=false) {
+    $alldiscountusers=  zb_DiscountsGetAllUsers();
+    $monthpayments=  zb_DiscountsGetMonthPayments(curmonth());
+    $alterconf= rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $cashtype=$alterconf['DISCOUNT_CASHTYPEID'];
+    $operation=$alterconf['DISCOUNT_OPERATION'];
+    
+    
+    if ((!empty($alldiscountusers) AND (!empty($monthpayments)))) {
+        foreach ($monthpayments as $login=>$eachpayment) {
+            //have this user discount?
+            if (isset($alldiscountusers[$login])) {
+                //yes it have
+                $discount_percent=$alldiscountusers[$login];
+                $payment_summ=$eachpayment;
+                $discount_payment=($payment_summ/100)*$discount_percent;
+                
+               
+                
+                if ($operation=='CORR') {
+                    zb_CashAdd($login, $discount_payment, 'correct', $cashtype, 'DISCOUNT:'.$discount_percent);
+                } 
+                
+                if ($operation=='ADD') {
+                    zb_CashAdd($login, $discount_payment, 'add', $cashtype, 'DISCOUNT:'.$discount_percent);
+                }
+                
+                if ($debug) {
+                print('USER:'.$login.' SUMM:'.$payment_summ.' DISCOUNT:'.$discount_percent.' PAYMENT:'.$discount_payment."\n");    
+                log_register("DISCOUNT ".$operation." (".$login.") ON ".$discount_payment);
+                }
+                
+                
+            }
+        }
+    }
+}
+
+ 
+ function web_ConfigEditorShow($prefix,$configdata,$optsdata) {
+    global $hide_passwords;
+    $result='';
+    if ((!empty($configdata)) AND (!empty($optsdata))) {
+        foreach ($optsdata as $option=>$handlers) {
+            
+           if (isset($configdata[$option])) {
+           $currentdata=$configdata[$option];
+           $handlers=  explode('|', $handlers);
+           $type=$handlers[0];
+           
+           //option description
+           if (!empty($handlers[1])) {
+               $description=trim($handlers[1]);
+               $description=__($description);
+           } else {
+               $description=$option;
+           }
+           
+           //option controls
+           if ($type=='TRIGGER') {
+               $control=  web_bool_led($configdata[$option]);
+           }
+           
+           if ($type=='VARCHAR') {
+               if ($hide_passwords) {
+                   if (isset($handlers[2])) {
+                       if ($handlers[2]=='PASSWD') {
+                           $datavalue=__('Hidden');
+                       } else {
+                       $datavalue=$configdata[$option];
+                       }
+                   } else {
+                       $datavalue=$configdata[$option];
+                   }
+               } else {
+                       $datavalue=$configdata[$option];
+                   }
+               $control='<input type="text" name="'.$prefix.'_'.$option.'" size="25" value="'.$datavalue.'" readonly>'."\n";
+           }
+           
+      
+           $result.=$control.' '.$description.'<br>';
+           } else {
+             if (ispos($option,'CHAPTER')) {
+                    $result.=wf_tag('h3', false);
+                    $result.=__($handlers);
+                    $result.=wf_tag('h3', true);
+                    
+             } else {
+             $result.=wf_tag('font', false, '', 'color="#FF0000"');
+             $result.=__('You missed an important option').': '.$option.'';
+             $result.=wf_tag('font', true);
+             $result.='<br>';
+             }
+           }
+           
+           
+        }
+    }
+    
+    return ($result);
+}
 
 ?>

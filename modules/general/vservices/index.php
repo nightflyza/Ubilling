@@ -6,8 +6,12 @@ if(cfr('VSERVICES')) {
         $price=$_POST['newfee'];
         $cashtype=$_POST['newcashtype'];
         $priority=$_POST['newpriority'];
+        if (!empty($price)) {
         zb_VserviceCreate($tagid, $price, $cashtype, $priority);
         rcms_redirect("?module=vservices");
+        } else {
+            show_window(__('Error'), __('Required fields'));
+        }
     }
     
     if (isset($_GET['delete'])) {

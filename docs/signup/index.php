@@ -105,7 +105,7 @@ include("modules/engine/api.signup.php");
                 
                     <label for="notes"><?=lang("L_NOTES")?></label> <textarea id="notes" name="notes" rows="0" cols="0" class="required"></textarea>
                     <div class="cleaner_h10"></div>
-                    
+                    <input type="text" name="lastname" style="display:none;">
                     <input type="submit" class="submit_button float_l" name="submit" id="submit" value="<?=lang("L_SUBMIT")?>" />
                     
                 </form>

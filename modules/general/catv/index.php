@@ -65,7 +65,15 @@ if (cfr('CATV')) {
        
        //show user list
         if ($_GET['action']=='showusers') {
-            catv_UsersShowList();
+            if ($alter_conf['CATV_HP_MODE']) {
+               if (isset($_GET['ajax'])) {
+                   catv_AjaxOnlineDataSource();
+               }
+               catv_UsersShowList_hp(); 
+            } else {
+               catv_UsersShowList();
+            }
+            
         }
         
         
@@ -116,6 +124,18 @@ if (cfr('CATV')) {
                 if ($_GET['showreport']=='current_debtors') {
                      catv_ReportDebtors();
                 }
+                
+                //finance report
+                // current debtors
+                if ($_GET['showreport']=='finance') {
+                    catv_FinanceReport();
+                }
+                
+                //database export
+                if ($_GET['showreport']=='exportcsv') {
+                    catv_ExportUserbaseCsv();
+                }
+                
             }
             
         }
@@ -123,11 +143,13 @@ if (cfr('CATV')) {
         
   }
     } else {
-        show_error('CaTV support is disabled');
+        show_error(__('CaTV support is disabled'));
     }
     
 } else {
       show_error(__('You cant control this module'));
 }
+
+
 
 ?>

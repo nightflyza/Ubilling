@@ -1,9 +1,15 @@
 <?php
 if($system->checkForRight('RULES')) {
 
-  if (isset($_POST['newrulename'])) {
-      zb_DirectionAdd($_POST['newrulenumber'], $_POST['newrulename']);
+  if (wf_CheckPost(array('newrulename'))) {
+      $createrulename=trim($_POST['newrulename']);
+      if (!empty($createrulename)) {
+      zb_DirectionAdd($_POST['newrulenumber'], $_POST['newrulename']); 
       rcms_redirect("?module=rules");
+      } else {
+          show_window(__('Error'), __('Required fields'));
+      }
+      
   }
   
   if (isset($_GET['delete'])) {
@@ -14,8 +20,8 @@ if($system->checkForRight('RULES')) {
   
   if (isset($_GET['edit'])) {
       $editruleid=vf($_GET['edit'],3);
-      if (isset($_POST['editrulename'])) {
-          $newrulename=  mysql_real_escape_string($_POST['editrulename']);
+      if (wf_CheckPost(array('editrulename'))) {
+          $newrulename=$_POST['editrulename'];
           simple_update_field('directions', 'rulename', $newrulename, "WHERE `id`='".$editruleid."'");
           log_register("CHANGE TrafficClass ".$editruleid." ON ".$newrulename);
           rcms_redirect("?module=rules");

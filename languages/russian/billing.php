@@ -39,7 +39,7 @@ $lang['def']['Cityes'] = 'Города';
 $lang['def']['Create new city'] = 'Создание нового города';
 $lang['def']['New City name'] = 'Имя нового города';
 $lang['def']['New City alias'] = 'Алиас нового города';
-$lang['def']['Available cityes'] = 'Существующие города';
+$lang['def']['Available cities'] = 'Существующие города';
 $lang['def']['City name'] = 'Имя города';
 $lang['def']['City alias'] = 'Алиас города';
 $lang['def']['City'] = 'Город';
@@ -1009,6 +1009,103 @@ $lang['def']['Switches are okay, everything is fine - I guarantee']='Свичи 
 $lang['def']['All switches alive']='Свичи впорядке';
 $lang['def']['Taskbar notify for dead switches']='Панель задач уведомляет о мертвых свитчах';
 $lang['def']['Switches ping cache timeout']='Время задержки между обновлениями кеша опроса свитчей';
+
+//rev 1786
+$lang['def']['User inside']='Внутренности пользователя';
+$lang['def']['User Networking']='Сетевые данные';
+$lang['def']['These users have identical passwords']='Эти пользователи имеют совпадающие пароли';
+$lang['def']['We do not recommend using the same password for different users. Try another.']='Мы не рекомендуем использовать одинаковые пароли для разных пользователей. Попробуйте другой.';
+$lang['def']['This module is disabled']='Этот модуль сейчас отключен';
+$lang['def']['CaTV support is disabled']='Поддержка КТВ сейчас отключена';
+$lang['def']['Remote API calls enabled']='API удаленного вызова процедур включено';
+$lang['def']['Radius templates enabled']='Шаблонизация аттрибутов Radius включена';
+
+
+//rev 1848
+$lang['def']['Mass user reset']='Массовый ресет пользователей';
+$lang['def']['After clicking the button below for all users will perform the standard procedure reset. By default, this will reinitialize shapers and  MAC bindings.']='После нажатия кнопки ниже для всех пользователей будет выполнена стандартная процедура ресета. По умолчанию это приведет к переинициализации шейперов и привязок по MAC.';
+$lang['def']['If you are completely sure of what you wish, enter the following numbers into the next field.']='Если вы полностью уверены в своих желаниях введите следующие цифры в поле ниже.';
+$lang['def']['right to use mass reset module']='Право на массовый ресет пользователей';
+
+
+//rev 1870
+$lang['def']['Device vendor']='Производитель оборудования';
+$lang['def']['No macvendorlookup.com API key set']='Не указан ключ API сервиса macvendorlookup.com';
+$lang['def']['Usage report']='Отчет о использовании';
+$lang['def']['Brute attempts']='Попытки перебора';
+$lang['def']['No successful usages of Unknowh HardWare helper']='Нету успешных попыток использования UHW';
+$lang['def']['UHW successful log']='Журнал успешного применения UHW';
+$lang['def']['right to control UHW usage']='Право контролировать использование UHW';
+$lang['def']['Funds flow']='Движение средств';
+$lang['def']['Operation']='Операция';
+$lang['def']['Correcting']='Корректировка';
+$lang['def']['Legend']='Легенда';
+$lang['def']['right to view user funds flow']='Право просматривать движение средств';
+$lang['def']['Old MAC']='Старый MAC';
+$lang['def']['Massreset function enabled']='Включен ли функционал массового ресета? (опасная штука)';
+$lang['def']['Vendor detection by MAC']='Поиск производителя по MAC оборудования';
+
+//rev 1963
+$lang['def']['You try to bring to account suspiciously large amount of money. We have nothing against, but please check that all is correct']='Вы пытаетесь внести на счет подозрительно большую сумму денег. Мы ничего не имеем против, но пожалуйста проверьте все ли правильно.';
+$lang['def']['Create tasks in user profile']='Создание задач в профиле пользователя';
+$lang['def']['Reporting of suspicious payments']='Уведомления о подозрительных платежах';
+
+//rev 1981
+$lang['def']['Search users']='Поиск пользователей';
+$lang['def']['Networks and services']='Сети и услуги';
+$lang['def']['DHCP server']='Сервер DHCP';
+$lang['def']['Duplicate login']='Дубликат логина';
+$lang['def']['right to control switches map']='Право управлять картой свичей';
+$lang['def']['Active equipment map']='Карта активного оборудования';
+$lang['def']['Place coordinates']='Координаты места';
+$lang['def']['Position']='Позиция';
+$lang['def']['Switch dead']='Свитч умер';
+$lang['def']['Switch alive']='Свитч живой';
+$lang['def']['Geo location']='Гео координаты';
+$lang['def']['Find location']='Поиск координат';
+$lang['def']['Switches map']='Карта оборудования';
+$lang['def']['You missed an important option']='Вы пропустили важную опцию';
+$lang['def']['Mask for search new MAC']='Маска поиска новых MAC';
+$lang['def']['User registration']='Регистрация пользователей';
+$lang['def']['Look&Feel']='Вид и удобства';
+$lang['def']['Login generation mode']='Режим генерации логинов';
+$lang['def']['Password generation lenght']='Длина генерируемых паролей';
+$lang['def']['Highlight today payments']='Подсветка сегодняшних платежей';
+$lang['def']['Extended filters in online module']='Расширенные фильтры в модуле "Онлайн"';
+$lang['def']['Bank statements']='Банковские выписки';
+$lang['def']['Behavior']='Поведение и функционал';
+$lang['def']['Switch map enabled']='Карта оборудования включена';
+$lang['def']['MAC vendor detection API key']='Ключ API для поиска производителя по MAC';
+$lang['def']['High perfomance mode for CaTV user list']='Режим высокой продуктивности списка пользователей КТВ';
+$lang['def']['Arp features']='Работа с ARP';
+$lang['def']['arping extra options']='Дополнительные опции arping';
+$lang['def']['Taskbar features']='Возможности "Панели задач"';
+$lang['def']['Taskbar display labels under icons']='Панель задач отображает подписи к иконкам';
+$lang['def']['NDS accounting']='Поддержка учета НДС';
+$lang['def']['Discounts support']='Поддержка скидок';
+$lang['def']['Discount support is enabled']='Поддержка скидок включена';
+$lang['def']['Discount rate custom profile field ID']='ID доп. поля профиля в котором указан % скидки';
+$lang['def']['Discount operation type']='Тип операции начисления скидки';
+$lang['def']['Discount cash type']='ID типа оплаты начисления скидочных средств';
+$lang['def']['Stargazer setup']='Настройки Stargazer';
+$lang['def']['Register users as active']='Регистрировать нового пользователя как подключенного';
+$lang['def']['Currency']='Валюта';
+$lang['def']['Discount processing']='Обработка скидок';
+$lang['def']['Allow change tariff right now']='Позволить моментальную смену тарифа';
+$lang['def']['Only one fee per month']='Защита от повторного начисления абонплаты';
+$lang['def']['Process fees for only active users']='Производить начисление АП только подключенным пользователям';
+$lang['def']['Protect payments from deletion']='Защищать оплаты от удаления';
+$lang['def']['Correct balance after payment deletion']='Коректировать баланс после удаления оплаты';
+$lang['def']['Bank statement input charset']='Входная кодировка банковских выписок';
+$lang['def']['Bank statement output charset']='Выходная кодировка банковских выписок';
+$lang['def']['Bank statement import options']='Опции импорта банковских выписок';
+$lang['def']['CaTV charge fee for previous month']='Для КТВ начисляется абонплата за предыдущий месяц';
+$lang['def']['Map center latitude and longtitude']='Центр карты в формате "широта, долгота"';
+$lang['def']['Map interface language']='Язык интерфейса карты';
+$lang['def']['Default map zoom']='Масштаб карты по умолчанию';
+$lang['def']['Default map type']='Тип карты по умолчанию';
+$lang['def']['Mark labels for alive hardware']='Подписывать маркеры для живого оборудования';
+$lang['def']['Mark labels for dead hardware']='Подписывать маркеры для мертвого оборудования';
 
 
 ?>

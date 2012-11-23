@@ -13,13 +13,25 @@ eval($result);
 }
 
 $taskbar.='<p><h3><u>'.__('Internet users').'</u></h3></p>';
+$taskbar.='<div class="dashboard">';
 $taskbar.=taskbar_load('iusers');
+$taskbar.='</div>';
+$taskbar.='<div style="clear:both"></div>';
 $taskbar.='<p><h3><u>'.__('Directories').'</u></h3></p>';
+$taskbar.='<div class="dashboard">';
 $taskbar.=taskbar_load('directories');
+$taskbar.='</div>';
+$taskbar.='<div style="clear:both"></div>';
 $taskbar.='<p><h3><u>'.__('Reports').'</u></h3></p>';
+$taskbar.='<div class="dashboard">';
 $taskbar.=taskbar_load('reports');
+$taskbar.='</div>';
+$taskbar.='<div style="clear:both"></div>';
 $taskbar.='<p><h3><u>'.__('System').'</u></h3></p>';
+$taskbar.='<div class="dashboard">';
 $taskbar.=taskbar_load('system');
+$taskbar.='</div>';
+$taskbar.='<div style="clear:both"></div>';
 
 
 

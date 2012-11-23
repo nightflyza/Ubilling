@@ -335,13 +335,13 @@
    function zb_ExportForm() {
        $curdate=curdate();
        $yesterday=date("Y-m-d",time()-86400);
-       $form='
-           <form action="" method="POST">
-                <input type="text" name="fromdate" value="'.$yesterday.'" size="10"> '.__('From').' <br>
-                <input type="text" name="todate" value="'.$curdate.'" size="10"> '.__('To').' <br>
-                <input type="submit" value="'.__('Export').'">
-           </form>
-           ';
+       
+       $inputs=__('From');
+       $inputs.= wf_DatePickerPreset('fromdate',$yesterday);
+       $inputs.=__('To');
+       $inputs.=wf_DatePickerPreset('todate',$curdate);
+       $inputs.=wf_Submit('Export');
+       $form=  wf_Form("", 'POST', $inputs, 'glamour');
        return($form);
    }
        
@@ -567,6 +567,25 @@
         return($names);
     }
     
+   function zb_PrintCheckGetDayNum($payid,$paymentdate) {
+       $payid=vf($payid,3);
+       
+       $result='EXEPTION';
+           $onlyday=$paymentdate;
+           $onlyday=  strtotime($onlyday);
+           $onlyday=date("Y-m-d",$onlyday);
+           $date_q="SELECT `id` from `payments` where `date` LIKE '".$onlyday."%' ORDER BY `id` ASC LIMIT 1;";
+           $firstbyday=  simple_query($date_q);
+
+        if (!empty($firstbyday)) {
+           $firstbyday=$firstbyday['id'];
+           $currentnumber=$payid-$firstbyday;
+           $currentnumber=$currentnumber+1;
+           $result=$currentnumber;
+        }
+       return ($result);
+   }
+    
    function zb_PrintCheck($paymentid) {
         $paymentdata=zb_PaymentGetData($paymentid);
         $login=$paymentdata['login'];
@@ -596,6 +615,8 @@
         @$templatedata['{CDAY}']=$cday;
         @$templatedata['{CMONTH}']=rcms_date_localise($cmonth_name);
         @$templatedata['{CYEAR}']=$cyear;
+        @$templatedata['{DAYPAYID}']=zb_PrintCheckGetDayNum($paymentdata['id'],$paymentdata['date']);
+     
         //parsing result
         $result=zb_ExportParseTemplate($templatebody,$templatedata);
         return($result);

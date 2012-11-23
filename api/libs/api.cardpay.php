@@ -39,10 +39,41 @@ function zb_CardGenerate($count,$price) {
     return($reported);
 }
 
+function zb_CardsGetCount() {
+        $query="SELECT COUNT(`id`) from `cardbank`";
+        $result=  simple_query($query);
+        $result=$result['COUNT(`id`)'];
+        return ($result);
+}
+
 function web_CardsShow() {
-    $query="SELECT * from `cardbank`";
+    
+    $totalcount=zb_CardsGetCount();
+    $perpage=100;
+    
+     //pagination 
+         if (!isset ($_GET['page'])) {
+          $current_page=1;
+          } else {
+          $current_page=vf($_GET['page'],3);
+          }
+          
+          if ($totalcount>$perpage) {
+          $paginator=wf_pagination($totalcount, $perpage, $current_page, "?module=cards",'ubButton');
+          $from=$perpage*($current_page-1);
+          $to=$perpage;
+          $query="SELECT * from `cardbank` ORDER by `id` DESC LIMIT ".$from.",".$to.";";
+          $alluhw=  simple_queryall($query);
+         
+          } else {
+          $paginator='';
+          $query="SELECT * from `cardbank` ORDER by `id` DESC;";
+          $alluhw=  simple_queryall($query);
+        }
+    
+    
     $allcards=  simple_queryall($query);
-    $result='<table width="100%" boder="0" class="sortable">
+    $result='<table width="100%" boder="0">
         <form action="" method="POST">
         ';
      $result.='
@@ -82,7 +113,9 @@ function web_CardsShow() {
              
         }
     }
-    $result.='</table>
+    $result.='</table>';
+    $result.=$paginator.  wf_delimiter();
+    $result.='
         <select name="cardactions">
         <option value="caexport">'.__('Export serials').'</option>
         <option value="caactive">'.__('Mark as active').'</option>
@@ -92,6 +125,9 @@ function web_CardsShow() {
         <input type="submit" value="'.__('With selected').'">
         </form>
         ';
+    
+    
+    
     return($result);
 }
 
@@ -104,6 +140,12 @@ function web_CardsGenerateForm() {
         <input type="submit" value="'.__('Create').'">
         </form>
         ';
+    
+    $inputs=  wf_TextInput('gencount', 'Count', '', false,'5');
+    $inputs.=wf_TextInput('genprice', 'Price', '', false,'5');
+    $inputs.=wf_Submit('Create');
+    $form=  wf_Form("", 'POST', $inputs, 'glamour');
+    
     return($form);
 }
 

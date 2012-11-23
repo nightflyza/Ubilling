@@ -344,7 +344,7 @@
   function catv_UserRegisterForm() {
       $alltariffs=catv_TariffGetAllNames();
       $inputs=wf_HiddenInput('realyregister', 'true');
-      $inputs.=wf_TextInput('newusercontract', 'Contract', '', true, '');
+      $inputs.=wf_TextInput('newusercontract', __('Contract').'<sup>*</sup>', '', true, '');
       $inputs.=wf_TextInput('newuserrealname', 'Real Name', '', true, 30);
       $inputs.=wf_TextInput('newuserstreet', 'Street', '', true, 30);
       $inputs.=wf_TextInput('newuserbuild', 'Build', '', true, 5);
@@ -364,6 +364,7 @@
       $query="SELECT * from `catv_users`";
       $allusers=simple_queryall($query);
       $allstates=catv_ActivityGetLastAll();
+      $usercount=sizeof($allusers);
       $extendedfilters='
           <a href="javascript:showfiltercatv();">'.__('Extended filters').'</a>
           ';
@@ -423,17 +424,167 @@
             </script>
           ';
       $result.='</table>'.$js_filters;
+      $result.='<strong>'.__('Total').': '.$usercount.'</strong>';
       
       show_window(__('Available users'),$result);
   }
   
+  function catv_UsersShowList_hp() {
+      
+      $jq_dt='
+          <script type="text/javascript" charset="utf-8">
+                
+		$(document).ready(function() {
+		$(\'#catvonlineusershp\').dataTable( {
+ 	       "oLanguage": {
+			"sLengthMenu": "'.__('Show').' _MENU_",
+			"sZeroRecords": "'.__('Nothing found').'",
+			"sInfo": "'.__('Showing').' _START_ '.__('to').' _END_ '.__('of').' _TOTAL_ '.__('users').'",
+			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('users').'",
+			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
+                        "sSearch":       "'.__('Search').'",
+                        "sProcessing":   "'.__('Processing').'..."
+		},
+           
+                "aoColumns": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],      
+         
+        "bPaginate": true,
+        "bLengthChange": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": true,
+        "bAutoWidth": false,
+        "bProcessing": true,
+        "bStateSave": false,
+        "iDisplayLength": 50,
+        "sAjaxSource": \'?module=catv&action=showusers&ajax\',
+	"bDeferRender": true,
+        "bJQueryUI": true
+
+                } );
+		} );
+		</script>
+
+          ';
+      $result=' '.$jq_dt.'
+          <table width="100%" class="sortable" id="catvonlineusershp">
+                <tr class="row1">
+                  <td>'.__('ID').'</td>
+                  <td>'.__('Contract').'</td>
+                  <td>'.__('Real name').'</td>
+                  <td>'.__('Street').'</td>
+                  <td>'.__('Build').'</td>
+                  <td>'.__('Apartment').'</td>
+                  <td>'.__('Tariff').'</td>
+                  <td>'.__('Cash').'</td>
+                  <td>'.__('Connected').'</td>
+                  <td>'.__('Actions').'</td>
+                </tr>
+          ';
+     
+      
+      $result.='</table>';
+      
+      
+      show_window(__('Available users'),$result);
+  }
+  
+  function catv_AjaxOnlineDataSource() {
+      $tariffnames=catv_TariffGetAllNames();
+      $query="SELECT * from `catv_users`";
+      $allusers=simple_queryall($query);
+      $totalusers=sizeof($allusers);  
+      $allstates=catv_ActivityGetLastAll();
+      $ucount=0;
+      
+       $result='{';
+       $result.='
+       "aaData": [
+         ';
+      
+     if (!empty ($allusers)) {
+          foreach ($allusers as $io=>$eachuser) {
+              $ucount++;
+              
+              if ($ucount<$totalusers) {
+                     $ending=',';
+                } else {
+                     $ending='';
+                }   
+     $clearstreet=trim($eachuser['street']);
+     $clearstreet=  str_replace("'", '`', $clearstreet);
+     $clearstreet=  mysql_real_escape_string($clearstreet);
+     
+     $clearrealname=trim($eachuser['realname']);
+     $clearrealname=  str_replace("'", '`', $clearrealname);
+     $clearrealname=  mysql_real_escape_string($clearrealname);
+     
+     $act='<img src=skins/icon_active.gif>'.__('Yes');
+     //activity
+     if (catv_ActivityCheck($eachuser['id'], $allstates)) {
+     $act='<img src=skins/icon_inactive.gif>'.__('No');
+     }
+     
+     
+            $result.='
+         [
+         "'.$eachuser['id'].'",
+         "'.$eachuser['contract'].'",
+         "'.$clearrealname.'",
+         "'.$clearstreet.'",
+         "'.$eachuser['build'].'",
+         "'.$eachuser['apt'].'",
+         "'.@$tariffnames[$eachuser['tariff']].'",
+         "'.$eachuser['cash'].'",
+         "'.$act.'",
+         "<a href=?module=catv_profile&userid='.$eachuser['id'].'><img src=skins/icon_user.gif title='.__('Profile').' border=0></a> <a href=?module=catv_addcash&userid='.$eachuser['id'].'><img src=skins/icon_dollar.gif title='.__('Cash').' border=0></a> <a href=?module=catv_stats&userid='.$eachuser['id'].'><img src=skins/icon_stats.gif title='.__('Stats').' border=0></a>"
+         ]'.$ending.'
+        ';  
+     
+          }
+          
+           $result.='
+    
+    ]
+    }
+        ';
+      }
+      
+      print($result);
+      die();
+      
+  }
+  
+  //used in profile
   function catv_UsersGetFullAddressList() {
       $query="SELECT `id`,`street`,`build`,`apt` from `catv_users`";
       $allusers=simple_queryall($query);
       $result=array();
+      $catvconf=  rcms_parse_ini_file(CONFIG_PATH."catv.ini");
       if (!empty ($allusers)) {
           foreach ($allusers as $io=>$eachuser) {
-              $useraddress=$eachuser['street'].' '.$eachuser['build'].'/'.$eachuser['apt'];
+              //again zero tolerance
+              if ($catvconf['ZERO_TOLERANCE']) {
+                  if ($eachuser['apt']=='') {
+                      $useraddress=$eachuser['street'].' '.$eachuser['build'].'';
+                  } else {
+                      $useraddress=$eachuser['street'].' '.$eachuser['build'].'/'.$eachuser['apt'];
+                  }
+              } else {
+                  $useraddress=$eachuser['street'].' '.$eachuser['build'].'/'.$eachuser['apt'];
+              }
+              
               $result[$eachuser['id']]=$useraddress;
           }
       }
@@ -1244,11 +1395,16 @@ function catv_FeeChargeAllUsers($month,$year) {
             $replink='?module=catv&action=reports&showreport=';
             $reportslist=  wf_Link($replink.'current_debtors', __('Current debtors'), false, 'ubButton');
             $reportslist.= wf_Link($replink.'current_debtors&printable=true', wf_img('skins/printer_small.gif'), true, 'ubButton');
+            $reportslist.=wf_delimiter();
+            $reportslist.= wf_Link($replink.'finance', __('Finance report'), true, 'ubButton');
+            $reportslist.=wf_delimiter();
+            $reportslist.= wf_Link($replink.'exportcsv', wf_img('skins/excel.gif').' '. __('Export userbase'), true, 'ubButton');
+            
            
             show_window(__('Available reports'),$reportslist);
         }
         
-        function catv_ReportDebtors() {
+       function catv_ReportDebtors() {
             if (isset($_GET['printable'])) {
                 $printable=true;
             } else {
@@ -1347,6 +1503,9 @@ function catv_FeeChargeAllUsers($month,$year) {
             }
             
         }
+        
+        
+         
  //      
  // statements api
  //
@@ -1635,9 +1794,11 @@ function catvbs_AddressEdit($id,$address) {
 }
 
 
+//used in bank statements
 function catv_GetFullAddressList() {
     $query="SELECT `id`,`street`,`build`,`apt` from `catv_users`";
     $alldata=  simple_queryall($query);
+    $catvconf=  rcms_parse_ini_file(CONFIG_PATH."catv.ini");
     $result=array();
     if (!empty($alldata)) {
         foreach ($alldata as $io=>$each) {
@@ -1645,7 +1806,12 @@ function catv_GetFullAddressList() {
             if ($each['apt']!='') {
                 $result[$each['id']]=$each['street'].' '.$each['build'].'/'.$each['apt'];
             } else {
-                $result[$each['id']]=$each['street'].' '.$each['build'].'/0';
+                if ($catvconf['ZERO_TOLERANCE']) {
+                     $result[$each['id']]=$each['street'].' '.$each['build'].'';
+                } else {
+                    $result[$each['id']]=$each['street'].' '.$each['build'].'/0';
+                }
+                
             }
         }
     }
@@ -1659,6 +1825,18 @@ function catv_GetAllRealnames() {
     if (!empty($alldata)) {
         foreach ($alldata as $io=>$each) {
                 $result[$each['id']]=$each['realname'];
+        }
+    }
+    return ($result);
+}
+
+function catv_GetAllContracts() {
+    $query="SELECT `id`,`contract` from `catv_users`";
+    $alldata=  simple_queryall($query);
+    $result=array();
+    if (!empty($alldata)) {
+        foreach ($alldata as $io=>$each) {
+                $result[$each['id']]=$each['contract'];
         }
     }
     return ($result);
@@ -1835,8 +2013,192 @@ function catvbs_LockRow($rowid) {
     log_register("CATV_BANKSTA LOCK ROW ".$rowid);
 }
 
+
+//payments report
+function catv_PaymentsGetYearSumm($year) {
+    $year=vf($year);
+    $query="SELECT SUM(`summ`) from `catv_payments` WHERE `date` LIKE '".$year."-%' AND `summ` > 0";
+    $result=simple_query($query);
+    return($result['SUM(`summ`)']);
+}
+
+function catv_PaymentsGetMonthSumm($year,$month) {
+    $year=vf($year);
+    $query="SELECT SUM(`summ`) from `catv_payments` WHERE `date` LIKE '".$year."-".$month."%' AND `summ` > 0";
+    $result=simple_query($query);
+    return($result['SUM(`summ`)']);
+}
+
+function catv_PaymentsGetMonthCount($year,$month) {
+    $year=vf($year);
+    $query="SELECT COUNT(`id`) from `catv_payments` WHERE `date` LIKE '".$year."-".$month."%' AND `summ` > 0";
+    $result=simple_query($query);
+    return($result['COUNT(`id`)']);
+}
+
+  function catv_PaymentsShow($query) {
+    $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+    $alladrs=  catv_GetFullAddressList();
+    $allrealnames=  catv_GetAllRealnames();
+    $alltypes=zb_CashGetAllCashTypes();
+    $allapayments=simple_queryall($query);
+
+    $total=0;
+    $result='<table width="100%" border="0" class="sortable">';
+      $result.='
+                <tr class="row1">
+                <td>'.__('ID').'</td>
+                <td>'.__('IDENC').'</td>
+                <td>'.__('Date').'</td>
+                <td>'.__('Cash').'</td>
+                <td>'.__('User').'</td>
+                <td>'.__('Full address').'</td>                    
+                <td>'.__('Notes').'</td>
+                <td>'.__('Admin').'</td>
+                </tr>
+                ';
+    if (!empty ($allapayments)) {
+        foreach ($allapayments as $io=>$eachpayment) {
+           if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
+               if ($eachpayment['notes']=='') {
+                   $eachpayment['notes']=__('CaTV');
+               }
+               $eachpayment['notes']=  zb_TranslatePaymentNote($eachpayment['notes'], array());
+           }
         
+            
+            $result.='
+                <tr class="row3">
+                <td>'.$eachpayment['id'].'</td>
+                <td>'.  zb_NumEncode($eachpayment['id']).'</td>
+                <td>'.$eachpayment['date'].'</td>
+                <td>'.$eachpayment['summ'].'</td>
+                <td> <a href="?module=catv_profile&userid='.$eachpayment['userid'].'">'.  web_profile_icon().'</a> '.@$allrealnames[$eachpayment['userid']].'</td>                    
+                <td>'.@$alladrs[$eachpayment['userid']].'</td>                    
+                <td>'.$eachpayment['notes'].'</td>
+                <td>'.$eachpayment['admin'].'</td>
+                </tr>
+                ';
+            if ($eachpayment['summ']>0) {
+            $total=$total+$eachpayment['summ'];
+            }
+        }
+    }
+   
+    $result.='</table>';
+    $result.='<strong>'.__('Total').': '.$total.'</strong>';
+    return($result);
+}
+
+function catv_PaymentsShowGraph($year) {
+    $months=months_array();
+    $result='<table width="100%" class="sortable" border="0">';
+    $year_summ=catv_PaymentsGetYearSumm($year);
+    $result.='
+            <tr class="row1">
+                <td></td>
+                <td>'.__('Month').'</td>
+                <td>'.__('Payments count').'</td>
+                <td>'.__('ARPU').'</td>
+                <td>'.__('Cash').'</td>
+                <td width="50%">'.__('Visual').'</td>
+            </tr>
+            ';
+    foreach ($months as $eachmonth=>$monthname) {
+        $month_summ=catv_PaymentsGetMonthSumm($year, $eachmonth);
+        $paycount=catv_PaymentsGetMonthCount($year, $eachmonth);
+        $result.='
+            <tr class="row3">
+                <td>'.$eachmonth.'</td>
+                <td><a href="?module=catv&action=reports&showreport=finance&month='.$year.'-'.$eachmonth.'">'.rcms_date_localise($monthname).'</a></td>
+                <td>'.$paycount.'</td>
+                <td>'.@round($month_summ/$paycount,2).'</td> 
+                <td>'.$month_summ.'</td>
+                <td>'.web_bar($month_summ, $year_summ).'</td>
+            </tr>
+            ';
+    }
+    $result.='</table>';
+    show_window(__('Payments by').' '.$year, $result);
+}
         
+function catv_FinanceReport() {
+      if (!isset($_POST['yearsel'])) {
+        $show_year=curyear();
+        } else {
+        $show_year=$_POST['yearsel'];
+        }
+        
+      $dateform='
+        <form action="?module=catv&action=reports&showreport=finance" method="POST">
+        '.  web_CalendarControl('showdatepayments').'
+        <input type="submit" value="'.__('Show').'">
+        </form>
+        <br>
+        ';
+      
+      $yearform='
+        <form action="?module=catv&action=reports&showreport=finance" method="POST">
+         '.web_year_selector().'
+        <input type="submit" value="'.__('Show').'">
+        </form>
+          ';
+      
+show_window(__('Year'),$yearform);
+show_window(__('Payments by date'),$dateform);
+catv_PaymentsShowGraph($show_year);
+
+
+if (!isset($_GET['month'])) {
+
+// payments by somedate
+if (isset($_POST['showdatepayments'])) {
+    $paydate=mysql_real_escape_string($_POST['showdatepayments']);
+    //deb($paydate);
+    show_window(__('Payments by date').' '.$paydate,  catv_PaymentsShow("SELECT * from `catv_payments` WHERE `date` LIKE '".$paydate."%'"));
+} else {
+
+// today payments
+$today=curdate();
+show_window(__('Today payments'),  catv_PaymentsShow("SELECT * from `catv_payments` WHERE `date` LIKE '".$today."%'"));
+}
+
+} else {
+    // show monthly payments
+    $paymonth=mysql_real_escape_string($_GET['month']);
+    
+    show_window(__('Month payments'),  catv_PaymentsShow("SELECT * from `catv_payments` WHERE `date` LIKE '".$paymonth."%'"));
+}
+    
+}        
+
+function catv_ExportUserbaseCsv() {
+    $allusers= catv_UsersGetAll();
+    $allactivity=catv_ActivityGetLastAll();
+    $alltariffs=  catv_TariffGetAllNames();
+    $result='';
+    //options
+    $delimiter=";";
+    $in_charset='utf-8';
+    $out_charset='windows-1251';
+    /////////////////////
+    if (!empty($allusers)) {
+        $result.=__('ID').$delimiter.__('Contract').$delimiter.__('Real name').$delimiter.__('Street').$delimiter.__('Build').$delimiter.__('Apartment').$delimiter.__('Phone').$delimiter.__('Tariff').$delimiter.__('Planned tariff change').$delimiter.__('Cash').$delimiter.__('Discount').$delimiter.__('Notes').$delimiter.__('Decoder').$delimiter.__('Internet account').$delimiter.__('Connection')."\n";
+        foreach ($allusers as $io=>$eachuser) {
+           
+           $result.=$eachuser['id'].$delimiter.$eachuser['contract'].$delimiter.$eachuser['realname'].$delimiter.$eachuser['street'].$delimiter.$eachuser['build'].$delimiter.$eachuser['apt'].$delimiter.$eachuser['phone'].$delimiter.@$alltariffs[$eachuser['tariff']].$delimiter.$eachuser['tariff_nm'].$delimiter.$eachuser['cash'].$delimiter.$eachuser['discount'].$delimiter.$eachuser['notes'].$delimiter.$eachuser['decoder'].$delimiter.$eachuser['inetlink'].$delimiter.@$allactivity[$eachuser['id']]."\n";
+        }
+    if ($in_charset!=$out_charset) {
+        $result=  iconv($in_charset, $out_charset, $result);
+    }
+    // push data for excel handler
+   header('Content-type: application/ms-excel');
+   header('Content-Disposition: attachment; filename=userbase.csv');
+    echo $result;
+    die();
+    }
+
+}
         
            
 ?>

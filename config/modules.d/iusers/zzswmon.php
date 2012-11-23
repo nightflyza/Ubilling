@@ -1,4 +1,4 @@
-
+/*
 if ($alter_conf['TB_SWITCHMON']) {
 $dead_raw=zb_StorageGet('SWDEAD');
 $deadarr=array();
@@ -13,17 +13,17 @@ foreach ($deadarr as $ip=>$switch) {
     $content.=$ip.' - '.$switch.'<br>';
 }
 
-$taskbar.=wf_modal(__('Dead switches').': '.$deadcount, __('Dead switches'), $content, 'ubButton', '400', '400');
+$taskbar.=wf_modal(__('Dead switches').': '.$deadcount, __('Dead switches'), $content, 'ubButton', '500', '400');
 } else {
    $content.=__('Switches are okay, everything is fine - I guarantee');
-   $taskbar.=wf_modal(__('All switches alive'), __('All switches alive'), $content, 'ubButton', '400', '400');
+   $taskbar.=wf_modal(__('All switches alive'), __('All switches alive'), $content, 'ubButton', '500', '400');
 }
 
 } else {
    $content.=__('Switches are okay, everything is fine - I guarantee');
-   $taskbar.=wf_modal(__('All switches alive'), __('All switches alive'), $content, 'ubButton', '400', '400');
+   $taskbar.=wf_modal(__('All switches alive'), __('All switches alive'), $content, 'ubButton', '500', '400');
 }
 
 
 }
-
+*/

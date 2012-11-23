@@ -808,6 +808,96 @@ function wf_DatePicker($field) {
     return($result);
 }
 
+ /*
+ * 
+ * Returns calendar widget with preset date
+ * 
+ * @param $field field name to insert calendar
+ * @return string
+ *  
+ */
+function wf_DatePickerPreset($field,$date) {
+    $inputid=wf_InputId();
+    $curlang=curlang();
+    $result='<script>
+	$(function() {
+		$( "#'.$inputid.'" ).datepicker({
+			showOn: "both",
+			buttonImage: "skins/icon_calendar.gif",
+			buttonImageOnly: true,
+                        dateFormat:  "yy-mm-dd",
+                        showAnim: "slideDown"
+		});
+               
+                    
+                $.datepicker.regional[\'en\'] = {
+		closeText: \'Done\',
+		prevText: \'Prev\',
+		nextText: \'Next\',
+		currentText: \'Today\',
+		monthNames: [\'January\',\'February\',\'March\',\'April\',\'May\',\'June\',
+		\'July\',\'August\',\'September\',\'October\',\'November\',\'December\'],
+		monthNamesShort: [\'Jan\', \'Feb\', \'Mar\', \'Apr\', \'May\', \'Jun\',
+		\'Jul\', \'Aug\', \'Sep\', \'Oct\', \'Nov\', \'Dec\'],
+		dayNames: [\'Sunday\', \'Monday\', \'Tuesday\', \'Wednesday\', \'Thursday\', \'Friday\', \'Saturday\'],
+		dayNamesShort: [\'Sun\', \'Mon\', \'Tue\', \'Wed\', \'Thu\', \'Fri\', \'Sat\'],
+		dayNamesMin: [\'Su\',\'Mo\',\'Tu\',\'We\',\'Th\',\'Fr\',\'Sa\'],
+		weekHeader: \'Wk\',
+		dateFormat: \'dd/mm/yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                    
+                $.datepicker.regional[\'ru\'] = {
+		closeText: \'Закрыть\',
+		prevText: \'&#x3c;Пред\',
+		nextText: \'След&#x3e;\',
+		currentText: \'Сегодня\',
+		monthNames: [\'Январь\',\'Февраль\',\'Март\',\'Апрель\',\'Май\',\'Июнь\',
+		\'Июль\',\'Август\',\'Сентябрь\',\'Октябрь\',\'Ноябрь\',\'Декабрь\'],
+		monthNamesShort: [\'Янв\',\'Фев\',\'Мар\',\'Апр\',\'Май\',\'Июн\',
+		\'Июл\',\'Авг\',\'Сен\',\'Окт\',\'Ноя\',\'Дек\'],
+		dayNames: [\'воскресенье\',\'понедельник\',\'вторник\',\'среда\',\'четверг\',\'пятница\',\'суббота\'],
+		dayNamesShort: [\'вск\',\'пнд\',\'втр\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
+		dayNamesMin: [\'Вс\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
+		weekHeader: \'Нед\',
+		dateFormat: \'dd.mm.yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                    
+                $.datepicker.regional[\'uk\'] = {
+		closeText: \'Закрити\',
+		prevText: \'&#x3c;\',
+		nextText: \'&#x3e;\',
+		currentText: \'Сьогодні\',
+		monthNames: [\'Січень\',\'Лютий\',\'Березень\',\'Квітень\',\'Травень\',\'Червень\',
+		\'Липень\',\'Серпень\',\'Вересень\',\'Жовтень\',\'Листопад\',\'Грудень\'],
+		monthNamesShort: [\'Січ\',\'Лют\',\'Бер\',\'Кві\',\'Тра\',\'Чер\',
+		\'Лип\',\'Сер\',\'Вер\',\'Жов\',\'Лис\',\'Гру\'],
+		dayNames: [\'неділя\',\'понеділок\',\'вівторок\',\'середа\',\'четвер\',\'п’ятниця\',\'субота\'],
+		dayNamesShort: [\'нед\',\'пнд\',\'вів\',\'срд\',\'чтв\',\'птн\',\'сбт\'],
+		dayNamesMin: [\'Нд\',\'Пн\',\'Вт\',\'Ср\',\'Чт\',\'Пт\',\'Сб\'],
+		weekHeader: \'Тиж\',
+		dateFormat: \'dd/mm/yy\',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: \'\'};
+                
+	$.datepicker.setDefaults($.datepicker.regional[\''.$curlang.'\']);
+      
+
+	});
+	</script>
+        
+        <input type="text" id="'.$inputid.'" name="'.$field.'" value="'.$date.'" size="10">
+        ';
+    return($result);
+}
+
 
  /*
  * 
@@ -933,6 +1023,58 @@ function wf_Plate($content, $width='', $height='', $class='') {
         </div>
         ';
     return ($result);
+ }
+ 
+ 
+ /*
+ * 
+ * Returns some count of delimiters
+ * 
+ * @param $count count of delimited rows
+ * @return string
+ *  
+ */
+ function wf_delimiter($count=1) {
+     $result='';
+     for($i=0;$i<=$count;$i++) {
+         $result.='<br />';
+     }
+     return ($result);
+ }
+ 
+ 
+ /*
+ * 
+ * Returns some html styled tag
+ * 
+ * @param $tag HTML tag entity
+ * @param $closed tag is closing?
+ * @param $class tag styling class
+ * @param $options tag extra options
+ * @return string
+ *  
+ */
+ function wf_tag($tag,$closed=false,$class='',$options='') {
+     if (!empty($class)) {
+         $tagclass=' class="'.$class.'"';
+     } else {
+         $tagclass='';
+     }
+     
+     if ($closed) {
+         $tagclose='/';
+     } else {
+         $tagclose='';
+     }
+     
+     if ($options!='') {
+         $tagoptions=$options;
+     } else {
+         $tagoptions='';
+     }
+     
+     $result='<'.$tagclose.$tag.$tagclass.' '.$tagoptions.'>';
+     return ($result);
  }
 
 

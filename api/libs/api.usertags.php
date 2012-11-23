@@ -229,6 +229,14 @@ NULL , '".$login."', '".$tagid."'
      return($result);
  }
  
+ function zb_FlushAllUserTags($login) {
+       $login=  mysql_real_escape_string($login);
+       $query="DELETE from `tags` WHERE `login`='".$login."'";
+       nr_query($query);
+       log_register("TAG FLUSH (".$login.")");
+     
+ }
+ 
  function zb_VserviceCreate($tagid,$price,$cashtype,$priority) {
         $tagid=vf($tagid);
         $price=vf($price);
@@ -290,11 +298,11 @@ NULL , '".$login."', '".$tagid."'
     
     function web_VserviceAddForm() {
             $form='
-                <form action="" method="POST">
+                <form action="" method="POST" class="glamour">
                 <br>    '. stg_tagid_selector() .' '.__('Tag').'
                 <br>    <select name="newcashtype"> 
-                            <option value="virtual">'.__('virtual services cash').'</option>
                             <option value="stargazer">'.__('stargazer user cash').'</option>
+                            <option value="virtual">'.__('virtual services cash').'</option>
                         </select>'.__('Cash type').'
                 <br>    '.  web_priority_selector().' '.__('Priority').'
                 <br>    <input type="text" name="newfee" size="5"> '.__('Fee').'
@@ -307,6 +315,9 @@ NULL , '".$login."', '".$tagid."'
     
     function web_VservicesShow() {
         $allvservices=zb_VserviceGetAllData();
+        $tagtypesquery="SELECT * from `tagtypes`";
+        $alltagtypes=simple_queryall($tagtypesquery);
+        
         //construct editor
         $titles=array(
         'ID',
@@ -322,7 +333,9 @@ NULL , '".$login."', '".$tagid."'
         'priority'
         );
     show_window(__('Virtual services'),web_GridEditorVservices($titles, $keys, $allvservices,'vservices',true,false));
-    show_window(__('Add virtual service'),  web_VserviceAddForm());   
+    if (!empty($alltagtypes)) {
+     show_window(__('Add virtual service'),  web_VserviceAddForm());   
+     }
     }
     
     function zb_VserviceCashClear($login) {
@@ -479,7 +492,7 @@ NULL , '".$login."', '".$tagid."'
                         } else {
                             $method='correct';
                         }
-                        zb_CashAdd($eachuser['login'], $fee, $method, 'vservice', 'Service:'.$eachservice['id']);
+                        zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:'.$eachservice['id']);
                         }
                     }
                 }

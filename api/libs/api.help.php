@@ -34,8 +34,6 @@ function web_HelpIconShow() {
     if (isset($_GET['module'])) {
         $modulename=vf($_GET['module']);
         if (file_exists(DATA_PATH."help/".$lang."/".$modulename)) {
-        //    $result='<a href="?module=help&chapter='.$modulename.'" ><img src="skins/help.gif" title="'.__('Context help').'"></a>';
-//      modal method not works now           
           $help_chapter=  web_HelpChapterGet($modulename);  
           $result=  wf_modal(wf_img("skins/help.gif", __('Context help')), __('Context help'), $help_chapter, '', '600','300');
          }

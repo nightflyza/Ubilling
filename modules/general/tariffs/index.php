@@ -37,7 +37,7 @@ if (cfr('TARIFFS')) {
         </tr>
         <tr>
             <td>' . __('Counting traffic') . '</td><td><select name="options[TraffType]">
-                    <option >up</option><option>down</option><option >up+down</option><option >max</option></select>
+                    <option >up+down</option><option >up</option><option>down</option><option >max</option></select>
             </td>
         </tr>
         <tr>

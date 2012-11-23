@@ -103,7 +103,7 @@ if (cfr('CITY')) {
     }
     ///// forms
     show_window(__('Create new city'),web_CityCreateForm());
-    show_window(__('Available cityes'),web_CityLister());
+    show_window(__('Available cities'),web_CityLister());
     
 } else {
       show_error(__('You cant control this module'));

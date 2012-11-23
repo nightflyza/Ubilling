@@ -35,8 +35,16 @@ if(cfr('TASKBAR')) {
                         }
                             
                         
+                      if ($altconf['TB_LABELED']) {
+                       if ($tbiconsize>63) {  
+			$template='<div class="dashtask" style="height:'.($tbiconsize+30).'px; width:'.($tbiconsize+30).'px;"> <a href="'.$task_link.'"><img  src="'.$task_icon.'" border="0" width="'.$tbiconsize.'"  height="'.$tbiconsize.'" alt="'.$task_text.'" title="'.$task_text.'"></a> <br><br>'.$task_text.' </div>';
+                        } else {
+                            $template='<a href="'.$task_link.'"><img  src="'.$task_icon.'" border="0" width="'.$tbiconsize.'"  height="'.$tbiconsize.'" alt="'.$task_text.'" title="'.$task_text.'"></a><img src="'.$icon_path.'spacer.gif">  ';
+                        }
+                      } else {
+                        $template='<a href="'.$task_link.'"><img  src="'.$task_icon.'" border="0" width="'.$tbiconsize.'"  height="'.$tbiconsize.'" alt="'.$task_text.'" title="'.$task_text.'"></a><img src="'.$icon_path.'spacer.gif">  ';
+                      }
                         
-			$template='  <a href="'.$task_link.'"><img src="'.$task_icon.'" border="0" width="'.$tbiconsize.'"  alt="'.$task_text.'" title="'.$task_text.'"></a><img src="'.$icon_path.'spacer.gif"> ';
                    
 		} else {
 		$template='';
@@ -95,6 +103,42 @@ if ($altconf['SIGREQ_ENABLED']) {
         $ticketnotify.='';
     } 
 } 
+
+//switchmon at nptify area
+
+
+if ($altconf['TB_SWITCHMON']) {
+$dead_raw=zb_StorageGet('SWDEAD');
+$deadarr=array();
+$content='<a href="?module=switches&forcereping=true" target="refrsw"><img src="skins/refresh.gif" border="0" title="'.__('Force ping').'"></a><iframe name="refrsw" frameborder="0" width="1" height="1" src="about:blank"></iframe>';
+if ($altconf['SWYMAP_ENABLED']) {
+    $content.='<a href="?module=switchmap"><img src="skins/swmapsmall.png" border="0" title="'.__('Switches map').'"></a>';
+}
+
+$content.='<br>';
+
+if ($dead_raw) {
+$deadarr=unserialize($dead_raw);
+if (!empty($deadarr)) {
+
+$deadcount=sizeof($deadarr);    
+foreach ($deadarr as $ip=>$switch) {
+    $content.=$ip.' - '.$switch.'<br>';
+}
+
+$ticketnotify.='<div class="ubButton">'.wf_modal(__('Dead switches').': '.$deadcount, __('Dead switches'), $content, '', '500', '400').'</div>';
+} else {
+   $content.=__('Switches are okay, everything is fine - I guarantee');
+   $ticketnotify.='<div class="ubButton">'.wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400').'</div>';
+}
+
+} else {
+   $content.=__('Switches are okay, everything is fine - I guarantee');
+   $ticketnotify.='<div class="ubButton">'.wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400').'</div>';
+}
+
+
+}
 
   show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
 

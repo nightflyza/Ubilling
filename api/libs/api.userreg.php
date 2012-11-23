@@ -127,6 +127,148 @@ function web_UserRegFormLocation() {
     return($form);
 }
 
+function zb_AllBusyLogins() {
+            $query="SELECT `login` from `users`";
+            $alluserlogins=  simple_queryall($query);
+            $result=array();
+            if (!empty($alluserlogins)) {
+                foreach ($alluserlogins as $io=>$each) {
+                    $result[$each['login']]=$each['login'];
+                }
+               
+            }
+            return ($result);
+}
+
+function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal) {
+    $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $result='';
+    if (isset($alterconf['LOGIN_GENERATION'])) {
+        $type=$alterconf['LOGIN_GENERATION'];
+        //default address based generation
+        if ($type=='DEFAULT') {
+             $result=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
+        }
+        
+        //same as default but without random
+        if ($type=='ONLYADDRESS') {
+             $result=$cityalias.$streetalias.$buildnum.'ap'.$apt;
+        }
+        
+        //use an timestamp
+        if ($type=='TIMESTAMP') {
+            $result=time();
+        }
+        
+        //use an timestamp md5 hash
+        if ($type=='TIMESTAMPMD5') {
+            $result=md5(time());
+        }
+        
+        //use an next incremented number
+        if ($type=='INCREMENT') {
+            $busylogins=zb_AllBusyLogins();
+            for ($i=1;$i<100000;$i++) {
+                if (!isset($busylogins[$i])) {
+                    $result=$i;
+                    break;
+                }
+            }
+        }
+        
+        //use five five digits increment
+         if ($type=='INCREMENTFIVE') {
+            $busylogins=zb_AllBusyLogins();
+            $prefix='';
+            
+            for ($i=1;$i<100000;$i++) {
+                
+                if ($i<10000) { $prefix='0'; }
+                
+                if ($i<1000) { $prefix='00'; }
+                
+                if ($i<100) { $prefix='000'; }
+                
+                if ($i<10) { $prefix='0000'; }
+                
+                if (!isset($busylogins[$prefix.$i])) {
+                    $result=$prefix.$i;
+                    break;
+                }
+            }
+            
+        }
+        
+        //use five five digits increment
+         if ($type=='INCREMENTFIVEREV') {
+            $busylogins=zb_AllBusyLogins();
+            $prefix='';
+            
+            for ($i=1;$i<100000;$i++) {
+                
+                if ($i<10000) { $prefix='0'; }
+                
+                if ($i<1000) { $prefix='00'; }
+                
+                if ($i<100) { $prefix='000'; }
+                
+                if ($i<10) { $prefix='0000'; }
+                
+                if (!isset($busylogins[$i.$prefix])) {
+                    $result=$prefix.$i;
+                    $result=  strrev($result);
+                    break;
+                }
+            }
+            
+        }
+        
+        //use an proposed IP last two octets
+        if ($type=='IPBASED') {
+             $ip_tmp=  str_replace('.', 'x', $ip_proposal);
+             $result=$ip_tmp;
+        }
+        
+        //use an proposed IP last two octets
+        if ($type=='IPBASEDLAST') {
+             $ip_tmp=  explode('.', $ip_proposal);
+             if ($ip_tmp[2]<100) { $ip_tmp[2]='0'.$ip_tmp[2]; }
+             if ($ip_tmp[3]<100) { $ip_tmp[3]='0'.$ip_tmp[3]; }
+             if ($ip_tmp[2]<10) { $ip_tmp[2]='00'.$ip_tmp[2]; }
+             if ($ip_tmp[3]<10) { $ip_tmp[3]='00'.$ip_tmp[3]; }
+             $result=$ip_tmp[2].$ip_tmp[3];
+        }
+        
+        // just random string as login
+        if ($type=='RANDOM') {
+            $result=zb_rand_string(10);
+        }
+        
+        
+        /////  if wrong option - use DEFAULT
+        if (empty($result)) {
+             $result=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
+        }
+        
+    } else {
+        die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
+    }
+    
+    return ($result);
+   
+}
+
+
+function zb_RegPasswordProposal() {
+    $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    if (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) {
+            $password=zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
+    } else {
+       die(strtoupper('you have missed a essential option. before update read release notes motherfucker!'));
+    }
+    return ($password);
+}
+
 function web_UserRegFormNetData($newuser_data) {
 $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 $safe_mode=$alterconf['SAFE_REGMODE'];
@@ -137,8 +279,12 @@ $streetalias=translit_string($streetdata['streetalias']);
 $buildata=zb_AddressGetBuildData($newuser_data['build']);
 $buildnum=translit_string($buildata['buildnum']);
 $apt=translit_string($newuser_data['apt']);
-$login_proposal=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
-@$ip_proposal=multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
+$ip_proposal=multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
+$login_proposal=  zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal);
+$password_proposal=  zb_RegPasswordProposal();
+//old style login generation
+//$login_proposal=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
+
 if (empty ($ip_proposal)) {
          $alert='
             <script type="text/javascript">
@@ -170,7 +316,7 @@ $form='
     </tr>
     <tr class="row3">
     <td>
-    <input tyle="text" name="password" value="'.  zb_rand_string(8).'" '.$modifier.'>
+    <input tyle="text" name="password" value="'.  $password_proposal.'" '.$modifier.'>
     </td>
     <td>
     '.__('Password').'
@@ -252,11 +398,24 @@ function zb_UserRegister($user_data) {
     $apt=$user_data['apt'];
     $serviceid=$user_data['service'];
     $netid=multinet_get_service_networkid($serviceid);
+    $busylogins= zb_AllBusyLogins();
     // empty login validation
     if (empty($login)) {
        $alert='
             <script type="text/javascript">
                 alert("'.__('Error').': '.__('Empty login').'");
+            </script>
+            ';
+        print($alert);
+        rcms_redirect("?module=userreg");
+        die();
+    }
+    
+    //duplicate login validation
+    if (isset($busylogins[$login])) {
+        $alert='
+            <script type="text/javascript">
+                alert("'.__('Error').': '.__('Duplicate login').'");
             </script>
             ';
         print($alert);

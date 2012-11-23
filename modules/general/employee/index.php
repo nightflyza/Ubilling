@@ -2,20 +2,23 @@
 // check for right of current admin on this module
 if (cfr('EMPLOYEE')) {
 
-   if (isset ($_POST['addemployee'])) {
+   if (wf_CheckPost(array('addemployee','employeename'))) {
    stg_add_employee($_POST['employeename'], $_POST['employeejob']);
+   rcms_redirect("?module=employee");
    }
    
    if (isset ($_GET['delete'])) {
    stg_delete_employee($_GET['delete']);
+   rcms_redirect("?module=employee");
    }
    
-   if (isset ($_POST['addjobtype'])) {
+   if (wf_CheckPost(array('addjobtype','newjobtype'))) {
    stg_add_jobtype($_POST['newjobtype']);
    }
    
    if (isset ($_GET['deletejob'])) {
    stg_delete_jobtype($_GET['deletejob']);
+   rcms_redirect("?module=employee");
    }
    
    if (!wf_CheckGet(array('edit'))) {

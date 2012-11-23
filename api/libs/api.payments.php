@@ -10,35 +10,46 @@ function zb_CashGetUserBalance($login) {
 
 function zb_CashAdd($login,$cash,$operation,$cashtype,$note) {
     global $billing;
-    $login=vf($login);
+    $login=mysql_real_escape_string($login);
     $cash=mysql_real_escape_string($cash);
+    $cash=preg_replace("#[^0-9\-\.]#Uis",'',$cash);
+    $cash=trim($cash);
     $cashtype=vf($cashtype);
     $note=mysql_real_escape_string($note);
     $date=curdatetime();
     $balance=zb_CashGetUserBalance($login);
     $admin=whoami();
+    $noteprefix='';
     //adding cash
     if ($operation=='add') {
     $billing->addcash($login,$cash); 
-    log_register("BALANCEADD ".$login.' ON '.$cash);
+    log_register("BALANCEADD (".$login.') ON '.$cash);
     }
     //correcting balance
     if ($operation=='correct') {
     $billing->addcash($login,$cash); 
-    log_register("BALANCECORRECT ".$login.' ON '.$cash);
+    log_register("BALANCECORRECT (".$login.') ON '.$cash);
     }
     //setting cash
     if ($operation=='set') {
     $billing->setcash($login,$cash);
-    log_register("BALANCESET ".$login.' ON '.$cash);
+    log_register("BALANCESET (".$login.') ON '.$cash);
+    $noteprefix='BALANCESET:';
     }
     
     //mock payment additional log
     if ($operation=='mock') {
-    log_register("BALANCEMOCK ".$login.' ON '.$cash);
+    log_register("BALANCEMOCK (".$login.') ON '.$cash);
+    $noteprefix='MOCK:';
     }
     
-    $query="INSERT INTO `payments` (
+    if ($operation!='correct') {
+        $targettable='payments';
+    } else {
+        $targettable='paymentscorr';
+    }
+    
+    $query="INSERT INTO `".$targettable."` (
                 `id` ,
                 `login` ,
                 `date` ,
@@ -49,11 +60,11 @@ function zb_CashAdd($login,$cash,$operation,$cashtype,$note) {
                 `note`
                 )
                 VALUES (
-                NULL , '".$login."', '".$date."', '".$admin."', '".$balance."', '".$cash."', '".$cashtype."', '".$note."'
+                NULL , '".$login."', '".$date."', '".$admin."', '".$balance."', '".$cash."', '".$cashtype."', '".($noteprefix.$note)."'
                 );";
-    if ($operation!='correct') {
+    
+    
     nr_query($query);
-    }
    
 }
 

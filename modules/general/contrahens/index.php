@@ -10,7 +10,7 @@ if (cfr('AGENTS')) {
      }
     
      //if adding new agent
-     if (isset ($_POST['newcontrname'])) {
+     if (wf_CheckPost(array('newcontrname'))) {
  @$bankacc=$_POST['newbankacc'];
  @$bankname=$_POST['newbankname'];
  @$bankcode=$_POST['newbankcode'];

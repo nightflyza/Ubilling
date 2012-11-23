@@ -6,7 +6,13 @@ $alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 
 if (!isset($_GET['username'])) {
 if (isset ($_POST['addnewtag'])) {
-stg_add_tagtype();
+    if (wf_CheckPost(array('newtext'))) {
+        stg_add_tagtype();
+        rcms_redirect("?module=usertags");
+    } else {
+        show_window(__('Error'), __('Required fields'));
+    }
+
 }
 
 //if someone deleting tagtype

@@ -45,12 +45,12 @@ if (cfr('USEREDIT')) {
 	$form.='<tr class="row3"><td>'.__('Speed override').'</td><td>'.$speedoverride.'</td><td><a href="?module=speededit&username='.$login.'"><img src="skins/icon_speed.gif" border="0"> '.__('Change').' '.__('Speed override').'</a></td></tr>';
 	$form.='<tr class="row3"><td>'.__('Credit').'</td><td>'.$credit.'</td><td><a href="?module=creditedit&username='.$login.'"><img src="skins/icon_credit.gif" border="0"> '.__('Change').' '.__('Credit').'</a></td></tr>';
         $form.='<tr class="row3"><td>'.__('Credit expire').'</td><td>'.$creditexpire.'</td><td><a href="?module=creditexpireedit&username='.$login.'"><img src="skins/icon_calendar.gif" border="0"> '.__('Change').' '.__('Credit expire').'</a></td></tr>';
-	$form.='<tr class="row3"><td>'.__('Balance').'</td><td>'.$cash.'</td><td><a href="?module=addcash&username='.$login.'"><img src="skins/icon_dollar.gif"  border="0"> '.__('Finance operations').'</a></td></tr>';
+	$form.='<tr class="row3"><td>'.__('Balance').'</td><td>'.$cash.'</td><td><a href="?module=addcash&username='.$login.'#profileending"><img src="skins/icon_dollar.gif"  border="0"> '.__('Finance operations').'</a></td></tr>';
 	$form.='<tr class="row3"><td>'.__('MAC').'</td><td>'.$mac.'</td><td><a href="?module=macedit&username='.$login.'"><img src="skins/icon_ether.gif" border="0"> '.__('Change').' MAC</a></td></tr>';
 	$form.='<tr class="row3"><td>'.__('AlwaysOnline').'</td><td>'.web_trigger($aonline).'</td><td><a href="?module=aoedit&username='.$login.'"><img src="skins/icon_online.gif" border="0"> '.__('AlwaysOnline').'</a></td></tr>';
 	$form.='<tr class="row3"><td>'.__('Disable detailed stats').'</td><td>'.web_trigger($dstatdisable).'</td><td><a href="?module=dstatedit&username='.$login.'"><img src="skins/icon_stats.gif" border="0"> '.__('Detailed stats').'</a></td></tr>';
-        $form.='<tr class="row3"><td>'.__('User down').'</td><td>'.web_trigger($down).'</td><td><a href="?module=downedit&username='.$login.'"><img src="skins/icon_down.gif" border="0"> '.__('User down').'</a></td></tr>';
         $form.='<tr class="row3"><td>'.__('User passive').'</td><td>'.web_trigger($passive).'</td><td><a href="?module=passiveedit&username='.$login.'"><img src="skins/icon_passive.gif" border="0"> '.__('User passive').'</a></td></tr>';
+        $form.='<tr class="row3"><td>'.__('User down').'</td><td>'.web_trigger($down).'</td><td><a href="?module=downedit&username='.$login.'"><img src="skins/icon_down.gif" border="0"> '.__('User down').'</a></td></tr>';
         $form.='<tr class="row3"><td>'.__('Notes').'</td><td>'.$notes.'</td><td><a href="?module=notesedit&username='.$login.'"><img src="skins/icon_note.gif"  border="0"> '.__('Change').' '.__('Notes').'</a></td></tr>';
 	$form.='</table>';
          show_window(__('Edit user').' '.$address, $form);

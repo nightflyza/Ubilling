@@ -1,1 +1,1 @@
-a:2:{s:5:"nicks";a:4:{s:7:"tester2";s:7:"tester2";s:4:"demo";s:4:"demo";s:7:"supra12";s:8:"SupraMin";s:9:"admintest";s:9:"admintest";}s:5:"mails";a:4:{s:7:"tester2";s:15:"tester2@mail.ru";s:4:"demo";s:12:"demo@mail.ru";s:7:"supra12";s:12:"supra@isp.ua";s:9:"admintest";s:9:"me@me.com";}}
+a:2:{s:5:"nicks";a:3:{s:7:"tester2";s:7:"tester2";s:4:"demo";s:4:"demo";s:7:"supra12";s:8:"SupraMin";}s:5:"mails";a:3:{s:7:"tester2";s:15:"tester2@mail.ru";s:4:"demo";s:12:"demo@mail.ru";s:7:"supra12";s:12:"supra@isp.ua";}}

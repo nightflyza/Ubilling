@@ -169,7 +169,7 @@ if (!empty ($alladdrz)) {
         if (!$alterconf['CITY_DISPLAY']) {
         $result[$eachaddress['login']]=$streetname.' '.$building.$apartment_filtered;
         } else {
-        $result[$eachaddress['login']]=$cities[$cityid].' '.$streetname.' '.$building.$apartment_filtered;
+        $result[$eachaddress['login']]=$cities[$cityid].', '.$streetname.' '.$building.$apartment_filtered;
         }
     }
 }
@@ -388,6 +388,13 @@ function zbs_UserShowProfile($login) {
         $down_state='';
     }
     
+    //hiding passwords
+    if ($us_config['PASSWORDSHIDE']) {
+        $userpassword=str_repeat('*',8);
+    } else {
+        $userpassword=$userdata['Password'];
+    }
+    
     $profile='
         <table width="100%" border="0" cellpadding="2" cellspacing="3">
             <tr>
@@ -407,7 +414,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Password').'</td>
-            <td>'.$userdata['Password'].'</td>
+            <td>'.$userpassword.'</td>
             </tr>
             
             <tr>

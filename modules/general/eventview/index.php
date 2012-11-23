@@ -2,20 +2,20 @@
 if(cfr('EVENTVIEW')) {
     function zb_GetAllEvents($limit=0) {
         $limit=vf($limit,3);
-        $query="SELECT * from `weblogs` ORDER BY ID DESC LIMIT ".$limit;
+        $query="SELECT * from `weblogs` ORDER BY `id` DESC LIMIT ".$limit;
         $allevents=simple_queryall($query);
         return ($allevents);
     }
 
     function zb_GetAllEventsByDate($date) {
          $date=mysql_real_escape_string($date);
-         $query="SELECT * from `weblogs` WHERE `date` LIKE '%".$date."%'";
+         $query="SELECT * from `weblogs` WHERE `date` LIKE '%".$date."%' ORDER BY `id` DESC";
          $allevents=simple_queryall($query);
         return ($allevents);
     }
     
-      function zb_GetAllEventsByPattern($searchpattern) {
-         $query="SELECT * from `weblogs` WHERE `event` LIKE '%".$searchpattern."%'";
+      function zb_GetAllEventsByPattern($searchpattern,$limit) {
+         $query="SELECT * from `weblogs` WHERE `event` LIKE '%".$searchpattern."%' ORDER BY `id` DESC LIMIT ".$limit;
          $allevents=simple_queryall($query);
         return ($allevents);
     }
@@ -116,7 +116,7 @@ show_window(__('Month actions stats'),$template);
       }
       
       if ($searchevent!='') {
-       $allevents=zb_GetAllEventsByPattern($searchevent);
+       $allevents=zb_GetAllEventsByPattern($searchevent,$limit);
       }
        
       $result='
@@ -129,7 +129,7 @@ show_window(__('Month actions stats'),$template);
           <br>';
       
       $dateinputs=__('By date') .': ';
-      $dateinputs.=web_CalendarControl('eventdate');
+      $dateinputs.=wf_DatePicker('eventdate');
       $dateinputs.=wf_Submit(__('Show'));
       $dateform=wf_Form('', 'POST', $dateinputs, 'glamour');
       
@@ -170,7 +170,7 @@ show_window(__('Month actions stats'),$template);
 
     //page lister
     if (isset($_GET['onpage'])) {
-        $limit=$_GET['onpage'];
+        $limit=vf($_GET['onpage'],3);
     } else {
         $limit=50;
     }
@@ -186,7 +186,15 @@ show_window(__('Month actions stats'),$template);
         $searchevent='';
     }
     
-    web_EventsShowStats();
+    
+    //small stats
+    $current_monthlog="logs_".date("m")."_".date("Y")."";
+    if (zb_CheckTableExists($current_monthlog)) {
+         web_EventsShowStats();   
+    }
+    
+    
+    
     show_window(__('Last events'),web_EventsLister($limit,$searchevent));
      
 }

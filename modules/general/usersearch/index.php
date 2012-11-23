@@ -210,7 +210,7 @@ if(cfr('USERSEARCH')) {
     
     //partial address search
     if (isset($_POST['partialaddr'])) {
-        $search_query=$_POST['partialaddr'];
+        $search_query=trim($_POST['partialaddr']);
         if (!empty ($search_query)) {
             $found_users=zb_UserSearchAddressPartial($search_query);
             show_window(__('Search results'),  web_UserArrayShower($found_users));

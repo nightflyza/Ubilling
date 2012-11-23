@@ -30,7 +30,7 @@ $lang['def']['Service'] = 'Сервіс';
 $lang['def']['Back to user profile'] = 'Повернутись до профілю';
 $lang['def']['Back to user edit'] = 'Повернутись до редагування';
 $lang['def']['Change'] = 'Змінити';
-$lang['def']['Entrance'] = 'Підїзд';
+$lang['def']['Entrance'] = 'Під`їзд';
 $lang['def']['Floor'] = 'Поверх';
 
 
@@ -38,9 +38,9 @@ $lang['def']['Floor'] = 'Поверх';
 //City
 $lang['def']['Cityes'] = 'Міста';
 $lang['def']['Create new city'] = 'Створення нового міста';
-$lang['def']['New City name'] = 'І`мя нового міста';
+$lang['def']['New City name'] = 'Ім`я нового міста';
 $lang['def']['New City alias'] = 'Аліас нового міста';
-$lang['def']['Available cityes'] = 'Наявні міста';
+$lang['def']['Available cities'] = 'Наявні міста';
 $lang['def']['City name'] = 'Ім`я міста';
 $lang['def']['City alias'] = 'Аліас міста';
 $lang['def']['City'] = 'Місто';
@@ -50,10 +50,10 @@ $lang['def']['Edit City'] = 'Редагування міста';
 //Streets
 $lang['def']['Streets'] = 'Вулиці';
 $lang['def']['Create new street'] = 'Створення нової вулиці';
-$lang['def']['New Street name'] = 'І`мя нової вулиці';
+$lang['def']['New Street name'] = 'Ім`я нової вулиці';
 $lang['def']['New Street alias '] = 'Аліас нової вулиці';
 $lang['def']['Available streets'] = 'Наявні вулиці';
-$lang['def']['Street name'] = 'І`мя вулиці';
+$lang['def']['Street name'] = 'Ім`я вулиці';
 $lang['def']['Street alias'] = 'Аліас вулиці';
 $lang['def']['New Street alias'] = 'Аліас нової вулиці';
 $lang['def']['Street'] = 'Вулиця';
@@ -64,7 +64,7 @@ $lang['def']['Builds editor'] = 'Редактор будинків';
 $lang['def']['Builds'] = 'Будинки';
 $lang['def']['Add build'] = 'Додати будинок';
 $lang['def']['New build number'] = 'Номер нового будинку';
-$lang['def']['Available buildings on street'] = 'Будинки що знаходяться на вулиці';
+$lang['def']['Available buildings on street'] = 'Будинки, що знаходяться на вулиці';
 $lang['def']['Building number'] = 'Номер будинку';
 
 
@@ -161,7 +161,7 @@ $lang['def']['Active users'] = 'Активних користувачів';
 $lang['def']['Inactive users'] = 'Неактивних користувачів';
 $lang['def']['Traffic'] = 'Трафік';
 $lang['def']['Credit total'] = 'Кредитів на';
-$lang['def']['Real Name'] = 'П.І.Б.';
+$lang['def']['Real Name'] = 'ПІБ';
 $lang['def']['Tariff'] = 'Тариф';
 $lang['def']['Active'] = 'Активний';
 $lang['def']['Balance'] = 'Баланс';
@@ -169,14 +169,14 @@ $lang['def']['Credit'] = 'Кредит';
 
 //Profile
 $lang['def']['Login'] = 'Логін';
-$lang['def']['Real name'] = 'П.І.Б.';
+$lang['def']['Real name'] = 'ПІБ';
 $lang['def']['Mobile'] = 'Стільниковий';
 $lang['def']['Email'] = 'Електропошта';
 $lang['def']['Planned tariff change'] = 'Заплановано зміну тарифу';
 $lang['def']['Credit expire'] = 'Кредит до';
 $lang['def']['Prepayed traffic'] = 'Передплачений трафік';
 $lang['def']['Always Online'] = 'Завжди онлайн';
-$lang['def']['Disable detailed stats'] = 'Вимк. Детальну статистику';
+$lang['def']['Disable detailed stats'] = 'Вимк. детальну статистику';
 $lang['def']['Freezed'] = 'Заморожено';
 $lang['def']['Disabled'] = 'Відключено';
 $lang['def']['User profile'] = 'Профіль користувача';
@@ -205,9 +205,9 @@ $lang['def']['Edit user'] = 'Редагування користувача';
 // User params editors
 $lang['def']['Contract'] = 'Угода';
 $lang['def']['Edit password'] = 'Редагування паролю';
-$lang['def']['Edit realname'] = 'Редагування П.І.Б.';
-$lang['def']['Current Real Name'] = 'Поточні П.І.Б.';
-$lang['def']['New Real Name'] = 'Нові П.І.Б.';
+$lang['def']['Edit realname'] = 'Редагування ПІБ';
+$lang['def']['Current Real Name'] = 'Поточні ПІБ';
+$lang['def']['New Real Name'] = 'Нові ПІБ';
 $lang['def']['Edit phone'] = 'Редагування телефона';
 $lang['def']['Current phone'] = 'Поточний телефон';
 $lang['def']['New Phone'] = 'Новий телефон';
@@ -242,10 +242,10 @@ $lang['def']['When?'] = 'Коли?';
 $lang['def']['What happen?'] = 'Що сталось?';
 $lang['def']['Traffic classes'] = 'Класи трафіку';
 $lang['def']['Rule number'] = 'Номер напрямку';
-$lang['def']['Rule name '] = 'Назва классу';
+$lang['def']['Rule name '] = 'Назва класу';
 $lang['def']['Add new traffic class'] = 'Додати  новий клас трафіку';
 $lang['def']['Direction number'] = 'Номер напрямку';
-$lang['def']['Direction name'] = 'Назва классу';
+$lang['def']['Direction name'] = 'Назва класу';
 
 
 //bablo
@@ -291,7 +291,7 @@ $lang['def']['right to control user passive state'] = 'Право змінюва
 $lang['def']['right to control user passwords'] = 'Право змінювати паролі користувачів';
 $lang['def']['right to control admin permissions'] = 'Право керувати привілеями адміністраторів';
 $lang['def']['right to control user phone'] = 'Право змінювати телефон користувача';
-$lang['def']['right to control user real name'] = 'Право змінювати П.І.Б. користувача';
+$lang['def']['right to control user real name'] = 'Право змінювати ПІБ користувача';
 $lang['def']['right to reset user'] = 'Право на ресет користувача';
 $lang['def']['right to control user speed override'] = 'Право змінювати користувачу перепризначення швидкості';
 $lang['def']['right to use SQL console'] = 'Право на користування SQL консоллю';
@@ -325,7 +325,7 @@ $lang['def']['Payments by'] = 'Оплати за';
 $lang['def']['Month'] = 'Місяць';
 $lang['def']['Payments count'] = 'Кількість оплат';
 $lang['def']['Visual'] = 'Візуально';
-$lang['def']['Today payments'] = 'Сьогодняшні оплати';
+$lang['def']['Today payments'] = 'Сьогоднішні оплати';
 $lang['def']['Month payments'] = 'Оплати за місяць';
 $lang['def']['User lifestory'] = 'Історія життя';
 $lang['def']['Backup'] = 'Резервування';
@@ -440,7 +440,7 @@ $lang['def']['sgconf_xml path'] = 'Шлях до sgconf_xml';
 $lang['def']['Stargazer host'] = 'Хост де працює Stargazer';
 $lang['def']['Stargazer port'] = 'Порт Stargazer';
 $lang['def']['XML RPC port'] = 'Порт XML RPC';
-$lang['def']['Stargazer admin login'] = 'І`мя адміністратора Stargazer';
+$lang['def']['Stargazer admin login'] = 'Ім`я адміністратора Stargazer';
 $lang['def']['Stargazer admin password'] = 'Пароль адміністратора Stargazer';
 $lang['def']['Ubilling setup'] = 'Налаштування Ubilling';
 $lang['def']['External programs'] = 'Зовнішні програми';
@@ -463,7 +463,7 @@ $lang['def']['MySQL user password'] = 'Пароль користувача MySQL
 $lang['def']['MySQL database name'] = 'база MySQL';
 $lang['def']['MySQL encoding'] = 'Кодування ';
 $lang['def']['Custom features'] = 'Додаткові можливості';
-$lang['def']['New MAC report in MAC edit dialogue'] = 'Відображати нові, у діалозі зміни MAC';
+$lang['def']['New MAC report in MAC edit dialogue'] = 'Відображати нові у діалозі зміни MAC';
 $lang['def']['Enable DOCSIS support'] = 'Увімкнути підтримку DOCSIS';
 $lang['def']['DOCSIS modems network ID'] = 'Мережа DOCSIS модемів';
 $lang['def']['DOCSIS modems config source path'] = 'Шлях до вихідних файлів конфігів модемів';
@@ -494,7 +494,7 @@ $lang['def']['His permissions you can setup via corresponding module'] = 'Йог
 //rev 432  Profile plugins loader 
 $lang['def']['Default agent assign'] = 'Агент по замовчуванню';
 $lang['def']['Profile plugins loader'] = 'Завантажувати додатки профілю';
-$lang['def']['User integrity checker'] = 'Перевірка цілостності користувача';
+$lang['def']['User integrity checker'] = 'Перевірка цілісності користувача';
 $lang['def']['Fix'] = 'Виправити';
 
 //rev 469
@@ -505,10 +505,10 @@ $lang['def']['User pinger'] = 'Пінгувач';
 $lang['def']['Traffic detailed stats'] = 'Детальна статистика';
 $lang['def']['Change IP'] = 'Заміна IP';
 $lang['def']['Detailed stats by day'] = 'Детальна статистика за день';
-$lang['def']['Session start'] = 'Початок сессії';
-$lang['def']['Session end'] = 'Кінець сессії';
+$lang['def']['Session start'] = 'Початок сесії';
+$lang['def']['Session end'] = 'Кінець сесії';
 $lang['def']['Docsis modems support'] = 'Право керувати модемами';
-$lang['def']['right to check user integrity'] = 'Право перевіряти цілістність користувача';
+$lang['def']['right to check user integrity'] = 'Право перевіряти цілісність користувача';
 $lang['def']['right to ping user'] = 'Право пінгувати користувачів';
 $lang['def']['right to view users detailed stats'] = 'Право переглядати детальну статистику';
 $lang['def']['right to print user payments'] = 'Право друкувати платежі користувачів';
@@ -587,7 +587,7 @@ $lang['def']['right to control switches']='Право керувати кому�
 $lang['def']['right to control switch models']='Право керувати моделями комутаторів';
 
 //rev 616
-$lang['def']['Payments export not enabled']='Експор оплат вимкнено';
+$lang['def']['Payments export not enabled']='Експорт оплат вимкнено';
 $lang['def']['Let register that user']='Давайте зареєструємо цього користувача';
 
 
@@ -608,7 +608,7 @@ $lang['def']['User reset after tariff change']='Ресет користувач�
 $lang['def']['Hide user passwords']='Приховувати користувацькі паролі';
 $lang['def']['Online detection via /content/dn']='Визначення онлайну через /content/dn';
 $lang['def']['Generated configs preview']='Попередній перегляд згенерованих конфігів';
-$lang['def']['Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.']='Будьте обережні! Цей модуль назавжди видалить користувача та усі повязані з ним дані. Повернути його з країни шоколадних гір та молочних рік уже не буде можливості.';
+$lang['def']['Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.']='Будьте обережні! Цей модуль назавжди видалить користувача та усі пов`язані з ним дані. Повернути його з країни шоколадних гір та молочних рік уже не буде можливості.';
 $lang['def']['Annihilation']='Видалення користувача';
 $lang['def']['right to totally destroy user']='Право тотально видаляти користувачів';
 $lang['def']['To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.']='Для того, щоб ми впевнились в серйозності ваших намірів введіть слово <b>confirm</b> у полі нижче';
@@ -646,7 +646,7 @@ $lang['def']['SQL Query']='SQL запит';
 $lang['def']['Data keys, separated by comma']='Імена полів вибірки (через кому)';
 $lang['def']['Field names, separated by comma']='Імена колонок вибірки, що буде відображено (через кому)';
 $lang['def']['Show full address by login key']='Знаходити повну адресу за колонкою `login`';
-$lang['def']['Show Real Names by login key']='Знаходити П.І.Б. за колонкою `login`';
+$lang['def']['Show Real Names by login key']='Знаходити ПІБ за колонкою `login`';
 $lang['def']['Show data query row count']='Показувати кількість рядків вибірки';
 $lang['def']['Create new report']='Створити новий звіт';
 $lang['def']['Unknown report']='Невідомий звіт';
@@ -717,7 +717,7 @@ $lang['def']['Decoder']='Декодер';
 $lang['def']['CaTV user registration']='Реєстрація користувача КТБ';
 $lang['def']['Register this user']='Зареєструвати такого користувача';
 $lang['def']['Required fields']='Необхідні поля';
-$lang['def']['Discount']='Скидка';
+$lang['def']['Discount']='Знижка';
 $lang['def']['Connected']='Підключено';
 $lang['def']['Connection date']='Дата зміни підключення';
 $lang['def']['Internet account']='Обліковий запис інтернету';
@@ -765,12 +765,12 @@ $lang['def']['right to view CATV user stats']='Право переглядати
 $lang['def']['right to control CATV user tariff']='Право змінювати тариф користувача КТБ';
 $lang['def']['right to control CATV user activity']='Право змінювати відключеність користувачів КТБ';
 $lang['def']['right to edit CATVuser params']='Право редагувати користувача КТБ';
-$lang['def']['right send broadcast messages']='Право користуватись массовою розсилкою повідомлень';
-$lang['def']['Masssender']='Массове розсилання';
+$lang['def']['right send broadcast messages']='Право користуватись масовою розсилкою повідомлень';
+$lang['def']['Masssender']='Масове розсилання';
 $lang['def']['The expected payment']='Платіж, що очікується';
 $lang['def']['User linked with']='Користувач є дочірнім для';
-$lang['def']['Group operations']='Группові операції';
-$lang['def']['Linked users']='Звязанні користувачі';
+$lang['def']['Group operations']='Групові операції';
+$lang['def']['Linked users']='Зв`язані користувачі';
 $lang['def']['Corporate']='Корпоративний';
 $lang['def']['Black magic']='Чорна магія';
 $lang['def']['right to control corporate users']='Право керувати корпоративними користувачами';
@@ -784,22 +784,22 @@ $lang['def']['Strict credit limit']='Жорстке обмеження кред�
 $lang['def']['Path to stargazer log file']='Шлях до журнального файлу stargazer';
 $lang['def']['CaTV accounting support']='Підтримка обліку КТБ';
 $lang['def']['LAT column in online module']='Колонка LAT у модулі "Онлайн"';
-$lang['def']['Mass sender enabled']='Підтримка массової розсилки для IA';
-$lang['def']['User linking enabled']='Звязування користувачів увімкнено';
-$lang['def']['User linking field']='Поле для звязування';
+$lang['def']['Mass sender enabled']='Підтримка масової розсилки для IA';
+$lang['def']['User linking enabled']='Зв`язування користувачів увімкнено';
+$lang['def']['User linking field']='Поле для зв`язування';
 $lang['def']['User linking custom profile field ID']='ID додаткового поля профілю для визначення звязку';
-$lang['def']['Merge linked users tariff']='Реплікувати звязанним користувачам тариф';
-$lang['def']['Merge linked users cash']='Реплікувати звязанним користувачам оплати';
-$lang['def']['Merge linked users credit']='Реплікувати звязанним користувачам кредит';
-$lang['def']['User linking']='Звязування користувачів';
+$lang['def']['Merge linked users tariff']='Реплікувати зв`язаним користувачам тариф';
+$lang['def']['Merge linked users cash']='Реплікувати зв`язаним користувачам оплати';
+$lang['def']['Merge linked users credit']='Реплікувати зв`язаним користувачам кредит';
+$lang['def']['User linking']='Зв`язування користувачів';
 $lang['def']['Context help']='Контекстна довідка';
 
 //rev 1189
 $lang['def']['Edit switch']='Редагування свіча';
 $lang['def']['Switch model edit']='Редагувагування моделі свіча';
-$lang['def']['You can not delete a building if there are users of the apartment']='Ви не можете просто так видалити будинок де є існуючі квартири користувачів';
-$lang['def']['You can not delete the street if it has existing buildings']='Ви не можете видалити вулицю на якій є існуючі будинки';
-$lang['def']['You can not just remove a city where there are streets and possibly survivors']='Ви не можете просто так видалити місто де є вулиці по яких можуть ходити живі користувачі';
+$lang['def']['You can not delete a building if there are users of the apartment']='Ви не можете просто так видалити будинок, де є існуючі квартири користувачів';
+$lang['def']['You can not delete the street if it has existing buildings']='Ви не можете видалити вулицю, на якій є існуючі будинки';
+$lang['def']['You can not just remove a city where there are streets and possibly survivors']='Ви не можете просто так видалити місто, де є вулиці по яких можуть ходити живі користувачі';
 $lang['def']['Streets report']='Звіт по вулицях';
 $lang['def']['Registered']='Зареєстровано';
 $lang['def']['Level']='Рівень';
@@ -857,7 +857,7 @@ $lang['def']['This will create a backup copy of all tables in the database, exce
 $lang['def']['You are not mentally prepared for this']='Ви морально до цього не готові';
 $lang['def']['This month has already been assessed fee']='За цей місяць вже нараховано абонплату, не дамо вам оббирати користувачів :)';
 $lang['def']['Normal icons']='Нормальні іконки';
-$lang['def']['Lesser']='Меньші';
+$lang['def']['Lesser']='Менші';
 $lang['def']['Macro']='Макро';
 $lang['def']['Micro']='Мікро';
 $lang['def']['Nano']='Нано';
@@ -905,7 +905,7 @@ $lang['def']['to']='до';
 $lang['def']['Processing']='Обробка';
 $lang['def']['Stats']='Статистика';
 $lang['def']['Any statements uploaded']='Немає ще завантажених виписок';
-$lang['def']['Duplicate file detected']='Виявлено спробу завантажити одну й ту ж виписку двіччі, це підступно :(';
+$lang['def']['Duplicate file detected']='Виявлено спробу завантажити одну й ту ж виписку двічі, це підступно :(';
 $lang['def']['Multiple users found']='Надто багато співпадінь';
 $lang['def']['Process all payments for which the user defined']='Обробити всі оплати, для яких визначено користувачів';
 $lang['def']['Bank statements import not enabled']='Імпорт виписок зараз вимкнено';
@@ -930,7 +930,7 @@ $lang['def']['right to manage user radius attributes']='Право змінюв�
 $lang['def']['right to control radius templates']='Право керувати шаблонами атрибутів Radius';
 $lang['def']['Rebuild attributes for all NAS']='Перебудувати атрибути для всіх NAS';
 $lang['def']['The apartment has one lives, we have nothing against, just be warned']='В цій квартирі вже хтось живе, ми нічого не маємо проти, просто попереджаємо';
-$lang['def']['Are you sure you want to keep the homeless from this user']='Ви, що дійсно збираєтесь залишити цього користувача бездомним?';
+$lang['def']['Are you sure you want to keep the homeless from this user']='Ви що дійсно збираєтесь залишити цього користувача бездомним?';
 $lang['def']['which should be enough for another']='чого повинно вистачити, ще на';
 $lang['def']['months of service use']='місяців користування послугою';
 $lang['def']['Payment cards usage report']='Звіт по використанню карток оплати';
@@ -956,7 +956,7 @@ $lang['def']['Tickets per page in helpdesk']='Тікетів на сторінк
 $lang['def']['NDS processing']='Облік ПДВ';
 $lang['def']['NDS processing support enabled']='Підтримку обліку ПДВ увімкнено';
 $lang['def']['NDS tag ID']='ID тега платників ПДВ';
-$lang['def']['NDS tax rate']='Процентна ставка ПДВ';
+$lang['def']['NDS tax rate']='Відсоткова ставка ПДВ';
 $lang['def']['Fast financial links in online and search modules']='Швидкий перехід з модулів Онлайн та Пошук до фінансових операцій';
 
 
@@ -974,7 +974,7 @@ $lang['def']['Template name']='Назва шаблону';
 $lang['def']['Create template']='Створити шаблон';
 $lang['def']['Insert this template into PHP console']='Вставити цей шаблон коду в PHP консоль?';
 $lang['def']['Difference']='Різниця';
-$lang['def']['The network that you are trying to remove - contains live users. We can not afford to do so with them.']='Мережа котру ви намагаєтесь видалити - містить живих користувачів. Ми не можемо дозволити так вчинити з ними';
+$lang['def']['The network that you are trying to remove - contains live users. We can not afford to do so with them.']='Мережа, котру ви намагаєтесь видалити, містить живих користувачів. Ми не можемо дозволити так вчинити з ними';
 $lang['def']['Signal']='Сигнал';
 $lang['def']['Empty reply received']='Запит повернув порожній результат';
 $lang['def']['Mikrotik signal monitor']='Моніторинг сигналу на Mikrotik';
@@ -1014,6 +1014,104 @@ $lang['def']['Switches are okay, everything is fine - I guarantee']='Усе зі
 $lang['def']['All switches alive']='Комутатори живенькі';
 $lang['def']['Taskbar notify for dead switches']='Функція скорботи для панелі задач';
 $lang['def']['Switches ping cache timeout']='Час оновлення кешу живості комутаторів';
+
+
+//rev 1786
+$lang['def']['User inside']='Нутрощі користувача';
+$lang['def']['User Networking']='Мережеві відомості';
+$lang['def']['These users have identical passwords']='Ці користувачі мають співпадаючі паролі';
+$lang['def']['We do not recommend using the same password for different users. Try another.']='Ми не рекомендуємо використовувати однакові паролі для різних користувачів. Спробуйте інший.';
+$lang['def']['This module is disabled']='Цей модуль зараз вимкнено';
+$lang['def']['CaTV support is disabled']='Підтримка КТБ зараз вимкнена';
+$lang['def']['Remote API calls enabled']='API віддаленого виклику процедур';
+$lang['def']['Radius templates enabled']='Шаблонізація атрибутів Radius увімкнена';
+
+//rev 1848
+$lang['def']['Mass user reset']='Масовий ресет користувачів';
+$lang['def']['After clicking the button below for all users will perform the standard procedure reset. By default, this will reinitialize shapers and  MAC bindings.']='Після натискання кнопки нижче, буде виконано стандарнту процедуру ресету користувачів. За замовчуванням це призведе до переініціалізації шейперів та привязки MAC.';
+$lang['def']['If you are completely sure of what you wish, enter the following numbers into the next field.']='Якщо ви повністю впевнені в своїх бажанях введіть наступні цифри у полі, що знаходиться нижче.';
+$lang['def']['right to use mass reset module']='Привілей на масовий ресет користувачів';
+
+
+//rev 1870
+$lang['def']['Device vendor']='Виробник обладнання';
+$lang['def']['No macvendorlookup.com API key set']='Не вказано ключ API сервісу macvendorlookup.com';
+$lang['def']['Usage report']='Звіт про використання';
+$lang['def']['Brute attempts']='Спроби перебору';
+$lang['def']['No successful usages of Unknowh HardWare helper']='Немає вдалих спроб використання UHW';
+$lang['def']['UHW successful log']='Журнал успішного використання UHW';
+$lang['def']['right to control UHW usage']='Право контролювати використання UHW';
+$lang['def']['Funds flow']='Рух коштів';
+$lang['def']['Operation']='Операція';
+$lang['def']['Correcting']='Корегування';
+$lang['def']['Legend']='Легенда';
+$lang['def']['right to view user funds flow']='Право переглядати рух коштів';
+$lang['def']['Old MAC']='Старий MAC';
+$lang['def']['Massreset function enabled']='Чи ввімкнено функціонал массового ресету? (небезпечна річ)';
+$lang['def']['Vendor detection by MAC']='Пошук виробника за MAC обладнання';
+
+//rev 1963
+$lang['def']['You try to bring to account suspiciously large amount of money. We have nothing against, but please check that all is correct']='Ви намагаєтеся внести на рахунок підозріло велику суму грошей. Ми нічого не маємо проти, але будь-ласка перевірте чи все правильно.';
+$lang['def']['Create tasks in user profile']='Створення задач у профілі користувача';
+$lang['def']['Reporting of suspicious payments']='Сповіщення про підозрілі оплати';
+
+
+//rev 1981
+$lang['def']['Search users']='Пошук користувачів';
+$lang['def']['Networks and services']='Мережі та послуги';
+$lang['def']['DHCP server']='Сервер DHCP';
+$lang['def']['Duplicate login']='Дублікат логіну';
+$lang['def']['right to control switches map']='Право керувати картою свічів';
+$lang['def']['Active equipment map']='Карта активного обладнання';
+$lang['def']['Place coordinates']='Координати місця';
+$lang['def']['Position']='Позиція';
+$lang['def']['Switch dead']='Комутатор помер';
+$lang['def']['Switch alive']='Комутатор живенький';
+$lang['def']['Geo location']='Гео координати';
+$lang['def']['Find location']='Пошук координат';
+$lang['def']['Switches map']='Карта обладнання';
+$lang['def']['You missed an important option']='Ви пропили важливу опцію';
+$lang['def']['Mask for search new MAC']='Маска пошуку нових MAC';
+$lang['def']['User registration']='Реєстрація користувачів';
+$lang['def']['Look&Feel']='Вигляд та зручності';
+$lang['def']['Login generation mode']='Режим генерації логінів';
+$lang['def']['Password generation lenght']='Довжина паролів, що генеруються';
+$lang['def']['Highlight today payments']='Підсвітка сьогоднішніх оплат';
+$lang['def']['Extended filters in online module']='Розширені фільтри у модулі "Онлайн"';
+$lang['def']['Bank statements']='Банківські виписки';
+$lang['def']['Behavior']='Поведінка та функціонал';
+$lang['def']['Switch map enabled']='Карту обладнання увімкнено';
+$lang['def']['MAC vendor detection API key']='Ключ API для пошуку виробника за MAC';
+$lang['def']['High perfomance mode for CaTV user list']='Режим високої продуктивності списку користувачів КТБ';
+$lang['def']['Arp features']='Робота з ARP';
+$lang['def']['arping extra options']='Додаткові опції arping';
+$lang['def']['Taskbar features']='Можливості "Панелі задач"';
+$lang['def']['Taskbar display labels under icons']='Панель задач відображає підписи до іконок';
+$lang['def']['NDS accounting']='Підтримка обліку ПДВ';
+$lang['def']['Discounts support']='Підтримка скидок';
+$lang['def']['Discount support is enabled']='Підтримку скидок увімкнено';
+$lang['def']['Discount rate custom profile field ID']='ID додаткового поля профілю з  % скидки';
+$lang['def']['Discount operation type']='Тип операції нарахування скидки';
+$lang['def']['Discount cash type']='ID типу оплати для нарахування скидки';
+$lang['def']['Stargazer setup']='Налаштування Stargazer';
+$lang['def']['Register users as active']='Реєструвати нового користувача як підключеного';
+$lang['def']['Currency']='Валюта';
+$lang['def']['Discount processing']='Обробка скидок';
+$lang['def']['Allow change tariff right now']='Дозволити моментальну зміну тарифу';
+$lang['def']['Only one fee per month']='Захист від повторного нарахування абонплати';
+$lang['def']['Process fees for only active users']='Проводити нарахування АП тільки для підключених користувачів';
+$lang['def']['Protect payments from deletion']='Захищати оплати від видалення';
+$lang['def']['Correct balance after payment deletion']='Корегувати баланс після видалення оплати';
+$lang['def']['Bank statement input charset']='Вхідне кодування банківських виписок';
+$lang['def']['Bank statement output charset']='Вихідне кодування банківських виписок';
+$lang['def']['Bank statement import options']='Опції імпорту банківських виписок';
+$lang['def']['CaTV charge fee for previous month']='Для КТБ нараховується абонплата за попередній місяць';
+$lang['def']['Map center latitude and longtitude']='Центр мапи у форматі "широта, довгота"';
+$lang['def']['Map interface language']='Мова інтерфейсу карти';
+$lang['def']['Default map zoom']='Масштаб карти за замовчуванням';
+$lang['def']['Default map type']='Тип карти за замовчуванням';
+$lang['def']['Mark labels for alive hardware']='Підписувати маркери для живого обладнання';
+$lang['def']['Mark labels for dead hardware']='Підписувати маркери для мертвого обладнання';
 
 
 ?>

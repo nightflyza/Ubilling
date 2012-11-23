@@ -194,7 +194,7 @@ function stg_show_fulluserlist2() {
         function showfilter() {
           var onlinefilters = {
 		btn: false,
-		col_'.(4+$act_offset).': "select",
+          	col_'.(4+$act_offset).': "select",
                '.$true_online_selector.'
 		btn_text: ">"
 	}
@@ -427,9 +427,15 @@ function zb_AjaxOnlineDataSource() {
          $ending='';
      }   
      
+     @$clearuseraddress=$detect_address[$eachuser['login']];
+     $clearuseraddress=trim($clearuseraddress);
+     $clearuseraddress=  str_replace("'", '`', $clearuseraddress);
+     $clearuseraddress=  mysql_real_escape_string($clearuseraddress);
+     
+     
      $result.='
      [
-     "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.@mysql_real_escape_string(trim($detect_address[$eachuser['login']])).'",
+     "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.$clearuseraddress.'",
      
          "'.@mysql_real_escape_string(trim($fioz[$eachuser['login']])).'",
          "'.$eachuser['IP'].'",

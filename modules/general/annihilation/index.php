@@ -20,6 +20,8 @@ if (cfr('ANNIHILATION')) {
         }
         zb_VserviceCashClear($login);
         log_register("DELETE VCASH ".$login);
+        cf_FlushAllUserCF($login);
+        zb_FlushAllUserTags($login);
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
         //destroy stargazer user

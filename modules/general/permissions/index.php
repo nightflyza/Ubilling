@@ -200,6 +200,7 @@ function web_list_admins() {
     //if someone deleting admin
      if (isset($_GET['delete'])) {
          user_delete($_GET['delete']);
+         log_register("DELETE AdminAccount ".$_GET['delete']);
          rcms_redirect("?module=permissions");
      }
      
@@ -207,6 +208,7 @@ function web_list_admins() {
      if (isset($_GET['passwd'])) {
          if(!empty($_POST['username']) && !empty($_POST['save'])){
               $system->updateUser($_POST['username'], $_POST['nickname'], $_POST['password'], $_POST['confirmation'], $_POST['email'], $_POST['userdata'], true);
+              log_register("CHANGE AdminAccountData ".$_POST['username']);
               rcms_redirect("?module=permissions");
          }
          web_admineditform($_GET['passwd']);

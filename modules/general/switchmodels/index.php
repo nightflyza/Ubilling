@@ -15,7 +15,10 @@ if (isset($_GET['deletesm'])) {
 }
 
 if (!isset($_GET['edit'])) {
-show_window('',  wf_Link('?module=switches', 'Available switches', true, 'ubButton'));
+$navlinks=  wf_modal(__('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '300', '170');
+$navlinks.=wf_Link('?module=switches', 'Available switches', true, 'ubButton');
+
+show_window('',  $navlinks);
 show_window(__('Available switch models'),  web_SwitchModelsShow());
  } else {
      //show editing form

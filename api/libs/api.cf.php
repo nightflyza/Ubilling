@@ -13,12 +13,19 @@
       return($result);
   }
    
+  function cf_TypeFlush($cftypeid) {
+      $cftypeid=vf($cftypeid);
+      $query="DELETE from `cfitems` WHERE `typeid`='".$cftypeid."'";
+      nr_query($query);
+      log_register("CFTYPE FLUSH [".$cftypeid."]");
+  }
   
   function cf_TypeDelete($cftypeid) {
       $cftypeid=vf($cftypeid);
       $query="DELETE from `cftypes` WHERE `id`='".$cftypeid."'";
       nr_query($query);
-      log_register("CFTYPE DELETE ".$cftypeid);
+      log_register("CFTYPE DELETE [".$cftypeid."]");
+      cf_TypeFlush($cftypeid);
   }
   
   
@@ -194,7 +201,13 @@
             );
             ";
       nr_query($query);
-      log_register("CF SET ".$login." ".$typeid);
+      if (strlen($content)<20) {
+          $logcontent=$content;
+      } else {
+          $logcontent= substr($content,0,20).'..';
+      }
+      
+      log_register("CF SET (".$login.") TYPE [".$typeid."]"." ON `".$logcontent."`");
   }
   
   
@@ -307,6 +320,14 @@
       
        }
        return($form);
+   }
+   
+   function cf_FlushAllUserCF($login) {
+       $login=  mysql_real_escape_string($login);
+       $query="DELETE from `cfitems` WHERE `login`='".$login."'";
+       nr_query($query);
+       log_register("CF FLUSH (".$login.")");
+       
    }
    
 ?>

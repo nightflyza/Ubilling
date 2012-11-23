@@ -339,6 +339,7 @@ div.dhtml_menu div.vert_menu
 {
   margin-right:  -1px;
   border-bottom: 1px solid #000000;
+  z-index: 9999;
 }
 
 div.dhtml_menu div.horz_menu a,
@@ -350,6 +351,7 @@ div.dhtml_menu div.vert_menu a
 	text-decoration: none;
 	color: #000000;
 	background-color: #595959;
+  
 }
 
 div.dhtml_menu div.horz_menu a
@@ -357,6 +359,7 @@ div.dhtml_menu div.horz_menu a
   background-color: transparent;
   line-height: 15px;
   height: 15px;
+
 }
 
 div.dhtml_menu div.vert_menu a
@@ -364,6 +367,7 @@ div.dhtml_menu div.vert_menu a
   margin-bottom: -1px;
   width: 200px;
   border: 1px solid Black;
+   
 }
 
 div.dhtml_menu div.horz_menu a:hover,
@@ -371,6 +375,7 @@ div.dhtml_menu div.vert_menu a:hover
 {
 	color: #000000;
 	background-color: #595959;
+        
 }
 
 div.dhtml_menu div.horz_menu a.parent,
@@ -378,11 +383,13 @@ div.dhtml_menu div.vert_menu a.parent
 {
 	color: #000000;
 	background-color: #444444;
+          
 }
 
 div.dhtml_menu div.horz_menu a.parent
 {
 	background-color: transparent;
+       
 }
 
 div.dhtml_menu div.horz_menu a.active,
@@ -392,6 +399,7 @@ div.dhtml_menu div.vert_menu a.active:hover
 {
 	color: #000000;
 	background-color: #E37E00;
+      
 }
 
 
@@ -587,3 +595,27 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     border-color: #f8bb00;
     color: #000000;           
 }
+
+.dashboard{
+    width:100%;
+}
+
+.dashtask {
+    float: left;
+    display: block;
+    padding: 10px;
+    margin: 5px;
+    border:solid 1px #EEE;
+    border-radius:10px;
+    text-align: center;
+    font-size: 8pt;
+    overflow: hidden;
+}
+
+.dashtask:hover {
+    -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    3px 3px 4px rgba(50, 50, 50, 0.75);
+    box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
+    
+}
+

@@ -22,11 +22,13 @@ $out_charset='utf-8';
 //Индивидуальный код предприятия
 $company_code=24;
 //название компании
-$company_name="OurISP";
+$company_name="РогаИКопыта";
 //сообщение выдаваемое при успешном поиске
-$message_ok="OurISP с радостью примет вашу оплату";
+$message_ok="Ожидание оплаты";
 //сообщение об ошибке при поиске абонента
 $message_fail="Абонент не найден";
+//Сообщение об ошибке формата суммы
+$message_format_fail="Ошибка в формате денежной суммы";
 //название услуги
 $service='Интернет';
 //код услуги
@@ -205,6 +207,27 @@ function pb_StgGetAllTariffPrices() {
     return ($result);
 }
 
+//проверка на уникальность хеша
+function pb_IsHashUnique($ophash) {
+	$hash=mysql_real_escape_string($ophash);
+	$query="SELECT `id` from `op_transactions` WHERE `hash`='".$ophash."'";
+	$io=simple_query($query);
+	if (!empty($io)) {
+		return(false);
+	} else {
+		return(true);
+	}
+}
+
+//substr find
+function ispos($string,$search) {
+      if (strpos($string,$search)===false) {
+        return(false);
+      } else {
+        return(true);
+      }
+     }
+
 ///////////////////////////////////////// Таки сама механика ///////
 
 if ($debug) {
@@ -231,7 +254,7 @@ $alltariffprices=  pb_StgGetAllTariffPrices();
 // ?action=bill_search&bill_identifier=2887647236
 if(isset($_GET['action'])) {
     if ($_GET['action']=='bill_search') {
-        $search_pattern=$_GET['bill_identifier'];
+        $search_pattern=vf($_GET['bill_identifier'],3);
     }
 }
 
@@ -284,25 +307,53 @@ if (!empty ($search_pattern)) {
 // ?action=bill_input&bill_identifier=2887647236&summ=10&pkey=aaa444455656&date=2012-04-02T18:20:15
 if(isset($_GET['action'])) {
     if ($_GET['action']=='bill_input') {
-        $customerid=$_GET['bill_identifier'];
+        $customerid=vf($_GET['bill_identifier'],3);
         //если все нормально регистрируем новую транзакцию
         if (!empty ($customerid)) {
-           $summ=$_GET['summ'];
+			
+           $summ=$_GET['sum'];
            $hash=$_GET['pkey'];
            $ophash='PB'.$_GET['pkey'];
            $date=date("Y-M-d H:i:s");
+           //точно ли уникальный хеш?
+          if (pb_IsHashUnique($ophash)) {
+			//не нулевая ли сумма
+ 		  if (($summ>1) AND (!ispos($summ,','))) {
            op_TransactionAdd($ophash, $summ, $customerid, 'PBANK', $date);
            op_ProcessHandlers();
            $transaction_ok='
                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <ResponseExtInputPay>
                   <extInputPay>
-                   <response_code>0<response_code>
                    <inner_ref>'.$hash.'</inner_ref>
                 </extInputPay>
               </ResponseExtInputPay>
                ';
-           print($transaction_ok);
+			print($transaction_ok);
+			} else {
+				$sum_fail='
+				<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+				<ResponseExtInputPay>
+					  <errorResponse>
+					  <code>3</code>
+					   <message>'.$message_format_fail.'</message>
+					  </errorResponse>
+				</ResponseExtInputPay>
+				';
+				print($sum_fail);
+			
+			}
+	   } else {
+		   $transaction_dub='
+		  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <ResponseExtInputPay>
+                  <extInputPay>
+                   <inner_ref>'.$hash.'</inner_ref>
+                </extInputPay>
+          </ResponseExtInputPay>
+		   ';
+		   print($transaction_dub);
+	   }
         }
     }
 }
