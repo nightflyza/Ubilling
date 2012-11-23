@@ -1,0 +1,7 @@
+CHAPTER_YM=Switches map
+CENTER=VARCHAR|Map center latitude and longtitude
+LANG=VARCHAR|Map interface language
+ZOOM=VARCHAR|Default map zoom
+TYPE=VARCHAR|Default map type
+DEAD_LABEL=TRIGGER|Mark labels for alive hardware
+ALIVE_LABEL=TRIGGER|Mark labels for dead hardware
