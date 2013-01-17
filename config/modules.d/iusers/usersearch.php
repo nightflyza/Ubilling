@@ -1,1 +1,0 @@
-$taskbar.=build_task('USERSEARCH','?module=usersearch','search.jpg',__('Search users'));

@@ -1,1 +1,0 @@
-$taskbar.=build_task('DSHAPER','?module=dshaper','dshaper.jpg',__('Dynamic shaper'));

@@ -1,3 +1,0 @@
-<FilesMatch "\.(gif|png|jp?g)$">
-    allow from all
-</FilesMatch>

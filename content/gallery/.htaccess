@@ -1,4 +1,0 @@
-allow from all 
-<FilesMatch "\.(cm)$">
-    deny from all
-</FilesMatch>

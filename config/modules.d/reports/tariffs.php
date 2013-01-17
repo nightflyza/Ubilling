@@ -1,1 +1,0 @@
-$taskbar.=build_task('REPORTTARIFFS','?module=report_tariffs','cart.jpg',__('Tariffs report'));

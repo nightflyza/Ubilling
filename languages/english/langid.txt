@@ -1,3 +1,0 @@
-English
-en
-UTF-8
