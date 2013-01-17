@@ -1,0 +1,1 @@
+$taskbar.=build_task('NEWMAC','?module=newmac','scanner.jpg',__('Unknown MAC address'));

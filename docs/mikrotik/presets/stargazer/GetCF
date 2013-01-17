@@ -1,0 +1,16 @@
+#!/usr/local/bin/php
+<?php
+$login=$argv[1];
+$cfid=$argv[2];
+$config=parse_ini_file(dirname(__FILE__)."/config");
+$link = mysql_connect($config['host'], $config['username'], $config['password']);
+mysql_select_db($config['database']);
+$ipq='SELECT `content` FROM `cfitems` WHERE `login`="'.$login.'" AND `typeid`="'.$cfid.'"';
+$ip=mysql_query($ipq);
+           while ($line2 = mysql_fetch_array($ip, MYSQL_ASSOC)) {
+                foreach($line2 as $ipval) {
+                                   print($ipval);
+                           }    
+                        }
+
+?>

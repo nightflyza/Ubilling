@@ -1,0 +1,1 @@
+$taskbar.=build_task('SYSCONF','?module=sysconf','settings.jpg',__('System settings'));

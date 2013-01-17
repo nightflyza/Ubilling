@@ -1,0 +1,1 @@
+$taskbar.=build_task('TICKETING','?module=ticketing','user_feedback.jpg',__('Ticketing'));

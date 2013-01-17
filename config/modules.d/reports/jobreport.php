@@ -1,0 +1,1 @@
+$taskbar.=build_task('EMPLOYEE','?module=jobreport','arbeit.jpg',__('Job report'));

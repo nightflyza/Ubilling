@@ -1,0 +1,3 @@
+Ukrainian
+uk
+UTF-8

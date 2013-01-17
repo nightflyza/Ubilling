@@ -1,0 +1,17 @@
+/*
+ $Id: psstatus.css 329 2009-09-07 11:21:44Z bigmichi1 $
+ */
+#plugin_psstatusTable thead tr .header {
+    background-image: url("../../../gfx/bg.gif");
+    background-position: right center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+#plugin_psstatusTable thead tr .headerSortUp {
+    background-image: url("../../../gfx/asc.gif");
+}
+
+#plugin_psstatusTable thead tr .headerSortDown {
+    background-image: url("../../../gfx/desc.gif");
+}
