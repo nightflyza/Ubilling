@@ -114,15 +114,24 @@ if (cfr('CATV')) {
         
         //reports list
         if ($_GET['action']=='reports') {
-           // show available reports list
-            
-           
+        
             if (!isset ($_GET['showreport'])) {
+                // show available reports list
                 catv_ReportsShowList();
+                
             } else {
                 // current debtors
                 if ($_GET['showreport']=='current_debtors') {
                      catv_ReportDebtors();
+                }
+                
+                 // current debtors by addr
+                if ($_GET['showreport']=='current_debtorsaddr') {
+                    if (wf_CheckGet(array('ajaxbuild'))) {
+                        catv_AjaxBuildSelector($_GET['ajaxbuild']);
+                    }
+                    
+                     catv_ReportDebtorsAddr();
                 }
                 
                 //finance report

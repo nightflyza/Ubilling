@@ -29,7 +29,7 @@
           <tr class="row2">
           <td></td>
           
-          <td><input type="text"  name="employeename" size="30"></td>
+          <td><input type="text"  name="employeename" size="30" required></td>
           <td></td>
           <td><input type="text"  name="employeejob" size="30"></td>
           
@@ -63,7 +63,7 @@ function stg_show_jobtype_form() {
           <input type="hidden" name="addjobtype" value="true">
           <tr class="row2">
           <td></td>
-          <td><input type="text"  name="newjobtype" size="30"></td>
+          <td><input type="text"  name="newjobtype" size="30" required></td>
           <td><img src="skins/icon_add.gif" border="0"><input type="submit" value="'.__('Add').'"></td>
           </tr>
           </form>
@@ -92,7 +92,7 @@ function stg_add_employee($name,$job) {
 function stg_delete_employee($id) {
      $query="DELETE from `employee` WHERE `id`=".$id;
      nr_query($query);
-     stg_putlogevent('EMPLOYEE DEL '.$id);
+     stg_putlogevent('EMPLOYEE DEL ['.$id.']');
     }
 
  function stg_add_jobtype($jobtype) {
@@ -113,7 +113,7 @@ function stg_delete_employee($id) {
  function stg_delete_jobtype($id) {
      $query="DELETE from `jobtypes` WHERE `id`=".$id;
      nr_query($query);
-     stg_putlogevent('JOBTYPEDEL '.$id);
+     stg_putlogevent('JOBTYPEDEL ['.$id.']');
     }
 
 function stg_get_employee_name($id) {
@@ -149,7 +149,7 @@ function stg_worker_selector() {
 }
 
 function stg_jobtype_selector() {
-    $query="SELECT * from `jobtypes`";
+    $query="SELECT * from `jobtypes` ORDER by `id` ASC";
     $alljobtypes=simple_queryall($query);
     $result='<select name="jobtype">';
     if (!empty ($alljobtypes)) {
@@ -162,56 +162,55 @@ function stg_jobtype_selector() {
 }
 
 function stg_show_jobs($username) {
-    $query_jobs='SELECT * FROM `jobs` WHERE `login`="'.$username.'"';
+    $query_jobs='SELECT * FROM `jobs` WHERE `login`="'.$username.'" ORDER BY `id` ASC';
     $alljobs=simple_queryall($query_jobs);
-    $result='<table width="100%" border="0"><tbody>';
-        $result.='<tr class="row1">';
-        $result.='<td width="5%">ID</td>';
-        $result.='<td width="15%">'.__('Date').'</td>';
-        $result.='<td width="20%">'.__('Worker').'</td>';
-        $result.='<td width="20%">'.__('Job type').'</td>';
-        $result.='<td width="40%">'.__('Notes').'</td>';
-        $result.='<td></td>';
-        $result.='</tr>';
-
+    $allemployee=  ts_GetAllEmployee();
+    $alljobtypes= ts_GetAllJobtypes();
+    $activeemployee=  ts_GetActiveEmployee();
+    
+    $cells= wf_TableCell(__('ID'));
+    $cells.=wf_tableCell(__('Date'));
+    $cells.=wf_TableCell(__('Worker'));
+    $cells.=wf_TableCell(__('Job type'));
+    $cells.=wf_TableCell(__('Notes'));
+    $cells.=wf_TableCell('');
+    $rows=  wf_TableRow($cells, 'row1');
+    
     if (!empty ($alljobs)) {
         foreach ($alljobs as $ion=>$eachjob) {
-        $result.='<tr class="row3">';
-        $result.='<td>'.$eachjob['id'].'</td>';
-        $result.='<td>'.$eachjob['date'].'</td>';
-        $result.='<td>'.stg_get_employee_name($eachjob['workerid']).'</td>';
-        $result.='<td>'.stg_get_jobtype_name($eachjob['jobid']).'</td>';
-        $result.='<td>'.$eachjob['note'].'</td>';
-        $result.='<td>'.  wf_JSAlert('?module=jobs&username='.$username.'&deletejob='.$eachjob['id'].'', web_delete_icon(), 'Are you serious').'</td>';
-        $result.='</tr>';
+            $cells= wf_TableCell($eachjob['id']);
+            $cells.=wf_tableCell($eachjob['date']);
+            $cells.=wf_TableCell(@$allemployee[$eachjob['workerid']]);
+            $cells.=wf_TableCell(@$alljobtypes[$eachjob['jobid']]);
+            $cells.=wf_TableCell($eachjob['note']);
+            $cells.=wf_TableCell(wf_JSAlert('?module=jobs&username='.$username.'&deletejob='.$eachjob['id'].'', web_delete_icon(), 'Are you serious'));
+            $rows.=  wf_TableRow($cells, 'row3');
+            
         }
      }
-    $result.='</tbody></table>';
-     $result.='<table width="100%" border="0"><tbody>';
-        $result.='<tr class="row1">';
-        $result.='<td width="5%">ID</td>';
-        $result.='<td width="15%">'.__('Date').'</td>';
-        $result.='<td width="20%">'.__('Worker').'</td>';
-        $result.='<td width="20%">'.__('Job type').'</td>';
-        $result.='<td width="40%">'.__('Notes').'</td>';
-        $result.='<td></td>';
-        $result.='</tr>';
-
-        $result.='<tr class="row3">
-            <td>ID</td>
-            <td>'.date("Y-m-d H:i:s").'</td>
-        <form action="" method="POST">
-        <input type="hidden" name="addjob" value="true">
-        <input type="hidden" name="jobdate" value="'.date("Y-m-d H:i:s").'">
-        <td>'.stg_worker_selector().'</td>
-        <td>'.stg_jobtype_selector().'</td>
-        <td><input type"text" size="20" name="notes">
-        <input type="submit" value="'.__('Add').'"></td>
-        </form>
-        <td>'.  web_add_icon().'</td>
-        </tr>
-        </tbody></table>
-        ';
+    
+    //onstruct job create form
+    $curdatetime=curdatetime();
+    $inputs= wf_HiddenInput('addjob', 'true') ;
+    $inputs.=wf_HiddenInput('jobdate', $curdatetime) ;
+    $inputs.=wf_TableCell('');
+    $inputs.=wf_tableCell($curdatetime);
+    $inputs.=wf_TableCell(stg_worker_selector());
+    $inputs.=wf_TableCell(stg_jobtype_selector());
+    $inputs.=wf_TableCell(wf_TextInput('notes', '', '', false, '20'));
+    $inputs.=wf_TableCell(wf_Submit('Create'));
+    $inputs=wf_TableRow($inputs, 'row2');
+  
+    $addform=  wf_Form("", 'POST', $inputs, '');
+           
+        if ((!empty($activeemployee)) AND (!empty($alljobtypes))) {
+            $rows.=$addform;
+        } else {
+            show_window(__('Error'),__('No job types and employee available'));
+        }
+        
+        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        
     show_window(__('Jobs'), $result);
 }
 
@@ -219,7 +218,7 @@ function stg_delete_job($jobid) {
     $jobid=vf($jobid);
     $query="DELETE from `jobs` WHERE `id`='".$jobid."'";
     nr_query($query);
-    log_register("DELETE JOB ".$jobid);
+    log_register("DELETE JOB [".$jobid."]");
 }
 
 
@@ -239,7 +238,7 @@ $query="INSERT INTO `jobs` (
             );
     ";
 nr_query($query);
-log_register("ADD JOB ".$worker_id." ".$jobtype_id." ".$login);
+log_register("ADD JOB W:[".$worker_id."] J:[".$jobtype_id."] (".$login.")");
 }
 
 //

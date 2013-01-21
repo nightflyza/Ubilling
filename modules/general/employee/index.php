@@ -34,7 +34,7 @@ if (cfr('EMPLOYEE')) {
            //edit job subroutine
            if (wf_CheckPost(array('editjobtype'))) {
                simple_update_field('jobtypes', 'jobname', $_POST['editjobtype'], "WHERE `id`='".$editjob."'");
-               log_register('JOBTYPE CHANGE '.$editjob);
+               log_register('JOBTYPE CHANGE ['.$editjob.']');
                rcms_redirect("?module=employee");
            }
            
@@ -60,7 +60,7 @@ if (cfr('EMPLOYEE')) {
            } else {
                simple_update_field('employee', 'active', '0', "WHERE `id`='".$editemployee."'");
            }
-           log_register('EMPLOYEE CHANGE '.$editemployee);
+           log_register('EMPLOYEE CHANGE ['.$editemployee.']');
            rcms_redirect("?module=employee");
            
        }

@@ -61,7 +61,34 @@
         }
         
     }
+ 
+/*
+ * Return form for placing switch to selected coordinates
+ * 
+ * @return string
+ */    
+function sm_MapLocationSwitchForm() {
+    $query="SELECT * from `switches` WHERE `geo`=''";
+    $allNoGeoSwitches=  simple_queryall($query);
+    $switchData=array();
+    $result='';
     
+    if (!empty($allNoGeoSwitches)) {
+        foreach ($allNoGeoSwitches as $io=>$each) {
+            $switchData[$each['id']]=$each['ip'].' - '.$each['location'];
+        }
+        //form construct
+        if (cfr('SWITCHESEDIT')) {
+        $inputs=  wf_Selector('switchplacing', $switchData, '', '', true);
+        $inputs.=wf_Submit('Save');
+        $result.=$inputs;
+        }
+    }
+    
+    
+    
+    return ($result);
+}
     
 
 /*
@@ -79,11 +106,11 @@
                     var coords = e.get(\'coordPosition\');
                     myMap.balloon.open(coords, {
                         contentHeader: \''.__('Place coordinates').'\',
-                        contentBody: \'\' +
+                        contentBody: \' \' +
                             \'<p>\' + [
                             coords[0].toPrecision(6),
                             coords[1].toPrecision(6)
-                            ].join(\', \') + \'</p>\'
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">'.str_replace("\n",'',sm_MapLocationSwitchForm()).'</form> \'
                  
                     });
                 } else {

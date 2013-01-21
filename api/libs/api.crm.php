@@ -846,7 +846,7 @@ function web_UserPassportDataShow($login) {
        $rows.=  wf_TableRow($cells,'row3');
        
        $cells=  wf_TableCell(__('Registration address'));
-       $cells.=  wf_TableCell($passportdata['pcity'].' '.$passportdata['pstreet'].'/'.$passportdata['papt']);
+       $cells.=  wf_TableCell($passportdata['pcity'].' '.$passportdata['pstreet'].' '.$passportdata['pbuild'].'/'.$passportdata['papt']);
        $rows.=  wf_TableRow($cells,'row3');
        
        $result=  wf_TableBody($rows, '100%', '0');

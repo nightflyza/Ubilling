@@ -1172,4 +1172,12 @@ $lang['def']['Use AlwaysOnline instead Down flag to reset users']='Исполь�
 $lang['def']['right to edit switches']='Право редактировать, добавлять, удалять свитчи';
 $lang['def']['Network/CIDR']='Сеть/CIDR';
 
+//rev 2270
+$lang['def']['No job types and employee available']='Нету существующих сотрудников и типов работ которые они могли бы выполнять';
+$lang['def']['Current debtors for delivery']='Текущие должники для разноса';
+$lang['def']['Current debtors for delivery by address']='Текущие должники для разноса, по адресам';
+$lang['def']['Print']='Печать';
+$lang['def']['']='';
+$lang['def']['']='';
+
 ?>

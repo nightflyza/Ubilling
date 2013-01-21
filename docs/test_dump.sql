@@ -848,3 +848,19 @@ CREATE TABLE `switchdeadlog` (
 `swdead` TEXT NOT NULL ,
 INDEX ( `date` , `timestamp` )
 ) ENGINE = MYISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.3.7 update
+
+CREATE TABLE IF NOT EXISTS `catv_paymentscorr` (
+  `id` int(11) NOT NULL auto_increment,
+  `date` datetime NOT NULL,
+  `userid` int(11) NOT NULL,
+  `summ` float NOT NULL,
+  `from_month` int(11) NOT NULL,
+  `from_year` int(11) NOT NULL,
+  `to_month` int(11) NOT NULL,
+  `to_year` int(11) NOT NULL,
+  `notes` varchar(255) default NULL,
+  `admin` varchar(255) default NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

@@ -1872,28 +1872,27 @@ function web_BackupForm() {
        /*
         * Current month traffic stats
         */
-       $result='<h3>'.__('Current month traffic stats').'</h3>
-           <table width="100%" border="0" class="sortable">';
-       $result.='<tr class="row1">
-                        <td>'.__('Traffic classes').'</td>
-                        <td>'.__('Downloaded').'</td>
-                        <td>'.__('Uploaded').'</td>
-                        <td>'.__('Total').'</td>
-                        </tr>';
+      
+       $cells= wf_TableCell(__('Traffic classes'));
+       $cells.=wf_TableCell(__('Downloaded'));
+       $cells.=wf_TableCell(__('Uploaded'));
+       $cells.=wf_TableCell(__('Total'));
+       $rows=  wf_TableRow($cells, 'row1');
+       
             if (!empty ($alldirs)) {
                 foreach ($alldirs as $io=>$eachdir) {
-                    $query_downup="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."` from `users` WHERE `login`='".$login."'";
-                    $downup=simple_query($query_downup);
-                    $result.='
-                        <tr class="row3">
-                        <td>'.$eachdir['rulename'].'</td>
-                        <td sorttable_customkey="'.$downup['D'.$eachdir['rulenumber']].'">'.stg_convert_size($downup['D'.$eachdir['rulenumber']]).'</td>
-                        <td sorttable_customkey="'.$downup['U'.$eachdir['rulenumber']].'">'.stg_convert_size($downup['U'.$eachdir['rulenumber']]).'</td>
-                        <td sorttable_customkey="'.($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']]).'">'.stg_convert_size(($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']])).'</td>
-                        </tr>';
+                   $query_downup="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."` from `users` WHERE `login`='".$login."'";
+                   $downup=simple_query($query_downup);
+                   $cells= wf_TableCell($eachdir['rulename']);
+                   $cells.=wf_TableCell(stg_convert_size($downup['D'.$eachdir['rulenumber']]), '', '',  'sorttable_customkey="'.$downup['D'.$eachdir['rulenumber']].'"');
+                   $cells.=wf_TableCell(stg_convert_size($downup['U'.$eachdir['rulenumber']]), '', '',  'sorttable_customkey="'.$downup['U'.$eachdir['rulenumber']].'"');
+                   $cells.=wf_TableCell(stg_convert_size(($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']])), '', '',  'sorttable_customkey="'.($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']]).'"');
+                   $rows.=  wf_TableRow($cells, 'row3');
                 }
             }
-       $result.='</table>';
+
+       $result=  wf_tag('h3').__('Current month traffic stats').wf_tag('h3',true);
+       $result.=  wf_TableBody($rows, '100%', '0', 'sortable');
        /*
         * Some per-user graphs
         */
@@ -1902,35 +1901,53 @@ function web_BackupForm() {
        if ($bandwidthd) {
            $bwd=zb_BandwidthdGenLinks($ip);
            
-            $daybw=__('Downloaded').'<br><img src="'.$bwd['dayr'].'"> <br>
-             '.__('Uploaded').' <br> <img src="'.$bwd['days'].'"> <br> ';
-            $weekbw=__('Downloaded').'<br><img src="'.$bwd['weekr'].'"> <br>
-                '.__('Uploaded').' <br> <img src="'.$bwd['weeks'].'"> <br> ';
-            $monthbw=__('Downloaded').'<br><img src="'.$bwd['monthr'].'"> <br>
-                '.__('Uploaded').' <br> <img src="'.$bwd['months'].'"> <br> ';
-            $yearbw=__('Downloaded').'<br><img src="'.$bwd['yearr'].'"> <br>
-                '.__('Uploaded').' <br> <img src="'.$bwd['years'].'"> <br> ';
-                $result.='<br> <h3> '.__('Graphs').' </h3>';
-// deprecated web overlay                 
-//                $result.='<table  border="0" width="50%">';
-//                $result.='<tr class="row3">';
-//                $result.='<td>'.web_Overlay(__('Graph by day'), $daybw,0.85).'</td>';
-//                $result.='<td>'.web_Overlay(__('Graph by week'), $weekbw,0.85).'</td>';
-//                $result.='<tr>';
-//                $result.='<tr class="row3">';
-//                $result.='<td>'.web_Overlay(__('Graph by month'), $monthbw,0.85).'</td>';
-//                $result.='<td>'.web_Overlay(__('Graph by year'),  $yearbw,0.85).'</td>';
-//                $result.='<tr>';
-//                
-                // jquery UI style
-                $result.='<table  border="0" >';
-                $result.='<tr>';
-                $result.='<td>'. wf_modal(__('Graph by day'), __('Graph by day'), $daybw, 'ubButton', 920, 650).'</td>';
-                $result.='<td>'. wf_modal(__('Graph by week'), __('Graph by week'), $weekbw, 'ubButton', 920, 650).'</td>';
-                $result.='<td>'. wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', 920, 650).'</td>';
-                $result.='<td>'. wf_modal(__('Graph by year'), __('Graph by year'), $yearbw, 'ubButton', 920, 650).'</td>';
-                $result.='</tr>';
-               $result.='</table> <br>';
+          //day graph
+          $daybw=wf_img($bwd['dayr'], __('Downloaded'));
+          if (!empty($bwd['days'])) {
+             $daybw.=wf_delimiter().wf_img($bwd['days'], __('Uploaded'));
+          }
+          
+          //week graph
+          $weekbw=wf_img($bwd['weekr'], __('Downloaded'));
+          if (!empty($bwd['weeks'])) {
+             $weekbw.=wf_delimiter().wf_img($bwd['weeks'], __('Uploaded'));
+          }
+          
+          //month graph
+          $monthbw=wf_img($bwd['monthr'], __('Downloaded'));
+          if (!empty($bwd['months'])) {
+             $monthbw.=wf_delimiter().wf_img($bwd['months'], __('Uploaded'));
+          }
+          
+          //year graph
+          $yearbw=wf_img($bwd['yearr'], __('Downloaded'));
+          if (!empty($bwd['years'])) {
+             $yearbw.=wf_delimiter().wf_img($bwd['years'], __('Uploaded'));
+          }
+          
+          //modal window sizes
+          if (!empty($bwd['days'])) {
+              $modal_w= 920;
+	      $modal_h = 600;
+          } else {
+              $modal_w= 530;
+	      $modal_h = 230;
+          }
+          
+          $result.=wf_delimiter();
+          $result.=wf_tag('h3').__('Graphs').  wf_tag('h3',true);
+                
+          $bwcells= wf_TableCell(wf_modal(__('Graph by day'), __('Graph by day'), $daybw, 'ubButton', $modal_w, $modal_h));
+          $bwcells.=wf_TableCell(wf_modal(__('Graph by week'), __('Graph by week'), $weekbw, 'ubButton', $modal_w, $modal_h));
+          $bwcells.=wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', $modal_w, $modal_h));
+          $bwcells.=wf_TableCell(wf_modal(__('Graph by year'), __('Graph by year'), $yearbw, 'ubButton', $modal_w, $modal_h));
+          $bwrows=  wf_TableRow($bwcells);
+          //adding graphs to result
+          $result.=wf_TableBody($bwrows, '', '0', '');
+          $result.=wf_delimiter();
+
+
+               
        } else {
            $result.=__('No user graphs because no NAS with bandwidthd for his network');
        }
@@ -1939,18 +1956,17 @@ function web_BackupForm() {
        /*
         * traffic stats by previous months
         */
-     $result.='<h3>'.__('Previous month traffic stats').'</h3>
-           <table width="100%" border="0" class="sortable">';
-     $result.='
-                        <tr class="row1">
-                        <td>'.__('Year').'</td>
-                        <td>'.__('Month').'</td>
-                        <td>'.__('Traffic classes').'</td>
-                        <td>'.__('Downloaded').'</td>
-                        <td>'.__('Uploaded').'</td>
-                        <td>'.__('Total').'</td>
-                        <td>'.__('Cash').'</td>
-                        </tr>';
+     
+     $result.=wf_tag('h3').__('Previous month traffic stats').wf_tag('h3', true);
+     
+     $cells=  wf_TableCell(__('Year'));
+     $cells.= wf_TableCell(__('Month'));
+     $cells.= wf_TableCell(__('Traffic classes'));
+     $cells.= wf_TableCell(__('Downloaded'));
+     $cells.= wf_TableCell(__('Uploaded'));
+     $cells.= wf_TableCell(__('Total'));
+     $cells.= wf_TableCell(__('Cash'));
+     $rows=  wf_TableRow($cells, 'row1');
 
        if (!empty ($alldirs)) {
            foreach ($alldirs as $io=>$eachdir) {
@@ -1958,22 +1974,21 @@ function web_BackupForm() {
                $allprevmonth=simple_queryall($query_prev);
                 if (!empty ($allprevmonth)) {
                    foreach ($allprevmonth as $io2=>$eachprevmonth) {
-                    $result.='
-                        <tr class="row3">
-                        <td>'.$eachprevmonth['year'].'</td>
-                        <td>'.$eachprevmonth['month'].'</td>
-                        <td>'.$eachdir['rulename'].'</td>
-                        <td sorttable_customkey="'.$eachprevmonth['D'.$eachdir['rulenumber']].'">'.stg_convert_size($eachprevmonth['D'.$eachdir['rulenumber']]).'</td>
-                        <td sorttable_customkey="'.$eachprevmonth['U'.$eachdir['rulenumber']].'">'.stg_convert_size($eachprevmonth['U'.$eachdir['rulenumber']]).'</td>
-                        <td sorttable_customkey="'.($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']]).'">'.stg_convert_size(($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']])).'</td>
-                        <td>'.round($eachprevmonth['cash'],2).'</td>
-                        </tr>';
+                     $cells=  wf_TableCell($eachprevmonth['year']);
+                     $cells.= wf_TableCell($eachprevmonth['month']);
+                     $cells.= wf_TableCell($eachdir['rulename']);
+                     $cells.= wf_TableCell(stg_convert_size($eachprevmonth['D'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['D'.$eachdir['rulenumber']].'"');
+                     $cells.= wf_TableCell(stg_convert_size($eachprevmonth['U'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['U'.$eachdir['rulenumber']].'"');
+                     $cells.= wf_TableCell(stg_convert_size(($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']])), '', '', 'sorttable_customkey="'.($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']]).'"');
+                     $cells.= wf_TableCell(round($eachprevmonth['cash'],2));
+                     $rows.=  wf_TableRow($cells, 'row3');
 
                    }
                }
            }
        }
-       $result.='</table>';
+
+       $result.=wf_TableBody($rows, '100%', '0', 'sortable');
        
        return($result);
    }

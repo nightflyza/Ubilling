@@ -232,7 +232,7 @@ function multinet_show_service_add_form() {
         <form action="" method="POST" class="glamour">
         <input type="hidden" name="serviceadd" value="true">
         '.multinet_network_selector().' '.__('Service network').' <br>
-        <input type="text" name="sevicename" size="15"> '.__('Service description').'<sup>*</sup> <br>
+        <input type="text" name="servicename" size="15"> '.__('Service description').'<sup>*</sup> <br>
         <input type="submit" value="'.__('Add').'">
         </form>
         <div style="clear:both;"></div>
@@ -272,9 +272,10 @@ function multinet_network_is_used($network_id) {
 }
 
 function multinet_delete_network($network_id) {
+    $network_id=vf($network_id,3);
     $query="DELETE FROM `networks` WHERE `id`='".$network_id."'";
     nr_query($query);
-    log_register('DELETE MultiNetNet '.$network_id);
+    log_register('DELETE MultiNetNet ['.$network_id.']');
 }
 
 function multinet_add_service($net,$desc) {
@@ -305,9 +306,10 @@ function multinet_get_service_params($serviceid) {
 
 
 function multinet_delete_service($service_id) {
+    $service_id=vf($service_id,3);
     $query="DELETE FROM `services` WHERE `id`='".$service_id."'";
     nr_query($query);
-    log_register('DELETE MultiNetService '.$service_id);
+    log_register('DELETE MultiNetService ['.$service_id.']');
 }
 
 function multinet_get_dhcp_networks() {
@@ -971,20 +973,22 @@ function zb_TariffGetAllSpeeds() {
         $nasdata= zb_NasGetData($nasid);
         $nastype=$nasdata['nastype'];
         
+        //mikrotik graphs model
         if ($nastype=='mtdirect') {
         $alluserips= zb_UserGetAllIPs();
         $alluserips=array_flip($alluserips);
         
         $urls['dayr']=$bandwidthd_url.'/'.$alluserips[$ip].'/daily.gif';
-        $urls['days']=$bandwidthd_url.'/'.$alluserips[$ip].'/daily.gif';
+        $urls['days']='';
         $urls['weekr']=$bandwidthd_url.'/'.$alluserips[$ip].'/weekly.gif';
-        $urls['weeks']=$bandwidthd_url.'/'.$alluserips[$ip].'/weekly.gif';
+        $urls['weeks']='';
         $urls['monthr']=$bandwidthd_url.'/'.$alluserips[$ip].'/monthly.gif';
-        $urls['months']=$bandwidthd_url.'/'.$alluserips[$ip].'/monthly.gif';
+        $urls['months']='';
         $urls['yearr']=$bandwidthd_url.'/'.$alluserips[$ip].'/yearly.gif';
-        $urls['years']=$bandwidthd_url.'/'.$alluserips[$ip].'/yearly.gif';
+        $urls['years']='';
             
         } else {
+        //default bandwidthd generated graphs
         $urls['dayr']=$bandwidthd_url.'/'.$ip.'-1-R.png';
         $urls['days']=$bandwidthd_url.'/'.$ip.'-1-S.png';
         $urls['weekr']=$bandwidthd_url.'/'.$ip.'-2-R.png';

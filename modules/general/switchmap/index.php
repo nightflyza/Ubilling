@@ -4,6 +4,20 @@ if(cfr('SWITCHMAP')) {
     $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     
     if ($altercfg['SWYMAP_ENABLED']) {
+   
+    //wysiwyg switch placement    
+    if (wf_CheckPost(array('switchplacing','placecoords'))) {
+        if (cfr('SWITCHESEDIT')) {
+            $switchid=vf($_POST['switchplacing'],3);
+            $placegeo=  mysql_real_escape_string($_POST['placecoords']);
+            
+            simple_update_field('switches', 'geo', $placegeo,"WHERE `id`='".$switchid."'");
+            log_register('SWITCH CHANGE ['.$switchid.']'.' GEO '.$placegeo);
+            rcms_redirect("?module=switchmap&locfinder=true");
+        } else {
+             show_window(__('Error'), __('Access denied'));
+        }
+    }    
         
     
     $ymconf=  rcms_parse_ini_file(CONFIG_PATH."ymaps.ini");

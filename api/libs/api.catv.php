@@ -813,6 +813,56 @@
         return ($result);
     }
     
+    function catv_UserShowAllpayments($userid) {
+        $catvconf=catv_LoadConfig();
+        $alluserpayments=catv_PaymentsGetAllByUser($userid);
+        $montharray_wz=months_array_wz();
+        
+        $cells=  wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Cash'));
+        $cells.= wf_TableCell(__('From month'));
+        $cells.= wf_TableCell(__('From year'));
+        $cells.= wf_TableCell(__('Notes'));
+        $cells.= wf_TableCell(__('Admin'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows= wf_TableRow($cells, 'row1');
+        
+        if (!empty($alluserpayments)) {
+            foreach ($alluserpayments as $io=>$eachpayrow) {
+                
+                   //check is payments protected?
+                    if ($catvconf['PAYMENTS_PROTECT']) {
+                       $paycontrols='';
+                   } else {
+                       $paycontrols='
+                           '.  wf_JSAlert('?module=catv_addcash&userid='.$eachpayrow['userid'].'&deletepayment='.$eachpayrow['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
+                           '.  wf_JSAlert('?module=catv_addcash&userid='.$eachpayrow['userid'].'&editpayment='.$eachpayrow['id'], web_edit_icon(), 'Are you serious').'
+                           ';
+                   }
+                   
+                   // month locale
+                   $transmonth=$montharray_wz[$eachpayrow['from_month']];
+                   $transmonth=  rcms_date_localise($transmonth);
+                   
+                $cells=  wf_TableCell($eachpayrow['id']);
+                $cells.= wf_TableCell($eachpayrow['date']);
+                $cells.= wf_TableCell($eachpayrow['summ']);
+                $cells.= wf_TableCell($transmonth);
+                $cells.= wf_TableCell($eachpayrow['from_year']);
+                $cells.= wf_TableCell($eachpayrow['notes']);
+                $cells.= wf_TableCell($eachpayrow['admin']);
+                $cells.= wf_TableCell($paycontrols);
+                $rows.= wf_TableRow($cells, 'row3');   
+                
+            }
+        }
+        
+        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        return ($result);
+    }
+    
+    
        function catv_UserStatsDrawPayments($userid,$year) {
             $catvconf=catv_LoadConfig();
             $alluserpayments=catv_PaymentsGetAllByUser($userid);
@@ -825,20 +875,10 @@
             $montharray=months_array();
             $montharray_wz=  months_array_wz();
             $actlog=array();
-            $payments_table=' <h2>'.__('Previous payments').'</h2>
-                            <table width="100%" border="0" class="sortable">';
-            $payments_table.='
-                            <tr class="row1">
-                            <td>'.__('ID').'</td>
-                            <td>'.__('Date').'</td>
-                            <td>'.__('Cash').'</td>
-                            <td>'.__('From month').'</td>
-                            <td>'.__('From year').'</td>
-                            <td>'.__('Notes').'</td>
-                            <td>'.__('Admin').'</td>
-                            <td>'.__('Actions').'</td>
-                            </tr>
-                            ';
+            
+            
+            $payments_table=  wf_tag('h2').__('Previous payments').  wf_tag('h2', true);
+            $payments_table.=catv_UserShowAllpayments($userid);
             
             if (!empty ($alluserpayments)) {
                 //select only payments for needed year
@@ -897,43 +937,7 @@
                           }
                         }
                     }
-                    
-                    //show payments for year in normal view
-                    foreach ($targetyearpayments as $ib=>$eachpayrow) {
-                    //check is payments protected?
-                    if ($catvconf['PAYMENTS_PROTECT']) {
-                       $paycontrols='';
-                   } else {
-                       $paycontrols='
-                           '.  wf_JSAlert('?module=catv_addcash&userid='.$eachpayrow['userid'].'&deletepayment='.$eachpayrow['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                           '.  wf_JSAlert('?module=catv_addcash&userid='.$eachpayrow['userid'].'&editpayment='.$eachpayrow['id'], web_edit_icon(), 'Are you serious').'
-                           ';
-                   }
-                  
-                   
-                  
-                   $transmonth=$montharray_wz[$eachpayrow['from_month']];
-                   $transmonth=  rcms_date_localise($transmonth);
-                  
-                        $payments_table.='
-                            <tr class="row3">
-                            <td>'.$eachpayrow['id'].'</td>
-                            <td>'.$eachpayrow['date'].'</td>
-                            <td>'.$eachpayrow['summ'].'</td>
-                            <td>'.$transmonth.'</td>
-                            <td>'.$eachpayrow['from_year'].'</td>
-                            <td>'.$eachpayrow['notes'].'</td>
-                            <td>'.$eachpayrow['admin'].'</td>
-                            <td>
-                           '.$paycontrols.'
-                            </td>
-                            </tr>
-                            ';
-                        
-                    }
-                    $payments_table.='</table>';
-                    
-                
+                                    
                     
                     //draw payments and colors to calendar
                     show_window('',$printpays.$colorizer.$onlinewriter.$onlinecolorizer.$payments_table);
@@ -1036,7 +1040,136 @@
               ";
           nr_query($query);
           simple_update_field('catv_users', 'cash', $newbalance, "WHERE `id`='".$userid."'");
-          log_register("CATV USER BALANCECHANGE (".$userid.") ON ".$summ);
+          log_register("CATV USER BALANCECHANGE ((".$userid.")) ON ".$summ);
+      }
+      
+       function catv_CashMock($userid,$date,$summ,$from_month,$from_year,$to_month,$to_year,$notes) {
+          $userid=vf($userid,3);
+          $userdata=catv_UserGetData($userid);
+          $admin=whoami();
+          $oldbalance=$userdata['cash'];
+          $newbalance=$oldbalance;
+          $date=mysql_real_escape_string($date);
+          $summ=mysql_real_escape_string($summ);
+          $from_month=vf($from_month,3);
+          $from_year=vf($from_year,3);
+          $to_month=vf($to_month,3);
+          $to_year=vf($to_year,3);
+          $notes=mysql_real_escape_string($notes);
+          $query="INSERT INTO `catv_payments` (
+                    `id` ,
+                    `date` ,
+                    `userid` ,
+                     `summ` ,
+                     `from_month` ,
+                     `from_year` ,
+                     `to_month` ,
+                     `to_year` ,
+                     `notes` ,
+                     `admin`
+                    )
+                    VALUES (
+                    NULL ,
+                    '".$date."',
+                    '".$userid."',
+                    '".$summ."',
+                    '".$from_month."',
+                    '".$from_year."',
+                    '".$to_month."',
+                    '".$to_year."',
+                    '".$notes."',
+                    '".$admin."'
+                    );
+              ";
+          nr_query($query);
+       
+          log_register("CATV USER BALANCEMOCK ((".$userid.")) ON ".$summ);
+      }
+      
+       function catv_CashSet($userid,$date,$summ,$from_month,$from_year,$to_month,$to_year,$notes) {
+          $userid=vf($userid,3);
+          $userdata=catv_UserGetData($userid);
+          $admin=whoami();
+          $oldbalance=$userdata['cash'];
+          $newbalance=$summ;
+          $date=mysql_real_escape_string($date);
+          $summ=mysql_real_escape_string($summ);
+          $from_month=vf($from_month,3);
+          $from_year=vf($from_year,3);
+          $to_month=vf($to_month,3);
+          $to_year=vf($to_year,3);
+          $notes=mysql_real_escape_string($notes);
+          $query="INSERT INTO `catv_payments` (
+                    `id` ,
+                    `date` ,
+                    `userid` ,
+                     `summ` ,
+                     `from_month` ,
+                     `from_year` ,
+                     `to_month` ,
+                     `to_year` ,
+                     `notes` ,
+                     `admin`
+                    )
+                    VALUES (
+                    NULL ,
+                    '".$date."',
+                    '".$userid."',
+                    '".$summ."',
+                    '".$from_month."',
+                    '".$from_year."',
+                    '".$to_month."',
+                    '".$to_year."',
+                    '".$notes."',
+                    '".$admin."'
+                    );
+              ";
+          nr_query($query);
+          simple_update_field('catv_users', 'cash', $newbalance, "WHERE `id`='".$userid."'");
+          log_register("CATV USER BALANCESET ((".$userid.")) ON ".$summ);
+      }
+      
+      function catv_CashCorrect($userid,$date,$summ,$from_month,$from_year,$to_month,$to_year,$notes) {
+          $userid=vf($userid,3);
+          $userdata=catv_UserGetData($userid);
+          $admin=whoami();
+          $oldbalance=$userdata['cash'];
+          $newbalance=$oldbalance+$summ;
+          $date=mysql_real_escape_string($date);
+          $summ=mysql_real_escape_string($summ);
+          $from_month=vf($from_month,3);
+          $from_year=vf($from_year,3);
+          $to_month=vf($to_month,3);
+          $to_year=vf($to_year,3);
+          $notes=mysql_real_escape_string($notes);
+          $query="INSERT INTO `catv_paymentscorr` (
+                    `id` ,
+                    `date` ,
+                    `userid` ,
+                     `summ` ,
+                     `from_month` ,
+                     `from_year` ,
+                     `to_month` ,
+                     `to_year` ,
+                     `notes` ,
+                     `admin`
+                    )
+                    VALUES (
+                    NULL ,
+                    '".$date."',
+                    '".$userid."',
+                    '".$summ."',
+                    '".$from_month."',
+                    '".$from_year."',
+                    '".$to_month."',
+                    '".$to_year."',
+                    '".$notes."',
+                    '".$admin."'
+                    );
+              ";
+          nr_query($query);
+          simple_update_field('catv_users', 'cash', $newbalance, "WHERE `id`='".$userid."'");
+          log_register("CATV USER BALANCECORR ((".$userid.")) ON ".$summ);
       }
       
         function catv_CashEdit($paymentid,$date,$summ,$from_month,$from_year,$to_month,$to_year,$notes) {
@@ -1120,41 +1253,46 @@
         }
         
         //build cash adding form
-        $cashinputs='
-            <table width="500" border="0">
-            <tr>
-            <td  class="row2">'.__('Full address').'</td>
-            <td  class="row3">'.@$alladdress[$userid].'</td>
-            </tr>
-            <tr>
-            <td  class="row2">'.__('Real name').'</td>
-            <td  class="row3">'.$realname.'</td>
-            </tr>
-            <tr>
-            <td  class="row2">'.__('Balance').'</td>
-            <td  class="row3">'.$currentbalance.'</td>
-            </tr>
-            <tr>
-            <td  class="row2">'.__('Current tariff').'</td>
-            <td  class="row3">'.$tariffname.'</td>
-            </tr>
-            <tr>
-            <td  class="row2">'.__('Fee').'</td>
-            <td  class="row3">'.$tariffprice.' '.$catvconf['CURRENCY'].'</td>
-            </tr>
-            </table>
-            <br>
-            ';
+        $cells=  wf_TableCell(__('Full address'),'','row2');
+        $cells.=wf_TableCell(@$alladdress[$userid], '', 'row3');
+        $rows=  wf_TableRow($cells);
+        
+        $cells=  wf_TableCell(__('Real name'),'','row2');
+        $cells.=wf_TableCell($realname, '', 'row3');
+        $rows.=  wf_TableRow($cells);
+        
+        $cells=  wf_TableCell(__('Balance'),'','row2');
+        $cells.=wf_TableCell($currentbalance, '', 'row3');
+        $rows.=  wf_TableRow($cells);
+        
+        $cells=  wf_TableCell(__('Current tariff'),'','row2');
+        $cells.=wf_TableCell($tariffname, '', 'row3');
+        $rows.=  wf_TableRow($cells);
+        
+        $cells=  wf_TableCell(__('Fee'),'','row2');
+        $cells.=wf_TableCell($tariffprice.' '.$catvconf['CURRENCY'], '', 'row3');
+        $rows.=  wf_TableRow($cells);
+        
+        $cashinputs=wf_TableBody($rows, '650', '0', '');
+        
         $cashinputs.=wf_HiddenInput('createpayment', 'true');
-        $cashinputs.='<div>'.wf_TextInput('newpayment', 'Cash', '', true, '5').'</div>';
+        $cashinputs.=wf_tag('div').wf_TextInput('newpayment', 'Cash', '', true, '5').  wf_tag('div',true);
         $cashinputs.=wf_Selector('from_month', $localized_month, 'From month', $curmonth, false);
         $cashinputs.=wf_YearSelector('from_year', 'From year', true);
-        $cashinputs.='<hr>';
+          //cash operation type
+        $cashinputs.=wf_RadioInput('optype', __('Add cash'), 'add', false, true);
+        $cashinputs.=wf_RadioInput('optype', __('Correct saldo'), 'corr', false, false);
+        $cashinputs.=wf_RadioInput('optype', __('Mock payment'), 'mock', false, false);
+        $cashinputs.=wf_RadioInput('optype', __('Set cash'), 'set', false, false);
+        $cashinputs.=wf_delimiter();
+        
+        $cashinputs.=wf_tag('hr');
         $cashinputs.=__('You can also specify the following options if you wish').'<br>';
         $cashinputs.=wf_TextInput('date', 'Payment date', $curdatetime, true, 20);
         $cashinputs.=wf_Selector('to_month', $localized_month, 'To month', $curmonth, false);
         $cashinputs.=wf_YearSelector('to_year', 'To year', true);
         $cashinputs.=wf_TextInput('notes', 'Notes', '', true, 50);
+      
         $cashinputs.=wf_Submit('Add');
         $cashaddform=wf_Form('', 'POST', $cashinputs, 'glamour', '');
         
@@ -1392,17 +1530,144 @@ function catv_FeeChargeAllUsers($month,$year) {
         function catv_ReportsShowList() {
             $replink='?module=catv&action=reports&showreport=';
             $reportslist=  wf_Link($replink.'current_debtors', __('Current debtors'), false, 'ubButton');
-            $reportslist.= wf_Link($replink.'current_debtors&printable=true', wf_img('skins/printer_small.gif'), true, 'ubButton');
             $reportslist.=wf_delimiter();
-            $reportslist.= wf_Link($replink.'finance', __('Finance report'), true, 'ubButton');
+            $reportslist.= wf_Link($replink.'current_debtors&printable=true', wf_img('skins/printer_small.gif').' '.__('Current debtors for delivery'), false, 'ubButton');
             $reportslist.=wf_delimiter();
-            $reportslist.= wf_Link($replink.'exportcsv', wf_img('skins/excel.gif').' '. __('Export userbase'), true, 'ubButton');
+            $reportslist.= wf_Link($replink.'current_debtorsaddr', wf_img('skins/printer_small.gif').' '.__('Current debtors for delivery by address'), false, 'ubButton');
+            $reportslist.=wf_delimiter();
+            $reportslist.= wf_Link($replink.'finance', __('Finance report'), false, 'ubButton');
+            $reportslist.=wf_delimiter();
+            $reportslist.= wf_Link($replink.'exportcsv', wf_img('skins/excel.gif').' '. __('Export userbase'), false, 'ubButton');
             
            
             show_window(__('Available reports'),$reportslist);
         }
         
-       function catv_ReportDebtors() {
+       function catv_AjaxBuildSelector($street) {
+           $street=  mysql_real_escape_string($street);
+           $query="SELECT DISTINCT `build` from `catv_users` WHERE `street`='".$street."'";
+           $allbuilds=  simple_queryall($query);
+           $result='<select name="buildbox" id="buildbox">';
+            if (!empty($allbuilds)) {
+                foreach ($allbuilds as $io=>$each) {
+                    $result.='<option value="'.$each['build'].'">'.$each['build'].'</option>';
+                }
+               }
+           $result.='</select>';
+           $result.='<label for="buildbox"> '.__('Build').' </label>';   
+           if (!empty($allbuilds)) {
+               $result.=' '.wf_Submit('Print');
+           }
+           
+           die($result);
+       }
+        
+       function catv_StreetSelector() {
+            $query="SELECT DISTINCT `street` from `catv_users`";
+            $allstreets=  simple_queryall($query);
+            $streets=array();
+            $result='<select name="streetbox" id="streetbox" onchange="var valuest = document.getElementById(\'streetbox\').value; goajax(\'?module=catv&action=reports&showreport=current_debtorsaddr&ajaxbuild=\'+valuest,\'dbuildbox\');">';
+            $result.='<option value="NULLSTREET" >-</option>';
+            
+            if (!empty($allstreets)) {
+                foreach ($allstreets as $io=>$each) {
+                    $result.='<option value="'.$each['street'].'" >'.$each['street'].'</option>';
+                }
+            }
+            
+            $result.='</select>';
+            $result.='<label for="streetbox"> '.__('Street').' </label>';
+
+            return ($result);
+       } 
+        
+       function catv_ReportDebtorsAddrPrintable($street,$build) {
+           $street=  mysql_real_escape_string($street);
+           $build=  mysql_real_escape_string($build);
+           
+           $alluserstates=catv_ActivityGetLastAll();
+           $query="SELECT * from `catv_users` WHERE `cash`<0 AND `street`='".$street."' AND `build`='".$build."' ORDER BY `street` ";
+           $alldebtors=simple_queryall($query);
+           $alltariffs=  catv_TariffGetAllNames();
+           $print_template=  file_get_contents(CONFIG_PATH."catv_debtors.tpl");
+           
+       
+       
+         $tstyle='
+        <style type="text/css">
+        table.printrm {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: outset;
+	border-color: gray;
+	border-collapse: separate;
+	background-color: white;
+        }
+        table.printrm th {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: white;
+	-moz-border-radius: ;
+        }
+        table.printrm td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: white;
+	-moz-border-radius: ;
+        }
+        </style>
+                ';
+         $tclass='printrm';
+            
+         $realdebtors=$tstyle.'<table width="100%" class="'.$tclass.'" border="0">';
+            
+            if (!empty ($alldebtors)) {
+                foreach ($alldebtors as $io=>$eachdebt) {
+                    if ($alluserstates[$eachdebt['id']]==1) {
+                            //printable templating
+                            $rowtemplate=$print_template;
+                            
+                            $rowtemplate=str_ireplace('{REALNAME}', $eachdebt['realname'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{STREET}', $eachdebt['street'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{BUILD}', $eachdebt['build'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{APT}', $eachdebt['apt'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{DEBT}', $eachdebt['cash'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{CURDATE}', curdate(), $rowtemplate);
+                            $rowtemplate=str_ireplace('{PAYDAY}', (date("Y-m-").'01'), $rowtemplate);
+                            
+                            $realdebtors.=$rowtemplate;
+
+                    }
+                }
+            }
+            
+            $realdebtors.='</table>';
+
+            print("<h2>".__('Current debtors')."</h2>".$realdebtors);
+            die();
+        }
+        
+           function catv_ReportDebtorsAddr() {
+           if (wf_CheckPost(array('streetbox','buildbox'))) {
+               catv_ReportDebtorsAddrPrintable($_POST['streetbox'], $_POST['buildbox']);
+               
+           } else {
+           $inputs=  zb_AjaxLoader();
+           $inputs.=catv_StreetSelector('');
+           $inputs.=wf_tag('span', false, '', 'id="dbuildbox"');
+           $inputs.=wf_tag('span', true);
+           $inputs.=wf_tag('span', false, '', 'id="datpbox"');
+           $inputs.=wf_tag('span', true);
+           $form=  wf_Form("", "POST", $inputs, 'glamour');
+           show_window(__('Current debtors for delivery by address'),$form);
+           }
+        }
+        
+         function catv_ReportDebtors() {
             if (isset($_GET['printable'])) {
                 $printable=true;
             } else {
@@ -1413,6 +1678,7 @@ function catv_FeeChargeAllUsers($month,$year) {
             $query="SELECT * from `catv_users` WHERE `cash`<0 ORDER BY `street` ";
             $alldebtors=simple_queryall($query);
             $alltariffs=  catv_TariffGetAllNames();
+            $print_template=  file_get_contents(CONFIG_PATH."catv_debtors.tpl");
            
        
         if ($printable==true) {
@@ -1451,6 +1717,10 @@ function catv_FeeChargeAllUsers($month,$year) {
         }
             
             
+            if ($printable) {
+                $realdebtors=$tstyle.'<table width="100%" class="'.$tclass.'" border="0">';
+                
+            } else {
             $realdebtors=$tstyle.'<table width="100%" class="'.$tclass.'" border="0">';
             $realdebtors.='
                             <tr class="row1">
@@ -1465,6 +1735,8 @@ function catv_FeeChargeAllUsers($month,$year) {
                             <td>'.__('Debt').'</td>
                             </tr>
                             ';
+            }
+            
             if (!empty ($alldebtors)) {
                 foreach ($alldebtors as $io=>$eachdebt) {
                     if ($alluserstates[$eachdebt['id']]==1) {
@@ -1475,6 +1747,21 @@ function catv_FeeChargeAllUsers($month,$year) {
                             $profilelink='';
                         }
                         
+                        if ($printable) {
+                            //printable templating
+                            $rowtemplate=$print_template;
+                            
+                            $rowtemplate=str_ireplace('{REALNAME}', $eachdebt['realname'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{STREET}', $eachdebt['street'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{BUILD}', $eachdebt['build'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{APT}', $eachdebt['apt'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{DEBT}', $eachdebt['cash'], $rowtemplate);
+                            $rowtemplate=str_ireplace('{CURDATE}', curdate(), $rowtemplate);
+                            $rowtemplate=str_ireplace('{PAYDAY}', (date("Y-m-").'01'), $rowtemplate);
+                            
+                            $realdebtors.=$rowtemplate;
+                            
+                        } else {
                         $realdebtors.='
                             <tr class="row3">
                             <td>'.$eachdebt['id'].' '. $profilelink.'</td>
@@ -1488,9 +1775,11 @@ function catv_FeeChargeAllUsers($month,$year) {
                             <td>'.$eachdebt['cash'].'</td>
                             </tr>
                             ';
+                        }
                     }
                 }
             }
+            
             $realdebtors.='</table>';
             
             if ($printable==false) {
@@ -1501,8 +1790,7 @@ function catv_FeeChargeAllUsers($month,$year) {
             }
             
         }
-        
-        
+         
          
  //      
  // statements api
