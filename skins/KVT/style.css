@@ -619,3 +619,18 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
     
 }
+
+.ubimchat {
+    float: left;
+    display: block;
+    padding: 10px;
+    margin: 5px;
+    border:solid 1px #EEE;
+    border-radius:10px;
+    text-align: left;
+    font-size: 8pt;
+    width: 80%;
+    height: 400px;
+    overflow: auto;
+    box-shadow: 3px 3px 4px rgba(0,0,0,0);
+}

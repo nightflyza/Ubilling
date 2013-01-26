@@ -104,9 +104,21 @@ if ($altconf['SIGREQ_ENABLED']) {
     } 
 } 
 
+//check for unread messages in instant messanger
+if ($altconf['TB_UBIM']) {
+    if (cfr('UBIM')) {
+    $unreadMessageCount=  im_CheckForUnreadMessages();
+    if ($unreadMessageCount) {
+    //we have new messages
+    $unreadIMNotify=__('You received').' '.$unreadMessageCount.' '.__('new messages');
+    $urlIM= $unreadIMNotify.  wf_delimiter().wf_Link("?module=ubim&checknew=true", __('Click here to go to the instant messaging service.'), false, 'ubButton');
+    $ticketnotify.=wf_Link("?module=ubim&checknew=true", wf_img("skins/ubim_blink.gif", $unreadMessageCount.' '.__('new message received')), false, '');
+    $ticketnotify.=wf_modalOpened(__('New messages received'), $urlIM, '450', '200');
+    }
+ }
+} 
+
 //switchmon at nptify area
-
-
 if ($altconf['TB_SWITCHMON']) {
 $dead_raw=zb_StorageGet('SWDEAD');
 $deadarr=array();
@@ -153,12 +165,21 @@ $ticketnotify.='<div class="ubButton">'.wf_modal(__('Dead switches').': '.$deadc
    $content.=__('Switches are okay, everything is fine - I guarantee');
    $ticketnotify.='<div class="ubButton">'.wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400').'</div>';
 }
-
-
 }
 
-  show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
 
+
+  show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
+  
+//refresh IM container with notify
+if ($altconf['TB_UBIM']) {
+if ($altconf['TB_UBIM_REFRESH']) {
+    if (cfr('UBIM')) {
+    im_RefreshContainer($altconf['TB_UBIM_REFRESH']);
+    }
+}
+ }
+ 
 }
 else {
 	show_error(__('Access denied'));

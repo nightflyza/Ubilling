@@ -8,6 +8,8 @@ CHAPTER_TB=Taskbar features
 TB_NEWTICKETNOTIFY=TRIGGER|Taskbar notify for new tickets
 TB_SWITCHMON=TRIGGER|Taskbar notify for dead switches
 TB_LABELED=TRIGGER|Taskbar display labels under icons
+TB_UBIM=TRIGGER|Taskbar check for unread messages
+TB_UBIM_REFRESH=VARCHAR|Taskbar unread messages check interval
 
 CHAPTER_LOOK=Look&Feel
 NMREP_INMACCHG=TRIGGER|New MAC report in MAC edit dialogue
@@ -33,6 +35,7 @@ CREATETASK_IN_PROFILE=TRIGGER|Create tasks in user profile
 PASSPDATA_IN_PROFILE=TRIGGER|Show passport data in user profile
 DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
+GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 
 
 CHAPTER_PAYEX=Payments export
@@ -80,6 +83,7 @@ RADIUST_ENABLED=TRIGGER|Radius templates enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
 CRM_MODE=TRIGGER|Advanced customer relationship management
 SEARCH_STRICT=VARCHAR|Strict search options
+UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

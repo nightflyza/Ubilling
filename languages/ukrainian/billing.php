@@ -1178,4 +1178,30 @@ $lang['def']['Use AlwaysOnline instead Down flag to reset users']='Викори�
 $lang['def']['right to edit switches']='Право редагувати, додавати та видаляти комутатори';
 $lang['def']['Network/CIDR']='Мережа/CIDR';
 
+//rev 2270
+$lang['def']['No job types and employee available']='Немає відповідних працівників і робіт які вони могли б виконувати';
+$lang['def']['Current debtors for delivery']='Поточні боржники для розносу';
+$lang['def']['Current debtors for delivery by address']='Поточні боржники для розносу, за адресами';
+$lang['def']['Print']='Друк';
+$lang['def']['right to use instant messenger']='Право писати повідомлення іншими адміністраторам';
+$lang['def']['No conversations with']='Ви ще не спілкувались з';
+$lang['def']['yet']='поки що';
+$lang['def']['Unread message']='Непрочитане повідомлення';
+$lang['def']['Instant messaging service']='Сервіс миттєвих повідомлень';
+$lang['def']['New messages received']='Отримано нові повідомлення';
+$lang['def']['You received']='Ви отримали';
+$lang['def']['new messages']='нових повідомлень';
+$lang['def']['Click here to go to the instant messaging service.']='Натисніть гездечки, для переходу до сервісу миттєвих повідомлень.';
+$lang['def']['Taskbar check for unread messages']='Панель задач вміє сповіщати про нові повідомлення';
+$lang['def']['Instant messenger refresh timeout in seconds']='Таймаут опиту нових повідомлень у IM';
+$lang['def']['new message received']='нове повідомлення отримано';
+$lang['def']['Change my avatar at gravatar.com']='Змінити аватару на gravatar.com';
+$lang['def']['Your email']='Ваша електропошта';
+$lang['def']['Taskbar unread messages check interval']='Інтервал затримки між перевірками нових повідомлень';
+$lang['def']['Database cleanup']='Очистка БД';
+$lang['def']['Rows']='Рядків';
+$lang['def']['Size']='Розмір';
+$lang['def']['Table name']='І`мя таблиці';
+$lang['def']['Default avatar from gravatar for unknown users']='Аватара за замовчуванням для невідомих користувачів';
+
 ?>

@@ -864,3 +864,14 @@ CREATE TABLE IF NOT EXISTS `catv_paymentscorr` (
   `admin` varchar(255) default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `ub_im` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `from` varchar(255) NOT NULL,
+  `to` varchar(255) NOT NULL,
+  `text` text NOT NULL,
+  `read` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

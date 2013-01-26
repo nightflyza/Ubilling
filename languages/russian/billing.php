@@ -1177,7 +1177,27 @@ $lang['def']['No job types and employee available']='Нету существую
 $lang['def']['Current debtors for delivery']='Текущие должники для разноса';
 $lang['def']['Current debtors for delivery by address']='Текущие должники для разноса, по адресам';
 $lang['def']['Print']='Печать';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['right to use instant messenger']='Право писать сообщения другим администраторам';
+$lang['def']['No conversations with']='Вы не общались с';
+$lang['def']['yet']='пока что';
+$lang['def']['Unread message']='Непрочитанное сообщение';
+$lang['def']['Instant messaging service']='Сервис мгновенных сообщений';
+$lang['def']['New messages received']='Получены новые сообщения';
+$lang['def']['You received']='Вы получили';
+$lang['def']['new messages']='новых сообщений';
+$lang['def']['Click here to go to the instant messaging service.']='Кликните здесь, для перехода к сервису мгновенных сообщений.';
+$lang['def']['Taskbar check for unread messages']='Панель задач умеет оповещать о новых непрочитанных сообщениях';
+$lang['def']['Instant messenger refresh timeout in seconds']='Таймаут переопроса на поступление новых сообщений в IM';
+$lang['def']['new message received']='новое сообщение получено';
+$lang['def']['Change my avatar at gravatar.com']='Сменить мой аватар на gravatar.com';
+$lang['def']['Your email']='Ваша електропочта';
+$lang['def']['Taskbar unread messages check interval']='Интервал задержки между проверками сообщений';
+$lang['def']['Database cleanup']='Очистка БД';
+$lang['def']['Rows']='Строк';
+$lang['def']['Size']='Размер';
+$lang['def']['Table name']='Имя таблицы';
+$lang['def']['Default avatar from gravatar for unknown users']='Аватар по умолчанию для неизвестных пользователей';
+
+
 
 ?>

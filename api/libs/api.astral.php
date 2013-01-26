@@ -111,6 +111,32 @@ function wf_Link($url,$title,$br=false,$class='') {
 }
 
 /**
+ * Return ajax loader compatible link
+ *  
+ * @param   $url needed URL
+ * @param   $title text title of URL
+ * @param   $container output container for ajax content
+ * @param   $br append new line - bool
+ * @param   $class class for link
+ * @return  string
+ */
+function wf_AjaxLink($url,$title,$container,$br=false,$class='') {
+    if ($class!='') {
+        $link_class='class="'.$class.'"';
+    } else {
+        $link_class='';
+    }
+    if ($br) {
+        $newline='<br>';
+    } else {
+        $newline='';
+    }
+    $result='<a href="#" onclick="goajax(\''.$url.'\',\''.$container.'\');" '.$link_class.'>'.$title.'</a>'."\n";
+    $result.=$newline."\n";
+    return ($result);
+}
+
+/**
  *
  * Return Radio  box Web From element 
  *
@@ -659,6 +685,7 @@ function wf_img($url,$title='') {
  * @param $content modal window content
  * @param $linkclass link class
  * @param $width modal window width 
+ * @param $height modal window height
  * @return string
  *  
  */
@@ -1078,6 +1105,144 @@ function wf_Plate($content, $width='', $height='', $class='') {
      $result='<'.$tagclose.$tag.$tagclass.' '.$tagoptions.'>';
      return ($result);
  }
+ 
+ 
+ /*
+  * Constructs ajax loader 
+  * 
+  * @return string
+  */    
+     
+  function wf_AjaxLoader() {
+      $result='
+          <script type="text/javascript">
+        function getXmlHttp()
+        {
+            var xmlhttp;
+            try
+        {
+            xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch (e)
+        {
+            try
+            {
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            catch (E)
+            {
+                xmlhttp = false;
+            }
+        }
+ 
+        if(!xmlhttp && typeof XMLHttpRequest!=\'undefined\')
+        {
+            xmlhttp = new XMLHttpRequest();
+        }
+        return xmlhttp;
+    }
+ 
+    function goajax(link,container)
+    {
+ 
+        var myrequest = getXmlHttp()
+        var docum = link;
+        var contentElem = document.getElementById(container);
+        myrequest.open(\'POST\', docum, true);
+        myrequest.setRequestHeader(\'Content-Type\', \'application/x-www-form-urlencoded\');
+ 
+        myrequest.onreadystatechange = function()
+        {
+            if (myrequest.readyState == 4)
+            {
+                if(myrequest.status == 200)
+                {
+                    var resText = myrequest.responseText;
+ 
+ 
+                    var ua = navigator.userAgent.toLowerCase();
+ 
+                    if (ua.indexOf(\'gecko\') != -1)
+                    {
+                        var range = contentElem.ownerDocument.createRange();
+                        range.selectNodeContents(contentElem);
+                        range.deleteContents();
+                        var fragment = range.createContextualFragment(resText);
+                        contentElem.appendChild(fragment);
+                    }
+                    else  
+                    {
+                        contentElem.innerHTML = resText;
+                    }
+                }
+                else
+                {
+                    contentElem.innerHTML = \''.__('Error').'\';
+                }
+            }
+ 
+        }
+        myrequest.send();
+    }
+    </script>
+          ';
+      return ($result);
+  } 
 
+  
+   /*
+ * 
+ * Returns new opened modal window with some content
+ * 
+ * @param $title modal window title
+ * @param $content modal window content
+ * @param $width modal window width 
+ * @param $height modal window height
+ * @return string
+ *  
+ */
+
+function wf_modalOpened($title, $content, $width = '',$height='') {
+
+    $wid = wf_inputid();
+    
+//setting auto width if not specified
+    if ($width == '') {
+        $width = '600';
+    }
+    
+//setting auto width if not specified
+    if ($height == '') {
+        $height = '400';
+    }    
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: true,
+			width: ' . $width . ',
+                        height: '.$height.',
+			modal: true,
+			show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        '.$content.'
+        </p>
+</div>
+';
+
+    return($dialog);
+}
 
 ?>

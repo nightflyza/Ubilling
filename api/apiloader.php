@@ -19,6 +19,7 @@ include('api/libs/api.cess.php');
 include('api/libs/api.cardpay.php');
 include('api/libs/api.cf.php');
 include('api/libs/api.switches.php');
+include('api/libs/api.gravatar.php');
 include('api/libs/api.ticketing.php');
 include('api/libs/api.catv.php');
 include('api/libs/api.corporate.php');
@@ -30,6 +31,7 @@ include('api/libs/api.ymaps.php');
 include('api/libs/api.deploy.php');
 include('api/libs/api.crm.php');
 include('api/libs/api.help.php');
+include('api/libs/api.ubim.php');
 
 /*
  * Initial class creation

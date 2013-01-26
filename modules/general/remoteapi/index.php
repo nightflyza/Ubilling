@@ -114,6 +114,14 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                            $backpath=zb_backup_tables('*',true);
                            die('OK:BACKUPDB '.$backpath);
                        }
+                       
+                       /*
+                        * database cleanup
+                        */
+                       if ($_GET['action']=='autocleandb') {
+                       $cleancount=  zb_DBCleanupAutoClean();
+                           die('OK:AUTOCLEANDB '.$cleancount);
+                       }
   ////
   //// End of actions
   ////

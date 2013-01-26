@@ -167,14 +167,14 @@ if (cfr('TICKETING')) {
            //reply
           if ($eachreply['admin']) {
               $replyauthor='<center><b>'.$eachreply['admin'].'</b></center>';    
-              $replyavatar='<center><img src="skins/admava.png"></center>';
+              $replyavatar='<center>'.  gravatar_ShowAdminAvatar($eachreply['admin'], '64').'</center>';
           } else {
               $replyauthor='<center><b>'.@$allrealnames[$eachreply['from']].'</b></center>';    
               $replyavatar='<center><img src="skins/userava.png"></center>';
           }
           
           $replyactions='<center>';
-          $replyactions.=  wf_JSAlert('?module=ticketing&showticket='.$ticketdata['id'].'&deletereply='.$eachreply['id'], web_delete_icon(), 'Are you serious').' ';
+          $replyactions.=  wf_JSAlert('?module=ticketing&showticket='.$ticketdata['id'].'&deletereply='.$eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results').' ';
           $replyactions.=  wf_JSAlert('?module=ticketing&showticket='.$ticketdata['id'].'&editreply='.$eachreply['id'], web_edit_icon(), 'Are you serious');
           $replyactions.='</center>';
           
