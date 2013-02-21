@@ -91,9 +91,10 @@ if($system->checkForRight('SQLCONSOLE')) {
     
 
 //construct query forms
+$sqlquery=!empty($_POST['sqlq'])?$_POST['sqlq']:'';
 $sqlinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
 $sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', true, 'ubButton');
-$sqlinputs.=wf_TextArea('sqlq', '', '', true, '80x10');
+$sqlinputs.=wf_TextArea('sqlq', '', $sqlquery, true, '80x10');
 $sqlinputs.=wf_CheckInput('tableresult', 'Display query result as table', true, false);
 $sqlinputs.=wf_Submit('Process query');
 $sqlform=wf_Form('', 'POST', $sqlinputs, 'glamour');
