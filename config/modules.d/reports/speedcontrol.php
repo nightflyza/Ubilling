@@ -1,1 +1,0 @@
-$taskbar.=build_task('SPEEDCONTROL','?module=speedcontrol','brake.jpg',__('Users speed control'));

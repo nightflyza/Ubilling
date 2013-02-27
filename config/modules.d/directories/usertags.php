@@ -1,1 +1,0 @@
-$taskbar.=build_task('TAGS','?module=usertags','tags.jpg',__('Tags'));

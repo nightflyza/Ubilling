@@ -1,1 +1,0 @@
-$taskbar.=build_task('STREETS','?module=streets','street.jpg',__('Streets'));

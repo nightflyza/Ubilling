@@ -1,7 +1,0 @@
-subnet {NETWORK} netmask {MASK} { 
-default-lease-time 3600; 
-option domain-name "ourisp"; 
-option subnet-mask {MASK}; 
-option routers {ROUTERS}; 
-include "/usr/local/etc/multinet/{HOSTS}"; 
-} 

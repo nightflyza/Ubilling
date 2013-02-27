@@ -1,1 +1,0 @@
-$taskbar.=build_task('ONLINE','?module=online','globe.jpg',__('Online users'));

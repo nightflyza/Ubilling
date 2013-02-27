@@ -1,1 +1,0 @@
-$taskbar.=build_task('SWITCHES','?module=switches','switch.jpg',__('Switches'));
