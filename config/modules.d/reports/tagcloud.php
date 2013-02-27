@@ -1,0 +1,1 @@
+$taskbar.=build_task('TAGS','?module=tagcloud','cloud.jpg',__('Tag cloud'));

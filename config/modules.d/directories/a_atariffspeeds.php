@@ -1,0 +1,1 @@
+$taskbar.=build_task('TARIFFSPEED','?module=tariffspeeds','tariff_speed.jpg',__('Tariff speeds'));

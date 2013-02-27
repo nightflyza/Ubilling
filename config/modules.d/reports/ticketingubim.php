@@ -1,0 +1,1 @@
+$taskbar.=build_task('UBIM','?module=ubim&checknew=true','ubim_big.png',__('Instant messaging service'));

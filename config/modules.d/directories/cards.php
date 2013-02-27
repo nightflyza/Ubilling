@@ -1,0 +1,1 @@
+$taskbar.=build_task('CARDS','?module=cards','cards.jpg',__('Payment cards'));

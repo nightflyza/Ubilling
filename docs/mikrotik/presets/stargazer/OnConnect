@@ -1,0 +1,9 @@
+# detect correct NAS ip by user login
+NASIP=`/etc/stargazer/GetSpeed ${LOGIN}`
+
+#arp fix
+/etc/stargazer/mk_push ${NASIP} "/ip arp set static ${IP} ${MAC} comment=${LOGIN}"
+
+#shape
+/etc/stargazer/mk_push ${NASIP} "/queue simple add burst-limit=0/0 burst-threshold=0/0 burst-time=0s/0s direction=both disabled=no interface=all limit-at=${UPSPEED}k/${SPEED}k max-limit=${UPSPEED}k/${SPEED}k name=${LOGIN} parent=none priority=8 queue=default-small/default-small target-addresses=${IP} total-queue=default-small"
+
