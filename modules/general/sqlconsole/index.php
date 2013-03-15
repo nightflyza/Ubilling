@@ -155,12 +155,20 @@ if (isset($_POST['sqlq'])) {
     $stripquery=substr($newquery,0,70).'..';
     log_register('SQLCONSOLE '.$stripquery);
     ob_start();
-    $query_result=simple_queryall($newquery);
+    $queried=mysql_query($newquery);
+    if ($queried===false) {
+    ob_end_clean();
+    return show_window('SQL '.__('Result'),'<b>'.__('Bad request').':</b><br/>'.$newquery);	
+    } else {
+    while($row = mysql_fetch_assoc($queried)) {
+	$query_result[]=  $row;
+    }
     $sqlDebugData=  ob_get_contents();
     ob_end_clean();
     log_register('SQLCONSOLE QUERYDONE');
     if ($alterconf['DEVCON_VERBOSE_DEBUG']) {
     show_window(__('Console debug data'),$sqlDebugData);
+    }
     }
     if (!empty ($query_result)) {
         if (!isset ($_POST['tableresult'])) {
