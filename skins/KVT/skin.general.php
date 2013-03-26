@@ -17,7 +17,7 @@
 		</div> <? if (LOGGED_IN) {  ?>  
           <form action="" method="POST">
 	  <input name="logout_form" value="1" type="hidden">
-	  <input value="<?=__('Log out')?>" type="submit">
+              <input value="<?=__('Log out').' '.whoami();?>" type="submit">
       	  </form> 
     </div> 
 	<div id="menu">
@@ -40,13 +40,14 @@
 			
       
 		<? } else { 
-			$loginform='<form action="" method="post">
+			$loginform='
+        <form action="" method="post">
 	<input type="hidden" name="login_form" value="1">
 	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
 		&nbsp; '.__('Password').' <input name="password" type="password" size="12">
 		<input value="'.__('Log in').'" type="submit">
 		</form>
-		<form method="post" action=""><P><P><P><P><P>'; 
+		'; 
 		print($loginform);
 		  }?>	
 <div style="clear: both;">&nbsp;</div>

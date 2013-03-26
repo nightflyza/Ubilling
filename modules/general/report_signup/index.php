@@ -51,12 +51,17 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsShowCurrentMonth() {
         $alltariffs=zb_TariffsGetAllUsers();
         $cmonth=curmonth();
-        $where="WHERE `date` LIKE '".$cmonth."%'";
+        $altercfg=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $where="WHERE `date` LIKE '".$cmonth."%' ORDER by `date` DESC;";
         $signups=zb_SignupsGet($where);
-       
+        $curdate=  curdate();
         $tablecells=wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('Date'));
         $tablecells.=wf_TableCell(__('Administrator'));
+        if ($altercfg['SIGREP_CONTRACT']) {
+          $tablecells.=wf_TableCell(__('Contract'));   
+          $allcontracts= array_flip(zb_UserGetAllContracts());
+        }
         $tablecells.=wf_TableCell(__('Login'));
         $tablecells.=wf_TableCell(__('Tariff'));
         $tablecells.=wf_TableCell(__('Full address'));
@@ -68,14 +73,23 @@ if (cfr('REPORTSIGNUP')) {
                     $tablecells=wf_TableCell($eachsignup['id']);
                     $tablecells.=wf_TableCell($eachsignup['date']);
                     $tablecells.=wf_TableCell($eachsignup['admin']);
+                     if ($altercfg['SIGREP_CONTRACT']) {
+                        $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);   
+                    }
                     $tablecells.=wf_TableCell($eachsignup['login']);
                     $tablecells.=wf_TableCell(@$alltariffs[$eachsignup['login']]);
                     $profilelink=wf_Link('?module=userprofile&username='.$eachsignup['login'], web_profile_icon().' '.$eachsignup['address']);
                     $tablecells.=wf_TableCell($profilelink);
-                    $tablerows.=wf_TableRow($tablecells, 'row3');
+                    if (ispos($eachsignup['date'], $curdate)) {
+                        $rowClass='todaysig';
+                    } else {
+                        $rowClass='row3';
+                    }
+                        
+                    $tablerows.=wf_TableRow($tablecells, $rowClass);
                 }
             }
-            
+         
         $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
         show_window(__('Current month user signups'),$result);
     }

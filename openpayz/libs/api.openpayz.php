@@ -209,7 +209,7 @@ function op_CustomersGetAll() {
 
 
 //stg direct handler
-function op_HandleStg($virtualid,$cash) {
+function op_HandleStg($virtualid,$cash,$paysys='') {
     $opconfig=op_LoadConfig();
     $allcustomers=op_CustomersGetAll();
     $sgconf=$opconfig['SGCONF'];
@@ -217,6 +217,7 @@ function op_HandleStg($virtualid,$cash) {
     $stg_port=$opconfig['STG_PORT'];
     $stg_login=$opconfig['STG_LOGIN'];
     $stg_passwd=$opconfig['STG_PASSWD'];
+    
     if (isset($opconfig['UB_CASHTYPE'])) {
         $ub_cashtype=$opconfig['UB_CASHTYPE'];
     } else {
@@ -224,6 +225,11 @@ function op_HandleStg($virtualid,$cash) {
         $ub_cashtype=1;
     }
     
+    if ($paysys=='') {
+        $note='OPENPAYZ';
+    } else {
+        $note='OP:'.$paysys;
+    }
    
     if (isset ($allcustomers[$virtualid])) {
         $login=$allcustomers[$virtualid];
@@ -248,7 +254,7 @@ function op_HandleStg($virtualid,$cash) {
                 `note`
                 )
                 VALUES (
-                NULL , '".$login."', '".$curdate."', 'openpayz', '".$curbalance."', '".$cash."', '".$ub_cashtype."', 'OPENPAYZ'
+                NULL , '".$login."', '".$curdate."', 'openpayz', '".$curbalance."', '".$cash."', '".$ub_cashtype."', '".$note."'
                 );";
     nr_query($query_paymentlog);
 
@@ -291,7 +297,7 @@ hash: ".$eachtransaction['hash']." \n
            if ($opconfig['STG_DIRECT']) {
                //$customerid=vf($eachtransaction['customerid'],3);
                $customerid=$eachtransaction['customerid'];
-               op_HandleStg($customerid, $eachtransaction['summ']);
+               op_HandleStg($customerid, $eachtransaction['summ'],$eachtransaction['paysys']);
                op_TransactionSetProcessed($eachtransaction['id']);
            }
          }

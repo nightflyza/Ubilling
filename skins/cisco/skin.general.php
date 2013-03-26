@@ -19,7 +19,7 @@
 		</div> <? if (LOGGED_IN) {  ?>
            <form action="" method="POST">
 	  <input name="logout_form" value="1" type="hidden">
-	  <input value="<?=__('Log out')?>" type="submit">
+	  <input value="<?=__('Log out').' '.whoami();?>" type="submit">
       	  </form>
      
 	</div> 

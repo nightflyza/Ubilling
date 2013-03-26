@@ -130,7 +130,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
         nr_query($query);
         $lastid=  simple_get_lastid('modems');
         log_register("DOCSIS MODEM ADD MAC".$maclan." IP ".$nextfreeip."[".$lastid."]");
-        multinet_add_host($netid, $nextfreeip, $maclan, 'nic');
+        multinet_add_host($netid, $nextfreeip, $maclan, '');
         multinet_rebuild_all_handlers();
         rcms_redirect("?module=docsis&showmodem=".$lastid);
        } else {
@@ -375,7 +375,7 @@ function docsis_ModemDiagShow($modemid) {
 
     
     $result=  wf_TableBody($rows, '100%', '0');
-    return ($result);
+    die ($result);
   }
   
   function docsis_ControlsShow() {
@@ -387,8 +387,17 @@ function docsis_ModemDiagShow($modemid) {
   function docsis_ModemProfileShow($modemid) {
       $modemid=vf($modemid,3);
       $data=  docsis_ModemGetData($modemid);
+      $netdata=array();
+      $netdata_q="SELECT * from `nethosts` where `ip`='".$data['ip']."'";
+      $netdata=  simple_queryall($netdata_q);
+      $netdata=  print_r($netdata,true);
+      $netdata=  nl2br($netdata);
+      $alluserips=  zb_UserGetAllIPs();
+      $alluserips=  array_flip($alluserips);
       $result=  wf_Link("?module=docsis", __('Back'), false, 'ubButton');
-      $result.=wf_modal(__('Modem diagnostics'), __('Modem diagnostics'), docsis_ModemDiagShow($modemid), 'ubButton', '500', '350');
+      $ajaxcontainer= wf_AjaxLoader(). wf_AjaxLink("?module=docsis&ajaxsnmp=".$modemid, __('Renew modem data'),'ajaxdata', true, 'ubButton').wf_tag('div', false, '', 'id="ajaxdata"').wf_tag('div',true);
+      $result.=wf_modal(__('Modem diagnostics'), __('Modem diagnostics'), $ajaxcontainer, 'ubButton', '500', '400');
+      $result.=wf_modal(__('Networking data'), __('Networking data'), $netdata, 'ubButton', '500', '400');
       $result.=wf_delimiter();
       
       if (!empty($data)) {
@@ -408,8 +417,14 @@ function docsis_ModemDiagShow($modemid) {
           $cells.= wf_TableCell($data['date']);
           $rows.=  wf_TableRow($cells, 'row3');
           
+          if (isset($alluserips[$data['userbind']])) {
+              $bindedLogin=$alluserips[$data['userbind']];
+              $profileLink= ' '.wf_Link('?module=userprofile&username='.$bindedLogin, web_profile_icon().' '.$bindedLogin, false, '');
+          } else {
+              $profileLink='';
+          }
           $cells=  wf_TableCell(__('Linked user'));
-          $cells.= wf_TableCell($data['userbind']);
+          $cells.= wf_TableCell($data['userbind'].$profileLink);
           $rows.=  wf_TableRow($cells, 'row3');
           
           $cells=  wf_TableCell(__('Notes'));
@@ -438,7 +453,10 @@ function docsis_ModemDiagShow($modemid) {
     if (wf_CheckGet(array('ajax'))) {
         docsis_AjaxModemDataSource();
     }
-    
+//ajax modem stats 
+if (wf_CheckGet(array('ajaxsnmp'))) {
+    docsis_ModemDiagShow($_GET['ajaxsnmp']);
+}    
  //adding new modem
   if (wf_CheckPost(array('newmaclan'))) {
       docsis_ModemAdd($_POST['newmaclan']);
@@ -447,6 +465,7 @@ function docsis_ModemDiagShow($modemid) {
 //deleting modem
   if (wf_CheckGet(array('deletemodem'))) {
       docsis_ModemDelete($_GET['deletemodem']);
+      rcms_redirect("?module=docsis");
   }
 
 //editing modem

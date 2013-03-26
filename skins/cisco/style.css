@@ -565,3 +565,12 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     overflow: auto;
     box-shadow: 3px 3px 4px rgba(0,0,0,0);
 }
+
+.todaysig {
+    background-color:#528009;
+    color: #FFFFFF;
+}
+
+.todaysig a{
+    color: #EFEFEF;
+}

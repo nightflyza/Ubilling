@@ -457,14 +457,16 @@ function zb_AddressGetAptDataById($aptid) {
     }
 
     function web_StreetCreateForm() {
-        $form='
-            <form action="" method="POST">
-            '.  web_CitySelector().' '.__('City').' <br>
-            <input type="text" name="newstreetname"> '.__('New Street name').'<sup>*</sup> <br>
-            <input type="text" name="newstreetalias"> '.__('New Street alias').' <br>
-            <input type="submit" value="'.__('Create').'">
-            </form>
-            ';
+      $cities=  simple_query("SELECT `id` from `city`"); 
+        if (!empty($cities)) {
+        $inputs=  web_CitySelector().' '.__('City').  wf_delimiter();
+        $inputs.=wf_TextInput('newstreetname', __('New Street name').wf_tag('sup').'*'.  wf_tag('sup', true) , '', true, '20');
+        $inputs.=wf_TextInput('newstreetalias', __('New Street alias') , '', true, '20');
+        $inputs.=wf_Submit(__('Create'));
+        $form=  wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $form=__('No added cities - they will need to create a street');
+        }
         return($form);
     }
 

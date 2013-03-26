@@ -443,7 +443,7 @@ function wf_MonthSelector($name,$label,$selected='',$br=false) {
 function wf_YearSelector($name,$label='',$br=false) {
     $curyear=curyear();
     $inputid=wf_InputId();
-    $count=5;
+    $count=7;
     if ($br) {
         $newline='<br>';
     } else {

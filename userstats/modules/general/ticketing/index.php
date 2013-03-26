@@ -2,6 +2,8 @@
 $user_ip=zbs_UserDetectIp('debug');
 $user_login=zbs_UserGetLoginByIp($user_ip);
 $us_config=zbs_LoadConfig();
+$us_helpdenied=  zbs_GetHelpdeskDeniedAll();
+
 if ($us_config['TICKETING_ENABLED']) {
     ///// ticketing API
 
@@ -146,7 +148,7 @@ function zbs_TicketCreate($from,$to,$text,$replyto='NULL') {
                 </tr>
                 <tr class="row2">
                 <td></td>
-                <td>'.$ticketdata['text'].'</td>
+                <td>'.nl2br($ticketdata['text']).'</td>
                 </tr>
                 ';
             }
@@ -159,7 +161,7 @@ function zbs_TicketCreate($from,$to,$text,$replyto='NULL') {
                         </tr>
                         <tr class="row3">
                         <td></td>
-                        <td>'.$eachreply['text'].'</td>
+                        <td>'.nl2br($eachreply['text']).'</td>
                         </tr>
                         
                         ';
@@ -205,12 +207,17 @@ function zbs_TicketCreate($from,$to,$text,$replyto='NULL') {
        if (isset($_POST['newticket'])) {
            $newtickettext=strip_tags($_POST['newticket']);
            if (!empty ($newtickettext)) {
+               if (!isset($us_helpdenied[$user_login])) {
                zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+               }
                rcms_redirect("?module=ticketing");
            }
        }
       //show previous tickets
-      show_window(__('Help request'),  zbs_TicketCreateForm());    
+      if (!isset($us_helpdenied[$user_login])) {
+          show_window(__('Help request'),  zbs_TicketCreateForm());    
+      }
+      
       show_window(__('Previous help requests'),zbs_TicketsShowMy());
       show_window(__('Messages from administration'),  zbs_MessagesShowMy());
       

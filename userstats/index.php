@@ -13,6 +13,12 @@ $db=new MySQLDB;
 $user_ip=zbs_UserDetectIp('debug');
 $user_login=zbs_UserGetLoginByIp($user_ip);
 $us_config=zbs_LoadConfig();
+$us_access=  zbs_GetUserStatsDeniedAll();
+if (!empty($us_access)) {
+    if (isset($us_access[$user_login])) {
+        die('Access denied');
+    }
+}
 
 
 if ($user_ip) {

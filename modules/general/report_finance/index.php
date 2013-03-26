@@ -42,19 +42,19 @@ if (!isset($_GET['month'])) {
 if (isset($_POST['showdatepayments'])) {
     $paydate=mysql_real_escape_string($_POST['showdatepayments']);
     //deb($paydate);
-    show_window(__('Payments by date').' '.$paydate,  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paydate."%'"));
+    show_window(__('Payments by date').' '.$paydate,  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paydate."%' ORDER by `date` DESC;"));
 } else {
 
 // today payments
 $today=curdate();
-show_window(__('Today payments'),  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$today."%'"));
+show_window(__('Today payments'),  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$today."%' ORDER by `date` DESC;"));
 }
 
 } else {
     // show monthly payments
     $paymonth=mysql_real_escape_string($_GET['month']);
     
-    show_window(__('Month payments'),  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paymonth."%'"));
+    show_window(__('Month payments'),  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paymonth."%'  ORDER by `date` DESC;"));
 }
     
 

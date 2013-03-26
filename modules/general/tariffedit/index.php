@@ -20,6 +20,14 @@ if (isset ($_GET['username'])) {
             $billing->settariffnm($login,$tariff);
             log_register('CHANGE TariffNM ('.$login.') ON '.$tariff);
         }
+        
+        //auto credit option handling
+        if ($alter_conf['TARIFFCHGAUTOCREDIT']) {
+            $newtariffprice=  zb_TariffGetPrice($tariff);
+            $billing->setcredit($login,$newtariffprice);
+            log_register("CHANGE AutoCredit (".$login.") ON ".$newtariffprice);
+        }
+        
     }
 
     $current_tariff=zb_UserGetStargazerData($login);

@@ -827,4 +827,41 @@ function zbs_months_array_wz() {
     return($months);
 }
 
+
+function zbs_StorageGet($key) {
+    $key=mysql_real_escape_string($key);
+    $query="SELECT `value` from `ubstorage` WHERE `key`='".$key."'";
+    $fetchdata=  simple_query($query);
+    if (!empty($fetchdata)) {
+        $result=$fetchdata['value'];
+    } else {
+        $result='';
+    }
+    return ($result);
+}
+
+
+  function zbs_GetUserStatsDeniedAll() {
+       $access_raw=  zbs_StorageGet('ZBS_DENIED');
+       $result=array();
+       if (!empty($access_raw)) {
+           $access_raw=  base64_decode($access_raw);
+           $access_raw= unserialize($access_raw);
+           $result=$access_raw;
+       } 
+       return ($result);
+    }
+    
+    
+  function zbs_GetHelpdeskDeniedAll() {
+       $access_raw=  zbs_StorageGet('ZBS_HELP_DENIED');
+       $result=array();
+       if (!empty($access_raw)) {
+           $access_raw=  base64_decode($access_raw);
+           $access_raw= unserialize($access_raw);
+           $result=$access_raw;
+       } 
+       return ($result);
+    }
+
 ?>

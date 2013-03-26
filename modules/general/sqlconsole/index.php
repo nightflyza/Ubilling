@@ -92,7 +92,10 @@ if($system->checkForRight('SQLCONSOLE')) {
 
 //construct query forms
 $sqlinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
-$sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', true, 'ubButton');
+$sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
+if (cfr('ROOT')) {
+$sqlinputs.=wf_Link("?module=migration", 'Migration', true, 'ubButton');
+}
 if (wf_CheckPost(array('sqlq'))) {
     if ($alterconf['DEVCON_SQL_KEEP']) {
        $startQuery=trim($_POST['sqlq']);
@@ -109,7 +112,10 @@ $sqlinputs.=wf_Submit('Process query');
 $sqlform=wf_Form('', 'POST', $sqlinputs, 'glamour');
 
 $phpinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
-$phpinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', true, 'ubButton');
+$phpinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
+if (cfr('ROOT')) {
+$phpinputs.=wf_Link("?module=migration", 'Migration', true, 'ubButton');
+}
 //is template run or clear area?
 if (wf_CheckGet(array('runtpl'))) {
     $rawtemplate=  zb_PhpConsoleGetTemplate($_GET['runtpl']);
@@ -155,13 +161,26 @@ if (isset($_POST['sqlq'])) {
     $stripquery=substr($newquery,0,70).'..';
     log_register('SQLCONSOLE '.$stripquery);
     ob_start();
-    $query_result=simple_queryall($newquery);
+    
+   // commented due Den1xxx patch
+   // $query_result=simple_queryall($newquery);
+     $queried=mysql_query($newquery);
+    if ($queried===false) {
+    ob_end_clean();
+      return show_window('SQL '.__('Result'),wf_tag('b').__('Wrong query').':'.  wf_tag('b', true).  wf_delimiter().$newquery);  
+    } else {
+    while($row = mysql_fetch_assoc($queried)) {
+       $query_result[]=  $row;
+    } 
+    
     $sqlDebugData=  ob_get_contents();
     ob_end_clean();
     log_register('SQLCONSOLE QUERYDONE');
     if ($alterconf['DEVCON_VERBOSE_DEBUG']) {
     show_window(__('Console debug data'),$sqlDebugData);
     }
+    
+    } //end of wrong query exeption patch
     if (!empty ($query_result)) {
         if (!isset ($_POST['tableresult'])) {
         //raw array result

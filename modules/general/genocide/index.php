@@ -55,6 +55,7 @@ function gen_check_users() {
     $tablecells=wf_TableCell(__('Tariff'));
     $tablecells.=wf_TableCell(__('Normal day band'));
     $tablecells.=wf_TableCell(__('Current date normal band'));
+    $tablecells.=wf_TableCell(__('Speed'));
     $tablecells.=wf_TableCell(__('Actions'));
     $tablerows=wf_TableRow($tablecells, 'row1');
     
@@ -69,6 +70,8 @@ function gen_check_users() {
     $tablecells=wf_TableCell($tariff_names[$i]);
     $tablecells.=wf_TableCell(stg_convert_size(($cband_k*1024)*1024));
     $tablecells.=wf_TableCell(stg_convert_size(($band_arr[$i][$tariff_names[$i]])));
+    $tablecells.=wf_TableCell($eachtariff);
+    
     $gactions=wf_JSAlert('?module=genocide&delete='.$tariff_names[$i], web_delete_icon(), 'Are you serious');
     $tablecells.=wf_TableCell($gactions);
     $tablerows.=wf_TableRow($tablecells, 'row3');

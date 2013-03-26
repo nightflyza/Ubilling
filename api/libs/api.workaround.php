@@ -1381,6 +1381,7 @@ function web_DirectionsShow() {
        $allcontracts=  array_flip($allcontracts);
     }
     $total=0;
+    $totalPaycount=0;
     
       $cells=  wf_TableCell(__('ID'));
       $cells.= wf_TableCell(__('IDENC'));
@@ -1423,12 +1424,14 @@ function web_DirectionsShow() {
             
             if ($eachpayment['summ']>0) {
             $total=$total+$eachpayment['summ'];
+            $totalPaycount++;
             }
         }
     }
    
     $result=  wf_TableBody($rows, '100%', '0', 'sortable');
-    $result.=wf_tag('strong').__('Total').': '.$total.  wf_tag('strong', true);
+    $result.=wf_tag('strong').__('Cash').': '.$total.  wf_tag('strong', true).wf_tag('br');
+    $result.=wf_tag('strong').__('Count').': '.$totalPaycount.  wf_tag('strong', true);
     return($result);
 }
 
@@ -2382,7 +2385,7 @@ function zb_BillingCheckUpdates() {
      $hostid=simple_query($hostid_q);
      if (empty($hostid)) {
          //register new ubilling
-         $randomid='UB'.md5(curdatetime());
+         $randomid='UB'.md5(curdatetime().zb_rand_string(8));
          $newhostid_q="INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubid', '".$randomid."');";
          nr_query($newhostid_q);
          $thisubid=$randomid;
@@ -2446,7 +2449,7 @@ function zb_BillingCheckUpdates() {
 
      $releasebox=wf_tag('span', false, '', 'id="lastrelease"');
      $releasebox.=wf_tag('span',true).'<br>';
-     $updatechecker='<a href="#checkupdates"  onclick="goajax(\'?module=report_sysload&checkupdates=true\',\'lastrelease\');" title="'.__('Check updates').'">'.$releaseinfo.'</a>';
+     $updatechecker='<a href="#checkupdates"  onclick="goajax(\'?module=report_sysload&checkupdates=true\',\'lastrelease\');" title="'.__('Check updates').'">'.$releaseinfo.' ('.__('Check updates').'?)</a>';
 
      $ubstatsinputs=zb_AjaxLoader();
      
@@ -2894,6 +2897,52 @@ function zb_DBCleanupAutoClean() {
     }
     return ($counter);
 }
-  
+/*  UTF8-safe translit function
+ * 
+ * @param $string  string to be transliterated
+ * @return string
+ */  
 
+function zb_TranslitString($string) {
+	$replace=array(
+		"'"=>"",
+		"`"=>"",
+		"а"=>"a","А"=>"a",
+		"б"=>"b","Б"=>"b",
+		"в"=>"v","В"=>"v",
+		"г"=>"g","Г"=>"g",
+		"д"=>"d","Д"=>"d",
+		"е"=>"e","Е"=>"e",
+		"ж"=>"zh","Ж"=>"zh",
+		"з"=>"z","З"=>"z",
+		"и"=>"i","И"=>"i",
+		"й"=>"y","Й"=>"y",
+		"к"=>"k","К"=>"k",
+		"л"=>"l","Л"=>"l",
+		"м"=>"m","М"=>"m",
+		"н"=>"n","Н"=>"n",
+		"о"=>"o","О"=>"o",
+		"п"=>"p","П"=>"p",
+		"р"=>"r","Р"=>"r",
+		"с"=>"s","С"=>"s",
+		"т"=>"t","Т"=>"t",
+		"у"=>"u","У"=>"u",
+		"ф"=>"f","Ф"=>"f",
+		"х"=>"h","Х"=>"h",
+		"ц"=>"c","Ц"=>"c",
+		"ч"=>"ch","Ч"=>"ch",
+		"ш"=>"sh","Ш"=>"sh",
+		"щ"=>"sch","Щ"=>"sch",
+		"ъ"=>"","Ъ"=>"",
+		"ы"=>"y","Ы"=>"y",
+		"ь"=>"","Ь"=>"",
+		"э"=>"e","Э"=>"e",
+		"ю"=>"yu","Ю"=>"yu",
+		"я"=>"ya","Я"=>"ya",
+		"і"=>"i","І"=>"i",
+		"ї"=>"yi","Ї"=>"yi",
+		"є"=>"e","Є"=>"e"
+	);
+	return $str=iconv("UTF-8","UTF-8//IGNORE",strtr($string,$replace));
+}
 ?>

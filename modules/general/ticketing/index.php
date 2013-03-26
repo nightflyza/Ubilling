@@ -144,6 +144,7 @@ if (cfr('TICKETING')) {
           // 
 
           $tickettext=strip_tags($ticketdata['text']);
+          $tickettext=  nl2br($tickettext);
           $tablecells=wf_TableCell('', '20%');
           $tablecells.=wf_TableCell($ticketdata['date']);
           $tablerows=wf_TableRow($tablecells, 'row2');
@@ -190,10 +191,12 @@ if (cfr('TICKETING')) {
               } else {
                   //not this ticket edit
                   $replytext=strip_tags($eachreply['text']);
+                  
               }
           } else {
               //normal text by default
               $replytext=strip_tags($eachreply['text']);
+              $replytext=  nl2br($replytext);
           }
           
           $replypanel=$replyauthor.'<br>'.$replyavatar.'<br>'.$replyactions;
