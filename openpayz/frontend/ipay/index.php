@@ -35,6 +35,10 @@ if (!empty ($xml)) {
         //не забываем что сумма в копейках
         $summ=($summ/100);
         $customerid=vf($xml_arr['payment']['transactions']['transaction'][0]['desc'],3);
+        //а это очередной грязный хак для пополнений с их сайта
+        if (strlen($customerid)>10) {
+        $customerid=substr($customerid,0,10);
+        }
         $paysys='IPAY';
         $note=$xml;
         //регистрируем новую транзакцию

@@ -1,5 +1,20 @@
 <?php
 if (cfr('CASHTYPES')) {
+    
+    function web_CashCashtypeDefaultForm() {
+        $defCashType=  zb_StorageGet('DEF_CT');
+        if (empty($defCashType)) {
+            $defCashType='NOP';
+        }
+        
+        $allCashTypes=  zb_CashGetAllCashTypes();
+     
+        $inputs= wf_Selector('setdefaultcashtype', $allCashTypes, __('Current default cashtype for manual input'), $defCashType, true);
+        $inputs.= wf_Submit(__('Set as default cash type'));
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
     if (isset($_GET['action'])) {
         // delete cash type
         if ($_GET['action']=='delete') {
@@ -32,10 +47,19 @@ if (cfr('CASHTYPES')) {
            }
         
       }
-      
+    
+     //creating new cash type
     if (isset($_POST['newcashtype'])) {
         $newcashtype=mysql_real_escape_string($_POST['newcashtype']);
         zb_CashCreateCashType($newcashtype);
+        rcms_redirect("?module=cashtypes");
+    }
+    
+    //setting default cashtype
+    if (wf_CheckPost(array('setdefaultcashtype'))) {
+        zb_StorageSet('DEF_CT', $_POST['setdefaultcashtype']);
+        log_register("CASHTYPE SET DEFAULT [".$_POST['setdefaultcashtype']."]");
+        rcms_redirect("?module=cashtypes");
     }
     
     
@@ -50,7 +74,7 @@ $olddata=zb_CashGetAlltypes();
 $form=web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $olddata);
 
 show_window(__('Edit payment types'), $form);
-
+show_window(__('Default cash type'),  web_CashCashtypeDefaultForm());
 
 } else {
       show_error(__('You cant control this module'));

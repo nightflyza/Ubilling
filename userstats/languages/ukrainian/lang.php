@@ -144,5 +144,10 @@ $lang['def']['Oct'] = 'Жов';
 $lang['def']['Nov'] = 'Лис';
 $lang['def']['Dec'] = 'Гру';
 
+$lang['def']['Tariff speed'] = 'Швидкість тарифу';
+$lang['def']['Mbit/s'] = 'Мбіт/с';
+$lang['def']['Kbit/s'] = 'Кбіт/с';
+$lang['def']['None'] = 'Не встановлено';
+$lang['def']['Unlimited'] = 'Без обмежень';
 
 ?>

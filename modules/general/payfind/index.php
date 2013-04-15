@@ -39,7 +39,7 @@ if (cfr('PAYFIND')) {
     function zb_PaySysPercentAdd($mark, $name, $percent) {
         $mark = mysql_real_escape_string($mark);
         $name = mysql_real_escape_string($name);
-        $percent = vf($percent, 3);
+        $percent = mysql_real_escape_string($percent);
         $olddata = zb_PaySysPercentGetAll();
         $newdata = $olddata;
 
@@ -135,9 +135,15 @@ if (cfr('PAYFIND')) {
      */
 
     function web_PayFindForm() {
+        //try to save calendar states
+        if (wf_CheckPost(array('datefrom', 'dateto'))) {
+        $curdate=$_POST['dateto'];
+        $yesterday=$_POST['datefrom'];
+        } else {
         $curdate = curdate();
         $yesterday = date("Y-m-d", time() - 60 * 60 * 24);
-
+        }
+        
         $inputs = __('Date');
         $inputs.= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
         $inputs.= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To');
@@ -148,6 +154,8 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_TextInput('contract', __('Search by users contract'), '', true, '10');
         $inputs.= wf_CheckInput('type_login', '', false, false);
         $inputs.= wf_TextInput('login', __('Search by users login'), '', true, '10');
+        $inputs.= wf_CheckInput('type_summ', '', false, false);
+        $inputs.= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
         $inputs.= wf_CheckInput('type_cashtype', '', false, false);
         $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
@@ -322,6 +330,12 @@ if (cfr('PAYFIND')) {
     if (wf_CheckPost(array('type_login', 'login'))) {
         $userlogin = mysql_real_escape_string($_POST['login']);
         $markers.="AND `login`='" . $userlogin . "' ";
+    }
+    
+    //payment sum  search
+    if (wf_CheckPost(array('type_summ', 'summ'))) {
+        $summ= mysql_real_escape_string($_POST['summ']);
+        $markers.="AND `summ`='" . $summ . "' ";
     }
 
     //cashtype search

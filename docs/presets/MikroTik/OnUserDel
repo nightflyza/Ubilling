@@ -1,0 +1,33 @@
+#!/usr/local/bin/php
+<?php  if(isset($argv)) {
+		
+		// DEFINE ENVIRONMENT:
+		define("ENVIRONMENT", "OnUserDel");
+
+		// DEFINE USERS' LOGIN:
+		if(isset($argv[1])) {
+			define("LOGIN", $argv[1]);
+		} else define("LOGIN", NULL);
+		
+		// DEFINE PATHS:
+		define("BASEPATH", __DIR__ . "/");
+		define("SYSTEM", BASEPATH . "system/");
+		define("DB_DRVS", SYSTEM . "database/");
+		define("NAS_DRVS", SYSTEM . "executer/");
+		define("LOG_DRVS", SYSTEM . "log/");
+		
+		// DEFINE DRIVERS EXTENTION:
+		define("EXT", ".drv");
+
+		// TURN OFF PHP ERROR REPORTING:
+		// error_reporting(0);
+
+		// UNSET ALL RECEIVED ARGUMENTS & AMOUNT:
+		unset($argv, $argc);
+
+		// CONTINUE...
+		// include_once(SYSTEM . "ubilling.cls");
+		// new Ubilling();
+
+	} else exit("Script can be runned only by Stargazer!" . "\n");
+?>

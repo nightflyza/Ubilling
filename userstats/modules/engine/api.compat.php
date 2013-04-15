@@ -64,6 +64,10 @@ function zbs_LoadLang($language) {
    $language=preg_replace('/\0/s', '', $language);
  if (file_exists('languages/'.$language.'/lang.php')) {
  include('languages/'.$language.'/lang.php');
+   //additional locale
+   if (file_exists('languages/'.$language.'/addons.php')) {
+     include('languages/'.$language.'/addons.php');
+   }
  } else {
   include('languages/english/lang.php');
  }

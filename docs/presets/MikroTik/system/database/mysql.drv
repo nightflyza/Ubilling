@@ -1,0 +1,173 @@
+<?php if (!defined('ENVIRONMENT')) exit('No direct script access allowed!\n');
+
+	class Database {
+
+		/* PRIVATE VARIABLES: */
+		private $connected;
+		private $identifier;
+		
+		/* CASHED DATA TREE: */
+		private $cache	=	array(
+			'USER'	=>	array(
+				'MAC'		=>	NULL,
+				'RATE'		=>	array(
+					'REASSIGNED'	=>	NULL,
+					'TARIFF'		=>	NULL
+				),
+				'NETID'		=>	NULL,
+				'TARIFF'	=>	NULL
+			),
+			'NAS'	=>	array(
+				'IP'	=>	NULL,
+				'TYPE'	=>	NULL
+			)
+		);
+
+		/* CONFIGURATIONS: */
+		private $config	=	array();
+		
+		/* CLASSES LINKS: */
+		private $log	=	NULL;
+
+		/* CLASS CONSTRUCTOR: */
+		public function __construct($data) {
+			foreach($data as $key => $value) {
+				$this->$key = $value;
+			}
+			$this->log->message(__CLASS__, "MySQL Class loaded...", "debug");
+			$this->connect();
+		}
+		
+		/* MAKE CONNECTION & SELECT DATABASE: */
+		private function connect() {
+			if (!is_null($this->config)) {
+				$this->identifier = mysql_connect($this->config['hostname'], $this->config['username'], $this->config['password']);
+				if ($this->identifier) {
+					if (mysql_select_db($this->config['database'], $this->identifier))  {
+						$this->connected = TRUE;
+						$this->log->message(__CLASS__, "Connection with database is established...", "debug");
+					} else {
+						$this->log->message(__CLASS__, "Cannot select database, database name is incorrect!", "error");
+						$this->connected = FALSE;
+					}
+				} else $this->log->message(__CLASS__, "Cannot connect to database, authorization data wrong or server halted!", "error");
+			} else $this->log->message(__CLASS__, "Cannot connect to database, no `$this->config` data!", "error");
+		}
+		
+		/* MySQL DATABASE QUERY GENERATION: */
+		private function select($cols, $table, $where = NULL) {
+			$return = array();
+			$query = "SELECT " . $cols . " FROM " . $table;
+			if(!is_null($where)) {
+				$query .= " WHERE";
+				foreach($where as $key => $value) {
+					$query .= " ";
+					$query .= "`" . $key . "` = '" . $value . "'";
+				}
+			}
+			$result = mysql_query($query, $this->identifier);
+			while ($row = mysql_fetch_assoc($result)) {
+				array_push($return, $row);
+			}
+			return $return;
+		}
+
+		/* GET USER NETWORK ID: */
+		public function get_user_network_id() {
+			if(empty($this->cache['USER']['NETID'])) {
+				$result = $this->select("netid", "nethosts", array("ip" => IP));
+				if(!empty($result[0]['netid'])) {
+					$this->cache['USER']['NETID'] = $result[0]['netid'];
+					$this->log->message(__CLASS__, "USER NETWORK ID - `" . $this->cache['USER']['NETID'] . "`;", "debug");
+				} else $this->log->message(__CLASS__, "USER NETWORK ID - `NULL`!", "error");
+			}
+			return $this->cache['USER']['NETID'];
+		}
+
+		/* GET USER MAC ADDRESS: */
+		public function get_user_mac() {
+			if(empty($this->cache['USER']['MAC'])) {
+				$result = $this->select("mac", "nethosts", array("ip" => IP));
+				if(!empty($result[0]['mac'])) {
+					$this->cache['USER']['MAC'] = $result[0]['mac'];
+					$this->log->message(__CLASS__, "USER MAC - `" . $this->cache['USER']['MAC'] . "`;", "debug");
+				} else $this->log->message(__CLASS__, "USER MAC - `NULL`!", "error");
+			}
+			return $this->cache['USER']['MAC'];
+		}
+		
+		/* GET USER REASSIGNED RATE: */
+		private function get_user_reassigned_rate() {
+			if(empty($this->cache['USER']['RATE']['REASSIGNED'])) {
+				$result = $this->select("speed", "userspeeds", array("login" => LOGIN));
+				if(!empty($result[0]['speed']) AND $result[0]['speed'] != "0") {
+					$this->cache['USER']['RATE']['REASSIGNED'] = $result[0]['speed'];
+					$this->log->message(__CLASS__, "USER REASSIGNED RATE - `" . $this->cache['USER']['RATE']['REASSIGNED'] . "`!", "debug");
+				} else $this->log->message(__CLASS__, "USER REASSIGNED RATE - `NULL`!", "debug");
+			}
+			return $this->cache['USER']['RATE']['REASSIGNED'];
+		}
+
+		/* GET USER TARIFF: */
+		private function get_user_tariff() {
+			if(empty($this->cache['USER']['TARIFF'])) {
+				$result = $this->select("Tariff", "users", array("login" => LOGIN));
+				if(!empty($result[0]['Tariff']) AND $result[0]['Tariff'] != "*_NO_TARIFF_*") {
+					$this->cache['USER']['TARIFF'] = $result[0]['Tariff'];
+					$this->log->message(__CLASS__, "USER TARIFF - `" . $this->cache['USER']['TARIFF'] . "`;", "debug");
+				} else $this->log->message(__CLASS__, "USER TARIFF - `NULL`!", "error");
+			}
+			return $this->cache['USER']['TARIFF'];
+		}
+		
+		/* GET TARIFF RATE: */
+		private function get_tariff_rate($tariff) {
+			if(empty($this->cache['USER']['RATE']['TARIFF'])) {
+				$result = $this->select("speedup, speeddown", "speeds", array("tariff" => $tariff));
+				if(!empty($result[0]['speedup']) OR !empty($result[0]['speeddown'])) {
+					if(!empty($result[0]['speedup'])) {
+						$this->cache['USER']['RATE']['TARIFF']['TX'] = $result[0]['speedup'];
+						$this->log->message(__CLASS__, "USER TARIFF TX RATE - `" . $this->cache['USER']['RATE']['TARIFF']['TX'] . "`;", "debug");
+					} else $this->log->message(__CLASS__, "USER TARIFF TX RATE - `NULL`!", "debug");
+					if(!empty($result[0]['speeddown'])) {
+						$this->cache['USER']['RATE']['TARIFF']['RX'] = $result[0]['speeddown'];
+						$this->log->message(__CLASS__, "USER TARIFF RX RATE - `" . $this->cache['USER']['RATE']['TARIFF']['RX'] . "`;", "debug");
+					} else $this->log->message(__CLASS__, "USER TARIFF RX RATE - `NULL`!", "debug");
+				} else $this->log->message(__CLASS__, "USER RATE - `NULL`!", "error");
+			}
+			return $this->cache['USER']['RATE']['TARIFF'];
+		}
+
+		/* GET USER RATE: */
+		public function get_user_rate() {
+			if($this->connected) {
+				if($this->get_user_reassigned_rate() == NULL) {
+					$this->get_tariff_rate($this->get_user_tariff());
+				}
+				return $this->cache['USER']['RATE'];
+			} else $this->log->message(__CLASS__, "Cannot get USER RATE data from database, no connection!", "error");
+		}
+		
+		/* GET NAS DATA: */
+		public function get_nas_data() {
+			if(empty($this->cache['NAS']['IP']) AND empty($this->cache['NAS']['TYPE'])) {
+				if($this->connected) {
+
+					$result = $this->select("nasip, nastype", "nas", array("netid" => $this->get_user_network_id()));
+
+					if(!empty($result[0]['nasip'])) {
+						$this->cache['NAS']['IP']	= $result[0]['nasip'];
+						$this->log->message(__CLASS__, "NAS IP - `" . $this->cache['NAS']['IP'] . "`;", "debug");
+					} else $this->log->message(__CLASS__, "NAS IP - `NULL`!", "error");
+
+					if(!empty($result[0]['nastype'])) {
+						$this->cache['NAS']['TYPE']	= $result[0]['nastype'];
+						$this->log->message(__CLASS__, "NAS TYPE - `" . $this->cache['NAS']['TYPE'] . "`;", "debug");
+					} else $this->log->message(__CLASS__, "NAS TYPE - `NULL`!", "error");
+
+				} else $this->log->message(__CLASS__, "Cannot get NAS DATA from database, no connection!", "error");
+			}
+			return $this->cache['NAS'];
+		}
+	}
+?>

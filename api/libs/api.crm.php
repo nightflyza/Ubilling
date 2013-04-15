@@ -621,7 +621,6 @@ function web_ExpressAddressAptForm($login) {
  /*
  * Shows user register form of express card 
  * 
- * @param $login - user login
  * 
  * @return string
  */
@@ -732,7 +731,10 @@ function web_ExpressAddressAptForm($login) {
                  if (!empty($allservices)) {
                      $firstService=$allservices[0];
                      $firstNet=$firstService['netid'];
-                     $ip_proposal=  multinet_get_next_freeip('nethosts', 'ip', $firstNet);
+                     @$ip_proposal=  multinet_get_next_freeip('nethosts', 'ip', $firstNet);
+                     if (empty($ip_proposal)) {
+                         show_window('', wf_modalOpened(__('Error'), __('No free IP available in selected pool'), '400', '250'));
+                     }
                  } else {
                      $ip_proposal=__('Error');
                  }

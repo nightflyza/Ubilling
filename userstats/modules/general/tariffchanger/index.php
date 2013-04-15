@@ -75,7 +75,7 @@ function zbs_TariffSelector($tc_tariffsallowed,$user_tariff) {
     if (!empty ($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $io=>$eachtariff) {
             if ($eachtariff!=$user_tariff) {
-            $result.='<option value="'.trim($eachtariff).'">'.$eachtariff.'</option>';
+            $result.='<option value="'.trim($eachtariff).'">'.__($eachtariff).'</option>';
             }
         }
     }
@@ -134,7 +134,7 @@ function zbs_TariffGetShowPrices($tc_tariffsallowed,$us_currency,$user_tariff, $
         foreach ($tc_tariffsallowed as $eachtariff) {
             $result.='
                 <tr class="row2">
-                <td><b>'.$eachtariff.'</b></td>
+                <td><b>'.__($eachtariff).'</b></td>
                 <td>'.@$allprices[$eachtariff].' '.$us_currency.'</td>
                 <td>'.@$allcosts[$eachtariff].' '.$us_currency.'</td>
                 </tr>

@@ -1,0 +1,53 @@
+#!/usr/local/bin/php
+<?php if(isset($argv)) {
+
+		// DEFINE ENVIRONMENT:
+		define("ENVIRONMENT", "OnConnect");
+
+		// DEFINE USERS' LOGIN:
+		if(isset($argv[1])) {
+			define("LOGIN", $argv[1]);
+		} else define("LOGIN", NULL);
+
+		// DEFINE USERS' IP:
+		if(isset($argv[2])) {
+			define("IP", $argv[2]);
+		} else define("IP", NULL);
+
+		// DEFINE USERS' CASH:
+		if(isset($argv[3])) {
+			define("CASH", $argv[3]);
+		} else define("CASH", NULL);
+
+		// DEFINE USERS' STG UNIQUE ID:
+		if(isset($argv[4])) {
+			define("ID", $argv[4]);
+		} else define("ID", NULL);
+
+		// DEFINE USERS' ALLOWED DIRS:
+		if(isset($argv[5])) {
+			define("DIRS", $argv[5]);
+		} else define("DIRS", NULL);
+
+		// DEFINE PATHS:
+		define("BASEPATH", __DIR__ . "/");
+		define("SYSTEM", BASEPATH . "system/");
+		define("DB_DRVS", SYSTEM . "database/");
+		define("NAS_DRVS", SYSTEM . "executer/");
+		define("LOG_DRVS", SYSTEM . "log/");
+		
+		// DEFINE DRIVERS EXTENTION:
+		define("EXT", ".drv");
+
+		// TURN OFF PHP ERROR REPORTING:
+		error_reporting(0);
+
+		// UNSET ALL RECEIVED ARGUMENTS & AMOUNT:
+		unset($argv, $argc);
+
+		// CONTINUE...
+		include_once(SYSTEM . "ubilling.cls");
+		new Ubilling();
+
+	} else exit("Script can be runned only by Stargazer!" . "\n");
+?>

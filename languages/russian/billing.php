@@ -1286,6 +1286,19 @@ $lang['def']['Profit']='Прибыль';
 $lang['def']['Payment systems %']='Удержано платежными системами';
 $lang['def']['Our final profit']='Наш конечный доход';
 
+//rev 2482
+$lang['def']['Cache state at time']='Из кеша состоянием на';
+$lang['def']['Search by payment sum']='Поиск по сумме платежа';
+$lang['def']['Default cash type']='Тип оплат по умолчанию';
+$lang['def']['Set as default cash type']='Установить как тип оплаты по умолчанию';
+$lang['def']['Current default cashtype for manual input']='Тип оплат по умолчанию для ручного внесения оплат';
+$lang['def']['MikroTik Tools']='Средства для работы с MikroTik NAS';
+$lang['def']['MikroTik extended support enabled']='Расширенная поддержка MikroTik включена';
+$lang['def']['Renew']='Обновить';
+$lang['def']['Excluded users']='Исключения из рассылки';
+$lang['def']['User login to exclude from sending']='Логин пользователя для исключения из рассылки';
+$lang['def']['Next users will be ignored while SMS sending']='Следующие пользователи будут проигнорированы при отсылке СМС';
+
 
 
 ?>

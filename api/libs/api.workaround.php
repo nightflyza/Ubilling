@@ -464,13 +464,30 @@ return($form);
 
 function web_CashTypeSelector() {
     $allcashtypes=zb_CashGetAlltypes();
-    $selector='<select name="cashtype">';
-    if (!empty ($allcashtypes)) {
-        foreach ($allcashtypes as $io=>$eachtype) {
-            $selector.='<option value="'.$eachtype['id'].'">'.__($eachtype['cashtype']).'</option>';
+    $cashtypes=array();
+    //commented due injecting default cashtype 
+//    $selector='<select name="cashtype">';
+//    if (!empty ($allcashtypes)) {
+//        foreach ($allcashtypes as $io=>$eachtype) {
+//            $selector.='<option value="'.$eachtype['id'].'">'.__($eachtype['cashtype']).'</option>';
+//        }
+//    }
+//    $selector.='</select>';
+    if (!empty($allcashtypes)) {
+        foreach ($allcashtypes as $io=>$each) {
+            $cashtypes[$each['id']]=__($each['cashtype']);
         }
+        
+        $defaultCashtype=  zb_StorageGet('DEF_CT');
+        //if no default cashtype selected
+        if (empty($defaultCashtype)) {
+            $defaultCashtype='NOP';
+        }
+        
+        $selector=  wf_Selector('cashtype', $cashtypes, '', $defaultCashtype, false);
+        
     }
-    $selector.='</select>';
+    
     return($selector);
 }
 
@@ -870,6 +887,11 @@ return($form);
         return($plugins);
     }
     
+    function zb_MikrotikPluginsLoad() {
+        $plugins=rcms_parse_ini_file(CONFIG_PATH."plugins_mt.ini", true);
+        return($plugins);
+    }
+    
         function web_ProfilePluginsShowOverlay($login,$overlaydata) {
         $login=vf($login);
         $plugins=rcms_parse_ini_file(CONFIG_PATH.$overlaydata,true);
@@ -883,6 +905,24 @@ return($form);
             }
         }
         $result.='</td></tr></table>';
+        return($result);
+    }
+    
+    function web_MikrotikPluginsShow($login) {
+        $login=vf($login);
+        $plugins=  zb_MikrotikPluginsLoad();
+        $result='';
+        if (!empty ($plugins)) {
+            foreach ($plugins as $io=>$eachplugin) {
+             if (isset($eachplugin['overlay'])) {
+             $overlaydata=web_ProfilePluginsShowOverlay($login, $eachplugin['overlaydata']).'<br><br>';
+             $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 400);   
+             } else {
+              $result.='<a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> <br><br>';   
+             }
+            }
+        }
+        
         return($result);
     }
     
@@ -954,6 +994,9 @@ return($form);
          
          if ($alter_conf['PROFILE_PLUGINS']) {
              $profile_plugins=web_ProfilePluginsShow($login);
+             if ($alter_conf['MIKROTIK_SUPPORT']) {
+                 $profile_plugins.=wf_delimiter().web_MikrotikPluginsShow($login);
+             }
          }
          
         // corporate user check
@@ -1484,33 +1527,94 @@ function months_array_wz() {
 
 function web_PaymentsShowGraph($year) {
     $months=months_array();
-    $result='<table width="100%" class="sortable" border="0">';
     $year_summ=zb_PaymentsGetYearSumm($year);
-    $result.='
-            <tr class="row1">
-                <td></td>
-                <td>'.__('Month').'</td>
-                <td>'.__('Payments count').'</td>
-                <td>'.__('ARPU').'</td>
-                <td>'.__('Cash').'</td>
-                <td width="50%">'.__('Visual').'</td>
-            </tr>
-            ';
+    $curtime=time();
+    $yearPayData=array();
+    
+    $cells=   wf_TableCell('');
+    $cells.=  wf_TableCell(__('Month'));
+    $cells.=  wf_TableCell(__('Payments count'));
+    $cells.=  wf_TableCell(__('ARPU'));
+    $cells.=  wf_TableCell(__('Cash'));
+    $cells.=  wf_TableCell(__('Visual'), '50%');
+    $rows=    wf_TableRow($cells, 'row1');
+    
+    //caching subroutine
+    $renewTime=  zb_StorageGet('YPD_LAST');
+    if (empty($renewTime)) {
+        //first usage
+        $renewTime=$curtime;
+        zb_StorageSet('YPD_LAST', $renewTime);
+        $updateCache=true;
+    } else {
+        //cache time already set
+        $timeShift=$curtime-$renewTime;
+        if ($timeShift>3600) {
+            //cache update needed
+            $updateCache=true;
+        } else {
+            //load data from cache or init new cache
+            $yearPayData_raw=  zb_StorageGet('YPD_CACHE');
+            if (empty($yearPayData_raw)) {
+                //first usage
+                $emptyCache=array();
+                $emptyCache=  serialize($emptyCache);
+                $emptyCache= base64_encode($emptyCache);
+                zb_StorageSet('YPD_CACHE', $emptyCache);
+                $updateCache=true;
+            } else {
+               // data loaded from cache
+               $yearPayData=  base64_decode($yearPayData_raw);
+               $yearPayData=  unserialize($yearPayData);
+               $updateCache=false; 
+               //check is current year already cached?
+               if (!isset($yearPayData[$year]['graphs'])) {
+                   $updateCache=true;
+               }
+               
+               //check is manual cache refresh is needed?
+               if (wf_CheckGet(array('forcecache'))) {
+                   $updateCache=true;
+                   rcms_redirect("?module=report_finance");
+               }
+            }
+            
+            
+        }
+    }
+    
+    if ($updateCache) {
     foreach ($months as $eachmonth=>$monthname) {
         $month_summ=zb_PaymentsGetMonthSumm($year, $eachmonth);
         $paycount=zb_PaymentsGetMonthCount($year, $eachmonth);
-        $result.='
-            <tr class="row3">
-                <td>'.$eachmonth.'</td>
-                <td><a href="?module=report_finance&month='.$year.'-'.$eachmonth.'">'.rcms_date_localise($monthname).'</a></td>
-                <td>'.$paycount.'</td>
-                <td>'.@round($month_summ/$paycount,2).'</td> 
-                <td>'.$month_summ.'</td>
-                <td>'.web_bar($month_summ, $year_summ).'</td>
-            </tr>
-            ';
+   
+            $cells=   wf_TableCell($eachmonth);
+            $cells.=  wf_TableCell(wf_Link('?module=report_finance&month='.$year.'-'.$eachmonth, rcms_date_localise($monthname)));
+            $cells.=  wf_TableCell($paycount);
+            $cells.=  wf_TableCell(@round($month_summ/$paycount,2));
+            $cells.=  wf_TableCell($month_summ);
+            $cells.=  wf_TableCell(web_bar($month_summ, $year_summ));
+            $rows.=   wf_TableRow($cells, 'row3');
     }
-    $result.='</table>';
+    $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+    $yearPayData[$year]['graphs']=$result;
+    //write to cache
+    zb_StorageSet('YPD_LAST', $curtime);
+    $newCache=  serialize($yearPayData);
+    $newCache= base64_encode($newCache);
+    zb_StorageSet('YPD_CACHE', $newCache);
+    } else {
+        //take data from cache
+        if (isset($yearPayData[$year]['graphs'])) {
+          $result=$yearPayData[$year]['graphs'];
+          $result.=__('Cache state at time').': '.date("Y-m-d H:i:s",($renewTime)).' ';
+          $result.=wf_Link("?module=report_finance&forcecache=true", __('Renew'), false, '');
+        } else {
+          $result=__('Strange exeption');
+        }
+    }
+    
+    
     show_window(__('Payments by').' '.$year, $result);
 }
 
@@ -1691,22 +1795,25 @@ function web_PaymentsShowGraph($year) {
     }
     
        function web_NasAddForm() {
-            $form='
-                <form action="" method="POST">
-                <br>    '.  multinet_network_selector().' '.__('Network').'
-                <br>    <select name="newnastype"> 
-                            <option value="rscriptd">rscriptd</option>
-                            <option value="radius">radius</option>
-                            <option value="mtdirect">Mikrotik Direct</option>
-                            <option value="local">Local NAS</option>
-                        </select>'.__('NAS type').'
-                <br>    <input type="text" name="newnasip"> '.__('IP').'
-                <br>    <input type="text" name="newnasname"> '.__('NAS name').'
-                <br>    <input type="text" name="newbandw"> '.__('Bandwidthd URL').'
-                <br>    <input type="submit" value="'.__('Create').'">
-                </form>
-                
-                ';
+            
+           $nastypes=array(
+               'rscriptd'=>'rscriptd',
+               'radius'=>'Radius',
+               'mikrotikapi'=>'MikroTik API',
+               'mtdirect'=>'MikroTik Direct',
+               'local'=>'Local NAS'
+           );
+            
+            
+            $inputs=  multinet_network_selector(). wf_tag('label', false, '', 'for="networkselect"').__('Network').wf_tag('label', true).  wf_tag('br');
+            $inputs.= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
+            $inputs.= wf_TextInput('newnasip', __('IP'), '', true);
+            $inputs.= wf_TextInput('newnasname', __('NAS name'), '', true);
+            $inputs.= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
+            $inputs.= wf_Submit(__('Create'));
+            
+            $form=  wf_Form('', 'POST', $inputs, 'glamour');
+            
             return($form);
         }
        

@@ -30,6 +30,8 @@ if(cfr('MASSRESET')) {
             $allusers=  zb_UserGetAllStargazerData();
             if (!empty($allusers)) {
                 foreach ($allusers as $io=>$eachuser) {
+                    //very shitty hack
+                    sleep(2);
                     $billing->resetuser($eachuser['login']);
                     if (!isset($altcfg['MASSRESET_NOLOG'])) {
                     log_register("MASSRESET User (".$eachuser['login'].")");

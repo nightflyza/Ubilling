@@ -974,7 +974,7 @@ function zb_TariffGetAllSpeeds() {
         $nastype=$nasdata['nastype'];
         
         //mikrotik graphs model
-        if ($nastype=='mtdirect') {
+        if (($nastype=='mtdirect') OR ($nastype=='mikrotikapi')) {
         $alluserips= zb_UserGetAllIPs();
         $alluserips=array_flip($alluserips);
         

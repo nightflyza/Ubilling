@@ -23,7 +23,7 @@ if (cfr('TURBOSMS')) {
             $result=array();
             if (!empty($realnames)) {
                 foreach ($realnames as $login=>$realname) {
-                    $result[$login]= zb_TranslitString($realname);
+                    $result[$login]= ucwords(zb_TranslitString($realname));
                 }
             }
             return ($result);
@@ -43,6 +43,11 @@ if (cfr('TURBOSMS')) {
             return ($result);
         }
         
+        //ugly hack to dirty input data filtering in php 5.4 with multiple DB links
+        function tsms_SafeEscapeString($string) {
+            @$result=preg_replace("#[~@\?\%\/\;=\*\>\<\"\']#Uis",'',$string);;
+            return ($result);
+        }
         
         /*
          * Connecting to TurboSMS service and loading all of needed data
@@ -69,6 +74,7 @@ if (cfr('TURBOSMS')) {
             $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
             $TsmsDB->open() or die($db->error());
             $result = array();
+            $TsmsDB->query('SET NAMES utf8;');
             $TsmsDB->query($query);
             while ($row = $TsmsDB->fetchassoc()) {
                 $result[] = $row;
@@ -136,6 +142,49 @@ if (cfr('TURBOSMS')) {
             return ($result);
         }
         
+        function tsms_GetExcludeUsers() {
+            $result=array();
+            $excludeRaw=  zb_StorageGet('TSMS_EXCLUDE');
+            if (!empty($excludeRaw)) {
+                //is some exclude users available
+                $excludedUsers=  base64_decode($excludeRaw);
+                $excludedUsers=  unserialize($excludedUsers);
+                $result=$excludedUsers;
+                
+            } else {
+                //first usage
+                $newExcludeUsers=  serialize($result);
+                $newExcludeUsers=  base64_encode($newExcludeUsers);
+                zb_StorageSet('TSMS_EXCLUDE', $newExcludeUsers);
+                log_register("TSMS EXCLUDE CREATE");
+            }
+            return ($result);
+        }
+        
+        function tsms_ExcludeUserAdd($login) {
+            $allExcludedUsers= tsms_GetExcludeUsers();
+            $newExcludes=$allExcludedUsers;
+            if (!isset($newExcludes[$login])) {
+                $newExcludes[$login]='NOP';
+                $newExcludes=  serialize($newExcludes);
+                $newExcludes= base64_encode($newExcludes);
+                zb_StorageSet('TSMS_EXCLUDE', $newExcludes);
+                log_register("TSMS EXCLUDE ADD (".$login.")");
+            }
+        }
+        
+        function tsms_ExcludeUserDelete($login) {
+            $allExcludedUsers= tsms_GetExcludeUsers();
+            $newExcludes=$allExcludedUsers;
+            if (isset($newExcludes[$login])) {
+                unset($newExcludes[$login]);
+                $newExcludes=  serialize($newExcludes);
+                $newExcludes= base64_encode($newExcludes);
+                zb_StorageSet('TSMS_EXCLUDE', $newExcludes);
+                log_register("TSMS EXCLUDE DELETE (".$login.")");
+            }
+        }
+        
         function web_TsmsMassendForm() {
             $inputs=   wf_RadioInput('msendtype', __('Debtors with balance less then 0'), 'msenddebtors', true, true);
             $inputs.=  wf_RadioInput('msendtype', __('Users who have money left for 5 days'), 'msendless5', true, false);
@@ -146,23 +195,30 @@ if (cfr('TURBOSMS')) {
         }
         
         
-        function tsms_SendSMS($number,$sign,$message,$wappush) {
+        function tsms_SendSMS($number,$sign,$message,$wappush,$timezone) {
             global $tsms_table;
-            $number=  mysql_real_escape_string($number);
-            $sign=  mysql_real_escape_string($sign);
-            $message=  mysql_real_escape_string($message);
-            $wappush=  mysql_real_escape_string($wappush);
+            $number=   tsms_SafeEscapeString($number);
+            $sign=     tsms_SafeEscapeString($sign);
+            $message=  tsms_SafeEscapeString($message);
+            $wappush=  tsms_SafeEscapeString($wappush);
+           
             if ($wappush='NONE') {
                 $wappush='';
             }
             
-            $date=date("Y-m-d H:i:s");
+            //commented due fixing timezone issue
+            //$date=date("Y-m-d H:i:s");
+           
+           $tz_offset=(2-$timezone)*3600;
+           $date=date("Y-m-d H:i:s",time()+$tz_offset);
+          
              $query="
                 INSERT INTO `".$tsms_table."`
                     ( `number`, `sign`, `message`, `wappush`,  `send_time`) 
                     VALUES
                     ('".$number."', '".$sign."', '".$message."', '".$wappush."', '".$date."');
                 ";
+            
             tsms_query($query);
         }
         
@@ -183,6 +239,8 @@ if (cfr('TURBOSMS')) {
                 $where='';
             }
             $allSms=  tsms_GetAllSMS($where);
+            
+            $lighter='onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
             
             $cells=  wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Msg ID'));
@@ -216,7 +274,9 @@ if (cfr('TURBOSMS')) {
                         $status=wf_modal(__('Show'), __('Status'), $each['status'], '', '400', '150');
                         $cells.= wf_TableCell($status);
                         $cells.= wf_TableCell($each['dlr_status']);
-                        $rows.=wf_TableRow($cells, 'row3');
+                        $rows.=wf_tag('tr', false, 'row3', $lighter);
+                        $rows.=$cells;
+                        $rows.=wf_tag('tr', true);
                 }
             }
             
@@ -307,13 +367,69 @@ if (cfr('TURBOSMS')) {
             log_register("TSMS WAP CHANGE");
         }
         
+        
+          function tsms_GetTz() {
+            $tz= zb_StorageGet('TSMS_TZ');
+            if (empty($tz)) {
+                //create new one
+                $tz='2';
+                zb_StorageSet('TSMS_TZ', $tz);
+                log_register("TSMS TIMEZONE CREATE");
+            }
+            return ($tz);
+        }
+        
+        function tsms_SetTz($tz) {
+            zb_StorageSet('TSMS_TZ', $tz);
+            log_register("TSMS TIMEZONE CHANGE");
+        }
+        
        function web_TsmsMiscOpts() {
            $cursign=  tsms_GetSign();
            $curwap=  tsms_GetWap();
+           $curtz= tsms_GetTz();
            $inputs=   wf_TextInput('newsign', __('Sign'), $cursign, true, '12');
            $inputs.=  wf_TextInput('newwap', __('WAP'), $curwap, true, '15');
+           $inputs.=  user_tz_select($curtz,'newtz').' '.wf_tag('label', false, '', 'for="newtz"').__('Time zone').wf_tag('label',true).wf_tag('br');
            $inputs.= wf_Submit(__('Save'));
            $result=  wf_Form('', 'POST', $inputs, 'glamour');
+           return ($result);
+       }
+       
+       function web_TsmsExcludeOpts() {
+           $excludedUsers= tsms_GetExcludeUsers();
+           $alladdress=  zb_AddressGetFulladdresslist();
+           $allrealnames= zb_UserGetAllRealnames();
+           $allphones=  tsms_GetAllMobileNumbers();
+           
+           $cells=  wf_TableCell(__('Login'));
+           $cells.= wf_TableCell(__('Full address'));
+           $cells.= wf_TableCell(__('Real Name'));
+           $cells.= wf_TableCell(__('Phone'));
+           $cells.= wf_TableCell(__('Actions'));
+           $rows=  wf_TableRow($cells, 'row1');
+           
+           if (!empty($excludedUsers)) {
+               foreach ($excludedUsers as $eachlogin=>$io) {
+                   
+                   $cells=  wf_TableCell(wf_Link("?module=userprofile&username=".$eachlogin, (web_profile_icon().' '.$eachlogin)));
+                   $cells.= wf_TableCell(@$alladdress[$eachlogin]);
+                   $cells.= wf_TableCell(@$allrealnames[$eachlogin]);
+                   $cells.= wf_TableCell(@$allphones[$eachlogin]);
+                   $cells.= wf_TableCell(wf_JSAlert("?module=turbosms&excludedelete=".$eachlogin, web_delete_icon(), __('Are you serious')));
+                   $rows.=  wf_TableRow($cells, 'row3');
+           
+               }
+           }
+           
+           //adding form
+           $inputs=   wf_TextInput('newexcludelogin', __('User login to exclude from sending'), '', true, '15');
+           $inputs.=  wf_Submit('Save');
+                      
+           $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+           $result.= wf_delimiter();
+           $result.= wf_Form("", 'POST', $inputs, 'glamour');
+ 
            return ($result);
        }
        
@@ -328,6 +444,8 @@ if (cfr('TURBOSMS')) {
        function web_TsmsMassendConfirm($userarray) {
            global $td_users,$td_mobiles,$td_realnames,$td_realnamestrans,$td_tariffprices,$td_alladdress;
            $template=  tsms_GetTemplate();
+           $excludeUsers=  tsms_GetExcludeUsers();
+           $excludeArr=array();
            
            $cells=   wf_TableCell(__('Login'));
            $cells.=  wf_TableCell(__('Address'));
@@ -340,6 +458,18 @@ if (cfr('TURBOSMS')) {
            $rows=  wf_TableRow($cells, 'row1');
            
            if (!empty($userarray)) {
+               
+               //excluded users handling
+               if (!empty($excludeUsers)) {
+                   $excludeResult=wf_tag('h3').__('Next users will be ignored while SMS sending').  wf_tag('h3', true);
+                   foreach ($excludeUsers as $excludeLogin=>$nop) {
+                       unset($userarray[$excludeLogin]);
+                       $excludeArr[$excludeLogin]=$excludeLogin;
+                   }
+               } else {
+                   $excludeResult='';
+               }
+               
                foreach ($userarray as $login=>$phone) {
                    $message=tsms_ParseTemplate($login, $template);
                    $smsContainer=  wf_modal(__('Show'), __('SMS'), $message, '', '300', '200');
@@ -364,6 +494,13 @@ if (cfr('TURBOSMS')) {
            
            $result=$confirmForm;
            $result.=  wf_TableBody($rows, '100%', '0', 'sortable');
+           
+           //showing which users will be excluded
+           if (!empty($excludeUsers)) {
+               $result.=$excludeResult;
+               $result.=web_UserArrayShower($excludeArr);
+           }
+           
            return ($result);
        }
         
@@ -379,6 +516,17 @@ if (cfr('TURBOSMS')) {
         if (wf_CheckPost(array('newsign','newwap'))) {
             tsms_SetSign($_POST['newsign']);
             tsms_SetWap($_POST['newwap']);
+            tsms_SetTz($_POST['newtz']);
+            rcms_redirect("?module=turbosms");
+        }
+        
+        if (wf_CheckPost(array('newexcludelogin'))) {
+            tsms_ExcludeUserAdd($_POST['newexcludelogin']);
+            rcms_redirect("?module=turbosms");
+        }
+        
+        if (wf_CheckGet(array('excludedelete'))) {
+            tsms_ExcludeUserDelete($_GET['excludedelete']);
             rcms_redirect("?module=turbosms");
         }
         
@@ -401,7 +549,8 @@ if (cfr('TURBOSMS')) {
         $templateEditForm= wf_TableBody($templateEditForm, '100%', 0, '');
         
         $controlButtons=  wf_modal(__('Edit template'), __('Edit template'), $templateEditForm, 'ubButton', '600', '400');
-        $controlButtons.= wf_modal(__('Misc options'), __('Misc options'), web_TsmsMiscOpts(), 'ubButton', '300', '200');
+        $controlButtons.= wf_modal(__('Misc options'), __('Misc options'), web_TsmsMiscOpts(), 'ubButton', '320', '200');
+        $controlButtons.= wf_modal(__('Excluded users'), __('Excluded users'), web_TsmsExcludeOpts(), 'ubButton', '800', '600');
         $controlButtons.=wf_Link('?module=turbosms&sending=true', __('SMS sending'), false, 'ubButton');
         show_window(__('Options and sending'), $controlButtons);
         
@@ -427,12 +576,13 @@ if (cfr('TURBOSMS')) {
                 $smsTemplate=  tsms_GetTemplate();
                 $smsWap=  tsms_GetWap();
                 $smsSign=  tsms_GetSign();
+                $smsTz= tsms_GetTz();
                 $newMessage=  tsms_ParseTemplate($singlelogin, $smsTemplate);
                 @$mobile=$td_mobiles[$singlelogin];
                 if (!empty($mobile)) {
                   show_window(__('Result'),$newMessage.' => '.$mobile);
                   log_register("TSMS SEND SINGLE `".$mobile."`");
-                  tsms_SendSMS($mobile, $smsSign, $newMessage, $smsWap);
+                  tsms_SendSMS($mobile, $smsSign, $newMessage, $smsWap,$smsTz);
                   
                 } else {
                     show_window(__('Error'),__('No mobile'));
@@ -451,7 +601,7 @@ if (cfr('TURBOSMS')) {
                 $smsTemplate=  tsms_GetTemplate();
                 $smsWap=  tsms_GetWap();
                 $smsSign=  tsms_GetSign();
-                
+                $smsTz= tsms_GetTz();
                 
                 $unpackData=  base64_decode($_POST['massendConfirm']);
                 $unpackData= unserialize($unpackData);
@@ -460,7 +610,7 @@ if (cfr('TURBOSMS')) {
                         log_register("TSMS SEND MASS FOR `".sizeof($unpackData)."` USERS");
                         foreach ($unpackData as $eachLogin=>$eachPhone) {
                             $newMessage=  tsms_ParseTemplate($eachLogin, $smsTemplate);
-                            tsms_SendSMS($eachPhone, $smsSign, $newMessage, $smsWap);
+                            tsms_SendSMS($eachPhone, $smsSign, $newMessage, $smsWap,$smsTz);
                             
                         }
                         $notifyText=sizeof($unpackData).' '.__('SMS queued and waiting to send').  wf_Link('?module=turbosms', __('Click here to view today sending queue'), true, 'ubButton');

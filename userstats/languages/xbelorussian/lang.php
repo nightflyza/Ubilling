@@ -142,4 +142,11 @@ $lang['def']['Sep'] = 'Сен';
 $lang['def']['Oct'] = 'Окт';
 $lang['def']['Nov'] = 'Ноя';
 $lang['def']['Dec'] = 'Дек';
+
+$lang['def']['Tariff speed'] = 'Хуткасць тарыфу';
+$lang['def']['Mbit/s'] = 'Мбіт/с';
+$lang['def']['Kbit/s'] = 'Кбіт/с';
+$lang['def']['None'] = 'Не ўстаноўлена';
+$lang['def']['Unlimited'] = 'Без абмежаванняў';
+        
 ?>

@@ -367,6 +367,39 @@ function zbs_PaymentIDGet($login) {
     }
     return ($result);
  }
+ 
+ function zbs_TariffGetSpeed($tariff) {
+     $offset=1024;
+     $query="SELECT * from `speeds` where `Tariff`='".$tariff."'";
+     $speedData=  simple_query($query);
+     $result='';
+     if (!empty($speedData)) {
+         if ($speedData['speeddown']!=0) {
+             if ($speedData['speeddown']<$offset) {
+                 $result=$speedData['speeddown'].' '.__('Kbit/s');
+             } else {
+                 $result=($speedData['speeddown']/$offset).' '.__('Mbit/s');
+             }
+         } else {
+             $result=__('Unlimited');
+         }
+     } else {
+         $result=__('None');
+     }
+     return ($result);
+ }
+ 
+ function zbs_SpeedGetOverride($login) {
+     $offset=1024;
+     $login=  mysql_real_escape_string($login);
+     $query="SELECT * from `userspeeds` WHERE `login`='".$login."'";
+     $speedData=  simple_query($query);
+     $result=0;
+     if (!empty($speedData)) {
+         $result=$speedData['speed'];
+     }
+     return ($result);
+ }
 
 function zbs_UserShowProfile($login) {
     $us_config=zbs_LoadConfig();
@@ -412,6 +445,29 @@ function zbs_UserShowProfile($login) {
         $paymentid=  zbs_PaymentIDGet($login);
     } else {
         $paymentid=ip2int($userdata['IP']);
+    }
+    
+    //tariff speeds
+    if ($us_config['SHOW_SPEED']) {
+        $speedOffset=1024;
+        $userSpeedOverride=  zbs_SpeedGetOverride($login);
+        if ($userSpeedOverride==0) {
+            $showSpeed=zbs_TariffGetSpeed($userdata['Tariff']);
+        } else {
+            if ($userSpeedOverride<$speedOffset) {
+               $showSpeed=$userSpeedOverride.' '.__('Kbit/s'); 
+            } else {
+               $showSpeed=($userSpeedOverride/$speedOffset).' '.__('Mbit/s');
+            }
+        }
+        $tariffSpeeds='
+            <tr>
+            <td class="row1">'.__('Tariff speed').'</td>
+            <td>'.  $showSpeed.'</td>
+            </tr>
+            ';
+    } else {
+        $tariffSpeeds='';
     }
     
     $profile='
@@ -466,8 +522,6 @@ function zbs_UserShowProfile($login) {
             <td>'.$contract.'</td>
             </tr>
             
-           
-            
             <tr>
             <td class="row1">'.__('Balance').'</td>
             <td>'.$userdata['Cash'].' '.$us_currency.'</td>
@@ -485,7 +539,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Tariff').'</td>
-            <td>'.$userdata['Tariff'].'</td>
+            <td>'.__($userdata['Tariff']).'</td>
             </tr>
             
             <tr>
@@ -493,6 +547,8 @@ function zbs_UserShowProfile($login) {
             <td>'.@zbs_UserGetTariffPrice($userdata['Tariff']).' '.$us_currency.'</td>
             </tr>
             
+            '.$tariffSpeeds.'
+                
             <tr>
             <td class="row1">'.__('Tariff change').'</td>
             <td>'.$userdata['TariffChange'].'</td>

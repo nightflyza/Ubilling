@@ -4,32 +4,23 @@ if (cfr('PERMISSIONS')) {
 //$userdata = load_user_info('demo');
 function web_list_admins() {
     $alladmins=rcms_scandir(USERS_PATH);
-    $form='<table width="100%" class="sortable" border="0">';
-    $form.='<tr class="row1">
-                <td>
-                '.__('Admin').'
-                </td>
-                <td>
-                '.__('Actions').'
-                </td>
-                </tr>
-                ';
+    $cells=  wf_TableCell(__('Admin'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows=  wf_TableRow($cells, 'row1');
+    
     if (!empty ($alladmins)) {
         foreach ($alladmins as $eachadmin) {
-            $form.='<tr class="row3">
-                <td>
-                '.$eachadmin.'
-                </td>
-                <td>
-               '.  wf_JSAlert('?module=permissions&delete='.$eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results').'
-                <a href="?module=permissions&passwd='.$eachadmin.'">'.  web_key_icon().'</a> 
-                <a href="?module=permissions&edit='.$eachadmin.'">'.web_edit_icon('Rights').'</a>
-                </td>
-                </tr>
-                ';
+            $actions=wf_JSAlert('?module=permissions&delete='.$eachadmin, web_delete_icon(), 'Removing this may lead to irreparable results');
+            $actions.= wf_Link('?module=permissions&passwd='.$eachadmin, web_key_icon());
+            $actions.= wf_Link('?module=permissions&edit='.$eachadmin, web_edit_icon('Rights'));
+            
+            $cells=  wf_TableCell($eachadmin);
+            $cells.= wf_TableCell($actions);
+            $rows.=  wf_TableRow($cells, 'row3');
         }
     }
-    $form.='</table>';
+    
+    $form=  wf_TableBody($rows, '100%', '0', 'sortable');
     return($form);
  }
  
@@ -132,29 +123,29 @@ function web_list_admins() {
     
     
     //rights grid
-    $label='<h3>'.__('Users registration').'</h3>';
+    $label=  wf_tag('h3').__('Users registration').wf_tag('h3',true);
     $tablecells=wf_TableCell($label.$reginputs,'','','valign="top"');
-    $label='<h3>'.__('System settings').'</h3>';
+    $label=wf_tag('h3').__('System settings').wf_tag('h3',true);
     $tablecells.=wf_TableCell($label.$sysinputs,'','','valign="top"');
-    $label='<h3>'.__('Reports').'</h3>';
+    $label=wf_tag('h3').__('Reports').wf_tag('h3',true);
     $tablecells.=wf_TableCell($label.$repinputs,'','','valign="top"');
     $tablerows=  wf_TableRow($tablecells);
     
-    $label='<h3>'.__('Financial management').'</h3>';
+    $label=wf_tag('h3').__('Financial management').wf_tag('h3',true);
     $tablecells=wf_TableCell($label.$fininputs,'','','valign="top"');
-    $label='<h3>'.__('CaTV').'</h3>';
+    $label=wf_tag('h3').__('CaTV').wf_tag('h3',true);
     $tablecells.=wf_TableCell($label.$catvinputs,'','','valign="top"');
-    $label='<h3>'.__('Geography').'</h3>';
+    $label=wf_tag('h3').__('Geography').wf_tag('h3',true);
     $tablecells.=wf_TableCell($label.$geoinputs,'','','valign="top"');
     $tablerows.=  wf_TableRow($tablecells);
     
-    $label='<h3>'.__('Misc rights').'</h3>';
+    $label=wf_tag('h3').__('Misc rights').wf_tag('h3',true);
     $tablecells=wf_TableCell($label.$miscinputs,'','','valign="top"');
     $tablerows.=  wf_TableRow($tablecells);
     
     
     $rightsgrid=$inputs;
-    $rightsgrid.=wf_Submit('Save');
+    $rightsgrid.=wf_Submit('Save').  wf_delimiter();
     
     
     $rightsgrid.= wf_TableBody($tablerows, '100%', 0, 'glamour');

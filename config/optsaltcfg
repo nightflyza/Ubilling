@@ -89,6 +89,7 @@ DEVCON_VERBOSE_DEBUG=TRIGGER|Verbose debug data in developers console
 FINREP_CONTRACT=TRIGGER|Show users contract in finance report
 SIGREP_CONTRACT=TRIGGER|Show users contract in signup report
 TARIFFCHGAUTOCREDIT=TRIGGER|Automatically set the credit limit when you change the tariff
+MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

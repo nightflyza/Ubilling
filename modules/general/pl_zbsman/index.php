@@ -111,9 +111,9 @@ if (cfr('ZBSMAN')) {
     
     function web_ZbsManUserLists() {
          $access=  zb_GetUserStatsDeniedAll();
-         $access=  array_flip($access);
+         $access=  array_keys($access);
          $helpdesk= zb_GetHelpdeskDeniedAll();
-         $helpdesk= array_flip($helpdesk);
+         $helpdesk= array_keys($helpdesk);
          
          if (!empty($access)) {
              show_window(__('Users that cant access Userstats'),web_UserArrayShower($access));
