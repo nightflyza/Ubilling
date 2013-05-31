@@ -40,6 +40,9 @@ if (cfr('PAYFIND')) {
         $mark = mysql_real_escape_string($mark);
         $name = mysql_real_escape_string($name);
         $percent = mysql_real_escape_string($percent);
+        if ($percent=='') {
+            $percent=0;
+        }
         $olddata = zb_PaySysPercentGetAll();
         $newdata = $olddata;
 
@@ -285,7 +288,7 @@ if (cfr('PAYFIND')) {
 
     //Payment systems configuration
     //adding payment system
-    if (wf_CheckPost(array('newmarker', 'newname', 'newpercent'))) {
+    if (wf_CheckPost(array('newmarker', 'newname'))) {
         zb_PaySysPercentAdd($_POST['newmarker'], $_POST['newname'], $_POST['newpercent']);
         rcms_redirect("?module=payfind&confpaysys=true");
     }

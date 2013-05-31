@@ -51,14 +51,14 @@ function zb_TicketDelete($ticketid) {
     $ticketid=vf($ticketid,3);
     $query="DELETE FROM `ticketing` WHERE `id`='".$ticketid."'";
     nr_query($query);
-    log_register("TICKET DELETE ".$ticketid);
+    log_register("TICKET DELETE [".$ticketid."]");
 }
 
 function zb_TicketDeleteReplies($ticketid) {
     $ticketid=vf($ticketid,3);
     $query="DELETE FROM `ticketing` WHERE `replyid`='".$ticketid."'";
     nr_query($query);
-    log_register("TICKET REPLIES DELETE ".$ticketid);
+    log_register("TICKET REPLIES DELETE [".$ticketid."]");
 }
 
 
@@ -66,7 +66,7 @@ function zb_TicketDeleteReply($replyid) {
     $replyid=vf($replyid,3);
     $query="DELETE FROM `ticketing` WHERE `id`='".$replyid."'";
     nr_query($query);
-    log_register("TICKET REPLY DELETE ".$replyid);
+    log_register("TICKET REPLY DELETE [".$replyid."]");
 }
 
 
@@ -74,7 +74,7 @@ function zb_TicketUpdateReply($replyid,$newtext) {
     $replyid=vf($replyid,3);
     $newtext=strip_tags($newtext);
     simple_update_field('ticketing', 'text', $newtext, "WHERE `id`='".$replyid."'");
-    log_register("TICKET REPLY EDIT ".$replyid);
+    log_register("TICKET REPLY EDIT [".$replyid."]");
 }
 
 
@@ -109,20 +109,20 @@ function zb_TicketCreate($from,$to,$text,$replyto='NULL',$admin='') {
            );
         ";
     nr_query($query);
-    log_register("TICKET CREATE ".$to);
+    log_register("TICKET CREATE (".$to.")");
 }
 
 function zb_TicketSetDone($ticketid) {
     $ticketid=vf($ticketid);
     simple_update_field('ticketing', 'status', '1', "WHERE `id`='".$ticketid."'");
-    log_register("TICKET CLOSE ".$ticketid);
+    log_register("TICKET CLOSE [".$ticketid."]");
 }
 
 
 function zb_TicketSetUnDone($ticketid) {
     $ticketid=vf($ticketid);
     simple_update_field('ticketing', 'status', '0', "WHERE `id`='".$ticketid."'");
-    log_register("TICKET OPEN ".$ticketid);
+    log_register("TICKET OPEN [".$ticketid."]");
 }
 
 //
@@ -159,20 +159,20 @@ function zb_SigreqsGetAllNewCount(){
     function zb_SigreqsSetDone($reqid) {
         $requid=vf($reqid,3);
         simple_update_field('sigreq', 'state', '1', "WHERE `id`='".$reqid."'");
-        log_register('SIGREQ DONE '.$reqid);
+        log_register('SIGREQ DONE ['.$reqid.']');
     }
     
     function zb_SigreqsSetUnDone($reqid) {
         $requid=vf($reqid,3);
         simple_update_field('sigreq', 'state', '0', "WHERE `id`='".$reqid."'");
-        log_register('SIGREQ UNDONE '.$reqid);
+        log_register('SIGREQ UNDONE ['.$reqid.']');
     }
     
     function zb_SigreqsDeleteReq($reqid) {
         $requid=vf($reqid,3);
         $query="DELETE from `sigreq` WHERE `id`='".$reqid."'";
         nr_query($query);
-        log_register('SIGREQ DELETE '.$reqid);
+        log_register('SIGREQ DELETE ['.$reqid.']');
     }
     
         

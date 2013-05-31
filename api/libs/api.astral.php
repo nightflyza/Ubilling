@@ -952,7 +952,7 @@ function wf_FullCalendar($data) {
 		$('#".$elementid."').fullCalendar({
 			editable: false,
                         theme: true,
-                        
+                        weekends: true,
                         monthNamesShort: [
                         '".  rcms_date_localise('Jan')."',
                         '".  rcms_date_localise('Feb')."',

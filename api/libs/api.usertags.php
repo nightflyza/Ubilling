@@ -214,7 +214,11 @@ NULL , '".$login."', '".$tagid."'
  function stg_get_tag_body($id) {
      $query="SELECT * from `tagtypes` where `id`='".$id."'";
      $tagbody=simple_query($query);
-     $result='<font color="'.$tagbody['tagcolor'].'" size="'.$tagbody['tagsize'].'">'.$tagbody['tagname'].'</font> &nbsp; ';
+     
+     $result=  wf_tag('font', false, '', 'color="'.$tagbody['tagcolor'].'" size="'.$tagbody['tagsize'].'"');
+     $result.= '<a href="?module=tagcloud&tagid='.$id.'" style="color: '.$tagbody['tagcolor'].';">'.$tagbody['tagname'].'</a>';
+     $result.= wf_tag('font',true);
+     $result.='&nbsp;';
      return($result);
  }
  

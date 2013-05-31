@@ -1230,7 +1230,7 @@ $lang['def']['Right to manage DOCSIS']='Право керувати DOCSIS';
 $lang['def']['Automatically set the credit limit when you change the tariff']='Автоматичне встановлення кредиту при зміні тарифу';
 $lang['def']['Migration']='Міграція';
 $lang['def']['Renew modem data']='Оновити відомості про модем';
-$lang['def']['Users credit limit which has no expiration date']='Користувачі кредитний ліміт яких не має терміну гідності';
+$lang['def']['Users credit limit which has no expiration date']='Користувачі кредитний ліміт яких не має терміну придатності';
 $lang['def']['Forever and ever']='Віки вічні';
 $lang['def']['Networking data']='Мережеві відомості';
 $lang['def']['No added cities - they will need to create a street']='Немає доданих міст - вони обовязково потрібні для створення вулиць';
@@ -1305,6 +1305,21 @@ $lang['def']['Renew']='Оновити';
 $lang['def']['Excluded users']='Виключення з розсилки';
 $lang['def']['User login to exclude from sending']='Логін користувача для виключення з розсилки';
 $lang['def']['Next users will be ignored while SMS sending']='Наступних користувачів буде проігноровано при розсиланні СМС';
+
+//rev 2549
+$lang['def']['Show users contract in signup report']='Показувати угоду у звіті по підключеннях';
+$lang['def']['Path to snmpwalk with needed options']='Шлях до snmpwalk з потрібними опціями';
+$lang['def']['Contracts default generation mode']='Генерація угод за замовчуванням';
+$lang['def']['SNMP template']='Шаблон SNMP';
+$lang['def']['Port states']='Стан портів';
+$lang['def']['Bytes transmitted']='Байт передано';
+$lang['def']['Bytes received']='Байт отримано';
+$lang['def']['Transmit errors']='Помилок передачі';
+$lang['def']['CPU usage']='Завантаження CPU';
+$lang['def']['Memory usage']='Зайнято памяті';
+$lang['def']['SNMP query']='Опитування з допомогою SNMP';
+$lang['def']['right to query switches via SNMP']='Право опиту комутаторів з допомогою SNMP';
+$lang['def']['Time to store SNMP raw data cache']='Час у хвилинах, зберігання сирих SNMP даних в кеші';
 
 
 ?>

@@ -3,7 +3,7 @@ if(cfr('SWITCHM')) {
 
 
 if (isset($_POST['newsm'])) {
-    ub_SwitchModelAdd($_POST['newsm'],$_POST['newsmp']);
+    ub_SwitchModelAdd($_POST['newsm'],$_POST['newsmp'],$_POST['newsst']);
     rcms_redirect("?module=switchmodels");
 }
 
@@ -15,7 +15,7 @@ if (isset($_GET['deletesm'])) {
 }
 
 if (!isset($_GET['edit'])) {
-$navlinks=  wf_modal(__('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '300', '170');
+$navlinks=  wf_modal(__('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '420', '250');
 $navlinks.=wf_Link('?module=switches', 'Available switches', true, 'ubButton');
 
 show_window('',  $navlinks);
@@ -28,13 +28,18 @@ show_window(__('Available switch models'),  web_SwitchModelsShow());
      if (wf_CheckPost(array('editmodelname'))) {
          simple_update_field('switchmodels', 'modelname', $_POST['editmodelname'], "WHERE `id`='".$editid."' ");
          simple_update_field('switchmodels', 'ports', $_POST['editports'], "WHERE `id`='".$editid."' ");
+         simple_update_field('switchmodels', 'snmptemplate', $_POST['editsnmptemplate'], "WHERE `id`='".$editid."' ");
          log_register("SWITCHMODEL CHANGE ".$editid);
          rcms_redirect("?module=switchmodels");
      }
      
      $modeldata=zb_SwitchModelGetData($editid);
+     $allSnmpTemplates=zb_SwitchModelsSnmpTemplatesGetAll();
+     
      $editinputs=wf_TextInput('editmodelname', 'Model', $modeldata['modelname'], true, '20');
      $editinputs.=wf_TextInput('editports', 'Ports', $modeldata['ports'], true, '5');
+     $editinputs.=wf_Selector('editsnmptemplate', $allSnmpTemplates, 'SNMP template', $modeldata['snmptemplate']);
+     $editinputs.=wf_delimiter();
      $editinputs.=wf_Submit('Save');
      $editform=wf_Form('', 'POST', $editinputs, 'glamour');
      show_window(__('Switch model edit'),$editform);

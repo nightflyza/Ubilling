@@ -40,14 +40,27 @@
 			
       
 		<? } else { 
+                    
+                    if (file_exists('DEMO_MODE')) {
 			$loginform='
-        <form action="" method="post">
-	<input type="hidden" name="login_form" value="1">
-	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
+                <form action="" method="post">
+                <input type="hidden" name="login_form" value="1">
+        	&nbsp; '.__('Login').' <input name="username" type="text" value="admin" size="12">
+		&nbsp; '.__('Password').' <input name="password" type="password"  value="demo" size="12">
+		<input value="'.__('Log in').'" type="submit">
+		</form>
+		'; 
+                        
+                } else {
+                    $loginform='
+                <form action="" method="post">
+                <input type="hidden" name="login_form" value="1">
+        	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
 		&nbsp; '.__('Password').' <input name="password" type="password" size="12">
 		<input value="'.__('Log in').'" type="submit">
 		</form>
 		'; 
+                }
 		print($loginform);
 		  }?>	
 <div style="clear: both;">&nbsp;</div>

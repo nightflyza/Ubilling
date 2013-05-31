@@ -1,42 +1,57 @@
-<?php if (!defined('ENVIRONMENT')) exit('No direct script access allowed!\n');
+<?php if ( ! defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
 
 	class Executer {
 
-		/* HERE WILL BE `rscriptd` SECTION FROM `config.ini` FILE: */
+		// LOADED CONFIGURATIONS:
 		private $config = array();
 		
-		/* "LOGGER" CLASS LINK: */
+		// LOADED CLASSES:
 		private $log	=	NULL;
+	
+		// QUERIED DATABASE DATA:
+		private $data = array();
 
-		/* CLASS CONSTRUCTOR: */
+		// CLASS CONSTRUCTOR:
 		public function __construct($data) {
-			foreach($data as $key => $value) {
-				$this->$key = $value;
-			}
-			$this->log->message(__CLASS__, "RScriptD Command Executer loaded...", "debug");
+			// PARSE RECIVED DATA:
+			foreach ($data as $key => $value) $this->$key = $value;
+
+			// SEND MESSAGE, THAT LOADED:
+			$this->log->message(__CLASS__, "RScriptD Executer loaded...", "debug");
 		}
 
-		/* GENERATE RATE VALUES FROM $data['RATE']: */
-		private function generate_rates($data) {
+		// GENERATE RATE VALUES FROM $data['RATE']:
+		private function generate_rates() {
 			$return = array();
-			if($data['REASSIGNED'] != NULL) {
-				$return['SPEED']	= $data['REASSIGNED'] . $this->config['rate_val'];
-				$return['UPSPEED']	= $data['REASSIGNED'] . $this->config['rate_val'];
-			} elseif($data['TARIFF']['TX'] != NULL AND $data['TARIFF']['RX'] != NULL) {
-				$return['SPEED']	= $data['TARIFF']['RX'] . $this->config['rate_val'];
-				$return['UPSPEED']	= $data['TARIFF']['TX'] . $this->config['rate_val'];
-			} else {
+			if ( ! empty($this->data['USER']['RATE']['REASSIGNED']) ) {		// IF RATE IS REASIGNED:
+				// SET RATE LIMIT VALUES:
+				$return['SPEED']	= $this->data['USER']['RATE']['REASSIGNED'] . $this->config['rate_val'];
+				$return['UPSPEED']	= $this->data['USER']['RATE']['REASSIGNED'] . $this->config['rate_val'];
+			} elseif ( ! empty($this->data['USER']['RATE']['TARIFF']) ) {	// IF RATE IS BY TARIFF:
+				// CHANGE RX `NULL` TO `0`:
+				if ( empty($this->data['USER']['RATE']['TARIFF']['RX']) ) {
+					$this->data['USER']['RATE']['TARIFF']['RX'] = 0;
+				}
+				// CHANGE TX `NULL` TO `0`:
+				if ( empty($this->data['USER']['RATE']['TARIFF']['TX']) ) {
+					$this->data['USER']['RATE']['TARIFF']['TX'] = 0;
+				}
+				// SET RATE LIMIT VALUES:
+				$return['SPEED']	= $this->data['USER']['RATE']['TARIFF']['RX'] . $this->config['rate_val'];
+				$return['UPSPEED']	= $this->data['USER']['RATE']['TARIFF']['TX'] . $this->config['rate_val'];
+			} else {														// IN OTHER CASES SET RATE = 0:
+				// SET RATE LIMIT VALUES:
 				$return['SPEED']	= 0 . $this->config['rate_val'];
 				$return['UPSPEED']	= 0 . $this->config['rate_val'];
 			}
 			return $return;
 		}
 
-		/* OnConnect: */
-		public function OnConnect($data) {
-			$rate = $this->generate_rates($data['RATE']);
+		// OnConnect:
+		public function OnConnect() {
+			$rate = $this->generate_rates();
 			// ARP:
-			shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $data['MAC']);
+			shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $this->data['USER']['MAC']);
 			// SPEED CONTROL:
 			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 101) . " config bw " . $rate['UPSPEED'] . " queue 32Kbytes");
 			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['SPEED'] . " queue 32Kbytes");
@@ -44,14 +59,14 @@
 			shell_exec($this->config['fwcmd'] . " table 3 add " . IP . " " . (ID + 101));
 			shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 8101));
 			shell_exec($this->config['fwcmd'] . " table 47 delete " . IP);
-			// DAY/NIGHT switcher:
+			// DAY/NIGHT SWITCHER:
 			file_put_contents(BASEPATH . "dn/" . LOGIN, $rate['SPEED'] . ":" . (ID + 8101), LOCK_EX);
 			shell_exec("/bin/chmod 777 " . BASEPATH . "dn/" . LOGIN);
 			$this->log->message(__CLASS__, "Creation of IPFW rules done...", "success");
 			return TRUE;
 		}
 
-		/* OnDisconnect: */
+		// OnDisconnect:
 		public function OnDisconnect($data) {
 			// DELETE OLD PIPES:
 			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 101) . " delete");
@@ -60,7 +75,7 @@
 			shell_exec($this->config['fwcmd'] . " table 3 delete " . IP . " " . (ID + 101));
 			shell_exec($this->config['fwcmd'] . " table 4 delete " . IP . " " . (ID + 8101));
 			shell_exec($this->config['fwcmd'] . " table 47 add " . IP);
-			// DAY/NIGHT switcher:
+			// DAY/NIGHT SWITCHER:
 			shell_exec("/bin/rm " . BASEPATH . "dn/" . LOGIN);
 			$this->log->message(__CLASS__, "Removing of IPFW rules done...", "success");
 			return TRUE;

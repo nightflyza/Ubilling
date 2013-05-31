@@ -402,24 +402,54 @@ function zbs_PaymentIDGet($login) {
  }
 
 function zbs_UserShowProfile($login) {
-    $us_config=zbs_LoadConfig();
-    $us_currency=$us_config['currency'];
-    $userdata=zbs_UserGetStargazerData($login);
-    $alladdress=zbs_AddressGetFulladdresslist();
-    $allrealnames=zbs_UserGetAllRealnames();
-    $contract=zbs_UserGetContract($login);
-    $email=zbs_UserGetEmail($login);
-    $mobile=zbs_UserGetMobile($login);
-    $phone=zbs_UserGetPhone($login);
-    $passive=$userdata['Passive'];
-    $down=$userdata['Down'];
+    $us_config      = zbs_LoadConfig();
+    $us_currency    = $us_config['currency'];
+    $userdata       = zbs_UserGetStargazerData($login);
+    $alladdress     = zbs_AddressGetFulladdresslist();
+    $allrealnames   = zbs_UserGetAllRealnames();
+    $contract       = zbs_UserGetContract($login);
+    $email          = zbs_UserGetEmail($login);
+    $mobile         = zbs_UserGetMobile($login);
+    $phone          = zbs_UserGetPhone($login);
+    $passive        = $userdata['Passive'];
+    $down           = $userdata['Down'];
+
+    // IF ONLINELEFT_COUNT IS TRUE:
+    if ($us_config['ONLINELEFT_COUNT'] != 0) {
+        // DEFINE VARS:
+	$userBalance = $userdata['Cash'];
+	$tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);;
+        
+        // COUNT DAYS ONLINE LEFT:
+        $daysOnLine = 0;
+	while ( $userBalance > 0 ) {
+		$daysOnLine++;
+		$dayFee = $tariffFee / date("t", time() + ($daysOnLine * 24 * 60 * 60));
+		$userBalance = $userBalance - $dayFee;
+	}
+        
+        // STYLING RESULT:
+        switch ($us_config['ONLINELEFT_STYLE']) {
+            case 'days':
+                $balanceExpire = "(" . __('Balance Expire In').' ' . $daysOnLine .' '. __('days') . ")";
+                break;
+            case 'date':
+                $balanceExpire = "(" . __('Balance Expire On') .' '. date("d-m-Y", time() + ($daysOnLine * 24 * 60 * 60)) . ")";
+                break;
+            default:
+                $balanceExpire = NULL;
+                break;
+        }
+    } else $balanceExpire = NULL;
     
-    if ($userdata['CreditExpire']!=0) {
-        $credexpire=date("d-m-Y",$userdata['CreditExpire']);
+    
+    if ( $userdata['CreditExpire'] != 0 ) {
+        $credexpire = date("d-m-Y", $userdata['CreditExpire']);
     } else {
-        $credexpire='';    
+        $credexpire = '';    
     }
-    //pasive state check
+    
+    // pasive state check
     if ($passive) {
         $passive_state=__('Account frozen');
     } else {
@@ -524,7 +554,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Balance').'</td>
-            <td>'.$userdata['Cash'].' '.$us_currency.'</td>
+            <td>'.$userdata['Cash'].' '.$us_currency.' ' . $balanceExpire . '</td>
             </tr>
             
             <tr>

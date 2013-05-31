@@ -1299,6 +1299,21 @@ $lang['def']['Excluded users']='Исключения из рассылки';
 $lang['def']['User login to exclude from sending']='Логин пользователя для исключения из рассылки';
 $lang['def']['Next users will be ignored while SMS sending']='Следующие пользователи будут проигнорированы при отсылке СМС';
 
+//rev 2549
+$lang['def']['Show users contract in signup report']='Показывать договор в отчете по подключениям';
+$lang['def']['Path to snmpwalk with needed options']='Путь к snmpwalk с нужными опциями';
+$lang['def']['Contracts default generation mode']='Генерация договоров по умолчанию';
+$lang['def']['SNMP template']='Шаблон SNMP';
+$lang['def']['Port states']='Состояние портов';
+$lang['def']['Bytes transmitted']='Байт передано';
+$lang['def']['Bytes received']='Байт получено';
+$lang['def']['Transmit errors']='Ошибок передачи';
+$lang['def']['CPU usage']='Загрузка CPU';
+$lang['def']['Memory usage']='Занято памяти';
+$lang['def']['SNMP query']='Опрос при помощи SNMP';
+$lang['def']['right to query switches via SNMP']='Право опроса свичей при помощи SNMP';
+$lang['def']['Time to store SNMP raw data cache']='Время в минутах, хранения сырых SNMP данных в кеше';
+
 
 
 ?>

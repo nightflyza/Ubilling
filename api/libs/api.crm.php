@@ -633,13 +633,23 @@ function web_ExpressAddressAptForm($login) {
 
               $allcontracts=zb_UserGetAllContracts();
                 //contract proposal
-                    $allcontracts=zb_UserGetAllContracts();
-                    for ($i=1;$i<10000;$i++) {
-                        if (!isset($allcontracts[$i])) {
-                            $contract=$i;
-                            break;
-                        }
+                 $top_offset=100000;
+                //contract generation mode default
+                if ($altconf['CONTRACT_GENERATION_DEFAULT']) {
+                for ($i=1;$i<$top_offset;$i++) {
+                    if (!isset($allcontracts[$i])) {
+                        $contract=$i;
+                        break;
                     }
+                }
+                } else {
+                    //alternate generation method
+                   $max_contract=max(array_keys($allcontracts));
+                   $contract=$max_contract+1;
+                }
+
+                
+                    
                 $mac= '14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
                 
                 $phone= '';

@@ -1,43 +1,43 @@
 #!/usr/local/bin/php
-<?php if(isset($argv)) {
+<?php if ( isset($argv) AND $argc == 6 ) {
 
 		// DEFINE ENVIRONMENT:
-		define("ENVIRONMENT", "OnConnect");
+		define('ENVIRONMENT', 'OnConnect');
 
-		// DEFINE USERS' LOGIN:
-		if(isset($argv[1])) {
-			define("LOGIN", $argv[1]);
-		} else define("LOGIN", NULL);
+		// DEFINE USER'S LOGIN:
+		if ( isset($argv[1]) ) {
+			define('LOGIN', $argv[1]);
+		} else define('LOGIN', NULL);
 
-		// DEFINE USERS' IP:
-		if(isset($argv[2])) {
-			define("IP", $argv[2]);
-		} else define("IP", NULL);
+		// DEFINE USER'S IP:
+		if ( isset($argv[2]) ) {
+			define('IP', $argv[2]);
+		} else define('IP', NULL);
 
-		// DEFINE USERS' CASH:
-		if(isset($argv[3])) {
-			define("CASH", $argv[3]);
-		} else define("CASH", NULL);
+		// DEFINE USER'S CASH:
+		if ( isset($argv[3]) ) {
+			define('CASH', $argv[3]);
+		} else define('CASH', NULL);
 
-		// DEFINE USERS' STG UNIQUE ID:
-		if(isset($argv[4])) {
-			define("ID", $argv[4]);
-		} else define("ID", NULL);
+		// DEFINE USER'S STG UNIQUE ID:
+		if ( isset($argv[4]) ) {
+			define('ID', $argv[4]);
+		} else define('ID', NULL);
 
-		// DEFINE USERS' ALLOWED DIRS:
-		if(isset($argv[5])) {
-			define("DIRS", $argv[5]);
-		} else define("DIRS", NULL);
+		// DEFINE USER'S ALLOWED DIRS:
+		if ( isset($argv[5]) ) {
+			define('DIRS', $argv[5]);
+		} else define('DIRS', NULL);
 
 		// DEFINE PATHS:
-		define("BASEPATH", __DIR__ . "/");
-		define("SYSTEM", BASEPATH . "system/");
-		define("DB_DRVS", SYSTEM . "database/");
-		define("NAS_DRVS", SYSTEM . "executer/");
-		define("LOG_DRVS", SYSTEM . "log/");
-		
+		define('BASEPATH', __DIR__ . '/');
+		define('SYSTEM', BASEPATH . 'system/');
+		define('DB_DRVS', SYSTEM . 'database/');
+		define('NAS_DRVS', SYSTEM . 'executer/');
+		define('LOG_DRVS', SYSTEM . 'log/');
+
 		// DEFINE DRIVERS EXTENTION:
-		define("EXT", ".drv");
+		define('EXT', '.drv');
 
 		// TURN OFF PHP ERROR REPORTING:
 		error_reporting(0);
@@ -46,8 +46,8 @@
 		unset($argv, $argc);
 
 		// CONTINUE...
-		include_once(SYSTEM . "ubilling.cls");
+		include_once(SYSTEM . 'ubilling.cls');
 		new Ubilling();
 
-	} else exit("Script can be runned only by Stargazer!" . "\n");
+	} else exit('Only STG can run script!');
 ?>

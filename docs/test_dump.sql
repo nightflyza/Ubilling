@@ -879,3 +879,6 @@ CREATE TABLE IF NOT EXISTS `ub_im` (
 
 -- 0.3.9 update
 ALTER TABLE `ubstorage` CHANGE `value` `value` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
+
+-- 0.4.1 update
+ALTER TABLE `switchmodels` ADD `snmptemplate` VARCHAR( 255 ) DEFAULT NULL ;

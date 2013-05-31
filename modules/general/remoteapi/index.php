@@ -122,6 +122,33 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                        $cleancount=  zb_DBCleanupAutoClean();
                            die('OK:AUTOCLEANDB '.$cleancount);
                        }
+                       
+                       /*
+                        * SNMP switch polling
+                        */
+                       if ($_GET['action']=='swpoll') {
+                            $allDevices=  sp_SnmpGetAllDevices();
+                            $allTemplates= sp_SnmpGetAllModelTemplates();
+                            $allTemplatesAssoc=  sp_SnmpGetModelTemplatesAssoc();
+                            $allusermacs=zb_UserGetAllMACs();
+                            $alladdress= zb_AddressGetFullCityaddresslist();
+                            
+                            if (!empty($allDevices)) {
+                            foreach ($allDevices as $io=>$eachDevice) {
+                                 if (!empty($allTemplatesAssoc)) {
+                                            if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
+                                                $deviceTemplate=$allTemplatesAssoc[$eachDevice['modelid']];
+                                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates,$deviceTemplate,$allusermacs,$alladdress,true);
+                                                print(date("Y-m-d H:i:s").' '.$eachDevice['ip'].' [OK]'."\n");
+                                            } 
+                                        }
+                            }
+                            die('OK:SWPOLL');
+                        } else {
+                            die('ERROR:SWPOLL_NODEVICES');
+                        }
+                           
+                       }
   ////
   //// End of actions
   ////

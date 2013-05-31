@@ -269,42 +269,49 @@ function web_EditorStringDataFormPassword($fieldnames,$fieldkey,$useraddress,$ol
 return($form);
 }
 
-function web_EditorStringDataFormCredit($fieldnames,$fieldkey,$useraddress,$olddata='') {
+function web_EditorStringDataFormContract($fieldnames,$fieldkey,$useraddress,$olddata='') {
+    $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
-    
+    $olddata=trim($olddata);
     if (empty ($olddata)) {
     $allcontracts=zb_UserGetAllContracts();
-    for ($i=1;$i<10000;$i++) {
+    $top_offset=100000;
+    //contract generation mode default
+    if ($altcfg['CONTRACT_GENERATION_DEFAULT']) {
+    for ($i=1;$i<$top_offset;$i++) {
         if (!isset($allcontracts[$i])) {
             $contract_proposal=$i;
             break;
         }
     }
     } else {
+        //alternate generation method
+       $max_contract=max(array_keys($allcontracts));
+       $contract_proposal=$max_contract+1;
+    }
+    
+    } else {
         $contract_proposal='';
     }
     
-    $form='
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">'.__('User').'</td>
-        <td class="row3">'.$useraddress.'</td>
-        </tr>
-        <tr>
-        <td class="row2">'.$field1.'</td>
-        <td class="row3">'.$olddata.'</td>
-        </tr>
-        <tr>
-        <td class="row2">'.$field2.'</td>
-        <td class="row3"><input type="text" name="'.$fieldkey.'" value="'.$contract_proposal.'"></td>
-        </tr>
-        </table>
-        <input type="submit" value="'.__('Change').'">
-        </form>
-        <br><br>
-        ';
+    $cells=   wf_TableCell(__('User'),'','row2');
+    $cells.=  wf_TableCell($useraddress,'','row3');
+    $rows=    wf_TableRow($cells);
+    $cells=   wf_TableCell($field1, '', 'row2');
+    $cells.=  wf_TableCell($olddata, '', 'row3');
+    $rows.=   wf_TableRow($cells);
+    $cells=   wf_TableCell($field2, '', 'row2');
+    $cells.=  wf_TableCell(wf_TextInput($fieldkey, '', $contract_proposal, false, 5), '', 'row3');
+    $rows.=   wf_TableRow($cells);
+    $table= wf_TableBody($rows, '100%', 0);
+    
+    $inputs=$table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+    
+    
 return($form);
 }
 
@@ -987,7 +994,9 @@ return($form);
         } else {
             $lat='';
         }
+        
         $act='<img src="skins/icon_active.gif" border="0"> '.__('Yes');
+        
          if ($userdata['Cash']<'-'.$userdata['Credit']) {
                 $act='<img src="skins/icon_inactive.gif" border="0"> '.__('No');
          }
@@ -997,6 +1006,26 @@ return($form);
              if ($alter_conf['MIKROTIK_SUPPORT']) {
                  $profile_plugins.=wf_delimiter().web_MikrotikPluginsShow($login);
              }
+         }
+         
+         //catv backlinks
+         if ($alter_conf['CATV_ENABLED']) {
+             $catv_backlogin_q="SELECT * from `catv_users` WHERE `inetlink`='".$login."'";
+             $catv_backlogin=simple_query($catv_backlogin_q);
+             if (!empty($catv_backlogin)) {
+                 $catv_backlink=  wf_Link("?module=catv_profile&userid=".$catv_backlogin['id'], web_profile_icon().' '.$catv_backlogin['street'].' '.$catv_backlogin['build'].'/'.$catv_backlogin['apt'], false);
+                 
+                 $catv_backcode= wf_TableCell(__('CaTV'), '', 'row2');
+                 $catv_backcode.= wf_TableCell($catv_backlink, '', 'row3');
+                 $catv_backcode=  wf_TableRow($catv_backcode);
+                 
+             } else {
+                 $catv_backcode= wf_TableCell(__('CaTV'), '', 'row2');
+                 $catv_backcode.= wf_TableCell(__('No'), '', 'row3');
+                 $catv_backcode=  wf_TableRow($catv_backcode);
+             }
+         } else {
+             $catv_backcode='';
          }
          
         // corporate user check
@@ -1128,6 +1157,7 @@ return($form);
                 <td class="row2">'.__('Planned tariff change').'</td>
                 <td class="row3">'.$userdata['TariffChange'].'</td>
             </tr>
+            '.$catv_backcode.'
             <tr>
                 <td class="row2">'.__('Speed override').'</td>
                 <td class="row3">'.$speedoverride.'</td>
@@ -1799,7 +1829,7 @@ function web_PaymentsShowGraph($year) {
            $nastypes=array(
                'rscriptd'=>'rscriptd',
                'radius'=>'Radius',
-               'mikrotikapi'=>'MikroTik API',
+               'mikrotik'=>'MikroTik',
                'mtdirect'=>'MikroTik Direct',
                'local'=>'Local NAS'
            );

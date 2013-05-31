@@ -1,23 +1,21 @@
-<?php  if (!defined('ENVIRONMENT')) exit('No direct script access allowed!\n');
+<?php if ( ! defined('ENVIRONMENT') ) exit('Only STG can run script!');
 
 	class Log {
 
-		/* CONFIGURATIONS: */
+		// LOADED CONFIGURATIONS:
 		private $config = array();
 
-		/* CLASS CONSTRUCTOR: */
+		// CLASS CONSTRUCTOR:
 		public function __construct($data) {
-			foreach($data as $key => $value) {
-				$this->$key = $value;
-			}
+			// PARSE RECIVED DATA:
+			foreach ($data as $key => $value) $this->$key = $value;
 		}
 
-		/* FORMAT STRING AND WRITE TO FILE: */
+		// FORMAT STRING AND WRITE TO FILE:
 		public function message($class, $string, $level = NULL) {
-			if($this->config['enabled'] AND $level != "api") {
-				if($class == "NAS") $class .= " ----";
-				$log_message = "[" . date("Y-m-d H:i:s") . "] " . $class . " -- ";
-				switch($level) {
+			if ( $this->config['enabled'] AND $level != "api" ) {
+				$log_message = date("Y-m-d H:i:s") . " - [" . $class . "] - ";
+				switch ( $level ) {
 					case "error":
 						$log_message .= "ERROR:";
 						break;
@@ -25,16 +23,12 @@
 						$log_message .= "SUCCESS:";
 						break;
 					case "debug":
-						$log_message .= "DEBUG INFO:";
-						break;
-					default:
-						$log_message .= " ";
+						if ($this->config['debug'] == FALSE) {
+							return FALSE;
+						} else $log_message .= "DEBUG INFO:";
 						break;
 				}
 				$log_message .=	" " . $string . "\n";
-				if($this->config['debug'] == FALSE AND $level == "debug") {
-					return FALSE;
-				}
 				$log_file = $this->config['path'] . "/" . $this->config['file'];
 				file_put_contents($log_file, $log_message, FILE_APPEND|LOCK_EX);
 			}

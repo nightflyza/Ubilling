@@ -1,1 +1,2 @@
 AddType application/octet-stream .export
+Options -Indexes 

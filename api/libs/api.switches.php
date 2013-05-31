@@ -2,10 +2,24 @@
 
 ////////////////////// switch models managment
 
+
+function zb_SwitchModelsSnmpTemplatesGetAll() {
+    $allSnmpTemplates_raw=  sp_SnmpGetAllModelTemplates();
+    $allSnmpTemplates=array(''=>__('No'));
+    if (!empty($allSnmpTemplates_raw)) {
+        foreach ($allSnmpTemplates_raw as $io=>$each) {
+            $allSnmpTemplates[$io]=$each['define']['DEVICE'];
+        }
+    }
+    return ($allSnmpTemplates);
+}
+
 function web_SwitchModelAddForm() {
+    $allSnmpTemplates=zb_SwitchModelsSnmpTemplatesGetAll();
     $addinputs=wf_TextInput('newsm', 'Model', '', true);
     $addinputs.=wf_TextInput('newsmp', 'Ports', '', true,'5');
-    $addinputs.=web_add_icon().' '.wf_Submit('Create');
+    $addinputs.=wf_Selector('newsst', $allSnmpTemplates, 'SNMP template', '');
+    $addinputs.=wf_delimiter().web_add_icon().' '.wf_Submit('Create');
     $addform=wf_Form('', 'POST', $addinputs, 'glamour');
     $result=$addform;
     return ($result);
@@ -18,6 +32,7 @@ function web_SwitchModelsShow() {
         $tablecells=wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('Model'));
         $tablecells.=wf_TableCell(__('Ports'));
+        $tablecells.=wf_TableCell(__('SNMP template'));
         $tablecells.=wf_TableCell(__('Actions'));
         $tablerows=wf_TableRow($tablecells, 'row1');
         
@@ -28,7 +43,8 @@ function web_SwitchModelsShow() {
         $tablecells=wf_TableCell($eachmodel['id']);
         $tablecells.=wf_TableCell($eachmodel['modelname']);
         $tablecells.=wf_TableCell($eachmodel['ports']);
-        $switchmodelcontrols=wf_JSAlert('?module=switchmodels&deletesm='.$eachmodel['id'], web_delete_icon(), 'Are you serious');
+        $tablecells.=wf_TableCell($eachmodel['snmptemplate']);
+        $switchmodelcontrols=wf_JSAlert('?module=switchmodels&deletesm='.$eachmodel['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
         $switchmodelcontrols.=wf_Link('?module=switchmodels&edit='.$eachmodel['id'], web_edit_icon());
         $tablecells.=wf_TableCell($switchmodelcontrols);
         $tablerows.=wf_TableRow($tablecells, 'row3');
@@ -81,17 +97,19 @@ function web_SwitchModelSelector($selectname='switchmodelid') {
     return ($selector);
 }
 
-function ub_SwitchModelAdd($name,$ports) {
+function ub_SwitchModelAdd($name,$ports,$snmptemplate='') {
     $ports=vf($ports);
     $name=mysql_real_escape_string($name);
+    $snmptemplate=  mysql_real_escape_string($snmptemplate);
 	$query='
 	INSERT INTO `switchmodels` (
                 `id` ,
                 `modelname` ,
-                `ports`
+                `ports`,
+                `snmptemplate`
                 )
                 VALUES (
-                NULL , "'.$name.'", "'.$ports.'");';
+                NULL , "'.$name.'", "'.$ports.'","'.$snmptemplate.'");';
 	nr_query($query);
 	stg_putlogevent('SWITCHMODEL ADD '.$name);
 }
@@ -300,16 +318,23 @@ function web_SwitchesShow() {
                 $tablecells.=wf_TableCell($eachswitch['desc']);
                 $switchcontrols='';
                 if (cfr('SWITCHESEDIT')) {
-                $switchcontrols.=wf_JSAlert('?module=switches&switchdelete='.$eachswitch['id'], web_delete_icon(), 'Are you serious');
+                $switchcontrols.=wf_JSAlert('?module=switches&switchdelete='.$eachswitch['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
                 $switchcontrols.=wf_Link('?module=switches&edit='.$eachswitch['id'], web_edit_icon());
                 } 
+                
+                
+                if (cfr('SWITCHPOLL')) {
+                    if ((!empty($eachswitch['snmp'])) AND (ispos($eachswitch['desc'], 'SWPOLL'))) {
+                        $switchcontrols.='&nbsp;'.wf_Link('?module=switchpoller&switchid='.$eachswitch['id'], wf_img('skins/snmp.png', __('SNMP query')));
+                    }
+                }
                 
                 if ($alterconf['SWYMAP_ENABLED']) {
                  if (!empty($eachswitch['geo'])) {
                      $switchcontrols.=wf_Link('?module=switchmap&finddevice='.$eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
                  }
-                 
                 }
+                
                 $tablecells.=wf_TableCell($switchcontrols);
                 $tablerows.=wf_TableRow($tablecells, 'row3');
                 
