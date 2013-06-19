@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<ServiceProvider_Response>
+ <Error>
+    <ErrorLine>Заказа номер %ORDER_ID% не существует.</ErrorLine>
+    <ErrorLine>Начните оплату заново с сайта %SITE%</ErrorLine>
+  </Error>
+</ServiceProvider_Response>

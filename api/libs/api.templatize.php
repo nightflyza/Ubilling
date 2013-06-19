@@ -318,8 +318,8 @@ function zb_TemplateReplace($login,$template,$alluserdata) {
                 if (file_exists($templatespath.$eachdoc)) {
                     $documenttitle=  file_get_contents($headerspath.$eachdoc);
                     $printlink='<a href="?module=pl_documents'.$userlink.'&printtemplate='.$eachdoc.'" target="_BLANK">'.$documenttitle.'</a>';
-                    $actionlinks=  wf_JSAlert("?module=pl_documents".$userlink."&deletetemplate=".$eachdoc, web_delete_icon(), 'Are you serious');
-                    $actionlinks.=wf_Link("?module=pl_documents".$userlink."&edittemplate=".$eachdoc, web_edit_icon(), false);
+                    $actionlinks=  wf_JSAlert("?module=pl_documents".$userlink."&deletetemplate=".$eachdoc, web_delete_icon(), 'Removing this may lead to irreparable results');
+                    $actionlinks.=  wf_JSAlert("?module=pl_documents".$userlink."&edittemplate=".$eachdoc, web_edit_icon(), 'Are you serious');
                     
                     $tablecells=wf_TableCell($printlink);
                     $tablecells.=wf_TableCell($actionlinks);

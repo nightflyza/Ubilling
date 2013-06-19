@@ -414,33 +414,46 @@ function zbs_UserShowProfile($login) {
     $passive        = $userdata['Passive'];
     $down           = $userdata['Down'];
 
-    // IF ONLINELEFT_COUNT IS TRUE:
-    if ($us_config['ONLINELEFT_COUNT'] != 0) {
-        // DEFINE VARS:
-	$userBalance = $userdata['Cash'];
-	$tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);;
-        
-        // COUNT DAYS ONLINE LEFT:
-        $daysOnLine = 0;
-	while ( $userBalance > 0 ) {
-		$daysOnLine++;
-		$dayFee = $tariffFee / date("t", time() + ($daysOnLine * 24 * 60 * 60));
-		$userBalance = $userBalance - $dayFee;
-	}
-        
-        // STYLING RESULT:
-        switch ($us_config['ONLINELEFT_STYLE']) {
-            case 'days':
-                $balanceExpire = "(" . __('Balance Expire In').' ' . $daysOnLine .' '. __('days') . ")";
-                break;
-            case 'date':
-                $balanceExpire = "(" . __('Balance Expire On') .' '. date("d-m-Y", time() + ($daysOnLine * 24 * 60 * 60)) . ")";
-                break;
-            default:
-                $balanceExpire = NULL;
-                break;
-        }
-    } else $balanceExpire = NULL;
+    // START OF ONLINELEFT COUNTING <<
+    if ( $us_config['ONLINELEFT_COUNT'] != 0 ) {
+		// DEFINE VARS:
+		$userBalance = $userdata['Cash'];
+		$tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
+		$daysOnLine = 0;
+		
+		if ( $userBalance >= 0 ) {
+			// HERE WE GO... 
+			if ( $tariffFee > 0 ) {
+				if ( $us_config['ONLINELEFT_SPREAD'] != 0 ) {
+					while ( $userBalance >= 0 ) {
+							$daysOnLine++;
+							$dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+							$userBalance = $userBalance - $dayFee;
+					}
+				} else {
+					while ( $userBalance >= 0 ) {
+						$daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+						$userBalance = $userBalance - $tariffFee;
+					}
+				}
+			}
+
+			// STYLING OF THE RESULT:
+			switch ( $us_config['ONLINELEFT_STYLE'] ) {
+				case 'days':
+					$daysOnLine--;
+					$balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days');
+					break;
+				case 'date':
+					$balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+					break;
+				default:
+					$balanceExpire = NULL;
+					break;
+			}
+		} else $balanceExpire = ", " . __('balance expired');
+    }
+	// >> END OF ONLINELEFT COUNTING
     
     
     if ( $userdata['CreditExpire'] != 0 ) {
@@ -554,7 +567,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Balance').'</td>
-            <td>'.$userdata['Cash'].' '.$us_currency.' ' . $balanceExpire . '</td>
+            <td>'.$userdata['Cash'].' '.$us_currency.$balanceExpire . '</td>
             </tr>
             
             <tr>

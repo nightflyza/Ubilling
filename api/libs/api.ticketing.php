@@ -149,6 +149,23 @@ function zb_SigreqsGetAllNewCount(){
     }
     
     
+    
+    function zb_SigreqsGetLimited($from,$to) {
+        $from=vf($from,3);
+        $to=vf($to,3);
+        $query="SELECT * from `sigreq` ORDER BY `date` DESC LIMIT ".$from.",".$to.";";
+        $allreqs=  simple_queryall($query);
+        $result=array();
+        
+        if (!empty($allreqs)) {
+            $result=$allreqs;
+        }
+        
+        return ($result);
+        
+    }
+    
+    
     function zb_SigreqsGetReqData($reqid) {
         $requid=vf($reqid,3);
         $query="SELECT * from `sigreq` WHERE `id`='".$reqid."'";
@@ -162,6 +179,7 @@ function zb_SigreqsGetAllNewCount(){
         log_register('SIGREQ DONE ['.$reqid.']');
     }
     
+      
     function zb_SigreqsSetUnDone($reqid) {
         $requid=vf($reqid,3);
         simple_update_field('sigreq', 'state', '0', "WHERE `id`='".$reqid."'");
@@ -173,6 +191,12 @@ function zb_SigreqsGetAllNewCount(){
         $query="DELETE from `sigreq` WHERE `id`='".$reqid."'";
         nr_query($query);
         log_register('SIGREQ DELETE ['.$reqid.']');
+    }
+    
+    function zb_SigreqsGetCount() {
+        $query="SELECT COUNT(`id`) from `sigreq`";
+        $result=  simple_query($query);
+        return ($result['COUNT(`id`)']);
     }
     
         
@@ -239,7 +263,22 @@ function zb_SigreqsGetAllNewCount(){
     
     
     function web_SigreqsShowAll() {
-        $allreqs=  zb_SigreqsGetAllRequests();
+        $totalcount=  zb_SigreqsGetCount();
+        $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $perpage=$alterconf['TICKETS_PERPAGE'];
+        if (!isset ($_GET['page'])) {
+          $current_page=1;
+          } else {
+          $current_page=vf($_GET['page'],3);
+          }
+      
+          if ($totalcount>$perpage) {
+             $paginator=wf_pagination($totalcount, $perpage, $current_page, "?module=sigreq",'ubButton');
+             $allreqs=zb_SigreqsGetLimited($perpage*($current_page-1),$perpage);
+          } else {
+              $paginator='';
+              $allreqs=zb_SigreqsGetAllRequests();
+          }
         $result='';
         
         $tablecells=  wf_TableCell(__('ID'));
@@ -275,6 +314,7 @@ function zb_SigreqsGetAllNewCount(){
         }
         
         $result=  wf_TableBody($tablerows, '100%','0','sortable');
+        $result.=$paginator;
         
         show_window(__('Available signup requests'),$result);
     }

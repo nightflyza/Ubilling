@@ -232,7 +232,7 @@
                 $cells.=  wf_TableCell($each['date'].' '.$readIcon, '80%');
                 $rows.=   wf_TableRow($cells,'row2');
                 //$controls=  wf_delimiter().'controls here';
-                $messageText=  rcms_parse_text($each['text'], true, false, true, false, true, false);
+                $messageText= nl2br($each['text']);
                 $cells=   wf_TableCell(gravatar_ShowAdminAvatar($each['from'], '64'), '', 'row3','align="center"');
                 $cells.=  wf_TableCell($messageText, '', 'row3');
                 $rows.=   wf_TableRow($cells);

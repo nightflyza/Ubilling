@@ -178,11 +178,20 @@ function stg_show_jobs($username) {
     
     if (!empty ($alljobs)) {
         foreach ($alljobs as $ion=>$eachjob) {
+            //backlink to taskman if some TASKID inside
+            if (ispos($eachjob['note'], 'TASKID:[')) {
+                $taskid=vf($eachjob['note'],3);
+                $jobnote=  wf_Link("?module=taskman&&edittask=".$taskid, __('Task is done').' #'.$taskid, false, '');
+                
+            } else {
+                $jobnote=$eachjob['note'];
+            }
+            
             $cells= wf_TableCell($eachjob['id']);
             $cells.=wf_tableCell($eachjob['date']);
             $cells.=wf_TableCell(@$allemployee[$eachjob['workerid']]);
             $cells.=wf_TableCell(@$alljobtypes[$eachjob['jobid']]);
-            $cells.=wf_TableCell($eachjob['note']);
+            $cells.=wf_TableCell($jobnote);
             $cells.=wf_TableCell(wf_JSAlert('?module=jobs&username='.$username.'&deletejob='.$eachjob['id'].'', web_delete_icon(), 'Are you serious'));
             $rows.=  wf_TableRow($cells, 'row3');
             
@@ -246,8 +255,16 @@ log_register("ADD JOB W:[".$worker_id."] J:[".$jobtype_id."] (".$login.")");
 //
 
 function ts_DetectUserByAddress($address) {
-    $alladdress= zb_AddressGetFulladdresslist();
+    $address= strtolower_utf8($address);
+    $usersAddress= zb_AddressGetFulladdresslist();
+    $alladdress=array();
+    if (!empty($usersAddress)) {
+        foreach ($usersAddress as $login=>$eachaddress) {
+            $alladdress[$login]=  strtolower_utf8($eachaddress);
+        }
+    }
     $alladdress=  array_flip($alladdress);
+    
     if (isset($alladdress[$address])) {
         return ($alladdress[$address]);
     } else {
@@ -638,6 +655,17 @@ function ts_DetectUserByAddress($address) {
                 $addresslink=$taskdata['address'];
             }
             
+            //job generation form
+            if ($login_detected) {
+                $jobgencheckbox=  wf_CheckInput('generatejob', __('Generate job performed for this task'), true, false);
+                $jobgencheckbox.= wf_HiddenInput('generatelogin', $login_detected);
+                $jobgencheckbox.= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
+                $jobgencheckbox.= wf_delimiter();
+                
+            } else {
+                $jobgencheckbox='';
+            }
+            
             //modify form handlers
             $modform=  wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '420', '500');
             //modform end
@@ -681,11 +709,13 @@ function ts_DetectUserByAddress($address) {
             $inputs.=wf_DatePicker('editenddate').' <label>'.__('Finish date').'<sup>*</sup></label> <br>';
             $inputs.='<br>';
             $inputs.=wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
-            $inputs.='<br>';
+            $inputs.=wf_tag('br');
             $inputs.='<label>'.__('Finish note').'</label> <br>';
             $inputs.=wf_TextArea('editdonenote', '', '', true, '35x3');
-            $inputs.='<br>';
+            $inputs.=wf_tag('br');
+            $inputs.= $jobgencheckbox;
             $inputs.=wf_Submit(__('This task is done'));
+            
             
             $form=  wf_Form("", 'POST', $inputs, 'glamour');
                 

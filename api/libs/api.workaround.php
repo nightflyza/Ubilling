@@ -63,13 +63,13 @@ function web_corporate_icon($title='Corporate') {
     return($icon);
 }
 
-function web_green_led() {
-    $icon='<img src="skins/icon_active.gif" border="0">';
+function web_green_led($title='') {
+    $icon='<img src="skins/icon_active.gif" title="'.$title.'" border="0">';
     return($icon);
 }
 
-function web_red_led() {
-    $icon='<img src="skins/icon_inactive.gif" border="0">';
+function web_red_led($title='') {
+    $icon='<img src="skins/icon_inactive.gif" title="'.$title.'" border="0">';
     return($icon);
 }
 
@@ -2487,14 +2487,14 @@ function strtolower_utf8($string){
     "v", "w", "x", "y", "z", "à", "á", "â", "ã", "ä", "å", "æ", "ç", "è", "é", "ê", "ë", "ì", "í", "î", "ï",
     "ð", "ñ", "ò", "ó", "ô", "õ", "ö", "ø", "ù", "ú", "û", "ü", "ý", "а", "б", "в", "г", "д", "е", "ё", "ж",
     "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы",
-    "ь", "э", "ю", "я", "ы"
+    "ь", "э", "ю", "я", "ы","і"
   );
   $convert_from = array(
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
     "V", "W", "X", "Y", "Z", "À", "Á", "Â", "Ã", "Ä", "Å", "Æ", "Ç", "È", "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï",
     "Ð", "Ñ", "Ò", "Ó", "Ô", "Õ", "Ö", "Ø", "Ù", "Ú", "Û", "Ü", "Ý", "А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж",
     "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ъ",
-    "Ь", "Э", "Ю", "Я", "Ы"
+    "Ь", "Э", "Ю", "Я", "Ы","І"
   );
 
   return str_replace($convert_from, $convert_to, $string);
@@ -3082,4 +3082,23 @@ function zb_TranslitString($string) {
 	);
 	return $str=iconv("UTF-8","UTF-8//IGNORE",strtr($string,$replace));
 }
+
+    /*
+     * Returns all of MikroTik NAS-es interfaces
+     * 
+     * @return array
+     */
+
+    function zb_MtNasGetAllIfaces() {
+        $query = "SELECT * from `mtnasifaces`";
+        $all = simple_queryall($query);
+        $result = array();
+        
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['nasid']]=$each['iface'];
+            }
+        }
+        return ($result);
+    }
 ?>

@@ -121,11 +121,14 @@ if ($altconf['TB_UBIM']) {
 //switchmon at nptify area
 if ($altconf['TB_SWITCHMON']) {
 $dead_raw=zb_StorageGet('SWDEAD');
+$deathTime=  zb_SwitchesGetAllDeathTime();
 $deadarr=array();
+
 $content='<a href="?module=switches&forcereping=true" target="refrsw"><img src="skins/refresh.gif" border="0" title="'.__('Force ping').'"></a><iframe name="refrsw" frameborder="0" width="1" height="1" src="about:blank"></iframe>';
 if ($altconf['SWYMAP_ENABLED']) {
     $content.='<a href="?module=switchmap"><img src="skins/swmapsmall.png" border="0" title="'.__('Switches map').'"></a>';
 }
+
 
 $content.='<br>';
 
@@ -142,7 +145,11 @@ if ($altconf['SWYMAP_ENABLED']) {
 foreach ($deadarr as $ip=>$switch) {
     if ($altconf['SWYMAP_ENABLED']) {
         if (isset($switchesGeo[$ip])) {
+          if (!empty($switchesGeo[$ip])) {
           $devicefind= wf_Link('?module=switchmap&finddevice='.$switchesGeo[$ip], wf_img('skins/icon_search_small.gif',__('Find on map'))).' ';   
+          } else {
+              $devicefind='';
+          }
         } else {
           $devicefind='';
         }
@@ -150,10 +157,17 @@ foreach ($deadarr as $ip=>$switch) {
     } else {
         $devicefind='';
     }
+    //check morgue records for death time
+    if (isset($deathTime[$ip])) {
+        $deathClock=  wf_img('skins/clock.png', __('Switch dead since').' '.$deathTime[$ip]).' ';
+    } else {
+        $deathClock='';
+    }
     //add switch as dead
-    $content.=$devicefind.$ip.' - '.$switch.'<br>';
+    $content.=$devicefind.'&nbsp;'.$deathClock.$ip.' - '.$switch.'<br>';
     
 }
+
 
 $ticketnotify.='<div class="ubButton">'.wf_modal(__('Dead switches').': '.$deadcount, __('Dead switches'), $content, '', '500', '400').'</div>';
 } else {

@@ -1322,4 +1322,36 @@ $lang['def']['right to query switches via SNMP']='Право опиту кому
 $lang['def']['Time to store SNMP raw data cache']='Час у хвилинах, зберігання сирих SNMP даних в кеші';
 
 
+//rev 2609
+$lang['def']['Receive errors']='Помилок одержання';
+$lang['def']['Multicast packets transmitted']='Мультикастом пакетів передано';
+$lang['def']['Multicast packets received']='Мультикастом пакетів отримано';
+$lang['def']['Broadcast packets transmitted']='Бродкаст пакетів передано';
+$lang['def']['Broadcast packets received']='Бродкаст пакетів отримано';
+$lang['def']['RX errors']='<font color=red>Помилок RX</font>';
+$lang['def']['TX errors']='<font color=red>Помилок TX</font>';
+$lang['def']['Multicast TX']='Мультикаст TX';
+$lang['def']['Multicast RX']='Мультикаст RX';
+$lang['def']['Broadcast TX']='Бродкаст TX';
+$lang['def']['Broadcast RX']='Бродкаст RX';
+$lang['def']['Temperature']='Температура';
+$lang['def']['Bytes TX']='Байт TX';
+$lang['def']['Bytes RX']='Байт RX';
+$lang['def']['Description']='Опис';
+$lang['def']['Desc']='Опис';
+$lang['def']['CPU use']='Вик. CPU';
+$lang['def']['Switch dead since']='Віддав богу душу';
+$lang['def']['For NAS']='Для NAS ';
+$lang['def']['was not set correct graph interface']='не було вказано інтерфейсу для відмальовки графіків';
+$lang['def']['No MikroTik NAS interfaces assigned yet']='Ще не було додано жодних інтерфейсів на NAS-ах MikroTik';
+$lang['def']['Interface']='Інтерфейс';
+$lang['def']['Assign new interface name']='Вказати імя інтерфейсу';
+$lang['def']['Mikrotik NAS interfaces']='Інтерфейси на серверах доступу MikroTik';
+$lang['def']['Generate job performed for this task']='Породити виконану роботу для цього завдання';
+$lang['def']['Switch IP']='IP комутатора';
+$lang['def']['Port']='Порт';
+$lang['def']['entries']='записів';
+$lang['def']['Current FDB cache']='Поточний кеш FDB';
+
+
 ?>

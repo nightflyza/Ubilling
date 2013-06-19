@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<ServiceProvider_Response>
+ <ServiceInfo>
+   <Amount Editable="N">
+       <Debt>%AMOUNT%</Debt>
+       <Penalty></Penalty>
+   </Amount>
+    <Info xml:space="preserve">
+      <InfoLine>Оплата заказа "%ORDER_ID%":   </InfoLine>
+      <InfoLine>Сумма %AMOUNT% бел. руб.   </InfoLine>
+    </Info>
+ </ServiceInfo>
+</ServiceProvider_Response>

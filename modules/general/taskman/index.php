@@ -40,7 +40,12 @@ if(cfr('TASKMAN')) {
             simple_update_field('taskman', 'employeedone', $_POST['editemployeedone'], "WHERE `id`='".$editid."'");
             simple_update_field('taskman', 'donenote', $_POST['editdonenote'], "WHERE `id`='".$editid."'");
             simple_update_field('taskman', 'status', '1', "WHERE `id`='".$editid."'");
-            log_register('TASKMAN DONE '.$editid);
+            log_register('TASKMAN DONE ['.$editid.']');
+            //generate job for some user
+            if (wf_CheckPost(array('generatejob','generatelogin','generatejobid'))) {
+                stg_add_new_job($_POST['generatelogin'], curdatetime(), $_POST['editemployeedone'], $_POST['generatejobid'], 'TASKID:['.$_POST['changetask'].']');
+                log_register("TASKMAN GENJOB (".$_POST['generatelogin'].') VIA ['.$_POST['changetask'].']');
+            }
             
             
         } else {
@@ -53,7 +58,7 @@ if(cfr('TASKMAN')) {
         $undid=vf($_GET['setundone'],3);
         simple_update_field('taskman', 'status', '0', "WHERE `id`='".$undid."'");
         simple_update_field('taskman', 'enddate', 'NULL', "WHERE `id`='".$undid."'");
-        log_register("TASKMAN UNDONE ".$undid);
+        log_register("TASKMAN UNDONE [".$undid.']');
         rcms_redirect("?module=taskman");
     }
     

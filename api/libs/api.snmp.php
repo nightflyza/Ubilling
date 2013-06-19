@@ -31,7 +31,7 @@
             $portnum=  substr($data[0],-2);
             $portnum=  str_replace('.', '', $portnum);
             
-            if (ispos($data[1], 'up')) {
+            if (ispos($data[1], '1')) {
                 $cells=  wf_TableCell($portnum,'24');
                 $cells.= wf_TableCell(web_bool_led(true));
                 $rows=  wf_TableRow($cells,'row3');
@@ -48,6 +48,7 @@
             return (__('Empty reply received'));
         }
     }
+ 
     
     /*
      * Zyxel Port byte counters data parser
@@ -82,6 +83,41 @@
         }
     }
     
+     /*
+     * Zyxel Port description data parser
+     * 
+     * @return string
+     */
+    function sp_parse_zyportdesc($data) {
+        if (!empty($data)) {
+            $data=  explode('=', $data);
+            $data[0]=trim($data[0]);
+            $portnum=  substr($data[0],-2);
+            $portnum=  str_replace('.', '', $portnum);
+            if (ispos($data[1], 'NULL')) {
+              $desc=__('No');
+            } else {
+              $desc=  str_replace('STRING:', '', $data[1]);
+              $desc=  trim($desc);
+            }
+            if (ispos($data[1], 'up')) {
+                $cells=  wf_TableCell($portnum,'24');
+                $cells.= wf_TableCell($desc);
+                $rows=  wf_TableRow($cells,'row3');
+                $result= wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $cells=  wf_TableCell($portnum,'24');
+                $cells.= wf_TableCell($desc);
+                $rows=  wf_TableRow($cells,'row3');
+                $result= wf_TableBody($rows, '100%', 0, '');
+            }
+            return ($result);
+            
+        } else {
+            return (__('Empty reply received'));
+        }
+    }
+    
     /*
      * Cisco memory usage data parser
      * 
@@ -90,8 +126,8 @@
     function sp_parse_ciscomemory($data) {
          if (!empty($data)) {
             $data=  explode('=', $data);
-            $result=  str_replace('Gauge32:', '', $data[1]);
-            $result=trim($result);
+            $result=  vf($data[1],3);
+            $result=  trim($result);
             $result=  stg_convert_size($result);
             return ($result);
         } else {
@@ -107,7 +143,7 @@
     function sp_parse_ciscocpu($data) {
          if (!empty($data)) {
             $data=  explode('=', $data);
-            $result=  str_replace('Gauge32:', '', $data[1]);
+            $result=  vf($data[1],3);
             $result=trim($result);
             $result=$result.'%';
             return ($result);
@@ -232,6 +268,36 @@
                         }
      return ($portData);
     }
+    
+     /*
+     * Parsing of FDB port table SNMP raw data for some exotic Dlink switches
+     * 
+     * @param   $portTable raw SNMP data
+     * 
+     * @return  array
+     */
+
+    function sp_SnmpParseFdbDl($portTable) {
+     $portData=array();
+     $arr_PortTable=  explodeRows($portTable);
+                        if (!empty($arr_PortTable)) {
+                            foreach ($arr_PortTable as $eachEntry) {
+                                if (!empty($eachEntry)) {
+                                $eachEntry=  str_replace('.1.3.6.1.2.1.17.7.1.2.2.1.2', '', $eachEntry);
+                                $cleanMac='';
+                                $rawMac=  explode('=', $eachEntry);
+                                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                                unset($parts[0]);
+                                if(count($parts) == 7) {
+                                $cleanMac=call_user_func_array('sprintf', $parts);
+                                $portData[strtolower($cleanMac)]=vf($rawMac[1],3);
+                                }
+                                
+                                }
+                            }
+                        }
+     return ($portData);
+    }
   
     /*
      * Show data for some device
@@ -253,6 +319,23 @@
                 $sectionResult='';
                 $sectionName='';
                 $finalResult='';
+                $tempArray=array();
+                //selecting FDB processing mode
+                if (isset($currentTemplate['define']['FDB_MODE'])) {
+                  $deviceFdbMode=$currentTemplate['define']['FDB_MODE'];
+                } else {
+                  $deviceFdbMode='default'; 
+                }
+                
+                //selecting FDB ignored port for skipping MAC-s on it
+                if (isset($currentTemplate['define']['FDB_IGNORE_PORTS'])) {
+                    $deviceFdbIgnore=$currentTemplate['define']['FDB_IGNORE_PORTS'];
+                    $deviceFdbIgnore=  explode(',', $deviceFdbIgnore);
+                    $deviceFdbIgnore=  array_flip($deviceFdbIgnore);
+                } else {
+                    $deviceFdbIgnore=array();
+                }
+                
                 //parse each section of template
                 foreach ($alltemplates[$deviceTemplate] as $section=>$eachpoll) {
                    if ($section!='define') {
@@ -267,6 +350,7 @@
                        foreach ($sectionOids as $eachOid) {
                            $eachOid=trim($eachOid);
                            $rawData=sp_SnmpPollData($ip, $community, $eachOid, true);
+                           $rawData=str_replace('"', '`', $rawData);
                            $parseCode='$sectionResult.='.$sectionParser.'("'.$rawData.'");';
                            eval($parseCode);
                        }
@@ -290,9 +374,38 @@
                 if ($deviceFdb=='true') {
                     //$macTable=  sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.4.3.1.1', true);
                     $portData=array();
-                    $portTable= sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
+                    if ($deviceFdbMode=='default') {
+                    //default zyxel & cisco port table
+                    $portTable= sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true); 
+                    } else {
+                      if ($deviceFdbMode=='dlp') {
+                          //custom dlink port table with VLANS
+                          $portTable= sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true); 
+                          }
+                    }
                     if (!empty($portTable)) {
-                       $portData=sp_SnmpParseFDB($portTable);
+                        if ($deviceFdbMode=='default') { 
+                        //default FDB parser
+                        $portData=sp_SnmpParseFDB($portTable);
+                        } else {
+                            if ($deviceFdbMode=='dlp') {
+                            //exotic dlink parser
+                            $portData=  sp_SnmpParseFdbDl($portTable);
+                            }
+                        }
+                       
+                       //skipping some port data if FDB_IGNORE_PORTS option is set
+                       if (!empty($deviceFdbIgnore)) {
+                           if (!empty($portData)) {
+                               foreach ($portData as $some_mac=>$some_port) {
+                                   if (!isset($deviceFdbIgnore[$some_port])) {
+                                   $tempArray[$some_mac]=$some_port;
+                                   }
+                               }
+                               $portData=$tempArray;
+                           }
+                       }
+                        
                        $fdbCache=  serialize($portData);
                        file_put_contents('exports/'.$ip.'_fdb', $fdbCache);
                     }
@@ -332,5 +445,70 @@
         }
     }
    
+    
+        /*
+     * function that display JSON data for display FDB cache
+     * 
+     * @param $fdbData_raw - array of existing cache _fdb files
+     * 
+     * @return string
+     */
+    function sn_SnmpParseFdbCacheJson($fdbData_raw) {
+        $allusermacs=zb_UserGetAllMACs();
+        $allusermacs=  array_flip($allusermacs);
+        $alladdress= zb_AddressGetFulladdresslist();
+        $allswitches=  zb_SwitchesGetAll();
+        $switchdata=array();
+        
+        if (!empty($allswitches)) {
+            foreach ($allswitches as $io=>$eachswitch) {
+                $switchdata[$eachswitch['ip']]=$eachswitch['location'];
+            }
+        }
+        
+          $result='{ 
+                  "aaData": [';
+          
+          foreach ($fdbData_raw as $each_raw) {
+              $nameExplode=  explode('_', $each_raw);
+              if (sizeof($nameExplode)==2) {
+                  $switchIp=$nameExplode[0];
+                  $eachfdb_raw=  file_get_contents('exports/'.$each_raw);
+                  $eachfdb= unserialize($eachfdb_raw);
+                  if (!empty($eachfdb_raw)) {
+                      foreach ($eachfdb as $mac=>$port) {
+                          //detecting user login by his mac
+                          if (isset($allusermacs[$mac])) {
+                              $userlogin=$allusermacs[$mac];
+                          } else {
+                              $userlogin=false;
+                          }
+                          
+                      if ($userlogin) {
+                          $userlink= '<a href=?module=userprofile&username='.$userlogin.'><img src=skins/icon_user.gif> '.@$alladdress[$userlogin].'</a>';
+                      } else {
+                          $userlink='';
+                      }
+                            $result.='
+                    [
+                    "'.$switchIp.'",
+                    "'.$port.'",
+                    "'.@$switchdata[$switchIp].'",
+                    "'.$mac.'",
+                    "'.$userlink.'"
+                    ],';
+                      }
+                  }
+              }
+          }
+          
+          $result=substr($result, 0, -1);
+          
+          $result.='] 
+        }';
+          
+        return($result);
+    }
+    
 
 ?>

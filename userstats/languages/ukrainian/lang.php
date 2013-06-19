@@ -150,8 +150,9 @@ $lang['def']['Kbit/s'] = 'Кбіт/с';
 $lang['def']['None'] = 'Не встановлено';
 $lang['def']['Unlimited'] = 'Без обмежень';
 
-$lang['def']['Balance Expire In'] = 'кошти скінчаться через';
-$lang['def']['days'] = 'діб';
-$lang['def']['Balance Expire On'] = 'кошти закінчаться';
+$lang['def']['enought for'] = 'вистачить на';
+$lang['def']['days'] = 'день(-нів)';
+$lang['def']['enought till the'] = 'вистачить до';
+$lang['def']['balance expired'] = '...';
 
 ?>

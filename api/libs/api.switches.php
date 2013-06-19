@@ -2,6 +2,69 @@
 
 ////////////////////// switch models managment
 
+/*
+ * Returns array of all currently dead devices
+ * 
+ * @return array
+ */
+
+function zb_SwitchesGetAllDead() {
+        $dead_switches_raw=  zb_StorageGet('SWDEAD');
+        if (!$dead_switches_raw) {
+            $result=array();
+        } else {
+            $result=  unserialize($dead_switches_raw);
+        }
+        return ($result);
+}
+
+/*
+ * Returns array of each curently dead switches death time
+ * 
+ * @return array
+ */
+
+function zb_SwitchesGetAllDeathTime() {
+    $result=array();
+    $query="SELECT `ip`,`date` from `deathtime`";
+    $all=  simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['ip']]=$each['date'];
+        }
+    }
+    
+    return ($result);
+}
+
+/*
+ * Function than sets dead switch time
+ * 
+ * @param $ip Switch IP
+ * 
+ * @return void
+ */
+
+function zb_SwitchDeathTimeSet($ip) {
+    $ip=  mysql_real_escape_string($ip);
+    $curdatetime=  curdatetime();
+    $query="INSERT INTO `deathtime` (`id` ,`ip` ,`date`) VALUES (NULL , '".$ip."', '".$curdatetime."');";
+    nr_query($query);
+}
+
+/*
+ * Function than resurrects dead switch :)
+ * 
+ * @param $ip Switch IP
+ * 
+ * @return void
+ */
+
+function zb_SwitchDeathTimeResurrection($ip) {
+    $ip=  mysql_real_escape_string($ip);
+    $query="DELETE from `deathtime` WHERE `ip`='".$ip."'";
+    nr_query($query);
+}
 
 function zb_SwitchModelsSnmpTemplatesGetAll() {
     $allSnmpTemplates_raw=  sp_SnmpGetAllModelTemplates();
@@ -118,7 +181,7 @@ function ub_SwitchModelDelete($modelid) {
         $modelid=vf($modelid);
         $query='DELETE FROM `switchmodels` WHERE `id` = "'.$modelid.'"';
 	nr_query($query);
-	stg_putlogevent('SWITCHMODEL DELETE  '.$modelid);
+	stg_putlogevent('SWITCHMODEL DELETE  ['.$modelid.']');
 	}
 
 function web_SwitchFormAdd() {
@@ -222,6 +285,8 @@ function zb_SwitchesDeadLog($currenttime,$deadSwitches) {
 function zb_SwitchesRepingAll() {
     $allswitches=zb_SwitchesGetAll();
     $deadswitches=array();
+    $deathTime=  zb_SwitchesGetAllDeathTime();
+    
     
     if (!empty($allswitches)) {
         foreach ($allswitches as $io=>$eachswitch) {
@@ -234,9 +299,16 @@ function zb_SwitchesRepingAll() {
                         if (!$lastChance) {
                             //yep, switch looks like it really down
                              $deadswitches[$eachswitch['ip']]=$eachswitch['location'];
+                             if (!isset($deathTime[$eachswitch['ip']])) {
+                                 zb_SwitchDeathTimeSet($eachswitch['ip']);
+                             }
                         }
-                    } 
+                    }  else {
+                        zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                    }
                  
+                    } else {
+                        zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                     }
                 } 
         }
@@ -255,6 +327,7 @@ function web_SwitchesShow() {
         $modelnames=zb_SwitchModelsGetAllTag();
         $currenttime=time();
         $reping_timeout=$alterconf['SW_PINGTIMEOUT'];
+        $deathTime=zb_SwitchesGetAllDeathTime();
         
         //non realtime switches pinging
         $last_pingtime=zb_StorageGet('SWPINGTIME');
@@ -300,7 +373,12 @@ function web_SwitchesShow() {
 	if (!empty($allswitches)) {
             foreach ($allswitches as $io=>$eachswitch) {
                 if (isset($dead_switches[$eachswitch['ip']])) {
-                  $aliveled=web_red_led();
+                  if (isset($deathTime[$eachswitch['ip']])) {
+                      $obituary=__('Switch dead since').' '.$deathTime[$eachswitch['ip']];
+                  } else {
+                      $obituary='';
+                  }
+                  $aliveled=web_red_led($obituary);
                   $aliveflag='0';  
                 } else {
                   $aliveled=  web_green_led();
@@ -427,19 +505,21 @@ function ub_SwitchesTimeMachineShowSnapshot($snapshotid) {
     $snapshotid=vf($snapshotid,3);
     $query="SELECT * from `switchdeadlog` WHERE `id`='".$snapshotid."'";
     $deaddata=  simple_query($query);
-    
+    $deathTime=  zb_SwitchesGetAllDeathTime();
     
     if (!empty($deaddata)) {
         $deadarr=  unserialize($deaddata['swdead']);
 
-        $cells=  wf_TableCell(__('IP'));
+        $cells=  wf_TableCell(__('Switch dead since'));
+        $cells.= wf_TableCell(__('IP'));
         $cells.= wf_TableCell(__('Location'));
         $rows=wf_TableRow($cells, 'row1');
         
         
         if (!empty($deadarr)) {
             foreach ($deadarr as $ip=>$location) {
-                $cells=  wf_TableCell($ip);
+                $cells=  wf_TableCell(@$deathTime[$ip]);
+                $cells.=  wf_TableCell($ip);
                 $cells.= wf_TableCell($location);
                 $rows.=wf_TableRow($cells, 'row3');
             }

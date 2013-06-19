@@ -143,8 +143,8 @@ function web_ReportMasterShowReportsList() {
                 <tr class="row3">
                 <td><a href="?module=reportmaster&view='.$eachreport.'">'.__($report_template['REPORT_NAME']).'</a></td>
                 <td>
-                '.  wf_JSAlert('?module=reportmaster&delete='.$eachreport, web_delete_icon(), 'Are you serious').'
-                <a href="?module=reportmaster&edit='.$eachreport.'">'.   web_edit_icon().'</a>
+                '.  wf_JSAlert('?module=reportmaster&delete='.$eachreport, web_delete_icon(), 'Removing this may lead to irreparable results').'
+                '.  wf_JSAlert('?module=reportmaster&edit='.$eachreport, web_edit_icon(), 'Are you serious').'
                 </td>
                 </tr>
                 ';

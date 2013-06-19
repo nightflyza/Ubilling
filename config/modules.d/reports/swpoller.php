@@ -1,0 +1,1 @@
+$taskbar.=build_task('SWITCHPOLL','?module=switchpoller','fdb.png',__('Current FDB cache'));

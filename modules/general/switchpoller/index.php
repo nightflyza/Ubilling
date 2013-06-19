@@ -2,12 +2,71 @@
 set_time_limit (0);
 
 if(cfr('SWITCHPOLL')) {
+    function web_FDBTableShowDataTable() {
+      
+      $jq_dt='
+          <script type="text/javascript" charset="utf-8">
+                
+		$(document).ready(function() {
+		$(\'#fdbcachehp\').dataTable( {
+ 	       "oLanguage": {
+			"sLengthMenu": "'.__('Show').' _MENU_",
+			"sZeroRecords": "'.__('Nothing found').'",
+			"sInfo": "'.__('Showing').' _START_ '.__('to').' _END_ '.__('of').' _TOTAL_ '.__('entries').'",
+			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('entries').'",
+			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
+                        "sSearch":       "'.__('Search').'",
+                        "sProcessing":   "'.__('Processing').'..."
+		},
+           
+                "aoColumns": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],      
+         
+        "bPaginate": true,
+        "bLengthChange": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": true,
+        "bAutoWidth": false,
+        "bProcessing": true,
+        "bStateSave": false,
+        "iDisplayLength": 50,
+        "sAjaxSource": \'?module=switchpoller&ajax=true\',
+	"bDeferRender": true,
+        "bJQueryUI": true
+
+                } );
+		} );
+		</script>
+
+          ';
+      
+      $result=$jq_dt.'
+          <table width="100%" class="sortable" id="fdbcachehp">
+                <tr class="row1">
+                  <td>'.__('Switch IP').'</td>
+                  <td>'.__('Port').'</td>
+                  <td>'.__('Location').'</td>
+                  <td>'.__('MAC').'</td>
+                  <td>'.__('User').'</td>
+                </tr>
+            </table>
+          ';
+     show_window(__('Current FDB cache'),$result);
+  }
     
     $allDevices=  sp_SnmpGetAllDevices();
     $allTemplates= sp_SnmpGetAllModelTemplates();
     $allTemplatesAssoc=  sp_SnmpGetModelTemplatesAssoc();
     $allusermacs=zb_UserGetAllMACs();
     $alladdress= zb_AddressGetFullCityaddresslist();
+    $alldeadswitches=  zb_SwitchesGetAllDead();
+    $deathTime=  zb_SwitchesGetAllDeathTime();
     
     //poll single device
     if (wf_CheckGet(array('switchid'))) {
@@ -18,9 +77,13 @@ if(cfr('SWITCHPOLL')) {
                     //detecting device template
                     if (!empty($allTemplatesAssoc)) {
                         if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
+                            if (!isset($alldeadswitches[$eachDevice['ip']])) {
                             $deviceTemplate=$allTemplatesAssoc[$eachDevice['modelid']];
                             show_window($eachDevice['ip'].' - '.$eachDevice['location'],  wf_Link('?module=switches', __('Back'), true, 'ubButton'));
                             sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate,$allusermacs,$alladdress,false);
+                            } else {
+                               show_window(__('Error'),__('Switch dead since').' '.@$deathTime[$eachDevice['ip']].  wf_delimiter().  wf_Link('?module=switches', __('Back'), false, 'ubButton'));
+                            }
                         } else {
                             show_error(__('No').' '.__('SNMP template'));
                         }
@@ -31,18 +94,23 @@ if(cfr('SWITCHPOLL')) {
         }
         
     } else {
-    //batch device polling
-    if (!empty($allDevices)) {
-        foreach ($allDevices as $io=>$eachDevice) {
-             if (!empty($allTemplatesAssoc)) {
-                        if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
-                            $deviceTemplate=$allTemplatesAssoc[$eachDevice['modelid']];
-                            sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates,$deviceTemplate,$allusermacs,$alladdress,true);
-                        } 
-                    }
-            
-        }
-    }
+     
+        
+    //display all of available fdb tables
+      $fdbData_raw=  rcms_scandir('./exports/', '*_fdb');
+      if (!empty($fdbData_raw)) {
+         //push ajax data
+         if (wf_CheckGet(array('ajax'))) {
+           die(sn_SnmpParseFdbCacheJson($fdbData_raw));
+         } else {
+             web_FDBTableShowDataTable();
+         }
+       
+         
+      } else {
+          show_window(__('Error'), __('Nothing found'));
+      }
+
     }
     
     

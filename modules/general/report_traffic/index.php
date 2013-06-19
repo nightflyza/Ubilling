@@ -1,102 +1,153 @@
 <?php
+
 if (cfr('REPORTTRAFFIC')) {
-    
+
+
+
     function web_TstatsShow() {
-        $allclasses=zb_DirectionsGetAll();
-        $classtraff=array();
-        $result='<table width="100%" border="0" class="sortable">';
-        $result.='      <tr class="row1">
-                        <td width="20%">'.__('Traffic classes').'</td>
-                        <td width="20%">'.__('Traffic').'</td>
-                        <td>'.__('Visual').'</td>
-                        </tr>
-                        ';
-        if (!empty ($allclasses)) {
-            foreach ($allclasses as $io=>$eachclass) {
-                $d_name='D'.$eachclass['rulenumber'];
-                $u_name='U'.$eachclass['rulenumber'];
-                $query_d="SELECT SUM(`".$d_name."`) from `users`";
-                $query_u="SELECT SUM(`".$u_name."`) from `users`";
-                $classdown=simple_query($query_d);
-                $classdown=$classdown['SUM(`'.$d_name.'`)'];
-                $classup=simple_query($query_u);
-                $classup=$classup['SUM(`'.$u_name.'`)'];
-                $classtraff[$eachclass['rulename']]=$classdown+$classup;
+
+        $allclasses = zb_DirectionsGetAll();
+        
+        $classtraff = array();
+
+        $traffCells = wf_TableCell(__('Traffic classes'), '20%');
+        $traffCells.= wf_TableCell(__('Traffic'), '20%');
+        $traffCells.= wf_TableCell(__('Traffic classes'));
+        $traffRows = wf_TableRow($traffCells, 'row1');
+
+        if (!empty($allclasses)) {
+
+            foreach ($allclasses as $eachclass) {
+
+                $d_name = 'D' . $eachclass['rulenumber'];
+                $u_name = 'U' . $eachclass['rulenumber'];
+                $query_d = "SELECT SUM(`" . $d_name . "`) FROM `users`";
+                $query_u = "SELECT SUM(`" . $u_name . "`) FROM `users`";
+                $classdown = simple_query($query_d);
+                $classdown = $classdown['SUM(`' . $d_name . '`)'];
+                $classup = simple_query($query_u);
+                $classup = $classup['SUM(`' . $u_name . '`)'];
+
+                $classtraff[$eachclass['rulename']] = $classdown + $classup;
             }
-            
-            if (!empty ($classtraff)) {
-                $total=max($classtraff);
-                foreach ($classtraff as $eachname=>$count) {
-                    $result.='
-                        <tr class="row3">
-                        <td>'.$eachname.'</td>
-                        <td sorttable_customkey="'.$count.'">'.stg_convert_size($count).'</td>
-                        <td sorttable_customkey="'.$count.'">'.web_bar($count, $total).'</td>
-                        </tr>
-                        ';
+
+            if (!empty($classtraff)) {
+                $total = max($classtraff);
+                foreach ($classtraff as $name => $count) {
+
+                    $traffCells = wf_TableCell($name);
+                    $traffCells.= wf_TableCell(stg_convert_size($count), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffCells.= wf_TableCell(web_bar($count, $total), '', '', 'sorttable_customkey="' . $count . '"');
+                    $traffRows.= wf_TableRow($traffCells, 'row3');
                 }
-                
             }
-            
-            
         }
-        $result.='</table>';
+
+        $result = wf_TableBody($traffRows, '100%', 0, 'sortable');
         show_window(__('Traffic report'), $result);
-     }
-    
+    }
+
     function web_TstatsNas() {
-        $query="SELECT * from `nas` WHERE `bandw`!='' GROUP by `bandw`";
-        $allnas=simple_queryall($query);
-        if (!empty ($allnas)) {
-            $result='<table width="100%" border="0">';
-            foreach ($allnas as $io=>$eachnas){
-                $bwd=$eachnas['bandw'];
-                $d_day=$bwd.'Total-1-R.png';
-                $d_week=$bwd.'Total-2-R.png';
-                $d_month=$bwd.'Total-3-R.png';
-                $d_year=$bwd.'Total-4-R.png';
-                $u_day=$bwd.'Total-1-S.png';
-                $u_week=$bwd.'Total-2-S.png';
-                $u_month=$bwd.'Total-3-S.png';
-                $u_year=$bwd.'Total-4-S.png';
-// old overlay style
-//                $gday=web_Overlay(__('Graph by day'), __('Downloaded').'<br><img src="'.$d_day.'"><br>'.__('Uploaded').'<br><img src="'.$u_day.'">','0.90');
-//                $gweek=web_Overlay(__('Graph by week'), __('Downloaded').'<br><img src="'.$d_week.'"><br>'.__('Uploaded').'<br><img src="'.$u_week.'">','0.90');
-//                $gmonth=web_Overlay(__('Graph by month'), __('Downloaded').'<br><img src="'.$d_month.'"><br>'.__('Uploaded').'<br><img src="'.$u_month.'">','0.90');
-//                $gyear=web_Overlay(__('Graph by year'), __('Downloaded').'<br><img src="'.$d_year.'"><br>'.__('Uploaded').'<br><img src="'.$u_year.'">','0.90');
-                // jq modal dialog
-                $daygraph=  wf_img($d_day).'<br>'.__('Uploaded').'<br>'.  wf_img($u_day);
-                $weekgraph=  wf_img($d_week).'<br>'.__('Uploaded').'<br>'.  wf_img($u_week);
-                $monthgraph=  wf_img($d_month).'<br>'.__('Uploaded').'<br>'.  wf_img($u_month);
-                $yeargraph=  wf_img($d_year).'<br>'.__('Uploaded').'<br>'.  wf_img($u_year);
-                
-                $gday=   wf_modal(__('Graph by day'), __('Graph by day'), $daygraph, '', 920, 600);
-                $gweek=  wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph, '', 920, 600);
-                $gmonth= wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph, '', 920, 600);
-                $gyear=  wf_modal(__('Graph by year'), __('Graph by year'), $yeargraph, '', 920, 600);
-                
-                $result.='
-                    <tr class="row3">
-                    <td class="row2">'.$eachnas['nasname'].'</td>
-                    <td>'.$gday.'</td>
-                    <td>'.$gweek.'</td>
-                    <td>'.$gmonth.'</td>
-                    <td>'.$gyear.'</td>
-                    </tr>
-                    ';
+
+        $query = 'SELECT * from `nas` WHERE `bandw` != "" GROUP by `bandw`';
+        $nasses = simple_queryall($query);
+        $allmtifaces=  zb_MtNasGetAllIfaces();
+
+
+        if (!empty($nasses)) {
+
+            $graphRows = '';
+            foreach ($nasses as $nas) {
+
+                // GET BANDWIDTH URL:
+                $bwd = $nas['bandw'];
+
+                switch ($nas['nastype']) {
+                    case 'local':
+                    case 'radius':
+                    case 'rscriptd':
+
+                        // GRAPHS EXTENTION:
+                        $ext = '.png';
+
+                        // MODAL WINDOW SIZE:
+                        $width = 920;
+                        $height = 620;
+
+                        // GENERATE GRAPHS URLs:
+                        $d_day = $bwd . 'Total-1-R' . $ext;
+                        $d_week = $bwd . 'Total-2-R' . $ext;
+                        $d_month = $bwd . 'Total-3-R' . $ext;
+                        $d_year = $bwd . 'Total-4-R' . $ext;
+                        $u_day = $bwd . 'Total-1-S' . $ext;
+                        $u_week = $bwd . 'Total-2-S' . $ext;
+                        $u_month = $bwd . 'Total-3-S' . $ext;
+                        $u_year = $bwd . 'Total-4-S' . $ext;
+
+                        // GENERATE MODAL WINDOW CONTENT:
+                        $daygraph = __('Downloaded') . wf_img($d_day) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_day);
+                        $weekgraph = __('Downloaded') . wf_img($d_week) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_week);
+                        $monthgraph = __('Downloaded') . wf_img($d_month) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_month);
+                        $yeargraph = __('Downloaded') . wf_img($d_year) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_year);
+                        break;
+                    case 'mikrotik':
+
+                        // INTERFACE TO SHOW GRAPH:
+                        if (isset($allmtifaces[$nas['id']])) {
+                            $iface=$allmtifaces[$nas['id']];
+                        } else {
+                            $iface ='bridge1';
+                            show_window(__('Error'),__('For NAS').' `'.$nas['nasname'].'` '.__('was not set correct graph interface'));
+                        }
+                         
+
+                        // GRAPHS EXTENTION:
+                        $ext = '.gif';
+
+                        // MODAL WINDOW SIZE:
+                        $width = 530;
+                        $height = 230;
+
+
+                        // GENERATE GRAPHS URLs:
+                        $daily = $bwd . '/../iface/' . $iface . '/daily' . $ext;
+                        $weekly = $bwd . '/../iface/' . $iface . '/weekly' . $ext;
+                        $monthly = $bwd . '/../iface/' . $iface . '/monthly' . $ext;
+                        $yearly = $bwd . '/../iface/' . $iface . '/yearly' . $ext;
+
+                        // GENERATE MODAL WINDOW CONTENT:
+                        $daygraph = wf_img($daily);
+                        $weekgraph = wf_img($weekly);
+                        $monthgraph = wf_img($monthly);
+                        $yeargraph = wf_img($yearly);
+                        break;
+                }
+
+                // GENERATE BUTTONS OPENING MODAL WINDOW:
+                $gday = wf_modal(__('Graph by day'), __('Graph by day'), $daygraph, '', $width, $height);
+                $gweek = wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph, '', $width, $height);
+                $gmonth = wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph, '', $width, $height);
+                $gyear = wf_modal(__('Graph by year'), __('Graph by year'), $yeargraph, '', $width, $height);
+
+                // PLACE BUTTONS TO HTML TABLE:
+
+
+                $graphCells = wf_TableCell($nas['nasname'], '', 'row2');
+                $graphCells.= wf_TableCell($gday);
+                $graphCells.= wf_TableCell($gweek);
+                $graphCells.= wf_TableCell($gmonth);
+                $graphCells.= wf_TableCell($gyear);
+                $graphRows.= wf_TableRow($graphCells, 'row3');
             }
-            $result.='</table>';
+
+            $result = wf_TableBody($graphRows, '100%', 0, '');
+
             show_window(__('Network Access Servers'), $result);
         }
     }
-     
-    
+
     web_TstatsShow();
     web_TstatsNas();
-    
-	
-} else {
-      show_error(__('You cant control this module'));
-}
-
+} else
+    show_error(__('You cant control this module'));
 ?>

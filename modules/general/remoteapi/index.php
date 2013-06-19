@@ -132,14 +132,20 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                             $allTemplatesAssoc=  sp_SnmpGetModelTemplatesAssoc();
                             $allusermacs=zb_UserGetAllMACs();
                             $alladdress= zb_AddressGetFullCityaddresslist();
+                            $alldeadswitches=  zb_SwitchesGetAllDead();
                             
                             if (!empty($allDevices)) {
                             foreach ($allDevices as $io=>$eachDevice) {
                                  if (!empty($allTemplatesAssoc)) {
                                             if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
+                                                //dont poll dead devices
+                                                if (!isset($alldeadswitches[$eachDevice['ip']])) {
                                                 $deviceTemplate=$allTemplatesAssoc[$eachDevice['modelid']];
                                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates,$deviceTemplate,$allusermacs,$alladdress,true);
                                                 print(date("Y-m-d H:i:s").' '.$eachDevice['ip'].' [OK]'."\n");
+                                                } else {
+                                                    print(date("Y-m-d H:i:s").' '.$eachDevice['ip'].' [FAIL]'."\n");
+                                                }
                                             } 
                                         }
                             }
@@ -148,6 +154,19 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                             die('ERROR:SWPOLL_NODEVICES');
                         }
                            
+                       }
+                       /*
+                        * Switch ICMP reping to fill dead cache
+                        */
+                       if ($_GET['action']=='swping') {
+                          $currenttime=time();
+                          $deadSwitches=zb_SwitchesRepingAll();
+                          zb_StorageSet('SWPINGTIME', $currenttime);
+                          //store dead switches log data
+                          if (!empty($deadSwitches)) {
+                              zb_SwitchesDeadLog($currenttime, $deadSwitches);
+                          }
+                          die('OK:SWPING');
                        }
   ////
   //// End of actions

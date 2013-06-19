@@ -882,3 +882,19 @@ ALTER TABLE `ubstorage` CHANGE `value` `value` LONGTEXT CHARACTER SET utf8 COLLA
 
 -- 0.4.1 update
 ALTER TABLE `switchmodels` ADD `snmptemplate` VARCHAR( 255 ) DEFAULT NULL ;
+
+-- 0.4.2 update
+CREATE TABLE IF NOT EXISTS `deathtime` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `mtnasifaces` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nasid` int(11) NOT NULL,
+  `iface` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

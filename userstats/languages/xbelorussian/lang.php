@@ -148,5 +148,10 @@ $lang['def']['Mbit/s'] = 'Мбіт/с';
 $lang['def']['Kbit/s'] = 'Кбіт/с';
 $lang['def']['None'] = 'Не ўстаноўлена';
 $lang['def']['Unlimited'] = 'Без абмежаванняў';
-        
+
+$lang['def']['enought for'] = 'хопіць на';
+$lang['def']['days'] = 'дзень(-ён)';
+$lang['def']['enought till the'] = 'хопіць до';
+$lang['def']['balance expired'] = '...';
+
 ?>
