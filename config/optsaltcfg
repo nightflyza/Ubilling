@@ -33,6 +33,8 @@ FAST_CASH_LINK=TRIGGER|Fast financial links in online and search modules
 SUSP_PAYMENTS_NOTIFY=VARCHAR|Reporting of suspicious payments
 CREATETASK_IN_PROFILE=TRIGGER|Create tasks in user profile
 PASSPDATA_IN_PROFILE=TRIGGER|Show passport data in user profile
+SWITCHPORT_IN_PROFILE=TRIGGER|Switch port assign in user profile
+ROUND_PROFILE_CASH=TRIGGER|Round cash in user profile
 DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
@@ -93,6 +95,7 @@ MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
 SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
 CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode
+PAYMENTCARDS_ENABLED=TRIGGER|Payment cards functionality enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

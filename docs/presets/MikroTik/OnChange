@@ -1,48 +1,48 @@
 #!/usr/local/bin/php
-<?php  if( isset($argv) AND $argc == 5 ) {
-		
-		// DEFINE ENVIRONMENT:
-		define('ENVIRONMENT', 'OnChange');
+<?php if ( isset($argv) AND $argc == 5 ) {
 
-		// DEFINE USER'S LOGIN:
-		if ( isset($argv[1]) ) {
-			define('LOGIN', $argv[1]);
-		} else define('LOGIN', NULL);
+        // DEFINE ENVIRONMENT:
+        define('ENVIRONMENT', 'OnChange');
 
-		// DEFINE CHANGED PARAMETER:
-		if ( isset($argv[2]) ) {
-			define('PARAMETER', $argv[2]);
-		} else define('PARAMETER', NULL);
+        // DEFINE USER'S LOGIN:
+        if (isset($argv[1])) {
+            define('LOGIN', $argv[1]);
+        } else define('LOGIN', NULL);
 
-		// DEFINE OLD VALUE OF PARAMETER:
-		if ( isset($argv[3]) ) {
-			define('VALUE_OLD', $argv[3]);
-		} else define('VALUE_OLD', NULL);
+        // DEFINE CHANGED PARAMETER:
+        if (isset($argv[2])) {
+            define('PARAMETER', $argv[2]);
+        } else define('PARAMETER', NULL);
 
-		// DEFINE NEW VALUE OF PARAMETER:
-		if ( isset($argv[4]) ) {
-			define('VALUE_NEW', $argv[4]);
-		} else define('VALUE_NEW', NULL);
+        // DEFINE OLD VALUE OF PARAMETER:
+        if (isset($argv[3])) {
+            define('VALUE_OLD', $argv[3]);
+        } else define('VALUE_OLD', NULL);
 
-		// DEFINE PATHS:
-		define('BASEPATH', __DIR__ . '/');
-		define('SYSTEM', BASEPATH . 'system/');
-		define('DB_DRVS', SYSTEM . 'database/');
-		define('NAS_DRVS', SYSTEM . 'executer/');
-		define('LOG_DRVS', SYSTEM . 'log/');
-		
-		// DEFINE DRIVERS EXTENTION:
-		define('EXT', '.drv');
-		
-		// TURN OFF PHP ERROR REPORTING:
-		error_reporting(0);
+        // DEFINE NEW VALUE OF PARAMETER:
+        if (isset($argv[4])) {
+            define('VALUE_NEW', $argv[4]);
+        } else define('VALUE_NEW', NULL);
 
-		// UNSET ALL RECEIVED ARGUMENTS & AMOUNT:
-		unset($argv, $argc);
+        // DEFINE PATHS:
+        define('BASEPATH', __DIR__ . '/');
+        define('SYSTEM', BASEPATH . 'system/');
+        define('DB_DRVS', SYSTEM . 'database/');
+        define('NAS_DRVS', SYSTEM . 'executer/');
+        define('LOG_DRVS', SYSTEM . 'log/');
 
-		// CONTINUE...
-		// include_once(SYSTEM . 'ubilling.cls');
-		// new Ubilling();
+        // DEFINE DRIVERS EXTENTION:
+        define('EXT', '.drv');
 
-	} else exit('Only STG can run script!');
+        // TURN OFF PHP ERROR REPORTING:
+        error_reporting(0);
+
+        // UNSET ALL RECEIVED ARGUMENTS & AMOUNT:
+        unset($argv, $argc);
+
+        // CONTINUE...
+        // include_once(SYSTEM . 'ubilling.cls');
+        // new Ubilling();
+
+    } else exit('Only STG can run script!');
 ?>

@@ -34,6 +34,7 @@ include('api/libs/api.crm.php');
 include('api/libs/api.help.php');
 include('api/libs/api.ubim.php');
 include('api/libs/api.snmp.php');
+include('api/libs/api.mikrotik.php');
 
 /*
  * Initial class creation

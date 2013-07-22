@@ -52,7 +52,7 @@ function web_priority_selector($max=6) {
                  '.$eachtype['tagname'].'
                  </td>
                  <td>
-                 '.wf_JSAlert('?module=usertags&delete='.$eachtype['id'], web_delete_icon(), 'Are you serious').'
+                 '.wf_JSAlert('?module=usertags&delete='.$eachtype['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
                  <a href="?module=usertags&edit='.$eachtype['id'].'">'.  web_edit_icon().'</a>
                  </td>
                  </tr>
@@ -103,14 +103,14 @@ NULL , '".$color."', '".$size."', '".$text."'
 );
  ";
  nr_query($query);
- stg_putlogevent('TAGTYPE ADD '.$text);
+ stg_putlogevent('TAGTYPE ADD `'.$text.'`');
  }
  
    function stg_delete_tagtype($tagid) {
      $tagid=vf($tagid,3);
      $query="DELETE from `tagtypes` WHERE `id`='".$tagid."'";
      nr_query($query);
-     log_register('TAGTYPE DELETE '.$tagid);
+     log_register('TAGTYPE DELETE ['.$tagid.']');
  }
  
  function stg_get_alltagnames() {
@@ -202,13 +202,13 @@ VALUES (
 NULL , '".$login."', '".$tagid."'
 ); ";
      nr_query($query);
-     stg_putlogevent('TAGADD '.$login.' TAGID '.$tagid);
+     stg_putlogevent('TAGADD ('.$login.') TAGID ['.$tagid.']');
  }
  
   function stg_del_user_tag($tagid) {
      $query="DELETE from `tags` WHERE `id`='".$tagid."'";
      nr_query($query);
-     stg_putlogevent('TAGDEL TAGID '.$tagid);
+     stg_putlogevent('TAGDEL TAGID ['.$tagid.']');
   }
 
  function stg_get_tag_body($id) {

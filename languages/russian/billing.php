@@ -1345,6 +1345,56 @@ $lang['def']['Port']='Порт';
 $lang['def']['entries']='записей';
 $lang['def']['Current FDB cache']='Текущий кеш FDB';
 
+// MikroTik NAS Select:
+$lang['def']['Select NAS'] = 'Выберите сервер доступа';
+
+// Module: MikroTik Extended Configuration
+$lang['def']['MikroTik extended configuration'] = 'Расширенная настройка MikroTik';
+$lang['def']['No NAS was selected to add options!'] = 'Не указан сервер доступа, для которого необходимо указать опции!';
+$lang['def']['You can add options for MikroTik NAS only!'] = 'Вы можете устанавливать опции только для серверов доступа MikroTik!';
+$lang['def']['Authorization Data'] = 'Параметры авторизации';
+$lang['def']['Interface settings'] = 'Настройка интерфейсов';
+$lang['def']['Graph Interface'] = 'Интерфейс графика';
+$lang['def']['Users Interface'] = 'Интерфейс пользователей';
+$lang['def']['Setting OnConnect/OnDisconnect scripts behavior for this NAS'] = 'Устанока поведения скриптов OnConnect/OnDisconnect для NAS';
+$lang['def']['Manage FireWall'] = 'Управлять FireWall-ом';
+$lang['def']['Manage ARP'] = 'Управлять ARP-таблицей';
+$lang['def']['Manage Queue'] = 'Управлять очередями';
+$lang['def']['Manage DHCP'] = 'Управлять DHCP';
+$lang['def']['Manage PPP'] = 'Управлять PPP';
+$lang['def']['MikroTik General Information'] = ' Общая инфорация о состоянии MikroTik`a';
+$lang['def']['uptime'] = 'Аптайм';
+$lang['def']['version'] = 'Версия RouterOS';
+$lang['def']['build-time'] = 'Время сборки';
+$lang['def']['free-memory'] = 'Свободно опер. памяти';
+$lang['def']['total-memory'] = 'Всего опер. памяти';
+$lang['def']['cpu'] = 'Процессор';
+$lang['def']['cpu-count'] = 'Кол-во процессоров';
+$lang['def']['cpu-frequency'] = 'Частота процессора';
+$lang['def']['cpu-load'] = 'Загрузка процессора';
+$lang['def']['free-hdd-space'] = 'Свободно памяти HDD';
+$lang['def']['total-hdd-space'] = 'Всего памяти HDD';
+$lang['def']['write-sect-since-reboot'] = 'Записано секторов';
+$lang['def']['write-sect-total'] = 'Всего записано секторов';
+$lang['def']['bad-blocks'] = 'Плохих секторов';
+$lang['def']['architecture-name'] = 'Архитектура';
+$lang['def']['board-name'] = 'Название платы';
+$lang['def']['platform'] = 'Платформа';
+
+//rev 2681
+$lang['def']['It looks like this MAC addresses has duplicate on the network']='Выглядит так, как будто у этого MAC адреса имеются дубликаты в сети';
+$lang['def']['Cashier']='Касcир';
+$lang['def']['Cards search']='Поиск карточек';
+$lang['def']['User signups by month']='Подключения пользователей за месяц';
+$lang['def']['Switch']='Свитч';
+$lang['def']['Switch port assign']='Присвоение порта на свитче';
+$lang['def']['Use this to request technical support']='Используйте это для обращения в техподдержку';
+$lang['def']['Payment cards functionality enabled']='Функционал платежных карточек включен';
+$lang['def']['right to make extended configuration of mikrotik']='Право управлять расширенной конфигурацией MikroTik';
+$lang['def']['Switch port assign in user profile']='Присваивание порта на свиче в профиле пользователя';
+$lang['def']['Round cash in user profile']='Округление денежных сум в профиле пользователя';
+
+
 
 
 ?>

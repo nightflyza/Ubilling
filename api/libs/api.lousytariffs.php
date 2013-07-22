@@ -92,7 +92,7 @@ function web_LousyShowAll() {
     if (!empty ($allousy)) {
         foreach ($allousy as $eachtariff=>$id) {
             $tablecells=wf_TableCell($eachtariff);
-            $dellink=  wf_JSAlert('?module=lousytariffs&delete='.$eachtariff, web_delete_icon(), 'Are you serious');
+            $dellink=  wf_JSAlert('?module=lousytariffs&delete='.$eachtariff, web_delete_icon(), 'Removing this may lead to irreparable results');
             $tablecells.=wf_TableCell($dellink);
             $tablerows.=wf_TableRow($tablecells, 'row3');
         }

@@ -83,7 +83,6 @@ if (cfr('NAS')) {
            'rscriptd'=>'rscriptd',
            'radius'=>'Radius',
            'mikrotik'=>'MikroTik',
-           'mtdirect'=>'MikroTik Direct',
            'local'=>'Local NAS'
            );
        

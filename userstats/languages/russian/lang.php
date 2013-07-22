@@ -152,6 +152,7 @@ $lang['def']['Unlimited'] = 'Не ограничена';
 $lang['def']['enought for'] = 'хватит на';
 $lang['def']['days'] = 'день(-ей)';
 $lang['def']['enought till the'] = 'хватит до';
-$lang['def']['balance expired'] = '...';
+$lang['def']['You have indebtedness!'] = 'у Вас задолженность!';
+
 
 ?>

@@ -83,6 +83,12 @@ function web_star_black() {
     return($icon);
 }
 
+// MikroTik Extended Configurations icon:
+function web_mikrotik_extended($title = NULL) {
+    $icon = '<img src="skins/icon_mikrotik_extended.png" title="' . $title . '"  border="0">';
+    return $icon;
+}
+
  function web_bool_led($flag,$text=false) {
      if ($text) {
          $no=' '.__('No').' ';
@@ -951,6 +957,52 @@ return($form);
         return($result);
     }
     
+  function web_ProfileSwitchControlForm($login) {
+      $login=  mysql_real_escape_string($login);
+      $query="SELECT * from `switchportassign` WHERE `login`='".$login."'";
+      $allswitches=  zb_SwitchesGetAll();
+      $switcharr=array();
+      if (!empty($allswitches)) {
+          foreach ($allswitches as $io=>$eachswitch) {
+              $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+          }
+      }
+      
+      $assignData=simple_query($query);
+      
+      //control form construct
+      $inputs= wf_HiddenInput('swassignlogin', $login);
+      $inputs.=  wf_Selector('swassignswid', $switcharr, __('Switch'), @$assignData['switchid'], true);
+      $inputs.= wf_TextInput('swassignswport', __('Port'), @$assignData['port'], true, '2');
+      $inputs.= wf_Submit('Save');
+      $controlForm=  wf_Form('', "POST", $inputs, 'glamour');
+      //form end
+      
+      $switchAssignController=  wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
+      
+      $cells=  wf_TableCell(__('Switch'),'30%','row2');
+      $cells.= wf_TableCell(@$switcharr[$assignData['switchid']]);
+      $rows= wf_TableRow($cells, 'row3');
+      $cells=  wf_TableCell(__('Port'),'30%','row2');
+      $cells.= wf_TableCell(@$assignData['port']);
+      $rows.= wf_TableRow($cells, 'row3');
+      $cells=  wf_TableCell(__('Change'),'30%','row2');
+      $cells.= wf_TableCell($switchAssignController);
+      $rows.= wf_TableRow($cells, 'row3');
+      
+      $result=  wf_TableBody($rows, '100%', '0');
+      
+      //update subroutine
+      if (wf_CheckPost(array('swassignlogin','swassignswid','swassignswport'))) {
+          $newswid=vf($_POST['swassignswid'],3);
+          $newport=vf($_POST['swassignswport'],3);
+          nr_query("DELETE from `switchportassign` WHERE `login`='".$_POST['swassignlogin']."'");
+          nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '".$_POST['swassignlogin']."', '".$newswid."', '".$newport."');");
+          log_register("CHANGE SWITCHPORT (".$login.") ON SWITCHID [".$newswid."] PORT [".$newport."]");
+          rcms_redirect("?module=userprofile&username=".$login);
+      }
+      return ($result);
+  }
   
     
     function web_ProfileShow($login) {
@@ -1088,7 +1140,19 @@ return($form);
         } else {
             $passplink='';
         }
-         
+		
+        if ($alter_conf['ROUND_PROFILE_CASH']) {
+            $Cash = web_roundValue($userdata['Cash'], 2);
+        } else  $Cash = $userdata['Cash'];
+        
+        //switchport section
+        if ($alter_conf['SWITCHPORT_IN_PROFILE']) {
+            $switchPort= web_ProfileSwitchControlForm($login);
+            $switchPort.= '';
+        } else {
+            $switchPort='';
+        }
+        
         $profile.='
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
        <tbody>
@@ -1163,8 +1227,8 @@ return($form);
                 <td class="row3">'.$speedoverride.'</td>
             </tr>
             <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Balance').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$userdata['Cash'].''.$hightlight_end.'</td>
+                <td class="row2"> ' . $hightlight_start . ' ' . __('Balance') . '' . $hightlight_end . '</td>
+                <td class="row3"> ' . $hightlight_start . ' ' . $Cash . ''. $hightlight_end . '</td>
             </tr>
             <tr>
                 <td class="row2"> '.$hightlight_start.' '.__('Credit').'</td>
@@ -1213,6 +1277,7 @@ return($form);
         </tbody>
         </table>
             ';
+        $profile.=$switchPort;
         $profile.=cf_FieldShower($login);
         $profile.='<a href="?module=usertags&username='.$login.'">'.web_add_icon('Tags').'</a> ';
         $profile.=stg_show_user_tags($login);
@@ -1622,7 +1687,7 @@ function web_PaymentsShowGraph($year) {
             $cells.=  wf_TableCell(wf_Link('?module=report_finance&month='.$year.'-'.$eachmonth, rcms_date_localise($monthname)));
             $cells.=  wf_TableCell($paycount);
             $cells.=  wf_TableCell(@round($month_summ/$paycount,2));
-            $cells.=  wf_TableCell($month_summ);
+            $cells.=  wf_TableCell(web_roundValue($month_summ, 2));
             $cells.=  wf_TableCell(web_bar($month_summ, $year_summ));
             $rows.=   wf_TableRow($cells, 'row3');
     }
@@ -1732,55 +1797,66 @@ function web_PaymentsShowGraph($year) {
         return($result);
     }
     
-   function web_GridEditorNas($titles,$keys,$alldata,$module,$delete=true,$edit=true,$prefix='') {
-          $allnetworkdata=multinet_get_all_networks();
-          $netcidrs=array();
-          if (!empty ($allnetworkdata)) {
-            foreach ($allnetworkdata as $io=>$eachnet) {
-                $netcidrs[$eachnet['id']]=$eachnet['desc'];
-            }
+    function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $edit = TRUE, $prefix = '') {
+
+       $allnetworkdata = multinet_get_all_networks();
+       $netcidrs = array();
+
+       if ( ! empty($allnetworkdata) ) {
+           foreach ($allnetworkdata as $eachnet) {
+               $netcidrs[$eachnet['id']] = $eachnet['desc'];
            }
-          
-        $result='<table width="100%" class="sortable" border="0">';
-        $result.='<tr class="row1">';
-        foreach ($titles as $eachtitle) {
-            $result.='<td>'.__($eachtitle).'</td>';
-        }
-        $result.='<td>'.__('Actions').'</td>';
-        $result.='</tr>';
-        if (!empty ($alldata)) {
-            foreach ($alldata as $io=>$eachdata) {
-                $result.='<tr class="row3">';
-                foreach ($keys as $eachkey) {
-                if (array_key_exists($eachkey, $eachdata)) {
-                    if ($eachkey=='netid') {
-                        $result.='<td>'.$eachdata[$eachkey].': '.$netcidrs[$eachdata[$eachkey]].'</td>';
-                    } else {
-                        $result.='<td>'.$eachdata[$eachkey].'</td>';
-                    }
-                    
-                    }    
-                }
-            if ($delete) {
-                //$deletecontrol='<a href="?module='.$module.'&'.$prefix.'delete='.$eachdata['id'].'">'.web_delete_icon().'</a>';
-                $deletecontrol=wf_JSAlert('?module='.$module.'&'.$prefix.'delete='.$eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            } else {
-                $deletecontrol='';
-            }
-            
-            if ($edit) {
-                $editcontrol='<a href="?module='.$module.'&'.$prefix.'edit='.$eachdata['id'].'">'.web_edit_icon().'</a>';
-            } else {
-                $editcontrol='';
-            }
-            $result.='<td>'.$deletecontrol.' '.$editcontrol.' </td>';
-            $result.='</tr>';
-            }
-        }
-        
-        $result.='</table>';
-        return($result);
-    }
+       }
+
+       // NAS LIST TABLE BEGIN
+       $result = '<table width="100%" class="sortable" border="0">';
+
+       // FIRST ROW WITH TITLES:
+       $result .= '<tr class="row1">';
+       foreach ($titles as $eachtitle) {
+           $result .= '<td>' . __($eachtitle) . '</td>';
+       }
+       $result .= '<td>' . __('Actions') . '</td>';
+       $result .= '</tr>';
+       // END OF "FIRST ROW WITH TITLES".
+
+       // BEGIN GENERATION OF ROWS, CONTAINING NAS DATA:
+       if ( ! empty($alldata) ) {
+           foreach ($alldata as $eachdata) {
+               $result .= '<tr class="row3">';
+               foreach ($keys as $eachkey) {
+                   if ( array_key_exists($eachkey, $eachdata) ) {
+                       if ($eachkey == 'netid') {
+                           $result .= '<td>' . $eachdata[$eachkey] . ': ' . $netcidrs[$eachdata[$eachkey]] . '</td>';
+                       } else $result .= '<td>' . $eachdata[$eachkey] . '</td>';
+
+                       if ( $eachkey == 'nastype' ) {
+                           if ( $eachdata[$eachkey] == 'mikrotik' ) {
+                               $mikrotikExtendedLink = '<a href="?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'] . '">' . web_mikrotik_extended(__('MikroTik extended configuration')) . '</a>';
+                           } else $mikrotikExtendedLink = NULL;
+                       }
+                   }
+               }
+               if ( $delete ) {
+                   $deleteLink = wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+               } else $deleteLink = NULL;
+
+               if ( $edit ) {
+                   $editLink = '<a href="?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'] . '">' . web_edit_icon() . '</a>';
+               } else $editLink = NULL;
+
+               $result .= '<td>' . $deleteLink . ' ' . $editLink . ' ' . $mikrotikExtendedLink . '</td>';
+               $result .= '</tr>';
+           }
+       }
+       // STOP GENERATION OF ROWS, CONTAINING NAS DATA.
+
+       $result .= '</table>';
+       // END OF NAS LIST TABLE.
+
+       // RETURN RESULT:
+       return $result;
+   }
     
     function web_GridEditorVservices($titles,$keys,$alldata,$module,$delete=true,$edit=false) {
         $alltagnames=stg_get_alltagnames();
@@ -1830,7 +1906,6 @@ function web_PaymentsShowGraph($year) {
                'rscriptd'=>'rscriptd',
                'radius'=>'Radius',
                'mikrotik'=>'MikroTik',
-               'mtdirect'=>'MikroTik Direct',
                'local'=>'Local NAS'
            );
             
@@ -2106,7 +2181,7 @@ function web_BackupForm() {
        /*
         * traffic stats by previous months
         */
-     
+     $monthNames=months_array_wz();
      $result.=wf_tag('h3').__('Previous month traffic stats').wf_tag('h3', true);
      
      $cells=  wf_TableCell(__('Year'));
@@ -2120,12 +2195,12 @@ function web_BackupForm() {
 
        if (!empty ($alldirs)) {
            foreach ($alldirs as $io=>$eachdir) {
-               $query_prev="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."`,`month`,`year`,`cash` from `stat` WHERE `login`='".$login."' ORDER BY YEAR";
+               $query_prev="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."`,`month`,`year`,`cash` from `stat` WHERE `login`='".$login."' ORDER BY `year`,`month`";
                $allprevmonth=simple_queryall($query_prev);
                 if (!empty ($allprevmonth)) {
                    foreach ($allprevmonth as $io2=>$eachprevmonth) {
                      $cells=  wf_TableCell($eachprevmonth['year']);
-                     $cells.= wf_TableCell($eachprevmonth['month']);
+                     $cells.= wf_TableCell(rcms_date_localise($monthNames[$eachprevmonth['month']]));
                      $cells.= wf_TableCell($eachdir['rulename']);
                      $cells.= wf_TableCell(stg_convert_size($eachprevmonth['D'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['D'.$eachdir['rulenumber']].'"');
                      $cells.= wf_TableCell(stg_convert_size($eachprevmonth['U'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['U'.$eachdir['rulenumber']].'"');
@@ -2514,8 +2589,9 @@ function zb_BillingCheckUpdates() {
 }
 
    function zb_BillingStats($quiet=false) {
-        $ubstatsurl=file_get_contents(CONFIG_PATH."ubstats");
-        $ubstatsurl=trim($ubstatsurl);
+//        $ubstatsurl=file_get_contents(CONFIG_PATH."ubstats");
+//        $ubstatsurl=trim($ubstatsurl);
+       $ubstatsurl='http://stats.ubilling.net.ua/';
         
      //detect host id
      $hostid_q="SELECT * from `ubstats` WHERE `key`='ubid'";
@@ -2531,10 +2607,10 @@ function zb_BillingCheckUpdates() {
      }
      
      //detect stats collection feature
-     $statscollect_q="SELECT * from `ubstats` WHERE `key`='ubcollect'";
+     $statscollect_q="SELECT * from `ubstats` WHERE `key`='ubtrack'";
      $statscollect=simple_query($statscollect_q);
      if (empty($statscollect)) {
-         $newstatscollect_q="INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubcollect', '1');";
+         $newstatscollect_q="INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubtrack', '1');";
          nr_query($newstatscollect_q);
          $thiscollect=1;
      } else {
@@ -2544,9 +2620,9 @@ function zb_BillingCheckUpdates() {
      //disabling collect subroutine
      if (isset($_POST['editcollect'])) {
      if (!isset($_POST['collectflag'])) {
-         simple_update_field('ubstats', 'value', '0', "WHERE `key`='ubcollect'");
+         simple_update_field('ubstats', 'value', '0', "WHERE `key`='ubtrack'");
      } else {
-         simple_update_field('ubstats', 'value', '1', "WHERE `key`='ubcollect'");
+         simple_update_field('ubstats', 'value', '1', "WHERE `key`='ubtrack'");
      }
      rcms_redirect("?module=report_sysload");
      }
@@ -2591,6 +2667,7 @@ function zb_BillingCheckUpdates() {
      $ubstatsinputs=zb_AjaxLoader();
      
      $ubstatsinputs.='<b>'.__('Serial key').':</b> '.$thisubid.'<br>';
+     $ubstatsinputs.='<b>'.__('Use this to request technical support').':</b> '.  wf_tag('font', false, '', 'color="#076800"').substr($thisubid,-4).  wf_tag('font', true).'<br>';
      $ubstatsinputs.='<b>'.__('Ubilling version').':</b> '.$updatechecker.'<br>';
      $ubstatsinputs.=$releasebox;
      $ubstatsinputs.=wf_HiddenInput('editcollect', 'true');
@@ -3084,21 +3161,36 @@ function zb_TranslitString($string) {
 }
 
     /*
-     * Returns all of MikroTik NAS-es interfaces
+     * Returns unserialized `nas`.`options` field
      * 
+     * @param $nasid `id` of NAS
      * @return array
      */
-
-    function zb_MtNasGetAllIfaces() {
-        $query = "SELECT * from `mtnasifaces`";
-        $all = simple_queryall($query);
-        $result = array();
-        
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $result[$each['nasid']]=$each['iface'];
+    function zb_mikrotikExtConfGetOptions($nasid) {
+        $return = array();
+        if ( ! empty($nasid) ) {
+            $query  = "SELECT `options` FROM `nas` WHERE `id` = " . $nasid . ";";
+            $result = simple_queryall($query);
+            if ( ! empty($result) ) {
+                foreach ($result as $data) {
+                    $return = unserialize(base64_decode($data['options']));
+                }
             }
         }
-        return ($result);
+        return $return;
+    }
+	
+    /*
+     * Rounds $value to $precision digits
+     * 
+     * @param $value digit to round
+     * @param $precision amount of digits after point
+     * @return string
+     */
+    function web_roundValue($value, $precision = 0) {
+        if     ( $precision < 0 ) $precision = 0;
+        elseif ( $precision > 4 ) $precision = 4;
+        $multiplier = pow(10, $precision);
+        return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     }
 ?>

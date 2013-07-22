@@ -626,7 +626,6 @@ function ts_DetectUserByAddress($address) {
         $phone=  mysql_real_escape_string($phone);
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
-        $jobnote=  mysql_real_escape_string($jobnote);
         
         simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'address', $address, "WHERE `id`='".$taskid."'");
@@ -657,7 +656,7 @@ function ts_DetectUserByAddress($address) {
             
             //job generation form
             if ($login_detected) {
-                $jobgencheckbox=  wf_CheckInput('generatejob', __('Generate job performed for this task'), true, false);
+                $jobgencheckbox=  wf_CheckInput('generatejob', __('Generate job performed for this task'), true, true);
                 $jobgencheckbox.= wf_HiddenInput('generatelogin', $login_detected);
                 $jobgencheckbox.= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
                 $jobgencheckbox.= wf_delimiter();
@@ -695,7 +694,7 @@ function ts_DetectUserByAddress($address) {
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Job note'));
-            $tablecells.=  wf_TableCell($taskdata['jobnote']);
+            $tablecells.=  wf_TableCell(nl2br($taskdata['jobnote']));
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');

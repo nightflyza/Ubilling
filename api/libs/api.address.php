@@ -273,7 +273,7 @@ function zb_AddressCreateApartment($buildid,$entrance,$floor,$apt) {
          (NULL,'".$buildid."','".$entrance."','".$floor."','".$apt."');
         ";
     nr_query($query);
-    log_register('CREATE AddressApartment '.$buildid.' '.$entrance.' '.$floor.' '.$apt);
+    log_register('CREATE AddressApartment ['.$buildid.'] `'.$entrance.'` `'.$floor.'` `'.$apt.'`');
 }
 
 
@@ -316,7 +316,7 @@ function zb_AddressCreateAddress($login,$aptid) {
     (NULL, '".$login."','".$aptid."');
     ";
     nr_query($query);
-    log_register('CREATE AddressOccupancy '.$login.' '.$aptid);
+    log_register('CREATE AddressOccupancy ('.$login.') ['.$aptid.']');
 
 }
 

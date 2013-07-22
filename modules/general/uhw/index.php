@@ -17,7 +17,7 @@ if (cfr('UHW')) {
     function uhw_ShowAllSucefful() {
         
         $totalcount=uhw_GetCount();
-        $perpage=50;
+        $perpage=100;
         
          //pagination 
          if (!isset ($_GET['page'])) {

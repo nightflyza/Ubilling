@@ -121,16 +121,18 @@ if ($altconf['TB_UBIM']) {
 //switchmon at nptify area
 if ($altconf['TB_SWITCHMON']) {
 $dead_raw=zb_StorageGet('SWDEAD');
+$last_pingtime=zb_StorageGet('SWPINGTIME');
 $deathTime=  zb_SwitchesGetAllDeathTime();
 $deadarr=array();
+$content='';
 
-$content='<a href="?module=switches&forcereping=true" target="refrsw"><img src="skins/refresh.gif" border="0" title="'.__('Force ping').'"></a><iframe name="refrsw" frameborder="0" width="1" height="1" src="about:blank"></iframe>';
 if ($altconf['SWYMAP_ENABLED']) {
-    $content.='<a href="?module=switchmap"><img src="skins/swmapsmall.png" border="0" title="'.__('Switches map').'"></a>';
+    $content='<a href="?module=switchmap"><img src="skins/swmapsmall.png" border="0" title="'.__('Switches map').'"></a>';
 }
 
+$content.= wf_AjaxLoader(). wf_AjaxLink("?module=switches&forcereping=true&ajaxping=true", wf_img('skins/refresh.gif', __('Force ping')),'switchping', true, '');
 
-$content.='<br>';
+
 
 if ($dead_raw) {
 $deadarr=unserialize($dead_raw);
@@ -141,6 +143,8 @@ if ($altconf['SWYMAP_ENABLED']) {
     //getting geodata
     $switchesGeo=  zb_SwitchesGetAllGeo();
 }
+//ajax container
+$content.=wf_tag('div', false, '', 'id="switchping"');
 
 foreach ($deadarr as $ip=>$switch) {
     if ($altconf['SWYMAP_ENABLED']) {
@@ -168,15 +172,19 @@ foreach ($deadarr as $ip=>$switch) {
     
 }
 
+//ajax container end
+$content.=wf_delimiter().__('Cache state at time').': '.date("H:i:s",$last_pingtime).wf_tag('div',true);
 
 $ticketnotify.='<div class="ubButton">'.wf_modal(__('Dead switches').': '.$deadcount, __('Dead switches'), $content, '', '500', '400').'</div>';
 } else {
-   $content.=__('Switches are okay, everything is fine - I guarantee');
+   $content.=wf_tag('div', false, '', 'id="switchping"').__('Switches are okay, everything is fine - I guarantee').wf_delimiter().__('Cache state at time').': '.date("H:i:s",$last_pingtime).wf_tag('div',true);
    $ticketnotify.='<div class="ubButton">'.wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400').'</div>';
 }
 
+
+
 } else {
-   $content.=__('Switches are okay, everything is fine - I guarantee');
+   $content.=wf_tag('div', false, '', 'id="switchping"').__('Switches are okay, everything is fine - I guarantee').wf_delimiter().__('Cache state at time').': '.@date("H:i:s",$last_pingtime).wf_tag('div',true);
    $ticketnotify.='<div class="ubButton">'.wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400').'</div>';
 }
 }

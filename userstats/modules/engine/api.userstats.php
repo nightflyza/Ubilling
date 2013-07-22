@@ -451,7 +451,7 @@ function zbs_UserShowProfile($login) {
 					$balanceExpire = NULL;
 					break;
 			}
-		} else $balanceExpire = ", " . __('balance expired');
+		} else $balanceExpire = ", " . __('You have indebtedness!');
     }
 	// >> END OF ONLINELEFT COUNTING
     
@@ -513,6 +513,12 @@ function zbs_UserShowProfile($login) {
         $tariffSpeeds='';
     }
     
+	
+    if ($us_config['ROUND_PROFILE_CASH']) {
+        $Cash = web_roundValue($userdata['Cash'], 2);
+    } else  $Cash = $userdata['Cash'];
+	
+	
     $profile='
         <table width="100%" border="0" cellpadding="2" cellspacing="3">
             <tr>
@@ -567,7 +573,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Balance').'</td>
-            <td>'.$userdata['Cash'].' '.$us_currency.$balanceExpire . '</td>
+            <td>' . $Cash . ' ' . $us_currency . $balanceExpire . '</td>
             </tr>
             
             <tr>
@@ -617,6 +623,7 @@ function zbs_CashGetUserPayments($login) {
        $login=vf($login);
        $alldirs=zbs_DirectionsGetAll();
        $monthnames=  zbs_months_array_wz();
+
        /*
         * Current month traffic stats
         */
@@ -661,10 +668,11 @@ function zbs_CashGetUserPayments($login) {
 
        if (!empty ($alldirs)) {
            foreach ($alldirs as $io=>$eachdir) {
-               $query_prev="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."`,`month`,`year`,`cash` from `stat` WHERE `login`='".$login."' ORDER BY YEAR";
+               $query_prev="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."`,`month`,`year`,`cash` from `stat` WHERE `login`='".$login."'  ORDER BY `year`,`month`";
                $allprevmonth=simple_queryall($query_prev);
                 if (!empty ($allprevmonth)) {
                    foreach ($allprevmonth as $io2=>$eachprevmonth) {
+                                    
                     $result.='
                         <tr class="row3">
                         <td>'.$eachprevmonth['year'].'</td>
@@ -681,6 +689,7 @@ function zbs_CashGetUserPayments($login) {
            }
        }
        $result.='</table>';
+
        
        return($result);
    }
@@ -743,6 +752,23 @@ function zbs_ModulesMenuShow ($icons=false) {
         }
     }
     return($result);   
+}
+
+function zbs_CopyrightsShow() {
+    $usConf=zbs_LoadConfig();
+    $baseFooter='Powered by <a href="http://ubilling.net.ua">Ubilling</a>';
+    if ( (isset($usConf['ISP_NAME'])) AND (isset($usConf['ISP_URL'])) ) {
+        if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL']))) {
+            $addFooter='<a href="'.$usConf['ISP_URL'].'">'.$usConf['ISP_NAME'].'</a> | ';
+        } else {
+            $addFooter='';
+        }
+        
+    } else {
+        $addFooter='';
+    }
+    $result=$addFooter.$baseFooter;
+    return ($result);
 }
 
 function zbs_PaymentLog($login,$summ,$cashtypeid,$note) {
@@ -963,4 +989,18 @@ function zbs_StorageGet($key) {
        return ($result);
     }
 
+    
+    /*
+     * Rounds $value to $precision digits
+     * 
+     * @param $value digit to round
+     * @param $precision amount of digits after point
+     * @return string
+     */
+    function web_roundValue($value, $precision = 0) {
+        if     ( $precision < 0 ) $precision = 0;
+        elseif ( $precision > 4 ) $precision = 4;
+        $multiplier = pow(10, $precision);
+        return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
+    }
 ?>

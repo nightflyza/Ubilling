@@ -36,7 +36,7 @@ if (cfr('REPORTSIGNUP')) {
         
         foreach ($yearcount as $eachmonth=>$count) {
             $tablecells=wf_TableCell($eachmonth);
-            $tablecells.=wf_TableCell(rcms_date_localise($allmonths[$eachmonth]));
+            $tablecells.=wf_TableCell(wf_Link('?module=report_signup&month='.$year.'-'.$eachmonth,rcms_date_localise($allmonths[$eachmonth])));
             $tablecells.=wf_TableCell($count);
             $tablecells.=wf_TableCell(web_bar($count, $maxsignups), '', '', 'sorttable_customkey="'.$count.'"');
             $tablerows.=wf_TableRow($tablecells, 'row3');
@@ -94,6 +94,52 @@ if (cfr('REPORTSIGNUP')) {
         show_window(__('Current month user signups'),$result);
     }
     
+     function web_SignupsShowAnotherYearMonth($cmonth) {
+        $alltariffs=zb_TariffsGetAllUsers();
+        $cmonth=  mysql_real_escape_string($cmonth);
+        $altercfg=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $where="WHERE `date` LIKE '".$cmonth."%' ORDER by `date` DESC;";
+        $signups=zb_SignupsGet($where);
+        $curdate=  curdate();
+        $tablecells=wf_TableCell(__('ID'));
+        $tablecells.=wf_TableCell(__('Date'));
+        $tablecells.=wf_TableCell(__('Administrator'));
+        if ($altercfg['SIGREP_CONTRACT']) {
+          $tablecells.=wf_TableCell(__('Contract'));   
+          $allcontracts= array_flip(zb_UserGetAllContracts());
+        }
+        $tablecells.=wf_TableCell(__('Login'));
+        $tablecells.=wf_TableCell(__('Tariff'));
+        $tablecells.=wf_TableCell(__('Full address'));
+        $tablerows=wf_TableRow($tablecells, 'row1');
+        
+            if (!empty ($signups)) {
+                foreach ($signups as $io=>$eachsignup) {
+             
+                    $tablecells=wf_TableCell($eachsignup['id']);
+                    $tablecells.=wf_TableCell($eachsignup['date']);
+                    $tablecells.=wf_TableCell($eachsignup['admin']);
+                     if ($altercfg['SIGREP_CONTRACT']) {
+                        $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);   
+                    }
+                    $tablecells.=wf_TableCell($eachsignup['login']);
+                    $tablecells.=wf_TableCell(@$alltariffs[$eachsignup['login']]);
+                    $profilelink=wf_Link('?module=userprofile&username='.$eachsignup['login'], web_profile_icon().' '.$eachsignup['address']);
+                    $tablecells.=wf_TableCell($profilelink);
+                    if (ispos($eachsignup['date'], $curdate)) {
+                        $rowClass='todaysig';
+                    } else {
+                        $rowClass='row3';
+                    }
+                        
+                    $tablerows.=wf_TableRow($tablecells, $rowClass);
+                }
+            }
+         
+        $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
+        show_window(__('User signups by month').' '.$cmonth,$result);
+    }
+    
     function web_SignupsShowToday() {
          $query="SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '".  curdate()."%'";
          $sigcount=simple_query($query);
@@ -109,14 +155,18 @@ if (cfr('REPORTSIGNUP')) {
 
     $yearinputs=wf_YearSelector('yearsel');
     $yearinputs.=wf_Submit(__('Show'));
-    $yearform=wf_Form('', 'POST', $yearinputs, 'glamour');
+    $yearform=wf_Form('?module=report_signup', 'POST', $yearinputs, 'glamour');
     
     show_window(__('Year'), $yearform);
     web_SignupsShowToday();
     web_SignupsGraphYear($year);
     web_SignupGraph();
-  
-    web_SignupsShowCurrentMonth();
+    
+    if (!wf_CheckGet(array('month'))) {
+        web_SignupsShowCurrentMonth();
+    } else {
+        web_SignupsShowAnotherYearMonth($_GET['month']);
+    }
     
       zb_BillingStats(true);
     

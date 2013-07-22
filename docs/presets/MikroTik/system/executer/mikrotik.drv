@@ -1,667 +1,467 @@
-<?php if ( ! defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
+<?php if ( !defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
 
-	class Executer {
-	
-		// PRIVATE VARIABLES:
-		private $connected	= FALSE;
-		private $socket;
-		private $error_no;
-		private $error_str;
+    class Executer {
+        // MikroTik API:
+        private $connected;
+        private $socket;
+        private $error_no;
+        private $error_str;
+        
+        // Recived data from `ubilling.cls`:
+        private $log;
+        private $config;
+        private $database;
+        private $parameters;
+        private $options;
+        
+        // Constructor:
+        public function __construct($data) {
+            // Put all recived data to specified vars:
+            foreach ($data as $key => $value) {
+                switch ($key) {
+                    case 'parameters':
+                        $this->options = $value['OPTIONS'];
+                        unset($value['OPTIONS']);
+                        /* IMPORTANT: `break;` isn't needed! */
+                    default:
+                        $this->$key = $value;
+                        break;
+                }
+            }
+            // Write log message, that class is loaded:
+            $this->log->message(__CLASS__, "MikroTik Executer loaded.", "debug");
+        }
 
-		// LOADED CONFIGURATIONS:
-		private $config		= array();
-		
-		// LOADED CLASSES:
-		private $log		=	NULL;
-		
-		// QUERIED DATABASE DATA:
-		private $data		= array();
-		
-		// TEMPLATES FOR RULES:
-		private $template = array(
-			'ADDRESS_LIST'	=> array(					// ADDRESS-LIST ENTRY TEMPLATE:
-				"list"				=> "ALLOW",
-				"address"			=> IP,
-				"disabled"			=> NULL,
-				"comment"			=> LOGIN
-			),
-			'ARP'			=> array(					//	ARP ENTRY TEMPLATE:
-				"address"			=>	IP,
-				"mac-address"		=>	NULL,
-				"interface"			=>	NULL,
-				"disabled"			=>	"no",
-				"comment"			=>	LOGIN
-			),
-			'QUEUE'			=> array(					//	SIMPLE QUEUE ENTRY TEMPLATE:
-				'name' => LOGIN,
-				'target-addresses' 		=> IP,
-				'interface'				=> 'all',
-				'parent' 				=> 'none',
-				'packet-marks' 			=> NULL,
-				'direction' 			=> 'both',
-				'priority' 				=> 8,
-				'queue' 				=> 'default-small/default-small',
-				'limit-at' 				=> NULL,
-				'max-limit' 			=> NULL,
-				'burst-limit' 			=> NULL,
-				'burst-threshold' 		=> NULL,
-				'burst-time' 			=> NULL,
-				'total-queue' 			=> 'default-small',
-				'total-limit-at' 		=> 0,
-				'total-max-limit' 		=> 0,
-				'total-burst-limit' 	=> 0,
-				'total-burst-threshold'	=> 0,
-				'total-burst-time'		=> 0,
-				'disabled'				=> "no"
-			),
-			'DHCP'			=> array(					// DHCP LEASE ENTRY TEMPLATE:
-				'address'			=>	IP,
-				'mac-address'		=>	NULL,
-				'client-id'			=>	NULL,
-				'server'			=>	NULL,
-				'rate-limit'		=>	NULL,
-				'address-list'		=>	NULL,
-				'lease-time'		=>	"00:00:00",
-				'use-src-mac'		=>	"no",
-				'block-access'		=>	"no",
-				'always-broadcast'	=>	"no",
-				'disabled' 			=>	"no",
-				'comment' 			=>	LOGIN
-			),
-			'PPP'			=> array(					//	PPP USER ENTRY TEMPLATE:
-				'name' 				=>	LOGIN,
-				'service' 			=>	'pppoe',
-				'caller-id' 		=>	NULL,
-				'password'			=>	'password',
-				'profile' 			=>	NULL,
-				// 'local-address' 	=> NULL,			//	Will be set by profile!
-				'remote-address' 	=>	IP,
-				'routes' 			=>	NULL,
-				'limit-bytes-in' 	=>	0,
-				'limit-bytes-out'	=>	0,
-				'disabled' 			=>	'no'
-			)
-		);		
-		
-		// CLASS CONSTRUCTOR:
-		public function __construct($data) {
-			// PARSE RECIVED DATA:
-			foreach ($data as $key => $value) $this->$key = $value;
+        /* MikroTik API << */
 
-			// SEND MESSAGE, THAT LOADED:
-			$this->log->message(__CLASS__, "MikroTik Executer loaded...", "debug");
-		}
+        private function encode_length($length) {
+            if ( $length < 0x80 ) {
+                $length = chr($length);
+            } else if ( $length < 0x4000 ) {
+                $length |= 0x8000;
+                $length = chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
+            } else if ( $length < 0x200000 ) {
+                $length |= 0xC00000;
+                $length = chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
+            } else if ( $length < 0x10000000 ) {
+                $length |= 0xE0000000;
+                $length = chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
+            } else if ( $length >= 0x10000000 )
+                $length = chr(0xF0) . chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
+            return $length;
+        }
 
-	/* >> BEGINNING OF MIKROTIK API << */
-		
-		// ENCODE LENGTH:
-		private function encode_length($length) {
-			if ($length < 0x80) {
-				$length = chr($length);
-			} else if ($length < 0x4000) {
-				$length |= 0x8000;
-				$length = chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
-			} else if ($length < 0x200000) {
-				$length |= 0xC00000;
-				$length = chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
-			} else if ($length < 0x10000000) {
-				$length |= 0xE0000000;
-				$length = chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
-			} else if ($length >= 0x10000000)
-				$length = chr(0xF0) . chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
-			return $length;
-		}
+        private function connect() {
+            for ($ATTEMPT = 1; $ATTEMPT <= $this->config['attempts']; $ATTEMPT++) {
+                $this->connected = FALSE;
+                $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['IP'] . ':' . $this->config['api_port'] . '...', "api");
+                if ( $this->socket = @fsockopen($this->parameters['IP'], $this->config['api_port'], $this->error_no, $this->error_str, $this->config['timeout']) ) {
+                    socket_set_timeout($this->socket, $this->config['timeout']);
+                    $this->write('/login');
+                    $RESPONSE = $this->read(FALSE);
+                    if ( $RESPONSE[0] == '!done' ) {
+                        if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
+                            if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
+                                $this->write('/login', FALSE);
+                                $this->write('=name=' . $this->options['username'], FALSE);
+                                $this->write('=response=00' . md5(chr(0) . $this->options['password'] . pack('H*', $MATCHES[0][1])));
+                                $RESPONSE = $this->read(FALSE);
+                                if ( $RESPONSE[0] == '!done' ) {
+                                    $this->connected = TRUE;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    fclose($this->socket);
+                }
+                sleep($this->config['delay']);
+            }
 
-		// CONNECT TO MIKROTIK VIA API:
-		private function connect() {
-			for ($ATTEMPT = 1; $ATTEMPT <= $this->config['attempts']; $ATTEMPT++) {
-				$this->connected = FALSE;
-				$this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->data['NAS']['IP'] . ':' . $this->data['NAS']['PORT'] . '...', "api");
-				if ($this->socket = @fsockopen($this->data['NAS']['IP'], $this->data['NAS']['PORT'], $this->error_no, $this->error_str, $this->config['timeout'])) {
-					socket_set_timeout($this->socket, $this->config['timeout']);
-					$this->write('/login');
-					$RESPONSE = $this->read(FALSE);
-					if ( $RESPONSE[0] == '!done' ) {
-						if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
-							if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
-								$this->write('/login', FALSE);
-								$this->write('=name=' . $this->data['NAS']['LOGIN'], FALSE);
-								$this->write('=response=00' . md5(chr(0) . $this->data['NAS']['PASSWORD'] . pack('H*', $MATCHES[0][1])));
-								$RESPONSE = $this->read(FALSE);
-								if ( $RESPONSE[0] == '!done' ) {
-									$this->connected = TRUE;
-									break;
-								}
-							}
-						}
-					}
-					fclose($this->socket);
-				}
-				sleep($this->config['delay']);
-			}
+            // Write log message about connection attempt result:
+            if ( $this->connected ) $this->log->message(__CLASS__, 'Connection with MikroTik is established.', "debug");
+            else                    $this->log->message(__CLASS__, 'Cannot establish connection with MikroTik!', "error");
 
-			// LOG MESSAGE:
-			if ($this->connected) {
-				$this->log->message(__CLASS__, 'Connection with MikroTik via API is established...', "debug");
-			} else $this->log->message(__CLASS__, 'Cannot establish connection with MikroTik via API!', "error");
-			
-			// RETURN:
-			return $this->connected;
-		}
+            // Return connection state:
+            return $this->connected;
+        }
 
-		// DISCONNECT FROM MIKROTIK:
-		private function disconnect() {
-			fclose($this->socket);
-			$this->connected = FALSE;
-			$this->log->message(__CLASS__, 'Disconnected from MikroTik...', "api");
-		}
+        private function disconnect() {
+            fclose($this->socket);
+            $this->connected = FALSE;
+            // Write log message about successful disconnection:
+            $this->log->message(__CLASS__, 'Disconnected from MikroTik.', "api");
+        }
 
-		// PARSE RESPONSE:
-		private function parse_response($response) {
-			if ( is_array($response) ) {
-				$PARSED      = array();
-				$CURRENT     = NULL;
-				$singlevalue = NULL;
-				$count       = 0;
-				foreach ( $response as $x ) {
-					if ( in_array($x, array('!fatal', '!re', '!trap')) ) {
-						if ( $x == '!re' ) {
-							$CURRENT =& $PARSED[];
-						} else $CURRENT =& $PARSED[$x][];
-					} else if ( $x != '!done' ) {
-						if ( preg_match_all('/[^=]+/i', $x, $MATCHES) ) {
-							if ( $MATCHES[0][0] == 'ret' ) $singlevalue = $MATCHES[0][1];
-							$CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
-						}
-					}
-				}
-				if ( empty($PARSED) && !is_null($singlevalue) ) {
-					$PARSED = $singlevalue;
-				}
-				return $PARSED;
-			} else return array();
-		}
+        private function parse_response($response) {
+            if ( is_array($response) ) {
+                $PARSED = array();
+                $CURRENT = NULL;
+                $singlevalue = NULL;
+                $count = 0;
+                foreach ($response as $x) {
+                    if ( in_array($x, array('!fatal', '!re', '!trap')) ) {
+                        if ( $x == '!re' ) {
+                            $CURRENT = & $PARSED[];
+                        } else $CURRENT = & $PARSED[$x][];
+                    } else if ( $x != '!done' ) {
+                        if ( preg_match_all('/[^=]+/i', $x, $MATCHES) ) {
+                            if ( $MATCHES[0][0] == 'ret' ) $singlevalue = $MATCHES[0][1];
+                            $CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
+                        }
+                    }
+                }
+                if ( empty($PARSED) && !is_null($singlevalue) ) $PARSED = $singlevalue;
+                return $PARSED;
+            } else return array();
+        }
 
-		// PARSE RESPONSE FOR SMARTY:
-		private function parse_response4smarty($response) {
-			if ( is_array($response) ) {
-				$PARSED  = array();
-				$CURRENT = NULL;
-				$singlevalue = NULL;
-				foreach ( $response as $x ) {
-					if ( in_array($x, array('!fatal', '!re', '!trap' )) ) {
-						if ( $x == '!re' ) {
-							$CURRENT =& $PARSED[];
-						} else $CURRENT =& $PARSED[$x][];
-					} else if ( $x != '!done' ) {
-						if ( preg_match_all('/[^=]+/i', $x, $MATCHES) ) {
-							if ( $MATCHES[0][0] == 'ret' ) $singlevalue = $MATCHES[0][1];
-							$CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
-						}
-					}
-				}
-				foreach ( $PARSED as $key => $value ) {
-					$PARSED[$key] = $this->array_change_key_name($value);
-				}
-				return $PARSED;
-				if ( empty($PARSED) && !is_null($singlevalue) ) {
-					$PARSED = $singlevalue;
-				}
-			} else return array();
-		}
+        private function parse_response4smarty($response) {
+            if ( is_array($response) ) {
+                $PARSED = array();
+                $CURRENT = NULL;
+                $singlevalue = NULL;
+                foreach ($response as $x) {
+                    if ( in_array($x, array('!fatal', '!re', '!trap')) ) {
+                        if ( $x == '!re' ) {
+                            $CURRENT = & $PARSED[];
+                        } else $CURRENT = & $PARSED[$x][];
+                    } else if ( $x != '!done' ) {
+                        if ( preg_match_all('/[^=]+/i', $x, $MATCHES) ) {
+                            if ( $MATCHES[0][0] == 'ret' ) $singlevalue = $MATCHES[0][1];
+                            $CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
+                        }
+                    }
+                }
+                foreach ($PARSED as $key => $value) {
+                    $PARSED[$key] = $this->array_change_key_name($value);
+                }
+                return $PARSED;
+                if ( empty($PARSED) && !is_null($singlevalue) ) $PARSED = $singlevalue;
+            } else return array();
+        }
 
-		// ARRAY CHANGE KEY NAME:
-		private function array_change_key_name(&$array) {
-			if ( is_array($array) ) {
-				foreach ( $array as $key => $value ) {
-					$tmp = str_replace("-", "_", $key);
-					$tmp = str_replace("/", "_", $tmp);
-					if ( $tmp ) {
-						$array_new[$tmp] = $value;
-					} else $array_new[$key] = $value;
-				}
-				return $array_new;
-			} else return $array;
-		}
+        private function array_change_key_name(&$array) {
+            if ( is_array($array) ) {
+                foreach ($array as $key => $value) {
+                    $tmp = str_replace("-", "_", $key);
+                    $tmp = str_replace("/", "_", $tmp);
+                    if ( $tmp ) {
+                        $array_new[$tmp] = $value;
+                    } else $array_new[$key] = $value;
+                }
+                return $array_new;
+            } else return $array;
+        }
 
-		// READ:
-		private function read($parse = TRUE) {
-			$RESPONSE = array();
-			while ( TRUE ) {
-				$BYTE   = ord(fread($this->socket, 1));
-				$LENGTH = 0;
-				if ( $BYTE & 128 ) {
-					if ( ($BYTE & 192) == 128 ) {
-						$LENGTH = (($BYTE & 63) << 8) + ord(fread($this->socket, 1));
-					} else {
-						if ( ($BYTE & 224) == 192 ) {
-							$LENGTH = (($BYTE & 31) << 8) + ord(fread($this->socket, 1));
-							$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-						} else {
-							if ( ($BYTE & 240) == 224 ) {
-								$LENGTH = (($BYTE & 15) << 8) + ord(fread($this->socket, 1));
-								$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-								$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-							} else {
-								$LENGTH = ord(fread($this->socket, 1));
-								$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-								$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-								$LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-							}
-						}
-					}
-				} else $LENGTH = $BYTE;
+        private function read($parse = TRUE) {
+            $RESPONSE = array();
+            while (TRUE) {
+                $BYTE = ord(fread($this->socket, 1));
+                $LENGTH = 0;
+                if ( $BYTE & 128 ) {
+                    if ( ($BYTE & 192) == 128 ) {
+                        $LENGTH = (($BYTE & 63) << 8) + ord(fread($this->socket, 1));
+                    } else {
+                        if ( ($BYTE & 224) == 192 ) {
+                            $LENGTH = (($BYTE & 31) << 8) + ord(fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                        } else {
+                            if ( ($BYTE & 240) == 224 ) {
+                                $LENGTH = (($BYTE & 15) << 8) + ord(fread($this->socket, 1));
+                                $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                                $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                            } else {
+                                $LENGTH = ord(fread($this->socket, 1));
+                                $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                                $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                                $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                            }
+                        }
+                    }
+                } else $LENGTH = $BYTE;
 
-				if ( $LENGTH > 0 ) {
-					$_      = "";
-					$retlen = 0;
-					while ( $retlen < $LENGTH ) {
-						$toread = $LENGTH - $retlen;
-						$_ .= fread($this->socket, $toread);
-						$retlen = strlen($_);
-					}
-					$RESPONSE[] = $_;
-					$this->log->message(__CLASS__, '>>> [' . $retlen . '/' . $LENGTH . '] bytes read.', "api");
-				}
-				if ( $_ == "!done" ) {
-					$receiveddone = TRUE;
-				}
-				$STATUS = socket_get_status($this->socket);
-				if ( $LENGTH > 0 ) {
-					$this->log->message(__CLASS__, '>>> [' . $LENGTH . ', ' . $STATUS['unread_bytes'] . ']' . $_, "api");
-				}
-				if ( (!$this->connected && !$STATUS['unread_bytes']) || ($this->connected && !$STATUS['unread_bytes'] && $receiveddone) ) {
-					break;
-				}
-			}
-			if ( $parse ) {
-				$RESPONSE = $this->parse_response($RESPONSE);
-			}
-			return $RESPONSE;
-		}
+                if ( $LENGTH > 0 ) {
+                    $_ = '';
+                    $retlen = 0;
+                    while ($retlen < $LENGTH) {
+                        $toread = $LENGTH - $retlen;
+                        $_ .= fread($this->socket, $toread);
+                        $retlen = strlen($_);
+                    }
+                    $RESPONSE[] = $_;
+                    $this->log->message(__CLASS__, '>>> [' . $retlen . '/' . $LENGTH . '] bytes read.', "api");
+                }
+                if ( $_ == '!done' ) $receiveddone = TRUE;
+                $STATUS = socket_get_status($this->socket);
+                if ( $LENGTH > 0 ) $this->log->message(__CLASS__, '>>> [' . $LENGTH . ', ' . $STATUS['unread_bytes'] . ']' . $_, "api");
+                if ( (!$this->connected && !$STATUS['unread_bytes'] ) || ($this->connected && !$STATUS['unread_bytes'] && $receiveddone)) {
+                    break;
+                }
+            }
+            if ( $parse ) $RESPONSE = $this->parse_response($RESPONSE);
+            return $RESPONSE;
+        }
 
-		// WRITE:
-		private function write($command, $param2 = TRUE) {
-			if ( $command ) {
-				$data = explode("\n", $command);
-				foreach ( $data as $com ) {
-					$com = trim($com);
-					fwrite($this->socket, $this->encode_length(strlen($com)) . $com);
-					$this->log->message(__CLASS__, '<<< [' . strlen($com) . '] ' . $com, "api");
-				}
-				if ( gettype($param2) == 'integer' ) {
-					fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param2)) . '.tag=' . $param2 . chr(0));
-					$this->log->message(__CLASS__, '<<< [' . strlen('.tag=' . $param2) . '] .tag=' . $param2, "api");
-				} elseif ( gettype($param2) == 'boolean' ) {
-					fwrite($this->socket, ($param2 ? chr(0) : ''));
-				}
-				return TRUE;
-			} else return FALSE;
-		}
+        private function write($command, $param2 = TRUE) {
+            if ( $command ) {
+                $data = explode("\n", $command);
+                foreach ($data as $com) {
+                    $com = trim($com);
+                    fwrite($this->socket, $this->encode_length(strlen($com)) . $com);
+                    $this->log->message(__CLASS__, '<<< [' . strlen($com) . '] ' . $com, "api");
+                }
+                if ( gettype($param2) == 'integer' ) {
+                    fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param2)) . '.tag=' . $param2 . chr(0));
+                    $this->log->message(__CLASS__, '<<< [' . strlen('.tag=' . $param2) . '] .tag=' . $param2, "api");
+                } elseif ( gettype($param2) == 'boolean' )
+                    fwrite($this->socket, ($param2 ? chr(0) : ''));
+                return TRUE;
+            } else return FALSE;
+        }
 
-		// RUN A COMMAND ON `MikroTik`:
-		private function command($command, $arr = array()) {
-			$count = count($arr);
-			$this->write($command, !$arr);
-			$i = 0;
-			foreach ( $arr as $k => $v ) {
-				switch ( $k[0] ) {
-					case "?":
-						$el = "$k=$v";
-						break;
-					case "~":
-						$el = "$k~$v";
-						break;
-					default:
-						$el = "=$k=$v";
-						break;
-				}
-				$last = ($i++ == $count - 1);
-				$this->write($el, $last);
-			}
-			return $this->read();
-		}
+        private function command($command, $arr = array()) {
+            $count = count($arr);
+            $this->write($command, !$arr);
+            $i = 0;
+            foreach ($arr as $k => $v) {
+                switch ($k[0]) {
+                    case "?":
+                        $el = "$k=$v";
+                        break;
+                    case "~":
+                        $el = "$k~$v";
+                        break;
+                    default:
+                        $el = "=$k=$v";
+                        break;
+                }
+                $last = ($i++ == $count - 1);
+                $this->write($el, $last);
+            }
+            return $this->read();
+        }
 
-	/* >> END OF MIKROTIK API << */
+        /* >> MikroTik API */
 
+        private function address_list() {
+            if ( !empty($this->options['manage_firewall']) ) {
+                // Load command parameters template:
+                unset($this->tpl);
+                $this->tpl = parse_ini_file(NAS_DRVS . "tpls/firewall.ini");
+                // Determine `disabled` parameter value:
+                switch (ENVIRONMENT) {
+                    case "OnConnect":
+                        $this->tpl['disabled'] = "no";
+                        break;
+                    case "OnDisconnect":
+                        $this->tpl['disabled'] = "yes";
+                        break;
+                }
+                // Find entry on NAS:
+                $properties = $this->command("/ip/firewall/address-list/print", array(
+                    ".proplist" => ".id",
+                    "?comment" => LOGIN
+                ));
+                // a. Entry is present:
+                if ( !empty($properties) ) {
+                    foreach ($properties as $property) {
+                        // Update entry:
+                        $this->tpl['.id'] = $property['.id'];
+                        $reply = $this->command("/ip/firewall/address-list/set", $this->tpl);
+                        // Write log message(-s):
+                        if ( empty($reply) ) $this->log->message(__CLASS__, "Address List entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
+                        else {
+                            foreach ($reply['!trap'] as $error) {
+                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Address List entry, " . $error['message'] . "!", "error");
+                            }
+                        }
+                    }
+                // b. Entry is absent:
+                } else {
+                    // Create new entry:
+                    $reply = $this->command("/ip/firewall/address-list/add", $this->tpl);
+                    // Write log message(-s):
+                    if ( is_string($reply) ) $this->log->message(__CLASS__, "New Address List entry was added with ID - `" . $reply . "`;", "success");
+                    else {
+                        foreach ($reply['!trap'] as $error) {
+                            if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Address List entry, " . $error['message'] . "!", "error");
+                        }
+                    }
+                }
+            } else $this->log->message(__CLASS__, "MikroTik firewall managing is not enabled;", "debug");
+        }
 
+        private function arp() {
+            if ( !empty($this->options['manage_arp']) ) {
+                // Load command parameters template:
+                unset($this->tpl);
+                $this->tpl = parse_ini_file(NAS_DRVS . "tpls/arp.ini");
+                // Fill in the template:
+                $this->tpl['mac-address'] = $this->database->get_user_mac();
+                $this->tpl['interface']   = $this->options['users_interface'];
+                // Find entry on NAS:
+                $properties = $this->command("/ip/arp/print", array(
+                    ".proplist" => ".id",
+                    "?comment" => LOGIN
+                ));
+                // a. Entry is present:
+                if ( !empty($properties) ) {
+                    foreach ($properties as $property) {
+                        // Update entry:
+                        $this->tpl['.id'] = $property['.id'];
+                        $reply = $this->command("/ip/arp/set", $this->tpl);
+                        // Write log message(-s):
+                        if ( empty($reply) ) $this->log->message(__CLASS__, "ARP entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
+                        else {
+                            foreach ($reply['!trap'] as $error) {
+                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update ARP entry, " . $error['message'] . "!", "error");
+                            }
+                        }
+                    }
+                // b. Entry is absent:
+                } else {
+                    // Create new entry:
+                    $reply = $this->command("/ip/arp/add", $this->tpl);
+                    // Write log message(-s):
+                    if ( is_string($reply) ) $this->log->message(__CLASS__, "New ARP entry was added with ID - `" . $reply . "`;", "success");
+                    else {
+                        foreach ($reply['!trap'] as $error) {
+                            if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new ARP entry, " . $error['message'] . "!", "error");
+                        }
+                    }
+                }
+            } else $this->log->message(__CLASS__, "MikroTik ARP managing is not enabled;", "debug");
+        }
 
-	/* >> FRAMEWORK << */
+        private function queue() {
+            if ( !empty($this->options['manage_queue']) ) {
+                if ( !empty($this->options['version']) ) {
+                    // Load command parameters template:
+                    unset($this->tpl);
+                    $this->tpl = parse_ini_file(NAS_DRVS . "tpls/queue/ros_v" . $this->options['version'] . ".ini");
+                    // Fill in the template:
+                    $rate = $this->database->get_user_rate();
+                    $this->tpl['limit-at']  = $rate['TX'] . $this->config['rate_val'] . '/' . $rate['RX'] . $this->config['rate_val'];
+                    $this->tpl['max-limit'] = $rate['TX'] . $this->config['rate_val'] . '/' . $rate['RX'] . $this->config['rate_val'];
+                    switch ($this->options['version']) {
+                        case 4:
+                        case 5:
+                            $this->tpl['interface'] = $this->options['users_interface'];
+                            break;
+                        case 6:
+                            /* THIS SHIT WAS LIMITING RATE ON THE USER INTERFACE INTERFACE:
+							 * $this->tpl['target'] .= "," . $this->options['users_interface'];
+                             */
+                            break;
+                    }
+                    // Find entry on NAS:
+                    $properties = $this->command("/queue/simple/print", array(
+                        ".proplist" => ".id",
+                        "?name" => LOGIN
+                    ));
+                    // a. Entry is present:
+                    if ( !empty($properties) ) {
+                        foreach ($properties as $property) {
+                            // Update entry:
+                            $this->tpl['.id'] = $property['.id'];
+                            $reply = $this->command("/queue/simple/set", $this->tpl);
+                            // Write log message(-s):
+                            if ( empty($reply) ) $this->log->message(__CLASS__, "Queue entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
+                            else {
+                                foreach ($reply['!trap'] as $error) {
+                                    if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Queue entry, " . $error['message'] . "!", "error");
+                                }
+                            }
+                        }
+                    // b. Entry is absent:
+                    } else {
+                        // Create new entry:
+                        $reply = $this->command("/queue/simple/add", $this->tpl);
+                        // Write log message(-s):
+                        if ( is_string($reply) ) $this->log->message(__CLASS__, "New Queue entry was added with id - `" . $reply . "`;", "success");
+                        else {
+                            foreach ($reply['!trap'] as $error) {
+                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Queue entry, " . $error['message'] . "!", "error");
+                            }
+                        }
+                    }
+                } else $this->log->message(__CLASS__, "Set MikroTik RouterOS version number value in database", "debug");
+            } else $this->log->message(__CLASS__, "MikroTik Queue managing is not enabled.", "debug");
+        }
 
-		// 1. GET AUTHORIZATION DATA FROM `nas_data.ini`:
-		private function get_auth_data() {
-			if ( file_exists(BASEPATH . "nas_data.ini") ) {
-				$ini = parse_ini_file(BASEPATH . "nas_data.ini", TRUE);
-				if ( array_key_exists($this->data['NAS']['IP'], $ini) ) {
-					foreach ( $ini[$this->data['NAS']['IP']] as $key => $value ) {
-						$this->data['NAS'][$key] = $value;
-					}
-					return TRUE;
-				} else $this->log->message(__CLASS__, "Cannot get authorization data, check `nas_data.ini`!", "error");
-			} else $this->log->message(__CLASS__, "Cannot get authorization data, `nas_data.ini` is absent!", "error");
-		}
+        private function dhcp() {
+            if ( !empty($this->options['manage_dhcp']) ) {
+                if ( !empty($this->options['users_interface']) ) {
+                    // Find DHCP-server `name` value:
+                    $server = $this->command("/ip/dhcp-server/print", array(
+                        ".proplist" => "name",
+                        "?interface" => $this->options['users_interface']
+                    ));
+                    // If DHCP-server is found:
+                    if ( !empty($server) ) {
+                        // Load command parameters template:
+                        unset($this->tpl);
+                        $this->tpl = parse_ini_file(NAS_DRVS . "tpls/dhcp.ini");
+                        // Fill in the template:
+                        $this->tpl['mac-address'] = $this->database->get_user_mac();
+                        $this->tpl['server'] = $server[0]['name'];
+                        // Find entry on NAS:
+                        $props = $this->command("/ip/dhcp-server/lease/print", array(
+                            ".proplist" => ".id",
+                            "?comment" => LOGIN
+                        ));
+                        // a. Entry is present:
+                        if ( !empty($props) ) {
+                            foreach ( $props as $property ) {
+                                // Update entry:
+                                $this->tpl['.id'] = $property['.id'];
+                                $reply = $this->command("/ip/dhcp-server/lease/set", $this->tpl);
+                                // Write log message(-s):
+                                if ( empty($reply) ) $this->log->message(__CLASS__, "DHCP entry with id - `" . $this->tpl['.id'] . "` was updated;", "success");
+                                else {
+                                    foreach ($reply['!trap'] as $error) {
+                                        if ( !empty($error['message']) )
+                                            $this->log->message(__CLASS__, "Cannot update DHCP entry, " . $error['message'] . "!", "error");
+                                    }
+                                }
+                            }
+                        // b. Entry is absent:
+                        } else {
+                            // Create new entry:
+                            $reply = $this->command("/ip/dhcp-server/lease/add", $this->tpl);
+                            // Write log message(-s):
+                            if ( is_string($reply) ) $this->log->message(__CLASS__, "New DHCP entry was added with id - `" . $reply . "`;", "success");
+                            else {
+                                foreach ($reply['!trap'] as $error) {
+                                    if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new DHCP entry, " . $error['message'] . "!", "error");
+                                }
+                            }
+                        }
+                    } else $this->log->message(__CLASS__, "No configurated DHCP found for USER INTERFACE!", "error");
+                } else $this->log->message(__CLASS__, "USER INTERFACE was not defined!", "error");
+            } else $this->log->message(__CLASS__, "MikroTik DHCP Leases managing is not enabled.", "debug");
+        }
 
-		// 2. GET ADDITIONAL NETWORK DATA FROM `network_data.ini`:
-		private function get_network_data() {
-			if ( file_exists(BASEPATH . "network_data.ini") ) {
-				$ini = parse_ini_file(BASEPATH . "network_data.ini", TRUE);
-				if ( array_key_exists($this->data['NETWORK']['ID'], $ini ) ) {
-					foreach ( $ini[$this->data['NETWORK']['ID']] as $key => $value ) {
-						$this->data['NETWORK'][$key] = $value;
-					}
-					return TRUE;
-				} else $this->log->message(__CLASS__, "Cannot get network data, entry for `" . $this->data['NETWORK']['ID'] . "` is absent!", "error");
-			} else $this->log->message(__CLASS__, "Cannot get network data, `network_data.ini` is absent!", "error");
-		}
+        // 1. OnConnect:
+        public function OnConnect() {
+            if ( !empty($this->parameters['IP']) ) {
+                if ($this->connect()) {
+                    $this->address_list();
+                    $this->queue();
+                    $this->dhcp();
+                    $this->arp();
+                }
+            } else $this->log->message(__CLASS__, "Cannot run OnConnect, any NAS IP was queried from DB!", "error");
+        }
 
-		// 3. PUT COMMAND FOR ADDRESS-LIST (DEPENDS OF ENVIRONMENT):
-		private function address_list()	{
-			// DETERMINE IS ADDRESS-LIST ENTRY ENABLED OR DISABLED:
-			switch ( ENVIRONMENT ) {
-				case "OnConnect":
-					$this->template['ADDRESS_LIST']['disabled'] = "no";
-					break;
-				case "OnDisconnect":
-					$this->template['ADDRESS_LIST']['disabled'] = "yes";
-					break;
-			}
-			
-			// CHECK PRESENCE OF THE ENTRY ON `MikroTik`:
-			$props = $this->command("/ip/firewall/address-list/print", array(
-				".proplist"	=>	".id",
-				"?comment"	=>	LOGIN
-			));
-			
-			if ( ! empty($props) ) {
-				// UPDATE ADDRESS-LIST ENTRY:
-				foreach ( $props as $property ) {
-					$this->template['ADDRESS_LIST']['.id'] = $property['.id'];
-					$reply = $this->command("/ip/firewall/address-list/set", $this->template['ADDRESS_LIST']);
-					// LOG MESSAGE:
-					if ( empty($reply) ) $this->log->message(__CLASS__, "Address List entry with ID - `" . $this->template['ADDRESS_LIST']['.id'] . "` was updated;", "success");
-					else {
-						foreach ( $reply['!trap'] as $error ) {
-							if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Address List entry, " . $error['message'] . "!", "error");
-						}
-					}
-				}
-			} else {
-				// ADD ADDRESS-LIST ENTRY:
-				$reply = $this->command("/ip/firewall/address-list/add", $this->template['ADDRESS_LIST']);
-				// LOG MESSAGE:
-				if ( is_string($reply) ) $this->log->message(__CLASS__, "New Address List entry was added with id - `" . $reply . "`;", "success");
-				else {  
-					foreach ( $reply['!trap'] as $error ) {
-						if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Address List entry, " . $error['message'] . "!", "error");
-					}
-				}
-			}
-		}
-
-		// 4. PUT COMMAND FOR ARP:
-		private function arp() {
-			// CHECK PRESENCE OF THE ENTRY ON `MikroTik`:
-			$props = $this->command("/ip/arp/print", array(
-				".proplist"	=>	".id",
-				"?comment"	=>	LOGIN
-			));
-			
-			if( ! empty($props) ) {
-				// UPDATE ARP ENTRY:
-				foreach( $props as $property ) {
-					$this->template['ARP']['.id']			= $property['.id'];
-					$this->template['ARP']['mac-address']	= $this->data['USER']['MAC'];
-					$this->template['ARP']['interface']		= $this->data['NETWORK']['IDENT'];
-					$reply = $this->command("/ip/arp/set", $this->template['ARP']);
-					// LOG MESSAGE:
-					if ( empty($reply) ) $this->log->message(__CLASS__, "ARP entry with id - `" . $this->template['ARP']['.id'] . "` was updated;", "success");
-					else {
-						foreach ( $reply['!trap'] as $error ) {
-							if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update ARP entry, " . $error['message'] . "!", "error");
-						}
-					}
-				}
-			} else {
-				// ADD NEW ARP ENTRY:
-				$this->template['ARP']['mac-address']	= $this->data['USER']['MAC'];
-				$this->template['ARP']['interface'] 	= $this->data['NETWORK']['IDENT'];
-				$reply = $this->command("/ip/arp/add", $this->template['ARP']);
-				// LOG MESSAGE:
-				if ( is_string($reply) )	$this->log->message(__CLASS__, "New ARP entry was added with id - `" . $reply . "`;", "success");
-				else {  
-					foreach ( $reply['!trap'] as $error ) {
-						if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new ARP entry, " . $error['message'] . "!", "error");
-					}
-				}
-			}
-		}
-
-		// 5. PUT COMMAND FOR QUEUE:
-		private function queue() {
-			// SET SIMPLE QUEUE RATE LIMIT VALUES:
-			if ( ! empty($this->data['USER']['RATE']['REASSIGNED']) ) {		// IF RATE IS REASIGNED:
-				// LIMIT-AT:
-				$this->template['QUEUE']['limit-at']	.= $this->data['USER']['RATE']['REASSIGNED'];
-				$this->template['QUEUE']['limit-at']	.= $this->config['rate_val'];
-				$this->template['QUEUE']['limit-at']	.= "/";
-				$this->template['QUEUE']['limit-at']	.= $this->data['USER']['RATE']['REASSIGNED'];
-				$this->template['QUEUE']['limit-at']	.= $this->config['rate_val'];
-				// MAX-LIMIT:
-				$this->template['QUEUE']['max-limit']	.= $this->data['USER']['RATE']['REASSIGNED'];
-				$this->template['QUEUE']['max-limit']	.= $this->config['rate_val'];
-				$this->template['QUEUE']['max-limit']	.= "/";
-				$this->template['QUEUE']['max-limit']	.= $this->data['USER']['RATE']['REASSIGNED'];
-				$this->template['QUEUE']['max-limit']	.= $this->config['rate_val'];
-			} elseif ( ! empty($this->data['USER']['RATE']['TARIFF']) ) {	// IF RATE IS BY TARIFF:
-				// CHANGE RX `NULL` TO `0` (unlimited):
-				if ( empty($this->data['USER']['RATE']['TARIFF']['RX']) ) {
-					$this->data['USER']['RATE']['TARIFF']['RX'] = 0;
-				}
-				// CHANGE TX `NULL` TO `0` (unlimited):
-				if ( empty($this->data['USER']['RATE']['TARIFF']['TX']) ) {
-					$this->data['USER']['RATE']['TARIFF']['TX'] = 0;
-				}
-				// LIMIT-AT:
-				$this->template['QUEUE']['limit-at']	.= $this->data['USER']['RATE']['TARIFF']['TX'];
-				$this->template['QUEUE']['limit-at']	.= $this->config['rate_val'];
-				$this->template['QUEUE']['limit-at']	.= "/";
-				$this->template['QUEUE']['limit-at']	.= $this->data['USER']['RATE']['TARIFF']['RX'];
-				$this->template['QUEUE']['limit-at']	.= $this->config['rate_val'];
-				// MAX-LIMIT:
-				$this->template['QUEUE']['max-limit']	.= $this->data['USER']['RATE']['TARIFF']['TX'];
-				$this->template['QUEUE']['max-limit']	.= $this->config['rate_val'];
-				$this->template['QUEUE']['max-limit']	.= "/";
-				$this->template['QUEUE']['max-limit']	.= $this->data['USER']['RATE']['TARIFF']['RX'];
-				$this->template['QUEUE']['max-limit']	.= $this->config['rate_val'];
-			} else {														// IN OTHER CASES SET RATE = 0 (unlimited):
-				// LIMIT-AT:
-				$this->template['QUEUE']['limit-at']	.= 0 . $this->config['rate_val'];
-				$this->template['QUEUE']['limit-at']	.= "/";
-				$this->template['QUEUE']['limit-at']	.= 0 . $this->config['rate_val'];
-				// MAX-LIMIT:
-				$this->template['QUEUE']['max-limit']	.= 0 . $this->config['rate_val'];
-				$this->template['QUEUE']['max-limit']	.= "/";
-				$this->template['QUEUE']['max-limit']	.=  0 . $this->config['rate_val'];
-			}
-			
-			// SET INTERFACE:
-			$this->template['QUEUE']['interface'] =	$this->data['NETWORK']['IDENT'];
-
-			// CHECK PRESENCE OF THE ENTRY ON `MikroTik`:
-			$props = $this->command("/queue/simple/print", array(
-				".proplist"	=>	".id",
-				"?name"		=>	LOGIN
-			));
-			
-			if ( ! empty($props) ) {
-				// UPDATE SIMPLE QUEUE ENTRY:
-				foreach ( $props as $property ) {					
-					$this->template['QUEUE']['.id'] = $property['.id'];
-					$reply = $this->command("/queue/simple/set", $this->template['QUEUE']);
-					// LOG MESSAGE:
-					if ( empty($reply) ) $this->log->message(__CLASS__, "Queue entry with ID - `" . $this->template['QUEUE']['.id'] . "` was updated;", "success");
-					else {
-						foreach ( $reply['!trap'] as $error ) {
-							if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Queue entry, " . $error['message'] . "!", "error");
-						}
-					}
-				}
-			} else {
-				// ADD NEW SIMPLE QUEUE ENTRY:
-				$reply = $this->command("/queue/simple/add", $this->template['QUEUE']);
-				// LOG MESSAGE:
-				if ( is_string($reply) ) $this->log->message(__CLASS__, "New Queue entry was added with id - `" . $reply . "`;", "success");
-				else {  
-					foreach ( $reply['!trap'] as $error ) {
-						if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Queue entry, " . $error['message'] . "!", "error");
-					}
-				}
-			}
-		}
-		
-		// 6. PUT COMMAND FOR DHCP:
-		private function dhcp() {
-			// CHECK PRESENCE OF THE ENTRY ON `MikroTik`:
-			$props = $this->command("/ip/dhcp-server/lease/print", array(
-				".proplist"	=>	".id",
-				"?comment"	=>	LOGIN
-			));
-			
-			if( ! empty($props) ) {
-				// UPDATE DHCP ENTRY:
-				foreach ( $props as $property ) {
-					$this->template['DHCP']['.id']			= $property['.id'];
-					$this->template['DHCP']['mac-address']	= $this->data['USER']['MAC'];
-					$this->template['DHCP']['server']		= $this->data['NETWORK']['IDENT'];
-					$reply = $this->command("/ip/dhcp-server/lease/set", $this->template['DHCP']);
-					// LOG MESSAGE:
-					if ( empty($reply) ) $this->log->message(__CLASS__, "DHCP entry with id - `" . $this->template['DHCP']['.id'] . "` was updated;", "success");
-					else  {
-						foreach ( $reply['!trap'] as $error ) {
-							if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update DHCP entry, " . $error['message'] . "!", "error");
-						}
-					}
-				}
-			} else {
-				// ADD NEW DHCP ENTRY:
-				$this->template['DHCP']['mac-address']	= $this->data['USER']['MAC'];
-				$this->template['DHCP']['server']		= $this->data['NETWORK']['IDENT'];
-				$reply = $this->command("/ip/dhcp-server/lease/add", $this->template['DHCP']);
-				// LOG MESSAGE:
-				if ( is_string($reply) ) $this->log->message(__CLASS__, "New DHCP entry was added with id - `" . $reply . "`;", "success");
-				else {  
-					foreach ( $reply['!trap'] as $error ) {
-						if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new DHCP entry, " . $error['message'] . "!", "error");
-					}
-				}
-			}
-		}
-		
-		// 7. PUT COMMAND FOR PPP USER:
-		private function ppp() {
-			// CHECK PRESENCE OF THE ENTRY ON `MikroTik`:
-			$props = $this->command("/ppp/secret/print", array(
-				".proplist"	=>	".id",
-				"?name"		=>	LOGIN
-			));
-			
-			if( ! empty($props) ) {
-				// UPDATE PPP ENTRY:
-				foreach( $props as $property ) {
-					$this->template['PPP']['.id'] = $property['.id'];
-					$this->template['PPP']['password']	= $this->data['PASSWORD'];
-					$this->template['PPP']['profile']	= $this->data['NETWORK']['IDENT'];
-					$reply = $this->command("/ppp/secret/set", $this->template['PPP']);
-					// LOG MESSAGE:
-					if ( empty($reply) ) $this->log->message(__CLASS__, "PPP entry with id - `" . $this->template['PPP']['.id'] . "` was updated;", "success");
-					else {
-						foreach ( $reply['!trap'] as $error ) {
-							if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update PPP entry, " . $error['message'] . "!", "error");
-						}
-					}
-				}
-			} else {
-				// ADD NEW PPP ENTRY:
-				$this->template['PPP']['password']	= $this->data['PASSWORD'];
-				$this->template['PPP']['profile']	= $this->data['NETWORK']['IDENT'];
-				$reply = $this->command("/ppp/secret/add", $this->template['PPP']);
-				// LOG MESSAGE:
-				if ( is_string($reply) ) $this->log->message(__CLASS__, "New PPP entry was added with id - `" . $reply . "`;", "success");
-				else {  
-					foreach ( $reply['!trap'] as $error ) {
-						if ( ! empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new PPP entry, " . $error['message'] . "!", "error");
-					}
-				}
-			}
-		}
-
-	/* >> FRAMEWORK << */
-
-
-
-	/* >> SCRIPTS << */
-
-		// 1. OnConnect:
-		public function OnConnect() {
-			if ( ! empty($this->data['NAS']['IP']) ) {
-				if ( $this->get_auth_data($this->data['NAS']['IP']) ) {
-					if ( $this->connect() ) {
-						if ( $this->get_network_data() ) {
-							// ADDRESS LIST:
-							if ( isset($this->data['NETWORK']['FIREWALL']) ) {
-								if ( $this->data['NETWORK']['FIREWALL'] == TRUE ) {
-									$this->address_list();
-								} else $this->log->message(__CLASS__, "FIREWALL entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "FIREWALL entry creation is turned off;", "debug");
-							// QUEUE:
-							if ( isset($this->data['NETWORK']['QUEUE']) ) {
-								if ( $this->data['NETWORK']['QUEUE'] == TRUE ) {
-									$this->queue();
-								} else $this->log->message(__CLASS__, "QUEUE entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "QUEUE entry creation is turned off;", "debug");
-							// ARP:
-							if ( isset($this->data['NETWORK']['ARP']) ) {
-								if ( $this->data['NETWORK']['ARP'] == TRUE ) {
-									$this->arp();
-								} else $this->log->message(__CLASS__, "ARP entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "ARP entry creation is turned off;", "debug");
-							// DHCP:
-							if ( isset($this->data['NETWORK']['DHCP']) ) {
-								if ( $this->data['NETWORK']['DHCP'] == TRUE ) {
-									$this->dhcp();
-								} else $this->log->message(__CLASS__, "DHCP entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "DHCP entry creation is turned off;", "debug");
-							// PPP:
-							if ( isset($this->data['NETWORK']['PPP']) ) {
-								if ( $this->data['NETWORK']['PPP'] == TRUE ) {
-									$this->ppp();
-								} else $this->log->message(__CLASS__, "PPP entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "PPP entry creation is turned off;", "debug");
-						}
-					}
-				}
-			} else $this->log->message(__CLASS__, "Cannot run OnConnect, any NAS IP was queried from DB!", "error");
-		}
-
-		// 2. OnDisconnect:
-		public function OnDisconnect() {
-			if ( !empty($this->data['NAS']['IP']) ) {
-				if ( $this->get_auth_data($this->data['NAS']['IP']) ) {
-					if ( $this->connect() ) {
-						if ( $this->get_network_data() ) {
-							// ADDRESS LIST:
-							if ( isset($this->data['NETWORK']['FIREWALL']) ) {
-								if ( $this->data['NETWORK']['FIREWALL'] == TRUE ) {
-									$this->address_list();
-								} else $this->log->message(__CLASS__, "FIREWALL entry creation is turned off;", "debug");
-							} else $this->log->message(__CLASS__, "FIREWALL entry creation is turned off;", "debug");
-						}
-					}
-				} else $this->log->message(__CLASS__, "Cannot connect to MikroTik, check `nas_data.ini`!", "error");
-			} else $this->log->message(__CLASS__, "Cannot connect to MikroTik, any NAS IP was specified!", "error");
-		}
-
-	/* >> SCRIPTS << */
-
-	}
+        // 2. OnDisconnect:
+        public function OnDisconnect() {
+            if ( !empty($this->parameters['IP']) ) {
+                if ( $this->connect() ) {
+                    $this->address_list();
+                }
+            } else $this->log->message(__CLASS__, "Cannot run OnDisconnect, any NAS IP was queried from DB!", "error");
+        }
+    }
 ?>

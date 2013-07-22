@@ -1,84 +1,53 @@
-<?php if ( ! defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
+<?php if ( !defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
 
-	class Executer {
+    class Executer {
 
-		// LOADED CONFIGURATIONS:
-		private $config = array();
-		
-		// LOADED CLASSES:
-		private $log	=	NULL;
-	
-		// QUERIED DATABASE DATA:
-		private $data = array();
+        // Recived data from `ubilling.cls`:
+        private $log;
+        private $config;
+        private $database;
 
-		// CLASS CONSTRUCTOR:
-		public function __construct($data) {
-			// PARSE RECIVED DATA:
-			foreach ($data as $key => $value) $this->$key = $value;
+        // Constructor:
+        public function __construct($data) {
+            // Put all recived data to specified vars:
+            foreach ($data as $key => $value) {
+                $this->$key = $value;
+            }
+            // Write log message, that class is loaded:
+            $this->log->message(__CLASS__, "RScriptD Executer loaded.", "debug");
+        }
 
-			// SEND MESSAGE, THAT LOADED:
-			$this->log->message(__CLASS__, "RScriptD Executer loaded...", "debug");
-		}
+        // 1. OnConnect:
+        public function OnConnect() {
+            // User's TX & RX:
+            $rate = $this->database->get_user_rate();
+            // ARP:
+            shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $this->database->get_user_mac());
+            // Speed control:
+            shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " config bw " . $rate['TX'] . " queue 32Kbytes");
+            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['RX'] . " queue 32Kbytes");
+            // Shaper:
+            shell_exec($this->config['fwcmd'] . " table 3 add " . IP . " " . (ID + 101));
+            shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 8101));
+            shell_exec($this->config['fwcmd'] . " table 47 delete " . IP);
+            // Day/Night switcher:
+            file_put_contents(BASEPATH . "dn/" . LOGIN, $rate['RX'] . ":" . (ID + 8101), LOCK_EX);
+            shell_exec("/bin/chmod 777 " . BASEPATH . "dn/" . LOGIN);
+            $this->log->message(__CLASS__, "Creation of IPFW rules done...", "success");
+        }
 
-		// GENERATE RATE VALUES FROM $data['RATE']:
-		private function generate_rates() {
-			$return = array();
-			if ( ! empty($this->data['USER']['RATE']['REASSIGNED']) ) {		// IF RATE IS REASIGNED:
-				// SET RATE LIMIT VALUES:
-				$return['SPEED']	= $this->data['USER']['RATE']['REASSIGNED'] . $this->config['rate_val'];
-				$return['UPSPEED']	= $this->data['USER']['RATE']['REASSIGNED'] . $this->config['rate_val'];
-			} elseif ( ! empty($this->data['USER']['RATE']['TARIFF']) ) {	// IF RATE IS BY TARIFF:
-				// CHANGE RX `NULL` TO `0`:
-				if ( empty($this->data['USER']['RATE']['TARIFF']['RX']) ) {
-					$this->data['USER']['RATE']['TARIFF']['RX'] = 0;
-				}
-				// CHANGE TX `NULL` TO `0`:
-				if ( empty($this->data['USER']['RATE']['TARIFF']['TX']) ) {
-					$this->data['USER']['RATE']['TARIFF']['TX'] = 0;
-				}
-				// SET RATE LIMIT VALUES:
-				$return['SPEED']	= $this->data['USER']['RATE']['TARIFF']['RX'] . $this->config['rate_val'];
-				$return['UPSPEED']	= $this->data['USER']['RATE']['TARIFF']['TX'] . $this->config['rate_val'];
-			} else {														// IN OTHER CASES SET RATE = 0:
-				// SET RATE LIMIT VALUES:
-				$return['SPEED']	= 0 . $this->config['rate_val'];
-				$return['UPSPEED']	= 0 . $this->config['rate_val'];
-			}
-			return $return;
-		}
-
-		// OnConnect:
-		public function OnConnect() {
-			$rate = $this->generate_rates();
-			// ARP:
-			shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $this->data['USER']['MAC']);
-			// SPEED CONTROL:
-			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 101) . " config bw " . $rate['UPSPEED'] . " queue 32Kbytes");
-			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['SPEED'] . " queue 32Kbytes");
-			// SHAPER:
-			shell_exec($this->config['fwcmd'] . " table 3 add " . IP . " " . (ID + 101));
-			shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 8101));
-			shell_exec($this->config['fwcmd'] . " table 47 delete " . IP);
-			// DAY/NIGHT SWITCHER:
-			file_put_contents(BASEPATH . "dn/" . LOGIN, $rate['SPEED'] . ":" . (ID + 8101), LOCK_EX);
-			shell_exec("/bin/chmod 777 " . BASEPATH . "dn/" . LOGIN);
-			$this->log->message(__CLASS__, "Creation of IPFW rules done...", "success");
-			return TRUE;
-		}
-
-		// OnDisconnect:
-		public function OnDisconnect($data) {
-			// DELETE OLD PIPES:
-			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 101) . " delete");
-			shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " delete");
-			// DELETE FROM SHAPER:
-			shell_exec($this->config['fwcmd'] . " table 3 delete " . IP . " " . (ID + 101));
-			shell_exec($this->config['fwcmd'] . " table 4 delete " . IP . " " . (ID + 8101));
-			shell_exec($this->config['fwcmd'] . " table 47 add " . IP);
-			// DAY/NIGHT SWITCHER:
-			shell_exec("/bin/rm " . BASEPATH . "dn/" . LOGIN);
-			$this->log->message(__CLASS__, "Removing of IPFW rules done...", "success");
-			return TRUE;
-		}
-	}
+        // 2. OnDisconnect:
+        public function OnDisconnect() {
+            // Delete old pipes:
+            shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " delete");
+            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " delete");
+            // Delete from shaper:
+            shell_exec($this->config['fwcmd'] . " table 3 delete " . IP . " " .  (ID + 101));
+            shell_exec($this->config['fwcmd'] . " table 4 delete " . IP . " " . (ID + 8101));
+            shell_exec($this->config['fwcmd'] . " table 47 add " . IP);
+            // Day/Night switcher:
+            shell_exec("/bin/rm " . BASEPATH . "dn/" . LOGIN);
+            $this->log->message(__CLASS__, "Removing of IPFW rules done...", "success");
+        }
+    }
 ?>

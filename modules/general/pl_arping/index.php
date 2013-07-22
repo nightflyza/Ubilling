@@ -5,6 +5,8 @@ if (cfr('PLARPING')) {
         $login=$_GET['username'];
         $config=rcms_parse_ini_file(CONFIG_PATH.'billing.ini');
         $alterconfig=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+        $parseMe='';
+        $cloneFlag=false;
         $arping_path=$alterconfig['ARPING'];
         $arping_iface=$alterconfig['ARPING_IFACE'];
         $arping_options=$alterconfig['ARPING_EXTRA_OPTIONS'];
@@ -12,7 +14,33 @@ if (cfr('PLARPING')) {
         $userdata=zb_UserGetStargazerData($login);
         $user_ip=$userdata['IP'];
         $command=$sudo_path.' '.$arping_path.' '.$arping_iface.' '.$arping_options.' '.$user_ip;
-        $ping_result='<pre>'.shell_exec($command).'</pre>';
+        $raw_result=  shell_exec($command);
+        $ping_result=  wf_tag('pre').$raw_result.  wf_tag('pre',true);
+        //detecting duplicate MAC
+        $rawArray=  explodeRows($raw_result);
+        if (!empty($rawArray)) {
+            foreach ($rawArray as $io=>$eachline) {
+                if (ispos($eachline, 'packets transmitted')) {
+                    $parseMe=$eachline;
+                }
+            }
+        }
+        
+        if (!empty($parseMe)) {
+            $parseMe=  explode(',', $parseMe);
+            if (sizeof($parseMe)==3) {
+                $txCount=vf($parseMe[0],3);
+                $rxCount=vf($parseMe[1],3);
+                if ($rxCount>$txCount) {
+                    $cloneFlag=true;
+                }
+            }
+        }
+        
+        if ($cloneFlag) {
+            $ping_result.=wf_tag('font', false, '', 'color="#ff0000" size="4"').__('It looks like this MAC addresses has duplicate on the network').  wf_tag('font',true);
+        }
+        
         show_window(__('User ARP pinger'),$ping_result);
         show_window('',  web_UserControls($login));
     }

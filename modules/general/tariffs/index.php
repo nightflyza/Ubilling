@@ -155,7 +155,7 @@ if (cfr('TARIFFS')) {
             <td>' . $eachtariff['name'] . '</td>
             <td>' . $eachtariff['Fee'] . '</td>
             <td>
-            <a  onclick="if(!confirm(\'' . __('Are you serious') . '\')) { return false;}" href="?module=tariffs&action=delete&tariffname=' . $eachtariff['name'] . '">' . web_delete_icon() . '</a>
+            <a  onclick="if(!confirm(\'' . __('Removing this may lead to irreparable results') . '\')) { return false;}" href="?module=tariffs&action=delete&tariffname=' . $eachtariff['name'] . '">' . web_delete_icon() . '</a>
             <a href="?module=tariffs&action=edit&tariffname=' . $eachtariff['name'] . '">' . web_edit_icon() . '</a>
             </td>
         </tr>

@@ -348,6 +348,61 @@ function web_SwitchesShow() {
         if (wf_CheckGet(array('forcereping'))) {
             zb_SwitchesRepingAll();
             zb_StorageSet('SWPINGTIME', $currenttime);
+            if (wf_CheckGet(array('ajaxping'))) {
+                $dead_raw=zb_StorageGet('SWDEAD');
+                $deathTime=  zb_SwitchesGetAllDeathTime();
+                $deadarr=array();
+                $ajaxResult='';
+                if ($dead_raw) {
+                    $deadarr=unserialize($dead_raw);
+                    if (!empty($deadarr)) {
+                    //there is some dead switches
+                    $deadcount=sizeof($deadarr);    
+                    if ($alterconf['SWYMAP_ENABLED']) {
+                        //getting geodata
+                        $switchesGeo=  zb_SwitchesGetAllGeo();
+                    }
+                    //ajax container
+                    $ajaxResult.=wf_tag('div', false, '', 'id="switchping"');
+
+                    foreach ($deadarr as $ip=>$switch) {
+                        if ($alterconf['SWYMAP_ENABLED']) {
+                            if (isset($switchesGeo[$ip])) {
+                              if (!empty($switchesGeo[$ip])) {
+                              $devicefind= wf_Link('?module=switchmap&finddevice='.$switchesGeo[$ip], wf_img('skins/icon_search_small.gif',__('Find on map'))).' ';   
+                              } else {
+                                  $devicefind='';
+                              }
+                            } else {
+                              $devicefind='';
+                            }
+
+                        } else {
+                            $devicefind='';
+                        }
+                        //check morgue records for death time
+                        if (isset($deathTime[$ip])) {
+                            $deathClock=  wf_img('skins/clock.png', __('Switch dead since').' '.$deathTime[$ip]).' ';
+                        } else {
+                            $deathClock='';
+                        }
+                        //add switch as dead
+                        $ajaxResult.=$devicefind.'&nbsp;'.$deathClock.$ip.' - '.$switch.'<br>';
+
+                    }
+
+
+                        } else {
+                        $ajaxResult=__('Switches are okay, everything is fine - I guarantee');
+                        }
+                
+
+               
+                 }
+                  $ajaxResult.=wf_delimiter().__('Cache state at time').': '.date("H:i:s");
+                  print($ajaxResult);
+                  die();
+                }
         }
         
         //load dead switches cache

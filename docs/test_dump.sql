@@ -898,3 +898,14 @@ CREATE TABLE IF NOT EXISTS `mtnasifaces` (
   `iface` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.4.3 update
+ALTER TABLE `nas` ADD `options` TEXT DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS `switchportassign` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `switchid` int(11) NOT NULL,
+  `port` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

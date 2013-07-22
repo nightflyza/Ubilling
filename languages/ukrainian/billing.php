@@ -1341,6 +1341,7 @@ $lang['def']['Description']='Опис';
 $lang['def']['Desc']='Опис';
 $lang['def']['CPU use']='Вик. CPU';
 $lang['def']['Switch dead since']='Віддав богу душу';
+
 $lang['def']['For NAS']='Для NAS ';
 $lang['def']['was not set correct graph interface']='не було вказано інтерфейсу для відмальовки графіків';
 $lang['def']['No MikroTik NAS interfaces assigned yet']='Ще не було додано жодних інтерфейсів на NAS-ах MikroTik';
@@ -1353,5 +1354,53 @@ $lang['def']['Port']='Порт';
 $lang['def']['entries']='записів';
 $lang['def']['Current FDB cache']='Поточний кеш FDB';
 
+// MikroTik NAS Select:
+$lang['def']['Select NAS'] = 'Виберіть сервер доступу';
+
+// Module: MikroTik Extended Configuration
+$lang['def']['MikroTik extended configuration'] = 'Розширене налаштування MikroTik';
+$lang['def']['No NAS was selected to add options!'] = 'Не вказан сервер доступу, для котрого необхідно вказати опції!';
+$lang['def']['You can add options for MikroTik NAS only!'] = 'Ви можете встановлювати опції тільки для серверів доступу MikroTik!';
+$lang['def']['Authorization Data'] = 'Параметри авторізації';
+$lang['def']['Interface settings'] = 'Налаштування інтерфейсів';
+$lang['def']['Graph Interface'] = 'Інтерфейс графіку';
+$lang['def']['Users Interface'] = 'Інтерфейс користувачів';
+$lang['def']['Setting OnConnect/OnDisconnect scripts behavior for this NAS'] = 'Установка поведінки скриптів OnConnect/OnDisconnect для NAS';
+$lang['def']['Manage FireWall'] = 'Керувати Firewall-ом';
+$lang['def']['Manage ARP'] = 'Керувати ARP-таблицею';
+$lang['def']['Manage Queue'] = 'Керувати чергами';
+$lang['def']['Manage DHCP'] = 'Керувати DHCP';
+$lang['def']['Manage PPP'] = 'Керувати PPP';
+$lang['def']['MikroTik General Information'] = ' Загальна інформація про стан MikroTik`у';
+$lang['def']['uptime'] = 'Аптайм';
+$lang['def']['version'] = 'Версія RouterOS';
+$lang['def']['build-time'] = 'Час сбору';
+$lang['def']['free-memory'] = 'Вільно опер. памя\'ті';
+$lang['def']['total-memory'] = 'Усього опер. памя\'ті';
+$lang['def']['cpu'] = 'Процессор';
+$lang['def']['cpu-count'] = 'Кіл-ть процессорів';
+$lang['def']['cpu-frequency'] = 'Частота процессору';
+$lang['def']['cpu-load'] = 'Завантаження процессору';
+$lang['def']['free-hdd-space'] = 'Вільно памя\'ті HDD';
+$lang['def']['total-hdd-space'] = 'Усього памя\'ті HDD';
+$lang['def']['write-sect-since-reboot'] = 'Записано секторів';
+$lang['def']['write-sect-total'] = 'Усього записано секторів';
+$lang['def']['bad-blocks'] = 'Поганих секторів';
+$lang['def']['architecture-name'] = 'Архітектура';
+$lang['def']['board-name'] = 'Назва плати';
+$lang['def']['platform'] = 'Платформа';
+
+//rev 2681
+$lang['def']['It looks like this MAC addresses has duplicate on the network']='Виглядає так, ніби у цієї MAC адреси в мережі є дублікати';
+$lang['def']['Cashier']='Каcир';
+$lang['def']['Cards search']='Пошук карток';
+$lang['def']['User signups by month']='Підключення користувачів за місяць';
+$lang['def']['Switch']='Комутатор';
+$lang['def']['Switch port assign']='Присвоєння порта комутатора';
+$lang['def']['Use this to request technical support']='Використовуйте для звернення в техпідтримку';
+$lang['def']['Payment cards functionality enabled']='Функціонал платіжних карток вимкнено';
+$lang['def']['right to make extended configuration of mikrotik']='Право керування розширеною конфігурацією MikroTik';
+$lang['def']['Switch port assign in user profile']='Присвоювання порта комутатора в профілі користувача';
+$lang['def']['Round cash in user profile']='Окрглення грошових сум в профілі користувача';
 
 ?>

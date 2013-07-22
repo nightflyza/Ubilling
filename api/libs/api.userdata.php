@@ -16,7 +16,7 @@ $query="
     (NULL, '".$login."','".$realname."');
     ";
 nr_query($query);
-log_register('CREATE UserRealName '.$login.' '.$realname);
+log_register('CREATE UserRealName ('.$login.') '.$realname);
 }
 
 
@@ -122,7 +122,7 @@ $query="
     (NULL, '".$login."','".$phone."','".$mobile."');
     ";
 nr_query($query);
-log_register('CREATE UserPhone '.$login.' '.$phone.' '.$mobile);
+log_register('CREATE UserPhone ('.$login.') '.$phone.' '.$mobile);
 }
 
 function zb_UserDeletePhone($login) {
@@ -295,7 +295,7 @@ function zb_UserGetSpeedOverride($login) {
 
 function zb_UserCreateSpeedOverride($login,$speed) {
     $login=vf($login);
-    $speed=vf($speed);
+    $speed=vf($speed,3);
     $query="INSERT INTO `userspeeds` (
             `id` ,
             `login` ,
@@ -306,14 +306,14 @@ function zb_UserCreateSpeedOverride($login,$speed) {
             );
         ";
     nr_query($query);
-    log_register('CREATE UserSpeedOverride ('.$login.') '.$speed);
+    log_register('CREATE UserSpeedOverride ('.$login.') `'.$speed.'`');
  }
  
 function zb_UserDeleteSpeedOverride($login) {
     $login=vf($login);
     $query="DELETE from `userspeeds` WHERE `login`='".$login."'";
     nr_query($query);
-    log_register('DELETE UserSpeedOverride '.$login);
+    log_register('DELETE UserSpeedOverride ('.$login.')');
 }
 
 

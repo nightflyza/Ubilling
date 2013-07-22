@@ -2,6 +2,10 @@
 // check for right of current admin on this module
 if (cfr('CARDREPORT')) {
     
+
+   $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+   if ($altcfg['PAYMENTCARDS_ENABLED']) {
+    
    function web_CardShowDateForm() {
        $curmonth=date("m");
        $inputs=wf_YearSelector('yearsel');
@@ -65,7 +69,11 @@ if (cfr('CARDREPORT')) {
    }
    
    web_CardShowUsageByMonth($needyear,$needmonth);
-    
+   
+   } else {
+       show_window(__('Error'), __('This module is disabled'));
+   }
+   
 } else {
       show_error(__('You cant control this module'));
 }

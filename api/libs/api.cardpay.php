@@ -149,6 +149,52 @@ function web_CardsGenerateForm() {
     return($form);
 }
 
+function web_CardsSearchForm() {
+    $inputs=  wf_TextInput('cardsearch', __('Serial number'), '', false, '17');
+    $inputs.= wf_Submit('Search');
+    $result=  wf_Form("", "POST", $inputs, 'glamour');
+    return ($result);
+}
+
+function web_CardsSearchBySerial($serial) {
+    $serial=  mysql_real_escape_string($serial);
+    $query="SELECT * from `cardbank` WHERE `serial` LIKE '%".$serial."%'";
+    $allcards=  simple_queryall($query);
+    $result=__('Nothing found');
+    
+    if (!empty($allcards)) {
+ 
+        $cells=  wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Serial number'));
+        $cells.= wf_TableCell(__('Price'));
+        $cells.= wf_TableCell(__('Admin'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Active'));
+        $cells.= wf_TableCell(__('Used'));
+        $cells.= wf_TableCell(__('Usage date'));
+        $cells.= wf_TableCell(__('Used login'));
+        $cells.= wf_TableCell(__('Used IP'));
+        $rows  = wf_TableRow($cells, 'row1');
+         
+        foreach ($allcards as $io=>$eachcard) {
+                $cells=  wf_TableCell($eachcard['id']);
+                $cells.= wf_TableCell($eachcard['serial']);
+                $cells.= wf_TableCell($eachcard['cash']);
+                $cells.= wf_TableCell($eachcard['admin']);
+                $cells.= wf_TableCell($eachcard['date']);
+                $cells.= wf_TableCell(web_bool_led($eachcard['active']));
+                $cells.= wf_TableCell(web_bool_led($eachcard['used']));
+                $cells.= wf_TableCell($eachcard['usedate']);
+                $cells.= wf_TableCell($eachcard['usedlogin']);
+                $cells.= wf_TableCell($eachcard['usedip']);
+                $rows.=  wf_TableRow($cells, 'row3');
+        }
+        
+        $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+    }
+    return ($result);
+}
+
 function zb_CardsGetData($id) {
     $id=vf($id);
     $query="SELECT * from `cardbank` WHERE `id`='".$id."'";
@@ -233,36 +279,34 @@ function zb_CardsMassactions() {
 function web_CardShowBrutes() {
     $query="SELECT * from `cardbrute`";
     $allbrutes=simple_queryall($query);
-    $result='<table width="100%" border="0" class="sortable">';
-     $result.='
-                <tr class="row1">
-                <td>'.__('ID').'</td>
-                <td>'.__('Serial number').'</td>
-                <td>'.__('Date').'</td>
-                <td>'.__('Login').'</td>
-                <td>'.__('IP').'</td>
-                <td>'.__('Full address').'</td>
-                <td>'.__('Real Name').'</td>
-                </tr>
-                ';
+
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('Serial number'));
+    $cells.= wf_TableCell(__('Date'));
+    $cells.= wf_TableCell(__('Login'));
+    $cells.= wf_TableCell(__('IP'));
+    $cells.= wf_TableCell(__('Full address'));
+    $cells.= wf_TableCell(__('Real Name'));
+    $rows=  wf_TableRow($cells, 'row1');
+     
     if (!empty ($allbrutes)) {
         $allrealnames=zb_UserGetAllRealnames();
         $alladdress=zb_AddressGetFulladdresslist();
         foreach ($allbrutes as $io=>$eachbrute) {
-            $result.='
-                <tr class="row3">
-                <td>'.$eachbrute['id'].'</td>
-                <td>'.$eachbrute['serial'].'</td>
-                <td>'.$eachbrute['date'].'</td>
-                <td>'.$eachbrute['login'].' <a  href="?module=userprofile&username='.$eachbrute['login'].'">'.  web_profile_icon().'</a> </td>
-                <td>'.$eachbrute['ip'].' <a href="?module=cards&cleanip='.$eachbrute['ip'].'">'.web_delete_icon('Clean this IP').'</a> </td>
-                <td>'.@$alladdress[$eachbrute['login']].'</td>
-                <td>'.@$allrealnames[$eachbrute['login']].'</td>
-                </tr>
-                ';
+            $cleaniplink=  wf_JSAlert('?module=cards&cleanip='.$eachbrute['ip'], web_delete_icon(__('Clean this IP')), __('Removing this may lead to irreparable results'));
+           
+            $cells=  wf_TableCell($eachbrute['id']);
+            $cells.= wf_TableCell($eachbrute['serial']);
+            $cells.= wf_TableCell($eachbrute['date']);
+            $cells.= wf_TableCell(wf_Link('?module=userprofile&username='.$eachbrute['login'], web_profile_icon().' '.$eachbrute['login']));
+            $cells.= wf_TableCell($eachbrute['ip'].' '.$cleaniplink);
+            $cells.= wf_TableCell(@$alladdress[$eachbrute['login']]);
+            $cells.= wf_TableCell(@$allrealnames[$eachbrute['login']]);
+            $rows.=  wf_TableRow($cells, 'row3');
         }
     }
-    $result.='</table>';
+    
+    $result=  wf_TableBody($rows, '100%', 0, 'sortable');
     return ($result);
 }
 

@@ -29,7 +29,7 @@ if (isset ($_GET['edit'])) {
         simple_update_field('tagtypes', 'tagcolor', $_POST['edittagcolor'], "WHERE `id`='".$tagtypeid."'");
         simple_update_field('tagtypes', 'tagsize', $_POST['edittagsize'], "WHERE `id`='".$tagtypeid."'");
         simple_update_field('tagtypes', 'tagname', $_POST['edittagname'], "WHERE `id`='".$tagtypeid."'");
-        log_register("TAGTYPE CHANGE ".$tagtypeid);
+        log_register("TAGTYPE CHANGE [".$tagtypeid.']');
         rcms_redirect("?module=usertags");
     }
     

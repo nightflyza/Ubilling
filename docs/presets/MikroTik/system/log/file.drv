@@ -1,37 +1,40 @@
-<?php if ( ! defined('ENVIRONMENT') ) exit('Only STG can run script!');
+<?php if ( !defined('ENVIRONMENT') ) exit('Only STG can run script!');
 
-	class Log {
+    class Log {
+        // Recived data from `ubilling.cls`:
+        private $config;
 
-		// LOADED CONFIGURATIONS:
-		private $config = array();
+        // Constructor:
+        public function __construct($data) {
+            // Put all recived data to specified vars:
+            foreach ($data as $key => $value) {
+                $this->$key = $value;
+            }
+        }
 
-		// CLASS CONSTRUCTOR:
-		public function __construct($data) {
-			// PARSE RECIVED DATA:
-			foreach ($data as $key => $value) $this->$key = $value;
-		}
-
-		// FORMAT STRING AND WRITE TO FILE:
-		public function message($class, $string, $level = NULL) {
-			if ( $this->config['enabled'] AND $level != "api" ) {
-				$log_message = date("Y-m-d H:i:s") . " - [" . $class . "] - ";
-				switch ( $level ) {
-					case "error":
-						$log_message .= "ERROR:";
-						break;
-					case "success":
-						$log_message .= "SUCCESS:";
-						break;
-					case "debug":
-						if ($this->config['debug'] == FALSE) {
-							return FALSE;
-						} else $log_message .= "DEBUG INFO:";
-						break;
-				}
-				$log_message .=	" " . $string . "\n";
-				$log_file = $this->config['path'] . "/" . $this->config['file'];
-				file_put_contents($log_file, $log_message, FILE_APPEND|LOCK_EX);
-			}
-		}
-	}
+        public function message($class, $string, $level = NULL) {
+            if ( $this->config['enabled'] ) {
+                $log_message = date("Y-m-d H:i:s") . " - [" . $class . "] - ";
+                switch ($level) {
+                    case "api":
+                        return TRUE;
+                        break;
+                    case "error":
+                        $log_message .= "ERROR:";
+                        break;
+                    case "success":
+                        $log_message .= "SUCCESS:";
+                        break;
+                    case "debug":
+                        if ( $this->config['debug'] == FALSE ) {
+                            return TRUE;
+                        } else $log_message .= "DEBUG INFO:";
+                        break;
+                }
+                $log_message .= " " . $string . "\n";
+                $log_file = $this->config['path'] . "/" . $this->config['file'];
+                file_put_contents($log_file, $log_message, FILE_APPEND | LOCK_EX);
+            }
+        }
+    }
 ?>

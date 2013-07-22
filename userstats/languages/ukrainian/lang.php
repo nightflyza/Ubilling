@@ -153,6 +153,6 @@ $lang['def']['Unlimited'] = 'Без обмежень';
 $lang['def']['enought for'] = 'вистачить на';
 $lang['def']['days'] = 'день(-нів)';
 $lang['def']['enought till the'] = 'вистачить до';
-$lang['def']['balance expired'] = '...';
+$lang['def']['You have indebtedness!'] = 'у Вас заборгованість!';
 
 ?>

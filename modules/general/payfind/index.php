@@ -130,6 +130,27 @@ if (cfr('PAYFIND')) {
         $result = wf_Selector('paysys', $prepared, __('Payment system'), '', false);
         return ($result);
     }
+    
+    /*
+     * Returns available cashier accounts selector
+     * 
+     * @return string
+     */
+    
+    function web_PayFindCashierSelector() {
+        $alladmins=  rcms_scandir(USERS_PATH);
+        $adminlist=array();
+        $result='';
+        if (!empty($alladmins)) {
+            foreach ($alladmins as $nu=>$login) {
+                $adminlist[$login]=$login;
+            }
+            
+            $result=  wf_Selector('cashier', $adminlist, __('Cashier'), '', true);
+        }
+        return ($result);
+    }
+    
 
     /*
      * Returns payment search form
@@ -161,9 +182,11 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
         $inputs.= wf_CheckInput('type_cashtype', '', false, false);
         $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
+        $inputs.= wf_CheckInput('type_cashier', '', false, false);
+        $inputs.= web_PayFindCashierSelector();
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
         $inputs.= web_PaySysPercentSelector();
-        $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
+        $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_delimiter();
         $inputs.= wf_HiddenInput('dosearch', 'true');
         $inputs.= wf_Submit(__('Search'));
 
@@ -346,12 +369,19 @@ if (cfr('PAYFIND')) {
         $cashtype = vf($_POST['cashtype'], 3);
         $markers.="AND `cashtypeid`='" . $cashtype . "' ";
     }
+    
+    //cashiers search
+    if (wf_CheckPost(array('type_cashier', 'cashier'))) {
+        $cashierLogin = mysql_real_escape_string($_POST['cashier']);
+        $markers.="AND `admin`='" . $cashierLogin . "' ";
+    }
 
     //payment system search
     if (wf_CheckPost(array('type_paysys', 'paysys'))) {
         $cashtype = mysql_real_escape_string($_POST['paysys']);
         $markers.="AND `note` LIKE '" . $cashtype . "' ";
     }
+    
 
     //executing search
     if (wf_CheckPost(array('dosearch'))) {
