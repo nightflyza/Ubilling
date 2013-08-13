@@ -151,8 +151,8 @@ $lang['def']['None'] = 'Не встановлено';
 $lang['def']['Unlimited'] = 'Без обмежень';
 
 $lang['def']['enought for'] = 'вистачить на';
-$lang['def']['days'] = 'день(-нів)';
+$lang['def']['days'] = 'дн.';
 $lang['def']['enought till the'] = 'вистачить до';
-$lang['def']['You have indebtedness!'] = 'у Вас заборгованість!';
+$lang['def']['indebtedness!'] = 'заборгованість!';
 
 ?>

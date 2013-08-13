@@ -289,12 +289,12 @@ function web_UserRegFormNetData($newuser_data) {
 $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 $safe_mode=$alterconf['SAFE_REGMODE'];
 $citydata=zb_AddressGetCityData($newuser_data['city']);
-$cityalias=translit_string($citydata['cityalias']);
+$cityalias=zb_TranslitString($citydata['cityalias']);
 $streetdata=zb_AddressGetStreetData($newuser_data['street']);
-$streetalias=translit_string($streetdata['streetalias']);
+$streetalias=zb_TranslitString($streetdata['streetalias']);
 $buildata=zb_AddressGetBuildData($newuser_data['build']);
-$buildnum=translit_string($buildata['buildnum']);
-$apt=translit_string($newuser_data['apt']);
+$buildnum=zb_TranslitString($buildata['buildnum']);
+$apt=zb_TranslitString($newuser_data['apt']);
 $ip_proposal=multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
 $login_proposal=  zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal);
 $password_proposal=  zb_RegPasswordProposal();

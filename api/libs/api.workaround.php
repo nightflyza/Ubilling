@@ -3193,4 +3193,147 @@ function zb_TranslitString($string) {
         $multiplier = pow(10, $precision);
         return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     }
+    
+    
+      
+      function zb_AnalyticsSignupsGetCountYear($year) {
+        $months=months_array();
+        $result=array();
+        foreach ($months as $eachmonth=>$monthname) { 
+        $query="SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '".$year."-".$eachmonth."%'";
+        $monthcount=simple_query($query);
+        $monthcount=$monthcount['COUNT(`id`)'];
+        $result[$eachmonth]=$monthcount;
+        }
+        return($result);
+    }
+    
+    
+     function zb_AnalyticsSigReqGetCountYear($year) {
+        $months=months_array();
+        $result=array();
+        foreach ($months as $eachmonth=>$monthname) { 
+        $query="SELECT COUNT(`id`) from `sigreq` WHERE `date` LIKE '".$year."-".$eachmonth."%'";
+        $monthcount=simple_query($query);
+        $monthcount=$monthcount['COUNT(`id`)'];
+        $result[$eachmonth]=$monthcount;
+        }
+        return($result);
+    }
+    
+    function zb_AnalyticsTicketingGetCountYear($year) {
+        $months=months_array();
+        $result=array();
+        foreach ($months as $eachmonth=>$monthname) { 
+        $query="SELECT COUNT(`id`) from `ticketing` WHERE `date` LIKE '".$year."-".$eachmonth."%'";
+        $monthcount=simple_query($query);
+        $monthcount=$monthcount['COUNT(`id`)'];
+        $result[$eachmonth]=$monthcount;
+        }
+        return($result);
+    }
+    
+     function zb_AnalyticsTaskmanGetCountYear($year) {
+        $months=months_array();
+        $result=array();
+        foreach ($months as $eachmonth=>$monthname) { 
+        $query="SELECT COUNT(`id`) from `taskman` WHERE `date` LIKE '".$year."-".$eachmonth."%'";
+        $monthcount=simple_query($query);
+        $monthcount=$monthcount['COUNT(`id`)'];
+        $result[$eachmonth]=$monthcount;
+        }
+        return($result);
+    }
+
+      function web_AnalyticsArpuMonthGraph($year) {
+           $months=months_array();
+           $data=__('Month').','.__('ARPU')."\n";
+            
+           foreach ($months as $eachmonth=>$monthname) {
+            $month_summ=zb_PaymentsGetMonthSumm($year, $eachmonth);
+            $paycount=zb_PaymentsGetMonthCount($year, $eachmonth);
+            $arpu=@round($month_summ/$paycount,2);
+            $data.=$year.'-'.$eachmonth.'-30,'.$arpu."\n";
+           }
+           
+          $result=wf_tag('div', false, 'dashtask', '').__('Dynamics of changes in ARPU for the year'); 
+          $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+      function web_AnalyticsPaymentsMonthGraph($year) {
+           $months=months_array();
+           $data=__('Month').','.__('Payments count').','.__('Cash')."\n";
+            
+           foreach ($months as $eachmonth=>$monthname) {
+            $month_summ=zb_PaymentsGetMonthSumm($year, $eachmonth);
+            $paycount=zb_PaymentsGetMonthCount($year, $eachmonth);
+            $arpu=@round($month_summ/$paycount,2);
+            $data.=$year.'-'.$eachmonth.'-30,'.$paycount.','.$month_summ."\n";
+           }
+           
+           $result=wf_tag('div', false, 'dashtask', '').__('Dynamics of cash flow for the year');
+           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+      function web_AnalyticsSignupsMonthGraph($year) {
+           $allmonths=months_array();
+           $yearcount=zb_AnalyticsSignupsGetCountYear($year);
+           $data=__('Month').','.__('Signups')."\n";
+            
+           foreach ($yearcount as $eachmonth=>$count) {
+            $data.=$year.'-'.$eachmonth.'-'.'-30,'.$count."\n";
+            }
+           
+           $result=wf_tag('div', false, 'dashtask', '').__('Dynamics of change signups of the year');
+           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+       function web_AnalyticsSigReqMonthGraph($year) {
+           $allmonths=months_array();
+           $yearcount=zb_AnalyticsSigReqGetCountYear($year);
+           $data=__('Month').','.__('Signup request')."\n";
+            
+           foreach ($yearcount as $eachmonth=>$count) {
+            $data.=$year.'-'.$eachmonth.'-'.'-30,'.$count."\n";
+            }
+           
+           $result=wf_tag('div', false, 'dashtask', '').__('Signup requests received during the year');
+           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+         function web_AnalyticsTicketingMonthGraph($year) {
+           $allmonths=months_array();
+           $yearcount=zb_AnalyticsTicketingGetCountYear($year);
+           $data=__('Month').','.__('Ticket')."\n";
+            
+           foreach ($yearcount as $eachmonth=>$count) {
+            $data.=$year.'-'.$eachmonth.'-'.'-30,'.$count."\n";
+            }
+           
+           $result=wf_tag('div', false, 'dashtask', '').__('Ticketing activity during the year');
+           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+      
+       function web_AnalyticsTaskmanMonthGraph($year) {
+           $allmonths=months_array();
+           $yearcount=zb_AnalyticsTaskmanGetCountYear($year);
+           $data=__('Month').','.__('Jobs')."\n";
+            
+           foreach ($yearcount as $eachmonth=>$count) {
+            $data.=$year.'-'.$eachmonth.'-'.'-30,'.$count."\n";
+            
+            }
+           
+           $result=wf_tag('div', false, 'dashtask', '').__('Task manager activity during the year');
+           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
+           return ($result);
+      }
+      
+      
 ?>

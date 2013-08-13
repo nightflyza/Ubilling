@@ -64,9 +64,9 @@ if (cfr('SPEEDCONTROL')) {
         $speed=0;
         zb_UserDeleteSpeedOverride($login);
         zb_UserCreateSpeedOverride($login, $speed);
-        log_register("SPEEDFIX ".$login);
+        log_register("SPEEDFIX (".$login.")");
         $billing->resetuser($login);
-        log_register("RESET User ".$login);
+        log_register("RESET User (".$login.")");
         rcms_redirect("?module=speedcontrol");
   }
   

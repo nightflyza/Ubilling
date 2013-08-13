@@ -330,14 +330,14 @@ function zb_UserCreateNotes($login,$notes) {
             );
             ";
     nr_query($query);
-    log_register('CREATE UserNote '.$login.' '.$notes);
+    log_register('CREATE UserNote ('.$login.') `'.$notes.'`');
 }
 
 function zb_UserDeleteNotes($login) {
     $login=vf($login);
     $query="DELETE FROM `notes` WHERE `login`='".$login."'";
     nr_query($query);
-    log_register('DELETE UserNote '.$login);
+    log_register('DELETE UserNote ('.$login.')');
 }
 
 function zb_UserGetNotes($login) {
@@ -408,7 +408,11 @@ function zb_UserGetNotes($login) {
 
   //function that shows signup tariffs popularity  
   function web_SignupGraph() {
-        $cmonth=curmonth();
+        if (!wf_CheckGet(array('month'))) {
+            $cmonth=curmonth();
+        } else {
+            $cmonth=  mysql_real_escape_string($_GET['month']);
+        }
         $where="WHERE `date` LIKE '".$cmonth."%'";
         $alltariffnames=zb_TariffsGetAll();
         $tariffusers=zb_TariffsGetAllUsers();

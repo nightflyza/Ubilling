@@ -1389,6 +1389,11 @@ $lang['def']['bad-blocks'] = 'Поганих секторів';
 $lang['def']['architecture-name'] = 'Архітектура';
 $lang['def']['board-name'] = 'Назва плати';
 $lang['def']['platform'] = 'Платформа';
+$lang['def']['y'] = 'р.';
+$lang['def']['m'] = 'міс.';
+$lang['def']['w'] = 'тиж.';
+$lang['def']['d'] = 'д.';
+
 
 //rev 2681
 $lang['def']['It looks like this MAC addresses has duplicate on the network']='Виглядає так, ніби у цієї MAC адреси в мережі є дублікати';
@@ -1402,5 +1407,19 @@ $lang['def']['Payment cards functionality enabled']='Функціонал пла
 $lang['def']['right to make extended configuration of mikrotik']='Право керування розширеною конфігурацією MikroTik';
 $lang['def']['Switch port assign in user profile']='Присвоювання порта комутатора в профілі користувача';
 $lang['def']['Round cash in user profile']='Окрглення грошових сум в профілі користувача';
+
+//rev 2754
+$lang['def']['Copy rights of this administrator for current user']='Скопіювати привілеї цього адміністратора для поточного користувача';
+$lang['def']['Rights cloning']='Клонування привілеїв';
+$lang['def']['Problem']='Проблема';
+$lang['def']['Typical problems']='Типові проблеми';
+$lang['def']['Analytics']='Аналітика';
+$lang['def']['Dynamics of changes in ARPU for the year']='Динаміка зміни ARPU за рік';
+$lang['def']['Dynamics of cash flow for the year']='Динаміка руху коштів протягом року';
+$lang['def']['Dynamics of change signups of the year']='Динаміка підключень за рік';
+$lang['def']['Signup requests received during the year']='Заявки на підключення отримані протягом року';
+$lang['def']['Ticketing activity during the year']='Активність хелпдеску за рік';
+$lang['def']['Task manager activity during the year']='Активнісь планувальника робіт протягом року';
+
 
 ?>

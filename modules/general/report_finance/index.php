@@ -1,6 +1,7 @@
 <?php
 if (cfr('REPORTFINANCE')) {
 
+  if (!wf_CheckGet(array('analytics'))) {  
     if (!wf_CheckPost(array('yearsel'))) {
         $show_year=curyear();
         } else {
@@ -22,11 +23,13 @@ if (cfr('REPORTFINANCE')) {
       $controlcells=  wf_TableCell(wf_tag('h3',false,'title').__('Year').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payments by date').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payment search').  wf_tag('h3', true));
+      $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Analytics').  wf_tag('h3', true));
       $controlrows=  wf_TableRow($controlcells);
       
       $controlcells=  wf_TableCell($yearform);
       $controlcells.=  wf_TableCell($dateform);
       $controlcells.=  wf_TableCell(wf_Link("?module=payfind", 'Find', false, 'ubButton'));
+      $controlcells.=  wf_TableCell(wf_Link("?module=report_finance&analytics=true", 'Show', false, 'ubButton'));
       $controlrows.=  wf_TableRow($controlcells);
       
       $controlgrid=  wf_TableBody($controlrows, '100%', 0, '');
@@ -56,7 +59,36 @@ show_window(__('Today payments'),  web_PaymentsShow("SELECT * from `payments` WH
     
     show_window(__('Month payments'),  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paymonth."%'  ORDER by `date` DESC;"));
 }
+
+  } else {
+      //show finance analytics info
     
+      
+
+     if (wf_CheckPost(array('anyearsel'))) {
+         $currentYear=$_POST['anyearsel'];
+     } else {
+         $currentYear=date("Y");
+     }
+
+     
+     $yearinputs=  wf_YearSelector('anyearsel');
+     $yearinputs.=wf_Submit(__('Show'));
+     $yearform=  wf_Form("", 'POST', $yearinputs, 'glamour');
+     show_window(__('Year'), $yearform);
+     
+     $graphs=  wf_Link("?module=report_finance", __('Back'), true, 'ubButton');
+     $graphs.= web_AnalyticsArpuMonthGraph($currentYear);
+     $graphs.= web_AnalyticsPaymentsMonthGraph($currentYear);
+     $graphs.= web_AnalyticsSignupsMonthGraph($currentYear);
+     $graphs.= web_AnalyticsSigReqMonthGraph($currentYear);
+     $graphs.= web_AnalyticsTicketingMonthGraph($currentYear);
+     $graphs.= web_AnalyticsTaskmanMonthGraph($currentYear);
+     show_window('',$graphs);
+     
+
+  }
+  
 
  zb_BillingStats(true);
 

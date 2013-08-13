@@ -1350,7 +1350,7 @@ $lang['def']['Select NAS'] = 'Выберите сервер доступа';
 
 // Module: MikroTik Extended Configuration
 $lang['def']['MikroTik extended configuration'] = 'Расширенная настройка MikroTik';
-$lang['def']['No NAS was selected to add options!'] = 'Не указан сервер доступа, для которого необходимо указать опции!';
+$lang['def']['No NAS was selected to add options!'] = 'Не указан сервер доступа для которого необходимо указать опции!';
 $lang['def']['You can add options for MikroTik NAS only!'] = 'Вы можете устанавливать опции только для серверов доступа MikroTik!';
 $lang['def']['Authorization Data'] = 'Параметры авторизации';
 $lang['def']['Interface settings'] = 'Настройка интерфейсов';
@@ -1380,6 +1380,10 @@ $lang['def']['bad-blocks'] = 'Плохих секторов';
 $lang['def']['architecture-name'] = 'Архитектура';
 $lang['def']['board-name'] = 'Название платы';
 $lang['def']['platform'] = 'Платформа';
+$lang['def']['y'] = 'г.';
+$lang['def']['m'] = 'мес.';
+$lang['def']['w'] = 'нед.';
+$lang['def']['d'] = 'д.';
 
 //rev 2681
 $lang['def']['It looks like this MAC addresses has duplicate on the network']='Выглядит так, как будто у этого MAC адреса имеются дубликаты в сети';
@@ -1394,6 +1398,18 @@ $lang['def']['right to make extended configuration of mikrotik']='Право у�
 $lang['def']['Switch port assign in user profile']='Присваивание порта на свиче в профиле пользователя';
 $lang['def']['Round cash in user profile']='Округление денежных сум в профиле пользователя';
 
+//rev 2754
+$lang['def']['Copy rights of this administrator for current user']='Скопировать права этого администратора для текущего пользователя';
+$lang['def']['Rights cloning']='Клонирование привилегий';
+$lang['def']['Problem']='Проблема';
+$lang['def']['Typical problems']='Типичные проблемы';
+$lang['def']['Analytics']='Аналитика';
+$lang['def']['Dynamics of changes in ARPU for the year']='Динамика изменения ARPU за год';
+$lang['def']['Dynamics of cash flow for the year']='Динамика движения денежных средств за год';
+$lang['def']['Dynamics of change signups of the year']='Динамика изменения подключений в разрезе года';
+$lang['def']['Signup requests received during the year']='Заявки на подключения полученные в течении года';
+$lang['def']['Ticketing activity during the year']='Активность хелпдеска в течении года';
+$lang['def']['Task manager activity during the year']='Активность планировщика задач на протяжении года';
 
 
 

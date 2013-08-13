@@ -67,6 +67,9 @@ if (cfr('MTSIGMON')) {
   $allMonitoredDevices=  zb_MsmGetMonitoredDevices();
   $allusermacs=zb_UserGetAllMACs();
   $alladdress= zb_AddressGetFullCityaddresslist();
+  $alltariffs=  zb_TariffsGetAllUsers();
+  $allrealnames= zb_UserGetAllRealnames();
+  $alluserips=  zb_UserGetAllIPs();
   
    $result='';
    $hlightmac='';
@@ -85,10 +88,14 @@ if (cfr('MTSIGMON')) {
    
    if (!empty($allMonitoredDevices)) {
        foreach ($allMonitoredDevices as $io=>$eachdevice) {
+           $userCounter=0;
            $hostdata=zb_MsmDeviceQuery($eachdevice['ip'], $eachdevice['community']);
-           $result.='<h2>'.$eachdevice['location'].'</h2>';   
-           $tablecells=  wf_TableCell(__('User'),'25%');
-           $tablecells.=  wf_TableCell(__('MAC'),'50%');
+           $result.=wf_tag('h2',false).$eachdevice['location'].' - '.$eachdevice['ip'].  wf_tag('h2',true);   
+           $tablecells=  wf_TableCell(__('Full address'));
+           $tablecells.=  wf_TableCell(__('Real Name'));
+           $tablecells.=  wf_TableCell(__('Tariff'));
+           $tablecells.=  wf_TableCell(__('IP'));
+           $tablecells.=  wf_TableCell(__('MAC'));
            $tablecells.=  wf_TableCell(__('Signal').' dBm');
            $tablerows=  wf_TableRow($tablecells, 'row1');
            
@@ -96,11 +103,13 @@ if (cfr('MTSIGMON')) {
                foreach ($hostdata as $eachmac=>$eachsig) {
                 //signal coloring   
                 if ($eachsig<-79) {
-                    $displaysig='<font color="#900000">'.$eachsig.'</font>';
+                    $displaysig=  wf_tag('font', false, '', 'color="#900000"').$eachsig.wf_tag('font', true);
                 } else {
-                    $displaysig='<font color="#006600">'.$eachsig.'</font>';
+                    $displaysig=  wf_tag('font', false, '', 'color="#006600"').$eachsig.wf_tag('font', true);
                 }
                 
+                //user counter increment
+                $userCounter++;
                                 
                 //hightlighting user
                 if (!empty($hlightmac)) {
@@ -118,11 +127,20 @@ if (cfr('MTSIGMON')) {
                    $backmaclogin=  array_search($eachmac, $allusermacs);
                    @$backaddress=$alladdress[$backmaclogin];
                    $profilelink=  wf_Link("?module=userprofile&username=".$backmaclogin, web_profile_icon().' '.$backaddress, false, '');
+                   $realname=@$allrealnames[$backmaclogin];
+                   $usertariff=@$alltariffs[$backmaclogin];
+                   $userip=@$alluserips[$backmaclogin];
                 } else {
                     $profilelink='';
+                    $realname='';
+                    $usertariff='';
+                    $userip='';
                 }
                 
                 $tablecells= wf_TableCell($profilelink);
+                $tablecells.=  wf_TableCell($realname);
+                $tablecells.=  wf_TableCell($usertariff);
+                $tablecells.=  wf_TableCell($userip);
                 $tablecells.=  wf_TableCell($eachmac);
                 $tablecells.=  wf_TableCell($displaysig);
                 $tablerows.=  wf_TableRow($tablecells, $rowclass);
@@ -132,7 +150,7 @@ if (cfr('MTSIGMON')) {
            } else {
                $result.=__('Empty reply received');
            }
-           
+           $result.=wf_tag('div', false, 'glamour').__('Total').': '.$userCounter.  wf_tag('div',true).  wf_delimiter();
        }
        
    

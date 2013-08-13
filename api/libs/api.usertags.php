@@ -13,77 +13,44 @@ function web_priority_selector($max=6) {
 }
 
  function stg_show_tagtypes() {
-     $query="SELECT * from `tagtypes`";
+     $query="SELECT * from `tagtypes` ORDER BY `id` ASC";
      $alltypes=simple_queryall($query);
-     $result='<table width="100%">';
-     $result.='
-                 <tr class="row1">
-                 <td>
-                 ID
-                 </td>
-                 <td>
-                 '.__('Color').'
-                 </td>
-                 <td>
-                 '.__('Priority').'
-                 </td>
-                 <td>
-                 '.__('Text').'
-                 </td>
-                 <td>
-                 '.__('Actions').'
-                 </td>
-                 </tr>
-                 ';
+
+     $cells=   wf_TableCell(__('ID'));
+     $cells.=  wf_TableCell(__('Color'));
+     $cells.=  wf_TableCell(__('Priority'));
+     $cells.=  wf_TableCell(__('Text'));
+     $cells.=  wf_TableCell(__('Actions'));
+     $rows=  wf_TableRow($cells, 'row1');
+     
      if (!empty ($alltypes)) {
          foreach ($alltypes as $io =>$eachtype) {
-             $result.='
-                 <tr class="row3">
-                 <td>
-                 '.$eachtype['id'].'
-                 </td>
-                 <td>
-                 <font color="'.$eachtype['tagcolor'].'">'.$eachtype['tagcolor'].'</font>
-                 </td>
-                 <td>
-                 '.$eachtype['tagsize'].'
-                 </td>
-                 <td>
-                 '.$eachtype['tagname'].'
-                 </td>
-                 <td>
-                 '.wf_JSAlert('?module=usertags&delete='.$eachtype['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                 <a href="?module=usertags&edit='.$eachtype['id'].'">'.  web_edit_icon().'</a>
-                 </td>
-                 </tr>
-                 ';
+             $eachtagcolor=$eachtype['tagcolor'];
+             $actions=  wf_JSAlert('?module=usertags&delete='.$eachtype['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+             $actions.= wf_Link('?module=usertags&edit='.$eachtype['id'], web_edit_icon(), false);
+             
+             $cells=   wf_TableCell($eachtype['id']);
+             $cells.=  wf_TableCell(wf_tag('font', false, '', 'color="'.$eachtagcolor.'"').$eachtagcolor.  wf_tag('font', true));
+             $cells.=  wf_TableCell($eachtype['tagsize']);
+             $cells.=  wf_TableCell($eachtype['tagname']);
+             $cells.=  wf_TableCell($actions);
+             $rows.=  wf_TableRow($cells, 'row3');
+     
          }
      }
-       $result.='
-                 
-                 <tr class="row1">
-                 <td>
-                 <form action="" method="POST">
-                 </td>
-                 <td>
-                 <input type="text" name="newcolor" value="#'.rand(11,99).rand(11,99).rand(11,99).'"> 
-                 </td>
-                 <td>
-                 '.  web_priority_selector().'
-                 </td>
-                
-                 <td>
-                 <input type="hidden" name="addnewtag" value="true">
-                 <input type="text" name="newtext">
-                 <input type="submit" value="'.__('Add').'"> '.  web_add_icon().'
-                 </form>
-                 </td>
-                 <td>   
-                </td>
-                 </tr>
-               
-                 ';
-     $result.='</table>';
+      
+     $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+     
+     //construct adding form
+     $inputs=  wf_TextInput('newcolor', __('Color'), '#'.rand(11,99).rand(11,99).rand(11,99), false, '10');
+     $inputs.=  wf_TextInput('newtext', __('Text'), '', false, '15');
+     $inputs.= web_priority_selector().' '.__('Priority').' ';
+     $inputs.= wf_HiddenInput('addnewtag', 'true');
+     $inputs.= wf_Submit(__('Create'));
+     $form= wf_Form("", 'POST', $inputs, 'glamour');
+     $result.= $form;
+     
+     
 show_window(__('Tag types'), $result);
  }
  
@@ -147,7 +114,7 @@ NULL , '".$color."', '".$size."', '".$text."'
  }
  
   function stg_tagadd_selector() {
-    $query="SELECT * from `tagtypes`";
+    $query="SELECT * from `tagtypes` ORDER by `id` ASC";
     $alltypes=simple_queryall($query);
     $selector='
         <form action="" method="POST">

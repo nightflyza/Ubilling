@@ -349,8 +349,14 @@ function ts_DetectUserByAddress($address) {
     function ts_JGetUndoneTasks() {
         $allemployee=  ts_GetAllEmployee();
         $alljobtypes= ts_GetAllJobtypes();
+        $curyear=curyear();
+        $curmonth=date("m");
+        if ($curmonth!=1) {
+            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+        }
         
-        $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
         $allundone=  simple_queryall($query);
         $result='';
         $i=1;
@@ -393,7 +399,14 @@ function ts_DetectUserByAddress($address) {
         $allemployee=  ts_GetAllEmployee();
         $alljobtypes= ts_GetAllJobtypes();
         
-        $query="SELECT * from `taskman` WHERE `status`='1' ORDER BY `date` ASC";
+        $curyear=curyear();
+        $curmonth=date("m");
+        if ($curmonth!=1) {
+            $query="SELECT * from `taskman` WHERE `status`='1' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` WHERE `status`='1' ORDER BY `date` ASC";
+        }
+        
         $allundone=  simple_queryall($query);
         $result='';
         $i=1;
@@ -434,7 +447,15 @@ function ts_DetectUserByAddress($address) {
         $allemployee=  ts_GetAllEmployee();
         $alljobtypes= ts_GetAllJobtypes();
         
-        $query="SELECT * from `taskman`  ORDER BY `id` ASC";
+        $curyear=curyear();
+        $curmonth=date("m");
+        
+        if ($curmonth!=1) {
+            $query="SELECT * from `taskman` WHERE `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` ORDER BY `date` ASC";
+        }
+        
         $allundone=  simple_queryall($query);
         $result='';
         $i=1;
@@ -478,6 +499,41 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
+    function ts_TaskTypicalNotesSelector($settings=true) {
+    
+        $rawNotes=  zb_StorageGet('PROBLEMS');
+        if ($settings) {
+            $settingsControl=  wf_Link("?module=taskman&probsettings=true", wf_img('skins/settings.png',__('Settings')), false, '');
+        } else {
+            $settingsControl='';
+        }
+        if (!empty($rawNotes)) {
+            $rawNotes=  base64_decode($rawNotes);
+            $rawNotes=  unserialize($rawNotes);
+        } else {
+          $emptyArray=array();
+          $newNotes= serialize($emptyArray);
+          $newNotes= base64_encode($newNotes);
+          zb_StorageSet('PROBLEMS', $newNotes);
+          $rawNotes=$emptyArray;
+        }
+        
+        $typycalNotes=array(''=>'-');
+        
+        if (!empty($rawNotes)) {
+            foreach ($rawNotes as $eachnote) {
+                if (mb_strlen($eachnote,'utf-8')>20) { 
+                    $shortNote=mb_substr($eachnote, 0, 20,'utf-8').'...';
+                } else {
+                    $shortNote=$eachnote;
+                }
+                $typycalNotes[$eachnote]=$shortNote;
+            }
+        }
+        
+        $selector=  wf_Selector('typicalnote', $typycalNotes, __('Problem').' '.$settingsControl, '', true);
+        return ($selector);
+    }
     
     function ts_TaskCreateForm() {
         $alljobtypes= ts_GetAllJobtypes();
@@ -493,6 +549,7 @@ function ts_DetectUserByAddress($address) {
         $inputs.='<br>';
         $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
         $inputs.='<br>';
+        $inputs.=ts_TaskTypicalNotesSelector();
         $inputs.='<label>'.__('Job note').'</label><br>';
         $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
         $inputs.=wf_Submit(__('Create new task'));
@@ -516,6 +573,7 @@ function ts_DetectUserByAddress($address) {
         $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
         $inputs.='<br>';
         $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=ts_TaskTypicalNotesSelector();
         $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
         $inputs.=wf_Submit(__('Create new task'));
         $result=  wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
@@ -751,6 +809,75 @@ function ts_DetectUserByAddress($address) {
       nr_query($query);
       log_register("TASKMAN DELETE ".$taskid);
       
+  }
+  
+  function ts_TaskProblemsEditForm() {
+        $rawNotes=  zb_StorageGet('PROBLEMS');
+        
+        //extract old or create new typical problems array
+        if (!empty($rawNotes)) {
+            $rawNotes=  base64_decode($rawNotes);
+            $rawNotes=  unserialize($rawNotes);
+        } else {
+          $emptyArray=array();
+          $newNotes= serialize($emptyArray);
+          $newNotes= base64_encode($newNotes);
+          zb_StorageSet('PROBLEMS', $newNotes);
+          $rawNotes=$emptyArray;
+        }
+        
+        //adding and deletion subroutines
+        if (wf_CheckPost(array('createtypicalnote'))) {
+            $toPush=strip_tags($_POST['createtypicalnote']);
+            array_push($rawNotes, $toPush);
+            $newNotes= serialize($rawNotes);
+            $newNotes= base64_encode($newNotes);
+            zb_StorageSet('PROBLEMS', $newNotes);
+            log_register('TASKMAN ADD TYPICALPROBLEM');
+            rcms_redirect("?module=taskman&probsettings=true");
+        }
+        
+        if (wf_CheckPost(array('deletetypicalnote','typicalnote'))) {
+            $toUnset=$_POST['typicalnote'];
+            if (($delkey = array_search($toUnset, $rawNotes)) !== false) {
+                unset($rawNotes[$delkey]);
+            }
+  
+            $newNotes= serialize($rawNotes);
+            $newNotes= base64_encode($newNotes);
+            zb_StorageSet('PROBLEMS', $newNotes);
+            log_register('TASKMAN DELETE TYPICALPROBLEM');
+            rcms_redirect("?module=taskman&probsettings=true");
+            
+        }
+        
+    
+        $rows='';
+        $result=  wf_Link("?module=taskman", __('Back'), true, 'ubButton');
+        
+        if (!empty($rawNotes)) {
+            foreach ($rawNotes as $eachNote) {
+                $cells=  wf_TableCell($eachNote);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+        
+        $result.=  wf_TableBody($rows, '100%', '0', '');
+        $result.=  wf_delimiter();
+        
+        $addinputs=  wf_TextInput('createtypicalnote', __('Create'), '', true, '20');
+        $addinputs.= wf_Submit(__('Save'));
+        $addform=  wf_Form("", "POST", $addinputs, 'glamour');
+        $result.= $addform;
+        
+        $delinputs=  ts_TaskTypicalNotesSelector(false);
+        $delinputs.= wf_HiddenInput('deletetypicalnote','true');
+        $delinputs.= wf_Submit(__('Delete'));
+        $delform= wf_Form("", "POST", $delinputs, 'glamour');
+        $result.= $delform;
+        
+        return ($result);
+    
   }
 
 ?>

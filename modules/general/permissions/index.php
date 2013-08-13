@@ -1,7 +1,47 @@
 <?php
 if (cfr('PERMISSIONS')) {
-    
-//$userdata = load_user_info('demo');
+
+function zb_PermissionsCopyAdminRights($sourceUser,$targetUser) {
+global $system;
+$targetRights=array();
+$rootUser='';
+$rights=array();
+$system->getRightsForUser($sourceUser, $rights, $root, $level);
+if ($root) {
+        $rootUser=1;
+} else {
+    if (!empty($rights)) {
+        foreach ($rights as $eachright=>$desc) {
+            $targetRights[$eachright]='on';
+        }
+    }
+}
+//writing changes
+if($system->setRightsForUser($targetUser, $targetRights, $rootUser, '1')) {
+       show_window('',__('Rights cloned'));
+       log_register("CLONE AdminPermissions FROM {".$sourceUser."} TO {".$targetUser."}");
+       rcms_redirect("?module=permissions&edit=".$targetUser);
+    } else {
+       show_error(__('Error occurred'));
+    }
+   
+}
+
+function web_AdminLoginSelector($excludeuser='') {
+    $alladdmins=  rcms_scandir(USERS_PATH);
+    $alllogins=array();
+    if (!empty($alladdmins)) {
+        foreach ($alladdmins as $eachlogin) {
+            $alllogins[$eachlogin]=$eachlogin;
+        }
+    }
+    if (!empty($excludeuser)) {
+        unset($alllogins[$excludeuser]);
+    }
+    $result=  wf_Selector('admincopyselector', $alllogins, __('Copy rights of this administrator for current user'), '', false);
+    return ($result);
+}
+
 function web_list_admins() {
     $alladmins=rcms_scandir(USERS_PATH);
     $cells=  wf_TableCell(__('Admin'));
@@ -152,6 +192,15 @@ function web_list_admins() {
     
     $permission_forms=  wf_Form("", 'POST', $rightsgrid, '');
     
+    //copy permissions form
+    $copyinputs=  wf_tag('h2').__('Rights cloning').wf_tag('h2', true);
+    $copyinputs.= web_AdminLoginSelector($login);
+    $copyinputs.= wf_HiddenInput('clonerightsnow', 'true');
+    $copyinputs.= wf_Submit(__('Clone'));
+    $copyform=  wf_Form("", 'POST', $copyinputs, 'glamour');
+    
+    $permission_forms.=$copyform;
+    
     show_window(__('Rights for').' '.$login,$permission_forms);
     
  }
@@ -172,13 +221,14 @@ function web_list_admins() {
       show_window(__('Edit').' '.$login, $frm->show(true));
  }
 
- //if someone editing administrator
+ //if someone editing administrator permissions
  if (isset($_GET['edit'])) {
    $editname=vf($_GET['edit']);
    if(!empty($_POST['save'])){
+       debarr($_POST['_rights']);
     if($system->setRightsForUser($editname, @$_POST['_rights'], @$_POST['rootuser'], @$_POST['level'])) {
        show_window('',__('Rights changed'));
-       log_register("CHANGE AdminPermissions ".$editname);
+       log_register("CHANGE AdminPermissions {".$editname."}");
        rcms_redirect("?module=permissions&edit=".$editname);
     } else {
        show_error(__('Error occurred'));
@@ -191,7 +241,7 @@ function web_list_admins() {
     //if someone deleting admin
      if (isset($_GET['delete'])) {
          user_delete($_GET['delete']);
-         log_register("DELETE AdminAccount ".$_GET['delete']);
+         log_register("DELETE AdminAccount {".$_GET['delete']."}");
          rcms_redirect("?module=permissions");
      }
      
@@ -199,11 +249,20 @@ function web_list_admins() {
      if (isset($_GET['passwd'])) {
          if(!empty($_POST['username']) && !empty($_POST['save'])){
               $system->updateUser($_POST['username'], $_POST['nickname'], $_POST['password'], $_POST['confirmation'], $_POST['email'], $_POST['userdata'], true);
-              log_register("CHANGE AdminAccountData ".$_POST['username']);
+              log_register("CHANGE AdminAccountData {".$_POST['username']."}");
               rcms_redirect("?module=permissions");
          }
          web_admineditform($_GET['passwd']);
         
+     }
+     
+     //if cloning some rights
+     if (wf_CheckPost(array('clonerightsnow','admincopyselector'))) {
+         if (wf_CheckGet(array('edit'))) {
+             $targetUser=$_GET['edit'];
+             $sourceUser=$_POST['admincopyselector'];
+             zb_PermissionsCopyAdminRights($sourceUser, $targetUser);
+           }
      }
 
 show_window(__('Admins'),web_list_admins());

@@ -150,9 +150,9 @@ $lang['def']['None'] = 'Не установлена';
 $lang['def']['Unlimited'] = 'Не ограничена';
 
 $lang['def']['enought for'] = 'хватит на';
-$lang['def']['days'] = 'день(-ей)';
+$lang['def']['days'] = 'дн.';
 $lang['def']['enought till the'] = 'хватит до';
-$lang['def']['You have indebtedness!'] = 'у Вас задолженность!';
+$lang['def']['indebtedness!'] = 'задолженность!';
 
 
 ?>

@@ -24,8 +24,8 @@
             // ARP:
             shell_exec($this->config['arpcmd'] . ' -S ' . IP . ' ' . $this->database->get_user_mac());
             // Speed control:
-            shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " config bw " . $rate['TX'] . " queue 32Kbytes");
-            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['RX'] . " queue 32Kbytes");
+            shell_exec($this->config['fwcmd'] . " pipe " .  (ID + 101) . " config bw " . $rate['TX'] . $this->config['rate_val'] . " queue 32Kbytes");
+            shell_exec($this->config['fwcmd'] . " pipe " . (ID + 8101) . " config bw " . $rate['RX'] . $this->config['rate_val'] . " queue 32Kbytes");
             // Shaper:
             shell_exec($this->config['fwcmd'] . " table 3 add " . IP . " " . (ID + 101));
             shell_exec($this->config['fwcmd'] . " table 4 add " . IP . " " . (ID + 8101));

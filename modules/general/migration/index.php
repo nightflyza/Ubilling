@@ -38,7 +38,7 @@ function web_MigrationUploadForm() {
    //проверяем точно ли текстовку нам подсовывают
    foreach ($_FILES as $file) {
     if ($file['tmp_name'] > '') {
-      if (!in_array(end(explode(".",strtolower($file['name']))),$allowedExtensions)) {
+      if (@!in_array(end(explode(".",strtolower($file['name']))),$allowedExtensions)) {
        $errormessage='Wrong file type';
        die($errormessage);
       }

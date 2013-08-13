@@ -6,7 +6,12 @@ if(cfr('TASKMAN')) {
     //if someone creates new task
     if (isset($_POST['createtask'])) {
     if (wf_CheckPost(array('newstartdate','newtaskaddress','newtaskphone'))) {
-        ts_CreateTask($_POST['newstartdate'], $_POST['newtaskaddress'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $_POST['newjobnote']);
+        if (wf_CheckPost(array('typicalnote'))) {
+         $newjobnote=$_POST['typicalnote'].' '.$_POST['newjobnote'];    
+        } else {
+         $newjobnote=$_POST['newjobnote'];      
+        }
+        ts_CreateTask($_POST['newstartdate'], $_POST['newtaskaddress'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $newjobnote);
         if (!isset($_GET['gotolastid'])) {
             rcms_redirect("?module=taskman");
         } else {
@@ -71,7 +76,7 @@ if(cfr('TASKMAN')) {
     }
     
     
-    
+    if (!wf_CheckGet(array('probsettings'))) { 
     show_window(__('Manage tasks'),ts_ShowPanel());
     
     if (isset($_GET['show'])) {
@@ -97,6 +102,9 @@ if(cfr('TASKMAN')) {
         ts_TaskChangeForm($_GET['edittask']);
     }
     
+    } else {
+        show_window(__('Typical problems'), ts_TaskProblemsEditForm());
+    }
     
 } else {
     show_error(__('Access denied'));

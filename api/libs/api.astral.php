@@ -1116,6 +1116,9 @@ function wf_Plate($content, $width='', $height='', $class='') {
   function wf_AjaxLoader() {
       $result='
           <script type="text/javascript">
+           
+
+
         function getXmlHttp()
         {
             var xmlhttp;
@@ -1150,7 +1153,7 @@ function wf_Plate($content, $width='', $height='', $class='') {
         var contentElem = document.getElementById(container);
         myrequest.open(\'POST\', docum, true);
         myrequest.setRequestHeader(\'Content-Type\', \'application/x-www-form-urlencoded\');
- 
+       contentElem.innerHTML = \'<img src=skins/ajaxloader.gif>\';
         myrequest.onreadystatechange = function()
         {
             if (myrequest.readyState == 4)
@@ -1173,6 +1176,7 @@ function wf_Plate($content, $width='', $height='', $class='') {
                     else  
                     {
                         contentElem.innerHTML = resText;
+
                     }
                 }
                 else
@@ -1244,5 +1248,48 @@ $(function() {
 
     return($dialog);
 }
+
+
+     /*
+       * Returns Chart source
+       * 
+       * @param $data      - CSV formatted data
+       * @param $widht     - graph width in pixels
+       * @param $height    - graph height in pixels
+       * @param $errorbars - display error bars around data series
+       * 
+       * @return string
+       */
+      function wf_Graph($data,$width='500',$height='300',$errorbars=false) {
+          $randomId=wf_InputId();
+          $objectId='graph_'.$randomId;
+          $data=trim($data);
+          $data=  explodeRows($data);
+          $cleandata='';
+          if ($errorbars) {
+              $errorbars='true';
+          } else {
+              $errorbars='false';
+          }
+          if (!empty($data)) {
+              foreach ($data as $eachrow) {
+                  $cleandata.='"'.trim($eachrow).'\n" +'."\n";
+              }
+              $cleandata=mb_substr($cleandata, 0, -2,'utf-8');
+          }
+          
+          $result=  wf_tag('div', false, '', 'id="'.$randomId.'" style="width:'.$width.'px; height:'.$height.'px;"').wf_tag('div',true);
+          $result.= wf_tag('script', false, '', 'type="text/javascript"');
+          $result.= $objectId.' = new Dygraph(';
+          $result.= 'document.getElementById("'.$randomId.'"),'."\n";
+          $result.= $cleandata;
+          
+          $result.=', {  errorBars: '.$errorbars.' }'."\n";
+            
+          $result.=');';
+          $result.= wf_tag('script', true);
+          
+          return ($result);
+      }
 
 ?>

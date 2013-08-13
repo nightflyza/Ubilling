@@ -415,45 +415,48 @@ function zbs_UserShowProfile($login) {
     $down           = $userdata['Down'];
 
     // START OF ONLINELEFT COUNTING <<
-    if ( $us_config['ONLINELEFT_COUNT'] != 0 ) {
-		// DEFINE VARS:
-		$userBalance = $userdata['Cash'];
-		$tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
-		$daysOnLine = 0;
-		
-		if ( $userBalance >= 0 ) {
-			// HERE WE GO... 
-			if ( $tariffFee > 0 ) {
-				if ( $us_config['ONLINELEFT_SPREAD'] != 0 ) {
-					while ( $userBalance >= 0 ) {
-							$daysOnLine++;
-							$dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
-							$userBalance = $userBalance - $dayFee;
-					}
-				} else {
-					while ( $userBalance >= 0 ) {
-						$daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
-						$userBalance = $userBalance - $tariffFee;
-					}
-				}
-			}
+    if ($us_config['ONLINELEFT_COUNT'] != 0) {
+        // DEFINE VARS:
+        $userBalance = $userdata['Cash'];
+        $tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
+        $daysOnLine = 0;
+        if ($userBalance >= 0) {
+            // HERE WE GO... 
+            if ($tariffFee > 0) {
+                if ($us_config['ONLINELEFT_SPREAD'] != 0) {
+                    while ($userBalance >= 0) {
+                        $daysOnLine++;
+                        $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+                        $userBalance = $userBalance - $dayFee;
+                        /* DISPLAY COUNT PROCESS (DEBUG):
+                         * print "DAY: " . $daysOnLine . " DATE: " . date('d-m-Y', time() + ($daysOnLine * 24 * 60 * 60)) . " FEE: " . $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60)) . "BALANCE: " . $userBalance . "<br>";
+                         */
+                    }
+                } else {
+                    while ($userBalance >= 0) {
+                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                        $userBalance = $userBalance - $tariffFee;
+                    }
+                }
+            }
 
-			// STYLING OF THE RESULT:
-			switch ( $us_config['ONLINELEFT_STYLE'] ) {
-				case 'days':
-					$daysOnLine--;
-					$balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days');
-					break;
-				case 'date':
-					$balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
-					break;
-				default:
-					$balanceExpire = NULL;
-					break;
-			}
-		} else $balanceExpire = ", " . __('You have indebtedness!');
+            // STYLING OF THE RESULT:
+            switch ($us_config['ONLINELEFT_STYLE']) {
+                case 'days':
+                    $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days');                    
+                    break;
+                case 'date':
+                    $balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60)); 
+                    break;
+                default:
+                    $balanceExpire = NULL; 
+                    break;
+            }
+        } else $balanceExpire = ', <span style="color:red;">' . __('indebtedness!') . '</span>';
+    } else {
+        $balanceExpire='';
     }
-	// >> END OF ONLINELEFT COUNTING
+    // >> END OF ONLINELEFT COUNTING
     
     
     if ( $userdata['CreditExpire'] != 0 ) {
@@ -759,7 +762,13 @@ function zbs_CopyrightsShow() {
     $baseFooter='Powered by <a href="http://ubilling.net.ua">Ubilling</a>';
     if ( (isset($usConf['ISP_NAME'])) AND (isset($usConf['ISP_URL'])) ) {
         if ((!empty($usConf['ISP_NAME'])) AND (!empty($usConf['ISP_URL']))) {
-            $addFooter='<a href="'.$usConf['ISP_URL'].'">'.$usConf['ISP_NAME'].'</a> | ';
+            $rawUrl=  strtolower($usConf['ISP_URL']);
+            if (stripos($rawUrl, 'http')===false) {
+              $rawUrl='http://'.$rawUrl;  
+            } else {
+              $rawUrl=$rawUrl;    
+            }
+          $addFooter='<a href="'.$rawUrl.'">'.$usConf['ISP_NAME'].'</a> | ';
         } else {
             $addFooter='';
         }

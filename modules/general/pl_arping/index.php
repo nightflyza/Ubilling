@@ -15,7 +15,12 @@ if (cfr('PLARPING')) {
         $user_ip=$userdata['IP'];
         $command=$sudo_path.' '.$arping_path.' '.$arping_iface.' '.$arping_options.' '.$user_ip;
         $raw_result=  shell_exec($command);
-        $ping_result=  wf_tag('pre').$raw_result.  wf_tag('pre',true);
+        if (wf_CheckGet(array('ajax'))) {
+            die($raw_result);
+        }
+        $ping_result=  wf_AjaxLoader();
+        $ping_result.= wf_AjaxLink('?module=pl_arping&username='.$login.'&ajax=true', __('Renew'), 'ajaxarping', true, 'ubButton');
+        $ping_result.=  wf_tag('pre',false,'','id="ajaxarping"').$raw_result.  wf_tag('pre',true);
         //detecting duplicate MAC
         $rawArray=  explodeRows($raw_result);
         if (!empty($rawArray)) {

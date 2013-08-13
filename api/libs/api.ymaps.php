@@ -68,7 +68,7 @@
  * @return string
  */    
 function sm_MapLocationSwitchForm() {
-    $query="SELECT * from `switches` WHERE `geo`=''";
+    $query="SELECT * from `switches` WHERE `geo`='' AND `desc` NOT LIKE '%NP%'";
     $allNoGeoSwitches=  simple_queryall($query);
     $switchData=array();
     $result='';
@@ -136,6 +136,9 @@ function sm_MapLocationSwitchForm() {
  *  
  */
     function sm_MapInit($center,$zoom,$type,$placemarks='',$editor='',$lang='ru-RU') {
+        if (empty($center)) {
+            $center='ymaps.geolocation.latitude, ymaps.geolocation.longitude';
+        }
          $js='
               <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang='.$lang.'"  type="text/javascript"></script>
 
@@ -151,15 +154,14 @@ function sm_MapLocationSwitchForm() {
                    myMap.controls
                 .add(\'zoomControl\')
                 .add(\'typeSelector\')
-                .add(\'mapTools\');
+                .add(\'mapTools\')
+                .add(\'searchControl\');
                 
          '.$placemarks.'    
          '.$editor.'
 
-
-        }
+    }
         
-
 
     </script>
              ';

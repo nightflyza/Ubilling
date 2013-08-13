@@ -107,13 +107,19 @@
                             if ( !empty($value) ) {
                                 $this->cache['USER']['RATE']['TX'] = $value;
                                 $this->log->message(__CLASS__, "USER TARIFF TX RATE - `" . $value . "`;", "debug");
-                            } else $this->log->message(__CLASS__, "USER TARIFF TX RATE - `NULL`!", "debug");
+                            } else {
+                                $this->cache['USER']['RATE']['TX'] = 0;
+                                $this->log->message(__CLASS__, "USER TARIFF TX RATE - `NULL`!", "debug");
+                            }
                             break;
                         case 'speeddown':
                             if ( !empty($value) ) {
                                 $this->cache['USER']['RATE']['RX'] = $value;
                                 $this->log->message(__CLASS__, "USER TARIFF RX RATE - `" . $value . "`;", "debug");
-                            } else $this->log->message(__CLASS__, "USER TARIFF RX RATE - `NULL`!", "debug");
+                            } else {
+                                $this->cache['USER']['RATE']['RX'] = 0;
+                                $this->log->message(__CLASS__, "USER TARIFF RX RATE - `NULL`!", "debug");
+                            }
                             break;
                     }
                 }
@@ -130,7 +136,11 @@
                             if ( !empty($value) AND $value != "*_NO_TARIFF_*" ) {
                                 $this->cache['USER']['TARIFF'] = $value;
                                 $this->log->message(__CLASS__, "USER TARIFF - `" . $value . "`;", "debug");
-                            } else $this->log->message(__CLASS__, "USER TARIFF - `NULL`!", "error");
+                            } else {
+                                $this->cache['USER']['RATE']['TX'] = 0;
+                                $this->cache['USER']['RATE']['RX'] = 0;
+                                $this->log->message(__CLASS__, "USER TARIFF - `NULL`!", "error");
+                            }
                             break;
                     }
                 }
@@ -142,28 +152,27 @@
             if ( empty($this->cache['NAS']['IP']) AND empty($this->cache['NAS']['TYPE']) ) {
                 if ( $this->connected ) {
                     $result = $this->select("nasip, nastype, options", "nas", array("netid" => $this->get_network_id()));
-                    foreach ($result[0] as $key => $value) {
-                        switch ($key) {
-                            case 'nasip':
-                                if ( !empty($value) ) {
-                                    $this->cache['NAS']['IP'] = $value;
-                                    $this->log->message(__CLASS__, "NAS IP - `" . $this->cache['NAS']['IP'] . "`;", "debug");
-                                } else $this->log->message(__CLASS__, "NAS IP - `NULL`!", "error");
-                                break;
-                            case 'nastype':
-                                if ( !empty($value) ) {
-                                    $this->cache['NAS']['TYPE'] = $value;
-                                    $this->log->message(__CLASS__, "NAS TYPE - `" . $value . "`;", "debug");
-                                } else $this->log->message(__CLASS__, "NAS TYPE - `NULL`!", "error");
-                                break;
-                            case 'options':
-                                if ( !empty($value) ) {
-                                    $this->cache['NAS']['OPTIONS'] = unserialize(base64_decode($value));
-                                    foreach ($this->cache['NAS']['OPTIONS'] as $optKey => $optValue) {
-                                        $this->log->message(__CLASS__, "NAS OPTION `" . $optKey . "` VALUE `" . $optValue . "`;", "debug");
+                    foreach ($result as $data) {
+                        if ( !empty($data['nasip']) ) {
+                            $this->cache['NAS']['IP'] = $data['nasip'];
+                            $this->log->message(__CLASS__, "NAS IP - `" . $this->cache['NAS']['IP'] . "`;", "debug");
+                        } else $this->log->message(__CLASS__, "NAS IP - `NULL`!", "error");
+                        
+                        if ( !empty($data['nastype']) ) {
+                            switch ($data['nastype']) {
+                                case 'mikrotik':
+                                    $this->cache['NAS']['OPTIONS'] = unserialize(base64_decode($data['options']));
+                                    foreach ($this->cache['NAS']['OPTIONS'] as $key => $value) {
+                                        $this->log->message(__CLASS__, "NAS OPTION `" . $key . "` VALUE `" . $value . "`;", "debug");
                                     }
-                                } else $this->log->message(__CLASS__, "No `nas`.`options` were setted for NAS - " . $this->cache['NAS']['IP'] . "!", "debug");
-                        }
+                                case 'rscriptd':
+                                case 'local':
+                                case 'other':
+                                    $this->cache['NAS']['TYPE'] = $data['nastype'];
+                                    $this->log->message(__CLASS__, "NAS TYPE - `" . $this->cache['NAS']['TYPE'] . "`;", "debug");
+                                    break;
+                            }
+                        } else $this->log->message(__CLASS__, "NAS TYPE - `NULL`!", "error");
                     }
                 } else $this->log->message(__CLASS__, "Cannot get NAS DATA from database, no connection!", "error");
             }

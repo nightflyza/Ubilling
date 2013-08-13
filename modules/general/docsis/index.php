@@ -7,6 +7,10 @@ if ($altercfg['DOCSIS_SUPPORT']) {
 
     function docsis_AjaxModemDataSource() {
         $query="SELECT * from `modems`";
+        $alladdress=  zb_AddressGetFulladdresslist();
+        $alluserips= zb_UserGetAllIPs();
+        $alluserips=  array_flip($alluserips);
+        
         $allmodems=  simple_queryall($query);
         $i=1;
         $totalcount=sizeof($allmodems);
@@ -17,6 +21,12 @@ if ($altercfg['DOCSIS_SUPPORT']) {
             foreach ($allmodems as $io=>$each) {
                 $ending=($i!=$totalcount) ? ',' : '' ;
                 
+                if (isset($alluserips[$each['userbind']])) {
+                    @$useraddress=$alladdress[$alluserips[$each['userbind']]];
+                }  else {
+                    $useraddress='';
+                }
+                
                 $actions='<a href=?module=docsis&showmodem='.$each['id'].'><img src=skins/icon_edit.gif></a>';
                 $result.='
                     [
@@ -25,6 +35,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
                     "'.$each['date'].'",
                     "'.$each['ip'].'",
                     "'.$each['userbind'].'",
+                    "'.$useraddress.'",
                     "'.$actions.'"
                     ]'.$ending.'
                     ';
@@ -60,6 +71,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
                 null,
                 null,
                 null,
+                null,
                 null
             ],      
          
@@ -90,6 +102,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
                   <td>'.__('Date').'</td>
                   <td>'.__('IP').'</td>
                   <td>'.__('Linked user').'</td>
+                  <td>'.__('Full address').'</td>
                   <td>'.__('Actions').'</td>
                 </tr>
             </table>

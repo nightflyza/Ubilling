@@ -80,6 +80,11 @@
                                 $mikrotikStatus = $mikrotik->command('/system/resource/print');
                                 foreach ( $mikrotikStatus[0] as $key => $value) {
                                     switch ( $key ) {
+                                        case 'uptime':
+                                            $find = array('w', 'd');
+                                            $replace = array(" " . __('w') . " ", " " . __('d') . " ");
+                                            $form->addrow(__($key), str_replace($find, $replace, $value));
+                                            break;
                                         case 'version':
                                             $form->addrow(__($key), $value);
                                             $version = explode('.', $value);
