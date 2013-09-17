@@ -12,7 +12,20 @@ if (cfr('STREETS')) {
         }
         
         if (!empty($newstreetname)) {
+            //check for existing same street in city
+            $existingStreets_raw=  zb_AddressGetStreetAllDataByCity($newstreetcityid);
+            $existingStreets=array();
+            if (!empty($existingStreets_raw)) {
+                foreach ($existingStreets_raw as $ix=>$eachstreetdata) {
+                    $existingStreets[]=  strtolower_utf8($eachstreetdata['streetname']);
+                }
+            }
+            if (!in_array(strtolower_utf8($newstreetname), $existingStreets)) {
             zb_AddressCreateStreet($newstreetcityid, $newstreetname, $newstreetalias);
+            } else {
+                show_window(__('Error'), __('The same street already exists'));
+            }
+            
         } else {
             show_error(__('Empty street name'));
         }

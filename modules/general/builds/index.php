@@ -10,7 +10,20 @@ if (cfr('BUILDS')) {
        if ($_GET['action']=='edit') {
            if (isset($_POST['newbuildnum'])) {
                if (!empty($_POST['newbuildnum'])) {
-                   zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+                   //check for exist of same build at this street
+                   $existingBuilds_raw=  zb_AddressGetBuildAllDataByStreet($streetid);
+                   $existingBuilds=array();
+                   if (!empty($existingBuilds_raw)) {
+                       foreach ($existingBuilds_raw as $ix=>$eachbuilddata) {
+                           $existingBuilds[]=  strtolower_utf8($eachbuilddata['buildnum']);
+                       }
+                   }
+                   if (!in_array(strtolower_utf8($_POST['newbuildnum']), $existingBuilds)) {
+                       zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+                   } else {
+                       show_window(__('Error'), __('The same build already exists'));
+                   }
+                   
                } else {
                    show_error(__('Empty building number'));
                }

@@ -63,7 +63,7 @@ function zb_AddressListCityAllIds() {
 }
 
 function zb_AddressGetCityAllData() {
-    $query="SELECT * from `city`";
+    $query="SELECT * from `city` ORDER by `id` ASC";
     $all_data=simple_queryall($query);
     return($all_data);
 }

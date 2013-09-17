@@ -1580,6 +1580,7 @@ function web_bar($count,$total) {
     } else {
      $width=0;
     }
+    
     $code='<img src="'.$barurl.'"  height="14" width="'.$width.'%" border="0">';
     return($code);
 }

@@ -446,10 +446,17 @@ function zb_AjaxOnlineDataSource() {
      $clearuseraddress=  str_replace("'", '`', $clearuseraddress);
      $clearuseraddress=  mysql_real_escape_string($clearuseraddress);
      
+    //additional finance links
+    if ($alterconf['FAST_CASH_LINK']) {
+       $fastcashlink=' <a href=?module=addcash&username='.$eachuser['login'].'#profileending><img src=skins/icon_dollar.gif border=0></a> ';
+   } else {
+       $fastcashlink='';
+   }
+     
      if (!$alterconf['DEAD_HIDE']) {
      $result.='
      [
-     "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.$clearuseraddress.'",
+     "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.$fastcashlink.$clearuseraddress.'",
      
          "'.@mysql_real_escape_string(trim($fioz[$eachuser['login']])).'",
          "'.$eachuser['IP'].'",
@@ -464,7 +471,7 @@ function zb_AjaxOnlineDataSource() {
          if (!isset($deadUsers[$eachuser['login']])) {
                $result.='
                  [
-                 "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.$clearuseraddress.'",
+                 "<a href=?module=traffstats&username='.$eachuser['login'].'><img src=skins/icon_stats.gif border=0 title='.__('Stats').'></a> <a href=?module=userprofile&username='.$eachuser['login'].'><img src=skins/icon_user.gif border=0 title='.__('Profile').'></a> '.$fastcashlink.$clearuseraddress.'",
 
                      "'.@mysql_real_escape_string(trim($fioz[$eachuser['login']])).'",
                      "'.$eachuser['IP'].'",

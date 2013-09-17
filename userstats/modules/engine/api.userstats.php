@@ -413,6 +413,14 @@ function zbs_UserShowProfile($login) {
     $phone          = zbs_UserGetPhone($login);
     $passive        = $userdata['Passive'];
     $down           = $userdata['Down'];
+    
+    //public offer mode
+    if (isset($us_config['PUBLIC_OFFER'])) {
+        if (!empty($us_config['PUBLIC_OFFER'])) {
+             $publicOfferUrl=$us_config['PUBLIC_OFFER'];
+             $contract=  la_Link($publicOfferUrl, __('Public offer'), false, '');
+        }
+    } 
 
     // START OF ONLINELEFT COUNTING <<
     if ($us_config['ONLINELEFT_COUNT'] != 0) {
@@ -565,7 +573,7 @@ function zbs_UserShowProfile($login) {
             </tr>
             
             <tr>
-            <td class="row1">'.__('Payment ID').'</td>
+            <td class="row1"><abbr title="'.__('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals').'">'.__('Payment ID').'</abbr></td>
             <td>'.$paymentid.'</td>
             </tr>
             

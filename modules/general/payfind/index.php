@@ -151,6 +151,28 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
     
+    
+    /*
+     * Returns search table selector
+     * 
+     * @return string
+     */
+    function web_PayFindTableSelect() {
+        if (wf_CheckPost(array('searchtable'))) {
+            $selected=$_POST['searchtable'];
+        } else {
+            $selected='';
+        }
+        
+        $params=array(
+            "payments"=>__('Finance report'),
+            "corrections"=>__('Correct saldo')
+        );
+        
+        $result=  wf_Selector('searchtable', $params, __('Search into'), $selected, false);
+        return ($result);
+    }
+    
 
     /*
      * Returns payment search form
@@ -164,8 +186,8 @@ if (cfr('PAYFIND')) {
         $curdate=$_POST['dateto'];
         $yesterday=$_POST['datefrom'];
         } else {
-        $curdate = curdate();
-        $yesterday = date("Y-m-d", time() - 60 * 60 * 24);
+        $curdate = date("Y-m-d", time() + 60 * 60 * 24);
+        $yesterday = curdate();
         }
         
         $inputs = __('Date');
@@ -186,7 +208,9 @@ if (cfr('PAYFIND')) {
         $inputs.= web_PayFindCashierSelector();
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
         $inputs.= web_PaySysPercentSelector();
-        $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_delimiter();
+        $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
+        //ugly spacing hack
+        $inputs.= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.web_PayFindTableSelect().  wf_delimiter();
         $inputs.= wf_HiddenInput('dosearch', 'true');
         $inputs.= wf_Submit(__('Search'));
 
@@ -203,7 +227,19 @@ if (cfr('PAYFIND')) {
      */
 
     function web_PaymentSearch($markers) {
-        $query = "SELECT * from `payments`";
+        if (wf_CheckPost(array('searchtable'))) {
+            if ($_POST['searchtable']=='payments') {
+                $table='payments';
+            }
+            
+            if ($_POST['searchtable']=='corrections') {
+                $table='paymentscorr';
+            }
+        } else {
+            $table='payments';
+        }
+        $query = "SELECT * from `".$table."`";
+        
         $query.=$markers;
         $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
         $allpayments = simple_queryall($query);

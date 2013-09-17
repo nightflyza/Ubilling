@@ -1,7 +1,8 @@
 <?php if ( !defined('ENVIRONMENT') ) exit('Only STG can run script!' . "\n");
 
     class Executer {
-        // MikroTik API:
+        
+        // Executer's vars:
         private $connected;
         private $socket;
         private $error_no;
@@ -20,16 +21,25 @@
             foreach ($data as $key => $value) {
                 switch ($key) {
                     case 'parameters':
-                        $this->options = $value['OPTIONS'];
-                        unset($value['OPTIONS']);
-                        /* IMPORTANT: `break;` isn't needed! */
+                        $this->options = $value['options'];
+                        unset($value['options']);
                     default:
                         $this->$key = $value;
                         break;
                 }
             }
             // Write log message, that class is loaded:
-            $this->log->message(__CLASS__, "MikroTik Executer loaded.", "debug");
+            $this->log->message(__CLASS__, "MikroTik driver loaded", "debug");
+            
+            // Run:
+            if ( !empty($this->parameters['ip']) ) {
+                if ( $this->connect() ) {
+                    $this->firewall();
+                    $this->queue();
+                    $this->dhcp();
+                    $this->arp();
+                }
+            } else $this->log->message(__CLASS__, "Cannot put data to MikroTik, no IP address!", 'error');
         }
 
         /* MikroTik API << */
@@ -54,8 +64,8 @@
         private function connect() {
             for ($ATTEMPT = 1; $ATTEMPT <= $this->config['attempts']; $ATTEMPT++) {
                 $this->connected = FALSE;
-                $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['IP'] . ':' . $this->config['api_port'] . '...', "api");
-                if ( $this->socket = @fsockopen($this->parameters['IP'], $this->config['api_port'], $this->error_no, $this->error_str, $this->config['timeout']) ) {
+                $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['ip'] . ':' . $this->config['api_port'] . '...', "api");
+                if ( $this->socket = @fsockopen($this->parameters['ip'], $this->config['api_port'], $this->error_no, $this->error_str, $this->config['timeout']) ) {
                     socket_set_timeout($this->socket, $this->config['timeout']);
                     $this->write('/login');
                     $RESPONSE = $this->read(FALSE);
@@ -79,18 +89,11 @@
             }
 
             // Write log message about connection attempt result:
-            if ( $this->connected ) $this->log->message(__CLASS__, 'Connection with MikroTik is established.', "debug");
-            else                    $this->log->message(__CLASS__, 'Cannot establish connection with MikroTik!', "error");
+            if ( $this->connected ) $this->log->message(__CLASS__, "Connection with MikroTik is established", 'debug');
+            else                    $this->log->message(__CLASS__, "Cannot establish connection with MikroTik!", 'error');
 
             // Return connection state:
             return $this->connected;
-        }
-
-        private function disconnect() {
-            fclose($this->socket);
-            $this->connected = FALSE;
-            // Write log message about successful disconnection:
-            $this->log->message(__CLASS__, 'Disconnected from MikroTik.', "api");
         }
 
         private function parse_response($response) {
@@ -115,45 +118,7 @@
                 return $PARSED;
             } else return array();
         }
-
-        private function parse_response4smarty($response) {
-            if ( is_array($response) ) {
-                $PARSED = array();
-                $CURRENT = NULL;
-                $singlevalue = NULL;
-                foreach ($response as $x) {
-                    if ( in_array($x, array('!fatal', '!re', '!trap')) ) {
-                        if ( $x == '!re' ) {
-                            $CURRENT = & $PARSED[];
-                        } else $CURRENT = & $PARSED[$x][];
-                    } else if ( $x != '!done' ) {
-                        if ( preg_match_all('/[^=]+/i', $x, $MATCHES) ) {
-                            if ( $MATCHES[0][0] == 'ret' ) $singlevalue = $MATCHES[0][1];
-                            $CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
-                        }
-                    }
-                }
-                foreach ($PARSED as $key => $value) {
-                    $PARSED[$key] = $this->array_change_key_name($value);
-                }
-                return $PARSED;
-                if ( empty($PARSED) && !is_null($singlevalue) ) $PARSED = $singlevalue;
-            } else return array();
-        }
-
-        private function array_change_key_name(&$array) {
-            if ( is_array($array) ) {
-                foreach ($array as $key => $value) {
-                    $tmp = str_replace("-", "_", $key);
-                    $tmp = str_replace("/", "_", $tmp);
-                    if ( $tmp ) {
-                        $array_new[$tmp] = $value;
-                    } else $array_new[$key] = $value;
-                }
-                return $array_new;
-            } else return $array;
-        }
-
+        
         private function read($parse = TRUE) {
             $RESPONSE = array();
             while (TRUE) {
@@ -208,8 +173,8 @@
                 $data = explode("\n", $command);
                 foreach ($data as $com) {
                     $com = trim($com);
-                    fwrite($this->socket, $this->encode_length(strlen($com)) . $com);
-                    $this->log->message(__CLASS__, '<<< [' . strlen($com) . '] ' . $com, "api");
+                    fwrite($this->socket, $this->encode_length(strlen($command)) . $command);
+                    $this->log->message(__CLASS__, '<<< [' . strlen($command) . '] ' . $command, "api");
                 }
                 if ( gettype($param2) == 'integer' ) {
                     fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param2)) . '.tag=' . $param2 . chr(0));
@@ -243,151 +208,139 @@
         }
 
         /* >> MikroTik API */
+        
+        private function logReply($reply, $function) {
+            $search  = array('firewall', 'arp', 'queue', 'dhcp');
+            $replace = array('Firewall', 'ARP', 'Queue', 'DHCP');
+            if ( empty($reply) ) {
+                $doneAction = ( ENVIRONMENT == 'OnConnect' OR  ENVIRONMENT == 'OnDisconnect' ) ? 'updated/created' : 'removed';
+                $this->log->message(__CLASS__, str_replace($search, $replace, $function) . " entry was " . $doneAction, 'success');
+            } elseif ( is_string($reply) ) {
+                $this->log->message(__CLASS__, str_replace($search, $replace, $function) . " entry " . $reply . " was added", 'success');
+            } else {
+                foreach ($reply['!trap'] as $error) {
+                    if ( !empty($error['message']) ) {
+                        $this->log->message(__CLASS__, str_replace($search, $replace, $function) . " entry can't be updated, " . $error['message'], 'error');
+                    }
+                }
+            }
+        }
 
-        private function address_list() {
+        private function firewall() {
             if ( !empty($this->options['manage_firewall']) ) {
-                // Load command parameters template:
-                unset($this->tpl);
-                $this->tpl = parse_ini_file(NAS_DRVS . "tpls/firewall.ini");
-                // Determine `disabled` parameter value:
-                switch (ENVIRONMENT) {
-                    case "OnConnect":
-                        $this->tpl['disabled'] = "no";
-                        break;
-                    case "OnDisconnect":
-                        $this->tpl['disabled'] = "yes";
-                        break;
-                }
-                // Find entry on NAS:
-                $properties = $this->command("/ip/firewall/address-list/print", array(
-                    ".proplist" => ".id",
-                    "?comment" => LOGIN
-                ));
-                // a. Entry is present:
-                if ( !empty($properties) ) {
-                    foreach ($properties as $property) {
-                        // Update entry:
-                        $this->tpl['.id'] = $property['.id'];
-                        $reply = $this->command("/ip/firewall/address-list/set", $this->tpl);
-                        // Write log message(-s):
-                        if ( empty($reply) ) $this->log->message(__CLASS__, "Address List entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
-                        else {
-                            foreach ($reply['!trap'] as $error) {
-                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Address List entry, " . $error['message'] . "!", "error");
+                $reply = NULL;
+                $template = NULL;
+                switch ( ENVIRONMENT ) {
+                    case 'OnConnect':
+                    case 'OnDisconnect':
+                        // Load template:
+                        $template = parse_ini_file(NASPATH . 'tpls/firewall.ini');
+                        $template['disabled'] = ( ENVIRONMENT != 'OnConnect' ) ? 'yes' : 'no';
+                    case 'OnChange':
+                    case 'OnUserDel':
+                    // Find entry on NAS:
+                        $entries = $this->command('/ip/firewall/address-list/print', array(
+                            '.proplist' => '.id',
+                            '?comment'  => LOGIN
+                        ));
+                        // a. If entry is present:
+                        if ( !empty($entries) ) {
+                            foreach ($entries as $entry) {
+                                // Update entry:
+                                $template['.id'] = $entry['.id'];
+                                $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                $reply = $this->command('/ip/firewall/address-list/' . $action, $template);
                             }
+                        // b. If entry is absent:
+                        } else {
+                            if ( ENVIRONMENT == 'OnConnect' || ENVIRONMENT == 'OnDisconnect') {
+                                $reply = $this->command('/ip/firewall/address-list/add', $template);
+                            } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
                         }
-                    }
-                // b. Entry is absent:
-                } else {
-                    // Create new entry:
-                    $reply = $this->command("/ip/firewall/address-list/add", $this->tpl);
-                    // Write log message(-s):
-                    if ( is_string($reply) ) $this->log->message(__CLASS__, "New Address List entry was added with ID - `" . $reply . "`;", "success");
-                    else {
-                        foreach ($reply['!trap'] as $error) {
-                            if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Address List entry, " . $error['message'] . "!", "error");
-                        }
-                    }
+                        break;
                 }
-            } else $this->log->message(__CLASS__, "MikroTik firewall managing is not enabled;", "debug");
+                $this->logReply($reply, __FUNCTION__);
+            } else $this->log->message(__CLASS__, "MikroTik firewall managing isn't enabled", 'debug');
         }
 
         private function arp() {
             if ( !empty($this->options['manage_arp']) ) {
-                // Load command parameters template:
-                unset($this->tpl);
-                $this->tpl = parse_ini_file(NAS_DRVS . "tpls/arp.ini");
-                // Fill in the template:
-                $this->tpl['mac-address'] = $this->database->get_user_mac();
-                $this->tpl['interface']   = $this->options['users_interface'];
-                // Find entry on NAS:
-                $properties = $this->command("/ip/arp/print", array(
-                    ".proplist" => ".id",
-                    "?comment" => LOGIN
-                ));
-                // a. Entry is present:
-                if ( !empty($properties) ) {
-                    foreach ($properties as $property) {
-                        // Update entry:
-                        $this->tpl['.id'] = $property['.id'];
-                        $reply = $this->command("/ip/arp/set", $this->tpl);
-                        // Write log message(-s):
-                        if ( empty($reply) ) $this->log->message(__CLASS__, "ARP entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
-                        else {
-                            foreach ($reply['!trap'] as $error) {
-                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update ARP entry, " . $error['message'] . "!", "error");
+                $reply = NULL;
+                $template = NULL;
+                switch ( ENVIRONMENT ) {
+                    case 'OnConnect':
+                    case 'OnDisconnect':
+                        // Load template:
+                        $template = parse_ini_file(NASPATH . 'tpls/arp.ini');
+                        $template['mac-address'] = $this->database->get_user_mac();
+                        $template['interface']   = $this->options['users_interface'];
+                    case 'OnChange':
+                    case 'OnUserDel':
+                    // Find entry on NAS:
+                        $entries = $this->command('/ip/arp/print', array(
+                            '.proplist' => '.id',
+                            '?comment'  => LOGIN
+                        ));
+                        // a. If entry is present:
+                        if ( !empty($entries) ) {
+                            foreach ($entries as $entry) {
+                                // Update entry:
+                                $template['.id'] = $entry['.id'];
+                                $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                $reply = $this->command('/ip/arp/' . $action, $template);
                             }
+                        // b. If entry is absent:
+                        } else {
+                            if ( ENVIRONMENT == 'OnConnect' || ENVIRONMENT == 'OnDisconnect') {
+                                $reply = $this->command('/ip/arp/add', $template);
+                            } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
                         }
-                    }
-                // b. Entry is absent:
-                } else {
-                    // Create new entry:
-                    $reply = $this->command("/ip/arp/add", $this->tpl);
-                    // Write log message(-s):
-                    if ( is_string($reply) ) $this->log->message(__CLASS__, "New ARP entry was added with ID - `" . $reply . "`;", "success");
-                    else {
-                        foreach ($reply['!trap'] as $error) {
-                            if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new ARP entry, " . $error['message'] . "!", "error");
-                        }
-                    }
+                        break;
                 }
-            } else $this->log->message(__CLASS__, "MikroTik ARP managing is not enabled;", "debug");
+                $this->logReply($reply, __FUNCTION__);
+            } else $this->log->message(__CLASS__, "MikroTik ARP managing isn't enabled", 'debug');
         }
 
         private function queue() {
             if ( !empty($this->options['manage_queue']) ) {
-                if ( !empty($this->options['version']) ) {
-                    // Load command parameters template:
-                    unset($this->tpl);
-                    $this->tpl = parse_ini_file(NAS_DRVS . "tpls/queue/ros_v" . $this->options['version'] . ".ini");
-                    // Fill in the template:
-                    $rate = $this->database->get_user_rate();
-                    $this->tpl['limit-at']  = $rate['TX'] . $this->config['rate_val'] . '/' . $rate['RX'] . $this->config['rate_val'];
-                    $this->tpl['max-limit'] = $rate['TX'] . $this->config['rate_val'] . '/' . $rate['RX'] . $this->config['rate_val'];
-                    switch ($this->options['version']) {
-                        case 4:
-                        case 5:
-                            $this->tpl['interface'] = $this->options['users_interface'];
-                            break;
-                        case 6:
-                            /* THIS SHIT WAS LIMITING RATE ON THE USER INTERFACE INTERFACE:
-							 * $this->tpl['target'] .= "," . $this->options['users_interface'];
-                             */
-                            break;
-                    }
+                $reply = NULL;
+                $template = NULL;
+                switch ( ENVIRONMENT ) {
+                    case 'OnConnect':
+                    case 'OnDisconnect':
+                        // Load template:
+                        $template = parse_ini_file(NASPATH . 'tpls/queue/ros_v' . $this->options['version'] . '.ini');
+                        $rate = $this->database->get_user_rate();
+                        $template['limit-at']  = $rate['tx'] . $this->config['rate_val'] . '/' . $rate['rx'] . $this->config['rate_val'];
+                        $template['max-limit'] = $rate['tx'] . $this->config['rate_val'] . '/' . $rate['rx'] . $this->config['rate_val'];
+                        if ($this->options['version'] == 4 || $this->options['version'] == 5) {
+                            $template['interface'] = $this->options['users_interface'];
+                        }
+                    case 'OnChange':
+                    case 'OnUserDel':
                     // Find entry on NAS:
-                    $properties = $this->command("/queue/simple/print", array(
-                        ".proplist" => ".id",
-                        "?name" => LOGIN
-                    ));
-                    // a. Entry is present:
-                    if ( !empty($properties) ) {
-                        foreach ($properties as $property) {
-                            // Update entry:
-                            $this->tpl['.id'] = $property['.id'];
-                            $reply = $this->command("/queue/simple/set", $this->tpl);
-                            // Write log message(-s):
-                            if ( empty($reply) ) $this->log->message(__CLASS__, "Queue entry with ID - `" . $this->tpl['.id'] . "` was updated;", "success");
-                            else {
-                                foreach ($reply['!trap'] as $error) {
-                                    if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot update Queue entry, " . $error['message'] . "!", "error");
-                                }
+                        $entries = $this->command('/queue/simple/print', array(
+                            '.proplist' => '.id',
+                            '?name'     => LOGIN
+                        ));
+                        // a. If entry is present:
+                        if ( !empty($entries) ) {
+                            foreach ($entries as $entry) {
+                                // Update entry:
+                                $template['.id'] = $entry['.id'];
+                                $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                $reply = $this->command('/queue/simple/' . $action, $template);
                             }
+                        // b. If entry is absent:
+                        } else {
+                            if ( ENVIRONMENT == 'OnConnect' || ENVIRONMENT == 'OnDisconnect') {
+                                $reply = $this->command('/queue/simple/add', $template);
+                            } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
                         }
-                    // b. Entry is absent:
-                    } else {
-                        // Create new entry:
-                        $reply = $this->command("/queue/simple/add", $this->tpl);
-                        // Write log message(-s):
-                        if ( is_string($reply) ) $this->log->message(__CLASS__, "New Queue entry was added with id - `" . $reply . "`;", "success");
-                        else {
-                            foreach ($reply['!trap'] as $error) {
-                                if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new Queue entry, " . $error['message'] . "!", "error");
-                            }
-                        }
-                    }
-                } else $this->log->message(__CLASS__, "Set MikroTik RouterOS version number value in database", "debug");
-            } else $this->log->message(__CLASS__, "MikroTik Queue managing is not enabled.", "debug");
+                        break;
+                }
+                $this->logReply($reply, __FUNCTION__);
+            } else $this->log->message(__CLASS__, "MikroTik queue managing isn't enabled", 'debug');
         }
 
         private function dhcp() {
@@ -395,73 +348,46 @@
                 if ( !empty($this->options['users_interface']) ) {
                     // Find DHCP-server `name` value:
                     $server = $this->command("/ip/dhcp-server/print", array(
-                        ".proplist" => "name",
-                        "?interface" => $this->options['users_interface']
+                        '.proplist" => "name',
+                        '?interface' => $this->options['users_interface']
                     ));
-                    // If DHCP-server is found:
                     if ( !empty($server) ) {
-                        // Load command parameters template:
-                        unset($this->tpl);
-                        $this->tpl = parse_ini_file(NAS_DRVS . "tpls/dhcp.ini");
-                        // Fill in the template:
-                        $this->tpl['mac-address'] = $this->database->get_user_mac();
-                        $this->tpl['server'] = $server[0]['name'];
-                        // Find entry on NAS:
-                        $props = $this->command("/ip/dhcp-server/lease/print", array(
-                            ".proplist" => ".id",
-                            "?comment" => LOGIN
-                        ));
-                        // a. Entry is present:
-                        if ( !empty($props) ) {
-                            foreach ( $props as $property ) {
-                                // Update entry:
-                                $this->tpl['.id'] = $property['.id'];
-                                $reply = $this->command("/ip/dhcp-server/lease/set", $this->tpl);
-                                // Write log message(-s):
-                                if ( empty($reply) ) $this->log->message(__CLASS__, "DHCP entry with id - `" . $this->tpl['.id'] . "` was updated;", "success");
-                                else {
-                                    foreach ($reply['!trap'] as $error) {
-                                        if ( !empty($error['message']) )
-                                            $this->log->message(__CLASS__, "Cannot update DHCP entry, " . $error['message'] . "!", "error");
+                        $reply = NULL;
+                        $template = NULL;
+                        switch ( ENVIRONMENT ) {
+                            case 'OnConnect':
+                            case 'OnDisconnect':
+                                // Load template:
+                                $template = parse_ini_file(NASPATH . 'tpls/dhcp.ini');
+                                $template['mac-address'] = $this->database->get_user_mac();
+                                $template['server'] = $server[0]['name'];
+                            case 'OnChange':
+                            case 'OnUserDel':
+                            // Find entry on NAS:
+                                $entries = $this->command('/ip/dhcp-server/lease/print', array(
+                                    '.proplist' => '.id',
+                                    '?comment'  => LOGIN
+                                ));
+                                // a. If entry is present:
+                                if ( !empty($entries) ) {
+                                    foreach ($entries as $entry) {
+                                        // Update entry:
+                                        $template['.id'] = $entry['.id'];
+                                        $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                        $reply = $this->command('/ip/dhcp-server/lease/' . $action, $template);
                                     }
+                                // b. If entry is absent:
+                                } else {
+                                    if ( ENVIRONMENT == 'OnConnect' || ENVIRONMENT == 'OnDisconnect') {
+                                        $reply = $this->command('/ip/dhcp-server/lease/add', $template);
+                                    } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
                                 }
-                            }
-                        // b. Entry is absent:
-                        } else {
-                            // Create new entry:
-                            $reply = $this->command("/ip/dhcp-server/lease/add", $this->tpl);
-                            // Write log message(-s):
-                            if ( is_string($reply) ) $this->log->message(__CLASS__, "New DHCP entry was added with id - `" . $reply . "`;", "success");
-                            else {
-                                foreach ($reply['!trap'] as $error) {
-                                    if ( !empty($error['message']) ) $this->log->message(__CLASS__, "Cannot add new DHCP entry, " . $error['message'] . "!", "error");
-                                }
-                            }
+                                break;
                         }
-                    } else $this->log->message(__CLASS__, "No configurated DHCP found for USER INTERFACE!", "error");
-                } else $this->log->message(__CLASS__, "USER INTERFACE was not defined!", "error");
-            } else $this->log->message(__CLASS__, "MikroTik DHCP Leases managing is not enabled.", "debug");
-        }
-
-        // 1. OnConnect:
-        public function OnConnect() {
-            if ( !empty($this->parameters['IP']) ) {
-                if ($this->connect()) {
-                    $this->address_list();
-                    $this->queue();
-                    $this->dhcp();
-                    $this->arp();
-                }
-            } else $this->log->message(__CLASS__, "Cannot run OnConnect, any NAS IP was queried from DB!", "error");
-        }
-
-        // 2. OnDisconnect:
-        public function OnDisconnect() {
-            if ( !empty($this->parameters['IP']) ) {
-                if ( $this->connect() ) {
-                    $this->address_list();
-                }
-            } else $this->log->message(__CLASS__, "Cannot run OnDisconnect, any NAS IP was queried from DB!", "error");
+                        $this->logReply($reply, __FUNCTION__);
+                    } else $this->log->message(__CLASS__, "No configurated DHCP-server found for this network!", 'error');
+                } else $this->log->message(__CLASS__, "There is no `user_interface` was not defined in database!", 'error');
+            } else $this->log->message(__CLASS__, "MikroTik DHCP-leases managing is not enabled", 'debug');
         }
     }
 ?>

@@ -1,7 +1,11 @@
 <?php if ( !defined('ENVIRONMENT') ) exit('Only STG can run script!');
 
     class Log {
-        // Recived data from `ubilling.cls`:
+        
+        // Class'es vars:
+        private $message = NULL;
+        
+        // Recived vars from `ubilling.cls`:
         private $config;
 
         // Constructor:
@@ -13,28 +17,34 @@
         }
 
         public function message($class, $string, $level = NULL) {
-            if ( $this->config['enabled'] ) {
-                $log_message = date("Y-m-d H:i:s") . " - [" . $class . "] - ";
-                switch ($level) {
-                    case "api":
-                        return TRUE;
-                        break;
-                    case "error":
-                        $log_message .= "ERROR:";
-                        break;
-                    case "success":
-                        $log_message .= "SUCCESS:";
-                        break;
-                    case "debug":
-                        if ( $this->config['debug'] == FALSE ) {
-                            return TRUE;
-                        } else $log_message .= "DEBUG INFO:";
-                        break;
-                }
-                $log_message .= " " . $string . "\n";
-                $log_file = $this->config['path'] . "/" . $this->config['file'];
-                file_put_contents($log_file, $log_message, FILE_APPEND | LOCK_EX);
+            $message = date('Y-m-d H:i:s') . ' - [' . $class. '] - ';
+            switch ($level) {
+                case 'api':
+                    if ( FALSE ) {
+                        $message .= 'MikroTik:';
+                    } else return TRUE;
+                    break;
+                case 'error':
+                    $message .= 'Error:';
+                    break;
+                case 'success':
+                    $message .= 'Success:';
+                    break;
+                case 'debug':
+                    if ( $this->config['debug'] ) {
+                        $message .= 'Debug:';
+                    } else return TRUE;
+                    break;
             }
+            $nbsp = ( empty($level) ) ? NULL : ' ';
+            $this->message .= $message . $nbsp . $string . PHP_EOL;
         }
+        
+        public function write() {
+            if ( $this->config['enabled'] ) {
+                file_put_contents($this->config['path'] . '/' . $this->config['file'], $this->message, FILE_APPEND | LOCK_EX);
+            } else return TRUE;
+        }
+        
     }
 ?>

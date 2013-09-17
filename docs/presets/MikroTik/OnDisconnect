@@ -1,53 +1,53 @@
 #!/usr/local/bin/php
-<?php if ( isset($argv) AND $argc == 6 ) {
+<?php if ( !empty($argv) && $argc == 6 ) {
 
-        // DEFINE ENVIRONMENT:
-        define('ENVIRONMENT', 'OnDisconnect');
+        // Environment:
+        define('ENVIRONMENT', basename($argv[0]));
 
-        // DEFINE USER'S LOGIN:
-        if (isset($argv[1])) {
+        // User's login:
+        if ( isset($argv[1]) ) {
             define('LOGIN', $argv[1]);
         } else define('LOGIN', NULL);
 
-        // DEFINE USER'S IP:
-        if (isset($argv[2])) {
+        // User's IP:
+        if ( isset($argv[2]) ) {
             define('IP', $argv[2]);
         } else define('IP', NULL);
 
-        // DEFINE USER'S CASH:
-        if (isset($argv[3])) {
+        // User's cash:
+        if ( isset($argv[3]) ) {
             define('CASH', $argv[3]);
         } else define('CASH', NULL);
 
-        // DEFINE USER'S STG UNIQUE ID:
-        if (isset($argv[4])) {
+        // User's ID:
+        if ( isset($argv[4]) ) {
             define('ID', $argv[4]);
         } else define('ID', NULL);
 
-        // DEFINE USER'S ALLOWED DIRS:
-        if (isset($argv[5])) {
+        // User's allowed directions:
+        if ( isset($argv[5]) ) {
             define('DIRS', $argv[5]);
         } else define('DIRS', NULL);
 
-        // DEFINE PATHS:
+        // Paths:
         define('BASEPATH', __DIR__ . '/');
         define('SYSTEM', BASEPATH . 'system/');
-        define('DB_DRVS', SYSTEM . 'database/');
-        define('NAS_DRVS', SYSTEM . 'executer/');
-        define('LOG_DRVS', SYSTEM . 'log/');
+        define('DBPATH',  SYSTEM . 'database/');
+        define('NASPATH', SYSTEM . 'executer/');
+        define('LOGPATH', SYSTEM . 'log/');
 
-        // DEFINE DRIVERS EXTENTION:
+        // Driver's extention:
         define('EXT', '.drv');
 
-        // TURN OFF PHP ERROR REPORTING:
+        // Turn off PHP error reporting:
         error_reporting(0);
 
-        // UNSET ALL RECEIVED ARGUMENTS & AMOUNT:
+        // Unset all resived arguments and their amount:
         unset($argv, $argc);
 
-        // CONTINUE...
+        // Continue...
         include_once(SYSTEM . 'ubilling.cls');
         new Ubilling();
-        
+
     } else exit('Only STG can run script!');
 ?>

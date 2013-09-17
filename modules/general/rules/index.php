@@ -5,6 +5,7 @@ if($system->checkForRight('RULES')) {
       $createrulename=trim($_POST['newrulename']);
       if (!empty($createrulename)) {
       zb_DirectionAdd($_POST['newrulenumber'], $_POST['newrulename']); 
+      zb_StargazerSIGHUP();
       rcms_redirect("?module=rules");
       } else {
           show_window(__('Error'), __('Required fields'));
@@ -14,6 +15,7 @@ if($system->checkForRight('RULES')) {
   
   if (isset($_GET['delete'])) {
       zb_DirectionDelete($_GET['delete']);
+      zb_StargazerSIGHUP();
       rcms_redirect("?module=rules");
   }
   

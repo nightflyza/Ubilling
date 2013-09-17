@@ -1093,5 +1093,14 @@ function zb_UserGetNetidsAll() {
 }
 
 
+function zb_StargazerSIGHUP() {
+        $ub_conf=rcms_parse_ini_file(CONFIG_PATH."billing.ini");
+        if ($ub_conf['STGNASHUP']) {
+            $sig_command=$ub_conf['SUDO'].' '.$ub_conf['KILL'].' -1'.' `'.$ub_conf['CAT'].' '.$ub_conf['STGPID'].'`';
+            shell_exec($sig_command);
+            log_register("SIGHUP STG");
+        }
+    } 
+
     
 ?>

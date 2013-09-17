@@ -1412,5 +1412,49 @@ $lang['def']['Ticketing activity during the year']='Активность хел�
 $lang['def']['Task manager activity during the year']='Активность планировщика задач на протяжении года';
 
 
+//rev 2802
+$lang['def']['Clone']='Клонировать';
+$lang['def']['Autocomplete in partial address search']='Автодополнение в поиске по частичному адресу';
+$lang['def']['Search into']='Поиск в';
+$lang['def']['Packet size']='Размер пакета';
+$lang['def']['Dial']='Звонок';
+$lang['def']['Call transfer']='Перевод звонка';
+$lang['def']['Voice mail']='Голосовая почта';
+$lang['def']['Answered']='Ответили';
+$lang['def']['No answer']='Нет ответа';
+$lang['def']['Busy']='Занято';
+$lang['def']['Failed']='Провал';
+$lang['def']['Taken up the phone']='Взяли трубку';
+$lang['def']['End of call']='Завершение звонка';
+$lang['def']['minutes']='минут';
+$lang['def']['seconds']='секунд';
+$lang['def']['hour']='час';
+$lang['def']['sec.']='сек.';
+$lang['def']['Picked up']='Взяли трубку';
+$lang['def']['Type']='Тип';
+$lang['def']['Talk time']='Время разговора';
+$lang['def']['Time spent on calls']='Времени потрачено на разговоры';
+$lang['def']['Total calls']='Звонков всего';
+$lang['def']['Calls history']='История звонков';
+$lang['def']['right to use askozia integration']='Право использовать модуль интеграции с AskoziaPBX';
+$lang['def']['Administrator login']='Логин администратора';
+$lang['def']['Cache time']='Время кеширования';
+$lang['def']['AskoziaPBX URL']='Ссылка на AskoziaPBX';
+$lang['def']['AskoziaPBX support enabled']='Поддержка AskoziaPBX';
+$lang['def']['AskoziaPBX integration now disabled']='Поддержка интеграции с AskoziaPBX сейчас отключена';
+$lang['def']['Alias']='Алиас';
+$lang['def']['Delete alias']='Удалить алиас';
+$lang['def']['Create alias']='Создать алиас';
+$lang['def']['AskoziaPBX integration']='Интеграция с AskoziaPBX';
+$lang['def']['Phones']='Телефоны';
+$lang['def']['Current calls']='Звонков на линии';
+$lang['def']['Calls processed']='Обработано звонков';
+$lang['def']['External storage']='Внешний накопитель';
+$lang['def']['days']='дней';
+$lang['def']['Current PBX status']='Текущее состояние АТС';
+$lang['def']['The same street already exists']='Такая улица уже существует';
+$lang['def']['The same build already exists']='Такой дом уже существует на этой улице';
+
+
 
 ?>

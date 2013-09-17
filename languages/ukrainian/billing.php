@@ -1421,5 +1421,48 @@ $lang['def']['Signup requests received during the year']='Заявки на пі
 $lang['def']['Ticketing activity during the year']='Активність хелпдеску за рік';
 $lang['def']['Task manager activity during the year']='Активнісь планувальника робіт протягом року';
 
+//rev 2802
+$lang['def']['Clone']='Клонувати';
+$lang['def']['Autocomplete in partial address search']='Автодоповнення в пошуку по частковій адресі';
+$lang['def']['Search into']='Пошук в';
+$lang['def']['Packet size']='Розмір пакета';
+$lang['def']['Dial']='Дзвінок';
+$lang['def']['Call transfer']='Перенаправлення дзвінка';
+$lang['def']['Voice mail']='Голосова пошта';
+$lang['def']['Answered']='Відповіли';
+$lang['def']['No answer']='Без відповіді';
+$lang['def']['Busy']='Зайнято';
+$lang['def']['Failed']='Невдало';
+$lang['def']['Taken up the phone']='Взяли трубку';
+$lang['def']['End of call']='Завершення дзвінка';
+$lang['def']['minutes']='хвилин';
+$lang['def']['seconds']='секунд';
+$lang['def']['hour']='годин';
+$lang['def']['sec.']='сек.';
+$lang['def']['Picked up']='Взяли трубку';
+$lang['def']['Type']='Тип';
+$lang['def']['Talk time']='Час розмови';
+$lang['def']['Time spent on calls']='Часу витрачено на розмови';
+$lang['def']['Total calls']='Дзвінків усього';
+$lang['def']['Calls history']='Історія дзвінків';
+$lang['def']['right to use askozia integration']='Право користуватись модулем інтеграції з AskoziaPBX';
+$lang['def']['Administrator login']='Логін адміністратора';
+$lang['def']['Cache time']='Час кешування';
+$lang['def']['AskoziaPBX URL']='Посилання на AskoziaPBX';
+$lang['def']['AskoziaPBX support enabled']='Підтримка AskoziaPBX';
+$lang['def']['AskoziaPBX integration now disabled']='Підтримку інтеграції з AskoziaPBX зараз вимкнено';
+$lang['def']['Alias']='Аліас';
+$lang['def']['Delete alias']='Видалити аліас';
+$lang['def']['Create alias']='Створити аліас';
+$lang['def']['AskoziaPBX integration']='Інтеграція з AskoziaPBX';
+$lang['def']['Phones']='Телефони';
+$lang['def']['Current calls']='Дзвінків на лінії';
+$lang['def']['Calls processed']='Оброблено дзвінків';
+$lang['def']['External storage']='Зовнішній диск';
+$lang['def']['days']='днів';
+$lang['def']['Current PBX status']='Поточний стан АТС';
+$lang['def']['The same street already exists']='Така вулиця вже існує';
+$lang['def']['The same build already exists']='Такий будинок вже є на цій вулиці';
+
 
 ?>

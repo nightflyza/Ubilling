@@ -154,5 +154,7 @@ $lang['def']['enought for'] = 'вистачить на';
 $lang['def']['days'] = 'дн.';
 $lang['def']['enought till the'] = 'вистачить до';
 $lang['def']['indebtedness!'] = 'заборгованість!';
+$lang['def']['Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals'] = 'Платіжний ID використовується, для здійснення онлайн-платежів в з допомогою різноманітних платіжних систем, а також для для поповнення рахунку з допомогою терміналів.';
+$lang['def']['Public offer'] = 'Договір публічної оферти';
 
 ?>

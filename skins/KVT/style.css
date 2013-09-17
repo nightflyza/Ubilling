@@ -644,3 +644,12 @@ background-image: radial-gradient(ellipse farthest-corner at center, #FFFFFF 0%,
     color: #EFEFEF;
 }
 
+.ui-autocomplete {
+max-height: 400px;
+overflow-y: auto;
+overflow-x: hidden;
+}
+
+* html .ui-autocomplete {
+height: 100px;
+}

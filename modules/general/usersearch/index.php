@@ -169,7 +169,38 @@ if(cfr('USERSEARCH')) {
     }
     
       function web_UserSearchAddressPartialForm() {
-        $inputs=wf_TextInput('partialaddr', '', '', false, '30');
+          $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+          if ($alterconf['SEARCHADDR_AUTOCOMPLETE']) {
+              $alladdress=  zb_AddressGetFulladdresslist();
+              natsort($alladdress);
+              $addrlist=' ';
+              $autocomplete='<script>
+                    $(function() {
+                    var availableAddrs = [
+                  ';
+              if (!empty($alladdress)) {
+                  foreach ($alladdress as $login=>$eachaddress) {
+                      $addrlist.='"'.$eachaddress.'",';
+                  }
+              }
+              //removing ending coma
+              $addrlist=mb_substr($addrlist, 0, -1,'UTF-8');
+              
+              $autocomplete.=$addrlist;
+              
+              $autocomplete.='
+                                      ];
+                    $( "#partialaddr" ).autocomplete({
+                    source: availableAddrs
+                    });
+                    });
+                    </script>
+                  ';
+          } else {
+              $autocomplete='';
+          }
+        
+        $inputs=$autocomplete.'<input type=text name="partialaddr" id="partialaddr" size="30">';
         $inputs.=wf_Submit('Search');
         $result=wf_Form('', 'POST', $inputs, '', '');
         return ($result);
