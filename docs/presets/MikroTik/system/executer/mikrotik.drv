@@ -348,7 +348,7 @@
                 if ( !empty($this->options['users_interface']) ) {
                     // Find DHCP-server `name` value:
                     $server = $this->command("/ip/dhcp-server/print", array(
-                        '.proplist" => "name',
+                        '.proplist' => 'name',
                         '?interface' => $this->options['users_interface']
                     ));
                     if ( !empty($server) ) {

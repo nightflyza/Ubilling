@@ -27,7 +27,6 @@ include('api/libs/api.corporate.php');
 include('api/libs/api.lousytariffs.php');
 include('api/libs/api.banksta.php');
 include('api/libs/api.templatize.php');
-include('api/libs/api.radius.php');
 include('api/libs/api.ymaps.php');
 include('api/libs/api.deploy.php');
 include('api/libs/api.crm.php');

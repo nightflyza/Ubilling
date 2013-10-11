@@ -504,73 +504,68 @@ function zb_AddressGetAptDataById($aptid) {
     return($form);
     }
 
-        function web_StreetListerBuildsEdit() {
+    function web_StreetListerBuildsEdit() {
     $allstreets=zb_AddressGetStreetAllData();
-    $form='<table width="100%" border="0" class="sortable">';
-    $form.='
-        <tr class="row1">
-            <td>'.__('ID').'</td>
-            <td>'.__('City').'</td>
-            <td>'.__('Street name').'</td>
-            <td>'.__('Street alias').'</td>
-            <td>'.__('Actions').'</td>
-        </tr>
-        ';
+    
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('City'));
+    $cells.= wf_TableCell(__('Street name'));
+    $cells.= wf_TableCell(__('Street alias'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells, 'row1');
+    
+    
     if (!empty ($allstreets)) {
         foreach ($allstreets as $io=>$eachstreet) {
         $cityname=zb_AddressGetCityData($eachstreet['cityid']);
-        $form.='
-        <tr class="row3">
-            <td>'.$eachstreet['id'].'</td>
-            <td>'.$cityname['cityname'].'</td>
-            <td>'.$eachstreet['streetname'].'</td>
-            <td>'.$eachstreet['streetalias'].'</td>
-            <td>
-            <a href="?module=builds&action=edit&streetid='.$eachstreet['id'].'">'.  web_build_icon().'</a>
-            </td>
-        </tr>
-        ';
+
+            $cells=  wf_TableCell($eachstreet['id']);
+            $cells.= wf_TableCell($cityname['cityname']);
+            $cells.= wf_TableCell($eachstreet['streetname']);
+            $cells.= wf_TableCell($eachstreet['streetalias']);
+            $actlink=  wf_Link('?module=builds&action=edit&streetid='.$eachstreet['id'], web_build_icon(), false);
+            $cells.= wf_TableCell($actlink);
+            $rows.=  wf_TableRow($cells, 'row3');
         }
     }
-    $form.='</table>';
-    return($form);
+    
+    $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+    
+    return($result);
     }
 
     function web_BuildLister($streetid) {
         $allbuilds=zb_AddressGetBuildAllDataByStreet($streetid);
-        $form='<table width="100%" border="0" class="sortable">';
-        $form.='
-        <tr class="row1">
-            <td>'.__('ID').'</td>
-            <td>'.__('Building number').'</td>
-            <td>'.__('Actions').'</td>
-        </tr>
-        ';
+        
+        $cells=  wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Building number'));
+        $cells.= wf_TableCell(__('Geo location'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows=  wf_TableRow($cells, 'row1');
+        
         if (!empty ($allbuilds)) {
             foreach ($allbuilds as $io=>$eachbuild) {
-                   $form.='
-                        <tr class="row3">
-                        <td>'.$eachbuild['id'].'</td>
-                        <td>'.$eachbuild['buildnum'].'</td>
-                        <td>
-                        '.  wf_JSAlert('?module=builds&action=delete&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                        '.  wf_JSAlert('?module=builds&action=editbuild&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_edit_icon(), 'Are you serious').'
-                        </td>
-                        </tr>
-                       ';
+            $cells=  wf_TableCell($eachbuild['id']);
+            $cells.= wf_TableCell($eachbuild['buildnum']);
+            $cells.= wf_TableCell($eachbuild['geo']);
+            $acts=   wf_JSAlert('?module=builds&action=delete&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+            $acts.=''.wf_JSAlert('?module=builds&action=editbuild&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_edit_icon(), 'Are you serious');
+            if (!empty($eachbuild['geo'])) {
+                $acts.=' '.wf_Link("?module=usersmap&findbuild=".$eachbuild['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')), false);
+            }
+            $cells.= wf_TableCell($acts);
+            $rows.=  wf_TableRow($cells, 'row3');
+            
             }
           }
-         $form.='</table>';
-    return($form);
+         $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+         return ($result);
     }
 
     function web_BuildAddForm() {
-        $form='
-            <form action="" method="POST">
-            <input type="text" name="newbuildnum" size="10"> '.__('New build number').'<br>
-            <input type="submit" value="'.__('Create').'">
-            </form>
-            ';
+        $inputs=  wf_TextInput('newbuildnum', __('New build number'), '', true,10);
+        $inputs.= wf_Submit(__('Create'));
+        $form=  wf_Form("", 'POST', $inputs, 'glamour');
         return($form);
     }
 

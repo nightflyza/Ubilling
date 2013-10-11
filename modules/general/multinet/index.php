@@ -1,6 +1,7 @@
 <?php
       if(cfr('MULTINET')) {
-      
+      $altcfg=  rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+          
       //adding new network
       if (isset($_POST['addnet'])) {
           $netadd_req=array('firstip','lastip','desc');
@@ -9,7 +10,12 @@
               $firstip=$_POST['firstip'];
               $lastip=$_POST['lastip'];
               $nettype=$_POST['nettypesel'];
-              multinet_add_network($desc, $firstip, $lastip, $nettype);
+              if ($altcfg['FREERADIUS_ENABLED']) {
+                $use_radius=$_POST['use_radius'];
+              } else {
+                $use_radius=0;
+              }
+              multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius);
               rcms_redirect('?module=multinet');
           } else {
                show_window(__('Error'), __('No all of required fields is filled'));
@@ -74,6 +80,7 @@
                   simple_update_field('networks', 'endip', $_POST['editendip'], "WHERE `id`='".$editnet."'");
                   simple_update_field('networks', 'desc', $_POST['editdesc'], "WHERE `id`='".$editnet."'");
                   simple_update_field('networks', 'nettype', $_POST['nettypesel'], "WHERE `id`='".$editnet."'");
+                  simple_update_field('networks', 'use_radius', $_POST['edituse_radius'], "WHERE `id`='".$editnet."'");
                   log_register('MODIFY MultiNetNet ['.$editnet.']');
                   rcms_redirect("?module=multinet"); 
                   } else {

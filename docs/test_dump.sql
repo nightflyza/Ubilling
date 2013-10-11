@@ -909,3 +909,9 @@ CREATE TABLE IF NOT EXISTS `switchportassign` (
   `port` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.4.6 update
+
+ALTER TABLE `build` ADD `geo` VARCHAR( 255 ) DEFAULT NULL ;
+
+ALTER TABLE  `networks` ADD `use_radius` TINYINT(1) NOT NULL DEFAULT '0';

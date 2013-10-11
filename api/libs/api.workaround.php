@@ -73,8 +73,8 @@ function web_red_led($title='') {
     return($icon);
 }
 
-function web_star() {
-    $icon='<img src="skins/icon_star.gif" border="0">';
+function web_star($title = NULL) {
+    $icon='<img src="skins/icon_star.gif" title="' . $title . '" border="0">';
     return($icon);
 }
 
@@ -83,9 +83,9 @@ function web_star_black() {
     return($icon);
 }
 
-// MikroTik Extended Configurations icon:
-function web_mikrotik_extended($title = NULL) {
-    $icon = '<img src="skins/icon_mikrotik_extended.png" title="' . $title . '"  border="0">';
+// Extended configuration icon:
+function web_icon_extended($title = NULL) {
+    $icon = '<img src="skins/icon_extended.png" title="' . $title . '"  border="0">';
     return $icon;
 }
 
@@ -530,12 +530,22 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
         $cashfieldanchor='';
     }
     
+    if ($alterconf['SETCASH_ONLY_ROOT']) {
+        if (cfr('ROOT')) {
+            $setCashControl='<input type="radio" name="operation" value="set"> '.__('Set cash');
+        } else {
+            $setCashControl='';
+        }
+    } else {
+        $setCashControl='<input type="radio" name="operation" value="set"> '.__('Set cash');
+    }
+    
     $radio='
         <input type="radio" name="operation" value="add" CHECKED> '.__('Add cash').'
         <input type="radio" name="operation" value="correct"> '.__('Correct saldo').'
         <input type="radio" name="operation" value="mock"> '.__('Mock payment').'
-        <input type="radio" name="operation" value="set"> '.__('Set cash').'
         ';
+    $radio.=$setCashControl;
     
     $form='
         '.$suspnotifyscript.'
@@ -1055,9 +1065,9 @@ return($form);
          
          if ($alter_conf['PROFILE_PLUGINS']) {
              $profile_plugins=web_ProfilePluginsShow($login);
-             if ($alter_conf['MIKROTIK_SUPPORT']) {
-                 $profile_plugins.=wf_delimiter().web_MikrotikPluginsShow($login);
-             }
+//             if ($alter_conf['MIKROTIK_SUPPORT']) {
+//                 $profile_plugins.=wf_delimiter().web_MikrotikPluginsShow($login);
+//             }
          }
          
          //catv backlinks
@@ -1126,6 +1136,18 @@ return($form);
         } else {
             $taskcreatelink='';
         }
+        //build locator here
+        $buildLocator='';
+        if ($alter_conf['SWYMAP_ENABLED']) {
+            if (isset($aptdata['buildid'])) {
+                $thisUserBuildData=  zb_AddressGetBuildData($aptdata['buildid']);
+                $thisUserBuildGeo=$thisUserBuildData['geo'];
+                if (!empty($thisUserBuildGeo)) {
+                    $locatorIcon=  wf_tag('img', false, '', 'src="skins/icon_search_small.gif" border="0" width="10" title="'.__('Find on map').'"');
+                    $buildLocator= ' '.wf_Link("?module=usersmap&findbuild=".$thisUserBuildGeo, $locatorIcon, false);
+                }
+            }
+        }
         //payment id
         if ($alter_conf['OPENPAYZ_REALID']) {
             $paymentid=zb_PaymentIDGet($login);
@@ -1162,7 +1184,7 @@ return($form);
         <tbody>
             <tr>
                 <td class="row2" width="30%">'.__('Full address').$taskcreatelink.'</td>
-                <td class="row3">'.$useraddress.'</td>
+                <td class="row3">'.$useraddress.$buildLocator.'</td>
             </tr>
            <tr>
                 <td class="row2" width="30%">'.__('Entrance').', '.__('Floor').'</td>
@@ -1833,7 +1855,7 @@ function web_PaymentsShowGraph($year) {
 
                        if ( $eachkey == 'nastype' ) {
                            if ( $eachdata[$eachkey] == 'mikrotik' ) {
-                               $mikrotikExtendedLink = '<a href="?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'] . '">' . web_mikrotik_extended(__('MikroTik extended configuration')) . '</a>';
+                               $mikrotikExtendedLink = '<a href="?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'] . '">' . web_icon_extended(__('MikroTik extended configuration')) . '</a>';
                            } else $mikrotikExtendedLink = NULL;
                        }
                    }
@@ -1905,7 +1927,6 @@ function web_PaymentsShowGraph($year) {
             
            $nastypes=array(
                'rscriptd'=>'rscriptd',
-               'radius'=>'Radius',
                'mikrotik'=>'MikroTik',
                'local'=>'Local NAS'
            );
@@ -2237,33 +2258,82 @@ function web_BackupForm() {
         return($result);
     }
    
+    function zb_TariffGetLiveCount() {
+        $allusers=  zb_UserGetAllStargazerData();
+        $alltariffs= zb_TariffsGetAll();
+
+        $result=array();
+        //fill array with some tariff entries
+        if (!empty ($alltariffs)) {
+            foreach ($alltariffs as $io=>$eachtariff) {
+                $result[$eachtariff['name']]['alive']=0;
+                $result[$eachtariff['name']]['dead']=0;
+            }
+        }
+        //count users  for each tariff
+        if (!empty($allusers)) {
+             foreach ($allusers as $ia=>$eachlogin) {
+                 if (isset($result[$eachlogin['Tariff']])) {
+                     if ($eachlogin['Cash']>=('-'.$eachlogin['Credit'])) {
+                         $result[$eachlogin['Tariff']]['alive']=$result[$eachlogin['Tariff']]['alive']+1;
+                     } else {
+                         $result[$eachlogin['Tariff']]['dead']=$result[$eachlogin['Tariff']]['dead']+1;
+                     }
+                 }
+             }
+        }
+        
+        return($result);
+    }
+    
+ function web_barTariffs($alive,$dead) {
+    $barurl='skins/bargreen.png';
+    $barblackurl='skins/barblack.png';
+    $total=$alive+$dead;
+    if ($total!=0) {
+    $widthAlive=($alive/$total)*100;
+    $widthDead=($dead/$total)*100;
+    } else {
+     $widthAlive=0;
+     $widthDead=0;
+    }
+    
+    $code='<img src="'.$barurl.'"  height="14" width="'.$widthAlive.'%" title="'.__('Active users').': '.$alive.'" border="0">';
+    $code.='<img src="'.$barblackurl.'"  height="14" width="'.$widthDead.'%" title="'.__('Inactive users').': '.$dead.'" border="0">';
+    return($code);
+}
 
     function web_TariffShowReport() {
-        $tariffcount=zb_TariffGetCount();
+        $tariffcount=  zb_TariffGetLiveCount();
+        $maxArr=array();
         $totalusers=0;
-        $result='<table width="100%" class="sortable" border="0">';
-        $result.='
-                    <tr class="row1">
-                    <td width="20%">'.__('Tariff').'</td>
-                    <td width="20%">'.__('Total').'</td>
-                    <td>'.__('Visual').'</td>
-                    </tr>
-                    ';
+        
+        $cells=   wf_TableCell(__('Tariff'));
+        $cells.=  wf_TableCell(__('Total'));
+        $cells.=  wf_TableCell(__('Visual'));
+        $cells.=  wf_TableCell(__('Active'));
+        $rows = wf_TableRow($cells,'row1');
+        
         if (!empty ($tariffcount)) {
-            $maxusers=max($tariffcount);
+            $maxusers=0;
+            foreach ($tariffcount as $io=>$eachtcount) {
+                $maxArr[$io]=$eachtcount['alive']+$eachtcount['dead'];
+            }
+            $maxusers=max($maxArr);
+            
             foreach ($tariffcount as $eachtariffname=>$eachtariffcount) {
-                $totalusers=$totalusers+$eachtariffcount;
-                $result.='
-                    <tr class="row3">
-                    <td>'.$eachtariffname.'</td>
-                    <td>'.$eachtariffcount.'</td>
-                    <td>'.  web_bar($eachtariffcount, $maxusers).'</td>
-                    </tr>
-                    ';
+                $totalusers=$totalusers+$eachtariffcount['alive']+$eachtariffcount['dead'];
+
+                $cells=   wf_TableCell($eachtariffname);
+                $cells.=  wf_TableCell($eachtariffcount['alive']+$eachtariffcount['dead']);
+                $cells.=  wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
+                $cells.=  wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
+                $rows.= wf_TableRow($cells,'row3');
             }
          }
-        $result.='</table>';
-        $result.='<h2>'.__('Total').': '.$totalusers.'</h2>';
+         
+        $result=wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.=wf_tag('h2').__('Total').': '.$totalusers.  wf_tag('h2', true);
         return($result);
     }
     

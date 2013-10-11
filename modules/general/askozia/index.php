@@ -103,6 +103,7 @@ function zb_AskoziaCheckPrefix($prefix,$callerid) {
 function zb_AskoziaParseCallHistory($data) {
    global $altcfg;
    $normalData=array();
+   $callersData=array();
    $data=  explodeRows($data);
    if (!empty($data)) {
        foreach ($data as $eachline) {
@@ -218,9 +219,37 @@ function zb_AskoziaParseCallHistory($data) {
            }
            
            $cells.=  wf_TableCell($statusIcon.' '.$callStatus);
-           $speekTime=$each[13];
+           $speekTimeRaw=$each[13];
            $totalTime=$totalTime+$each[13];
-           $speekTime=  zb_AskoziaFormatTime($speekTime);
+           $speekTime=  zb_AskoziaFormatTime($speekTimeRaw);
+           
+           //current caller stats
+
+           if (isset($callersData[$each[1]]) ) {
+               $callersData[$each[1]]['calls']=$callersData[$each[1]]['calls']+1;
+               $callersData[$each[1]]['time']=$callersData[$each[1]]['time']+$speekTimeRaw;
+           } else {
+               $callersData[$each[1]]['calls']=1;
+               $callersData[$each[1]]['time']=$speekTimeRaw;
+           }
+          
+          if (isset($callersData[$each[2]]) ) {
+               $callersData[$each[2]]['calls']=$callersData[$each[2]]['calls']+1;
+               $callersData[$each[2]]['time']=$callersData[$each[2]]['time']+$speekTimeRaw;
+           } else {
+               $callersData[$each[2]]['calls']=1;
+               $callersData[$each[2]]['time']=$speekTimeRaw;
+           }
+           
+           if (!empty($receiveCid)) {
+               if (isset($callersData[$receiveCid]) ) {
+               $callersData[$receiveCid]['calls']=$callersData[$receiveCid]['calls']+1;
+               $callersData[$receiveCid]['time']=$callersData[$receiveCid]['time']+$speekTimeRaw;
+               } else {
+               $callersData[$receiveCid]['calls']=1;
+               $callersData[$receiveCid]['time']=$speekTimeRaw;
+               }
+           }
            
           
            
@@ -230,10 +259,38 @@ function zb_AskoziaParseCallHistory($data) {
            $rows.= wf_TableRow($cells, 'row3');
        }
        
+       
        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+       
+       
+       if (!empty($callersData)) {
+           if (!empty($customCfg)) {
+                $gcells=  wf_TableCell(__('Phone'));
+                $gcells.=  wf_TableCell(__('Total calls'));
+                $gcells.=  wf_TableCell(__('Time'));
+                $grows=  wf_TableRow($gcells, 'row1');
+           }
+           
+           foreach ($callersData as $cix=>$eachcdat) {
+                   if (!empty($customCfg)) {
+                       if ( (zb_AskoziaCheckPrefix($customCfg[0], $cix))  AND (strlen($cix)<4)) {
+                           $gcells=  wf_TableCell(zb_AskoziaGetNumAlias($cix));
+                           $gcells.=  wf_TableCell($eachcdat['calls']);
+                           $gcells.=  wf_TableCell(zb_AskoziaFormatTime($eachcdat['time']),'','','sorttable_customkey="'.$eachcdat['time'].'"');
+                           $grows.=  wf_TableRow($gcells, 'row3');
+                       }
+                   }
+           }
+           if (!empty($customCfg)) {
+           $result.=wf_delimiter().wf_TableBody($grows, '100%', '0','sortable');
+           }
+       }
+       //total time stats
        $result.=__('Time spent on calls').': '.zb_AskoziaFormatTime($totalTime).  wf_tag('br');
        $result.=__('Total calls').': '.$callsCounter;
+       
        show_window('',$result);
+       
    }
 }
 
@@ -349,6 +406,8 @@ function zb_AskoziaParseStatus($rawData) {
         'disk'=>0,
         'uptime'=>0
     );
+    
+    
     if (!empty($exploded)) {
         foreach ($exploded as $each) {
             //detecting stats
@@ -360,8 +419,16 @@ function zb_AskoziaParseStatus($rawData) {
                $data['totalcalls']=$parse[2];
                //registered phones
                $data['phones']=$parse[4];
-               //uptime in days
-               $data['uptime']=vf($parse[5],3);
+               //uptime in days or minutes
+               $data['uptime']=$parse[5];
+               $data['uptime']=  str_replace('min', __('minutes'), $data['uptime']);
+               $data['uptime']=  str_replace('hours', __('hours'), $data['uptime']);
+               $data['uptime']=  str_replace('hour', __('hour'), $data['uptime']);
+               $data['uptime']=  str_replace('days', __('days'), $data['uptime']);
+               $data['uptime']=  str_replace('day', __('day'), $data['uptime']);
+               
+               
+               
                //system memory
                $data['ram']=$parse[6];
                //external storage
@@ -380,7 +447,7 @@ function zb_AskoziaParseStatus($rawData) {
     $cells=  wf_TableCell($data['phones']);
     $cells.= wf_TableCell($data['curcalls']);
     $cells.= wf_TableCell($data['totalcalls']);
-    $cells.= wf_TableCell($data['uptime'].' '.__('days'));
+    $cells.= wf_TableCell($data['uptime']);
     $cells.= wf_TableCell(web_bar($data['ram'], '100').' '.$data['ram'].'%');
     $cells.= wf_TableCell(web_bar($data['disk'], '100').' '.$data['disk'].'%');
     $rows.=  wf_TableRow($cells, 'row3');
@@ -488,7 +555,7 @@ if (wf_CheckGet(array('config'))) {
     }
     
     show_window(__('Settings'),  web_AskoziaConfigForm());
-    show_window('', web_AskoziaAliasesForm());
+    show_window(__('Phone book'), web_AskoziaAliasesForm());
     
 } else {
     //showing call history form

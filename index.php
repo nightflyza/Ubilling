@@ -31,6 +31,28 @@ header('Content-Type: text/html; charset=' . $system->config['encoding']);
 header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
 header("Pragma: no-cache");
 
+// stargazer pid control
+$ubillingMainConf=  parse_ini_file(CONFIG_PATH.'billing.ini');
+if (isset($ubillingMainConf['NOSTGCHECKPID'])) {
+    if ($ubillingMainConf['NOSTGCHECKPID']) {
+        $checkStgPid=false;
+    } else {
+        $checkStgPid=true;
+    }
+} else {
+    $checkStgPid=true;
+}
+
+if ($checkStgPid) {
+    $stgPidPath=$ubillingMainConf['STGPID'];
+    if (!file_exists($stgPidPath)) {
+        $stgPidAlert=__('Stargazer currently not running. We strongly advise against trying to use Ubilling in this case. If you are absolutely sure of what you are doing - you can turn off this alert with the option NOSTGCHECKPID');
+        
+        die($stgPidAlert);
+    } 
+}
+
+
 // Loading main module
 $system->setCurrentPoint('__MAIN__');
 if(!empty($_GET['module'])) $module = basename($_GET['module']); else $module = 'index';

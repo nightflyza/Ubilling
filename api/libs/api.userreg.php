@@ -294,12 +294,15 @@ $streetdata=zb_AddressGetStreetData($newuser_data['street']);
 $streetalias=zb_TranslitString($streetdata['streetalias']);
 $buildata=zb_AddressGetBuildData($newuser_data['build']);
 $buildnum=zb_TranslitString($buildata['buildnum']);
+if (empty($newuser_data['apt'])) {
+    $newuser_data['apt']=0;
+}
 $apt=zb_TranslitString($newuser_data['apt']);
+
 $ip_proposal=multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
 $login_proposal=  zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal);
 $password_proposal=  zb_RegPasswordProposal();
-//old style login generation
-//$login_proposal=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
+
 
 if (empty ($ip_proposal)) {
          $alert='

@@ -1,53 +1,71 @@
 <?php
-function multinet_show_available_networks() {
-$query="SELECT * from `networks`";
-$allnets=simple_queryall($query);
-    
-    $tablecells=  wf_TableCell(__('ID'));
-    $tablecells.=  wf_TableCell(__('First IP'));
-    $tablecells.=  wf_TableCell(__('Last IP'));
-    $tablecells.=  wf_TableCell(__('Network/CIDR'));
-    $tablecells.=  wf_TableCell(__('Network type'));
-    $tablecells.=  wf_TableCell(__('Actions'));
-    $tablerows=  wf_TableRow($tablecells, 'row1');
-    
-    
-    if (!empty ($allnets)) {
-        foreach ($allnets as $io=>$eachnet) {
-            
-                $tablecells=  wf_TableCell($eachnet['id']);
-                $tablecells.=  wf_TableCell($eachnet['startip']);
-                $tablecells.=  wf_TableCell($eachnet['endip']);
-                $tablecells.=  wf_TableCell($eachnet['desc']);
-                $tablecells.=  wf_TableCell($eachnet['nettype']);
-                
-                $actionlinks=  wf_JSAlert('?module=multinet&deletenet='.$eachnet['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-                $actionlinks.=  wf_JSAlert('?module=multinet&editnet='.$eachnet['id'], web_edit_icon(), 'Are you serious');
-                
-                $tablecells.=  wf_TableCell($actionlinks);
-                $tablerows.=  wf_TableRow($tablecells, 'row3');
+    function multinet_show_available_networks() {
+        
+        $alter = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        
+        $query = "SELECT * from `networks`";
+        $networks = simple_queryall($query);
+
+        $tablecells   = wf_TableCell(__('ID'));
+        $tablecells .= wf_TableCell(__('First IP'));
+        $tablecells .= wf_TableCell(__('Last IP'));
+        $tablecells .= wf_TableCell(__('Network/CIDR'));
+        $tablecells .= wf_TableCell(__('Network type'));
+        if ( $alter['FREERADIUS_ENABLED'] ) {
+            $tablecells .= wf_TableCell(__('Use Radius'));
+        }
+        $tablecells .= wf_TableCell(__('Actions'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
+
+
+        if ( !empty($networks) ) {
+            foreach ($networks as $network) {
+
+                $tablecells  = wf_TableCell($network['id']);
+                $tablecells .= wf_TableCell($network['startip']);
+                $tablecells .= wf_TableCell($network['endip']);
+                $tablecells .= wf_TableCell($network['desc']);
+                $tablecells .= wf_TableCell($network['nettype']);
+                if ( $alter['FREERADIUS_ENABLED' ]) {
+                    $tablecells .= wf_TableCell(web_bool_led($network['use_radius']));
+                }
+                $actionlinks  = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+                $actionlinks .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
+                if ( $network['use_radius'] ) {
+                    $actionlinks .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_extended(__('Set RADIUS-attributes')), FALSE, NULL);
+                }
+                $tablecells .= wf_TableCell($actionlinks);
+                $tablerows .= wf_TableRow($tablecells, 'row3');
+            }
         }
 
+        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+
+        show_window(__('Networks'), $result);
     }
-    
-    $result= wf_TableBody($tablerows,'100%','0','sortable');
-    
-show_window(__('Networks'), $result);
-}
 
 function multinet_show_neteditform($netid) {
     $netid=vf($netid);
+    $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     $netdata=multinet_get_network_params($netid);
-    $form='<form method="POST" action="" class="glamour">
-        <input type="hidden" name="netedit" value="true">
-        <input type="text" size="20" name="editstartip" value="'.$netdata['startip'].'"> '.__('First IP').'<sup>*</sup><br>
-        <input type="text" size="20" name="editendip" value="'.$netdata['endip'].'"> '.__('Last IP').'<sup>*</sup><br>
-        '.multinet_nettype_selector($netdata['nettype']).' '.__('Network type').'<br>
-        <input type="text" size="20" name="editdesc" value="'.$netdata['desc'].'"> '.__('Network').'/CIDR<sup>*</sup><br>
-        <input type="submit" value="'.__('Save').'"><br>
-        </form>
-        <div style="clear:both;"></div>
-        ';
+    
+    $useRadArr=array('0'=>__('No'), '1'=>__('Yes'));
+    
+    $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+    $inputs=  wf_HiddenInput('netedit', 'true');
+    $inputs.= wf_TextInput('editstartip', __('First IP').$sup, $netdata['startip'], true, '20');
+    $inputs.= wf_TextInput('editendip', __('Last IP').$sup, $netdata['endip'], true, '20');
+    $inputs.= multinet_nettype_selector($netdata['nettype']).' '.__('Network type').  wf_tag('br');
+    $inputs.= wf_TextInput('editdesc', __('Network/CIDR').$sup, $netdata['desc'], true, '20');
+    if ($altcfg['FREERADIUS_ENABLED']) {
+        $inputs.= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
+    } else {
+        $inputs.=wf_HiddenInput('edituse_radius', '0');
+    }
+    $inputs.= wf_Submit(__('Save'));
+    
+    $form=  wf_Form('', "POST", $inputs, 'glamour');
+    
     $form.=wf_Link('?module=multinet', 'Back', true, 'ubButton');
     show_window(__('Edit'), $form);
 }
@@ -114,54 +132,40 @@ function multinet_get_all_networks() {
 }
 
 function multinet_nettype_selector($curnettype='') {
-    $s1='';
-    $s2='';
-    $s3='';
-    $s4='';
-    $s5='';
-    $s6='';
-     if ($curnettype) {
-         if ($curnettype=='dhcpstatic') {
-             $s1='SELECTED';
-         } 
-         if ($curnettype=='dhcpdynamic') {
-             $s2='SELECTED';
-         } 
-         if ($curnettype=='dhcp82') {
-             $s3='SELECTED';
-         } 
-         if ($curnettype=='pppstatic') {
-             $s4='SELECTED';
-         } 
-         if ($curnettype=='pppdynamic') {
-             $s5='SELECTED';
-         } 
-         if ($curnettype=='other') {
-             $s6='SELECTED';
-         } 
-     }
-     $result='<select name="nettypesel">';
-     $result.='<option '.$s1.' value="dhcpstatic">DHCP static hosts</option>';
-     $result.='<option '.$s2.' value="dhcpdynamic">DHCP dynamic hosts</option>';
-     $result.='<option '.$s3.' value="dhcp82">DHCP option 82</option>';
-     $result.='<option '.$s4.' value="pppstatic">PPP static network</option>';
-     $result.='<option '.$s5.' value="pppdynamic">PPP dynamic network</option>';
-     $result.='<option '.$s6.' value="other">Other type</option>';
-     $result.='</select>';
+    $params=array(
+        'dhcpstatic'=>'DHCP static hosts',
+        'dhcpdynamic'=>'DHCP dynamic hosts',
+        'dhcp82'=>'DHCP option 82',
+        'pppstatic'=>'PPP static network',
+        'pppdynamic'=>'PPP dynamic network',
+        'other'=>'Other type'
+    );
+    
+     $result=  wf_Selector('nettypesel', $params, '', $curnettype, false);
+     
      return ($result);
 }
 
 function multinet_show_networks_form() {
-    $form='<form method="POST" action="" class="glamour">
-        <input type="hidden" name="addnet" value="true">
-        <input type="text" size="20" name="firstip"> '.__('First IP').'<sup>*</sup><br>
-        <input type="text" size="20" name="lastip"> '.__('Last IP').'<sup>*</sup><br>
-        '.multinet_nettype_selector().' '.__('Network type').'<br>
-        <input type="text" size="20" name="desc"> '.__('Network/CIDR').'<sup>*</sup><br>
-        <input type="submit" value="'.__('Add').'"><br>
-        </form>
-       <div style="clear:both;"></div>
-        ';
+    $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    
+    $useRadArr=array('0'=>__('No'), '1'=>__('Yes'));
+    
+    $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+    $inputs=  wf_HiddenInput('addnet', 'true');
+    $inputs.= wf_TextInput('firstip', __('First IP').$sup, '', true, '20');
+    $inputs.= wf_TextInput('lastip', __('Last IP').$sup, '', true, '20');
+    $inputs.= multinet_nettype_selector().' '.__('Network type').wf_tag('br');
+    $inputs.= wf_TextInput('desc', __('Network/CIDR').$sup, '', true, '20');
+    if ($altcfg['FREERADIUS_ENABLED']) {
+    $inputs.= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
+    $inputs.= wf_tag('br');
+    } else {
+        $inputs.=wf_HiddenInput('use_radius', '0');
+    }
+    $inputs.= wf_Submit(__('Add'));
+    $form=  wf_Form("", 'POST', $inputs, 'glamour');
+    
     show_window(__('Add network'),$form);
 }
 
@@ -241,7 +245,7 @@ function multinet_show_service_add_form() {
     show_window(__('Add service'), $form);
 }
 
-function multinet_add_network($desc,$firstip,$lastip,$nettype) {
+function multinet_add_network($desc,$firstip,$lastip,$nettype,$use_radius) {
 $desc=mysql_real_escape_string($desc);
 $firstip=vf($firstip);
 $lastip=vf($lastip);
@@ -251,13 +255,15 @@ $query=" INSERT INTO `networks` (
     `desc`,
     `startip`,
     `endip`,
-    `nettype` )
+    `nettype`,
+    `use_radius`
+    )
     VALUES (
-    NULL, '".$desc."', '".$firstip."', '".$lastip."', '".$nettype."'
+    NULL, '".$desc."', '".$firstip."', '".$lastip."', '".$nettype."', '".$use_radius."'
     )
     ";
 nr_query($query);
-log_register('ADD MultiNetNet '.$desc);
+log_register('ADD MultiNetNet `'.$desc.'`');
 }
 
 function multinet_network_is_used($network_id) {
@@ -1102,5 +1108,15 @@ function zb_StargazerSIGHUP() {
         }
     } 
 
+
+function zb_ExtractIpAddress($data) {
+  preg_match("/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/", $data, $matches);
+  
+  if (!empty($matches[0])) {
+      return ($matches[0]);
+  } else {
+      return (false);
+  }
+}    
     
 ?>

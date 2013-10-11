@@ -234,6 +234,22 @@ if(cfr('USERSEARCH')) {
         }
         return ($result);
     }
+    
+    function web_UserSearchContractForm() {
+        $result='';
+        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        if (isset($altercfg['SEARCH_CUSTOM_CONTRACT'])) {
+            if ($altercfg['SEARCH_CUSTOM_CONTRACT']) {
+            $result.=wf_tag('h2').__('Contract search').wf_tag('h2',true);
+            $inputs=  wf_TextInput('searchquery', '', '', false);
+            $inputs.= wf_HiddenInput('searchtype', 'contract');
+            $inputs.= wf_Submit(__('Search'));
+            $result.=  wf_Form("", 'POST', $inputs, '');
+            $result.=wf_delimiter();
+            }
+        }
+        return ($result);
+    }
    
     // show search forms
     $search_forms_grid='<table width="100%" border="0">
@@ -243,7 +259,7 @@ if(cfr('USERSEARCH')) {
         </tr>
         <tr  valign="top">
         <td class="row3"><h2>'.__('Profile fields search'). '</h2>'.web_UserSearchFieldsForm().'</td>
-        <td class="row3">'.web_UserSearchCFForm().'</td>
+        <td class="row3">'.web_UserSearchContractForm().web_UserSearchCFForm().'</td>
         </tr>
         </table>
         ';

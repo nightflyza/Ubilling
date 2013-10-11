@@ -168,6 +168,91 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                           }
                           die('OK:SWPING');
                        }
+                       
+                       /*
+                        * networks fast scan with nmap
+                        */
+                       if ($_GET['action']=='fullhostscan') {
+                           $fullScanResult='';
+                           $nmapPath=$alterconf['NMAP_PATH'];
+                           $allMultinetNetworks_q= "select * from `networks`";
+                           $allMultinetNetworks=  simple_queryall($allMultinetNetworks_q);
+                           if (!empty($allMultinetNetworks)) {
+                               foreach ($allMultinetNetworks as $ig=>$eachsubnet) {
+                                   $nmapCommand=$nmapPath.' -sP -n '.$eachsubnet['desc'];
+                                   $fullScanResult.=shell_exec($nmapCommand);
+                                   print($eachsubnet['desc'].' :'.date("Y-m-d H:i:s").':SCANNED'."\n");
+                               }
+                           }
+                           //additional parameters
+                           if (isset($_GET['param'])) {
+                               if ($_GET['param']=='traffdiff') {
+                                   $fullScanResult.='== Traffic analysis diff here =='."\n";
+                                   $traff_q="SELECT `login`,`IP`, (`U0`+`U1`+`U2`+`U3`+`U4`+`U5`+`U6`+`U7`+`U8`+`U9`) as `traff`  from `users`";
+                                   $curTraff=  simple_queryall($traff_q);
+                                   $prevTraff=array();
+                                   $diffCurr=array();
+                                   $diffPrev=array();
+                                   if (!file_exists('exports/prevtraff')) {
+                                       $prevTraff=$curTraff;
+                                       $savePrev=  serialize($prevTraff);
+                                       file_put_contents('exports/prevtraff',$savePrev);
+                                   } else {
+                                       $prevTraff_raw=  file_get_contents('exports/prevtraff');
+                                       $prevTraff=  unserialize($prevTraff_raw);
+                                   }
+                                   
+                                   
+                                   //filling diff arrays
+                                   if (!empty($curTraff)) {
+                                       foreach ($curTraff as $itc=>$eachdiff) {
+                                           $diffCurr[$eachdiff['login']]['IP']=$eachdiff['IP'];
+                                           $diffCurr[$eachdiff['login']]['traff']=$eachdiff['traff'];
+                                       }
+                                   }
+                                   
+                                   if (!empty($prevTraff)) {
+                                       foreach ($prevTraff as $itp=>$eachprev) {
+                                           $diffPrev[$eachprev['login']]['IP']=$eachprev['IP'];
+                                           $diffPrev[$eachprev['login']]['traff']=$eachprev['traff'];
+                                       }
+                                   }
+                                   //comparing arrays
+                                   if (!empty($diffCurr)) {
+                                       foreach ($diffCurr as $diffLogin=>$diffData) {
+                                           if (isset($diffPrev[$diffLogin])) {
+                                               if ($diffData['traff']!=$diffPrev[$diffLogin]['traff']) {
+                                                   $fullScanResult.='login '.$diffLogin.' '.$diffData['IP'].' looks like alive'."\n";
+                                               }
+                                           }
+                                       }
+                                   }
+                                   
+                                   //writing to cache
+                                   $savePrev=  serialize($curTraff);
+                                   file_put_contents('exports/prevtraff',$savePrev);
+                                   
+                               } 
+                           }
+                           file_put_contents('exports/nmaphostscan', $fullScanResult);
+                           die('OK:FULLHOSTSCAN');
+                       }
+                       
+                       /*
+                        * users data cache rebuild for external scripts
+                        */
+                       if ($_GET['action']=='rebuilduserdatacache') {
+                           $cacheAddressArr=  zb_AddressGetFulladdresslist();
+                           $cacheAddressArr=  serialize($cacheAddressArr);
+                           $cacheIpsArr= zb_UserGetAllIPs();
+                           $cacheIpsArr= serialize($cacheIpsArr);
+                           $cacheMacArr= zb_UserGetAllIpMACs();
+                           $cacheMacArr= serialize($cacheMacArr);
+                           file_put_contents('exports/cache_address', $cacheAddressArr);
+                           file_put_contents('exports/cache_ips', $cacheIpsArr);
+                           file_put_contents('exports/cache_mac', $cacheMacArr);
+                           die('OK:REBUILDUSERDATACACHE');
+                       }
   ////
   //// End of actions
   ////

@@ -15,13 +15,38 @@
         $container=  wf_tag('div', false, '','id="swmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         
-        $controls=  wf_Link("?module=switchmap", __('Switches map'), false, 'ubButton');
+        $controls= wf_Link("?module=usersmap", __('Builds map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap", __('Switches map'), false, 'ubButton');
         $controls.=  wf_Link("?module=switchmap&locfinder=true", __('Find location'), false, 'ubButton');
         $controls.=  wf_Link("?module=switchmap&coverage=true", __('Coverage area'), false, 'ubButton');
         $controls.=  wf_Link("?module=switches", __('Available switches'), true, 'ubButton');
         $controls.=wf_delimiter(1);
         
         show_window(__('Active equipment map'),$controls.$container);
+    }
+    
+
+ /*
+ * 
+ * Shows map container for builds
+ *
+ * @return nothing
+ *  
+ */
+    
+ function um_ShowMapContainer() {
+        $container=  wf_tag('div', false, '','id="swmap" style="width: 1000; height:800px;"');
+        $container.=wf_tag('div', true);
+        
+        $controls=  wf_Link("?module=switchmap", __('Switches map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap", __('Builds map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap&locfinder=true", __('Find location'), false, 'ubButton');
+      
+       
+        
+        $controls.=wf_delimiter(1);
+        
+        show_window(__('Builds and users map'),$controls.$container);
     }
 
 /*
@@ -61,7 +86,33 @@
         }
         
     }
- 
+
+ /*
+ * 
+ * Return build icon class 
+ * 
+ * @param $usersCount - count of users in building
+ * 
+ * @return string
+ *  
+ */
+    
+    function um_MapBuildIcon($usersCount) {
+       if ($usersCount<3) {
+          $iconClass='twirl#houseIcon';
+       } else {
+          $iconClass='twirl#buildingsIcon'; 
+       }
+       
+       if ($usersCount==0) {
+           $iconClass='twirl#campingIcon';
+       }
+       return ($iconClass);
+   }
+        
+    
+    
+    
 /*
  * Return form for placing switch to selected coordinates
  * 
@@ -84,9 +135,40 @@ function sm_MapLocationSwitchForm() {
         $result.=$inputs;
         }
     }
+    return ($result);
+}
+
+/*
+ * Return form for placing switch to selected coordinates
+ * 
+ * @return string
+ */    
+function um_MapLocationBuildForm() {
+    $query="SELECT * from `build` WHERE `geo` IS NULL OR `geo`='' ORDER by `streetid`";
+    $allNoGeoBuilds=  simple_queryall($query);
+    $buildData=array();
+    $streetData=array();
+    $result='';
     
-    
-    
+    if (!empty($allNoGeoBuilds)) {
+        $allStreets=  zb_AddressGetStreetAllData();
+        if (!empty($allStreets)) {
+            foreach ($allStreets as $ia=>$eachstreet) {
+                $streetData[$eachstreet['id']]=$eachstreet['streetname'];
+            }
+        }
+        
+        foreach ($allNoGeoBuilds as $io=>$each) {
+            @$streetname=$streetData[$each['streetid']];
+            $buildData[$each['id']]=$streetname.' - '.$each['buildnum'];
+        }
+        //form construct
+        if (cfr('BUILDS')) {
+        $inputs=  wf_Selector('buildplacing', $buildData, '', '', true);
+        $inputs.=wf_Submit('Save');
+        $result.=$inputs;
+        }
+    }
     return ($result);
 }
     
@@ -111,6 +193,37 @@ function sm_MapLocationSwitchForm() {
                             coords[0].toPrecision(6),
                             coords[1].toPrecision(6)
                             ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">'.str_replace("\n",'',sm_MapLocationSwitchForm()).'</form> \'
+                 
+                    });
+                } else {
+                    myMap.balloon.close();
+                }
+            });
+            ';
+        return ($result);
+    }
+    
+    
+    /*
+ * 
+ * Return geo coordinates locator for builds
+ * 
+ * @return string
+ *  
+ */   
+    function um_MapLocationFinder() {
+        
+        $result='
+            myMap.events.add(\'click\', function (e) {
+                if (!myMap.balloon.isOpen()) {
+                    var coords = e.get(\'coordPosition\');
+                    myMap.balloon.open(coords, {
+                        contentHeader: \''.__('Place coordinates').'\',
+                        contentBody: \' \' +
+                            \'<p>\' + [
+                            coords[0].toPrecision(6),
+                            coords[1].toPrecision(6)
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">'.str_replace("\n",'',um_MapLocationBuildForm()).'</form> \'
                  
                     });
                 } else {
@@ -339,7 +452,112 @@ function sm_MapLocationSwitchForm() {
     }
     
     
-     /*
+ /*
+ * 
+ * Return full map marks for builds with filled GEO field
+ * 
+ * @return string
+ *  
+ */
+    function um_MapDrawBuilds() {
+        $ym_conf=  rcms_parse_ini_file(CONFIG_PATH."ymaps.ini");
+        $query="SELECT * from `build` WHERE `geo` != '' ";
+        $allbuilds=  simple_queryall($query);
+        $allstreets=  zb_AddressGetStreetAllData();
+        $streetData=array();
+        
+        //street id => streetname
+        if (!empty($allstreets)) {
+            foreach ($allstreets as $ia=>$eachstreet) {
+                $streetData[$eachstreet['id']]=$eachstreet['streetname'];
+            }
+        }
+        //get apts in all builds aggregated with users logins
+        $aptData=array();
+        $allapts_q="SELECT `buildid`,`apt`,`login` from `apt` JOIN `address` ON `apt`.`id`=`address`.`aptid`";
+        $allapts=  simple_queryall($allapts_q);
+        if (!empty($allapts)) {
+           $aptData=$allapts;
+        }
+        //get all user ips
+        $alluserips=  zb_UserGetAllIPs();
+        //form alive ips array 
+        $aliveIps=array();
+        if (file_exists("exports/nmaphostscan")) {
+            $nmapData=  file_get_contents("exports/nmaphostscan");
+            $nmapData= explodeRows($nmapData);
+            if (!empty($nmapData)) {
+                foreach ($nmapData as $ic=>$eachnmaphost) {
+                    $zhost=  zb_ExtractIpAddress($eachnmaphost);
+                    if ($zhost) {
+                        $aliveIps[$zhost]=$zhost;
+                    }
+                }
+            }
+        }
+        
+        $result='';
+        
+        
+        
+        if (!empty($allbuilds)) {
+            foreach ($allbuilds as $io=>$each) {
+                $geo=  mysql_real_escape_string($each['geo']);
+                @$streetname=$streetData[$each['streetid']];
+                $title= wf_Link("?module=builds&action=editbuild&streetid=".$each['streetid']."&buildid=".$each['id'], $streetname.' '.$each['buildnum'], false);
+                
+                $content=  '';
+                $cells=  wf_TableCell(__('apt.'));
+                $cells.= wf_TableCell(__('User'));
+                $cells.= wf_TableCell(__('Status'));
+                $rows= wf_tag('tr', false, '', 'bgcolor=#DCDCDC').$cells.wf_tag('tr', true);
+                $iconlabel='';
+                $footer='';
+               
+                $aliveUsers=0;
+                $usersCount=0;
+                if (!empty($aptData)) {
+                    foreach ($aptData as $ib=>$eachapt) {
+                        if ($eachapt['buildid']==$each['id']) {
+                            if (isset($alluserips[$eachapt['login']])) {
+                            $userIp=$alluserips[$eachapt['login']];
+                            $usersCount++;
+                            if (isset($aliveIps[$userIp])) {
+                                $aliveFlag=  web_bool_led(true);
+                                $aliveUsers++;
+                            } else {
+                                $aliveFlag=  web_bool_led(false);
+                            } 
+                            $cells=  wf_TableCell($eachapt['apt']);
+                            $cells.= wf_TableCell(wf_Link('?module=userprofile&username='.$eachapt['login'], $userIp, false));
+                            $cells.= wf_TableCell($aliveFlag);
+                            $rows.=wf_TableRow($cells);
+                            }
+                        }
+                    }
+                }
+                $footer=__('Active').' '.$aliveUsers.'/'.$usersCount;
+                $icon=  um_MapBuildIcon($usersCount);
+                
+                $content=  json_encode(wf_TableBody($rows, '', 0));
+                $title=  json_encode($title);
+                
+                $content=str_replace('"','',$content);
+                $content=str_replace("'",'',$content);
+                $content=str_replace("\n",'',$content);
+                
+                $title=str_replace('"','',$title);
+                $title=str_replace("'",'',$title);
+                $title=str_replace("\n",'',$title);
+
+                $result.=sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel,true);
+               
+            }
+        }
+        return ($result);
+    }
+    
+ /*
  * 
  * Return indications point to nuclear strikes :)
  * 

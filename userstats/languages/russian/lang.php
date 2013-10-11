@@ -156,4 +156,6 @@ $lang['def']['indebtedness!'] = 'задолженность!';
 $lang['def']['Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals'] = 'Платежный ID используется, для совершения онлайн-платежей посредством различных платежных систем, а также для пополнения счета при помощи терминалов';
 $lang['def']['Public offer'] = 'Договор публичной оферты';
 
+$lang['def']['Sorry sum of money in the account is enought for use service without credit']='Сума средств на вашем счету, достаточна для того, чтобы продолжить использование услуги без кредита';
+
 ?>

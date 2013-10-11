@@ -52,13 +52,18 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
             if (isset($_POST['agree'])) {
              // freaky like-a tomorrow =)
             $scend= date("Y-m-d",mktime(0, 0, 0, date("m"), date("d")+$sc_term, date("Y")));
-            if (abs($current_cash)<=$tariffprice) { 
+            if (abs($current_cash)<=$tariffprice) {
+            if ($current_cash<0) {    
             billing_setcredit($user_login,$tariffprice+$sc_price);
             billing_setcreditexpire($user_login, $scend);
             zbs_PaymentLog($user_login, '-'.$sc_price, $sc_cashtypeid, "SCFEE");
             billing_addcash($user_login, '-'.$sc_price);
             show_window('',__('Now you have a credit'));
             rcms_redirect("index.php");
+            } else {
+                //to many money
+                show_window(__('Sorry'),__('Sorry sum of money in the account is enought for use service without credit'));
+            }
             } else {
                 //no use self credit
                 show_window(__('Sorry'),__('Sorry sum of money in the account does not allow to continue working in the credit'));

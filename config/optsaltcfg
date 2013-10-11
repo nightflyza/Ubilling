@@ -39,6 +39,7 @@ DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search
+SEARCH_CUSTOM_CONTRACT=TIGGER|Contract additional search fields
 
 
 CHAPTER_PAYEX=Payments export
@@ -82,7 +83,7 @@ SIGREQ_ENABLED=TRIGGER|Signup requests service enabled
 SW_PINGTIMEOUT=VARCHAR|Switches ping cache timeout
 REMOTEAPI_ENABLED=TRIGGER|Remote API calls enabled
 SWYMAP_ENABLED=TRIGGER|Switch map enabled
-RADIUST_ENABLED=TRIGGER|Radius templates enabled
+FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
 CRM_MODE=TRIGGER|Advanced customer relationship management
 SEARCH_STRICT=VARCHAR|Strict search options
@@ -94,10 +95,13 @@ SIGREP_CONTRACT=TRIGGER|Show users contract in signup report
 TARIFFCHGAUTOCREDIT=TRIGGER|Automatically set the credit limit when you change the tariff
 MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
 ASKOZIA_ENABLED=TRIGGER|AskoziaPBX support enabled
+ASTERISK_ENABLED=TRIGGER|Asterisk support enabled
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
 SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
+NMAP_PATH=VARCHAR|Path to installed nmap
 CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode
 PAYMENTCARDS_ENABLED=TRIGGER|Payment cards functionality enabled
+SETCASH_ONLY_ROOT=TRIGGER|Only users with root rights can use set cash option
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

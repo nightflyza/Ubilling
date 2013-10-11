@@ -581,6 +581,29 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
+    function ts_TaskCreateFormSigreq($address,$phone) {
+        $alljobtypes= ts_GetAllJobtypes();
+        $allemployee= ts_GetActiveEmployee();
+        $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs.=wf_HiddenInput('createtask', 'true');
+        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+        $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $phone, true, '30');
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+        $inputs.='<br>';
+        $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+        $inputs.='<br>';
+        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=ts_TaskTypicalNotesSelector();
+        $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=wf_Submit(__('Create new task'));
+        $result=  wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+        $result.=__('All fields marked with an asterisk are mandatory');
+        return ($result);
+    }
+    
     
     function ts_ShowPanel() {
         $createform=  ts_TaskCreateForm();

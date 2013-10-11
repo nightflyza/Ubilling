@@ -1464,5 +1464,43 @@ $lang['def']['Current PBX status']='Поточний стан АТС';
 $lang['def']['The same street already exists']='Така вулиця вже існує';
 $lang['def']['The same build already exists']='Такий будинок вже є на цій вулиці';
 
+//rev 2844
+$lang['def']['Contract search']='Пошук за угодою';
+$lang['def']['Contract additional search fields']='Додаткове поле пошуку за угодою';
+$lang['def']['Asterisk host']='Хост БД статистики Asterisk';
+$lang['def']['Phone book']='Телефонна книга';
+$lang['def']['Database name']='І`мя БД';
+$lang['def']['CDR table name']='І`мя таблицы с CDR';
+$lang['def']['Database login']='Логін БД';
+$lang['def']['Database password']='Пароль БД';
+$lang['def']['Asterisk support enabled']='Підтримку Asterisk увімкнено';
+$lang['def']['right to use asterisk integration']='Право використовувати інтеграцію з Asterisk';
+$lang['def']['Asterisk PBX integration now disabled']='Підтримку Asterisk PBX зараз вимкнено';
+$lang['def']['day']='день';
+$lang['def']['Path to installed nmap']='Шлях до встановленого nmap';
+$lang['def']['right to control users map']='Право використовувати карту користувачів';
+$lang['def']['Builds and users map']='Карта будинків та користувачів';
+$lang['def']['Users map']='Карта користувачів';
+$lang['def']['apt.']='кв.';
+$lang['def']['Builds map']='Карта будинків';
+$lang['def']['Builds and users map']='Карта будинків та користувачів';
+$lang['def']['Users map']='Карта користувачів';
+$lang['def']['apt.']='кв.';
+$lang['def']['Use Radius']='Використовувати Radius';
+$lang['def']['Support of Free Radius is enabled']='Підтримку FreeRADIUS увімкнено?';
+$lang['def']['Module startup error'] = 'Помилка при завантаженні модуля';
+$lang['def']['Selected network is absent in database!'] = 'Обрана мережа відсутня у базі даних';
+$lang['def']['Attributes, defined for network'] = 'Атрибути встановлені для мережі';
+$lang['def']['Attributes, defined for user'] = 'Атрибути встановлені для користувача';
+$lang['def']['Attribute'] = 'Атрибут';
+$lang['def']['op'] = 'Оператор';
+$lang['def']['There are no defined attributes for network'] = 'Для мережі немає встановлених атрибутів';
+$lang['def']['There are no defined attributes for user'] = 'Для користувача немає встановлених атрибутів';
+$lang['def']['New attribute add'] = 'Додавання нового атрибуту';
+$lang['def']['Set RADIUS-attributes'] = 'Встановити RADIUS-атрибути';
+$lang['def']['Selected user is absent in database!'] = 'Обраного користувача немає в базі даних!';
+$lang['def']['right for manage FreeRADIUS attributes']='Право керувати атрибутами FreeRADIUS';
+$lang['def']['Only users with root rights can use set cash option']='Тільки користувачі з рутовими правами можуть "встановлювати рахунок"';
+$lang['def']['Stargazer currently not running. We strongly advise against trying to use Ubilling in this case. If you are absolutely sure of what you are doing - you can turn off this alert with the option NOSTGCHECKPID']='Stargazer зараз не запущений. Ми категорично не рекомендуємо намагатися використовувати Ubilling в цьому випадку. Якщо ви абсолютно впевнені в тому що робите - ви можете вимкнути це сповіщення за допомогою опції NOSTGCHECKPID';
 
 ?>

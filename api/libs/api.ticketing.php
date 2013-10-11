@@ -204,8 +204,17 @@ function zb_SigreqsGetAllNewCount(){
         $requid=vf($reqid,3);
         $reqdata=zb_SigreqsGetReqData($reqid);
         
+         if (empty($reqdata['apt'])) {
+            $apt=0;
+        } else {
+            $apt=$reqdata['apt'];
+        }
+        
+        $shortaddress=$reqdata['street'].' '.$reqdata['build'].'/'.$apt;
+        $taskCreateControls=wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormSigreq($shortaddress,$reqdata['phone']), '', '420', '500'); 
+        
         $cells=wf_TableCell(__('Date'));
-        $cells.=wf_TableCell($reqdata['date']);
+        $cells.=wf_TableCell($reqdata['date'].' '.$taskCreateControls);
         $rows=  wf_TableRow($cells, 'row3');
         
         $whoislink='http://whois.domaintools.com/'.$reqdata['ip'];
@@ -216,11 +225,7 @@ function zb_SigreqsGetAllNewCount(){
         $rows.=  wf_TableRow($cells, 'row3');
         
         
-        if (empty($reqdata['apt'])) {
-            $apt=0;
-        } else {
-            $apt=$reqdata['apt'];
-        }
+       
         $cells=wf_TableCell(__('Full address'));
         $cells.=wf_TableCell($reqdata['street'].' '.$reqdata['build'].'/'.$apt);
         $rows.=  wf_TableRow($cells, 'row3');

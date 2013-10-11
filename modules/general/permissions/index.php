@@ -225,7 +225,6 @@ function web_list_admins() {
  if (isset($_GET['edit'])) {
    $editname=vf($_GET['edit']);
    if(!empty($_POST['save'])){
-       debarr($_POST['_rights']);
     if($system->setRightsForUser($editname, @$_POST['_rights'], @$_POST['rootuser'], @$_POST['level'])) {
        show_window('',__('Rights changed'));
        log_register("CHANGE AdminPermissions {".$editname."}");

@@ -12,6 +12,9 @@ if (cfr('BINDER')) {
          $changeaptid=$changeaptdata['id'];
          $changeaptbuildid=$changeaptdata['buildid'];
          $changeapt=$_POST['changeapt'];
+         if (empty($changeapt)) {
+             $changeapt=0;
+         }
          @$changefloor=$_POST['changefloor'];
          @$changeentrance=$_POST['changeentrance'];
          zb_AddressChangeApartment($changeaptid, $changeaptbuildid, $changeentrance, $changefloor, $changeapt);
@@ -30,6 +33,9 @@ if (cfr('BINDER')) {
      //if create new home to user
      if (isset($_POST['apt'])) {
          $apt=$_POST['apt'];
+         if (empty($apt)) {
+             $apt=0;
+         }
          @$entrance=$_POST['entrance'];
          @$floor=$_POST['floor'];
          $buildid=$_POST['buildsel'];
