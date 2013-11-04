@@ -4,74 +4,30 @@ if (cfr('DSHAPER')) {
 function web_DshapeShowTimeRules() {
     $query="SELECT * from `dshape_time`";
     $allrules=simple_queryall($query);
-//    $alltariffs=zb_TariffsGetAll();
-//    $shaperules=array();
-    $result='';
-    $result='<table width="100%" border="0" class="sortable">';
-    $result.='
-                <tr class="row1">
-                <td>'.__('ID').'</td>
-                <td>'.__('Tariff').'</td>
-                <td>'.__('Time from').'</td>
-                <td>'.__('Time to').'</td>
-                <td>'.__('Speed').'</td>
-                <td>'.__('Actions').'</td>
-                </tr>
-                ';
+
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('Tariff'));
+    $cells.= wf_TableCell(__('Time from'));
+    $cells.= wf_TableCell(__('Time to'));
+    $cells.= wf_TableCell(__('Speed'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells, 'row1');
     
     if (!empty ($allrules)) {
         foreach ($allrules as $io=>$eachrule) {
-            $result.='
-                <tr class="row3">
-                <td>'.$eachrule['id'].'</td>
-                <td>'.$eachrule['tariff'].'</td>
-                <td>'.$eachrule['threshold1'].'</td>
-                <td>'.$eachrule['threshold2'].'</td>
-                <td>'.$eachrule['speed'].'</td>
-                <td>
-                  '.  wf_JSAlert('?module=dshaper&delete='.$eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                  <a href="?module=dshaper&edit='.$eachrule['id'].'">'.web_edit_icon().'</a>
-                </td>
-                </tr>
-                ';
-        }
+            $cells=  wf_TableCell($eachrule['id']);
+            $cells.= wf_TableCell($eachrule['tariff']);
+            $cells.= wf_TableCell($eachrule['threshold1']);
+            $cells.= wf_TableCell($eachrule['threshold2']);
+            $cells.= wf_TableCell($eachrule['speed']);
+            $actions=  wf_JSAlert('?module=dshaper&delete='.$eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+            $actions.= wf_JSAlert('?module=dshaper&edit='.$eachrule['id'], web_edit_icon(), __('Are you serious'));
+            $cells.= wf_TableCell($actions);
+            $rows.= wf_TableRow($cells, 'row3');
+            }
     }
-    $result.='</table>';
     
-    //new interface
-//        if (!empty ($allrules)) {
-//        foreach ($allrules as $io=>$eachrule) {
-//            $shaperules[$eachrule['tariff']]['id']=$eachrule['id'];
-//            $shaperules[$eachrule['tariff']]['tariff']=$eachrule['tariff'];
-//            $shaperules[$eachrule['tariff']]['threshold1']=$eachrule['threshold1'];
-//            $shaperules[$eachrule['tariff']]['threshold2']=$eachrule['threshold2'];
-//            $shaperules[$eachrule['tariff']]['speed']=$eachrule['speed'];
-//        }
-//    }
-//    
-//    
-//       
-//    if (!empty($alltariffs)) {
-//        foreach ($alltariffs as $ia=>$eachtariff) {
-//            if (isset($shaperules[$eachtariff['name']])) {
-//               $content='<h3>'.$eachtariff['name'].'</h3>';
-//               $tablecells=  wf_TableCell(__('ID'));
-//               $tablecells.=  wf_TableCell(__('Tariff'));
-//               $tablecells.=  wf_TableCell(__('Time from'));
-//               $tablecells.=  wf_TableCell(__('Time to'));
-//               $tablecells.=  wf_TableCell(__('Speed'));
-//               $tablecells.=  wf_TableCell(__('Actions'));
-//               $tablerows=  wf_TableRow($tablecells, 'row2');
-//               
-//               
-//               $content.=wf_TableBody($tablerows, '100%', '0');
-//               
-//               $result.=wf_Plate($content, '400px', '200px', 'glamour');
-//            }
-//        }
-//    }
-//    $result.='<br clear="both" /> ';
-
+    $result=  wf_TableBody($rows, '100%', '0', 'sortable');
     show_window(__('Available dynamic shaper time rules'),$result);
 }
 
@@ -79,20 +35,19 @@ function zb_DshapeDeleteTimeRule($ruleid) {
     $ruleid=vf($ruleid);
     $query="DELETE from dshape_time where `id`='".$ruleid."'";
     nr_query($query);
-    log_register("DSHAPE DELETE ".$ruleid);
+    log_register("DSHAPE DELETE [".$ruleid.']');
 }
 
 function web_DshapeShowTimeRuleAddForm() {
-    $form='
-        <form action="" method="POST" class="glamour">
-        '.  web_tariffselector('newdshapetariff').' '.__('Tariff').'<br>
-        <input type="text" name="newthreshold1"> '.__('Time from').'<sup>*</sup> <br>
-        <input type="text" name="newthreshold2"> '.__('Time to').'<sup>*</sup> <br>
-        <input type="text" name="newspeed"> '.__('Speed').'<sup>*</sup> <br>
-        <input type="submit" value="'.__('Create').'">
-        </form> 
-        <br>
-        ';
+    $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+    
+    $inputs=  web_tariffselector('newdshapetariff').' '.__('Tariff').wf_tag('br');
+    $inputs.= wf_TextInput('newthreshold1', __('Time from').$sup, '', true);
+    $inputs.= wf_TextInput('newthreshold2', __('Time to').$sup, '', true);
+    $inputs.= wf_TextInput('newspeed', __('Speed').$sup, '', true);
+    $inputs.= wf_Submit(__('Create'));
+    $form=  wf_Form('', 'POST', $inputs, 'glamour');
+    
     show_window(__('Add new time shaper rule'),$form);
 }
 
@@ -100,16 +55,18 @@ function web_DshapeShowTimeRuleEditForm($timeruleid) {
     $timeruleid=vf($timeruleid);
     $query="SELECT * from `dshape_time` WHERE `id`='".$timeruleid."'";
     $timerule_data=simple_query($query);
-    $form='
-        <form action="" method="POST">
-        <input type="text" name="editdshapetariff" value="'.$timerule_data['tariff'].'" READONLY> '.__('Tariff').'<br>
-        <input type="text" name="editthreshold1" value="'.$timerule_data['threshold1'].'"> '.__('Time from').'<sup>*</sup> <br>
-        <input type="text" name="editthreshold2" value="'.$timerule_data['threshold2'].'"> '.__('Time to').'<sup>*</sup> <br>
-        <input type="text" name="editspeed" value="'.$timerule_data['speed'].'"> '.__('Speed').'<sup>*</sup> <br>
-        <input type="submit" value="'.__('Save').'">
-        </form> 
-        <br>
-        ';
+    
+    $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+    
+    $inputs= wf_tag('input', false, '', 'type="text" name="editdshapetariff" value="'.$timerule_data['tariff'].'" READONLY').  wf_tag('br');
+    $inputs.= wf_TextInput('editthreshold1', __('Time from').$sup, $timerule_data['threshold1'], true);
+    $inputs.= wf_TextInput('editthreshold2', __('Time to').$sup, $timerule_data['threshold2'], true);
+    $inputs.= wf_TextInput('editspeed', __('Speed').$sup, $timerule_data['speed'], true);
+    $inputs.= wf_Submit(__('Save'));
+    $form=  wf_Form('', 'POST', $inputs, 'glamour');
+    $form.= wf_Link('?module=dshaper', __('Back'), true, 'ubButton');
+    
+    
     show_window(__('Edit time shaper rule'),$form);
 }
 
@@ -131,7 +88,7 @@ function zb_DshapeAddTimeRule($tariff,$threshold1,$threshold2,$speed) {
     NULL , '".$tariff."', '".$threshold1."', '".$threshold2."', '".$speed."'
     );";
     nr_query($query);
-    log_register("DSHAPE ADD ".$tariff);
+    log_register("DSHAPE ADD `".$tariff.'`');
 }
 
 function zb_DshapeEditTimeRule($timeruleid,$threshold1,$threshold2,$speed) {
@@ -145,10 +102,13 @@ function zb_DshapeEditTimeRule($timeruleid,$threshold1,$threshold2,$speed) {
         `speed` = '".$speed."' WHERE `id` ='".$timeruleid."' LIMIT 1;
        ";
     nr_query($query);
-    log_register("DSHAPE CHANGE ".$timeruleid.' ON '.$speed);
+    log_register("DSHAPE CHANGE [".$timeruleid.'] ON `'.$speed.'`');
 }
 
-//debug
+$alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+if (isset($alterconf['DSHAPER_ENABLED'])) {
+if ($alterconf['DSHAPER_ENABLED']) {
+    
 
 //if someone deleting time rule
 if (isset($_GET['delete'])) {
@@ -180,7 +140,14 @@ web_DshapeShowTimeRules();
 //show add form
 web_DshapeShowTimeRuleAddForm();
 
-
+} else {
+    show_window(__('Error'), __('This module is disabled'));
+ }
+ 
+} else {
+    show_window(__('Error'), __('This module is disabled'));
+ }
+//end of option enabled check
 
 } else {
       show_error(__('You cant control this module'));

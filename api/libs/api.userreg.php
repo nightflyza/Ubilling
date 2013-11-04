@@ -10,6 +10,7 @@
     return ($string);
  }
  
+
  function zb_rand_digits($size=4) {
     $characters = '0123456789';
     $string = "";
@@ -74,6 +75,7 @@
      return ($result);
  }
 
+ 
 
 function web_UserRegFormLocation() {
     $aptsel='';
@@ -97,11 +99,22 @@ function web_UserRegFormLocation() {
     }
 
      if (isset($_POST['buildsel'])) {
+        $submit_btn='';
         $builddata=zb_AddressGetBuildData($_POST['buildsel']);
         $buildsel=$builddata['buildnum'].'<input type="hidden" name="buildsel" value="'.$builddata['id'].'">';
         $aptsel=web_AddressBuildShowAptsCheck($builddata['id']).web_AptCreateForm();
         $servicesel=multinet_service_selector();
-        $submit_btn='
+        //contrahens user diff
+        $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        if (isset($alter_conf['LOGIN_GENERATION'])) {
+            if ($alter_conf['LOGIN_GENERATION']=='DEREBAN') {
+                $agentCells=wf_TableCell(zb_RegContrAhentSelect('regagent', $alter_conf['DEFAULT_ASSIGN_AGENT']));
+                $agentCells.=wf_TableCell(__('Contrahent name'));
+                $submit_btn.=wf_TableRow($agentCells, 'row2');
+                
+            }
+        }
+        $submit_btn.='
             <tr class="row3">
             <td><input type="submit" value="'.__('Save').'"></td> <td></td>
             </tr>
@@ -130,6 +143,7 @@ function web_UserRegFormLocation() {
         <tr class="row3">
         <td>'.$servicesel.'</td> <td>'.__('Service').'</td>
         </tr>
+        <br>
         '.$submit_btn.'
         </form>
         </table>
@@ -150,7 +164,7 @@ function zb_AllBusyLogins() {
             return ($result);
 }
 
-function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal) {
+function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal,$agentid='') {
     $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     $result='';
     if (isset($alterconf['LOGIN_GENERATION'])) {
@@ -185,24 +199,29 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
                 }
             }
         }
-        
-        //use five five digits increment
+ 
+        //use five five digits increment with zero prefix
          if ($type=='INCREMENTFIVE') {
             $busylogins=zb_AllBusyLogins();
-            $prefix='';
-            
+            $prefixSize=5;
             for ($i=1;$i<100000;$i++) {
-                
-                if ($i<10000) { $prefix='0'; }
-                
-                if ($i<1000) { $prefix='00'; }
-                
-                if ($i<100) { $prefix='000'; }
-                
-                if ($i<10) { $prefix='0000'; }
-                
-                if (!isset($busylogins[$prefix.$i])) {
-                    $result=$prefix.$i;
+                $nextIncrementFiveProposal=sprintf('%0'.$prefixSize.'d', $i);
+                if (!isset($busylogins[$nextIncrementFiveProposal])) {
+                    $result=$nextIncrementFiveProposal;
+                    break;
+                }
+            }
+            
+        }
+        
+        //use five six digits increment with zero prefix
+         if ($type=='INCREMENTSIX') {
+            $busylogins=zb_AllBusyLogins();
+            $prefixSize=6;
+            for ($i=1;$i<1000000;$i++) {
+                $nextIncrementFiveProposal=sprintf('%0'.$prefixSize.'d', $i);
+                if (!isset($busylogins[$nextIncrementFiveProposal])) {
+                    $result=$nextIncrementFiveProposal;
                     break;
                 }
             }
@@ -212,21 +231,13 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
         //use five five digits increment
          if ($type=='INCREMENTFIVEREV') {
             $busylogins=zb_AllBusyLogins();
-            $prefix='';
-            
+            $prefixSize=5;
             for ($i=1;$i<100000;$i++) {
                 
-                if ($i<10000) { $prefix='0'; }
-                
-                if ($i<1000) { $prefix='00'; }
-                
-                if ($i<100) { $prefix='000'; }
-                
-                if ($i<10) { $prefix='0000'; }
-                
-                if (!isset($busylogins[$i.$prefix])) {
-                    $result=$prefix.$i;
-                    $result=  strrev($result);
+               $nextIncrementFiveRevProposal=sprintf('%0'.$prefixSize.'d', $i);
+               $nextIncrementFiveRevProposal=  strrev($nextIncrementFiveRevProposal);
+                if (!isset($busylogins[$nextIncrementFiveRevProposal])) {
+                    $result=$nextIncrementFiveRevProposal;
                     break;
                 }
             }
@@ -253,6 +264,20 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
         // just random string as login
         if ($type=='RANDOM') {
             $result=zb_rand_string(10);
+        }
+        
+        //contrahent based model
+        if ($type=='DEREBAN') {
+            $busylogins=zb_AllBusyLogins();
+            $agentPrefix=$agentid;
+            $prefixSize=6;
+              for ($i=1;$i<1000000;$i++) {
+                $nextIncrementDerProposal=$agentPrefix.sprintf('%0'.$prefixSize.'d', $i);
+                if (!isset($busylogins[$nextIncrementDerProposal])) {
+                    $result=$nextIncrementDerProposal;
+                    break;
+                }
+              }
         }
         
         
@@ -298,9 +323,19 @@ if (empty($newuser_data['apt'])) {
     $newuser_data['apt']=0;
 }
 $apt=zb_TranslitString($newuser_data['apt']);
+//assign some agent from previously selected form
+if (isset($alterconf['LOGIN_GENERATION'])) {
+   if ($alterconf['LOGIN_GENERATION']=='DEREBAN') {
+   $agentPrefixID=$newuser_data['contrahent'];  
+   } else {
+       $agentPrefixID=''; 
+   }
+} else {
+   $agentPrefixID=''; 
+}
 
 $ip_proposal=multinet_get_next_freeip('nethosts', 'ip', multinet_get_service_networkid($newuser_data['service']));
-$login_proposal=  zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal);
+$login_proposal=  zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_proposal,$agentPrefixID);
 $password_proposal=  zb_RegPasswordProposal();
 
 
@@ -472,6 +507,7 @@ function zb_UserRegister($user_data,$goprofile=true) {
     zb_UserRegisterLog($login);
     // if random mac needed
     $billingconf=rcms_parse_ini_file(CONFIG_PATH.'/billing.ini');
+    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     if ($billingconf['REGRANDOM_MAC']) {
         // funny random mac, yeah? :)
         $mac='14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
@@ -490,6 +526,14 @@ function zb_UserRegister($user_data,$goprofile=true) {
         $dstat=1;
         $billing->setdstat($login,$dstat);
         log_register('CHANGE dstat ('.$login.') ON '.$dstat);
+    }
+    
+    //set contract same as login for this user
+    if (isset($alterconf['CONTRACT_SAME_AS_LOGIN'])) {
+        if ($alterconf['CONTRACT_SAME_AS_LOGIN']) {
+            $newUserContract=$login;
+            zb_UserChangeContract($login, $newUserContract);
+        }
     }
      
     ///////////////////////////////////

@@ -1,6 +1,7 @@
 <?php
 if(cfr('USERREG')) {
-
+    $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    
     if ((!isset($_POST['apt'])) AND (!isset($_POST['IP']))) {
     show_window(__('User registration step 1 (location)'),web_UserRegFormLocation());
     } else {
@@ -13,6 +14,13 @@ if(cfr('USERREG')) {
     @$newuser_data['floor'] =$_POST['floor'];
     $newuser_data['apt'] = $_POST['apt'];
     $newuser_data['service']=$_POST['serviceselect'];
+    //pack contrahent data
+    if (isset($alter_conf['LOGIN_GENERATION'])) {
+        if ($alter_conf['LOGIN_GENERATION']=='DEREBAN') {
+            $newuser_data['contrahent']=$_POST['regagent'];
+        }
+    }
+    
     } else {
         $newuser_data=unserialize(base64_decode($_POST['repostdata']));
     }
@@ -25,7 +33,7 @@ if(cfr('USERREG')) {
      }
     }
     
-    $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+
     if ($alter_conf['CRM_MODE']) {
         show_window('',  wf_Link("?module=expressuserreg", __('Express registration'), false, 'ubButton'));
     }

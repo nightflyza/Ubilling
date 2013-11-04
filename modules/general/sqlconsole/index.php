@@ -169,7 +169,7 @@ if (isset($_POST['sqlq'])) {
     ob_end_clean();
       return show_window('SQL '.__('Result'),wf_tag('b').__('Wrong query').':'.  wf_tag('b', true).  wf_delimiter().$newquery);  
     } else {
-    while($row = mysql_fetch_assoc($queried)) {
+    while(@$row = mysql_fetch_assoc($queried)) {
        $query_result[]=  $row;
     } 
     

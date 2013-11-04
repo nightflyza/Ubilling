@@ -433,7 +433,11 @@ function um_MapLocationBuildForm() {
                     }
                     //dead mark labels
                      if ($ym_conf['DEAD_LABEL']) {
-                        $iconlabel=$each['location'];
+                        if (!empty($each['location'])) {
+                         $iconlabel=$each['location'];
+                        } else {
+                         $iconlabel=__('No location set');
+                        }
                         } else {
                         $iconlabel='';
                       }

@@ -1491,6 +1491,34 @@ $lang['def']['right for manage FreeRADIUS attributes']='Право управл�
 $lang['def']['Only users with root rights can use set cash option']='Только пользователи с рутовыми правами могут "устанавливать счет"';
 $lang['def']['Stargazer currently not running. We strongly advise against trying to use Ubilling in this case. If you are absolutely sure of what you are doing - you can turn off this alert with the option NOSTGCHECKPID']='Stargazer сейчас не запущен. Мы настоятельно не рекомендуем пытаться использовать Ubilling в этом случае. Если вы совершенно уверены в том что делаете  - вы можете отключить это оповещение при помощи опции NOSTGCHECKPID';
 
-
+//rev 2952
+$lang['def']['New DHCP option 82'] = 'Новое значение optoin 82';
+$lang['def']['Set random'] = 'Установить случайные';
+$lang['def']['No DHCP option 82 networks available'] = 'Нету сетей использующих DHCP option 82';
+$lang['def']['right to set option 82 values for users'] = 'Право управления DHCP опцией 82 для пользователей';
+$lang['def']['Dynamic shaper is enabled'] = 'Динамический шейпер включен';
+$lang['def']['Watchdog'] = 'Собака-наблюдака';
+$lang['def']['Autofreezing cash limit'] = 'Порог денег для автозаморозки';
+$lang['def']['Watchdog notifies that'] = 'Собака-наблюдака сообщает, что';
+$lang['def']['Available Watchdog tasks'] = 'Существующие задачи для собаки-наблюдаки';
+$lang['def']['Check type'] = 'Тип проверки';
+$lang['def']['Operator'] = 'Оператор';
+$lang['def']['Condition'] = 'Условие';
+$lang['def']['Manage'] = 'Управление';
+$lang['def']['Show all tasks'] = 'Показать все задачи';
+$lang['def']['Manual run'] = 'Ручной запуск';
+$lang['def']['Watchdog alert text'] = 'Текст уведомления собаки-наблюдаки';
+$lang['def']['Phone numbers to send alerts'] = 'Телефонные номера, для рассылки уведомлений';
+$lang['def']['Emails to send alerts'] = 'Адреса електропочты, для рассылки';
+$lang['def']['right to control watchdog'] = 'Право управления собакой-наблюдакой';
+$lang['def']['Set contract same as login after user register'] = 'Устанавливать договор таким же как и логин при регистрации';
+$lang['def']['No existing DB backups here'] = 'Нету никаких дампов БД. Печалька.';
+$lang['def']['Available database backups'] = 'Резервные копии базы данных в наличии';
+$lang['def']['Important Ubilling configs'] = 'Важные конфиги Ubilling';
+$lang['def']['Autofreeze report'] = 'Отчет по автозаморозке';
+$lang['def']['right to view autofreeze report'] = 'право просматривать отчет по автозаморозке';
+$lang['def']['Users without port assigned'] = 'Пользователи без присвоенного порта';
+$lang['def']['right to view report by users with no port assinged'] = 'Право просматривать отчет по пользователям без порта';
+$lang['def']['No location set'] = 'Не указано местонахождение';
 
 ?>

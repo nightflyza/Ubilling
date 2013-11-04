@@ -3,6 +3,7 @@ SAFE_REGMODE=TRIGGER|Safe user register mode
 LOGIN_GENERATION=VARCHAR|Login generation mode
 PASSWORD_GENERATION_LENGHT=VARCHAR|Password generation lenght
 PASSWORD_TYPE=TRIGGER|Password security type
+CONTRACT_SAME_AS_LOGIN=TRIGGER|Set contract same as login after user register
 
 CHAPTER_TB=Taskbar features
 TB_NEWTICKETNOTIFY=TRIGGER|Taskbar notify for new tickets
@@ -102,6 +103,9 @@ NMAP_PATH=VARCHAR|Path to installed nmap
 CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode
 PAYMENTCARDS_ENABLED=TRIGGER|Payment cards functionality enabled
 SETCASH_ONLY_ROOT=TRIGGER|Only users with root rights can use set cash option
+DSHAPER_ENABLED=TRIGGER|Dynamic shaper is enabled
+WATCHDOG_ENABLED=TRIGGER|Watchdog enabled
+AUTOFREEZE_CASH_LIMIT=VARCHAR|Autofreezing cash limit
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

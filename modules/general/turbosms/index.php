@@ -72,7 +72,7 @@ if (cfr('TURBOSMS')) {
         function tsms_query($query) {
             global $tsms_host,$tsms_db,$tsms_login,$tsms_password,$tsms_table;
             $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
-            $TsmsDB->open() or die($db->error());
+            $TsmsDB->open() or die($TsmsDB->error());
             $result = array();
             $TsmsDB->query('SET NAMES utf8;');
             $TsmsDB->query($query);

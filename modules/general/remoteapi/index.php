@@ -253,6 +253,41 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                            file_put_contents('exports/cache_mac', $cacheMacArr);
                            die('OK:REBUILDUSERDATACACHE');
                        }
+                       
+                       /*
+                        * auto freezing call
+                        */
+                       if ($_GET['action']=='autofreeze') {
+                        if (isset($alterconf['AUTOFREEZE_CASH_LIMIT'])) {
+                            $afCashLimit=$alterconf['AUTOFREEZE_CASH_LIMIT'];
+                            $autoFreezeQuery="SELECT * from `users` WHERE `Passive`='0' AND `Cash`<='".$afCashLimit."' AND `Credit`='0';";
+                            $allUsersToFreeze=  simple_queryall($autoFreezeQuery);
+                            $freezeCount=0;
+                            if (!empty($allUsersToFreeze)) {
+                                foreach ($allUsersToFreeze as $efuidx=>$eachfreezeuser) {
+                                    $freezeLogin=$eachfreezeuser['login'];
+                                    $freezeCash=$eachfreezeuser['Cash'];
+                                    $billing->setpassive($freezeLogin,'1');
+                                    log_register('AUTOFREEZE ('.$freezeLogin.') ON BALANCE '.$freezeCash);
+                                    $freezeCount++;
+                                }
+                                log_register('AUTOFREEZE DONE COUNT `'.$freezeCount.'`');
+                                die('OK:AUTOFREEZE');
+                            } else {
+                                die('OK:NO_USERS_TO_AUTOFREEZE');
+                            }
+                        } else {
+                            die('ERROR:NO_AUTOFREEZE_CASH_LIMIT');
+                        }   
+                       }
+                      /*
+                       * Watchdog tasks processing
+                       */         
+                       if ($_GET['action']=='watchdog') {
+                           $runWatchDog=new WatchDog();
+                           $runWatchDog->processTask();
+                           die('OK:WATCHDOG');
+                       }
   ////
   //// End of actions
   ////

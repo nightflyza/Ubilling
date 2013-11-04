@@ -66,6 +66,7 @@ function zbs_PaycardGetParams($cardnumber) {
 function zbs_PaycardUse($cardnumber) {
     global $user_ip;
     global $user_login;
+    $cardnumber=vf($cardnumber);
     $us_config=  zbs_LoadConfig();
     $carddata=zbs_PaycardGetParams($cardnumber);
     $cardcash=$carddata['cash'];
@@ -75,7 +76,7 @@ function zbs_PaycardUse($cardnumber) {
         `usedip` = '".$user_ip."',
         `usedate`= '".$ctime."',
         `used`='1'
-         WHERE `serial` =".$cardnumber." LIMIT 1 ;
+         WHERE `serial` ='".$cardnumber."';
         ";
     nr_query($carduse_q);
     zbs_PaymentLog($user_login, $cardcash, $us_config['PC_CASHTYPEID'], "CARD:".$cardnumber);

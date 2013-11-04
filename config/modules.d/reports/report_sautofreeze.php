@@ -1,0 +1,1 @@
+$taskbar.=build_task('REPORTAUTOFREEZE','?module=report_autofreeze','autofreeze.png',__('Autofreeze report'));

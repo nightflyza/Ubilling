@@ -27,6 +27,7 @@ if (cfr('TICKETING')) {
       $tablecells.=wf_TableCell(__('From'));
       $tablecells.=wf_TableCell(__('Real Name'));
       $tablecells.=wf_TableCell(__('Full address'));
+      $tablecells.=wf_TableCell(__('IP'));
       $tablecells.=wf_TableCell(__('Tariff'));
       $tablecells.=wf_TableCell(__('Balance'));
       $tablecells.=wf_TableCell(__('Credit'));
@@ -41,6 +42,7 @@ if (cfr('TICKETING')) {
           $alltariffs=zb_TariffsGetAllUsers();
           $allcash=zb_CashGetAllUsers();
           $allcredits=zb_CreditGetAllUsers();
+          $alluserips=  zb_UserGetAllIPs();
           
       foreach ($alltickets as $io=>$eachticket) {
   
@@ -50,6 +52,7 @@ if (cfr('TICKETING')) {
       $tablecells.=wf_TableCell($fromlink);
       $tablecells.=wf_TableCell(@$allrealnames[$eachticket['from']]);
       $tablecells.=wf_TableCell(@$alladdress[$eachticket['from']]);
+      $tablecells.=wf_TableCell(@$alluserips[$eachticket['from']]);
       $tablecells.=wf_TableCell(@$alltariffs[$eachticket['from']]);
       $tablecells.=wf_TableCell(@$allcash[$eachticket['from']]);
       $tablecells.=wf_TableCell(@$allcredits[$eachticket['from']]);
@@ -107,6 +110,7 @@ if (cfr('TICKETING')) {
           $alltariffs=zb_TariffsGetAllUsers();
           $allcash=zb_CashGetAllUsers();
           $allcredits=zb_CreditGetAllUsers();
+          $alluserips=  zb_UserGetAllIPs();
           
           if ($ticketdata['status']) {
               $actionlink=wf_Link('?module=ticketing&openticket='.$ticketdata['id'], 'Open', false, 'ubButton');
@@ -120,6 +124,7 @@ if (cfr('TICKETING')) {
           $tablecells.=wf_TableCell(__('Login'));
           $tablecells.=wf_TableCell(__('Real Name'));
           $tablecells.=wf_TableCell(__('Full address'));
+          $tablecells.=wf_TableCell(__('IP'));
           $tablecells.=wf_TableCell(__('Tariff'));
           $tablecells.=wf_TableCell(__('Balance'));
           $tablecells.=wf_TableCell(__('Credit'));
@@ -132,6 +137,7 @@ if (cfr('TICKETING')) {
           $tablecells.=wf_TableCell($profilelink);
           $tablecells.=wf_TableCell(@$allrealnames[$ticketdata['from']]);
           $tablecells.=wf_TableCell(@$alladdress[$ticketdata['from']]);
+          $tablecells.=wf_TableCell(@$alluserips[$ticketdata['from']]);
           $tablecells.=wf_TableCell(@$alltariffs[$ticketdata['from']]);
           $tablecells.=wf_TableCell(@$allcash[$ticketdata['from']]);
           $tablecells.=wf_TableCell(@$allcredits[$ticketdata['from']]);

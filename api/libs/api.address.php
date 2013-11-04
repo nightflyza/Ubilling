@@ -388,7 +388,7 @@ function zb_AddressGetAptDataById($aptid) {
                 $selector.='<option value="'.$eachcity['id'].'">'.$eachcity['cityname'].'</option>';
             }
         }
-        $selector.='</select>  <a href="?module=city">'.  web_city_icon().'</a>';
+        $selector.='</select>  <a href="?module=city" target="_BLANK">'.  web_city_icon().'</a>';
         return ($selector);
     }
     
@@ -414,7 +414,7 @@ function zb_AddressGetAptDataById($aptid) {
                 $selector.='<option value="'.$eachstreet['id'].'">'.$eachstreet['streetname'].'</option>';
             }
         }
-        $selector.='</select> <a href="?module=streets">'.  web_street_icon().'</a>';
+        $selector.='</select> <a href="?module=streets" target="_BLANK">'.  web_street_icon().'</a>';
         return ($selector);
         }
 
@@ -439,7 +439,7 @@ function zb_AddressGetAptDataById($aptid) {
                $selector.='<option value="'.$eachbuild['id'].'">'.$eachbuild['buildnum'].'</option>';
             }
         }
-        $selector.='</select> <a href="?module=builds&action=edit&streetid='.$streetid.'">'.  web_build_icon().'</a>';
+        $selector.='</select> <a href="?module=builds&action=edit&streetid='.$streetid.'" target="_BLANK">'.  web_build_icon().'</a>';
         return ($selector);
     }
     

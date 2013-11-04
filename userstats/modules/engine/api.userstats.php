@@ -31,7 +31,7 @@ function zbs_UserDetectIp($debug=false)  {
        }
      }
     if ($debug) {
-      // $ip='172.30.0.2';    
+      // $ip='172.30.0.2'; 
     }
        
     return($ip);
@@ -45,7 +45,18 @@ function zbs_UserGetLoginByIp($ip) {
         return($result['login']);
     } else {
         if ($glob_conf['auth']=='ip') {
+          if ((isset($glob_conf['authfailredir']))) {
+             if (!empty($glob_conf['authfailredir'])) {
+                 rcms_redirect($glob_conf['authfailredir']);
+                 die('Unknown user');
+             } else {
+                 die('Unknown user');
+             }
+              
+          } else {
           die('Unknown user');    
+          }
+          
         }
         
       }

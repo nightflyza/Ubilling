@@ -241,9 +241,9 @@ function web_EditorStringDataFormPassword($fieldnames,$fieldkey,$useraddress,$ol
     if (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) {
         
         if ($alterconf['PASSWORD_TYPE']) {
-            $password_proposal=  zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
+            $password_proposal= zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
         } else {
-            $password_proposal=  zb_rand_digits($alterconf['PASSWORD_GENERATION_LENGHT']);
+            $password_proposal= zb_rand_digits($alterconf['PASSWORD_GENERATION_LENGHT']);
         }
         
     } else {
@@ -957,7 +957,7 @@ return($form);
             foreach ($plugins as $io=>$eachplugin) {
              if (isset($eachplugin['overlay'])) {
              $overlaydata=web_ProfilePluginsShowOverlay($login, $eachplugin['overlaydata']).'<br><br>';
-             $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 400);   
+             $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 450);   
              } else {
               $result.='<a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> <br><br>';   
              }
@@ -983,7 +983,8 @@ return($form);
       //control form construct
       $inputs= wf_HiddenInput('swassignlogin', $login);
       $inputs.=  wf_Selector('swassignswid', $switcharr, __('Switch'), @$assignData['switchid'], true);
-      $inputs.= wf_TextInput('swassignswport', __('Port'), @$assignData['port'], true, '2');
+      $inputs.= wf_TextInput('swassignswport', __('Port'), @$assignData['port'], false, '2');
+      $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
       $inputs.= wf_Submit('Save');
       $controlForm=  wf_Form('', "POST", $inputs, 'glamour');
       //form end
@@ -1009,6 +1010,12 @@ return($form);
           nr_query("DELETE from `switchportassign` WHERE `login`='".$_POST['swassignlogin']."'");
           nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '".$_POST['swassignlogin']."', '".$newswid."', '".$newport."');");
           log_register("CHANGE SWITCHPORT (".$login.") ON SWITCHID [".$newswid."] PORT [".$newport."]");
+          rcms_redirect("?module=userprofile&username=".$login);
+      }
+      //delete subroutine
+      if (isset($_POST['swassigndelete'])) {
+          nr_query("DELETE from `switchportassign` WHERE `login`='".$_POST['swassignlogin']."'");
+          log_register("DELETE SWITCHPORT (".$login.")");
           rcms_redirect("?module=userprofile&username=".$login);
       }
       return ($result);
@@ -2007,7 +2014,20 @@ function zb_backup_tables($tables = '*',$silent=false) {
 	}
 
 	//save file
-        $backname=DATA_PATH.'backups/sql/billing-db-backup-'.time().'.sql';
+        if (ispos($alter_conf['NOBACKUPTABLESLIKE'], 'weblogs')) {
+           $return.="
+   CREATE TABLE IF NOT EXISTS `weblogs` (
+  `id` int(11) NOT NULL auto_increment,
+  `date` datetime NOT NULL,
+  `admin` varchar(45) default NULL,
+  `ip` varchar(64) default NULL,
+  `event` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `date` (`date`)
+  ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+               "; 
+        }
+        $backname=DATA_PATH.'backups/sql/ubilling-db-backup-'.time().'.sql';
 	$handle = fopen($backname,'w+');
 	fwrite($handle,$return);
 	fclose($handle);
@@ -2016,7 +2036,7 @@ function zb_backup_tables($tables = '*',$silent=false) {
             show_window(__('Backup saved'),$backname);
         }
         
-        log_register("CREATE Backup ".$backname);
+        log_register("CREATE Backup `".$backname."`");
         return ($backname);
 }
 
@@ -2599,7 +2619,12 @@ function zb_NumUnEncode($data) {
                 $tablecells.=wf_TableCell(@$alluserips[$eachlogin],'','','sorttable_customkey="'.  ip2int(@$alluserips[$eachlogin]).'"');
                 $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
                  if ($alterconf['ONLINE_LAT']) {
-                        $tablecells.=wf_TableCell(date("Y-m-d H:i:s",$alluserlat[$eachlogin]));
+                        if (isset($alluserlat[$eachlogin])) {
+                            $cUserLat=date("Y-m-d H:i:s",$alluserlat[$eachlogin]);
+                        } else {
+                            $cUserLat=__('No');
+                        }
+                        $tablecells.=wf_TableCell($cUserLat);
                     }
                 $tablecells.=wf_TableCell($activity,'','','sorttable_customkey="'.$activity_flag.'"');
                 if ($alterconf['DN_ONLINE_DETECT']) {
@@ -2772,11 +2797,26 @@ function zb_BillingCheckUpdates() {
   return $crc;
 } 
 
+function zb_MacVendorSearchmac($mac) {
+      // searchmac.com API request
+            $url='http://searchmac.com/api/raw/'.$mac;
+            $rawdata=file_get_contents($url);
+            if (!empty($rawdata)) {
+               $result=$rawdata;
+            } else {
+                $result='EMPTY';
+            }
+            
+     return ($result);
+}
+
 //lookups vendor by mac
   function zb_MacVendorLookup($mac) {
         $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $result='';
-        
+        //use old macvendorlookup.com API
+        if (isset($altcfg['MACVEN_OLD'])) {
+        if ($altcfg['MACVEN_OLD']) {
         if (!empty($altcfg['MACVENAPI_KEY'])) {
         $apikey=$altcfg['MACVENAPI_KEY'];
         $url='http://www.macvendorlookup.com/api/'.$apikey.'/';
@@ -2793,7 +2833,12 @@ function zb_BillingCheckUpdates() {
         } else {
             $result=__('No macvendorlookup.com API key set');
         }
-        
+        } else {
+            $result= zb_MacVendorSearchmac($mac);
+        }
+        } else {
+          $result= zb_MacVendorSearchmac($mac);
+        }
         return ($result);
     }
 
@@ -2840,12 +2885,24 @@ function zb_DiscountsGetMonthPayments($month) {
 
 
 function zb_DiscountProcessPayments($debug=false) {
-    $alldiscountusers=  zb_DiscountsGetAllUsers();
-    $monthpayments=  zb_DiscountsGetMonthPayments(curmonth());
     $alterconf= rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     $cashtype=$alterconf['DISCOUNT_CASHTYPEID'];
     $operation=$alterconf['DISCOUNT_OPERATION'];
     
+    
+    if (isset($alterconf['DISCOUNT_PREVMONTH'])) {
+        if ($alterconf['DISCOUNT_PREVMONTH']) {
+            $targetMonth= prevmonth();
+        } else {
+            $targetMonth=  curmonth();
+        }
+    } else {
+        $targetMonth=  curmonth();
+    }
+    
+   
+    $alldiscountusers=  zb_DiscountsGetAllUsers();
+    $monthpayments=  zb_DiscountsGetMonthPayments($targetMonth);
     
     if ((!empty($alldiscountusers) AND (!empty($monthpayments)))) {
         foreach ($monthpayments as $login=>$eachpayment) {
@@ -3406,5 +3463,23 @@ function zb_TranslitString($string) {
            return ($result);
       }
       
+ function zb_DownloadFile($filePath) {
+    if (!empty($filePath)) {
+    if (file_exists($filePath)) {
+    $fileContent=  file_get_contents($filePath);
+    log_register("DOWNLOAD FILE `".$filePath."`");
+    header('Content-Type: application/octet-stream');
+    header("Content-Transfer-Encoding: Binary"); 
+    header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\""); 
+    die($fileContent);
+    
+    } else {
+        throw new Exception('DOWNLOAD_FILEPATH_NOT_EXISTS');
+    }
+    } else {
+        throw new Exception('DOWNLOAD_FILEPATH_EMPTY');
+        
+    }
+}
       
 ?>

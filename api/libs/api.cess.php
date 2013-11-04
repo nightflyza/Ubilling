@@ -779,4 +779,19 @@ function web_NdsPaymentsShowYear($year) {
     show_window(__('Payments by').' '.$year, $result);
 }
 
+ function zb_RegContrAhentSelect($name,$selected='') {
+         $allagents=zb_ContrAhentGetAllData();
+         $agentArr=array();
+         
+         $select='<select name="regagent">';
+         if (!empty ($allagents)) {
+             foreach ($allagents as $io=>$eachagent) {
+                 $agentArr[$eachagent['id']]=$eachagent['contrname'];
+             }
+             
+         }
+         $select=  wf_Selector($name, $agentArr, '', $selected, false);
+         return($select);
+     }
+
 ?>

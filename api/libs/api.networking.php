@@ -493,16 +493,30 @@ function handle_dhcp_rebuild_option82($netid,$confname) {
         foreach ($allhosts as $io=>$eachhost) {
         $dhcphostname='m'.  str_replace('.', 'x', $eachhost['ip']);
         $options=explode('|',$eachhost['option']);
-        $result.='
-            class "'.$dhcphostname.'" {
-            match if binary-to-ascii (10, 8, "", option agent.remote-id) = "'.$options[0].'" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "'.$options[1].' ";
-            }
+        $customTemplate=  file_get_contents(CONFIG_PATH."dhcp/option82.template");
+        if (empty($customTemplate)) {
+       $customTemplate='
+       class "{HOSTNAME}" {
+        match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii (10, 8, "", option agent.circuit-id) = "{CIRCUITID}";
+       }
+
+        pool {
+        range {IP};
+        allow members of "{HOSTNAME}";
+        }
+        '."\n";
+        }
+        
+        if (isset($options[1])) {
+            $parseTemplate=$customTemplate;
+            $parseTemplate=str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+            $parseTemplate=str_ireplace('{REMOTEID}', $options[0], $parseTemplate);
+            $parseTemplate=str_ireplace('{CIRCUITID}', $options[1], $parseTemplate);
+            $parseTemplate=str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
             
-            pool {
-            range '.$eachhost['ip'].';
-            allow members of "'.$dhcphostname.'";
-            }
-            '."\n";
+          $result.=$parseTemplate;  
+        }
+        
         }
        
         file_put_contents($confpath, $result);
@@ -567,6 +581,16 @@ function multinet_rebuild_globalconf() {
     $subnets_template=file_get_contents("config/dhcp/subnets.template");
     $alldhcpsubnets_q="SELECT `id`,`netid` from `dhcp` ORDER BY `id` ASC";
     $alldhcpsubnets=simple_queryall($alldhcpsubnets_q);
+    $allMembers_q="SELECT `ip` from `nethosts` WHERE `option` != 'NULL'";
+    $allMembers= simple_queryall($allMembers_q);
+    $membersMacroContent='';
+    if (!empty($allMembers)) {
+        foreach ($allMembers as $ix=>$eachMember) {
+            $memberClass='m'.str_replace('.', 'x', $eachMember['ip']);;
+            $membersMacroContent.='deny members of "'.$memberClass.'";'."\n";
+        }
+    }
+    
     $subnets='';
     if (!empty ($alldhcpsubnets)) {
         foreach ($alldhcpsubnets as $io=>$eachnet) {
@@ -593,6 +617,7 @@ function multinet_rebuild_globalconf() {
     }
     
     $globdata['{SUBNETS}']=$subnets;
+    $globdata['{DENYMEMBERS}']=$membersMacroContent;
     $globconf=multinet_ParseTemplate($global_template,$globdata);
     file_write_contents("multinet/dhcpd.conf", $globconf);
 }

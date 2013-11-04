@@ -68,6 +68,12 @@ function curmonth() {
     return($currentmonth);
 }
 
+//returns previous month in mysql DATETIME view
+function prevmonth() {
+    $result=date("Y-m", strtotime("-1 months"));
+    return ($result);
+}
+
 //returns current year
 function curyear() {
     $currentyear=date("Y");

@@ -915,3 +915,24 @@ CREATE TABLE IF NOT EXISTS `switchportassign` (
 ALTER TABLE `build` ADD `geo` VARCHAR( 255 ) DEFAULT NULL ;
 
 ALTER TABLE  `networks` ADD `use_radius` TINYINT(1) NOT NULL DEFAULT '0';
+
+-- 0.4.7 update
+
+CREATE TABLE IF NOT EXISTS `watchdog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `active` TINYINT(1) NOT NULL DEFAULT '0',
+  `name` varchar(255) NOT NULL,
+  `checktype` varchar(255) NOT NULL,
+  `param` varchar(255) NOT NULL,
+  `operator` varchar(255) NOT NULL,
+  `condition` varchar(255) DEFAULT NULL,
+  `action` varchar(255) NOT NULL,
+  `oldresult` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `active` (`active`),
+  KEY `name` (`name`),
+  KEY `oldresult` (`oldresult`),
+  KEY `param` (`param`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+

@@ -1,8 +1,8 @@
 #!/bin/bash
 # OnDisconnect
 
-IFUP="eth0"
-IFDOWN="eth1"
+IFUP="EXTERNAL_IFACE"
+IFDOWN="INTERNAL_IFACE"
 LOGIN=$1
 IP=$2
 CASH=$3
