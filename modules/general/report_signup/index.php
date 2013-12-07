@@ -27,6 +27,7 @@ if (cfr('REPORTSIGNUP')) {
         $yearcount=zb_SignupsGetCountYear($year);
         $maxsignups=max($yearcount);
         $allmonths=months_array();
+        $totalcount=0;
         
         $tablecells=wf_TableCell('');
         $tablecells.=wf_TableCell(__('Month'));
@@ -35,6 +36,7 @@ if (cfr('REPORTSIGNUP')) {
         $tablerows=wf_TableRow($tablecells, 'row1');
         
         foreach ($yearcount as $eachmonth=>$count) {
+            $totalcount=$totalcount+$count;
             $tablecells=wf_TableCell($eachmonth);
             $tablecells.=wf_TableCell(wf_Link('?module=report_signup&month='.$year.'-'.$eachmonth,rcms_date_localise($allmonths[$eachmonth])));
             $tablecells.=wf_TableCell($count);
@@ -42,7 +44,8 @@ if (cfr('REPORTSIGNUP')) {
             $tablerows.=wf_TableRow($tablecells, 'row3');
         }
         
-        $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
+        $result=  wf_TableBody($tablerows, '100%', '0', 'sortable');
+        $result.= __('Total').': '.$totalcount; 
         show_window(__('User signups by year').' '.$year, $result);
     }
     

@@ -3,12 +3,12 @@
 if (cfr('EMPLOYEE')) {
 
    if (wf_CheckPost(array('addemployee','employeename'))) {
-   stg_add_employee($_POST['employeename'], $_POST['employeejob']);
+   em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile']);
    rcms_redirect("?module=employee");
    }
    
    if (isset ($_GET['delete'])) {
-   stg_delete_employee($_GET['delete']);
+   em_EmployeeDelete($_GET['delete']);
    rcms_redirect("?module=employee");
    }
    
@@ -24,8 +24,8 @@ if (cfr('EMPLOYEE')) {
    if (!wf_CheckGet(array('edit'))) {
        if (!wf_CheckGet(array('editjob'))) {
            //display normal tasks
-       stg_show_employee_form();
-       stg_show_jobtype_form();
+       em_EmployeeShowForm();
+       em_JobTypeForm();
        
        } else {
            //show jobeditor
@@ -55,6 +55,8 @@ if (cfr('EMPLOYEE')) {
        if (isset($_POST['editname'])) {
            simple_update_field('employee', 'name', $_POST['editname'], "WHERE `id`='".$editemployee."'");
            simple_update_field('employee', 'appointment', $_POST['editappointment'], "WHERE `id`='".$editemployee."'");
+           simple_update_field('employee', 'mobile', $_POST['editmobile'], "WHERE `id`='".$editemployee."'");
+           
            if (wf_CheckPost(array('editactive'))) {
                simple_update_field('employee', 'active', '1', "WHERE `id`='".$editemployee."'");
            } else {
@@ -74,6 +76,7 @@ if (cfr('EMPLOYEE')) {
        }
        $editinputs=wf_TextInput('editname','Real Name' , $employeedata['name'], true, 20);
        $editinputs.=wf_TextInput('editappointment','Appointment' , $employeedata['appointment'], true, 20);
+       $editinputs.=wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
        $editinputs.=wf_CheckInput('editactive', 'Active', true, $actflag);
        $editinputs.=wf_Submit('Save');
        $editform=wf_Form('', 'POST', $editinputs, 'glamour');

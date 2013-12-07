@@ -299,16 +299,34 @@
    }
    
    function zb_ExportContractsLoadAll() {
-       $query="SELECT `IP`,`login` from `users`";
+       $query="SELECT `login`,`contract` from `contracts`";
        $allcontracts=simple_queryall($query);
+       $queryDates="SELECT `contract`,`date` from `contractdates`";
+       $alldates=  simple_queryall($queryDates);
        $result=array();
-       if (!empty ($allcontracts)) {
-           foreach ($allcontracts as $io=>$eachcontract) {
-               $result[$eachcontract['login']]['contractnum']=str_replace('.', '', $eachcontract['IP']);
-               $result[$eachcontract['login']]['contractdate']='1970-01-01T00:00:00';
+       $dates=array();
+       if (!empty($alldates)) {
+           foreach ($alldates as $ia=>$eachdate) {
+               $dates[$eachdate['contract']]=$eachdate['date'];
            }
-       return($result);
        }
+       
+       if (!empty ($allcontracts)) {
+        foreach ($allcontracts as $io=>$eachcontract) {
+              $result[$eachcontract['login']]['contractnum']=$eachcontract['contract'];
+              if (isset($dates[$eachcontract['contract']])) {
+                $rawdate=$dates[$eachcontract['contract']];
+                $timestamp=  strtotime($rawdate);
+                $newDate=date("Y-m-d\T00:00:00",$timestamp);
+                $result[$eachcontract['login']]['contractdate']=$newDate;
+              } else {
+                $result[$eachcontract['login']]['contractdate']='1970-01-01T00:00:00';  
+              }
+        }
+       
+       }
+
+       return($result);
    }
    
    function zb_ExportParseTemplate($templatebody,$templatedata) {

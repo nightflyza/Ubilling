@@ -469,7 +469,9 @@ function um_MapLocationBuildForm() {
         $allbuilds=  simple_queryall($query);
         $allstreets=  zb_AddressGetStreetAllData();
         $streetData=array();
-        
+        $cacheDir='exports/';
+        $cacheTime=10;
+        $cacheTime=time()-($cacheTime*60);
         //street id => streetname
         if (!empty($allstreets)) {
             foreach ($allstreets as $ia=>$eachstreet) {
@@ -503,7 +505,6 @@ function um_MapLocationBuildForm() {
         $result='';
         
         
-        
         if (!empty($allbuilds)) {
             foreach ($allbuilds as $io=>$each) {
                 $geo=  mysql_real_escape_string($each['geo']);
@@ -521,6 +522,27 @@ function um_MapLocationBuildForm() {
                 $aliveUsers=0;
                 $usersCount=0;
                 if (!empty($aptData)) {
+                    //build users data caching
+                    $cacheName = $cacheDir.$each['id'].'.inbuildusers';
+                
+                    if (file_exists($cacheName)) {
+                        $updateCache=false;
+                         if ((filemtime($cacheName)>$cacheTime)) {
+                             $updateCache=false;
+                         } else {
+                             $updateCache=true;
+                         }
+                    } else {
+                        $updateCache=true;
+                    }
+                    if (!$updateCache) {
+                        $cachePrev=  file_get_contents($cacheName);
+                        $cachePrev=  unserialize($cachePrev);
+                        $rows=$cachePrev['rows'];
+                        $usersCount=$cachePrev['userscount'];
+                        $aliveUsers=$cachePrev['aliveusers'];
+                        
+                    } else {
                     foreach ($aptData as $ib=>$eachapt) {
                         if ($eachapt['buildid']==$each['id']) {
                             if (isset($alluserips[$eachapt['login']])) {
@@ -538,6 +560,13 @@ function um_MapLocationBuildForm() {
                             $rows.=wf_TableRow($cells);
                             }
                         }
+                    }
+                    $cacheStore=array();
+                    $cacheStore['rows']=$rows;
+                    $cacheStore['userscount']=$usersCount;
+                    $cacheStore['aliveusers']=$aliveUsers;
+                    $cacheStore=  serialize($cacheStore);
+                    file_put_contents($cacheName,$cacheStore);
                     }
                 }
                 $footer=__('Active').' '.$aliveUsers.'/'.$usersCount;
@@ -559,6 +588,7 @@ function um_MapLocationBuildForm() {
             }
         }
         return ($result);
+        
     }
     
  /*

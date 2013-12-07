@@ -15,7 +15,7 @@ if (cfr('REPORTNOSWPORT')) {
         }
         
         /*
-         * get all users with switch port assing and pus it into data prop
+         * get all users with switch port assing and push it into data prop
          * 
          * @return void
          */

@@ -113,6 +113,7 @@ class WatchDog {
      * @return array
      */
     public function sendSMS($number,$message) {
+        $number=trim($number);
         $filename='content/tsms/wd_'.zb_rand_string(8);
         $storedata='NUMBER="'.$this->safeEscapeString($number).'"'."\n";
         $storedata.='MESSAGE="'.$this->safeEscapeString($message).'"'."\n";

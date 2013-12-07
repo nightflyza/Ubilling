@@ -10,8 +10,9 @@ if (isset ($_GET['username'])) {
        // change mac if need
        if (isset ($_POST['newmac'])) {
         $mac=trim($_POST['newmac']);
+        $allUsedMacs=  zb_getAllUsedMac();
         //check mac for free
-        if (multinet_mac_free($mac)) {
+        if (zb_checkMacFree($mac,$allUsedMacs)) {
          //validate mac format
          if (check_mac_format($mac)) {   
         $ip=zb_UserGetIP($login);
@@ -58,7 +59,7 @@ if (($newmacselector) AND (!isset ($_GET['oldform']))) {
   $form.='<br><br>';
 
 if ($newmac_report) {
-   $form.='<h2>'.__('Unknown MAC address').'</h2>'.zb_NewMacShow();
+   $form.= wf_tag('h2').__('Unknown MAC address').  wf_tag('h2',true).zb_NewMacShow();
 }
 $form.=web_UserControls($login);
 

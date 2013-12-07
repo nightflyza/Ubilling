@@ -384,6 +384,8 @@ function zb_NewMacSelect($name='newmac') {
     $leasesmark=$alter_conf['NMLEASEMARK'];
     $command=$sudo.' '.$cat.' '.$leases.' | '.$grep.'  "'.$leasesmark.'" | '.$tail.' -n 200';
     $rawdata=shell_exec($command);
+    $allUsedMacs=  zb_getAllUsedMac();
+    
     $result='<select name="'.$name.'">';
     if (!empty ($rawdata)) {
     $cleardata=exploderows($rawdata);
@@ -397,7 +399,7 @@ function zb_NewMacSelect($name='newmac') {
     }
     if (!empty ($unique_nmarr))  {
         foreach ($unique_nmarr as $newmac) {
-                if (multinet_mac_free($newmac)) {
+                if (zb_checkMacFree($newmac,$allUsedMacs)) {
                 $result.='<option value="'.$newmac.'">'.$newmac.'</option>';
              }
             }
@@ -977,28 +979,51 @@ return($form);
               $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
           }
       }
-      
+      //getting current data
       $assignData=simple_query($query);
+      $sameUsers='';
+      
+      if (!empty($assignData)) {
+          $currentSwitchPort=$assignData['port'];
+          $currentSwitchId=$assignData['switchid'];
+      } else {
+          $currentSwitchPort='';
+          $currentSwitchId='';
+      }
+      //checks other users with same switch->port 
+      if ((!empty($currentSwitchId)) AND (!empty($currentSwitchPort)) ) {
+          $queryCheck="SELECT `login` from `switchportassign` WHERE `port`='".vf($currentSwitchPort)."' AND `switchid`='".vf($currentSwitchId,3)."';";
+          $checkSame=  simple_queryall($queryCheck);
+          if (!empty($checkSame)) {
+              foreach ($checkSame as $ix=>$eachsame) {
+                  if ($eachsame['login']!=$login) {
+                      $sameUsers.=' '.wf_Link("?module=userprofile&username=".$eachsame['login'], web_profile_icon().' '.$eachsame['login'], false, '');
+                  }
+              }
+          }
+              
+      }
       
       //control form construct
       $inputs= wf_HiddenInput('swassignlogin', $login);
-      $inputs.=  wf_Selector('swassignswid', $switcharr, __('Switch'), @$assignData['switchid'], true);
-      $inputs.= wf_TextInput('swassignswport', __('Port'), @$assignData['port'], false, '2');
+      $inputs.=  wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+      $inputs.= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, '2');
       $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
       $inputs.= wf_Submit('Save');
       $controlForm=  wf_Form('', "POST", $inputs, 'glamour');
       //form end
       
       $switchAssignController=  wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
-      
+     
+  
       $cells=  wf_TableCell(__('Switch'),'30%','row2');
-      $cells.= wf_TableCell(@$switcharr[$assignData['switchid']]);
+      $cells.= wf_TableCell(@$switcharr[$currentSwitchId]);
       $rows= wf_TableRow($cells, 'row3');
       $cells=  wf_TableCell(__('Port'),'30%','row2');
-      $cells.= wf_TableCell(@$assignData['port']);
+      $cells.= wf_TableCell($currentSwitchPort);
       $rows.= wf_TableRow($cells, 'row3');
       $cells=  wf_TableCell(__('Change'),'30%','row2');
-      $cells.= wf_TableCell($switchAssignController);
+      $cells.= wf_TableCell($switchAssignController.' '.$sameUsers);
       $rows.= wf_TableRow($cells, 'row3');
       
       $result=  wf_TableBody($rows, '100%', '0');
@@ -3386,7 +3411,7 @@ function zb_TranslitString($string) {
            
           $result=wf_tag('div', false, 'dashtask', '').__('Dynamics of changes in ARPU for the year'); 
           $result.= wf_Graph($data, '500', '300', false).  wf_tag('div', true);
-           return ($result);
+          return ($result);
       }
       
       function web_AnalyticsPaymentsMonthGraph($year) {
@@ -3482,4 +3507,16 @@ function zb_TranslitString($string) {
     }
 }
       
+
+function zb_CheckDbSchema() {
+    if (zb_CheckTableExists('info')) {
+        $query="SELECT `version` from `info`";
+        $result= simple_query($query);
+        $result= $result['version'];
+    } else {
+        $result=0;
+    }
+    return ($result);
+}
+
 ?>

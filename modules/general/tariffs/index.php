@@ -17,6 +17,7 @@ if (cfr('TARIFFS')) {
         
     }
     
+    
     function tariff_name_filter($tariffname) {
        $tariffname=trim($tariffname);
        return preg_replace("#[^a-z0-9A-Z\-_\.]#Uis",'',$tariffname);
@@ -24,7 +25,22 @@ if (cfr('TARIFFS')) {
 
     function web_TariffCreateForm() {
         global $dirs;
-        $form = '<form id="tariff_add" method="POST" action="">
+        
+        $dbSchema=  zb_CheckDbSchema();
+        
+        if ($dbSchema>0) {
+            $availOpts=array('month'=>__('Month'),'day'=>__('Day'));
+            
+            $periodCells=  wf_TableCell(__('Period'));
+            $periodCells.= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
+            $periodRows=  wf_TableRow($periodCells);
+            $periodControls=$periodRows;
+        } else {
+            $periodControls='';
+        }
+        
+        $form=  wf_Link("?module=tariffs", __('Back'),true,'ubButton');
+        $form.= '<form id="tariff_add" method="POST" action="">
     <table>
         <tr>
             <td>' . __('Tariff name') . '</td><td><input  type="text" name="options[TARIFF]" value=""></td>
@@ -32,6 +48,7 @@ if (cfr('TARIFFS')) {
         <tr>
             <td>' . __('Fee') . '</td><td><input size="2" type="text" name="options[Fee]" value=""></td>
         </tr>
+        '.$periodControls.'
         <tr>
             <td>' . __('Prepaid traffic') . '</td><td><input size="2" type="text" name="options[Free]" value=""></td>
         </tr>
@@ -139,31 +156,37 @@ if (cfr('TARIFFS')) {
 
     function web_TariffLister() {
         $alltariffs = billing_getalltariffs();
-        $form = '<a href="?module=tariffs&action=new">' . __('Create new tariff') . '</a>';
-        $form .= '<table width="100%" border="0" class="sortable">';
-        $form.='
-        <tr class="row1">
-            <td>' . __('Tariff name') . '</td>
-                <td>' . __('Tariff Fee') . '</td>
-            <td>' . __('Actions') . '</td>
-        </tr>
-        ';
+        $dbSchema=  zb_CheckDbSchema();
+        
+        $cells=  wf_TableCell(__('Tariff name'));
+        $cells.= wf_TableCell(__('Tariff Fee'));
+        if ($dbSchema>0) {
+            $cells.= wf_TableCell(__('Period'));
+        }
+        $cells.= wf_TableCell(__('Actions'));
+        $rows=  wf_TableRow($cells, 'row1');
+        
+        $result = wf_Link("?module=tariffs&action=new", __('Create new tariff'), true, 'ubButton');
+        
         if (!empty($alltariffs)) {
             foreach ($alltariffs as $io => $eachtariff) {
-                $form.='
-        <tr class="row3">
-            <td>' . $eachtariff['name'] . '</td>
-            <td>' . $eachtariff['Fee'] . '</td>
-            <td>
-            <a  onclick="if(!confirm(\'' . __('Removing this may lead to irreparable results') . '\')) { return false;}" href="?module=tariffs&action=delete&tariffname=' . $eachtariff['name'] . '">' . web_delete_icon() . '</a>
-            <a href="?module=tariffs&action=edit&tariffname=' . $eachtariff['name'] . '">' . web_edit_icon() . '</a>
-            </td>
-        </tr>
-        ';
+                $cells=  wf_TableCell($eachtariff['name']);
+                $cells.= wf_TableCell($eachtariff['Fee']);
+                if ($dbSchema>0) {
+                    $cells.= wf_TableCell(__($eachtariff['period']));
+                }
+                
+                $actions=  wf_JSAlert("?module=tariffs&action=delete&tariffname=".$eachtariff['name'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                $actions.= wf_JSAlert("?module=tariffs&action=edit&tariffname=".$eachtariff['name'], web_edit_icon(), __('Are you serious'));
+                $actions.= wf_Link('?module=tariffspeeds&tariff='.$eachtariff['name'], wf_img('skins/icon_speed.gif',__('Edit speed')), false, '');
+                $cells.= wf_TableCell($actions);
+                $rows.=  wf_TableRow($cells, 'row3');
             }
         }
-        $form.='</table>';
-        return($form);
+   
+        $result.=  wf_TableBody($rows, '100%', 0, 'sortable');
+        
+        return($result);
     }
 
     function web_TariffEditForm($tariffname) {
@@ -171,6 +194,7 @@ if (cfr('TARIFFS')) {
         global $dirs;
 
         $tariffdata = billing_gettariff($tariffname);
+        $dbSchema=  zb_CheckDbSchema();
 
         if ($tariffdata['TraffType'] == 'up') {
             $s1 = "SELECTED";
@@ -184,9 +208,19 @@ if (cfr('TARIFFS')) {
         if ($tariffdata['TraffType'] == 'max') {
             $s4 = "SELECTED";
         }
-
-
-        $form = '<form method="POST" action="">
+        
+        if ($dbSchema>0) {
+            $availOpts=array('month'=>__('Month'),'day'=>__('Day'));
+            
+            $periodCells=  wf_TableCell(__('Period'));
+            $periodCells.= wf_TableCell(wf_Selector("options[Period]", $availOpts, '', $tariffdata['period']));
+            $periodRows=  wf_TableRow($periodCells);
+            $periodControls=$periodRows;
+        } else {
+            $periodControls='';
+        }
+        $form=  wf_Link("?module=tariffs", __('Back'),true,'ubButton');
+        $form.= '<form method="POST" action="">
     <table>
         <tr>
             <td>' . __('Tariff name') . '</td><td><input  type="text" name="options[TARIFF]" DISABLED value="' . $tariffdata['name'] . '"></td>
@@ -194,6 +228,7 @@ if (cfr('TARIFFS')) {
         <tr>
             <td>' . __('Fee') . '</td><td><input size="2" type="text" name="options[Fee]" value="' . $tariffdata['Fee'] . '"></td>
         </tr>
+        '.$periodControls.'
         <tr>
             <td>' . __('Prepaid traffic') . '</td><td><input size="2" type="text" name="options[Free]" value="' . $tariffdata['Free'] . '"></td>
         </tr>
@@ -303,7 +338,7 @@ if (cfr('TARIFFS')) {
         if (!empty ($newtariffname)) {
         $billing->createtariff($newtariffname);
         $billing->edittariff($newtariffname, $tariffoptions);
-        log_register("TARIFF CREATE ".$newtariffname);
+        log_register("TARIFF CREATE `".$newtariffname."`");
         }
     }
 
@@ -312,7 +347,7 @@ if (cfr('TARIFFS')) {
             $tariffname = $_GET['tariffname'];
             if ($_GET['action'] == 'delete') {
                 $billing->deletetariff($tariffname);
-                log_register("TARIFF DELETE ".$tariffname);
+                log_register("TARIFF DELETE `".$tariffname."`");
                 rcms_redirect('?module=tariffs');
             }
 
@@ -321,7 +356,7 @@ if (cfr('TARIFFS')) {
                     $tariffoptions=$_POST['options'];
                     $tariffoptions['Fee']=trim($tariffoptions['Fee']);
                     $billing->edittariff($tariffname, $tariffoptions);
-                    log_register("TARIFF CHANGE ".$tariffname);
+                    log_register("TARIFF CHANGE `".$tariffname."`");
                     rcms_redirect('?module=tariffs');
                 }
                 show_window(__('Edit Tariff'), web_TariffEditForm($tariffname));
@@ -340,8 +375,10 @@ if (cfr('TARIFFS')) {
         }
     }
     
-
+    if (!wf_CheckGet(array('action'))) {
     show_window(__('Available tariffs'), web_TariffLister());
+    }
+    
 } else {
     show_error(__('You cant control this module'));
 }

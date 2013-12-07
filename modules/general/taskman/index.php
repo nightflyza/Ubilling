@@ -97,7 +97,21 @@ if(cfr('TASKMAN')) {
     }
     
     if (!isset($_GET['edittask'])) {
-        show_window('',wf_FullCalendar($showtasks));
+        if (!wf_CheckGet(array('print'))) {
+            if (!wf_CheckGet(array('lateshow'))) {
+                //show full calendar view
+                show_window('',wf_FullCalendar($showtasks));
+            } else {
+                show_window(__('Show late'),ts_ShowLate());
+            }
+        } else {
+            //printable result
+            if (wf_CheckPost(array('printdatefrom','printdateto'))) {
+                ts_PrintTasks($_POST['printdatefrom'],$_POST['printdateto']);
+            }
+            //show printing form
+            show_window(__('Tasks printing'), ts_PrintDialogue());
+        }
     } else {
         ts_TaskChangeForm($_GET['edittask']);
     }

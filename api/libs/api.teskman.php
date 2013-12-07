@@ -1,98 +1,108 @@
 <?php
- function stg_show_employee_form() {
+
+ function em_EmployeeShowForm() {
      $show_q="SELECT * from `employee`";
      $allemployee=simple_queryall($show_q);
-     $result='<table width="100%" border="0"><tbody>';
-     $result.='<tr class="row1">
-         <td>'.__('ID').'</td>
-         <td>'.__('Real Name').'</td>
-         <td>'.__('Active').'</td>
-         <td>'.__('Appointment').'</td>
-         <td>'.__('Actions').'</td></tr>';
+     
+     $cells=  wf_TableCell(__('ID'));
+     $cells.= wf_TableCell(__('Real Name'));
+     $cells.= wf_TableCell(__('Active'));
+     $cells.= wf_TableCell(__('Appointment'));
+     $cells.= wf_TableCell(__('Mobile'));
+     $cells.= wf_TableCell(__('Actions'));
+     $rows  = wf_TableRow($cells, 'row1');
+     
      if (!empty ($allemployee)) {
          foreach ($allemployee as $ion=>$eachemployee) {
-         $result.='<tr class="row3">';
-         $result.='<td>'.$eachemployee['id'].'</td>';
-         $result.='<td>'.$eachemployee['name'].'</td>';
-         $result.='<td>'.web_bool_led($eachemployee['active']).'</td>';
-         $result.='<td>'.$eachemployee['appointment'].'</td>';
-         $result.='<td>
-                 '.  wf_JSAlert('?module=employee&delete='.$eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results').'
-                 '.  wf_JSAlert('?module=employee&edit='.$eachemployee['id'], web_edit_icon(), 'Are you serious').'
-                 </td>';
-         $result.='</tr>';
+             $cells=  wf_TableCell($eachemployee['id']);
+             $cells.= wf_TableCell($eachemployee['name']);
+             $cells.= wf_TableCell(web_bool_led($eachemployee['active']));
+             $cells.= wf_TableCell($eachemployee['appointment']);
+             $cells.= wf_TableCell($eachemployee['mobile']);
+             $actions=  wf_JSAlert('?module=employee&delete='.$eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+             $actions.= wf_JSAlert('?module=employee&edit='.$eachemployee['id'], web_edit_icon(), 'Are you serious');
+             $cells.= wf_TableCell($actions);
+             $rows.=  wf_TableRow($cells, 'row3');
+         
          }
        }
-      $result.='
-          <form action="" method="POST">
-          <input type="hidden" name="addemployee" value="true">
-          <tr class="row2">
-          <td></td>
-          
-          <td><input type="text"  name="employeename" size="30" required></td>
-          <td></td>
-          <td><input type="text"  name="employeejob" size="30"></td>
-          
-          <td><input type="submit" value="'.__('Add').'"></td>
-          </tr>
-          </form>
-          ';
-      $result.='</tbody></table>';
+      
+     //new employee create form inputs  
+     $inputs=  wf_HiddenInput('addemployee', 'true');
+     $inputs.= wf_TableCell('');
+     $inputs.= wf_TableCell(wf_TextInput('employeename', '', '', false, 30));
+     $inputs.= wf_TableCell('');
+     $inputs.= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
+     $inputs.= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
+     $inputs.= wf_TableCell(wf_Submit(__('Create')));
+     $inputs=  wf_TableRow($inputs, 'row2');
+     $addForm=  wf_Form("", 'POST', $inputs, '');
+     $rows.=$addForm;
+      
+      $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+      
       show_window(__('Employee'),$result);
    }
 
-function stg_show_jobtype_form() {
+function em_JobTypeForm() {
      $show_q="SELECT * from `jobtypes`";
      $alljobs=simple_queryall($show_q);
-     $result='<table width="100%" border="0"><tbody>';
-     $result.='<tr class="row1"><td>ID</td><td>'.__('Job type').'</td><td>'.__('Actions').'</td></tr>';
+     
+     $cells=  wf_TableCell(__('ID'));
+     $cells.= wf_TableCell(__('Job type'));
+     $cells.= wf_TableCell(__('Actions'));
+     $rows=  wf_TableRow($cells, 'row1');
+     
      if (!empty ($alljobs)) {
          foreach ($alljobs as $ion=>$eachjob) {
-         $result.='<tr class="row3">';
-         $result.='<td>'.$eachjob['id'].'</td>';
-         $result.='<td>'.$eachjob['jobname'].'</td>';
-         $actionlinks= wf_JSAlert('?module=employee&deletejob='.$eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') .' ';
-         $actionlinks.=wf_JSAlert('?module=employee&editjob='.$eachjob['id'], web_edit_icon(), 'Are you serious');
-         $result.='<td>'. $actionlinks.'</td>';
-         $result.='</tr>';
+      
+            $cells=  wf_TableCell($eachjob['id']);
+            $cells.= wf_TableCell($eachjob['jobname']);
+              $actionlinks= wf_JSAlert('?module=employee&deletejob='.$eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') .' ';
+              $actionlinks.=wf_JSAlert('?module=employee&editjob='.$eachjob['id'], web_edit_icon(), 'Are you serious');
+            $cells.= wf_TableCell($actionlinks);
+            $rows.=  wf_TableRow($cells, 'row3');
          }
        }
        
-      $result.='
-          <form action="" method="POST">
-          <input type="hidden" name="addjobtype" value="true">
-          <tr class="row2">
-          <td></td>
-          <td><input type="text"  name="newjobtype" size="30" required></td>
-          <td><img src="skins/icon_add.gif" border="0"><input type="submit" value="'.__('Add').'"></td>
-          </tr>
-          </form>
-          ';
-      $result.='</tbody></table>';
+      $inputs=  wf_HiddenInput('addjobtype','true');
+      $inputs.= wf_TableCell('');
+      $inputs.= wf_TableCell(wf_TextInput('newjobtype', '', '', false, '30'));
+      $inputs.= wf_TableCell(wf_img('skins/icon_add.gif').' '.  wf_Submit(__('Create')));
+      $inputs= wf_TableRow($inputs, 'row2');
+      $createForm=  wf_Form("", 'POST', $inputs, '');
+      $rows.= $createForm;
+
+      $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+      
       show_window(__('Job types'),$result);
    }
 
-function stg_add_employee($name,$job) {
+function em_EmployeeAdd($name,$job,$mobile='') {
         $name=mysql_real_escape_string(trim($name));
         $job=mysql_real_escape_string(trim($job));
+        $mobile=  mysql_real_escape_string($mobile);
         $query="
             INSERT INTO `employee` (
                 `id` ,
                 `name` ,
                 `appointment`,
+                `mobile`,
                 `active`
                 )
                 VALUES (
-                NULL , '".$name."', '".$job."', '1'
+                NULL , '".$name."', '".$job."','".$mobile."' , '1'
                 );
                 ";
      nr_query($query);
-     stg_putlogevent('EMPLOYEE ADD '.$name.' JOB '.$job);
+     log_register('EMPLOYEE ADD `'.$name.'` JOB `'.$job.'`');
     }
-function stg_delete_employee($id) {
+    
+function em_EmployeeDelete($id) {
+     $id=vf($id,3);
      $query="DELETE from `employee` WHERE `id`=".$id;
      nr_query($query);
-     stg_putlogevent('EMPLOYEE DEL ['.$id.']');
+     log_register('EMPLOYEE DEL ['.$id.']');
     }
 
  function stg_add_jobtype($jobtype) {
@@ -536,22 +546,31 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_TaskCreateForm() {
+        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $alljobtypes= ts_GetAllJobtypes();
         $allemployee= ts_GetActiveEmployee();
+        //construct sms sending inputs
+        if ($altercfg['WATCHDOG_ENABLED']) {
+            $smsInputs=  wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        } else {
+            $smsInputs='';
+        }
+        
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=  wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', '', true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=ts_TaskTypicalNotesSelector();
-        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_tag('label').__('Job note').wf_tag('label',true).  wf_tag('br');
         $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=$smsInputs;
         $inputs.=wf_Submit(__('Create new task'));
         $result=  wf_Form("", 'POST', $inputs, 'glamour');
         $result.=__('All fields marked with an asterisk are mandatory');
@@ -559,22 +578,32 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_TaskCreateFormProfile($address,$mobile,$phone) {
+        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $alljobtypes= ts_GetAllJobtypes();
         $allemployee= ts_GetActiveEmployee();
+        
+          //construct sms sending inputs
+        if ($altercfg['WATCHDOG_ENABLED']) {
+            $smsInputs=  wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        } else {
+            $smsInputs='';
+        }
+        
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $mobile.' '.$phone, true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-        $inputs.='<br>';
-        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_tag('br');
+        $inputs.=wf_tag('label').__('Job note').wf_tag('label',true).  wf_tag('br');
         $inputs.=ts_TaskTypicalNotesSelector();
         $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=$smsInputs;
         $inputs.=wf_Submit(__('Create new task'));
         $result=  wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
         $result.=__('All fields marked with an asterisk are mandatory');
@@ -611,11 +640,35 @@ function ts_DetectUserByAddress($address) {
         $result.=wf_Link('?module=taskman&show=undone', __('Undone tasks'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&show=done', __('Done tasks'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&show=all', __('List all tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&lateshow=true', __('Show late'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&print=true', __('Tasks printing'), false, 'ubButton');
         return ($result);
     }
     
+    function ts_SendSMS($employeeid,$message) {
+        $query="SELECT `mobile` from `employee` WHERE `id`='".$employeeid."'";
+        $mobile=  simple_query($query);
+        $mobile=$mobile['mobile'];
+        if (!empty($mobile)) {
+          if (ispos($mobile, '+')) {
+        $message=  str_replace('\r\n', ' ', $message);
+        $message= zb_TranslitString($message);
+        $message=  trim($message);
+        
+        $number=trim($mobile);
+        $filename='content/tsms/ts_'.zb_rand_string(8);
+        $storedata='NUMBER="'.$number.'"'."\n";
+        $storedata.='MESSAGE="'.$message.'"'."\n";
+        file_put_contents($filename, $storedata);
+        log_register("TASKMAN SEND SMS `".$number."`");
+        } else {
+                throw new Exception('BAD_MOBILE_FORMAT');
+            }
+        }
+    }
     
      function ts_CreateTask($startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
+        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $curdate=curdatetime();
         $admin=  whoami();
         $address=  str_replace('\'', '`', $address);
@@ -624,6 +677,13 @@ function ts_DetectUserByAddress($address) {
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
         $jobnote=  mysql_real_escape_string($jobnote);
+        //store sms for backround processing via watchdog
+        if ($altercfg['WATCHDOG_ENABLED']) {
+            if (isset($_POST['newtasksendsms'])) {
+                $newSmsText=$address.' '.$phone.' '.$jobnote;
+                ts_SendSMS($employeeid, $newSmsText);
+            }
+        }
         
         $query="INSERT INTO `taskman` (
                             `id` ,
@@ -656,7 +716,7 @@ function ts_DetectUserByAddress($address) {
                                     '0'
                     );";
         nr_query($query);
-        log_register("TASKMAN CREATE ".$address);
+        log_register("TASKMAN CREATE `".$address."`");
     }
     
  function ts_GetTaskData($taskid) {
@@ -901,6 +961,132 @@ function ts_DetectUserByAddress($address) {
         
         return ($result);
     
+  }
+  
+  function ts_PrintDialogue() {
+      $inputs=  wf_DatePickerPreset('printdatefrom', curdate()).' '.__('From');
+      $inputs.= wf_DatePickerPreset('printdateto', curdate()).' '.__('To');
+      $inputs.= wf_Submit(__('Print'));
+      $result=  wf_Form("", 'POST', $inputs, 'glamour');
+      return ($result);
+  }
+  
+  function ts_PrintTasks($datefrom,$dateto) {
+      $datefrom=  mysql_real_escape_string($datefrom);
+      $dateto= mysql_real_escape_string($dateto);
+      $allemployee=  ts_GetAllEmployee();
+      $alljobtypes=  ts_GetAllJobtypes();
+      $result=  wf_tag('style');
+      $result.= '
+        table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	
+	font-size:9pt; 
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+        }
+        table.gridtable th {
+	border-width: 1px;
+	padding: 3px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+        }
+        table.gridtable td {
+	border-width: 1px;
+	padding: 3px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff; 
+        }
+        ';
+      $result.= wf_tag('style', true);
+      
+      $query="select * from `taskman` where `startdate` BETWEEN '".$datefrom." 00:00:00' AND '".$dateto." 23:59:59' AND `status`='0'";
+      $alltasks=  simple_queryall($query);
+      if (!empty($alltasks)) {
+          foreach ($alltasks as $io=>$each) {
+              $rows='';
+              $cells=   wf_TableCell(__('ID'));
+              $cells.=  wf_TableCell($each['id']);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Target date'));
+              $cells.=  wf_TableCell($each['startdate']);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Task address'));
+              $cells.=  wf_TableCell($each['address']);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Phone'));
+              $cells.=  wf_TableCell($each['phone']);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Job type'));
+              $cells.=  wf_TableCell(@$alljobtypes[$each['jobtype']]);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Who should do'));
+              $cells.=  wf_TableCell(@$allemployee[$each['employee']]);
+              $rows.=   wf_TableRow($cells);
+              
+              $cells=   wf_TableCell(__('Job note'));
+              $cells.=  wf_TableCell($each['jobnote']);
+              $rows.=   wf_TableRow($cells);
+              $tasktable= wf_TableBody($rows, '100%', '0','gridtable');
+              $result.= wf_tag('div', false, '', 'style="width: 300px; height: 250px; float: left; border: dashed; border-width:1px; margin:5px; page-break-inside: avoid;"');
+              $result.= $tasktable;
+              $result.= wf_tag('div', true);
+          }
+          $result.='<script language="javascript"> 
+                        window.print();
+                    </script>';
+          die($result);
+      }
+      
+      
+  }
+  
+  function ts_ShowLate() {
+        $allemployee=  ts_GetAllEmployee();
+        $alljobtypes= ts_GetAllJobtypes();
+        $curyear= curyear();
+        $curmonth= date("m");
+        $curdate=  curdate();
+        if ($curmonth!=1) {
+            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' AND `date`< '".$curdate."' ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+        }
+        
+        $cells=  wf_TableCell(__('Target date'));
+        $cells.= wf_TableCell(__('Task address'));
+        $cells.= wf_TableCell(__('Phone'));
+        $cells.= wf_TableCell(__('Job type'));
+        $cells.= wf_TableCell(__('Who should do'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows= wf_TableRow($cells, 'row1');
+        
+        
+        $all =  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $cells=  wf_TableCell($each['startdate']);
+                $cells.= wf_TableCell($each['address']);
+                $cells.= wf_TableCell($each['phone']);
+                $cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+                $cells.= wf_TableCell(@$allemployee[$each['employee']]);
+                $actions=  wf_Link('?module=taskman&edittask='.$each['id'], web_edit_icon(), false, '');
+                $cells.= wf_TableCell($actions);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+        
+        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        return ($result);
   }
 
 ?>

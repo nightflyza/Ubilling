@@ -165,6 +165,11 @@ function billing_edittariff($tariff, $options) {
     $Free = $options ['Free'];
     $PassiveCost = $options ['PassiveCost'];
     $TraffType = $options ['TraffType'];
+    if (isset($options['Period'])) {
+        $period=$options['Period'];
+    } else {
+        $period='';
+    }
 
     $dirs = getAllDirs();
 
@@ -173,6 +178,9 @@ function billing_edittariff($tariff, $options) {
     $string .= "<Free value=\"$Free\"/>";
     $string .= "<PassiveCost value=\"$PassiveCost\"/>";
     $string .= "<TraffType value=\"$TraffType\"/>";
+    if (!empty($period)) {
+    $string.=  "<period value=\"".$period."\"/>";    
+    }
 
     foreach ($dirs as $dir) {
 

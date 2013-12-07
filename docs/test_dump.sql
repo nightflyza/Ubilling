@@ -936,3 +936,28 @@ CREATE TABLE IF NOT EXISTS `watchdog` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
+-- 0.4.8 update
+
+CREATE TABLE IF NOT EXISTS `capab` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `phone` varchar(255) DEFAULT NULL,
+  `stateid` int(11) NOT NULL DEFAULT '0',
+  `notes` text,
+  `price` varchar(255) DEFAULT NULL,
+  `employeeid` int(11) DEFAULT NULL,
+  `donedate` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`),
+  KEY `state` (`stateid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `capabstates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `state` varchar(255) NOT NULL,
+  `color` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `employee` ADD `mobile` VARCHAR( 50 ) NULL DEFAULT NULL AFTER `appointment`;

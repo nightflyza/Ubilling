@@ -70,7 +70,22 @@ function zb_cfGetContent($login,$allcfdata) {
     return ($result);
 }
 
-
+/*
+ * fetch all real openids from database as virtualid=>login
+ * 
+ * @return array
+ */
+function zb_TemplateGetAllOPCustomers() {
+    $result=array();
+    $query="SELECT * from `op_customers`";
+    $all=simple_queryall($query);
+     if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['realid']]=$each['virtualid'];
+        }
+    }
+    return ($result);
+}
 
 /*
  *  return add data about current userbase
@@ -80,9 +95,10 @@ function zb_cfGetContent($login,$allcfdata) {
  */
 
 function zb_TemplateGetAllUserData() {
-      $alluserdata=zb_UserGetAllStargazerData();
-
+      $altcfg = rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+      
       $userdata=array();
+      $alluserdata=zb_UserGetAllStargazerData();
       $tariffspeeds=zb_TariffGetAllSpeeds();
       $tariffprices=zb_TariffGetPricesAll();
       $multinetdata=zb_MultinetGetAllData();
@@ -94,7 +110,10 @@ function zb_TemplateGetAllUserData() {
       $allnasdata=zb_NasGetAllData();
       $allcfdata=cf_FieldsGetAll();
       $allpdata=  zb_UserPassportDataGetAll();
-  
+      
+      if ($altcfg['OPENPAYZ_REALID']) {
+          $allopcustomers=zb_TemplateGetAllOPCustomers();
+          }
                   
       if (!empty ($alluserdata)) {
           foreach ($alluserdata as $io=>$eachuser) {
@@ -112,7 +131,12 @@ function zb_TemplateGetAllUserData() {
               @$userdata[$eachuser['login']]['realname']=$allrealnames[$eachuser['login']];
               @$userdata[$eachuser['login']]['address']=$alladdress[$eachuser['login']];
               @$userdata[$eachuser['login']]['email']=$allemails[$eachuser['login']];
-              @$userdata[$eachuser['login']]['payid']=ip2int($eachuser['IP']);
+              //openpayz payment ID
+              if ($altcfg['OPENPAYZ_REALID']) {
+                  @$userdata[$eachuser['login']]['payid']=$allopcustomers[$eachuser['login']];
+              } else {
+                  @$userdata[$eachuser['login']]['payid']=ip2int($eachuser['IP']);
+              }
               //traffic params
               $userdata[$eachuser['login']]['traffic']=$eachuser['D0']+$eachuser['U0'];
               $userdata[$eachuser['login']]['trafficdown']=$eachuser['D0'];

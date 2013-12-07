@@ -216,4 +216,3 @@ function getAllDirs() {
     return simple_queryall("SELECT * from `directions` ORDER BY `rulenumber`");
 }
 ?>
-

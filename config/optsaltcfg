@@ -75,6 +75,7 @@ STRICT_CONTRACTS_PROTECT=TRIGGER|Dont delete contracts with user
 STRICT_CONTRACTS_UNIQUE=TRIGGER|Check contracts unique
 MASSSEND_ENABLED=TRIGGER|Mass sender enabled
 MASSSEND_SAFE=TRIGGER|Mass sender use ticketing
+CAPABDIR_ENABLED=TRIGGER|Available connection capabilities
 STRICT_CREDIT_LIMIT=VARCHAR|Strict credit limit
 NOBACKUPTABLESLIKE=VARCHAR|Mask for tables to skip in backup
 RESETONCFCHANGE=TRIGGER|Reset users on custom field change
@@ -106,6 +107,8 @@ SETCASH_ONLY_ROOT=TRIGGER|Only users with root rights can use set cash option
 DSHAPER_ENABLED=TRIGGER|Dynamic shaper is enabled
 WATCHDOG_ENABLED=TRIGGER|Watchdog enabled
 AUTOFREEZE_CASH_LIMIT=VARCHAR|Autofreezing cash limit
+SCREP_ENABLED=TRIGGER|Self credit report
+
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

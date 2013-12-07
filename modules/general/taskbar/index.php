@@ -193,6 +193,7 @@ $ticketnotify.='<div class="ubButton">'.wf_modal(__('Dead switches').': '.$deadc
 
   show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
   
+  
 //refresh IM container with notify
 if ($altconf['TB_UBIM']) {
 if ($altconf['TB_UBIM_REFRESH']) {

@@ -1048,14 +1048,13 @@ function zb_NewMacShow() {
     $alter_conf=parse_ini_file(CONFIG_PATH.'alter.ini');
     $leases=$alter_conf['NMLEASES'];
     $leasemark=$alter_conf['NMLEASEMARK'];
-    $command=$sudo.' '.$cat.' '.$leases.' | '.$grep.' "'.$leasemark.'" | '.$tail.' -n 100';
+    $command=$sudo.' '.$cat.' '.$leases.' | '.$grep.' "'.$leasemark.'" | '.$tail.' -n 200';
     $rawdata=shell_exec($command);
-    $result='<table width="50%" class="sortable" >';
-    $result.='
-            <tr class="row1">
-                   <td>'.__('MAC').'</td>
-            </tr>
-             ';
+    $allusedMacs=  zb_getAllUsedMac();
+
+   $cells=  wf_TableCell(__('MAC'));
+   $rows = wf_TableRow($cells, 'row1');
+    
     if (!empty ($rawdata)) {
     $cleardata=exploderows($rawdata);
     foreach ($cleardata as $eachline) {
@@ -1067,18 +1066,16 @@ function zb_NewMacShow() {
         $un_arr=array_unique($allarp);
          if (!empty ($un_arr)) {
              foreach ($un_arr as $io => $eachmac) {
-                 if (multinet_mac_free($eachmac)) {
-                 $result.='
-                <tr class="row3">
-                <td>'.@$eachmac.'</td>
-                </tr>
-             ';
+                 if (zb_checkMacFree($eachmac,$allusedMacs)) {
+                 $cells=  wf_TableCell(@$eachmac);
+                 $rows.= wf_TableRow($cells, 'row3');
+               
                  }
              }
         
         }
       }
-    $result.='</table>';
+    $result=  wf_TableBody($rows,'50%', '0', 'sortable');
         
    return($result);
 }
@@ -1093,7 +1090,30 @@ function zb_NewMacShow() {
         return(true);
     }
    }
+
+//get all used MAC addresses from database
+   function zb_getAllUsedMac() {
+       $query="SELECT `ip`,`mac` from `nethosts`";
+       $all=  simple_queryall($query);
+       $result=array();
+       if (!empty($all)) {
+           foreach ($all as $io=>$each) {
+               $result[strtolower($each['mac'])]=$each['ip'];
+           }
+       }
+       return ($result);
+   }
    
+   
+//check is mac unused by full list
+   function zb_checkMacFree($mac,$allused) {
+       $mac=  strtolower($mac);
+        if (isset($allused[$mac])) {
+            return (false);
+        } else {
+            return (true);
+        }
+   }
    
 //check mac for valid format   
 function check_mac_format($mac) {

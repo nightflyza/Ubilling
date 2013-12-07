@@ -2,11 +2,14 @@
 if(cfr('USERPROFILE')) {
  if (isset ($_GET['username'])) {
         $login=vf($_GET['username']);
-        show_window(__('User profile'),web_ProfileShow($login));
+        if (!empty($login)) {
+            show_window(__('User profile'),web_ProfileShow($login));
+        } else {
+          throw new Exception ('GET_EMPTY_USERNAME');  
+        }
       } else {
-          deb('EXEPTION_GET_NO_USERNAME');
+          throw new Exception ('GET_NO_USERNAME');
       }
-        
 
 }
 ?>

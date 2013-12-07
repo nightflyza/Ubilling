@@ -1533,4 +1533,25 @@ $lang['def']['right to view autofreeze report'] = 'Право перегляду
 $lang['def']['Users without port assigned'] = 'Користувачі без присвоєного порта';
 $lang['def']['right to view report by users with no port assinged'] = 'Право переглядати звіт по користувачах без порта';
 $lang['def']['No location set'] = 'Не вказано місцезнаходження';
+
+//rev 3052
+$lang['def']['Tasks printing'] = 'Друк завдань';
+$lang['def']['Currently frozen'] = 'Зараз заморожені';
+$lang['def']['right to use connection capabilities directory'] = 'Право використовувати довідник можливостей підключень';
+$lang['def']['Was not processed'] = 'Не оброблено';
+$lang['def']['Available connection capabilities'] = 'Довідник можливостей підключень';
+$lang['def']['Modify states'] = 'Редагувати можливі стани';
+$lang['def']['New status'] = 'Новий стан';
+$lang['def']['New status color'] = 'Колір нового стану';
+$lang['def']['Create new states'] = 'Створити новий стан';
+$lang['def']['Available states'] = 'Існуючі стани';
+$lang['def']['Changed'] = 'Змінено';
+$lang['def']['Show late'] = 'Просрочені задачі';
+$lang['def']['Period'] = 'Періодичність';
+$lang['def']['month'] = 'місяць';
+$lang['def']['Send SMS'] = 'Послати SMS';
+$lang['def']['Self credit report'] = 'Звіт по послузі самокредитування';
+$lang['def']['right to view self credit report'] = 'Право переглядати звіт по самокредитуванню';
+$lang['def']['Self credit dynamic over the year'] = 'Динаміка користування самокредитуванням протягом року';
+
 ?>

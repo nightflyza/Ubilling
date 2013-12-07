@@ -3,12 +3,15 @@ if (cfr('REPORTAUTOFREEZE')) {
     
     class ReportAutoFreeze {
         
-        private $data =array();
+        private $data=array();
+        private $frozen=array();
         private $interval='';
         
         public function __construct($date='') {
             //load actual data
             $this->loadData($date);
+            //load currently frozen users
+            $this->loadFrozen();
             //sets default calendar position
             $this->interval=$date;
         }
@@ -49,6 +52,20 @@ if (cfr('REPORTAUTOFREEZE')) {
             }
         }
         
+        /*
+         * load currently frozen users into pvt frozen prop
+         * 
+         * @return void 
+         */
+        private function loadFrozen() {
+            $query="SELECT `login` from `users` WHERE `Passive`='1'";
+            $all=  simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io=>$each) {
+                    $this->frozen[$each['login']]=$each['login'];
+                }
+            }
+        }
         
         /*
          * returns private propert data
@@ -94,6 +111,16 @@ if (cfr('REPORTAUTOFREEZE')) {
         }
         
         /*
+         * renders currently frozen users private frozen prop
+         * 
+         * @return string
+         */
+        public function renderFrozen() {
+            $result=  web_UserArrayShower($this->frozen);
+            return ($result);
+        }
+        
+        /*
          * renders form for date selecting
          * 
          * @return string
@@ -102,9 +129,12 @@ if (cfr('REPORTAUTOFREEZE')) {
             $inputs= wf_DatePickerPreset('date',  $this->interval);
             $inputs.= __('By date').' ';
             $inputs.= wf_Submit(__('Show'));
-            $result=  wf_Form("", 'POST', $inputs, 'glamour');
+            $inputs.= '&nbsp;'.wf_Link("?module=report_autofreeze&showfrozen=true", __('Currently frozen'), false, 'ubButton');
+            $result=wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
         }
+        
+        
         
     }
     
@@ -112,8 +142,13 @@ if (cfr('REPORTAUTOFREEZE')) {
     
     $datePush= (wf_CheckPost(array('date'))) ? $dateSelector=$_POST['date'] :  $dateSelector='';
     $autoFreezeReport = new ReportAutoFreeze($dateSelector);
-    show_window('', $autoFreezeReport->dateForm());
-    show_window(__('Autofreeze report'),$autoFreezeReport->render());
+    if (!wf_CheckGet(array('showfrozen'))) {
+        show_window('', $autoFreezeReport->dateForm());
+        show_window(__('Autofreeze report'),$autoFreezeReport->render());
+    } else {
+        show_window('',  wf_Link('?module=report_autofreeze', __('Back'), false, 'ubButton'));
+        show_window(__('Currently frozen'), $autoFreezeReport->renderFrozen());
+    }
     
 } else {
       show_error(__('You cant control this module'));
