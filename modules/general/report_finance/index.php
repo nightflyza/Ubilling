@@ -24,12 +24,14 @@ if (cfr('REPORTFINANCE')) {
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payments by date').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payment search').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Analytics').  wf_tag('h3', true));
+      $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('ARPU').  wf_tag('h3', true));
       $controlrows=  wf_TableRow($controlcells);
       
       $controlcells=  wf_TableCell($yearform);
       $controlcells.=  wf_TableCell($dateform);
       $controlcells.=  wf_TableCell(wf_Link("?module=payfind", 'Find', false, 'ubButton'));
       $controlcells.=  wf_TableCell(wf_Link("?module=report_finance&analytics=true", 'Show', false, 'ubButton'));
+      $controlcells.=  wf_TableCell(wf_Link("?module=report_arpu", 'Show', false, 'ubButton'));
       $controlrows.=  wf_TableRow($controlcells);
       
       $controlgrid=  wf_TableBody($controlrows, '100%', 0, '');

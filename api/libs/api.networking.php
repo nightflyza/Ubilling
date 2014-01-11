@@ -919,7 +919,43 @@ function zb_TariffGetAllSpeeds() {
         $result=simple_query($query);
         return($result);
      }
+    /**
+      * Gets NAS'es IP-address, using id:
+      * 
+      * @param  integer $nasid  NAS'es id
+      * @return string  
+      */
+    function zb_NasGetIpById($nasid) {
+        $nasid = vf($nasid);
+        $query = "SELECT `nasip` FROM `nas` WHERE `id` = '" . $nasid . "'";
+        $result = simple_query($query);
+        return ($result['nasip']);
+     }
      
+     /**
+     * 
+     * Decodes and unserializes data from base64 encoding
+     * 
+     * @param   int     $nasid  NAS'es id to update options
+     * @param   array   $data   Options
+     * @return  array           Options
+     * 
+     */
+    function zb_NasOptionsGet($nasid) {
+        $result = array();
+        if ( !empty($nasid) ) {
+            $query  = "SELECT `options` FROM `nas` WHERE `id` = " . $nasid . ";";
+            $result = simple_queryall($query);
+            if ( !empty($result) ) {
+                foreach ( $result as $data ) {
+                    $decoded = base64_decode($data['options']);
+                    $result = unserialize($decoded);
+                }
+            }
+        }
+        return $result;
+    }
+    
      function zb_NasDelete($nasid) {
          $nasid=vf($nasid);
          $query="DELETE from `nas` WHERE `id`='".$nasid."'";
@@ -983,51 +1019,61 @@ function zb_TariffGetAllSpeeds() {
         return($result);        
     }
     
-      function zb_BandwidthdGetUrl($ip) {
-        $netid=zb_NetworkGetByIp($ip);
-        $nasid=zb_NasGetByNet($netid);
-        $nasdata=zb_NasGetData($nasid);
-        $bandwidthd_url=$nasdata['bandw'];
-        if (!empty ($bandwidthd_url)) {
-            return ($bandwidthd_url);
-        } else {
-            //no url or nas
-            return(false);
-        }
+    /**
+     * Gets the Bandwidthd URL by user's IP address from database
+     * 
+     * @param   str     $ip     User's IP address
+     * @return  str             Bandwidthd URL
+     */
+    function zb_BandwidthdGetUrl($ip) {
+        $netid      = zb_NetworkGetByIp($ip);
+        $nasid      = zb_NasGetByNet($netid);
+        $nasdata    = zb_NasGetData($nasid);
+        $bandwidthd_url = $nasdata['bandw'];
+        
+        if ( !empty($bandwidthd_url) ) {
+            return $bandwidthd_url;
+        } else return false;
     }
 
-    //gen some bandwidth links
+    /**
+     * Generates ghaph images links:
+     * 
+     * @param   str    $ip      User's IP address, for whitch links are generated
+     * @return  array           Graph links
+     */
     function zb_BandwidthdGenLinks($ip) {
-        $bandwidthd_url=zb_BandwidthdGetUrl($ip);
-        $netid=zb_NetworkGetByIp($ip);
-        $nasid=zb_NasGetByNet($netid);
-        $nasdata= zb_NasGetData($nasid);
-        $nastype=$nasdata['nastype'];
+        $bandwidthd_url = zb_BandwidthdGetUrl($ip);
+        $netid   = zb_NetworkGetByIp($ip);
+        $nasid   = zb_NasGetByNet($netid);
+        $nasdata = zb_NasGetData($nasid);
+        $nastype = $nasdata['nastype'];
         
-        //mikrotik graphs model
-        if (($nastype=='mtdirect') OR ($nastype=='mikrotik')) {
-        $alluserips= zb_UserGetAllIPs();
-        $alluserips=array_flip($alluserips);
-        
-        $urls['dayr']=$bandwidthd_url.'/'.$alluserips[$ip].'/daily.gif';
-        $urls['days']='';
-        $urls['weekr']=$bandwidthd_url.'/'.$alluserips[$ip].'/weekly.gif';
-        $urls['weeks']='';
-        $urls['monthr']=$bandwidthd_url.'/'.$alluserips[$ip].'/monthly.gif';
-        $urls['months']='';
-        $urls['yearr']=$bandwidthd_url.'/'.$alluserips[$ip].'/yearly.gif';
-        $urls['years']='';
+        // RouterOS graph model:
+        if ( $nastype == 'mikrotik' ) {
+            // Get user's IP array:
+            $alluserips = zb_UserGetAllIPs();
+            $alluserips = array_flip($alluserips);
             
+            // Generate graphs paths:
+            $urls['dayr']   = $bandwidthd_url . '/' . $alluserips[$ip] . '/daily.gif';
+            $urls['days']   = null;
+            $urls['weekr']  = $bandwidthd_url . '/' . $alluserips[$ip] . '/weekly.gif';
+            $urls['weeks']  = null;
+            $urls['monthr'] = $bandwidthd_url . '/' . $alluserips[$ip] . '/monthly.gif';
+            $urls['months'] = null;
+            $urls['yearr']  = $bandwidthd_url . '/' . $alluserips[$ip] . '/yearly.gif';
+            $urls['years']  = null;
         } else {
-        //default bandwidthd generated graphs
-        $urls['dayr']=$bandwidthd_url.'/'.$ip.'-1-R.png';
-        $urls['days']=$bandwidthd_url.'/'.$ip.'-1-S.png';
-        $urls['weekr']=$bandwidthd_url.'/'.$ip.'-2-R.png';
-        $urls['weeks']=$bandwidthd_url.'/'.$ip.'-2-S.png';
-        $urls['monthr']=$bandwidthd_url.'/'.$ip.'-3-R.png';
-        $urls['months']=$bandwidthd_url.'/'.$ip.'-3-S.png';
-        $urls['yearr']=$bandwidthd_url.'/'.$ip.'-4-R.png';
-        $urls['years']=$bandwidthd_url.'/'.$ip.'-4-S.png';
+            // Banwidthd graphs model:
+            $urls['dayr']   = $bandwidthd_url . '/' . $ip . '-1-R.png';
+            $urls['days']   = $bandwidthd_url . '/' . $ip . '-1-S.png';
+            $urls['weekr']  = $bandwidthd_url . '/' . $ip . '-2-R.png';
+            $urls['weeks']  = $bandwidthd_url . '/' . $ip . '-2-S.png';
+            $urls['monthr'] = $bandwidthd_url . '/' . $ip . '-3-R.png';
+            $urls['months'] = $bandwidthd_url . '/' . $ip . '-3-S.png';
+            $urls['yearr']  = $bandwidthd_url . '/' . $ip . '-4-R.png';
+            $urls['years']  = $bandwidthd_url . '/' . $ip . '-4-S.png';
         }
         
         return($urls);

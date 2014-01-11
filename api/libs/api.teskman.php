@@ -94,6 +94,7 @@ function em_EmployeeAdd($name,$job,$mobile='') {
                 NULL , '".$name."', '".$job."','".$mobile."' , '1'
                 );
                 ";
+
      nr_query($query);
      log_register('EMPLOYEE ADD `'.$name.'` JOB `'.$job.'`');
     }
@@ -361,7 +362,7 @@ function ts_DetectUserByAddress($address) {
         $alljobtypes= ts_GetAllJobtypes();
         $curyear=curyear();
         $curmonth=date("m");
-        if ($curmonth!=1) {
+        if (($curmonth!=1) AND ($curmonth!=12))  {
             $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
         } else {
             $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
@@ -411,7 +412,7 @@ function ts_DetectUserByAddress($address) {
         
         $curyear=curyear();
         $curmonth=date("m");
-        if ($curmonth!=1) {
+        if (($curmonth!=1) AND ($curmonth!=12))  {
             $query="SELECT * from `taskman` WHERE `status`='1' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
         } else {
             $query="SELECT * from `taskman` WHERE `status`='1' ORDER BY `date` ASC";
@@ -460,12 +461,12 @@ function ts_DetectUserByAddress($address) {
         $curyear=curyear();
         $curmonth=date("m");
         
-        if ($curmonth!=1) {
+        if (($curmonth!=1) AND ($curmonth!=12))  {
             $query="SELECT * from `taskman` WHERE `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
         } else {
             $query="SELECT * from `taskman` ORDER BY `date` ASC";
         }
-        
+     
         $allundone=  simple_queryall($query);
         $result='';
         $i=1;
@@ -1056,10 +1057,10 @@ function ts_DetectUserByAddress($address) {
         $curyear= curyear();
         $curmonth= date("m");
         $curdate=  curdate();
-        if ($curmonth!=1) {
-            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' AND `date`< '".$curdate."' ORDER BY `date` ASC";
+        if (($curmonth!=1) AND ($curmonth!=12))  {
+            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' AND `startdate`< '".$curdate."' ORDER BY `startdate` ASC";
         } else {
-            $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate`< '".$curdate."' ORDER BY `startdate` ASC";
         }
         
         $cells=  wf_TableCell(__('Target date'));

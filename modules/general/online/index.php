@@ -217,6 +217,30 @@ function stg_show_fulluserlist_hp() {
     $query="SELECT * from `users`";
     $query_fio="SELECT * from `realname`";
     $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+    if ($alter_conf['DN_ONLINE_DETECT']) {
+        $columnFilters='
+             null,
+                null,
+                { "sType": "ip-address" },
+                null,
+                null,
+                null,
+                { "sType": "file-size" },
+                null,
+                null
+            ';
+    } else {
+        $columnFilters='
+             null,
+                null,
+                { "sType": "ip-address" },
+                null,
+                null,
+                { "sType": "file-size" },
+                null,
+                null
+            ';
+    }
    $dtcode='
        		<script type="text/javascript" charset="utf-8">
                 
@@ -317,14 +341,7 @@ function stg_show_fulluserlist_hp() {
                         "sProcessing":   "'.__('Processing').'..."
 		},
             "aoColumns": [
-                null,
-                null,
-                { "sType": "ip-address" },
-                null,
-                null,
-                { "sType": "file-size" },
-                null,
-                null
+               '.$columnFilters.'
             ],      
         
                 
@@ -348,6 +365,12 @@ function stg_show_fulluserlist_hp() {
        '; 
    $result=$dtcode;
    $result.='<table width="100%" id="onlineusershp">';
+   //dn activity check
+   if ($alter_conf['DN_ONLINE_DETECT']) {
+       $onlineCells='<td>'.__('Users online').'</td>';
+   } else {
+       $onlineCells='';
+   }
    $result.='
   <thead>
   <tr class="row2">
@@ -356,6 +379,7 @@ function stg_show_fulluserlist_hp() {
   <td>'.__('IP').'</ip></td>
   <td>'.__('Tariff').'</td>
   <td>'.__('Active').'</td>
+  '.$onlineCells.'
   <td>'.__('Traffic').'</td>
   <td>'.__('Balance').'</td>
   <td>'.__('Credit').'</td>
@@ -434,7 +458,17 @@ function zb_AjaxOnlineDataSource() {
      if ($cash<'-'.$credit) {
      $act='<img src=skins/icon_inactive.gif>'.__('No');
      }
-      
+     
+     //online activity check
+     if ($alterconf['DN_ONLINE_DETECT']) {
+           $onlineFlag='"<img src=skins/icon_nostar.gif> '.__('No').'",';
+         if (file_exists(DATA_PATH.'dn/'.$eachuser['login'])) {
+           $onlineFlag='"<img src=skins/icon_star.gif> '.__('Yes').'",';  
+         }
+     } else {
+         $onlineFlag='';
+     }
+     
      if ($ucount<$totalusers) {
          $ending=',';
      } else {
@@ -462,6 +496,7 @@ function zb_AjaxOnlineDataSource() {
          "'.$eachuser['IP'].'",
          "'.$eachuser['Tariff'].'",
          "'.$act.'",
+         '.$onlineFlag.'    
          "'.zb_TraffToGb($tinet).'",
          "'.round($eachuser['Cash'],2).'",
          "'.round($eachuser['Credit'],2).'"
@@ -477,6 +512,7 @@ function zb_AjaxOnlineDataSource() {
                      "'.$eachuser['IP'].'",
                      "'.$eachuser['Tariff'].'",
                      "'.$act.'",
+                     '.$onlineFlag.'   
                      "'.zb_TraffToGb($tinet).'",
                      "'.round($eachuser['Cash'],2).'",
                      "'.round($eachuser['Credit'],2).'"

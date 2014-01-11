@@ -108,6 +108,10 @@ DSHAPER_ENABLED=TRIGGER|Dynamic shaper is enabled
 WATCHDOG_ENABLED=TRIGGER|Watchdog enabled
 AUTOFREEZE_CASH_LIMIT=VARCHAR|Autofreezing cash limit
 SCREP_ENABLED=TRIGGER|Self credit report
+COMPLEX_ENABLED=TRIGGER|Complex services enabled
+COMPLEX_MASKS=VARCHAR|Complex tariffs masks
+COMPLEX_CFIDS=VARCHAR|Complex tariffs flags CFIDS
+DN_FULLHOSTSCAN=TRIGGER|Store DN data while fullhostscan
 
 
 CHAPTER_OPAYZ=OpenPayz

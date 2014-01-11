@@ -11,7 +11,7 @@ class CapabilitiesDirectory {
      private $availids=array();
      
      const NO_ID = 'NO_SUCH_CAPABILITY_ID';
-     const PER_PAGE = 50;
+     const PER_PAGE = 100;
      const DEFAULT_ORDER ='ORDER BY `stateid` ASC';
      
      public function __construct() {

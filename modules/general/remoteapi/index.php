@@ -6,11 +6,6 @@ set_time_limit (0);
  * 
  * Format: /?module=remoteapi&key=[ubserial]&action=[action][&param=[parameter]]
  * 
- * Possible actions:
- * 
- * reset + param [login] - resets user
- * handlersrebuild - rebuild all network handlers
- *
  */
 
 
@@ -234,7 +229,49 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                                    
                                } 
                            }
+                           //saving scan data
                            file_put_contents('exports/nmaphostscan', $fullScanResult);
+                           
+                           //postprocessing DN data
+                           if ($alterconf['DN_FULLHOSTSCAN']) {
+                                $activeIps=array();
+                                    if (file_exists("exports/nmaphostscan")) {
+                                        $nmapData=  file_get_contents("exports/nmaphostscan");
+                                        $nmapData= explodeRows($nmapData);
+                                        if (!empty($nmapData)) {
+                                            foreach ($nmapData as $ic=>$eachnmaphost) {
+                                                $zhost=  zb_ExtractIpAddress($eachnmaphost);
+                                                if ($zhost) {
+                                                    $activeIps[$zhost]=$zhost;
+                                                }
+                                            }
+                                        }
+                                    }
+                           
+                               if (!empty($activeIps)) {
+                                   if (file_exists(DATA_PATH."dn")) {
+                                      //directory clanup
+                                      $oldDnData=  rcms_scandir(DATA_PATH."dn/");
+                                      if (!empty($oldDnData)) {
+                                          foreach ($oldDnData as $deleteFile) {
+                                              unlink(DATA_PATH."dn/".$deleteFile);
+                                          }
+                                      }
+                                      //store new DN data
+                                      $allUserIps=  zb_UserGetAllIPs();
+                                      $allUserIps=  array_flip($allUserIps);
+                                      foreach ($activeIps as $ix=>$aip) {
+                                          if (isset($allUserIps[$aip])) {
+                                              file_put_contents(DATA_PATH."dn/".$allUserIps[$aip], 'alive');
+                                          }
+                                      }
+                               } else {
+                                   die('FAIL:NO_CONTENT_DN_EXISTS');
+                               }
+                               }
+                                    
+                           }
+                           
                            die('OK:FULLHOSTSCAN');
                        }
                        

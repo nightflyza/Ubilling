@@ -1,16 +1,17 @@
 <?php
-    if (cfr('REPORTTRAFFIC')) {
+
+    if ( cfr('REPORTTRAFFIC') ) {
 
         function web_TstatsShow() {
-            $allclasses = zb_DirectionsGetAll();
-            $classtraff = array();
-            $traffCells = wf_TableCell(__('Traffic classes'), '20%');
-            $traffCells.= wf_TableCell(__('Traffic'), '20%');
-            $traffCells.= wf_TableCell(__('Traffic classes'));
-            $traffRows = wf_TableRow($traffCells, 'row1');
+            $allclasses  = zb_DirectionsGetAll();
+            $classtraff  = array();
+            $traffCells  = wf_TableCell(__('Traffic classes'), '20%');
+            $traffCells .= wf_TableCell(__('Traffic'), '20%');
+            $traffCells .= wf_TableCell(__('Traffic classes'));
+            $traffRows   = wf_TableRow($traffCells, 'row1');
 
-            if (!empty($allclasses)) {
-                foreach ($allclasses as $eachclass) {
+            if ( !empty($allclasses) ) {
+                foreach ( $allclasses as $eachclass ) {
                     $d_name = 'D' . $eachclass['rulenumber'];
                     $u_name = 'U' . $eachclass['rulenumber'];
                     $query_d = "SELECT SUM(`" . $d_name . "`) FROM `users`";
@@ -22,7 +23,7 @@
                     $classtraff[$eachclass['rulename']] = $classdown + $classup;
                 }
 
-                if ( ! empty($classtraff) ) {
+                if ( !empty($classtraff) ) {
                     $total = max($classtraff);
                     foreach ($classtraff as $name => $count) {
                         $traffCells = wf_TableCell($name);
@@ -37,82 +38,71 @@
         }
 
         function web_TstatsNas() {
-            // MAKE MySQL QUERY:
-            $query = 'SELECT * from `nas` WHERE `bandw` != "" GROUP by `bandw`';
-            $nasses = simple_queryall($query);
+            // Get NAS list with bandwidth setted up:
+            $query = 'SELECT * FROM `nas` WHERE `bandw` != "" GROUP by `bandw`';
+            $result = simple_queryall($query);
 
-            if ( ! empty($nasses)) {
-                
-                $graphRows = NULL;
-                
-                foreach ($nasses as $nas) {
-                    // GET BANDWIDTH URL:
+            // Check presence of any entry:
+            if ( !empty($result) ) {
+                $graphRows = null;
+
+                foreach ( $result as $nas ) {
                     $bwd = $nas['bandw'];
-                    
-                    switch ($nas['nastype']) {
+                    switch ( $nas['nastype'] ) {
                         case 'local':
                         case 'radius':
                         case 'rscriptd':
-                            // GRAPHS EXTENTION:
+                            // Extention:
                             $ext = '.png';
-
-                            // MODAL WINDOW SIZE:
-                            $width = 920;
-                            $height = 620;
-
-                            // GENERATE GRAPHS URLs:
-                            $d_day      = $bwd . 'Total-1-R' . $ext;
-                            $d_week     = $bwd . 'Total-2-R' . $ext;
-                            $d_month    = $bwd . 'Total-3-R' . $ext;
-                            $d_year     = $bwd . 'Total-4-R' . $ext;
-                            $u_day      = $bwd . 'Total-1-S' . $ext;
-                            $u_week     = $bwd . 'Total-2-S' . $ext;
-                            $u_month    = $bwd . 'Total-3-S' . $ext;
-                            $u_year     = $bwd . 'Total-4-S' . $ext;
-
-                            // GENERATE MODAL WINDOW CONTENT:
-                            $daygraph   = __('Downloaded') . wf_img($d_day) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_day);
-                            $weekgraph  = __('Downloaded') . wf_img($d_week) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_week);
+                            
+                            // Links:
+                            $d_day   = $bwd . 'Total-1-R' . $ext;
+                            $d_week  = $bwd . 'Total-2-R' . $ext;
+                            $d_month = $bwd . 'Total-3-R' . $ext;
+                            $d_year  = $bwd . 'Total-4-R' . $ext;
+                            $u_day   = $bwd . 'Total-1-S' . $ext;
+                            $u_week  = $bwd . 'Total-2-S' . $ext;
+                            $u_month = $bwd . 'Total-3-S' . $ext;
+                            $u_year  = $bwd . 'Total-4-S' . $ext;
+                            
+                            // Modals:
+                            $width      = 920;
+                            $height     = 620;
+                            $daygraph   = __('Downloaded') . wf_img($d_day)   . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_day);
+                            $weekgraph  = __('Downloaded') . wf_img($d_week)  . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_week);
                             $monthgraph = __('Downloaded') . wf_img($d_month) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_month);
-                            $yeargraph  = __('Downloaded') . wf_img($d_year) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_year);
+                            $yeargraph  = __('Downloaded') . wf_img($d_year)  . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_year);
                             break;
                         case 'mikrotik':
-                            // INTERFACE TO SHOW GRAPH:
-                            $iface = NULL;
-                            $nasOptions = zb_mikrotikExtConfGetOptions($nas['id']);
+                            $options = zb_NasOptionsGet($nas['id']);
+                            if ( !empty($options['graph_interface']) ) {
+                                // Extention:
+                                $ext = '.gif';
 
-                            if ( ! empty($nasOptions['graph_interface']) ) {
-                                $iface = $nasOptions['graph_interface'];
-                            } else show_window(__('Error'),__('For NAS').' `'.$nas['nasname'].'` '.__('was not set correct graph interface'));
+                                // Links:
+                                $daily   = $bwd . '/../iface/' . $options['graph_interface'] . '/daily'   . $ext;
+                                $weekly  = $bwd . '/../iface/' . $options['graph_interface'] . '/weekly'  . $ext;
+                                $monthly = $bwd . '/../iface/' . $options['graph_interface'] . '/monthly' . $ext;
+                                $yearly  = $bwd . '/../iface/' . $options['graph_interface'] . '/yearly'  . $ext;
 
-                            // GRAPHS EXTENTION:
-                            $ext = '.gif';
-
-                            // MODAL WINDOW SIZE:
-                            $width = 530;
-                            $height = 230;
-
-                            // GENERATE GRAPHS URLs:
-                            $daily      = $bwd . '/../iface/' . $iface . '/daily' . $ext;
-                            $weekly     = $bwd . '/../iface/' . $iface . '/weekly' . $ext;
-                            $monthly    = $bwd . '/../iface/' . $iface . '/monthly' . $ext;
-                            $yearly     = $bwd . '/../iface/' . $iface . '/yearly' . $ext;
-
-                            // GENERATE MODAL WINDOW CONTENT:
-                            $daygraph   = wf_img($daily);
-                            $weekgraph  = wf_img($weekly);
-                            $monthgraph = wf_img($monthly);
-                            $yeargraph  = wf_img($yearly);
-                            break;
+                                // Modals:
+                                $width      = 530;
+                                $height     = 230;
+                                $daygraph   = wf_img($daily);
+                                $weekgraph  = wf_img($weekly);
+                                $monthgraph = wf_img($monthly);
+                                $yeargraph  = wf_img($yearly);
+                                break;
+                            } else show_window(__('Error'), __('For NAS') . ' `' . $nas['nasname'] . '` ' . __('was not set correct graph interface'));
                     }
 
-                    // GENERATE BUTTONS OPENING MODAL WINDOW:
-                    $gday   = wf_modal(__('Graph by day'), __('Graph by day'), $daygraph, '', $width, $height);
-                    $gweek  = wf_modal(__('Graph by week'), __('Graph by week'), $weekgraph, '', $width, $height);
+                    // Buttons:
+                    $gday   = wf_modal(__('Graph by day'),   __('Graph by day'),   $daygraph,   '', $width, $height);
+                    $gweek  = wf_modal(__('Graph by week'),  __('Graph by week'),  $weekgraph,  '', $width, $height);
                     $gmonth = wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph, '', $width, $height);
-                    $gyear  = wf_modal(__('Graph by year'), __('Graph by year'), $yeargraph, '', $width, $height);
+                    $gyear  = wf_modal(__('Graph by year'),  __('Graph by year'),  $yeargraph,  '', $width, $height);
 
-                    // PLACE BUTTONS TO HTML TABLE:
+                    // Put buttons to table row:
                     $graphCells  = wf_TableCell($nas['nasname'], '', 'row2');
                     $graphCells .= wf_TableCell($gday);
                     $graphCells .= wf_TableCell($gweek);
@@ -129,6 +119,4 @@
 
         web_TstatsShow();
         web_TstatsNas();
-
     } else show_error(__('You cant control this module'));
-?>

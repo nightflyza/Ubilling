@@ -29,6 +29,21 @@ if(cfr('DHCP')) {
        show_window(__('Generated configs preview'),$previews);
        }
    }
+   
+   function dhcp_show_templates() {
+       $allTemplates=  rcms_scandir(CONFIG_PATH.'dhcp/');
+       $result='';
+       if (!empty($allTemplates)) {
+           foreach ($allTemplates as $each) {
+               $templateData=  file_get_contents(CONFIG_PATH.'dhcp/'.$each);
+               $templateData= nl2br($templateData);
+               $result.= wf_modal($each, $each, $templateData, 'ubButton', 800, 600);
+           }
+       } else {
+           $result=__('Nothing found');
+       }
+       show_window(__('Global templates'),$result);
+   }
     
     if (isset($_GET['edit'])) {
         //if someone changes network
@@ -53,6 +68,7 @@ if(cfr('DHCP')) {
 
     dhcp_show_available_nets();
     dhcp_show_add_form();
+    dhcp_show_templates();
     dhcp_show_previews();
 
 }

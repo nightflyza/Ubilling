@@ -56,21 +56,22 @@ function zb_UserGetAllRealnames() {
     }
     return($fioz);
 }
-
-
-
+/**
+ * Selects all users' IP addresses from database
+ * 
+ * @return  array   The array of users' IP addresses
+ */
 function zb_UserGetAllIPs() {
-    $query="SELECT `login`,`IP` from `users`";
-    $allips=simple_queryall($query);
-    $ips=array();
-    if (!empty ($allips)) {
-        foreach ($allips as $ia=>$eachip) {
-            $ips[$eachip['login']]=$eachip['IP'];
-          }
+    $query  = "SELECT `login`,`IP` from `users`";
+    $result = simple_queryall($query);
+    $ips    = array();
+    if ( !empty ($result) ) {
+        foreach ( $result as $ip ) {
+            $ips[$ip['login']] = $ip['IP'];
+        }
     }
-    return($ips);
+    return $ips;
 }
-
 
 function zb_UserGetAllIpMACs() {
     $query="SELECT `ip`,`mac` from `nethosts`";

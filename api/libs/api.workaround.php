@@ -2156,137 +2156,137 @@ function web_BackupForm() {
          $form.='</form>';
          
          return($form);
-     }
-     
-     function web_UserTraffStats($login) {
-       $login=vf($login);
-       $alldirs=zb_DirectionsGetAll();
-       /*
-        * Current month traffic stats
-        */
-      
-       $cells= wf_TableCell(__('Traffic classes'));
-       $cells.=wf_TableCell(__('Downloaded'));
-       $cells.=wf_TableCell(__('Uploaded'));
-       $cells.=wf_TableCell(__('Total'));
-       $rows=  wf_TableRow($cells, 'row1');
-       
-            if (!empty ($alldirs)) {
-                foreach ($alldirs as $io=>$eachdir) {
-                   $query_downup="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."` from `users` WHERE `login`='".$login."'";
-                   $downup=simple_query($query_downup);
-                   $cells= wf_TableCell($eachdir['rulename']);
-                   $cells.=wf_TableCell(stg_convert_size($downup['D'.$eachdir['rulenumber']]), '', '',  'sorttable_customkey="'.$downup['D'.$eachdir['rulenumber']].'"');
-                   $cells.=wf_TableCell(stg_convert_size($downup['U'.$eachdir['rulenumber']]), '', '',  'sorttable_customkey="'.$downup['U'.$eachdir['rulenumber']].'"');
-                   $cells.=wf_TableCell(stg_convert_size(($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']])), '', '',  'sorttable_customkey="'.($downup['U'.$eachdir['rulenumber']]+$downup['D'.$eachdir['rulenumber']]).'"');
-                   $rows.=  wf_TableRow($cells, 'row3');
-                }
+    }
+    
+    /**
+     * Generates user's traffic statistic module content
+     * 
+     * @param   str     $login  User's login, for whitch generate module content
+     * @return  str             Module content
+     */
+    function web_UserTraffStats($login) {
+        $login  = vf($login);
+        $dirs   = zb_DirectionsGetAll();
+        
+        // Current month traffic stats:
+        $cells  = wf_TableCell(__('Traffic classes'));
+        $cells .= wf_TableCell(__('Downloaded'));
+        $cells .= wf_TableCell(__('Uploaded'));
+        $cells .= wf_TableCell(__('Total'));
+        $rows   = wf_TableRow($cells, 'row1');
+
+        if ( !empty($dirs) ) {
+            foreach ( $dirs as $dir ) {
+                $query_downup = "SELECT `D" . $dir['rulenumber'] . "`,`U" . $dir['rulenumber'] . "` FROM `users` WHERE `login` = '" . $login . "'";
+                $downup = simple_query($query_downup);
+                $cells  = wf_TableCell($dir['rulename']);
+                $cells .=wf_TableCell(stg_convert_size($downup['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['D' . $dir['rulenumber']] . '"');
+                $cells .=wf_TableCell(stg_convert_size($downup['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $downup['U' . $dir['rulenumber']] . '"');
+                $cells .=wf_TableCell(stg_convert_size(($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($downup['U' . $dir['rulenumber']] + $downup['D' . $dir['rulenumber']]) . '"');
+                $rows  .= wf_TableRow($cells, 'row3');
+            }
+        }
+
+        $result  = wf_tag('h3') . __('Current month traffic stats') . wf_tag('h3', true);
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+        // End of current month traffic stats
+        
+        // Per-user graphs buttons:
+        $ip         = zb_UserGetIP($login);
+        $bandwidthd = zb_BandwidthdGetUrl($ip);
+        
+        if ( !empty($bandwidthd) ) {
+            $bwd = zb_BandwidthdGenLinks($ip);
+
+            // Dayly graph button:
+            $daybw = wf_img($bwd['dayr'], __('Downloaded'));
+            if ( !empty($bwd['days']) ) {
+                $daybw .= wf_delimiter() . wf_img($bwd['days'], __('Uploaded'));
             }
 
-       $result=  wf_tag('h3').__('Current month traffic stats').wf_tag('h3',true);
-       $result.=  wf_TableBody($rows, '100%', '0', 'sortable');
-       /*
-        * Some per-user graphs
-        */
-       $ip=zb_UserGetIP($login);
-       $bandwidthd=zb_BandwidthdGetUrl($ip);
-       if ($bandwidthd) {
-           $bwd=zb_BandwidthdGenLinks($ip);
-           
-          //day graph
-          $daybw=wf_img($bwd['dayr'], __('Downloaded'));
-          if (!empty($bwd['days'])) {
-             $daybw.=wf_delimiter().wf_img($bwd['days'], __('Uploaded'));
-          }
-          
-          //week graph
-          $weekbw=wf_img($bwd['weekr'], __('Downloaded'));
-          if (!empty($bwd['weeks'])) {
-             $weekbw.=wf_delimiter().wf_img($bwd['weeks'], __('Uploaded'));
-          }
-          
-          //month graph
-          $monthbw=wf_img($bwd['monthr'], __('Downloaded'));
-          if (!empty($bwd['months'])) {
-             $monthbw.=wf_delimiter().wf_img($bwd['months'], __('Uploaded'));
-          }
-          
-          //year graph
-          $yearbw=wf_img($bwd['yearr'], __('Downloaded'));
-          if (!empty($bwd['years'])) {
-             $yearbw.=wf_delimiter().wf_img($bwd['years'], __('Uploaded'));
-          }
-          
-          //modal window sizes
-          if (!empty($bwd['days'])) {
-              $modal_w= 920;
-	      $modal_h = 600;
-          } else {
-              $modal_w= 530;
-	      $modal_h = 230;
-          }
-          
-          $result.=wf_delimiter();
-          $result.=wf_tag('h3').__('Graphs').  wf_tag('h3',true);
-                
-          $bwcells= wf_TableCell(wf_modal(__('Graph by day'), __('Graph by day'), $daybw, 'ubButton', $modal_w, $modal_h));
-          $bwcells.=wf_TableCell(wf_modal(__('Graph by week'), __('Graph by week'), $weekbw, 'ubButton', $modal_w, $modal_h));
-          $bwcells.=wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', $modal_w, $modal_h));
-          $bwcells.=wf_TableCell(wf_modal(__('Graph by year'), __('Graph by year'), $yearbw, 'ubButton', $modal_w, $modal_h));
-          $bwrows=  wf_TableRow($bwcells);
-          //adding graphs to result
-          $result.=wf_TableBody($bwrows, '', '0', '');
-          $result.=wf_delimiter();
+            // Weekly graph button:
+            $weekbw = wf_img($bwd['weekr'], __('Downloaded'));
+            if ( !empty($bwd['weeks']) ) {
+                $weekbw .= wf_delimiter() . wf_img($bwd['weeks'], __('Uploaded'));
+            }
 
+            // Monthly graph button:
+            $monthbw = wf_img($bwd['monthr'], __('Downloaded'));
+            if ( !empty($bwd['months']) ) {
+                $monthbw .= wf_delimiter() . wf_img($bwd['months'], __('Uploaded'));
+            }
 
-               
-       } else {
-           $result.=__('No user graphs because no NAS with bandwidthd for his network');
-       }
-       
-       
-       /*
-        * traffic stats by previous months
-        */
-     $monthNames=months_array_wz();
-     $result.=wf_tag('h3').__('Previous month traffic stats').wf_tag('h3', true);
-     
-     $cells=  wf_TableCell(__('Year'));
-     $cells.= wf_TableCell(__('Month'));
-     $cells.= wf_TableCell(__('Traffic classes'));
-     $cells.= wf_TableCell(__('Downloaded'));
-     $cells.= wf_TableCell(__('Uploaded'));
-     $cells.= wf_TableCell(__('Total'));
-     $cells.= wf_TableCell(__('Cash'));
-     $rows=  wf_TableRow($cells, 'row1');
+            // Yearly graph button:
+            $yearbw = wf_img($bwd['yearr'], __('Downloaded'));
+            if ( !empty($bwd['years']) ) {
+                $yearbw .= wf_delimiter() . wf_img($bwd['years'], __('Uploaded'));
+            }
 
-       if (!empty ($alldirs)) {
-           foreach ($alldirs as $io=>$eachdir) {
-               $query_prev="SELECT `D".$eachdir['rulenumber']."`,`U".$eachdir['rulenumber']."`,`month`,`year`,`cash` from `stat` WHERE `login`='".$login."' ORDER BY `year`,`month`";
-               $allprevmonth=simple_queryall($query_prev);
-                if (!empty ($allprevmonth)) {
-                   foreach ($allprevmonth as $io2=>$eachprevmonth) {
-                     $cells=  wf_TableCell($eachprevmonth['year']);
-                     $cells.= wf_TableCell(rcms_date_localise($monthNames[$eachprevmonth['month']]));
-                     $cells.= wf_TableCell($eachdir['rulename']);
-                     $cells.= wf_TableCell(stg_convert_size($eachprevmonth['D'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['D'.$eachdir['rulenumber']].'"');
-                     $cells.= wf_TableCell(stg_convert_size($eachprevmonth['U'.$eachdir['rulenumber']]), '', '', 'sorttable_customkey="'.$eachprevmonth['U'.$eachdir['rulenumber']].'"');
-                     $cells.= wf_TableCell(stg_convert_size(($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']])), '', '', 'sorttable_customkey="'.($eachprevmonth['U'.$eachdir['rulenumber']]+$eachprevmonth['D'.$eachdir['rulenumber']]).'"');
-                     $cells.= wf_TableCell(round($eachprevmonth['cash'],2));
-                     $rows.=  wf_TableRow($cells, 'row3');
+            // Modal window sizes:
+            if ( !empty($bwd['days']) ) {
+                $width  = 920;
+                $heidht = 600;
+            } else {
+                $width  = 530;
+                $heidht = 230;
+            }
 
-                   }
-               }
-           }
-       }
+            $result .= wf_delimiter();
+            $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
-       $result.=wf_TableBody($rows, '100%', '0', 'sortable');
-       
-       return($result);
-   }
-    
-   
-    function zb_TariffGetCount() {
+            $bwcells  = wf_TableCell(wf_modal(__('Graph by day'),   __('Graph by day'),   $daybw,   'ubButton', $width, $heidht));
+            $bwcells .= wf_TableCell(wf_modal(__('Graph by week'),  __('Graph by week'),  $weekbw,  'ubButton', $width, $heidht));
+            $bwcells .= wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', $width, $heidht));
+            $bwcells .= wf_TableCell(wf_modal(__('Graph by year'),  __('Graph by year'),  $yearbw,  'ubButton', $width, $heidht));
+            $bwrows   = wf_TableRow($bwcells);
+            
+            // Adding graphs buttons to result:
+            $result .= wf_TableBody($bwrows, '', '0', '');
+            $result .= wf_delimiter();
+        } else $result .= __('No user graphs because no NAS with bandwidthd for his network');
+        // End of per-user graphs buttons
+        
+        // Traffic statistic by previous months:
+        $monthNames  = months_array_wz();
+        $result     .= wf_tag('h3') . __('Previous month traffic stats') . wf_tag('h3', true);
+
+        $cells  = wf_TableCell(__('Year'));
+        $cells .= wf_TableCell(__('Month'));
+        $cells .= wf_TableCell(__('Traffic classes'));
+        $cells .= wf_TableCell(__('Downloaded'));
+        $cells .= wf_TableCell(__('Uploaded'));
+        $cells .= wf_TableCell(__('Total'));
+        $cells .= wf_TableCell(__('Cash'));
+        $rows   = wf_TableRow($cells, 'row1');
+
+        if ( !empty($dirs) ) {
+            foreach ( $dirs as $dir ) {
+                $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`, `month`";
+                $prevmonths = simple_queryall($query_prev);
+                if ( !empty($prevmonths) ) {
+                    foreach ( $prevmonths as $prevmonth ) {
+                        $cells  = wf_TableCell($prevmonth['year']);
+                        $cells .= wf_TableCell(rcms_date_localise($monthNames[$prevmonth['month']]));
+                        $cells .= wf_TableCell($dir['rulename']);
+                        $cells .= wf_TableCell(stg_convert_size($prevmonth['D' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['D' . $dir['rulenumber']] . '"');
+                        $cells .= wf_TableCell(stg_convert_size($prevmonth['U' . $dir['rulenumber']]), '', '', 'sorttable_customkey="' . $prevmonth['U' . $dir['rulenumber']] . '"');
+                        $cells .= wf_TableCell(stg_convert_size(($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']])), '', '', 'sorttable_customkey="' . ($prevmonth['U' . $dir['rulenumber']] + $prevmonth['D' . $dir['rulenumber']]) . '"');
+                        $cells .= wf_TableCell(round($prevmonth['cash'], 2));
+                        $rows  .= wf_TableRow($cells, 'row3');
+                    }
+                }
+            }
+        }
+        // End of traffic statistic by previous months
+        
+        // Generate table:
+        $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+
+        // Return result:
+        return $result;
+    }
+
+function zb_TariffGetCount() {
         $alltariffs=zb_TariffsGetAll();
         $result=array();
         if (!empty ($alltariffs)) {
@@ -2361,17 +2361,18 @@ function web_BackupForm() {
         
         if (!empty ($tariffcount)) {
             $maxusers=0;
+           
             foreach ($tariffcount as $io=>$eachtcount) {
                 $maxArr[$io]=$eachtcount['alive']+$eachtcount['dead'];
             }
-            $maxusers=max($maxArr);
-            
+            $maxusers=array_sum($maxArr);
+        
             foreach ($tariffcount as $eachtariffname=>$eachtariffcount) {
                 $totalusers=$totalusers+$eachtariffcount['alive']+$eachtariffcount['dead'];
 
                 $cells=   wf_TableCell($eachtariffname);
                 $cells.=  wf_TableCell($eachtariffcount['alive']+$eachtariffcount['dead']);
-                $cells.=  wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
+                $cells.=  wf_TableCell(web_bar(($eachtariffcount['alive']+$eachtariffcount['dead']), $maxusers),'','','sorttable_customkey="'.($eachtariffcount['alive']+$eachtariffcount['dead']).'"');
                 $cells.=  wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
                 $rows.= wf_TableRow($cells,'row3');
             }
@@ -3311,45 +3312,25 @@ function zb_TranslitString($string) {
 		"є"=>"e","Є"=>"e"
 	);
 	return $str=iconv("UTF-8","UTF-8//IGNORE",strtr($string,$replace));
-}
+	}
 
-    /*
-     * Returns unserialized `nas`.`options` field
+    /**
      * 
-     * @param $nasid `id` of NAS
-     * @return array
-     */
-    function zb_mikrotikExtConfGetOptions($nasid) {
-        $return = array();
-        if ( ! empty($nasid) ) {
-            $query  = "SELECT `options` FROM `nas` WHERE `id` = " . $nasid . ";";
-            $result = simple_queryall($query);
-            if ( ! empty($result) ) {
-                foreach ($result as $data) {
-                    $return = unserialize(base64_decode($data['options']));
-                }
-            }
-        }
-        return $return;
-    }
-	
-    /*
      * Rounds $value to $precision digits
      * 
-     * @param $value digit to round
-     * @param $precision amount of digits after point
-     * @return string
+     * @param   $value      Integer which to round
+     * @param   $precision  Amount of digits after point
+     * @return  float
+     * 
      */
-    function web_roundValue($value, $precision = 0) {
-        if     ( $precision < 0 ) $precision = 0;
-        elseif ( $precision > 4 ) $precision = 4;
+    function web_roundValue($value, $precision = 2) {
+        $precision = ( $precision < 0 ) ? 0 : $precision;
         $multiplier = pow(10, $precision);
-        return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
+        $rounded = (($value >= 0) ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
+        return $rounded;
     }
     
-    
-      
-      function zb_AnalyticsSignupsGetCountYear($year) {
+    function zb_AnalyticsSignupsGetCountYear($year) {
         $months=months_array();
         $result=array();
         foreach ($months as $eachmonth=>$monthname) { 
@@ -3518,5 +3499,3 @@ function zb_CheckDbSchema() {
     }
     return ($result);
 }
-
-?>

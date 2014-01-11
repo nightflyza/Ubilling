@@ -1348,22 +1348,33 @@ $lang['def']['Current FDB cache']='Текущий кеш FDB';
 // MikroTik NAS Select:
 $lang['def']['Select NAS'] = 'Выберите сервер доступа';
 
-// Module: MikroTik Extended Configuration
+/*
+ * 
+ * MODULE - Extended configuration of MikroTik:
+ *
+ */
 $lang['def']['MikroTik extended configuration'] = 'Расширенная настройка MikroTik';
 $lang['def']['No NAS was selected to add options!'] = 'Не указан сервер доступа для которого необходимо указать опции!';
-$lang['def']['You can add options for MikroTik NAS only!'] = 'Вы можете устанавливать опции только для серверов доступа MikroTik!';
+// Block 1: Authorization Data
 $lang['def']['Authorization Data'] = 'Параметры авторизации';
+$lang['def']['username'] = 'Имя пользователя';
+$lang['def']['password'] = 'Пароль';
+// Block 2: Interface settings
 $lang['def']['Interface settings'] = 'Настройка интерфейсов';
-$lang['def']['Graph Interface'] = 'Интерфейс графика';
-$lang['def']['Users Interface'] = 'Интерфейс пользователей';
-$lang['def']['Setting OnConnect/OnDisconnect scripts behavior for this NAS'] = 'Устанока поведения скриптов OnConnect/OnDisconnect для NAS';
-$lang['def']['Manage FireWall'] = 'Управлять FireWall-ом';
-$lang['def']['Manage ARP'] = 'Управлять ARP-таблицей';
-$lang['def']['Manage Queue'] = 'Управлять очередями';
-$lang['def']['Manage DHCP'] = 'Управлять DHCP';
-$lang['def']['Manage PPP'] = 'Управлять PPP';
-$lang['def']['MikroTik General Information'] = ' Общая инфорация о состоянии MikroTik`a';
+$lang['def']['graph interface'] = 'Интерфейс графика';
+$lang['def']['users interface'] = 'Интерфейс пользователей';
+// Block 3: Setting On* scripts behavior for this NAS
+$lang['def']['Setting On* scripts behavior for this NAS'] = 'Устанока поведения скриптов On* для NAS';
+$lang['def']['manage firewall'] = 'Управлять фаерволом';
+$lang['def']['manage arp'] = 'Управлять ARP-таблицей';
+$lang['def']['manage queue'] = 'Управлять очередями';
+$lang['def']['manage dhcp'] = 'Управлять DHCP';
+$lang['def']['manage ppp'] = 'Управлять PPP';
+// Block 4: MikroTik General Information
+$lang['def']['MikroTik General Information'] = 'Общая инфорация о состоянии MikroTik`a';
 $lang['def']['uptime'] = 'Аптайм';
+$lang['def']['w'] = 'нед.';
+$lang['def']['d'] = 'д.';
 $lang['def']['version'] = 'Версия RouterOS';
 $lang['def']['build-time'] = 'Время сборки';
 $lang['def']['free-memory'] = 'Свободно опер. памяти';
@@ -1380,10 +1391,6 @@ $lang['def']['bad-blocks'] = 'Плохих секторов';
 $lang['def']['architecture-name'] = 'Архитектура';
 $lang['def']['board-name'] = 'Название платы';
 $lang['def']['platform'] = 'Платформа';
-$lang['def']['y'] = 'г.';
-$lang['def']['m'] = 'мес.';
-$lang['def']['w'] = 'нед.';
-$lang['def']['d'] = 'д.';
 
 //rev 2681
 $lang['def']['It looks like this MAC addresses has duplicate on the network']='Выглядит так, как будто у этого MAC адреса имеются дубликаты в сети';
@@ -1542,6 +1549,27 @@ $lang['def']['Self credit report'] = 'Отчет по услуге кредит�
 $lang['def']['right to view self credit report'] = 'Право просматривать отчет по услуге кредитования';
 $lang['def']['Self credit dynamic over the year'] = 'Динамика услуги кредитования в разрезе года';
 
+//rev 3120 
+$lang['def']['Service active']='Услуга предоставляется';
+$lang['def']['AntiDebtors']='АнтиДолжники';
+$lang['def']['Users with complex services'] = 'Пользователи с комплексной услугой';
+$lang['def']['All users with complex services'] = 'Все пользователи с комплексной услугой';
+$lang['def']['Debtors who need disabling additional service'] = 'Должники для которых требуется отключение дополнительной услуги';
+$lang['def']['AntiDebtors who need enabling additional service'] = 'АнтиДолжники для которых требуется включение дополнительной услуги';
+$lang['def']['right to view complex services report'] = 'Право просматривать отчет по комплексным услугам';
+$lang['def']['Complex service next month'] = 'Комплексная услуга со следующего месяца';
+$lang['def']['Complex services enabled'] = 'Комплексные тарифы включены';
+$lang['def']['Complex tariffs masks'] = 'Маска имен таривов с комплексной услугой';
+$lang['def']['Complex tariffs flags CFIDS'] = 'ID доп. полей профиля комплексных услуг';
+$lang['def']['Global templates'] = 'Глобальные шаблоны';
+$lang['def']['Grid view'] = 'В виде таблички';
+$lang['def']['Store DN data while fullhostscan'] = 'Сохранять DN данные в процесе fullhostscan';
+$lang['def']['No payments found'] = 'Не найдено платежей';
+$lang['def']['Undefined tariff lines'] = 'Не объявлены линейки тарифов';
+$lang['def']['Tariff line'] = 'Линейка тарифов';
+$lang['def']['Tariff lines ARPU report'] = 'Отчет по АРПУ';
+$lang['def']['Tariff lines masks, comma separated'] = 'Маски линеек тарифов, разделитель - запятая';
+$lang['def']['ARPU report'] = 'Отчет по ARPU';
 
 
 ?>

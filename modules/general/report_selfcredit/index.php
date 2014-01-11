@@ -7,10 +7,20 @@ if (cfr('SCREPORT')) {
         private $data = array();
         private $chartdata = '';
         private $tabledata='';
+        private $curyear=0;
+        private $yearsumm=0;
 
         public function __construct() {
+            //sets display year
+            if (wf_CheckPost(array('setyear'))) {
+                $this->curyear= vf($_POST['setyear'],3);
+            } else {
+                $this->curyear=  curyear();
+            }
+            
             //load actual month data
             $this->loadData();
+         
         }
 
         /*
@@ -20,8 +30,8 @@ if (cfr('SCREPORT')) {
          */
 
         private function loadData() {
-            $curmonth = curmonth();
-            $query = "SELECT * from `payments` WHERE `note` LIKE 'SCFEE' AND `date` LIKE '" . $curmonth . "%' ORDER BY `id` DESC";
+            $curmonth = date("m");
+            $query = "SELECT * from `payments` WHERE `note` LIKE 'SCFEE' AND `date` LIKE '".$this->curyear."-" . $curmonth . "%' ORDER BY `id` DESC";
             $alldata = simple_queryall($query);
 
             if (!empty($alldata)) {
@@ -36,13 +46,24 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * returns private propert data
+         * returns private property data
          * 
          * @return array
          */
 
         public function getData() {
             $result = $this->data;
+            return ($result);
+        }
+        
+         /*
+         * returns private property year
+         * 
+         * @return array
+         */
+
+        public function getYear() {
+            $result = $this->curyear;
             return ($result);
         }
 
@@ -104,7 +125,7 @@ if (cfr('SCREPORT')) {
 
         private function loadMonthData() {
             $months = months_array();
-            $year = curyear();
+            $year = $this->curyear;
             $yearSumm=$this->getYearSumm($year);
             
             $this->chartdata = __('Month') . ',' . __('Count') . ',' . __('Cash') . "\n";
@@ -127,7 +148,7 @@ if (cfr('SCREPORT')) {
             $cells.=wf_TableCell($month_summ);
             $cells.=wf_TableCell(web_bar($paycount, $yearSumm));
             $this->tabledata.=wf_TableRow($cells,'row3');
-                
+            $this->yearsumm=$this->yearsumm+$month_summ;
             }
         }
 
@@ -182,25 +203,41 @@ if (cfr('SCREPORT')) {
             $this->loadMonthData();
             $result='';
             $result.=wf_TableBody($this->tabledata, '100%', '0', 'sortable');
+            $result.=wf_tag('span', false, 'glamour').__('Our final profit').': '.$this->yearsumm.wf_tag('span', true);
+            $result.= wf_delimiter();
             $result.= wf_tag('div', false, 'dashtask', '');
             $result.= wf_Graph($this->chartdata, '800', '400', false);
             $result.= wf_tag('div', true);
             return ($result);
         }
-
-    }
+        
+        /*
+         * returns year selector
+         * 
+         * @return string
+         */
+        public function yearSelector() {
+            $inputs=  wf_YearSelector('setyear', '', false);
+            $inputs.= wf_Submit(__('Show'));
+            $result=  wf_Form("", 'POST', $inputs, 'glamour');
+            return ($result);
+        }
+        
+        }
 
     /*
      * controller & view
      */
 
     $screport = new ReportSelfCredit();
+    
     if (!wf_CheckGet(array('showgraph'))) {
         show_window('', wf_Link('?module=report_selfcredit&showgraph=true', __('Self credit dynamic over the year'), false, 'ubButton'));
-        show_window(__('Self credit report'), $screport->render());
+        show_window(__('Self credit report').' '.$screport->getYear(), $screport->render());
     } else {
+        show_window(__('Year'), $screport->yearSelector());
         show_window('', wf_Link('?module=report_selfcredit', __('Back'), false, 'ubButton'));
-        show_window(__('Self credit dynamic over the year'),$screport->renderMonthGraph());
+        show_window(__('Self credit dynamic over the year').' '.$screport->getYear(),$screport->renderMonthGraph());
     }
     
     
