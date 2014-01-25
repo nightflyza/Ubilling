@@ -77,6 +77,22 @@ class ProfileDocuments {
             throw new Exception('NO_USER_LOGIN_SET');
         }
     }
+    
+    /*
+     * returns last generated ID from documents registry
+     * 
+     * @return int
+     */
+    protected function getDocumentLastId() {
+        $query="SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
+        $data=  simple_query($query);
+        if (!empty($data)) {
+            $result=$data['id'];
+        } else {
+            $result=0;
+        }
+        return ($result);
+    }
 
     /*
      * loads user data for template processing 
@@ -101,6 +117,8 @@ class ProfileDocuments {
         $allcfdata = cf_FieldsGetAll();
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
+        $lastDocId=$this->getDocumentLastId();
+        $newDocId=$lastDocId+1;
 
 
         if ($this->altcfg['OPENPAYZ_REALID']) {
@@ -168,6 +186,7 @@ class ProfileDocuments {
 
                 //other document data
                 @$userdata[$eachuser['login']]['CURDATE'] = $curdate;
+                @$userdata[$eachuser['login']]['DOCID'] = $newDocId;
             }
         }
 

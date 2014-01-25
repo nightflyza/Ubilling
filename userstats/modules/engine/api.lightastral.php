@@ -591,6 +591,7 @@ function la_DatePickerPreset($field,$date) {
 	$(function() {
 		$( "#'.$inputid.'" ).datepicker({
 			showOn: "both",
+                        buttonImage: "iconz/icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
                         showAnim: "slideDown"

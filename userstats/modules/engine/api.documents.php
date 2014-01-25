@@ -78,6 +78,23 @@ class UsProfileDocuments {
             throw new Exception('NO_USER_LOGIN_SET');
         }
     }
+    
+    
+     /*
+     * returns last generated ID from documents registry
+     * 
+     * @return int
+     */
+    protected function getDocumentLastId() {
+        $query="SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
+        $data=  simple_query($query);
+        if (!empty($data)) {
+            $result=$data['id'];
+        } else {
+            $result=0;
+        }
+        return ($result);
+    }
 
     /*
      * loads user data for template processing 
@@ -95,6 +112,8 @@ class UsProfileDocuments {
         $allrealnames = zbs_UserGetAllRealnames();
         $alladdress = zbs_AddressGetFulladdresslist();
         $allemail = zbs_UserGetEmail($this->userLogin);
+        $lastDocId=$this->getDocumentLastId();
+        $newDocId=$lastDocId+1;
 
         $curdate = date("Y-m-d");
 
@@ -137,6 +156,7 @@ class UsProfileDocuments {
 
             //other document data
             @$userdata[$alluserdata['login']]['CURDATE'] = $curdate;
+            @$userdata[$alluserdata['login']]['DOCID'] = $newDocId;
         }
 
         $this->userData = $userdata;
