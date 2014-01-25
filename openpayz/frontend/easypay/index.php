@@ -3,6 +3,7 @@
  * Фронтенд для взаимодействия с EasyPay 
  * на базе протокола: http://store.nightfly.biz/st/1390601030/EasySoft.Provider.2.8.docx
  * 
+ * Проверить можно тут: http://provider.easysoft.com.ua/
  */
 
 // подключаем API OpenPayz
@@ -40,7 +41,7 @@ function ep_UserGetAllRealnames() {
  * Check is transaction unique?
  * 
  * @param $hash - hash string to check
- * @return bool/array
+ * @return bool/int
  */
 function ep_GetTransaction($hash) {
     $hash=  mysql_real_escape_string($hash);
@@ -48,6 +49,23 @@ function ep_GetTransaction($hash) {
     $data=  simple_query($query);
     if (!empty($data)) {
         return ($data['id']);
+    } else {
+        return (false);
+    }
+}
+
+/*
+ * Gets existing transaction date
+ * 
+ * @param $id - existing transaction id
+ * @return bool/datetime
+ */
+function ep_GetTransactionTime($id) {
+    $id= vf($id,3);
+    $query="SELECT `date` from `op_transactions` WHERE `id`='".$id."'";
+    $data=  simple_query($query);
+    if (!empty($data)) {
+        return ($data['date']);
     } else {
         return (false);
     }
@@ -147,6 +165,42 @@ if (isset($rawXml['Request'])) {
                         <StatusDetail>No such user</StatusDetail>
                         <DateTime>'.date("Y-m-d\TH:i:s").'</DateTime>
                         <PaymentId>'.ep_GetTransaction($hash).'</PaymentId>
+                     </Response>
+                    ';
+                $reply=trim($reply);
+                die($reply);
+            }
+            
+        }
+        
+        //
+        // проверка состояния транзакции
+        //
+        if (isset($rawXml['Request']['Confirm'])) {
+            $checkPaymentID=  mysql_real_escape_string($rawXml['Request']['Confirm']['PaymentId']);
+            $transactionDate=  ep_GetTransactionTime($checkPaymentID);
+            if ($transactionDate) {
+                $timeStamp=  strtotime($transactionDate);
+                $preformatDate=date("Y-m-d\TH:i:s",$timeStamp);
+                $reply='
+                    <Response>
+                      <StatusCode>0</StatusCode>
+                      <StatusDetail>Transaction Ok</StatusDetail>
+                      <DateTime>'.date("Y-m-d\TH:i:s").'</DateTime>
+                      <OrderDate>'.$preformatDate.'</OrderDate>
+                    </Response>
+                    ';
+                $reply=trim($reply);
+                die($reply);
+                
+            } else {
+                //нету такой транзакции
+                $reply='
+                     <Response>
+                        <StatusCode>'.TRANSACTION_NOT_EXIST.'</StatusCode>
+                        <StatusDetail>No existing transaction</StatusDetail>
+                        <DateTime>'.date("Y-m-d\TH:i:s").'</DateTime>
+                        <PaymentId>'.$checkPaymentID.'</PaymentId>
                      </Response>
                     ';
                 $reply=trim($reply);
