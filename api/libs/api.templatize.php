@@ -428,6 +428,8 @@ function zb_TemplateReplace($login,$template,$alluserdata) {
         file_put_contents($templatespath.$edittemplateid, $body);
         log_register("DOCS TEMPLATE CHANGE ".$edittemplateid);
     }
+    
+  
 
 
 ?>

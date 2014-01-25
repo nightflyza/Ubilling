@@ -158,4 +158,22 @@ $lang['def']['Public offer'] = 'Договор публичной оферты';
 
 $lang['def']['Sorry sum of money in the account is enought for use service without credit']='Сума средств на вашем счету, достаточна для того, чтобы продолжить использование услуги без кредита';
 
+$lang['def']['Documents'] = 'Документы';
+$lang['def']['Unfortunately documents printing is now disabled'] = 'К сожалению, печать документов сейчас отключена';
+$lang['def']['Available document templates'] = 'Шаблоны документов в наличии';
+$lang['def']['Names'] = 'Имена';
+$lang['def']['Document creation'] = 'Создание документа';
+$lang['def']['Real Name'] = 'Ф.И.О.';
+$lang['def']['Service'] = 'Услуга';
+$lang['def']['Notes'] = 'Примечания';
+$lang['def']['Sum'] = 'Сумма';
+$lang['def']['Create'] = 'Создать';
+$lang['def']['Draw order'] = 'Выписать счет';
+$lang['def']['Document name'] = 'Название документа';
+$lang['def']['Previous documents'] = 'Предыдущие документы';
+$lang['def']['No such document'] = 'Нету такого документа';
+$lang['def']['Not existing template'] = 'Нету такого шаблона';
+ 
+
+
 ?>

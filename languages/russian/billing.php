@@ -1571,5 +1571,22 @@ $lang['def']['Tariff lines ARPU report'] = 'Отчет по АРПУ';
 $lang['def']['Tariff lines masks, comma separated'] = 'Маски линеек тарифов, разделитель - запятая';
 $lang['def']['ARPU report'] = 'Отчет по ARPU';
 
+//rev 3160
+$lang['def']['Wrong file type']='Неверный тип файла';
+$lang['def']['Upload template']='Загрузка шаблона';
+$lang['def']['Upload new document template from HDD']='Выберите новый шаблон документа на вашем жестком диске';
+$lang['def']['Template display name']='Отображаемое имя шаблона';
+$lang['def']['Template is public']='Шаблон общедоступен';
+$lang['def']['No display name for template']='Не указано отображаемое имя для шаблона';
+$lang['def']['Cant upload file to']='Немогу загрузить файл в';
+$lang['def']['Path']='Путь';
+$lang['def']['Public']='Публичный';
+$lang['def']['Sum']='Сумма';
+$lang['def']['Custom template fields']='Кастомные поля документа';
+$lang['def']['Custom options']='Особые настройки';
+$lang['def']['Previously generated documents for this user']='Ранее сгенерированные для пользователя документы';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 
 ?>

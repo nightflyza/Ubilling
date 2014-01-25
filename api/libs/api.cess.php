@@ -580,9 +580,14 @@
         return($template);
     } 
     
-    function zb_PrintCheckLoadCassNames() {
-        $names=rcms_parse_ini_file(CONFIG_PATH.'cass.ini');
-        return($names);
+    function zb_PrintCheckLoadCassNames($whoami = false) {
+        $names = rcms_parse_ini_file(CONFIG_PATH.'cass.ini');
+        if ( empty($whoami) ) {
+            return $names;
+        } else {
+            $iam = whoami();
+            return $names[$iam];
+        }
     }
     
    function zb_PrintCheckGetDayNum($payid,$paymentdate) {

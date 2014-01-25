@@ -512,6 +512,13 @@ function zbs_UserShowProfile($login) {
         $paymentid=ip2int($userdata['IP']);
     }
     
+    //draw order link
+    if ($us_config['DOCX_SUPPORT']) {
+        $zdocsLink= ' '.la_Link('?module=zdocs', __('Draw order'), false, 'printorder');
+    } else {
+        $zdocsLink='';
+    }
+    
     //tariff speeds
     if ($us_config['SHOW_SPEED']) {
         $speedOffset=1024;
@@ -595,7 +602,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1">'.__('Balance').'</td>
-            <td>' . $Cash . ' ' . $us_currency . $balanceExpire . '</td>
+            <td>' . $Cash . ' ' . $us_currency . $balanceExpire . $zdocsLink.'</td>
             </tr>
             
             <tr>
@@ -1031,4 +1038,16 @@ function zbs_StorageGet($key) {
         $multiplier = pow(10, $precision);
         return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
     }
+    
+    function zbs_TariffGetAllPrices() {
+    $query="SELECT `name`,`Fee` from `tariffs`";
+    $alltariffs=simple_queryall($query);
+    $result=array();
+    if (!empty ($alltariffs)) {
+        foreach ($alltariffs as $io=>$eachtariff) {
+            $result[$eachtariff['name']]=$eachtariff['Fee'];
+        }
+    }
+    return ($result);
+}
 ?>

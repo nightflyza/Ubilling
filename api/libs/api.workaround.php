@@ -1351,9 +1351,7 @@ return($form);
         return ($result);
     }
     
-  
-    
-    function web_PaymentsByUser($login) {
+      function web_PaymentsByUser($login) {
         $allpayments=zb_CashGetUserPayments($login);
         $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
         $alltypes=zb_CashGetAllCashTypes();
@@ -1375,35 +1373,40 @@ return($form);
                     <td>'.__('Actions').'</td>
                     </tr>
                     ';
-        if (!empty ($allpayments)) {
-            foreach ($allpayments as $io=>$eachpayment) {
-                if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
-              $eachpayment['note']=  zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
-            }
+        if ( !empty ($allpayments) ) {
+            foreach ( $allpayments as $eachpayment ) {
+                if ( $alter_conf['TRANSLATE_PAYMENTS_NOTES'] ) {
+                    $eachpayment['note']=  zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
+                }
             
-            //hightlight of today payments
-            if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
-                if (ispos($eachpayment['date'], $curdate)) {
-                    $hlight="paytoday";
+                //hightlight of today payments
+                if ( $alter_conf['HIGHLIGHT_TODAY_PAYMENTS'] ) {
+                    if ( ispos($eachpayment['date'], $curdate) ) {
+                        $hlight = "paytoday";
+                    } else {
+                        $hlight = "row3";
+                    }
                 } else {
                     $hlight="row3";
                 }
                 
-            } else {
-                $hlight="row3";
-            }
+                if ( !empty($alter_conf['DOCX_SUPPORT']) && !empty($alter_conf['DOCX_CHECK']) ) {
+                    $printcheck = '<a href="?module=printcheck&paymentid='.$eachpayment['id'].'"><img src="skins/printer_small.gif" border="0"></a>';
+                } else {
+                    $printcheck = '<a href="#"  onClick="window.open(\'?module=printcheck&paymentid='.$eachpayment['id'].'\',\'checkwindow\',\'width=800,height=600\')"><img src="skins/printer_small.gif" border="0"></a>';
+                }
                 
-                $result.='
+                $result .= '
                     <tr class="'.$hlight.'">
                     <td>'.$eachpayment['id'].'</td>
-                     <td>'.zb_NumEncode($eachpayment['id']).'</td>
+                    <td>'.zb_NumEncode($eachpayment['id']).'</td>
                     <td>'.$eachpayment['date'].'</td>
                     <td>'.$eachpayment['summ'].'</td>
                     <td>'.$eachpayment['balance'].'</td>
                     <td>'.@__($alltypes[$eachpayment['cashtypeid']]).'</td>
                     <td>'.$eachpayment['note'].'</td>
                     <td>'.$eachpayment['admin'].'</td>
-                    <td><a href="#"  onClick="window.open(\'?module=printcheck&paymentid='.$eachpayment['id'].'\',\'checkwindow\',\'width=800,height=600\')"><img src="skins/printer_small.gif" border="0"></a></td>
+                    <td>'.$printcheck.'</td>
                     </tr>
                     ';
                 $total_payments=$total_payments+$eachpayment['summ'];
@@ -1640,21 +1643,26 @@ function web_bar($count,$total) {
 }
 
 //retunt all months with names in two digit notation
-function months_array() {
-    $months=array(
-        '01'=>'January',
-        '02'=>'February',
-        '03'=>'March',
-        '04'=>'April',
-        '05'=>'May',
-        '06'=>'June',
-        '07'=>'July',
-        '08'=>'August',
-        '09'=>'September',
-        '10'=>'October',
-        '11'=>'November',
-        '12'=>'December');
-    return($months);
+function months_array($number = null) {
+    $months = array(
+        '01' => 'January',
+        '02' => 'February',
+        '03' => 'March',
+        '04' => 'April',
+        '05' => 'May',
+        '06' => 'June',
+        '07' => 'July',
+        '08' => 'August',
+        '09' => 'September',
+        '10' => 'October',
+        '11' => 'November',
+        '12' => 'December'
+    );
+    if ( empty($number) ) {
+        return $months;
+    } else {
+        return $months[$number];
+    }
 }
 
 //retunt all months with names without begin zeros
@@ -2361,18 +2369,17 @@ function zb_TariffGetCount() {
         
         if (!empty ($tariffcount)) {
             $maxusers=0;
-           
             foreach ($tariffcount as $io=>$eachtcount) {
                 $maxArr[$io]=$eachtcount['alive']+$eachtcount['dead'];
             }
-            $maxusers=array_sum($maxArr);
-        
+            $maxusers=max($maxArr);
+            
             foreach ($tariffcount as $eachtariffname=>$eachtariffcount) {
                 $totalusers=$totalusers+$eachtariffcount['alive']+$eachtariffcount['dead'];
 
                 $cells=   wf_TableCell($eachtariffname);
                 $cells.=  wf_TableCell($eachtariffcount['alive']+$eachtariffcount['dead']);
-                $cells.=  wf_TableCell(web_bar(($eachtariffcount['alive']+$eachtariffcount['dead']), $maxusers),'','','sorttable_customkey="'.($eachtariffcount['alive']+$eachtariffcount['dead']).'"');
+                $cells.=  wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
                 $cells.=  wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
                 $rows.= wf_TableRow($cells,'row3');
             }

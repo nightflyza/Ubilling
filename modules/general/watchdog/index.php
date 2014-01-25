@@ -1,6 +1,7 @@
 <?php
 if(cfr('WATCHDOG')) {
-    
+   $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+   if ($altercfg['WATCHDOG_ENABLED']) {
    $interface=new WatchDogInterface();
    $interface->loadAllTasks();
    $interface->loadSettings();
@@ -60,6 +61,9 @@ if(cfr('WATCHDOG')) {
    }
    }
    
+   } else {
+       show_window(__('Error'), __('This module is disabled'));
+   }
     
 } else {
 	show_error(__('Access denied'));

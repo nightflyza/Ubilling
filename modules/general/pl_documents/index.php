@@ -1,6 +1,9 @@
 <?php
 if (cfr('PLDOCS')) {
+    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     
+    //old html templates
+    if (!$altercfg['DOCX_SUPPORT']) {
     if (isset($_GET['username'])) {
         $login=vf($_GET['username']);
         
@@ -49,7 +52,102 @@ if (cfr('PLDOCS')) {
             
         }
     }    
-    
+    } else {
+        //new docx templates processing
+        
+        $documents=new ProfileDocuments();
+        
+        if (wf_CheckGet(array('username'))) {
+            $documents->setLogin($_GET['username']);
+        } 
+        
+        //template printing subroutine
+        if (wf_CheckGet(array('print'))) {
+            //back link
+            show_window('', wf_Link('?module=pl_documents&username='.$documents->getLogin(), 'Back', true, 'ubButton'));
+            
+            $docId=vf($_GET['print'],3);
+            $availableTemplates=$documents->getTemplates();
+            $templatePath=$documents::TEMPLATES_PATH;
+            $documentsSavePath=$documents::DOCUMENTS_PATH;
+            
+            $templateFile=$availableTemplates[$docId]['path'];
+            $templateName=$availableTemplates[$docId]['name'];
+            $fullPath=$templatePath.$templateFile;
+            $saveFileName=$documents->getLogin().'_'.$docId.'_'.  zb_rand_string(8).'.docx';
+            $saveFullPath=$documentsSavePath.$saveFileName;
+            
+            $documents->loadAllUserData();
+            $templateData=$documents->getUserData();
+            if (wf_checkget(array('custom'))) {
+            show_window(__('Custom template fields'),$documents->customDocumentFieldsForm());
+            
+            if (wf_CheckPost(array('customfields'))) {
+                $documents->setCustomFields();
+                $templateData=  array_merge($templateData,$documents->getCustomFields());
+
+                    //parse document template
+                    $docx = new DOCXTemplate($fullPath);
+                    $docx->set($templateData);
+                    $docx->saveAs($saveFullPath);
+                    //output
+                    zb_DownloadFile($saveFullPath);
+            }
+            
+            } else {
+                
+                    //parse document template
+                    $docx = new DOCXTemplate($fullPath);
+                    $docx->set($templateData);
+                    $docx->saveAs($saveFullPath);
+                    //registering template
+                    $documents->registerDocument($documents->getLogin(), $docId, $saveFileName);
+                    //output
+                    zb_DownloadFile($saveFullPath);
+                    
+            }
+            
+            
+            
+            
+        } else {
+        //template downloading
+        if (wf_CheckGet(array('download'))) {
+            zb_DownloadFile($documents::TEMPLATES_PATH.$_GET['download']);
+        }
+        
+        //template deletion
+        if (wf_CheckGet(array('deletetemplate'))) {
+            $documents->deleteTemplate($_GET['deletetemplate']);
+            rcms_redirect('?module=pl_documents&username='.$documents->getLogin());
+        }
+        
+        //showing available templates
+        show_window(__('Available document templates'),$documents->renderTemplatesList());
+        
+        //uploading new templates
+        
+        $uploadControl=  wf_modal(__('Upload template'), __('Upload template'), $documents->uploadForm(), 'ubButton', '600', '300');
+        show_window(__('Settings'),$uploadControl);
+        //template upload subroutine
+        if (wf_CheckPost(array('uploadtemplate'))) {
+            $documents->doUpload();
+            rcms_redirect('?module=pl_documents&username='.$documents->getLogin());
+        }
+        
+        //showing user personal documents
+        $documents->loadUserDocuments($documents->getLogin());
+        show_window(__('Previously generated documents for this user'),$documents->renderUserDocuments());
+        } 
+        
+        //template downloading
+        if (wf_CheckGet(array('documentdownload'))) {
+            zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload']);
+        }
+        show_window('',  web_UserControls($documents->getLogin()));
+        
+    }
+        
     
     
 } else {

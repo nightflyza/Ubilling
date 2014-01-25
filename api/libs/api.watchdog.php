@@ -390,6 +390,10 @@ class WatchDog {
                 case 'changed':
                     $oldValue = $this->oldResults[$taskID];
                     $currentValue = $this->doAction($taskID);
+                    if(is_bool($currentValue)) {
+                        $currentValue = ($currentValue) ? 'true' : 'false';
+                     }
+                                       
                     if ($currentValue != $oldValue) {
                         return (true);
                     } else {
@@ -400,6 +404,9 @@ class WatchDog {
                 case 'notchanged':
                     $oldValue = $this->oldResults[$taskID];
                     $currentValue = $this->doAction($taskID);
+                    if(is_bool($currentValue)) {
+                        $currentValue = ($currentValue) ? 'true' : 'false';
+                    }
                     if ($currentValue == $oldValue) {
                         return (true);
                     } else {

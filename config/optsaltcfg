@@ -112,7 +112,10 @@ COMPLEX_ENABLED=TRIGGER|Complex services enabled
 COMPLEX_MASKS=VARCHAR|Complex tariffs masks
 COMPLEX_CFIDS=VARCHAR|Complex tariffs flags CFIDS
 DN_FULLHOSTSCAN=TRIGGER|Store DN data while fullhostscan
-
+DOCX_SUPPORT=TRIGGER|Enable parsing of .docx documents
+DOCX_NDS=VARCHAR|value-added tax rate percent for document templates
+DOCX_SERVICES=VARCHAR|additional services printable within documents
+DOCX_CHECK=TRIGGER|Enable parsing of check in docx format
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
@@ -151,6 +154,7 @@ CHAPTER_NDS=NDS accounting
 NDS_ENABLED=TRIGGER|NDS processing support enabled
 NDS_TAGID=VARCHAR|NDS tag ID
 NDS_TAX_PERCENT=VARCHAR|NDS tax rate
+
 
 
 

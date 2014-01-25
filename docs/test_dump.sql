@@ -961,3 +961,31 @@ CREATE TABLE IF NOT EXISTS `capabstates` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 ALTER TABLE `employee` ADD `mobile` VARCHAR( 50 ) NULL DEFAULT NULL AFTER `appointment`;
+
+
+-- 0.5.0 update
+
+CREATE TABLE IF NOT EXISTS `docxtemplates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `admin` varchar(255) DEFAULT NULL,
+  `public` tinyint(4) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `name` (`name`),
+  KEY `path` (`path`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `docxdocuments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `login` varchar(255) DEFAULT NULL,
+  `public` tinyint(4) DEFAULT NULL,
+  `templateid` int(11) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `public` (`public`),
+  KEY `path` (`path`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

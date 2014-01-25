@@ -4,7 +4,7 @@
  */
 include('api/libs/api.mysql.php');
 include('api/libs/api.ubstorage.php');
-include ('api/api.stargazer.php');
+include('api/api.stargazer.php');
 include('api/libs/api.compat.php');
 include('api/libs/api.astral.php');
 include('api/libs/api.dbconnect.php');
@@ -35,10 +35,11 @@ include('api/libs/api.ubim.php');
 include('api/libs/api.snmp.php');
 include('api/libs/api.routeros.php');
 include('api/libs/api.watchdog.php');
+include('api/libs/api.docx.php');
+include('api/libs/api.documents.php');
 
 /*
  * Initial class creation
  */
 $billing = new ApiBilling();
 $db = new MySQLDB();
-?>

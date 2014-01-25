@@ -83,17 +83,7 @@ function zbs_TariffSelector($tc_tariffsallowed,$user_tariff) {
     return ($result);
 }
 
-function zbs_TariffGetAllPrices() {
-    $query="SELECT `name`,`Fee` from `tariffs`";
-    $alltariffs=simple_queryall($query);
-    $result=array();
-    if (!empty ($alltariffs)) {
-        foreach ($alltariffs as $io=>$eachtariff) {
-            $result[$eachtariff['name']]=$eachtariff['Fee'];
-        }
-    }
-    return ($result);
-}
+
 
 function zbs_TariffGetChangePrice($tc_tariffsallowed,$user_tariff,$tc_priceup,$tc_pricedown,$tc_pricesimilar) {
     $allprices=zbs_TariffGetAllPrices();
