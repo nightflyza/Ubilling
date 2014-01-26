@@ -13,7 +13,7 @@
                         <form name="lang_select" method="post" action=""><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
                         <form name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?>
                         </form>
-                        <?=web_HelpIconShow();?>
+                        <?=web_HelpIconShow();?>  <? if (XHPROF) { print($xhprof_link); } ?> 
 		</div> <? if (LOGGED_IN) {  ?>  
           <form action="" method="POST">
 	  <input name="logout_form" value="1" type="hidden">
@@ -98,7 +98,7 @@
   $totaltime = $mtime[0] + $mtime[1] - $starttime;
   print(__('GT:').round($totaltime,2));
   print(' QC: '.$query_counter);
- ?> </p>
+ ?></p>
 	</div>
 	</body>
 </html>
