@@ -744,7 +744,8 @@ function multinet_get_service_networkid($service_id) {
 
 function stg_convert_size($fs)
 {
-    $alter_conf=parse_ini_file(CONFIG_PATH."alter.ini");
+    global $ubillingConfig;
+    $alter_conf= $ubillingConfig->getAlter();
     $traffsize=trim($alter_conf['TRAFFSIZE']);
     if ($traffsize=='float') {
      if ($fs >= (1073741824*1024)) 

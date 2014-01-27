@@ -651,6 +651,95 @@ if (!empty ($alladdrz)) {
 return($result);
 }
 
+// returns all addres array in view like login=>address
+function zb_AddressGetFulladdresslistCached() {
+global $ubillingConfig;
+$alterconf=$ubillingConfig->getAlter();
+///////////// cache options
+$cacheTime=$alterconf['ADDRESS_CACHE_TIME'];
+$cacheTime=time()-($cacheTime*60);
+$cacheName='exports/fulladdresslistcache.dat';
+$updateCache=false;
+if (file_exists($cacheName)) {
+                    $updateCache=false;
+                    if ((filemtime($cacheName)>$cacheTime)) {
+                        $updateCache=false;
+                     } else {
+                           $updateCache=true;
+                         }
+                    } else {
+                        $updateCache=true;
+                    }
+
+/////////////////////////////////////////////////
+                    
+if (!$updateCache) {
+    //read data directly from cache
+    $result=array();
+    $rawData=  file_get_contents($cacheName);
+    if (!empty($rawData)) {
+        $result=  unserialize($rawData);
+    }
+    return ($result);
+} else {
+//processing address extracting and store to cache
+$result=array();
+$apts=array();
+$builds=array();
+$city_q="SELECT * from `city`";
+$adrz_q="SELECT * from `address`";
+$apt_q="SELECT * from `apt`";
+$build_q="SELECT * from build";
+$streets_q="SELECT * from `street`";
+$alladdrz=simple_queryall($adrz_q);
+$allapt=simple_queryall($apt_q);
+$allbuilds=simple_queryall($build_q);
+$allstreets=simple_queryall($streets_q);
+if (!empty ($alladdrz)) {
+    $cities=zb_AddressGetFullCityNames();
+    
+        foreach ($alladdrz as $io1=>$eachaddress) {
+        $address[$eachaddress['id']]=array('login'=>$eachaddress['login'],'aptid'=>$eachaddress['aptid']);
+        }
+        foreach ($allapt as $io2=>$eachapt) {
+        $apts[$eachapt['id']]=array('apt'=>$eachapt['apt'],'buildid'=>$eachapt['buildid']);
+        }
+        foreach ($allbuilds as $io3=>$eachbuild) {
+        $builds[$eachbuild['id']]=array('buildnum'=>$eachbuild['buildnum'],'streetid'=>$eachbuild['streetid']);
+        }
+        foreach ($allstreets as $io4=>$eachstreet) {
+        $streets[$eachstreet['id']]=array('streetname'=>$eachstreet['streetname'],'cityid'=>$eachstreet['cityid']);
+        }
+
+    foreach ($address as $io5=>$eachaddress) {
+        $apartment=$apts[$eachaddress['aptid']]['apt'];
+        $building=$builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
+        $streetname=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
+        $cityid=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+        // zero apt handle
+        if ($alterconf['ZERO_TOLERANCE']) {
+            if ($apartment==0) {
+            $apartment_filtered='';
+            } else {
+            $apartment_filtered='/'.$apartment;
+            }
+        } else {
+        $apartment_filtered='/'.$apartment;    
+        }
+    
+        if (!$alterconf['CITY_DISPLAY']) {
+        $result[$eachaddress['login']]=$streetname.' '.$building.$apartment_filtered;
+        } else {
+        $result[$eachaddress['login']]=$cities[$cityid].' '.$streetname.' '.$building.$apartment_filtered;
+        }
+    }
+}
+  $newCacheData=  serialize($result);
+  file_put_contents($cacheName, $newCacheData);
+  return($result);
+ }
+}
+
 // returns all addres array in view like login=>city address
 function zb_AddressGetFullCityaddresslist() {
 $alterconf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');

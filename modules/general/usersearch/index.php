@@ -169,9 +169,10 @@ if(cfr('USERSEARCH')) {
     }
     
       function web_UserSearchAddressPartialForm() {
-          $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+          global $ubillingConfig;
+          $alterconf= $ubillingConfig->getAlter();
           if ($alterconf['SEARCHADDR_AUTOCOMPLETE']) {
-              $alladdress=  zb_AddressGetFulladdresslist();
+              $alladdress=  zb_AddressGetFulladdresslistCached();
               natsort($alladdress);
               $addrlist=' ';
               $autocomplete='<script>

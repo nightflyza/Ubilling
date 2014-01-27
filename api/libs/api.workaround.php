@@ -2524,16 +2524,29 @@ function zb_NumUnEncode($data) {
    }
 
  function zb_UserSearchAddressPartial($query) {
+        global $ubillingConfig;
+        $altercfg=$ubillingConfig->getAlter();
         $query=mysql_real_escape_string($query);
+        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $query=strtolower_utf8($query);
-        $alluseraddress=zb_AddressGetFulladdresslist();
+        }
+        $alluseraddress=  zb_AddressGetFulladdresslist();
         $result=array();
         if (!empty ($alluseraddress)) {
-        foreach ($alluseraddress as $login=>$address) {
+        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {    
+         foreach ($alluseraddress as $login=>$address) {
             if (ispos(strtolower_utf8($address), $query)) {
                 $result[]=$login;
             }
+         }
+        } else {
+         foreach ($alluseraddress as $login=>$address) {
+            if (ispos($address, $query)) {
+                $result[]=$login;
+            }
+         }    
         }
+        
         }
         return ($result);
     }

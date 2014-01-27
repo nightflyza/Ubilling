@@ -43,3 +43,4 @@ include('api/libs/api.documents.php');
  */
 $billing = new ApiBilling();
 $db = new MySQLDB();
+$ubillingConfig=new UbillingConfig();
