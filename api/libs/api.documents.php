@@ -12,6 +12,7 @@ class ProfileDocuments {
     protected $customFields = array();
     protected $altcfg = array();
     protected $userDocuments = array();
+    protected $allUserDocuments=array();
 
     const TEMPLATES_PATH = 'content/documents/pl_docx/';
     const DOCUMENTS_PATH = 'content/documents/pl_cache/';
@@ -449,6 +450,22 @@ class ProfileDocuments {
             ";
         nr_query($query);
     }
+    
+     /*
+     * kills document in database
+     * 
+     * @param $documentid - existing document ID
+     * 
+     * @return void
+     */
+
+    public function unregisterDocument($documentid) {
+        $documentid=vf($documentid,3);
+
+        $query = "DELETE FROM `docxdocuments` WHERE `id`='".$documentid."'";
+        nr_query($query);
+        log_register("PLDOCS DEL DOCUMENT [" . $documentid . "]");
+    }
 
     /*
      * loads user documents from database
@@ -467,6 +484,24 @@ class ProfileDocuments {
             }
         }
     }
+    
+     /*
+     * loads all user generated documents from database
+     * 
+     * @return void
+     */
+
+    public function loadAllUsersDocuments($date='') {
+        $date=trim($date);
+        $where = (!empty($date)) ? "WHERE `date` LIKE '".$date."%'" : '';
+        $query = "SELECT * from `docxdocuments` ".$where." ORDER BY `id` DESC;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUserDocuments[$each['id']] = $each;
+            }
+        }
+    }
 
     /*
      * Renders previously generated user documents 
@@ -480,6 +515,7 @@ class ProfileDocuments {
         $cells.= wf_TableCell(__('Public'));
         $cells.= wf_TableCell(__('Template'));
         $cells.= wf_TableCell(__('Path'));
+        $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->userDocuments)) {
@@ -491,6 +527,8 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['templateid'].':'.$templateName);
                 $downloadLink = wf_Link('?module=pl_documents&username='.$this->userLogin.'&documentdownload='.$each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
+                $actionLinks=  wf_JSAlert('?module=pl_documents&username='.$this->userLogin.'&deletedocument='.$each['id'], web_delete_icon(), __('Are you serious'));
+                $cells.= wf_TableCell($actionLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
         }
@@ -498,6 +536,7 @@ class ProfileDocuments {
         $result = wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
+    
 
 }
 

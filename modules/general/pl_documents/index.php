@@ -140,10 +140,16 @@ if (cfr('PLDOCS')) {
         show_window(__('Previously generated documents for this user'),$documents->renderUserDocuments());
         } 
         
-        //template downloading
+        //existing document downloading
         if (wf_CheckGet(array('documentdownload'))) {
             zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload']);
         }
+        
+        if (wf_CheckGet(array('deletedocument'))) {
+            $documents->unregisterDocument($_GET['deletedocument']);
+            rcms_redirect('?module=pl_documents&username='.$documents->getLogin());
+        }
+        
         show_window('',  web_UserControls($documents->getLogin()));
         
     }
