@@ -154,12 +154,12 @@ class ProfileDocuments {
                 $userdata[$eachuser['login']]['TRAFFICUP'] = $eachuser['U0'];
 
                 //net params
-                $userdata[$eachuser['login']]['IP'] = $eachuser['IP'];
-                $userdata[$eachuser['login']]['MAC'] = $multinetdata[$eachuser['IP']]['mac'];
-                $userdata[$eachuser['login']]['NETID'] = $multinetdata[$eachuser['IP']]['netid'];
-                $userdata[$eachuser['login']]['HOSTID'] = $multinetdata[$eachuser['IP']]['id'];
+                @$userdata[$eachuser['login']]['IP'] = $eachuser['IP'];
+                @$userdata[$eachuser['login']]['MAC'] = $multinetdata[$eachuser['IP']]['mac'];
+                @$userdata[$eachuser['login']]['NETID'] = $multinetdata[$eachuser['IP']]['netid'];
+                @$userdata[$eachuser['login']]['HOSTID'] = $multinetdata[$eachuser['IP']]['id'];
                 //nas data
-                $usernas = zb_NasGetParams($multinetdata[$eachuser['IP']]['netid'], $allnasdata);
+                @$usernas = zb_NasGetParams($multinetdata[$eachuser['IP']]['netid'], $allnasdata);
                 @$userdata[$eachuser['login']]['NASID'] = $usernas['id'];
                 @$userdata[$eachuser['login']]['NASIP'] = $usernas['nasip'];
                 @$userdata[$eachuser['login']]['NASNAME'] = $usernas['nasname'];
@@ -493,7 +493,8 @@ class ProfileDocuments {
 
     public function loadAllUsersDocuments($date='') {
         $date=trim($date);
-        $where = (!empty($date)) ? "WHERE `date` LIKE '".$date."%'" : '';
+        $date = (!empty($date))  ? $date : curdate();
+        $where = "WHERE `date` LIKE '".$date."%'";
         $query = "SELECT * from `docxdocuments` ".$where." ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -524,7 +525,7 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $cells.= wf_TableCell($each['templateid'].':'.$templateName);
+                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="'.$each['templateid'].'"').$templateName. wf_tag('abbr', true));
                 $downloadLink = wf_Link('?module=pl_documents&username='.$this->userLogin.'&documentdownload='.$each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
                 $actionLinks=  wf_JSAlert('?module=pl_documents&username='.$this->userLogin.'&deletedocument='.$each['id'], web_delete_icon(), __('Are you serious'));
@@ -534,6 +535,69 @@ class ProfileDocuments {
         }
 
         $result = wf_TableBody($rows, '100%', '0', '');
+        return ($result);
+    }
+    
+     /*
+     * Renders previously generated all users documents 
+     * 
+     * @return string
+     */
+
+    public function renderAllUserDocuments() {
+        $allAddress=  zb_AddressGetFulladdresslistCached();
+        $allRealnames= zb_UserGetAllRealnames();
+        
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Public'));
+        $cells.= wf_TableCell(__('Template'));
+        $cells.= wf_TableCell(__('Path'));
+        $cells.= wf_TableCell(__('Login'));
+        $cells.= wf_TableCell(__('Address'));
+        $cells.= wf_TableCell(__('Real Name'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($this->allUserDocuments)) {
+            foreach ($this->allUserDocuments as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell($each['date']);
+                $cells.= wf_TableCell(web_bool_led($each['public']));
+                @$templateName = $this->templates[$each['templateid']]['name'];
+                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="'.$each['templateid'].'"').$templateName. wf_tag('abbr', true));
+                $downloadLink = wf_Link('?module=report_documents&documentdownload='.$each['path'], $each['path'], false, '');
+                $cells.= wf_TableCell($downloadLink);
+                $profileLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login']);
+                $cells.= wf_TableCell($profileLink);
+                $cells.= wf_TableCell(@$allAddress[$each['login']]);
+                $cells.= wf_TableCell(@$allRealnames[$each['login']]);
+                $actionLinks=  wf_JSAlert('?module=report_documents&deletedocument='.$each['id'], web_delete_icon(), __('Are you serious'));
+                $cells.= wf_TableCell($actionLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+
+        $result = wf_TableBody($rows, '100%', '0', '');
+        return ($result);
+    }
+    
+    /*
+     * show calendar contol form
+     * 
+     * @return string
+     */
+    public function dateControl() {
+        if (wf_CheckPost(array('showdate'))) {
+            $curdate= $_POST['showdate'];
+        } else {
+            $curdate= curdate();
+        }
+        
+        $inputs=  wf_DatePickerPreset('showdate', $curdate);
+        $inputs.= wf_Submit(__('Show'));
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        
         return ($result);
     }
     

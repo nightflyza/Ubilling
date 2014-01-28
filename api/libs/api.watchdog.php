@@ -530,6 +530,7 @@ class WatchDogInterface {
 
     private $allTasks = array();
     private $settings = array();
+    private $previousAlerts=array();
     
     const TASKID_EX  = 'NO_REQUIRED_TASK_ID';
     const TASKADD_EX = 'MISSING_REQUIRED_OPTION';
@@ -555,6 +556,26 @@ class WatchDogInterface {
                 $this->allTasks[$eachTask['id']]['condition'] = $eachTask['condition'];
                 $this->allTasks[$eachTask['id']]['action'] = $eachTask['action'];
                 $this->allTasks[$eachTask['id']]['oldresult'] = $eachTask['oldresult'];
+            }
+        }
+    }
+    
+     /*
+     * load all watchdog previous alerts into private data prop
+     * 
+     * @return void
+     */
+
+    public function loadAllPreviousAlerts() {
+        $query = "SELECT `id`,`date`,`event` from `weblogs` WHERE `event` LIKE 'WATCHDOG NOTIFY THAT%';";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $this->previousAlerts[$each['id']]['id']=$each['id'];
+                $this->previousAlerts[$each['id']]['date']=$each['date'];
+                $event=  str_replace('WATCHDOG NOTIFY THAT', '', $each['event']);
+                $event=  str_replace('`', '', $event);
+                $this->previousAlerts[$each['id']]['event']=$event;
             }
         }
     }
@@ -878,6 +899,7 @@ class WatchDogInterface {
         $result.= wf_Link("?module=watchdog", __('Show all tasks'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&manual=true", __('Manual run'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&showsmsqueue=true", __('View SMS sending queue'), false, 'ubButton');
+        $result.= wf_Link("?module=watchdog&previousalerts=true", __('Previous alerts'), false, 'ubButton');
         $result.= wf_modal(__('Settings'), __('Settings'), $settingsWindow, 'ubButton', '750', '350');
         
         return ($result);
@@ -1014,6 +1036,34 @@ class WatchDogInterface {
             return ($result);
             
     }
+    
+    /*
+     * preprocess and return full calendar data for alerts report
+     * 
+     * @retun string
+     */
+    public function renderAlertsCalendar() {
+        if (!empty($this->previousAlerts)) {
+            $calendarData='';
+            foreach ($this->previousAlerts as $io=>$each) {
+                $timestamp=strtotime($each['date']);
+                $date=date("Y, n-1, j",$timestamp);
+                $rawTime=date("H:i:s",$timestamp);
+                $calendarData.="
+                      {
+                        title: '".$rawTime.' '.$each['event']."',
+                        start: new Date(".$date."),
+                        end: new Date(".$date."),
+                        className : 'undone'
+		      },
+                    ";
+            }
+            $result=  wf_FullCalendar($calendarData);
+        } else {
+            $result=__('Nothing found');
+        }
+        return ($result);
+    } 
     
 
 }

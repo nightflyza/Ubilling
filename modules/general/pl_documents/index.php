@@ -145,6 +145,7 @@ if (cfr('PLDOCS')) {
             zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload']);
         }
         
+        //document deletion from database
         if (wf_CheckGet(array('deletedocument'))) {
             $documents->unregisterDocument($_GET['deletedocument']);
             rcms_redirect('?module=pl_documents&username='.$documents->getLogin());

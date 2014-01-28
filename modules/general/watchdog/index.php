@@ -53,8 +53,14 @@ if(cfr('WATCHDOG')) {
    show_window('', $interface->panel());
    
    if (!wf_CheckGet(array('edit'))) {
-    //show interface controls   
-    show_window(__('Available Watchdog tasks'),$interface->listAllTasks());
+    //show previous detections
+    if (wf_CheckGet(array('previousalerts'))) {
+            $interface->loadAllPreviousAlerts();
+            show_window(__('Previous alerts'),$interface->renderAlertsCalendar());
+    } else {
+        //or list of existing tasks
+            show_window(__('Available Watchdog tasks'),$interface->listAllTasks());
+    }
    } else {
        //show task edit form
        show_window(__('Edit task'),$interface->editTaskForm($_GET['edit']));
