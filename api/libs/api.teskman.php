@@ -775,7 +775,7 @@ function ts_DetectUserByAddress($address) {
         simple_update_field('taskman', 'jobtype', $jobtypeid, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'employee', $employeeid, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='".$taskid."'");
-        log_register("TASKMAN MODIFY ".$address);
+        log_register("TASKMAN MODIFY `".$address.'`');
         
     }
     
