@@ -1583,5 +1583,26 @@ $lang['def']['Tariff lines ARPU report'] = 'Звіт по АРПУ';
 $lang['def']['Tariff lines masks, comma separated'] = 'Маски тарифних лінійок - розділювач кома';
 $lang['def']['ARPU report'] = 'Звіт ARPU';
 
+//rev 3160
+$lang['def']['Wrong file type']='Невірний тип файлу';
+$lang['def']['Upload template']='Завантаження шаблона';
+$lang['def']['Upload new document template from HDD']='Виберіть новий шаблон документу з вашого жорсткого диску';
+$lang['def']['Template display name']='І`мя шаблону для відображення';
+$lang['def']['Template is public']='Шаблон загальнодоступний';
+$lang['def']['No display name for template']='Не вказано і`мя для відображення';
+$lang['def']['Cant upload file to']='Не можу завантажити файл в';
+$lang['def']['Path']='Шлях';
+$lang['def']['Public']='Публічний';
+$lang['def']['Sum']='Сума';
+$lang['def']['Custom template fields']='Кастомні поля документа';
+$lang['def']['Custom options']='Особливі налаштування';
+$lang['def']['Previously generated documents for this user']='Документи, що було згенеровано для користувача раніше';
+$lang['def']['Previously generated documents']='Нещодавно згенеровані документи';
+$lang['def']['Previous alerts']='Попередні спрацьовування';
+$lang['def']['Enable parsing of .docx documents']='Увімкнути підтримку документів в форматі .docx';
+$lang['def']['value-added tax rate percent for document templates']='Ставка ПДВ для шаблонів документів';
+$lang['def']['additional services printable within documents']='Додаткові послуги для шаблонів документів';
+$lang['def']['Full address list caching time']='Час кешування для повного списку адрес';
+$lang['def']['Enable parsing of check in docx format']='Підтримка чеків у форматі .docx';
 
 ?>
