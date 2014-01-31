@@ -89,6 +89,12 @@ if (cfr('UHW')) {
         
     }
     
+    function uhw_CleanAllBrute() {
+        $query="TRUNCATE TABLE `uhw_brute` ;";
+        nr_query($query);
+        log_register("UHW CLEANUP BRUTE");
+        
+    }
     function uhw_ShowBrute() {
         $query="SELECT * from `uhw_brute` ORDER by `id` DESC";
         $allbrutes=  simple_queryall($query);
@@ -113,8 +119,9 @@ if (cfr('UHW')) {
             }
         }
         
-        $result=  wf_TableBody($tablerows, '100%', 0, 'sortable');
-        show_window(__('Brute attempts'), $result);
+        $result=   wf_TableBody($tablerows, '100%', 0, 'sortable');
+        $cleanupLink= wf_JSAlert('?module=uhw&showbrute=true&cleanallbrute=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), 'Are you serious');
+        show_window(__('Brute attempts').' '.$cleanupLink, $result);
         
     }
     
@@ -127,6 +134,12 @@ if (cfr('UHW')) {
         //deleting brute
         if (wf_CheckGet(array('delbrute'))) {
             uhw_DeleteBrute($_GET['delbrute']);
+            rcms_redirect("?module=uhw&showbrute=true");
+        }
+        
+        //cleanup of all brutes
+        if (wf_CheckGet(array('cleanallbrute'))) {
+            uhw_CleanAllBrute();
             rcms_redirect("?module=uhw&showbrute=true");
         }
         

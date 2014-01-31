@@ -9,8 +9,8 @@ if (cfr('REPORTFINANCE')) {
         }
         
 
-      
-      $dateinputs= wf_DatePicker('showdatepayments');
+      $dateSelectorPreset= (wf_CheckPost(array('showdatepayments'))) ? $_POST['showdatepayments'] : curdate(); 
+      $dateinputs= wf_DatePickerPreset('showdatepayments',$dateSelectorPreset);
       $dateinputs.=wf_Submit(__('Show'));
       $dateform=  wf_Form("?module=report_finance", 'POST', $dateinputs, 'glamour');
       
@@ -46,7 +46,7 @@ if (!isset($_GET['month'])) {
 // payments by somedate
 if (isset($_POST['showdatepayments'])) {
     $paydate=mysql_real_escape_string($_POST['showdatepayments']);
-    //deb($paydate);
+    $paydate = (!empty($paydate)) ? $paydate : curdate();
     show_window(__('Payments by date').' '.$paydate,  web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paydate."%' ORDER by `date` DESC;"));
 } else {
 

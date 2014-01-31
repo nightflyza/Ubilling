@@ -307,13 +307,21 @@ function web_CardShowBrutes() {
     }
     
     $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+    $cleanAllLink=  wf_JSAlert('?module=cards&cleanallbrutes=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), 'Are you serious');
+    show_window(__('Bruteforce attempts').' '.$cleanAllLink,$result);
     return ($result);
 }
 
 function zb_CardBruteCleanIP($ip) {
     $query="DELETE from `cardbrute` where `ip`='".$ip."'";
     nr_query($query);
-    log_register("CARDBRUTE DELETE ".$ip);
+    log_register("CARDBRUTE DELETE `".$ip."`");
+}
+
+function zb_CardBruteCleanupAll() {
+    $query="TRUNCATE TABLE `cardbrute`;";
+    nr_query($query);
+    log_register("CARDBRUTE CLEANUP");
 }
 
 ?>

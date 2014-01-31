@@ -21,13 +21,19 @@ if (cfr('CARDS')) {
         rcms_redirect("?module=cards");
     }
     
+    //total cleanup action
+    if (wf_CheckGet(array('cleanallbrutes'))) {
+        zb_CardBruteCleanupAll();
+        rcms_redirect("?module=cards");
+    }
+    
     
     show_window(__('Cards generation'), web_CardsGenerateForm());
     show_window(__('Cards search'), web_CardsSearchForm());
    
     if (!wf_CheckPost(array('cardsearch'))) {
         show_window(__('Available payment cards'),web_CardsShow());
-        show_window(__('Bruteforce attempts'),web_CardShowBrutes());
+        web_CardShowBrutes();
         
     } else {
         show_window(__('Search results'), web_CardsSearchBySerial($_POST['cardsearch']));

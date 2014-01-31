@@ -2597,10 +2597,11 @@ function zb_NumUnEncode($data) {
 
 
  function web_UserArrayShower($usersarr) {
-     $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+     global $ubillingConfig;
+     $alterconf=$ubillingConfig->getAlter();
      
         if (!empty ($usersarr)) {
-            $alladdress=zb_AddressGetFulladdresslist();
+            $alladdress=zb_AddressGetFulladdresslistCached();
             $allrealnames=zb_UserGetAllRealnames();
             $alltariffs=zb_TariffsGetAllUsers();
             $allusercash=zb_CashGetAllUsers();
