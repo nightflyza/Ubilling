@@ -1207,6 +1207,20 @@ return($form);
             $switchPort='';
         }
         
+        //DN online detections
+        if ($alter_conf['DN_ONLINE_DETECT']) {
+            if (file_exists(DATA_PATH.'dn/'.$login)) {
+                $onlineDnFlag=web_bool_star(true).' '.__('Yes');
+            } else {
+                $onlineDnFlag=web_bool_star(false).' '.__('No');
+            }
+            $dnOnlineCells= wf_TableCell(__('Online'), '', 'row2');
+            $dnOnlineCells.= wf_TableCell($onlineDnFlag, '', 'row3');
+            $dnOnlineRow=  wf_TableRow($dnOnlineCells);
+        } else {
+            $dnOnlineRow='';
+        }
+        
         $profile.='
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
        <tbody>
@@ -1300,6 +1314,7 @@ return($form);
                 <td class="row2">'.__('Active').'</td>
                 <td class="row3">'.$act.'</td>
             </tr>
+            '.$dnOnlineRow.'
             <tr>
                 <td class="row2">'.__('Always Online').'</td>
                 <td class="row3">'.web_trigger($userdata['AlwaysOnline']).'</td>
