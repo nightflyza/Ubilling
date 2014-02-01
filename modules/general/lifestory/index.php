@@ -2,10 +2,11 @@
 if (cfr('LIFESTORY')) {
 
 if (isset ($_GET['username'])) {
-    $login=vf($_GET['username']);
+    $login=  mysql_real_escape_string($_GET['username']);
 
 //weblogs user parsing    
-$form=web_GrepLogByUser($login);
+$searchType = (wf_CheckGet(array('strict'))) ? true : false;
+$form=web_GrepLogByUser($login,$searchType);
 
 
 //raw database fields display
@@ -23,10 +24,17 @@ if (!empty($userdataraw)) {
     if (!empty($nethostraw)) {
         $nethostdump=print_r($nethostraw,true);
         $nethostdump=nl2br($nethostdump);
-        $form.=wf_modal(__('User Networking'), __('User Networking'), $nethostdump, 'ubButton', '400', '400').'<br>';
+        $form.=wf_modal(__('User Networking'), __('User Networking'), $nethostdump, 'ubButton', '400', '400');
     }
  }
 }
+
+if (wf_CheckGet(array('strict'))) {
+    $form.=wf_Link('?module=lifestory&username='.$login, __('Normal search'), false, 'ubButton');
+} else {
+    $form.=wf_Link('?module=lifestory&username='.$login.'&strict=true', __('Strict search'), false, 'ubButton');
+}
+
 $form.=wf_delimiter().web_UserControls($login);
 
 show_window(__('User lifestory'), $form);

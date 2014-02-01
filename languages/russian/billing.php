@@ -1594,6 +1594,8 @@ $lang['def']['Full address list caching time']='Время кешировани�
 $lang['def']['Enable parsing of check in docx format']='Поддержка чеков в формате .docx';
 $lang['def']['As calendar']='В виде календаря';
 $lang['def']['Previous user tickets']='Предыдущие тикеты пользователя';
+$lang['def']['Normal search']='Нормальный поиск';
+$lang['def']['Strict search']='Строгий поиск';
 $lang['def']['']='';
 $lang['def']['']='';
 

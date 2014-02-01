@@ -1433,28 +1433,26 @@ return($form);
         return($result);
     }
     
-        function web_GrepLogByUser($login) {
+      function web_GrepLogByUser($login,$strict=false) {
+      $login = ($strict) ? '('.$login.')' : $login;
       $query='SELECT * from `weblogs` WHERE `event` LIKE "%'.$login.'%" ORDER BY `date` DESC';
       $allevents=  simple_queryall($query);
-          $result='<table width="100%" class="sortable" border="0">';
-              $result.='
-                <tr class="row1">
-                <td>'.__('Who?').'</td>
-                <td>'.__('When?').'</td>
-                <td>'.__('What happen?').'</td>
-                </tr>';	
+              $cells=   wf_TableCell(__('ID'));
+              $cells.=  wf_TableCell(__('Who?'));
+              $cells.=  wf_TableCell(__('When?'));
+              $cells.=  wf_TableCell(__('What happen?'));
+              $rows= wf_TableRow($cells,'row1');
+              
       if (!empty ($allevents)) {
             foreach ($allevents as $io=>$eachevent) {
-              $result.='
-                <tr class="row3">
-                <td>'.$eachevent['admin'].'</td>
-                <td>'.$eachevent['date'].'</td>
-                <td>'.$eachevent['event'].'</td>
-	</tr>
-	';	
+              $cells=   wf_TableCell($eachevent['id']);
+              $cells.=  wf_TableCell($eachevent['admin']);
+              $cells.=  wf_TableCell($eachevent['date']);
+              $cells.=  wf_TableCell($eachevent['event']);
+              $rows.= wf_TableRow($cells,'row3');
           }
       }
-      $result.='<table>';
+      $result=wf_TableBody($rows, '100%', 0, 'sortable');
       return($result);
     }
 
