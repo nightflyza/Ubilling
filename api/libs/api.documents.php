@@ -503,6 +503,25 @@ class ProfileDocuments {
             }
         }
     }
+    
+    /*
+     * gets all user generated documents from database by this year
+     * 
+     * @return array
+     */
+
+    public function getAllUsersDocumentsThisYear() {
+        $result=array();
+        $where = "WHERE `date` LIKE '".date("Y-")."%'";
+        $query = "SELECT * from `docxdocuments` ".$where." ORDER BY `id` DESC;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['id']] = $each;
+            }
+        }
+        return ($result);
+    }
 
     /*
      * Renders previously generated user documents 
@@ -592,9 +611,9 @@ class ProfileDocuments {
         $allAddress=  zb_AddressGetFulladdresslistCached();
           
         $calendarData='';
-    
-        if (!empty($this->allUserDocuments)) {
-            foreach ($this->allUserDocuments as $io => $each) {
+        $yearDocuments=$this->getAllUsersDocumentsThisYear();
+        if (!empty($yearDocuments)) {
+            foreach ($yearDocuments as $io => $each) {
                 $timestamp=strtotime($each['date']);
                 $date=date("Y, n-1, j",$timestamp);
                 $rawTime=date("H:i:s",$timestamp);
