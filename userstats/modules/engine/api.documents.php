@@ -352,7 +352,7 @@ class UsProfileDocuments {
             if (isset($this->userDocuments[$documentid])) {
                 $documentFileName = $this->userDocuments[$documentid]['path'];
                 $fullPath = $this->dOCUMENTS_PATH . $documentFileName;
-                zbs_DownloadFile($fullPath);
+                zbs_DownloadFile($fullPath,'docx');
             } else {
                 show_window(__('Sorry'), __('No such document'));
             }

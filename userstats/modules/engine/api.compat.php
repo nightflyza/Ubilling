@@ -261,11 +261,22 @@ function int2ip($src){
      return preg_replace("/\s{2,}/",' ',implode(' ',$o));
  }
  
-  function zbs_DownloadFile($filePath) {
+  function zbs_DownloadFile($filePath,$contentType='') {
     if (!empty($filePath)) {
     if (file_exists($filePath)) {
     $fileContent=  file_get_contents($filePath);
     log_register("DOWNLOAD FILE `".$filePath."`");
+    
+    if (($contentType=='') OR ($contentType=='default')) {
+        $contentType='application/octet-stream';
+    } else {
+        //additional content types
+        if ($contentType=='docx') {
+            $contentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+    } 
+
+    header('Content-Type: '.$contentType);
     header('Content-Type: application/octet-stream');
     header("Content-Transfer-Encoding: Binary"); 
     header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\""); 

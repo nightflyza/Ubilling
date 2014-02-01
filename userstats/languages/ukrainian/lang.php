@@ -158,4 +158,22 @@ $lang['def']['Payment ID is used to make online payments using a variety of paym
 $lang['def']['Public offer'] = 'Договір публічної оферти';
 
 $lang['def']['Sorry sum of money in the account is enought for use service without credit']='Сума коштів на вашому рахунку достатня, для того, щоб продовжити користування послугою без кредиту';
+
+
+$lang['def']['Documents'] = 'Документи';
+$lang['def']['Unfortunately documents printing is now disabled'] = 'На жаль друк документів зараз вимкнено';
+$lang['def']['Available document templates'] = 'Шаблони документів в наявності';
+$lang['def']['Names'] = 'Імена';
+$lang['def']['Document creation'] = 'Створення документу';
+$lang['def']['Real Name'] = 'П.І.Б.';
+$lang['def']['Service'] = 'Послуга';
+$lang['def']['Notes'] = 'Примітки';
+$lang['def']['Sum'] = 'Сума';
+$lang['def']['Create'] = 'Створити';
+$lang['def']['Draw order'] = 'Виписати рахунок';
+$lang['def']['Document name'] = 'Назва документа';
+$lang['def']['Previous documents'] = 'Попередні документи';
+$lang['def']['No such document'] = 'Немає такого документу';
+$lang['def']['Not existing template'] = 'Немає такого шаблона';
+
 ?>

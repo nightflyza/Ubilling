@@ -1592,8 +1592,8 @@ $lang['def']['value-added tax rate percent for document templates']='Ставк�
 $lang['def']['additional services printable within documents']='Дополнительные услуги доступные для шаблонов документов';
 $lang['def']['Full address list caching time']='Время кеширования полного списка адресов';
 $lang['def']['Enable parsing of check in docx format']='Поддержка чеков в формате .docx';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['As calendar']='В виде календаря';
+$lang['def']['Previous user tickets']='Предыдущие тикеты пользователя';
 $lang['def']['']='';
 $lang['def']['']='';
 

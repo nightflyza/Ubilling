@@ -3505,12 +3505,22 @@ function zb_TranslitString($string) {
            return ($result);
       }
       
- function zb_DownloadFile($filePath) {
+ function zb_DownloadFile($filePath,$contentType='') {
     if (!empty($filePath)) {
     if (file_exists($filePath)) {
     $fileContent=  file_get_contents($filePath);
     log_register("DOWNLOAD FILE `".$filePath."`");
-    header('Content-Type: application/octet-stream');
+    
+    if (($contentType=='') OR ($contentType=='default')) {
+        $contentType='application/octet-stream';
+    } else {
+        //additional content types
+        if ($contentType=='docx') {
+            $contentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+    } 
+
+    header('Content-Type: '.$contentType);
     header("Content-Transfer-Encoding: Binary"); 
     header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\""); 
     die($fileContent);

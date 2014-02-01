@@ -583,6 +583,37 @@ class ProfileDocuments {
     }
     
     /*
+     * Renders previously generated all users as fullcalendar widget 
+     * 
+     * @return string
+     */
+
+    public function renderAllUserDocumentsCalendar() {
+        $allAddress=  zb_AddressGetFulladdresslistCached();
+          
+        $calendarData='';
+    
+        if (!empty($this->allUserDocuments)) {
+            foreach ($this->allUserDocuments as $io => $each) {
+                $timestamp=strtotime($each['date']);
+                $date=date("Y, n-1, j",$timestamp);
+                $rawTime=date("H:i:s",$timestamp);
+                $calendarData.="
+                      {
+                        title: '".$rawTime.' '.@$allAddress[$each['login']]."',
+                        url: '?module=userprofile&username=".$each['login']."',
+                        start: new Date(".$date."),
+                        end: new Date(".$date."),
+                   },
+                    ";
+            }
+        }
+
+        $result = wf_FullCalendar($calendarData);
+        return ($result);
+    }
+    
+    /*
      * show calendar contol form
      * 
      * @return string

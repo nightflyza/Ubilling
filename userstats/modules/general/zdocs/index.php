@@ -53,7 +53,7 @@ if ($us_config['DOCX_SUPPORT']) {
                     $documents->registerDocument($user_login, $templateId, $saveFileName);
                     
                     //output
-                    zbs_DownloadFile($saveFullPath);
+                    zbs_DownloadFile($saveFullPath,'docx');
                     
                     }
                     

@@ -9,7 +9,7 @@ if (cfr('PLDOCS')) {
         
         //existing document downloading
         if (wf_CheckGet(array('documentdownload'))) {
-            zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload']);
+            zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload'],'docx');
         }
         
         //document deletion from database
@@ -18,13 +18,20 @@ if (cfr('PLDOCS')) {
             rcms_redirect('?module=report_documents');
         }
         
+        //controls
+        $actionLinks=  wf_Link('?module=report_documents', __('Grid view'), false, 'ubButton');
+        $actionLinks.= wf_Link('?module=report_documents&calendarview=true', __('As calendar'), false, 'ubButton');
+        show_window('', $actionLinks);
         
+        if (!wf_CheckGet(array('calendarview'))) {
         //show calendar control
         show_window(__('By date'), $documents->dateControl());
-        
         //list available documents
         show_window(__('Previously generated documents'),$documents->renderAllUserDocuments());
-        
+        } else {
+            //or calendar view
+        show_window(__('Previously generated documents'),$documents->renderAllUserDocumentsCalendar());
+        }
         
         
     } else {

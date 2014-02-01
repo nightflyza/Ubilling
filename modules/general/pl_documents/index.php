@@ -91,7 +91,7 @@ if (cfr('PLDOCS')) {
                     $docx->set($templateData);
                     $docx->saveAs($saveFullPath);
                     //output
-                    zb_DownloadFile($saveFullPath);
+                    zb_DownloadFile($saveFullPath,'docx');
             }
             
             } else {
@@ -103,7 +103,7 @@ if (cfr('PLDOCS')) {
                     //registering template
                     $documents->registerDocument($documents->getLogin(), $docId, $saveFileName);
                     //output
-                    zb_DownloadFile($saveFullPath);
+                    zb_DownloadFile($saveFullPath,'docx');
                     
             }
             
@@ -113,7 +113,7 @@ if (cfr('PLDOCS')) {
         } else {
         //template downloading
         if (wf_CheckGet(array('download'))) {
-            zb_DownloadFile($documents::TEMPLATES_PATH.$_GET['download']);
+            zb_DownloadFile($documents::TEMPLATES_PATH.$_GET['download'],'docx');
         }
         
         //template deletion
@@ -142,7 +142,7 @@ if (cfr('PLDOCS')) {
         
         //existing document downloading
         if (wf_CheckGet(array('documentdownload'))) {
-            zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload']);
+            zb_DownloadFile($documents::DOCUMENTS_PATH.$_GET['documentdownload'],'docx');
         }
         
         //document deletion from database
