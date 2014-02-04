@@ -1598,5 +1598,12 @@ $lang['def']['Normal search']='Нормальный поиск';
 $lang['def']['Strict search']='Строгий поиск';
 $lang['def']['']='';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 ?>

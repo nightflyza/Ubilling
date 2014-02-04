@@ -117,6 +117,7 @@ DOCX_NDS=VARCHAR|value-added tax rate percent for document templates
 DOCX_SERVICES=VARCHAR|additional services printable within documents
 DOCX_CHECK=TRIGGER|Enable parsing of check in docx format
 ADDRESS_CACHE_TIME=VARCHAR|Full address list caching time
+CAN_DELETE_PAYMENTS=VARCHAR|Administrator logins that can delete payments
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

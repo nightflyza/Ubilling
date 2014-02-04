@@ -320,6 +320,7 @@
                 $sectionName='';
                 $finalResult='';
                 $tempArray=array();
+                $alterCfg=  rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
                 //selecting FDB processing mode
                 if (isset($currentTemplate['define']['FDB_MODE'])) {
                   $deviceFdbMode=$currentTemplate['define']['FDB_MODE'];
@@ -413,6 +414,18 @@
                     
                     //show port data User friendly :)
                     if (!empty($portData)) {
+                        //extracting all needed data for switchport control
+                        if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
+                            $allswitchesArray=  zb_SwitchesGetAll();
+                            $allportassigndata=array();
+                            $allportassigndata_q="SELECT * from `switchportassign`;";
+                            $allportassigndata_raw=  simple_queryall($allportassigndata_q);
+                            if (!empty($allportassigndata_raw)) {
+                                foreach ($allportassigndata_raw as $iopd=>$eachpad) {
+                                    $allportassigndata[$eachpad['login']]=$eachpad;
+                                }
+                            }
+                        }
                         $allusermacs=  array_flip($allusermacs);
                         
                             $cells=  wf_TableCell(__('User'),'30%');
@@ -425,10 +438,17 @@
                                 $userLogin=$allusermacs[$eachMac];
                                 @$useraddress=$alladdress[$userLogin];
                                 $userlink=  wf_Link('?module=userprofile&username='.$userLogin, web_profile_icon().' '.$useraddress, false);
+                                //switch port assing form
+                                if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
+                                    $assignForm= wf_modal(web_edit_icon(__('Switch port assign')), __('Switch port assign'), web_SnmpSwitchControlForm($userLogin,$allswitchesArray,$allportassigndata,@$_GET['switchid'],$eachPort), '', '500', '250');
+                                } else {
+                                    $assignForm= '';
+                                }
                             } else {
                                 $userlink='';
+                                $assignForm='';
                             }
-                            $cells=   wf_TableCell($userlink);
+                            $cells=   wf_TableCell($userlink.$assignForm);
                             $cells.=  wf_TableCell($eachMac);
                             $cells.=  wf_TableCell($eachPort);
                             $rows.=   wf_TableRow($cells, 'row3');

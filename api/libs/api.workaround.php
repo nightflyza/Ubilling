@@ -1373,6 +1373,18 @@ return($form);
         $allservicenames=zb_VservicesGetAllNamesLabeled();
         $total_payments="0";
         $curdate=curdate();
+        $deletingAdmins=array();
+        $iCanDeletePayments=false;
+        $currentAdminLogin=whoami();
+        //extract admin logins
+        if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
+            $deletingAdmins=  explode(',', $alter_conf['CAN_DELETE_PAYMENTS']);
+            $deletingAdmins= array_flip($deletingAdmins);
+        }
+        if (isset($deletingAdmins[$currentAdminLogin])) {
+            $iCanDeletePayments=true;
+        }
+        
         $last_payment=zb_CashGetUserLastPayment($login);
         $result='<table width="100%" border="0" class="sortable">';
           $result.='
@@ -1411,6 +1423,12 @@ return($form);
                     $printcheck = '<a href="#"  onClick="window.open(\'?module=printcheck&paymentid='.$eachpayment['id'].'\',\'checkwindow\',\'width=800,height=600\')"><img src="skins/printer_small.gif" border="0"></a>';
                 }
                 
+                if ($iCanDeletePayments) {
+                    $deleteControls=  wf_JSAlert('?module=addcash&username='.$login.'&paymentdelete='.$eachpayment['id'], wf_img('skins/delete_small.png', __('Delete')), __('Removing this may lead to irreparable results')).' &nbsp; ';
+                } else {
+                    $deleteControls='';
+                }
+                
                 $result .= '
                     <tr class="'.$hlight.'">
                     <td>'.$eachpayment['id'].'</td>
@@ -1421,7 +1439,7 @@ return($form);
                     <td>'.@__($alltypes[$eachpayment['cashtypeid']]).'</td>
                     <td>'.$eachpayment['note'].'</td>
                     <td>'.$eachpayment['admin'].'</td>
-                    <td>'.$printcheck.'</td>
+                    <td>'.$deleteControls.$printcheck.'</td>
                     </tr>
                     ';
                 $total_payments=$total_payments+$eachpayment['summ'];
@@ -3543,3 +3561,71 @@ function zb_CheckDbSchema() {
     }
     return ($result);
 }
+
+
+ function web_SnmpSwitchControlForm($login,$allswitches,$allportassigndata,$suggestswitchid='',$suggestswitchport='') {
+      $login=  mysql_real_escape_string($login);
+            
+      $switcharr=array();
+      if (!empty($allswitches)) {
+          foreach ($allswitches as $io=>$eachswitch) {
+              $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+          }
+      }
+      //getting current data
+      $assignData=array();
+      if (isset($allportassigndata[$login])) {
+          $assignData=$allportassigndata[$login];
+      }
+      $sameUsers='';
+      
+      if (!empty($assignData)) {
+          $currentSwitchPort=$assignData['port'];
+          $currentSwitchId=$assignData['switchid'];
+      } else {
+          $currentSwitchPort='';
+          $currentSwitchId='';
+      }
+      
+      
+      //control form construct
+      $inputs= wf_HiddenInput('swassignlogin', $login);
+      $inputs.=  wf_Selector('swassignswid', $switcharr, __('Switch'), $suggestswitchid, true);
+      $inputs.= wf_TextInput('swassignswport', __('Port'), $suggestswitchport, false, '2');
+      $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
+      $inputs.= wf_Submit('Save');
+      $controlForm=  wf_Form('', "POST", $inputs, 'glamour');
+      //form end
+      
+      $switchAssignController=  wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
+     
+  
+      $cells=  wf_TableCell(__('Switch'),'30%','row2');
+      $cells.= wf_TableCell(@$switcharr[$currentSwitchId]);
+      $rows= wf_TableRow($cells, 'row3');
+      $cells=  wf_TableCell(__('Port'),'30%','row2');
+      $cells.= wf_TableCell($currentSwitchPort);
+      $rows.= wf_TableRow($cells, 'row3');
+      $cells=  wf_TableCell(__('Change'),'30%','row2');
+      $cells.= wf_TableCell($switchAssignController);
+      $rows.= wf_TableRow($cells, 'row3');
+      
+      $result=  wf_TableBody($rows, '100%', '0');
+      
+      //update subroutine
+      if (wf_CheckPost(array('swassignlogin','swassignswid','swassignswport'))) {
+          $newswid=vf($_POST['swassignswid'],3);
+          $newport=vf($_POST['swassignswport'],3);
+          nr_query("DELETE from `switchportassign` WHERE `login`='".$_POST['swassignlogin']."'");
+          nr_query("INSERT INTO `switchportassign` (`id` ,`login` ,`switchid` ,`port`) VALUES (NULL , '".$_POST['swassignlogin']."', '".$newswid."', '".$newport."');");
+          log_register("CHANGE SWITCHPORT (".$login.") ON SWITCHID [".$newswid."] PORT [".$newport."]");
+          rcms_redirect('?module=switchpoller&switchid='.$suggestswitchid);
+      }
+      //delete subroutine
+      if (isset($_POST['swassigndelete'])) {
+          nr_query("DELETE from `switchportassign` WHERE `login`='".$_POST['swassignlogin']."'");
+          log_register("DELETE SWITCHPORT (".$login.")");
+          rcms_redirect('?module=switchpoller&switchid='.$suggestswitchid);
+      }
+      return ($result);
+  }
