@@ -1596,14 +1596,10 @@ $lang['def']['As calendar']='В виде календаря';
 $lang['def']['Previous user tickets']='Предыдущие тикеты пользователя';
 $lang['def']['Normal search']='Нормальный поиск';
 $lang['def']['Strict search']='Строгий поиск';
+$lang['def']['Watchdog enabled']='Собака-наблюдака включена';
+$lang['def']['Administrator logins that can delete payments']='Администраторы которые могут удалять оплаты';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
 
 
 ?>

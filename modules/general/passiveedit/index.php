@@ -7,7 +7,7 @@ if (isset ($_GET['username'])) {
        if (isset ($_POST['newpassive'])) {
         $passive=$_POST['newpassive'];
         $billing->setpassive($login,$passive);
-        log_register('CHANGE Passive '.$login.' ON '.$passive);
+        log_register('CHANGE Passive ('.$login.') ON '.$passive);
         rcms_redirect("?module=passiveedit&username=".$login);
     }
 

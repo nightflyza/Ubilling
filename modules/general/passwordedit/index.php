@@ -10,7 +10,7 @@ if (isset ($_GET['username'])) {
         $password=$_POST['newpassword'];
         if (zb_CheckPasswordUnique($password)) {
         $billing->setpassword($login,$password);
-        log_register('CHANGE Password '.$login.' ON '.$password);
+        log_register('CHANGE Password ('.$login.') ON `'.$password.'`');
         rcms_redirect("?module=passwordedit&username=".$login);
         } else {
             show_window(__('Error'),__('We do not recommend using the same password for different users. Try another.'));

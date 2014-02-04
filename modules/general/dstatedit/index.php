@@ -7,7 +7,7 @@ if (isset ($_GET['username'])) {
        if (isset ($_POST['newdstat'])) {
         $dstat=$_POST['newdstat'];
         $billing->setdstat($login,$dstat);
-        log_register('CHANGE dstat '.$login.' ON '.$dstat);
+        log_register('CHANGE dstat ('.$login.') ON '.$dstat);
         rcms_redirect("?module=dstatedit&username=".$login);
     }
 

@@ -13,6 +13,7 @@ if (cfr('USEREDIT')) {
         $mobile=zb_UserGetMobile($login);
 	$mail=zb_UserGetEmail($login);
         $notes=zb_UserGetNotes($login); 
+        $ip=$stgdata['IP'];
 	$mac=zb_MultinetGetMAC($stgdata['IP']);
         $speedoverride=zb_UserGetSpeedOverride($login);
         $tariff=$stgdata['Tariff'];
@@ -115,6 +116,11 @@ if (cfr('USEREDIT')) {
         $cells=  wf_TableCell(__('Balance'));
         $cells.= wf_TableCell($cash);
         $cells.= wf_TableCell(wf_Link('?module=addcash&username='.$login.'#profileending', wf_img('skins/icon_dollar.gif').' '.__('Finance operations')));
+        $rows.=  wf_TableRow($cells, 'row3');
+        
+        $cells=  wf_TableCell(__('IP'));
+        $cells.= wf_TableCell($ip);
+        $cells.= wf_TableCell(wf_Link('?module=pl_ipchange&username='.$login, wf_img('skins/icon_ip.gif').' '.__('Change').' '.__('IP')));
         $rows.=  wf_TableRow($cells, 'row3');
         
         $cells=  wf_TableCell(__('MAC'));

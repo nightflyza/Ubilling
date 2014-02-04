@@ -1604,5 +1604,11 @@ $lang['def']['value-added tax rate percent for document templates']='Ставк�
 $lang['def']['additional services printable within documents']='Додаткові послуги для шаблонів документів';
 $lang['def']['Full address list caching time']='Час кешування для повного списку адрес';
 $lang['def']['Enable parsing of check in docx format']='Підтримка чеків у форматі .docx';
+$lang['def']['As calendar']='У вигляді календаря';
+$lang['def']['Previous user tickets']='Попередні тікети користувача';
+$lang['def']['Normal search']='Нормальний пошук';
+$lang['def']['Strict search']='Строгий пошук';
+$lang['def']['Watchdog enabled']='Собаку-спостерігаку ввімкнено';
+$lang['def']['Administrator logins that can delete payments']='Адміністратори, що можуть видаляти оплати';
 
 ?>
