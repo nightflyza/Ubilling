@@ -441,6 +441,10 @@
                                 //switch port assing form
                                 if ($alterCfg['SWITCHPORT_IN_PROFILE']) {
                                     $assignForm= wf_modal(web_edit_icon(__('Switch port assign')), __('Switch port assign'), web_SnmpSwitchControlForm($userLogin,$allswitchesArray,$allportassigndata,@$_GET['switchid'],$eachPort), '', '500', '250');
+                                    
+                                    if (isset($allportassigndata[$userLogin])) {
+                                        $assignForm.=wf_img('skins/arrow_right_green.png').$allportassigndata[$userLogin]['port'];
+                                    }
                                 } else {
                                     $assignForm= '';
                                 }
