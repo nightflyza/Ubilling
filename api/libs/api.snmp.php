@@ -32,12 +32,12 @@
             $portnum=  str_replace('.', '', $portnum);
             
             if (ispos($data[1], '1')) {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell(web_bool_led(true));
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
             } else {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell(web_bool_led(false));
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
@@ -66,12 +66,12 @@
             $bytes=  trim($bytes);
             
             if (ispos($data[1], 'up')) {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell($bytes);
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
             } else {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell($bytes);
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
@@ -101,12 +101,12 @@
               $desc=  trim($desc);
             }
             if (ispos($data[1], 'up')) {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell($desc);
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
             } else {
-                $cells=  wf_TableCell($portnum,'24');
+                $cells=  wf_TableCell($portnum,'24','','style="height:20px;"');
                 $cells.= wf_TableCell($desc);
                 $rows=  wf_TableRow($cells,'row3');
                 $result= wf_TableBody($rows, '100%', 0, '');
@@ -452,7 +452,7 @@
                                 $userlink='';
                                 $assignForm='';
                             }
-                            $cells=   wf_TableCell($userlink.$assignForm);
+                            $cells=   wf_TableCell($userlink.$assignForm,'','','sorttable_customkey="'.$eachPort.'"');
                             $cells.=  wf_TableCell($eachMac);
                             $cells.=  wf_TableCell($eachPort);
                             $rows.=   wf_TableRow($cells, 'row3');
