@@ -989,3 +989,6 @@ CREATE TABLE IF NOT EXISTS `docxdocuments` (
   KEY `public` (`public`),
   KEY `path` (`path`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.5.1 update
+ALTER TABLE `taskman` ADD `smsdata` TEXT NULL DEFAULT NULL ;

@@ -1598,6 +1598,12 @@ $lang['def']['Normal search']='Нормальный поиск';
 $lang['def']['Strict search']='Строгий поиск';
 $lang['def']['Watchdog enabled']='Собака-наблюдака включена';
 $lang['def']['Administrator logins that can delete payments']='Администраторы которые могут удалять оплаты';
+
+//rev 3247
+$lang['def']['SMS sent to employees']='СМС послано работнику';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 
 

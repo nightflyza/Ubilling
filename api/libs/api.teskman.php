@@ -650,6 +650,7 @@ function ts_DetectUserByAddress($address) {
         $query="SELECT `mobile` from `employee` WHERE `id`='".$employeeid."'";
         $mobile=  simple_query($query);
         $mobile=$mobile['mobile'];
+        $result=array();
         if (!empty($mobile)) {
           if (ispos($mobile, '+')) {
         $message=  str_replace('\r\n', ' ', $message);
@@ -660,12 +661,15 @@ function ts_DetectUserByAddress($address) {
         $filename='content/tsms/ts_'.zb_rand_string(8);
         $storedata='NUMBER="'.$number.'"'."\n";
         $storedata.='MESSAGE="'.$message.'"'."\n";
+        $result['number']=$number;
+        $result['message']=$message;
         file_put_contents($filename, $storedata);
         log_register("TASKMAN SEND SMS `".$number."`");
         } else {
                 throw new Exception('BAD_MOBILE_FORMAT');
             }
         }
+        return ($result);
     }
     
      function ts_CreateTask($startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
@@ -678,11 +682,16 @@ function ts_DetectUserByAddress($address) {
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
         $jobnote=  mysql_real_escape_string($jobnote);
+        $smsData='NULL';
         //store sms for backround processing via watchdog
         if ($altercfg['WATCHDOG_ENABLED']) {
             if (isset($_POST['newtasksendsms'])) {
                 $newSmsText=$address.' '.$phone.' '.$jobnote;
-                ts_SendSMS($employeeid, $newSmsText);
+                $smsDataRaw=ts_SendSMS($employeeid, $newSmsText);
+                if (!empty($smsDataRaw)) {
+                $smsData=  serialize($smsDataRaw);
+                $smsData= "'".base64_encode($smsData)."'";
+                }
             }
         }
         
@@ -699,7 +708,8 @@ function ts_DetectUserByAddress($address) {
                             `startdate` ,
                             `enddate` ,
                             `admin` ,
-                            `status`
+                            `status`,
+                            `smsdata`
                                        )
                                 VALUES (
                                     NULL ,
@@ -714,7 +724,8 @@ function ts_DetectUserByAddress($address) {
                                     '".$startdate."',
                                     NULL ,
                                     '".$admin."',
-                                    '0'
+                                    '0',
+                                    ".$smsData."
                     );";
         nr_query($query);
         log_register("TASKMAN CREATE `".$address."`");
@@ -786,6 +797,7 @@ function ts_DetectUserByAddress($address) {
         $allemployee= ts_GetAllEmployee();
         $activeemployee=  ts_GetActiveEmployee();
         $alljobtypes= ts_GetAllJobtypes();
+        $smsData='';
         
         if (!empty($taskdata)) {
             //not done task
@@ -811,6 +823,24 @@ function ts_DetectUserByAddress($address) {
             $modform=  wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '420', '500');
             //modform end
             
+            //extracting sms data
+            if (!empty($taskdata['smsdata'])) {
+                $rawSmsData=  $taskdata['smsdata'];
+                $rawSmsData=  base64_decode($rawSmsData);
+                $rawSmsData=  unserialize($rawSmsData);
+               
+                
+                $smsDataCells=  wf_TableCell(__('Mobile'), '', 'row2');
+                $smsDataCells.= wf_TableCell($rawSmsData['number']);
+                $smsDataRows= wf_TableRow($smsDataCells, 'row3');
+                $smsDataCells=  wf_TableCell(__('Message'), '', 'row2');
+                $smsDataCells.= wf_TableCell($rawSmsData['message']);
+                $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+                $smsDataTable=  wf_TableBody($smsDataRows, '100%', '0', 'glamour');
+                
+                $smsData=  wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable, '', '400', '200');
+            }
+            
             $tablecells=  wf_TableCell(__('Task creation date').' / '.__('Administrator'),'30%');
             $tablecells.=  wf_TableCell($taskdata['date'].' / '.$taskdata['admin']);
             $tablerows=  wf_TableRow($tablecells,'row3');
@@ -832,7 +862,7 @@ function ts_DetectUserByAddress($address) {
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Who should do'));
-            $tablecells.=  wf_TableCell(@$allemployee[$taskdata['employee']]);
+            $tablecells.=  wf_TableCell(@$allemployee[$taskdata['employee']].' '.$smsData);
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Job note'));
