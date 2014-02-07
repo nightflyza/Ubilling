@@ -78,8 +78,20 @@ if(cfr('SWITCHPOLL')) {
                     if (!empty($allTemplatesAssoc)) {
                         if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
                             if (!isset($alldeadswitches[$eachDevice['ip']])) {
+                              //cache cleanup
+                                if (wf_CheckGet(array('forcecache'))) {
+                                    $deviceRawSnmpCache=  rcms_scandir('./exports/', $eachDevice['ip'].'_*');
+                                    if (!empty($deviceRawSnmpCache)) {
+                                        foreach ($deviceRawSnmpCache as $ir=>$fileToDelete) {
+                                            unlink('./exports/'.$fileToDelete);
+                                        }
+                                    }
+                                    rcms_redirect('?module=switchpoller&switchid='.$eachDevice['id']);
+                                }
                             $deviceTemplate=$allTemplatesAssoc[$eachDevice['modelid']];
-                            show_window($eachDevice['ip'].' - '.$eachDevice['location'],  wf_Link('?module=switches', __('Back'), true, 'ubButton'));
+                            $modActions=  wf_Link('?module=switches', __('Back'), false, 'ubButton');
+                            $modActions.= wf_Link('?module=switchpoller&switchid='.$eachDevice['id'].'&forcecache=true', __('Force query'), false, 'ubButton');
+                            show_window($eachDevice['ip'].' - '.$eachDevice['location'],  $modActions);
                             sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate,$allusermacs,$alladdress,false);
                             } else {
                                show_window(__('Error'),__('Switch dead since').' '.@$deathTime[$eachDevice['ip']].  wf_delimiter().  wf_Link('?module=switches', __('Back'), false, 'ubButton'));

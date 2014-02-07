@@ -139,7 +139,7 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed,$tc_priceup,$tc_pricedo
     $user_tariff=zbs_UserGetTariff($login);
     $alltariffs=zbs_TariffGetAllPrices();
     $form='
-        '.__('You current tariff is').': '.$user_tariff.' '.__('with monthly fee').' '.$alltariffs[$user_tariff].' '.$us_currency.'<br>
+        '.__('You current tariff is').': '.__($user_tariff).' '.__('with monthly fee').' '.$alltariffs[$user_tariff].' '.$us_currency.'<br>
         '.__('The cost of switching to a lower rate monthly fee').': '.$tc_pricedown.' '.$us_currency.'<br>
         '.__('The cost of switching to a higher monthly fee tariff').': '.$tc_priceup.' '.$us_currency.'<br>
         '.__('The cost of the transition rate for the same monthly fee').': '.$tc_pricesimilar.' '.$us_currency.'<br>
