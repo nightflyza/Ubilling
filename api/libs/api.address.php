@@ -169,7 +169,7 @@ function zb_AddressCreateBuild($streetid,$buildnum) {
     (NULL, '".$streetid."','".$buildnum."');
     ";
     nr_query($query);
-    log_register('CREATE AddressBuild '.$streetid.' '.$buildnum);
+    log_register('CREATE AddressBuild ['.$streetid.'] `'.$buildnum.'`');
 }
 
 function zb_AddressDeleteBuild($buildid) {
@@ -535,6 +535,9 @@ function zb_AddressGetAptDataById($aptid) {
     }
 
     function web_BuildLister($streetid) {
+        global $ubillingConfig;
+        $altcfg=$ubillingConfig->getAlter();
+        
         $allbuilds=zb_AddressGetBuildAllDataByStreet($streetid);
         
         $cells=  wf_TableCell(__('ID'));
@@ -544,6 +547,10 @@ function zb_AddressGetAptDataById($aptid) {
         $rows=  wf_TableRow($cells, 'row1');
         
         if (!empty ($allbuilds)) {
+            //build passport data processing
+            if ($altcfg['BUILD_EXTENDED']) {
+                $buildPassport=new BuildPassport();
+            }
             foreach ($allbuilds as $io=>$eachbuild) {
             $cells=  wf_TableCell($eachbuild['id']);
             $cells.= wf_TableCell($eachbuild['buildnum']);
@@ -552,6 +559,9 @@ function zb_AddressGetAptDataById($aptid) {
             $acts.=''.wf_JSAlert('?module=builds&action=editbuild&streetid='.$streetid.'&buildid='.$eachbuild['id'], web_edit_icon(), 'Are you serious');
             if (!empty($eachbuild['geo'])) {
                 $acts.=' '.wf_Link("?module=usersmap&findbuild=".$eachbuild['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')), false);
+            }
+            if ($altcfg['BUILD_EXTENDED']) {
+                $acts.=' '.wf_modal(wf_img('skins/icon_passport.gif', __('Build passport')), __('Build passport'), $buildPassport->renderEditForm($eachbuild['id']), '', '600', '450');
             }
             $cells.= wf_TableCell($acts);
             $rows.=  wf_TableRow($cells, 'row3');
@@ -794,6 +804,184 @@ if (!empty ($alladdrz)) {
 }
 
 return($result);
+}
+
+
+/*
+ * Build passport data base class
+ */
+class BuildPassport {
+    
+    private $data=array();
+    private $ownersArr=array(''=>'-');
+    private $floorsArr=array(''=>'-');
+    private $entrancesArr=array(''=>'-');
+    
+    const EX_NO_OWNERS='EMPTY_OWNERS_PARAM';
+    const EX_NO_OPTS='NOT_ENOUGHT_OPTIONS';
+
+    public function __construct() {
+        $this->savePassport();
+        $this->loadData();
+        $this->loadConfig();
+    }
+    
+    /*
+     * loads all existing builds passport data into private prop
+     * 
+     * @return void
+     */
+    protected function loadData() {
+        $query="SELECT * from `buildpassport`";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $this->data[$each['buildid']]=$each;
+            }
+        }
+    }
+    
+    /*
+     * load build passport data options
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $altCfg=$ubillingConfig->getAlter();
+        
+        //extracting owners
+        if (!empty($altCfg['BUILD_OWNERS'])) {
+            $rawOwners=  explode(',', $altCfg['BUILD_OWNERS']);
+            foreach ($rawOwners as $ia=>$eachowner) {
+                $this->ownersArr[$eachowner]=$eachowner;
+            }
+        } else {
+            throw new Exception (self::EX_NO_OWNERS);
+        }
+        
+        //extracting floors and entrances
+        if (!empty($altCfg['BUILD_EXTOPTS'])) {
+            $rawOpts=  explode(',', $altCfg['BUILD_EXTOPTS']);
+            if (sizeof($rawOpts)<3) {
+            $maxFloors=$rawOpts[0];
+            $maxEntrances=$rawOpts[1];
+            
+            for ($floors=1;$floors<=$maxFloors;$floors++) {
+                $this->floorsArr[$floors]=$floors;
+            }
+            
+            for ($entrances=1;$entrances<=$maxEntrances;$entrances++) {
+                $this->entrancesArr[$entrances]=$entrances;
+            }
+            
+            } else {
+                throw new Exception (self::EX_NO_OPTS);
+            }
+        } else {
+            throw new Exception (self::EX_NO_OPTS);
+        }
+        
+    }
+
+
+    /*
+     * returns some build passport edit form
+     * 
+     * @praram $buildid existing build id
+     * 
+     * @return string
+     */
+    public function renderEditForm($buildid) {
+        
+        $buildid=vf($buildid,3);
+        
+        if (isset($this->data[$buildid])) {
+            $currentData=  $this->data[$buildid];
+        } else {
+            $currentData=array();
+        }
+        
+        $inputs=  wf_HiddenInput('savebuildpassport', $buildid);
+        $inputs.= wf_Selector('powner', $this->ownersArr, __('Owner'), @$currentData['owner'], true);
+        $inputs.= wf_TextInput('pownername', __('Owner name'), @$currentData['ownername'], true, 30);
+        $inputs.= wf_TextInput('pownerphone', __('Owner phone'), @$currentData['ownerphone'], true, 30);
+        $inputs.= wf_TextInput('pownercontact', __('Owner contact person'), @$currentData['ownercontact'], true, 30);
+        $keys= (@$currentData['keys']==1) ? true : false;
+        $inputs.= wf_CheckInput('pkeys', __('Keys available'), true, $keys);
+        $inputs.= wf_TextInput('paccessnotices', __('Build access notices'), @$currentData['accessnotices'], true, 40);
+        $inputs.= wf_Selector('pfloors', $this->floorsArr, __('Floors'), @$currentData['floors'], false);
+        $inputs.= wf_Selector('pentrances', $this->entrancesArr, __('Entrances'), @$currentData['entrances'], false);
+        $inputs.= wf_TextInput('papts', __('Apartments'), @$currentData['apts'], true, 5);
+      
+        $inputs.= __('Notes').wf_tag('br');
+        $inputs.= wf_TextArea('pnotes', '', @$currentData['notes'], true, '50x6');
+        $inputs.= wf_Submit(__('Save'));
+        
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    /*
+     * saves new passport data for some build
+     * 
+     * @return void
+     */
+    protected function savePassport() {
+        if (wf_CheckPost(array('savebuildpassport'))) {
+            $buildid=vf($_POST['savebuildpassport'],3);
+            
+            // Yep, im know - thats shitty solution. Need to refactor this later.
+            $clean_query="DELETE FROM `buildpassport` WHERE `buildid`='".$buildid."';";
+            nr_query($clean_query);
+            
+            $owner=  mysql_real_escape_string($_POST['powner']);
+            $ownername=mysql_real_escape_string($_POST['pownername']);
+            $ownerphone=mysql_real_escape_string($_POST['pownerphone']);
+            $ownercontact=mysql_real_escape_string($_POST['pownercontact']);
+            $keys=(isset($_POST['pkeys'])) ? 1 : 0;
+            $accessnotices=mysql_real_escape_string($_POST['paccessnotices']);
+            $floors=mysql_real_escape_string($_POST['pfloors']);
+            $entrances=mysql_real_escape_string($_POST['pentrances']);
+            $apts=mysql_real_escape_string($_POST['papts']);
+            $notes=mysql_real_escape_string($_POST['pnotes']);
+            
+            $query="INSERT INTO `buildpassport` (
+                                `id` ,
+                                `buildid` ,
+                                `owner` ,
+                                `ownername` ,
+                                `ownerphone` ,
+                                `ownercontact` ,
+                                `keys` ,
+                                `accessnotices` ,
+                                `floors` ,
+                                `apts` ,
+                                `entrances` ,
+                                `notes`
+                                )
+                                VALUES (
+                                NULL ,
+                                '".$buildid."',
+                                '".$owner."',
+                                '".$ownername."',
+                                '".$ownerphone."',
+                                '".$ownercontact."',
+                                '".$keys."',
+                                '".$accessnotices."',
+                                '".$floors."',
+                                '".$apts."',
+                                '".$entrances."',
+                                '".$notes."'
+                                );
+                        ";
+            nr_query($query);
+            log_register('BUILD PASSPORT SAVE ['.$buildid.']');
+        }
+    }
+    
+    
+    
 }
 
 ?>

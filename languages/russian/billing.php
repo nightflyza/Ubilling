@@ -1601,6 +1601,18 @@ $lang['def']['Administrator logins that can delete payments']='Админист�
 
 //rev 3247
 $lang['def']['SMS sent to employees']='СМС послано работнику';
+$lang['def']['Build passport']='Паспорт дома';
+$lang['def']['Owner']='Владелец';
+$lang['def']['Owner name']='Наименование владельца';
+$lang['def']['Owner phone']='Телефон владельца';
+$lang['def']['Owner contact person']='Контактная персона владельца';
+$lang['def']['Keys available']='Есть ключи';
+$lang['def']['Build access notices']='Примечания доступа к дому';
+$lang['def']['Floors']='Этажей';
+$lang['def']['Apartments']='Квартир';
+$lang['def']['Entrances']='Подъездов';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';

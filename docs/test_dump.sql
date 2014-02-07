@@ -992,3 +992,21 @@ CREATE TABLE IF NOT EXISTS `docxdocuments` (
 
 -- 0.5.1 update
 ALTER TABLE `taskman` ADD `smsdata` TEXT NULL DEFAULT NULL ;
+
+
+CREATE TABLE IF NOT EXISTS `buildpassport` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `buildid` int(11) NOT NULL,
+  `owner` varchar(255) DEFAULT NULL,
+  `ownername` varchar(255) DEFAULT NULL,
+  `ownerphone` varchar(255) DEFAULT NULL,
+  `ownercontact` varchar(255) DEFAULT NULL,
+  `keys` tinyint(4) DEFAULT NULL,
+  `accessnotices` varchar(255) DEFAULT NULL,
+  `floors` int(11) DEFAULT NULL,
+  `apts` int(11) DEFAULT NULL,
+  `entrances` int(11) DEFAULT NULL,
+  `notes` text,
+  PRIMARY KEY (`id`),
+  KEY `buildid` (`buildid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

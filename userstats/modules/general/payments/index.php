@@ -4,24 +4,22 @@ function zbs_ShowUserPayments($login) {
     $usConfig=  zbs_LoadConfig();
     $allpayments=zbs_CashGetUserPayments($login);
     $result='<table width="100%" border="0">';
-    if (!$usConfig['PAYMENTSTIMEHIDE']) {
-        $dateCells='<td>'.__('Date').'</td>';
-    } else {
-        $dateCells='';
-    }
+
     $result.='
                 <tr class="row1">
-                   '.$dateCells.'
+                   <td>'.__('Date').'</td>
                    <td>'.__('Payment').'</td>
                    <td>'.__('Balance').'</td>
                 </tr>
                 ';   
     if (!empty ($allpayments)) {
         foreach ($allpayments as $io=>$eachpayment) {
-                    if (!$usConfig['PAYMENTSTIMEHIDE']) {
-                        $dateCells='<td>'.$eachpayment['date'].'</td>';
+                    if ($usConfig['PAYMENTSTIMEHIDE']) {
+                        $timestamp=  strtotime($eachpayment['date']);
+                        $cleanDate= date("Y-m-d",$timestamp);
+                        $dateCells='<td>'.$cleanDate.'</td>';
                     } else {
-                        $dateCells='';
+                        $dateCells='<td>'.$eachpayment['date'].'</td>';
                     }
             $result.='
                 <tr class="row2">
