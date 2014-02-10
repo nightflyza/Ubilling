@@ -8,10 +8,24 @@ class UkvSystem {
 
     protected $tariffs = array();
     protected $users=array();
+    protected $cities=array();
+    protected $streets=array();
+    
+    //static routing URL
+    const URL_TARIFFS_MGMT='?module=ukv&tariffs=true'; //tariffs management
+    const URL_USERS_MGMT='?module=ukv&users=true'; //users management
+    const URL_USERS_LIST='?module=ukv&users=true&userslist=true'; //users list route
+    const URL_USERS_PROFILE='?module=ukv&users=true&showuser='; //user profile
+    
+    //some exeptions
+    const EX_TARIFF_FIELDS_EMPTY='EMPTY_TARIFF_OPTS_RECEIVED';
+    const EX_USER_NOT_EXISTS='NO_EXISTING_UKV_USER';
 
     public function __construct() {
         $this->loadTariffs();
         $this->loadUsers();
+        $this->loadCities();
+        $this->loadStreets();
     }
 
     /*
@@ -29,6 +43,39 @@ class UkvSystem {
             }
         }
     }
+    
+    
+    /*
+     * loads all existing cities into private cities prop
+     * 
+     * @return void
+     */
+
+    protected function loadCities() {
+        $query = "SELECT * from `city`";
+        $allcities = simple_queryall($query);
+        if (!empty($allcities)) {
+            foreach ($allcities as $io => $each) {
+                $this->cities[$each['cityname']] = $each['cityname'];
+            }
+        }
+    }
+    
+     /*
+     * loads all existing streets into private streets prop
+     * 
+     * @return void
+     */
+
+    protected function loadStreets() {
+        $query = "SELECT * from `street`";
+        $allstreets = simple_queryall($query);
+        if (!empty($allstreets)) {
+            foreach ($allstreets as $io => $each) {
+                $this->streets[$each['streetname']] = $each['streetname'];
+            }
+        }
+    }
 
     /*
      * creates new tariff into database
@@ -41,10 +88,34 @@ class UkvSystem {
 
     public function tariffCreate($name, $price) {
         $name = mysql_real_escape_string($name);
+        $name= trim($name);
         $price = mysql_real_escape_string($price);
+        $price= trim($price);
+        if ((!empty($name)) AND (!empty($price))) {
         $query = "INSERT INTO `ukv_tariffs` (`id`, `tariffname`, `price`) VALUES (NULL, '" . $name . "', '" . $price . "');";
         nr_query($query);
         log_register("UKV TARIFF CREATE `" . $name . "` WITH PRICE `" . $price . "`");
+        } else {
+            throw new Exception(self::EX_TARIFF_FIELDS_EMPTY);
+        }
+    }
+    
+    /*
+     * check is tariff protected/used by some users
+     * 
+     * @param @tariffid  existing tariff ID
+     * 
+     * @return bool
+     */
+    protected function tariffIsProtected($tariffid) {
+        $tariffid=vf($tariffid,3);
+        $query="SELECT `id` from `ukv_users` WHERE `tariffid`='".$tariffid."';";
+        $data=  simple_query($query);
+        if (empty($data)) {
+            return (false);
+        } else {
+            return(true);
+        }
     }
 
     /*
@@ -57,10 +128,15 @@ class UkvSystem {
 
     public function tariffDelete($tariffid) {
         $tariffid = vf($tariffid, 3);
-        $tariffName = $this->tariffs[$tariffid]['tariffname'];
-        $query = "DELETE from `ukv_tariffs` WHERE `id`='" . $id . "'";
-        nr_query($query);
-        log_register("UKV TARIFF DELETE `" . $tariffName . "`  [" . $tariffid . "]");
+        //check - is tariff used by anyone?
+        if (!$this->tariffIsProtected($tariffid)) {
+            $tariffName = $this->tariffs[$tariffid]['tariffname'];
+            $query = "DELETE from `ukv_tariffs` WHERE `id`='" . $tariffid . "'";
+            nr_query($query);
+            log_register("UKV TARIFF DELETE `" . $tariffName . "`  [" . $tariffid . "]");
+        } else {
+            log_register("UKV TARIFF DELETE PROTECTED TRY [".$tariffid."]");
+        }
     }
 
     /*
@@ -74,20 +150,63 @@ class UkvSystem {
     public function tariffSave($tariffid,$tariffname,$price) {
         $tariffid = vf($tariffid, 3);
         $tariffname=  mysql_real_escape_string($tariffname);
+        $tariffname= trim($tariffname);
         $price= mysql_real_escape_string($price);
+        $price= trim($price);
+        
+        if ((!empty($tariffname)) AND (!empty($price))) {
         $query="UPDATE `ukv_tariffs` SET `tariffname` = '".$tariffname."', `price` = '".$price."' WHERE `id` = '".$tariffid."';";
         nr_query($query);
         log_register("UKV TARIFF CHANGE `" . $tariffname . "` WITH PRICE `".$price."`  [" . $tariffid . "]");
+        } else {
+            throw new Exception(self::EX_TARIFF_FIELDS_EMPTY);
+        }
     }
     
     /*
+     * returns tariff edit form 
+     * 
+     * @param $tariffid existing tariff id
+     * 
+     * @rerturn string
+     */
+    protected function tariffEditForm($tariffid) {
+        $tariffid=vf($tariffid,3);
+        
+        $inputs=  wf_HiddenInput('edittariff', $tariffid);
+        $inputs.= wf_TextInput('edittariffname', __('Tariff name'), $this->tariffs[$tariffid]['tariffname'], true, '20');
+        $inputs.= wf_TextInput('edittariffprice', __('Tariff Fee'), $this->tariffs[$tariffid]['price'], true, '5');
+        $inputs.= wf_Submit(__('Save'));
+        $result= wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /*
+     * returns tariff creation form
+     * 
+     * @return string
+     */
+    protected function tariffCreateForm() {
+        $inputs=  wf_HiddenInput('createtariff', 'true');
+        $inputs.= wf_TextInput('createtariffname', __('Tariff name'), '', true, '20');
+        $inputs.= wf_TextInput('createtariffprice', __('Tariff Fee'), '', true,'5');
+        $inputs.= wf_Submit(__('Create new tariff'));
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+
+    /*
      * renders CaTV tariffs list with some controls
+     * 
+     * @return void
      */
     public function renderTariffs() {
         
         $cells=  wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Tariff name'));
         $cells.= wf_TableCell(__('Tariff Fee'));
+        $cells.= wf_TableCell(__('Actions'));
         $rows=  wf_TableRow($cells, 'row1');
         
         if (!empty($this->tariffs)) {
@@ -95,11 +214,27 @@ class UkvSystem {
                 $cells=  wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['tariffname']);
                 $cells.= wf_TableCell($each['price']);
+                $actlinks=  wf_JSAlert(self::URL_TARIFFS_MGMT.'&tariffdelete='.$each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                $actlinks.= wf_modal(web_edit_icon(), __('Edit').' '.$each['tariffname'], $this->tariffEditForm($each['id']), '', '400', '200');
+                $cells.= wf_TableCell($actlinks,'','',$customkey='sorttable_customkey="0"'); //need this to keep table sortable
                 $rows.=  wf_TableRow($cells, 'row3');
             }
         }
         
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        $result.= $this->tariffCreateForm();
+        return ($result);
+    }
+    
+    
+    /*
+     * returns module control panel
+     * 
+     * @return string
+     */
+    public function panel() {
+        $result=   wf_Link(self::URL_USERS_LIST, __('Users'), false, 'ubButton');
+        $result.=  wf_Link(self::URL_TARIFFS_MGMT, __('Tariffs'), false, 'ubButton');
         return ($result);
     }
     
@@ -177,7 +312,282 @@ class UkvSystem {
         return ($result);
     }
     
+    /*
+     * returns user edit form for some userid
+     * 
+     * @param $userid  existing user ID
+     * 
+     * @return string
+     */
+    protected function userEditForm($userid) {
+        $userid=vf($userid,3);
+         if (isset($this->users[$userid])) {
+            $switchArr=array('1'=>__('Yes'),'0'=>__('No'));
+            $tariffArr=array();
+            if (!empty($this->tariffs)) {
+                foreach ($this->tariffs as $io=>$each) {
+                    $tariffArr[$each['id']]=$each['tariffname'];
+                }
+            } 
+             
+            $userData=$this->users[$userid];
+            
+            $inputs='';
+            $inputs.=  wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
+            $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
+            $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
+            $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '40');
+            $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
+            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '40');
+            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate']).__('Date of issue').  wf_tag('br');
+            $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
+            $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
+            $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
+            $inputs.= wf_DatePickerPreset('ueditregdate', $userData['regdate']).__('Contract date').  wf_tag('br');
+            $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
+            $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
+            $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], true, '5');
+            $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
+            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], true, '40');
+            $inputs.= wf_Submit(__('Save'));
+            
+            $result= wf_Form('', 'POST', $inputs, 'glamour');
+            
+            return ($result);
+         }
+                 
+    }
+
+
+    /*
+     * returns some existing user profile
+     * 
+     * @param $userid existing user`s ID
+     * 
+     * @return string
+     */
+    public function userProfile($userid) {
+        $userid=vf($userid,3);
+        if (isset($this->users[$userid])) {
+            $userData=$this->users[$userid];
+            $rows='';
+            
+            $cells=  wf_TableCell(__('ID'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['id']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Contract'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['contract']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Tariff'), '20%', 'row2');
+            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Cash'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['cash']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Connected'), '20%', 'row2');
+            $cells.= wf_TableCell(web_bool_led($userData['active']));
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            
+            $cells=  wf_TableCell(__('Real Name'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['realname']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Passport number'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['passnum']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Issuing authority'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['passwho']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Date of issue'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['passdate']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('SSN'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['ssn']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Phone'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['phone']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Mobile'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['mobile']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('User contract date'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['regdate']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('City'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['city']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Street'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['street']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Build'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['build']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Apartment'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['apt']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            
+            $cells=  wf_TableCell(__('Internet account'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['inetlogin']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Notes'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['notes']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $result=  wf_TableBody($rows, '100%', 0, '');
+            
+            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '600');
+            
+            return ($result);
+        } else {
+            throw new Exception(self::EX_USER_NOT_EXISTS);
+        }
+    }
+    
+    
+    /*
+     * renders full user list with some ajax data
+     * 
+     * @return string
+     */
+    public function renderUsers() {
+          $jqDt='
+          <script type="text/javascript" charset="utf-8">
+                
+		$(document).ready(function() {
+		$(\'#ukvusershp\').dataTable( {
+ 	       "oLanguage": {
+			"sLengthMenu": "'.__('Show').' _MENU_",
+			"sZeroRecords": "'.__('Nothing found').'",
+			"sInfo": "'.__('Showing').' _START_ '.__('to').' _END_ '.__('of').' _TOTAL_ '.__('users').'",
+			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('users').'",
+			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
+                        "sSearch":       "'.__('Search').'",
+                        "sProcessing":   "'.__('Processing').'..."
+		},
+           
+                "aoColumns": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],      
+         
+        "bPaginate": true,
+        "bLengthChange": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": true,
+        "bAutoWidth": false,
+        "bProcessing": true,
+        "bStateSave": false,
+        "iDisplayLength": 50,
+        "sAjaxSource": \'?module=ukv&ajax=true\',
+	"bDeferRender": true,
+        "bJQueryUI": true
+
+                } );
+		} );
+		</script>
+
+          ';
+      
+     $result=$jqDt;
+
+     $result.= wf_tag('table', false, '', 'width="100%" id="ukvusershp"');
+     $result.= wf_tag('thead');
+     $cells=  wf_TableCell(__('Full address'));
+     $cells.= wf_TableCell(__('Real Name'));
+     $cells.= wf_TableCell(__('Contract'));
+     $cells.= wf_TableCell(__('Tariff'));
+     $cells.= wf_TableCell(__('Connected'));
+     $cells.= wf_TableCell(__('Cash'));
+     $result.= wf_TableRow($cells, 'row1');
+     $result.= wf_tag('thead', true);
+     
+     $result.= wf_tag('table', true);
+     
+      
+      return ($result);
+    }
+    
+    /*
+     * extract ajax data for JQuery data tables
+     */
+    public function ajaxUsers() {
+        global $ubillingConfig;
+        $altcfg=$ubillingConfig->getAlter();
+        
+        $result='{ 
+                  "aaData": [ ';
+        if (!empty($this->users)) {
+            foreach ($this->users as $io=>$each) {
+                
+                //zero apt numbers as private builds
+                if ($altcfg['ZERO_TOLERANCE']) {
+                    if ($each['apt']==0) {
+                        $apt='';
+                    } else {
+                        $apt='/'.$each['apt'];
+                    }
+                } else {
+                    $apt='/'.$each['apt'];
+                }
+                //city display
+                if ($altcfg['CITY_DISPLAY']) {
+                    $city=$each['city'].' ';
+                } else {
+                    $city='';
+                }
+                
+                //activity flag
+                $activity= ($each['active']) ? web_bool_led($each['active']).' '.__('Yes') : web_bool_led($each['active']).' '.__('No');
+                $activity= str_replace('"', '', $activity);
+                
+                //profile link
+                $profileLink=  wf_Link(self::URL_USERS_PROFILE.$each['id'], web_profile_icon(), false).' ';
+                $profileLink=  str_replace('"', '', $profileLink);
+                $profileLink= str_replace("\n", '', $profileLink);
+                
+                $result.='
+                    [
+                    "'.$profileLink.$city.$each['street'].' '.$each['build'].$apt.'",
+                    "'.$each['realname'].'",
+                    "'.$each['contract'].'",
+                    "'.@$this->tariffs[$each['tariffid']]['tariffname'].'",
+                    "'.$activity.'",
+                    "'.$each['cash'].'"
+                    ],';
+            }
+            $result=  substr($result,0,-1);
+        }
+         $result.='] 
+        }';
+        die($result);
+    }
+    
+    
     
 }
+
+
 
 ?>
