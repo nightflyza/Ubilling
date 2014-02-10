@@ -130,6 +130,7 @@ CHAPTER_CATV=CaTV
 CATV_ENABLED=TRIGGER|CaTV accounting support
 CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
 CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
+UKV_ENABLED=TRIGGER|UKV functionality enabled
 
 
 

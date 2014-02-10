@@ -1010,3 +1010,39 @@ CREATE TABLE IF NOT EXISTS `buildpassport` (
   PRIMARY KEY (`id`),
   KEY `buildid` (`buildid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `ukv_tariffs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tariffname` varchar(255) NOT NULL,
+  `price` double NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `ukv_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contract` varchar(40) DEFAULT NULL,
+  `tariffid` int(11) DEFAULT NULL,
+  `cash` double NOT NULL,
+  `active` tinyint(4) NOT NULL,
+  `realname` varchar(255) DEFAULT NULL,
+  `passnum` varchar(40) DEFAULT NULL,
+  `passwho` varchar(255) DEFAULT NULL,
+  `passdate` datetime DEFAULT NULL,
+  `ssn` varchar(40) DEFAULT NULL,
+  `phone` varchar(40) DEFAULT NULL,
+  `mobile` varchar(40) DEFAULT NULL,
+  `regdate` datetime NOT NULL,
+  `city` varchar(40) DEFAULT NULL,
+  `street` varchar(255) DEFAULT NULL,
+  `build` varchar(40) DEFAULT NULL,
+  `apt` varchar(20) DEFAULT NULL,
+  `inetlogin` varchar(40) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `contract` (`contract`),
+  KEY `tariffid` (`tariffid`),
+  KEY `cash` (`cash`),
+  KEY `active` (`active`),
+  KEY `regdate` (`regdate`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
