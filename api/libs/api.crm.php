@@ -809,14 +809,14 @@ function web_ExpressAddressAptForm($login) {
                 
                 //form construction
                 $inputs=  wf_tag('h3').__('Passport data').wf_tag('h3',true);
-                $inputs.=wf_DatePickerPreset('editbirthdate', $birthdate);
+                $inputs.=wf_DatePickerPreset('editbirthdate', $birthdate,true);
                 $inputs.=__('Birth date');
                 $inputs.=wf_delimiter();
                 $inputs.=wf_TextInput('editpassportnum', __('Passport number'), $passportnum, false, '35');
                 $inputs.=wf_delimiter();
                 $inputs.=wf_TextInput('editpassportwho', __('Issuing authority'), $passportwho, false, '35');
                 $inputs.=wf_delimiter();
-                $inputs.=wf_DatePickerPreset('editpassportdate', $passportdate);
+                $inputs.=wf_DatePickerPreset('editpassportdate', $passportdate,true);
                 $inputs.=__('Date of issue');
                 $inputs.=wf_delimiter();
                 

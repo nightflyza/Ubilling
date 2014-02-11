@@ -16,6 +16,8 @@ class UkvSystem {
     const URL_USERS_MGMT='?module=ukv&users=true'; //users management
     const URL_USERS_LIST='?module=ukv&users=true&userslist=true'; //users list route
     const URL_USERS_PROFILE='?module=ukv&users=true&showuser='; //user profile
+    const URL_USERS_REGISTER='?module=ukv&users=true&register=true'; //users registration route
+    const URL_USERS_AJAX_SOURCE='?module=ukv&ajax=true'; //ajax datasource for JQuery data tables
     
     //some exeptions
     const EX_TARIFF_FIELDS_EMPTY='EMPTY_TARIFF_OPTS_RECEIVED';
@@ -52,7 +54,7 @@ class UkvSystem {
      */
 
     protected function loadCities() {
-        $query = "SELECT * from `city`";
+        $query = "SELECT * from `city` ORDER BY `id` ASC;";
         $allcities = simple_queryall($query);
         if (!empty($allcities)) {
             foreach ($allcities as $io => $each) {
@@ -68,7 +70,7 @@ class UkvSystem {
      */
 
     protected function loadStreets() {
-        $query = "SELECT * from `street`";
+        $query = "SELECT DISTINCT `streetname` from `street` ORDER BY `streetname` ASC;";
         $allstreets = simple_queryall($query);
         if (!empty($allstreets)) {
             foreach ($allstreets as $io => $each) {
@@ -234,6 +236,7 @@ class UkvSystem {
      */
     public function panel() {
         $result=   wf_Link(self::URL_USERS_LIST, __('Users'), false, 'ubButton');
+        $result.=  wf_Link(self::URL_USERS_REGISTER, __('Users registration'), false, 'ubButton');
         $result.=  wf_Link(self::URL_TARIFFS_MGMT, __('Tariffs'), false, 'ubButton');
         return ($result);
     }
@@ -339,15 +342,16 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '40');
             $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
             $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '40');
-            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate']).__('Date of issue').  wf_tag('br');
+            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate'],true).__('Date of issue').  wf_tag('br');
             $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
             $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
             $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
-            $inputs.= wf_DatePickerPreset('ueditregdate', $userData['regdate']).__('Contract date').  wf_tag('br');
+            $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
             $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
             $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
             $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], true, '5');
             $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
+            $inputs.= wf_TextInput('ueditinetlogin', __('Internet account'), $userData['inetlogin'], true, '20');
             $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], true, '40');
             $inputs.= wf_Submit(__('Save'));
             
@@ -452,7 +456,7 @@ class UkvSystem {
             
             $result=  wf_TableBody($rows, '100%', 0, '');
             
-            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '600');
+            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '600', '600');
             
             return ($result);
         } else {
@@ -500,7 +504,7 @@ class UkvSystem {
         "bProcessing": true,
         "bStateSave": false,
         "iDisplayLength": 50,
-        "sAjaxSource": \'?module=ukv&ajax=true\',
+        "sAjaxSource": \''.self::URL_USERS_AJAX_SOURCE.'\',
 	"bDeferRender": true,
         "bJQueryUI": true
 

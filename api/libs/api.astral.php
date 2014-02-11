@@ -752,12 +752,21 @@ $(function() {
  * Returns calendar widget
  * 
  * @param $field field name to insert calendar
+ * @param $extControls extended year and month controls
+ * 
  * @return string
  *  
  */
-function wf_DatePicker($field) {
+function wf_DatePicker($field,$extControls=false) {
     $inputid=wf_InputId();
     $curlang=curlang();
+    if ($extControls) {
+        $extControls=',
+                        changeMonth: true,
+                        changeYear: true';
+    } else {
+        $extControls='';
+    }
     $result='<script>
 	$(function() {
 		$( "#'.$inputid.'" ).datepicker({
@@ -765,7 +774,7 @@ function wf_DatePicker($field) {
 			buttonImage: "skins/icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
-                        showAnim: "slideDown"
+                        showAnim: "slideDown"'.$extControls.'
 		});
                
                     
@@ -845,9 +854,16 @@ function wf_DatePicker($field) {
  * @return string
  *  
  */
-function wf_DatePickerPreset($field,$date) {
+function wf_DatePickerPreset($field,$date,$extControls=false) {
     $inputid=wf_InputId();
     $curlang=curlang();
+    if ($extControls) {
+        $extControls=',
+                        changeMonth: true,
+                        changeYear: true';
+    } else {
+        $extControls='';
+    }
     $result='<script>
 	$(function() {
 		$( "#'.$inputid.'" ).datepicker({
@@ -855,7 +871,7 @@ function wf_DatePickerPreset($field,$date) {
 			buttonImage: "skins/icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
-                        showAnim: "slideDown"
+                        showAnim: "slideDown"'.$extControls.'
 		});
                
                     
