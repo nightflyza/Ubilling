@@ -37,6 +37,7 @@ include('api/libs/api.routeros.php');
 include('api/libs/api.watchdog.php');
 include('api/libs/api.docx.php');
 include('api/libs/api.documents.php');
+include('api/libs/api.dbf.php');
 include('api/libs/api.ukv.php');
 
 /*

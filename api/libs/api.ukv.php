@@ -18,6 +18,7 @@ class UkvSystem {
     const URL_USERS_PROFILE='?module=ukv&users=true&showuser='; //user profile
     const URL_USERS_REGISTER='?module=ukv&users=true&register=true'; //users registration route
     const URL_USERS_AJAX_SOURCE='?module=ukv&ajax=true'; //ajax datasource for JQuery data tables
+    const URL_INET_USER_PROFILE='?module=userprofile&username='; //internet user profile
     
     //some exeptions
     const EX_TARIFF_FIELDS_EMPTY='EMPTY_TARIFF_OPTS_RECEIVED';
@@ -224,7 +225,7 @@ class UkvSystem {
         }
         
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= $this->tariffCreateForm();
+        $result.= wf_modal(wf_img('skins/plus.png', __('Create new tariff')),__('Create new tariff') , $this->tariffCreateForm(), '', '400', '200');
         return ($result);
     }
     
@@ -336,26 +337,44 @@ class UkvSystem {
             $userData=$this->users[$userid];
             
             $inputs='';
-            $inputs.=  wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
-            $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
-            $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
-            $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '40');
-            $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
-            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '40');
-            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate'],true).__('Date of issue').  wf_tag('br');
-            $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
-            $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
-            $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
-            $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
+            
+            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_tag('h3').__('Full address').  wf_tag('h3',true);
             $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
             $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
-            $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], true, '5');
+            $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], false, '5');
             $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
-            $inputs.= wf_TextInput('ueditinetlogin', __('Internet account'), $userData['inetlogin'], true, '20');
-            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], true, '40');
+            $inputs.= wf_tag('div', true);
+            
+            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_tag('h3').__('Contact info').  wf_tag('h3',true);
+            $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '30');
+            $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
+            $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
+            $inputs.= wf_tag('div', true);
+            
+            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_tag('h3').__('Service').  wf_tag('h3',true);
+            $inputs.= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
+            $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
+            $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
+            $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
+            $inputs.= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
+            $inputs.= wf_tag('div', true);
+            
+            
+            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_tag('h3').__('Passport data').  wf_tag('h3',true);
+            $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
+            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '30');
+            $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate'],true).__('Date of issue').  wf_tag('br');
+            $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
+            $inputs.= wf_tag('div', true);
+            
+            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], true, '60');
             $inputs.= wf_Submit(__('Save'));
             
-            $result= wf_Form('', 'POST', $inputs, 'glamour');
+            $result= wf_Form('', 'POST', $inputs, 'ukvusereditform');
             
             return ($result);
          }
@@ -371,50 +390,28 @@ class UkvSystem {
      * @return string
      */
     public function userProfile($userid) {
+        global $ubillingConfig;
+        $altcfg=$ubillingConfig->getAlter();
         $userid=vf($userid,3);
         if (isset($this->users[$userid])) {
             $userData=$this->users[$userid];
             $rows='';
             
-            $cells=  wf_TableCell(__('ID'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['id']);
-            $rows.= wf_TableRow($cells, 'row3');
+            //zero apt numbers as private builds
+                if ($altcfg['ZERO_TOLERANCE']) {
+                    $apt= ($userData['apt']==0) ? '' : '/'.$userData['apt'] ;
+                } else {
+                    $apt='/'.$userData['apt'];
+                }
+           
             
-            $cells=  wf_TableCell(__('Contract'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['contract']);
+            $cells=  wf_TableCell(__('Full address'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['city'].' '.$userData['street'].' '.$userData['build'].$apt);
             $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Tariff'), '20%', 'row2');
-            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Cash'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['cash']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Connected'), '20%', 'row2');
-            $cells.= wf_TableCell(web_bool_led($userData['active']));
-            $rows.= wf_TableRow($cells, 'row3');
-            
+                 
             
             $cells=  wf_TableCell(__('Real Name'), '20%', 'row2');
             $cells.= wf_TableCell($userData['realname']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Passport number'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['passnum']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Issuing authority'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['passwho']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Date of issue'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['passdate']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('SSN'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['ssn']);
             $rows.= wf_TableRow($cells, 'row3');
             
             $cells=  wf_TableCell(__('Phone'), '20%', 'row2');
@@ -424,30 +421,30 @@ class UkvSystem {
             $cells=  wf_TableCell(__('Mobile'), '20%', 'row2');
             $cells.= wf_TableCell($userData['mobile']);
             $rows.= wf_TableRow($cells, 'row3');
+                 
+            $cells=  wf_TableCell(wf_tag('b').__('Contract').  wf_tag('b',true), '20%', 'row2');
+            $cells.= wf_TableCell(wf_tag('b').$userData['contract'].wf_tag('b',true));
+            $rows.= wf_TableRow($cells, 'row3');
             
+            $cells=  wf_TableCell(__('Tariff'), '20%', 'row2');
+            $cells.= wf_TableCell(@$this->tariffs[$userData['tariffid']]['tariffname']);
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(wf_tag('b').__('Cash').wf_tag('b',true), '20%', 'row2');
+            $cells.= wf_TableCell(wf_tag('b').$userData['cash'].wf_tag('b',true));
+            $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Connected'), '20%', 'row2');
+            $cells.= wf_TableCell(web_bool_led($userData['active']));
+            $rows.= wf_TableRow($cells, 'row3');
+           
             $cells=  wf_TableCell(__('User contract date'), '20%', 'row2');
             $cells.= wf_TableCell($userData['regdate']);
             $rows.= wf_TableRow($cells, 'row3');
             
-            $cells=  wf_TableCell(__('City'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['city']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Street'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['street']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Build'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['build']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            $cells=  wf_TableCell(__('Apartment'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['apt']);
-            $rows.= wf_TableRow($cells, 'row3');
-            
-            
             $cells=  wf_TableCell(__('Internet account'), '20%', 'row2');
-            $cells.= wf_TableCell($userData['inetlogin']);
+            $inetLink=(!empty($userData['inetlogin'])) ? wf_Link(self::URL_INET_USER_PROFILE.$userData['inetlogin'], web_profile_icon().' '.$userData['inetlogin'], false, '') : '';
+            $cells.= wf_TableCell($inetLink);
             $rows.= wf_TableRow($cells, 'row3');
             
             $cells=  wf_TableCell(__('Notes'), '20%', 'row2');
@@ -456,7 +453,7 @@ class UkvSystem {
             
             $result=  wf_TableBody($rows, '100%', 0, '');
             
-            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '600', '600');
+            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '800', '540');
             
             return ($result);
         } else {
