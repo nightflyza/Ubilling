@@ -8,8 +8,8 @@ class UkvSystem {
 
     protected $tariffs = array();
     protected $users=array();
-    protected $cities=array();
-    protected $streets=array();
+    protected $cities=array(''=>'-');
+    protected $streets=array(''=>'-');
     
     //static routing URL
     const URL_TARIFFS_MGMT='?module=ukv&tariffs=true'; //tariffs management
@@ -544,11 +544,7 @@ class UkvSystem {
                 
                 //zero apt numbers as private builds
                 if ($altcfg['ZERO_TOLERANCE']) {
-                    if ($each['apt']==0) {
-                        $apt='';
-                    } else {
-                        $apt='/'.$each['apt'];
-                    }
+                    $apt= ($each['apt']==0)? '' : '/'.$each['apt'];
                 } else {
                     $apt='/'.$each['apt'];
                 }
