@@ -263,6 +263,25 @@ class UkvSystem {
             }
         }
     }
+    
+    /*
+     * Returns user registration form
+     * 
+     * @return string
+     */
+    public function userRegisterForm() {
+        $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+        $inputs='';
+        $inputs=  wf_HiddenInput('userregisterprocessing', 'true');
+        $inputs.= wf_Selector('uregcity', $this->cities, __('City').$sup, '', true);
+        $inputs.= wf_Selector('uregstreet', $this->streets, __('Street').$sup, '', true);
+        $inputs.= wf_TextInput('uregbuild', __('Build').$sup, '', true, '5');
+        $inputs.= wf_TextInput('uregapt', __('Apartment'), '', true, '4');
+        $inputs.= wf_delimiter();
+        $inputs.=wf_Submit(__('Let register that user'));
+        $result= wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
 
     /*
      * registers new users into database and returns new user ID
@@ -316,9 +335,14 @@ class UkvSystem {
                             NULL ,
                             NULL
                             );  ";
+        nr_query($query);
         $newUserId=  simple_get_lastid('ukv_users');
         $result=$newUserId;
         log_register("UKV REGISTER USER ((".$newUserId."))");
+        
+        //saving post registration data
+        $this->userPostRegSave($newUserId);
+        
         return ($result);
     }
     
@@ -430,7 +454,9 @@ class UkvSystem {
             
             //saving realname
             if ($this->users[$userId]['realname']!=$_POST['ueditrealname']) {
-                simple_update_field($tablename, 'realname', $_POST['ueditrealname'], $where);
+                $newRealname=  str_replace('"', '`', $_POST['ueditrealname']);
+                $newRealname=  str_replace("'", '`', $newRealname);
+                simple_update_field($tablename, 'realname', $newRealname, $where);
                 log_register('UKV USER (('.$userId.')) CHANGE REALNAME `'.$_POST['ueditrealname'].'`');
             }
             
@@ -517,6 +543,30 @@ class UkvSystem {
         } else {
             throw new Exception(self::EX_USER_NOT_SET);
         }
+    }
+    
+    /*
+     * protected method using to save address data for newly registered user
+     * 
+     * @param $userId - existin new user ID
+     * 
+     * @return void
+     */
+    
+    protected function userPostRegSave($userId) {
+             $whereReg="WHERE `id` = '".$userId."';";
+             simple_update_field('ukv_users', 'city', $_POST['uregcity'], $whereReg);
+             log_register('UKV USER (('.$userId.')) CHANGE CITY `'.$_POST['uregcity'].'`');
+             
+             simple_update_field('ukv_users', 'street', $_POST['uregstreet'], $whereReg);
+             log_register('UKV USER (('.$userId.')) CHANGE STREET `'.$_POST['uregstreet'].'`');
+             
+             simple_update_field('ukv_users', 'build', $_POST['uregbuild'], $whereReg);
+             log_register('UKV USER (('.$userId.')) CHANGE BUILD `'.$_POST['uregbuild'].'`');
+             
+             $newApt= (!empty($_POST['uregapt'])) ? $_POST['uregapt'] : 0;
+             simple_update_field('ukv_users', 'apt', $newApt, $whereReg);
+             log_register('UKV USER (('.$userId.')) CHANGE APT `'.$newApt.'`');
     }
 
 
@@ -700,7 +750,8 @@ class UkvSystem {
                 //profile link
                 $profileLink=  wf_Link(self::URL_USERS_PROFILE.$each['id'], web_profile_icon(), false).' ';
                 $profileLink=  str_replace('"', '', $profileLink);
-                $profileLink= str_replace("\n", '', $profileLink);
+                $profileLink=  str_replace("\n", '', $profileLink);
+                
                 
                 $result.='
                     [

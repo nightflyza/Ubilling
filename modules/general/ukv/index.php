@@ -51,6 +51,21 @@ if (cfr('UKV')) {
         show_window(__('Available users'), $ukv->renderUsers());
     }
     
+    //users registration
+    if (wf_CheckGet(array('users','register'))) {
+        if (wf_CheckPost(array('userregisterprocessing'))) {
+         if (wf_CheckPost(array('uregcity','uregstreet','uregbuild'))) {
+             //all needed fields is filled - processin registration
+             $createdUserId=$ukv->userCreate();
+             rcms_redirect(UkvSystem::URL_USERS_PROFILE.$createdUserId);
+         } else {
+              show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
+         }
+        }
+        
+        show_window(__('User registration'),$ukv->userRegisterForm());
+    }
+    
     //user profile show
     if (wf_CheckGet(array('users','showuser'))) {
         
