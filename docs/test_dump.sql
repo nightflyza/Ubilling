@@ -1029,6 +1029,7 @@ CREATE TABLE IF NOT EXISTS `ukv_users` (
   `passnum` varchar(40) DEFAULT NULL,
   `passwho` varchar(255) DEFAULT NULL,
   `passdate` date DEFAULT NULL,
+  `paddr` varchar(255) DEFAULT NULL,
   `ssn` varchar(40) DEFAULT NULL,
   `phone` varchar(40) DEFAULT NULL,
   `mobile` varchar(40) DEFAULT NULL,

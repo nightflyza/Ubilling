@@ -53,6 +53,13 @@ if (cfr('UKV')) {
     
     //user profile show
     if (wf_CheckGet(array('users','showuser'))) {
+        
+        //user editing processing
+        if (wf_CheckPost(array('usereditprocessing'))) {
+            $ukv->userSave();
+            rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['usereditprocessing']);
+        }
+        
         show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));
     }
     

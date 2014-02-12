@@ -20,9 +20,15 @@ class UkvSystem {
     const URL_USERS_AJAX_SOURCE='?module=ukv&ajax=true'; //ajax datasource for JQuery data tables
     const URL_INET_USER_PROFILE='?module=userprofile&username='; //internet user profile
     
+    //registration options
+    const REG_ACT=1;
+    const REG_CASH=0;
+    
     //some exeptions
     const EX_TARIFF_FIELDS_EMPTY='EMPTY_TARIFF_OPTS_RECEIVED';
     const EX_USER_NOT_EXISTS='NO_EXISTING_UKV_USER';
+    const EX_USER_NOT_SET='NO_VALID_USERID_RECEIVED';
+    
 
     public function __construct() {
         $this->loadTariffs();
@@ -236,9 +242,9 @@ class UkvSystem {
      * @return string
      */
     public function panel() {
-        $result=   wf_Link(self::URL_USERS_LIST, __('Users'), false, 'ubButton');
-        $result.=  wf_Link(self::URL_USERS_REGISTER, __('Users registration'), false, 'ubButton');
-        $result.=  wf_Link(self::URL_TARIFFS_MGMT, __('Tariffs'), false, 'ubButton');
+        $result=   wf_Link(self::URL_USERS_LIST, wf_img('skins/icon_user.gif').' '.__('Users'), false, 'ubButton');
+        $result.=  wf_Link(self::URL_USERS_REGISTER, wf_img('skins/icon_add.gif').' '.__('Users registration'), false, 'ubButton');
+        $result.=  wf_Link(self::URL_TARIFFS_MGMT,wf_img('skins/icon_dollar.gif').' '. __('Tariffs'), false, 'ubButton');
         return ($result);
     }
     
@@ -265,8 +271,6 @@ class UkvSystem {
      */
     public function userCreate() {
         $curdate=  date("Y-m-d H:i:s");
-        $cash=0;
-        $active=1;
         $query="
             INSERT INTO `ukv_users` (
                             `id` ,
@@ -278,6 +282,7 @@ class UkvSystem {
                             `passnum` ,
                             `passwho` ,
                             `passdate` ,
+                            `paddr`,
                             `ssn` ,
                             `phone` ,
                             `mobile` ,
@@ -293,8 +298,9 @@ class UkvSystem {
                             NULL ,
                             NULL ,
                             NULL ,
-                            '".$cash."',
-                            '".$active."',
+                            '".self::REG_CASH."',
+                            '".self::REG_ACT."',
+                            NULL ,
                             NULL ,
                             NULL ,
                             NULL ,
@@ -315,6 +321,8 @@ class UkvSystem {
         log_register("UKV REGISTER USER ((".$newUserId."))");
         return ($result);
     }
+    
+   
     
     /*
      * returns user edit form for some userid
@@ -337,8 +345,8 @@ class UkvSystem {
             $userData=$this->users[$userid];
             
             $inputs='';
-            
-            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_HiddenInput('usereditprocessing', $userid);
+            $inputs.= wf_tag('div', false, 'floatpanels');
             $inputs.= wf_tag('h3').__('Full address').  wf_tag('h3',true);
             $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
             $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
@@ -354,7 +362,7 @@ class UkvSystem {
             $inputs.= wf_tag('div', true);
             
             $inputs.=wf_tag('div', false, 'floatpanels');
-            $inputs.= wf_tag('h3').__('Service').  wf_tag('h3',true);
+            $inputs.= wf_tag('h3').__('Services').  wf_tag('h3',true);
             $inputs.= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
             $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
             $inputs.= wf_Selector('ueditactive', $switchArr, __('Connected'), $userData['active'], true);
@@ -366,12 +374,16 @@ class UkvSystem {
             $inputs.=wf_tag('div', false, 'floatpanels');
             $inputs.= wf_tag('h3').__('Passport data').  wf_tag('h3',true);
             $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
-            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '30');
+            $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '20');
             $inputs.= wf_DatePickerPreset('ueditpassdate', $userData['passdate'],true).__('Date of issue').  wf_tag('br');
             $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
+            $inputs.= wf_TextInput('ueditpaddr', __('Registration address'), $userData['paddr'], true, '20');
             $inputs.= wf_tag('div', true);
             
-            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], true, '60');
+            $inputs.=wf_tag('div', false, 'floatpanelswide');
+            $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
+            $inputs.= wf_tag('div', true);
+            $inputs.= wf_delimiter();
             $inputs.= wf_Submit(__('Save'));
             
             $result= wf_Form('', 'POST', $inputs, 'ukvusereditform');
@@ -379,6 +391,132 @@ class UkvSystem {
             return ($result);
          }
                  
+    }
+    
+    /*
+     * saves some user params into database
+     * 
+     * @return void
+     */
+    public function userSave() {
+        if (wf_CheckPost(array('usereditprocessing'))) {
+            $userId=vf($_POST['usereditprocessing']);
+            $where="WHERE `id`='".$userId."';";
+            $tablename='ukv_users';
+         
+            //saving city
+            if ($this->users[$userId]['city']!=$_POST['ueditcity']) {
+                simple_update_field($tablename, 'city', $_POST['ueditcity'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE CITY `'.$_POST['ueditcity'].'`');
+            }
+            
+            //saving street
+            if ($this->users[$userId]['street']!=$_POST['ueditstreet']) {
+                simple_update_field($tablename, 'street', $_POST['ueditstreet'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE STREET `'.$_POST['ueditstreet'].'`');
+            }
+            
+            //saving build
+            if ($this->users[$userId]['build']!=$_POST['ueditbuild']) {
+                simple_update_field($tablename, 'build', $_POST['ueditbuild'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE BUILD `'.$_POST['ueditbuild'].'`');
+            }
+            
+            //saving apartment
+            if ($this->users[$userId]['apt']!=$_POST['ueditapt']) {
+                simple_update_field($tablename, 'apt', $_POST['ueditapt'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE APT `'.$_POST['ueditapt'].'`');
+            }
+            
+            //saving realname
+            if ($this->users[$userId]['realname']!=$_POST['ueditrealname']) {
+                simple_update_field($tablename, 'realname', $_POST['ueditrealname'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE REALNAME `'.$_POST['ueditrealname'].'`');
+            }
+            
+            //saving phone
+            if ($this->users[$userId]['phone']!=$_POST['ueditphone']) {
+                simple_update_field($tablename, 'phone', $_POST['ueditphone'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE PHONE `'.$_POST['ueditphone'].'`');
+            }
+            
+            //saving mobile number
+            if ($this->users[$userId]['mobile']!=$_POST['ueditmobile']) {
+                simple_update_field($tablename, 'mobile', $_POST['ueditmobile'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE MOBILE `'.$_POST['ueditmobile'].'`');
+            }
+            
+            //saving contract
+            if ($this->users[$userId]['contract']!=$_POST['ueditcontract']) {
+                simple_update_field($tablename, 'contract', $_POST['ueditcontract'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE CONTRACT `'.$_POST['ueditcontract'].'`');
+            }
+            
+            //saving tariff
+            if ($this->users[$userId]['tariffid']!=$_POST['uedittariff']) {
+                simple_update_field($tablename, 'tariffid', $_POST['uedittariff'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE TARIFF ['.$_POST['uedittariff'].']');
+            }
+
+            //saving user activity
+            if ($this->users[$userId]['active']!=$_POST['ueditactive']) {
+                simple_update_field($tablename, 'active', $_POST['ueditactive'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE ACTIVE `'.$_POST['ueditactive'].'`');
+            }
+          
+            //saving registration date
+            if ($this->users[$userId]['regdate']!=$_POST['ueditregdate']) {
+                simple_update_field($tablename, 'regdate', $_POST['ueditregdate'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE REGDATE `'.$_POST['ueditregdate'].'`');
+            }
+            
+           //saving user internet backlinking
+            if ($this->users[$userId]['inetlogin']!=$_POST['ueditinetlogin']) {
+                simple_update_field($tablename, 'inetlogin', $_POST['ueditinetlogin'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE INETLOGIN `'.$_POST['ueditinetlogin'].'`');
+            }
+           
+            //saving passport number
+            if ($this->users[$userId]['passnum']!=$_POST['ueditpassnum']) {
+                simple_update_field($tablename, 'passnum', $_POST['ueditpassnum'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE PASSPORTNUM `'.$_POST['ueditpassnum'].'`');
+            }
+            
+            //saving passport issuing authority
+            if ($this->users[$userId]['passwho']!=$_POST['ueditpasswho']) {
+                simple_update_field($tablename, 'passwho', $_POST['ueditpasswho'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE PASSPORTWHO `'.$_POST['ueditpasswho'].'`');
+            }
+            
+            //saving passport issue date
+            if ($this->users[$userId]['passdate']!=$_POST['ueditpassdate']) {
+                simple_update_field($tablename, 'passdate', $_POST['ueditpassdate'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE PASSPORTDATE `'.$_POST['ueditpassdate'].'`');
+            }
+
+            //saving user SSN
+            if ($this->users[$userId]['ssn']!=$_POST['ueditssn']) {
+                simple_update_field($tablename, 'ssn', $_POST['ueditssn'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE SSN `'.$_POST['ueditssn'].'`');
+            }
+            
+            //saving user registration address
+            if ($this->users[$userId]['paddr']!=$_POST['ueditpaddr']) {
+                simple_update_field($tablename, 'paddr', $_POST['ueditpaddr'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE  PASSADDRESS`'.$_POST['ueditpaddr'].'`');
+            }
+            
+            //saving user notes
+            if ($this->users[$userId]['notes']!=$_POST['ueditnotes']) {
+                simple_update_field($tablename, 'notes', $_POST['ueditnotes'], $where);
+                log_register('UKV USER (('.$userId.')) CHANGE  NOTES `'.$_POST['ueditnotes'].'`');
+            }
+
+            
+            
+        } else {
+            throw new Exception(self::EX_USER_NOT_SET);
+        }
     }
 
 
@@ -453,7 +591,7 @@ class UkvSystem {
             
             $result=  wf_TableBody($rows, '100%', 0, '');
             
-            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '800', '540');
+            $result.= wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530');
             
             return ($result);
         } else {
