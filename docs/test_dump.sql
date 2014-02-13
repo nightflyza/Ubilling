@@ -1062,3 +1062,29 @@ CREATE TABLE IF NOT EXISTS `ukv_payments` (
   PRIMARY KEY (`id`),
   KEY `userid` (`userid`,`date`,`visible`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `ukv_fees` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `yearmonth` varchar(42) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `yearmonth` (`yearmonth`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `ukv_banksta` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `hash` varchar(255) NOT NULL,
+  `filename` varchar(255) DEFAULT NULL,
+  `admin` varchar(255) NOT NULL,
+  `contract` varchar(255) DEFAULT NULL,
+  `summ` varchar(42) NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `realname` varchar(255) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `pdate` varchar(42) DEFAULT NULL,
+  `ptime` varchar(42) DEFAULT NULL,
+  `processed` tinyint(4) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `hash` (`hash`,`contract`,`summ`,`processed`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

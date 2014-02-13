@@ -1614,7 +1614,9 @@ $lang['def']['Entrances']='Подъездов';
 $lang['def']['Force query']='Принудительный опрос';
 $lang['def']['SSN']='ИНН';
 $lang['def']['Contact info']='Контактные данные';
-$lang['def']['']='';
+$lang['def']['Any tariff not set. Fee charge skipped.']='Никакого тарифа не установлено. Абонплата не начислена.';
+$lang['def']['User not connected. Fee charge skipped.']='Пользователь не подключен. Абонплата не начислена.';
+$lang['def']['Same bank statement already exists']='Такая банковская выписка уже загружена';
 $lang['def']['']='';
 $lang['def']['']='';
 

@@ -15,7 +15,7 @@ if (cfr('UKV')) {
         $ukv->ajaxUsers();
     }
 
-    
+
     /*
      * some views here
      */
@@ -119,7 +119,35 @@ if (cfr('UKV')) {
         show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));
     }
     
-    
+    // bank statements processing
+    if (wf_CheckGet(array('banksta'))) {
+        set_time_limit(0);
+        //banksta upload 
+        if (wf_CheckPost(array('uploadukvbanksta'))) {
+            $bankstaUploaded=$ukv->bankstaDoUpload();
+            if (!empty($bankstaUploaded)) {
+                $processedBanksta=$ukv->bankstaPreprocessing($bankstaUploaded);
+                    rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
+            }
+        } else {
+            
+            if (wf_CheckGet(array('showhash'))) {
+                show_window(__('Bank statement processing'), $ukv->bankstaProcessingForm($_GET['showhash']));
+            } else {
+                if (wf_CheckGet(array('showdetailed'))) {
+                    //show banksta row detailed info
+                    show_window(__('Bank statement'), $ukv->bankstaGetDetailedRowInfo($_GET['showdetailed']));
+                } else {
+                 //show upload form
+                 show_window(__('Import bank statement'),$ukv->bankstaLoadForm());
+                }
+            }
+        }
+        
+        
+        
+        
+    }
     
 } else {
     show_window(__('Error'), __('Access denied'));
