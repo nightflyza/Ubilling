@@ -1047,3 +1047,18 @@ CREATE TABLE IF NOT EXISTS `ukv_users` (
   KEY `active` (`active`),
   KEY `regdate` (`regdate`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `ukv_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userid` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(255) DEFAULT NULL,
+  `balance` varchar(45) NOT NULL,
+  `summ` varchar(45) NOT NULL,
+  `visible` tinyint(4) NOT NULL,
+  `cashtypeid` int(11) NOT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `userid` (`userid`,`date`,`visible`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

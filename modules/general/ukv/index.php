@@ -14,8 +14,18 @@ if (cfr('UKV')) {
     if (wf_CheckGet(array('ajax'))) {
         $ukv->ajaxUsers();
     }
+
     
+    /*
+     * some views here
+     */
     
+    //show global management panel
+    show_window('', $ukv->panel());
+    
+    //renders tariffs list with controls
+    if (wf_CheckGet(array('tariffs'))) {
+        
     //tariffs editing
     if (wf_CheckPost(array('edittariff'))) {
         $ukv->tariffSave($_POST['edittariff'], $_POST['edittariffname'], $_POST['edittariffprice']);
@@ -34,15 +44,7 @@ if (cfr('UKV')) {
         rcms_redirect(UkvSystem::URL_TARIFFS_MGMT);
     }
     
-    /*
-     * some views here
-     */
-    
-    //show global management panel
-    show_window('', $ukv->panel());
-    
-    //renders tariffs list with controls
-    if (wf_CheckGet(array('tariffs'))) {
+        //show tariffs lister
         show_window(__('Available tariffs'),$ukv->renderTariffs());
     }
     
@@ -62,7 +64,7 @@ if (cfr('UKV')) {
               show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
          }
         }
-        
+        //show new user registration form
         show_window(__('User registration'),$ukv->userRegisterForm());
     }
     
@@ -73,6 +75,45 @@ if (cfr('UKV')) {
         if (wf_CheckPost(array('usereditprocessing'))) {
             $ukv->userSave();
             rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['usereditprocessing']);
+        }
+        
+        //user deletion processing
+        if (wf_CheckPost(array('userdeleteprocessing','deleteconfirmation'))) {
+            if ($_POST['deleteconfirmation']=='confirm') {
+                $ukv->userDelete($_POST['userdeleteprocessing']);
+                rcms_redirect(UkvSystem::URL_USERS_LIST);
+            } else {
+                log_register('UKV USER DELETE TRY (('.$_POST['userdeleteprocessing'].'))');
+            }
+        }
+        
+        //manual payments processing
+        if (wf_CheckPost(array('manualpaymentprocessing','paymentsumm','paymenttype'))) {
+            $paymentNotes='';
+            //normal payment
+            if ($_POST['paymenttype']=='add') {
+                $paymentVisibility=1;
+            } 
+            //balance correcting
+            if ($_POST['paymenttype']=='correct') {
+                $paymentVisibility=0;
+            }
+            //mock payment
+            if ($_POST['paymenttype']=='mock') {
+                $paymentVisibility=1;
+                $paymentNotes.='MOCK:';
+            }
+            //set payment notes
+            if (wf_CheckPost(array('paymentnotes'))) {
+               $paymentNotes.=$_POST['paymentnotes']; 
+            }
+            
+            if ($_POST['paymenttype']!='mock') {
+              $ukv->userAddCash($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
+            } else {
+              $ukv->logPayment($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);  
+            }
+            rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['manualpaymentprocessing']);
         }
         
         show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));
