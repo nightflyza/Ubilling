@@ -1,6 +1,6 @@
 <?php
 if (cfr('UKV')) {
-    
+    set_time_limit(0);
   
     
     //creating base system object
@@ -121,7 +121,6 @@ if (cfr('UKV')) {
     
     // bank statements processing
     if (wf_CheckGet(array('banksta'))) {
-        set_time_limit(0);
         //banksta upload 
         if (wf_CheckPost(array('uploadukvbanksta'))) {
             $bankstaUploaded=$ukv->bankstaDoUpload();
@@ -132,6 +131,18 @@ if (cfr('UKV')) {
         } else {
             
             if (wf_CheckGet(array('showhash'))) {
+                //changing some contract into the banksta
+                if (wf_CheckPost(array('bankstacontractedit','newbankcontr'))) {
+                    $ukv->bankstaSetContract($_POST['bankstacontractedit'], $_POST['newbankcontr']);
+                    rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$_GET['showhash']);
+                }                
+                
+                //push cash to users if is needed
+                if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
+                    $ukv->bankstaPushPayments();
+                    rcms_redirect(UkvSystem::URL_BANKSTA_MGMT);
+                 }
+                
                 show_window(__('Bank statement processing'), $ukv->bankstaProcessingForm($_GET['showhash']));
             } else {
                 if (wf_CheckGet(array('showdetailed'))) {
@@ -140,14 +151,30 @@ if (cfr('UKV')) {
                 } else {
                  //show upload form
                  show_window(__('Import bank statement'),$ukv->bankstaLoadForm());
+                 //and available bank statements
+                 show_window(__('Previously loaded bank statements'), $ukv->bankstaRenderList());
                 }
             }
         }
-        
-        
-        
-        
-    }
+   }
+   
+   //reports processing
+   if (wf_CheckGet(array('reports'))) {
+       
+       if (wf_CheckGet(array('showreport'))) {
+           $reportName=vf($_GET['showreport']);
+           if (ispos($reportName, 'report')) {
+           if (method_exists($ukv, $reportName)) {
+               //call method
+               $ukv->$reportName();
+            } else {
+                show_window(__('Error'), __('Non existent method'));
+            }
+           } else {
+               show_window(__('Error'), __('Strange exeption'));
+           }
+       }
+   }
     
 } else {
     show_window(__('Error'), __('Access denied'));

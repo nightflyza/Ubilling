@@ -1617,6 +1617,10 @@ $lang['def']['Contact info']='Контактные данные';
 $lang['def']['Any tariff not set. Fee charge skipped.']='Никакого тарифа не установлено. Абонплата не начислена.';
 $lang['def']['User not connected. Fee charge skipped.']='Пользователь не подключен. Абонплата не начислена.';
 $lang['def']['Same bank statement already exists']='Такая банковская выписка уже загружена';
+$lang['def']['by users contract']='согласно договора';
+$lang['def']['Previously loaded bank statements']='Ранее загруженные банковские выписки';
+$lang['def']['Non existent method']='Несуществующий метод';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 
