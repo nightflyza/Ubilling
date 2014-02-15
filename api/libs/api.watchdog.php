@@ -499,6 +499,18 @@ class WatchDog {
                     if (ispos($taskActions, 'sms')) {
                         if (!empty($this->settings['WATCHDOG_PHONES'])) {
                             $allNotifyPhones=explode(',', $this->settings['WATCHDOG_PHONES']);
+                            $additionalPhones=array();
+                            if (preg_match('!\{(.*?)\}!si', $taskActions, $tmpAddPhones)) {
+                                $additionalPhones=  explode(',', $tmpAddPhones[1]);
+                               if (!empty($additionalPhones)) {
+                                   foreach ($additionalPhones as $ig=>$eachAdditionalPhone) {
+                                       if (!empty($eachAdditionalPhone)) {
+                                       $allNotifyPhones[]=$eachAdditionalPhone;
+                                       }
+                                   }
+                               }
+                            }
+   
                             if (!empty($allNotifyPhones)) {
                                 $notifyMessage=$this->settings['WATCHDOG_ALERT'].' '.$alertTaskName;
                                 foreach ($allNotifyPhones as $iu=>$eachmobile) {

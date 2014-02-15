@@ -22,6 +22,25 @@ if(cfr('EVENTVIEW')) {
 
     
 function web_EventsShowStats() {
+//caching options    
+$cachetimeout=(60*60); //in minutes
+$cachetime=time()-$cachetimeout;
+$cachepath='exports/';
+$cacheFile=$cachepath.'eventstatscache.dat';
+$updateCache=true;
+
+//cache handling
+if (file_exists($cacheFile)) {
+    if (filemtime($cacheFile)>$cachetime) {
+        $updateCache=false;
+    } else {
+        $updateCache=true;
+    }
+} else {
+    $updateCache=true;
+}
+
+if ($updateCache) {
 $cmonth=date("Y-m-");
 $cday=date("d");
 $reg_q="SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '".$cmonth."%'";
@@ -103,6 +122,12 @@ $tablecells.=wf_TableCell(round( ($stgc/$cday),2));
 $tablerows.=wf_TableRow($tablecells, 'row3');
 
 $template=wf_TableBody($tablerows, '50%', '0');
+file_put_contents($cacheFile, $template);
+} else {
+    $template=  file_get_contents($cacheFile);
+}
+
+
 show_window(__('Month actions stats'),$template);
 }
 

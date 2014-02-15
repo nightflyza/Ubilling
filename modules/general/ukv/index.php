@@ -134,6 +134,10 @@ if (cfr('UKV')) {
                 //changing some contract into the banksta
                 if (wf_CheckPost(array('bankstacontractedit','newbankcontr'))) {
                     $ukv->bankstaSetContract($_POST['bankstacontractedit'], $_POST['newbankcontr']);
+                    if (isset($_POST['lockbankstarow'])) {
+                        //locking some row if needed
+                        $ukv->bankstaSetProcessed($_POST['bankstacontractedit']);
+                    }
                     rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$_GET['showhash']);
                 }                
                 

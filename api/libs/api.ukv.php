@@ -1378,7 +1378,7 @@ class UkvSystem {
 
     public function bankstaProcessingForm($hash) {
         $hash = mysql_real_escape_string($hash);
-        $query = "SELECT * from `ukv_banksta` WHERE `hash`='" . $hash . "';";
+        $query = "SELECT * from `ukv_banksta` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
         $all = simple_queryall($query);
         $cashPairs = array();
 
@@ -1406,6 +1406,7 @@ class UkvSystem {
 
                 if (!$processed) {
                     $editInputs = wf_TextInput('newbankcontr', '', $each['contract'], false, '6');
+                    $editInputs.= wf_CheckInput('lockbankstarow', __('Lock'), false, false);
                     $editInputs.= wf_HiddenInput('bankstacontractedit', $each['id']);
                     $editInputs.= wf_Submit(__('Save'));
                     $editForm = wf_Form('', 'POST', $editInputs);
@@ -1432,7 +1433,11 @@ class UkvSystem {
                     $detectedContract = '';
                     $detectedAddress = '';
                     $detectedRealName = '';
-                    $rowClass = 'undone';
+                    if ($each['processed']==1) {
+                        $rowClass = 'row2';
+                    } else {
+                        $rowClass = 'undone';
+                    }
                 }
 
                 $cells.= wf_TableCell($detectedContract);
@@ -1515,6 +1520,18 @@ class UkvSystem {
         }
         return ($result);
     }
+    
+   /*
+    * sets banksta row as processed
+    * 
+    * @param $bankstaid  existing bank statement ID
+    * 
+    * @return void
+    */ 
+   public function bankstaSetProcessed($bankstaid) {
+       $bankstaid=vf($bankstaid,3);
+       simple_update_field('ukv_banksta', 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
+   }
 
     /*
      * push payments to some user accounts via bank statements
@@ -1539,7 +1556,8 @@ class UkvSystem {
                         //all good is with this row
                         // push payment and mark banksta as processed
                         $this->userAddCash($eachstatement['userid'], $eachstatement['summ'], 1, $cashtype, 'BANKSTA: [' . $eachstatement['bankstaid'] . '] ASCONTRACT ' . $eachstatement['usercontract']);
-                        simple_update_field('ukv_banksta', 'processed', 1, "WHERE `id`='" . $eachstatement['bankstaid'] . "'");
+                        $this->bankstaSetProcessed($eachstatement['bankstaid']);
+                        
                     } else {
                         //duplicate payment try
                         log_register('UKV BANKSTA TRY DUPLICATE [' . $eachstatement['bankstaid'] . '] PAYMENT PUSH');
@@ -1556,7 +1574,7 @@ class UkvSystem {
      */
 
     public function bankstaRenderList() {
-        $query = "SELECT `filename`,`hash`,`date`,`admin` FROM `ukv_banksta` GROUP BY `hash`";
+        $query = "SELECT `filename`,`hash`,`date`,`admin` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
 
         $cells = wf_TableCell(__('Date'));
@@ -1680,7 +1698,7 @@ class UkvSystem {
                     $cells.= wf_TableCell($each['realname']);
                     $cells.= wf_TableCell($this->tariffs[$userTariff]['tariffname']);
                     $cells.= wf_TableCell($each['cash']);
-                    $cells.= wf_TableCell(web_bool_led($each['active']));
+                    $cells.= wf_TableCell(web_bool_led($each['active'],true));
                     $rows.= wf_TableRow($cells, 'row3');
                 }
             }
