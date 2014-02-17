@@ -1087,4 +1087,28 @@ CREATE TABLE IF NOT EXISTS `ukv_banksta` (
   `processed` tinyint(4) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `hash` (`hash`,`contract`,`summ`,`processed`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `payments_signup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(50) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(255) NOT NULL,
+  `balance` int(45) NOT NULL,
+  `summ` double NOT NULL,
+  `cashtypeid` int(11) NOT NULL,
+  `note` varchar(45) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `signup_prices_tariffs` (
+  `tariff` varchar(40) NOT NULL,
+  `price` double NOT NULL,
+  PRIMARY KEY (`tariff`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `signup_prices_users` (
+  `login` varchar(50) NOT NULL,
+  `price` double NOT NULL,
+  PRIMARY KEY (`login`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

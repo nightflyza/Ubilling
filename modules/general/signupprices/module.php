@@ -1,0 +1,1 @@
+<?php $this->registerModule($module, 'main', 'Signup prices', 'jcomm', array('SIGNUPPRICES' => __('right to manage signup prices'))); ?>

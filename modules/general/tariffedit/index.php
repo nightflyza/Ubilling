@@ -28,6 +28,20 @@ if (isset ($_GET['username'])) {
             log_register("CHANGE AutoCredit (".$login.") ON ".$newtariffprice);
         }
         
+		// Signup fee charge:        
+        if ( $alter_conf['SIGNUP_PRICES'] && !isset($_POST['dont_charge_signup_price']) ) {
+            $old_price = zb_UserGetSignupPrice($login);
+            $new_price = zb_TariffGetAllSignupPrices();
+            if ( !isset($tariff_prices[$tariff]) ) {
+                zb_TariffCreateSignupPrice($tariff, 0);
+                $new_price = zb_TariffGetAllSignupPrices();
+            }
+            $fee = $old_price - $new_price[$tariff];
+            zb_UserChangeSignupPrice($login, $new_price[$tariff]);
+            $billing->addcash($login, $fee);
+            log_register("CHARGE SignupPriceFee(" . $login . ") " . $fee . " ACCORDING TO " . $tariff);
+        }
+		
     }
 
     $current_tariff=zb_UserGetStargazerData($login);

@@ -665,79 +665,103 @@ function web_tariffselectorNoLousy($fieldname='tariffsel') {
     return($selector);
 }
 
-function web_EditorTariffForm($fieldname,$fieldkey,$useraddress,$olddata='') {
-   if ($olddata=='*_NO_TARIFF_*') {
-        $nm_flag='DISABLED';
+function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = '') {
+    if ($olddata == '*_NO_TARIFF_*') {
+        $nm_flag = 'DISABLED';
     } else {
-        $nm_flag='';
+        $nm_flag = '';
     }
-    $form='
+
+    $altet_conf = parse_ini_file(CONFIG_PATH . 'alter.ini');
+    if ($altet_conf['SIGNUP_PRICES']) {
+        $dont_charge_signup_price_checkbox = '
+            <label for="dont_charge_signup_price_checkbox"> ' . __('Dont charge singup price') . '
+                <input type="checkbox"  name="dont_charge_signup_price" id="dont_charge_signup_price_checkbox"> 
+            </label>
+        ';
+    } else {
+        $dont_charge_signup_price_checkbox = null;
+    }
+
+    $form = '
         <form action="" method="POST">
         <table width="100%" border="0">
         <tr>
-        <td class="row2">'.__('User').'</td>
-        <td class="row3">'.$useraddress.'</td>
+        <td class="row2">' . __('User') . '</td>
+        <td class="row3">' . $useraddress . '</td>
         </tr>
          <tr>
-        <td class="row2">'.$fieldname.'</td>
-        <td class="row3">'.$olddata.'</td>
+        <td class="row2">' . $fieldname . '</td>
+        <td class="row3">' . $olddata . '</td>
         </tr>
          <tr>
          <td class="row2" align="right">
-          <label for="nm"> '.__('Next month').'
-         <input type="checkbox"  name="nextmonth" id="nm" '.$nm_flag.'> 
+          <label for="nm"> ' . __('Next month') . '
+         <input type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag . '> 
          </label>
          </td>
          <td class="row3">
-               '.web_tariffselector($fieldkey).'
+            ' . web_tariffselectorNoLousy($fieldkey) . '
+            ' . $dont_charge_signup_price_checkbox . '
          </td>
          </tr>
          </table>
          <br>
-        <input type="submit" value="'.__('Change').'">
+        <input type="submit" value="' . __('Change') . '">
         </form>
         <br><br>
         ';
     return($form);
 }
 
-function web_EditorTariffFormWithoutLousy($fieldname,$fieldkey,$useraddress,$olddata='') {
-    if ($olddata=='*_NO_TARIFF_*') {
-        $nm_flag='DISABLED';
+function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $olddata = '') {
+    if ($olddata == '*_NO_TARIFF_*') {
+        $nm_flag = 'DISABLED';
     } else {
-        $nm_flag='';
+        $nm_flag = '';
     }
-       
-    $form='
+
+    $altet_conf = parse_ini_file(CONFIG_PATH . 'alter.ini');
+    if ($altet_conf['SIGNUP_PRICES']) {
+        $dont_charge_signup_price_checkbox = '
+            <label for="dont_charge_signup_price_checkbox"> ' . __('Dont charge singup price') . '
+                <input type="checkbox"  name="dont_charge_signup_price" id="dont_charge_signup_price_checkbox"> 
+            </label>
+        ';
+    } else {
+        $dont_charge_signup_price_checkbox = null;
+    }
+
+    $form = '
         <form action="" method="POST">
         <table width="100%" border="0">
         <tr>
-        <td class="row2">'.__('User').'</td>
-        <td class="row3">'.$useraddress.'</td>
+        <td class="row2">' . __('User') . '</td>
+        <td class="row3">' . $useraddress . '</td>
         </tr>
          <tr>
-        <td class="row2">'.$fieldname.'</td>
-        <td class="row3">'.$olddata.'</td>
+        <td class="row2">' . $fieldname . '</td>
+        <td class="row3">' . $olddata . '</td>
         </tr>
          <tr>
          <td class="row2" align="right">
-         <label for="nm"> '.__('Next month').'
-         <input type="checkbox"  name="nextmonth" id="nm" '.$nm_flag.'> 
+         <label for="nm"> ' . __('Next month') . '
+         <input type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag . '> 
          </label>
          </td>
          <td class="row3">
-               '.web_tariffselectorNoLousy($fieldkey).'
+            ' . web_tariffselectorNoLousy($fieldkey) . '
+            ' . $dont_charge_signup_price_checkbox . '
          </td>
          </tr>
          </table>
          <br>
-        <input type="submit" value="'.__('Change').'">
+        <input type="submit" value="' . __('Change') . '">
         </form>
         <br><br>
         ';
     return($form);
 }
-
 
 function web_EditorTwoStringDataForm($fieldnames,$fieldkeys,$olddata) {
     $field1=$fieldnames['fieldname1'];
@@ -1220,8 +1244,14 @@ return($form);
         } else {
             $dnOnlineRow='';
         }
+		
+        if ( !empty($alter_conf['SIGNUP_PRICES']) ) {
+            $signupprice_row = '<tr><td class="row2">' . __('Signup paid') . '</td><td class="row3">' . zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login) . '</td></tr>';
+        } else {
+            $signupprice_row = null;
+        }
         
-        $profile.='
+		$profile.='
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
        <tbody>
         <tr>
@@ -1294,6 +1324,7 @@ return($form);
                 <td class="row2">'.__('Speed override').'</td>
                 <td class="row3">'.$speedoverride.'</td>
             </tr>
+			' . $signupprice_row . '
             <tr>
                 <td class="row2"> ' . $hightlight_start . ' ' . __('Balance') . '' . $hightlight_end . '</td>
                 <td class="row3"> ' . $hightlight_start . ' ' . $Cash . ''. $hightlight_end . '</td>

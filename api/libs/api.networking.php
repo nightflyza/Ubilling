@@ -831,6 +831,30 @@ function zb_TariffGetAllSpeeds() {
      log_register('DELETE TariffSpeed '.$tariff);
  }
  
+function zb_TariffGetAllSignupPrices() {
+    $query = "SELECT * FROM `signup_prices_tariffs`";
+    $results = simple_queryall($query);
+    $return = array();
+    if ( !empty($results) ) {
+        foreach ($results as $result) {
+            $return[$result['tariff']] = $result['price'];
+        }
+    }
+    return ($return);
+}
+
+function zb_TariffCreateSignupPrice($tariff, $price) {
+    $query = "INSERT INTO `signup_prices_tariffs` (`tariff`, `price`) VALUES ('" . $tariff . "', '" . $price . "')";
+    nr_query($query);
+    log_register('CREATE TariffSignupPrice ' . $tariff . ' ' . $price);
+}
+
+function zb_TariffDeleteSignupPrice($tariff) {
+    $query = "DELETE FROM `signup_prices_tariffs` WHERE `tariff` = '" . $tariff . "'";
+    nr_query($query);
+    log_register('DELETE TariffSignupPrice ' . $tariff);
+}
+ 
  function zb_MultinetGetMAC($ip) {
      $query="SELECT `mac` from `nethosts` WHERE `ip`='".$ip."'";
      $result=simple_query($query);

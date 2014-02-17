@@ -1361,15 +1361,15 @@ $lang['def']['username'] = 'Имя пользователя';
 $lang['def']['password'] = 'Пароль';
 // Block 2: Interface settings
 $lang['def']['Interface settings'] = 'Настройка интерфейсов';
-$lang['def']['graph interface'] = 'Интерфейс графика';
-$lang['def']['users interface'] = 'Интерфейс пользователей';
+$lang['def']['Graph interface'] = 'Интерфейс графика';
+$lang['def']['Users interface'] = 'Интерфейс пользователей';
 // Block 3: Setting On* scripts behavior for this NAS
 $lang['def']['Setting On* scripts behavior for this NAS'] = 'Устанока поведения скриптов On* для NAS';
-$lang['def']['manage firewall'] = 'Управлять фаерволом';
-$lang['def']['manage arp'] = 'Управлять ARP-таблицей';
-$lang['def']['manage queue'] = 'Управлять очередями';
-$lang['def']['manage dhcp'] = 'Управлять DHCP';
-$lang['def']['manage ppp'] = 'Управлять PPP';
+$lang['def']['Manage firewall'] = 'Управлять фаерволом';
+$lang['def']['Manage arp'] = 'Управлять ARP-таблицей';
+$lang['def']['Manage queue'] = 'Управлять очередями';
+$lang['def']['Manage dhcp'] = 'Управлять DHCP';
+$lang['def']['Manage ppp'] = 'Управлять PPP';
 // Block 4: MikroTik General Information
 $lang['def']['MikroTik General Information'] = 'Общая инфорация о состоянии MikroTik`a';
 $lang['def']['uptime'] = 'Аптайм';
@@ -1624,6 +1624,12 @@ $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 
-
+// rev 3310
+$lang['def']['Edit signup price'] = 'Редактировать стоимость подключения';
+$lang['def']['Edit signup price for tariff'] = 'Редактирование стоимости подключения для тарифа';
+$lang['def']['Edit signup price for user'] = 'Редактирование стоимости подключения для пользователя';
+$lang['def']['Signup price'] = 'Стоимость подключения';
+$lang['def']['Signup paid'] = 'Оплачено за подключение';
+$lang['def']['Dont сharge singup price'] = 'Не снимать плату за подключение';
 
 ?>

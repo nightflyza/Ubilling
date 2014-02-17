@@ -1611,4 +1611,11 @@ $lang['def']['Strict search']='Строгий пошук';
 $lang['def']['Watchdog enabled']='Собаку-спостерігаку ввімкнено';
 $lang['def']['Administrator logins that can delete payments']='Адміністратори, що можуть видаляти оплати';
 
+$lang['def']['Edit signup price'] = 'Редагувати ціну підключення';
+$lang['def']['Edit signup price for tariff'] = 'Редагувати ціну підключення для тарифу';
+$lang['def']['Edit signup price for user'] = 'Редагувати ціну підключення дла користувача';
+$lang['def']['Signup price'] = 'Ціна підключення';
+$lang['def']['Signup paid'] = 'Оплачено за підключення';
+$lang['def']['Dont сharge singup price'] = 'Не знімати плати за підключення';
+
 ?>

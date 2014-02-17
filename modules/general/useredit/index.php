@@ -118,6 +118,13 @@ if (cfr('USEREDIT')) {
         $cells.= wf_TableCell(wf_Link('?module=addcash&username='.$login.'#profileending', wf_img('skins/icon_dollar.gif').' '.__('Finance operations')));
         $rows.=  wf_TableRow($cells, 'row3');
         
+        if ( !empty($alter_conf['SIGNUP_PRICES']) ) {
+            $cells  = wf_TableCell(__('Signup paid'));
+            $cells .= wf_TableCell(zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login));
+            $cells .= wf_TableCell(wf_Link('?module=signupprices&username=' . $login, wf_img('skins/icons/register.png', __('Edit signup price')) . ' ' .  __('Edit signup price')));
+            $rows  .= wf_TableRow($cells, 'row3');
+        }
+		
         $cells=  wf_TableCell(__('IP'));
         $cells.= wf_TableCell($ip);
         $cells.= wf_TableCell(wf_Link('?module=pl_ipchange&username='.$login, wf_img('skins/icon_ip.gif').' '.__('Change').' '.__('IP')));
