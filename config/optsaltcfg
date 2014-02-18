@@ -184,4 +184,5 @@ TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
 TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
 TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
 
-SIGNUP_PRICES=TRIGGER|Signup prices managenent
+SIGNUP_PRICES=TRIGGER|signup payments managenente
+SIGNUP_TYPEID=VARCHAR|signup cashtype id

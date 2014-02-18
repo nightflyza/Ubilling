@@ -1,11 +1,11 @@
 <?php
 if (cfr('TARIFFEDIT')) {
-
+    global $ubillingConfig;
 if (isset ($_GET['username'])) {
     $login=vf($_GET['username']);
        // change tariff  if need
        if (isset ($_POST['newtariff'])) {
-        $alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $alter_conf=$ubillingConfig->getAlter();
         $tariff=$_POST['newtariff'];
         if (!isset($_POST['nextmonth'])) {
         $billing->settariff($login,$tariff);
@@ -28,20 +28,26 @@ if (isset ($_GET['username'])) {
             log_register("CHANGE AutoCredit (".$login.") ON ".$newtariffprice);
         }
         
-		// Signup fee charge:        
-        if ( $alter_conf['SIGNUP_PRICES'] && !isset($_POST['dont_charge_signup_price']) ) {
-            $old_price = zb_UserGetSignupPrice($login);
-            $new_price = zb_TariffGetAllSignupPrices();
-            if ( !isset($tariff_prices[$tariff]) ) {
-                zb_TariffCreateSignupPrice($tariff, 0);
+        if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
+            if ( isset($_POST['charge_signup_price']) ) {
+                $has_paid  = zb_UserGetSignupPricePaid($login);
+                $old_price = zb_UserGetSignupPrice($login);
                 $new_price = zb_TariffGetAllSignupPrices();
+                if ( !isset($new_price[$tariff]) ) {
+                    zb_TariffCreateSignupPrice($tariff, 0);
+                    $new_price = zb_TariffGetAllSignupPrices();
+                }
+                if ( $new_price[$tariff] >= $has_paid ) {
+                    $cash = $old_price - $new_price[$tariff];
+                    zb_UserChangeSignupPrice($login, $new_price[$tariff]);
+                    $billing->addcash($login, $cash);
+                    log_register("CHARGE SignupPriceFee(" . $login . ") " . $cash . " ACCORDING TO " . $tariff);
+                } else {
+                    show_window('', wf_modalOpened(__('Error'), __('You may not setup connection payment less then user has already paid!'), '400', '150'));
+                }
             }
-            $fee = $old_price - $new_price[$tariff];
-            zb_UserChangeSignupPrice($login, $new_price[$tariff]);
-            $billing->addcash($login, $fee);
-            log_register("CHARGE SignupPriceFee(" . $login . ") " . $fee . " ACCORDING TO " . $tariff);
         }
-		
+        
     }
 
     $current_tariff=zb_UserGetStargazerData($login);

@@ -4,7 +4,10 @@ if (cfr('USEREDIT')) {
         $login=vf($_GET['username']);
 
         function web_UserEditShowForm($login) {
-        $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+            
+        global $ubillingConfig;
+        $alter_conf = $ubillingConfig->getAlter();
+
         $stgdata=zb_UserGetStargazerData($login);
         $address=zb_UserGetFullAddress($login);
         $realname=zb_UserGetRealName($login);
@@ -118,11 +121,15 @@ if (cfr('USEREDIT')) {
         $cells.= wf_TableCell(wf_Link('?module=addcash&username='.$login.'#profileending', wf_img('skins/icon_dollar.gif').' '.__('Finance operations')));
         $rows.=  wf_TableRow($cells, 'row3');
         
-        if ( !empty($alter_conf['SIGNUP_PRICES']) ) {
-            $cells  = wf_TableCell(__('Signup paid'));
-            $cells .= wf_TableCell(zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login));
-            $cells .= wf_TableCell(wf_Link('?module=signupprices&username=' . $login, wf_img('skins/icons/register.png', __('Edit signup price')) . ' ' .  __('Edit signup price')));
-            $rows  .= wf_TableRow($cells, 'row3');
+        if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
+            $payment = zb_UserGetSignupPrice($login);
+            $paid    = zb_UserGetSignupPricePaid($login);
+            if ( $payment != $paid && $payment > 0 ) {
+                $cells  = wf_TableCell(__('Signup paid'));
+                $cells .= wf_TableCell(zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login));
+                $cells .= wf_TableCell(wf_Link('?module=signupprices&username=' . $login, wf_img('skins/icons/register.png', __('Edit signup price')) . ' ' .  __('Edit signup price')));
+                $rows  .= wf_TableRow($cells, 'row3');
+            }
         }
 		
         $cells=  wf_TableCell(__('IP'));

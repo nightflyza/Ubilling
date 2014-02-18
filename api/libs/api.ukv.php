@@ -35,7 +35,8 @@ class UkvSystem {
     const REG_CASH = 0;
 
     //misc options
-    const DEBT_LIMIT = 2; //debt limit in month
+    protected $debtLimit = 1; //debt limit in month count
+    
     //bank statements options
     const BANKSTA_IN_CHARSET = 'cp866';
     const BANKSTA_OUT_CHARSET = 'utf-8';
@@ -1664,7 +1665,6 @@ class UkvSystem {
     public function reportList() {
         $reports = '';
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
         show_window(__('Reports'), $reports);
     }
 
@@ -1675,37 +1675,59 @@ class UkvSystem {
      */
 
     public function reportDebtors() {
-
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Contract'));
-        $cells.= wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Tariff'));
-        $cells.= wf_TableCell(__('Cash'));
-        $cells.= wf_TableCell(__('Connected'));
-        $rows = wf_TableRow($cells, 'row1');
-
-        if (!empty($this->users)) {
-            foreach ($this->users as $io => $each) {
-                $userTariff = $each['tariffid'];
+        $debtorsArr=array();
+        $result='';
+       
+            if (!empty($this->users)) {
+            foreach ($this->users as $ix => $eachUser) {
+                $userTariff = $eachUser['tariffid'];
                 $tariffPrice = $this->tariffs[$userTariff]['price'];
-                $debtLimit = '-' . ($tariffPrice * self::DEBT_LIMIT);
-
-                if (($each['cash'] <= $debtLimit) AND ($each['active'] == 1)) {
-                    $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($each['contract']);
-                    $cells.= wf_TableCell($each['street'] . ' ' . $each['build'] . '/' . $each['apt']);
-                    $cells.= wf_TableCell($each['realname']);
-                    $cells.= wf_TableCell($this->tariffs[$userTariff]['tariffname']);
-                    $cells.= wf_TableCell($each['cash']);
-                    $cells.= wf_TableCell(web_bool_led($each['active'],true));
-                    $rows.= wf_TableRow($cells, 'row3');
+                $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
+                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1)) {
+                   $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
                 }
+            }
+           }
+  
+        
+        
+       
+        
+        
+        if (!empty($debtorsArr)) {
+            foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
+                if (!empty($eachDebtorStreet)) {
+                    $result.=wf_tag('h2').$streetName.  wf_tag('h2', true);
+                     
+                     $cells = wf_TableCell(__('ID'));
+                     $cells.= wf_TableCell(__('Contract'));
+                     $cells.= wf_TableCell(__('Full address'));
+                     $cells.= wf_TableCell(__('Real Name'));
+                     $cells.= wf_TableCell(__('Tariff'));
+                     $cells.= wf_TableCell(__('Cash'));
+                     $cells.= wf_TableCell(__('Connected'));
+                     $rows = wf_TableRow($cells, 'row1');
+                     foreach ($eachDebtorStreet as $ia=>$eachDebtor) {
+                            $cells = wf_TableCell($eachDebtor['id']);
+                            $cells.= wf_TableCell($eachDebtor['contract']);
+                            $debtorAddress=$eachDebtor['street'].' '.$eachDebtor['build'].'/'.$eachDebtor['apt'];
+                            $cells.= wf_TableCell($debtorAddress);
+                            $cells.= wf_TableCell($eachDebtor['realname']);
+                            $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
+                            $cells.= wf_TableCell($eachDebtor['cash']);
+                            $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
+                            $rows.=  wf_TableRow($cells, 'row3');
+                     }
+                     
+                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+                }
+                
             }
         }
 
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        deb($result);
+
+        
+        show_window(__('Debtors'),$result);
     }
 
 }

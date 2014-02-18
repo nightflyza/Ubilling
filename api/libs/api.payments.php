@@ -8,28 +8,28 @@ function zb_CashGetUserBalance($login) {
     
 }
 
-function zb_CashAdd($login,$cash,$operation,$cashtype,$note) {
+function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
     global $billing;
     $login = mysql_real_escape_string($login);
     $cash  = mysql_real_escape_string($cash);
-    $cash  = preg_replace("#[^0-9\-\.]#Uis",'',$cash);
+    $cash  = preg_replace("#[^0-9\-\.]#Uis", '', $cash);
     $cash  = trim($cash);
     $cashtype = vf($cashtype);
-    $note = mysql_real_escape_string($note);
-    $date = curdatetime();
+    $note  = mysql_real_escape_string($note);
+    $date  = curdatetime();
     $balance = zb_CashGetUserBalance($login);
     $admin = whoami();
     $noteprefix = '';
-    
+
     switch ( $operation ) {
         case 'add':
             $targettable = 'payments';
-            $billing->addcash($login, $cash); 
+            $billing->addcash($login, $cash);
             log_register('BALANCEADD (' . $login . ') ON ' . $cash);
             break;
         case 'correct':
             $targettable = 'paymentscorr';
-            $billing->addcash($login, $cash); 
+            $billing->addcash($login, $cash);
             log_register('BALANCECORRECT (' . $login . ') ON ' . $cash);
             break;
         case 'set':
@@ -44,21 +44,44 @@ function zb_CashAdd($login,$cash,$operation,$cashtype,$note) {
             $noteprefix = 'MOCK:';
             break;
     }
-    
+
     $query = "INSERT INTO `" . $targettable . "` (
-                `id`,
-                `login`,
-                `date`,
-                `admin`,
-                `balance`,
-                `summ`,
-                `cashtypeid`,
-                `note`
-                )
-                VALUES (
-                NULL, '".$login."', '".$date."', '".$admin."', '".$balance."', '".$cash."', '".$cashtype."', '".($noteprefix.$note)."'
-                );";
+                    `id` ,
+                    `login` ,
+                    `date` ,
+                    `admin` ,
+                    `balance` ,
+                    `summ` ,
+                    `cashtypeid` ,
+                    `note`
+                    )
+                    VALUES (
+                    NULL , '" . $login . "', '" . $date . "', '" . $admin . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . ($noteprefix . $note) . "'
+                    );";
     nr_query($query);
+}
+
+function zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note) {
+    switch ( $operation ) {
+        case 'add':
+            $signup_payment = zb_UserGetSignupPrice($login);
+            $signup_paid    = zb_UserGetSignupPricePaid($login);
+            $signup_left    = $signup_payment - $signup_paid;
+            if ( $signup_left > 0 && $cash > 0 ) {
+                global $ubillingConfig;
+                $alter = $ubillingConfig->getAlter();
+                if ( $cash > $signup_left ) {
+                    $signup_cash  = $signup_left;
+                    $balance_cash = $cash - $signup_cash;
+                    zb_CashAdd($login, $signup_cash, $operation, $alter['SIGNUP_TYPEID'], __('Signup payment'));
+                    zb_CashAdd($login, $balance_cash, $operation, $cashtype, $note); 
+                } else zb_CashAdd($login, $cash, $operation, $alter['SIGNUP_TYPEID'], __('Signup payment'));
+            } else  zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+            break;
+        default:
+            zb_CashAdd($login, $cash, $operation, $cashtype, $note);
+            break;
+    }
 }
 
 function zb_CashGetAlltypes() {
@@ -159,5 +182,44 @@ function zb_PaymentIDGet($login) {
     }
     return ($result);
  }
- 
+
+// SIGNUP_PAYMENTS:
+function zb_UserGetSignupPrice($login) {
+    $login  = vf($login);
+    $query  = "SELECT `price` FROM `signup_prices_users` WHERE `login` = '".$login."'";
+    $result = simple_query($query);
+    if ( isset($result['price']) ) {
+        $price = $result['price'];
+    } else {
+        $price = 0;
+        zb_UserCreateSignupPrice($login, $price);
+    }
+    return ($price);
+}
+
+function zb_UserGetSignupPricePaid($login) {
+    $login  = vf($login);
+    $alter  = parse_ini_file(CONFIG_PATH . 'alter.ini');
+    $query  = "SELECT SUM(`summ`) AS `paid` FROM `payments` WHERE `login` = '".$login."' AND `cashtypeid` = '" . $alter['SIGNUP_TYPEID'] . "'";
+    $result = simple_query($query);
+    return !empty($result['paid']) ? $result['paid'] : 0;
+}
+
+function zb_UserCreateSignupPrice($login, $price) {
+    $query = "INSERT INTO `signup_prices_users` (`login`, `price`) VALUES ('" . $login . "', '" . $price . "')";
+    nr_query($query);
+}
+
+function zb_UserDeleteSignupPrice($login) {
+    $query = "DELETE FROM `signup_prices_users` WHERE `login` = '" . $login . "'";
+    nr_query($query);
+}
+
+function zb_UserChangeSignupPrice($login, $new_price) {
+    $old_price = zb_UserGetSignupPrice($login);
+    zb_UserDeleteSignupPrice($login);
+    zb_UserCreateSignupPrice($login, $new_price);
+    log_register('CHANGE SignupPrice (' . $login . ') FROM ' . $old_price . ' TO ' . $new_price);
+}
+
 ?>

@@ -1,7 +1,8 @@
 <?php
 if ( cfr('SIGNUPPRICES') ) {
-    $alter = parse_ini_file(CONFIG_PATH . 'alter.ini', true);
-    if ( ($alter['SIGNUP_PRICES']) ) {
+    global $ubillingConfig;
+    $alter = $ubillingConfig->getAlter();
+    if ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) {
         if ( isset($_GET['tariff']) ) {
             $tariff = mysql_real_escape_string($_GET['tariff']);
             $prices = zb_TariffGetAllSignupPrices();
@@ -29,20 +30,26 @@ if ( cfr('SIGNUPPRICES') ) {
             show_window('', wf_Link("?module=signupprices", 'Back', true, 'ubButton'));
         } elseif ( isset($_GET['username']) ) {
             $login = mysql_real_escape_string($_GET['username']);
-            $price = zb_UserGetSignupPrice($login);
-            if ( isset($_POST['new_price']) ) {
-                $fee = $price - $_POST['new_price'];
-                zb_UserChangeSignupPrice($login, $_POST['new_price']);
-                $billing->addcash($login, $fee);
-                log_register("CHARGE SignupPriceFee (" . $login . ") " . $fee);
-                rcms_redirect("?module=useredit&username=" . $login);
+            $has_paid  = zb_UserGetSignupPricePaid($login);
+            $old_price = zb_UserGetSignupPrice($login);
+            $new_price = isset($_POST['new_price']) ? mysql_real_escape_string($_POST['new_price']) : null;
+            if ( !is_null($new_price) ) {
+                if ( $new_price >= $has_paid ) {
+                    $cash = $old_price - $new_price;
+                    zb_UserChangeSignupPrice($login, $new_price);
+                    $billing->addcash($login, $cash);
+                    log_register("CHARGE SignupPriceFee(" . $login . ") " . $cash); 
+                    rcms_redirect("?module=useredit&username=" . $login);
+                } else {
+                    show_window('', wf_modalOpened(__('Error'), __('You may not setup connection payment less then user has already paid!'), '400', '150'));
+                }
             }
             $form = '<form action="" method="POST">
                 <table width="100%" border="0">
                     <tr>
                         <td class="row2">' . __('Signup price') . '</td>
                         <td class="row3">
-                            <input type="text" name="new_price" value="' . $price . '">
+                            <input type="text" name="new_price" value="' . $old_price . '">
                         </td>
                     </tr>
                 </table>
@@ -61,11 +68,11 @@ if ( cfr('SIGNUPPRICES') ) {
                 foreach ( $tariffs as $tariff ) {
                     $form .= '
                         <tr class="row3">
-                        <td>' . $tariff['name'] . '</td>
-                        <td>' . ( isset($prices[$tariff['name']]) ? $prices[$tariff['name']] : '0' ) . '</td>
-                        <td>
-                            <a href="?module=signupprices&tariff=' . $tariff['name'] . '">' . wf_img('skins/icons/register.png', __('Edit signup price')) . '</a>
-                        </td>
+                            <td>' . $tariff['name'] . '</td>
+                            <td>' . ( isset($prices[$tariff['name']]) ? $prices[$tariff['name']] : '0' ) . '</td>
+                            <td>
+                                <a href="?module=signupprices&tariff=' . $tariff['name'] . '">' . wf_img('skins/icons/register.png', __('Edit signup price')) . '</a>
+                            </td>
                         </tr>
                     ';
                 }

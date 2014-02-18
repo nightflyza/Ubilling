@@ -364,45 +364,6 @@ function zb_UserGetNotes($login) {
         return ($result);
     }
 
-function zb_UserGetSignupPrice($login) {
-    $login  = vf($login);
-    $query  = "SELECT `price` FROM `signup_prices_users` WHERE `login` = '".$login."'";
-    $result = simple_query($query);
-    if ( isset($result['price']) ) {
-        $price = $result['price'];
-    } else {
-        $price = 0;
-        zb_UserCreateSignupPrice($login, $price);
-    }
-    return ($price);
-}
-
-function zb_UserGetSignupPricePaid($login) {
-    $login  = vf($login);
-    $query  = "SELECT SUM(`summ`) AS `paid` FROM `payments_signup` WHERE `login` = '".$login."'";
-    $result = simple_query($query);
-    return !empty($result['paid']) ? $result['paid'] : 0;
-}
-
-function zb_UserCreateSignupPrice($login, $price) {
-    $query = "INSERT INTO `signup_prices_users` (`login`, `price`) VALUES ('" . $login . "', '" . $price . "')";
-    nr_query($query);
-    // log_register('CREATE SignupPrice (' . $login . ') ' . $price);
-}
-
-function zb_UserDeleteSignupPrice($login) {
-    $query = "DELETE FROM `signup_prices_users` WHERE `login` = '" . $login . "'";
-    nr_query($query);
-    // log_register('DELETE SignupPrice (' . $login . ')');
-}
-
-function zb_UserChangeSignupPrice($login, $new_price) {
-    $old_price = zb_UserGetSignupPrice($login);
-    zb_UserDeleteSignupPrice($login);
-    zb_UserCreateSignupPrice($login, $new_price);
-    log_register('CHANGE SignupPrice (' . $login . ') FROM ' . $old_price . ' TO ' . $new_price);
-}
-
 // returns all of user LAT and logins pairs
     function zb_LatGetAllUsers () {
         $query="SELECT `login`,`LastActivityTime` from `users`";

@@ -1616,6 +1616,6 @@ $lang['def']['Edit signup price for tariff'] = 'Редагувати ціну п
 $lang['def']['Edit signup price for user'] = 'Редагувати ціну підключення дла користувача';
 $lang['def']['Signup price'] = 'Ціна підключення';
 $lang['def']['Signup paid'] = 'Оплачено за підключення';
-$lang['def']['Dont сharge singup price'] = 'Не знімати плати за підключення';
+$lang['def']['You may not setup connection payment less then user has already paid!'] = 'Неможливо встановити плату за підключення меншу за ту, що користувач вже оплатив. Призначення платежу відмінено!';
 
 ?>

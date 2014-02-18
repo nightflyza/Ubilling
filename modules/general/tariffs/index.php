@@ -157,6 +157,9 @@ if (cfr('TARIFFS')) {
     function web_TariffLister() {
         $alltariffs = billing_getalltariffs();
         $dbSchema=  zb_CheckDbSchema();
+		
+        global $ubillingConfig;
+        $alter = $ubillingConfig->getAlter();
         
         $cells=  wf_TableCell(__('Tariff name'));
         $cells.= wf_TableCell(__('Tariff Fee'));
@@ -179,7 +182,7 @@ if (cfr('TARIFFS')) {
                 $actions  = wf_JSAlert("?module=tariffs&action=delete&tariffname=".$eachtariff['name'], web_delete_icon(), __('Removing this may lead to irreparable results'));
                 $actions .= wf_JSAlert("?module=tariffs&action=edit&tariffname=".$eachtariff['name'], web_edit_icon(), __('Are you serious'));
                 $actions .= wf_Link('?module=tariffspeeds&tariff='.$eachtariff['name'], wf_img('skins/icon_speed.gif',__('Edit speed')), false, '');
-				$actions .= !empty($alter['SIGNUP_PRICES']) ? wf_Link('?module=signupprices&tariff=' . $eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
+				$actions .= ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) ? wf_Link('?module=signupprices&tariff='.$eachtariff['name'], wf_img('skins/icons/register.png', __('Edit signup price')), false, '') : null;
                 $cells.= wf_TableCell($actions);
                 $rows.=  wf_TableRow($cells, 'row3');
             }
