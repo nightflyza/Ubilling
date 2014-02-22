@@ -230,8 +230,9 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['path']);
                 $actlinks = wf_JSAlert('?module=pl_documents&deletetemplate=' . $each['id'] . '&username=' . $this->userLogin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
                 $actlinks.= wf_Link('?module=pl_documents&download=' . $each['path'] . '&username=' . $this->userLogin, wf_img('skins/icon_download.png', __('Download'))) . ' ';
-                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print_options.png', __('Custom options')));
-                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&username=' . $this->userLogin, wf_img('skins/icon_print.png', __('Print')));
+                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png').' '.__('Print'),false,'ubButton');
+              //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print_options.png', __('Custom options')));
+              //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&username=' . $this->userLogin, wf_img('skins/icon_print.png', __('Print')));
                 $cells.= wf_TableCell($actlinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }

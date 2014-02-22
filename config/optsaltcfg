@@ -118,6 +118,9 @@ DOCX_SERVICES=VARCHAR|additional services printable within documents
 DOCX_CHECK=TRIGGER|Enable parsing of check in docx format
 ADDRESS_CACHE_TIME=VARCHAR|Full address list caching time
 CAN_DELETE_PAYMENTS=VARCHAR|Administrator logins that can delete payments
+SIGNUP_PAYMENTS=TRIGGER|Signup payments managenent
+SIGNUP_TYPEID=VARCHAR|Signup cashtype id
+
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
@@ -183,6 +186,3 @@ TSMS_DB="VARCHAR|Working database name
 TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
 TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
 TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
-
-SIGNUP_PRICES=TRIGGER|signup payments managenente
-SIGNUP_TYPEID=VARCHAR|signup cashtype id

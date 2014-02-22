@@ -249,12 +249,9 @@ if (cfr('TURBOSMS')) {
             $cells.= wf_TableCell(__('Message'));
             $cells.= wf_TableCell(__('WAP'));
             $cells.= wf_TableCell(__('Cost'));
-            $cells.= wf_TableCell(__('Credits'));
             $cells.= wf_TableCell(__('Send time'));
             $cells.= wf_TableCell(__('Sended'));
-            $cells.= wf_TableCell(__('Updated'));
             $cells.= wf_TableCell(__('Status'));
-            $cells.= wf_TableCell(__('SMPP'));
             $rows=wf_TableRow($cells, 'row1');
             
             if (!empty($allSms)) {
@@ -267,13 +264,9 @@ if (cfr('TURBOSMS')) {
                         $cells.= wf_TableCell($msg);
                         $cells.= wf_TableCell($each['wappush']);
                         $cells.= wf_TableCell($each['cost']);
-                        $cells.= wf_TableCell($each['credits']);
                         $cells.= wf_TableCell($each['send_time']);
                         $cells.= wf_TableCell($each['sended']);
-                        $cells.= wf_TableCell($each['updated']);
-                        $status=wf_modal(__('Show'), __('Status'), $each['status'], '', '400', '150');
-                        $cells.= wf_TableCell($status);
-                        $cells.= wf_TableCell($each['dlr_status']);
+                        $cells.= wf_TableCell($each['status']);
                         $rows.=wf_tag('tr', false, 'row3', $lighter);
                         $rows.=$cells;
                         $rows.=wf_tag('tr', true);

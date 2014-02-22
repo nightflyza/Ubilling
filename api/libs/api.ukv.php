@@ -1667,6 +1667,50 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
         show_window(__('Reports'), $reports);
     }
+    
+    /*
+     * shows printable report content
+     * 
+     * @param $title report title
+     * @param $data  report data to printable transform
+     * 
+     * @return void
+     */
+    protected function reportPrintable($title,$data) {
+        $style='
+        <style type="text/css">
+        table.printable {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: outset;
+	border-color: gray;
+	border-collapse: separate;
+	background-color: white;
+        }
+        table.printable th {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: white;
+	-moz-border-radius: ;
+        }
+        table.printable td {
+	border-width: 1px;
+	padding: 1px;
+	border-style: dashed;
+	border-color: gray;
+	background-color: white;
+	-moz-border-radius: ;
+        }
+        </style>
+        ';
+        $title= (!empty($title)) ? wf_tag('h2').$title.  wf_tag('h2',  true) : '' ;
+        $data=$style.$title.$data;
+        $data=str_replace('sortable', 'printable', $data);
+        die($data);
+    }
+            
 
     /*
      * renders debtors report
@@ -1689,27 +1733,19 @@ class UkvSystem {
             }
            }
   
-        
-        
-       
-        
-        
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
-                    $result.=wf_tag('h2').$streetName.  wf_tag('h2', true);
-                     
-                     $cells = wf_TableCell(__('ID'));
-                     $cells.= wf_TableCell(__('Contract'));
-                     $cells.= wf_TableCell(__('Full address'));
-                     $cells.= wf_TableCell(__('Real Name'));
-                     $cells.= wf_TableCell(__('Tariff'));
-                     $cells.= wf_TableCell(__('Cash'));
-                     $cells.= wf_TableCell(__('Connected'));
+                    $result.=wf_tag('h3').$streetName.  wf_tag('h3', true);
+                     $cells= wf_TableCell(__('Contract'),'10%');
+                     $cells.= wf_TableCell(__('Full address'),'31%');
+                     $cells.= wf_TableCell(__('Real Name'),'30%');
+                     $cells.= wf_TableCell(__('Tariff'),'15%');
+                     $cells.= wf_TableCell(__('Cash'),'7%');
+                     $cells.= wf_TableCell(__('Connected'),'7%');
                      $rows = wf_TableRow($cells, 'row1');
                      foreach ($eachDebtorStreet as $ia=>$eachDebtor) {
-                            $cells = wf_TableCell($eachDebtor['id']);
-                            $cells.= wf_TableCell($eachDebtor['contract']);
+                            $cells= wf_TableCell($eachDebtor['contract']);
                             $debtorAddress=$eachDebtor['street'].' '.$eachDebtor['build'].'/'.$eachDebtor['apt'];
                             $cells.= wf_TableCell($debtorAddress);
                             $cells.= wf_TableCell($eachDebtor['realname']);
@@ -1724,12 +1760,20 @@ class UkvSystem {
                 
             }
         }
-
-
         
-        show_window(__('Debtors'),$result);
+        $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
+        
+        if (wf_CheckGet(array('printable'))) {
+            $this->reportPrintable(__('Debtors'),$result);
+        } else {
+             show_window(__('Debtors').' '.$printableControl,$result);
+        }
     }
+   
 
 }
+
+
+
 
 ?>
