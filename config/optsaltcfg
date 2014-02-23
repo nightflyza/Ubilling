@@ -135,7 +135,7 @@ CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
 CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
 UKV_ENABLED=TRIGGER|UKV functionality enabled
 UKV_BS_PAYID=VARCHAR|UKV bank statements cash type
-
+UKV_MONTH_DEBTLIMIT=VARCHAR|UKV month debt limit
 
 
 CHAPTER_LINKING=User linking

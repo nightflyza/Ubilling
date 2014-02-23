@@ -5,7 +5,7 @@
  */
 
 class UkvSystem {
-
+    
     protected $tariffs = array();
     protected $users = array();
     protected $cities = array('' => '-');
@@ -35,7 +35,8 @@ class UkvSystem {
     const REG_CASH = 0;
 
     //misc options
-    protected $debtLimit = 1; //debt limit in month count
+    
+    protected $debtLimit = 2; //debt limit in month count
     
     //bank statements options
     const BANKSTA_IN_CHARSET = 'cp866';
@@ -69,6 +70,7 @@ class UkvSystem {
         $this->loadCities();
         $this->loadStreets();
         $this->loadMonth();
+        $this->loadDebtLimit();
     }
 
     /*
@@ -149,6 +151,17 @@ class UkvSystem {
         foreach ($monthArr as $num => $each) {
             $this->month['names'][$num] = rcms_date_localise($each);
         }
+    }
+    
+    /*
+     * loads current debt limit from global config
+     * 
+     * @return void
+     */
+    function loadDebtLimit() {
+        global $ubillingConfig;
+        $altCfg=$ubillingConfig->getAlter();
+        $this->debtLimit=$altCfg['UKV_MONTH_DEBTLIMIT'];
     }
 
     /*
@@ -1665,6 +1678,7 @@ class UkvSystem {
     public function reportList() {
         $reports = '';
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportAntiDebtors', 'antidebtors.png', __('AntiDebtors'));
         show_window(__('Reports'), $reports);
     }
     
@@ -1767,6 +1781,65 @@ class UkvSystem {
             $this->reportPrintable(__('Debtors'),$result);
         } else {
              show_window(__('Debtors').' '.$printableControl,$result);
+        }
+    }
+    
+    
+    
+    /*
+     * renders anti-debtors report
+     * 
+     * @return void
+     */
+
+    public function reportAntiDebtors() {
+        $debtorsArr=array();
+        $result='';
+       
+            if (!empty($this->users)) {
+            foreach ($this->users as $ix => $eachUser) {
+                $userTariff = $eachUser['tariffid'];
+                $tariffPrice = $this->tariffs[$userTariff]['price'];
+                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0)) {
+                   $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
+                }
+            }
+           }
+  
+        if (!empty($debtorsArr)) {
+            foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
+                if (!empty($eachDebtorStreet)) {
+                    $result.=wf_tag('h3').$streetName.  wf_tag('h3', true);
+                     $cells= wf_TableCell(__('Contract'),'10%');
+                     $cells.= wf_TableCell(__('Full address'),'31%');
+                     $cells.= wf_TableCell(__('Real Name'),'30%');
+                     $cells.= wf_TableCell(__('Tariff'),'15%');
+                     $cells.= wf_TableCell(__('Cash'),'7%');
+                     $cells.= wf_TableCell(__('Connected'),'7%');
+                     $rows = wf_TableRow($cells, 'row1');
+                     foreach ($eachDebtorStreet as $ia=>$eachDebtor) {
+                            $cells= wf_TableCell($eachDebtor['contract']);
+                            $debtorAddress=$eachDebtor['street'].' '.$eachDebtor['build'].'/'.$eachDebtor['apt'];
+                            $cells.= wf_TableCell($debtorAddress);
+                            $cells.= wf_TableCell($eachDebtor['realname']);
+                            $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
+                            $cells.= wf_TableCell($eachDebtor['cash']);
+                            $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
+                            $rows.=  wf_TableRow($cells, 'row3');
+                     }
+                     
+                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+                }
+                
+            }
+        }
+        
+        $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportAntiDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
+        
+        if (wf_CheckGet(array('printable'))) {
+            $this->reportPrintable(__('AntiDebtors'),$result);
+        } else {
+             show_window(__('AntiDebtors').' '.$printableControl,$result);
         }
     }
    

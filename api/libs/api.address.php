@@ -11,6 +11,13 @@
  * 
  */
 
+function zb_AddressCleanAddressCache() {
+    $cachePath='exports/fulladdresslistcache.dat';
+    if (file_exists($cachePath)) {
+        unlink($cachePath);
+    }
+}
+
 function zb_AddressCreateCity($cityname,$cityalias) {
     $cityname=mysql_real_escape_string($cityname);
     $cityalias=vf($cityalias);
@@ -282,6 +289,7 @@ function zb_AddressDeleteApartment($aptid) {
     $query="DELETE from `apt` WHERE `id` = '".$aptid."';";
     nr_query($query);
     log_register('DELETE AddressApartment '.$aptid);
+    zb_AddressCleanAddressCache();
 }
 
 function zb_AddressChangeApartment($aptid,$buildid,$entrance,$floor,$apt) {
@@ -301,6 +309,7 @@ function zb_AddressChangeApartment($aptid,$buildid,$entrance,$floor,$apt) {
         ";
     nr_query($query);
     log_register('CHANGE AddressApartment '.$aptid.' '.$buildid.' '.$entrance.' '.$floor.' '.$apt);
+    zb_AddressCleanAddressCache();
 }
 
 
@@ -317,7 +326,7 @@ function zb_AddressCreateAddress($login,$aptid) {
     ";
     nr_query($query);
     log_register('CREATE AddressOccupancy ('.$login.') ['.$aptid.']');
-
+    zb_AddressCleanAddressCache();
 }
 
 function zb_AddressDeleteAddress($addrid) {
