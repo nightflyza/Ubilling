@@ -769,6 +769,29 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
     return($form);
 }
 
+function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
+    $field1 = $fieldnames['fieldname1'];
+    $field2 = $fieldnames['fieldname2'];
+    $fieldkey1 = $fieldkeys['fieldkey1'];
+    $fieldkey2 = $fieldkeys['fieldkey2'];
+    $form = '
+        <form action="" method="POST">
+            <table width="100%" border="0">
+                <tr>
+                    <td class="row2">' . $field1 . '</td>
+                    <td class="row3"><input type="text" name="' . $fieldkey1 . '" value="' . $olddata[1] . '"></td>
+                </tr>
+                <tr>
+                    <td class="row2">' . $field2 . '</td>
+                    <td class="row3"><input type="text" name="' . $fieldkey2 . '" value="' . $olddata[2] . '"></td>
+                </tr>
+            </table>
+            <input type="submit" value="' . __('Change') . '">
+        </form><br><br>
+        ';
+    return($form);
+}
+
  function zb_TranslatePaymentNote($paynote,$allservicenames) {
           if ($paynote=='') {
                     $paynote=__('Internet');
@@ -1815,7 +1838,7 @@ function web_PaymentsShowGraph($year) {
         if (isset($yearPayData[$year]['graphs'])) {
           $result=$yearPayData[$year]['graphs'];
           $result.=__('Cache state at time').': '.date("Y-m-d H:i:s",($renewTime)).' ';
-          $result.=wf_Link("?module=report_finance&forcecache=true", __('Renew'), false, '');
+          $result.=wf_Link("?module=report_finance&forcecache=true", wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
         } else {
           $result=__('Strange exeption');
         }

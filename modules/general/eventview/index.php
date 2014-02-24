@@ -23,7 +23,7 @@ if(cfr('EVENTVIEW')) {
     
 function web_EventsShowStats() {
 //caching options    
-$cachetimeout=(60*60); //in minutes
+$cachetimeout=(120*60); //in minutes
 $cachetime=time()-$cachetimeout;
 $cachepath='exports/';
 $cacheFile=$cachepath.'eventstatscache.dat';
@@ -125,6 +125,14 @@ $template=wf_TableBody($tablerows, '50%', '0');
 file_put_contents($cacheFile, $template);
 } else {
     $template=  file_get_contents($cacheFile);
+    $cacheCurrentTime=filemtime($cacheFile);
+    $cacheCurrentTime=date("Y-m-d H:i:s",$cacheCurrentTime);
+    $template.= __('Cache state at time').': '.$cacheCurrentTime.' '.  wf_Link('?module=eventview&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')));
+    //cache cleanup subroutine
+    if (wf_CheckGet(array('forcecache'))) {
+        unlink($cacheFile);
+        rcms_redirect('?module=eventview');
+    }
 }
 
 

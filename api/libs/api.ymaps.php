@@ -261,18 +261,19 @@ function um_MapLocationBuildForm() {
             var myMap = new ymaps.Map(\'swmap\', {
                     center: ['.$center.'], 
                     zoom: '.$zoom.',
-                    type: \'yandex#'.$type.'\'
-                  
+                    type: \'yandex#'.$type.'\',
+                    behaviors: [\'default\',\'scrollZoom\']
                 });
+               
                    myMap.controls
                 .add(\'zoomControl\')
                 .add(\'typeSelector\')
                 .add(\'mapTools\')
                 .add(\'searchControl\');
-                
+
          '.$placemarks.'    
          '.$editor.'
-
+      
     }
         
 

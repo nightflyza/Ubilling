@@ -321,9 +321,26 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                        * Watchdog tasks processing
                        */         
                        if ($_GET['action']=='watchdog') {
-                           $runWatchDog=new WatchDog();
-                           $runWatchDog->processTask();
-                           die('OK:WATCHDOG');
+                            if ($alterconf['WATCHDOG_ENABLED']) {
+                             $runWatchDog=new WatchDog();
+                             $runWatchDog->processTask();
+                             die('OK:WATCHDOG');
+                            } else {
+                                 die('ERROR:NO_WATCHDOG_ENABLED');
+                            }
+                       }
+                       
+                       /*
+                        * UKV charge fee processing
+                        */
+                       if ($_GET['action']=='ukvfeeprocessing') {
+                           if ($alterconf['UKV_ENABLED']) {
+                               $ukvApiRun=new UkvSystem();
+                               $ukvFee=$ukvApiRun->feeChargeAll();
+                               die('OK:UKVFEEPROCESSING:'.$ukvFee);
+                           } else {
+                               die('ERROR:NO_UKV_ENABLED');
+                           }
                        }
   ////
   //// End of actions
