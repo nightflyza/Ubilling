@@ -60,7 +60,33 @@ if ( cfr('CASH') ) {
             }
         }
 
-        // $form .= web_UserControls($login);
+        //payments deletion
+            if (wf_CheckGet(array('paymentdelete'))) {
+                    $deletePaymentId=vf($_GET['paymentdelete'],3);
+                    $deletingAdmins=array();
+                    $iCanDeletePayments=false;
+                    $currentAdminLogin=whoami();
+                    //extract admin logins
+                    if (!empty($alter['CAN_DELETE_PAYMENTS'])) {
+                        $deletingAdmins= explode(',', $alter['CAN_DELETE_PAYMENTS']);
+                        $deletingAdmins= array_flip($deletingAdmins);
+                    }
+                    
+
+                    if (isset($deletingAdmins[$currentAdminLogin])) {
+                        $iCanDeletePayments=true;
+                    }
+
+                  if ($iCanDeletePayments) {
+
+                     $queryDeletion="DELETE from `payments` WHERE `id`='".$deletePaymentId."' ;";
+                     nr_query($queryDeletion);
+                     log_register("PAYMENT DELETE [".$deletePaymentId."] (".$login.")");
+                     rcms_redirect('?module=addcash&username='.$login.'#profileending');
+                  } else {
+                      log_register("PAYMENT UNAUTH DELETION ATTEMPT [".$deletePaymentId."] (".$login.")");
+                  }
+            }
         // Show form
         show_window(__('Money'), $form);
         // Previous payments show:

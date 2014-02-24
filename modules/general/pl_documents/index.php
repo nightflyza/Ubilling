@@ -90,6 +90,8 @@ if (cfr('PLDOCS')) {
                     $docx = new DOCXTemplate($fullPath);
                     $docx->set($templateData);
                     $docx->saveAs($saveFullPath);
+                    //registering generated custom fields document
+                    $documents->registerDocument($documents->getLogin(), $docId, $saveFileName);
                     //output
                     zb_DownloadFile($saveFullPath,'docx');
             }
@@ -100,7 +102,7 @@ if (cfr('PLDOCS')) {
                     $docx = new DOCXTemplate($fullPath);
                     $docx->set($templateData);
                     $docx->saveAs($saveFullPath);
-                    //registering template
+                    //registering generated document
                     $documents->registerDocument($documents->getLogin(), $docId, $saveFileName);
                     //output
                     zb_DownloadFile($saveFullPath,'docx');
