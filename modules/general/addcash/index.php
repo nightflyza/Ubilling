@@ -1,7 +1,6 @@
 <?php
 if ( cfr('CASH') ) {
     if ( isset($_GET['username']) ) {
-        global $ubillingConfig;
         $alter = $ubillingConfig->getAlter();
         $login = vf($_GET['username']);
         

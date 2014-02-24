@@ -1,6 +1,6 @@
 <?php
 if (cfr('TARIFFEDIT')) {
-    global $ubillingConfig;
+
 if (isset ($_GET['username'])) {
     $login=vf($_GET['username']);
        // change tariff  if need
@@ -39,7 +39,7 @@ if (isset ($_GET['username'])) {
                 }
                 if ( $new_price[$tariff] >= $has_paid ) {
                     $cash = $old_price - $new_price[$tariff];
-                    zb_UserChangeSignupPrice($login, $new_price[$tariff]);
+                    zb_UserChangeSignupPrice($login, $new_price[$tariff]); 
                     $billing->addcash($login, $cash);
                     log_register("CHARGE SignupPriceFee(" . $login . ") " . $cash . " ACCORDING TO " . $tariff);
                 } else {

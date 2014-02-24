@@ -670,13 +670,13 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
     $alter = $ubillingConfig->getAlter();
     
     $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
-    $payment = zb_UserGetSignupPrice($login);
-    $paid    = zb_UserGetSignupPricePaid($login);
-    $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
-    
+
     $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
 
     if ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) {
+       $payment = zb_UserGetSignupPrice($login);
+        $paid    = zb_UserGetSignupPricePaid($login);
+        $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
         $charge_signup_price_checkbox = '
             <label for="charge_signup_price_checkbox"> ' . __('Charge signup price') . '
                 <input type="checkbox"  name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled . '> 
@@ -704,7 +704,7 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
          </label>
          </td>
          <td class="row3">
-            ' . web_tariffselectorNoLousy($fieldkey) . '
+            ' . web_tariffselector($fieldkey) . '
             ' . $charge_signup_price_checkbox . '
          </td>
          </tr>
@@ -722,13 +722,13 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
     $alter = $ubillingConfig->getAlter();
     
     $login = ( isset($_GET['username']) ) ? vf($_GET['username']) : null;
-    $payment = zb_UserGetSignupPrice($login);
-    $paid    = zb_UserGetSignupPricePaid($login);
-    $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
-    
+
     $nm_flag = ( $olddata == '*_NO_TARIFF_*' ) ? 'DISABLED' : null;
 
     if ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) {
+        $payment = zb_UserGetSignupPrice($login);
+        $paid    = zb_UserGetSignupPricePaid($login);
+        $disabled = ( $payment == $paid && $payment > 0 ) ? 'disabled' : null;
         $charge_signup_price_checkbox = '
             <label for="charge_signup_price_checkbox"> ' . __('Charge signup price') . '
                 <input type="checkbox"  name="charge_signup_price" id="charge_signup_price_checkbox" ' . $disabled . '> 
