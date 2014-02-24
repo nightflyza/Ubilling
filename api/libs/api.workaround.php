@@ -3565,7 +3565,6 @@ function zb_TranslitString($string) {
  function zb_DownloadFile($filePath,$contentType='') {
     if (!empty($filePath)) {
     if (file_exists($filePath)) {
-    $fileContent=  file_get_contents($filePath);
     log_register("DOWNLOAD FILE `".$filePath."`");
     
     if (($contentType=='') OR ($contentType=='default')) {
@@ -3580,8 +3579,17 @@ function zb_TranslitString($string) {
     header('Content-Type: '.$contentType);
     header("Content-Transfer-Encoding: Binary"); 
     header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\""); 
-    die($fileContent);
-    
+    header("Content-Description: File Transfer");
+    header("Content-Length: " . filesize($filePath));	
+
+    	flush(); // this doesn't really matter.
+        $fp = fopen($filePath, "r");
+         while (!feof($fp)) {
+            echo fread($fp, 65536);
+            flush(); // this is essential for large downloads
+         }
+        fclose($fp);
+        die();
     } else {
         throw new Exception('DOWNLOAD_FILEPATH_NOT_EXISTS');
     }
