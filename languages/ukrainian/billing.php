@@ -1611,11 +1611,37 @@ $lang['def']['Strict search']='Строгий пошук';
 $lang['def']['Watchdog enabled']='Собаку-спостерігаку ввімкнено';
 $lang['def']['Administrator logins that can delete payments']='Адміністратори, що можуть видаляти оплати';
 
+//rev 3247
+$lang['def']['SMS sent to employees']='СМС надіслано працівнику';
+$lang['def']['Build passport']='Паспорт будинка';
+$lang['def']['Owner']='Власник';
+$lang['def']['Owner name']='Найменування власника';
+$lang['def']['Owner phone']='Телефон власника';
+$lang['def']['Owner contact person']='Контактна особа власника';
+$lang['def']['Keys available']='Є ключі';
+$lang['def']['Build access notices']='Примітки доступу до будинку';
+$lang['def']['Floors']='Поверхів';
+$lang['def']['Apartments']='Квартир';
+$lang['def']['Entrances']='Підїздів';
+$lang['def']['Force query']='Примусовий опит';
+$lang['def']['SSN']='ІПН';
+$lang['def']['Contact info']='Контактні дані';
+$lang['def']['Any tariff not set. Fee charge skipped.']='Ніякого тарифу не встановлено. Абонплату не нараховано.';
+$lang['def']['User not connected. Fee charge skipped.']='Користувача не підключено. Абонплату не нараховано.';
+$lang['def']['Same bank statement already exists']='Таку банківську виписку вже завантажено';
+$lang['def']['by users contract']='згідно угоди';
+$lang['def']['Previously loaded bank statements']='Раніше завантажені банківські виписки';
+$lang['def']['Non existent method']='Неіснуючий метод';
+$lang['def']['right to use UKV TV management']='Право використовувати УправлінняКабельнимВсемогутнє';
 $lang['def']['Edit signup price'] = 'Редагувати ціну підключення';
 $lang['def']['Edit signup price for tariff'] = 'Редагувати ціну підключення для тарифу';
 $lang['def']['Edit signup price for user'] = 'Редагувати ціну підключення дла користувача';
 $lang['def']['Signup price'] = 'Ціна підключення';
 $lang['def']['Signup paid'] = 'Оплачено за підключення';
+$lang['def']['Signup payment'] = 'Оплата за підключення';
+$lang['def']['Charge signup price'] = 'Нарахувати оплату за підключення';
 $lang['def']['You may not setup connection payment less then user has already paid!'] = 'Неможливо встановити плату за підключення меншу за ту, що користувач вже оплатив. Призначення платежу відмінено!';
+$lang['def']['right to manage signup prices'] = 'Право керувати вартістю підключень'; 
+
 
 ?>

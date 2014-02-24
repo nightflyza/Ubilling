@@ -647,9 +647,10 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_SendSMS($employeeid,$message) {
-        $query="SELECT `mobile` from `employee` WHERE `id`='".$employeeid."'";
-        $mobile=  simple_query($query);
-        $mobile=$mobile['mobile'];
+        $query="SELECT `mobile`,`name` from `employee` WHERE `id`='".$employeeid."'";
+        $empData=  simple_query($query);
+        $mobile=$empData['mobile'];
+        $employeeName=$empData['name'];
         $result=array();
         if (!empty($mobile)) {
           if (ispos($mobile, '+')) {
@@ -664,7 +665,7 @@ function ts_DetectUserByAddress($address) {
         $result['number']=$number;
         $result['message']=$message;
         file_put_contents($filename, $storedata);
-        log_register("TASKMAN SEND SMS `".$number."`");
+        log_register("TASKMAN SEND SMS `".$number."` FOR `".$employeeName."`");
         } else {
                 throw new Exception('BAD_MOBILE_FORMAT');
             }

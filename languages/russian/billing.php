@@ -1621,10 +1621,6 @@ $lang['def']['by users contract']='согласно договора';
 $lang['def']['Previously loaded bank statements']='Ранее загруженные банковские выписки';
 $lang['def']['Non existent method']='Несуществующий метод';
 $lang['def']['right to use UKV TV management']='Право использовать УправлениеКабельнымВсемогущее';
-$lang['def']['']='';
-$lang['def']['']='';
-
-// rev 3310
 $lang['def']['Edit signup price'] = 'Редактировать стоимость подключения';
 $lang['def']['Edit signup price for tariff'] = 'Редактирование стоимости подключения для тарифа';
 $lang['def']['Edit signup price for user'] = 'Редактирование стоимости подключения для пользователя';
@@ -1633,7 +1629,8 @@ $lang['def']['Signup paid'] = 'Оплачено за подключение';
 $lang['def']['Signup payment'] = 'Оплата за подключение';
 $lang['def']['Charge signup price'] = 'Cнять плату за подключение';
 $lang['def']['You may not setup connection payment less then user has already paid!'] = 'Нельзя устанавливать платёж за подключение меньший, чем пользователь уже оплатил. Назначение платежа отменено!';
- 
+$lang['def']['right to manage signup prices'] = 'Право управлять стоимостью подключений'; 
+
 
 
 ?>
