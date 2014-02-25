@@ -1644,4 +1644,11 @@ $lang['def']['You may not setup connection payment less then user has already pa
 $lang['def']['right to manage signup prices'] = 'Право керувати вартістю підключень'; 
 $lang['def']['Clusterer'] = 'Кластеризатор';
 
+$lang['def']['Signup payments managenent'] = 'Керування платою за підключення';
+$lang['def']['Signup cashtype id'] = 'ID типу оплат за підключення';
+$lang['def']['Extended builds management'] = 'Розширене керування будинками';
+$lang['def']['Build ownership types'] = 'Типи власності розширених будинків';
+$lang['def']['Build extended max floors, max entrances'] = 'Макс. поверхів/підїздів розширених будинків';
+
+
 ?>
