@@ -15,11 +15,12 @@
         $container=  wf_tag('div', false, '','id="swmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         
-        $controls= wf_Link("?module=usersmap", __('Builds map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=switchmap", __('Switches map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=switchmap&locfinder=true", __('Find location'), false, 'ubButton');
-        $controls.=  wf_Link("?module=switchmap&coverage=true", __('Coverage area'), false, 'ubButton');
-        $controls.=  wf_Link("?module=switches", __('Available switches'), true, 'ubButton');
+        $controls= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png').' '. __('Builds map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png').' '.__('Switches map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Find location'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap&clusterer=true", wf_img('skins/ymaps/cluster.png').' '.__('Clusterer'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png').' '.__('Coverage area'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png').' '.__('Available switches'), true, 'ubButton');
         $controls.=wf_delimiter(1);
         
         show_window(__('Active equipment map'),$controls.$container);
@@ -38,9 +39,10 @@
         $container=  wf_tag('div', false, '','id="swmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         
-        $controls=  wf_Link("?module=switchmap", __('Switches map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=usersmap", __('Builds map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=usersmap&locfinder=true", __('Find location'), false, 'ubButton');
+        $controls=  wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png').' '.__('Switches map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png').' '.__('Builds map'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Find location'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap&clusterer=true", wf_img('skins/ymaps/cluster.png').' '.__('Clusterer'), false, 'ubButton');
       
        
         
@@ -252,6 +254,24 @@ function um_MapLocationBuildForm() {
         if (empty($center)) {
             $center='ymaps.geolocation.latitude, ymaps.geolocation.longitude';
         }
+        
+        if (wf_CheckGet(array('clusterer'))) {
+            $clusterer=',
+ 		clusterer = new ymaps.Clusterer({
+            //preset: \'twirl#invertedVioletClusterIcons\',
+            groupByCoordinates: false,
+            clusterDisableClickZoom: true
+        });
+
+        clusterer.options.set({
+        gridSize: 80,
+        clusterDisableClickZoom: false
+        });  myMap.geoObjects.add(clusterer); ';
+            
+        } else {
+            $clusterer=';';
+        }
+        
          $js='
               <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang='.$lang.'"  type="text/javascript"></script>
 
@@ -263,17 +283,17 @@ function um_MapLocationBuildForm() {
                     zoom: '.$zoom.',
                     type: \'yandex#'.$type.'\',
                     behaviors: [\'default\',\'scrollZoom\']
-                });
+                })'.$clusterer.'
                
                    myMap.controls
                 .add(\'zoomControl\')
                 .add(\'typeSelector\')
                 .add(\'mapTools\')
                 .add(\'searchControl\');
-
+               
          '.$placemarks.'    
          '.$editor.'
-      
+             
     }
         
 
@@ -309,6 +329,12 @@ function um_MapLocationBuildForm() {
             $overlay='';
         }
         
+         if (!wf_CheckGet(array('clusterer'))) {
+             $markType='myMap.geoObjects';
+         } else {
+             $markType='clusterer';
+         }
+        
         $result='
             myPlacemark = new ymaps.Placemark(['.$coords.'], {
                  iconContent: \''.$iconlabel.'\',
@@ -322,8 +348,11 @@ function um_MapLocationBuildForm() {
                     '.$overlay.'
                         
                 }),
-
-            myMap.geoObjects.add(myPlacemark)
+ 
+            
+           '.$markType.'.add(myPlacemark);
+        
+            
             ';
         return ($result);
     }

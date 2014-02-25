@@ -67,7 +67,7 @@ $swlinks.=wf_Link('?module=switches&timemachine=true', 'Time machine', false, 'u
 
 $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 if ($alter_conf['SWYMAP_ENABLED']) {
-  $swlinks.=wf_Link('?module=switchmap', 'Switches map', false, 'ubButton');
+  $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png').' '.__('Switches map'), false, 'ubButton');
 }
 
 

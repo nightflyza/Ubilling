@@ -1630,7 +1630,7 @@ $lang['def']['Signup payment'] = 'Оплата за подключение';
 $lang['def']['Charge signup price'] = 'Cнять плату за подключение';
 $lang['def']['You may not setup connection payment less then user has already paid!'] = 'Нельзя устанавливать платёж за подключение меньший, чем пользователь уже оплатил. Назначение платежа отменено!';
 $lang['def']['right to manage signup prices'] = 'Право управлять стоимостью подключений'; 
-
+$lang['def']['Clusterer'] = 'Кластеризатор';
 
 
 ?>

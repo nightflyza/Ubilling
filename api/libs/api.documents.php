@@ -110,6 +110,8 @@ class ProfileDocuments {
         $tariffprices = zb_TariffGetPricesAll();
         $multinetdata = zb_MultinetGetAllData();
         $allcontracts = zb_UserGetAllContracts();
+        $allphonedata = zb_UserGetAllPhoneData();
+		
         $allcontracts = array_flip($allcontracts);
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
@@ -142,6 +144,9 @@ class ProfileDocuments {
                 @$userdata[$eachuser['login']]['REALNAME'] = $allrealnames[$eachuser['login']];
                 @$userdata[$eachuser['login']]['ADDRESS'] = $alladdress[$eachuser['login']];
                 @$userdata[$eachuser['login']]['EMAIL'] = $allemails[$eachuser['login']];
+                @$userdata[$eachuser['login']]['PHONE'] = $allphonedata[$eachuser['login']]['phone'];
+                @$userdata[$eachuser['login']]['MOBILE'] = $allphonedata[$eachuser['login']]['mobile'];
+			
                 //openpayz payment ID
                 if ($this->altcfg['OPENPAYZ_REALID']) {
                     @$userdata[$eachuser['login']]['PAYID'] = $allopcustomers[$eachuser['login']];

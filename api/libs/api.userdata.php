@@ -163,6 +163,21 @@ function zb_UserChangeMobile ($login,$mobile) {
     log_register('CHANGE UserMobile ('.$login.') '.$mobile);
 }
 
+function zb_UserGetAllPhoneData() {
+    $query  = "SELECT `login`, `phone`,`mobile` FROM `phones`";
+    $result = simple_queryall($query);
+    $phones = array();
+    if ( !empty ($result) ) {
+        foreach ( $result as $phone ) {
+            $phones[$phone['login']]['phone'] =  $phone['phone'];
+            $phones[$phone['login']]['mobile'] = $phone['mobile'];
+        }
+    }
+    return ($phones);
+}
+
+
+
 /*
  * User email management
  *  Create, Delete, Get, Change

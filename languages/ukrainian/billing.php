@@ -1642,6 +1642,6 @@ $lang['def']['Signup payment'] = 'Оплата за підключення';
 $lang['def']['Charge signup price'] = 'Нарахувати оплату за підключення';
 $lang['def']['You may not setup connection payment less then user has already paid!'] = 'Неможливо встановити плату за підключення меншу за ту, що користувач вже оплатив. Призначення платежу відмінено!';
 $lang['def']['right to manage signup prices'] = 'Право керувати вартістю підключень'; 
-
+$lang['def']['Clusterer'] = 'Кластеризатор';
 
 ?>
