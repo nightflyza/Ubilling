@@ -178,7 +178,8 @@ class UkvSystem {
         $name = trim($name);
         $price = mysql_real_escape_string($price);
         $price = trim($price);
-        if ((!empty($name)) AND (!empty($price))) {
+        if (!empty($name)) {
+            $price=(empty($price)) ? 0 : $price;
             $query = "INSERT INTO `ukv_tariffs` (`id`, `tariffname`, `price`) VALUES (NULL, '" . $name . "', '" . $price . "');";
             nr_query($query);
             log_register("UKV TARIFF CREATE `" . $name . "` WITH PRICE `" . $price . "`");
@@ -242,7 +243,8 @@ class UkvSystem {
         $price = mysql_real_escape_string($price);
         $price = trim($price);
 
-        if ((!empty($tariffname)) AND (!empty($price))) {
+        if (!empty($tariffname)) {
+            $price = (empty($price)) ? 0 : $price;
             $query = "UPDATE `ukv_tariffs` SET `tariffname` = '" . $tariffname . "', `price` = '" . $price . "' WHERE `id` = '" . $tariffid . "';";
             nr_query($query);
             log_register("UKV TARIFF CHANGE `" . $tariffname . "` WITH PRICE `" . $price . "`  [" . $tariffid . "]");
