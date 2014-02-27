@@ -1741,9 +1741,9 @@ class UkvSystem {
             if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
-                $tariffPrice = $this->tariffs[$userTariff]['price'];
+                $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
                 $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
-                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1)) {
+                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1) AND ($tariffPrice!=0)) {
                    $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
                 }
             }
@@ -1801,8 +1801,8 @@ class UkvSystem {
             if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
-                $tariffPrice = $this->tariffs[$userTariff]['price'];
-                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0)) {
+                $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
+                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0) AND ($tariffPrice!=0)) {
                    $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
                 }
             }
