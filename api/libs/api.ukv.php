@@ -1797,7 +1797,7 @@ class UkvSystem {
     public function reportAntiDebtors() {
         $debtorsArr=array();
         $result='';
-       
+
             if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
@@ -1834,6 +1834,7 @@ class UkvSystem {
                 }
                 
             }
+            
         }
         
         $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportAntiDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
