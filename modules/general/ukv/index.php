@@ -108,12 +108,17 @@ if (cfr('UKV')) {
                $paymentNotes.=$_POST['paymentnotes']; 
             }
             
+           if ($ukv->isMoney($_POST['paymentsumm'])) { 
             if ($_POST['paymenttype']!='mock') {
               $ukv->userAddCash($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);
             } else {
               $ukv->logPayment($_POST['manualpaymentprocessing'], $_POST['paymentsumm'], $paymentVisibility, $_POST['paymentcashtype'], $paymentNotes);  
             }
-            rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['manualpaymentprocessing']);
+             rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['manualpaymentprocessing']);
+           } else {
+               show_window('',  wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
+               log_register('UKV BALANCEADDFAIL (('.$_POST['manualpaymentprocessing'].')) WRONG SUMM `'.$_POST['paymentsumm'].'`');
+           }
         }
         
         show_window(__('User profile'), $ukv->userProfile($_GET['showuser']));

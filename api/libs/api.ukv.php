@@ -325,11 +325,22 @@ class UkvSystem {
      */
 
     public function panel() {
-        $result = wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
+        $result='';
+        if (cfr('UKV')) {
+        $result.= wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
+        }
+        if (cfr('UKVREG')) {
         $result.= wf_Link(self::URL_USERS_REGISTER, wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton');
+        }
+        if (cfr('UKVTAR')) {
         $result.= wf_Link(self::URL_TARIFFS_MGMT, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
+        }
+        if (cfr('UKVBST')) {
         $result.= wf_Link(self::URL_BANKSTA_MGMT, wf_img('skins/ukv/bank.png') . ' ' . __('Bank statements'), false, 'ubButton');
+        }
+        if (cfr('UKVREP')) {
         $result.= wf_Link(self::URL_REPORTS_LIST, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton');
+        }
         return ($result);
     }
 
@@ -418,6 +429,17 @@ class UkvSystem {
         $this->userSetCash($userid, $newCashValue);
 
         log_register('UKV BALANCEADD ((' . $userid . ')) ON ' . $summ);
+    }
+    
+    /*
+     * checks is input number valid money format or not?
+     * 
+     * @param $number an string to check
+     * 
+     * @return bool 
+     */
+    public function isMoney($number) {
+        return preg_match("/^-?[0-9]+(?:\.[0-9]{1,2})?$/", $number);
     }
 
     /*
@@ -710,6 +732,38 @@ class UkvSystem {
             return ($result);
         }
     }
+    
+    
+    /*
+     * returns user lifestory strict parsed from system log
+     * 
+     * @param $userid existing user id
+     * 
+     * @return string
+     */
+    protected function userLifeStoryForm($userid) {
+        $userid=vf($userid,3);
+        $query="SELECT * from `weblogs` WHERE `event` LIKE '%((".$userid."))%' ORDER BY `id` DESC;";
+        $all=  simple_queryall($query);
+        
+        $cells=  wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Who?'));
+        $cells.= wf_TableCell(__('When?'));
+        $cells.= wf_TableCell(__('What happen?'));
+        $rows= wf_TableRow($cells, 'row1');
+        
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $cells=  wf_TableCell($each['id']);
+                $cells.= wf_TableCell($each['admin']);
+                $cells.= wf_TableCell($each['date']);
+                $cells.= wf_TableCell($each['event']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        return ($result);
+    }
 
     /*
      * saves some user params into database
@@ -880,7 +934,7 @@ class UkvSystem {
 
             //zero apt numbers as private builds
             if ($altcfg['ZERO_TOLERANCE']) {
-                $apt = ($userData['apt'] == 0) ? '' : '/' . $userData['apt'];
+                $apt = ($userData['apt'] == '0') ? '' : '/' . $userData['apt'];
             } else {
                 $apt = '/' . $userData['apt'];
             }
@@ -934,15 +988,28 @@ class UkvSystem {
 
             $profileData = wf_TableBody($rows, '100%', 0, '');
 
-            $profilePlugins = wf_modal(wf_img('skins/icon_user_edit_big.gif', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530');
-            $profilePlugins.= wf_modal(wf_img('skins/icon_cash_big.gif', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250');
-            $profilePlugins.= wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300');
+            $profilePlugins='';
+            if (cfr('UKV')) {
+            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600').__('Details').wf_tag('div',true);
+            }
+            if (cfr('UKVCASH')) {
+            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250').__('Cash').wf_tag('div',true);
+            }
+            if (cfr('UKVREG')) {
+            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530').__('Edit').wf_tag('div',true);
+            }
+            if (cfr('UKVREG')) {
+            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300').__('Delete').wf_tag('div',true);
+            }
 
             //main view construction
             $profilecells = wf_tag('td', false, '', 'valign="top"') . $profileData . wf_tag('td', true);
-            $profilecells.= wf_tag('td', false, '', 'width="74" valign="top"') . $profilePlugins . wf_tag('td', true);
+            
             $profilerows = wf_TableRow($profilecells);
-
+            
+            $profilecells= wf_tag('td', false, '', 'width="128" valign="top"') . $profilePlugins . wf_tag('td', true);
+            $profilerows .= wf_TableRow($profilecells);
+            
             $result = wf_TableBody($profilerows, '100%', '0');
             $result.= $this->userPaymentsRender($userid);
 
@@ -1036,7 +1103,7 @@ class UkvSystem {
 
                 //zero apt numbers as private builds
                 if ($altcfg['ZERO_TOLERANCE']) {
-                    $apt = ($each['apt'] == 0) ? '' : '/' . $each['apt'];
+                    $apt = ($each['apt'] == '0') ? '' : '/' . $each['apt'];
                 } else {
                     $apt = '/' . $each['apt'];
                 }
@@ -1737,7 +1804,8 @@ class UkvSystem {
     public function reportDebtors() {
         $debtorsArr=array();
         $result='';
-       
+        $counter=0;
+        $summDebt=0;
             if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
@@ -1745,10 +1813,16 @@ class UkvSystem {
                 $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
                 if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1) AND ($tariffPrice!=0)) {
                    $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
+                   $counter++;
+                   $summDebt=$summDebt+$eachUser['cash'];
                 }
             }
            }
   
+        //append report counter
+        $result.= wf_tag('h4',false,'row3').__('Total').': '.$counter.' / '.__('Debt').': '.$summDebt. wf_tag('h4',true);
+        
+        
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
@@ -1770,12 +1844,13 @@ class UkvSystem {
                             $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
                             $rows.=  wf_TableRow($cells, 'row3');
                      }
+                     $result.= wf_TableBody($rows, '100%', '0', 'sortable');
                      
-                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
                 }
                 
             }
         }
+         
         
         $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
         
@@ -1797,6 +1872,7 @@ class UkvSystem {
     public function reportAntiDebtors() {
         $debtorsArr=array();
         $result='';
+        $counter=0;
 
             if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
@@ -1804,10 +1880,14 @@ class UkvSystem {
                 $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
                 if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0) AND ($tariffPrice!=0)) {
                    $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
+                   $counter++;
                 }
             }
            }
-  
+       
+       //append report counter
+       $result.= wf_tag('h4',false,'row3').__('Total').': '.$counter.  wf_tag('h4',true);
+       
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
