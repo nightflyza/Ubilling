@@ -306,9 +306,21 @@ function zb_SwitchesRepingAll() {
                                  zb_SwitchDeathTimeSet($eachswitch['ip']);
                              }
                             } else {
-                                $customScriptRun=  shell_exec($altCfg['SWITCH_PING_CUSTOM_SCRIPT']);
-                                
+                                //really last-last chance
+                                $customTestCommand=$altCfg['SWITCH_PING_CUSTOM_SCRIPT'].' '.$eachswitch['ip'];
+                                $customScriptRun=  shell_exec($customTestCommand);
+                                $customScriptRun=trim($customScriptRun);
+                                if ($customScriptRun!='1') {
+                                     $deadswitches[$eachswitch['ip']]=$eachswitch['location'];
+                                     if (!isset($deathTime[$eachswitch['ip']])) {
+                                         zb_SwitchDeathTimeSet($eachswitch['ip']);
+                                     }
+                                } else {
+                                     zb_SwitchDeathTimeResurrection($eachswitch['ip']);
+                                } 
                             }
+                        } else {
+                            zb_SwitchDeathTimeResurrection($eachswitch['ip']);
                         }
                     }  else {
                         zb_SwitchDeathTimeResurrection($eachswitch['ip']);

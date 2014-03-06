@@ -1644,6 +1644,8 @@ $lang['def']['right to manage UKV tariffs'] = 'Право управлять т�
 $lang['def']['right to manage UKV bank statements'] = 'Право упаравлять банковыписками УКВ';
 $lang['def']['right to view UKV reports'] = 'Право просматривать отчеты УКВ';
 $lang['def']['right to manage UKV users cash'] = 'Право управлять деньгами УКВ';
+$lang['def']['Switch ping custom script'] = 'Скрипт кастомного пинга свитчей';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

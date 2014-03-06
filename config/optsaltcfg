@@ -123,6 +123,7 @@ SIGNUP_TYPEID=VARCHAR|Signup cashtype id
 BUILD_EXTENDED=TRIGGER|Extended builds management
 BUILD_OWNERS=VARCHAR|Build ownership types
 BUILD_EXTOPTS=VARCHAR|Build extended max floors, max entrances
+SWITCH_PING_CUSTOM_SCRIPT=VARCHAR|Switch ping custom script
 
 
 CHAPTER_OPAYZ=OpenPayz
