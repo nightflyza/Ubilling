@@ -5,7 +5,7 @@
  */
 
 class UkvSystem {
-    
+
     protected $tariffs = array();
     protected $users = array();
     protected $cities = array('' => '-');
@@ -35,10 +35,11 @@ class UkvSystem {
     const REG_CASH = 0;
 
     //misc options
-    
+
     protected $debtLimit = 2; //debt limit in month count
-    
+
     //bank statements options
+
     const BANKSTA_IN_CHARSET = 'cp866';
     const BANKSTA_OUT_CHARSET = 'utf-8';
     const BANKSTA_PATH = 'content/documents/ukv_banksta/';
@@ -152,16 +153,17 @@ class UkvSystem {
             $this->month['names'][$num] = rcms_date_localise($each);
         }
     }
-    
+
     /*
      * loads current debt limit from global config
      * 
      * @return void
      */
+
     function loadDebtLimit() {
         global $ubillingConfig;
-        $altCfg=$ubillingConfig->getAlter();
-        $this->debtLimit=$altCfg['UKV_MONTH_DEBTLIMIT'];
+        $altCfg = $ubillingConfig->getAlter();
+        $this->debtLimit = $altCfg['UKV_MONTH_DEBTLIMIT'];
     }
 
     /*
@@ -179,7 +181,7 @@ class UkvSystem {
         $price = mysql_real_escape_string($price);
         $price = trim($price);
         if (!empty($name)) {
-            $price=(empty($price)) ? 0 : $price;
+            $price = (empty($price)) ? 0 : $price;
             $query = "INSERT INTO `ukv_tariffs` (`id`, `tariffname`, `price`) VALUES (NULL, '" . $name . "', '" . $price . "');";
             nr_query($query);
             log_register("UKV TARIFF CREATE `" . $name . "` WITH PRICE `" . $price . "`");
@@ -325,21 +327,21 @@ class UkvSystem {
      */
 
     public function panel() {
-        $result='';
+        $result = '';
         if (cfr('UKV')) {
-        $result.= wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
+            $result.= wf_Link(self::URL_USERS_LIST, wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton');
         }
         if (cfr('UKVREG')) {
-        $result.= wf_Link(self::URL_USERS_REGISTER, wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton');
+            $result.= wf_Link(self::URL_USERS_REGISTER, wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton');
         }
         if (cfr('UKVTAR')) {
-        $result.= wf_Link(self::URL_TARIFFS_MGMT, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
+            $result.= wf_Link(self::URL_TARIFFS_MGMT, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton');
         }
         if (cfr('UKVBST')) {
-        $result.= wf_Link(self::URL_BANKSTA_MGMT, wf_img('skins/ukv/bank.png') . ' ' . __('Bank statements'), false, 'ubButton');
+            $result.= wf_Link(self::URL_BANKSTA_MGMT, wf_img('skins/ukv/bank.png') . ' ' . __('Bank statements'), false, 'ubButton');
         }
         if (cfr('UKVREP')) {
-        $result.= wf_Link(self::URL_REPORTS_LIST, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton');
+            $result.= wf_Link(self::URL_REPORTS_LIST, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton');
         }
         return ($result);
     }
@@ -430,7 +432,7 @@ class UkvSystem {
 
         log_register('UKV BALANCEADD ((' . $userid . ')) ON ' . $summ);
     }
-    
+
     /*
      * checks is input number valid money format or not?
      * 
@@ -438,6 +440,7 @@ class UkvSystem {
      * 
      * @return bool 
      */
+
     public function isMoney($number) {
         return preg_match("/^-?[0-9]+(?:\.[0-9]{1,2})?$/", $number);
     }
@@ -538,6 +541,36 @@ class UkvSystem {
         $inputs.= wf_Submit(__('Payment'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    /*
+     * returns user full address if this one exists
+     * 
+     * @param $userid   existing user id
+     * 
+     * @return string
+     */
+    protected function userGetFullAddress($userid) {
+        if (isset($this->users[$userid])) {
+            global $ubillingConfig;
+            $altcfg=$ubillingConfig->getAlter();
+            //zero apt numbers as private builds
+                if ($altcfg['ZERO_TOLERANCE']) {
+                    $apt = ($this->users[$userid]['apt'] == '0') ? '' : '/' . $this->users[$userid]['apt'];
+                } else {
+                    $apt = '/' . $this->users[$userid]['apt'];
+                }
+                //city display
+                if ($altcfg['CITY_DISPLAY']) {
+                    $city = $this->users[$userid]['city'] . ' ';
+                } else {
+                    $city = '';
+                }
+            $result=$city.$this->users[$userid]['street'].' '.$this->users[$userid]['build'].$apt;
+        } else {
+            $result='';
+        }
         return ($result);
     }
 
@@ -732,8 +765,7 @@ class UkvSystem {
             return ($result);
         }
     }
-    
-    
+
     /*
      * returns user lifestory strict parsed from system log
      * 
@@ -741,27 +773,28 @@ class UkvSystem {
      * 
      * @return string
      */
+
     protected function userLifeStoryForm($userid) {
-        $userid=vf($userid,3);
-        $query="SELECT * from `weblogs` WHERE `event` LIKE '%((".$userid."))%' ORDER BY `id` DESC;";
-        $all=  simple_queryall($query);
-        
-        $cells=  wf_TableCell(__('ID'));
+        $userid = vf($userid, 3);
+        $query = "SELECT * from `weblogs` WHERE `event` LIKE '%((" . $userid . "))%' ORDER BY `id` DESC;";
+        $all = simple_queryall($query);
+
+        $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Who?'));
         $cells.= wf_TableCell(__('When?'));
         $cells.= wf_TableCell(__('What happen?'));
-        $rows= wf_TableRow($cells, 'row1');
-        
+        $rows = wf_TableRow($cells, 'row1');
+
         if (!empty($all)) {
-            foreach ($all as $io=>$each) {
-                $cells=  wf_TableCell($each['id']);
+            foreach ($all as $io => $each) {
+                $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['admin']);
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell($each['event']);
                 $rows.= wf_TableRow($cells, 'row3');
             }
         }
-        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        $result = wf_TableBody($rows, '100%', '0', 'sortable');
         return ($result);
     }
 
@@ -988,28 +1021,28 @@ class UkvSystem {
 
             $profileData = wf_TableBody($rows, '100%', 0, '');
 
-            $profilePlugins='';
+            $profilePlugins = '';
             if (cfr('UKV')) {
-            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600').__('Details').wf_tag('div',true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
             }
             if (cfr('UKVCASH')) {
-            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250').__('Cash').wf_tag('div',true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
-            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530').__('Edit').wf_tag('div',true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530') . __('Edit') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
-            $profilePlugins.= wf_tag('div',false,'dashtask','style="height:75px; width:75px;"').wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300').__('Delete').wf_tag('div',true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
             }
 
             //main view construction
             $profilecells = wf_tag('td', false, '', 'valign="top"') . $profileData . wf_tag('td', true);
-            
+
             $profilerows = wf_TableRow($profilecells);
-            
-            $profilecells= wf_tag('td', false, '', 'width="128" valign="top"') . $profilePlugins . wf_tag('td', true);
+
+            $profilecells = wf_tag('td', false, '', 'width="128" valign="top"') . $profilePlugins . wf_tag('td', true);
             $profilerows .= wf_TableRow($profilecells);
-            
+
             $result = wf_TableBody($profilerows, '100%', '0');
             $result.= $this->userPaymentsRender($userid);
 
@@ -1516,7 +1549,7 @@ class UkvSystem {
                     $detectedContract = '';
                     $detectedAddress = '';
                     $detectedRealName = '';
-                    if ($each['processed']==1) {
+                    if ($each['processed'] == 1) {
                         $rowClass = 'row2';
                     } else {
                         $rowClass = 'undone';
@@ -1603,18 +1636,19 @@ class UkvSystem {
         }
         return ($result);
     }
-    
-   /*
-    * sets banksta row as processed
-    * 
-    * @param $bankstaid  existing bank statement ID
-    * 
-    * @return void
-    */ 
-   public function bankstaSetProcessed($bankstaid) {
-       $bankstaid=vf($bankstaid,3);
-       simple_update_field('ukv_banksta', 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
-   }
+
+    /*
+     * sets banksta row as processed
+     * 
+     * @param $bankstaid  existing bank statement ID
+     * 
+     * @return void
+     */
+
+    public function bankstaSetProcessed($bankstaid) {
+        $bankstaid = vf($bankstaid, 3);
+        simple_update_field('ukv_banksta', 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
+    }
 
     /*
      * push payments to some user accounts via bank statements
@@ -1640,7 +1674,6 @@ class UkvSystem {
                         // push payment and mark banksta as processed
                         $this->userAddCash($eachstatement['userid'], $eachstatement['summ'], 1, $cashtype, 'BANKSTA: [' . $eachstatement['bankstaid'] . '] ASCONTRACT ' . $eachstatement['usercontract']);
                         $this->bankstaSetProcessed($eachstatement['bankstaid']);
-                        
                     } else {
                         //duplicate payment try
                         log_register('UKV BANKSTA TRY DUPLICATE [' . $eachstatement['bankstaid'] . '] PAYMENT PUSH');
@@ -1748,9 +1781,11 @@ class UkvSystem {
         $reports = '';
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportAntiDebtors', 'antidebtors.png', __('AntiDebtors'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTariffs', 'tariffsreport.jpg', __('Tariffs report'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFinance', 'financereport.jpg', __('Finance report'));
         show_window(__('Reports'), $reports);
     }
-    
+
     /*
      * shows printable report content
      * 
@@ -1759,8 +1794,9 @@ class UkvSystem {
      * 
      * @return void
      */
-    protected function reportPrintable($title,$data) {
-        $style='
+
+    protected function reportPrintable($title, $data) {
+        $style = '
         <style type="text/css">
         table.printable {
 	border-width: 1px;
@@ -1788,12 +1824,11 @@ class UkvSystem {
         }
         </style>
         ';
-        $title= (!empty($title)) ? wf_tag('h2').$title.  wf_tag('h2',  true) : '' ;
-        $data=$style.$title.$data;
-        $data=str_replace('sortable', 'printable', $data);
+        $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
+        $data = $style . $title . $data;
+        $data = str_replace('sortable', 'printable', $data);
         die($data);
     }
-            
 
     /*
      * renders debtors report
@@ -1802,67 +1837,63 @@ class UkvSystem {
      */
 
     public function reportDebtors() {
-        $debtorsArr=array();
-        $result='';
-        $counter=0;
-        $summDebt=0;
-            if (!empty($this->users)) {
+        $debtorsArr = array();
+        $result = '';
+        $counter = 0;
+        $summDebt = 0;
+        if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
                 $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
                 $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
-                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1) AND ($tariffPrice!=0)) {
-                   $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
-                   $counter++;
-                   $summDebt=$summDebt+$eachUser['cash'];
+                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1) AND ($tariffPrice != 0)) {
+                    $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
+                    $counter++;
+                    $summDebt = $summDebt + $eachUser['cash'];
                 }
-            }
-           }
-  
-        //append report counter
-        $result.= wf_tag('h4',false,'row3').__('Total').': '.$counter.' / '.__('Debt').': '.$summDebt. wf_tag('h4',true);
-        
-        
-        if (!empty($debtorsArr)) {
-            foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
-                if (!empty($eachDebtorStreet)) {
-                    $result.=wf_tag('h3').$streetName.  wf_tag('h3', true);
-                     $cells= wf_TableCell(__('Contract'),'10%');
-                     $cells.= wf_TableCell(__('Full address'),'31%');
-                     $cells.= wf_TableCell(__('Real Name'),'30%');
-                     $cells.= wf_TableCell(__('Tariff'),'15%');
-                     $cells.= wf_TableCell(__('Cash'),'7%');
-                     $cells.= wf_TableCell(__('Connected'),'7%');
-                     $rows = wf_TableRow($cells, 'row1');
-                     foreach ($eachDebtorStreet as $ia=>$eachDebtor) {
-                            $cells= wf_TableCell($eachDebtor['contract']);
-                            $debtorAddress=$eachDebtor['street'].' '.$eachDebtor['build'].'/'.$eachDebtor['apt'];
-                            $cells.= wf_TableCell($debtorAddress);
-                            $cells.= wf_TableCell($eachDebtor['realname']);
-                            $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
-                            $cells.= wf_TableCell($eachDebtor['cash']);
-                            $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
-                            $rows.=  wf_TableRow($cells, 'row3');
-                     }
-                     $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-                     
-                }
-                
             }
         }
-         
-        
-        $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
-        
+
+        //append report counter
+        $result.= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . ' / ' . __('Debt') . ': ' . $summDebt . wf_tag('h4', true);
+
+
+        if (!empty($debtorsArr)) {
+            foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
+                if (!empty($eachDebtorStreet)) {
+                    $result.=wf_tag('h3') . $streetName . wf_tag('h3', true);
+                    $cells = wf_TableCell(__('Contract'), '10%');
+                    $cells.= wf_TableCell(__('Full address'), '31%');
+                    $cells.= wf_TableCell(__('Real Name'), '30%');
+                    $cells.= wf_TableCell(__('Tariff'), '15%');
+                    $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($eachDebtorStreet as $ia => $eachDebtor) {
+                        $cells = wf_TableCell($eachDebtor['contract']);
+                        $debtorAddress = $eachDebtor['street'] . ' ' . $eachDebtor['build'] . '/' . $eachDebtor['apt'];
+                        $cells.= wf_TableCell($debtorAddress);
+                        $cells.= wf_TableCell($eachDebtor['realname']);
+                        $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell($eachDebtor['cash']);
+                        $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+                    $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                }
+            }
+        }
+
+
+        $printableControl = wf_Link(self::URL_REPORTS_MGMT . 'reportDebtors&printable=true', wf_img('skins/icon_print.png', __('Print')));
+
         if (wf_CheckGet(array('printable'))) {
-            $this->reportPrintable(__('Debtors'),$result);
+            $this->reportPrintable(__('Debtors'), $result);
         } else {
-             show_window(__('Debtors').' '.$printableControl,$result);
+            show_window(__('Debtors') . ' ' . $printableControl, $result);
         }
     }
-    
-    
-    
+
     /*
      * renders anti-debtors report
      * 
@@ -1870,66 +1901,419 @@ class UkvSystem {
      */
 
     public function reportAntiDebtors() {
-        $debtorsArr=array();
-        $result='';
-        $counter=0;
+        $debtorsArr = array();
+        $result = '';
+        $counter = 0;
 
-            if (!empty($this->users)) {
+        if (!empty($this->users)) {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
                 $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
-                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0) AND ($tariffPrice!=0)) {
-                   $debtorsArr[$eachUser['street']][$eachUser['id']]=$eachUser;
-                   $counter++;
+                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0) AND ($tariffPrice != 0)) {
+                    $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
+                    $counter++;
                 }
             }
-           }
-       
-       //append report counter
-       $result.= wf_tag('h4',false,'row3').__('Total').': '.$counter.  wf_tag('h4',true);
-       
-        if (!empty($debtorsArr)) {
-            foreach ($debtorsArr as $streetName=>$eachDebtorStreet) {
-                if (!empty($eachDebtorStreet)) {
-                    $result.=wf_tag('h3').$streetName.  wf_tag('h3', true);
-                     $cells= wf_TableCell(__('Contract'),'10%');
-                     $cells.= wf_TableCell(__('Full address'),'31%');
-                     $cells.= wf_TableCell(__('Real Name'),'30%');
-                     $cells.= wf_TableCell(__('Tariff'),'15%');
-                     $cells.= wf_TableCell(__('Cash'),'7%');
-                     $cells.= wf_TableCell(__('Connected'),'7%');
-                     $rows = wf_TableRow($cells, 'row1');
-                     foreach ($eachDebtorStreet as $ia=>$eachDebtor) {
-                            $cells= wf_TableCell($eachDebtor['contract']);
-                            $debtorAddress=$eachDebtor['street'].' '.$eachDebtor['build'].'/'.$eachDebtor['apt'];
-                            $cells.= wf_TableCell($debtorAddress);
-                            $cells.= wf_TableCell($eachDebtor['realname']);
-                            $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
-                            $cells.= wf_TableCell($eachDebtor['cash']);
-                            $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
-                            $rows.=  wf_TableRow($cells, 'row3');
-                     }
-                     
-                     $result .= wf_TableBody($rows, '100%', '0', 'sortable');
-                }
-                
-            }
-            
         }
-        
-        $printableControl=  wf_Link(self::URL_REPORTS_MGMT.'reportAntiDebtors&printable=true', wf_img('skins/icon_print.png',__('Print')));
-        
+
+        //append report counter
+        $result.= wf_tag('h4', false, 'row3') . __('Total') . ': ' . $counter . wf_tag('h4', true);
+
+        if (!empty($debtorsArr)) {
+            foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
+                if (!empty($eachDebtorStreet)) {
+                    $result.=wf_tag('h3') . $streetName . wf_tag('h3', true);
+                    $cells = wf_TableCell(__('Contract'), '10%');
+                    $cells.= wf_TableCell(__('Full address'), '31%');
+                    $cells.= wf_TableCell(__('Real Name'), '30%');
+                    $cells.= wf_TableCell(__('Tariff'), '15%');
+                    $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($eachDebtorStreet as $ia => $eachDebtor) {
+                        $cells = wf_TableCell($eachDebtor['contract']);
+                        $debtorAddress = $eachDebtor['street'] . ' ' . $eachDebtor['build'] . '/' . $eachDebtor['apt'];
+                        $cells.= wf_TableCell($debtorAddress);
+                        $cells.= wf_TableCell($eachDebtor['realname']);
+                        $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell($eachDebtor['cash']);
+                        $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+
+                    $result .= wf_TableBody($rows, '100%', '0', 'sortable');
+                }
+            }
+        }
+
+        $printableControl = wf_Link(self::URL_REPORTS_MGMT . 'reportAntiDebtors&printable=true', wf_img('skins/icon_print.png', __('Print')));
+
         if (wf_CheckGet(array('printable'))) {
-            $this->reportPrintable(__('AntiDebtors'),$result);
+            $this->reportPrintable(__('AntiDebtors'), $result);
         } else {
-             show_window(__('AntiDebtors').' '.$printableControl,$result);
+            show_window(__('AntiDebtors') . ' ' . $printableControl, $result);
         }
     }
-   
+
+    /*
+     * renders tariffs popularity report
+     * 
+     * @return void
+     */
+
+    public function reportTariffs() {
+        $tariffArr = array();
+        $tariffUsers = array();
+        $tariffCounter = array();
+        $userTotalCount = sizeof($this->users);
+
+        $result = '';
+        if (!empty($this->tariffs)) {
+            foreach ($this->tariffs as $io => $each) {
+                $tariffArr[$each['id']] = $each['tariffname'];
+                $tariffCounter[$each['id']]['all'] = 0;
+                $tariffCounter[$each['id']]['alive'] = 0;
+            }
+        }
+
+        if ((!empty($tariffArr)) AND (!empty($this->users))) {
+            foreach ($this->users as $io => $eachUser) {
+                $tariffUsers[$eachUser['tariffid']][] = $eachUser;
+                $tariffCounter[$eachUser['tariffid']]['all'] = $tariffCounter[$eachUser['tariffid']]['all'] + 1;
+                if ($eachUser['active']) {
+                    $tariffCounter[$eachUser['tariffid']]['alive'] = $tariffCounter[$eachUser['tariffid']]['alive'] + 1;
+                }
+            }
+        }
+
+        //tariff summary grid
+        $cells = wf_TableCell(__('Tariff'));
+        $cells.= wf_TableCell(__('Total'));
+        $cells.= wf_TableCell(__('Visual'));
+        $cells.= wf_TableCell(__('Active'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($tariffArr as $tariffId => $tariffName) {
+            $tariffLink = wf_Link(self::URL_REPORTS_MGMT . 'reportTariffs&showtariffusers=' . $tariffId, $tariffName);
+            $cells = wf_TableCell($tariffLink);
+            $cells.= wf_TableCell($tariffCounter[$tariffId]['all']);
+            $cells.= wf_TableCell(web_bar($tariffCounter[$tariffId]['all'], $userTotalCount));
+            $cells.= wf_TableCell(web_barTariffs($tariffCounter[$tariffId]['alive'], ($tariffCounter[$tariffId]['all'] - $tariffCounter[$tariffId]['alive'])));
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+
+        $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+
+        //show per tariff users
+        if (wf_CheckGet(array('showtariffusers'))) {
+            $tariffSearch = vf($_GET['showtariffusers'], 3);
+            if (isset($tariffUsers[$tariffSearch])) {
+                if (!empty($tariffUsers[$tariffSearch])) {
+                    $result.=wf_delimiter();
+                    $result.=wf_tag('h2') . __('Tariff') . ': ' . $tariffArr[$tariffSearch] . wf_tag('h2', true);
+                    $cells = wf_TableCell(__('Contract'), '10%');
+                    $cells.= wf_TableCell(__('Full address'), '31%');
+                    $cells.= wf_TableCell(__('Real Name'), '30%');
+                    $cells.= wf_TableCell(__('Tariff'), '15%');
+                    $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($tariffUsers[$_GET['showtariffusers']] as $io => $eachUser) {
+                        $cells = wf_TableCell($eachUser['contract']);
+                        $fullAddress = $this->userGetFullAddress($eachUser['id']);
+                        $cells.= wf_TableCell($fullAddress);
+                        $cells.= wf_TableCell($eachUser['realname']);
+                        $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell($eachUser['cash']);
+                        $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+
+                    $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+                }
+            }
+        }
+
+
+        show_window(__('Tariffs report'), $result);
+    }
+
+    /*
+     * returns payments year summ by selected year
+     * 
+     * @param $year year to show
+     * 
+     * @return string
+     */
+
+    protected function paymentsGetYearSumm($year) {
+        $year = vf($year);
+        $query = "SELECT SUM(`summ`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 AND `visible`='1'";
+        $result = simple_query($query);
+        return($result['SUM(`summ`)']);
+    }
+
+    /*
+     * returns month payments summ by some year and month
+     * 
+     * @param $year year to select
+     * @param $month month to select
+     * 
+     * @return string
+     */
+
+    protected function paymentsGetMonthSumm($year, $month) {
+        $year = vf($year);
+        $query = "SELECT SUM(`summ`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0 AND `visible`='1'";
+        $result = simple_query($query);
+        return($result['SUM(`summ`)']);
+    }
+
+    /*
+     * returns month payments count by some year and month
+     * 
+     * @param $year year to select
+     * @param $month month to select
+     * 
+     * @return string
+     */
+
+    protected function paymentsGetMonthCount($year, $month) {
+        $year = vf($year);
+        $query = "SELECT COUNT(`id`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0 AND `visible`='1'";
+        $result = simple_query($query);
+        return($result['COUNT(`id`)']);
+    }
+
+    /*
+     * shows payments graph for some year
+     * 
+     * @param $year year to show
+     * 
+     * @return void
+     */
+
+    protected function paymentsShowGraph($year) {
+        $months = months_array();
+        $year_summ = $this->paymentsGetYearSumm($year);
+        $curtime = time();
+        $yearPayData = array();
+
+        $cells = wf_TableCell('');
+        $cells.= wf_TableCell(__('Month'));
+        $cells.= wf_TableCell(__('Payments count'));
+        $cells.= wf_TableCell(__('ARPU'));
+        $cells.= wf_TableCell(__('Cash'));
+        $cells.= wf_TableCell(__('Visual'), '50%');
+        $rows = wf_TableRow($cells, 'row1');
+
+        //caching subroutine
+        $renewTime = zb_StorageGet('UKVYPD_LAST');
+        if (empty($renewTime)) {
+            //first usage
+            $renewTime = $curtime;
+            zb_StorageSet('UKVYPD_LAST', $renewTime);
+            $updateCache = true;
+        } else {
+            //cache time already set
+            $timeShift = $curtime - $renewTime;
+            if ($timeShift > 3600) {
+                //cache update needed
+                $updateCache = true;
+            } else {
+                //load data from cache or init new cache
+                $yearPayData_raw = zb_StorageGet('UKVYPD_CACHE');
+                if (empty($yearPayData_raw)) {
+                    //first usage
+                    $emptyCache = array();
+                    $emptyCache = serialize($emptyCache);
+                    $emptyCache = base64_encode($emptyCache);
+                    zb_StorageSet('UKVYPD_CACHE', $emptyCache);
+                    $updateCache = true;
+                } else {
+                    // data loaded from cache
+                    $yearPayData = base64_decode($yearPayData_raw);
+                    $yearPayData = unserialize($yearPayData);
+                    $updateCache = false;
+                    //check is current year already cached?
+                    if (!isset($yearPayData[$year]['graphs'])) {
+                        $updateCache = true;
+                    }
+
+                    //check is manual cache refresh is needed?
+                    if (wf_CheckGet(array('forcecache'))) {
+                        $updateCache = true;
+                        rcms_redirect(self::URL_REPORTS_MGMT . 'reportFinance');
+                    }
+                }
+            }
+        }
+
+        if ($updateCache) {
+            foreach ($months as $eachmonth => $monthname) {
+                $month_summ = $this->paymentsGetMonthSumm($year, $eachmonth);
+                $paycount = $this->paymentsGetMonthCount($year, $eachmonth);
+
+                $cells = wf_TableCell($eachmonth);
+                $cells.= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
+                $cells.= wf_TableCell($paycount);
+                $cells.= wf_TableCell(@round($month_summ / $paycount, 2));
+                $cells.= wf_TableCell(web_roundValue($month_summ, 2));
+                $cells.= wf_TableCell(web_bar($month_summ, $year_summ));
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result = wf_TableBody($rows, '100%', '0', 'sortable');
+            $yearPayData[$year]['graphs'] = $result;
+            //write to cache
+            zb_StorageSet('UKVYPD_LAST', $curtime);
+            $newCache = serialize($yearPayData);
+            $newCache = base64_encode($newCache);
+            zb_StorageSet('UKVYPD_CACHE', $newCache);
+        } else {
+            //take data from cache
+            if (isset($yearPayData[$year]['graphs'])) {
+                $result = $yearPayData[$year]['graphs'];
+                $result.=__('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
+                $result.=wf_Link(self::URL_REPORTS_MGMT . 'reportFinance&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
+            } else {
+                $result = __('Strange exeption');
+            }
+        }
+
+
+        show_window(__('Payments by') . ' ' . $year, $result);
+    }
+
+    /*
+     * returns UKV payments by some query
+     * 
+     * @param $query raw SQL query to select data
+     * 
+     * @return string
+     */
+
+    protected function paymentsShow($query) {
+        global $ubillingConfig;
+        $alter_conf = $ubillingConfig->getAlter();
+        if (empty($this->cashtypes)) {
+            $this->loadCashtypes();
+        }
+        $alltypes = $this->cashtypes;
+        $allapayments = simple_queryall($query);
+        
+        $total = 0;
+        $totalPaycount = 0;
+
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Cash'));
+        //optional contract display
+        if ($alter_conf['FINREP_CONTRACT']) {
+            $cells.= wf_TableCell(__('Contract'));
+        }
+        
+        $cells.= wf_TableCell(__('Full address'));
+        $cells.= wf_TableCell(__('Real Name'));
+        $cells.= wf_TableCell(__('Cash type'));
+        $cells.= wf_TableCell(__('Notes'));
+        $cells.= wf_TableCell(__('Admin'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($allapayments)) {
+            foreach ($allapayments as $io => $eachpayment) {
+                @$userData=$this->users[$eachpayment['userid']];
+
+                if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
+                    $eachpayment['note'] = $this->translatePaymentNote($eachpayment['note']);
+                }
+
+                $cells = wf_TableCell($eachpayment['id']);
+                $cells.= wf_TableCell($eachpayment['date']);
+                $cells.= wf_TableCell($eachpayment['summ']);
+                //optional contract display
+                if ($alter_conf['FINREP_CONTRACT']) {
+                    $cells.= wf_TableCell(@$userData['contract']);
+                }
+                
+                $userLink=  wf_Link(self::URL_USERS_PROFILE.$eachpayment['userid'], web_profile_icon());
+                $cells.= wf_TableCell($userLink.' '.$this->userGetFullAddress($eachpayment['userid']));
+                $cells.= wf_TableCell(@$userData['realname']);
+                $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+                $cells.= wf_TableCell($eachpayment['note']);
+                $cells.= wf_TableCell($eachpayment['admin']);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                if ($eachpayment['summ'] > 0) {
+                    $total = $total + $eachpayment['summ'];
+                    $totalPaycount++;
+                }
+            }
+        }
+
+        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
+        $result.=wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
+        return($result);
+    }
+
+    /*
+     * renders finance report
+     * 
+     * @return void
+     */
+
+    public function reportFinance() {
+
+        $show_year = (!wf_CheckPost(array('yearsel'))) ? curyear() : $_POST['yearsel'];
+
+        $dateSelectorPreset = (wf_CheckPost(array('showdatepayments'))) ? $_POST['showdatepayments'] : curdate();
+        $dateinputs = wf_DatePickerPreset('showdatepayments', $dateSelectorPreset);
+        $dateinputs.=wf_Submit(__('Show'));
+        $dateform = wf_Form(self::URL_REPORTS_MGMT . 'reportFinance', 'POST', $dateinputs, 'glamour');
+
+
+        $yearinputs = wf_YearSelector('yearsel');
+        $yearinputs.=wf_Submit(__('Show'));
+        $yearform = wf_Form(self::URL_REPORTS_MGMT . 'reportFinance', 'POST', $yearinputs, 'glamour');
+
+
+        $controlcells = wf_TableCell(wf_tag('h3', false, 'title') . __('Year') . wf_tag('h3', true));
+        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payments by date') . wf_tag('h3', true));
+        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payment search') . wf_tag('h3', true));
+        $controlrows = wf_TableRow($controlcells);
+
+        $controlcells = wf_TableCell($yearform);
+        $controlcells.= wf_TableCell($dateform);
+        $controlcells.= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportPaymentSearch', 'Find', false, 'ubButton'));
+        $controlrows.= wf_TableRow($controlcells);
+
+        $controlgrid = wf_TableBody($controlrows, '100%', 0, '');
+        show_window('', $controlgrid);
+        //show per month report
+        $this->paymentsShowGraph($show_year);
+
+        if (!isset($_GET['month'])) {
+
+            // payments by somedate
+            if (isset($_POST['showdatepayments'])) {
+                $paydate = mysql_real_escape_string($_POST['showdatepayments']);
+                $paydate = (!empty($paydate)) ? $paydate : curdate();
+                show_window(__('Payments by date') . ' ' . $paydate, $this->paymentsShow("SELECT * from `ukv_payments` WHERE `date` LIKE '" . $paydate . "%' AND `visible`='1' ORDER by `date` DESC;"));
+            } else {
+
+                // today payments
+                $today = curdate();
+                show_window(__('Today payments'), $this->paymentsShow("SELECT * from `ukv_payments` WHERE `date` LIKE '" . $today . "%' AND `visible`='1' ORDER by `date` DESC;"));
+            }
+        } else {
+            // show monthly payments
+            $paymonth = mysql_real_escape_string($_GET['month']);
+
+            show_window(__('Month payments'), $this->paymentsShow("SELECT * from `ukv_payments` WHERE `date` LIKE '" . $paymonth . "%'  AND `visible`='1' ORDER by `date` DESC;"));
+        }
+    }
 
 }
-
-
-
 
 ?>

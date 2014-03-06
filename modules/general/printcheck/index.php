@@ -52,9 +52,20 @@ if ( cfr('PRINTCHECK') ) {
             $template['CYEAR']  = ( !empty($current['year']) )      ? $current['year']      : '';
             $template['DAYPAYID'] = ( !empty($payment['daypayid']) ) ? $payment['daypayid'] : '';
             
-            $docx = new DOCXTemplate(CONFIG_PATH . '/printcheck.docx');
-            $docx->set($template);
-            $docx->downloadAs('check-' . $payment['id'] . '.docx');
+            // Update fix:
+            switch ( true ) {
+                case ( !file_exists(DATA_PATH . 'documents/printcheck.docx') ):
+                    if( file_exists( CONFIG_PATH . '/printcheck.docx' )) {
+                        if ( copy(CONFIG_PATH . '/printcheck.docx', DATA_PATH . 'documents/printcheck.docx') ) { 
+                            unlink(CONFIG_PATH . '/printcheck.docx');
+                        }
+                    }
+                default:
+                    $docx = new DOCXTemplate(DATA_PATH . 'documents/printcheck.docx');
+                    $docx->set($template);
+                    $docx->downloadAs('check-' . $payment['id'] . '.docx');
+                    break;
+            }
         } else {
             print(zb_PrintCheck($paymentid));
             die();

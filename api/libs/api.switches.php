@@ -283,6 +283,8 @@ function zb_SwitchesDeadLog($currenttime,$deadSwitches) {
 }
 
 function zb_SwitchesRepingAll() {
+    global $ubillingConfig;
+    $altCfg=$ubillingConfig->getAlter();
     $allswitches=zb_SwitchesGetAll();
     $deadswitches=array();
     $deathTime=  zb_SwitchesGetAllDeathTime();
@@ -297,11 +299,16 @@ function zb_SwitchesRepingAll() {
                     if (!$secondChance) {
                         $lastChance=zb_PingICMP($eachswitch['ip']);
                         if (!$lastChance) {
+                            if (empty($altCfg['SWITCH_PING_CUSTOM_SCRIPT'])) {
                             //yep, switch looks like it really down
                              $deadswitches[$eachswitch['ip']]=$eachswitch['location'];
                              if (!isset($deathTime[$eachswitch['ip']])) {
                                  zb_SwitchDeathTimeSet($eachswitch['ip']);
                              }
+                            } else {
+                                $customScriptRun=  shell_exec($altCfg['SWITCH_PING_CUSTOM_SCRIPT']);
+                                
+                            }
                         }
                     }  else {
                         zb_SwitchDeathTimeResurrection($eachswitch['ip']);
