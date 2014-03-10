@@ -1308,4 +1308,34 @@ $(function() {
           return ($result);
       }
 
+    function wf_ColPicker($name, $label='', $value='', $br=false, $size='') {
+        $id  = wf_InputId();
+        $css = '
+            <link rel="stylesheet" href="modules/jsc/colpick/colpick.css" type="text/css"/>';
+        $js  = '
+            <script src="modules/jsc/colpick/colpick.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            $(document).ready(function() {
+                $("#' . $id . '").colpick({
+                    layout: "hex",
+                    submit: 0,
+                    onChange:function(hsb,hex,rgb,el,bySetColor) {
+                        // $(el).css("border-color","#" + hex);
+                        // Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
+                        if(!bySetColor) $(el).val("#" + hex);
+                    }
+                }).keyup(function(){
+                    $(this).colpickSetColor(this.value);
+                });
+            });
+            </script>
+        ';
+        $size = ( !empty($size) ) ? 'size="' . $size . '"' : null;
+        $result  = '<input type="text" name="' . $name . '" value="' . $value . '" id="' . $id . '" ' . $size . '>'."\n";
+        $result .= ( !empty($label) ) ? '<label for="' . $id . '">' . __($label) . '</label>' : null ;
+        $result .= ( !empty($br)    ) ? '<br>' : null;
+        $result .= "\n";
+        return $css . $js . $result;
+    }
+
 ?>
