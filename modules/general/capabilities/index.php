@@ -378,7 +378,7 @@ class CapabilitiesDirectory {
          $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
          $result=wf_Link('?module=capabilities', __('Back'), true, 'ubButton');
          $inputs=  wf_TextInput('createstate', __('New status').$sup, '', true, '20');
-         $inputs.=  wf_TextInput('createstatecolor', __('New status color').$sup, $this->genRandomColor(), true, '10');
+         $inputs.= wf_ColPicker('createstatecolor', __('New status color').$sup, '#'.$this->genRandomColor(), true, '10');
          $inputs.= wf_Submit(__('Create'));
          $result.=  wf_Form("", 'POST', $inputs, 'glamour');
          return ($result);
@@ -395,8 +395,8 @@ class CapabilitiesDirectory {
          $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
          $result=wf_Link('?module=capabilities&states=true', __('Back'), true, 'ubButton');
          $inputs=  wf_TextInput('editstate', __('New status').$sup, $this->capabstates[$id]['state'], true, '20');
-         $inputs.=  wf_TextInput('editstatecolor', __('New status color').$sup, $this->capabstates[$id]['color'], true, '10');
-         $inputs.= wf_Submit(__('Create'));
+         $inputs.= wf_ColPicker('editstatecolor', __('New status color').$sup, '#'.$this->capabstates[$id]['color'], true, '10');
+         $inputs.= wf_Submit(__('Save'));
          $result.=  wf_Form("", 'POST', $inputs, 'glamour');
          return ($result);
      }
@@ -412,6 +412,7 @@ class CapabilitiesDirectory {
      public function statesCreate($state,$color) {
          $state=  mysql_real_escape_string($state);
          $color= mysql_real_escape_string($color);
+         $color=  str_replace('#', '', $color);
          $query="INSERT INTO `capabstates` (`id` , `state` , `color`) 
              VALUES ( NULL , '".$state."', '".$color."');";
          nr_query($query);
@@ -447,6 +448,7 @@ class CapabilitiesDirectory {
          $id=vf($id,3);
          $state=  mysql_real_escape_string($state);
          $color= mysql_real_escape_string($color);
+         $color= str_replace('#', '', $color);
          if (!empty($id)) {
              simple_update_field('capabstates', 'state', $state, "WHERE `id`='".$id."'");
              simple_update_field('capabstates', 'color', $color, "WHERE `id`='".$id."'");

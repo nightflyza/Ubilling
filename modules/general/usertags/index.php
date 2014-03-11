@@ -36,7 +36,7 @@ if (isset ($_GET['edit'])) {
     //form construct
     $tagpriorities=array('1'=>'1','2'=>'2','3'=>'3','4'=>'4','5'=>'5','6'=>'6');
     $tagtypedata=stg_get_tagtype_data($tagtypeid);
-    $editinputs=wf_TextInput('edittagcolor', 'Color', $tagtypedata['tagcolor'], true, 20);
+    $editinputs= wf_ColPicker('edittagcolor', __('Color'), $tagtypedata['tagcolor'], true, '20');
     $editinputs.=wf_TextInput('edittagname', 'Text', $tagtypedata['tagname'], true, 20);
     $editinputs.=wf_Selector('edittagsize', $tagpriorities, 'Priority', $tagtypedata['tagsize'], true);
     $editinputs.=wf_Submit('Save');

@@ -6,5 +6,6 @@ $this->registerModule($module, 'main', __('UKV'), 'nightfly', array(
                                                                     'UKVBST' => __('right to manage UKV bank statements'),
                                                                     'UKVREP' => __('right to view UKV reports'),
                                                                     'UKVCASH' =>__('right to manage UKV users cash'),
+                                                                    'UKVDEL' =>__('right to delete UKV users'),
                                                                     ));
 ?>

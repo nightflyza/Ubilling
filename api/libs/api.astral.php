@@ -1317,15 +1317,15 @@ $(function() {
             <script type="text/javascript">
             $(document).ready(function() {
                 $("#' . $id . '").colpick({
+                    colorScheme: "light",
                     layout: "hex",
-                    submit: 0,
-                    onChange:function(hsb,hex,rgb,el,bySetColor) {
-                        // $(el).css("border-color","#" + hex);
-                        // Fill the text box just if the color was set using the picker, and not the colpickSetColor function.
-                        if(!bySetColor) $(el).val("#" + hex);
+                    submit: true,
+                    color:  "' . ( !empty($value) ? $value : "#f57601" ) . '",
+                    onSubmit: function(hsb,hex,rgb,el) {
+                        var hex_str = $("div.colpick_hex_field > input").val();
+                        $(el).val("#" + hex_str);
+                        $(el).colpickHide();
                     }
-                }).keyup(function(){
-                    $(this).colpickSetColor(this.value);
                 });
             });
             </script>

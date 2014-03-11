@@ -42,8 +42,8 @@ function web_priority_selector($max=6) {
      $result=  wf_TableBody($rows, '100%', 0, 'sortable');
      
      //construct adding form
-     $inputs=  wf_TextInput('newcolor', __('Color'), '#'.rand(11,99).rand(11,99).rand(11,99), false, '10');
-     $inputs.=  wf_TextInput('newtext', __('Text'), '', false, '15');
+     $inputs=  wf_ColPicker('newcolor', __('Color'), '#'.rand(11,99).rand(11,99).rand(11,99), false, '10');
+     $inputs.= wf_TextInput('newtext', __('Text'), '', false, '15');
      $inputs.= web_priority_selector().' '.__('Priority').' ';
      $inputs.= wf_HiddenInput('addnewtag', 'true');
      $inputs.= wf_Submit(__('Create'));
