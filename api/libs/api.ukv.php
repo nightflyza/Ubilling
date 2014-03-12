@@ -2295,12 +2295,17 @@ class UkvSystem {
 
         $controlcells = wf_TableCell(wf_tag('h3', false, 'title') . __('Year') . wf_tag('h3', true));
         $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payments by date') . wf_tag('h3', true));
-        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payment search') . wf_tag('h3', true));
+        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Debt'). wf_tag('h3', true));
         $controlrows = wf_TableRow($controlcells);
 
         $controlcells = wf_TableCell($yearform);
         $controlcells.= wf_TableCell($dateform);
-        $controlcells.= wf_TableCell(wf_Link(self::URL_REPORTS_MGMT . 'reportPaymentSearch', 'Find', false, 'ubButton'));
+        //extract total debt summ
+        $debt_q="SELECT SUM(`cash`) as `totaldebt`, COUNT(`id`) as `debtcount` from `ukv_users` WHERE `cash`<0";
+        $totalDebt=  simple_query($debt_q);
+        $debtData=  __('Cash').': '.wf_tag('b').$totalDebt['totaldebt'].wf_tag('b',true). wf_tag('br');
+        $debtData.= __('Count').': '.wf_tag('b').$totalDebt['debtcount'].wf_tag('b',true);
+        $controlcells.= wf_TableCell($debtData);
         $controlrows.= wf_TableRow($controlcells);
 
         $controlgrid = wf_TableBody($controlrows, '100%', 0, '');
@@ -2440,8 +2445,16 @@ class UkvSystem {
        $allFeesDates_q="SELECT * from `ukv_fees` ORDER BY `id` DESC;";
        $allFeesDates= simple_queryall($allFeesDates_q);
        $result='';
+       $csvData='';
+       
+       //existing report download
+       if (wf_CheckGet(array('downloadfeereport'))) {
+           $filenameToDownload=  base64_decode($_GET['downloadfeereport']);
+           zb_DownloadFile('exports/'.$filenameToDownload, 'docx');
+       }
+       
        //render fees list
-         $cells=  wf_TableCell(__('Date'));
+         $cells=  wf_TableCell(__('Month'));
          $rows=  wf_TableRow($cells, 'row1');
        if (!empty($allFeesDates)) {
            foreach ($allFeesDates as $ia=>$eachFee) {
@@ -2475,21 +2488,29 @@ class UkvSystem {
                     $cells.=  wf_TableCell($eachPayment['date']);
                     $cells.=  wf_TableCell($eachPayment['summ']);
                     $userLink=  wf_Link(self::URL_USERS_PROFILE.$eachPayment['userid'], web_profile_icon().' ', false);
-                    $cells.=  wf_TableCell($userLink.$this->userGetFullAddress($eachPayment['userid']));
-                    $cells.=  wf_TableCell($this->users[$eachPayment['userid']]['realname']);
+                    $userAddress=$this->userGetFullAddress($eachPayment['userid']);
+                    $cells.=  wf_TableCell($userLink.$userAddress);
+                    $userRealName=$this->users[$eachPayment['userid']]['realname'];
+                    $cells.=  wf_TableCell($userRealName);
                     $rowsf.= wf_TableRow($cells, 'row3');
                     $feesCount++;
                     $feesSumm=$feesSumm+$eachPayment['summ'];
+                    $csvData.=$eachPayment['id'].';'.$eachPayment['date'].';'.$eachPayment['summ'].';'.$userAddress.';'.$userRealName."\n";
                    }
                }
+               
+               //saving downloadable report
+               $csvSaveName=$searchFees.'_ukvfeesreport.csv';
+               file_put_contents('exports/'.$csvSaveName, $csvData);
+               $downloadLink=  wf_Link(self::URL_REPORTS_MGMT.'reportFees&downloadfeereport='.base64_encode($csvSaveName), wf_img('skins/excel.gif', __('Download')), false);
                
                $result= wf_tag('strong').__('Count').': '.$feesCount;
                $result.= wf_tag('br');
                $result.= __('Money').': '.$feesSumm;
                $result.= wf_tag('strong',true);
                $result.= wf_TableBody($rowsf, '100%', '0', 'sortable');
-               
-               show_window(__('Money fees').' '.$searchFees, $result);
+
+               show_window(__('Money fees').' '.$searchFees.' '.$downloadLink, $result);
            }
        }
        
