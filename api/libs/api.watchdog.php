@@ -476,6 +476,11 @@ class WatchDog {
                              $allNotifyEmails=  explode(',', $this->settings['WATCHDOG_EMAILS']);
                              if (!empty($allNotifyEmails)) {
                                   $notifyMessageMail=$this->settings['WATCHDOG_ALERT'].' '.$alertTaskName;
+                                  //attach old reslt to email if needed
+                                  if (ispos($taskActions, 'andresult')) {
+                                   $notifyMessageMail.=' '.$this->taskData[$taskID]['oldresult']; 
+                                  }
+                                  
                                   foreach ($allNotifyEmails as $im=>$eachmail) {
                                       $this->sendEmail($eachmail, $notifyMessageMail);
                                   }
@@ -519,6 +524,11 @@ class WatchDog {
                             
                             if (!empty($allNotifyPhones)) {
                                 $notifyMessage=$this->settings['WATCHDOG_ALERT'].' '.$alertTaskName;
+                                //attach old reslt to sms if needed
+                                if (ispos($taskActions, 'andresult')) {
+                                    $notifyMessage.=' '.$this->taskData[$taskID]['oldresult']; 
+                                }
+                            
                                 foreach ($allNotifyPhones as $iu=>$eachmobile) {
                                    $this->sendSMS($eachmobile, $notifyMessage);
                                 }

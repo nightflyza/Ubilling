@@ -1691,11 +1691,12 @@ class UkvSystem {
      */
 
     public function bankstaRenderList() {
-        $query = "SELECT `filename`,`hash`,`date`,`admin` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
+        $query = "SELECT `filename`,`hash`,`date`,`admin`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
 
         $cells = wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Filename'));
+        $cells.= wf_TableCell(__('Rows'));
         $cells.= wf_TableCell(__('Admin'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
@@ -1704,6 +1705,7 @@ class UkvSystem {
             foreach ($all as $io => $each) {
                 $cells = wf_TableCell($each['date']);
                 $cells.= wf_TableCell($each['filename']);
+                $cells.= wf_TableCell($each['rowcount']);
                 $cells.= wf_TableCell($each['admin']);
                 $actLinks = wf_Link(self::URL_BANKSTA_PROCESSING . $each['hash'], wf_img('skins/icon_search_small.gif', __('Show')), false, '');
                 $cells.= wf_TableCell($actLinks);
