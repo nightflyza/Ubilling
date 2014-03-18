@@ -1988,10 +1988,12 @@ class UkvSystem {
 
         if ((!empty($tariffArr)) AND (!empty($this->users))) {
             foreach ($this->users as $io => $eachUser) {
+                if (!empty($eachUser['tariffid'])) {
                 $tariffUsers[$eachUser['tariffid']][] = $eachUser;
                 $tariffCounter[$eachUser['tariffid']]['all'] = $tariffCounter[$eachUser['tariffid']]['all'] + 1;
                 if ($eachUser['active']) {
                     $tariffCounter[$eachUser['tariffid']]['alive'] = $tariffCounter[$eachUser['tariffid']]['alive'] + 1;
+                 }
                 }
             }
         }
@@ -2421,7 +2423,7 @@ class UkvSystem {
                         $userLink = wf_Link(self::URL_USERS_PROFILE . $eachUserId, web_profile_icon() . ' ', false);
                         $cells.= wf_TableCell($userLink . $this->userGetFullAddress($eachUserId));
                         $cells.= wf_TableCell($this->users[$eachUserId]['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$this->users[$eachUserId]['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell(@$this->tariffs[$this->users[$eachUserId]['tariffid']]['tariffname']);
                         $rows.= wf_TableRow($cells, 'row3');
                     }
                 }
