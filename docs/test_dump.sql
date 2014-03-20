@@ -1085,8 +1085,7 @@ CREATE TABLE IF NOT EXISTS `ukv_banksta` (
   `pdate` varchar(42) DEFAULT NULL,
   `ptime` varchar(42) DEFAULT NULL,
   `processed` tinyint(4) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `hash` (`hash`,`contract`,`summ`,`processed`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `signup_prices_tariffs` (

@@ -699,6 +699,7 @@ class WatchDogInterface {
         $cells.= wf_TableCell(__('Actions'));
         $cells.= wf_TableCell(__('Manage'));
         $rows= wf_TableRow($cells, 'row1');
+        $lighter='onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
         
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io=>$eachtask) {
@@ -717,7 +718,9 @@ class WatchDogInterface {
                 $controls.=  wf_JSAlert('?module=watchdog&edit='.$eachtask['id'], web_edit_icon(),__('Are you serious'));
                 
                 $cells.= wf_TableCell($controls);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.=wf_tag('tr', false, 'row3', $lighter);
+                $rows.=$cells;
+                $rows.=wf_tag('tr', true);
             }
         }
         

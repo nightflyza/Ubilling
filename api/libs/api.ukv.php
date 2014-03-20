@@ -1788,6 +1788,7 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFinance', 'financereport.jpg', __('Finance report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportSignup', 'signupreport.jpg', __('Signup report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
         show_window(__('Reports'), $reports);
     }
 
@@ -1801,6 +1802,7 @@ class UkvSystem {
      */
 
     protected function reportPrintable($title, $data) {
+ 
         $style = '
         <style type="text/css">
         table.printable {
@@ -1811,6 +1813,7 @@ class UkvSystem {
 	border-collapse: separate;
 	background-color: white;
         }
+        
         table.printable th {
 	border-width: 1px;
 	padding: 1px;
@@ -1819,18 +1822,37 @@ class UkvSystem {
 	background-color: white;
 	-moz-border-radius: ;
         }
+        
         table.printable td {
 	border-width: 1px;
 	padding: 1px;
-	border-style: dashed;
+	border-style: dotted;
 	border-color: gray;
-	background-color: white;
 	-moz-border-radius: ;
+        }
+        
+        .row1 {
+        font-weight:bolder;
+        background-color: #000000;
+        color: #FFFFFF;
         }
         </style>
         ';
+        
+       $header='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+        <head>                                                        
+        <title>'.$title.'</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        '.$style.'
+        </head>
+        <body>
+        ';
+       
+       $footer='</body> </html>';
+        
         $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
-        $data = $style . $title . $data;
+        $data = $header . $title . $data. $footer;
         $profileIconMask = web_profile_icon();
         $data = str_replace('sortable', 'printable', $data);
         $data = str_replace($profileIconMask, '', $data);
@@ -2519,6 +2541,81 @@ class UkvSystem {
        }
        
        
+    }
+    
+    
+     /*
+     * renders streets report
+     * 
+     * @return void
+     */
+    public function reportStreets() {
+        
+        $citySelected=(wf_CheckPost(array('streetreportcity'))) ? $_POST['streetreportcity'] : '';
+        $streetSelected=(wf_CheckPost(array('streetreportstreet'))) ? $_POST['streetreportstreet'] : '';
+        
+        $inputs=  wf_Selector('streetreportcity', $this->cities, __('City'), $citySelected, false);
+        $inputs.= wf_Selector('streetreportstreet', $this->streets, __('Street'), $streetSelected, false);
+        $inputs.= wf_Submit(__('Show'));
+        $form=  wf_Form('', 'POST', $inputs, 'glamour');
+        
+        show_window(__('Streets report'), $form);
+        
+        if ((wf_CheckPost(array('streetreportcity','streetreportstreet'))) OR (wf_CheckGet(array('rc','rs'))) ) {
+            
+            //set form data
+            if (wf_CheckPost(array('streetreportcity','streetreportstreet'))) {
+                $citySearch=$_POST['streetreportcity'];
+                $streetSearch=$_POST['streetreportstreet'];
+            }
+            
+            //or printable report
+            if (wf_CheckGet(array('rc','rs'))) {
+                $citySearch=   $_GET['rc'];
+                $streetSearch= $_GET['rs'];
+            }
+            
+            if (!empty($this->users)) {
+           $counter=0;
+           
+               $cells = wf_TableCell(__('Contract'), '10%');
+               $cells.= wf_TableCell(__('Full address'), '31%');
+               $cells.= wf_TableCell(__('Real Name'), '30%');
+               $cells.= wf_TableCell(__('Tariff'), '15%');
+               $cells.= wf_TableCell(__('Cash'), '7%');
+               $cells.= wf_TableCell(__('Connected'), '7%');
+               $rows = wf_TableRow($cells, 'row1');
+     
+                foreach ($this->users as $io=>$eachUser) {
+                    if (($eachUser['city']==$citySearch)  AND ($eachUser['street']==$streetSearch)) {
+                    $cells = wf_TableCell($eachUser['contract']);
+                    $fullAddress = $this->userGetFullAddress($eachUser['id']);
+                    $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
+                    $cells.= wf_TableCell($profileLink . $fullAddress);
+                    $cells.= wf_TableCell($eachUser['realname']);
+                    $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                    $cells.= wf_TableCell($eachUser['cash']);
+                    $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
+                    $rows.= wf_TableRow($cells, 'row3');
+                    $counter++;
+                    }
+                }
+               $result= wf_TableBody($rows, '100%', '0', 'sortable');
+               $result.= __('Total').': '.$counter;
+               
+               if (wf_CheckGet(array('printable'))) {
+                   $this->reportPrintable($citySearch.' / '.$streetSearch, $result);
+               } else {
+                   $printlink=  wf_Link(self::URL_REPORTS_MGMT.'reportStreets&rc='.$citySearch.'&rs='.$streetSearch.'&printable=true', wf_img('skins/icon_print.png', __('Print')), false, '');
+                   show_window($citySearch.' / '.$streetSearch.' '.$printlink, $result);     
+               }
+               
+               
+            } else {
+                show_window(__('Result'), __('Any users found'));
+            }
+        }
+        
     }
 
 }
