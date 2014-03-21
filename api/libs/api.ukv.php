@@ -1201,7 +1201,7 @@ class UkvSystem {
         }
 
         if (ispos($paynote, 'UKVFEE:')) {
-            $paynote = str_replace('UKVFEE:', __('Fee') . ' ', $paynote);
+            $paynote = str_replace('UKVFEE:', __('Fee') . '. ', $paynote);
         }
 
         if (ispos($paynote, self::EX_USER_NO_TARIFF_SET)) {
@@ -1854,8 +1854,13 @@ class UkvSystem {
         $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
         $data = $header . $title . $data. $footer;
         $profileIconMask = web_profile_icon();
+        $connectedMask= web_bool_led(1, true);
+        $disconnectedMask= web_bool_led(0,true);
+        
         $data = str_replace('sortable', 'printable', $data);
         $data = str_replace($profileIconMask, '', $data);
+        $data = str_replace($connectedMask, __('Connected'), $data);
+        $data = str_replace($disconnectedMask, wf_tag('b').__('Disconnected').wf_tag('b',true), $data);
 
         die($data);
     }
@@ -1897,7 +1902,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '30%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
                         $cells = wf_TableCell($eachDebtor['contract']);
@@ -1959,7 +1964,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '30%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
                         $cells = wf_TableCell($eachDebtor['contract']);
@@ -2050,7 +2055,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '30%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Connected'), '7%');
+                    $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
 
                     foreach ($tariffUsers[$_GET['showtariffusers']] as $io => $eachUser) {
@@ -2583,7 +2588,7 @@ class UkvSystem {
                $cells.= wf_TableCell(__('Real Name'), '30%');
                $cells.= wf_TableCell(__('Tariff'), '15%');
                $cells.= wf_TableCell(__('Cash'), '7%');
-               $cells.= wf_TableCell(__('Connected'), '7%');
+               $cells.= wf_TableCell(__('Status'), '7%');
                $rows = wf_TableRow($cells, 'row1');
      
                 foreach ($this->users as $io=>$eachUser) {
