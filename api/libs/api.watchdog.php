@@ -10,6 +10,7 @@ class WatchDog {
 
     private $taskData = array();
     private $oldResults = array();
+    private $curResults= array();
     private $settings = array();
 
     const PARAM_EX = 'NO_REQUIRED_TASK_PARAM_';
@@ -220,6 +221,19 @@ class WatchDog {
     private function setOldValue($taskID, $value) {
         simple_update_field('watchdog', 'oldresult', $value, "WHERE `id`='" . $taskID . "'");
     }
+    
+    /*
+     * Updates current run task results
+     * 
+     * @param $taskID - watchdog task id
+     * @param $value  - data to set as oldresult
+     * 
+     * @return void
+     */
+    
+     private function setCurValue($taskID, $value) {
+        $this->curResults[$taskID]=$value;
+    }
 
     /*
      * Execute some action for task
@@ -238,6 +252,7 @@ class WatchDog {
                         $result = zb_PingICMP($this->taskData[$taskID]['param']);
                         $storeValue = ($result) ? 'true' : 'false';
                         $this->setOldValue($taskID, $storeValue);
+                        $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "ICMPPING");
                     }
@@ -249,6 +264,7 @@ class WatchDog {
                         $command = $this->taskData[$taskID]['param'];
                         $result = shell_exec($command);
                         $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
                     } else {
                         throw new Exception(self::PARAM_EX . "SCRIPT");
                     }
@@ -269,6 +285,7 @@ class WatchDog {
                             }
                             $storeValue = ($result) ? 'true' : 'false';
                             $this->setOldValue($taskID, $storeValue);
+                            $this->setCurValue($taskID, $storeValue);
                         } else {
                             throw new Exception(self::PARAMFMT_EX . "TCPPING");
                         }
@@ -284,6 +301,7 @@ class WatchDog {
                         $traffData = simple_query($traffQuery);
                         $result = $traffData['SUM(`D0`+`U0`)'];
                         $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
                     } else {
                         throw new Exception(self::PARAM_EX . "GETUSERTRAFF");
                     }
@@ -294,6 +312,7 @@ class WatchDog {
                         $result = file_exists($this->taskData[$taskID]['param']);
                         $storeValue = ($result) ? 'true' : 'false';
                         $this->setOldValue($taskID, $storeValue);
+                        $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "FILEEXISTS");
                     }
@@ -476,9 +495,14 @@ class WatchDog {
                              $allNotifyEmails=  explode(',', $this->settings['WATCHDOG_EMAILS']);
                              if (!empty($allNotifyEmails)) {
                                   $notifyMessageMail=$this->settings['WATCHDOG_ALERT'].' '.$alertTaskName;
-                                  //attach old reslt to email if needed
-                                  if (ispos($taskActions, 'andresult')) {
+                                  //attach old result to email if needed
+                                  if (ispos($taskActions, 'oldresult')) {
                                    $notifyMessageMail.=' '.$this->taskData[$taskID]['oldresult']; 
+                                  }
+                                  
+                                  //attach current results
+                                  if (ispos($taskActions, 'andresult')) {
+                                   $notifyMessageMail.=' '.$this->curResults[$taskID]; 
                                   }
                                   
                                   foreach ($allNotifyEmails as $im=>$eachmail) {
@@ -524,11 +548,16 @@ class WatchDog {
                             
                             if (!empty($allNotifyPhones)) {
                                 $notifyMessage=$this->settings['WATCHDOG_ALERT'].' '.$alertTaskName;
-                                //attach old reslt to sms if needed
-                                if (ispos($taskActions, 'andresult')) {
+                                //attach old result to sms if needed
+                                if (ispos($taskActions, 'oldresult')) {
                                     $notifyMessage.=' '.$this->taskData[$taskID]['oldresult']; 
                                 }
-                            
+                                
+                                //attach current result to sms if needed
+                                if (ispos($taskActions, 'andresult')) {
+                                    $notifyMessage.=' '.$this->curResults[$taskID]; 
+                                }
+             
                                 foreach ($allNotifyPhones as $iu=>$eachmobile) {
                                    $this->sendSMS($eachmobile, $notifyMessage);
                                 }

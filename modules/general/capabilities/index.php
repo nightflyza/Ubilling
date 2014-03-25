@@ -118,6 +118,14 @@ class CapabilitiesDirectory {
       */
      public function render() {
          
+         //pagination processing
+         $totalcount=sizeof($this->availids);
+         if (!wf_CheckGet(array('page'))) {
+             $currPage=1; 
+         } else {
+             $currPage=vf($_GET['page'],3); 
+         }
+         
          $cells=  wf_TableCell(__('ID'));
          $cells.= wf_TableCell(__('Date'));
          $cells.= wf_TableCell(__('Address'));
@@ -149,7 +157,7 @@ class CapabilitiesDirectory {
                  if (cfr('ROOT')) {
                  $actions.=  wf_JSAlert("?module=capabilities&delete=".$each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')).' ';
                  }
-                 $actions.=  wf_JSAlert("?module=capabilities&edit=".$each['id'], web_edit_icon(), __('Are you serious'));
+                 $actions.=  wf_JSAlert("?module=capabilities&edit=".$each['id'].'&page='.$currPage, web_edit_icon(), __('Are you serious'));
                  
                  $cells=  wf_TableCell($each['id']);
                  $cells.= wf_TableCell($each['date']);
@@ -166,13 +174,7 @@ class CapabilitiesDirectory {
              }
          }
          
-         //pagination processing
-         $totalcount=sizeof($this->availids);
-         if (!wf_CheckGet(array('page'))) {
-             $currPage=1; 
-             } else {
-             $currPage=vf($_GET['page'],3); 
-             }
+   
          
           if ($totalcount > self::PER_PAGE) {
              $paginator=wf_pagination($totalcount, self::PER_PAGE, $currPage, "?module=capabilities",'ubButton');
@@ -266,7 +268,8 @@ class CapabilitiesDirectory {
      public function editForm($id) {
          $id=vf($id,3);
          $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
-         $result=  wf_Link('?module=capabilities', __('Back'), true, 'ubButton');
+         $curpage= (wf_CheckGet(array('page'))) ? vf($_GET['page'],3) : 1;
+         $result=  wf_Link('?module=capabilities&page='.$curpage, __('Back'), true, 'ubButton');
          $stateSelector=array();
          $employeeSelector=array();
          $employeeSelector['NULL']='-';

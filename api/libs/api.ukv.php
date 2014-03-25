@@ -14,6 +14,7 @@ class UkvSystem {
     protected $month = array();
     protected $contracts = array();
     protected $bankstarecords = array();
+    protected $bankstafoundusers = array();
 
     //static routing URLs
 
@@ -429,7 +430,7 @@ class UkvSystem {
         //push payment to user
         $newCashValue = $currentBalance + $summ;
         $this->userSetCash($userid, $newCashValue);
-
+        $this->users[$userid]['cash']=$newCashValue;
         log_register('UKV BALANCEADD ((' . $userid . ')) ON ' . $summ);
     }
 
@@ -1545,7 +1546,15 @@ class UkvSystem {
                         $cashPairs[$each['id']]['usercontract'] = $detectedUser['contract'];
                         $cashPairs[$each['id']]['summ'] = $each['summ'];
                     }
+                    
                     $rowClass = 'row3';
+                    //try to highlight multiple payments
+                    if (!isset($this->bankstafoundusers[$each['contract']])) {
+                        $this->bankstafoundusers[$each['contract']]=$detectedUser['id'];
+                    } else {
+                        $rowClass='ukvbankstadup';
+                    }
+                    
                 } else {
                     $detectedContract = '';
                     $detectedAddress = '';
