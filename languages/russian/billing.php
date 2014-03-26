@@ -1646,7 +1646,6 @@ $lang['def']['right to view UKV reports'] = 'Право просматриват
 $lang['def']['right to manage UKV users cash'] = 'Право управлять деньгами УКВ';
 $lang['def']['Switch ping custom script'] = 'Скрипт кастомного пинга свитчей';
 $lang['def']['right to delete UKV users'] = 'Право удалять пользователей УКВ';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 ?>

@@ -38,7 +38,8 @@ $tariffprice=zbs_UserGetTariffPrice($tariff);
 $cday=date("d");
 
 //welcome message
-$wmess=__('If you wait too long to pay for the service, here you can get credit for').' '.$sc_term.' '.__('days. The price of this service is').': '.$sc_price.' '.$us_currency;
+$wmess=__('If you wait too long to pay for the service, here you can get credit for').' '.$sc_term.' '.__('days. The price of this service is').': '.$sc_price.' '.$us_currency.'. ';
+$wmess.= __('Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
 show_window(__('Credits'),$wmess);
 //if day is something like that needed
 if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {

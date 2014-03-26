@@ -174,6 +174,6 @@ $lang['def']['Previous documents'] = 'Предыдущие документы';
 $lang['def']['No such document'] = 'Нету такого документа';
 $lang['def']['Not existing template'] = 'Нету такого шаблона';
  
-
+$lang['def']['Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Также вы обязываетесь оплатить услуги за текущий месяц в соответствии с вашим тарифным планом. Дополнительные услуги не подлежат кредитованию.';
 
 ?>
