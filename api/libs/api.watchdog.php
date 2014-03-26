@@ -226,7 +226,7 @@ class WatchDog {
      * Updates current run task results
      * 
      * @param $taskID - watchdog task id
-     * @param $value  - data to set as oldresult
+     * @param $value  - data to set as newresult
      * 
      * @return void
      */
