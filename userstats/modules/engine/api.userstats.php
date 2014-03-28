@@ -629,7 +629,7 @@ function zbs_UserShowProfile($login) {
                 
             <tr>
             <td class="row1">'.__('Tariff change').'</td>
-            <td>'.$userdata['TariffChange'].'</td>
+            <td>'.__($userdata['TariffChange']).'</td>
             </tr>
             
             <tr>
