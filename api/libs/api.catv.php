@@ -2007,9 +2007,11 @@ function catvbs_ParseRaw($rawid) {
            if (isset($rowsplit[$summ_offset])) {
                $realname=trim(strtolower_utf8($rowsplit[$realname_offset]));
                $address=trim(strtolower_utf8($rowsplit[$address_offset]));
+               $address=  mysql_real_escape_string($address);
                $realname=str_replace('  ', '', $realname);
-               $address=str_replace('  ', '', $address);
                $summ=trim($rowsplit[$summ_offset]);
+               $realname=mysql_real_escape_string($realname);
+               $address=str_replace('  ', '', $address);
                $query="INSERT INTO `catv_bankstaparsed` (
                         `id` ,
                         `hash` ,
