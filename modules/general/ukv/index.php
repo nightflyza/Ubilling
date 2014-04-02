@@ -1,5 +1,9 @@
 <?php
 if (cfr('UKV')) {
+    $altcfg=$ubillingConfig->getAlter();
+    if ($altcfg['UKV_ENABLED']) {
+        
+    
     set_time_limit(0);
   
     
@@ -184,7 +188,10 @@ if (cfr('UKV')) {
            }
        }
    }
-    
+   
+    } else {
+        show_window(__('Error'), __('This module is disabled'));
+    }
 } else {
     show_window(__('Error'), __('Access denied'));
 }

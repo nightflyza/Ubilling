@@ -8,6 +8,17 @@ function zb_CashGetUserBalance($login) {
     
 }
 
+   /*
+    * checks is input number valid money format or not?
+    * 
+    * @param $number an string to check
+    * 
+    * @return bool 
+    */
+   function zb_checkMoney($number) {
+        return preg_match("/^-?[0-9]+(?:\.[0-9]{1,2})?$/", $number);
+   }
+
 function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
     global $billing;
     $login = mysql_real_escape_string($login);

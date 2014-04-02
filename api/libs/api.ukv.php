@@ -2564,12 +2564,31 @@ class UkvSystem {
      * @return void
      */
     public function reportStreets() {
+        $ukvCities=array();
+        $ukvStreets=array();
+        //loads cities and streets occupied by UKV users
+        $ukvCities_q="SELECT DISTINCT `city` from `ukv_users` ORDER BY `city` ASC";
+        $ukvCitiesRaw=  simple_queryall($ukvCities_q);
+        if (!empty($ukvCitiesRaw)) {
+            foreach ($ukvCitiesRaw as $ieuc=>$euc) {
+                $ukvCities[$euc['city']]=$euc['city'];
+            }
+        }
         
+        $ukvStreets_q="SELECT DISTINCT `street` from `ukv_users` ORDER BY `street` ASC";
+        $ukvStreetsRaw=  simple_queryall($ukvStreets_q);
+        if (!empty($ukvStreetsRaw)) {
+            foreach ($ukvStreetsRaw as $ieus=>$eus) {
+                $ukvStreets[$eus['street']]=$eus['street'];
+            }
+        }
+        
+        //main codepart
         $citySelected=(wf_CheckPost(array('streetreportcity'))) ? $_POST['streetreportcity'] : '';
         $streetSelected=(wf_CheckPost(array('streetreportstreet'))) ? $_POST['streetreportstreet'] : '';
         
-        $inputs=  wf_Selector('streetreportcity', $this->cities, __('City'), $citySelected, false);
-        $inputs.= wf_Selector('streetreportstreet', $this->streets, __('Street'), $streetSelected, false);
+        $inputs=  wf_Selector('streetreportcity', $ukvCities, __('City'), $citySelected, false);
+        $inputs.= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false);
         $inputs.= wf_Submit(__('Show'));
         $form=  wf_Form('', 'POST', $inputs, 'glamour');
         

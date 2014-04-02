@@ -667,4 +667,63 @@ function la_DatePickerPreset($field,$date) {
 }
 
 
+
+function la_modal($link, $title, $content, $linkclass = '', $width = '',$height='') {
+
+    $wid = la_inputid();
+//    $content=  str_replace("'", '', $content);
+//    $content=  str_replace('"', '', $content);    
+//    $content=  str_replace('’', '', $content);   
+     
+    
+//setting link class
+    if ($linkclass != '') {
+        $link_class = 'class="' . $linkclass . '"';
+    } else {
+        $link_class = '';
+    }
+
+//setting auto width if not specified
+    if ($width == '') {
+        $width = '600';
+    }
+    
+//setting auto width if not specified
+    if ($height == '') {
+        $height = '400';
+    }    
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: false,
+			width: ' . $width . ',
+                        height: '.$height.',
+			modal: true,
+			show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        '.$content.'
+        </p>
+</div>
+
+<a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
+';
+
+    return($dialog);
+}
+
+
+
 ?>

@@ -149,7 +149,7 @@ if (cfr('REPORTCOMPLEX')) {
          */
 
         public function renderAll($cutdata = false) {
-            $alladdress = zb_AddressGetFulladdresslist();
+            $alladdress = zb_AddressGetFulladdresslistCached();
             $allrealnames = zb_UserGetAllRealnames();
             $userCounter = 0;
 
@@ -205,7 +205,7 @@ if (cfr('REPORTCOMPLEX')) {
          */
 
         public function renderDebtors($cutdata = false) {
-            $alladdress = zb_AddressGetFulladdresslist();
+            $alladdress = zb_AddressGetFulladdresslistCached();
             $allrealnames = zb_UserGetAllRealnames();
             $userCounter = 0;
 
@@ -225,7 +225,7 @@ if (cfr('REPORTCOMPLEX')) {
 
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
-                    if (($each['Cash'] < ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] == 1)) {
+                    if ( (($each['Cash'] < ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] == 1)) OR (($each['Passive']=='1') AND (@$this->actives[$each['login']] == 1))) {
                         $cells = '';
                         if (!$cutdata) {
                             $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
@@ -263,7 +263,7 @@ if (cfr('REPORTCOMPLEX')) {
          */
 
         public function renderAntiDebtors($cutdata = false) {
-            $alladdress = zb_AddressGetFulladdresslist();
+            $alladdress = zb_AddressGetFulladdresslistCached();
             $allrealnames = zb_UserGetAllRealnames();
             $userCounter = 0;
 

@@ -509,7 +509,15 @@ function zbs_UserShowProfile($login) {
     if ($us_config['OPENPAYZ_REALID']) {
         $paymentid=  zbs_PaymentIDGet($login);
     } else {
-        $paymentid=ip2int($userdata['IP']);
+        $paymentid=  ip2int($userdata['IP']);
+    }
+    
+    //payment id qr dialog
+    $paymentidqr='';
+    if (isset($us_config['PAYMENTID_QR'])) {
+        if ($us_config['PAYMENTID_QR']) {
+            $paymentidqr=  la_modal('<img src=iconz/qrcode.png title=QR-code>', __('Payment ID'), '<center><img src="qrgen.php?data='.$paymentid.'"></center>','','300','250');
+        }
     }
     
     //draw order link
@@ -592,7 +600,7 @@ function zbs_UserShowProfile($login) {
             
             <tr>
             <td class="row1"><abbr title="'.__('Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals').'">'.__('Payment ID').'</abbr></td>
-            <td>'.$paymentid.'</td>
+            <td>'.$paymentid.' '.$paymentidqr.'</td>
             </tr>
             
             <tr>

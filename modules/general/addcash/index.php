@@ -14,14 +14,20 @@ if ( cfr('CASH') ) {
 
             // Empty cash hotfix:
             if ( $cash != '' ) {
+                if (zb_checkMoney($cash)) {
                 if ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) {
                     zb_CashAddWithSignup($login, $cash, $operation, $cashtype, $note);
                 } else {
                     zb_CashAdd($login, $cash, $operation, $cashtype, $note);
                 }
                 rcms_redirect("?module=addcash&username=" . $login);
+                } else {
+                    show_window('',  wf_modalOpened(__('Error'), __('Wrong format of a sum of money to pay'), '400', '200'));
+                    log_register('BALANCEADDFAIL ('.$login.') WRONG SUMM `'.$cash.'`');
+                }
             } else {
                 show_window('', wf_modalOpened(__('Error'), __('You have not completed the required amount of money to deposit into account. We hope next time you will be more attentive.'), '400', '150'));
+                log_register('BALANCEADDFAIL ('.$login.') EMPTY SUMM `'.$cash.'`');
             }
         }
 
