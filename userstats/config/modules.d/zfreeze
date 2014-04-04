@@ -1,1 +1,2 @@
-Account freezing
+NAME="Account freezing"
+NEED="AF_ENABLED"

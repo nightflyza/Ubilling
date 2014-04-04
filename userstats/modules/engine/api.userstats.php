@@ -753,8 +753,6 @@ function zbs_CashGetUserPayments($login) {
 function zbs_ModulesMenuShow ($icons=false) {
     $globconf=zbs_LoadConfig();
     $maxnoicon=$globconf['MENUNOICONMAX'];
-    $menuhide=$globconf['MENUHIDE'];
-    $menuhide=explode(',', $menuhide);
     
     $mod_path="config/modules.d/";
     $all_modules=rcms_scandir($mod_path);
@@ -772,20 +770,26 @@ function zbs_ModulesMenuShow ($icons=false) {
                 $iconlink='';
             }
             if (!$icons) {
-            if ($count<=$maxnoicon) {
-              if (!in_array($eachmodule, $menuhide)) { // hide some modules
-              $mod_name=trim(file_get_contents($mod_path.$eachmodule));
-              $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+            if ($count<$maxnoicon) {
+              $mod_data= parse_ini_file($mod_path.$eachmodule);
+              $mod_name=__($mod_data['NAME']);
+              $mod_need=isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
+              if (($globconf[$mod_need]) OR (empty($mod_need))) {
+              $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.$mod_name.'</a></li>';
+              $count++;
               }
              }
             } else {
-             if (!in_array($eachmodule, $menuhide)) {   // hide some modules
-             $mod_name=trim(file_get_contents($mod_path.$eachmodule));
-             $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
-               }
+             $mod_data= parse_ini_file($mod_path.$eachmodule);
+             $mod_name=__($mod_data['NAME']);
+             $mod_need=isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
+             if (($globconf[$mod_need]) OR (empty($mod_need))) {
+              $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+              $count++;
+             } 
             }
                 
-            $count++;
+            
         }
     }
     return($result);   
