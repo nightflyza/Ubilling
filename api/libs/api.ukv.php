@@ -799,6 +799,22 @@ class UkvSystem {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         return ($result);
     }
+    
+    /*
+     * checks is user contract unique
+     * 
+     * @param $contract - contract number to check
+     * 
+     * @return bool
+     */
+    protected function checkContract($contract) {
+        if (isset($this->contracts[$contract])) {
+            $result=false;
+        } else {
+            $result=true;
+        }
+        return ($result);
+    }
 
     /*
      * saves some user params into database
@@ -859,8 +875,13 @@ class UkvSystem {
             //saving contract
             if ($this->users[$userId]['contract'] != $_POST['ueditcontract']) {
                 $newContract = trim($_POST['ueditcontract']);
-                simple_update_field($tablename, 'contract', $newContract, $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE CONTRACT `' . $newContract . '`');
+                if ($this->checkContract($newContract)) {
+                    simple_update_field($tablename, 'contract', $newContract, $where);
+                    log_register('UKV USER ((' . $userId . ')) CHANGE CONTRACT `' . $newContract . '`');
+                } else {
+                    log_register('UKV USER ((' . $userId . ')) CHANGE FAIL CONTRACT `' . $newContract . '` DUPLICATE');
+                }
+                
             }
 
             //saving tariff

@@ -3678,3 +3678,31 @@ function zb_CheckDbSchema() {
       }
       return ($result);
   }
+  
+  
+     function zb_TariffGetPeriodsAll() {
+     $result=array();
+     $dbSchema=  zb_CheckDbSchema();
+            if ($dbSchema>0) {
+                //stargazer >= 2.409
+                $query="SELECT `name`,`period` from `tariffs`";
+                $all=simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io=>$eachtariff) {
+                        $result[$eachtariff['name']]=$eachtariff['period'];
+                    }
+                }
+            } else {
+                //stargazer 2.408
+                $query="SELECT `name` from `tariffs`";
+                $all=simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io=>$eachtariff) {
+                        $result[$eachtariff['name']]='month';
+                    }
+                }
+            }   
+    
+    
+    return ($result);
+ }  

@@ -63,6 +63,8 @@ if (cfr('TURBOSMS')) {
         $td_realnames=  zb_UserGetAllRealnames();
         $td_realnamestrans=  tsms_RealnamesTranslit($td_realnames);
         $td_tariffprices=  zb_TariffGetPricesAll();
+        $td_tariffperiods= zb_TariffGetPeriodsAll();
+        
         $td_curdate=  curdate();
         $td_users=  tsms_UserGetAllStargazerData();
         $td_mobiles=  tsms_GetAllMobileNumbers();
@@ -92,7 +94,7 @@ if (cfr('TURBOSMS')) {
         }
         
         function tsms_UserFilter($type) {
-            global $td_mobiles,$td_users,$td_tariffprices;
+            global $td_mobiles,$td_users,$td_tariffprices,$td_tariffperiods;
             $result=array();
             
             //debtors filter
@@ -117,9 +119,28 @@ if (cfr('TURBOSMS')) {
                     if (tsms_CheckMobile($userMobile)) {
                         $userTariff=$data['Tariff'];
                         $userTariffPrice=$td_tariffprices[$userTariff];
-                        $dayprice=$userTariffPrice/30;
+                        $userTariffPeriod=$td_tariffperiods[$userTariff];
+                        if ($userTariffPeriod=='month') {
+                            $dayprice=$userTariffPrice/30;
+                        } else {
+                            $dayprice=$userTariffPrice;
+                        }
                         $fiveDayPrice=$dayprice*5;
                         if (($data['Cash']<$fiveDayPrice) AND ($data['Cash']>=0)) {
+                            $result[$login]=$userMobile;
+                        }
+                    }
+                }
+                }
+            }
+            
+            //cash == 0
+            if ($type=='msendzero') {
+              if (!empty($td_users)) {
+                foreach ($td_users as $login=>$data) {
+                    @$userMobile=$td_mobiles[$login];
+                    if (tsms_CheckMobile($userMobile)) {
+                        if ($data['Cash']==0) {
                             $result[$login]=$userMobile;
                         }
                     }
@@ -188,6 +209,7 @@ if (cfr('TURBOSMS')) {
         function web_TsmsMassendForm() {
             $inputs=   wf_RadioInput('msendtype', __('Debtors with balance less then 0'), 'msenddebtors', true, true);
             $inputs.=  wf_RadioInput('msendtype', __('Users who have money left for 5 days'), 'msendless5', true, false);
+            $inputs.=  wf_RadioInput('msendtype', __('Users who have zero balance'), 'msendzero', true, false);
             $inputs.=  wf_RadioInput('msendtype', __('All users with mobile'), 'msendall', true, false);
             $inputs.=  wf_Submit(__('Search'));
             $result=  wf_Form("", "POST", $inputs, 'glamour');

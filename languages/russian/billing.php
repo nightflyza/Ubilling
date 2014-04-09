@@ -1647,5 +1647,12 @@ $lang['def']['right to manage UKV users cash'] = 'Право управлять 
 $lang['def']['Switch ping custom script'] = 'Скрипт кастомного пинга свитчей';
 $lang['def']['right to delete UKV users'] = 'Право удалять пользователей УКВ';
 
+//rev 3439
+$lang['def']['Users who have zero balance'] = 'Пользователи с нулевым балансом';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 ?>
