@@ -1099,3 +1099,6 @@ CREATE TABLE IF NOT EXISTS `signup_prices_users` (
   `price` double NOT NULL,
   PRIMARY KEY (`login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 0.5.3 update
+ALTER TABLE `employee` ADD `admlogin` VARCHAR( 255 ) NULL DEFAULT NULL AFTER `mobile`;

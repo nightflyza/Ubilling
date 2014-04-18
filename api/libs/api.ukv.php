@@ -2556,12 +2556,13 @@ class UkvSystem {
                     $rowsf.= wf_TableRow($cells, 'row3');
                     $feesCount++;
                     $feesSumm=$feesSumm+$eachPayment['summ'];
-                    $csvData.=$eachPayment['id'].';'.$eachPayment['date'].';'.$eachPayment['summ'].';'.$userAddress.';'.$userRealName."\n";
+                    $csvData.=$eachPayment['id'].';'.$eachPayment['date'].';'.$eachPayment['summ'].';'.$userAddress.';'.$userRealName."\r"."\n";
                    }
                }
                
                //saving downloadable report
                $csvSaveName=$searchFees.'_ukvfeesreport.csv';
+               $csvData=  iconv('utf-8', 'windows-1251', $csvData);
                file_put_contents('exports/'.$csvSaveName, $csvData);
                $downloadLink=  wf_Link(self::URL_REPORTS_MGMT.'reportFees&downloadfeereport='.base64_encode($csvSaveName), wf_img('skins/excel.gif', __('Download')), false);
                

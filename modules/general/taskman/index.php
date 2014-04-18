@@ -1,8 +1,6 @@
 <?php
 if(cfr('TASKMAN')) {
     
-  
-    
     //if someone creates new task
     if (isset($_POST['createtask'])) {
     if (wf_CheckPost(array('newstartdate','newtaskaddress','newtaskphone'))) {

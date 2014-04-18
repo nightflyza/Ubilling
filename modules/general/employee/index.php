@@ -3,7 +3,7 @@
 if (cfr('EMPLOYEE')) {
 
    if (wf_CheckPost(array('addemployee','employeename'))) {
-   em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile']);
+   em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'],@$_POST['employeeadmlogin']);
    rcms_redirect("?module=employee");
    }
    
@@ -49,13 +49,14 @@ if (cfr('EMPLOYEE')) {
        }
        
    } else {
-       $editemployee=vf($_GET['edit']);
+       $editemployee=vf($_GET['edit'],3);
        
        //if someone editing employee
        if (isset($_POST['editname'])) {
            simple_update_field('employee', 'name', $_POST['editname'], "WHERE `id`='".$editemployee."'");
            simple_update_field('employee', 'appointment', $_POST['editappointment'], "WHERE `id`='".$editemployee."'");
            simple_update_field('employee', 'mobile', $_POST['editmobile'], "WHERE `id`='".$editemployee."'");
+           simple_update_field('employee', 'admlogin', $_POST['editadmlogin'], "WHERE `id`='".$editemployee."'");
            
            if (wf_CheckPost(array('editactive'))) {
                simple_update_field('employee', 'active', '1', "WHERE `id`='".$editemployee."'");
@@ -77,6 +78,7 @@ if (cfr('EMPLOYEE')) {
        $editinputs=wf_TextInput('editname','Real Name' , $employeedata['name'], true, 20);
        $editinputs.=wf_TextInput('editappointment','Appointment' , $employeedata['appointment'], true, 20);
        $editinputs.=wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
+       $editinputs.=wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
        $editinputs.=wf_CheckInput('editactive', 'Active', true, $actflag);
        $editinputs.=wf_Submit('Save');
        $editform=wf_Form('', 'POST', $editinputs, 'glamour');

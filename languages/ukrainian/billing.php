@@ -1660,4 +1660,9 @@ $lang['def']['right to manage UKV users cash'] = 'Право керувати г
 $lang['def']['Switch ping custom script'] = 'Скрипт кастомного опиту комутаторів';
 $lang['def']['right to delete UKV users'] = 'Право видаляти користувачів УКВ';
 
+//rev 3439
+$lang['def']['Users who have zero balance'] = 'Користувачі з нульовим балансом';
+$lang['def']['Show tasks for all users'] = 'Показати задачі для всіх працівників';
+$lang['def']['Show only mine tasks'] = 'Показати задачі тільки для мене';
+
 ?>

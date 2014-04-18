@@ -9,6 +9,7 @@
      $cells.= wf_TableCell(__('Active'));
      $cells.= wf_TableCell(__('Appointment'));
      $cells.= wf_TableCell(__('Mobile'));
+     $cells.= wf_TableCell(__('Administrator'));
      $cells.= wf_TableCell(__('Actions'));
      $rows  = wf_TableRow($cells, 'row1');
      
@@ -19,6 +20,7 @@
              $cells.= wf_TableCell(web_bool_led($eachemployee['active']));
              $cells.= wf_TableCell($eachemployee['appointment']);
              $cells.= wf_TableCell($eachemployee['mobile']);
+             $cells.= wf_TableCell($eachemployee['admlogin']);
              $actions=  wf_JSAlert('?module=employee&delete='.$eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
              $actions.= wf_JSAlert('?module=employee&edit='.$eachemployee['id'], web_edit_icon(), 'Are you serious');
              $cells.= wf_TableCell($actions);
@@ -34,6 +36,7 @@
      $inputs.= wf_TableCell('');
      $inputs.= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
      $inputs.= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
+     $inputs.= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
      $inputs.= wf_TableCell(wf_Submit(__('Create')));
      $inputs=  wf_TableRow($inputs, 'row2');
      $addForm=  wf_Form("", 'POST', $inputs, '');
@@ -78,20 +81,23 @@ function em_JobTypeForm() {
       show_window(__('Job types'),$result);
    }
 
-function em_EmployeeAdd($name,$job,$mobile='') {
+function em_EmployeeAdd($name,$job,$mobile='',$admlogin='') {
         $name=mysql_real_escape_string(trim($name));
         $job=mysql_real_escape_string(trim($job));
         $mobile=  mysql_real_escape_string($mobile);
+        $admlogin=  mysql_real_escape_string($admlogin);
+        
         $query="
             INSERT INTO `employee` (
                 `id` ,
                 `name` ,
                 `appointment`,
                 `mobile`,
+                `admlogin`,
                 `active`
                 )
                 VALUES (
-                NULL , '".$name."', '".$job."','".$mobile."' , '1'
+                NULL , '".$name."', '".$job."','".$mobile."', '".$admlogin."' , '1'
                 );
                 ";
 
@@ -362,10 +368,21 @@ function ts_DetectUserByAddress($address) {
         $alljobtypes= ts_GetAllJobtypes();
         $curyear=curyear();
         $curmonth=date("m");
-        if (($curmonth!=1) AND ($curmonth!=12))  {
-            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        
+        //per employee filtering
+        $displaytype =  (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+        if ($displaytype=='onlyme') {
+            $whoami=whoami();
+            $curempid=  ts_GetEmployeeByLogin($whoami);
+            $appendQuery=" AND `employee`='".$curempid."'";
         } else {
-            $query="SELECT * from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+            $appendQuery='';
+        }
+        
+        if (($curmonth!=1) AND ($curmonth!=12))  {
+            $query="SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '".$curyear."-%' ".$appendQuery." ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` WHERE `status`='0' ".$appendQuery." ORDER BY `date` ASC";
         }
         
         $allundone=  simple_queryall($query);
@@ -412,10 +429,21 @@ function ts_DetectUserByAddress($address) {
         
         $curyear=curyear();
         $curmonth=date("m");
-        if (($curmonth!=1) AND ($curmonth!=12))  {
-            $query="SELECT * from `taskman` WHERE `status`='1' AND `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        
+        //per employee filtering
+        $displaytype =  (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+        if ($displaytype=='onlyme') {
+            $whoami=whoami();
+            $curempid=  ts_GetEmployeeByLogin($whoami);
+            $appendQuery=" AND `employee`='".$curempid."'";
         } else {
-            $query="SELECT * from `taskman` WHERE `status`='1' ORDER BY `date` ASC";
+            $appendQuery='';
+        }
+        
+        if (($curmonth!=1) AND ($curmonth!=12))  {
+            $query="SELECT * from `taskman` WHERE `status`='1' AND `startdate` LIKE '".$curyear."-%' ".$appendQuery." ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` WHERE `status`='1' ".$appendQuery." ORDER BY `date` ASC";
         }
         
         $allundone=  simple_queryall($query);
@@ -461,10 +489,20 @@ function ts_DetectUserByAddress($address) {
         $curyear=curyear();
         $curmonth=date("m");
         
-        if (($curmonth!=1) AND ($curmonth!=12))  {
-            $query="SELECT * from `taskman` WHERE `startdate` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+         //per employee filtering
+        $displaytype =  (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
+        if ($displaytype=='onlyme') {
+            $whoami=whoami();
+            $curempid=  ts_GetEmployeeByLogin($whoami);
+            $appendQuery=" AND `employee`='".$curempid."'";
         } else {
-            $query="SELECT * from `taskman` ORDER BY `date` ASC";
+            $appendQuery='';
+        }
+        
+        if (($curmonth!=1) AND ($curmonth!=12))  {
+            $query="SELECT * from `taskman` WHERE `startdate` LIKE '".$curyear."-%' ".$appendQuery." ORDER BY `date` ASC";
+        } else {
+            $query="SELECT * from `taskman` ".$appendQuery." ORDER BY `date` ASC";
         }
      
         $allundone=  simple_queryall($query);
@@ -643,6 +681,20 @@ function ts_DetectUserByAddress($address) {
         $result.=wf_Link('?module=taskman&show=all', __('List all tasks'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&lateshow=true', __('Show late'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&print=true', __('Tasks printing'), false, 'ubButton');
+        
+        //show type selector
+        $whoami=whoami();
+        $employeeid=  ts_GetEmployeeByLogin($whoami);
+        if ($employeeid) { 
+            $result.=wf_delimiter();
+            $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '' ;
+            $displayTypes=array('all'=>__('Show tasks for all users'),'onlyme'=>__('Show only mine tasks'));
+            $inputs=  wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+            $inputs.= wf_Submit('Show');
+            $showTypeForm=  wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=$showTypeForm;
+        } 
+        
         return ($result);
     }
     
@@ -1119,6 +1171,25 @@ function ts_DetectUserByAddress($address) {
         
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');
         return ($result);
+  }
+  
+  /*
+   * Gets employee by administrator login
+   * 
+   * @param $login logged in administrators login
+   * 
+   * @return mixed 
+   */
+  function ts_GetEmployeeByLogin($login) {
+      $login=  mysql_real_escape_string($login);
+      $query="SELECT `id` from `employee` WHERE `admlogin`='".$login."'";
+      $raw=  simple_query($query);
+      if (!empty($raw)) {
+          $result=$raw['id'];
+      } else {
+          $result=false;
+      }
+      return ($result);
   }
 
 ?>
