@@ -16,7 +16,7 @@ function zb_CashGetUserBalance($login) {
     * @return bool 
     */
    function zb_checkMoney($number) {
-        return preg_match("/^-?[0-9]+(?:\.[0-9]{1,2})?$/", $number);
+        return preg_match("/^-?[0-9]+(?:\.[0-9]{1,9})?$/", $number);
    }
 
 function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {

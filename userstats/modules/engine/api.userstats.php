@@ -774,7 +774,7 @@ function zbs_ModulesMenuShow ($icons=false) {
               $mod_data= parse_ini_file($mod_path.$eachmodule);
               $mod_name=__($mod_data['NAME']);
               $mod_need=isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
-              if (($globconf[$mod_need]) OR (empty($mod_need))) {
+              if ((@$globconf[$mod_need]) OR (empty($mod_need))) {
               $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.$mod_name.'</a></li>';
               $count++;
               }
@@ -783,7 +783,7 @@ function zbs_ModulesMenuShow ($icons=false) {
              $mod_data= parse_ini_file($mod_path.$eachmodule);
              $mod_name=__($mod_data['NAME']);
              $mod_need=isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
-             if (($globconf[$mod_need]) OR (empty($mod_need))) {
+             if ((@$globconf[$mod_need]) OR (empty($mod_need))) {
               $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
               $count++;
              } 
