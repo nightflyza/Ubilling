@@ -145,6 +145,8 @@ function zb_AskoziaParseCallHistory($data) {
        $rows=  wf_TableRow($cells, 'row1');
        
        foreach ($normalData as $io=>$each) {
+           //fix parsing for askozia 2.2.8
+           if (sizeof($each)>9) {
            $callsCounter++;
            $debugData= wf_tag('pre').print_r($each, true).  wf_tag('pre', true);
            
@@ -257,6 +259,7 @@ function zb_AskoziaParseCallHistory($data) {
 
            
            $rows.= wf_TableRow($cells, 'row3');
+        }
        }
        
        
