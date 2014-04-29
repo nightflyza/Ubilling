@@ -107,7 +107,7 @@ function zb_AskoziaParseCallHistory($data) {
    $data=  explodeRows($data);
    if (!empty($data)) {
        foreach ($data as $eachline) {
-           $explode=  explode(',"', $eachline);
+           $explode=  explode(';', $eachline); //in 2.2.8 delimiter changed from ," to ;
            if (!empty($eachline)) {
                $normalData[]=  str_replace('"', '', $explode);
            }
@@ -146,7 +146,7 @@ function zb_AskoziaParseCallHistory($data) {
        
        foreach ($normalData as $io=>$each) {
            //fix parsing for askozia 2.2.8
-           if (sizeof($each)>9) {
+           if ($each[0]!='accountcode') {
            $callsCounter++;
            $debugData= wf_tag('pre').print_r($each, true).  wf_tag('pre', true);
            
