@@ -263,6 +263,7 @@ class WatchDog {
                     if (!empty($this->taskData[$taskID]['param'])) {
                         $command = $this->taskData[$taskID]['param'];
                         $result = shell_exec($command);
+                        $result = trim($result);
                         $this->setOldValue($taskID, $result);
                         $this->setCurValue($taskID, $result);
                     } else {
@@ -399,7 +400,7 @@ class WatchDog {
                     $currentValue = $this->doAction($taskID);
                     $currentValue = trim($currentValue);
                     if ($currentValue < $this->taskData[$taskID]['condition']) {
-                        return (false);
+                        return (true);
                     } else {
                         return (false);
                     }
@@ -487,7 +488,18 @@ class WatchDog {
                     /* different actions handling */
                     // system log write
                     if (ispos($taskActions, 'log')) {
-                        log_register("WATCHDOG NOTIFY THAT `" . $alertTaskName . "`");
+                        $notifyLogMessage='WATCHDOG NOTIFY THAT `'.$alertTaskName;
+                                  //attach old result to log message if needed
+                                  if (ispos($taskActions, 'oldresult')) {
+                                   $notifyLogMessage.=' '.$this->taskData[$taskID]['oldresult']; 
+                                  }
+                                  
+                                  //attach current results to log message
+                                  if (ispos($taskActions, 'andresult')) {
+                                   $notifyLogMessage.=' '.$this->curResults[$taskID]; 
+                                  }
+                        $notifyLogMessage.='`';
+                        log_register($notifyLogMessage);
                     }
                     //send emails with alerts
                     if (ispos($taskActions, 'email')) {
