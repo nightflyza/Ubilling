@@ -762,7 +762,7 @@ function zbs_ModulesMenuShow ($icons=false) {
         foreach ($all_modules as $eachmodule) {
             if ($icons==true) {
                 if (file_exists("iconz/".$eachmodule.".gif")) {
-                    $iconlink=' <img src="iconz/'.$eachmodule.'.gif"> ';
+                    $iconlink=' <img src="iconz/'.$eachmodule.'.gif" class="menuicon"> ';
                 } else {
                     $iconlink='';
                 }
@@ -784,7 +784,7 @@ function zbs_ModulesMenuShow ($icons=false) {
              $mod_name=__($mod_data['NAME']);
              $mod_need=isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
              if ((@$globconf[$mod_need]) OR (empty($mod_need))) {
-              $result.='<li><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
+              $result.='<li class="menublock"><a href="?module='.$eachmodule.'">'.$iconlink.''.__($mod_name).'</a></li>';
               $count++;
              } 
             }
@@ -1062,4 +1062,22 @@ function zbs_StorageGet($key) {
     }
     return ($result);
 }
+
+function zbs_IspLogoShow() {
+    $usConf = zbs_LoadConfig();
+    $result = '';
+    if (isset($usConf['ISP_LOGO'])) {
+    if ((!empty($usConf['ISP_NAME'])) AND ( !empty($usConf['ISP_URL'])) AND ( (!empty($usConf['ISP_LOGO'])))) {
+        $rawUrl = strtolower($usConf['ISP_URL']);
+        if (stripos($rawUrl, 'http') === false) {
+            $rawUrl = 'http://' . $rawUrl;
+        } else {
+            $rawUrl = $rawUrl;
+        }
+        $result = '<a href="' . $rawUrl . '"><img src="' . $usConf['ISP_LOGO'] . '" title="' . $usConf['ISP_NAME'] . '"></a>';
+    }
+    }
+    return ($result);
+}
+
 ?>
