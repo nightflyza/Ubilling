@@ -182,7 +182,7 @@ class UbillingConfig {
      * @return void
      */
     protected function loadBilling() {
-        $this->alterBilling=  rcms_parse_ini_file(CONFIG_PATH.'billing.ini');
+        $this->billingCfg=  rcms_parse_ini_file(CONFIG_PATH.'billing.ini');
     }
     
     /*
