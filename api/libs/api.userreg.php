@@ -164,6 +164,12 @@ function zb_AllBusyLogins() {
             return ($result);
 }
 
+function zb_RegLoginFilter($login) {
+    $login=str_replace(' ', '_', $login);
+    $result= preg_replace("#[^a-z0-9A-Z_]#Uis",'',$login);
+    return ($result);
+}
+
 function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal,$agentid='') {
     $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
     $result='';
@@ -172,13 +178,13 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
         //default address based generation
         if ($type=='DEFAULT') {
              $result=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
-             $result= str_replace(' ', '_', $result);
+             $result=  zb_RegLoginFilter($result);
         }
         
         //same as default but without random
         if ($type=='ONLYADDRESS') {
              $result=$cityalias.$streetalias.$buildnum.'ap'.$apt;
-             $result= str_replace(' ', '_', $result);
+             $result=  zb_RegLoginFilter($result);
         }
         
         //use an timestamp
@@ -286,7 +292,7 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
         /////  if wrong option - use DEFAULT
         if (empty($result)) {
              $result=$cityalias.$streetalias.$buildnum.'ap'.$apt.'_'.zb_rand_string();
-             $result= str_replace(' ', '_', $result);
+             $result=  zb_RegLoginFilter($result);
         }
         
     } else {

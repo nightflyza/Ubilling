@@ -1074,7 +1074,7 @@ function zbs_IspLogoShow() {
         } else {
             $rawUrl = $rawUrl;
         }
-        $result = '<a href="' . $rawUrl . '"><img src="' . $usConf['ISP_LOGO'] . '" title="' . $usConf['ISP_NAME'] . '"></a>';
+        $result = '<a href="' . $rawUrl . '" target="_BLANK"><img src="' . $usConf['ISP_LOGO'] . '" title="' . $usConf['ISP_NAME'] . '"></a>';
     }
     }
     return ($result);
