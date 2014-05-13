@@ -1080,4 +1080,31 @@ function zbs_IspLogoShow() {
     return ($result);
 }
 
+function zbs_CustomBackground() {
+    $usConf = zbs_LoadConfig();
+    $tilesPath='tiles/';
+    $result='';
+    if (isset($usConf['BACKGROUND'])) {
+        if (($usConf['BACKGROUND']!='DEFAULT') AND (!empty($usConf['BACKGROUND']))) {
+         $customBackground=$usConf['BACKGROUND'];
+         $availTiles=  rcms_scandir($tilesPath);
+         $availTiles= array_flip($availTiles);
+         
+         if ($customBackground=='RANDOM') {
+             $customBackground=  array_rand($availTiles);
+         }
+         
+         if (isset($availTiles[$customBackground])) {
+            $result='<style> body { background: #080808 url('.$tilesPath.'/'.$customBackground.') repeat; } </style> ';
+         } else {
+            $result='<!-- Custom background tile file not found -->'; 
+         }
+         
+        }
+        
+    }
+    
+    return ($result);
+}
+
 ?>
