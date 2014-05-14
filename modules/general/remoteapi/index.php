@@ -317,6 +317,43 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                             die('ERROR:NO_AUTOFREEZE_CASH_LIMIT');
                         }   
                        }
+                       
+                       /*
+                        * auto freezing call which use AUTOFREEZE_CASH_LIMIT as month count
+                        */
+                        if ($_GET['action']=='autofreezemonth') {
+                        if (isset($alterconf['AUTOFREEZE_CASH_LIMIT'])) {
+                            $tariffPrices=  zb_TariffGetPricesAll();
+                            $tariffPriceMultiplier=$alterconf['AUTOFREEZE_CASH_LIMIT'];
+                            $autoFreezeQuery="SELECT * from `users` WHERE `Passive`='0' AND `Credit`='0';";
+                            $allUsersToFreeze=  simple_queryall($autoFreezeQuery);
+                            $freezeCount=0;
+                            if (!empty($allUsersToFreeze)) {
+                                foreach ($allUsersToFreeze as $efuidx=>$eachfreezeuser) {
+                                    $freezeLogin=$eachfreezeuser['login'];
+                                    $freezeCash=$eachfreezeuser['Cash'];
+                                    $freezeUserTariff=$eachfreezeuser['Tariff'];
+                                    if (isset($tariffPrices[$freezeUserTariff])) {
+                                    $freezeUserTariffPrice=$tariffPrices[$freezeUserTariff];
+                                    $tariffFreezeLimit='-'.($freezeUserTariffPrice*$tariffPriceMultiplier);
+                                    if ($freezeCash<=$tariffFreezeLimit) {
+                                     $billing->setpassive($freezeLogin,'1');
+                                     log_register('AUTOFREEZE ('.$freezeLogin.') ON BALANCE '.$freezeCash);
+                                     $freezeCount++;
+                                     }
+                                    }
+                                }
+                                log_register('AUTOFREEZE DONE COUNT `'.$freezeCount.'`');
+                                die('OK:AUTOFREEZE');
+                            } else {
+                                die('OK:NO_USERS_TO_AUTOFREEZE');
+                            }
+                        } else {
+                            die('ERROR:NO_AUTOFREEZE_CASH_LIMIT');
+                        }   
+                       }
+                       
+                       
                       /*
                        * Watchdog tasks processing
                        */         
@@ -362,7 +399,23 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
           }
         
     } else {
+        /*
+        * Ubilling instance identify handler
+        */
+        if (isset($_GET['action'])) {
+         if ($_GET['action']=='identify') {
+          $idhostid_q="SELECT * from `ubstats` WHERE `key`='ubid'";
+          $idhostid=simple_query($idhostid_q);
+          if (!empty($idhostid)) {
+              $idserial=$idhostid['value'];
+              die(substr($idserial,-4));
+          } else {
+              die('ERROR:NO_UB_SERIAL_GENERATED');
+          }
+         }
+        } else {
         die('ERROR:GET_NO_KEY');
+        }
     }
 } else {
     die('ERROR:API_DISABLED');
