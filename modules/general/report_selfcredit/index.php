@@ -2,6 +2,9 @@
 
 if (cfr('SCREPORT')) {
 
+    $altCfg=$ubillingConfig->getAlter();
+    if ($altCfg['SCREP_ENABLED']) { 
+    
     class ReportSelfCredit {
 
         private $data = array();
@@ -240,7 +243,9 @@ if (cfr('SCREPORT')) {
         show_window(__('Self credit dynamic over the year').' '.$screport->getYear(),$screport->renderMonthGraph());
     }
     
-    
+    } else {
+        show_window(__('Error'), __('This module is disabled'));
+    }  
     
 } else {
     show_error(__('You cant control this module'));

@@ -50,11 +50,11 @@ function zbs_UserGetLoginByIp($ip) {
                  rcms_redirect($glob_conf['authfailredir']);
                  die('Unknown user');
              } else {
-                 die('Unknown user');
+                 die('Unknown user EX_EMPTY_AUTHFAILREDIR');
              }
               
           } else {
-          die('Unknown user');    
+          die('Unknown user EX_NO_AUTHFAILREDIR_DEFINED');    
           }
           
         }

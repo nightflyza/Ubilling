@@ -1102,3 +1102,12 @@ CREATE TABLE IF NOT EXISTS `signup_prices_users` (
 
 -- 0.5.3 update
 ALTER TABLE `employee` ADD `admlogin` VARCHAR( 255 ) NULL DEFAULT NULL AFTER `mobile`;
+
+-- 0.5.4 update
+CREATE TABLE IF NOT EXISTS `zbssclog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `login` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

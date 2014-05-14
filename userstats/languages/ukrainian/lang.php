@@ -41,7 +41,7 @@ $lang['def']['You can take a credit only between'] = 'Ви можете скор
 $lang['def'][' and '] = ' та ';
 $lang['def']['days of month'] = 'днями місяця';
 $lang['def']['Unfortunately self credits is disabled'] = 'На жаль, послугу кредитування зараз вимкнено';
-$lang['def']['I am sure that I am an adult and have read everything that is written above'] = 'Я впевнений в тому, що я повнолітній та уважно прочитав усе, що написано вище';
+$lang['def']['I am sure that I am an adult and have read everything that is written above'] = 'Я впевнений в тому, що я повнолітній та уважно прочитав усе, що написано вище, та погоджуюсь з умовами.';
 $lang['def']['Take me credit please'] = 'Пустіть мене в інтернет на хрестик';
 $lang['def']['Error'] = 'Помилка';
 $lang['def']['You must accept our policy'] = 'Ви повинні погодитись з умовами вище';
@@ -178,4 +178,5 @@ $lang['def']['Not existing template'] = 'Немає такого шаблона'
 
 $lang['def']['Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Також ви зобов`язуєтесь оплатити послуги за поточний місяць у повному обсязі, відповідно до вашого тарифного плану. Додаткові послуги не підлягають кредитуванню.';
 
+$lang['def']['You already used credit feature in current month. Only one usage per month is allowed.']='Ви вже використовували послугу кредитуванням протягом поточного місяця. Функція доступна тільки один раз на місяць.';
 ?>
