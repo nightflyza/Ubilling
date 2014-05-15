@@ -336,7 +336,7 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                                     if (isset($tariffPrices[$freezeUserTariff])) {
                                     $freezeUserTariffPrice=$tariffPrices[$freezeUserTariff];
                                     $tariffFreezeLimit='-'.($freezeUserTariffPrice*$tariffPriceMultiplier);
-                                    if ($freezeCash<=$tariffFreezeLimit) {
+                                    if (($freezeCash<=$tariffFreezeLimit) AND ($freezeUserTariffPrice!=0)) {
                                      $billing->setpassive($freezeLogin,'1');
                                      log_register('AUTOFREEZE ('.$freezeLogin.') ON BALANCE '.$freezeCash);
                                      $freezeCount++;

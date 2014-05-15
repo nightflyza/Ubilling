@@ -1107,4 +1107,26 @@ function zbs_CustomBackground() {
     return ($result);
 }
 
+function zbs_AnnouncementsAvailable() {
+    $query="SELECT COUNT(`id`) from `zbsannouncements` WHERE `public`='1';";
+    $data=  simple_query($query);
+    if ($data['COUNT(`id`)']>0) {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+function zbs_AnnouncementsNotice() {
+    $result='';
+    if (zbs_AnnouncementsAvailable()) {
+        $cells=  la_TableCell(la_Link('?module=announcements', la_img('iconz/alert.gif'), true, ''));
+        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements is available'), true, ''));
+        $rows= la_TableRow($cells);
+        $result.=la_TableBody($rows, '70%', 0, '');
+        show_window('', $result);
+    }
+ 
+}
+
 ?>

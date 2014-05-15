@@ -124,7 +124,7 @@ BUILD_EXTENDED=TRIGGER|Extended builds management
 BUILD_OWNERS=VARCHAR|Build ownership types
 BUILD_EXTOPTS=VARCHAR|Build extended max floors, max entrances
 SWITCH_PING_CUSTOM_SCRIPT=VARCHAR|Switch ping custom script
-
+ANNOUNCEMENTS=TRIGGER|Is userstats announcements management enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

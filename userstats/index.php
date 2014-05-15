@@ -33,6 +33,13 @@
 					zbs_UserShowAgentData($user_login);
 				}
 			}
+                        //announcements notice
+                        if (isset($us_config['AN_ENABLED'])) {
+                            if ($us_config['AN_ENABLED']) {
+                                zbs_AnnouncementsNotice();
+                            }
+                        }
+                            
 			show_window(__('User profile'), zbs_UserShowProfile($user_login));
 		} else zbs_LoadModule($_GET['module']);
 	} else {

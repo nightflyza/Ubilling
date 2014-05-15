@@ -1111,3 +1111,13 @@ CREATE TABLE IF NOT EXISTS `zbssclog` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `zbsannouncements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `public` tinyint(4) DEFAULT '0',
+  `type` varchar(20) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `public` (`public`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

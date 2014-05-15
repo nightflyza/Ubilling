@@ -179,4 +179,7 @@ $lang['def']['Not existing template'] = 'Немає такого шаблона'
 $lang['def']['Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Також ви зобов`язуєтесь оплатити послуги за поточний місяць у повному обсязі, відповідно до вашого тарифного плану. Додаткові послуги не підлягають кредитуванню.';
 
 $lang['def']['You already used credit feature in current month. Only one usage per month is allowed.']='Ви вже використовували послугу кредитуванням протягом поточного місяця. Функція доступна тільки один раз на місяць.';
+$lang['def']['Announcements'] = 'Оголошення';
+$lang['def']['Do not have any announcements.'] = 'На даний момент немає жодних оголошень.';
+$lang['def']['Some announcements is available'] = 'Доступні важливі оголошення';
 ?>
