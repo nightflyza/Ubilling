@@ -1667,5 +1667,6 @@ $lang['def']['Show only mine tasks'] = 'Показати задачі тільк
 $lang['def']['Userstats announcements']='Оголошення кабінету користувача';
 $lang['def']['Is userstats announcements management enabled']='Керування оголошеннями кабінету користувача';
 $lang['def']['right to control userstats announcements']='Право керувати оголошеннями кабінету користувача';
+$lang['def']['Preview']='Попередній перегляд';
 
 ?>

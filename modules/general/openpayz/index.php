@@ -143,8 +143,42 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         }
     }
     
+    function zb_OPShowGraphs() {
+        $curyear=date("Y");
+        //$query="SELECT * from `op_transactions` WHERE `date` LIKE '".$curyear."-%'";
+        $query="SELECT * from `op_transactions`";
+        $all=  simple_queryall($query);
+        $psysdata=array();
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $timestamp=  strtotime($each['date']);
+                $date= date("Y-m",$timestamp); 
+               // $date='2014';
+                if (isset($psysdata[$each['paysys']][$date]['count'])) {
+                    $psysdata[$each['paysys']][$date]['count']++;
+                    $psysdata[$each['paysys']][$date]['summ']=$psysdata[$each['paysys']][$date]['summ']+$each['summ'];
+                } else {
+                    $psysdata[$each['paysys']][$date]['count']=1;
+                    $psysdata[$each['paysys']][$date]['summ']=$each['summ'];
+                }
+            }
+        }
+        debarr($psysdata);
+        if (!empty($psysdata)) {
+            
+           
+            foreach ($psysdata as $psys=>$opdate) {
+                foreach ($opdate as $datestamp=>$optrans) {
+                   
+                }
+                
+            }
+            
+        }
+    }
+    zb_OPShowGraphs();
     web_OPShowTransactions();
-    
+   
     
 } else {
     show_error(__('OpenPayz support not enabled'));
