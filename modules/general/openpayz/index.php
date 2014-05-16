@@ -23,6 +23,42 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
     }
 
     
+        function zb_OPShowGraphs() {
+        $query="SELECT * from `op_transactions` ORDER by `date` ASC";
+        $all=  simple_queryall($query);
+        $psysdata=array();
+        $result= wf_Link('?module=openpayz', __('Back'), true, 'ubButton');
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $timestamp=  strtotime($each['date']);
+                $date= date("Y-m-d",$timestamp); 
+                if (isset($psysdata[$each['paysys']][$date]['count'])) {
+                    $psysdata[$each['paysys']][$date]['count']++;
+                    $psysdata[$each['paysys']][$date]['summ']=$psysdata[$each['paysys']][$date]['summ']+$each['summ'];
+                } else {
+                    $psysdata[$each['paysys']][$date]['count']=1;
+                    $psysdata[$each['paysys']][$date]['summ']=$each['summ'];
+                }
+            }
+        }
+        
+        if (!empty($psysdata)) {
+            foreach ($psysdata as $psys=>$opdate) {
+                $gdata=__('Date').','.__('Count').','.__('Cash')."\n";
+                foreach ($opdate as $datestamp=>$optrans) {
+                   $gdata.=$datestamp.','.$optrans['count'].','.$optrans['summ']."\n";
+                }
+                
+                $result.=wf_tag('div', false, 'dashtask', '');
+                $result.=wf_tag('span').$psys.wf_tag('span',true).wf_delimiter();
+                $result.= wf_Graph($gdata, '600', '200',false);
+                $result.=wf_tag('div',true);
+            }
+            
+        }
+        show_window(__('Graphs'), $result);
+    }
+    
     function web_OPShowTransactions() {
         global $alter_conf;
         $perpage=100;
@@ -97,7 +133,8 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         }
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');
         $result.=$paginator;
-        show_window(__('OpenPayz transactions'),$result);
+        $graphs=  wf_Link('?module=openpayz&graphs=true', wf_img('skins/icon_stats.gif',__('Graphs')), false, '');
+        show_window(__('OpenPayz transactions').' '.$graphs,$result);
     }
     
     function zb_OPTransactionSetProcessed($transactionid) {
@@ -143,41 +180,13 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         }
     }
     
-    function zb_OPShowGraphs() {
-        $curyear=date("Y");
-        //$query="SELECT * from `op_transactions` WHERE `date` LIKE '".$curyear."-%'";
-        $query="SELECT * from `op_transactions`";
-        $all=  simple_queryall($query);
-        $psysdata=array();
-        if (!empty($all)) {
-            foreach ($all as $io=>$each) {
-                $timestamp=  strtotime($each['date']);
-                $date= date("Y-m",$timestamp); 
-               // $date='2014';
-                if (isset($psysdata[$each['paysys']][$date]['count'])) {
-                    $psysdata[$each['paysys']][$date]['count']++;
-                    $psysdata[$each['paysys']][$date]['summ']=$psysdata[$each['paysys']][$date]['summ']+$each['summ'];
-                } else {
-                    $psysdata[$each['paysys']][$date]['count']=1;
-                    $psysdata[$each['paysys']][$date]['summ']=$each['summ'];
-                }
-            }
-        }
-        debarr($psysdata);
-        if (!empty($psysdata)) {
-            
-           
-            foreach ($psysdata as $psys=>$opdate) {
-                foreach ($opdate as $datestamp=>$optrans) {
-                   
-                }
-                
-            }
-            
-        }
-    }
-    zb_OPShowGraphs();
+
+    
+if (!wf_CheckGet(array('graphs'))) {
     web_OPShowTransactions();
+} else {
+    zb_OPShowGraphs();
+}
    
     
 } else {

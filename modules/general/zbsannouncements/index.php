@@ -25,7 +25,7 @@ if (cfr('ZBSANN')) {
              */
 
             protected function loadData() {
-                $query = "SELECT * from `zbsannouncements` ORDER by `id` ASC;";
+                $query = "SELECT * from `zbsannouncements` ORDER by `id` DESC;";
                 $all = simple_queryall($query);
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {

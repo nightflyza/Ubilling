@@ -180,5 +180,6 @@ $lang['def']['You already used credit feature in current month. Only one usage p
 $lang['def']['Announcements'] = 'Объявления';
 $lang['def']['Do not have any announcements.'] = 'На данный момент нету никаких объявлений.';
 $lang['def']['Some announcements is available'] = 'Доступны важные объявления';
+$lang['def']['This module is disabled'] = 'Этот модуль сейчас отключен';
 
 ?>

@@ -6,7 +6,7 @@ $us_config=zbs_LoadConfig();
 
 
 function zbs_AnnouncementsShow() {
-    $query="SELECT * from `zbsannouncements` WHERE `public`='1'";
+    $query="SELECT * from `zbsannouncements` WHERE `public`='1' ORDER by `id` DESC";
     $all=  simple_queryall($query);
     $result='';
     if (!empty($all)) {
@@ -31,6 +31,10 @@ function zbs_AnnouncementsShow() {
     show_window('',$result);
 }
 
-
+if ($us_config['AN_ENABLED']) {
 zbs_AnnouncementsShow();
+} else {
+    show_window(__('Sorry'), __('This module is disabled'));
+}
+
 ?>
