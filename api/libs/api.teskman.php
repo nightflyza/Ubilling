@@ -20,7 +20,14 @@
              $cells.= wf_TableCell(web_bool_led($eachemployee['active']));
              $cells.= wf_TableCell($eachemployee['appointment']);
              $cells.= wf_TableCell($eachemployee['mobile']);
-             $cells.= wf_TableCell($eachemployee['admlogin']);
+             $admlogin=$eachemployee['admlogin'];
+             if (!empty($admlogin)) {
+              if (file_exists(USERS_PATH.$admlogin)) {
+                 $admlogin=  wf_Link('?module=permissions&edit='.$admlogin, web_profile_icon().' '.$admlogin, false);
+                         
+              }
+             }
+             $cells.= wf_TableCell($admlogin);
              $actions=  wf_JSAlert('?module=employee&delete='.$eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
              $actions.= wf_JSAlert('?module=employee&edit='.$eachemployee['id'], web_edit_icon(), 'Are you serious');
              $cells.= wf_TableCell($actions);
