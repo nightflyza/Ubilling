@@ -209,6 +209,7 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
         $inputs.= web_PaySysPercentSelector();
         $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
+        $inputs.= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
         //ugly spacing hack
         $inputs.= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.web_PayFindTableSelect().  wf_delimiter();
         $inputs.= wf_HiddenInput('dosearch', 'true');
@@ -243,8 +244,10 @@ if (cfr('PAYFIND')) {
         $query.=$markers;
         $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
         $allpayments = simple_queryall($query);
+        if ($altercfg['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
         $allcontracts = array_flip($allcontracts);
+        }
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
         $alltypes = zb_CashGetAllCashTypes();
@@ -262,7 +265,9 @@ if (cfr('PAYFIND')) {
         $cells.= wf_TableCell(__('PS%'));
         $cells.= wf_TableCell(__('Profit'));
         $cells.= wf_TableCell(__('Login'));
+        if ($altercfg['FINREP_CONTRACT']) {
         $cells.= wf_TableCell(__('Contract'));
+        }
         $cells.= wf_TableCell(__('Full address'));
         $cells.= wf_TableCell(__('Real Name'));
         $cells.= wf_TableCell(__('Payment type'));
@@ -289,7 +294,9 @@ if (cfr('PAYFIND')) {
                 $cells.= wf_TableCell($ourProfit);
                 
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
+                if ($altercfg['FINREP_CONTRACT']) {
                 $cells.= wf_TableCell(@$allcontracts[$each['login']]);
+                }
                 $cells.= wf_TableCell(@$alladdress[$each['login']]);
                 $cells.= wf_TableCell(@$allrealnames[$each['login']]);
                 $cells.= wf_TableCell(@__($alltypes[$each['cashtypeid']]));
@@ -416,6 +423,11 @@ if (cfr('PAYFIND')) {
     if (wf_CheckPost(array('type_paysys', 'paysys'))) {
         $cashtype = mysql_real_escape_string($_POST['paysys']);
         $markers.="AND `note` LIKE '" . $cashtype . "' ";
+    }
+    
+    //only positive payments search
+    if (isset($_POST['only_positive'])) {
+        $markers.="AND `summ` >'0' ";
     }
     
 

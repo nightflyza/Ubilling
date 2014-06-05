@@ -1669,4 +1669,7 @@ $lang['def']['Is userstats announcements management enabled']='Керуванн�
 $lang['def']['right to control userstats announcements']='Право керувати оголошеннями кабінету користувача';
 $lang['def']['Preview']='Попередній перегляд';
 
+//rev  3491
+$lang['def']['Show only positive payments']='Відображати тільки позитивні оплати';
+
 ?>

@@ -12,6 +12,7 @@ if (cfr('SCREPORT')) {
         private $tabledata='';
         private $curyear=0;
         private $yearsumm=0;
+        private $usertariffs=array();
 
         public function __construct() {
             //sets display year
@@ -23,6 +24,8 @@ if (cfr('SCREPORT')) {
             
             //load actual month data
             $this->loadData();
+            //load user tariffs
+            $this->loadTariffs();
          
         }
 
@@ -44,6 +47,21 @@ if (cfr('SCREPORT')) {
                     $newSum = abs($each['summ']);
                     $this->data[$each['id']]['summ'] = $newSum;
                     $this->data[$each['id']]['login'] = $each['login'];
+                }
+            }
+        }
+        
+        /*
+         * loads all users tariffs into private usertariffs prop
+         * 
+         * @return void
+         */
+        private function loadTariffs() {
+            $query="SELECT `login`,`Tariff` from `users`";
+            $all=  simple_queryall($query);
+            if (!empty($all) ) {
+                foreach ($all as $io=>$each) {
+                    $this->usertariffs[$each['login']]=$each['Tariff'];
                 }
             }
         }
@@ -173,6 +191,7 @@ if (cfr('SCREPORT')) {
             $cells.= wf_TableCell(__('Login'));
             $cells.= wf_TableCell(__('Real Name'));
             $cells.= wf_TableCell(__('Full address'));
+            $cells.= wf_TableCell(__('Tariff'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($this->data)) {
@@ -186,6 +205,7 @@ if (cfr('SCREPORT')) {
                     $cells.= wf_TableCell($loginLink);
                     $cells.= wf_TableCell(@$allAddress[$each['login']]);
                     $cells.= wf_TableCell(@$allRealNames[$each['login']]);
+                    $cells.= wf_TableCell(@$this->usertariffs[$each['login']]);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
             }
