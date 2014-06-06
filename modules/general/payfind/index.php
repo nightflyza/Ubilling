@@ -243,6 +243,7 @@ if (cfr('PAYFIND')) {
         
         $query.=$markers;
         $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        $csvdata='';
         $allpayments = simple_queryall($query);
         if ($altercfg['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
@@ -274,8 +275,10 @@ if (cfr('PAYFIND')) {
         $cells.= wf_TableCell(__('Notes'));
         $cells.= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
-
+      
+        
         if (!empty($allpayments)) {
+            $csvdata.=__('ID').';'.__('Date').';'.__('Cash').';'.__('PS%').';'.__('Profit').';'.__('Login').';'.__('Full address').';'.__('Real Name').';'.__('Payment type').';'.__('Notes').';'.__('Admin')."\n";
             foreach ($allpayments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
@@ -297,9 +300,12 @@ if (cfr('PAYFIND')) {
                 if ($altercfg['FINREP_CONTRACT']) {
                 $cells.= wf_TableCell(@$allcontracts[$each['login']]);
                 }
-                $cells.= wf_TableCell(@$alladdress[$each['login']]);
-                $cells.= wf_TableCell(@$allrealnames[$each['login']]);
-                $cells.= wf_TableCell(@__($alltypes[$each['cashtypeid']]));
+                @$paymentRealname=$allrealnames[$each['login']];
+                @$paymentCashType=__($alltypes[$each['cashtypeid']]);
+                @$paymentAddress=$alladdress[$each['login']];;
+                $cells.= wf_TableCell($paymentAddress);
+                $cells.= wf_TableCell($paymentRealname);
+                $cells.= wf_TableCell($paymentCashType);
                 //payment notes translation
                 if ($altercfg['TRANSLATE_PAYMENTS_NOTES']) {
                     $paynote = zb_TranslatePaymentNote($each['note'], $allservicenames);
@@ -323,10 +329,21 @@ if (cfr('PAYFIND')) {
                 if ($ourProfit>0) {
                     $profitsumm=$profitsumm+$ourProfit;
                 }
-                
+                $csvSumm=  str_replace('.', ',', $each['summ']);
+                $csvdata.=$each['id'].';'.$each['date'].';'.$csvSumm.';'.$paySysPc.';'.$ourProfit.';'.$each['login'].';'.$paymentAddress.';'.$paymentRealname.';'.$paymentCashType.';'.$paynote.';'.$each['admin']."\n";
             }
-            
+       
         }
+             //saving report for future download
+             if (!empty($csvdata)) {
+                $csvSaveName='exports/payfind_'.  zb_rand_string(8).'.csv';
+                $csvSaveNameEnc=  base64_encode($csvSaveName);
+                $csvdata=iconv('utf-8', 'windows-1251', $csvdata);
+                file_put_contents($csvSaveName, $csvdata);
+                $csvDownloadLink=  wf_Link('?module=payfind&downloadcsv='.$csvSaveNameEnc, wf_img('skins/excel.gif', __('Export')), false);
+            } else {
+                $csvDownloadLink='';
+            }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         //additional total counters
@@ -335,7 +352,7 @@ if (cfr('PAYFIND')) {
         $result.=wf_tag('div', false, 'glamour').__('Payment systems %').': '.$paysyssumm.wf_tag('div',true);
         $result.=wf_tag('div', false, 'glamour').__('Our final profit').': '.$profitsumm.wf_tag('div',true);
         
-        show_window(__('Payments found'), $result);
+        show_window(__('Payments found').' '.$csvDownloadLink, $result);
     }
 
     /*
@@ -352,6 +369,12 @@ if (cfr('PAYFIND')) {
      * Controller section
      */
 
+    
+    //downloading report as csv
+    if (wf_CheckGet(array('downloadcsv'))) {
+        zb_DownloadFile(base64_decode($_GET['downloadcsv']), 'docx');
+    }
+    
     //Payment systems configuration
     //adding payment system
     if (wf_CheckPost(array('newmarker', 'newname'))) {

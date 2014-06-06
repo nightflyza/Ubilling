@@ -13,6 +13,8 @@ if (cfr('SCREPORT')) {
         private $curyear=0;
         private $yearsumm=0;
         private $usertariffs=array();
+        private $tariffstats=array();
+ 
 
         public function __construct() {
             //sets display year
@@ -184,7 +186,8 @@ if (cfr('SCREPORT')) {
             $allRealNames = zb_UserGetAllRealnames();
             $totalCount = 0;
             $totalSumm = 0;
-
+            $result='';
+            
             $cells = wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Date'));
             $cells.= wf_TableCell(__('Cash'));
@@ -197,22 +200,33 @@ if (cfr('SCREPORT')) {
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
                     $totalCount++;
+                    @$usertariff=$this->usertariffs[$each['login']];
+                    // fill tariff stats 
+                    if (!empty($usertariff)) {
+                        if (isset($this->tariffstats[$usertariff])) {
+                            $this->tariffstats[$usertariff]++;
+                        } else {
+                            $this->tariffstats[$usertariff]=1;
+                        }
+                    }
                     $totalSumm = $totalSumm + $each['summ'];
                     $cells = wf_TableCell($each['id']);
                     $cells.= wf_TableCell($each['date']);
                     $cells.= wf_TableCell($each['summ']);
                     $loginLink = wf_Link("?module=userprofile&username=" . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
                     $cells.= wf_TableCell($loginLink);
-                    $cells.= wf_TableCell(@$allAddress[$each['login']]);
                     $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                    $cells.= wf_TableCell(@$this->usertariffs[$each['login']]);
+                    $cells.= wf_TableCell(@$allAddress[$each['login']]);
+                    $cells.= wf_TableCell($usertariff);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
             }
-            $result = wf_TableBody($rows, '100%', '0', 'sortable');
+            
             $result.= wf_tag('div', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('div', true);
             $result.= wf_tag('div', false, 'glamour') . __('Our final profit') . ': ' . $totalSumm . wf_tag('div', true);
-
+            $result.= wf_tag('div', false, '', 'style="clear:both;"').wf_tag('div', 'true');
+            $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+            
             return ($result);
         }
 
@@ -246,6 +260,32 @@ if (cfr('SCREPORT')) {
             return ($result);
         }
         
+        /*
+         * returns tariffs graph
+         * 
+         * @return string
+         */
+        public function renderTariffsGraph() {
+            $result='';
+            if (!empty($this->tariffstats)) {
+                $cells= wf_TableCell(__('Tariff'));
+                $cells.= wf_TableCell(__('Count'));
+                $cells.= wf_TableCell(__('Visual'));
+                $rows = wf_TableRow($cells, 'row1');
+                
+                foreach ($this->tariffstats as $tariffName=>$countCredits) {
+                    $cells= wf_TableCell($tariffName);
+                    $cells.= wf_TableCell($countCredits);
+                    $cells.= wf_TableCell(web_bar($countCredits, sizeof($this->data)));
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                
+                $graphs=  wf_TableBody($rows, '100%', '0', 'sortable');
+                $result=  wf_modal(wf_img('skins/icon_stats.gif', __('Tariffs')), __('Tariffs'), $graphs, '', '800', '600');
+            }
+            return ($result);
+        }
+        
         }
 
     /*
@@ -256,7 +296,9 @@ if (cfr('SCREPORT')) {
     
     if (!wf_CheckGet(array('showgraph'))) {
         show_window('', wf_Link('?module=report_selfcredit&showgraph=true', __('Self credit dynamic over the year'), false, 'ubButton'));
-        show_window(__('Self credit report').' '.$screport->getYear(), $screport->render());
+        $curmonthReport=$screport->render();
+        $graps=$screport->renderTariffsGraph();
+        show_window(__('Self credit report').' '.$graps, $curmonthReport);
     } else {
         show_window(__('Year'), $screport->yearSelector());
         show_window('', wf_Link('?module=report_selfcredit', __('Back'), false, 'ubButton'));
