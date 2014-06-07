@@ -21,7 +21,7 @@
                 <li>    
                 <form name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>                    
                 <br>
-                     <p align="right"><?=web_HelpIconShow();?></p>
+                     <p align="right"><?=web_HelpIconShow();?></p> <?=zb_IdleAutologoutRun(); ?>
                 </li>
                 
                 </ul>

@@ -1671,5 +1671,11 @@ $lang['def']['Preview']='Попередній перегляд';
 
 //rev  3491
 $lang['def']['Show only positive payments']='Відображати тільки позитивні оплати';
+$lang['def']['Yes, keep working']='Так, я ще тут.';
+$lang['def']['No, logout']='Ні, вийти.';
+$lang['def']['Your session is about to expire!']='Час вашої сесії спливає!';
+$lang['def']['You will be logged off in']='Автоматичний вихід через';
+$lang['def']['Auto logout idle']='Затримка автоматичного виходу при бездіяльності';
+$lang['def']['Auto logout administrators exclude']='Виключення адміністраторів для автовиходу';
 
 ?>

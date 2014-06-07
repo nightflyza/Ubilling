@@ -1658,6 +1658,13 @@ $lang['def']['Preview']='Предварительный просмотр';
 
 //rev  3491
 $lang['def']['Show only positive payments']='Показывать только позитивные платежи';
+$lang['def']['Yes, keep working']='Да, продолжить работу.';
+$lang['def']['No, logout']='Нет, выйти.';
+$lang['def']['Your session is about to expire!']='Время вашей сессии подходит к концу!';
+$lang['def']['You will be logged off in']='Автоматический выход через';
+$lang['def']['Auto logout idle']='Задержка автоматического выхода при бездействии';
+$lang['def']['Auto logout administrators exclude']='Исключения администраторов для автовыхода';
+$lang['def']['']='';
 $lang['def']['']='';
 
 ?>

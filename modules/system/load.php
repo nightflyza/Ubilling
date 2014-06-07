@@ -59,6 +59,11 @@ if(!empty($_POST['login_form'])) {
 if(!empty($_POST['logout_form'])) {
     $system->logOutUser();
 }
+//additional get-request user logout sub
+if (!empty($_GET['idleTimerAutoLogout'])) {
+    $system->logOutUser();
+    rcms_redirect('index.php');
+}
 define('LOGGED_IN', $system->logged_in);
 
 // Show some messages about activation or initialization

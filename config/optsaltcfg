@@ -125,6 +125,8 @@ BUILD_OWNERS=VARCHAR|Build ownership types
 BUILD_EXTOPTS=VARCHAR|Build extended max floors, max entrances
 SWITCH_PING_CUSTOM_SCRIPT=VARCHAR|Switch ping custom script
 ANNOUNCEMENTS=TRIGGER|Is userstats announcements management enabled
+AUTO_LOGOUT_IDLE=VARCHAR|Auto logout idle
+AUTO_LOGOUT_EXCLUDE=VARCHAR|Auto logout administrators exclude
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
