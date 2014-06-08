@@ -17,7 +17,8 @@ class AutoLogout {
         $autoLogoutTimerContainer.= wf_tag('span', false, 'ui-icon ui-icon-alert', 'style="float:left; margin:0 7px 50px 0;"').wf_tag('span', true);
         $autoLogoutTimerContainer.= __('You will be logged off in').' ';
         $autoLogoutTimerContainer.= wf_tag('span', false, '', 'id="dialog-countdown" style="font-weight:bold"').wf_tag('span', true);
-        $autoLogoutTimerContainer.= ' '. __('seconds');
+        $autoLogoutTimerContainer.= ' '. __('seconds').  wf_delimiter();
+        $autoLogoutTimerContainer.= wf_tag('center',false).  wf_tag('img', false, '', 'src="skins/idleicon.gif" width="160"').  wf_tag('center',true);
         $autoLogoutTimerContainer.=  wf_tag('div', true);
         return ($autoLogoutTimerContainer);
     }
@@ -36,7 +37,7 @@ class AutoLogout {
                 autoOpen: false,
                 modal: true,
                 width: 400,
-                height: 200,
+                height: 300,
                 closeOnEscape: false,
                 draggable: false,
                 resizable: false,
