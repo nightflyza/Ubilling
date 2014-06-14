@@ -7,6 +7,18 @@ if (cfr('SYSLOAD')) {
   
   zb_BillingStats(false);
  
+  
+  function zb_LicenseLister() {
+      $avarice=new Avarice();
+      $all=$avarice->getLicenseKeys();
+      if (!empty($all)) {
+          debarr($all);
+      }
+  }
+  
+ 
+  
+  
 
  $globconf=parse_ini_file('config/billing.ini');
  $monit_url=$globconf['PHPSYSINFO'];
