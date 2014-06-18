@@ -1664,6 +1664,8 @@ $lang['def']['Your session is about to expire!']='Время вашей сесс
 $lang['def']['You will be logged off in']='Автоматический выход через';
 $lang['def']['Auto logout idle']='Задержка автоматического выхода при бездействии';
 $lang['def']['Auto logout administrators exclude']='Исключения администраторов для автовыхода';
+$lang['def']['Installed license keys']='Установленные ключи лицензий';
+$lang['def']['Unacceptable license key']='Неверный ключ лицензии';
 $lang['def']['']='';
 $lang['def']['']='';
 
