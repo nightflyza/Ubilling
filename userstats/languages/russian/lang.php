@@ -182,4 +182,6 @@ $lang['def']['Do not have any announcements.'] = 'На данный момент
 $lang['def']['Some announcements is available'] = 'Доступны важные объявления';
 $lang['def']['This module is disabled'] = 'Этот модуль сейчас отключен';
 
+$lang['def']['Mark as read'] = 'Пометить как прочитанное';
+$lang['def']['Mark as unread'] = 'Пометить как непрочитанное';
 ?>

@@ -11,7 +11,12 @@ function zbs_AnnouncementsShow() {
     $result='';
     if (!empty($all)) {
         foreach ($all as $io=>$each) {
-            $result.=la_tag('h3', false, 'row1', '').$each['title'].'&nbsp;'.  la_tag('h3',true);
+            if (!isset($_COOKIE['zbsanread_'.$each['id']])) {
+                $readControl=la_Link('?module=announcements&anmarkasread='.$each['id'], la_img('iconz/anunread.gif', __('Mark as read'))).' ';
+            } else {
+                $readControl=la_Link('?module=announcements&anmarkasunread='.$each['id'], la_img('iconz/anread.gif', __('Mark as unread'))).' ';
+            }
+            $result.=la_tag('h3', false, 'row1', '').$readControl .$each['title'].'&nbsp;'.  la_tag('h3',true);
             $result.=la_delimiter();
             if ($each['type']=='text') {
                 $eachtext=  strip_tags($each['text']);
@@ -21,6 +26,8 @@ function zbs_AnnouncementsShow() {
             if ($each['type']=='html') {
                 $result.=$each['text'];
             }
+            
+           
             $result.=la_delimiter();
             
         }
@@ -32,7 +39,7 @@ function zbs_AnnouncementsShow() {
 }
 
 if ($us_config['AN_ENABLED']) {
-zbs_AnnouncementsShow();
+    zbs_AnnouncementsShow();
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }

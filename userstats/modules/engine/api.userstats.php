@@ -1108,13 +1108,20 @@ function zbs_CustomBackground() {
 }
 
 function zbs_AnnouncementsAvailable() {
-    $query="SELECT COUNT(`id`) from `zbsannouncements` WHERE `public`='1';";
-    $data=  simple_query($query);
-    if ($data['COUNT(`id`)']>0) {
-        return (true);
+    $query="SELECT `id` from `zbsannouncements` WHERE `public`='1';";
+    $data=  simple_queryall($query);
+    $result=false;
+    if (!empty($data)) {
+        foreach ($data as $io=>$each) {
+            if (!isset($_COOKIE['zbsanread_'.$each['id']])) {
+                $result=true;
+                break;
+            }
+        }
     } else {
-        return (false);
+        $result=false;
     }
+    return ($result);
 }
 
 function zbs_AnnouncementsNotice() {

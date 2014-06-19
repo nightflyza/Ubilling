@@ -127,6 +127,7 @@ SWITCH_PING_CUSTOM_SCRIPT=VARCHAR|Switch ping custom script
 ANNOUNCEMENTS=TRIGGER|Is userstats announcements management enabled
 AUTO_LOGOUT_IDLE=VARCHAR|Auto logout idle
 AUTO_LOGOUT_EXCLUDE=VARCHAR|Auto logout administrators exclude
+VOLS_ENABLED=TRIGGER|VOLS Module is enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

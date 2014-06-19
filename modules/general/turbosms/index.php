@@ -343,6 +343,7 @@ if (cfr('TURBOSMS')) {
             $result=str_ireplace('{REALNAME}', @$td_realnames[$login], $result);
             $result=str_ireplace('{REALNAMETRANS}', @$td_realnamestrans[$login], $result);
             $result=str_ireplace('{CASH}', @$td_users[$login]['Cash'], $result);
+            $result=str_ireplace('{ROUNDCASH}', @round($td_users[$login]['Cash'],2), $result);
             $result=str_ireplace('{CREDIT}', @$td_users[$login]['Credit'], $result);
             $result=str_ireplace('{TARIFF}', @$td_users[$login]['Tariff'], $result);
             $result=str_ireplace('{TARIFFPRICE}', @$td_tariffprices[$td_users[$login]['Tariff']], $result);
@@ -552,6 +553,7 @@ if (cfr('TURBOSMS')) {
         $availMacro.='{REALNAME}'.wf_tag('br');
         $availMacro.='{REALNAMETRANS}'.wf_tag('br');
         $availMacro.='{CASH}'.wf_tag('br');
+        $availMacro.='{ROUNDCASH}'.wf_tag('br');
         $availMacro.='{CREDIT}'.wf_tag('br');
         $availMacro.='{TARIFF}'.wf_tag('br');
         $availMacro.='{TARIFFPRICE}'.wf_tag('br');

@@ -1121,3 +1121,48 @@ CREATE TABLE IF NOT EXISTS `zbsannouncements` (
   PRIMARY KEY (`id`),
   KEY `public` (`public`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.5.5 UPDATE
+CREATE TABLE IF NOT EXISTS `vols_docs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(128) DEFAULT NULL,
+  `date` datetime NOT NULL,
+  `line_id` int(11) DEFAULT NULL,
+  `mark_id` int(11) DEFAULT NULL,
+  `path` varchar(128) NOT NULL DEFAULT '/',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `vols_lines` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `point_start` varchar(255) NOT NULL,
+  `point_end` varchar(255) NOT NULL,
+  `fibers_amount` int(11) NOT NULL DEFAULT '0',
+  `length` double NOT NULL DEFAULT '0',
+  `description` varchar(255) NOT NULL,
+  `employee_id` int(11) NOT NULL,
+  `param_color` varchar(32) NOT NULL,
+  `param_width` int(11) NOT NULL,
+  `geo` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `vols_marks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type_id` int(11) NOT NULL,
+  `number` int(11) DEFAULT NULL,
+  `placement` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `geo` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `vols_marks_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` varchar(255) DEFAULT NULL,
+  `model` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `icon_color` varchar(255) NOT NULL DEFAULT 'blue',
+  `icon_style` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
