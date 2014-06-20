@@ -309,7 +309,7 @@ class Avarice {
       $avarice=new Avarice();
       $all=$avarice->getLicenseKeys();
       
-      show_window('',wf_Link('?module=report_sysload', __('Back'), true, 'ubButton'));
+      
       $cells=  wf_TableCell(__('Module'));
       $cells.= wf_TableCell(__('Actions'));
       $rows= wf_TableRow($cells, 'row1');
@@ -323,7 +323,7 @@ class Avarice {
               $editform= wf_Form("", 'POST', $editinputs, 'glamour');
               $editcontrol=  wf_modal(web_edit_icon(), __('Edit'), $editform, '', '500', '300');
               //construct deletion controls
-              $deletecontrol=  wf_JSAlert('?module=report_sysload&greed=true&licensedelete='.$each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+              $deletecontrol=  wf_JSAlert('?module=licensekeys&licensedelete='.$each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
                       
               $cells=  wf_TableCell($each['MODULE']);
               $cells.= wf_TableCell($deletecontrol.' '.$editcontrol);

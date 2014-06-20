@@ -1,8 +1,8 @@
 <?php
-$lang['def']['Map of VOLS'] = 'Мапа ВОЛС';
+$lang['def']['Map of VOLS'] = 'Мапа ВОЛЗ';
 $lang['def']['Types of marks'] = 'Типи міток';
-$lang['def']['VOLS marks']  = 'Мітки ВОЛС';
-$lang['def']['VOLS lines']  = 'Лінії ВОЛС';
+$lang['def']['VOLS marks']  = 'Мітки ВОЛЗ';
+$lang['def']['VOLS lines']  = 'Лінії ВОЛЗ';
 
 $lang['def']['There is no marks types to show'] = 'Типи міток відсутні для відображення';
 $lang['def']['There is no marks to show']       = 'Мітки відсутні для відображення';
@@ -20,21 +20,21 @@ $lang['def']['Adding of line']  = 'Додавання лінії';
 $lang['def']['Editing of line'] = 'Редагування лінії';
 $lang['def']['Starting point']  = 'Початкова точка';
 $lang['def']['End point']       = 'Кінцева точка';
-$lang['def']['Fibers amount']   = 'Кіл-ть ОВ';
+$lang['def']['Fibers amount']   = 'К-сть ОВ';
 $lang['def']['Length']          = 'Довжина';
-$lang['def']['Line width']      = 'Ширига лінії';
+$lang['def']['Line width']      = 'Ширина лінії';
 $lang['def']['Engineer']        = 'Інженер';
 
 $lang['def']['Adding of marks type']  = 'Додавання типу міток';
-$lang['def']['Editing of marks type'] = 'Редагування мипу міток';
-$lang['def']['Quantity']              = 'Кіл-ть';
+$lang['def']['Editing of marks type'] = 'Редагування типу міток';
+$lang['def']['Quantity']              = 'К-сть';
 $lang['def']['Icon']                  = 'Іконка';
 $lang['def']['Icon style']            = 'Стиль іконки';
 
 $lang['def']['Documentation']           = 'Документація';
-$lang['def']['Documentation of VOLS']   = 'Документація ВОЛС';
+$lang['def']['Documentation of VOLS']   = 'Документація ВОЛЗ';
 $lang['def']['There is no documents to show'] = 'Документи відсутні для відображення';
 $lang['def']['Adding of document']       = 'Додавання документа';
-$lang['def']['Select document from HDD'] = 'ВОберіть документ на вашому жорсткому диску';
-$lang['def']['No display title for document'] = 'Не введен заголовок для документу';
+$lang['def']['Select document from HDD'] = 'Виберіть документ на вашому жорсткому диску';
+$lang['def']['No display title for document'] = 'Не введено заголовок для документу';
 $lang['def']['You should add any file']  = 'Варто вибрали файл!';

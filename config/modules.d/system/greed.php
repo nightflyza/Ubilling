@@ -1,0 +1,1 @@
+$taskbar.=build_task('ROOT','?module=licensekeys','greed.png',__('Installed license keys'));

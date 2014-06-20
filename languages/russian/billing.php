@@ -1668,8 +1668,8 @@ $lang['def']['Installed license keys']='Установленные ключи л
 $lang['def']['Unacceptable license key']='Неверный ключ лицензии';
 $lang['def']['No license key available']='Не установлен соответствующий ключ лицензии';
 $lang['def']['VOLS Module is enabled']='Включен ли модуль ВОЛС';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['Show payments with numeric notes']='Показывать платежи с цифрами в примечаниях';
+$lang['def']['Show payments with only numeric notes']='Показывать платежи только с цифрами в примечаниях';
 $lang['def']['']='';
 $lang['def']['']='';
 

@@ -151,6 +151,53 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
     
+    /*
+     * Returns available tags selector
+     * 
+     * @return string
+     */
+    
+    function web_PayFindTagidSelector() {
+         $query = "SELECT `id`,`tagname` from `tagtypes`";
+            $result = '';
+            $tags=array();
+            $alltags = simple_queryall($query);
+            if (!empty($alltags)) {
+                foreach ($alltags as $io => $eachtag) {
+                    $tags[$eachtag['id']] = $eachtag['tagname'];
+                }
+                $result=  wf_Selector('tagid', $tags, __('Tags'), '', true);
+            }
+            return($result);
+    }
+    
+    
+    /*
+     * extracts all user logins by tagid in SQL WHERE accessible format
+     * 
+     * @param $tagid int existing tag ID
+     * 
+     * @return string
+     */
+    function zb_PayFindExtractByTagId($tagid) {
+        $tagid=vf($tagid,3);
+        $query="SELECT `login`,`tagid` from `tags` WHERE `tagid`='".$tagid."';";
+        $alltagged=  simple_queryall($query);
+         $result=' AND `login` IN (';
+        
+        if (!empty($alltagged)) {
+            foreach ($alltagged as $io=>$each)  {
+               $result.="'".$each['login']."',";
+            }
+            $result=  rtrim($result,',');
+        } else {
+            $result.="'".  zb_rand_string('12')."'";
+        }
+        
+        $result.=') ';
+        return ($result);
+    }
+    
     
     /*
      * Returns search table selector
@@ -206,10 +253,14 @@ if (cfr('PAYFIND')) {
         $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
         $inputs.= wf_CheckInput('type_cashier', '', false, false);
         $inputs.= web_PayFindCashierSelector();
+        $inputs.= wf_CheckInput('type_tagid', '', false, false);
+        $inputs.= web_PayFindTagidSelector();
         $inputs.= wf_CheckInput('type_paysys', '', false, false);
         $inputs.= web_PaySysPercentSelector();
         $inputs.= wf_Link("?module=payfind&confpaysys=true", __('Settings')) . wf_tag('br');
         $inputs.= wf_CheckInput('only_positive', __('Show only positive payments'), true, false);
+        $inputs.= wf_CheckInput('numeric_notes', __('Show payments with numeric notes'), true, false);
+        $inputs.= wf_CheckInput('numericonly_notes', __('Show payments with only numeric notes'), true, false);
         //ugly spacing hack
         $inputs.= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.web_PayFindTableSelect().  wf_delimiter();
         $inputs.= wf_HiddenInput('dosearch', 'true');
@@ -453,6 +504,20 @@ if (cfr('PAYFIND')) {
         $markers.="AND `summ` >'0' ";
     }
     
+    //payments with numeric notes
+    if (isset($_POST['numeric_notes'])) {
+        $markers.="AND  `note` >0 ";
+    }
+    
+    //payments only with numeric notes
+    if (isset($_POST['numericonly_notes'])) {
+        $markers.="AND  `note`  REGEXP '^[0-9]+$' ";
+    }
+    
+    //tagtype search
+     if (wf_CheckPost(array('type_tagid', 'tagid'))) {
+        $markers.=zb_PayFindExtractByTagId($_POST['tagid']);
+    }
 
     //executing search
     if (wf_CheckPost(array('dosearch'))) {

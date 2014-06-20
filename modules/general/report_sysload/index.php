@@ -4,41 +4,7 @@ if (cfr('SYSLOAD')) {
   if (wf_CheckGet(array('checkupdates'))) {
       zb_BillingCheckUpdates();
   }
-  
-  
-  if (wf_CheckGet(array('greed'))) {
-      //key deletion
-      if (wf_CheckGet(array('licensedelete'))) {
-          $avarice=new Avarice();
-          $avarice->deleteKey($_GET['licensedelete']);
-          rcms_redirect('?module=report_sysload&greed=true');
-      }
-      
-      //key installation
-      if (wf_CheckPost(array('createlicense'))) {
-          $avarice=new Avarice();
-          if ($avarice->createKey($_POST['createlicense'])) {
-              rcms_redirect('?module=report_sysload&greed=true');
-          } else {
-              show_window(__('Error'), __('Unacceptable license key'));
-          }
-      }
-      //key editing
-      if (wf_CheckPost(array('editlicense','editdbkey'))) {
-          $avarice=new Avarice();
-          if ($avarice->updateKey($_POST['editdbkey'], $_POST['editlicense'])) {
-              rcms_redirect('?module=report_sysload&greed=true');
-          } else {
-              show_window(__('Error'), __('Unacceptable license key'));
-          }
-      }
-
-   //show available license keys
-  zb_LicenseLister();
-  
-  } else {
-show_window('',  wf_Link('?module=report_sysload&greed=true', wf_img('skins/icon_dollar.gif').' '.__('Installed license keys'), true, 'ubButton'));
-
+ 
  zb_BillingStats(false);
  
  
@@ -59,7 +25,7 @@ show_window('',  wf_Link('?module=report_sysload&greed=true', wf_img('skins/icon
 
  show_window(__('Process'),$top_output);
  show_window(__('Uptime'),$uptime_output);
-  }
+  
   
 } else {
       show_error(__('You cant control this module'));
