@@ -1166,3 +1166,47 @@ CREATE TABLE IF NOT EXISTS `vols_marks_types` (
   `icon_style` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `corp_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corpname` varchar(255) NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `doctype` int(11) DEFAULT NULL,
+  `docnum` varchar(255) DEFAULT NULL,
+  `docdate` date DEFAULT NULL,
+  `bankacc` varchar(255) DEFAULT NULL,
+  `bankname` varchar(255) DEFAULT NULL,
+  `bankmfo` varchar(255) DEFAULT NULL,
+  `bankedrpou` varchar(255) DEFAULT NULL,
+  `ndstaxnum` varchar(255) DEFAULT NULL,
+  `inncode` varchar(255) DEFAULT NULL,
+  `taxtype` int(11) DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `corp_taxtypes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `corp_persons` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corpid` int(11) NOT NULL,
+  `realname` varchar(255) NOT NULL,
+  `phone` varchar(255) DEFAULT NULL,
+  `im` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `appointment` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `corp_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `corpid` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
