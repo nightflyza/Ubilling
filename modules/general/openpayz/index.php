@@ -16,6 +16,92 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         return ($result);
     }
     
+    function zb_OPGetPaysys() {
+        $result=array();
+        $query="SELECT DISTINCT `paysys` from `op_transactions`";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $result[$each['paysys']]=$each['paysys'];
+            }
+        }
+        return ($result);
+    }
+    
+    function web_OPsearchForm() {
+        $inputs= wf_YearSelector('searchyear', __('Year'), false).' ';
+        $inputs.= wf_MonthSelector('searchmonth', __('Month'), '', false).' ';
+        $inputs.= wf_Selector('searchpaysys', zb_OPGetPaysys(), __('Payment system'), '', false).' ';
+        $inputs.= wf_Submit(__('Search'));
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    function web_OPDoSearch($year,$month,$paysys) {
+        $allcustomers=zb_OPGetAllCustomers();
+        $allrealnames=  zb_UserGetAllRealnames();
+        $alladdress=  zb_AddressGetFulladdresslistCached();
+        $csvdata='';
+        $totalsumm=0;
+        $query="SELECT * from `op_transactions` WHERE `date` LIKE '".$year."-".$month."-%' AND `paysys` LIKE '".$paysys."' ;";
+        $alltransactions=simple_queryall($query);
+
+        $cells=  wf_TableCell(__('ID'));
+        $cells.=  wf_TableCell(__('Date'));
+        $cells.=  wf_TableCell(__('Cash'));
+        $cells.=  wf_TableCell(__('Payment ID'));
+        $cells.=  wf_TableCell(__('Real Name'));
+        $cells.=  wf_TableCell(__('Full address'));
+        $cells.=  wf_TableCell(__('Payment system'));
+        $cells.=  wf_TableCell(__('Processed'));
+        $cells.=  wf_TableCell(__('Actions'));
+        $rows=  wf_TableRow($cells, 'row1');
+        
+
+        if (!empty ($alltransactions)) {
+            $csvdata=__('ID').';'. __('Date').';'. __('Cash').';'. __('Payment ID').';'. __('Real Name').';'. __('Full address').';'. __('Payment system')."\n";
+            foreach ($alltransactions as $io=>$eachtransaction)  {
+                
+                @$user_login=$allcustomers[$eachtransaction['customerid']];
+                @$user_realname=$allrealnames[$user_login];
+                @$user_address=$alladdress[$user_login];
+         
+                $cells=  wf_TableCell($eachtransaction['id']);
+                $cells.=  wf_TableCell($eachtransaction['date']);
+                $cells.=  wf_TableCell($eachtransaction['summ']);
+                $cells.=  wf_TableCell($eachtransaction['customerid']);
+                $cells.=  wf_TableCell($user_realname);
+                $cells.=  wf_TableCell($user_address);
+                $cells.=  wf_TableCell($eachtransaction['paysys']);
+                $cells.=  wf_TableCell(web_bool_led($eachtransaction['processed']));
+                $cells.=  wf_TableCell(wf_Link('?module=userprofile&username='.$user_login, web_profile_icon()));
+                $rows.=  wf_TableRow($cells, 'row3');
+                if ($eachtransaction['summ']>0)  {
+                    $totalsumm=$totalsumm+$eachtransaction['summ'];
+                }
+                    
+                $csvSumm=  str_replace('.', ',', $eachtransaction['summ']);
+                $csvdata.=$eachtransaction['id'].';'. $eachtransaction['date'].';'. $csvSumm.';'.$eachtransaction['customerid'].';'. $user_realname.';'. $user_address.';'. $eachtransaction['paysys']."\n";
+                
+            }
+            
+        }
+        
+        $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+        $result.= wf_tag('b').__('Cash').': '.$totalsumm.  wf_tag('b',true);
+        
+        if (!empty($csvdata)) {
+            $exportFilename='exports/opsearch_'.$paysys.'_'.$year.'-'.$month.'.csv';
+            $csvdata=  iconv('utf-8', 'windows-1251', $csvdata);
+            file_put_contents($exportFilename, $csvdata);
+            $exportLink=  wf_Link('?module=openpayz&dload='.  base64_encode($exportFilename), wf_img('skins/excel.gif',__('Export')), false, '');
+        } else {
+            $exportLink='';
+        }
+        
+        show_window(__('Search results').' '.$paysys.': '.$year.'-'.$month.' '.$exportLink,$result);
+    }
+    
     function zb_OPGetCount() {
         $query="SELECT COUNT(`id`) from `op_transactions`";
         $result=  simple_query($query);
@@ -183,7 +269,20 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
 
     
 if (!wf_CheckGet(array('graphs'))) {
-    web_OPShowTransactions();
+    //download exported search
+      if (wf_CheckGet(array('dload'))) {
+            zb_DownloadFile(base64_decode($_GET['dload']), 'docx');
+        }
+        
+    show_window(__('Search'), web_OPsearchForm());
+    
+    if (wf_CheckPost(array('searchyear','searchmonth','searchpaysys'))) {
+        show_window('',  wf_Link('?module=openpayz', __('Back'), true, 'ubButton'));
+        web_OPDoSearch($_POST['searchyear'], $_POST['searchmonth'], $_POST['searchpaysys']);
+    } else {
+        web_OPShowTransactions();
+    }
+    
 } else {
     zb_OPShowGraphs();
 }

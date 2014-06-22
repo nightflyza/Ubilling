@@ -1670,7 +1670,30 @@ $lang['def']['No license key available']='Не установлен соотве
 $lang['def']['VOLS Module is enabled']='Включен ли модуль ВОЛС';
 $lang['def']['Show payments with numeric notes']='Показывать платежи с цифрами в примечаниях';
 $lang['def']['Show payments with only numeric notes']='Показывать платежи только с цифрами в примечаниях';
+
+$lang['def']['Not existing item']='Несуществующий объект';
+$lang['def']['Available tax types']='Существующие типы налогообложения';
+$lang['def']['Certificate']='Свидетельство';
+$lang['def']['Regulations']='Устав';
+$lang['def']['Reference']='Справка';
+$lang['def']['Available corps']='Существующие юр. лица';
+$lang['def']['Corp name']='Наименование организации';
+$lang['def']['Document type']='Тип документа';
+$lang['def']['Document date']='Дата документа';
+$lang['def']['Tax payer status']='Налоговый статус';
+$lang['def']['Document number']='';
+$lang['def']['Bank MFO']='МФО банка';
+$lang['def']['EDRPOU']='ЕГРПОУ';
+$lang['def']['NDS number']='№ св. плательщика НДС';
+$lang['def']['INN code']='Индивидуальный налоговый код';
+$lang['def']['Tax type']='Типы налогообложения';
+$lang['def']['Document number']='Номер документа';
 $lang['def']['']='';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
+
 
 ?>

@@ -1178,7 +1178,7 @@ CREATE TABLE IF NOT EXISTS `corp_data` (
   `bankacc` varchar(255) DEFAULT NULL,
   `bankname` varchar(255) DEFAULT NULL,
   `bankmfo` varchar(255) DEFAULT NULL,
-  `bankedrpou` varchar(255) DEFAULT NULL,
+  `edrpou` varchar(255) DEFAULT NULL,
   `ndstaxnum` varchar(255) DEFAULT NULL,
   `inncode` varchar(255) DEFAULT NULL,
   `taxtype` int(11) DEFAULT NULL,
