@@ -178,7 +178,8 @@ if (cfr('CORPS')) {
                             $rows.=  wf_TableRow($cells, 'row3');
                         }
                     }
-                    $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+                    
+                    $result= wf_TableBody($rows, '100%', '0', 'sortable');
                     $result.= wf_modal(wf_img('skins/icon_add.gif').' '.__('Create'), __('Create'), $this->taxtypeCreateForm(), 'ubButton', '450', '150');
                     return ($result);
                 }
@@ -249,7 +250,7 @@ if (cfr('CORPS')) {
                             $cells.=wf_TableCell($taxtype);
                             $actlinks=   wf_JSAlert(self::URL_CORPS_DEL.$each['id'], web_delete_icon(), $this->alertDelete()).' ';
                             $actlinks.=  wf_JSAlert(self::URL_CORPS_EDIT.$each['id'], web_edit_icon(), __('Are you serious')).' ';
-                            $actlinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Show')), $each['corpname'], $this->corpPreview($each['id']), '', '800', '600');
+                            $actlinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), $each['corpname'], $this->corpPreview($each['id']), '', '800', '600');
                             $cells.=wf_TableCell($actlinks);
                             $rows.=  wf_TableRow($cells, 'row3');
                             
@@ -334,6 +335,7 @@ if (cfr('CORPS')) {
                         $rows.= wf_TableRow($cells, 'row3');
                         
                         $result=  wf_TableBody($rows, '100%', '0');
+                        $result.= $this->personsList($id);
                     } else {
                         $result=__('Not existing item');
                     }
@@ -382,7 +384,7 @@ if (cfr('CORPS')) {
                         $inputs.= wf_TextInput('editbankacc', __('Bank account'), $data['bankacc'], true, '20');
                         $inputs.= wf_TextInput('editbankname', __('Bank name'), $data['bankname'], true, '20');
                         $inputs.= wf_TextInput('editbankmfo', __('Bank MFO'), $data['bankmfo'], true, '20');
-                        $inputs.= wf_TextInput('editbankedrpou', __('EDRPOU'), $data['edrpou'], true, '20');
+                        $inputs.= wf_TextInput('editedrpou', __('EDRPOU'), $data['edrpou'], true, '20');
                         $inputs.= wf_TextInput('editndstaxnum', __('NDS number'), $data['ndstaxnum'], true, '20');
                         $inputs.= wf_TextInput('editinncode', __('INN code'), $data['inncode'], true, '20');
                         $inputs.= wf_Selector('edittaxtype', $this->taxtypes, __('Tax type'), $data['taxtype'], true);
@@ -390,7 +392,7 @@ if (cfr('CORPS')) {
                         $inputs.= wf_Submit(__('Save'));
                         
                         
-                        $result=  wf_Form(self::URL_CORPS_EDIT, 'POST', $inputs, 'glamour');
+                        $result=  wf_Form('', 'POST', $inputs, 'glamour');
                     } else {
                         $result=__('Not existing item');
                     }
@@ -409,14 +411,14 @@ if (cfr('CORPS')) {
                         
                         $inputs=  wf_HiddenInput('createcorpid','true');
                         $inputs.= wf_TextInput('createcorpname', __('Corp name').$sup, '', true, '40');
-                        $inputs.= wf_TextInput('createcoraddress', __('Address'), '', true, '40');
+                        $inputs.= wf_TextInput('createaddress', __('Address'), '', true, '40');
                         $inputs.= $this->doctypeSelector('createdoctype', '');
                         $inputs.= wf_DatePickerPreset('createdocdate', curdate(), true).' '.__('Document date').  wf_tag('br');
                         $inputs.= wf_TextInput('adddocnum', __('Document number'), '', true, '20');
                         $inputs.= wf_TextInput('addbankacc', __('Bank account'), '', true, '20');
                         $inputs.= wf_TextInput('addbankname', __('Bank name'), '', true, '20');
                         $inputs.= wf_TextInput('addbankmfo', __('Bank MFO'), '', true, '20');
-                        $inputs.= wf_TextInput('addbankedrpou', __('EDRPOU'), '', true, '20');
+                        $inputs.= wf_TextInput('addedrpou', __('EDRPOU'), '', true, '20');
                         $inputs.= wf_TextInput('addndstaxnum', __('NDS number'), '', true, '20');
                         $inputs.= wf_TextInput('addinncode', __('INN code'), '', true, '20');
                         $inputs.= wf_Selector('addtaxtype', $this->taxtypes, __('Tax type'), '', true);
@@ -424,7 +426,7 @@ if (cfr('CORPS')) {
                         $inputs.= wf_Submit(__('Create'));
                         
                         
-                        $result=  wf_Form(self::URL_CORPS_EDIT, 'POST', $inputs, 'glamour');
+                        $result=  wf_Form('', 'POST', $inputs, 'glamour');
                     
                     return ($result);
                 }
@@ -445,6 +447,111 @@ if (cfr('CORPS')) {
                         log_register("CORPS DELETE CORP [".$id."]");
                     }
                     
+                }
+                
+                /*
+                 * edits corp in database
+                 * 
+                 * @param $id int existing corp ID
+                 * 
+                 * @return void
+                 */
+                public function corpSave($id) {
+                    $id=vf($id,3);
+                    if (isset($this->corps[$id])) {
+                        simple_update_field('corp_data', 'corpname', $_POST['editcorpname'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'address', $_POST['editcoraddress'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'doctype', $_POST['editdoctype'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'docdate', $_POST['editdocdate'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'docnum', $_POST['editdocnum'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'bankacc', $_POST['editbankacc'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'bankname', $_POST['editbankname'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'bankmfo', $_POST['editbankmfo'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'edrpou', $_POST['editedrpou'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'ndstaxnum', $_POST['editndstaxnum'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'inncode', $_POST['editinncode'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'taxtype', $_POST['edittaxtype'], "WHERE `id`='".$id."'");
+                        simple_update_field('corp_data', 'notes', $_POST['editnotes'], "WHERE `id`='".$id."'");
+                        log_register("CORPS EDIT CORP [".$id."]");
+                    }
+                    
+                }
+                
+                /*
+                 * creates new corp in database
+                 * 
+                 * @return int
+                 */
+                
+                public function corpCreate() {
+                    $corpname=  mysql_real_escape_string($_POST['createcorpname']);
+                    $address=mysql_real_escape_string($_POST['createaddress']);
+                    $doctype=vf($_POST['createdoctype'],3);
+                    $docdate=mysql_real_escape_string($_POST['createdocdate']);
+                    $docnum=mysql_real_escape_string($_POST['adddocnum']);
+                    $bankacc=mysql_real_escape_string($_POST['addbankacc']);
+                    $bankname=mysql_real_escape_string($_POST['addbankname']);
+                    $bankmfo=mysql_real_escape_string($_POST['addbankmfo']);
+                    $edrpou=mysql_real_escape_string($_POST['addedrpou']);
+                    $taxnum=mysql_real_escape_string($_POST['addndstaxnum']);
+                    $inncode=mysql_real_escape_string($_POST['addinncode']);
+                    $taxtype=vf($_POST['addtaxtype'],3);
+                    $notes=mysql_real_escape_string($_POST['addnotes']);
+                    $query="INSERT INTO `corp_data` (`id`, `corpname`, `address`, `doctype`, `docnum`, `docdate`, `bankacc`, `bankname`, `bankmfo`, `edrpou`, `ndstaxnum`, `inncode`, `taxtype`, `notes`) "
+                         . "VALUES (NULL, '".$corpname."', '".$address."', '".$doctype."', '".$docnum."', '".$docdate."', '".$bankacc."', '".$bankname."', '".$bankmfo."', '".$edrpou."', '".$taxnum."', '".$inncode."', '".$taxtype."', '".$notes."');";
+                    nr_query($query);
+                    $newID=  simple_get_lastid('corp_data');
+                    log_register("CORPS CREATE CORP [".$newID."]");
+                    return ($newID);
+                }
+                
+                /*
+                 * returns corps link panel
+                 * 
+                 * @return string
+                 */
+                public function corpsPanel() {
+                    $result=   wf_Link(self::URL_CORPS_ADD, wf_img('skins/icon_add.gif').' '.__('Create'), false, 'ubButton');
+                    $result.=  wf_Link(self::URL_CORPS_LIST, wf_img('skins/icon_search_small.gif').' '.__('Available corps'), false, 'ubButton');
+                    $result.=  wf_Link(self::URL_TAXTYPE_LIST, wf_img('skins/icon_dollar.gif').' '.__('Available tax types'), false, 'ubButton');
+                    return ($result);
+                }
+                
+                
+                /*
+                 * returns contact persons list for some corp
+                 * 
+                 * @param $corpid int Existing corp ID
+                 */
+                protected function personsList($corpid) {
+                    $corpid=vf($corpid,3);
+                    $result='';
+                    if (!empty($this->persons)) {
+                         $cells=  wf_TableCell(__('ID'));
+                         $cells.= wf_TableCell(__('Real Name'));
+                         $cells.= wf_TableCell(__('Phone'));
+                         $cells.= wf_TableCell(__('IM'));
+                         $cells.= wf_TableCell(__('Email'));
+                         $cells.= wf_TableCell(__('Appointment'));
+                         $rows=  wf_TableRow($cells, 'row1');
+                        
+                        foreach ($this->persons as $io=>$each) {
+                         if ($each['corpid']==$corpid) {
+                                 $cells=  wf_TableCell($each['id']);
+                                 $cells.= wf_TableCell($each['realname']);
+                                 $cells.= wf_TableCell($each['phone']);
+                                 $cells.= wf_TableCell($each['im']);
+                                 $cells.= wf_TableCell($each['email']);
+                                 $cells.= wf_TableCell($each['appointment']);
+                                 $rows.=  wf_TableRow($cells, 'row3');
+                         }
+                            
+                        }
+                        
+                        $result.= wf_tag('b').__('Contact persons').  wf_tag('b',true);
+                        $result.=  wf_TableBody($rows, '100%', '0', 'sortable');
+                    }
+                    return ($result);
                 }
                 
             
@@ -468,7 +575,7 @@ if (cfr('CORPS')) {
                 if ($route==Corps::URL_TAXTYPE) {
                    //del 
                    if (wf_CheckGet(array('deltaxtypeid'))) {
-                       $corps->taxtypeDelete($_GET['deltaxtypeid']);
+                       if (method_exists($corps, $beggar['METH']['TTFLUSH']))  $corps->$beggar['METH']['TTFLUSH']($_GET['deltaxtypeid']);
                        rcms_redirect(Corps::URL_TAXTYPE_LIST);
                    }
                    //edit
@@ -482,31 +589,48 @@ if (cfr('CORPS')) {
                        rcms_redirect(Corps::URL_TAXTYPE_LIST);
                    }
                     
-                    show_window(__('Available tax types'),$corps->taxtypesList());
+                    show_window('',wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                     if (method_exists($corps, $beggar['METH']['TTRENDER']))    show_window(__('Available tax types'),$corps->$beggar['METH']['TTRENDER']());
                  
                 }
                 
                 
                 //corps controller
                 if ($route==Corps::URL_CORPS) {
+                    show_window('',$corps->corpsPanel());
+                    
                     //del
                     if (wf_CheckGet(array('deleteid'))) {
-                        $corps->corpDelete($_GET['deleteid']);
+                        if (method_exists($corps, $beggar['METH']['FLUSH'])) $corps->$beggar['METH']['FLUSH']($_GET['deleteid']);
                         rcms_redirect(Corps::URL_CORPS_LIST);
                     }
                     
                     //add
                     if (wf_CheckGet(array('add'))) {
-                        show_window(__('Create'),$corps->corpCreateForm());
+                        //creation 
+                        if (wf_CheckPost(array('createcorpid'))) {
+                            if (method_exists($corps, $beggar['METH']['ADD'])) $corps->$beggar['METH']['ADD']();
+                            rcms_redirect(Corps::URL_CORPS_LIST);
+                        }
+                        show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                        if (method_exists($corps, $beggar['VP']['FADF']))  show_window(__('Create'),$corps->$beggar['VP']['FADF']());
                     }
                     
                     //editing
                     if (wf_CheckGet(array('editid'))) {
-                        show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
-                        show_window(__('Edit'), $corps->corpEditForm($_GET['editid']));
-                    } else {
-                        show_window(__('Available corps'),$corps->corpsList());
+                        //editing push
+                        if (wf_CheckPost(array('editcorpid','editcorpname'))) {
+                            if (method_exists($corps, $beggar['METH']['PUSH']))  $corps->$beggar['METH']['PUSH']($_POST['editcorpid']);
+                            rcms_redirect(Corps::URL_CORPS_LIST);
+                        }
                         
+                        show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                        if (method_exists($corps, $beggar['VP']['MODF']))  show_window(__('Edit'), $corps->$beggar['VP']['MODF']($_GET['editid']));
+                    } else {
+                        
+                           if (!wf_CheckGet(array('add'))) {
+                               if (method_exists($corps, $beggar['METH']['RENDER']))   show_window(__('Available corps'),$corps->$beggar['METH']['RENDER']());
+                           } 
                     }
                     
                     

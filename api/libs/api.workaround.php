@@ -3574,6 +3574,10 @@ function zb_TranslitString($string) {
         if ($contentType=='docx') {
             $contentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         }
+        
+        if ($contentType=='csv') {
+            $contentType='text/csv; charset=Windows-1251';
+        }
     } 
 
     header('Content-Type: '.$contentType);

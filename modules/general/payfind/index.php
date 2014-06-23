@@ -423,7 +423,7 @@ if (cfr('PAYFIND')) {
     
     //downloading report as csv
     if (wf_CheckGet(array('downloadcsv'))) {
-        zb_DownloadFile(base64_decode($_GET['downloadcsv']), 'docx');
+        zb_DownloadFile(base64_decode($_GET['downloadcsv']), 'csv');
     }
     
     //Payment systems configuration
