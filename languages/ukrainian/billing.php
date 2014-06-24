@@ -1684,5 +1684,36 @@ $lang['def']['VOLS Module is enabled']='Чи ввімкнено модуль В�
 $lang['def']['Show payments with numeric notes']='Показати оплати з цифрами в примітках';
 $lang['def']['Show payments with only numeric notes']='Показати оплати тільки з цифровими примітками';
 
+$lang['def']['Not existing item']='Неіснуючий об`єкт';
+$lang['def']['Available tax types']='Існуючі типи оподаткування';
+$lang['def']['Certificate']='Свідоцтво';
+$lang['def']['Regulations']='Статут';
+$lang['def']['Reference']='Довідка';
+$lang['def']['Available corps']='Існуючі юридичні особи';
+$lang['def']['Corp name']='Найменування організації';
+$lang['def']['Document type']='Тип документу';
+$lang['def']['Document date']='Дата документу';
+$lang['def']['Tax payer status']='Податковий статус';
+$lang['def']['Bank MFO']='МФО банку';
+$lang['def']['EDRPOU']='ЕДРПОУ';
+$lang['def']['NDS number']='№ св. платника ПДВ';
+$lang['def']['INN code']='Індивідуальний податковий номер';
+$lang['def']['Tax type']='Типи оподаткування';
+$lang['def']['Document number']='Номер документу';
+$lang['def']['Contact persons']='Контактні особи';
+$lang['def']['This item is used by something']='Цей об`єкт кимось використовується';
+$lang['def']['Instant messenger (Skype, ICQ, Jabber, etc)']='Мессенджер (Skype, ICQ, Jabber тощо.)';
+$lang['def']['Corporate user']='Юридична особа';
+$lang['def']['Private user']='Фізична особа';
+$lang['def']['User type']='Тип користувача';
+$lang['def']['user type']='тип користувача';
+$lang['def']['I am quite sure that I was going to do']='Я повністю впевнений у тому, що збираюсь зробити';
+$lang['def']['Destroy user link']='Знищити зв`язок з користувачем';
+$lang['def']['Create user ling with existing corporate user']='Створити зв`язок з юридичною особою';
+$lang['def']['Corporate users']='Юридичні особи';
+$lang['def']['No existing tax types']='Немає існуючих типів оподаткування';
+$lang['def']['Corporate users management enabled']='Керування юр. особами увімкнено';
+$lang['def']['right to manage corps users']='Право керувати юридичними особами';
+
 
 ?>

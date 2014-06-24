@@ -1250,6 +1250,26 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         } else {
             $dnOnlineRow='';
         }
+        
+        //corporate users handling
+        if ($alter_conf['CORPS_ENABLED']) {
+            $corps=new Corps();
+            $corpsCheck=$corps->userIsCorporate($login);
+            
+            $corpsCells=   wf_TableCell(__('User type'),'','row2');
+            
+            if ($corpsCheck) {
+                $corpPreview= $corps->corpPreview($corpsCheck); 
+                $corpPreviewControl=wf_modal(wf_img('skins/folder_small.png',__('Show')), __('Preview'),  $corpPreview, '', '800', '600');  
+                $corpsCells.=  wf_TableCell(__('Corporate user').' '.$corpPreviewControl,'','row3');
+            } else {
+                $corpsCells.=  wf_TableCell(__('Private user'),'','row3');
+            }
+            $corps_row=  wf_TableRow($corpsCells);
+            
+        } else {
+            $corps_row='';
+        }
 		
         // Signup payments:
         if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
@@ -1284,6 +1304,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
                 <td class="row2">'.__('Contract').'</td>
                 <td class="row3">'.$contract.'</td>
             </tr>
+            '.$corps_row.'
               <tr>
                 <td class="row2">'.__('Phone').'</td>
                 <td class="row3">'.$phone.'</td>

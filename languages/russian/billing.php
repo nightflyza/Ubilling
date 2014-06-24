@@ -1681,7 +1681,6 @@ $lang['def']['Corp name']='Наименование организации';
 $lang['def']['Document type']='Тип документа';
 $lang['def']['Document date']='Дата документа';
 $lang['def']['Tax payer status']='Налоговый статус';
-$lang['def']['Document number']='';
 $lang['def']['Bank MFO']='МФО банка';
 $lang['def']['EDRPOU']='ЕГРПОУ';
 $lang['def']['NDS number']='№ св. плательщика НДС';
@@ -1689,11 +1688,19 @@ $lang['def']['INN code']='Индивидуальный налоговый код
 $lang['def']['Tax type']='Типы налогообложения';
 $lang['def']['Document number']='Номер документа';
 $lang['def']['Contact persons']='Контактные лица';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-
+$lang['def']['This item is used by something']='Этот объект кем-то используется';
+$lang['def']['Instant messenger (Skype, ICQ, Jabber, etc)']='Мессенджер (Skype, ICQ, Jabber итд.)';
+$lang['def']['Corporate user']='Юридическое лицо';
+$lang['def']['Private user']='Физическое лицо';
+$lang['def']['User type']='Тип пользователя';
+$lang['def']['user type']='тип пользователя';
+$lang['def']['I am quite sure that I was going to do']='Я совершенно уверен в том, что собираюсь сделать';
+$lang['def']['Destroy user link']='Уничтожить связь с пользователем';
+$lang['def']['Create user ling with existing corporate user']='Создать связь пользователя с существующим юр. лицом';
+$lang['def']['Corporate users']='Юридические лица';
+$lang['def']['No existing tax types']='Нету существующих типов налогообложения';
+$lang['def']['Corporate users management enabled']='Управление юр. лицами влючено';
+$lang['def']['right to manage corps users']='Право управлять юридическими лицами';
 
 
 ?>

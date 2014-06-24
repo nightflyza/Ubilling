@@ -91,6 +91,31 @@ if (cfr('USEREDIT')) {
         $cells.= wf_TableCell(wf_Link('?module=contractedit&username='.$login, wf_img('skins/icon_link.gif').' '. __('Change').' '.__('contract')));
         $rows.=  wf_TableRow($cells, 'row3');
         
+        if ($alter_conf['CORPS_ENABLED']) {
+             $greed=new Avarice();
+             $corpsRuntime=$greed->runtime('CORPS');
+             if (!empty($corpsRuntime)) {
+             $corps=new Corps();
+             $corpsCheck=$corps->userIsCorporate($login);
+             $cells=  wf_TableCell(__('User type'));
+             if (cfr('CORPS')) {
+                $corpControls=wf_Link(Corps::URL_USER_MANAGE.$login, wf_img('skins/corporate_small.gif').' '. __('Change').' '.__('user type'));
+             } else {
+                 $corpControls='';
+             }
+              if ($corpsCheck) {
+                   $cells.= wf_TableCell(__('Corporate user'));
+                   $cells.= wf_TableCell($corpControls);
+                   
+              } else {
+                  $cells.= wf_TableCell(__('Private user'));
+ 
+                  $cells.= wf_TableCell($corpControls);
+              }
+              $rows.=  wf_TableRow($cells, 'row3');
+             }
+        }
+        
         $cells=  wf_TableCell(__('Email'));
         $cells.= wf_TableCell($mail);
         $cells.= wf_TableCell( wf_Link('?module=mailedit&username='.$login, wf_img('skins/icon_mail.gif').' '.__('Change').' '.__('email')));
