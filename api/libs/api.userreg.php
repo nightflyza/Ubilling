@@ -319,6 +319,18 @@ function zb_RegPasswordProposal() {
     return ($password);
 }
 
+function zb_CheckLoginRscriptdCompat($login) {
+    $maxLen=31;
+    if (strlen($login)>=$maxLen) {
+        $alert=__('Attention generated login longer than').' '.$maxLen.' '.__('bytes').'. '.__('This can lead to the inability to manage this user on remote NAS running rscriptd').'. ';
+        $alert.= __('Perhaps you need to shorten the alias, or use a different model for the generation of logins').'.';
+        $result=  wf_modalOpened(__('Warning'), $alert, '500', '200');
+    } else {
+        $result='';
+    }
+    return ($result);
+}
+
 function web_UserRegFormNetData($newuser_data) {
 $alterconf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 $safe_mode=$alterconf['SAFE_REGMODE'];
@@ -374,7 +386,7 @@ $form='
     <input type="text" name="login" value="'.$login_proposal.'" '.$modifier.'>
     </td>
     <td>
-    '.__('Login').'
+    '.__('Login').' '.zb_CheckLoginRscriptdCompat($login_proposal).' 
     </td>
     </tr>
     <tr class="row3">

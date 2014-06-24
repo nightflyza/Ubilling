@@ -1701,6 +1701,11 @@ $lang['def']['Corporate users']='Юридические лица';
 $lang['def']['No existing tax types']='Нету существующих типов налогообложения';
 $lang['def']['Corporate users management enabled']='Управление юр. лицами влючено';
 $lang['def']['right to manage corps users']='Право управлять юридическими лицами';
-
+$lang['def']['Show tariff column in finance report']='Показывать колонку тарифа в фин. отчете';
+$lang['def']['bytes']='байт';
+$lang['def']['Attention generated login longer than']='Внимание, сгенерированный логин длиннее';
+$lang['def']['This can lead to the inability to manage this user on remote NAS running rscriptd']='Это может привести к невозможности управлять этим пользователем на удаленных NAS под управлением rscriptd';
+$lang['def']['Warning']='Предупреждение';
+$lang['def']['Perhaps you need to shorten the alias, or use a different model for the generation of logins']='Возможно вам стоит укоротить алиасы, либо использовать другую модель генерации логинов';
 
 ?>

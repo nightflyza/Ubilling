@@ -1,2 +1,2 @@
 NAME="Payments"
-NEED=""
+NEED="PAYMENTS_ENABLED"

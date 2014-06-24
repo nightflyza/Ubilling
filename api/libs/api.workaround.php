@@ -1668,6 +1668,12 @@ function web_DirectionsShow() {
        $allcontracts=  zb_UserGetAllContracts(); 
        $allcontracts=  array_flip($allcontracts);
     }
+    
+    //getting all users tariffs
+    if ($alter_conf['FINREP_TARIFF']) {
+        $alltariffs= zb_TariffsGetAllUsers();
+    }
+    
     $total=0;
     $totalPaycount=0;
     
@@ -1682,6 +1688,10 @@ function web_DirectionsShow() {
       $cells.= wf_TableCell(__('Login'));
       $cells.= wf_TableCell(__('Full address'));
       $cells.= wf_TableCell(__('Real Name'));
+      //optional tariff display
+      if ($alter_conf['FINREP_TARIFF']) {
+          $cells.=wf_TableCell(__('Tariff'));
+      }
       $cells.= wf_TableCell(__('Cash type'));
       $cells.= wf_TableCell(__('Notes'));
       $cells.= wf_TableCell(__('Admin'));
@@ -1705,6 +1715,10 @@ function web_DirectionsShow() {
               $cells.= wf_TableCell(wf_Link('?module=userprofile&username='.$eachpayment['login'], (web_profile_icon().' '.$eachpayment['login']), false, ''));
               $cells.= wf_TableCell(@$alladrs[$eachpayment['login']]);
               $cells.= wf_TableCell(@$allrealnames[$eachpayment['login']]);
+              //optional tariff display
+              if ($alter_conf['FINREP_TARIFF']) {
+                  $cells.= wf_TableCell(@$alltariffs[$eachpayment['login']]);  
+              }
               $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
               $cells.= wf_TableCell($eachpayment['note']);
               $cells.= wf_TableCell($eachpayment['admin']);

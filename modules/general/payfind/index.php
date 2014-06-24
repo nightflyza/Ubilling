@@ -300,6 +300,9 @@ if (cfr('PAYFIND')) {
         $allcontracts = zb_UserGetAllContracts();
         $allcontracts = array_flip($allcontracts);
         }
+        if ($altercfg['FINREP_TARIFF']) {
+            $alltariffs=  zb_TariffsGetAllUsers();
+        }
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
         $alltypes = zb_CashGetAllCashTypes();
@@ -322,6 +325,9 @@ if (cfr('PAYFIND')) {
         }
         $cells.= wf_TableCell(__('Full address'));
         $cells.= wf_TableCell(__('Real Name'));
+        if ($altercfg['FINREP_TARIFF']) {
+        $cells.= wf_TableCell(__('Tariff'));
+        } 
         $cells.= wf_TableCell(__('Payment type'));
         $cells.= wf_TableCell(__('Notes'));
         $cells.= wf_TableCell(__('Admin'));
@@ -329,7 +335,12 @@ if (cfr('PAYFIND')) {
       
         
         if (!empty($allpayments)) {
-            $csvdata.=__('ID').';'.__('Date').';'.__('Cash').';'.__('PS%').';'.__('Profit').';'.__('Login').';'.__('Full address').';'.__('Real Name').';'.__('Payment type').';'.__('Notes').';'.__('Admin')."\n";
+            if ($altercfg['FINREP_TARIFF']) {
+                $csvTariffColumn=';'.__('Tariff'); 
+            } else {
+                $csvTariffColumn=''; 
+            }
+            $csvdata.=__('ID').';'.__('Date').';'.__('Cash').';'.__('PS%').';'.__('Profit').';'.__('Login').';'.__('Full address').';'.__('Real Name').$csvTariffColumn.';'.__('Payment type').';'.__('Notes').';'.__('Admin')."\n";
             foreach ($allpayments as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
@@ -356,6 +367,13 @@ if (cfr('PAYFIND')) {
                 @$paymentAddress=$alladdress[$each['login']];;
                 $cells.= wf_TableCell($paymentAddress);
                 $cells.= wf_TableCell($paymentRealname);
+                if ($altercfg['FINREP_TARIFF']) {
+                @$userTariff=$alltariffs[$each['login']];
+                $cells.= wf_TableCell($userTariff);
+                 $csvTariff=';'.$userTariff;
+                } else {
+                 $csvTariff='';   
+                }
                 $cells.= wf_TableCell($paymentCashType);
                 //payment notes translation
                 if ($altercfg['TRANSLATE_PAYMENTS_NOTES']) {
@@ -381,7 +399,7 @@ if (cfr('PAYFIND')) {
                     $profitsumm=$profitsumm+$ourProfit;
                 }
                 $csvSumm=  str_replace('.', ',', $each['summ']);
-                $csvdata.=$each['id'].';'.$each['date'].';'.$csvSumm.';'.$paySysPc.';'.$ourProfit.';'.$each['login'].';'.$paymentAddress.';'.$paymentRealname.';'.$paymentCashType.';'.$paynote.';'.$each['admin']."\n";
+                $csvdata.=$each['id'].';'.$each['date'].';'.$csvSumm.';'.$paySysPc.';'.$ourProfit.';'.$each['login'].';'.$paymentAddress.';'.$paymentRealname.$csvTariff.';'.$paymentCashType.';'.$paynote.';'.$each['admin']."\n";
             }
        
         }

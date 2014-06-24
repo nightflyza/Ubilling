@@ -43,6 +43,7 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         $alladdress=  zb_AddressGetFulladdresslistCached();
         $csvdata='';
         $totalsumm=0;
+        $totalcount=0;
         $query="SELECT * from `op_transactions` WHERE `date` LIKE '".$year."-".$month."-%' AND `paysys` LIKE '".$paysys."' ;";
         $alltransactions=simple_queryall($query);
 
@@ -78,6 +79,7 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
                 $rows.=  wf_TableRow($cells, 'row3');
                 if ($eachtransaction['summ']>0)  {
                     $totalsumm=$totalsumm+$eachtransaction['summ'];
+                    $totalcount=$totalcount+1;
                 }
                     
                 $csvSumm=  str_replace('.', ',', $eachtransaction['summ']);
@@ -88,7 +90,7 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         }
         
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= wf_tag('b').__('Cash').': '.$totalsumm.  wf_tag('b',true);
+        $result.= __('Total').': '.$totalcount.' '.__('payments'). ' '.__('with total amount').' '.$totalsumm;
         
         if (!empty($csvdata)) {
             $exportFilename='exports/opsearch_'.$paysys.'_'.$year.'-'.$month.'.csv';

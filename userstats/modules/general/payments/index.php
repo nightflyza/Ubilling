@@ -2,6 +2,7 @@
 
 function zbs_ShowUserPayments($login) {
     $usConfig=  zbs_LoadConfig();
+    if ($usConfig['PAYMENTS_ENABLED']) {
     $allpayments=zbs_CashGetUserPayments($login);
     $result='<table width="100%" border="0">';
 
@@ -33,6 +34,11 @@ function zbs_ShowUserPayments($login) {
     }
     $result.='</table>';
     show_window(__('Last payments'),$result);
+    } else {
+        $result=__('This module is disabled');
+        show_window(__('Sorry'),$result);
+    }
+    
 }
 
 $user_ip=zbs_UserDetectIp('debug');

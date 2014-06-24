@@ -93,6 +93,7 @@ UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds
 DEVCON_SQL_KEEP=TRIGGER|Query remains in SQL console after exec
 DEVCON_VERBOSE_DEBUG=TRIGGER|Verbose debug data in developers console
 FINREP_CONTRACT=TRIGGER|Show users contract in finance report
+FINREP_TARIFF=TRIGGER|Show tariff column in finance report
 SIGREP_CONTRACT=TRIGGER|Show users contract in signup report
 TARIFFCHGAUTOCREDIT=TRIGGER|Automatically set the credit limit when you change the tariff
 MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
