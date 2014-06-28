@@ -931,6 +931,27 @@ class Corps {
             }
             return ($result);
         }
+        
+        /*
+         * Gets corp data by associated username
+         * 
+         * @param $login string Existing users login
+         * 
+         * @return array
+         */
+        public function corpGetDataByLogin($login) {
+            $result=array();
+            if (isset($this->users[$login])) {
+                $corpId=$this->users[$login];
+                if (isset($this->corps[$corpId])) {
+                    $result=  $this->corps[$corpId];
+                    //map some IDs to normal text
+                    $result['doctype']=__($this->doctypes[$result['doctype']]);
+                    $result['taxtype']=$this->taxtypes[$result['taxtype']];
+                }
+            }
+            return ($result);
+        }
     
 
 }

@@ -2176,7 +2176,7 @@ function zb_backup_tables($tables = '*',$silent=false) {
             show_window(__('Backup saved'),$backname);
         }
         
-        log_register("CREATE Backup `".$backname."`");
+        log_register("BACKUP CREATE `".$backname."`");
         return ($backname);
 }
 

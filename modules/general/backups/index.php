@@ -11,12 +11,28 @@ if (isset ($_POST['createbackup'])) {
     }
 }
 
-
+//downloading mysql dump
 if (wf_CheckGet(array('download'))) {
     if (cfr('ROOT')) {
         $filePath=  base64_decode($_GET['download']);
         zb_DownloadFile($filePath);
-        
+    } else {
+        show_window(__('Error'), __('Access denied'));
+    }
+}
+
+
+//deleting dump
+if (wf_CheckGet(array('deletedump'))) {
+    if (cfr('ROOT')) {
+        $deletePath=  base64_decode($_GET['deletedump']);
+        if (file_exists($deletePath)) {
+            rcms_delete_files($deletePath);
+            log_register('BACKUP DELETE `'.$deletePath.'`');
+            rcms_redirect('?module=backups');
+        } else {
+            show_window(__('Error'), __('Not existing item'));
+        }
     } else {
         show_window(__('Error'), __('Access denied'));
     }
@@ -30,6 +46,7 @@ function web_AvailableDBBackupsList() {
         $cells=  wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Size'));
         $cells.= wf_TableCell(__('Filename'));
+        $cells.= wf_TableCell(__('Actions'));
         $rows= wf_TableRow($cells, 'row1');
         
         foreach ($availbacks as $eachDump) {
@@ -37,11 +54,15 @@ function web_AvailableDBBackupsList() {
             $fileDate= date("Y-m-d H:i:s", $fileDate);
             $fileSize= filesize($backupsPath.$eachDump);
             $fileSize= stg_convert_size($fileSize);
-            $downloadLink=  wf_Link('?module=backups&download='.  base64_encode($backupsPath.$eachDump), $eachDump, false, '');
+            $encodedDumpPath=base64_encode($backupsPath.$eachDump);
+            $downloadLink=  wf_Link('?module=backups&download='.  $encodedDumpPath, $eachDump, false, '');
+            $actLinks=  wf_JSAlert('?module=backups&deletedump='.$encodedDumpPath, web_delete_icon(), __('Removing this may lead to irreparable results')).' ';
+            $actLinks.= wf_Link('?module=backups&download='.  $encodedDumpPath, wf_img('skins/icon_download.png',__('Download')), false, '');
             
             $cells=  wf_TableCell($fileDate);
             $cells.= wf_TableCell($fileSize);
             $cells.= wf_TableCell($downloadLink);
+            $cells.= wf_TableCell($actLinks);
             $rows.= wf_TableRow($cells, 'row3'); 
         }
         $result=  wf_TableBody($rows, '100%', '0', 'sortable');

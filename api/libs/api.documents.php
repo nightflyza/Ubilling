@@ -385,7 +385,40 @@ class ProfileDocuments {
         $inputs.= wf_Selector('customservice', $availServices, __('Service'), '', 'true');
         $inputs.= wf_TextInput('customnotes', __('Notes'), '', true, '20');
         $inputs.= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
+        if ($this->altcfg['CORPS_ENABLED']) {
+            $inputs.=wf_tag('br').wf_tag('span', false, 'row3').' '.__('Corporate users').' '.wf_tag('span',true).  wf_tag('br');
+            $greed=new Avarice();
+            $corpsRuntime=$greed->runtime('CORPS');
+            if (!empty($corpsRuntime)) {
+                $corps=new Corps();
+                if ($corps->userIsCorporate($this->userLogin)) {
+                    //this is realy corp user
+                    $corpData=$corps->corpGetDataByLogin($this->userLogin);
+
+                    $inputs.=wf_TextInput('corpname', __('Corp name'), @$corpData['corpname'], true, '30');
+                    $inputs.=wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
+                    $inputs.=wf_TextInput('corpdoctype', __('Document type'), @$corpData['doctype'], true, '30');
+                    $inputs.=wf_TextInput('corpdocnum', __('Document number'), @$corpData['docnum'], true, '30');
+                    $inputs.=wf_TextInput('corpdocdate', __('Document date'), @$corpData['docdate'], true, '30');
+                    $inputs.=wf_TextInput('corpbankacc', __('Bank account'), @$corpData['bankacc'], true, '30');
+                    $inputs.=wf_TextInput('corpbankname', __('Bank name'), @$corpData['bankname'], true, '30');
+                    $inputs.=wf_TextInput('corpbankmfo', __('Bank MFO'), @$corpData['bankmfo'], true, '30');
+                    $inputs.=wf_TextInput('corpedrpou', __('EDRPOU'), @$corpData['edrpou'], true, '30');
+                    $inputs.=wf_TextInput('corpndstaxnum', __('NDS number'), @$corpData['ndstaxnum'], true, '30');
+                    $inputs.=wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
+                    $inputs.=wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
+                    $inputs.=wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
+                    
+                } else {
+                    $inputs.=__('Private user');
+                }
+            } else {
+                $inputs.=__('No license key available');
+            }
+            
+        }
         $inputs.= wf_HiddenInput('customfields', 'true');
+        $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -412,6 +445,23 @@ class ProfileDocuments {
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
             @$this->customFields['CUSTSUMPDVLIT'] = num2str($this->customFields['CUSTSUMPDV']);
+            
+            if ($this->altcfg['CORPS_ENABLED']) {
+                //corporate user fields
+                @$this->customFields['CORPNAME'] = $_POST['corpname'];
+                @$this->customFields['CORPADDRESS'] = $_POST['corpaddress'];
+                @$this->customFields['CORPDOCTYPE'] = $_POST['corpdoctype'];
+                @$this->customFields['CORPDOCNUM'] = $_POST['corpdocnum'];
+                @$this->customFields['CORPDOCDATE'] = $_POST['corpdocdate'];
+                @$this->customFields['CORPBANKACC'] = $_POST['corpbankacc'];
+                @$this->customFields['CORPBANKNAME'] = $_POST['corpbankname'];
+                @$this->customFields['CORPBANKMFO'] = $_POST['corpbankmfo'];
+                @$this->customFields['CORPEDRPOU'] = $_POST['corpedrpou'];
+                @$this->customFields['CORPNDSTAXNUM'] = $_POST['corpndstaxnum'];
+                @$this->customFields['CORPINNCODE'] = $_POST['corpinncode'];
+                @$this->customFields['CORPTAXTYPE'] = $_POST['corptaxtype'];
+                @$this->customFields['CORPNOTES'] = $_POST['corpnotes'];
+           }
         }
     }
 

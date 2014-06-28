@@ -166,8 +166,8 @@ if (cfr('PAYFIND')) {
                 foreach ($alltags as $io => $eachtag) {
                     $tags[$eachtag['id']] = $eachtag['tagname'];
                 }
-                $result=  wf_Selector('tagid', $tags, __('Tags'), '', true);
             }
+            $result=  wf_Selector('tagid', $tags, __('Tags'), '', true);
             return($result);
     }
     
