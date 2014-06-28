@@ -946,8 +946,8 @@ class Corps {
                 if (isset($this->corps[$corpId])) {
                     $result=  $this->corps[$corpId];
                     //map some IDs to normal text
-                    $result['doctype']=__($this->doctypes[$result['doctype']]);
-                    $result['taxtype']=$this->taxtypes[$result['taxtype']];
+                    @$result['doctype']=__($this->doctypes[$result['doctype']]);
+                    @$result['taxtype']=$this->taxtypes[$result['taxtype']];
                 }
             }
             return ($result);
