@@ -26,7 +26,7 @@ if (cfr('OPTION82')) {
         
         if (!empty($rawArr)) {
             foreach ($rawArr as $eachline) {
-                $explodeLine=explode(' ',$eachline);
+               $explodeLine=preg_split('/\s+/', $eachline);
                 //log have normal format
                 if (isset($explodeLine[9]) AND (isset($explodeLine[11])) AND (isset($explodeLine[7]))) {
                     $leaseIp=$explodeLine[7];
