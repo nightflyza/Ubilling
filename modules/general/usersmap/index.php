@@ -1,7 +1,7 @@
 <?php
 if(cfr('USERSMAP')) {
 
-    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $altercfg=  $ubillingConfig->getAlter();
     
     if ($altercfg['SWYMAP_ENABLED']) {
    

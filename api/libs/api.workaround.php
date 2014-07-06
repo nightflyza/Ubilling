@@ -1270,6 +1270,16 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         } else {
             $corps_row='';
         }
+        
+        //agent assign display check
+        if ($alter_conf['AGENTS_ASSIGN']==2) {
+            $assignedAgentData=  zb_AgentAssignedGetDataFast($login,$useraddress);
+            $agentCells=   wf_TableCell(__('Contrahent name'),'','row2');
+            $agentCells.=  wf_TableCell(@$assignedAgentData['contrname'],'','row3');
+            $agentRows= wf_TableRow($agentCells);
+        } else {
+            $agentRows='';
+        }
 		
         // Signup payments:
         if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
@@ -1304,6 +1314,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
                 <td class="row2">'.__('Contract').'</td>
                 <td class="row3">'.$contract.'</td>
             </tr>
+            '.$agentRows.'
             '.$corps_row.'
               <tr>
                 <td class="row2">'.__('Phone').'</td>
@@ -1947,8 +1958,7 @@ function web_PaymentsShowGraph($year) {
                     }    
                 }
             if ($delete) {
-                //$deletecontrol='<a href="?module='.$module.'&'.$prefix.'delete='.$eachdata['id'].'">'.web_delete_icon().'</a>';
-                $deletecontrol=wf_JSAlert('?module='.$module.'&'.$prefix.'delete='.$eachdata['id'], web_delete_icon(), 'Are you serious');
+               $deletecontrol=wf_JSAlert('?module='.$module.'&'.$prefix.'delete='.$eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             } else {
                 $deletecontrol='';
             }

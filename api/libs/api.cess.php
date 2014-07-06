@@ -38,7 +38,7 @@
                 '".$contrname."'
                 );";
     nr_query($query);
-    log_register("ADD AGENT ".$contrname);
+    log_register("ADD AGENT `".$contrname."`");
     }
     
     function zb_ContrAhentChange($ahentid,$bankacc,$bankname,$bankcode,$edrpo,$ipn,$licensenum,$juraddr,$phisaddr,$phone,$contrname) {
@@ -66,14 +66,14 @@
         `contrname` = '".$contrname."'
           WHERE `contrahens`.`id` =".$ahentid." LIMIT 1;";
     nr_query($query);
-    log_register("CHANGE AGENT ".$contrname);
+    log_register("CHANGE AGENT `".$contrname."`");
     }
     
     function zb_ContrAhentDelete($id) {
         $id=vf($id);
         $query="DELETE from `contrahens` where `id`='".$id."'";
         nr_query($query);
-        log_register("DELETE AGENT ".$id);
+        log_register("DELETE AGENT [".$id."]");
     } 
     
     function zb_ContrAhentGetData($id) {
@@ -124,43 +124,48 @@
      }
      
      function zb_ContrAhentAddForm() {
-         $form='
-             <form action="" method="POST"> 
-             <input type="text" name="newbankacc" > '.__('Bank account').' <br>
-             <input type="text" name="newbankname" > '.__('Bank name').' <br>
-             <input type="text" name="newbankcode" > '.__('Bank code').' <br>
-             <input type="text" name="newedrpo" > '.__('EDRPOU').' <br>
-             <input type="text" name="newipn" > '.__('IPN').' <br>
-             <input type="text" name="newlicensenum" > '.__('License number').' <br>
-             <input type="text" name="newjuraddr" > '.__('Juridical address').' <br>
-             <input type="text" name="newphisaddr" > '.__('Phisical address').' <br>
-             <input type="text" name="newphone" > '.__('Phone').' <br>
-             <input type="text" name="newcontrname" > '.__('Contrahent name').' <br>
-             <input type="submit" value="'.__('Save').'">
-             </form>
-             ';
-         return($form);
+         $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+         
+         $inputs='';
+         $inputs.=  wf_TextInput('newcontrname', __('Contrahent name').$sup, '', true);
+         $inputs.=  wf_TextInput('newbankacc', __('Bank account'), '', true);
+         $inputs.=  wf_TextInput('newbankname', __('Bank name'), '', true);
+         $inputs.=  wf_TextInput('newbankcode', __('Bank code'), '', true);
+         $inputs.=  wf_TextInput('newedrpo', __('EDRPOU'), '', true);
+         $inputs.=  wf_TextInput('newipn', __('IPN'), '', true);
+         $inputs.=  wf_TextInput('newlicensenum', __('License number'), '', true);
+         $inputs.=  wf_TextInput('newjuraddr', __('Juridical address'), '', true);
+         $inputs.=  wf_TextInput('newphisaddr', __('Phisical address'), '', true);
+         $inputs.=  wf_TextInput('newphone', __('Phone'), '', true);
+         
+         $inputs.= wf_Submit(__('Create'));
+         $result=  wf_Form("", 'POST', $inputs, 'glamour');
+         
+         
+         return($result);
      }
      
          function zb_ContrAhentEditForm($ahentid) {
          $ahentid=vf($ahentid);
          $cdata=zb_ContrAhentGetData($ahentid);
-         $form='
-             <form action="" method="POST"> 
-             <input type="text" name="changebankacc" value="'.$cdata['bankacc'].'"> '.__('Bank account').' <br>
-             <input type="text" name="changebankname" value="'.$cdata['bankname'].'"> '.__('Bank name').' <br>
-             <input type="text" name="changebankcode" value="'.$cdata['bankcode'].'"> '.__('Bank code').' <br>
-             <input type="text" name="changeedrpo" value="'.$cdata['edrpo'].'"> '.__('EDRPOU').' <br>
-             <input type="text" name="changeipn" value="'.$cdata['ipn'].'"> '.__('IPN').' <br>
-             <input type="text" name="changelicensenum" value="'.$cdata['licensenum'].'"> '.__('License number').' <br>
-             <input type="text" name="changejuraddr" value="'.$cdata['juraddr'].'"> '.__('Juridical address').' <br>
-             <input type="text" name="changephisaddr" value="'.$cdata['phisaddr'].'"> '.__('Phisical address').' <br>
-             <input type="text" name="changephone" value="'.$cdata['phone'].'"> '.__('Phone').' <br>
-             <input type="text" name="changecontrname" value="'.$cdata['contrname'].'"> '.__('Contrahent name').' <br>
-             <input type="submit" value="'.__('Save').'">
-             </form>
-             ';
-         return($form);
+         $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+         
+         $inputs='';
+         $inputs.=  wf_TextInput('changecontrname', __('Contrahent name').$sup, $cdata['contrname'], true);
+         $inputs.=  wf_TextInput('changebankacc', __('Bank account'), $cdata['bankacc'], true);
+         $inputs.=  wf_TextInput('changebankname', __('Bank name'), $cdata['bankname'], true);
+         $inputs.=  wf_TextInput('changebankcode', __('Bank code'), $cdata['bankcode'], true);
+         $inputs.=  wf_TextInput('changeedrpo', __('EDRPOU'), $cdata['edrpo'], true);
+         $inputs.=  wf_TextInput('changeipn', __('IPN'), $cdata['ipn'], true);
+         $inputs.=  wf_TextInput('changelicensenum', __('License number'), $cdata['licensenum'], true);
+         $inputs.=  wf_TextInput('changejuraddr', __('Juridical address'), $cdata['juraddr'], true);
+         $inputs.=  wf_TextInput('changephisaddr', __('Phisical address'), $cdata['phisaddr'], true);
+         $inputs.=  wf_TextInput('changephone', __('Phone'), $cdata['phone'], true);
+         
+         $inputs.= wf_Submit(__('Save'));
+         $result=  wf_Form("", 'POST', $inputs, 'glamour');
+         
+         return ($result);
      }
      
      function zb_ContrAhentSelect() {
@@ -206,15 +211,14 @@
      }
      
      function web_AgentAssignForm() {
-             $form='
-                 <form action="" method="POST">
-                 '.  zb_ContrAhentSelect().' '.__('Contrahent name').' <br>
-                 <input type="text" name="newassign"> '.__('Street name').' <br>
-                 <input type="submit" value="'.__('Save').'">
-                 </form>
-                 ';
+             $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+             $inputs=zb_ContrAhentSelect();
+             $inputs.= __('Contrahent name').  wf_tag('br');
+             $inputs.= wf_TextInput('newassign', __('Street name').$sup, '', true);
+             $inputs.= wf_Submit(__('Save'));
+             $result=  wf_Form("", 'POST', $inputs, 'glamour');
              
-             return($form);
+             return($result);
        }
        
        function web_AgentAssignShow() {
@@ -226,30 +230,26 @@
                    $agentnames[$eachahen['id']]=$eachahen['contrname'];
                }
            }
-           $result='<table width="100%" border="0" class="sortable">';
-              $result.='
-                   <tr class="row1">
-                         <td>'.__('ID').'</td>
-                         <td>'.__('Contrahent name').'</td>
-                         <td>'.__('Street name').'</td>
-                         <td>'.__('Actions').'</td>
-                   </tr>
-                   ';
+  
+           $cells=  wf_TableCell(__('ID'));
+           $cells.= wf_TableCell(__('Contrahent name'));
+           $cells.= wf_TableCell(__('Street name'));
+           $cells.= wf_TableCell(__('Actions'));
+           $rows= wf_TableRow($cells,'row1');
+              
            if (!empty ($allassigns)) {
                foreach ($allassigns as $io2=>$eachassign) {
-               $result.='
-                   <tr class="row3">
-                         <td>'.$eachassign['id'].'</td>
-                         <td>'.@$agentnames[$eachassign['ahenid']].'</td>
-                         <td>'.$eachassign['streetname'].'</td>
-                          <td>
-                          <a href="?module=contrahens&deleteassign='.$eachassign['id'].'">'.  web_delete_icon().'</a>
-                          </td>
-                   </tr>
-                   ';
+               
+                   $cells=  wf_TableCell($eachassign['id']);
+                   $cells.= wf_TableCell(@$agentnames[$eachassign['ahenid']]);
+                   $cells.= wf_TableCell($eachassign['streetname']);
+                   $actLinks=  wf_JSAlert('?module=contrahens&deleteassign='.$eachassign['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                   $cells.= wf_TableCell($actLinks);
+                   $rows.= wf_TableRow($cells,'row3');
+               
                }
            }
-           $result.='</table>';
+           $result=  wf_TableBody($rows, '100%', '0', 'sortable');
            return($result);
        }
          
@@ -279,6 +279,39 @@
         if (!$alter_cfg['AGENTS_ASSIGN']) {
             $result=$alter_cfg['DEFAULT_ASSIGN_AGENT'];
         }
+        return($result);
+    }
+    
+        function zb_AgentAssignCheckLoginFast($login,$allassigns,$address) {
+          global $ubillingConfig;
+          $alter_cfg=$ubillingConfig->getAlter();
+          $result=array();
+          // если пользователь куда-то заселен
+          if (!empty($address)) {
+              // возвращаем дефолтного агента если присваиваний нет вообще
+             if (empty ($allassigns)) {
+                 $result=$alter_cfg['DEFAULT_ASSIGN_AGENT'];
+           } else {
+               //если какие-то присваивалки есть
+            $useraddress=$address;
+       
+            // проверяем для каждой присваивалки попадает ли она под нашего абонента
+            foreach ($allassigns as $io=>$eachassign) {
+                if (strpos($useraddress,$eachassign['streetname'])!==false) {
+                    $result=$eachassign['ahenid'];
+                    break;
+                    } else {
+                        // и если не нашли - возвращаем  умолчательного
+                        $result=$alter_cfg['DEFAULT_ASSIGN_AGENT'];
+                    }
+           }
+           }
+          }
+        // если присваивание выключено возвращаем умолчального
+        if (!$alter_cfg['AGENTS_ASSIGN']) {
+            $result=$alter_cfg['DEFAULT_ASSIGN_AGENT'];
+        }
+   
         return($result);
     }
     
@@ -486,6 +519,13 @@
        return($result);
    }
    
+    function zb_AgentAssignedGetDataFast($login,$address) {
+       $allassigns=zb_AgentAssignGetAllData();
+       $assigned_agent=  zb_AgentAssignCheckLoginFast($login, $allassigns, $address);
+       $result=zb_ContrAhentGetData($assigned_agent);
+       return($result);
+   }
+   
    
    // literated summ
    // i`m localize it later
@@ -615,7 +655,8 @@
         $templatebody=zb_PrintCheckLoadTemplate();
         $allfioz=zb_UserGetAllRealnames();
         $alladdress=zb_AddressGetFulladdresslist();
-        $agent_data=zb_AgentAssignedGetData($login);
+        $useraddress=$alladdress[$login];
+        $agent_data=  zb_AgentAssignedGetDataFast($login,$useraddress);
         $cassnames=zb_PrintCheckLoadCassNames();
         $cday=date("d");
         $cmonth=date("m");
@@ -634,7 +675,7 @@
         @$templatedata['{BUHNAME}']='а відки я знаю?';
         @$templatedata['{CASNAME}']=  $cassnames[whoami()];
         @$templatedata['{PAYTARGET}']='Оплата за послуги / '.$paymentdata['date'];
-        @$templatedata['{FULLADDRESS}']=$alladdress[$login];
+        @$templatedata['{FULLADDRESS}']=$useraddress;
         @$templatedata['{CDAY}']=$cday;
         @$templatedata['{CMONTH}']=rcms_date_localise($cmonth_name);
         @$templatedata['{CYEAR}']=$cyear;

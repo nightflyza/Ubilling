@@ -112,26 +112,21 @@ function zbs_TariffGetChangePrice($tc_tariffsallowed,$user_tariff,$tc_priceup,$t
 function zbs_TariffGetShowPrices($tc_tariffsallowed,$us_currency,$user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar) {
     $allprices=zbs_TariffGetAllPrices();
     $allcosts=zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar);
-    $result='<table width="50%" border="0">';
-     $result.='
-                <tr class="row1">
-                <td>'.__('Tariff').'</td>
-                <td>'.__('Monthly fee').'</td>
-                <td>'.__('Cost of change').'</td>
-                </tr>
-                ';
+   
+    $cells=  la_TableCell(__('Tariff'));
+    $cells.= la_TableCell(__('Monthly fee'));
+    $cells.= la_TableCell(__('Cost of change'));
+    $rows=   la_TableRow($cells,'row1');
+    
     if (!empty ($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $eachtariff) {
-            $result.='
-                <tr class="row2">
-                <td><b>'.__($eachtariff).'</b></td>
-                <td>'.@$allprices[$eachtariff].' '.$us_currency.'</td>
-                <td>'.@$allcosts[$eachtariff].' '.$us_currency.'</td>
-                </tr>
-                ';
+            $cells=  la_TableCell(__($eachtariff));
+            $cells.= la_TableCell(@$allprices[$eachtariff].' '.$us_currency);
+            $cells.= la_TableCell(@$allcosts[$eachtariff].' '.$us_currency);
+            $rows.=  la_TableRow($cells,'row2');
         }
     }
-    $result.='</table>';
+    $result=  la_TableBody($rows, '100%', 0);
     return ($result);
 }
 
@@ -160,7 +155,6 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed,$tc_priceup,$tc_pricedo
 
 //check is tariff changing is enabled? 
 if ($tc_enabled) {
-    
     //check is TC allowed for current user tariff plan
     if (in_array($user_tariff, $tc_tariffenabledfrom)) {
     //tariff change subroutines
@@ -176,6 +170,12 @@ if ($tc_enabled) {
                   if ($tc_credit) {
                       $newcredit=$change_prices[$_POST['newtariff']]+$user_credit;
                       billing_setcredit($user_login, $newcredit);
+                      
+                      //set credit expire date for month from this moment
+                      $timestamp=time();
+                      $monthOffset=$timestamp+2678400; // 31 days in seconds
+                      $creditend= date("Y-m-d",$monthOffset);
+                      billing_setcreditexpire($user_login, $creditend);
                   }
               } 
               

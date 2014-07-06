@@ -44,9 +44,9 @@ SEARCH_CUSTOM_CONTRACT=TRIGGER|Contract additional search fields
 
 
 CHAPTER_PAYEX=Payments export
-AGENTS_ASSIGN=TRIGGER|Assign agents with different streets
 EXPORT_ENABLED=TRIGGER|Payments export
 EXPORT_ONLY_POSITIVE=TRIGGER|Export only positive payments
+AGENTS_ASSIGN=TRIGGER|Assign agents with different streets
 DEFAULT_ASSIGN_AGENT=VARCHAR|Default agent assign
 EXPORT_FROM_TIME=VARCHAR|Export time begin
 EXPORT_TO_TIME=VARCHAR|Export time end

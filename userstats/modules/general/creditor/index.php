@@ -79,6 +79,7 @@ $cday=date("d");
 $wmess=__('If you wait too long to pay for the service, here you can get credit for').' '.$sc_term.' '.__('days. The price of this service is').': '.$sc_price.' '.$us_currency.'. ';
 $wmess.= __('Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
 show_window(__('Credits'),$wmess);
+ 
 //if day is something like that needed
 if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
     if (($current_credit<=0) AND ($current_credit_expire==0)) {
@@ -89,8 +90,14 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
         } else {
             // set credit routine
             if (isset($_POST['agree'])) {
-             // freaky like-a tomorrow =)
-            $scend= date("Y-m-d",mktime(0, 0, 0, date("m"), date("d")+$sc_term, date("Y")));
+            //calculate credit expire date
+            $nowTimestamp=time();
+            $creditSeconds=($sc_term*86400); //days*secs
+            $creditOffset=$nowTimestamp+$creditSeconds;
+            $scend=date("Y-m-d",$creditOffset);
+            
+            // freaky like-a tomorrow =)
+            //$scend= date("Y-m-d",mktime(0, 0, 0, date("m"), date("d")+$sc_term, date("Y")));
             if (abs($current_cash)<=$tariffprice) {
             if ($current_cash<0) {
                 //additional month contol enabled
