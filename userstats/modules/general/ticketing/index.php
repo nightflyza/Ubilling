@@ -117,9 +117,9 @@ function zbs_TicketCreate($from,$to,$text,$replyto='NULL') {
         if (!empty ($allmytickets)) {
             foreach ($allmytickets as $io=>$eachticket) {
                 if ($eachticket['status']) {
-                    $ticketstatus=__('Closed');
+                    $ticketstatus=  la_img('iconz/anread.gif').' '.__('Closed');
                 } else {
-                    $ticketstatus=__('Open');
+                    $ticketstatus=la_img('iconz/anunread.gif').' '.__('Open');
                 }
                 $result.='
                     <tr class="row2">

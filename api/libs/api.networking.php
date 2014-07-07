@@ -1110,7 +1110,9 @@ function zb_TariffDeleteSignupPrice($tariff) {
 }
 
 function zb_NewMacShow() {
-    global $billing_config;
+    global $ubillingConfig;
+    $billing_config=$ubillingConfig->getBilling();
+    $alter_config=$ubillingConfig->getAlter();
     $allarp=array();
     $sudo=$billing_config['SUDO'];
     $cat=$billing_config['CAT'];
@@ -1122,8 +1124,11 @@ function zb_NewMacShow() {
     $command=$sudo.' '.$cat.' '.$leases.' | '.$grep.' "'.$leasemark.'" | '.$tail.' -n 200';
     $rawdata=shell_exec($command);
     $allusedMacs=  zb_getAllUsedMac();
-
+   $result=''; 
    $cells=  wf_TableCell(__('MAC'));
+   if ($alter_config['MACVEN_ENABLED']) {
+   $cells.= wf_TableCell('');
+   }
    $rows = wf_TableRow($cells, 'row1');
     
     if (!empty ($rawdata)) {
@@ -1136,18 +1141,31 @@ function zb_NewMacShow() {
         }
         $un_arr=array_unique($allarp);
          if (!empty ($un_arr)) {
+             if ($alter_config['MACVEN_ENABLED']) {
+             //adding ajax loader
+              $result.=wf_AjaxLoader();
+             }
              foreach ($un_arr as $io => $eachmac) {
                  if (zb_checkMacFree($eachmac,$allusedMacs)) {
                  $cells=  wf_TableCell(@$eachmac);
+                 if ($alter_config['MACVEN_ENABLED']) {
+                 $containerName='NMRSMCNT_'.  zb_rand_string(8);
+                 $lookupVendorLink=  wf_AjaxLink('?module=macvendor&mac='.@$eachmac.'&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
+                 $lookupVendorLink.= wf_tag('span', false, '', 'id="'.$containerName.'"').''.  wf_tag('span',true);
+                 $cells.= wf_TableCell($lookupVendorLink);
+                 }
                  $rows.= wf_TableRow($cells, 'row3');
                
                  }
              }
+         
         
         }
       }
-    $result=  wf_TableBody($rows,'50%', '0', 'sortable');
-        
+      
+    $result.=  wf_TableBody($rows,'50%', '0', 'sortable');
+    
+    
    return($result);
 }
 
