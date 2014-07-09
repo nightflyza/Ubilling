@@ -334,8 +334,7 @@ if ($system->checkForRight('ONLINE')) {
         return ((x < y) ? 1 : ((x > y) ? -1 : 0));
     };
     
-
-
+          
 
 		$(document).ready(function() {
 		$(\'#onlineusershp\').dataTable( {
@@ -368,6 +367,7 @@ if ($system->checkForRight('ONLINE')) {
 
                 } );
 		} );
+       
 		</script>
 
        ';
