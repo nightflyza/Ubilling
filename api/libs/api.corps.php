@@ -107,8 +107,10 @@ class Corps {
         $id = vf($id, 3);
         $result = '';
         if (isset($this->taxtypes[$id])) {
+            $taxtypename=$this->taxtypes[$id];
+            $taxtypename=  htmlspecialchars($taxtypename);
             $inputs = wf_HiddenInput('edittaxtypeid', $id);
-            $inputs.= wf_TextInput('edittaxtype', __('Type'), $this->taxtypes[$id], true, '40');
+            $inputs.= wf_TextInput('edittaxtype', __('Type'), $taxtypename, true, '40');
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
         } else {
@@ -396,6 +398,25 @@ class Corps {
         } 
         return ($result);
     }
+    
+    /*
+     * filter array for unacceptable entities
+     * 
+     * @param $data array Data array for escaping
+     * 
+     * @return array
+     */
+    protected function filterArray($data) {
+        $result=array();
+        if (!empty($data)) {
+            foreach ($data as $key=>$value) {
+                $result[$key]= htmlspecialchars($value);
+            }
+        }
+        return ($result);
+    }
+    
+    
 
     /*
      * returns corp edit form
@@ -410,6 +431,7 @@ class Corps {
         $result = '';
         if (isset($this->corps[$id])) {
             $data = $this->corps[$id];
+            $data= $this->filterArray($data);
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
             $inputs = wf_HiddenInput('editcorpid', $id);
             $inputs.= wf_TextInput('editcorpname', __('Corp name') . $sup, $data['corpname'], true, '40');
@@ -681,6 +703,7 @@ class Corps {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         if (isset($this->persons[$id])) {
             $data = $this->persons[$id];
+            $data = $this->filterArray($data);
             $inputs = wf_HiddenInput('editpersonid', $id);
             $inputs.= wf_TextInput('editpersonrealname', __('Real Name') . $sup, $data['realname'], true, '20');
             $inputs.= wf_TextInput('editpersonphone', __('Phone'), $data['phone'], true, '20');
