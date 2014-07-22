@@ -9,6 +9,7 @@ CHAPTER_TB=Taskbar features
 TB_NEWTICKETNOTIFY=TRIGGER|Taskbar notify for new tickets
 TB_SWITCHMON=TRIGGER|Taskbar notify for dead switches
 TB_LABELED=TRIGGER|Taskbar display labels under icons
+TB_ICONCUSTOMSIZE=TRIGGER|Administrators can set the size of icons on their own
 TB_UBIM=TRIGGER|Taskbar check for unread messages
 TB_UBIM_REFRESH=VARCHAR|Taskbar unread messages check interval
 
@@ -27,7 +28,6 @@ ONLINE_LIGHTER=TRIGGER|Highlight rows in online module
 HIGHLIGHT_TODAY_PAYMENTS=TRIGGER|Highlight today payments
 ONLINE_FILTERS_EXT=TRIGGER|Extended filters in online module
 ONLINE_LAT=TRIGGER|LAT column in online module
-TB_ICONCUSTOMSIZE=TRIGGER|Administrators can set the size of icons on their own
 ONLINE_HP_MODE=TRIGGER|High perfomance online module mode
 TICKETS_PERPAGE=VARCHAR|Tickets per page in helpdesk
 FAST_CASH_LINK=TRIGGER|Fast financial links in online and search modules
@@ -130,6 +130,7 @@ AUTO_LOGOUT_IDLE=VARCHAR|Auto logout idle
 AUTO_LOGOUT_EXCLUDE=VARCHAR|Auto logout administrators exclude
 VOLS_ENABLED=TRIGGER|VOLS Module is enabled
 CORPS_ENABLED=TRIGGER|Corporate users management enabled
+NETWORKS_EXT=TRIGGER|Extended networks and pools management
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

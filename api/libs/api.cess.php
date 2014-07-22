@@ -654,7 +654,7 @@
         $login=$paymentdata['login'];
         $templatebody=zb_PrintCheckLoadTemplate();
         $allfioz=zb_UserGetAllRealnames();
-        $alladdress=zb_AddressGetFulladdresslist();
+        $alladdress=  zb_AddressGetFullCityaddresslist();
         $useraddress=$alladdress[$login];
         $agent_data=  zb_AgentAssignedGetDataFast($login,$useraddress);
         $cassnames=zb_PrintCheckLoadCassNames();

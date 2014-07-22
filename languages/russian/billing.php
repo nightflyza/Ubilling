@@ -1707,5 +1707,10 @@ $lang['def']['Attention generated login longer than']='Внимание, сге�
 $lang['def']['This can lead to the inability to manage this user on remote NAS running rscriptd']='Это может привести к невозможности управлять этим пользователем на удаленных NAS под управлением rscriptd';
 $lang['def']['Warning']='Предупреждение';
 $lang['def']['Perhaps you need to shorten the alias, or use a different model for the generation of logins']='Возможно вам стоит укоротить алиасы, либо использовать другую модель генерации логинов';
+$lang['def']['Extended networks and pools management']='Расширенное управление сетями и пулами адресов';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 ?>

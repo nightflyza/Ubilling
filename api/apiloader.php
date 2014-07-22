@@ -41,6 +41,7 @@ include('api/libs/api.dbf.php');
 include('api/libs/api.ukv.php');
 include('api/libs/api.idlelogout.php');
 include('api/libs/api.corps.php');
+include('api/libs/api.extnets.php');
 
 /*
  * Initial class creation

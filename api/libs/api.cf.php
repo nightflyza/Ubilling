@@ -49,17 +49,16 @@
    
    
    function cf_TypeAddForm() {
-       $form='
-           <form action="" method="POST">
-           <select name="newtype">
-           <option value="VARCHAR">VARCHAR</option>
-           <option value="TRIGGER">TRIGGER</option>
-           <option value="TEXT">TEXT</option>
-           </select> '.__('Field type').' <br>
-           <input type="text" size="15" name="newname"> '.__('Field name').' <br>
-           <input type="submit" value="'.__('Create').'">
-           </form>
-           ';
+       $types=array(
+           'VARCHAR'=>'VARCHAR',
+           'TRIGGER'=>'TRIGGER',
+           'TEXT'=>'TEXT',
+       );
+       
+       $inputs=  wf_Selector('newtype', $types, __('Field type'), '', true);
+       $inputs.= wf_TextInput('newname', __('Field name'), '', true, '15');
+       $inputs.= wf_Submit(__('Create'));
+       $form= wf_Form('', 'POST', $inputs, 'glamour');
        return($form);
    }
    
