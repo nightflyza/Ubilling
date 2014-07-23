@@ -1208,6 +1208,20 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
                     $locatorIcon=  wf_tag('img', false, '', 'src="skins/icon_search_small.gif" border="0" width="10" title="'.__('Find on map').'"');
                     $buildLocator= ' '.wf_Link("?module=usersmap&findbuild=".$thisUserBuildGeo, $locatorIcon, false);
                 }
+                //and neighbors state cache
+                if (!empty($aptdata['buildid'])) {
+                    if (file_exists('exports/'.$aptdata['buildid'].'.inbuildusers')) {
+                        $inbuildNeigbors_raw=  file_get_contents('exports/'.$aptdata['buildid'].'.inbuildusers');
+                        $inbuildNeigbors_raw=  unserialize($inbuildNeigbors_raw);
+                        if (!empty($inbuildNeigbors_raw)) {
+                        $inbuildNeigborsStat='';
+                        $inbuildNeigborsStat.= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
+                        $inbuildNeigborsStat.= wf_tag('br').__('Active').' '.$inbuildNeigbors_raw['aliveusers'].'/'.$inbuildNeigbors_raw['userscount'];
+                        $buildNeighborsIcon=  wf_tag('img', false, '', 'src=skins/icon_build.gif width=12 title='.__('Neighbours').'');
+                        $buildLocator.=' '.wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
+                        }
+                    }
+                }
             }
         }
         //payment id
