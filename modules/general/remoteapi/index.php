@@ -269,8 +269,13 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                                    die('FAIL:NO_CONTENT_DN_EXISTS');
                                }
                                }
-                                    
                            }
+                           
+                              //updating build users state cache
+                               if ($alterconf['SWYMAP_ENABLED']) {
+                                   $updateBuilCache=um_MapDrawBuilds();
+                                   print('OK:USERBUILDCACHE');
+                               }
                            
                            die('OK:FULLHOSTSCAN');
                        }
