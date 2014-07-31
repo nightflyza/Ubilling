@@ -3769,3 +3769,43 @@ function zb_CheckDbSchema() {
     
     return ($result);
  }  
+ 
+ 
+/*
+ * checks is user current month use SC module and returns false if used or true if feature available
+ * 
+ * @param  string $login existing users login
+ * 
+ * @return bool
+ */
+
+function zb_CreditLogCheckMonth($login) {
+    $login = mysql_real_escape_string($login);
+    $pattern = date("Y-m");
+    $query = "SELECT `id` from `zbssclog` WHERE `login` LIKE '" . $login . "' AND `date` LIKE '" . $pattern . "%';";
+    $data = simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+
+/*
+ * Returns all users used SC module this month
+ * 
+ * @return array
+ */
+function zb_CreditLogGetAll() {
+     $result=array();
+     $pattern = date("Y-m");
+     $query = "SELECT `login`,`id`,`date` from `zbssclog` WHERE `date` LIKE '" . $pattern . "%';";
+     $all=  simple_queryall($query);
+     if (!empty($all)) {
+         foreach ($all as $io=>$each) {
+             $result[$each['login']]=$each['date'];
+         }
+     }
+     return ($result);
+}
