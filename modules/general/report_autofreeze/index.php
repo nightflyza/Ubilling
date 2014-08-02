@@ -98,11 +98,11 @@ if (cfr('REPORTAUTOFREEZE')) {
                 foreach ($this->data as $io=>$each) {
                     $cells=  wf_TableCell($each['id']);
                     $cells.= wf_TableCell($each['date']);
-                    $loginLink=  wf_Link("?module=userprofile&username=".$each['login'], web_profile_icon().' '.$each['login'], false, '');
+                    $loginLink=  wf_Link("?module=userprofile&username=".@$each['login'], web_profile_icon().' '.@$each['login'], false, '');
                     $cells.= wf_TableCell($loginLink);
                     $cells.= wf_TableCell(@$allAddress[$each['login']]);
                     $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                    $cells.= wf_TableCell($each['balance']);
+                    $cells.= wf_TableCell(@$each['balance']);
                     $rows.=  wf_TableRow($cells, 'row3');
                 }
             }

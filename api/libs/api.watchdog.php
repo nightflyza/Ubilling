@@ -636,7 +636,14 @@ class WatchDogInterface {
      */
 
     public function loadAllPreviousAlerts() {
-        $query = "SELECT `id`,`date`,`event` from `weblogs` WHERE `event` LIKE 'WATCHDOG NOTIFY THAT%';";
+        //select year to load
+        if (wf_CheckPost(array('alertsyearsel'))) {
+            $curYear=vf($_POST['alertsyearsel'],3);
+        } else {
+            $curYear=curyear();
+        }
+        
+        $query = "SELECT `id`,`date`,`event` from `weblogs` WHERE `event` LIKE 'WATCHDOG NOTIFY THAT%' AND `date` LIKE '".$curYear."-%';";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io=>$each) {
@@ -1103,11 +1110,25 @@ class WatchDogInterface {
     }
     
     /*
+     * returns year selector to load alerts
+     * 
+     * @return string
+     */
+    public function yearSelectorAlerts(){
+        $inputs=  wf_YearSelector('alertsyearsel', __('Year'), false);
+        $inputs.= wf_Submit(__('Show'));
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    
+    /*
      * preprocess and return full calendar data for alerts report
      * 
      * @retun string
      */
     public function renderAlertsCalendar() {
+        $result=$this->yearSelectorAlerts();
         if (!empty($this->previousAlerts)) {
             $calendarData='';
             foreach ($this->previousAlerts as $io=>$each) {
@@ -1123,14 +1144,16 @@ class WatchDogInterface {
 		      },
                     ";
             }
-            $result=  wf_FullCalendar($calendarData);
+            $result.=  wf_FullCalendar($calendarData);
         } else {
-            $result=__('Nothing found');
+            $result.=__('Nothing found');
         }
+        
+        
         return ($result);
     } 
     
-
+    
 }
 
 ?>
