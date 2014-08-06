@@ -1210,3 +1210,18 @@ CREATE TABLE IF NOT EXISTS `corp_users` (
   `corpid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.5.6 update
+
+CREATE TABLE IF NOT EXISTS `netextpools` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `netid` int(11) NOT NULL,
+  `pool` varchar(255) NOT NULL,
+  `netmask` varchar(255) NOT NULL,
+  `gw` varchar(255) DEFAULT NULL,
+  `clientip` varchar(255) DEFAULT NULL,
+  `broadcast` varchar(255) DEFAULT NULL,
+  `vlan` varchar(255) DEFAULT NULL,
+  `login` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT  CHARSET=utf8 AUTO_INCREMENT=1 ;

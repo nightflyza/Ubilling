@@ -1709,7 +1709,13 @@ $lang['def']['Warning']='Предупреждение';
 $lang['def']['Perhaps you need to shorten the alias, or use a different model for the generation of logins']='Возможно вам стоит укоротить алиасы, либо использовать другую модель генерации логинов';
 $lang['def']['Extended networks and pools management']='Расширенное управление сетями и пулами адресов';
 $lang['def']['Neighbours']='Соседи';
-$lang['def']['']='';
+$lang['def']['Network available for allocation pools']='Сети доступные для выделения пулов';
+$lang['def']['Extended address pools in']='Расширенные пулы адресов в сети';
+$lang['def']['Pool']='Пул';
+$lang['def']['Netmask']='Маска';
+$lang['def']['Gateway']='Шлюз';
+$lang['def']['Broadcast']='Бродкаст';
+$lang['def']['Create new pool']='Создать новый пул';
 $lang['def']['']='';
 
 

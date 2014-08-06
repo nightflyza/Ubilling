@@ -283,7 +283,7 @@ if (cfr('REPORTCOMPLEX')) {
 
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
-                    if (($each['Cash'] >= ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] != 1)) {
+                    if (($each['Cash'] >= ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] != 1) AND ($each['Passive']!=1)) {
                         $cells = '';
                         if (!$cutdata) {
                             $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');

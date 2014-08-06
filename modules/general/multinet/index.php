@@ -107,7 +107,6 @@
               multinet_show_serviceeditform($editservice);
           }
       }
-      
        
       }
       else {

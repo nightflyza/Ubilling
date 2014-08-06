@@ -7,13 +7,14 @@ if (cfr('SCREPORT')) {
     
     class ReportSelfCredit {
 
-        private $data = array();
-        private $chartdata = '';
-        private $tabledata='';
-        private $curyear=0;
-        private $yearsumm=0;
-        private $usertariffs=array();
-        private $tariffstats=array();
+        protected $data = array();
+        protected $chartdata = '';
+        protected $tabledata='';
+        protected $curyear=0;
+        protected $yearsumm=0;
+        protected $usertariffs=array();
+        protected $tariffstats=array();
+       
  
 
         public function __construct() {
@@ -32,12 +33,12 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * parse data from payments table and stores it into private data prop
+         * parse data from payments table and stores it into protected data prop
          * 
          * @return void
          */
 
-        private function loadData() {
+        protected function loadData() {
             $curmonth = date("m");
             $query = "SELECT * from `payments` WHERE `note` LIKE 'SCFEE' AND `date` LIKE '".$this->curyear."-" . $curmonth . "%' ORDER BY `id` DESC";
             $alldata = simple_queryall($query);
@@ -54,11 +55,11 @@ if (cfr('SCREPORT')) {
         }
         
         /*
-         * loads all users tariffs into private usertariffs prop
+         * loads all users tariffs into protected usertariffs prop
          * 
          * @return void
          */
-        private function loadTariffs() {
+        protected function loadTariffs() {
             $query="SELECT `login`,`Tariff` from `users`";
             $all=  simple_queryall($query);
             if (!empty($all) ) {
@@ -69,7 +70,7 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * returns private property data
+         * returns protected property data
          * 
          * @return array
          */
@@ -80,7 +81,7 @@ if (cfr('SCREPORT')) {
         }
         
          /*
-         * returns private property year
+         * returns protected property year
          * 
          * @return array
          */
@@ -99,7 +100,7 @@ if (cfr('SCREPORT')) {
          * @return string
          */
 
-        private function getMonthSumm($year, $month) {
+        protected function getMonthSumm($year, $month) {
             $year = vf($year);
             $query = "SELECT SUM(`summ`) from `payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `note` LIKE 'SCFEE'";
             $result = simple_query($query);
@@ -116,7 +117,7 @@ if (cfr('SCREPORT')) {
          * @return string
          */
 
-        private function getMonthCount($year, $month) {
+        protected function getMonthCount($year, $month) {
             $year = vf($year);
             $query = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `note` LIKE 'SCFEE'";
             $result = simple_query($query);
@@ -131,7 +132,7 @@ if (cfr('SCREPORT')) {
          * 
          * @return string
          */
-        private function getYearSumm($year) {
+        protected function getYearSumm($year) {
             $year=vf($year);
             $query = "SELECT SUM(`summ`) from `payments` WHERE `date` LIKE '" . $year . "-%' AND `note` LIKE 'SCFEE'";
             $result = simple_query($query);
@@ -141,12 +142,12 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * parse data from payments table and stores it into private monthdata prop
+         * parse data from payments table and stores it into protected monthdata prop
          * 
          * @return void
          */
 
-        private function loadMonthData() {
+        protected function loadMonthData() {
             $months = months_array();
             $year = $this->curyear;
             $yearSumm=$this->getYearSumm($year);
@@ -176,7 +177,7 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * renders aself credit report using private data property
+         * renders aself credit report using protected data property
          * 
          * @return string
          */
@@ -184,6 +185,7 @@ if (cfr('SCREPORT')) {
         public function render() {
             $allAddress = zb_AddressGetFulladdresslist();
             $allRealNames = zb_UserGetAllRealnames();
+            $allUserCash= zb_CashGetAllUsers();
             $totalCount = 0;
             $totalSumm = 0;
             $result='';
@@ -195,6 +197,7 @@ if (cfr('SCREPORT')) {
             $cells.= wf_TableCell(__('Real Name'));
             $cells.= wf_TableCell(__('Full address'));
             $cells.= wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Balance'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($this->data)) {
@@ -209,6 +212,8 @@ if (cfr('SCREPORT')) {
                             $this->tariffstats[$usertariff]=1;
                         }
                     }
+                    @$usercash=$allUserCash[$each['login']];
+                    
                     $totalSumm = $totalSumm + $each['summ'];
                     $cells = wf_TableCell($each['id']);
                     $cells.= wf_TableCell($each['date']);
@@ -218,6 +223,7 @@ if (cfr('SCREPORT')) {
                     $cells.= wf_TableCell(@$allRealNames[$each['login']]);
                     $cells.= wf_TableCell(@$allAddress[$each['login']]);
                     $cells.= wf_TableCell($usertariff);
+                    $cells.= wf_TableCell($usercash);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
             }
@@ -231,7 +237,7 @@ if (cfr('SCREPORT')) {
         }
 
         /*
-         * renders aself credit report using private data property
+         * renders aself credit report using protected data property
          * 
          * @return string
          */
