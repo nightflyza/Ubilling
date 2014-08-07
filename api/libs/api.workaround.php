@@ -1074,6 +1074,71 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       return ($result);
   }
   
+  /*
+   * returns one-click credit set form for profile
+   * 
+   * 
+   * @param string $login existing callback user login
+   * @param float  $cash  current user balance
+   * @param int    $credit current user credit
+   * @param string $userTariff current user tariff
+   * @param int    $easycreditoption current state of EASY_CREDIT option
+   * 
+   * @return string
+   */
+  function web_EasyCreditForm($login,$cash,$credit,$userTariff,$easycreditoption) {
+      /////////////////internal controller
+      if (wf_CheckPost(array('easycreditlogin','easycreditlimit','easycreditexpire'))) {
+           global $billing;
+           $setCredit=vf($_POST['easycreditlimit']);
+           $setLogin=  mysql_real_escape_string($_POST['easycreditlogin']);
+           $setExpire=  mysql_real_escape_string($_POST['easycreditexpire']);
+           //set credit
+           $billing->setcredit($setLogin,$setCredit);
+           log_register('CHANGE Credit ('.$setLogin.') ON '.$setCredit);
+           //set credit expire date
+            $billing->setcreditexpire($setLogin,$setExpire);
+            log_register('CHANGE CreditExpire ('.$setLogin.') ON '.$setExpire);
+            
+            rcms_redirect('?module=userprofile&username='.$setLogin);
+      }
+      
+      ////////////////////////////////////
+       $alltariffprices= zb_TariffGetPricesAll();
+       @$tariffPrice=(isset($alltariffprices[$userTariff])) ? $alltariffprices[$userTariff] : 0;
+        
+        
+      if ($cash>='-'.$credit) {
+          $creditProposal=$tariffPrice;
+          $creditNote=__('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
+      } else {
+          $creditProposal=abs($cash);
+          $creditNote=__('At the moment the account have debt. It is proposed to establish credit in its size.');
+          
+      }
+      
+      //calculate credit expire date
+            $nowTimestamp=time();
+            $creditSeconds=($easycreditoption*86400); //days*secs
+            $creditOffset=$nowTimestamp+$creditSeconds;
+            $creditExpireDate=date("Y-m-d",$creditOffset);
+      //construct form
+      $controlIcon=  wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
+      $inputs='';
+      $inputs.= wf_HiddenInput('easycreditlogin', $login);
+      $inputs.= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5').__('credit limit').' ';
+      $inputs.= __('until');
+      $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
+      $inputs.= wf_Submit(__('Save'));
+      
+      $form=  wf_Form("", 'POST', $inputs, 'glamour');
+      $form.=$creditNote;
+      
+      $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '150');
+      
+      return ($result);
+  }
+  
     
     function web_ProfileShow($login) {
         global $ubillingConfig;
@@ -1097,6 +1162,9 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         $aptdata=zb_AddressGetAptData($login);
         $speedoverride=zb_UserGetSpeedOverride($login);
         $mac=zb_MultinetGetMAC($userdata['IP']);
+        $userTariff=$userdata['Tariff'];
+       
+        
         if ($alter_conf['MACVEN_ENABLED']) {
             $vendorframe='<iframe src="?module=macvendor&mac='.$mac.'&username='.$login.'" width="360" height="160" frameborder="0"></iframe';
             $lookuplink=  wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
@@ -1303,7 +1371,19 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
                     <td class="row3">' . zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login) . '</td>
                 </tr>
             ';
-        } else $signupprice_row = null;
+        } else { $signupprice_row = null; }
+        
+        //Easy credit option handling
+        if ($alter_conf['EASY_CREDIT']) {
+            if ((cfr('CREDIT')) AND (cfr('CREDITEXPIRE'))) {
+                $easyCreditControl=  web_EasyCreditForm($login, $Cash, $userdata['Credit'],$userTariff,$alter_conf['EASY_CREDIT']);
+                
+            } else {
+                $easyCreditControl='';
+            }
+        } else {
+            $easyCreditControl='';
+        }
         
 		$profile.='
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
@@ -1369,7 +1449,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
             </tr>
              <tr>
                 <td class="row2">'.$hightlight_start.''.__('Tariff').''.$hightlight_end.'</td>
-                <td class="row3">'.$hightlight_start.''.$userdata['Tariff'].''.$hightlight_end.'</td>
+                <td class="row3">'.$hightlight_start.''.$userTariff.''.$hightlight_end.'</td>
             </tr>
             <tr>
                 <td class="row2">'.__('Planned tariff change').'</td>
@@ -1386,7 +1466,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
                 <td class="row3"> ' . $hightlight_start . ' ' . $Cash . ''. $hightlight_end . '</td>
             </tr>
             <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Credit').'</td>
+                <td class="row2"> '.$hightlight_start.' '.__('Credit').' '.$easyCreditControl.'</td>
                 <td class="row3"> '.$hightlight_start.' '.$userdata['Credit'].''.$hightlight_end.'</td>
             </tr>
             <tr>

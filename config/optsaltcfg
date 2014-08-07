@@ -41,7 +41,7 @@ DEAD_TAGID=VARCHAR|Dead people mark tag id
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search
 SEARCH_CUSTOM_CONTRACT=TRIGGER|Contract additional search fields
-
+EASY_CREDIT=VARCHAR|Days interval to set one-click credit
 
 CHAPTER_PAYEX=Payments export
 EXPORT_ENABLED=TRIGGER|Payments export
