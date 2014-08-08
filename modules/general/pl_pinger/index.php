@@ -48,13 +48,13 @@ if (cfr('PLPINGER')) {
         $addAjax='';
         if (wf_CheckPost(array('packet'))) {
             $addAjax.="&packsize=".vf($_POST['packet'],3);
+            $addParams.=' -s '.vf($_POST['packet'],3);
         } 
         
         if (wf_CheckPost(array('count'))) {
             $addAjax.="&packcount=".vf($_POST['count'],3);
+            $addParams.=' -c '.vf($_POST['count'],3);
         } 
-        
-        
         
         
         $command=$sudo_path.' '.$ping_path.' -i 0.01 -c 10 '.$addParams.' '.$user_ip;
