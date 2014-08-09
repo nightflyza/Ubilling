@@ -4,6 +4,11 @@
  * Фронтенд для получения уведомлений от Приватбанка
  * https://docs.google.com/document/d/1GHjRFyLQM_h59IyaNZVVxYE1cxMPAwb336KKpueQa1U/edit?hl=ru
  * для поиска пользователя предполагается использование virtualid из op_customers сформированного как: 
+ * 
+ * CREATE VIEW op_customers (realid,virtualid) AS SELECT users.login, CRC32(users.login) FROM `users`;
+ * 
+ * либо как 
+ * 
  * CREATE VIEW op_customers (realid,virtualid) AS SELECT users.login, INET_ATON(users.IP) from `users`;
  */
 
