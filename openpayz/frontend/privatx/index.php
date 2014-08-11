@@ -451,7 +451,7 @@ $xmlRequest = pbx_RequestGet();
 if (!empty($xmlRequest)) {
     $xmlParse = xml2array($xmlRequest);
     if (!empty($xmlParse)) {
-       debarr($xmlParse);
+       
        
         // Presearch action handling
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
