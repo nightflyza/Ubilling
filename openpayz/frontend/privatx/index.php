@@ -21,7 +21,9 @@ define('ISP_SERVICE_NAME','Интернет'); // Наименование ус�
 define('ISP_SERVICE_CODE','101'); //Код услуги
 
 
+//Исключения
 define('PBX_EX_NOT_FOUND', 'Абонент не найден');
+define('PBX_EX_DUPLICATE', 'Дублирование платежа');
 
 // подключаем API OpenPayz
 include ("../../libs/api.openpayz.php");
@@ -328,6 +330,14 @@ function pbx_ReplySearch($customerid) {
     return ($result);
 }
 
+//function that gets last id from table
+function  pbx_simple_get_lastid($tablename) {
+    $tablename=mysql_real_escape_string($tablename);
+    $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
+    $result=simple_query($query);
+    return ($result['id']);
+}
+
 /*
  * Returns payment possibility reply
  * 
@@ -338,7 +348,8 @@ function pbx_ReplyCheck($customerid) {
     $allcustomers=  op_CustomersGetAll();
      if (isset($allcustomers[$customerid])) {
         $customerLogin=$allcustomers[$customerid];
-        $reference=rand(10000000,90000000);
+        $reference=  pbx_simple_get_lastid('op_transactions')+1;
+        
         $templateOk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Check">
                     <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="'.$reference.'" />
@@ -360,59 +371,87 @@ function pbx_ReplyCheck($customerid) {
     return ($result);
 }
 
+
+/*
+ * Checks is reference unique?
+ * 
+ * @param int $rawhash reference number to check
+ * 
+ * @return bool
+ */
+function pbx_CheckHash($rawhash) { 
+    $rawhash=  mysql_real_escape_string($rawhash);
+    $hash='PBX_'.$rawhash;
+    $query="SELECT * from `op_transactions` WHERE `hash`='".$hash."';";
+    $data=  simple_query($query);
+    if (empty($data)) {
+        return (true);
+    } else {
+        return (false);
+    }
+}
+
+
+/*
+ * Returns payment processing reply
+ * 
+ * @return string
+ */
+
+function pbx_ReplyPayment($customerid,$summ,$rawhash) {
+    $allcustomers=  op_CustomersGetAll();
+    if (isset($allcustomers[$customerid])) {
+        if (pbx_CheckHash($rawhash)) {
+           //do the payment 
+            $hash='PBX_'.$rawhash;
+            $paysys='PBANKX';
+            $note='no debug info yet';
+             op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
+             op_ProcessHandlers();
+             $reference=  pbx_simple_get_lastid('op_transactions');
+        $templateOk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
+                     <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="'.$rawhash.'">
+                    </Data>
+                    </Transfer>';
+        $result=$templateOk;
+        
+        } else {
+                  $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                        <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
+                        <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="7">
+                        <Message>'.PBX_EX_DUPLICATE.'</Message>
+                        </Data>
+                        </Transfer>';
+                  $result=$templateFail;
+        }
+        
+    } else {
+         $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                        <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
+                        <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="2">
+                        <Message>'.PBX_EX_NOT_FOUND.'</Message>
+                        </Data>
+                        </Transfer>';
+         $result=$templateFail;
+    }
+    
+     $result=trim($result);
+    return ($result);
+}
+
 /*
  *  Controller part
  */
 
 $xmlRequest = pbx_RequestGet();
 
-//debug 2887647521
-
-
-$xmlRequest = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Check">
-<Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Payment">
-<CompanyInfo companyId="412341234">
-<CompanyCode>1</CompanyCode>
-<CompanyName>КП Воддоканал</CompanyName>
-<DopData>
-<Dop name="доп информация" value="значение" />
-</DopData>
-</CompanyInfo>
-<PayerInfo billIdentifier="1210236" ls="2887647521">
-<Fio>Иванов Иван Иванович</Fio>
-<Phone>+321234214</Phone>
-<Address>пр.Ленина 10 кв 5</Address>
-</PayerInfo>
-<TotalSum>0.01</TotalSum>
-<CreateTime>2012-01-01T08:00:00.001+03:00</CreateTime>
-<ServiceGroup>
-<Service sum="0.01" serviceCode="102">
-<CompanyInfo>
-<CompanyCode>1</CompanyCode>
-<CompanyName>КП Воддоканал</CompanyName>
-</CompanyInfo>
-<ServiceName>Холоднaя вода</ServiceName>
-<Destination>Оплата за услугу "Холодная вода"</Destination>
-<MeterData>
-<Meter previosValue="213" currentValue="214" tarif="0.01" delta="1" name="Холодная вода кухня"/>
- ...
-</MeterData>
-<DopData>
-<Dop name="city_code" value="3" />
-</DopData>
-</Service>
-
-</ServiceGroup>
-</Data>
-</Transfer>';
-
 
 //raw xml data received
 if (!empty($xmlRequest)) {
     $xmlParse = xml2array($xmlRequest);
     if (!empty($xmlParse)) {
-        debarr($xmlParse);
+       debarr($xmlParse);
        
         // Presearch action handling
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
@@ -443,6 +482,20 @@ if (!empty($xmlRequest)) {
                 if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'])) {
                     $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'],3);
                     die(pbx_ReplyCheck($customerid));
+                }
+            }
+        }
+        
+        // Pay transaction handling
+        if (isset($xmlParse['Transfer_attr']['action'])) {
+            if ($xmlParse['Transfer_attr']['action']=='Pay') {
+                if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'])) {
+                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'],3);
+                    $summ=$xmlParse['Transfer']['Data']['TotalSum'];
+                    $summ=  str_replace(',', '.', $summ);
+                    $rawhash=$xmlParse['Transfer']['Data']['Reference'];
+                    
+                    die(pbx_ReplyPayment($customerid,$summ,$rawhash));
                 }
             }
         }
