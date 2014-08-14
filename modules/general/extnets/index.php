@@ -43,9 +43,11 @@ if ($altcfg['NETWORKS_EXT']) {
          */
           if (wf_CheckGet(array('showipsbypoolid'))) {
               //editing ip
-              if (wf_CheckPost(array(''))) {
-                  
+              if (wf_CheckPost(array('editipid'))) {
+                $extNets->ipsEdit($_POST['editipid'], $_POST['editipnas'], $_POST['editipiface'], $_POST['editipmac'], $_POST['editipswitchid'], $_POST['editipport']);
+                rcms_redirect("?module=extnets&showipsbypoolid=".$_GET['showipsbypoolid']);
               }
+              
               show_window(__('IP associated with pool'), $extNets->renderIps($_GET['showipsbypoolid']));
           }
           

@@ -186,7 +186,7 @@ class ExtNets {
                 $cells.= wf_TableCell($each['pool']);
                 $cells.= wf_TableCell($this->cidrToMask[$each['netmask']]. ' (/'.$each['netmask'].')');
                 $cells.= wf_TableCell($each['gw']);
-                $cells.= wf_TableCell($this->ipsGetAssociated($each['id']),'40%');
+                $cells.= wf_TableCell(wf_Link('?module=extnets&showipsbypoolid='.$each['id'], $this->ipsGetAssociated($each['id']), false),'40%');
                 $cells.= wf_TableCell($each['broadcast']);
                 $cells.= wf_TableCell($each['vlan']);
                 if (!empty($each['login'])) {
@@ -451,7 +451,7 @@ class ExtNets {
     public function poolEdit($poolid,$vlan,$login) {
         $poolid=vf($poolid,3);
         $vlan=vf($vlan,3);
-        
+        $login=trim($login);
         if (isset($this->pools[$poolid])) {
           simple_update_field('netextpools', 'vlan', $vlan, "WHERE `id`='".$poolid."';");
           simple_update_field('netextpools', 'login', $login, "WHERE `id`='".$poolid."';");
@@ -514,16 +514,21 @@ class ExtNets {
      */
     protected function ipsEditForm($ipid) {
         $ipid=vf($ipid,3);
+        $switchesSelector=array();
         $result='';
         if (isset($this->ips[$ipid])) {
             if (empty($this->switches)) {
                 $this->loadSwitches();
             }
+            $switchesSelector=$this->switches;
+            $switchesSelector['NULL']='-';
+            natsort($switchesSelector);
+
             $inputs=  wf_HiddenInput('editipid', $ipid);
             $inputs.= wf_TextInput('editipnas', __('NAS'), $this->ips[$ipid]['nas'], true, 15);
             $inputs.= wf_TextInput('editipiface', __('Interface'), $this->ips[$ipid]['iface'], true, 15);
             $inputs.= wf_TextInput('editipmac', __('MAC'), $this->ips[$ipid]['mac'], true, 15);
-            $inputs.= wf_Selector('editipswitchid', $this->switches, __('Switch'), $this->ips[$ipid]['switchid'], true);
+            $inputs.= wf_Selector('editipswitchid', $switchesSelector, __('Switch'), $this->ips[$ipid]['switchid'], true);
             $inputs.= wf_TextInput('editipport', __('Port'), $this->ips[$ipid]['port'], true,5);
             $inputs.= wf_Submit(__('Save'));
             
@@ -561,6 +566,9 @@ class ExtNets {
     public function renderIps($poolid) {
         $poolid=vf($poolid,3);
         $result='';
+        if (empty($this->switches)) {
+            $this->loadSwitches();
+        }
         if (isset($this->pools[$poolid])) {
             if (!empty($this->ips)) {
                 $cells=  wf_TableCell(__('ID'));
@@ -577,6 +585,7 @@ class ExtNets {
                 $rows= wf_TableRow($cells, 'row1');
                 
                 foreach ($this->ips as $io=>$eachip) {
+                   if ($eachip['poolid']==$poolid) {
                     $cells=  wf_TableCell($eachip['id']);
                     $cells.=  wf_TableCell($eachip['ip']);
                     $cells.=  wf_TableCell($this->pools[$poolid]['gw']);
@@ -584,14 +593,23 @@ class ExtNets {
                     $cells.=  wf_TableCell($eachip['nas']);
                     $cells.=  wf_TableCell($eachip['iface']);
                     $cells.=  wf_TableCell($eachip['mac']);
-                    $cells.=  wf_TableCell($eachip['switchid']);
+                    $cells.=  wf_TableCell(@$this->switches[$eachip['switchid']]);
                     $cells.=  wf_TableCell($eachip['port']);
                     $cells.=  wf_TableCell($this->pools[$poolid]['vlan']);
                     $actionsLink= wf_modal(web_edit_icon(), __('Edit').' '.$eachip['ip'], $this->ipsEditForm($eachip['id']), '', '400', '300');
                     $cells.=  wf_TableCell($actionsLink);
                     $rows.= wf_TableRow($cells, 'row3');
+                   }
                 }
              $result=  wf_TableBody($rows, '100%', '0', 'sortable');   
+             //back links controls
+             if (!empty($this->pools[$poolid]['login'])) {
+              $result.= wf_Link("?module=userprofile&username=".$this->pools[$poolid]['login'], __('Back to user profile'), false, 'ubButton');
+              
+             }
+             
+             $result.= wf_Link('?module=extnets&showpoolbynetid='.$this->pools[$poolid]['netid'], __('Back').' '.$this->pools[$poolid]['pool'].'/'.$this->pools[$poolid]['netmask'], true, 'ubButton');
+             
             }
             
         } else {
