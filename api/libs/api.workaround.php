@@ -1385,6 +1385,15 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
             $easyCreditControl='';
         }
         
+        //Extnepools handling here
+        if ($alter_conf['NETWORKS_EXT']) {
+            $extNets=new ExtNets();
+            $extnetsControls=$extNets->poolsExtractByLogin($login);
+            
+        } else {
+            $extnetsControls='';
+        }
+        
 		$profile.='
        <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
        <tbody>
@@ -1441,7 +1450,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
             </tr>
             <tr>
                 <td class="row2"> '.$hightlight_start.' '.__('IP').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$userdata['IP'].''.$hightlight_end.'</td>
+                <td class="row3"> '.$hightlight_start.' '.$userdata['IP'].$extnetsControls.''.$hightlight_end.'</td>
             </tr>
             <tr>
                 <td class="row2">'.__('MAC').' '.$lookuplink.'</td>

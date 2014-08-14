@@ -2,23 +2,26 @@
 
 class ExtNets {
     
-    private $networks=array();
-    private $pools=array();
-    private $masklimits=array('upper'=>30,'lower'=>24);
-    private $cidrs=array();
-    private $cidrToMask=array();
-    private $cidrOffsets=array();
+    protected $networks=array();
+    protected $pools=array();
+    protected $ips=array();
+    protected $switches=array();
+    protected $masklimits=array('upper'=>30,'lower'=>24);
+    protected $cidrs=array();
+    protected $cidrToMask=array();
+    protected $cidrOffsets=array();
                         
     
     
     const EX_NOEXNET='NOT_EXISTING_NET_ID';
     const EX_NOEXPOOL='NOT_EXISTING_POOL_ID';
+    const EX_NOEXIP='NOT_EXISTING_IP_ID';
     
     public function __construct() {
         $this->preprocessCidrMasks();
         $this->loadNetworks();
         $this->loadPools();
-        
+        $this->loadIps();
     }
     
     
@@ -183,7 +186,7 @@ class ExtNets {
                 $cells.= wf_TableCell($each['pool']);
                 $cells.= wf_TableCell($this->cidrToMask[$each['netmask']]. ' (/'.$each['netmask'].')');
                 $cells.= wf_TableCell($each['gw']);
-                $cells.= wf_TableCell($each['clientip']);
+                $cells.= wf_TableCell($this->ipsGetAssociated($each['id']),'40%');
                 $cells.= wf_TableCell($each['broadcast']);
                 $cells.= wf_TableCell($each['vlan']);
                 if (!empty($each['login'])) {
@@ -193,6 +196,7 @@ class ExtNets {
                 }
                 $cells.= wf_TableCell($loginlink);
                 $actlinks=  wf_JSAlert('?module=extnets&showpoolbynetid='.$netid.'&deletepoolid='.$each['id'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+                $actlinks.= wf_modal(web_edit_icon(), __('Edit').' '.$each['pool'].'/'.$each['netmask'], $this->poolEditForm($each['id']), '', '300', '200');
                 $cells.= wf_TableCell($actlinks);
                 $rows.=  wf_TableRow($cells, 'row3');
             }
@@ -278,11 +282,14 @@ class ExtNets {
         $newPoolId=  simple_get_lastid('netextpools');
         log_register("POOL CREATE [".$newPoolId."] `".$pool."/".$netmask."`");
         $newGw=  int2ip(ip2int($pool)+1);
-        $newIp=  int2ip(ip2int($pool)+2);
         $newBroadcast=int2ip(ip2int($pool)+($this->cidrOffsets[$netmask]-1));
         simple_update_field('netextpools', 'gw', $newGw, "WHERE `id`='".$newPoolId."';");
-        simple_update_field('netextpools', 'clientip', $newIp, "WHERE `id`='".$newPoolId."';");
         simple_update_field('netextpools', 'broadcast', $newBroadcast, "WHERE `id`='".$newPoolId."';");
+        //creating ips list for pool
+        $newIpsStart=  int2ip(ip2int($newGw)+1);
+        $newIpsEnd=  int2ip(ip2int($newBroadcast)-1);
+        $this->ipsCreate($newPoolId, $newIpsStart, $newIpsEnd);
+        
     }
     
     /*
@@ -298,11 +305,300 @@ class ExtNets {
             $query="DELETE from `netextpools` WHERE `id`='".$poolid."'";
             nr_query($query);
             log_register("POOL DELETE [".$poolid."]");
+            //delete associated ips
+            $this->ipsDeleteByPool($poolid);
         } else {
             throw new Exception(self::EX_NOEXPOOL);
         }
     }
     
+    
+     /*
+     * returns full list of associated IPs for all pools
+     * 
+     * @return void
+     */
+    protected function loadIps() {
+        $query="SELECT * from `netextips` ORDER BY `id` ASC";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+              $this->ips[$each['id']]=$each;
+            }
+        }
+    }
+    
+    
+    
+    /*
+     * returns full list of associated IPs for some pool
+     * 
+     * @param $poolid int existing pool ID
+     * 
+     * @return array
+     */
+    protected function ipsGetByPool($poolid) {
+        $poolid=vf($poolid,3);
+        $result=array();
+        $query="SELECT * from `netextips` WHERE `poolid`='".$poolid."';";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $result[$each['id']]=$each;
+            }
+        }
+        return ($result);
+    }
+    
+     /*
+     * Deletes ips for some pool by ID
+     * 
+     * @param $poolid int existing pool ID
+     * 
+     * @return void
+     */
+    protected function ipsDeleteByPool($poolid) {
+        $poolid=vf($poolid,3);
+        $query="DELETE from `netextips` WHERE `poolid`='".$poolid."';";
+        nr_query($query);
+        log_register("POOL [".$poolid."] IPS DELETED");
+    }
+    
+    /*
+     * creates some ips range for newly created pool
+     * 
+     * @return void
+     */
+    protected function ipsCreate($poolid,$begin,$end) {
+        $poolid=vf($poolid,3);
+        $begin=  ip2int($begin);
+        $end= ip2int($end);
+            //valid ips ugly check
+            if ($begin<=$end) {
+                for ($i=$begin;$i<=$end;$i++) {
+                    $newIp=  int2ip($i);
+                    $query="INSERT INTO `netextips` "
+                         . "(`id`, `poolid`, `ip`, `nas`, `iface`, `mac`, `switchid`, `port`, `vlan`) "
+                         . "VALUES (NULL, '".$poolid."', '".$newIp."', NULL, NULL, NULL, NULL, NULL, NULL); ";
+                 nr_query($query);
+                }
+               
+            }
+        
+       log_register("POOL [".$poolid."] IPS CREATE RANGE `".int2ip($begin)."-".int2ip($end)."` ");
+    }
+    
+    
+    /*
+     * returns raw list of ips associated with some pool
+     * 
+     * @param int $poolid Existing pool ID
+     * 
+     * @return string
+     */
+    protected function ipsGetAssociated($poolid) {        
+        $poolid=vf($poolid,3);
+        $tmpArr=array();
+        $result='';
+        if (!empty($this->pools)) {
+            if (isset($this->pools[$poolid])) {
+                if (!empty($this->ips)) {
+                    foreach ($this->ips as $io=>$each) {
+                        if ($each['poolid']==$poolid) {
+                            $tmpArr[$each['ip']]=$each['ip'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (!empty($tmpArr)) {
+            $result=  implode(', ', $tmpArr);
+        }
+        return ($result);
+    }
+    
+    
+    /*
+     * Returns pool editing form
+     * 
+     * @param int $poolid
+     * 
+     * @return string
+     */
+    protected function poolEditForm($poolid) {
+        $poolid=vf($poolid,3);
+        $inputs=  wf_HiddenInput('editpoolid', $poolid);
+        $inputs.= wf_HiddenInput('editpoolnetid', $this->pools[$poolid]['netid']);
+        $inputs.= wf_TextInput('editpoollogin', __('Login'), $this->pools[$poolid]['login'], true, 10);
+        $inputs.= wf_TextInput('editpoolvlan', __('VLAN'), $this->pools[$poolid]['vlan'], true, 5);
+        $inputs.= wf_Submit(__('Save'));
+       
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+                
+        return ($result);
+    }
+    
+    /*
+     * Updates pool data into database
+     * 
+     * @param int $poolid $
+     * @param int $vlan vlan id of the pool
+     * @param string $login existing ubilling user login
+     * 
+     * @return void
+     */
+    public function poolEdit($poolid,$vlan,$login) {
+        $poolid=vf($poolid,3);
+        $vlan=vf($vlan,3);
+        
+        if (isset($this->pools[$poolid])) {
+          simple_update_field('netextpools', 'vlan', $vlan, "WHERE `id`='".$poolid."';");
+          simple_update_field('netextpools', 'login', $login, "WHERE `id`='".$poolid."';");
+          log_register("POOL EDIT [".$poolid."] VLAN `".$vlan."` LOGIN `".$login."`");
+          
+        } else {
+             throw new Exception(self::EX_NOEXPOOL);
+        }
+    }
+    
+    /*
+     * renders control links for pools associated with some login
+     * 
+     * @param string $login Existing ubilling user login
+     * 
+     * @return string
+     */
+    public function poolsExtractByLogin($login) {
+        $login=  mysql_real_escape_string($login);
+        $result='';
+        $tmpArr=array();
+        if (!empty($this->pools)) {
+            foreach ($this->pools as $io=>$each) {
+                if ($each['login']==$login) {
+                    $tmpArr[$each['id']]=$each['pool'].'/'.$each['netmask'];
+                }
+            }
+            
+            if (!empty($tmpArr)) {
+                $result.=' + ';
+                foreach ($tmpArr as $poolid=>$pool) {
+                    $result.=wf_Link('?module=extnets&showipsbypoolid='.$poolid, $pool, false, '');
+                }
+            }
+        }
+        return ($result);
+    }
+    
+    /*
+     * loads available switches array into private switches property
+     * 
+     * @return void
+     */
+    protected function loadSwitches() {
+        $query="SELECT * from `switches`";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                $this->switches[$each['id']]=$each['ip'].' - '.$each['location'];
+            }
+        }
+    }
+    
+    /*
+     * returns IP editin control 
+     * 
+     * @param int $ipid Existing IP database ID
+     * 
+     * @return string
+     */
+    protected function ipsEditForm($ipid) {
+        $ipid=vf($ipid,3);
+        $result='';
+        if (isset($this->ips[$ipid])) {
+            if (empty($this->switches)) {
+                $this->loadSwitches();
+            }
+            $inputs=  wf_HiddenInput('editipid', $ipid);
+            $inputs.= wf_TextInput('editipnas', __('NAS'), $this->ips[$ipid]['nas'], true, 15);
+            $inputs.= wf_TextInput('editipiface', __('Interface'), $this->ips[$ipid]['iface'], true, 15);
+            $inputs.= wf_TextInput('editipmac', __('MAC'), $this->ips[$ipid]['mac'], true, 15);
+            $inputs.= wf_Selector('editipswitchid', $this->switches, __('Switch'), $this->ips[$ipid]['switchid'], true);
+            $inputs.= wf_TextInput('editipport', __('Port'), $this->ips[$ipid]['port'], true,5);
+            $inputs.= wf_Submit(__('Save'));
+            
+            $result=  wf_Form("", 'POST', $inputs, 'glamour');
+            
+        } else {
+            throw new Exception(self::EX_NOEXIP);
+        }
+        return ($result);
+    }
+    
+    /*
+     * edits some ip in database
+     * 
+     * @param 
+     * 
+     * @return void
+     */
+    public function ipsEdit($ipid,$nas,$iface,$mac,$switchid,$port) {
+        simple_update_field('netextips', 'nas', $nas, "WHERE `id`='".$ipid."'");
+        simple_update_field('netextips', 'iface', $iface, "WHERE `id`='".$ipid."'");
+        simple_update_field('netextips', 'mac', $mac, "WHERE `id`='".$ipid."'");
+        simple_update_field('netextips', 'switchid', $switchid, "WHERE `id`='".$ipid."'");
+        simple_update_field('netextips', 'port', $port, "WHERE `id`='".$ipid."'");
+        log_register("POOL IP [".$ipid."] EDIT `".$this->ips[$ipid]['ip']."`");
+    }
+
+    /*
+     * Renders ips associated with some poolid
+     * 
+     * @param int $poolid Existing pool ID
+     * 
+     * @return string
+     */
+    public function renderIps($poolid) {
+        $poolid=vf($poolid,3);
+        $result='';
+        if (isset($this->pools[$poolid])) {
+            if (!empty($this->ips)) {
+                $cells=  wf_TableCell(__('ID'));
+                $cells.=  wf_TableCell(__('IP'));
+                $cells.=  wf_TableCell(__('Gateway'));
+                $cells.=  wf_TableCell(__('Netmask'));
+                $cells.=  wf_TableCell(__('NAS'));
+                $cells.=  wf_TableCell(__('Interface'));
+                $cells.=  wf_TableCell(__('MAC'));
+                $cells.=  wf_TableCell(__('Switch'));
+                $cells.=  wf_TableCell(__('Port'));
+                $cells.=  wf_TableCell(__('VLAN'));
+                $cells.=  wf_TableCell(__('Actions'));
+                $rows= wf_TableRow($cells, 'row1');
+                
+                foreach ($this->ips as $io=>$eachip) {
+                    $cells=  wf_TableCell($eachip['id']);
+                    $cells.=  wf_TableCell($eachip['ip']);
+                    $cells.=  wf_TableCell($this->pools[$poolid]['gw']);
+                    $cells.=  wf_TableCell($this->cidrToMask[$this->pools[$poolid]['netmask']]);
+                    $cells.=  wf_TableCell($eachip['nas']);
+                    $cells.=  wf_TableCell($eachip['iface']);
+                    $cells.=  wf_TableCell($eachip['mac']);
+                    $cells.=  wf_TableCell($eachip['switchid']);
+                    $cells.=  wf_TableCell($eachip['port']);
+                    $cells.=  wf_TableCell($this->pools[$poolid]['vlan']);
+                    $actionsLink= wf_modal(web_edit_icon(), __('Edit').' '.$eachip['ip'], $this->ipsEditForm($eachip['id']), '', '400', '300');
+                    $cells.=  wf_TableCell($actionsLink);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+             $result=  wf_TableBody($rows, '100%', '0', 'sortable');   
+            }
+            
+        } else {
+            throw new Exception(self::EX_NOEXPOOL);
+        }
+        return ($result);
+    }
 }
 
 

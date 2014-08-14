@@ -1225,3 +1225,17 @@ CREATE TABLE IF NOT EXISTS `netextpools` (
   `login` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT  CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `netextips` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `poolid` int(11) NOT NULL,
+  `ip` varchar(40)  NOT NULL,
+  `nas` varchar(255) DEFAULT NULL,
+  `iface` varchar(40) DEFAULT NULL,
+  `mac` varchar(40) DEFAULT NULL,
+  `switchid` int(11) DEFAULT NULL,
+  `port` varchar(40) DEFAULT NULL,
+  `vlan` varchar(40) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

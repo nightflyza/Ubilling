@@ -1733,5 +1733,6 @@ $lang['def']['Days interval to set one-click credit']='Днів для вста�
 $lang['def']['until']='до';
 $lang['def']['The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.']='Сума грошей на рахунку на даний момент достатня для надання послуги. Тому пропонується встановити кредитний ліміт на вартість тарифу.';
 $lang['def']['At the moment the account have debt. It is proposed to establish credit in its size.']='В поточний момент на рахунку абонента існує заборгованість. Пропонується встановити кредит в її розмірі.';
+$lang['def']['IP associated with pool']='IP адреси асоційовані з пулом';
 
 ?>
