@@ -617,6 +617,49 @@ class ExtNets {
         }
         return ($result);
     }
+    
+    /*
+     * returns user attach pool control
+     * 
+     * @param string $login existing ubilling user login
+     * 
+     * @return string
+     */
+    public function poolLinkingForm($login) {
+        $poolsArr=array();
+        if (!empty($this->pools)) {
+            foreach ($this->pools as $io=>$each) {
+                if (empty($each['login'])) {
+                    $poolsArr[$each['id']]=$each['pool'].'/'.$each['netmask'];
+                }
+            }
+        }
+        $inputs=  wf_Selector('extnetspoollinkid', $poolsArr, __('IP associated with pool'), '', false);
+        $inputs.= wf_HiddenInput('extnetspoollinklogin', $login);
+        $inputs.= wf_Submit(__('Save'));
+                
+        $result= wf_Form("", 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    /*
+     * changes pool login
+     * 
+     * @param int $poolid Existing poolID
+     * @param string $login Existin ubilling user login
+     * 
+     * @return void
+     */
+    public function poolLinkLogin($poolid,$login) {
+        $poolid=vf($poolid,3);
+        $login=trim($login);
+        if (isset($this->pools[$poolid])) {
+            simple_update_field('netextpools', 'login', $login, "WHERE `id`='".$poolid."'");
+            log_register("POOL LINK USER `".$login."`");
+        } else {
+            throw new Exception(self::EX_NOEXPOOL);
+        }
+    }
 }
 
 

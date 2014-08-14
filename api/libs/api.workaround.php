@@ -1388,7 +1388,13 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         //Extnepools handling here
         if ($alter_conf['NETWORKS_EXT']) {
             $extNets=new ExtNets();
+            //pool linking controller
+            if (wf_CheckPost(array('extnetspoollinkid','extnetspoollinklogin'))) {
+                $extNets->poolLinkLogin($_POST['extnetspoollinkid'], $_POST['extnetspoollinklogin']);
+                rcms_redirect('?module=userprofile&username='.$_POST['extnetspoollinklogin']);
+            }
             $extnetsControls=$extNets->poolsExtractByLogin($login);
+            $extnetsControls.=' '.wf_modal(wf_img('skins/icon_ip.gif'), __('IP associated with pool'), $extNets->poolLinkingForm($login), '', '500', '120');
             
         } else {
             $extnetsControls='';

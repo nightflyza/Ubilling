@@ -9,7 +9,7 @@ if ($altcfg['NETWORKS_EXT']) {
           * Extnets Pool Controller
           */
          if (!wf_CheckGet(array('showipsbypoolid'))) {
-          show_window(__('Network available for allocation pools'), $extNets->renderNetworks()) ;
+          show_window(__('Network available for allocation pools').' ('.__('Network type').' - other)', $extNets->renderNetworks()) ;
          } 
          
           //show available pools assigned by this network
