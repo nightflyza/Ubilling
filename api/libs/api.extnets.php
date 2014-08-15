@@ -660,6 +660,36 @@ class ExtNets {
             throw new Exception(self::EX_NOEXPOOL);
         }
     }
+    
+    /*
+     * returns data for docx templatizer for login and associated pools
+     * 
+     * @param string $login Existing ubilling user login
+     * 
+     * @return string
+     */
+    public function poolTemplateData($login) {
+        $result='';
+        $poolArr=array();
+        if (!empty($this->pools)) {
+            foreach ($this->pools as $io=>$each) {
+                if ($each['login']==$login) {
+                    $poolArr[$each['id']]['gw']=$each['gw'];
+                    $poolArr[$each['id']]['netmask']=$this->cidrToMask[$each['netmask']];
+                    $poolArr[$each['id']]['ips']=$this->ipsGetAssociated($each['id']);
+                    
+                }
+            }
+            
+            
+            if (!empty($poolArr)) {
+                foreach ($poolArr as $ia=>$eachpool) {
+                    $result.=__('Gateway').': '.$eachpool['gw'].' '.__('Netmask').': '.$eachpool['netmask'].' '.__('IP').': '.$eachpool['ips'].' ';
+                }
+            }
+        }
+        return ($result);
+    }
 }
 
 

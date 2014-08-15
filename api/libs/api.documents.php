@@ -462,6 +462,12 @@ class ProfileDocuments {
                 @$this->customFields['CORPTAXTYPE'] = $_POST['corptaxtype'];
                 @$this->customFields['CORPNOTES'] = $_POST['corpnotes'];
            }
+           
+           if ($this->altcfg['NETWORKS_EXT']) {
+               //extended network pools management
+               $extNets=new ExtNets();
+               @$this->customFields['NETWORKS_EXT'] = $extNets->poolTemplateData($this->userLogin);
+           }
         }
     }
 
