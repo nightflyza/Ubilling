@@ -1721,8 +1721,6 @@ $lang['def']['until']='до';
 $lang['def']['The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.']='Сумма денег на счету на данный момент достаточна для предоставления услуги. Поэтому предлагается установить кредитный лимит на стоимость тарифа.';
 $lang['def']['At the moment the account have debt. It is proposed to establish credit in its size.']='В текущий момент на счету абонента имеется задолженность. Предлагается установить кредит в ее размере.';
 $lang['def']['IP associated with pool']='IP адреса связанные с пулом';
-$lang['def']['']='';
-
 
 
 
