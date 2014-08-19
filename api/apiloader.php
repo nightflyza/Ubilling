@@ -42,6 +42,7 @@ include('api/libs/api.ukv.php');
 include('api/libs/api.idlelogout.php');
 include('api/libs/api.corps.php');
 include('api/libs/api.extnets.php');
+include('api/libs/api.assignreport.php');
 
 /*
  * Initial class creation

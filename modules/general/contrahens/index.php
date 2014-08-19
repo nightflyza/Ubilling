@@ -4,8 +4,6 @@ if (cfr('AGENTS')) {
     //mb some custom options?
     $alter_conf = $ubillingConfig->getAlter();
     
-    $assignReport=new agentAssignReport();
-    
     //if deleting agent
     if (isset($_GET['delete'])) {
         zb_ContrAhentDelete($_GET['delete']);

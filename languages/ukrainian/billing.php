@@ -1735,4 +1735,7 @@ $lang['def']['The amount of money in the account at the moment is sufficient to 
 $lang['def']['At the moment the account have debt. It is proposed to establish credit in its size.']='В поточний момент на рахунку абонента існує заборгованість. Пропонується встановити кредит в її розмірі.';
 $lang['def']['IP associated with pool']='IP адреси асоційовані з пулом';
 
+//rev 3643
+$lang['def']['Agent payments']='Оплати контрагентам';
+
 ?>

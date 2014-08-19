@@ -7,7 +7,8 @@ if (cfr('REPORTFINANCE')) {
         } else {
         $show_year=$_POST['yearsel'];
         }
-        
+      
+        $altcfg=$ubillingConfig->getAlter();
 
       $dateSelectorPreset= (wf_CheckPost(array('showdatepayments'))) ? $_POST['showdatepayments'] : curdate(); 
       $dateinputs= wf_DatePickerPreset('showdatepayments',$dateSelectorPreset);
@@ -25,6 +26,9 @@ if (cfr('REPORTFINANCE')) {
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Payment search').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Analytics').  wf_tag('h3', true));
       $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('ARPU').  wf_tag('h3', true));
+      if ($altcfg['AGENTS_ASSIGN']=='2') {
+          $controlcells.=  wf_TableCell(wf_tag('h3',false,'title').__('Agent payments').  wf_tag('h3', true));
+      }
       $controlrows=  wf_TableRow($controlcells);
       
       $controlcells=  wf_TableCell($yearform);
@@ -32,6 +36,9 @@ if (cfr('REPORTFINANCE')) {
       $controlcells.=  wf_TableCell(wf_Link("?module=payfind", 'Find', false, 'ubButton'));
       $controlcells.=  wf_TableCell(wf_Link("?module=report_finance&analytics=true", 'Show', false, 'ubButton'));
       $controlcells.=  wf_TableCell(wf_Link("?module=report_arpu", 'Show', false, 'ubButton'));
+      if ($altcfg['AGENTS_ASSIGN']=='2') {
+        $controlcells.=  wf_TableCell(wf_Link("?module=report_agentfinance", 'Search', false, 'ubButton'));
+      }
       $controlrows.=  wf_TableRow($controlcells);
       
       $controlgrid=  wf_TableBody($controlrows, '100%', 0, '');
