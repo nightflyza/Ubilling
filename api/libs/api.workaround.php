@@ -1134,7 +1134,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       $form=  wf_Form("", 'POST', $inputs, 'glamour');
       $form.=$creditNote;
       
-      $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '150');
+      $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '180');
       
       return ($result);
   }

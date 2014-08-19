@@ -1,6 +1,9 @@
 <?php
 if (cfr('REPORTSIGNUP')) {
    
+    $altercfg=$ubillingConfig->getAlter();
+    
+    
     function zb_SignupsGet($where) {
         $query="SELECT * from `userreg` ".$where;
         $result=simple_queryall($query);
@@ -52,9 +55,9 @@ if (cfr('REPORTSIGNUP')) {
     
     
     function web_SignupsShowCurrentMonth() {
+        global $altercfg;
         $alltariffs=zb_TariffsGetAllUsers();
         $cmonth=curmonth();
-        $altercfg=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $where="WHERE `date` LIKE '".$cmonth."%' ORDER by `date` DESC;";
         $signups=zb_SignupsGet($where);
         $curdate=  curdate();
@@ -87,6 +90,10 @@ if (cfr('REPORTSIGNUP')) {
                         $rowClass='todaysig';
                     } else {
                         $rowClass='row3';
+                    }
+                    //ugly check - is user removed?
+                    if (empty($sigTariff)) {
+                        $rowClass='sigdeleteduser';
                     }
                         
                     $tablerows.=wf_TableRow($tablecells, $rowClass);
@@ -98,9 +105,9 @@ if (cfr('REPORTSIGNUP')) {
     }
     
      function web_SignupsShowAnotherYearMonth($cmonth) {
+        global $altercfg;
         $alltariffs=zb_TariffsGetAllUsers();
         $cmonth=  mysql_real_escape_string($cmonth);
-        $altercfg=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $where="WHERE `date` LIKE '".$cmonth."%' ORDER by `date` DESC;";
         $signups=zb_SignupsGet($where);
         $curdate=  curdate();
@@ -126,13 +133,18 @@ if (cfr('REPORTSIGNUP')) {
                         $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);   
                     }
                     $tablecells.=wf_TableCell($eachsignup['login']);
-                    $tablecells.=wf_TableCell(@$alltariffs[$eachsignup['login']]);
+                    @$sigTariff=$alltariffs[$eachsignup['login']];
+                    $tablecells.=wf_TableCell($sigTariff);
                     $profilelink=wf_Link('?module=userprofile&username='.$eachsignup['login'], web_profile_icon().' '.$eachsignup['address']);
                     $tablecells.=wf_TableCell($profilelink);
                     if (ispos($eachsignup['date'], $curdate)) {
                         $rowClass='todaysig';
                     } else {
                         $rowClass='row3';
+                    }
+                    //ugly check - is user removed?
+                    if (empty($sigTariff)) {
+                        $rowClass='sigdeleteduser';
                     }
                         
                     $tablerows.=wf_TableRow($tablecells, $rowClass);

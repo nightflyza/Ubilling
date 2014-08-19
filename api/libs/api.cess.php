@@ -858,4 +858,92 @@ function web_NdsPaymentsShowYear($year) {
          return($select);
      }
 
+/*
+ * Agent assigns report class
+ */     
+class agentAssignReport {
+        
+        protected $allassigns=array();
+        protected $assigns=array();
+        protected $agents=array();
+        protected $users=array();
+        protected $alladdress=array();
+        
+        public function __construct() {
+            $this->loadAllAssigns();
+            $this->loadUsers();
+            $this->loadAgents();
+            $this->loadAddress();
+            $this->assignsPreprocess();
+        }
+        
+        /*
+         * loads available assigns from database into private prop
+         * 
+         * @return void
+         */
+        protected function loadAllAssigns() {
+            $this->allassigns=zb_AgentAssignGetAllData();
+            
+        }
+        
+        /*
+         * loads all available users logins into private prop
+         * 
+         * @return void
+         */
+        protected function loadUsers() {
+            $this->users=  zb_UserGetAllStargazerData();
+        }
+        
+        /*
+         * loads contragent data into protected prop
+         * 
+         * @return void
+         */
+        protected function loadAgents() {
+            $tmpArr=array();
+            $tmpArr= zb_ContrAhentGetAllData();
+            if (!empty($tmpArr)) {
+                foreach ($tmpArr as $io=>$each) {
+                    $this->agents[$each['id']]=$each;
+                }
+            }
+        }
+        
+        /*
+         * load all user address into private prop
+         * 
+         * @return void
+         */
+        
+        protected function loadAddress() {
+            $this->alladdress=  zb_AddressGetFullCityaddresslist();
+        }
+        
+        /*
+         * preprocess all users into assigns private prop
+         * 
+         * @return void
+         */
+        protected function assignsPreprocess() {
+            if (!empty($this->users)) {
+                foreach ($this->users as $userid=>$eachuser) {
+                    $assignedAgentId=zb_AgentAssignCheckLoginFast($eachuser['login'], $this->allassigns, @$this->alladdress[$eachuser['login']]);
+                    if (!empty($assignedAgentId)) {
+                    $this->assigns[$eachuser['login']]= $assignedAgentId;
+                    } else {
+                        $this->assigns[$eachuser['login']]='';
+                    }
+                }
+            }
+        }
+        
+  
+    
+        
+        
+    }
+    
+    
 ?>

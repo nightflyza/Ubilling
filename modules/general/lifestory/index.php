@@ -20,10 +20,10 @@ if (!empty($userdataraw)) {
     //nethosts data
     $userip=$userdataraw['IP'];
     $nethost_q="SELECT * from `nethosts` WHERE `ip`='".$userip."'";
-    $nethostraw=  simple_query($nethost_q);
+    $nethostraw=  simple_queryall($nethost_q);
     if (!empty($nethostraw)) {
         $nethostdump=print_r($nethostraw,true);
-        $nethostdump=nl2br($nethostdump);
+        $nethostdump=  wf_tag('pre').($nethostdump).  wf_tag('pre',true);
         $form.=wf_modal(__('User Networking'), __('User Networking'), $nethostdump, 'ubButton', '400', '400');
     }
  }
