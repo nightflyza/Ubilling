@@ -731,7 +731,7 @@ if (!empty ($all_current_used_ip)) {
 function multinet_get_next_freeip($table,$field,$network_id) {
     $all_free_ips=multinet_get_all_free_ip($table, $field, $network_id);
     $temp = array_keys($all_free_ips);
-    return($all_free_ips[$temp[0]]);
+    return(@$all_free_ips[$temp[0]]);
 }
 
 function multinet_get_service_networkid($service_id) {

@@ -1,6 +1,8 @@
 <?php
 if ((cfr('REPORTFINANCE')) AND (cfr('PAYFIND'))) {
     
+$altcfg=$ubillingConfig->getAlter();
+if ($altcfg['AGENTS_ASSIGN']==2) {
     $assignReport=new agentAssignReport();
     
     //show search form
@@ -11,6 +13,10 @@ if ((cfr('REPORTFINANCE')) AND (cfr('PAYFIND'))) {
     if (wf_CheckPost(array('datefrom','dateto','dosearch'))) {
         show_window(__('Search results'),$assignReport->paymentSearch($_POST['datefrom'], $_POST['dateto']));
     }
+    
+} else {
+    show_window(__('Error'), __('This module is disabled'));
+}
     
 } else {
     show_window(__('Error'), __('Access denied'));

@@ -19,6 +19,9 @@ class agentAssignReport {
     protected $userContracts=array();
     protected $userRealnames=array();
     protected $cashtypes=array();
+    
+    protected $excludeCount=0;
+    protected $excludeSumm=0;
 
     public function __construct() {
         $this->loadAllAssigns();
@@ -254,8 +257,12 @@ class agentAssignReport {
                 $this->agentsumm[$agentId]['count']=$this->agentsumm[$agentId]['count']+1;
             } else {
                 $this->agentsumm[$agentId]['summ']=$summ;
-               $this->agentsumm[$agentId]['count']=1;
+                $this->agentsumm[$agentId]['count']=1;
             }
+        } else {
+            //excluded cash counters
+            $this->excludeCount++;
+            $this->excludeSumm=$this->excludeSumm+$summ;
         }
     }
 
@@ -283,7 +290,8 @@ class agentAssignReport {
         $result='';
         $query="SELECT * from `payments` WHERE `cashtypeid`='1' AND `date`  BETWEEN '".$datefrom."' AND '".$dateto."' AND `summ`> '0' ;";
         $allPayments=  simple_queryall($query);
-        
+        $totalCount=0;
+        $totalSumm=0;
         
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Date'));
@@ -334,6 +342,9 @@ class agentAssignReport {
                     
                     //fill stats
                     $this->fillAgentStats($each['login'], $each['summ']);
+                    
+                    $totalCount++;
+                    $totalSumm=$totalSumm+$each['summ'];
             }
         }
         if (!empty($this->agentsumm)) {
@@ -350,9 +361,13 @@ class agentAssignReport {
             }
             
             $result.=wf_TableBody($agRows, '50%', 0, 'sortable');
+            $result.=wf_tag('span', false, 'glamour').__('Excluded payments count').': '.$this->excludeCount.wf_tag('span', true);
+            $result.=wf_tag('span', false, 'glamour').__('Excluded cash').': '.$this->excludeSumm.wf_tag('span', true);
         }
         
         $result.=  wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.=wf_tag('span', false, 'glamour').__('Count').': '.$totalCount.wf_tag('span', true);
+        $result.=wf_tag('span', false, 'glamour').__('Total payments').': '.$totalSumm.wf_tag('span', true);
         return ($result);
     }
 

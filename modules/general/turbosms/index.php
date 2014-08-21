@@ -183,6 +183,7 @@ if (cfr('TURBOSMS')) {
         }
         
         function tsms_ExcludeUserAdd($login) {
+            $login=trim($login);
             $allExcludedUsers= tsms_GetExcludeUsers();
             $newExcludes=$allExcludedUsers;
             if (!isset($newExcludes[$login])) {
