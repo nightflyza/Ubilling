@@ -1002,9 +1002,18 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       $query="SELECT * from `switchportassign` WHERE `login`='".$login."'";
       $allswitches=  zb_SwitchesGetAll();
       $switcharr=array();
+      $switchswpoll=array();
+      $switchgeo=array();
       if (!empty($allswitches)) {
           foreach ($allswitches as $io=>$eachswitch) {
               $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+              if (ispos($eachswitch['desc'], 'SWPOLL')) {
+                  $switchswpoll[$eachswitch['id']]=$eachswitch['ip'];
+              }
+              
+              if (!empty($eachswitch['geo'])) {
+                  $switchgeo[$eachswitch['id']]=$eachswitch['geo'];
+              }
           }
       }
       //getting current data
@@ -1043,9 +1052,20 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       
       $switchAssignController=  wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
      
+      //switch location and polling controls
+      $switchLocators='';
+      if (isset($switchswpoll[$currentSwitchId])) {
+          $snmpSwitchLocatorIcon=  wf_tag('img', false, '', 'src=skins/snmp.png height="10" title="'.__('SNMP query').'"');
+          $switchLocators.=wf_Link('?module=switchpoller&switchid='.$currentSwitchId, $snmpSwitchLocatorIcon, false, '');
+      }
+      
+      if (isset($switchgeo[$currentSwitchId])) {
+          $geoSwitchLocatorIcon=  wf_tag('img', false, '', 'src=skins/icon_search_small.gif height="10" title="'.__('Find on map').'"');
+          $switchLocators.=wf_Link('?module=switchmap&finddevice='.$switchgeo[$currentSwitchId], $geoSwitchLocatorIcon, false, '');
+      }
   
       $cells=  wf_TableCell(__('Switch'),'30%','row2');
-      $cells.= wf_TableCell(@$switcharr[$currentSwitchId]);
+      $cells.= wf_TableCell(@$switcharr[$currentSwitchId].' '.$switchLocators);
       $rows= wf_TableRow($cells, 'row3');
       $cells=  wf_TableCell(__('Port'),'30%','row2');
       $cells.= wf_TableCell($currentSwitchPort);
