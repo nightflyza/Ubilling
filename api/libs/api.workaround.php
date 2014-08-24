@@ -1930,11 +1930,12 @@ function months_array_wz() {
     return($months);
 }
 
-function web_PaymentsShowGraph($year) {
+function web_PaymentsShowGraph_old($year) {
     $months=months_array();
     $year_summ=zb_PaymentsGetYearSumm($year);
     $curtime=time();
     $yearPayData=array();
+    $cacheTime=3600;
     
     $cells=   wf_TableCell('');
     $cells.=  wf_TableCell(__('Month'));
@@ -1954,7 +1955,7 @@ function web_PaymentsShowGraph($year) {
     } else {
         //cache time already set
         $timeShift=$curtime-$renewTime;
-        if ($timeShift>3600) {
+        if ($timeShift>$cacheTime) {
             //cache update needed
             $updateCache=true;
         } else {
@@ -1992,6 +1993,118 @@ function web_PaymentsShowGraph($year) {
     foreach ($months as $eachmonth=>$monthname) {
         $month_summ=zb_PaymentsGetMonthSumm($year, $eachmonth);
         $paycount=zb_PaymentsGetMonthCount($year, $eachmonth);
+   
+            $cells=   wf_TableCell($eachmonth);
+            $cells.=  wf_TableCell(wf_Link('?module=report_finance&month='.$year.'-'.$eachmonth, rcms_date_localise($monthname)));
+            $cells.=  wf_TableCell($paycount);
+            $cells.=  wf_TableCell(@round($month_summ/$paycount,2));
+            $cells.=  wf_TableCell(web_roundValue($month_summ, 2));
+            $cells.=  wf_TableCell(web_bar($month_summ, $year_summ));
+            $rows.=   wf_TableRow($cells, 'row3');
+    }
+    $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+    $yearPayData[$year]['graphs']=$result;
+    //write to cache
+    zb_StorageSet('YPD_LAST', $curtime);
+    $newCache=  serialize($yearPayData);
+    $newCache= base64_encode($newCache);
+    zb_StorageSet('YPD_CACHE', $newCache);
+    } else {
+        //take data from cache
+        if (isset($yearPayData[$year]['graphs'])) {
+          $result=$yearPayData[$year]['graphs'];
+          $result.=__('Cache state at time').': '.date("Y-m-d H:i:s",($renewTime)).' ';
+          $result.=wf_Link("?module=report_finance&forcecache=true", wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
+        } else {
+          $result=__('Strange exeption');
+        }
+    }
+    
+    
+    show_window(__('Payments by').' '.$year, $result);
+}
+
+function web_PaymentsShowGraph($year) {
+    $months=months_array();
+    $year_summ=zb_PaymentsGetYearSumm($year);
+    $curtime=time();
+    $yearPayData=array();
+    $yearStats=array();
+    $cacheTime=3600; //sec intervall to cache
+    
+    $cells=   wf_TableCell('');
+    $cells.=  wf_TableCell(__('Month'));
+    $cells.=  wf_TableCell(__('Payments count'));
+    $cells.=  wf_TableCell(__('ARPU'));
+    $cells.=  wf_TableCell(__('Cash'));
+    $cells.=  wf_TableCell(__('Visual'), '50%');
+    $rows=    wf_TableRow($cells, 'row1');
+    
+    //caching subroutine
+    $renewTime=  zb_StorageGet('YPD_LAST');
+    if (empty($renewTime)) {
+        //first usage
+        $renewTime=$curtime;
+        zb_StorageSet('YPD_LAST', $renewTime);
+        $updateCache=true;
+    } else {
+        //cache time already set
+        $timeShift=$curtime-$renewTime;
+        if ($timeShift>$cacheTime) {
+            //cache update needed
+            $updateCache=true;
+        } else {
+            //load data from cache or init new cache
+            $yearPayData_raw=  zb_StorageGet('YPD_CACHE');
+            if (empty($yearPayData_raw)) {
+                //first usage
+                $emptyCache=array();
+                $emptyCache=  serialize($emptyCache);
+                $emptyCache= base64_encode($emptyCache);
+                zb_StorageSet('YPD_CACHE', $emptyCache);
+                $updateCache=true;
+            } else {
+               // data loaded from cache
+               $yearPayData=  base64_decode($yearPayData_raw);
+               $yearPayData=  unserialize($yearPayData);
+               $updateCache=false; 
+               //check is current year already cached?
+               if (!isset($yearPayData[$year]['graphs'])) {
+                   $updateCache=true;
+               }
+               
+               //check is manual cache refresh is needed?
+               if (wf_CheckGet(array('forcecache'))) {
+                   $updateCache=true;
+                   rcms_redirect("?module=report_finance");
+               }
+            }
+            
+            
+        }
+    }
+    
+    if ($updateCache) {
+        //extracting all of needed payments in one query
+        $allYearPayments_q="SELECT * from `payments` WHERE `date` LIKE '".$year."-%' AND `summ`>'0';";
+        $allYearPayments=  simple_queryall($allYearPayments_q);
+        if (!empty($allYearPayments)) {
+            foreach ($allYearPayments as $idx=>$eachYearPayment) {
+                $statsMonth=date("m",strtotime($eachYearPayment['date']));
+                if (isset($yearStats[$statsMonth])) {
+                    $yearStats[$statsMonth]['count']++;
+                    $yearStats[$statsMonth]['summ']=$yearStats[$statsMonth]['summ']+$eachYearPayment['summ'];
+                } else {
+                    $yearStats[$statsMonth]['count']=1;
+                    $yearStats[$statsMonth]['summ']=$eachYearPayment['summ'];
+                }
+                
+            }
+        }
+        
+    foreach ($months as $eachmonth=>$monthname) {
+        $month_summ=(isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['summ'] : 0 ;
+        $paycount=(isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['count'] : 0 ;
    
             $cells=   wf_TableCell($eachmonth);
             $cells.=  wf_TableCell(wf_Link('?module=report_finance&month='.$year.'-'.$eachmonth, rcms_date_localise($monthname)));

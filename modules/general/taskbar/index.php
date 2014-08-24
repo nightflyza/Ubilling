@@ -96,7 +96,8 @@ if ($altconf['TB_NEWTICKETNOTIFY']) {
 
 //new signups notify
 if ($altconf['SIGREQ_ENABLED']) {
-    $newreqcount= zb_SigreqsGetAllNewCount();
+    $signups=new SignupRequests();
+    $newreqcount= $signups->getAllNewCount();
     if ($newreqcount!=0) {
         $ticketnotify.=  wf_Link('?module=sigreq', ' <img src="skins/sigreqnotify.gif" title="'.$newreqcount.' '.__('signup requests expected processing').'" border="0">', false);
     } else {
