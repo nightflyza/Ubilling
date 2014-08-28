@@ -721,23 +721,34 @@ class UkvSystem {
             $userData = $this->users[$userid];
 
             $inputs = '';
+            
+            $inputs= wf_tag('tr', false);
+            $inputs.= wf_tag('td', false, '', 'valign="top"');
+            
             $inputs.= wf_HiddenInput('usereditprocessing', $userid);
-            $inputs.= wf_tag('div', false, 'floatpanels');
+            $inputs.= wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_tag('h3') . __('Full address') . wf_tag('h3', true);
             $inputs.= wf_Selector('ueditcity', $this->cities, __('City'), $userData['city'], true);
             $inputs.= wf_Selector('ueditstreet', $this->streets, __('Street'), $userData['street'], true);
             $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], false, '5');
             $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
             $inputs.= wf_tag('div', true);
+            
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_tag('h3') . __('Contact info') . wf_tag('h3', true);
             $inputs.= wf_TextInput('ueditrealname', __('Real Name'), $userData['realname'], true, '30');
             $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
             $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
             $inputs.= wf_tag('div', true);
+            
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('tr', true);
+            $inputs.= wf_tag('td', false, '', 'valign="top"');
 
-            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_tag('h3') . __('Services') . wf_tag('h3', true);
             $inputs.= wf_TextInput('ueditcontract', __('Contract'), $userData['contract'], true, '10');
             $inputs.= wf_Selector('uedittariff', $tariffArr, __('Tariff'), $userData['tariffid'], true);
@@ -745,9 +756,11 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
             $inputs.= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
             $inputs.= wf_tag('div', true);
+            
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('td', false, '', 'valign="top"');
 
-
-            $inputs.=wf_tag('div', false, 'floatpanels');
+            $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_tag('h3') . __('Passport data') . wf_tag('h3', true);
             $inputs.= wf_TextInput('ueditpassnum', __('Passport number'), $userData['passnum'], true, '20');
             $inputs.= wf_TextInput('ueditpasswho', __('Issuing authority'), $userData['passwho'], true, '20');
@@ -755,12 +768,24 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
             $inputs.= wf_TextInput('ueditpaddr', __('Registration address'), $userData['paddr'], true, '20');
             $inputs.= wf_tag('div', true);
-
+            
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('tr', true);
+            
+            $inputs.= wf_tag('tr', false);
+            $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
+            
             $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
             $inputs.= wf_tag('div', true);
             $inputs.= wf_delimiter();
             $inputs.= wf_Submit(__('Save'));
+            
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('tr', true);
+            
+            
+            $inputs=  wf_TableBody($inputs, '100%', 0, '');
 
             $result = wf_Form('', 'POST', $inputs, 'ukvusereditform');
 
@@ -1052,7 +1077,7 @@ class UkvSystem {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '530') . __('Edit') . wf_tag('div', true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '570') . __('Edit') . wf_tag('div', true);
             }
             if (cfr('UKVDEL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);

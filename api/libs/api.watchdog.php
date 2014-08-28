@@ -753,8 +753,8 @@ class WatchDogInterface {
             foreach ($this->allTasks as $io=>$eachtask) {
                 $details=wf_tag('pre').print_r($eachtask,true).wf_tag('pre',true);
                 $detailLink=  wf_modal($eachtask['id'], $eachtask['name'], $details, '', '600', '400');
-                $cells=  wf_TableCell($detailLink);
-                $cells.= wf_TableCell(web_bool_led($eachtask['active']));
+                $cells=  wf_TableCell($detailLink,'','','sorttable_customkey="'.$eachtask['id'].'"');
+                $cells.= wf_TableCell(web_bool_led($eachtask['active']),'','','sorttable_customkey="'.$eachtask['active'].'"');
                 $cells.= wf_TableCell($eachtask['name']);
                 $cells.= wf_TableCell($eachtask['checktype']);
                 $cells.= wf_TableCell($eachtask['param']);
@@ -1115,9 +1115,10 @@ class WatchDogInterface {
      * @return string
      */
     public function yearSelectorAlerts(){
-        $inputs=  wf_YearSelector('alertsyearsel', __('Year'), false);
+        $inputs=  wf_YearSelector('alertsyearsel', __('Year').' ', false);
         $inputs.= wf_Submit(__('Show'));
         $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        $result.= wf_tag('br');
         return ($result);
     }
     

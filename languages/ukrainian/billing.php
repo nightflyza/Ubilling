@@ -1739,5 +1739,6 @@ $lang['def']['IP associated with pool']='IP адреси асоційовані 
 $lang['def']['Agent payments']='Оплати контрагентам';
 $lang['def']['Excluded payments count']='Кількість неврахованих оплат';
 $lang['def']['Excluded cash']='Невраховано грошей';
+$lang['def']['UKV']='УКВ';
 
 ?>

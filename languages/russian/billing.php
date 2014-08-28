@@ -1726,7 +1726,7 @@ $lang['def']['IP associated with pool']='IP адреса связанные с �
 $lang['def']['Agent payments']='Платежи контрагентам';
 $lang['def']['Excluded payments count']='Количество исключенных платежей';
 $lang['def']['Excluded cash']='Исключено денег';
-$lang['def']['']='';
+$lang['def']['UKV']='УКВ';
 $lang['def']['']='';
 
 ?>
