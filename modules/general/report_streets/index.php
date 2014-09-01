@@ -1,94 +1,207 @@
 <?php
 
-if($system->checkForRight('STREETEPORT')) {
+if ($system->checkForRight('STREETEPORT')) {
+
+    /*
+     * streets report base class
+     */
+
+    class reportStreets {
+
+        protected $cities = array();
+        protected $streets = array();
+        protected $builds = array();
+        protected $apts = array();
+        protected $totalusercount=0;
+
+        public function __construct() {
+            $this->loadCities();
+            $this->loadStreets();
+            $this->loadBuilds();
+            $this->loadApts();
+            
+            $this->countApts();
+            $this->countBuilds();
+        }
+
+        /*
+         * loads available cities from database into private data property
+         * 
+         * @return void
+         */
+
+        protected function loadCities() {
+            $query = "SELECT * from `city`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->cities[$each['id']] = $each['cityname'];
+                }
+            }
+        }
+
+        /*
+         * loads available streets from database into private data property
+         * 
+         * @return void
+         */
+
+        protected function loadStreets() {
+            $query = "SELECT * from `street`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->streets[$each['id']]['streetname'] = $each['streetname'];
+                    $this->streets[$each['id']]['cityid'] = $each['cityid'];
+                    $this->streets[$each['id']]['buildcount'] = 0;
+                    $this->streets[$each['id']]['usercount'] = 0;
+                }
+            }
+        }
+
+        /*
+         * loads available builds from database into private data property
+         * 
+         * @return void
+         */
+
+        protected function loadBuilds() {
+            $query = "SELECT * from `build`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->builds[$each['id']]['buildnum'] = $each['buildnum'];
+                    $this->builds[$each['id']]['streetid'] = $each['streetid'];
+                    $this->builds[$each['id']]['aptcount'] = 0;
+                }
+            }
+        }
+
+        /*
+         * loads available apts from database into private data property
+         * 
+         * @return void
+         */
+
+        protected function loadApts() {
+            $query = "SELECT * from `apt`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->apts[$each['id']]['apt'] = $each['apt'];
+                    $this->apts[$each['id']]['buildid'] = $each['buildid'];
+                }
+            }
+        }
+
+        /*
+         * prepares builds data for render report
+         * 
+         * @return void
+         */
+
+        protected function countApts() {
+            if (!empty($this->builds)) {
+                if (!empty($this->apts)) {
+                    foreach ($this->apts as $io=>$eachapt) {
+                        if (isset($this->builds[$eachapt['buildid']])) {
+                            $this->builds[$eachapt['buildid']]['aptcount']++;
+                            $this->totalusercount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        /*
+         * prepares streets data for render report
+         * 
+         * @return void
+         */
+
+        protected function countBuilds() {
+            if (!empty($this->streets)) {
+                if (!empty($this->builds)) {
+                    foreach ($this->builds as $io => $eachbuild) {
+                        if (isset($this->streets[$eachbuild['streetid']])) {
+                            $this->streets[$eachbuild['streetid']]['buildcount']++;
+                            $this->streets[$eachbuild['streetid']]['usercount']=$this->streets[$eachbuild['streetid']]['usercount']+$eachbuild['aptcount'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        /*
+         * returns colorized register level for street
+         * 
+         * @param int $usercount  Registered apts (users) count on the street
+         * @param int $buildcount Builds count on the street
+         * 
+         * @return string
+         */
+        protected function getLevel($usercount,$buildcount) {
+           if (($usercount != 0) AND ( $buildcount != 0)) {
+                $level = $usercount / $buildcount;
+            } else {
+                $level = 0;
+            }
+            $level = round($level, 2);
+            $color = 'black';
+            if ($level < 2) {
+                $color = 'red';
+            }
+            if ($level >= 3) {
+                $color = 'green';
+            }
+            $result=  wf_tag('font', false, '', 'color="'.$color.'"').$level.  wf_tag('font', true);
+            return ($result);
+        }
+        
+        /*
+         * renders report by prepeared data
+         * 
+         * @return string
+         */
+        public function render() {
+            if (!empty($this->streets)) {
+                
+                $cells=  wf_TableCell(__('ID'));
+                $cells.=  wf_TableCell(__('City'));
+                $cells.=  wf_TableCell(__('Street'));
+                $cells.=  wf_TableCell(__('Builds'));
+                $cells.=  wf_TableCell(__('Registered'));
+                $cells.=  wf_TableCell(__('Visual'));
+                $cells.=  wf_TableCell(__('Level'));
+                $rows=  wf_TableRow($cells, 'row1');
+                
+                foreach ($this->streets as $streetid=>$each) {
+                        $cells=  wf_TableCell($streetid);
+                        $cells.=  wf_TableCell(@$this->cities[$each['cityid']]);
+                        $cells.=  wf_TableCell($each['streetname']);
+                        $cells.=  wf_TableCell($each['buildcount']);
+                        $cells.=  wf_TableCell($each['usercount']);
+                        $cells.=wf_TableCell(web_bar($each['usercount'], $this->totalusercount), '50%', '', 'sorttable_customkey="' . $each['usercount'] . '"');
+                        $cells.=  wf_TableCell($this->getLevel($each['usercount'], $each['buildcount']));
+                        $rows.=  wf_TableRow($cells, 'row3');
+                }
+                
+                $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+                
+            } else {
+                $result=__('Nothing found');
+            }
+            return ($result);
+        }
+
+    }
 
     
-	
-function zb_RSUserCountByStreet($streetid) {
-$streetid=vf($streetid,3);    
-$all_builds=simple_queryall('SELECT * FROM `build` where `streetid`="'.$streetid.'" ORDER BY `buildnum`');
-$result=array();
-$out=0;
-if (!empty($all_builds)) {
-foreach ($all_builds as $eachbuild=>$bl) {
-    $result[]=$bl['id'];
- }
- foreach ($result as $eachhata) {
- 	$ss=simple_queryall('SELECT COUNT(`id`) FROM `apt` where `buildid`="'.$eachhata.'"');
- 	foreach ($ss as $ssd=>$eachapt) {
- 	$out=$out+$eachapt['COUNT(`id`)'];
- 	}
- }
-}
-if (empty($out)) { $out=0; }
-return ($out);
-}
+    $streetReport = new reportStreets();
+    show_window(__('Streets report'),$streetReport->render());
 
-
-function zb_RSGetBuildCount($streetid) {
-    $streetid=vf($streetid,3);
-    $query="SELECT COUNT(`id`) from `build` WHERE `streetid`='".$streetid."'";
-    $result=simple_query($query);
-    $result=$result['COUNT(`id`)'];
-    return ($result);
-}
-
-function zb_RSGetUserCountByStreet($streetid) {
-    $streetid=vf($streetid,3);
-    $query="SELECT COUNT(`id`) from `apt` WHERE `streetid`='".$streetid."'";
-    $result=simple_query($query);
-    $result=$result['COUNT(`id`)'];
-    return ($result);
-}
-
-	$streets_q='SELECT * from `street`';
-	$streets=simple_queryall($streets_q);
-        
-        $headerscells=wf_TableCell(__('ID'));
-        $headerscells.=wf_TableCell(__('Street'));
-        $headerscells.=wf_TableCell(__('Builds'));
-        $headerscells.=wf_TableCell(__('Registered'));
-        $headerscells.=wf_TableCell(__('Visual'));
-        $headerscells.=wf_TableCell(__('Level'));
-        $tablerows=wf_TableRow($headerscells, 'row1');
-        
-   if (!empty($streets)) {
-       $totalusercount=zb_UserGetAllStargazerData();
-       $totalusercount=sizeof($totalusercount);
-   	foreach ($streets as $val => $eachstreet) {
-	  $build_count=zb_RSGetBuildCount($eachstreet['id']);
-	  $usercount=zb_RSUserCountByStreet($eachstreet['id']);
-	if (($usercount!=0) AND ($build_count!=0)) {
-	  $kpd=$usercount/$build_count;	
-	}
-	else {
-	  $kpd=0;
-	}
-	$col_kpd=round($kpd,2);
-	$colour='black';
-	if ($col_kpd<2) {
-		$colour='red';
-	}
-	if ($col_kpd>=3) {
-		$colour='green';
-	}
-        
-        $tablecells=wf_TableCell($eachstreet['id']);
-        $tablecells.=wf_TableCell($eachstreet['streetname']);
-        $tablecells.=wf_TableCell($build_count);
-        $tablecells.=wf_TableCell($usercount);
-        $tablecells.=wf_TableCell(web_bar($usercount, $totalusercount),'50%','','sorttable_customkey="'.$usercount.'"');
-        $tablecells.=wf_TableCell('<font color="'.$colour.'">'.$col_kpd.'</font>');
-        $tablerows.=wf_TableRow($tablecells, 'row3');
-        
-	
-	 }
-        $result=wf_TableBody($tablerows, '100%', '0', 'sortable');
-	}
-	
-    show_window(__('Streets report'),$result);
+    
 } else {
-	show_error(__('Access denied'));
+    show_error(__('Access denied'));
 }
-
 ?>
