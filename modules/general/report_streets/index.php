@@ -6,7 +6,7 @@ if ($system->checkForRight('STREETEPORT')) {
      * streets report base class
      */
 
-    class reportStreets {
+    class ReportStreets {
 
         protected $cities = array();
         protected $streets = array();
@@ -197,7 +197,7 @@ if ($system->checkForRight('STREETEPORT')) {
     }
 
     
-    $streetReport = new reportStreets();
+    $streetReport = new ReportStreets();
     show_window(__('Streets report'),$streetReport->render());
 
     

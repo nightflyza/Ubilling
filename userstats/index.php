@@ -39,8 +39,10 @@
                                 zbs_AnnouncementsNotice();
                             }
                         }
-                            
+                        
+                        //shows user profile by default
 			show_window(__('User profile'), zbs_UserShowProfile($user_login));
+                        
 		} else zbs_LoadModule($_GET['module']);
 	} else {
 		if ( $us_config['auth']=='login' ) {

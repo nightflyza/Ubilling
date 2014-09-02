@@ -184,4 +184,7 @@ $lang['def']['This module is disabled'] = 'Этот модуль сейчас о
 
 $lang['def']['Mark as read'] = 'Пометить как прочитанное';
 $lang['def']['Mark as unread'] = 'Пометить как непрочитанное';
+
+$lang['def']['Additional services'] = 'Дополнительные услуги';
+$lang['def']['Price'] = 'Стоимость';
 ?>

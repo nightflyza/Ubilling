@@ -21,7 +21,7 @@ if (cfr('CFTYPES')) {
       $typetype=$_POST['edittype'];
       simple_update_field('cftypes', 'type', $typetype, 'WHERE `id` = "'.$typeid.'"');
       simple_update_field('cftypes', 'name', $typename, 'WHERE `id` = "'.$typeid.'"');
-      log_register("CFTYPE CHANGE ".$typeid." ".$typename);
+      log_register("CFTYPE CHANGE [".$typeid."] `".$typename."`");
       rcms_redirect("?module=cftypes");
   }
   

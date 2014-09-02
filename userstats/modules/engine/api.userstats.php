@@ -411,6 +411,80 @@ function zbs_PaymentIDGet($login) {
      }
      return ($result);
  }
+ 
+ function zbs_getVservicesAll() {
+     $result=array();
+     $query="SELECT * from `vservices`";
+     $all=  simple_queryall($query);
+     if (!empty($all)) {
+         foreach ($all as $io=>$each) {
+             $result[$each['tagid']]=$each['price'];
+         }
+     }
+     return ($result);
+ }
+ 
+ function zbs_getTagNames() {
+     $result=array();
+     $query="SELECT * from `tagtypes`";
+     $all=  simple_queryall($query);
+     if (!empty($all)) {
+         foreach ($all as $io=>$each) {
+             $result[$each['id']]=$each['tagname'];
+         }
+     }
+     return ($result);
+ }
+ 
+ function zbs_getUserTags($login) {
+     $result=array();
+     $login=  mysql_real_escape_string($login);
+     $query="SELECT * from `tags` WHERE `login`='".$login."';";
+     $all=  simple_queryall($query);
+     if (!empty($all)) {
+         foreach ($all as $io=>$each) {
+             $result[$each['tagid']]=$each['id'];
+         }
+     }
+     return ($result);
+ }
+ 
+ function zbs_vservicesShow($login,$currency) {
+    $result='';
+    $userservices=array();
+    $allservices=  zbs_getVservicesAll(); // tagid => price
+    if (!empty($allservices)) {
+        $usertags=  zbs_getUserTags($login); // tagid=>dbid
+        if (!empty($usertags)) {
+            foreach ($usertags as $eachtagid=>$dbid) {
+                //is associated tags services?
+                if(isset($allservices[$eachtagid])) {
+                    $userservices[$eachtagid]=$dbid;
+                }
+            }
+            
+               //yep, this user have some services assigned
+                if (!empty($userservices)) {
+                  $tagnames= zbs_getTagNames(); //tagid => name
+                  
+                  $cells=  la_TableCell(__('Service'));
+                  $cells.= la_TableCell(__('Price'));
+                  $rows= la_TableRow($cells, 'row1');
+                  
+                  foreach ($userservices as $eachservicetagid=>$dbid) {
+                      $cells=  la_TableCell(@$tagnames[$eachservicetagid]);
+                      $cells.= la_TableCell(@$allservices[$eachservicetagid].' '.$currency);
+                      $rows.= la_TableRow($cells, 'row3');
+                  }
+                  
+                  $result.= la_tag('br');
+                  $result.= la_tag('h3').__('Additional services').la_tag('h3',true);
+                  $result.=  la_TableBody($rows, '100%', 0);
+                }
+        }
+    }
+    return ($result);
+ }
 
 function zbs_UserShowProfile($login) {
     $us_config      = zbs_LoadConfig();
@@ -646,6 +720,14 @@ function zbs_UserShowProfile($login) {
             </tr>
             </table>
         ';
+    
+    //show assigned virtual services if available
+    if (isset($us_config['VSERVICES_SHOW'])) {
+        if ($us_config['VSERVICES_SHOW']) {
+            $profile.=zbs_vservicesShow($login,$us_currency);
+        }
+    }
+    
     return($profile);
 }
 

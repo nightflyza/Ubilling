@@ -2090,6 +2090,8 @@ function web_PaymentsShowGraph($year) {
         $allYearPayments=  simple_queryall($allYearPayments_q);
         if (!empty($allYearPayments)) {
             foreach ($allYearPayments as $idx=>$eachYearPayment) {
+                //Here we can get up to 50% of CPU time on month extraction, but this hacks is to ugly :(
+                //Benchmark results: http://pastebin.com/i7kadpN7
                 $statsMonth=date("m",strtotime($eachYearPayment['date']));
                 if (isset($yearStats[$statsMonth])) {
                     $yearStats[$statsMonth]['count']++;

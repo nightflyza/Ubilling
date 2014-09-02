@@ -3,9 +3,9 @@ if (cfr('REPORTNOSWPORT')) {
     
     class ReportNoSwitchPort {
         
-        private $data =array();
-        private $allusers=array();
-        private $diff=array();
+        protected $data =array();
+        protected $allusers=array();
+        protected $diff=array();
         
         public function __construct() {
             //load actual data by switch port assing
@@ -19,7 +19,7 @@ if (cfr('REPORTNOSWPORT')) {
          * 
          * @return void
          */
-        private function loadData() {
+        protected function loadData() {
           
             $query="SELECT * from `switchportassign`;";
             $alldata=  simple_queryall($query);
@@ -36,7 +36,7 @@ if (cfr('REPORTNOSWPORT')) {
          * 
          * @return void
          */
-         private function loadAllUsers() {
+         protected function loadAllUsers() {
           
             $query="SELECT `login` from `users`;";
             $alldata=  simple_queryall($query);
@@ -49,7 +49,7 @@ if (cfr('REPORTNOSWPORT')) {
         }
         
         /*
-         * returns private propert data
+         * returns protected propert data
          * 
          * @return array
          */
@@ -59,7 +59,7 @@ if (cfr('REPORTNOSWPORT')) {
         }
         
         /*
-         * renders report by existing private data prop
+         * renders report by existing protected data prop
          * 
          * @return string
          */
@@ -83,7 +83,7 @@ if (cfr('REPORTNOSWPORT')) {
     * controller and view section
     */
     
-   $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+   $altercfg=  $ubillingConfig->getAlter();
    if ($altercfg['SWITCHPORT_IN_PROFILE']) {
    $noSwitchPortReport=new ReportNoSwitchPort();
    show_window(__('Users without port assigned'),$noSwitchPortReport->render());

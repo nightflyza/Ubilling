@@ -43,6 +43,8 @@ include('api/libs/api.idlelogout.php');
 include('api/libs/api.corps.php');
 include('api/libs/api.extnets.php');
 include('api/libs/api.assignreport.php');
+include('api/libs/api.capabdir.php');
+include('api/libs/api.sigreq.php');
 
 /*
  * Initial class creation
