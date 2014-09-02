@@ -95,15 +95,12 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
             $creditSeconds=($sc_term*86400); //days*secs
             $creditOffset=$nowTimestamp+$creditSeconds;
             $scend=date("Y-m-d",$creditOffset);
-            
-            // freaky like-a tomorrow =)
-            //$scend= date("Y-m-d",mktime(0, 0, 0, date("m"), date("d")+$sc_term, date("Y")));
+
             if (abs($current_cash)<=$tariffprice) {
             if ($current_cash<0) {
                 //additional month contol enabled
             if ($sc_monthcontrol) { 
                if (zbs_CreditLogCheckMonth($user_login)) {
-                 
                     zbs_CreditLogPush($user_login);
                     billing_setcredit($user_login,$tariffprice+$sc_price);
                     billing_setcreditexpire($user_login, $scend);
@@ -145,8 +142,7 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
         show_window(__('Sorry'),__('You already have a credit'));
     }
   
-$scend= date("d-m-Y",mktime(0, 0, 0, date("m"), date("d")+$sc_term, date("Y")));
-  
+ 
     
 } else {
     show_window(__('Sorry'),__('You can take a credit only between').' '.$sc_minday.__(' and ').$sc_maxday.' '.__('days of month'));

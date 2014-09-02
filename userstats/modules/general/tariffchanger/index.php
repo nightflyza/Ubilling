@@ -16,6 +16,7 @@ $tc_cashtypeid=$us_config['TC_CASHTYPEID'];
 $user_data=zbs_UserGetStargazerData($user_login);
 $user_cash=$user_data['Cash'];
 $user_credit=$user_data['Credit'];
+$user_credit_expire=$user_data['CreditExpire'];
 $user_tariff=zbs_UserGetTariff($user_login);
 $user_tariffnm=$user_data['TariffChange'];
 
@@ -168,14 +169,20 @@ if ($tc_enabled) {
               if ($user_cash<$change_prices[$_POST['newtariff']]) {
                   //if TC_CREDIT option enabled
                   if ($tc_credit) {
+          
                       $newcredit=$change_prices[$_POST['newtariff']]+$user_credit;
                       billing_setcredit($user_login, $newcredit);
+                       
+                        // check for current credit expirity - added in 0.5.7
+                        // without this check this conflicts with SC_ module
+                      if (!$user_credit_expire) {
+                          //set credit expire date for month from this moment
+                          $timestamp=time();
+                          $monthOffset=$timestamp+2678400; // 31 days in seconds
+                          $creditend= date("Y-m-d",$monthOffset);
+                          billing_setcreditexpire($user_login, $creditend);
+                      }
                       
-                      //set credit expire date for month from this moment
-                      $timestamp=time();
-                      $monthOffset=$timestamp+2678400; // 31 days in seconds
-                      $creditend= date("Y-m-d",$monthOffset);
-                      billing_setcreditexpire($user_login, $creditend);
                   }
               } 
               
