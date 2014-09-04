@@ -14,7 +14,7 @@
 // запросов в виде HTTP_RAW_POST_DATA.
 define('PBX_REQUEST_MODE', 'raw');
 //Режим отладки - заставляет данные подгружаться из файла debug.xml
-define('DEBUG_MODE',0);
+define('PBX_DEBUG_MODE',0);
 
 //Текст уведомлений и екзепшнов
 define('ISP_NAME','НашПровайдер'); //Информация о поставщике услуг
@@ -445,13 +445,13 @@ function pbx_ReplyPayment($customerid,$summ,$rawhash) {
 /*
  *  Controller part
  */
-if (!DEBUG_MODE) {
+if (!PBX_DEBUG_MODE) {
 $xmlRequest = pbx_RequestGet();
 } else {
     if (file_exists('debug.xml')) {
         $xmlRequest=  file_get_contents('debug.xml');
     } else {
-        die('DEBUG_MODE requires existing debug.xml file');
+        die('PBX_DEBUG_MODE requires existing debug.xml file');
     }
 }
 
