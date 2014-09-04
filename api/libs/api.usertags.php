@@ -291,12 +291,18 @@ NULL , '".$login."', '".$tagid."'
         }
         if (!empty($serviceData)) {
         $serviceFeeTypes=array('stargazer'=>__('stargazer user cash'),'virtual'=>__('virtual services cash'));
-        
-            $inputs=  stg_tagid_selector().' '.__('Tag').  wf_tag('br');
-            $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
-            $inputs.= web_priority_selector().' '.__('Priority').wf_tag('br');
-            $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
-            $inputs.= wf_Submit(__('Create'));
+        $allTags=  stg_get_alltagnames();
+        $priorities= array();
+        for ($i=6;$i>=1;$i--) {
+            $priorities[$i]=$i;
+        }
+
+                
+            $inputs= wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
+            $inputs.= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
+            $inputs.= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
+            $inputs.= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
+            $inputs.= wf_Submit(__('Save'));
             
             $form=  wf_Form("", 'POST', $inputs, 'glamour');
             $form.=wf_Link('?module=vservices', __('Back'), true, 'ubButton');

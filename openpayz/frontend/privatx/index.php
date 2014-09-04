@@ -22,7 +22,6 @@ define('ISP_CODE','1'); // Id в ПС
 define('ISP_SERVICE_NAME','Интернет'); // Наименование услуги
 define('ISP_SERVICE_CODE','101'); //Код услуги
 
-
 //Исключения
 define('PBX_EX_NOT_FOUND', 'Абонент не найден');
 define('PBX_EX_DUPLICATE', 'Дублирование платежа');
@@ -76,7 +75,8 @@ function pbx_RequestGet() {
             $result = $_POST[PBX_REQUEST_MODE];
         }
     } else {
-        $result = $HTTP_RAW_POST_DATA;
+        //$result = $HTTP_RAW_POST_DATA;
+        $result=file_get_contents('php://input');
     }
     return ($result);
 }
