@@ -1152,7 +1152,7 @@ function zb_NewMacShow() {
                  $containerName='NMRSMCNT_'.  zb_rand_string(8);
                  $lookupVendorLink=  wf_AjaxLink('?module=macvendor&mac='.@$eachmac.'&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
                  $lookupVendorLink.= wf_tag('span', false, '', 'id="'.$containerName.'"').''.  wf_tag('span',true);
-                 $cells.= wf_TableCell($lookupVendorLink,'250');
+                 $cells.= wf_TableCell($lookupVendorLink,'290');
                  }
                  $rows.= wf_TableRow($cells, 'row3');
                
