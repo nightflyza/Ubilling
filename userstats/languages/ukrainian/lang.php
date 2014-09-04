@@ -189,5 +189,6 @@ $lang['def']['Mark as unread'] = 'Відмітити як не прочитан�
 
 $lang['def']['Additional services'] = 'Додаткові послуги';
 $lang['def']['Price'] = 'Вартість';
+$lang['def']['The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc'] = 'Тест може бути не точним і є залежним від типу й налаштувань клієнтського програмного забезпечення. На результати тестування можуть впливати тип браузера, налаштування фаєрволу, версія флеш-плеєру, активні антивіруси з функцією сканування HTTP трафіку, активні завантаження, тощо. ';
 
 ?>

@@ -19,8 +19,13 @@ if(cfr('VSERVICES')) {
         zb_VsericeDelete($vservid);
         rcms_redirect("?module=vservices");
     }
-
-    web_VservicesShow();
+    
+    if (wf_CheckGet(array('edit')) ){
+        show_window(__('Edit'), web_VserviceEditForm($_GET['edit']));
+    } else {
+    //show available services list
+        web_VservicesShow();
+    }
     
     
 }

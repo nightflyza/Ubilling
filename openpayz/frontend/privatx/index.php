@@ -12,7 +12,9 @@
 /////////// Секция настроек
 // Имя POST переменной в которой должны приходить запросы, либо raw в случае получения 
 // запросов в виде HTTP_RAW_POST_DATA.
-define('PBX_REQUEST_MODE', 'xml');
+define('PBX_REQUEST_MODE', 'raw');
+//Режим отладки - заставляет данные подгружаться из файла debug.xml
+define('DEBUG_MODE',0);
 
 //Текст уведомлений и екзепшнов
 define('ISP_NAME','НашПровайдер'); //Информация о поставщике услуг
@@ -443,9 +445,15 @@ function pbx_ReplyPayment($customerid,$summ,$rawhash) {
 /*
  *  Controller part
  */
-
+if (!DEBUG_MODE) {
 $xmlRequest = pbx_RequestGet();
-
+} else {
+    if (file_exists('debug.xml')) {
+        $xmlRequest=  file_get_contents('debug.xml');
+    } else {
+        die('DEBUG_MODE requires existing debug.xml file');
+    }
+}
 
 //raw xml data received
 if (!empty($xmlRequest)) {
@@ -465,7 +473,7 @@ if (!empty($xmlRequest)) {
         
         // Main search
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
-           if ($xmlParse['Transfer']['Data']['Unit_attr']['name']=='bill_identifier') {
+           if ($xmlParse['Transfer']['Data']['Unit_attr']['name']=='billIdentifier') {
                if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
                    if ($xmlParse['Transfer_attr']['action']=='Search') {
                     $customerid=vf($xmlParse['Transfer']['Data']['Unit_attr']['value'],3);

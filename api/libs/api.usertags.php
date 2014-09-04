@@ -225,14 +225,14 @@ NULL , '".$login."', '".$tagid."'
                 NULL , '".$tagid."', '".$price."', '".$cashtype."', '".$priority."'
                 );";
         nr_query($query);
-        log_register("CREATE VSERVICE ".$tagid.' '.$price.' '.$cashtype.' '.$priority);
+        log_register("CREATE VSERVICE [".$tagid.'] `'.$price.'` ['.$cashtype.'] `'.$priority.'`');
     }
     
     function zb_VsericeDelete($vservid) {
         $vservid=vf($vservid);
         $query="DELETE from `vservices` where `id`='".$vservid."'";
         nr_query($query);
-        log_register("DELETE VSERVICE ".$vservid);
+        log_register("DELETE VSERVICE [".$vservid."]");
     }
     
     function zb_VserviceGetAllData() {
@@ -268,20 +268,43 @@ NULL , '".$login."', '".$tagid."'
     }
     
     function web_VserviceAddForm() {
-            $form='
-                <form action="" method="POST" class="glamour">
-                <br>    '. stg_tagid_selector() .' '.__('Tag').'
-                <br>    <select name="newcashtype"> 
-                            <option value="stargazer">'.__('stargazer user cash').'</option>
-                            <option value="virtual">'.__('virtual services cash').'</option>
-                        </select>'.__('Cash type').'
-                <br>    '.  web_priority_selector().' '.__('Priority').'
-                <br>    <input type="text" name="newfee" size="5"> '.__('Fee').'
-                <br>    <input type="submit" value="'.__('Create').'">
-                </form>
-                
-                ';
-            return($form);
+        $serviceFeeTypes=array('stargazer'=>__('stargazer user cash'),'virtual'=>__('virtual services cash'));
+        $inputs=  stg_tagid_selector().' '.__('Tag').  wf_tag('br');
+        $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
+        $inputs.= web_priority_selector().' '.__('Priority').wf_tag('br');
+        $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
+        $inputs.= wf_Submit(__('Create'));
+        $form=  wf_Form("", 'POST', $inputs, 'glamour');
+        return($form);
+        }
+        
+     function web_VserviceEditForm($vserviceid) {
+        $vserviceid=vf($vserviceid,3);
+        $allservicesRaw=  zb_VserviceGetAllData();
+        $serviceData=array();
+        if (!empty($allservicesRaw)) {
+            foreach ($allservicesRaw as $io=>$each) {
+                if ($each['id']==$vserviceid) {
+                    $serviceData=$each;
+                }
+            }
+        }
+        if (!empty($serviceData)) {
+        $serviceFeeTypes=array('stargazer'=>__('stargazer user cash'),'virtual'=>__('virtual services cash'));
+        
+            $inputs=  stg_tagid_selector().' '.__('Tag').  wf_tag('br');
+            $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
+            $inputs.= web_priority_selector().' '.__('Priority').wf_tag('br');
+            $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
+            $inputs.= wf_Submit(__('Create'));
+            
+            $form=  wf_Form("", 'POST', $inputs, 'glamour');
+            $form.=wf_Link('?module=vservices', __('Back'), true, 'ubButton');
+        return($form);
+        } else {
+            throw new Exception('NOT_EXISTING_VSERVICE_ID');
+        }
+        
         }
     
     function web_VservicesShow() {
@@ -303,7 +326,7 @@ NULL , '".$login."', '".$tagid."'
         'cashtype',
         'priority'
         );
-    show_window(__('Virtual services'),web_GridEditorVservices($titles, $keys, $allvservices,'vservices',true,false));
+    show_window(__('Virtual services'),web_GridEditorVservices($titles, $keys, $allvservices,'vservices',true,true));
     if (!empty($alltagtypes)) {
      show_window(__('Add virtual service'),  web_VserviceAddForm());   
      }

@@ -63,6 +63,6 @@ if (cfr('BINDER')) {
  }
 
 } else {
-    show_error('Access denied');
+    show_error(__('Access denied'));
 }
 ?>

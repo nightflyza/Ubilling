@@ -34,8 +34,8 @@ if ($us_config['SP_ENABLED']) {
 
         </center>
           ';
-      
-      show_window(__('Speed test'),$template);
+      $notice=  la_delimiter().__('The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc');
+      show_window(__('Speed test'),$template.$notice);
 
 } else {
      show_window(__('Sorry'),__('Unfortunately speedtest is now disabled'));

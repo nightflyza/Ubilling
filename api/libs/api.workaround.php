@@ -2311,7 +2311,7 @@ function web_PaymentsShowGraph($year) {
             }
             
             if ($edit) {
-                $editcontrol='<a href="?module='.$module.'&edit='.$eachdata['id'].'">'.web_edit_icon().'</a>';
+                $editcontrol= wf_JSAlert('?module='.$module.'&edit='.$eachdata['id'], web_edit_icon(), __('Are you serious'));
             } else {
                 $editcontrol='';
             }
