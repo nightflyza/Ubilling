@@ -487,8 +487,8 @@ if (!empty($xmlRequest)) {
         // Check payment possibility
         if (isset($xmlParse['Transfer_attr']['action'])) {
             if ($xmlParse['Transfer_attr']['action']=='Check') {
-                if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'])) {
-                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'],3);
+                if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'])) {
+                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'],3);
                     die(pbx_ReplyCheck($customerid));
                 }
             }
@@ -497,8 +497,8 @@ if (!empty($xmlRequest)) {
         // Pay transaction handling
         if (isset($xmlParse['Transfer_attr']['action'])) {
             if ($xmlParse['Transfer_attr']['action']=='Pay') {
-                if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'])) {
-                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['ls'],3);
+                if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'])) {
+                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'],3);
                     $summ=$xmlParse['Transfer']['Data']['TotalSum'];
                     $summ=  str_replace(',', '.', $summ);
                     $rawhash=$xmlParse['Transfer']['Data']['Reference'];
