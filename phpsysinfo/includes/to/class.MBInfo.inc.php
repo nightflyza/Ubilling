@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * MBInfo TO class
  *
@@ -33,7 +33,7 @@ class MBInfo
      * @var Array
      */
     private $_mbTemp = array();
-    
+
     /**
      * array with SensorDevices for fans
      *
@@ -42,7 +42,7 @@ class MBInfo
      * @var Array
      */
     private $_mbFan = array();
-    
+
     /**
      * array with SensorDevices for voltages
      *
@@ -51,7 +51,25 @@ class MBInfo
      * @var Array
      */
     private $_mbVolt = array();
-    
+
+    /**
+     * array with SensorDevices for power
+     *
+     * @see SensorDevice
+     *
+     * @var Array
+     */
+    private $_mbPower = array();
+
+    /**
+     * array with SensorDevices for apmers
+     *
+     * @see SensorDevice
+     *
+     * @var Array
+     */
+    private $_mbCurrent = array();
+
     /**
      * Returns $_mbFan.
      *
@@ -63,7 +81,7 @@ class MBInfo
     {
         return $this->_mbFan;
     }
-    
+
     /**
      * Sets $_mbFan.
      *
@@ -77,7 +95,7 @@ class MBInfo
     {
         array_push($this->_mbFan, $mbFan);
     }
-    
+
     /**
      * Returns $_mbTemp.
      *
@@ -89,7 +107,7 @@ class MBInfo
     {
         return $this->_mbTemp;
     }
-    
+
     /**
      * Sets $_mbTemp.
      *
@@ -103,7 +121,7 @@ class MBInfo
     {
         array_push($this->_mbTemp, $mbTemp);
     }
-    
+
     /**
      * Returns $_mbVolt.
      *
@@ -115,7 +133,7 @@ class MBInfo
     {
         return $this->_mbVolt;
     }
-    
+
     /**
      * Sets $_mbVolt.
      *
@@ -129,5 +147,55 @@ class MBInfo
     {
         array_push($this->_mbVolt, $mbVolt);
     }
+
+    /**
+     * Returns $_mbPower.
+     *
+     * @see System::$_mbPower
+     *
+     * @return Array
+     */
+    public function getMbPower()
+    {
+        return $this->_mbPower;
+    }
+
+    /**
+     * Sets $_mbPower.
+     *
+     * @param Sensor $mbPower power device
+     *
+     * @see System::$_mbPower
+     *
+     * @return Void
+     */
+    public function setMbPower($mbPower)
+    {
+        array_push($this->_mbPower, $mbPower);
+    }
+    /**
+     * Returns $_mbCurrent.
+     *
+     * @see System::$_mbCurrent
+     *
+     * @return Array
+     */
+    public function getMbCurrent()
+    {
+        return $this->_mbCurrent;
+    }
+
+    /**
+     * Sets $_mbCurrent.
+     *
+     * @param Sensor $mbCurrent current device
+     *
+     * @see System::$_mbCurrent
+     *
+     * @return Void
+     */
+    public function setMbCurrent($mbCurrent)
+    {
+        array_push($this->_mbCurrent, $mbCurrent);
+    }
 }
-?>

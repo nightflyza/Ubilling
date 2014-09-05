@@ -1,11 +1,11 @@
 /**
- * jGrowl 1.2.5
+ * jGrowl 1.2.6
  *
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
  * Written by Stan Lemon <stosh1985@gmail.com>
- * Last updated: 2009.12.15
+ * Last updated: 2011.03.27
  *
  * jGrowl is a jQuery plugin implementing unobtrusive userland notifications.  These 
  * notifications function similarly to the Growl Framework available for
@@ -14,6 +14,9 @@
  * To Do:
  * - Move library settings to containers and allow them to be changed per container
  *
+ * Changes in 1.2.6
+ * - Fixed js error when a notification is opening and closing at the same time
+ * 
  * Changes in 1.2.5
  * - Changed wrapper jGrowl's options usage to "o" instead of $.jGrowl.defaults
  * - Added themeState option to control 'highlight' or 'error' for jQuery UI
@@ -202,6 +205,9 @@
 			var message = notification.message;
 			var o = notification.options;
 
+			// Support for jQuery theme-states, if this is not used it displays a widget header
+			o.themeState = (o.themeState == '') ? '' : 'ui-state-' + o.themeState;
+
 			var notification = $(
 				'<div class="jGrowl-notification ' + o.themeState + ' ui-corner-all' + 
 				((o.group != undefined && o.group != '') ? ' ' + o.group : '') + '">' +
@@ -235,7 +241,8 @@
 						if ($.browser.msie && (parseInt($(this).css('opacity'), 10) === 1 || parseInt($(this).css('opacity'), 10) === 0))
 							this.style.removeAttribute('filter');
 
-						$(this).data("jGrowl").created = new Date();
+						if ( $(this).data("jGrowl") != null ) // Happens when a notification is closing before it's open.
+							$(this).data("jGrowl").created = new Date();
 						
 						$(this).trigger('jGrowl.afterOpen');
 					});
@@ -249,11 +256,12 @@
 				// Pause the notification, lest during the course of animation another close event gets called.
 				$(this).data('jGrowl.pause', true);
 				$(this).animate(o.animateClose, o.closeDuration, o.easing, function() {
-					$(this).remove();
-					var close = o.close.apply( notification , [notification,message,o,self.element] );
-
-					if ( $.isFunction(close) )
-						close.apply( notification , [notification,message,o,self.element] );
+					if ( $.isFunction(o.close) ) {
+						if ( o.close.apply( notification , [notification,message,o,self.element] ) !== false )
+							$(this).remove();
+					} else {
+						$(this).remove();
+					}
 				});
 			}).trigger('jGrowl.beforeOpen');
 		
@@ -263,7 +271,7 @@
 			/** Add a Global Closer if more than one notification exists **/
 			if ( $('div.jGrowl-notification:parent', self.element).size() > 1 && 
 				 $('div.jGrowl-closer', self.element).size() == 0 && this.defaults.closer != false ) {
-				$(this.defaults.closerTemplate).addClass('jGrowl-closer ui-state-highlight ui-corner-all').addClass(this.defaults.theme)
+				$(this.defaults.closerTemplate).addClass('jGrowl-closer ' + this.defaults.themeState + ' ui-corner-all').addClass(this.defaults.theme)
 					.appendTo(self.element).animate(this.defaults.animateOpen, this.defaults.speed, this.defaults.easing)
 					.bind("click.jGrowl", function() {
 						$(this).siblings().trigger("jGrowl.beforeClose");

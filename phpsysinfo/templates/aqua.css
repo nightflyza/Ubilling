@@ -21,6 +21,7 @@ html {
 body {
     position: relative;
     width: 940px;
+    _width: 945px; /* ie6 */
     min-height: 100%;
     overflow: auto;
     margin: 0 auto;
@@ -31,6 +32,7 @@ body {
 
 h1 {
     margin: 0 10px;
+    _margin: 0 15px 0 10px; /* ie6 */
     padding: 10px 10px;
     border-top: 1px solid #2971a7;
     border-bottom: 1px solid #2971a7;
@@ -52,10 +54,11 @@ h1 {
     width: 100px;
 }
 
-#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #ups {
+#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #power, #current, #ups {
     float: left;
     width: 451px;
     margin: 10px 0 0 8px;
+    _margin: 10px 4px 0 4px; /* ie6 */
     padding: 1px;
     border: 2px solid #2971a7;
     background: #fff;
@@ -77,8 +80,10 @@ table {
     background-color: #fff;
 }
 
-div[id ^=Plugin] {
+.plugin {
+    float: left;
     margin: 10px 0 0 8px;
+    _margin: 10px 4px 0 4px; /* ie6 */
     padding: 1px;
     border: 2px solid #2971a7;
     background: #fff;
@@ -130,6 +135,10 @@ h2 {
     background: #2971a7;
 }
 
+.barwarn {
+    background: #a72971;
+}
+
 p {
     padding: 4px 10px 2px 10px;
     line-height: 1.6;
@@ -138,24 +147,11 @@ p {
 }
 
 #filesystemTable thead tr .header {
-    background-image: url("../gfx/bg.gif");
-    background-position: right center;
-    background-repeat: no-repeat;
     cursor: pointer;
 }
 
 table tfoot td {
     color: #2E2E2E;
-}
-
-#filesystemTable thead tr .headerSortUp {
-    background-image: url("../gfx/asc.gif");
-    color: #c03000;
-}
-
-#filesystemTable thead tr .headerSortDown {
-    background-image: url("../gfx/desc.gif");
-    color: #c03000;
 }
 
 .right {

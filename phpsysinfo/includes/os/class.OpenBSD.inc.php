@@ -1,15 +1,15 @@
-<?php 
+<?php
 /**
  * OpenBSD System Class
  *
  * PHP version 5
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI OpenBSD OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @version   SVN: $Id: class.OpenBSD.inc.php 371 2010-05-16 08:35:28Z jacky672 $
+ * @version   SVN: $Id: class.OpenBSD.inc.php 621 2012-07-29 18:49:04Z namiltd $
  * @link      http://phpsysinfo.sourceforge.net
  */
  /**
@@ -17,7 +17,7 @@
  * get all the required information from OpenBSD systems
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI OpenBSD OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
@@ -39,7 +39,7 @@ class OpenBSD extends BSDCommon
         $this->setPCIRegExp1("/(.*) at pci[0-9] .* \"(.*)\"/");
         $this->setPCIRegExp2("/\"(.*)\" (.*).* at [.0-9]+ irq/");
     }
-    
+
     /**
      * UpTime
      * time the system is running
@@ -51,7 +51,7 @@ class OpenBSD extends BSDCommon
         $a = $this->grabkey('kern.boottime');
         $this->sys->setUptime(time() - $a);
     }
-    
+
     /**
      * get network information
      *
@@ -78,7 +78,6 @@ class OpenBSD extends BSDCommon
         }
     }
 
-    
     /**
      * IDE information
      *
@@ -100,7 +99,7 @@ class OpenBSD extends BSDCommon
             }
         }
     }
-    
+
     /**
      * get CPU information
      *
@@ -111,9 +110,14 @@ class OpenBSD extends BSDCommon
         $dev = new CpuDevice();
         $dev->setModel($this->grabkey('hw.model'));
         $dev->setCpuSpeed($this->grabkey('hw.cpuspeed'));
-        $this->sys->setCpus($dev);
+        $ncpu = $this->grabkey('hw.ncpu');
+        if ( is_null($ncpu) || (trim($ncpu) == "") || (!($ncpu >= 1)) )
+            $ncpu = 1;
+        for ($ncpu ; $ncpu > 0 ; $ncpu--) {
+            $this->sys->setCpus($dev);
+        }
     }
-    
+
     /**
      * get icon name
      *
@@ -123,7 +127,7 @@ class OpenBSD extends BSDCommon
     {
         $this->sys->setDistributionIcon('OpenBSD.png');
     }
-    
+
     /**
      * get the information
      *
@@ -131,7 +135,7 @@ class OpenBSD extends BSDCommon
      *
      * @return Void
      */
-    function build()
+    public function build()
     {
         parent::build();
         $this->_distroicon();
@@ -139,4 +143,3 @@ class OpenBSD extends BSDCommon
         $this->_uptime();
     }
 }
-?>

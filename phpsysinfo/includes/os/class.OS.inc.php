@@ -1,22 +1,22 @@
-<?php 
+<?php
 /**
  * Basic OS Class
  *
  * PHP version 5
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @version   SVN: $Id: class.OS.inc.php 263 2009-06-22 13:01:52Z bigmichi1 $
+ * @version   SVN: $Id: class.OS.inc.php 699 2012-09-15 11:57:13Z namiltd $
  * @link      http://phpsysinfo.sourceforge.net
  */
  /**
  * Basic OS functions for all OS classes
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
@@ -31,12 +31,12 @@ abstract class OS implements PSI_Interface_OS
      * @var Error
      */
     protected $error;
-    
+
     /**
      * @var System
      */
     protected $sys;
-    
+
     /**
      * build the global Error object
      */
@@ -45,7 +45,7 @@ abstract class OS implements PSI_Interface_OS
         $this->error = Error::singleton();
         $this->sys = new System();
     }
-    
+
     /**
      * get os specific encoding
      *
@@ -55,9 +55,20 @@ abstract class OS implements PSI_Interface_OS
      */
     public function getEncoding()
     {
-        return null;
+        return PSI_SYSTEM_CODEPAGE;
     }
-    
+    /**
+     * get os specific language
+     *
+     * @see PSI_Interface_OS::getLanguage()
+     *
+     * @return string
+     */
+    public function getLanguage()
+    {
+        return PSI_SYSTEM_LANG;
+    }
+
     /**
      * get the filled or unfilled (with default values) System object
      *
@@ -65,10 +76,10 @@ abstract class OS implements PSI_Interface_OS
      *
      * @return System
      */
-    public final function getSys()
+    final public function getSys()
     {
         $this->build();
+
         return $this->sys;
     }
 }
-?>

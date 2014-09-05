@@ -21,6 +21,7 @@ body {
     padding: 20px 20px 0 20px;
     overflow: auto;
     width: 940px;
+    _width: 945px; /* ie6 */
 }
 
 p {
@@ -36,6 +37,7 @@ h1 {
     font-weight: normal;
     line-height: 1.5em;
     margin: 0 10px;
+    _margin: 0 15px 0 10px; /* ie6 */
     padding: 10px 10px;
     text-align: center;
 }
@@ -55,7 +57,11 @@ table {
     background-color: #fff;
 }
 
-div[id ^=Plugin] {
+.plugin {
+    float: left;
+    margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
+    padding: 1px;
     background: #fff;
 }
 
@@ -84,10 +90,11 @@ a:hover {
     width: 100px;
 }
 
-#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #ups {
+#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #power, #current, #ups {
     background-color: #fff;
     float: left;
     margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
     padding: 1px;
     width: 451px;
 }
@@ -102,20 +109,7 @@ a:hover {
 
 
 #filesystemTable thead tr .header {
-    background-image: url("../gfx/bg.gif");
-    background-position: right center;
-    background-repeat: no-repeat;
     cursor: pointer;
-}
-
-#filesystemTable thead tr .headerSortUp {
-    background-image: url("../gfx/asc.gif");
-    color: #c03000;
-}
-
-#filesystemTable thead tr .headerSortDown {
-    background-image: url("../gfx/desc.gif");
-    color: #c03000;
 }
 
 #footer {
@@ -135,6 +129,10 @@ a:hover {
 
 .bar {
     background-color: #58626D;
+}
+
+.barwarn {
+    background-color: #9B2F65;
 }
 
 .right {

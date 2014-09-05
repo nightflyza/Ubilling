@@ -1,5 +1,5 @@
 /*
- $Id: phpsysinfo.css 386 2010-11-11 11:56:46Z jacky672 $
+ $Id: phpsysinfo.css 589 2012-07-01 09:58:44Z namiltd $
  */
 a {
     text-decoration: none;
@@ -21,17 +21,20 @@ html {
 body {
     position: relative;
     width: 940px;
+    _width: 945px; /* ie6 */
     min-height: 100%;
     overflow: auto;
     margin: 0 auto;
     padding: 20px 20px 0 20px;
     font: 0.75em arial, tahoma, helvetica, sans-serif;
     color: #000;
-    background: #fff url("../gfx/body.gif") repeat-y;
+    background: #fff url("../gfx/body.png") repeat-y;
+    _bac\kground: #fff; /* ie6 only */
 }
 
 h1 {
     margin: 0 10px;
+    _margin: 0 15px 0 10px; /* ie6 */
     padding: 10px 10px;
     border-top: 1px solid #8A6E5A;
     border-bottom: 1px solid #8A6E5A;
@@ -53,10 +56,11 @@ h1 {
     width: 100px;
 }
 
-#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #ups {
+#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #power, #current, #ups {
     float: left;
     width: 451px;
     margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
     padding: 1px;
     border: 1px solid #5A7E8A;
 }
@@ -76,9 +80,10 @@ table {
     width: 100%;
 }
 
-div[id ^=Plugin] {
-    margin: 10px 0 0 8px;
-    padding: 1px;
+.plugin {
+    float: left;
+    margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
     padding: 1px;
     border: 1px solid #5A7E8A;
 }
@@ -117,6 +122,10 @@ h3 {
 
 .bar {
     background: #C1DC70 url("../gfx/html.gif");
+}
+
+.barwarn {
+    background: #DC8B70 url("../gfx/htmlwarn.gif");
 }
 
 p {

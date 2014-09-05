@@ -1,10 +1,11 @@
 <?php
 if (cfr('PLDHCP')) {
-   
+    
+
     if (isset($_GET['username'])) {
         $login=$_GET['username'];
-        $config=rcms_parse_ini_file(CONFIG_PATH."billing.ini");
-        $alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        $config=$ubillingConfig->getBilling();
+        $alter_conf=$ubillingConfig->getAlter();
         $cat_path=$config['CAT'];
         $grep_path=$config['GREP'];
         $tail_path=$config['TAIL'];

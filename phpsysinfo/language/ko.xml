@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- $Id: ko.xml 150 2009-03-20 20:19:23Z bigmichi1 $ -->
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- $Id: ko.xml 699 2012-09-15 11:57:13Z namiltd $ -->
 <!--
 phpSysInfo language file Language: Korean Created by: Darkcycle, Kang Bundo
 -->
@@ -284,5 +284,53 @@ phpSysInfo language file Language: Korean Created by: Darkcycle, Kang Bundo
   </expression>
   <expression id="093" name="ghz">
     <exp>GHz</exp>
+  </expression>
+  <expression id="094" name="virtualization">
+    <exp>Virtualization</exp>
+  </expression>
+  <expression id="095" name="lastboot">
+    <exp>Last boot</exp>
+  </expression>
+  <expression id="096" name="bytes">
+    <exp>B</exp>
+  </expression>
+  <expression id="097" name="syslang">
+    <exp>System Language</exp>
+  </expression>
+  <expression id="098" name="codepage">
+    <exp>Code Page</exp>
+  </expression>
+  <expression id="099" name="details">
+    <exp>Details</exp>
+  </expression>
+  <expression id="100" name="cpuspeedMax">
+    <exp>CPU Speed Max</exp>
+  </expression>
+  <expression id="101" name="cpuspeedMin">
+    <exp>CPU Speed Min</exp>
+  </expression>
+  <expression id="102" name="power">
+    <exp>Power</exp>
+  </expression>
+  <expression id="103" name="power_mark">
+    <exp>W</exp>
+  </expression>
+  <expression id="104" name="ups_battery_date">
+    <exp>Battery date</exp>
+  </expression>
+  <expression id="105" name="current">
+    <exp>Current</exp>
+  </expression>
+  <expression id="106" name="current_mark">
+    <exp>A</exp>
+  </expression>
+  <expression id="107" name="machine">
+    <exp>Machine</exp>
+  </expression>
+  <expression id="108" name="ups_line_frequency">
+    <exp>Line frequency</exp>
+  </expression>
+  <expression id="109" name="Hz">
+    <exp>Hz</exp>
   </expression>
 </tns:translation>

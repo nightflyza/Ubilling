@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * basic output functions
  *
@@ -9,7 +9,7 @@
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @version   SVN: $Id: class.Output.inc.php 315 2009-09-02 15:48:31Z bigmichi1 $
+ * @version   SVN: $Id: class.Output.inc.php 569 2012-04-16 06:08:18Z namiltd $
  * @link      http://phpsysinfo.sourceforge.net
  */
  /**
@@ -31,17 +31,19 @@ abstract class Output
      * @var Error
      */
     protected $error;
-    
+
     /**
      * call the parent constructor and check for needed extensions
      */
     public function __construct()
     {
-        CommonFunctions::checkForExtensions();
         $this->error = Error::singleton();
         $this->_checkConfig();
+        CommonFunctions::checkForExtensions();
+//        $this->error = Error::singleton();
+//        $this->_checkConfig();
     }
-    
+
     /**
      * read the config file and check for existence
      *
@@ -59,4 +61,3 @@ abstract class Output
         }
     }
 }
-?>

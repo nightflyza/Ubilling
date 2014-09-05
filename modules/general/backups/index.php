@@ -126,7 +126,6 @@ if (wf_CheckGet(array('tableclean'))) {
     rcms_redirect("?module=backups");
 }
 
-    
 
 show_window(__('Create backup'), web_BackupForm());
 show_window(__('Available database backups'), web_AvailableDBBackupsList());

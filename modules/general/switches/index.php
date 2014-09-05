@@ -78,9 +78,15 @@ show_window(__('Available switches'), web_SwitchesShow());
 } else {
     //show dead switch time machine
     if (!isset($_GET['snapshot'])) {
+        //cleanup subroutine
+        if (wf_CheckGet(array('flushalldead'))) {
+            ub_SwitchesTimeMachineCleanup();
+            rcms_redirect("?module=switches&timemachine=true");
+        }
         $deadTimeMachine=  ub_JGetSwitchDeadLog();
+        $timeMachineCleanupControl= wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
         $timeMachine= wf_FullCalendar($deadTimeMachine);
-        show_window(__('Dead switches time machine'),$timeMachine);
+        show_window(__('Dead switches time machine').' '.$timeMachineCleanupControl,$timeMachine);
     } else {
         //showing dead switches snapshot
         ub_SwitchesTimeMachineShowSnapshot($_GET['snapshot']);

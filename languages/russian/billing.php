@@ -1727,6 +1727,11 @@ $lang['def']['Agent payments']='Платежи контрагентам';
 $lang['def']['Excluded payments count']='Количество исключенных платежей';
 $lang['def']['Excluded cash']='Исключено денег';
 $lang['def']['UKV']='УКВ';
+$lang['def']['Information about PHP version']='Сведения о версии PHP';
+$lang['def']['Tables']='Таблицы';
+$lang['def']['MySQL database info']='Информация о БД MySQL';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 
 ?>

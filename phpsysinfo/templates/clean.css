@@ -1,5 +1,5 @@
 /*
- $Id: clean.css 329 2009-09-07 11:21:44Z bigmichi1 $
+ $Id: clean.css 518 2011-10-28 08:09:07Z namiltd $
  */
 a {
     text-decoration: none;
@@ -24,6 +24,7 @@ body {
     font-size: .75em;
     position: relative;
     width: 940px;
+    _width: 945px; /* ie6 */
     min-height: 100%;
     overflow: auto;
     margin: 0 auto;
@@ -32,6 +33,7 @@ body {
 
 h1 {
     margin: 0 10px;
+    _margin: 0 15px 0 10px; /* ie6 */
     padding: 10px 10px;
     text-align: center;
     font-family: Helvetica, Arial, "Lucida Grande", Verdana, sans-serif;
@@ -49,10 +51,11 @@ h1 {
     font-family: Helvetica, Arial, "Lucida Grande", Verdana, sans-serif;
 }
 
-#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #ups {
+#vitals, #network, #memory, #filesystem, #hardware, #temp, #voltage, #fan, #power, #current, #ups {
     float: left;
     width: 451px;
     margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
     color: #000;
 }
 
@@ -71,6 +74,13 @@ table {
     border-top: solid 2px #DADADA;
     border-bottom: solid 2px #DADADA;
     background-color: #F3F8FC;
+}
+
+.plugin {
+    float: left;
+    margin: 10px 0 0 10px;
+    _margin: 10px 5px 0 5px; /* ie6 */
+    padding: 1px;
 }
 
 .treeTable {
@@ -102,6 +112,10 @@ th, td, h3 {
     background-color: #2F659B;
 }
 
+.barwarn {
+    background-color: #9B2F65;
+}
+
 p {
     padding: 4px 10px 2px 10px;
     line-height: 1.6;
@@ -114,20 +128,7 @@ table th {
 }
 
 #filesystemTable thead tr .header {
-    background-image: url("../gfx/bg.gif");
-    background-position: right center;
-    background-repeat: no-repeat;
     cursor: pointer;
-}
-
-#filesystemTable thead tr .headerSortUp {
-    background-image: url("../gfx/asc.gif");
-    color: #c03000;
-}
-
-#filesystemTable thead tr .headerSortDown {
-    background-image: url("../gfx/desc.gif");
-    color: #c03000;
 }
 
 .right {

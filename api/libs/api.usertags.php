@@ -436,7 +436,8 @@ NULL , '".$login."', '".$tagid."'
         return($select);
     }
     
-    function zb_VservicesProcessAll($debug=0,$log_payment=true) {
+    function zb_VservicesProcessAll($debug=0,$log_payment=true,$charge_frozen=true) {
+    $frozenUsers=array();
     $query_services="SELECT * from `vservices` ORDER by `priority` DESC";
                 if ($debug) {
                 print (">>".curdatetime()."\n");
@@ -449,6 +450,29 @@ NULL , '".$login."', '".$tagid."'
                 print (">>Virtual services found!\n");
                 print_r($allservices);
                 }
+                
+          if ($charge_frozen) {
+                if ($debug) {
+                    print('>>Charge fee from frozen users too'."\n");
+                }
+            } else {
+                if ($debug) {
+                    print('>>Frozen users will be skipped'."\n");
+                }
+                $frozen_query="SELECT `login` from `users` WHERE `Passive`='1';";
+                if ($debug) {
+                    print($frozen_query."\n");
+                }
+                $allFrozen=  simple_queryall($frozen_query);
+                if (!empty($allFrozen)) {
+                    foreach ($allFrozen as $ioFrozen=>$eachFrozen) {
+                        $frozenUsers[$eachFrozen['login']]=$eachFrozen['login'];
+                    }
+                    if ($debug) {
+                        print_r($frozenUsers);
+                    }
+                }
+            }
         foreach ($allservices as $io=>$eachservice) {
             $users_query="SELECT `login` from `tags` WHERE `tagid`='".$eachservice['tagid']."'";
                     if ($debug) {
@@ -456,11 +480,14 @@ NULL , '".$login."', '".$tagid."'
                         print($users_query."\n");
                         }
             $allusers=simple_queryall($users_query);
+            
+      
             if (!empty ($allusers)) {
                 if ($debug) {
                 print (">>Users found!\n");
                 print_r($allusers);
                 }
+          
                 foreach ($allusers as $io2=>$eachuser) {
                     if ($debug) {
                     print (">>Processing user:".$eachuser['login']."\n");
@@ -492,7 +519,17 @@ NULL , '".$login."', '".$tagid."'
                         } else {
                             $method='correct';
                         }
-                        zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:'.$eachservice['id']);
+                        if ($charge_frozen) {
+                            zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:'.$eachservice['id']);
+                        } else {
+                            if (isset($frozenUsers[$eachuser['login']])) {
+                                if ($debug) {
+                                    print('>>user frozen - skipping him'."\n");
+                                }
+                            } else {
+                                zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:'.$eachservice['id']);
+                            }
+                        }
                         }
                     }
                 }

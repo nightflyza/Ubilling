@@ -1,15 +1,15 @@
-<?php 
+<?php
 /**
  * BSDCommon Class
  *
  * PHP version 5
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI BSDCommon OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @version   SVN: $Id: class.BSDCommon.inc.php 388 2010-11-11 13:42:03Z jacky672 $
+ * @version   SVN: $Id: class.BSDCommon.inc.php 621 2012-07-29 18:49:04Z namiltd $
  * @link      http://phpsysinfo.sourceforge.net
  */
  /**
@@ -18,7 +18,7 @@
  * no need to implement in every class the same methods
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI BSDCommon OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
@@ -33,49 +33,49 @@ abstract class BSDCommon extends OS
      * @var array
      */
     private $_dmesg = array();
-    
+
     /**
      * regexp1 for cpu information out of the syslog
      *
      * @var string
      */
     private $_CPURegExp1 = "";
-    
+
     /**
      * regexp2 for cpu information out of the syslog
      *
      * @var string
      */
     private $_CPURegExp2 = "";
-    
+
     /**
      * regexp1 for scsi information out of the syslog
      *
      * @var string
      */
     private $_SCSIRegExp1 = "";
-    
+
     /**
      * regexp2 for scsi information out of the syslog
      *
      * @var string
      */
     private $_SCSIRegExp2 = "";
-    
+
     /**
      * regexp1 for pci information out of the syslog
      *
      * @var string
      */
     private $_PCIRegExp1 = "";
-    
+
     /**
      * regexp1 for pci information out of the syslog
      *
      * @var string
      */
     private $_PCIRegExp2 = "";
-    
+
     /**
      * call parent constructor
      */
@@ -83,7 +83,7 @@ abstract class BSDCommon extends OS
     {
         parent::__construct();
     }
-    
+
     /**
      * setter for cpuregexp1
      *
@@ -95,7 +95,7 @@ abstract class BSDCommon extends OS
     {
         $this->_CPURegExp1 = $value;
     }
-    
+
     /**
      * setter for cpuregexp2
      *
@@ -107,7 +107,7 @@ abstract class BSDCommon extends OS
     {
         $this->_CPURegExp2 = $value;
     }
-    
+
     /**
      * setter for scsiregexp1
      *
@@ -119,7 +119,7 @@ abstract class BSDCommon extends OS
     {
         $this->_SCSIRegExp1 = $value;
     }
-    
+
     /**
      * setter for scsiregexp2
      *
@@ -131,7 +131,7 @@ abstract class BSDCommon extends OS
     {
         $this->_SCSIRegExp2 = $value;
     }
-    
+
     /**
      * setter for pciregexp1
      *
@@ -143,7 +143,7 @@ abstract class BSDCommon extends OS
     {
         $this->_PCIRegExp1 = $value;
     }
-    
+
     /**
      * setter for pciregexp2
      *
@@ -155,7 +155,7 @@ abstract class BSDCommon extends OS
     {
         $this->_PCIRegExp2 = $value;
     }
-    
+
     /**
      * read /var/run/dmesg.boot, but only if we haven't already
      *
@@ -164,16 +164,17 @@ abstract class BSDCommon extends OS
     protected function readdmesg()
     {
         if (count($this->_dmesg) === 0) {
-            if (PHP_OS != "Darwin") {
+            if (PSI_OS != "Darwin") {
                 if (CommonFunctions::rfts('/var/run/dmesg.boot', $buf)) {
-                    $parts = preg_split("/rebooting/", $buf, -1, PREG_SPLIT_NO_EMPTY);
+                    $parts = preg_split("/rebooting|Uptime/", $buf, -1, PREG_SPLIT_NO_EMPTY);
                     $this->_dmesg = preg_split("/\n/", $parts[count($parts) - 1], -1, PREG_SPLIT_NO_EMPTY);
                 }
             }
         }
+
         return $this->_dmesg;
     }
-    
+
     /**
      * get a value from sysctl command
      *
@@ -190,7 +191,7 @@ abstract class BSDCommon extends OS
             return '';
         }
     }
-    
+
     /**
      * Virtual Host Name
      *
@@ -206,7 +207,7 @@ abstract class BSDCommon extends OS
             }
         }
     }
-    
+
     /**
      * IP of the Canonical Host Name
      *
@@ -215,16 +216,16 @@ abstract class BSDCommon extends OS
     protected function ip()
     {
         if (PSI_USE_VHOST === true) {
-            $this->sys->setIp(gethostbyname($this->hostname()));
+            $this->sys->setIp(gethostbyname($this->sys->getHostname()));
         } else {
             if (!($result = getenv('SERVER_ADDR'))) {
-                $this->sys->setIp(gethostbyname($this->hostname()));
+                $this->sys->setIp(gethostbyname($this->sys->getHostname()));
             } else {
                 $this->sys->setIp($result);
             }
         }
     }
-    
+
     /**
      * Kernel Version
      *
@@ -236,7 +237,7 @@ abstract class BSDCommon extends OS
         $a = preg_split('/:/', $s);
         $this->sys->setKernel($a[0].$a[1].':'.$a[2]);
     }
-    
+
     /**
      * Number of Users
      *
@@ -248,7 +249,7 @@ abstract class BSDCommon extends OS
             $this->sys->setUsers($buf);
         }
     }
-    
+
     /**
      * Processor Load
      * optionally create a loadbar
@@ -279,7 +280,7 @@ abstract class BSDCommon extends OS
             }
         }
     }
-    
+
     /**
      * CPU information
      *
@@ -289,15 +290,36 @@ abstract class BSDCommon extends OS
     {
         $dev = new CpuDevice();
         $dev->setModel($this->grabkey('hw.model'));
+        $notwas = true;
         foreach ($this->readdmesg() as $line) {
-            if (preg_match("/".$this->_CPURegExp1."/", $line, $ar_buf)) {
-                $dev->setCpuSpeed(round($ar_buf[2]));
-                break;
+            if ($notwas) {
+               if (preg_match("/".$this->_CPURegExp1."/", $line, $ar_buf)) {
+                    $dev->setCpuSpeed(round($ar_buf[2]));
+                    $notwas = false;
+                }
+            } else {
+                if (preg_match("/ Origin| Features/", $line, $ar_buf)) {
+                       if (preg_match("/ Features2[ ]*=.*<(.*)>/", $line, $ar_buf)) {
+                           $feats = preg_split("/,/", strtolower(trim($ar_buf[1])), -1, PREG_SPLIT_NO_EMPTY);
+                           foreach ($feats as $feat) {
+                                if (($feat=="vmx") || ($feat=="svm")) {
+                                   $dev->setVirt($feat);
+                                   break 2;
+                                }
+                           }
+                           break;
+                       }
+                } else break;
             }
         }
-        $this->sys->setCpus($dev);
+        $ncpu = $this->grabkey('hw.ncpu');
+        if ( is_null($ncpu) || (trim($ncpu) == "") || (!($ncpu >= 1)) )
+            $ncpu = 1;
+        for ($ncpu ; $ncpu > 0 ; $ncpu--) {
+            $this->sys->setCpus($dev);
+        }
     }
-    
+
     /**
      * SCSI devices
      * get the scsi device information out of dmesg
@@ -309,17 +331,33 @@ abstract class BSDCommon extends OS
         foreach ($this->readdmesg() as $line) {
             if (preg_match("/".$this->_SCSIRegExp1."/", $line, $ar_buf)) {
                 $dev = new HWDevice();
-                $dev->setName($ar_buf[1]);
+                $dev->setName($ar_buf[1].": ".$ar_buf[2]);
                 $this->sys->setScsiDevices($dev);
             } elseif (preg_match("/".$this->_SCSIRegExp2."/", $line, $ar_buf)) {
-                $dev = new HWDevice();
-                $dev->setName($ar_buf[1]);
-                $dev->setCapacity($ar_buf[2] * 2048 * 1.049);
-                $this->sys->setScsiDevices($dev);
+                /* duplication security */
+                $notwas = true;
+                foreach ($this->sys->getScsiDevices() as $finddev) {
+                    if ($notwas && (substr($finddev->getName(), 0, strpos($finddev->getName(), ': ')) == $ar_buf[1])) {
+                        $finddev->setCapacity($ar_buf[2] * 2048 * 1.049);
+                        $notwas = false;
+                        break;
+                    }
+                }
+                if ($notwas) {
+                    $dev = new HWDevice();
+                    $dev->setName($ar_buf[1]);
+                    $dev->setCapacity($ar_buf[2] * 2048 * 1.049);
+                    $this->sys->setScsiDevices($dev);
+                }
             }
         }
+        /* cleaning */
+        foreach ($this->sys->getScsiDevices() as $finddev) {
+                    if (strpos($finddev->getName(), ': ') !== false)
+                        $finddev->setName(substr(strstr($finddev->getName(), ': '), 2));
+        }
     }
-    
+
     /**
      * PCI devices
      * get the pci device information out of dmesg
@@ -328,7 +366,7 @@ abstract class BSDCommon extends OS
      */
     protected function pci()
     {
-        if (!(is_array($results = Parser::lspci()) || is_array($results = Parser::pciconf()))) {
+        if (!is_array($results = Parser::lspci()) || !is_array($results = Parser::pciconf())) {
             foreach ($this->readdmesg() as $line) {
                 if (preg_match("/".$this->_PCIRegExp1."/", $line, $ar_buf)) {
                     $dev = new HWDevice();
@@ -341,11 +379,11 @@ abstract class BSDCommon extends OS
                 }
             }
         }
-        foreach ($results as $device) {
+        foreach ($results as $dev) {
             $this->sys->setPciDevices($dev);
         }
     }
-    
+
     /**
      * IDE devices
      * get the ide device information out of dmesg
@@ -357,17 +395,42 @@ abstract class BSDCommon extends OS
         foreach ($this->readdmesg() as $line) {
             if (preg_match('/^(ad[0-9]+): (.*)MB <(.*)> (.*) (.*)/', $line, $ar_buf)) {
                 $dev = new HWDevice();
-                $dev->setName($ar_buf[1]);
+                $dev->setName($ar_buf[1].": ".$ar_buf[3]);
                 $dev->setCapacity($ar_buf[2] * 1024);
                 $this->sys->setIdeDevices($dev);
             } elseif (preg_match('/^(acd[0-9]+): (.*) <(.*)> (.*)/', $line, $ar_buf)) {
                 $dev = new HWDevice();
-                $dev->setName($ar_buf[1]);
+                $dev->setName($ar_buf[1].": ".$ar_buf[3]);
                 $this->sys->setIdeDevices($dev);
+            } elseif (preg_match('/^(ada[0-9]+): <(.*)> (.*)/', $line, $ar_buf)) {
+                $dev = new HWDevice();
+                $dev->setName($ar_buf[1].": ".$ar_buf[2]);
+                $this->sys->setIdeDevices($dev);
+            } elseif (preg_match('/^(ada[0-9]+): (.*)MB \((.*)\)/', $line, $ar_buf)) {
+                /* duplication security */
+                $notwas = true;
+                foreach ($this->sys->getIdeDevices() as $finddev) {
+                    if ($notwas && (substr($finddev->getName(), 0, strpos($finddev->getName(), ': ')) == $ar_buf[1])) {
+                        $finddev->setCapacity($ar_buf[2] * 1024);
+                        $notwas = false;
+                        break;
+                    }
+                }
+                if ($notwas) {
+                    $dev = new HWDevice();
+                    $dev->setName($ar_buf[1]);
+                    $dev->setCapacity($ar_buf[2] * 1024);
+                    $this->sys->setIdeDevices($dev);
+                }
             }
         }
+        /* cleaning */
+        foreach ($this->sys->getIdeDevices() as $finddev) {
+                    if (strpos($finddev->getName(), ': ') !== false)
+                        $finddev->setName(substr(strstr($finddev->getName(), ': '), 2));
+        }
     }
-    
+
     /**
      * Physical memory information and Swap Space information
      *
@@ -375,7 +438,7 @@ abstract class BSDCommon extends OS
      */
     protected function memory()
     {
-        if (PHP_OS == 'FreeBSD' || PHP_OS == 'OpenBSD') {
+        if (PSI_OS == 'FreeBSD' || PSI_OS == 'OpenBSD') {
             // vmstat on fbsd 4.4 or greater outputs kbytes not hw.pagesize
             // I should probably add some version checking here, but for now
             // we only support fbsd 4.4
@@ -386,19 +449,19 @@ abstract class BSDCommon extends OS
         if (CommonFunctions::executeProgram('vmstat', '', $vmstat, PSI_DEBUG)) {
             $lines = preg_split("/\n/", $vmstat, -1, PREG_SPLIT_NO_EMPTY);
             $ar_buf = preg_split("/\s+/", trim($lines[2]), 19);
-            if (PHP_OS == 'NetBSD' || PHP_OS == 'DragonFly') {
+            if (PSI_OS == 'NetBSD' || PSI_OS == 'DragonFly') {
                 $this->sys->setMemFree($ar_buf[4] * 1024);
             } else {
                 $this->sys->setMemFree($ar_buf[4] * $pagesize);
             }
             $this->sys->setMemTotal($this->grabkey('hw.physmem'));
             $this->sys->setMemUsed($this->sys->getMemTotal() - $this->sys->getMemFree());
-            
-            if (((PHP_OS == 'OpenBSD' || PHP_OS == 'NetBSD') && CommonFunctions::executeProgram('swapctl', '-l -k', $swapstat, PSI_DEBUG)) || CommonFunctions::executeProgram('swapinfo', '-k', $swapstat, PSI_DEBUG)) {
+
+            if (((PSI_OS == 'OpenBSD' || PSI_OS == 'NetBSD') && CommonFunctions::executeProgram('swapctl', '-l -k', $swapstat, PSI_DEBUG)) || CommonFunctions::executeProgram('swapinfo', '-k', $swapstat, PSI_DEBUG)) {
                 $lines = preg_split("/\n/", $swapstat, -1, PREG_SPLIT_NO_EMPTY);
                 foreach ($lines as $line) {
                     $ar_buf = preg_split("/\s+/", $line, 6);
-                    if ($ar_buf[0] != 'Total') {
+                    if (($ar_buf[0] != 'Total') && ($ar_buf[0] != 'Device')) {
                         $dev = new DiskDevice();
                         $dev->setMountPoint($ar_buf[0]);
                         $dev->setName("SWAP");
@@ -412,7 +475,26 @@ abstract class BSDCommon extends OS
             }
         }
     }
-    
+
+    /**
+     * USB devices
+     * get the ide device information out of dmesg
+     *
+     * @return void
+     */
+    protected function usb()
+    {
+        foreach ($this->readdmesg() as $line) {
+//            if (preg_match('/^(ugen[0-9\.]+): <(.*)> (.*) (.*)/', $line, $ar_buf)) {
+//                    $dev->setName($ar_buf[1].": ".$ar_buf[2]);
+            if (preg_match('/^(u[a-z]+[0-9]+): <([^,]*)(.*)> on (usbus[0-9]+)/', $line, $ar_buf)) {
+                    $dev = new HWDevice();
+                    $dev->setName($ar_buf[2]);
+                    $this->sys->setUSBDevices($dev);
+            }
+        }
+     }
+
     /**
      * filesystem information
      *
@@ -425,7 +507,7 @@ abstract class BSDCommon extends OS
             $this->sys->setDiskDevices($dev);
         }
     }
-    
+
     /**
      * Distribution
      *
@@ -438,7 +520,6 @@ abstract class BSDCommon extends OS
         }
     }
 
-    
     /**
      * get the information
      *
@@ -446,7 +527,7 @@ abstract class BSDCommon extends OS
      *
      * @return Void
      */
-    function build()
+    public function build()
     {
         $this->distro();
         $this->memory();
@@ -460,6 +541,6 @@ abstract class BSDCommon extends OS
         $this->hostname();
         $this->ip();
         $this->scsi();
+        $this->usb();
     }
 }
-?>

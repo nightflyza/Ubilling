@@ -3167,7 +3167,7 @@ function zb_BillingCheckUpdates() {
      $releasebox=wf_tag('span', false, '', 'id="lastrelease"');
      $releasebox.=wf_tag('span',true).'<br>';
      $updatechecker='<a href="#checkupdates"  onclick="goajax(\'?module=report_sysload&checkupdates=true\',\'lastrelease\');" title="'.__('Check updates').'">'.$releaseinfo.' ('.__('Check updates').'?)</a>';
-
+     
      $ubstatsinputs=zb_AjaxLoader();
      
      $ubstatsinputs.='<b>'.__('Serial key').':</b> '.$thisubid.'<br>';
@@ -3569,6 +3569,75 @@ if (!empty($all)) {
   }
 
  return ($old);
+}
+
+ /*
+ * Gets list of ubilling database tables with stats
+ * 
+ * @return array
+ */
+function zb_DBGetStats() {
+$detail_query="SHOW TABLE STATUS WHERE `Name` LIKE '%'";
+$all=  simple_queryall($detail_query);
+$stats=array();
+
+if (!empty($all)) {
+    foreach ($all as $io=>$each) {
+        $filtered=array_values($each);
+        $stats[$filtered[0]]['name']=$each['Name'];
+        $stats[$filtered[0]]['rows']=$each['Rows'];
+        $stats[$filtered[0]]['size']=$each['Data_length'];
+        
+    }
+    
+   
+  }
+
+ return ($stats);
+}
+
+/*
+ * Returns current database info in human readable view
+ * 
+ * @return string
+ */
+function zb_DBStatsRender() {
+    $all=  zb_DBGetStats();
+    $result='';
+    $totalRows=0;
+    $totalSize=0;
+    $totalCount=0;
+    if (!empty($all)) {
+        $cells=  wf_TableCell(__('Table name'));
+        $cells.= wf_TableCell(__('Rows'));
+        $cells.= wf_TableCell(__('Size'));
+        $rows=  wf_TableRow($cells, 'row1');
+        foreach ($all as $io=>$each) {
+                $cells=  wf_TableCell($each['name']);
+                if (!empty($each['rows'])) {
+                    $dbrows=$each['rows'];
+                    $totalRows=$totalRows+$each['rows'];;
+                } else {
+                    $dbrows=0;
+                }
+                
+                $cells.= wf_TableCell($dbrows);
+                if (!empty($each['size'])) {
+                    @$size=stg_convert_size($each['size']);
+                    $totalSize=$totalSize+$each['size'];
+                } else {
+                    $size='0 b';
+                }
+               
+                $cells.= wf_TableCell($size, '', '', 'sorttable_customkey="'.$each['size'].'"');
+                $rows.=  wf_TableRow($cells, 'row3');
+                $totalCount++;
+        }
+        $result.= wf_tag('b').__('Total').': '.wf_tag('b',true).' '.__('Tables').' '.$totalCount.' '.__('Rows').' '.$totalRows.' / '.__('Size').' '.stg_convert_size($totalSize);
+        $result.=  wf_TableBody($rows, '100%', 0, 'sortable');
+        
+    }
+    return ($result);
 }
 
 /*

@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * UPSDevice TO class
  *
@@ -31,98 +31,112 @@ class UPSDevice
      * @var String
      */
     private $_name = "";
-    
+
     /**
      * model of the ups
      *
      * @var String
      */
     private $_model = "";
-    
+
     /**
      * mode of the ups
      *
      * @var String
      */
     private $_mode = "";
-    
+
     /**
      * last start time
      *
      * @var String
      */
     private $_startTime = "";
-    
+
     /**
      * status of the ups
      *
      * @var String
      */
     private $_status = "";
-    
+
     /**
      * temperature of the ups
      *
      * @var Integer
      */
     private $_temperatur = null;
-    
+
     /**
      * outages count
      *
      * @var Integer
      */
     private $_outages = null;
-    
+
     /**
      * date of last outtage
      *
      * @var String
      */
     private $_lastOutage = null;
-    
+
     /**
      * date of last outage finish
      *
      * @var String
      */
     private $_lastOutageFinish = null;
-    
+
     /**
      * line volt
      *
      * @var Integer
      */
     private $_lineVoltage = null;
-    
+
+    /**
+     * line freq
+     *
+     * @var Integer
+     */
+    private $_lineFrequency = null;
+
     /**
      * current load of the ups in percent
      *
      * @var Integer
      */
     private $_load = null;
-    
+
+    /**
+     * battery installation date
+     *
+     * @var String
+     */
+    private $_batteryDate = null;
+
     /**
      * current battery volt
      *
      * @var Integer
      */
     private $_batteryVoltage = null;
-    
+
     /**
      * current charge in percent of the battery
      *
      * @var Integer
      */
     private $_batterCharge = null;
-    
+
     /**
      * time left
      *
      * @var String
      */
     private $_timeLeft = null;
-    
+
     /**
      * Returns $_batterCharge.
      *
@@ -134,7 +148,7 @@ class UPSDevice
     {
         return $this->_batterCharge;
     }
-    
+
     /**
      * Sets $_batterCharge.
      *
@@ -148,7 +162,33 @@ class UPSDevice
     {
         $this->_batterCharge = $batterCharge;
     }
-    
+
+    /**
+     * Returns $_batteryDate.
+     *
+     * @see UPSDevice::$_batteryDate
+     *
+     * @return String
+     */
+    public function getBatteryDate()
+    {
+        return $this->_batteryDate;
+    }
+
+    /**
+     * Sets $_batteryDate.
+     *
+     * @param object $batteryDate battery date
+     *
+     * @see UPSDevice::$_batteryDate
+     *
+     * @return Void
+     */
+    public function setBatteryDate($batteryDate)
+    {
+        $this->_batteryDate = $batteryDate;
+    }
+
     /**
      * Returns $_batteryVoltage.
      *
@@ -160,7 +200,7 @@ class UPSDevice
     {
         return $this->_batteryVoltage;
     }
-    
+
     /**
      * Sets $_batteryVoltage.
      *
@@ -174,7 +214,7 @@ class UPSDevice
     {
         $this->_batteryVoltage = $batteryVoltage;
     }
-    
+
     /**
      * Returns $_lastOutage.
      *
@@ -186,7 +226,7 @@ class UPSDevice
     {
         return $this->_lastOutage;
     }
-    
+
     /**
      * Sets $_lastOutage.
      *
@@ -200,7 +240,7 @@ class UPSDevice
     {
         $this->_lastOutage = $lastOutage;
     }
-    
+
     /**
      * Returns $_lastOutageFinish.
      *
@@ -212,7 +252,7 @@ class UPSDevice
     {
         return $this->_lastOutageFinish;
     }
-    
+
     /**
      * Sets $_lastOutageFinish.
      *
@@ -226,7 +266,7 @@ class UPSDevice
     {
         $this->_lastOutageFinish = $lastOutageFinish;
     }
-    
+
     /**
      * Returns $_lineVoltage.
      *
@@ -238,7 +278,7 @@ class UPSDevice
     {
         return $this->_lineVoltage;
     }
-    
+
     /**
      * Sets $_lineVoltage.
      *
@@ -252,7 +292,33 @@ class UPSDevice
     {
         $this->_lineVoltage = $lineVoltage;
     }
-    
+
+    /**
+     * Returns $_lineFrequency.
+     *
+     * @see UPSDevice::$_lineFrequency
+     *
+     * @return Integer
+     */
+    public function getLineFrequency()
+    {
+        return $this->_lineFrequency;
+    }
+
+    /**
+     * Sets $_lineFrequency.
+     *
+     * @param Integer $lineFrequency line frequency
+     *
+     * @see UPSDevice::$_lineFrequency
+     *
+     * @return Void
+     */
+    public function setLineFrequency($lineFrequency)
+    {
+        $this->_lineFrequency = $lineFrequency;
+    }
+
     /**
      * Returns $_load.
      *
@@ -264,7 +330,7 @@ class UPSDevice
     {
         return $this->_load;
     }
-    
+
     /**
      * Sets $_load.
      *
@@ -278,7 +344,7 @@ class UPSDevice
     {
         $this->_load = $load;
     }
-    
+
     /**
      * Returns $_mode.
      *
@@ -290,7 +356,7 @@ class UPSDevice
     {
         return $this->_mode;
     }
-    
+
     /**
      * Sets $_mode.
      *
@@ -304,7 +370,7 @@ class UPSDevice
     {
         $this->_mode = $mode;
     }
-    
+
     /**
      * Returns $_model.
      *
@@ -316,7 +382,7 @@ class UPSDevice
     {
         return $this->_model;
     }
-    
+
     /**
      * Sets $_model.
      *
@@ -330,7 +396,7 @@ class UPSDevice
     {
         $this->_model = $model;
     }
-    
+
     /**
      * Returns $_name.
      *
@@ -342,7 +408,7 @@ class UPSDevice
     {
         return $this->_name;
     }
-    
+
     /**
      * Sets $_name.
      *
@@ -356,7 +422,7 @@ class UPSDevice
     {
         $this->_name = $name;
     }
-    
+
     /**
      * Returns $_outages.
      *
@@ -368,7 +434,7 @@ class UPSDevice
     {
         return $this->_outages;
     }
-    
+
     /**
      * Sets $_outages.
      *
@@ -382,7 +448,7 @@ class UPSDevice
     {
         $this->_outages = $outages;
     }
-    
+
     /**
      * Returns $_startTime.
      *
@@ -394,7 +460,7 @@ class UPSDevice
     {
         return $this->_startTime;
     }
-    
+
     /**
      * Sets $_startTime.
      *
@@ -408,7 +474,7 @@ class UPSDevice
     {
         $this->_startTime = $startTime;
     }
-    
+
     /**
      * Returns $_status.
      *
@@ -420,7 +486,7 @@ class UPSDevice
     {
         return $this->_status;
     }
-    
+
     /**
      * Sets $_status.
      *
@@ -434,7 +500,7 @@ class UPSDevice
     {
         $this->_status = $status;
     }
-    
+
     /**
      * Returns $_temperatur.
      *
@@ -446,7 +512,7 @@ class UPSDevice
     {
         return $this->_temperatur;
     }
-    
+
     /**
      * Sets $_temperatur.
      *
@@ -460,7 +526,7 @@ class UPSDevice
     {
         $this->_temperatur = $temperatur;
     }
-    
+
     /**
      * Returns $_timeLeft.
      *
@@ -472,7 +538,7 @@ class UPSDevice
     {
         return $this->_timeLeft;
     }
-    
+
     /**
      * Sets $_timeLeft.
      *
@@ -487,4 +553,3 @@ class UPSDevice
         $this->_timeLeft = $timeLeft;
     }
 }
-?>

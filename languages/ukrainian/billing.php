@@ -1740,5 +1740,8 @@ $lang['def']['Agent payments']='Оплати контрагентам';
 $lang['def']['Excluded payments count']='Кількість неврахованих оплат';
 $lang['def']['Excluded cash']='Невраховано грошей';
 $lang['def']['UKV']='УКВ';
+$lang['def']['Information about PHP version']='Відомості про версію PHP';
+$lang['def']['Tables']='Таблиці';
+$lang['def']['MySQL database info']='Інформація про БД MySQL';
 
 ?>

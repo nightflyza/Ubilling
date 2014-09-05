@@ -5,11 +5,11 @@
  * PHP version 5
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI Darwin OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @version   SVN: $Id: class.Darwin.inc.php 383 2010-10-19 19:09:06Z jacky672 $
+ * @version   SVN: $Id: class.Darwin.inc.php 638 2012-08-24 09:40:48Z namiltd $
  * @link      http://phpsysinfo.sourceforge.net
  */
  /**
@@ -18,7 +18,7 @@
  * information may be incomplete
  *
  * @category  PHP
- * @package   PSI_OS
+ * @package   PSI Darwin OS class
  * @author    Michael Cramer <BigMichi1@users.sourceforge.net>
  * @copyright 2009 phpSysInfo
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU General Public License
@@ -28,23 +28,16 @@
 class Darwin extends BSDCommon
 {
     /**
-     * Is current OS a Mac OS X Snow Leopard
-     *
-     * @var boolean
-     */
-    private $_is_mac_10_6 = false;
-
-    /**
      * define the regexp for log parser
      */
-    public function __construct()
+    /* public function __construct()
     {
         parent::__construct();
-        $this->error->addWarning("The Darwin version of phpSysInfo is work in progress, some things currently don't work!");
+        $this->error->addWarning("The Darwin version of phpSysInfo is a work in progress, some things currently don't work!");
         $this->setCPURegExp1("CPU: (.*) \((.*)-MHz (.*)\)");
         $this->setCPURegExp2("/(.*) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)/");
         $this->setSCSIRegExp1("^(.*): <(.*)> .*SCSI.*device");
-    }
+    } */
 
     /**
      * get a value from sysctl command
@@ -58,6 +51,7 @@ class Darwin extends BSDCommon
         if (CommonFunctions::executeProgram('sysctl', $key, $s, PSI_DEBUG)) {
             $s = preg_replace('/'.$key.': /', '', $s);
             $s = preg_replace('/'.$key.' = /', '', $s);
+
             return $s;
         } else {
             return '';
@@ -73,12 +67,23 @@ class Darwin extends BSDCommon
      */
     private function _grabioreg($key)
     {
-        if (CommonFunctions::executeProgram('ioreg', '-cls "'.$key.'" | grep "'.$key.'"', $s, PSI_DEBUG)) {
-            $s = preg_replace('/\|/', '', $s);
-            $s = preg_replace('/\+\-\o/', '', $s);
-            $s = preg_replace('/[ ]+/', '', $s);
-            $s = preg_replace('/<[^>]+>/', '', $s);
-            return $s;
+        if (CommonFunctions::executeProgram('ioreg', '-c "'.$key.'"', $s, PSI_DEBUG)) {
+            /* delete newlines */
+            $s = preg_replace("/\s+/", " ", $s);
+            /* new newlines */
+            $s = preg_replace("/[\|\t ]*\+\-\o/", "\n", $s);
+            /* combine duplicate whitespaces and some chars */
+            $s = preg_replace("/[\|\t ]+/", " ", $s);
+
+            $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
+            $out = "";
+            foreach ($lines as $line) {
+               if (preg_match('/^([^<]*) <class '.$key.',/', $line)) {
+                    $out .= $line."\n";
+               }
+            }
+
+            return $out;
         } else {
             return '';
         }
@@ -93,12 +98,12 @@ class Darwin extends BSDCommon
     private function _uptime()
     {
         if (CommonFunctions::executeProgram('sysctl', '-n kern.boottime', $a, PSI_DEBUG)) {
-            if ($this->_is_mac_10_6) {
-                $tmp = explode(" ", $a);
-                $data = trim($tmp[3],",");
-                $this->sys->setUptime(time() - $data);
-            } else {
-                $this->sys->setUptime(time() - $a);
+            $tmp = explode(" ", $a);
+            if ($tmp[0]=="{") { /* kern.boottime= { sec = 1096732600, usec = 885425 } Sat Oct 2 10:56:40 2004 */
+              $data = trim($tmp[3],",");
+              $this->sys->setUptime(time() - $data);
+            } else { /* kern.boottime= 1096732600 */
+              $this->sys->setUptime(time() - $a);
             }
         }
     }
@@ -112,21 +117,52 @@ class Darwin extends BSDCommon
     {
         $dev = new CpuDevice();
         if (CommonFunctions::executeProgram('hostinfo', '| grep "Processor type"', $buf, PSI_DEBUG)) {
+            $dev->setModel(preg_replace('/Processor type: /', '', $buf));
+            $buf=$this->grabkey('hw.model');
+            $this->sys->setMachine(trim($buf));
             if (CommonFunctions::rfts(APP_ROOT.'/data/ModelTranslation.txt', $buffer)) {
                 $buffer = preg_split("/\n/", $buffer, -1, PREG_SPLIT_NO_EMPTY);
                 foreach ($buffer as $line) {
-                    $ar_buf = preg_split("/:/", $line, 2);
+                    $ar_buf = preg_split("/:/", $line, 3);
                     if (trim($buf) === trim($ar_buf[0])) {
-                        $dev->setModel(trim($ar_buf[1]));
+                        $dev->setModel(trim($ar_buf[2]));
+                        $this->sys->getMachine($this->sys->setMachine().' - '.trim($ar_buf[1]));
+                        break;
                     }
                 }
             }
-            $dev->setModel(preg_replace('/Processor type: /', '', $buf));
+            $buf=$this->grabkey('machdep.cpu.brand_string');
+            if ( !is_null($buf) && (trim($buf) != "") &&
+                 ( (trim($buf) != "i486 (Intel 80486)") || ($dev->getModel() == "") ) ) {
+                $dev->setModel(trim($buf));
+            }
+            $buf=$this->grabkey('machdep.cpu.features');
+            if ( !is_null($buf) && (trim($buf) != "") ) {
+                if (preg_match("/ VMX/",$buf)) {
+                    $dev->setVirt("vmx");
+                } elseif (preg_match("/ SVM/",$buf)) {
+                    $dev->setVirt("svm");
+                }
+            }
         }
         $dev->setCpuSpeed(round($this->grabkey('hw.cpufrequency') / 1000000));
         $dev->setBusSpeed(round($this->grabkey('hw.busfrequency') / 1000000));
-        $dev->setCache(round($this->grabkey('hw.l2cachesize')));
-        $this->sys->setCpus($dev);
+        $bufn=$this->grabkey('hw.cpufrequency_min');
+        $bufx=$this->grabkey('hw.cpufrequency_max');
+        if ( !is_null($bufn) && (trim($bufn) != "") && !is_null($bufx) && (trim($bufx) != "") && ($bufn != $bufx)) {
+            $dev->setCpuSpeedMin(round($bufn / 1000000));
+            $dev->setCpuSpeedMax(round($bufx / 1000000));
+        }
+        $buf=$this->grabkey('hw.l2cachesize');
+        if ( !is_null($buf) && (trim($buf) != "") ) {
+            $dev->setCache(round($buf));
+        }
+        $ncpu = $this->grabkey('hw.ncpu');
+        if ( is_null($ncpu) || (trim($ncpu) == "") || (!($ncpu >= 1)) )
+            $ncpu = 1;
+        for ($ncpu ; $ncpu > 0 ; $ncpu--) {
+            $this->sys->setCpus($dev);
+        }
     }
 
     /**
@@ -139,10 +175,11 @@ class Darwin extends BSDCommon
         $s = $this->_grabioreg('IOPCIDevice');
         $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($lines as $line) {
-            $ar_buf = preg_split("/\s+/", $line, 19);
-            $dev = new HWDevice();
-            $dev->setName($ar_buf[0]);
-            $this->sys->setIdeDevices($dev);
+                    $dev = new HWDevice();
+                    if (!preg_match('/"IOName" = "([^"]*)"/', $line, $ar_buf ))
+                       $ar_buf = preg_split("/[\s@]+/", $line, 19);
+                    $dev->setName(trim($ar_buf[1]));
+                    $this->sys->setPciDevices($dev);
         }
     }
 
@@ -156,12 +193,57 @@ class Darwin extends BSDCommon
         $s = $this->_grabioreg('IOATABlockStorageDevice');
         $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($lines as $line) {
-            $ar_buf = preg_split("/\/\//", $line, 19);
-            if (isset($ar_buf[1]) && $ar_buf[1] == 'class IOMedia' && preg_match('/Media/', $ar_buf[0])) {
-                $dev = new HWDevice();
-                $dev->setName($ar_buf[0]);
-                $this->sys->setIdeDevices($dev);
-            }
+                    $dev = new HWDevice();
+                    if (!preg_match('/"Product Name"="([^"]*)"/', $line, $ar_buf ))
+                       $ar_buf = preg_split("/[\s]+/", $line, 19);
+                    $dev->setName(trim($ar_buf[1]));
+                    $this->sys->setIdeDevices($dev);
+        }
+
+        $s = $this->_grabioreg('IOAHCIBlockStorageDevice');
+        $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($lines as $line) {
+                    $dev = new HWDevice();
+                    if (!preg_match('/"Product Name"="([^"]*)"/', $line, $ar_buf ))
+                       $ar_buf = preg_split("/[\s]+/", $line, 19);
+                    $dev->setName(trim($ar_buf[1]));
+                    $this->sys->setIdeDevices($dev);
+        }
+    }
+
+    /**
+     * get the usb device information out of ioreg
+     *
+     * @return void
+     */
+    protected function usb()
+    {
+        $s = $this->_grabioreg('IOUSBDevice');
+        $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($lines as $line) {
+                    $dev = new HWDevice();
+                    if (!preg_match('/"USB Product Name"="([^"]*)"/', $line, $ar_buf ))
+                       $ar_buf = preg_split("/[\s]+/", $line, 19);
+                    $dev->setName(trim($ar_buf[1]));
+                    $this->sys->setUsbDevices($dev);
+        }
+    }
+
+    /**
+     * get the scsi device information out of ioreg
+     *
+     * @return void
+     */
+    protected function scsi()
+    {
+        $s = $this->_grabioreg('IOBlockStorageServices');
+        $lines = preg_split("/\n/", $s, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($lines as $line) {
+                    $dev = new HWDevice();
+                    if (!preg_match('/"Product Name"="([^"]*)"/', $line, $ar_buf ))
+                       $ar_buf = preg_split("/[\s]+/", $line, 19);
+                    $dev->setName(trim($ar_buf[1]));
+                    $this->sys->setScsiDevices($dev);
         }
     }
 
@@ -174,11 +256,33 @@ class Darwin extends BSDCommon
     {
         $s = $this->grabkey('hw.memsize');
         if (CommonFunctions::executeProgram('vm_stat', '', $pstat, PSI_DEBUG)) {
-            $lines = preg_split("/\n/", $pstat, -1, PREG_SPLIT_NO_EMPTY);
-            $ar_buf = preg_split("/\s+/", $lines[1], 19);
             // calculate free memory from page sizes (each page = 4MB)
+            if ( (preg_match('/^Pages free:\s+(\S+)/m', $pstat, $free_buf ))
+              && (preg_match('/^Pages speculative:\s+(\S+)/m', $pstat, $spec_buf )) ) {
+
+                $this->sys->setMemFree(($free_buf[1]+$spec_buf[1]) * 4 * 1024);
+
+                $appMemory = 0;
+                if (preg_match('/^Pages wired down:\s+(\S+)/m', $pstat, $wire_buf)) {
+                    $appMemory += $wire_buf[1] * 4 * 1024;
+                }
+                if (preg_match('/^Pages active:\s+(\S+)/m', $pstat, $active_buf)) {
+                    $appMemory += $active_buf[1] * 4 * 1024;
+                }
+                $this->sys->setMemApplication($appMemory);
+
+                if (preg_match('/^Pages inactive:\s+(\S+)/m', $pstat, $inactive_buf)) {
+                    $this->sys->setMemCache($inactive_buf[1] * 4 * 1024);
+                }
+
+                $this->sys->setMemBuffer(0);
+            } else {
+                $lines = preg_split("/\n/", $pstat, -1, PREG_SPLIT_NO_EMPTY);
+                $ar_buf = preg_split("/\s+/", $lines[1], 19);
+                $this->sys->setMemFree($ar_buf[2] * 4 * 1024);
+            }
+
             $this->sys->setMemTotal($s);
-            $this->sys->setMemFree($ar_buf[2] * 4 * 1024);
             $this->sys->setMemUsed($this->sys->getMemTotal() - $this->sys->getMemFree());
 
             if (CommonFunctions::executeProgram('sysctl', 'vm.swapusage | colrm 1 22', $swapBuff, PSI_DEBUG)) {
@@ -217,6 +321,19 @@ class Darwin extends BSDCommon
                     if (isset($ar_buf[10])) {
                         $dev->setDrops($ar_buf[10]);
                     }
+                    if (defined('PSI_SHOW_NETWORK_INFOS') && (PSI_SHOW_NETWORK_INFOS) && (CommonFunctions::executeProgram('ifconfig', $ar_buf[0].' 2>/dev/null', $bufr2, PSI_DEBUG))) {
+                        $bufe2 = preg_split("/\n/", $bufr2, -1, PREG_SPLIT_NO_EMPTY);
+                        foreach ($bufe2 as $buf2) {
+                            if (preg_match('/^\s+ether\s+(\S+)/i', $buf2, $ar_buf2))
+                                $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').preg_replace('/:/', '-', $ar_buf2[1]));
+                            elseif (preg_match('/^\s+inet\s+(\S+)\s+netmask/i', $buf2, $ar_buf2))
+                                $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').$ar_buf2[1]);
+                            elseif ((preg_match('/^\s+inet6\s+([^\s%]+)\s+prefixlen/i', $buf2, $ar_buf2)
+                                  || preg_match('/^\s+inet6\s+([^\s%]+)%\S+\s+prefixlen/i', $buf2, $ar_buf2))
+                                  && !preg_match('/^fe80::/i',$ar_buf2[1]))
+                                $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').$ar_buf2[1]);
+                        }
+                    }
                     $this->sys->setNetDevices($dev);
                 }
             }
@@ -240,17 +357,12 @@ class Darwin extends BSDCommon
                 if (trim($arrLine[0]) === "System Version") {
                     $distro = trim($arrLine[1]);
 
-                    if (preg_match('/^Mac OS X 10\.6/', $distro))
-                    {
-                        $this->_is_mac_10_6 = true;
-                        $this->sys->setDistributionIcon('Apple.png');
-                    }
-                    else if (preg_match('/^Mac OS', $distro))
-                    {
+                    if (preg_match('/(^Mac OS)|(^OS X)/', $distro)) {
                         $this->sys->setDistributionIcon('Apple.png');
                     }
 
                     $this->sys->setDistribution($distro);
+
                     return;
                 }
             }
@@ -264,11 +376,10 @@ class Darwin extends BSDCommon
      *
      * @return Void
      */
-    function build()
+    public function build()
     {
         parent::build();
         $this->_uptime();
         $this->_network();
     }
 }
-?>

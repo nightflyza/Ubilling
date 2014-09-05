@@ -604,6 +604,12 @@ function ub_SwitchesTimeMachineShowSnapshot($snapshotid) {
         show_window('',  wf_Link("?module=switches&timemachine=true", 'Back', false, 'ubButton'));
     }
     
-}   
+}
+
+function ub_SwitchesTimeMachineCleanup() {
+    $query="TRUNCATE TABLE `switchdeadlog`;";
+    nr_query($query);
+   log_register("SWITCH TIMEMACHINE FLUSH");
+}
    
 ?>
