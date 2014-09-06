@@ -449,6 +449,15 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                                die('ERROR:NO_UKV_ENABLED');
                            }
                        }
+					   
+                       /**
+                        * Registry of banned sites processing
+                        */
+                       if ( $_GET['action'] == 'rbs' ) {
+                         $object = new RosKomNadzor();
+                         $object->run();
+                         die(0);
+                       }
   ////
   //// End of actions
   ////
