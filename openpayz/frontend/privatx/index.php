@@ -501,7 +501,7 @@ if (!empty($xmlRequest)) {
                     $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'],3);
                     $summ=$xmlParse['Transfer']['Data']['TotalSum'];
                     $summ=  str_replace(',', '.', $summ);
-                    $rawhash=$xmlParse['Transfer']['Data']['Reference'];
+                    $rawhash=$xmlParse['Transfer']['Data']['CompanyInfo']['CheckReference'];
                     
                     die(pbx_ReplyPayment($customerid,$summ,$rawhash));
                 }
