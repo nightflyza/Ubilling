@@ -55,8 +55,11 @@ if (cfr('REPORTCREXP')) {
             global $billing;
             $login = mysql_real_escape_string($login);
             $credit = 0;
+            $curdate=curdate();
             $billing->setcredit($login, $credit);
             log_register('CHANGE FIX Credit (' . $login . ') ON ' . $credit);
+            $billing->setcreditexpire($login,$curdate);
+            log_register('CHANGE FIX CreditExpire (' . $login . ') ON ' . $curdate);
         }
 
         /*
