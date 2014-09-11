@@ -15,12 +15,24 @@ if (cfr('REPORTSIGNUP')) {
     function zb_SignupsGetCountYear($year) {
         $months=months_array();
         $result=array();
-        foreach ($months as $eachmonth=>$monthname) { 
-        $query="SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '".$year."-".$eachmonth."%'";
-        $monthcount=simple_query($query);
-        $monthcount=$monthcount['COUNT(`id`)'];
-        $result[$eachmonth]=$monthcount;
+        foreach ($months as $monthNum=>$monthName) {
+            $result[$monthNum]=0;
         }
+
+        $allYearSignups_q="SELECT * from `userreg` WHERE `date` LIKE '".$year."-%';";
+        $allYearSignups=  simple_queryall($allYearSignups_q);
+        if (!empty($allYearSignups)) {
+            foreach ($allYearSignups as $idx=>$eachYearSignup) {
+                $statsMonth=date("m",strtotime($eachYearSignup['date']));
+                
+                 if (isset($result[$statsMonth])) {
+                    $result[$statsMonth]++;
+                } else {
+                    $result[$statsMonth]=1;
+                }
+            }
+        }
+
         return($result);
     }
     
@@ -48,7 +60,7 @@ if (cfr('REPORTSIGNUP')) {
         }
         
         $result=  wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= __('Total').': '.$totalcount; 
+        $result.= wf_tag('b', false).__('Total').': '.  $totalcount. wf_tag('b', true); 
         show_window(__('User signups by year').' '.$year, $result);
     }
     

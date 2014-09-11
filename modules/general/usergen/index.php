@@ -18,7 +18,8 @@ function web_UserGenForm() {
     
     $inputs=  wf_TextInput('gencount', __('Count of users to generate'), '', true);
     $inputs.= wf_Selector('gentariff', $alltariffs, __('Existing tariff for this users'), '', true);
-    $inputs.=multinet_service_selector().' '.__('Service for new users').  wf_delimiter();
+    $inputs.=multinet_service_selector().' '.__('Service for new users').  wf_tag('br');
+    $inputs.= wf_CheckInput('fastsqlgen', __('Fast SQL Inserts - need to shutdown stargazer'), true, false);
     $inputs.=wf_Submit(__('Go!'));
     $result=  wf_Form("", "POST", $inputs, 'glamour');
     show_window(__('Sample user generator'),$result);
@@ -31,12 +32,14 @@ if (wf_CheckPost(array('gencount'))) {
     
 
 $neednum=$_POST['gencount'];
-$firstBuild=  simple_query("SELECT * from `build` LIMIT 1");
-$firstBuildId=$firstBuild['id'];
+$lastBuild=  simple_query("SELECT * from `build` ORDER BY `id` DESC LIMIT 1");
+$lastBuildId=$lastBuild['id'];
 $serviceID=$_POST['serviceselect'];
 $netID=multinet_get_service_networkid($serviceID);
 $tariff=$_POST['gentariff'];
 
+if (!isset($_POST['fastsqlgen'])) {
+    //normal user generation via standard stargazer API
 for ($i=1;$i<=$neednum;$i++) {
     $randomLogin=  'gen_'.zb_rand_string(10);
     $randomPassword=  zb_rand_string(8);
@@ -53,7 +56,7 @@ for ($i=1;$i<=$neednum;$i++) {
     $billing->createuser($randomLogin);
     $billing->setpassword($randomLogin,$randomPassword);
     $billing->setip($randomLogin,$randomIp);
-    zb_AddressCreateApartment($firstBuildId, $randomEntrance, $randomFloor, $randomApt);
+    zb_AddressCreateApartment($lastBuildId, $randomEntrance, $randomFloor, $randomApt);
     zb_AddressCreateAddress($randomLogin, zb_AddressGetLastid());
     multinet_add_host($netID, $randomIp);
     zb_UserCreateRealName($randomLogin, $randomName);
@@ -70,6 +73,151 @@ for ($i=1;$i<=$neednum;$i++) {
     zb_UserRegisterLog($randomLogin);
     log_register("SAMPLE GENERATION OF (".$randomLogin.") DONE");
     
+    }
+} else {
+//fast SQL users generation directly in database
+    for ($i=1;$i<=$neednum;$i++) {
+    $randomLogin=  'gen_'.zb_rand_string(10);
+    $randomPassword=  zb_rand_string(8);
+    $randomName=  $names[array_rand($names)].' '.$surnames[array_rand($surnames)];
+    $randomPhone=rand(111111,999999);
+    $randomMobile='380'.rand(1111111,9999999);
+    $randomMac='14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
+    $randomApt=$i;
+    $randomCash=rand(0,500);
+    $randomIp=multinet_get_next_freeip('nethosts', 'ip', $netID);
+    $randomFloor=rand(1,9);
+    $randomEntrance=rand(1,4);
+    
+    //registering subroutine
+       $querybuff="
+            INSERT INTO `users` (
+            `login`,
+            `Password`,
+            `Passive`,
+            `Down`,
+            `DisabledDetailStat`,
+            `AlwaysOnline`,
+            `Tariff`,
+            `Address`,
+            `Phone`,
+            `Email`,
+            `Note`,
+            `RealName`,
+            `StgGroup`,
+            `Credit`,
+            `TariffChange`,
+            `Userdata0`,
+            `Userdata1`,
+            `Userdata2`,
+            `Userdata3`,
+            `Userdata4`,
+            `Userdata5`,
+            `Userdata6`,
+            `Userdata7`,
+            `Userdata8`,
+            `Userdata9`,
+            `CreditExpire`,
+            `IP`,
+            `D0`,
+            `U0`,
+            `D1`,
+            `U1`,
+            `D2`,
+            `U2`,
+            `D3`,
+            `U3`,
+            `D4`,
+            `U4`,
+            `D5`,
+            `U5`, 
+            `D6`, 
+            `U6`,
+            `D7`, 
+            `U7`, 
+            `D8`,
+            `U8`,
+            `D9`,
+            `U9`,
+            `Cash`,
+            `FreeMb`,
+            `LastCashAdd`,
+            `LastCashAddTime`,
+            `PassiveTime`,
+            `LastActivityTime`,
+            `NAS`)
+            VALUES (
+            '".$randomLogin."',
+            '".$randomPassword."',
+            '0',
+            '0',
+            '1',
+            '1',
+            '".$tariff."',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '0',
+            '', 
+            '',
+            '',
+            '',
+            '', 
+            '', 
+            '', 
+            '', 
+            '',
+            '', 
+            '', 
+            '0',
+            '".$randomIp."',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0', 
+            '0',
+            '0',
+            '0', 
+            '0',
+            '0',
+            '0',
+            '0',
+            '0', 
+            '0',
+            '0',
+            '0', 
+            '0', 
+            '0', 
+            '0', 
+            '0', 
+            '".$randomCash."',
+            '0',
+            '0', 
+            '0',
+            '0', 
+            '0',
+            '');
+            ";
+    
+       //push da query!
+     nr_query($querybuff);
+
+    zb_AddressCreateApartment($lastBuildId, $randomEntrance, $randomFloor, $randomApt);
+    zb_AddressCreateAddress($randomLogin, zb_AddressGetLastid());
+    multinet_add_host($netID, $randomIp);
+    zb_UserCreateRealName($randomLogin, $randomName);
+    zb_UserCreatePhone($randomLogin, $randomPhone, $randomMobile);
+    zb_UserCreateContract($randomLogin, '');
+    zb_UserCreateEmail($randomLogin, '');
+    zb_UserCreateSpeedOverride($randomLogin, 0);
+    multinet_change_mac($randomIp, $randomMac);
+    zb_UserRegisterLog($randomLogin);
+    log_register("SAMPLE GENERATION OF (".$randomLogin.") DONE");
+    }
 }
 
 }
