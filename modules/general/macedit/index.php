@@ -1,7 +1,7 @@
 <?php
 if (cfr('MAC')) {
 
-$altercfg=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
+$altercfg=$ubillingConfig->getAlter();
 $newmac_report=$altercfg['NMREP_INMACCHG'];
 $newmacselector=$altercfg['SIMPLENEWMACSELECTOR'];
 
@@ -23,6 +23,13 @@ if (isset ($_GET['username'])) {
         // need reset after mac change
         $billing->resetuser($login);
         log_register("RESET User (".$login.")");
+        if (isset($altercfg['MACCHGDOUBLEKILL'])) {
+            if ($altercfg['MACCHGDOUBLEKILL']) {
+                $billing->resetuser($login);
+                log_register("RESET User (".$login.") DOUBLEKILL");
+            }
+        }
+
          } else {
              //show error when MAC haz wrong format
             show_window(__('Error'),__('This MAC have wrong format'));

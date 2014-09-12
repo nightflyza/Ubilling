@@ -1743,5 +1743,7 @@ $lang['def']['UKV']='УКВ';
 $lang['def']['Information about PHP version']='Відомості про версію PHP';
 $lang['def']['Tables']='Таблиці';
 $lang['def']['MySQL database info']='Інформація про БД MySQL';
+$lang['def']['Create connection capability']='Створити можливість підключення';
+$lang['def']['FreeRADIUS NAS parameters']='Параметри серверів доступу FreeRADIUS';
 
 ?>

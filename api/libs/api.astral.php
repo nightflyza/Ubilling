@@ -1,12 +1,13 @@
 <?php
 
 /*
- *  Return web form element id
+ *  Returns web form element id
+ * 
  *  @return  string
  */
 function wf_InputId() {
     // I know it looks really funny. 
-    // You can also get a truly random values ​​by throwing dice ;)
+    // You can also get a truly random values​by throwing dice ;)
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $result = "";
     for ($p = 0; $p < 8; $p++) {
@@ -671,6 +672,28 @@ function wf_img($url,$title='') {
         $imgtitle='';
     }
     $result='<img src="'.$url.'" '.$imgtitle.' border="0">';
+    return ($result);
+}
+
+
+ /*
+ * 
+ * Returns image body with some dimensions
+ * 
+ * @param string $url image url
+ * @param string $title title attribure for image
+ * @param string $width image width
+ * @param string $height image height
+ * 
+ * @return string
+ *  
+ */
+
+function wf_img_sized($url,$title='',$width='',$height='') {
+    $imgtitle= ($title!='') ? 'title="'.$title.'"' : '' ;
+    $imgwidth= ($width!='') ? 'width="'.$width.'"' : '' ;
+    $imgheight= ($height!='') ? 'height="'.$height.'"' : '' ;
+    $result='<img src="'.$url.'" '.$imgtitle.' '.$imgwidth.' '.$imgheight.' border="0">';
     return ($result);
 }
 

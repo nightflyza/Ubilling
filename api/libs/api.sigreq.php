@@ -171,7 +171,7 @@ class SignupRequests {
         if ($this->altcfg['CAPABDIR_ENABLED']) {
             $capabDir=new CapabilitiesDirectory(true);
             $capabCreateForm=$capabDir->createForm($reqAddress, $reqdata['phone'], $reqdata['service'].' '.$reqdata['notes']);
-            $capabControl = wf_modal(wf_img('skins/icon_add.gif',__('Available connection capabilities')),__('Create'), $capabCreateForm, '', '400', '300');
+            $capabControl = wf_modal(wf_img_sized('skins/icon_cake.png',__('Available connection capabilities'),10),__('Create connection capability'), $capabCreateForm, '', '400', '300');
         } else {
             $capabControl = '';
         }

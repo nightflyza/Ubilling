@@ -1,6 +1,5 @@
 <?php
 if (cfr('NAS')) {
-    
         if (isset ($_GET['delete'])) {
             $deletenas=$_GET['delete'];
             zb_NasDelete($deletenas);
@@ -43,7 +42,14 @@ if (cfr('NAS')) {
         );
     
     if (!wf_CheckGet(array('edit')))  {
-    show_window(__('Network Access Servers'),web_GridEditorNas($titles, $keys, $allnas,'nas'));
+    $altCfg=$ubillingConfig->getAlter();
+    if ($altCfg['FREERADIUS_ENABLED']) {
+        $freeRadiusClientsData=web_FreeRadiusListClients();
+        $radiusControls=  wf_modal(web_icon_extended(__('FreeRADIUS NAS parameters')), __('FreeRADIUS NAS parameters'), $freeRadiusClientsData, '', '600', '300');
+    } else {
+        $radiusControls='';
+    }
+    show_window(__('Network Access Servers').' '.$radiusControls,web_GridEditorNas($titles, $keys, $allnas,'nas'));
     show_window(__('Add new'),web_NasAddForm());
     } else {
         //show editing form
