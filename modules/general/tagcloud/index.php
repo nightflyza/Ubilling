@@ -3,13 +3,79 @@
 if (cfr('TAGS')) {
 
     class TagCloud {
+        
+        protected $alltags = array();
+        protected $usertags = array();
+        protected $allnames = array();
+        protected $tagspower=array();
+
+
+        public function __construct() {
+            $this->loadTags();
+            $this->loadTagNames();
+            $this->loadUserTags();
+            $this->tagPowerPreprocessing();
+        }
+        
+        /*
+         * loads all used tags into private data property
+         * 
+         * @return void
+         */
+        protected function loadTags() {
+            $this->alltags=$this->getAllTagged();
+        }
+        
+        
+        /*
+         * loads all tag names into private data property
+         * 
+         * @return void
+         */
+        protected function loadTagNames() {
+            $this->allnames=$this->getAllTagNames();
+        }
+        
+        /*
+         * loads all users tags into private data property
+         */
+        protected function loadUserTags() {
+            $query="SELECT `login`,`tagid`,`id` from `tags`";
+            $all= simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io=>$each) {
+                    $this->usertags[$each['id']]['login']=$each['login'];
+                    $this->usertags[$each['id']]['tagid']=$each['tagid'];
+                }
+            }
+        }
+
+        
+        /*
+         * preprocessing of tagspower by alltags private property
+         * 
+         * @return void
+         */
+        protected function tagPowerPreprocessing() {
+            if (!empty($this->usertags)) {
+                foreach ($this->usertags as $io=>$each) {
+                    if (isset($this->tagspower[$each['tagid']])) {
+                        $this->tagspower[$each['tagid']]++;
+                    } else {
+                        $this->tagspower[$each['tagid']]=1;
+                    }
+                }
+            }
+        }
+
+
         /*
          * Gets all tagged users
          * 
          * @return array
          */
 
-        private function getAllTagged() {
+        protected function getAllTagged() {
             $query = 'SELECT DISTINCT `tagid` from `tags` ORDER BY `tagid` ASC';
             $alltags = simple_queryall($query);
             return ($alltags);
@@ -19,13 +85,21 @@ if (cfr('TAGS')) {
          * Gets some tag power by its ID
          * 
          * @param $tagid - existing tag ID
+         * 
+         * @return int
          */
 
-        private function getTagPower($tagid) {
-            $tag = vf($tagid, 3);
-            $query = 'SELECT COUNT(`tagid`) FROM `tags` where `tagid`="' . $tagid . '"';
-            $result = simple_query($query);
-            return($result['COUNT(`tagid`)']);
+        protected function getTagPower($tagid) {
+            if (!empty($this->tagspower)) {
+                if (isset($this->tagspower[$tagid])) {
+                    $result=$this->tagspower[$tagid];
+                } else {
+                    $result=0;
+                }
+            } else {
+                $result=0;
+            }
+            return ($result);
         }
 
         /*
@@ -34,7 +108,7 @@ if (cfr('TAGS')) {
          * @return array
          */
 
-        private function getAllTagNames() {
+        protected function getAllTagNames() {
             $query = "SELECT `id`,`tagname` from `tagtypes`";
             $result = array();
             $alltags = simple_queryall($query);
@@ -52,7 +126,7 @@ if (cfr('TAGS')) {
          * @return string
          */
 
-        private function panel() {
+        protected function panel() {
             $result = wf_Link('?module=tagcloud', __('Tag cloud'), false, 'ubButton');
             $result.= wf_Link('?module=tagcloud&gridview=true', __('Grid view'), true, 'ubButton');
             return ($result);
@@ -65,21 +139,17 @@ if (cfr('TAGS')) {
          */
 
         public function renderTagGrid() {
-            $alltags = $this->getAllTagged();
-            $allnames = $this->getAllTagNames();
-
-            
             $cells=  wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Tags'));
             $cells.= wf_TableCell(__('Users'));
             $rows= wf_TableRow($cells, 'row1');
 
-            if (!empty($alltags)) {
-                foreach ($alltags as $key => $eachtag) {
-                     if (isset($allnames[$eachtag['tagid']])) {
+            if (!empty($this->alltags)) {
+                foreach ($this->alltags as $key => $eachtag) {
+                     if (isset($this->allnames[$eachtag['tagid']])) {
                         $userCount = $this->getTagPower($eachtag['tagid']);
                         $cells=  wf_TableCell($eachtag['tagid']);
-                        $cells.= wf_TableCell(wf_Link('?module=tagcloud&gridview=true&tagid=' . $eachtag['tagid'], $allnames[$eachtag['tagid']], false));
+                        $cells.= wf_TableCell(wf_Link('?module=tagcloud&gridview=true&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']], false));
                         $cells.= wf_TableCell($userCount);
                         $rows.= wf_TableRow($cells, 'row3');
                     }
@@ -99,20 +169,17 @@ if (cfr('TAGS')) {
          */
 
         public function renderTagCloud() {
-            $alltags = $this->getAllTagged();
-            $allnames = $this->getAllTagNames();
-
             $result = $this->panel();
             $result.= wf_tag('center');
 
-            if (!empty($alltags)) {
-                foreach ($alltags as $key => $eachtag) {
+            if (!empty($this->alltags)) {
+                foreach ($this->alltags as $key => $eachtag) {
                     $power = $this->getTagPower($eachtag['tagid']);
                     $fsize = $power / 2;
-                    if (isset($allnames[$eachtag['tagid']])) {
+                    if (isset($this->allnames[$eachtag['tagid']])) {
                         $sup = wf_tag('sup') . $power . wf_tag('sup', true);
                         $result.=wf_tag('font', false, '', 'size="' . $fsize . '"');
-                        $result.=wf_Link('?module=tagcloud&tagid=' . $eachtag['tagid'], $allnames[$eachtag['tagid']] . $sup, false);
+                        $result.=wf_Link('?module=tagcloud&tagid=' . $eachtag['tagid'], $this->allnames[$eachtag['tagid']] . $sup, false);
                         $result.=wf_tag('font', true);
                     }
                 }
@@ -130,17 +197,16 @@ if (cfr('TAGS')) {
          */
 
         public function renderTagUsers($tagid) {
-            $alltagnames = $this->getAllTagNames();
-            $query = "SELECT DISTINCT `login` from `tags` where `tagid`='" . $tagid . "'";
-            $allusers = simple_queryall($query);
             $userarr = array();
-            if (!empty($allusers)) {
-                foreach ($allusers as $io => $eachuser) {
-                    $userarr[] = $eachuser['login'];
+            if (!empty($this->usertags)) {
+                foreach ($this->usertags as $io => $each) {
+                    if ($each['tagid']==$tagid) {
+                        $userarr[] = $each['login'];
+                    }
                 }
             }
             $result = web_UserArrayShower($userarr);
-            show_window($alltagnames[$tagid], $result);
+            show_window($this->allnames[$tagid], $result);
         }
 
     }

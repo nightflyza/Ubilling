@@ -1002,11 +1002,22 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       $query="SELECT * from `switchportassign` WHERE `login`='".$login."'";
       $allswitches=  zb_SwitchesGetAll();
       $switcharr=array();
+      $switcharrFull=array();
       $switchswpoll=array();
       $switchgeo=array();
+      $cutLocation=true;
       if (!empty($allswitches)) {
           foreach ($allswitches as $io=>$eachswitch) {
-              $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+              if ($cutLocation) {
+                  if (mb_strlen($eachswitch['location'])>32) {
+                      $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.mb_substr($eachswitch['location'],0,32,'utf-8').'...';
+                  } else {
+                      $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+                  }
+              } else {
+                  $switcharr[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
+              }
+              $switcharrFull[$eachswitch['id']]=$eachswitch['ip'].' - '.$eachswitch['location'];
               if (ispos($eachswitch['desc'], 'SWPOLL')) {
                   $switchswpoll[$eachswitch['id']]=$eachswitch['ip'];
               }
@@ -1065,7 +1076,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       }
   
       $cells=  wf_TableCell(__('Switch'),'30%','row2');
-      $cells.= wf_TableCell(@$switcharr[$currentSwitchId].' '.$switchLocators);
+      $cells.= wf_TableCell(@$switcharrFull[$currentSwitchId].' '.$switchLocators);
       $rows= wf_TableRow($cells, 'row3');
       $cells=  wf_TableCell(__('Port'),'30%','row2');
       $cells.= wf_TableCell($currentSwitchPort);
