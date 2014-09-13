@@ -35,7 +35,7 @@ function web_HelpIconShow() {
         $modulename=vf($_GET['module']);
         if (file_exists(DATA_PATH."help/".$lang."/".$modulename)) {
           $help_chapter=  web_HelpChapterGet($modulename);  
-          $result=  wf_modal(wf_img("skins/help.gif", __('Context help')), __('Context help'), $help_chapter, '', '600','300');
+          $result=  wf_modal(wf_img_sized("skins/help.gif", __('Context help'),20), __('Context help'), $help_chapter, '', '600','300');
          }
        }
     }
