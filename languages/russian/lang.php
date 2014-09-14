@@ -600,4 +600,28 @@ $lang['def']['Very Good'] = 'Очень хорошо';
 $lang['def']['Average'] = 'Так себе';
 $lang['def']['Fair'] = 'Не очень';
 $lang['def']['Poor'] = 'Дурость';
+
+
+$lang['def']['Registry of banned sites'] = 'Реестр запрещенных сайтов';
+$lang['def']['Necessary information about operator'] = 'Необходимая информация об операторе';
+$lang['def']['operatorName'] = 'Название оператора';
+$lang['def']['inn'] = 'ИНН';
+$lang['def']['ogrn'] = 'ОГРН';
+$lang['def']['email'] = 'E-mail';
+$lang['def']['Adding of new *.pem certificate'] = 'Добавление нового <i>*.pem</i> сертификата';
+$lang['def']['*.pem certificate'] = 'Сертификат в <i>*.pem</i> формате';
+$lang['def']['Next fields were filled in incorrectly:'] = 'Следующие поля были заполнены неправильно:';
+$lang['def']['Error while moving file from tmp-directory'] = 'Ошибка при перемещении файла из временной папки';
+$lang['def']['Error while loading file to server. Code:'] = 'Ошибка при загрузке файла на сервер. Код:';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 ?>

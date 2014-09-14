@@ -21,13 +21,17 @@ class RosKomNadzor {
   // Ключ POST-массива с данными об операторе:
   const FORM_OPERATOR = 'rbs_operator';
   // Пути к файлам
-  const PATH_REQUEST_XML = './content/rbs/tmp/reques.xml';
-  const PATH_REQUEST_SIG = './content/rbs/tmp/reques.sig';
-  const PATH_OPENSSL_PEM = './content/rbs/openssl.crt';
-  const PATH_OPENSSL_KEY = '/./content/rbs/openssl.key';
+  const FILE_DUMP_ZIP         = './content/roskomnadzor/dump.zip';
+  const FILE_OPENSSL_PEM      = './content/roskomnadzor/openssl.pem';
+  const FILE_REQUEST_XML      = './content/roskomnadzor/request.xml';
+  const FILE_REQUEST_XML_SIG  = './content/roskomnadzor/request.xml.sig';
+  // Путь к OpenSSL с поддержкой ГОСТ:
+  const PATH_OPENSSL = '/usr/local/bin/openssl';
   
   public function __construct() {
     $this->_soap = new SoapClient(self::WSDL);
+    if ( !is_dir(DATA_PATH . 'roskomnadzor') )
+      mkdir(DATA_PATH . 'roskomnadzor', 0777);
   }
     
   public function getLastDumpDate($var = null) {
@@ -65,17 +69,14 @@ class RosKomNadzor {
       }
       $dom->appendChild($root);
       // Записываем xml-документ в файл
-      return file_put_contents(self::PATH_REQUEST_XML, $dom->saveXML());
+      return file_put_contents(self::FILE_REQUEST_XML, $dom->saveXML());
     }
   }
     
   private function signRequestXml() {
     // Формируем отсоединенную ЭП файла запроса в формате PKCS#7:
-    openssl_pkcs7_sign(self::PATH_REQUEST_XML, self::PATH_REQUEST_SIG, 'file://' . self::PATH_OPENSSL_PEM, 
-      array(
-        'file://' . self::PATH_OPENSSL_KEY, zb_StorageGet(self::STORAGE_PASSWORD_KEY)
-      ), array(), PKCS7_DETACHED
-    );
+    $command = self::PATH_OPENSSL . ' smime -sign -inkey ' . self::FILE_OPENSSL_PEM . ' -signer ' . self::FILE_OPENSSL_PEM . ' -outform pem -nodetach -in ' . self::FILE_REQUEST_XML . ' -out ' . self::FILE_REQUEST_XML_SIG;
+    exec($command);
   }
     
   public function sendRequest($var = null) {
@@ -106,11 +107,9 @@ class RosKomNadzor {
         // запрос в Роскомнадзор на получение новой выгрузки
         $this->generateRequestXml();
         $this->signRequestXml();
-        $requestXml    = DATA_PATH . join(DIRECTORY_SEPARATOR, array('rbs', 'tmp', self::REQUEST_FILE));
-        $requestXmlSig = DATA_PATH . join(DIRECTORY_SEPARATOR, array('rbs', 'tmp', self::REQUEST_FILE_SIG));
         $this->_sendRequest = $this->_soap->sendRequest(array(
-          'requestFile'   => new SoapVar(file_get_contents($requestXml),    XSD_BASE64BINARY, 'xsd:base64Binary'),
-          'signatureFile' => new SoapVar(file_get_contents($requestXmlSig), XSD_BASE64BINARY, 'xsd:base64Binary'),
+          'requestFile'   => new SoapVar(file_get_contents(self::FILE_REQUEST_XML),     XSD_BASE64BINARY, 'xsd:base64Binary'),
+          'signatureFile' => new SoapVar(file_get_contents(self::FILE_REQUEST_XML_SIG), XSD_BASE64BINARY, 'xsd:base64Binary'),
           'dumpFormatVersion' => '2.0'
         ));
         $this->_requestPK = $this->logRequest();
@@ -130,9 +129,9 @@ class RosKomNadzor {
       VALUES ('$code', '$requestStatus', '$requestComment', NOW())
     ";
     nr_query($query);
-    return mysql_insert_id();
+    return simple_get_lastid('rbs_requests');
   }
-    
+  
   public function getResult($var = null) {
     if ( !is_object($this->_getResult) ) {
       $code = $this->sendRequest('code');
@@ -195,31 +194,45 @@ class RosKomNadzor {
     // Электронный адрес технического специалиста:
     $contents = $operator->text_box(self::FORM_OPERATOR . '[email]', @$data['email'], 30,  0, false, null);
     $operator->addrow(__('email'), $contents);
-    // Раздел сертификата и приватного ключа:
-    $operator->addmessage(__('Certificate and private key'));
-    // Сертификат:
-    $contents = $operator->file(self::FORM_OPERATOR . '[crt]');
-    $operator->addrow(__('Certificate'), $contents, 'middle', 'left');
-    // Закрытый ключ:
-    $contents = $operator->file(self::FORM_OPERATOR . '[key]');
-    $operator->addrow(__('Private key'), $contents, 'middle', 'left');
+    // Раздел добавления сертификата:
+    $operator->addmessage(__('Adding of new *.pem certificate'));
+    // PEM-сертификат:
+    $contents = $operator->file(self::FORM_OPERATOR . '[pem]');
+    $operator->addrow(__('*.pem certificate'), $contents, 'middle', 'left');
     // Возвращаем готовую форму:
     return $operator->show(true);
   }
     
   public function submitOperatorForm($data) {
-    // Сохраняем данные об операторе:
-    $data = serialize($data);
-    $data = base64_encode($data);
-    zb_StorageSet(self::STORAGE_OPERATOR_KEY, $data);
-    // Сохраняем сертификат и приватный ключ:
-    foreach ( $_FILES[self::FORM_OPERATOR]['error'] as $key => $error ) {
-      if ( $error == UPLOAD_ERR_OK ) {
-        $tmp_name  = $_FILES[self::FORM_OPERATOR]['tmp_name'][$key];
-        $file_name = DATA_PATH . join(DIRECTORY_SEPARATOR, array('rbs', 'openssl.' . $key));
-        if ( !move_uploaded_file($tmp_name, $file_name) )
-          show_window(__('Error'), __("Ошибка загрузки файла <i>'$file_name'</i> на сервер!"));
+    $errors = array();
+    foreach ( $data as $key => $value ) {
+      if ( empty($value) )
+        $errors[] = $key;
+    }
+    if ( empty($errors) ) {
+      // Сохраняем данные об операторе:
+      $data = serialize($data);
+      $data = base64_encode($data);
+      zb_StorageSet(self::STORAGE_OPERATOR_KEY, $data);
+      // Сохраняем pem-сертификат:
+      $error = $_FILES[self::FORM_OPERATOR]['error']['pem'];
+      if ( $error === UPLOAD_ERR_OK ) {
+        if ( !move_uploaded_file($_FILES[self::FORM_OPERATOR]['tmp_name']['pem'], self::FILE_OPENSSL_PEM) )
+          show_window(__('Error'), __('Error while moving file from tmp-directory'));
+      } elseif ( $error !== UPLOAD_ERR_NO_FILE) {
+        show_window(__('Error'), __('Error while loading file to server. Code:') . ' ' . intval($_FILES[self::FORM_OPERATOR]['error']['pem']));
       }
+    } else {
+      $dom = new DOMDocument;
+      $dom->formatOutput = true;
+      // Генерируем дерево xml-документа
+      $ul = $dom->createElement('ul');
+      foreach ( $errors as $value ) {
+        $li = $dom->createElement('li', __($value));
+        $ul->appendChild($li);
+      }
+      $dom->appendChild($ul);
+      show_window('<span style="color:red">' . __('Next fields were filled in incorrectly:') . '</span>', $dom->saveHTML());
     }
   }
 
