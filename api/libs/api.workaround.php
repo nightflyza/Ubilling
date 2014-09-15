@@ -896,44 +896,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         return($userdata);
     }
 
-    function web_ProfileControls($login) {
-        $login=vf($login);
-        $default_controls='
-        <table width="100%" bgcolor="#ffffff" border="0">
-        <tbody><tr valign="bottom">
-	<td><a href="?module=lifestory&username='.$login.'"><img src="skins/icon_orb_big.gif" title="'.__('User lifestory').'" border="0"></a>
-	<br>'.__('Details').'
-	</td>
-	<td><a href="?module=traffstats&username='.$login.'"><img src="skins/icon_stats_big.gif" title="'.__('Traffic stats').'" border="0"></a>
-	<br>'.__('Traffic stats').'
-	</td>
-	<td><a href="?module=addcash&username='.$login.'#profileending"><img src="skins/icon_cash_big.gif" title="'.__('Cash').'" border="0"></a>
-	<br>'.__('Cash').'
-	</td>
-	<td><a href="?module=macedit&username='.$login.'"><img src="skins/icon_ether_big.gif" title="'.__('Change MAC').'" border="0"></a>
-	<br>'.__('Change MAC').'
-	</td>
-	<td><a href="?module=binder&username='.$login.'"><img src="skins/icon_build_big.gif" title="'.__('Address').'" border="0"></a>
-	<br>'.__('Address').'
-	</td>
-	<td><a href="?module=tariffedit&username='.$login.'"><img src="skins/icon_tariff_big.gif" title="'.__('Tariff').'" border="0"></a>
-	<br>'.__('Tariff').'
-	</td>
-	<td><a href="?module=useredit&username='.$login.'"><img src="skins/icon_user_edit_big.gif" title="'.__('Edit user').'" border="0"></a>
-	<br>'.__('Edit').'
-	</td>
-        <td><a href="?module=jobs&username='.$login.'"><img src="skins/worker.gif" title="'.__('Jobs').'" border="0"></a>
-	<br>'.__('Jobs').'
-	</td>
-	<td><a href="?module=reset&username='.$login.'"><img src="skins/icon_reset_big.gif" title="'.__('Reset user').'" border="0"></a>
-	<br>'.__('Reset user').'
-	</td>
-	</tr>
-	</tbody></table>
-
-            ';
-        return($default_controls);
-    }
+  
     
     function zb_ProfilePluginsLoad() {
         $plugins=rcms_parse_ini_file(CONFIG_PATH."plugins.ini", true);
@@ -1105,467 +1068,9 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
       return ($result);
   }
   
-  /*
-   * returns one-click credit set form for profile
-   * 
-   * 
-   * @param string $login existing callback user login
-   * @param float  $cash  current user balance
-   * @param int    $credit current user credit
-   * @param string $userTariff current user tariff
-   * @param int    $easycreditoption current state of EASY_CREDIT option
-   * 
-   * @return string
-   */
-  function web_EasyCreditForm($login,$cash,$credit,$userTariff,$easycreditoption) {
-      /////////////////internal controller
-      if (wf_CheckPost(array('easycreditlogin','easycreditlimit','easycreditexpire'))) {
-           global $billing;
-           $setCredit=vf($_POST['easycreditlimit']);
-           $setLogin=  mysql_real_escape_string($_POST['easycreditlogin']);
-           $setExpire=  mysql_real_escape_string($_POST['easycreditexpire']);
-           //set credit
-           $billing->setcredit($setLogin,$setCredit);
-           log_register('CHANGE Credit ('.$setLogin.') ON '.$setCredit);
-           //set credit expire date
-            $billing->setcreditexpire($setLogin,$setExpire);
-            log_register('CHANGE CreditExpire ('.$setLogin.') ON '.$setExpire);
-            
-            rcms_redirect('?module=userprofile&username='.$setLogin);
-      }
-      
-      ////////////////////////////////////
-       $alltariffprices= zb_TariffGetPricesAll();
-       @$tariffPrice=(isset($alltariffprices[$userTariff])) ? $alltariffprices[$userTariff] : 0;
-        
-        
-      if ($cash>='-'.$credit) {
-          $creditProposal=$tariffPrice;
-          $creditNote=__('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
-      } else {
-          $creditProposal=abs($cash);
-          $creditNote=__('At the moment the account have debt. It is proposed to establish credit in its size.');
-          
-      }
-      
-      //calculate credit expire date
-            $nowTimestamp=time();
-            $creditSeconds=($easycreditoption*86400); //days*secs
-            $creditOffset=$nowTimestamp+$creditSeconds;
-            $creditExpireDate=date("Y-m-d",$creditOffset);
-      //construct form
-      $controlIcon=  wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
-      $inputs='';
-      $inputs.= wf_HiddenInput('easycreditlogin', $login);
-      $inputs.= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5').__('credit limit').' ';
-      $inputs.= __('until');
-      $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
-      $inputs.= wf_Submit(__('Save'));
-      
-      $form=  wf_Form("", 'POST', $inputs, 'glamour');
-      $form.=$creditNote;
-      
-      $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '180');
-      
-      return ($result);
-  }
+ 
   
     
-    function web_ProfileShow($login) {
-        global $ubillingConfig;
-        $alter_conf = $ubillingConfig->getAlter();
-		
-        $hightlight_start='';
-        $hightlight_end='';
-        $profile_plugins='';
-        if ($alter_conf['HIGHLIGHT_IMPORTANT']) {
-            $hightlight_start='<b>';
-            $hightlight_end='</b>';
-        }
-        $userdata=zb_ProfileGetStgData($login);
-        $alladdress=zb_AddressGetFullCityaddresslist();
-        @$useraddress=$alladdress[$login];
-        $realname=zb_UserGetRealName($login);
-        $phone=zb_UserGetPhone($login);
-        $mobile=zb_UserGetMobile($login);
-        $contract=zb_UserGetContract($login);
-        $mail=zb_UserGetEmail($login);
-        $aptdata=zb_AddressGetAptData($login);
-        $speedoverride=zb_UserGetSpeedOverride($login);
-        $mac=zb_MultinetGetMAC($userdata['IP']);
-        $userTariff=$userdata['Tariff'];
-       
-        
-        if ($alter_conf['MACVEN_ENABLED']) {
-            $vendorframe='<iframe src="?module=macvendor&mac='.$mac.'&username='.$login.'" width="360" height="160" frameborder="0"></iframe';
-            $lookuplink=  wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
-        } else {
-            $lookuplink='';
-        }
-        
-        $creditexpire=$userdata['CreditExpire'];
-        if ($creditexpire>0) {
-            $creditexpire=date("Y-m-d",$creditexpire);
-        } else {
-            $creditexpire=__('No');
-        }
-        if ($alter_conf['PASSWORDSHIDE']) {
-            $userdata['Password']=__('Hidden');
-        }
-        if ($userdata['LastActivityTime']!=0) {
-            $lat=date("Y-m-d H:i:s",$userdata['LastActivityTime']);
-        } else {
-            $lat='';
-        }
-        
-        $act='<img src="skins/icon_active.gif" border="0"> '.__('Yes');
-        
-         if ($userdata['Cash']<'-'.$userdata['Credit']) {
-                $act='<img src="skins/icon_inactive.gif" border="0"> '.__('No');
-         }
-         
-         if ($alter_conf['PROFILE_PLUGINS']) {
-             $profile_plugins=web_ProfilePluginsShow($login);
-//             if ($alter_conf['MIKROTIK_SUPPORT']) {
-//                 $profile_plugins.=wf_delimiter().web_MikrotikPluginsShow($login);
-//             }
-         }
-         
-         //catv backlinks
-         if ($alter_conf['CATV_ENABLED']) {
-             $catv_backlogin_q="SELECT * from `catv_users` WHERE `inetlink`='".$login."'";
-             $catv_backlogin=simple_query($catv_backlogin_q);
-             if (!empty($catv_backlogin)) {
-                 $catv_backlink=  wf_Link("?module=catv_profile&userid=".$catv_backlogin['id'], web_profile_icon().' '.$catv_backlogin['street'].' '.$catv_backlogin['build'].'/'.$catv_backlogin['apt'], false);
-                 
-                 $catv_backcode= wf_TableCell(__('CaTV'), '', 'row2');
-                 $catv_backcode.= wf_TableCell($catv_backlink, '', 'row3');
-                 $catv_backcode=  wf_TableRow($catv_backcode);
-                 
-             } else {
-                 $catv_backcode= wf_TableCell(__('CaTV'), '', 'row2');
-                 $catv_backcode.= wf_TableCell(__('No'), '', 'row3');
-                 $catv_backcode=  wf_TableRow($catv_backcode);
-             }
-         } else {
-             $catv_backcode='';
-         }
-         
-        // corporate user check
-        $profile='';
-        if ($alter_conf['USER_LINKING_ENABLED']) {
-            $alllinkedusers=cu_GetAllLinkedUsers();
-         if (isset ($alllinkedusers[$login])) {
-           $parent_login=cu_GetParentUserLogin($alllinkedusers[$login]);
-           $profile='<a href="?module=corporate&userlink='.$alllinkedusers[$login].'">
-                      <img src="skins/corporate_small.gif"  border="0">
-                      '.__('User linked with').': '.@$alladdress[$parent_login].'
-                      
-                      </a>';
-           
-         } 
-        } 
-        
-        //check is user corporate parent?
-        if ($alter_conf['USER_LINKING_ENABLED']) {
-            $allparentusers=cu_GetAllParentUsers();
-            if (isset ($allparentusers[$login])) {
-                if (($_GET['module']!='corporate') AND ($_GET['module']!='addcash')) {
-                rcms_redirect("?module=corporate&userlink=".$allparentusers[$login]);
-                }
-            }
-            
-        }
-        
-        //cosmetic issues
-        if ($userdata['Passive']) {
-            $passiveicon=  wf_img('skins/icon_passive.gif').' ';
-        } else {
-            $passiveicon='';
-        }
-        
-          if ($userdata['Down']) {
-            $downicon=  wf_img('skins/icon_down.gif').' ';
-        } else {
-            $downicon='';
-        }
-        
-        //profile task creation icon
-        if ($alter_conf['CREATETASK_IN_PROFILE']) {
-           $shortaddress=  zb_UserGetFullAddress($login);
-           $taskcreatelink=wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortaddress,$mobile,$phone), '', '420', '500'); 
-        } else {
-            $taskcreatelink='';
-        }
-        //build locator here
-        $buildLocator='';
-        if ($alter_conf['SWYMAP_ENABLED']) {
-            if (isset($aptdata['buildid'])) {
-                $thisUserBuildData=  zb_AddressGetBuildData($aptdata['buildid']);
-                $thisUserBuildGeo=$thisUserBuildData['geo'];
-                if (!empty($thisUserBuildGeo)) {
-                    $locatorIcon=  wf_tag('img', false, '', 'src="skins/icon_search_small.gif" border="0" width="10" title="'.__('Find on map').'"');
-                    $buildLocator= ' '.wf_Link("?module=usersmap&findbuild=".$thisUserBuildGeo, $locatorIcon, false);
-                }
-                //and neighbors state cache
-                if (!empty($aptdata['buildid'])) {
-                    if (file_exists('exports/'.$aptdata['buildid'].'.inbuildusers')) {
-                        $inbuildNeigbors_raw=  file_get_contents('exports/'.$aptdata['buildid'].'.inbuildusers');
-                        $inbuildNeigbors_raw=  unserialize($inbuildNeigbors_raw);
-                        if (!empty($inbuildNeigbors_raw)) {
-                        $inbuildNeigborsStat='';
-                        $inbuildNeigborsStat.= wf_TableBody($inbuildNeigbors_raw['rows'], '100%', '0', 'sortable');
-                        $inbuildNeigborsStat.= wf_tag('br').__('Active').' '.$inbuildNeigbors_raw['aliveusers'].'/'.$inbuildNeigbors_raw['userscount'];
-                        $buildNeighborsIcon=  wf_tag('img', false, '', 'src=skins/icon_build.gif width=12 title='.__('Neighbours').'');
-                        $buildLocator.=' '.wf_modal($buildNeighborsIcon, __('Neighbours'), $inbuildNeigborsStat, '', 400, 400);
-                        }
-                    }
-                }
-            }
-        }
-        //payment id
-        if ($alter_conf['OPENPAYZ_REALID']) {
-            $paymentid=zb_PaymentIDGet($login);
-        } else {
-            $paymentid=ip2int($userdata['IP']);
-        }
-        
-        //passport data in profile
-        if ($alter_conf['PASSPDATA_IN_PROFILE']) {
-            $passportdata= web_UserPassportDataShow($login);
-            $passplink=  wf_modal('<img src="skins/icon_passport.gif" border="0" title="'.__('Passport data').'" height="10">', __('Passport data'), $passportdata, '', '600', '300');
-        } else {
-            $passplink='';
-        }
-		
-        if ($alter_conf['ROUND_PROFILE_CASH']) {
-            $Cash = web_roundValue($userdata['Cash'], 2);
-        } else  $Cash = $userdata['Cash'];
-        
-        //switchport section
-        if ($alter_conf['SWITCHPORT_IN_PROFILE']) {
-            $switchPort= web_ProfileSwitchControlForm($login);
-            $switchPort.= '';
-        } else {
-            $switchPort='';
-        }
-        
-        //DN online detections
-        if ($alter_conf['DN_ONLINE_DETECT']) {
-            if (file_exists(DATA_PATH.'dn/'.$login)) {
-                $onlineDnFlag=web_bool_star(true).' '.__('Yes');
-            } else {
-                $onlineDnFlag=web_bool_star(false).' '.__('No');
-            }
-            $dnOnlineCells= wf_TableCell(__('Online'), '', 'row2');
-            $dnOnlineCells.= wf_TableCell($onlineDnFlag, '', 'row3');
-            $dnOnlineRow=  wf_TableRow($dnOnlineCells);
-        } else {
-            $dnOnlineRow='';
-        }
-        
-        //corporate users handling
-        if ($alter_conf['CORPS_ENABLED']) {
-            $corps=new Corps();
-            $corpsCheck=$corps->userIsCorporate($login);
-            
-            $corpsCells=   wf_TableCell(__('User type'),'','row2');
-            
-            if ($corpsCheck) {
-                $corpPreview= $corps->corpPreview($corpsCheck); 
-                $corpPreviewControl=wf_modal(wf_img('skins/folder_small.png',__('Show')), __('Preview'),  $corpPreview, '', '800', '600');  
-                $corpsCells.=  wf_TableCell(__('Corporate user').' '.$corpPreviewControl,'','row3');
-            } else {
-                $corpsCells.=  wf_TableCell(__('Private user'),'','row3');
-            }
-            $corps_row=  wf_TableRow($corpsCells);
-            
-        } else {
-            $corps_row='';
-        }
-        
-        //agent assign display check
-        if ($alter_conf['AGENTS_ASSIGN']==2) {
-            $assignedAgentData=  zb_AgentAssignedGetDataFast($login,$useraddress);
-            $agentCells=   wf_TableCell(__('Contrahent name'),'','row2');
-            $agentCells.=  wf_TableCell(@$assignedAgentData['contrname'],'','row3');
-            $agentRows= wf_TableRow($agentCells);
-        } else {
-            $agentRows='';
-        }
-		
-        // Signup payments:
-        if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
-            $signupprice_row = '
-                <tr>
-                    <td class="row2">' . __('Signup paid') . '</td>
-                    <td class="row3">' . zb_UserGetSignupPricePaid($login) . '/' . zb_UserGetSignupPrice($login) . '</td>
-                </tr>
-            ';
-        } else { $signupprice_row = null; }
-        
-        //Easy credit option handling
-        if ($alter_conf['EASY_CREDIT']) {
-            if ((cfr('CREDIT')) AND (cfr('CREDITEXPIRE'))) {
-                $easyCreditControl=  web_EasyCreditForm($login, $Cash, $userdata['Credit'],$userTariff,$alter_conf['EASY_CREDIT']);
-                
-            } else {
-                $easyCreditControl='';
-            }
-        } else {
-            $easyCreditControl='';
-        }
-        
-        //Extnepools handling here
-        if ($alter_conf['NETWORKS_EXT']) {
-            $extNets=new ExtNets();
-            //pool linking controller
-            if (wf_CheckPost(array('extnetspoollinkid','extnetspoollinklogin'))) {
-                $extNets->poolLinkLogin($_POST['extnetspoollinkid'], $_POST['extnetspoollinklogin']);
-                rcms_redirect('?module=userprofile&username='.$_POST['extnetspoollinklogin']);
-            }
-            $extnetsControls=$extNets->poolsExtractByLogin($login);
-            $extnetsControls.=' '.wf_modal(wf_img('skins/icon_ip.gif'), __('IP associated with pool'), $extNets->poolLinkingForm($login), '', '500', '120');
-            
-        } else {
-            $extnetsControls='';
-        }
-        
-		$profile.='
-       <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
-       <tbody>
-        <tr>
-              <td valign="top">
-       <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
-        <tbody>
-            <tr>
-                <td class="row2" width="30%">'.__('Full address').$taskcreatelink.'</td>
-                <td class="row3">'.$useraddress.$buildLocator.'</td>
-            </tr>
-           <tr>
-                <td class="row2" width="30%">'.__('Entrance').', '.__('Floor').'</td>
-                <td class="row3">'.@$aptdata['entrance'].' '.@$aptdata['floor'].'</td>
-            </tr>
-            <tr>
-                <td class="row2">'.$hightlight_start.''.__('Real name').''.$hightlight_end.$passplink.'</td>
-                <td class="row3">'.$hightlight_start.''.$realname.''.$hightlight_end.'</td>
-            </tr>
-               <tr>
-                <td class="row2">'.__('Contract').'</td>
-                <td class="row3">'.$contract.'</td>
-            </tr>
-            '.$agentRows.'
-            '.$corps_row.'
-              <tr>
-                <td class="row2">'.__('Phone').'</td>
-                <td class="row3">'.$phone.'</td>
-            </tr>
-              <tr>
-                <td class="row2">'.__('Mobile').'</td>
-                <td class="row3">'.$mobile.'</td>
-            </tr>
-               <tr>
-                <td class="row2">'.__('Email').'</td>
-                <td class="row3">'.$mail.'</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Payment ID').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$paymentid.''.$hightlight_end.'</td>
-            </tr>
-           
-            <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Last activity time').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$lat.''.$hightlight_end.'</td>
-            </tr>
-             <tr>
-                <td class="row2" >'.$hightlight_start.' '.__('Login').''.$hightlight_end.'</td>
-                <td class="row3">'.$hightlight_start.' '.$userdata['login'].' '.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Password').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$userdata['Password'].''.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('IP').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$userdata['IP'].$extnetsControls.''.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2">'.__('MAC').' '.$lookuplink.'</td>
-                <td class="row3">'.$mac.'</td>
-            </tr>
-             <tr>
-                <td class="row2">'.$hightlight_start.''.__('Tariff').''.$hightlight_end.'</td>
-                <td class="row3">'.$hightlight_start.''.$userTariff.''.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2">'.__('Planned tariff change').'</td>
-                <td class="row3">'.$userdata['TariffChange'].'</td>
-            </tr>
-            '.$catv_backcode.'
-            <tr>
-                <td class="row2">'.__('Speed override').'</td>
-                <td class="row3">'.$speedoverride.'</td>
-            </tr>
-			' . $signupprice_row . '
-            <tr>
-                <td class="row2"> ' . $hightlight_start . ' ' . __('Balance') . '' . $hightlight_end . '</td>
-                <td class="row3"> ' . $hightlight_start . ' ' . $Cash . ''. $hightlight_end . '</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.' '.__('Credit').' '.$easyCreditControl.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$userdata['Credit'].''.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2">'.__('Credit expire').'</td>
-                <td class="row3">'.$creditexpire.'</td>
-            </tr>
-              <tr>
-                <td class="row2">'.__('Prepayed traffic').'</td>
-                <td class="row3">'.$userdata['FreeMb'].'</td>
-            </tr>
-             <tr>
-                <td class="row2">'.__('Active').'</td>
-                <td class="row3">'.$act.'</td>
-            </tr>
-            '.$dnOnlineRow.'
-            <tr>
-                <td class="row2">'.__('Always Online').'</td>
-                <td class="row3">'.web_trigger($userdata['AlwaysOnline']).'</td>
-            </tr>
-            <tr>
-                <td class="row2">'.__('Disable detailed stats').'</td>
-                <td class="row3">'.web_trigger($userdata['DisabledDetailStat']).'</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.''.__('Freezed').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.''.$passiveicon.web_trigger($userdata['Passive']).''.$hightlight_end.'</td>
-            </tr>
-            <tr>
-                <td class="row2"> '.$hightlight_start.''.__('Disabled').''.$hightlight_end.'</td>
-                <td class="row3"> '.$hightlight_start.' '.$downicon.web_trigger($userdata['Down']).''.$hightlight_end.'</td>
-            </tr>
-              <tr>
-                <td class="row2">'.__('Notes').'<a id="profileending"></a></td>
-                <td class="row3">'.zb_UserGetNotes($login).'</td>
-            </tr>
-           
-        </tbody>
-        </table>
-        </td>
-                <td valign="top" width="10%"> 
-              '.$profile_plugins.'
-                </td>
-        </tr>
-        </tbody>
-        </table>
-            ';
-        $profile.=$switchPort;
-        $profile.=cf_FieldShower($login);
-        $profile.='<a href="?module=usertags&username='.$login.'">'.web_add_icon('Tags').'</a> ';
-        $profile.=stg_show_user_tags($login);
-        $profile.=web_ProfileControls($login);
-        return($profile);
-    }
     
     function zb_EventGetAllDateTimes() {
         $query="SELECT `admin`,`date` from `weblogs`";
@@ -4146,3 +3651,68 @@ function web_FreeRadiusListClients() {
     
     return ($result);
 }
+
+/*
+   * returns one-click credit set form for profile
+   * 
+   * 
+   * @param string $login existing callback user login
+   * @param float  $cash  current user balance
+   * @param int    $credit current user credit
+   * @param string $userTariff current user tariff
+   * @param int    $easycreditoption current state of EASY_CREDIT option
+   * 
+   * @return string
+   */
+  function web_EasyCreditForm($login,$cash,$credit,$userTariff,$easycreditoption) {
+      /////////////////internal controller
+      if (wf_CheckPost(array('easycreditlogin','easycreditlimit','easycreditexpire'))) {
+           global $billing;
+           $setCredit=vf($_POST['easycreditlimit']);
+           $setLogin=  mysql_real_escape_string($_POST['easycreditlogin']);
+           $setExpire=  mysql_real_escape_string($_POST['easycreditexpire']);
+           //set credit
+           $billing->setcredit($setLogin,$setCredit);
+           log_register('CHANGE Credit ('.$setLogin.') ON '.$setCredit);
+           //set credit expire date
+            $billing->setcreditexpire($setLogin,$setExpire);
+            log_register('CHANGE CreditExpire ('.$setLogin.') ON '.$setExpire);
+            
+            rcms_redirect('?module=userprofile&username='.$setLogin);
+      }
+      
+      ////////////////////////////////////
+       $alltariffprices= zb_TariffGetPricesAll();
+       @$tariffPrice=(isset($alltariffprices[$userTariff])) ? $alltariffprices[$userTariff] : 0;
+        
+        
+      if ($cash>='-'.$credit) {
+          $creditProposal=$tariffPrice;
+          $creditNote=__('The amount of money in the account at the moment is sufficient to provide the service. It is therefore proposed to set a credit limit on the fee of the tariff.');
+      } else {
+          $creditProposal=abs($cash);
+          $creditNote=__('At the moment the account have debt. It is proposed to establish credit in its size.');
+          
+      }
+      
+      //calculate credit expire date
+            $nowTimestamp=time();
+            $creditSeconds=($easycreditoption*86400); //days*secs
+            $creditOffset=$nowTimestamp+$creditSeconds;
+            $creditExpireDate=date("Y-m-d",$creditOffset);
+      //construct form
+      $controlIcon=  wf_tag('img', false, '', 'src="skins/icon_calendar.gif" height="10"');
+      $inputs='';
+      $inputs.= wf_HiddenInput('easycreditlogin', $login);
+      $inputs.= wf_TextInput('easycreditlimit', '', $creditProposal, false, '5').__('credit limit').' ';
+      $inputs.= __('until');
+      $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
+      $inputs.= wf_Submit(__('Save'));
+      
+      $form=  wf_Form("", 'POST', $inputs, 'glamour');
+      $form.=$creditNote;
+      
+      $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '180');
+      
+      return ($result);
+  }

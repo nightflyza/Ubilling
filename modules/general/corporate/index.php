@@ -15,7 +15,8 @@ if (cfr('CORPORATE')) {
         show_window(__('Linked users'),  web_UserArrayShower($childusers));
         //show parent user profile by default
         if (!isset($_GET['control'])) {
-        $default_profile=web_ProfileShow($parent_login);
+        $profileObj=new UserProfile($parent_login);
+        $default_profile=$profileObj->render();
         show_window(__('User profile'),$default_profile);
         } else {
             //show controls

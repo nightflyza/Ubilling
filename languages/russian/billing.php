@@ -1732,6 +1732,6 @@ $lang['def']['Tables']='Таблицы';
 $lang['def']['MySQL database info']='Информация о БД MySQL';
 $lang['def']['Create connection capability']='Создать возможность подключения';
 $lang['def']['FreeRADIUS NAS parameters']='Параметры серверов доступа FreeRADIUS';
+$lang['def']['Colorize cash in user profile']='Производить покраску баланса в профиле пользователя';
 $lang['def']['']='';
-
 ?>

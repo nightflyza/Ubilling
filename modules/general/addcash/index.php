@@ -36,7 +36,8 @@ if ( cfr('CASH') ) {
         $useraddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
 
         // Profile:
-        show_window(__('User profile'), web_ProfileShow($login));
+        $profile=new UserProfile($login);
+        show_window(__('User profile'), $profile->render());
         
         // Edit money form construct:
         $user_data    = zb_UserGetStargazerData($login);

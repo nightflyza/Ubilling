@@ -46,6 +46,8 @@ include('api/libs/api.assignreport.php');
 include('api/libs/api.capabdir.php');
 include('api/libs/api.sigreq.php');
 include('api/libs/api.roskomnadzor.php');
+include('api/libs/api.userprofile.php');
+
 
 /*
  * Initial class creation
