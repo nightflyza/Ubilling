@@ -297,6 +297,25 @@ class UserProfile {
             $this->paymentid = ip2int($this->userdata['IP']);
         }
     }
+    
+    /*
+     * returns private userdata property to external scope
+     * 
+     * @return array
+     */
+    public function extractUserData() {
+        return ($this->userdata);
+    }
+    
+     /*
+     * returns private useraddress property to external scope
+     * 
+     * @return array
+     */
+    public function extractUserAddress() {
+        return ($this->useraddress);
+    }
+    
 
     /*
      * returns prepared main profile body row with two data cells

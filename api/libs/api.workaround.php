@@ -480,14 +480,6 @@ return($form);
 function web_CashTypeSelector() {
     $allcashtypes=zb_CashGetAlltypes();
     $cashtypes=array();
-    //commented due injecting default cashtype 
-//    $selector='<select name="cashtype">';
-//    if (!empty ($allcashtypes)) {
-//        foreach ($allcashtypes as $io=>$eachtype) {
-//            $selector.='<option value="'.$eachtype['id'].'">'.__($eachtype['cashtype']).'</option>';
-//        }
-//    }
-//    $selector.='</select>';
     if (!empty($allcashtypes)) {
         foreach ($allcashtypes as $io=>$each) {
             $cashtypes[$each['id']]=__($each['cashtype']);
@@ -514,6 +506,7 @@ function web_CashTypeSelector() {
         }
 
 function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$tariff_price='') {
+    global $ubillingConfig;
     $field1=$fieldnames['fieldname1'];
     $field2=$fieldnames['fieldname2'];
     
@@ -523,7 +516,7 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
         $expected_time='';
     }
     //cash suspect checking 
-    $alterconf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $alterconf= $ubillingConfig->getAlter();
     if ($alterconf['SUSP_PAYMENTS_NOTIFY']) {
         $suspnotifyscript=js_CashCheck($alterconf['SUSP_PAYMENTS_NOTIFY']);
         $cashfieldanchor='onchange="checkcashfield();"';
@@ -534,18 +527,20 @@ function web_EditorCashDataForm($fieldnames,$fieldkey,$useraddress,$olddata='',$
     
     if ($alterconf['SETCASH_ONLY_ROOT']) {
         if (cfr('ROOT')) {
-            $setCashControl='<input type="radio" name="operation" value="set"> '.__('Set cash');
+            $setCashControl='<input type="radio" name="operation" value="set" id="omradset"> ';
+            $setCashControl.= '<label for="omradset">'.__('Set cash').'</label>';
         } else {
-            $setCashControl='';
+            $setCashControl=''; 
         }
     } else {
-        $setCashControl='<input type="radio" name="operation" value="set"> '.__('Set cash');
+        $setCashControl='<input type="radio" name="operation" value="set" id="omradset"> ';
+        $setCashControl.= '<label for="omradset">'.__('Set cash').'</label>';
     }
     
     $radio='
-        <input type="radio" name="operation" value="add" CHECKED> '.__('Add cash').'
-        <input type="radio" name="operation" value="correct"> '.__('Correct saldo').'
-        <input type="radio" name="operation" value="mock"> '.__('Mock payment').'
+        <input type="radio" name="operation" value="add" id="omradadd" CHECKED> <label for="omradadd">'.__('Add cash').'</label>
+        <input type="radio" name="operation" value="correct" id="omradcorr"> <label for="omradcorr">'.__('Correct saldo').'</label>
+        <input type="radio" name="operation" value="mock" id="omradmock"> <label for="omradmock">'.__('Mock payment').'</label>
         ';
     $radio.=$setCashControl;
     
@@ -1041,7 +1036,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
             $iCanDeletePayments=true;
         }
         
-        $last_payment=zb_CashGetUserLastPayment($login);
+       
         $result='<table width="100%" border="0" class="sortable">';
           $result.='
                     <tr class="row1">
@@ -1103,7 +1098,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         }
         $result.='</table>';
         $result.=__('Total payments').': <b>'.abs($total_payments).'</b> <br>';
-        $result.=$last_payment.'<br>';
+        
         return($result);
     }
     

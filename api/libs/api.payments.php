@@ -116,17 +116,18 @@ function zb_CashGetUserPayments($login) {
     return($allpayments);
    }
    
-function zb_CashGetUserLastPayment($login) {
-    $login=vf($login);
-    $query="SELECT * from `payments` where `login`='".$login."' ORDER BY `date` DESC LIMIT 1";
-    $payment=simple_query($query);
-    if (!empty ($payment)) {
-    $result=__('Last payment').' '.$payment['summ'].' '.$payment['date'];
-    } else {
-    $result=__('Any payments yet');    
-    }
-    return($result);
-}
+// deprecated in 0.5.8   
+//function zb_CashGetUserLastPayment($login) {
+//    $login=vf($login);
+//    $query="SELECT * from `payments` where `login`='".$login."' ORDER BY `date` DESC LIMIT 1";
+//    $payment=simple_query($query);
+//    if (!empty ($payment)) {
+//    $result=__('Last payment').' '.$payment['summ'].' '.$payment['date'];
+//    } else {
+//    $result=__('Any payments yet');    
+//    }
+//    return($result);
+//}
    
 function zb_CashGetAllCashTypes() {
     $query="SELECT * from `cashtype`";

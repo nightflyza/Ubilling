@@ -30,17 +30,16 @@ if ( cfr('CASH') ) {
                 log_register('BALANCEADDFAIL ('.$login.') EMPTY SUMM `'.$cash.'`');
             }
         }
-
-        $current_balance = zb_UserGetStargazerData($login);
-        $current_balance = $current_balance['Cash'];
-        $useraddress = zb_UserGetFullAddress($login) . ' (' . $login . ')';
-
+        
         // Profile:
         $profile=new UserProfile($login);
         show_window(__('User profile'), $profile->render());
         
+        $user_data = $profile->extractUserData();
+        $current_balance = $user_data['Cash'];
+        $useraddress = $profile->extractUserAddress() . ' (' . $login . ')';
+        
         // Edit money form construct:
-        $user_data    = zb_UserGetStargazerData($login);
         $user_tariff  = $user_data['Tariff'];
         $tariff_price = zb_TariffGetPrice($user_tariff);
         $fieldnames   = array('fieldname1' => __('Current Cash state'), 'fieldname2' => __('New cash'));
