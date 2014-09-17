@@ -896,69 +896,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
         return($userdata);
     }
 
-  
     
-    function zb_ProfilePluginsLoad() {
-        $plugins=rcms_parse_ini_file(CONFIG_PATH."plugins.ini", true);
-        return($plugins);
-    }
-    
-    function zb_MikrotikPluginsLoad() {
-        $plugins=rcms_parse_ini_file(CONFIG_PATH."plugins_mt.ini", true);
-        return($plugins);
-    }
-    
-        function web_ProfilePluginsShowOverlay($login,$overlaydata) {
-        $login=vf($login);
-        $plugins=rcms_parse_ini_file(CONFIG_PATH.$overlaydata,true);
-        $result='<table width="100%" height="100%" border="0">
-            <tr>
-            <td valign="middle" align="center" >
-            ';
-        if (!empty ($plugins)) {
-            foreach ($plugins as $io=>$eachplugin) {
-              $result.='<div style="width: 150px; height: 150px; float: left;"> <a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> </div>';   
-            }
-        }
-        $result.='</td></tr></table>';
-        return($result);
-    }
-    
-    function web_MikrotikPluginsShow($login) {
-        $login=vf($login);
-        $plugins=  zb_MikrotikPluginsLoad();
-        $result='';
-        if (!empty ($plugins)) {
-            foreach ($plugins as $io=>$eachplugin) {
-             if (isset($eachplugin['overlay'])) {
-             $overlaydata=web_ProfilePluginsShowOverlay($login, $eachplugin['overlaydata']).'<br><br>';
-             $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 400);   
-             } else {
-              $result.='<a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> <br><br>';   
-             }
-            }
-        }
-        
-        return($result);
-    }
-    
-    function web_ProfilePluginsShow($login) {
-        $login=vf($login);
-        $plugins=zb_ProfilePluginsLoad();
-        $result='';
-        if (!empty ($plugins)) {
-            foreach ($plugins as $io=>$eachplugin) {
-             if (isset($eachplugin['overlay'])) {
-             $overlaydata=web_ProfilePluginsShowOverlay($login, $eachplugin['overlaydata']).'<br><br>';
-             $result.=wf_modal('<img src="skins/'.$eachplugin['icon'].'"  border="0" title="'.__($eachplugin['name']).'">', __($eachplugin['name']), $overlaydata, '', 800, 450);   
-             } else {
-              $result.='<a href="?module='.$io.'&username='.$login.'" title="'.__($eachplugin['name']).'"><img src="skins/'.$eachplugin['icon'].'"  border="0"></a> <br><br>';   
-             }
-            }
-        }
-        
-        return($result);
-    }
     
   function web_ProfileSwitchControlForm($login) {
       $login=  mysql_real_escape_string($login);

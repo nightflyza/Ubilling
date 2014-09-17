@@ -22,17 +22,22 @@ class UserProfile {
     protected $paymentid = '';
 
     const EX_EMPTY_LOGIN = 'EMPTY_USERNAME_RECEIVED';
+    const EX_EMPTY_USERDATA = 'EMPTY_DATABASE_USERDATA';
     const MAIN_ROW_HEADER_WIDTH = '30%';
     const MAIN_CONTROLS_SIZE = '90px';
+    const MAIN_PLUGINS_SIZE = '64';
+    const MAIN_OVERLAY_DISTANCE = '150px';
     const MAIN_TABLE_STYLE = 'style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2"';
 
     public function __construct($login) {
         if (!empty($login)) {
             $this->login = $login;
-
             $this->loadAlter();
             $this->loadHighlight();
             $this->loadUserdata();
+            if (empty($this->userdata)) {
+                throw new Exception(self::EX_EMPTY_USERDATA . ' ' . print_r($this, true));
+            }
             $this->loadAlladdress();
             $this->loadRealname();
             $this->loadPhonedata();
@@ -44,7 +49,7 @@ class UserProfile {
             $this->loadPaymentID();
             $this->loadPlugins();
         } else {
-            throw new Exception(self::EX_EMPTY_LOGIN);
+            throw new Exception(self::EX_EMPTY_LOGIN . ' ' . print_r($this, true));
         }
     }
 
@@ -61,6 +66,8 @@ class UserProfile {
 
     /*
      * loads highlight properties if needed
+     * 
+     * @return void
      */
 
     protected function loadHighlight() {
@@ -210,14 +217,70 @@ class UserProfile {
     }
 
     /*
-     * loads pofile plugins if enabled
+     * Returns raw plugins data. Plugins initialization files must be stored in CONFIG_PATH
+     * 
+     * @return array
+     */
+
+    protected function loadPluginsRaw($filename) {
+        $result = array();
+        if (file_exists(CONFIG_PATH . $filename)) {
+            $result = rcms_parse_ini_file(CONFIG_PATH . $filename, true);
+        }
+        return ($result);
+    }
+
+    /*
+     * load plugins overlay data
+     * 
+     * @return string
+     */
+
+    protected function loadPluginsOverlay($filename) {
+        $plugins = $this->loadPluginsRaw($filename);
+
+        $result = wf_tag('table', false, '', 'width="100%" border="0"');
+        $result.= wf_tag('tr', false);
+        $result.= wf_tag('td', false, '', 'valign="middle" align="center"');
+
+        if (!empty($plugins)) {
+            foreach ($plugins as $modulename => $eachplugin) {
+                $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; "');
+                $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                $result.= wf_tag('br') . __($eachplugin['name']);
+                $result.= wf_tag('div', true);
+            }
+        }
+
+        $result.=wf_tag('td', true);
+        $result.= wf_tag('tr', true);
+        $result.= wf_tag('table', true);
+
+        return($result);
+    }
+
+    /*
+     * loads pofile plugins if enabled into private plugins property
      * 
      * @return void
      */
 
     protected function loadPlugins() {
         if ($this->alterCfg['PROFILE_PLUGINS']) {
-            $this->plugins = web_ProfilePluginsShow($this->login);
+            // $this->plugins = web_ProfilePluginsShow($this->login);
+            if (!empty($this->login)) {
+                $rawPlugins = $this->loadPluginsRaw('plugins.ini');
+                if (!empty($rawPlugins)) {
+                    foreach ($rawPlugins as $modulename => $eachplugin) {
+                        if (isset($eachplugin['overlay'])) {
+                            $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
+                            $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 570);
+                        } else {
+                            $this->plugins.=wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -444,14 +507,14 @@ class UserProfile {
 
         //optional cash colorizing
         if (isset($this->alterCfg['COLORIZE_PROFILE_CASH'])) {
-        if ($this->alterCfg['COLORIZE_PROFILE_CASH']) {
-            if ($this->userdata['Cash'] >= 0) {
-                $color = '#0e7600';
-            } else {
-                $color = '#c80000';
+            if ($this->alterCfg['COLORIZE_PROFILE_CASH']) {
+                if ($this->userdata['Cash'] >= 0) {
+                    $color = '#0e7600';
+                } else {
+                    $color = '#c80000';
+                }
+                $Cash = wf_tag('font', false, '', 'color="' . $color . '"') . $Cash . wf_tag('font', true);
             }
-            $Cash = wf_tag('font', false, '', 'color="' . $color . '"') . $Cash . wf_tag('font', true);
-         }
         }
         return ($Cash);
     }
@@ -479,15 +542,15 @@ class UserProfile {
      */
 
     protected function getUserLat() {
-        $result='';
+        $result = '';
         if (isset($this->alterCfg['PROFILE_LAT'])) {
             if ($this->alterCfg['PROFILE_LAT']) {
-            if ($this->userdata['LastActivityTime'] != 0) {
-                $data = date("Y-m-d H:i:s", $this->userdata['LastActivityTime']);
-                $result=$this->addRow(__('Last activity time'), $data);
-             } else {
-                $result=$this->addRow(__('Last activity time'), __('No'));
-             }
+                if ($this->userdata['LastActivityTime'] != 0) {
+                    $data = date("Y-m-d H:i:s", $this->userdata['LastActivityTime']);
+                    $result = $this->addRow(__('Last activity time'), $data);
+                } else {
+                    $result = $this->addRow(__('Last activity time'), __('No'));
+                }
             }
         }
         return ($result);
@@ -519,9 +582,9 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['DN_ONLINE_DETECT']) {
             if (file_exists(DATA_PATH . 'dn/' . $this->login)) {
-                $onlineDnFlag = web_bool_star(true) . ' ' . __('Yes');
+                $onlineDnFlag = wf_img_sized('skins/icon_star.gif', '', '', '12') . ' ' . __('Yes');
             } else {
-                $onlineDnFlag = web_bool_star(false) . ' ' . __('No');
+                $onlineDnFlag = wf_img_sized('skins/icon_nostar.gif', '', '', '12') . ' ' . __('No');
             }
 
             $result = $this->addRow(__('Online'), $onlineDnFlag);
@@ -632,9 +695,9 @@ class UserProfile {
         $profile = '';
 
         //activity and other flags
-        $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif','','','12') . ' ' : '';
-        $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif','','','12') . ' ' : '';
-        $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif','','','12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif','','','12') . ' ' . __('Yes');
+        $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif', '', '', '12') . ' ' : '';
+        $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif', '', '', '12') . ' ' : '';
+        $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
 
         // user linking controller
         $profile.=$this->getUserLinking();

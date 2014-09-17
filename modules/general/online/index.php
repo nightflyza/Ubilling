@@ -2,15 +2,15 @@
 
 if ($system->checkForRight('ONLINE')) {
 // HP mode
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $hp_mode = $alterconf['ONLINE_HP_MODE'];
+    $alter_conf = $ubillingConfig->getAlter();
+    $hp_mode = $alter_conf['ONLINE_HP_MODE'];
 
     function stg_show_fulluserlist2() {
+        global $alter_conf;
         $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
-        $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
         $fioz = array();
         if (!empty($allfioz)) {
             foreach ($allfioz as $ia => $eachfio) {
@@ -222,9 +222,9 @@ if ($system->checkForRight('ONLINE')) {
 
 // hp mode 
     function stg_show_fulluserlist_hp() {
+        global $alter_conf;
         $query = "SELECT * from `users`";
         $query_fio = "SELECT * from `realname`";
-        $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
              null,
@@ -407,28 +407,25 @@ if ($system->checkForRight('ONLINE')) {
 
     function zb_AjaxOnlineDataSource() {
         // Speed debug
-        /*
-          $mtime = microtime();
-          $mtime = explode(" ",$mtime);
-          $mtime = $mtime[1] + $mtime[0];
-          $starttime = $mtime;
-         * 
-         */
-        global $alterconf;
+//          $mtime = microtime();
+//          $mtime = explode(" ",$mtime);
+//          $mtime = $mtime[1] + $mtime[0];
+//          $starttime = $mtime;
+      
+        global $alter_conf;
         $query = "SELECT * from `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
-        $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
         $fioz = zb_UserGetAllRealnames();
         $detect_address = zb_AddressGetFulladdresslist();
         $ucount = 0;
         $deadUsers = array();
 
         //hide dead users array
-        if ($alterconf['DEAD_HIDE']) {
-            if (!empty($alterconf['DEAD_TAGID'])) {
-                $tagDead = vf($alterconf['DEAD_TAGID'], 3);
+        if ($alter_conf['DEAD_HIDE']) {
+            if (!empty($alter_conf['DEAD_TAGID'])) {
+                $tagDead = vf($alter_conf['DEAD_TAGID'], 3);
                 $query_dead = "SELECT `login`,`tagid` from `tags` WHERE `tagid`='" . $tagDead . "'";
                 $alldead = simple_queryall($query_dead);
                 if (!empty($alldead)) {
@@ -468,7 +465,7 @@ if ($system->checkForRight('ONLINE')) {
                 }
 
                 //online activity check
-                if ($alterconf['DN_ONLINE_DETECT']) {
+                if ($alter_conf['DN_ONLINE_DETECT']) {
                     $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
                     if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
                         $onlineFlag = '"<img src=skins/icon_star.gif> ' . __('Yes') . '",';
@@ -489,13 +486,13 @@ if ($system->checkForRight('ONLINE')) {
                 $clearuseraddress = mysql_real_escape_string($clearuseraddress);
 
                 //additional finance links
-                if ($alterconf['FAST_CASH_LINK']) {
+                if ($alter_conf['FAST_CASH_LINK']) {
                     $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#profileending><img src=skins/icon_dollar.gif border=0></a> ';
                 } else {
                     $fastcashlink = '';
                 }
 
-                if (!$alterconf['DEAD_HIDE']) {
+                if (!$alter_conf['DEAD_HIDE']) {
                     $result.='
      [
      "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
@@ -542,14 +539,14 @@ if ($system->checkForRight('ONLINE')) {
 
 
         print($result);
-        /*
-          $mtime = microtime();
-          $mtime = explode(" ",$mtime);
-          $mtime = $mtime[1] + $mtime[0];
-          $endtime = $mtime;
-          $totaltime = ($endtime - $starttime);
-          echo "This result generated in ".$totaltime." seconds";
-         */
+        
+//          $mtime = microtime();
+//          $mtime = explode(" ",$mtime);
+//          $mtime = $mtime[1] + $mtime[0];
+//          $endtime = $mtime;
+//          $totaltime = ($endtime - $starttime);
+//          echo "This result generated in ".$totaltime." seconds";
+        
 
         die();
     }
