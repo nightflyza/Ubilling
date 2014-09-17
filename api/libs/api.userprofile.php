@@ -245,7 +245,7 @@ class UserProfile {
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
-                $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; "');
+                $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
                 $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
                 $result.= wf_tag('br') . __($eachplugin['name']);
                 $result.= wf_tag('div', true);

@@ -2340,7 +2340,7 @@ function zb_NumUnEncode($data) {
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $query=strtolower_utf8($query);
         }
-        $alluseraddress=  zb_AddressGetFulladdresslist();
+        $alluseraddress= zb_AddressGetFulladdresslist();
         $result=array();
         if (!empty ($alluseraddress)) {
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {    
