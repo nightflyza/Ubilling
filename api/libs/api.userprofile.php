@@ -443,6 +443,7 @@ class UserProfile {
         }
 
         //optional cash colorizing
+        if (isset($this->alterCfg['COLORIZE_PROFILE_CASH'])) {
         if ($this->alterCfg['COLORIZE_PROFILE_CASH']) {
             if ($this->userdata['Cash'] >= 0) {
                 $color = '#0e7600';
@@ -450,6 +451,7 @@ class UserProfile {
                 $color = '#c80000';
             }
             $Cash = wf_tag('font', false, '', 'color="' . $color . '"') . $Cash . wf_tag('font', true);
+         }
         }
         return ($Cash);
     }
@@ -477,10 +479,16 @@ class UserProfile {
      */
 
     protected function getUserLat() {
-        if ($this->userdata['LastActivityTime'] != 0) {
-            $result = date("Y-m-d H:i:s", $this->userdata['LastActivityTime']);
-        } else {
-            $result = '';
+        $result='';
+        if (isset($this->alterCfg['PROFILE_LAT'])) {
+            if ($this->alterCfg['PROFILE_LAT']) {
+            if ($this->userdata['LastActivityTime'] != 0) {
+                $data = date("Y-m-d H:i:s", $this->userdata['LastActivityTime']);
+                $result=$this->addRow(__('Last activity time'), $data);
+             } else {
+                $result=$this->addRow(__('Last activity time'), __('No'));
+             }
+            }
         }
         return ($result);
     }
@@ -624,9 +632,9 @@ class UserProfile {
         $profile = '';
 
         //activity and other flags
-        $passiveicon = ($this->userdata['Passive']) ? wf_img('skins/icon_passive.gif') . ' ' : '';
-        $downicon = ($this->userdata['Down']) ? wf_img('skins/icon_down.gif') . ' ' : '';
-        $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img('skins/icon_inactive.gif') . ' ' . __('No') : wf_img('skins/icon_active.gif') . ' ' . __('Yes');
+        $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif','','','12') . ' ' : '';
+        $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif','','','12') . ' ' : '';
+        $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif','','','12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif','','','12') . ' ' . __('Yes');
 
         // user linking controller
         $profile.=$this->getUserLinking();
@@ -662,7 +670,7 @@ class UserProfile {
         //payment ID data
         $profile.= $this->addRow(__('Payment ID'), $this->paymentid, true);
         //LAT data row
-        $profile.= $this->addRow(__('Last activity time'), $this->getUserLat());
+        $profile.= $this->getUserLat();
         //login row
         $profile.= $this->addRow(__('Login'), $this->userdata['login'], true);
         //password row
