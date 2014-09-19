@@ -1,7 +1,22 @@
-<?php if(!empty($title)) {?>
-<div class="title"><h2><?=$title?></h2></div>
-<?php }?>
-<div class="window-main" style="text-align: <?=$align?>;">
-    <?=$content?>
-</div>
-<br>
+<?php if ( defined('BOOTSTRAP') && constant('BOOTSTRAP') ): ?>
+  <?php if ( !empty($title) ): ?>
+  <div class="page-header">
+    <h2><?php echo $title; ?></h2>
+  </div>
+  <?php endif; ?>
+  <div class="row">
+    <div class="col-md-12">
+      <?php echo $content; ?>
+    </div>
+  </div>
+<?php else: ?>
+  <?php if ( !empty($title) ): ?>
+  <div class="title">
+    <h2><?php echo $title; ?></h2>
+  </div>
+  <?php endif; ?>
+  <div class="window-main" style="text-align: <?php echo $align; ?>">
+    <?php echo $content; ?>
+  </div>
+  <br>
+<?php endif; ?>

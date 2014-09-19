@@ -3,6 +3,7 @@
 // Skin definition file  //
 ///////////////////////////
 
+define('BOOTSTRAP', false);
 define('HIDE_NAVIGATION', false);
 // Menu points
 $skin['menu_point']['left'] = 'Left column';
