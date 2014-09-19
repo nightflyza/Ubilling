@@ -26,6 +26,13 @@ if (cfr('SYSLOAD')) {
  $alterconf=$ubillingConfig->getAlter();
  $monit_url=$globconf['PHPSYSINFO'];
 
+ //custom scripts output handling. We must run this before all others.
+ if (isset($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
+     if (!empty($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
+         $customScriptsData=web_ReportSysloadCustomScripts($alterconf['SYSLOAD_CUSTOM_SCRIPTS']);     
+     }
+ }
+ 
  
  $sysInfoData='';
  //phpinfo()
@@ -44,10 +51,10 @@ if (cfr('SYSLOAD')) {
  
  show_window('', $sysInfoData);
  
-//custom scripts output handling
+//custom scripts shows data
  if (isset($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
      if (!empty($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
-         show_window(__('Additional monitoring'),web_ReportSysloadCustomScripts($alterconf['SYSLOAD_CUSTOM_SCRIPTS']));     
+         show_window(__('Additional monitoring'),$customScriptsData);     
      }
  }
  
