@@ -1,6 +1,6 @@
 <?php if ( defined('BOOTSTRAP') && constant('BOOTSTRAP') ): ?>
   <?php if ( !empty($title) ): ?>
-  <div class="page-header">
+  <div class="page-header" style="margin: 10px 5px">
     <h2><?php echo $title; ?></h2>
   </div>
   <?php endif; ?>

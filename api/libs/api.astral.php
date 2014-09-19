@@ -713,8 +713,12 @@ function wf_img_sized($url,$title='',$width='',$height='') {
  *  
  */
 
-function wf_modal($link, $title, $content, $linkclass = '', $width = '',$height='') {
+function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height='') {
 
+  // Bootstrap function call
+  if ( defined('BOOTSTRAP') && constant('BOOTSTRAP') && function_exists('bootstrap_Modal') )
+    return bootstrap_Modal($link, $title, $content, $linkclass, $width, $height);
+  
     $wid = wf_inputid();
 //    $content=  str_replace("'", '', $content);
 //    $content=  str_replace('"', '', $content);    

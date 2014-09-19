@@ -6,6 +6,7 @@ include('api/libs/api.mysql.php');
 include('api/libs/api.ubstorage.php');
 include('api/api.stargazer.php');
 include('api/libs/api.compat.php');
+include('api/libs/api.bootstrap.php');
 include('api/libs/api.astral.php');
 include('api/libs/api.dbconnect.php');
 include('api/libs/api.userdata.php');
