@@ -3044,7 +3044,6 @@ if (!empty($all)) {
 
  return ($stats);
 }
-
 /*
  * Returns current database info in human readable view
  * 
@@ -3053,6 +3052,7 @@ if (!empty($all)) {
 function zb_DBStatsRender() {
     $all=  zb_DBGetStats();
     $result='';
+    
     $totalRows=0;
     $totalSize=0;
     $totalCount=0;
@@ -3082,11 +3082,67 @@ function zb_DBStatsRender() {
                 $rows.=  wf_TableRow($cells, 'row3');
                 $totalCount++;
         }
+        $result.= $rows;
         $result.= wf_tag('b').__('Total').': '.wf_tag('b',true).' '.__('Tables').' '.$totalCount.' '.__('Rows').' '.$totalRows.' / '.__('Size').' '.stg_convert_size($totalSize);
-        $result.=  wf_TableBody($rows, '100%', 0, 'sortable');
+        
         
     }
     return ($result);
+}
+
+
+/*
+ * Returns current database info in human readable view with ajax controls
+ * 
+ * @return string
+ */
+function zb_DBStatsRenderContainer() {
+    $result='';
+    $result.= wf_AjaxLoader();
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', __('Database stats'), 'dbscontainer', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"').  zb_DBStatsRender().wf_tag('table', true);
+    return ($result);
+}
+
+/*
+ * checks database table state
+ * 
+ * @return string
+ */
+function zb_DBCheckTable($tablename) {
+    $result='';
+    if (!empty($tablename)) {
+        $query="CHECK TABLE `".$tablename."`";
+        $data=  simple_query($query);
+        if (!empty($data)) {
+            $result=$data['Msg_text'];
+        }
+        
+    }
+    return ($result);
+}
+
+/*
+ * Returns current database info in human readable view and table check
+ * 
+ * @return string
+ */
+function zb_DBCheckRender() {
+    $all=  zb_DBGetStats();
+    if (!empty($all)) {
+        $cells=  wf_TableCell(__('Table name'));
+        $cells.= wf_TableCell(__('Status'));
+        $rows=  wf_TableRow($cells, 'row1');
+        foreach ($all as $io=>$each) {
+                $cells=  wf_TableCell($each['name']);
+                $cells.= wf_TableCell(zb_DBCheckTable($each['name']));
+                $rows.=  wf_TableRow($cells, 'row3');
+        }
+        
+        
+    }
+   return($rows);
 }
 
 /*
@@ -3647,5 +3703,40 @@ function web_FreeRadiusListClients() {
       
       $result=  wf_modal($controlIcon, __('Change').' '.__('credit limit'), $form, '', '500', '180');
       
+      return ($result);
+  }
+  
+  
+  /*
+   * returns custom report sysload scripts output
+   * 
+   * @param string $scriptoption option from alter.ini -> SYSLOAD_CUSTOM_SCRIPTS
+   * 
+   * @return string
+   */
+  function web_ReportSysloadCustomScripts($scriptoption) {
+      $result='';
+      //internal script ajax handling
+      if (wf_CheckGet(array('ajxcscrun'))) {
+          $runpath=  base64_decode($_GET['ajxcscrun']);
+          if (!empty($runpath)) {
+             $script_result=wf_tag('pre').shell_exec($runpath).  wf_tag('pre',true);
+             die($script_result);
+          }
+      }
+      $scriptdata=  explode(',', $scriptoption);
+      if (!empty($scriptdata)) {
+          $result.=  wf_AjaxLoader();
+          foreach ($scriptdata as $io=>$eachscript) {
+              $curScript=  explode(':', $eachscript);
+              if (!empty($curScript)) {
+                  $name=$curScript[0];
+                  $path=$curScript[1];
+                  $result.=wf_AjaxLink('?module=report_sysload&ajxcscrun='.base64_encode($path), $name, 'custommoncontainder', false, 'ubButton');
+              }
+          }    
+      $result.=wf_delimiter();
+      $result.=wf_tag('span', false, '', 'id="custommoncontainder"').  wf_tag('span',true);
+      }
       return ($result);
   }

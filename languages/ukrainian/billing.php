@@ -1747,5 +1747,7 @@ $lang['def']['Create connection capability']='Створити можливіс�
 $lang['def']['FreeRADIUS NAS parameters']='Параметри серверів доступу FreeRADIUS';
 $lang['def']['Colorize cash in user profile']='Фарбування балансу в профілі користувача';
 $lang['def']['Show LAT column in user profile']='Показувати значення LAT в профілі';
-
+$lang['def']['Check database']='Перевірити стан БД';
+$lang['def']['Database stats']='Статистика БД';
+$lang['def']['Additional monitoring']='Додатковий моніторинг';
 ?>

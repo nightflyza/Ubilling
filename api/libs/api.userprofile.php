@@ -546,10 +546,14 @@ class UserProfile {
 
     protected function getUserCreditExpire() {
         //user credit expiration date
-        if ($this->userdata['CreditExpire'] > 0) {
+        if ($this->userdata['CreditExpire'] != 0) {
             $result = date("Y-m-d", $this->userdata['CreditExpire']);
         } else {
-            $result = __('Forever and ever');
+            if ($this->userdata['Credit']>0) {
+               $result = __('Forever and ever');
+            } else {
+               $result = __('No');
+            }
         }
         return ($result);
     }
