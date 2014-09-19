@@ -128,7 +128,8 @@ function sm_MapLocationSwitchForm() {
     
     if (!empty($allNoGeoSwitches)) {
         foreach ($allNoGeoSwitches as $io=>$each) {
-            $switchData[$each['id']]=$each['ip'].' - '.$each['location'];
+            $cleanLocation=  str_replace("'", '`', $each['location']);
+            $switchData[$each['id']]=$each['ip'].' - '.$cleanLocation;
         }
         //form construct
         if (cfr('SWITCHESEDIT')) {

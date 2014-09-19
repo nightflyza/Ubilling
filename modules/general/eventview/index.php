@@ -187,7 +187,7 @@ show_window(__('Month actions stats'),$template);
 
       if (!empty ($allevents)) {
           foreach ($allevents as $io=>$eachevent) {
-          $event=$eachevent['event'];
+          $event=  htmlentities($eachevent['event']);
           $tablecells=wf_TableCell($eachevent['id']);
           $tablecells.=wf_TableCell($eachevent['date']);
           $tablecells.=wf_TableCell($eachevent['admin']);
