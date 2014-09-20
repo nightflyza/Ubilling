@@ -1751,5 +1751,7 @@ $lang['def']['Check database']='Перевірити стан БД';
 $lang['def']['Database stats']='Статистика БД';
 $lang['def']['Additional monitoring']='Додатковий моніторинг';
 $lang['def']['Online module saves state']='Модуль Онлайн зберігає свій стан';
+$lang['def']['Show SC shaper info']='Показати інформацію шейпера SC';
+$lang['def']['right to show sc info for user']='Право переглядати інфо sc для користувача';
 
 ?>
