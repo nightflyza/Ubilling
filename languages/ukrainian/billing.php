@@ -1750,4 +1750,6 @@ $lang['def']['Show LAT column in user profile']='Показувати значе
 $lang['def']['Check database']='Перевірити стан БД';
 $lang['def']['Database stats']='Статистика БД';
 $lang['def']['Additional monitoring']='Додатковий моніторинг';
+$lang['def']['Online module saves state']='Модуль Онлайн зберігає свій стан';
+
 ?>

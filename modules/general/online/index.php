@@ -223,8 +223,13 @@ if ($system->checkForRight('ONLINE')) {
 // hp mode 
     function stg_show_fulluserlist_hp() {
         global $alter_conf;
-        $query = "SELECT * from `users`";
-        $query_fio = "SELECT * from `realname`";
+        $saveState='false';
+        if (isset($alter_conf['ONLINE_SAVE_STATE'])) {
+            if ($alter_conf['ONLINE_SAVE_STATE']) {
+                $saveState='true';
+            }
+        }
+        
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
              null,
@@ -363,7 +368,8 @@ if ($system->checkForRight('ONLINE')) {
         "iDisplayLength": 50,
         "sAjaxSource": \'?module=online&ajax\',
 	"bDeferRender": true,
-        "bJQueryUI": true
+        "bJQueryUI": true,
+        "bStateSave": '.$saveState.'
 
                 } );
 		} );

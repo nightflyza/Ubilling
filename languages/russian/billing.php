@@ -1737,5 +1737,6 @@ $lang['def']['Show LAT column in user profile']='Показывать значе
 $lang['def']['Check database']='Проверить состояние БД';
 $lang['def']['Database stats']='Статистика БД';
 $lang['def']['Additional monitoring']='Дополнительный мониторинг';
+$lang['def']['Online module saves state']='Модуль Онлайн сохраняет свое состояние';
 $lang['def']['']='';
 ?>

@@ -29,6 +29,7 @@ HIGHLIGHT_TODAY_PAYMENTS=TRIGGER|Highlight today payments
 ONLINE_FILTERS_EXT=TRIGGER|Extended filters in online module
 ONLINE_LAT=TRIGGER|LAT column in online module
 ONLINE_HP_MODE=TRIGGER|High perfomance online module mode
+ONLINE_SAVE_STATE=TRIGGER|Online module saves state
 TICKETS_PERPAGE=VARCHAR|Tickets per page in helpdesk
 FAST_CASH_LINK=TRIGGER|Fast financial links in online and search modules
 SUSP_PAYMENTS_NOTIFY=VARCHAR|Reporting of suspicious payments
