@@ -421,6 +421,7 @@ $admin=whoami();
 $login=vf($login);
 $address=zb_AddressGetFulladdresslist();
 $address=$address[$login];
+$address=  mysql_real_escape_string($address);
 $query="
     INSERT INTO `userreg` (
                 `id` ,
