@@ -1,2 +1,2 @@
 NAME="Traffic"
-NEED=""
+NEED="TRAFFIC_ENABLED"
