@@ -1740,11 +1740,6 @@ $lang['def']['Additional monitoring']='Дополнительный монито
 $lang['def']['Online module saves state']='Модуль Онлайн сохраняет свое состояние';
 $lang['def']['Show SC shaper info']='Показать информацию шейпера SC';
 $lang['def']['right to show sc info for user']='Право просматривать инфо sc для пользователя';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
 
 ?>
