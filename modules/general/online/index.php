@@ -406,14 +406,8 @@ if ($system->checkForRight('ONLINE')) {
   <td>' . __('Credit') . '</td>
   
   </tr>
-  </thead>';
-
-        $result.='
-    </table>   
-        ';
-
-
-
+  </thead>
+  </table>';
 
         return ($result);
     }

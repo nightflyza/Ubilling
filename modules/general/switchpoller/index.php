@@ -34,7 +34,7 @@ if(cfr('SWITCHPOLL')) {
         "bInfo": true,
         "bAutoWidth": false,
         "bProcessing": true,
-        "bStateSave": false,
+        "bStateSave": true,
         "iDisplayLength": 50,
         "sAjaxSource": \'?module=switchpoller&ajax=true\',
 	"bDeferRender": true,
@@ -45,18 +45,19 @@ if(cfr('SWITCHPOLL')) {
 		</script>
 
           ';
-      
-      $result=$jq_dt.'
-          <table width="100%" class="sortable" id="fdbcachehp">
-                <tr class="row1">
-                  <td>'.__('Switch IP').'</td>
-                  <td>'.__('Port').'</td>
-                  <td>'.__('Location').'</td>
-                  <td>'.__('MAC').'</td>
-                  <td>'.__('User').'</td>
-                </tr>
-            </table>
-          ';
+
+      $result=$jq_dt;
+      $result.= wf_tag('table', false, 'display compact', 'id="fdbcachehp"');
+      $result.= wf_tag('thead',false);
+      $cells=  wf_TableCell(__('Switch IP'));
+      $cells.= wf_TableCell(__('Port'));
+      $cells.= wf_TableCell(__('Location'));
+      $cells.= wf_TableCell(__('MAC'));
+      $cells.= wf_TableCell(__('User'));
+      $result.= wf_TableRow($cells);
+      $result.= wf_tag('thead',true);
+      $result.= wf_tag('table', true);
+              
      show_window(__('Current FDB cache'),$result);
   }
     
