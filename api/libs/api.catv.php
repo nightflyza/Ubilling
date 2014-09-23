@@ -443,7 +443,15 @@
 			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('users').'",
 			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
                         "sSearch":       "'.__('Search').'",
-                        "sProcessing":   "'.__('Processing').'..."
+                        "sProcessing":   "'.__('Processing').'...",
+                        "sProcessing":   "' . __('Processing') . '...",
+                        "oPaginate": {
+                        "sFirst": "'.__('First').'",
+                        "sPrevious": "'.__('Previous').'",
+                        "sNext": "'.__('Next').'",
+                        "sLast": "'.__('Last').'"
+                    },
+                            
 		},
            
                 "aoColumns": [
@@ -475,7 +483,8 @@
 
           ';
       $result=' '.$jq_dt.'
-          <table width="100%" class="sortable" id="catvonlineusershp">
+          <table width="100%" id="catvonlineusershp" class="sortable display compact">
+          <thead>   
                 <tr class="row1">
                   <td>'.__('ID').'</td>
                   <td>'.__('Real name').'</td>
@@ -485,6 +494,7 @@
                   <td>'.__('Connected').'</td>
                   <td>'.__('Actions').'</td>
                 </tr>
+          </thead>         
           ';
      
       

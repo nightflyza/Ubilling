@@ -62,7 +62,13 @@ if ($altercfg['DOCSIS_SUPPORT']) {
 			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('modems').'",
 			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
                         "sSearch":       "'.__('Search').'",
-                        "sProcessing":   "'.__('Processing').'..."
+                        "sProcessing":   "'.__('Processing').'...",
+                        "oPaginate": {
+                        "sFirst": "'.__('First').'",
+                        "sPrevious": "'.__('Previous').'",
+                        "sNext": "'.__('Next').'",
+                        "sLast": "'.__('Last').'"
+                    },
 		},
            
                 "aoColumns": [
@@ -95,7 +101,8 @@ if ($altercfg['DOCSIS_SUPPORT']) {
           ';
       
       $result=$jq_dt.'
-          <table width="100%" class="sortable" id="docsismodemshp">
+          <table width="100%"  id="docsismodemshp" class="display compact">
+          <thead>
                 <tr class="row1">
                   <td>'.__('ID').'</td>
                   <td>'.__('MAC Lan').'</td>
@@ -105,6 +112,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
                   <td>'.__('Full address').'</td>
                   <td>'.__('Actions').'</td>
                 </tr>
+           </thead>     
             </table>
           ';
      show_window(__('Available DOCSIS modems'),$result);

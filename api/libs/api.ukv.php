@@ -1119,7 +1119,13 @@ class UkvSystem {
 			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
 			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
                         "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '..."
+                        "sProcessing":   "' . __('Processing') . '...",
+                        "oPaginate": {
+                        "sFirst": "'.__('First').'",
+                        "sPrevious": "'.__('Previous').'",
+                        "sNext": "'.__('Next').'",
+                        "sLast": "'.__('Last').'"
+                    },
 		},
            
                 "aoColumns": [
@@ -1152,7 +1158,7 @@ class UkvSystem {
 
         $result = $jqDt;
 
-        $result.= wf_tag('table', false, '', 'width="100%" id="ukvusershp"');
+        $result.= wf_tag('table', false, '', 'width="100%" id="ukvusershp" class="display compact"');
         $result.= wf_tag('thead');
         $cells = wf_TableCell(__('Full address'));
         $cells.= wf_TableCell(__('Real Name'));

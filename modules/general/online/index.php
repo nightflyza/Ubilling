@@ -350,7 +350,13 @@ if ($system->checkForRight('ONLINE')) {
 			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
 			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
                         "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '..."
+                        "sProcessing":   "' . __('Processing') . '...",
+                        "oPaginate": {
+                        "sFirst": "'.__('First').'",
+                        "sPrevious": "'.__('Previous').'",
+                        "sNext": "'.__('Next').'",
+                        "sLast": "'.__('Last').'"
+                    },
 		},
             "aoColumns": [
                ' . $columnFilters . '
@@ -369,6 +375,7 @@ if ($system->checkForRight('ONLINE')) {
         "sAjaxSource": \'?module=online&ajax\',
 	"bDeferRender": true,
         "bJQueryUI": true,
+        "pagingType": "full_numbers",
         "bStateSave": '.$saveState.'
 
                 } );
@@ -378,7 +385,7 @@ if ($system->checkForRight('ONLINE')) {
 
        ';
         $result = $dtcode;
-        $result.='<table width="100%" id="onlineusershp">';
+        $result.='<table width="100%" id="onlineusershp" class="display compact">';
         //dn activity check
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $onlineCells = '<td>' . __('Users online') . '</td>';

@@ -1754,4 +1754,10 @@ $lang['def']['Online module saves state']='Модуль Онлайн збері�
 $lang['def']['Show SC shaper info']='Показати інформацію шейпера SC';
 $lang['def']['right to show sc info for user']='Право переглядати інфо sc для користувача';
 
+//rev 3793
+$lang['def']['First']='Перша';
+$lang['def']['Previous']='Попердня';
+$lang['def']['Next']='Наступна';
+$lang['def']['Last']='Остання';
+
 ?>

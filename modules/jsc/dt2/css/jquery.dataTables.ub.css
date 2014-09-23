@@ -1,0 +1,21 @@
+/*
+
+Ubilling style
+
+*/
+.css_right {
+	float: right;
+}
+
+.css_left {
+	float: left;
+}
+
+.dataTables_wrapper .ui-toolbar {
+  padding: 1px;
+}
+
+table.dataTable tbody th,
+table.dataTable tbody td {
+  padding: 1px 1px;
+}

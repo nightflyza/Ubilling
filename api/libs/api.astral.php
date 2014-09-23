@@ -764,6 +764,63 @@ $(function() {
     return($dialog);
 }
 
+/*
+ * 
+ * Returns link that calls new modal window with automatic dimensions by inside content
+ * 
+ * @param $link link text
+ * @param $title modal window title
+ * @param $content modal window content
+ * @param $linkclass link class
+ *
+ * @return string
+ *  
+ */
+
+function wf_modalAuto($link, $title, $content, $linkclass = '') {
+   $wid = wf_inputid();
+    
+//setting link class
+    if ($linkclass != '') {
+        $link_class = 'class="' . $linkclass . '"';
+    } else {
+        $link_class = '';
+    }
+
+  $width = "'auto'";
+  $height = "'auto'";
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: false,
+			width: \'auto\',
+                        height: \'auto\',
+			modal: true,
+			show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        '.$content.'
+        </p>
+</div>
+
+<a href="#" id="opener_' . $wid . '" ' . $link_class . '>' . $link . '</a>
+';
+
+    return($dialog);
+}
+
 
  /*
  * 

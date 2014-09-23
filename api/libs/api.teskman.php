@@ -659,20 +659,30 @@ function ts_DetectUserByAddress($address) {
     function ts_TaskCreateFormSigreq($address,$phone) {
         $alljobtypes= ts_GetAllJobtypes();
         $allemployee= ts_GetActiveEmployee();
+        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        
+         //construct sms sending inputs
+        if ($altercfg['WATCHDOG_ENABLED']) {
+            $smsInputs=  wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        } else {
+            $smsInputs='';
+        }
+        
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $phone, true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
-        $inputs.='<br>';
-        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_tag('br');
+        $inputs.=wf_tag('label').__('Job note').wf_tag('label',true).  wf_tag('br');
         $inputs.=ts_TaskTypicalNotesSelector();
         $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+        $inputs.=$smsInputs;
         $inputs.=wf_Submit(__('Create new task'));
         $result=  wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
         $result.=__('All fields marked with an asterisk are mandatory');
