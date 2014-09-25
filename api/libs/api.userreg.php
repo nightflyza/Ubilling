@@ -320,11 +320,22 @@ function zb_RegPasswordProposal() {
 }
 
 function zb_CheckLoginRscriptdCompat($login) {
-    $maxLen=31;
-    if (strlen($login)>=$maxLen) {
-        $alert=__('Attention generated login longer than').' '.$maxLen.' '.__('bytes').'. '.__('This can lead to the inability to manage this user on remote NAS running rscriptd').'. ';
+    $maxRsLen=31;
+    $maxStLen=42;
+    $loginLen=strlen($login);
+    if (($loginLen>=$maxRsLen)) {
+        //rscriptd notice
+        if ($loginLen<$maxStLen) {
+        $alert=__('Attention generated login longer than').' '.$maxRsLen.' '.__('bytes').'. ('.$loginLen.') '.__('This can lead to the inability to manage this user on remote NAS running rscriptd').'. ';
         $alert.= __('Perhaps you need to shorten the alias, or use a different model for the generation of logins').'.';
         $result=  wf_modalOpened(__('Warning'), $alert, '500', '200');
+        }
+        //stargazer incompat notice
+        if ($loginLen>=$maxStLen) {
+            $alert=__('Attention generated login longer than').' '.$maxStLen.' '.__('bytes').'. ('.$loginLen.') '.__('And is not compatible with Stargazer').'. ';
+            $alert.= __('Perhaps you need to shorten the alias, or use a different model for the generation of logins').'.';
+            $result=  wf_modalOpened(__('Error'), $alert, '500', '200');
+        }
     } else {
         $result='';
     }
@@ -464,6 +475,8 @@ function zb_UserRegister($user_data,$goprofile=true) {
     global $billing;
     // Init all of needed user data
     $login=vf($user_data['login']);
+    $login=  zb_RegLoginFilter($login);
+
     $password=vf($user_data['password']);
     $ip=$user_data['IP'];
     $cityid=$user_data['city'];
@@ -475,6 +488,16 @@ function zb_UserRegister($user_data,$goprofile=true) {
     $serviceid=$user_data['service'];
     $netid=multinet_get_service_networkid($serviceid);
     $busylogins= zb_AllBusyLogins();
+    //check login lenght
+    $maxStLen=42;
+    $loginLen=strlen($login);
+    if($loginLen>$maxStLen) {
+        log_register("HUGELOGIN REGISTER TRY (".$login.")");
+        $alert=__('Attention generated login longer than').' '.$maxStLen.' '.__('bytes').'. ('.$login.' > '.$loginLen.') '.__('And is not compatible with Stargazer').'.';
+        die($alert);
+    }
+    
+    
     // empty login validation
     if (empty($login)) {
        $alert='
@@ -515,9 +538,9 @@ function zb_UserRegister($user_data,$goprofile=true) {
     $billing->createuser($login);
     log_register("StgUser REGISTER (".$login.")");
     $billing->setpassword($login,$password);
-    log_register("StgUser PASSWORD `".$password."`");
+    log_register("StgUser (".$login.") PASSWORD `".$password."`");
     $billing->setip($login,$ip);
-    log_register("StgUser IP `".$ip."`");
+    log_register("StgUser (".$login.") IP `".$ip."`");
     zb_AddressCreateApartment($buildid, $entrance, $floor, $apt);
     zb_AddressCreateAddress($login, zb_AddressGetLastid());
     multinet_add_host($netid, $ip);

@@ -1759,5 +1759,9 @@ $lang['def']['First']='Перша';
 $lang['def']['Previous']='Попердня';
 $lang['def']['Next']='Наступна';
 $lang['def']['Last']='Остання';
+$lang['def']['And is not compatible with Stargazer']='Та не сумісний з Stargazer-ом та реальним життям. Спроба зареєструвати такого користувача гарантовано закінчиться дуже погано';
+$lang['def']['Typical answers presets']='Заготовки типових відповідей';
+$lang['def']['Available typical answers presets']='Існуючі заготовки типових відповідей';
+$lang['def']['Create new preset']='Створити нову заготовку';
 
 ?>

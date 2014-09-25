@@ -195,15 +195,121 @@ function web_TicketsShow() {
       return ($result);
   }
   
+  function web_TicketsTAPAddForm() {
+      $inputs=  wf_HiddenInput('createnewtap', 'true');
+      $inputs.= wf_TextArea('newtaptext', '', '', true, '60x10');
+      $inputs.= wf_Submit(__('Create'));
+      $result=  wf_Form('', "POST", $inputs, 'glamour');
+      return ($result);
+  }
+  
+  function web_TicketsTAPEditForm($keyname,$text) {
+      $inputs=  wf_HiddenInput('edittapkey', $keyname);
+      $inputs.= wf_TextArea('edittaptext', '', $text, true, '60x10');
+      $inputs.= wf_Submit(__('Save'));
+      $result=  wf_Form('', 'POST', $inputs, 'glamour');
+      return ($result);
+  }
+  
+  function zb_TicketsTAPCreate($taptext) {
+      $keyName='HELPDESKTAP_'.zb_rand_string(8);
+      $storeData=  base64_encode($taptext);
+      zb_StorageSet($keyName, $storeData);
+      log_register('TICKET TAP CREATE `'.$keyName.'`');
+     
+  }
+  
+  function zb_TicketsTAPDelete($keyname) {
+      $keyname=  mysql_real_escape_string($keyname);
+      $query="DELETE from `ubstorage` WHERE `key`='".$keyname."'";
+      nr_query($query);
+      log_register('TICKET TAP DELETE `'.$keyname.'`');
+  }
+  
+  function zb_TicketsTAPEdit($key,$text) {
+      $storeData=  base64_encode($text);
+      zb_StorageSet($key, $storeData);
+      log_register('TICKET TAP CHANGE `'.$key.'`');
+  }
+  
+  function zb_TicketsTAPgetAll() {
+      $result=array();
+      $query="SELECT * from `ubstorage` WHERE `key` LIKE 'HELPDESKTAP_%' ORDER BY `id` ASC";
+      $all= simple_queryall($query);
+      if (!empty($all)) {
+          foreach ($all as $io=>$each) {
+              @$result[$each['key']]=  base64_decode($each['value']);
+          }
+      }
+      return ($result);
+  }
+  
+  function web_TicketsTapShowAvailable() {
+      $all=  zb_TicketsTAPgetAll();
+      
+      $cells=  wf_TableCell(__('Text'),'90%');
+      $cells.= wf_TableCell(__('Actions'));
+      $rows=   wf_TableRow($cells, 'row1');
+      
+      if (!empty($all)) {
+          foreach ($all as $io=>$each) {
+              $cells=  wf_TableCell($each);
+              $actlinks=  wf_JSAlert('?module=ticketing&settings=true&deletetap='.$io, web_delete_icon(), __('Removing this may lead to irreparable results'));
+              $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), web_TicketsTAPEditForm($io,$each), '');
+              $cells.= wf_TableCell($actlinks);
+              $rows.=  wf_TableRow($cells, 'row3');
+          }
+      }
+      
+      $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+      return ($result);
+  }
+
+
+  function web_TicketsTAPLister() {
+      $result='';
+      $maxLen=50;
+      $allReplies=  zb_TicketsTAPgetAll();
+      if (!empty($allReplies)) {
+          $result.=wf_delimiter().wf_tag('h3').__('Typical answers presets').wf_tag('h3',true);
+          $result.= wf_tag('ul',false);
+          foreach ($allReplies as $io=>$each) {
+                $randId=  wf_InputId();
+                $rawText=trim($each);
+                $result.= wf_tag('script', false, '', 'language="javascript" type="text/javascript"');
+                $result.='
+                    function jsAddReplyText_'.$randId.'() {
+                         var replytext=\''.  json_encode($rawText).'\';
+                         $("#ticketreplyarea").val(replytext);
+                    }
+                    ';
+                $result.=wf_tag('script',true);
+                
+                $linkText=  htmlspecialchars($rawText);
+                if (mb_strlen($linkText, 'UTF-8')>$maxLen) {
+                    $linkText=  mb_substr($rawText, 0, $maxLen, 'UTF-8').'..';
+                } else {
+                    $linkText=$rawText;
+                }
+                $result.='<li><a href="#" onClick="jsAddReplyText_'.$randId.'();">'.$linkText.'</a></li>';
+          }
+          $result.=wf_tag('ul',true);
+          
+          
+      }
+      return ($result);
+  }
+  
   function web_TicketReplyForm($ticketid) {
       $ticketid=vf($ticketid);
       $ticketdata=zb_TicketGetData($ticketid);
       $ticketstate=$ticketdata['status'];
       if (!$ticketstate) {
       $replyinputs=wf_HiddenInput('postreply', $ticketid);
-      $replyinputs.=wf_TextArea('replytext', '', '', true, '60x10');
+      $replyinputs.= wf_tag('textarea', false, '', 'name="replytext" cols="60" rows="10"  id="ticketreplyarea"').wf_tag('textarea',true).wf_tag('br');;
       $replyinputs.=wf_Submit('Reply');
       $replyform=wf_Form('', 'POST', $replyinputs, 'glamour');
+      $replyform.= web_TicketsTAPLister();
       } else {
           $replyform=__('Ticket is closed');
       }

@@ -13,15 +13,16 @@ if (cfr('TICKETING')) {
       rcms_redirect("?module=ticketing&showticket=".$_GET['openticket']);
   }  
   
-  
+  if (!wf_CheckGet(array('settings'))) {
   //view tickets list or calendar
   if (!isset($_GET['showticket'])) {
+      $configControl=  wf_Link('?module=ticketing&settings=true', wf_img('skins/settings.png', __('Typical answers presets'))).' ';
       if (!wf_CheckGet(array('calendarview'))) {
           $viewControl=  wf_Link('?module=ticketing&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
-          show_window(__('Available user tickets').' '.$viewControl, web_TicketsShow());
+          show_window($configControl.__('Available user tickets').' '.$viewControl, web_TicketsShow());
       } else {
           $viewControl=  wf_Link('?module=ticketing', wf_img('skins/icon_table.png', __('Grid view')), false, '');
-          show_window(__('Available user tickets').' '.$viewControl, web_TicketsCalendar());
+          show_window($configControl.__('Available user tickets').' '.$viewControl, web_TicketsCalendar());
       }
       
   } else {
@@ -50,7 +51,35 @@ if (cfr('TICKETING')) {
       }
   }
   
-    
+  } else {
+      //Typical Answers Presets (TAP) configuration
+      
+      //create new one
+      if (wf_CheckPost(array('createnewtap','newtaptext'))) {
+          zb_TicketsTAPCreate($_POST['newtaptext']);
+          rcms_redirect('?module=ticketing&settings=true');
+      }
+      
+      //deleting tap
+      if (wf_CheckGet(array('deletetap'))) {
+          zb_TicketsTAPDelete($_GET['deletetap']);
+          rcms_redirect('?module=ticketing&settings=true');
+      }
+      
+      //editing tap
+      if (wf_CheckPost(array('edittapkey','edittaptext'))) {
+          zb_TicketsTAPEdit($_POST['edittapkey'], $_POST['edittaptext']);
+          rcms_redirect('?module=ticketing&settings=true');
+      }
+      
+      //list available
+      show_window(__('Available typical answers presets'), web_TicketsTapShowAvailable());
+      
+      //add form
+      show_window(__('Create new preset'),web_TicketsTAPAddForm());
+      
+      show_window('', wf_Link('?module=ticketing', __('Back'), true, 'ubButton'));
+  }   
     
 } else {
        show_error(__('You cant control this module'));

@@ -28,7 +28,7 @@ function zb_AddressCreateCity($cityname,$cityalias) {
     (NULL, '".$cityname."','".$cityalias."');
     ";
     nr_query($query);
-    log_register('CREATE AddressCity '.$cityname.' '.$cityalias);
+    log_register('CREATE AddressCity `'.$cityname.'` `'.$cityalias.'`');
 }
 
 
@@ -36,7 +36,7 @@ function zb_AddressDeleteCity($cityid) {
     $cityid=vf($cityid);
     $query="DELETE from `city` WHERE `id` = '".$cityid."';";
     nr_query($query);
-    log_register('DELETE AddressCity '.$cityid);
+    log_register('DELETE AddressCity ['.$cityid.']');
 }
 
 function zb_AddressChangeCityName($cityid,$cityname) {
@@ -44,7 +44,7 @@ function zb_AddressChangeCityName($cityid,$cityname) {
     $cityname=mysql_real_escape_string($cityname);
     $query="UPDATE `city` SET `cityname` = '".$cityname."' WHERE `id`= '".$cityid."' ;";
     nr_query($query);
-    log_register('CHANGE AddressCityName '.$cityid.' '.$cityname);
+    log_register('CHANGE AddressCityName ['.$cityid.'] `'.$cityname.'`');
 }
 
 
@@ -53,7 +53,7 @@ function zb_AddressChangeCityAlias($cityid,$cityalias) {
     $cityalias=vf($cityalias);
     $query="UPDATE `city` SET `cityalias` = '".$cityalias."' WHERE `id`= '".$cityid."' ;";
     nr_query($query);
-    log_register('CHANGE AddressCityAlias '.$cityid.' '.$cityalias);
+    log_register('CHANGE AddressCityAlias ['.$cityid.'] `'.$cityalias.'`');
 }
 
 function zb_AddressGetCityData($cityid) {
@@ -106,7 +106,7 @@ function zb_AddressCreateStreet($cityid,$streetname,$streetalias) {
     (NULL, '".$cityid."','".$streetname."','".$streetalias."');
     ";
     nr_query($query);
-    log_register('CREATE AddressStreet '.$cityid.' '.$streetname.' '.$streetalias);
+    log_register('CREATE AddressStreet ['.$cityid.'] `'.$streetname.'` `'.$streetalias.'`');
 }
 
 
@@ -114,7 +114,7 @@ function zb_AddressDeleteStreet($streetid) {
     $streetid=vf($streetid);
     $query="DELETE from `street` WHERE `id` = '".$streetid."';";
     nr_query($query);
-    log_register('DELETE AddressStreet '.$streetid);
+    log_register('DELETE AddressStreet ['.$streetid.']');
 }
 
 
@@ -123,7 +123,7 @@ function zb_AddressChangeStreetName($streetid,$streetname) {
     $streetname=mysql_real_escape_string($streetname);
     $query="UPDATE `street` SET `streetname` = '".$streetname."' WHERE `id`= '".$streetid."' ;";
     nr_query($query);
-    log_register('CHANGE AddressStreetName '.$streetid.' '.$streetname);
+    log_register('CHANGE AddressStreetName ['.$streetid.'] `'.$streetname.'`');
 }
 
 
@@ -132,7 +132,7 @@ function zb_AddressChangeStreetAlias($streetid,$streetalias) {
     $streetalias=mysql_real_escape_string($streetalias);
     $query="UPDATE `street` SET `streetalias` = '".$streetalias."' WHERE `id`= '".$streetid."' ;";
     nr_query($query);
-    log_register('CHANGE AddressStreetAlias '.$streetid.' '.$streetalias);
+    log_register('CHANGE AddressStreetAlias ['.$streetid.'] `'.$streetalias.'`');
 }
 
 function zb_AddressGetStreetData($streetid) {
@@ -183,7 +183,7 @@ function zb_AddressDeleteBuild($buildid) {
     $buildid=vf($buildid);
     $query="DELETE from `build` WHERE `id` = '".$buildid."';";
     nr_query($query);
-    log_register('DELETE AddressBuild '.$buildid);
+    log_register('DELETE AddressBuild ['.$buildid.']');
 }
 
 function zb_AddressBuildProtected($buildid) {
@@ -224,7 +224,7 @@ function zb_AddressChangeBuildNum($buildid,$buildnum) {
     $buildnum=mysql_real_escape_string($buildnum);
     $query="UPDATE `build` SET `buildnum` = '".$buildnum."' WHERE `id`= '".$buildid."' ;";
     nr_query($query);
-    log_register('CHANGE AddressBuildNum '.$buildid.' '.$buildnum);
+    log_register('CHANGE AddressBuildNum ['.$buildid.'] `'.$buildnum.'`');
 }
 
 function zb_AddressGetBuildData($buildid) {
@@ -288,7 +288,7 @@ function zb_AddressDeleteApartment($aptid) {
     $aptid=vf($aptid);
     $query="DELETE from `apt` WHERE `id` = '".$aptid."';";
     nr_query($query);
-    log_register('DELETE AddressApartment '.$aptid);
+    log_register('DELETE AddressApartment ['.$aptid.']');
     zb_AddressCleanAddressCache();
 }
 
@@ -308,7 +308,7 @@ function zb_AddressChangeApartment($aptid,$buildid,$entrance,$floor,$apt) {
         WHERE `id` ='".$aptid."';
         ";
     nr_query($query);
-    log_register('CHANGE AddressApartment '.$aptid.' '.$buildid.' '.$entrance.' '.$floor.' '.$apt);
+    log_register('CHANGE AddressApartment ['.$aptid.'] ['.$buildid.'] `'.$entrance.'` `'.$floor.'` `'.$apt.'`');
     zb_AddressCleanAddressCache();
 }
 
@@ -333,7 +333,7 @@ function zb_AddressDeleteAddress($addrid) {
     $addrid=vf($addrid);
     $query="DELETE from `address` WHERE `id` = '".$addrid."';";
     nr_query($query);
-    log_register('DELETE AddressOccupancy '.$addrid);
+    log_register('DELETE AddressOccupancy ['.$addrid.']');
 }
 
 
@@ -341,7 +341,7 @@ function zb_AddressOrphanUser($login) {
     $login=vf($login);
     $query="DELETE from `address` WHERE `login` = '".$login."';";
     nr_query($query);
-    log_register('ORPHAN AddressOccupancy '.$login);
+    log_register('ORPHAN AddressOccupancy ('.$login.')');
 }
 
 function zb_AddressGetLastid() {
