@@ -2170,6 +2170,8 @@ function zb_TariffGetCount() {
         $tariffcount=  zb_TariffGetLiveCount();
         $maxArr=array();
         $totalusers=0;
+        $liveusersCounter=0;
+        $deadusersCounter=0;
         
         $cells=   wf_TableCell(__('Tariff'));
         $cells.=  wf_TableCell(__('Total'));
@@ -2186,7 +2188,9 @@ function zb_TariffGetCount() {
             
             foreach ($tariffcount as $eachtariffname=>$eachtariffcount) {
                 $totalusers=$totalusers+$eachtariffcount['alive']+$eachtariffcount['dead'];
-
+                $deadusersCounter=$deadusersCounter+$eachtariffcount['dead'];
+                $liveusersCounter=$liveusersCounter+$eachtariffcount['alive'];
+                
                 $cells=   wf_TableCell($eachtariffname);
                 $cells.=  wf_TableCell($eachtariffcount['alive']+$eachtariffcount['dead']);
                 $cells.=  wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers),'','','sorttable_customkey="'.$eachtariffcount['alive'].'"');
@@ -2196,13 +2200,17 @@ function zb_TariffGetCount() {
          }
          
         $result=wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.=wf_tag('h2').__('Total').': '.$totalusers.  wf_tag('h2', true);
+        $result.=wf_tag('h2').__('Total').': '.$totalusers.' '.__('Active').  wf_tag('h2', true);
+        $result.=__('Active users').': '.$liveusersCounter;
+        $result.= wf_tag('br');
+        $result.=__('Inactive users').': '.$deadusersCounter;
         return($result);
     }
     
     function web_TariffShowMoveReport() {
-       $alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
-       $billing_conf=rcms_parse_ini_file(CONFIG_PATH."billing.ini");
+       global $ubillingConfig;
+       $alter_conf=$ubillingConfig->getAlter();
+       $billing_conf=$ubillingConfig->getBilling();
        $nmchange='#!/bin/sh'."\n";
        //is nmchange enabled?
        if ($alter_conf['NMCHANGE']) {
