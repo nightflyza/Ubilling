@@ -778,12 +778,15 @@ class UkvSystem {
             $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
             $inputs.= wf_tag('div', true);
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
             
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
             
+            $inputs.= wf_tag('tr', false);
+            $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
+            $inputs.= wf_Submit(__('Save'));
+            $inputs.= wf_tag('td', true);
+            $inputs.= wf_tag('tr', true);
             
             $inputs=  wf_TableBody($inputs, '100%', 0, '');
 
