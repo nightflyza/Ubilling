@@ -2200,7 +2200,7 @@ function zb_TariffGetCount() {
          }
          
         $result=wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.=wf_tag('h2').__('Total').': '.$totalusers.' '.__('Active').  wf_tag('h2', true);
+        $result.=wf_tag('h2').__('Total').': '.$totalusers.  wf_tag('h2', true);
         $result.=__('Active users').': '.$liveusersCounter;
         $result.= wf_tag('br');
         $result.=__('Inactive users').': '.$deadusersCounter;

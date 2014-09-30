@@ -455,7 +455,7 @@ function zb_UserGetNotes($login) {
                 
                 $tablecells=wf_TableCell($sigtariff);
                 $tablecells.=wf_TableCell($eachcount);
-                $tablecells.=wf_TableCell(web_bar($eachcount, sizeof($allsignups)));
+                $tablecells.=wf_TableCell(web_bar($eachcount, sizeof($allsignups)) , '', '', 'sorttable_customkey="'.$eachcount.'"');
                 $tablerows.=wf_TableRow($tablecells, 'row3');
             }
         }

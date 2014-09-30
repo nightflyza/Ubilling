@@ -238,7 +238,10 @@ function web_TicketsShow() {
       $all= simple_queryall($query);
       if (!empty($all)) {
           foreach ($all as $io=>$each) {
-              @$result[$each['key']]=  base64_decode($each['value']);
+              @$tmpData=base64_decode($each['value']);
+              @$tmpData=  str_replace("'", '`', $tmpData);
+              $result[$each['key']]= $tmpData;
+             
           }
       }
       return ($result);
