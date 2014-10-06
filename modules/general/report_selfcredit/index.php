@@ -170,7 +170,7 @@ if (cfr('SCREPORT')) {
             $cells.=wf_TableCell(rcms_date_localise($monthname));
             $cells.=wf_TableCell($paycount);
             $cells.=wf_TableCell($month_summ);
-            $cells.=wf_TableCell(web_bar($paycount, $yearSumm));
+            $cells.=wf_TableCell(web_bar($month_summ, $yearSumm));
             $this->tabledata.=wf_TableRow($cells,'row3');
             $this->yearsumm=$this->yearsumm+$month_summ;
             }

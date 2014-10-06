@@ -17,7 +17,9 @@ if (cfr('TARIFFSPEED')) {
         // if all ok save speed
         if ((isset($_POST['newspeeddown'])) AND (isset($_POST['newspeedup']))) {
             zb_TariffDeleteSpeed($tariff);
-            zb_TariffCreateSpeed($tariff, $_POST['newspeeddown'], $_POST['newspeedup']);
+            $newSpeedDown=trim($_POST['newspeeddown']);
+            $newSpeedUp=trim($_POST['newspeedup']);
+            zb_TariffCreateSpeed($tariff, $newSpeedDown, $newSpeedUp);
             rcms_redirect("?module=tariffspeeds");
         }
     } else {
