@@ -97,7 +97,7 @@ if (cfr('REPORTSIGNUP')) {
                     @$sigTariff=$alltariffs[$eachsignup['login']];
                     $tablecells.=wf_TableCell($eachsignup['login']);
                     $tablecells.=wf_TableCell($sigTariff);
-                    $profilelink=wf_Link('?module=userprofile&username='.$eachsignup['login'], web_profile_icon().' '.$eachsignup['address']);
+                    $profilelink=wf_Link('?module=userprofile&username='.trim($eachsignup['login']), web_profile_icon().' '.$eachsignup['address']);
                     $tablecells.=wf_TableCell($profilelink);
                     if (ispos($eachsignup['date'], $curdate)) {
                         $rowClass='todaysig';

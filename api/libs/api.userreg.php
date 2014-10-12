@@ -583,7 +583,7 @@ function zb_UserRegister($user_data,$goprofile=true) {
      
     ///////////////////////////////////
     if ($goprofile) {
-    rcms_redirect("?module=userprofile&username=".$user_data['login']);
+    rcms_redirect("?module=userprofile&username=".$login);
     }
 }
 
