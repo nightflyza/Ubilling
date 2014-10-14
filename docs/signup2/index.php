@@ -18,7 +18,7 @@ include('modules/engine/api.signup.php');
 
 $dbConnect = new MySQLDB();
 
-$signup = new SignupService();
+$signup = new SignupService($snConfig['confcache'],$snConfig['cachetimeout']);
 
 //show form by default
 if (!la_CheckPost(array('createrequest'))) {

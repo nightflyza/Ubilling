@@ -7,8 +7,8 @@ if (cfr('SIGREQ')) {
     if ($alterconf['SIGREQ_ENABLED']) {
         //Main sigreq management
         if (!wf_CheckGet(array('settings'))) {
-        
-        $signups = new SignupRequests();
+
+            $signups = new SignupRequests();
             //requests management
             //set request done
             if (isset($_GET['reqdone'])) {
@@ -32,13 +32,18 @@ if (cfr('SIGREQ')) {
                 //shows selected signup request by its ID
                 $signups->showRequest($_GET['showreq']);
             } else {
-                //display signup requests list
-                $signups->renderList();
+                if (!wf_CheckGet(array('calendarview'))) {
+                    //display signup requests list
+                    $signups->renderList();
+                } else {
+                    //display signup requests calendar
+                     $signups->renderCalendar();
+                }
             }
         } else {
             //signup requests service configuration
-            $signupConf=new SignupConfig;
-            
+            $signupConf = new SignupConfig;
+
             //save config request
             if (wf_CheckPost(array('changesettings'))) {
                 $signupConf->save();
@@ -46,7 +51,6 @@ if (cfr('SIGREQ')) {
             }
             show_window(__('Settings'), $signupConf->renderForm());
         }
-        
     } else {
         show_window(__('Error'), __('This module disabled'));
     }

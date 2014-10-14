@@ -10,6 +10,7 @@ class SignupService {
     protected $optionEmailDisplay = true;
     protected $optionSpamTraps = true;
     protected $optionCaching = false;
+    protected $optionConfCaching=false;
     protected $optionServices = '';
     protected $optionTariffs = '';
     protected $optionIspName = '';
@@ -21,7 +22,7 @@ class SignupService {
 
     //caching
     const CACHE_PATH = 'cache/';
-    const CACHE_TIME = 3600;
+    protected $cachigTime = 3600;
 
     //other properties
     protected $cities = array();
@@ -33,7 +34,11 @@ class SignupService {
     protected $required = array('street', 'build', 'realname', 'phone');
     protected $important = '';
 
-    public function __construct() {
+    public function __construct($confcache=0,$cachetimeout=3600) {
+        if ($confcache) {
+            $this->optionConfCaching=true;
+        }
+        $this->cachingTime=$cachetimeout;
         $this->important = ' ' . la_tag('sup') . '*' . la_tag('sup', true);
         $this->loadConfig();
         $this->configPreprocess();
@@ -50,12 +55,53 @@ class SignupService {
      */
 
     protected function loadConfig() {
+           if ($this->optionConfCaching) {
+            $cacheTime = $this->cachingTime;
+            $cacheTime = time() - $cacheTime;
+            $cacheName = self::CACHE_PATH . 'config.dat';
+            $updateCache = false;
+            if (file_exists($cacheName)) {
+                $updateCache = false;
+                if ((filemtime($cacheName) > $cacheTime)) {
+                    $updateCache = false;
+                } else {
+                    $updateCache = true;
+                }
+            } else {
+                $updateCache = true;
+            }
+
+            if (!$updateCache) {
+                //read data directly from cache
+                $result = array();
+                $rawData = file_get_contents($cacheName);
+                if (!empty($rawData)) {
+                    $rawData= base64_decode($rawData);
+                    $result = unserialize($rawData);
+                    
+                }
+                $this->configRaw = $result;
+            } else {
+                //updating cache
+                 $query = "SELECT * from `sigreqconf`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->configRaw[$each['key']] = $each['value'];
+                    }
+                }
+                $cacheStoreData = serialize($this->configRaw);
+                $cacheStoreData = base64_encode($cacheStoreData);
+                file_put_contents($cacheName, $cacheStoreData);
+            }
+        } else {
         $query = "SELECT * from `sigreqconf`";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->configRaw[$each['key']] = $each['value'];
             }
+        }
         }
     }
 
@@ -111,7 +157,7 @@ class SignupService {
 
     protected function loadCities() {
         if ($this->optionCaching) {
-            $cacheTime = self::CACHE_TIME;
+            $cacheTime = $this->cachingTime;
             $cacheTime = time() - $cacheTime;
             $cacheName = self::CACHE_PATH . 'city.dat';
             $updateCache = false;
@@ -136,7 +182,7 @@ class SignupService {
                 $this->cities = $result;
             } else {
                 //updating cache
-                $query = "SELECT * from `city`";
+                $query = "SELECT * from `city`  ORDER BY `id` ASC";
                 $all = simple_queryall($query);
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
@@ -147,7 +193,7 @@ class SignupService {
                 file_put_contents($cacheName, $cacheStoreData);
             }
         } else {
-            $query = "SELECT * from `city`";
+            $query = "SELECT * from `city` ORDER BY `id` ASC";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
@@ -211,7 +257,7 @@ class SignupService {
 
     protected function loadStreets() {
         if ($this->optionCaching) {
-            $cacheTime = self::CACHE_TIME;
+            $cacheTime = $this->cachingTime;
             $cacheTime = time() - $cacheTime;
             $cacheName = self::CACHE_PATH . 'street.dat';
             $updateCache = false;

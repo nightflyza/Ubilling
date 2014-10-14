@@ -121,10 +121,55 @@ class SignupRequests {
         } else {
             $confControl='';
         }
-        
-        show_window($confControl.__('Available signup requests'), $result);
+        $viewControl=  wf_Link('?module=sigreq&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
+        show_window($confControl.__('Available signup requests').' '.$viewControl, $result);
     }
 
+    /*
+     * renders available signups data in calendar view
+     * 
+     * @return void
+     */
+
+    public function renderCalendar() {
+        $curyear=  curyear();
+        $query="SELECT * from `sigreq` WHERE `date` LIKE '".$curyear."-%' ORDER BY `date` ASC";
+        $all= simple_queryall($query);
+        $result='';
+        $calendarData='';
+        if (!empty($all)) {
+            foreach ($all as $io=>$each)  {
+                $timestamp=strtotime($each['date']);
+                $date=date("Y, n-1, j",$timestamp);
+                $rawTime=date("H:i:s",$timestamp);
+               if ($each['state']==0) {
+                    $coloring="className : 'undone',";
+                } else {
+                    $coloring='';
+                }
+                      $calendarData.="
+                      {
+                        title: '".$rawTime.' '.$each['street'].' '.$each['build'].'/'.$each['apt']."',
+                        url: '?module=sigreq&showreq=".$each['id']."',
+                        start: new Date(".$date."),
+                        end: new Date(".$date."),
+                       ".$coloring."     
+                   },
+                    ";
+            }
+            
+            
+        }
+        $result=  wf_FullCalendar($calendarData);
+        //check database configuration table
+        if (zb_CheckTableExists('sigreqconf')) {
+            $confControl= wf_Link('?module=sigreq&settings=true', wf_img('skins/settings.png', __('Settings')), false).' ';
+        } else {
+            $confControl='';
+        }
+        $viewControl=  wf_Link('?module=sigreq', wf_img('skins/icon_table.png', __('Grid view')), false, '');
+        show_window($confControl.__('Available signup requests').' '.$viewControl, $result);
+    }
     /*
      * returns signup request data by selected ID
      * 
