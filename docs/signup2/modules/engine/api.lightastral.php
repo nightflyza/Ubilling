@@ -63,6 +63,7 @@ function la_Form($action,$method,$inputs,$class='',$legend='') {
 
 function la_TextInput($name,$label='',$value='',$br=false,$size='') {
     $inputid=la_InputId();
+    $result='';
     //set size
     if ($size!='') {
         $input_size='size="'.$size.'"';
@@ -74,10 +75,11 @@ function la_TextInput($name,$label='',$value='',$br=false,$size='') {
     } else {
         $newline='';
     }
-    $result='<input type="text" name="'.$name.'" value="'.$value.'" '.$input_size.' id="'.$inputid.'">'."\n";
     if ($label!='') {
     $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
     }
+    $result.='<input type="text" name="'.$name.'" value="'.$value.'" '.$input_size.' id="'.$inputid.'">'."\n";
+   
     $result.=$newline."\n";
     return ($result);
 }
@@ -190,6 +192,7 @@ function la_CheckInput($name,$label='',$br=false,$checked=false) {
  */
 function la_TextArea($name,$label='',$value='',$br=false,$size='') {
     $inputid=la_InputId();
+    $result='';
     //set columns and rows count
     if ($size!='') {
         $sizexplode=explode('x',$size);
@@ -202,10 +205,11 @@ function la_TextArea($name,$label='',$value='',$br=false,$size='') {
     } else {
         $newline='';
     }
-    $result='<textarea name="'.$name.'" '.$input_size.' id="'.$inputid.'">'.$value.'</textarea>'."\n";
     if ($label!='') {
     $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
     }
+    $result.='<textarea name="'.$name.'" '.$input_size.' id="'.$inputid.'">'.$value.'</textarea>'."\n";
+    
     $result.=$newline."\n";
     return ($result);
 }
@@ -725,5 +729,180 @@ $(function() {
 }
 
 
+/**
+ *
+ * Return Jquery UI selectable combobox
+ *
+ * @param   $name name of element
+ * @param   $params array of elements $value=>$option
+ * @param   $label text label for input
+ * @param   $selected selected $value for selector (now ignored)
+ * @param   $br append new line - bool
+ * @return  string
+ *
+ */
+function la_JuiComboBox($name,$params,$label,$selected='',$br=false) {
+$id=  la_InputId();
+$select='';
+
+if (!empty($params)) {
+    foreach ($params as $io=>$each) {
+        $select.='<option value="'.$io.'">'.$each.'</option>'."\n";
+    }
+}
+
+$result='
+
+ <style>
+.custom-combobox_'.$id.' {
+position: relative;
+display: inline-block;
+}
+.custom-combobox-toggle_'.$id.' {
+position: absolute;
+top: 0;
+bottom: 0;
+margin-left: -1px;
+padding: 0;
+}
+.custom-combobox-input_'.$id.' {
+margin: 0;
+padding: 5px 10px;
+}
+
+.ui-autocomplete {
+    max-height: 400px;
+    overflow-y: auto;   /* prevent horizontal scrollbar */
+    overflow-x: hidden; /* add padding to account for vertical scrollbar */
+    z-index:1000 !important;
+}
+</style>
+<script>
+(function( $ ) {
+$.widget( "custom.combobox_'.$id.'", {
+_create: function() {
+this.wrapper = $( "<span>" )
+.addClass( "custom-combobox_'.$id.'" )
+.insertAfter( this.element );
+this.element.hide();
+this._createAutocomplete();
+this._createShowAllButton();
+},
+_createAutocomplete: function() {
+var selected = this.element.children( ":selected" ),
+value = selected.val() ? selected.text() : "";
+this.input = $( "<input>" )
+.appendTo( this.wrapper )
+.val( value )
+.attr( "title", "" )
+.addClass( "custom-combobox-input_'.$id.' ui-widget_'.$id.' ui-widget-content ui-state-default ui-corner-left" )
+.autocomplete({
+delay: 0,
+minLength: 0,
+source: $.proxy( this, "_source" )
+})
+.tooltip({
+tooltipClass: "ui-state-highlight"
+});
+this._on( this.input, {
+autocompleteselect: function( event, ui ) {
+ui.item.option.selected = true;
+this._trigger( "select", event, {
+item: ui.item.option
+});
+},
+autocompletechange: "_removeIfInvalid"
+});
+},
+_createShowAllButton: function() {
+var input = this.input,
+wasOpen = false;
+$( "<a>" )
+.attr( "tabIndex", -1 )
+.attr( "title", "'.__('Show all').'" )
+.tooltip()
+.appendTo( this.wrapper )
+.button({
+icons: {
+primary: "ui-icon-triangle-1-s"
+},
+text: false
+})
+.removeClass( "ui-corner-all" )
+.addClass( "custom-combobox-toggle_'.$id.' ui-corner-right" )
+.mousedown(function() {
+wasOpen = input.autocomplete( "widget" ).is( ":visible" );
+})
+.click(function() {
+input.focus();
+// Close if already visible
+if ( wasOpen ) {
+return;
+}
+// Pass empty string as value to search for, displaying all results
+input.autocomplete( "search", "" );
+});
+},
+_source: function( request, response ) {
+var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+response( this.element.children( "option" ).map(function() {
+var text = $( this ).text();
+if ( this.value && ( !request.term || matcher.test(text) ) )
+return {
+label: text,
+value: text,
+option: this
+};
+}) );
+},
+_removeIfInvalid: function( event, ui ) {
+// Selected an item, nothing to do
+if ( ui.item ) {
+return;
+}
+// Search for a match (case-insensitive)
+var value = this.input.val(),
+valueLowerCase = value.toLowerCase(),
+valid = false;
+this.element.children( "option" ).each(function() {
+if ( $( this ).text().toLowerCase() === valueLowerCase ) {
+this.selected = valid = true;
+return false;
+}
+});
+// Found a match, nothing to do
+if ( valid ) {
+return;
+}
+
+this.input.autocomplete( "instance" ).term = "";
+},
+_destroy: function() {
+this.wrapper.remove();
+this.element.show();
+}
+});
+})( jQuery );
+
+$(function() {
+$( "#combobox_'.$id.'" ).combobox_'.$id.'();
+});
+</script>
+
+
+<div class="ui-widget_'.$id.'">
+<label for="combobox_'.$id.'">'.$label.'</label>
+<select id="combobox_'.$id.'" name='.$name.'>
+'.$select.'
+</select>
+</div>
+';
+if ($br) {
+    $result.=la_tag('br');
+}
+
+    return ($result);
+    
+}
 
 ?>

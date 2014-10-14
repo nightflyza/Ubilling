@@ -67,7 +67,7 @@ a:hover {
 
 #logo {
 	float: left;
-	width: 300px;
+	width: 500px;
 	margin: 0;
 	padding: 0;
 	color: #000000;
@@ -153,7 +153,7 @@ a:hover {
 
 #menu {
 	float: right;
-	width: 500px;
+	width: 400px;
 	height: 90px;
 	margin: 0 auto;
 	padding: 0;
@@ -474,4 +474,29 @@ a:hover {
 	text-transform: lowercase;
 	font-size: 30px;
 	color: #FFFFFF;
+}
+
+/*
+specific signup service styles
+*/
+
+
+#signup_form {  padding: 0; }
+#signup_form form { margin: 0px; padding: 0px; }
+#signup_form form label { display: block;  margin-right: 10px; padding: 5px; font-size: 14px;}
+
+#signup_form form textarea {  background: #fff; border: 1px solid #dfdfdf; }
+#signup_form form input { 
+	color: #666;
+	background: #FFF;
+	border: 1px solid #CCC;
+	padding: 8px 18px;
+	font-weight: bold;
+}
+
+/*
+dirty magic class ;)
+*/
+.somemagic {
+    display: none;
 }

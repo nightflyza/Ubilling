@@ -36,6 +36,7 @@ $snConfig=  sn_LoadConfig();
 $lang = $snConfig['lang'];
 
 $langglobal = sn_LoadLang($lang);
+$templateData=array();
 
 function __($str) {
     global $langglobal;
@@ -49,6 +50,7 @@ function __($str) {
 
 function sn_ShowTemplate() {
     global $ContentContainer;
+    global $templateData;
     include ('template/template.html');
 }
 

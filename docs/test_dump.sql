@@ -1239,3 +1239,14 @@ CREATE TABLE IF NOT EXISTS `netextips` (
   `vlan` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- 0.5.9 update
+CREATE TABLE IF NOT EXISTS `sigreqconf` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `key` varchar(255) DEFAULT NULL,
+  `value` text,
+  PRIMARY KEY (`id`),
+  KEY `key` (`key`),
+  FULLTEXT KEY `value` (`value`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

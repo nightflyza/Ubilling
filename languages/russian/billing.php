@@ -1750,7 +1750,22 @@ $lang['def']['And is not compatible with Stargazer']='И не совместим
 $lang['def']['Typical answers presets']='Заготовки типичных ответов';
 $lang['def']['Available typical answers presets']='Заготовки типичных ответов в наличии';
 $lang['def']['Create new preset']='Создать новую заготовку';
+$lang['def']['Your ISP Name']='Название вашего ISP';
+$lang['def']['Your ISP site URL']='URL вашего сайта';
+$lang['def']['Your ISP logo URL']='Полный URL к вашему логотипу';
+$lang['def']['Sidebar text - contacts, phones etc.']='Текст сайдбара - контактные данные, телефоны итд.';
+$lang['def']['Greeting text']='Текст приветствия';
+$lang['def']['Services offered']='Предлагаемые услуги';
+$lang['def']['Tariffs offered']='Предлагаемые тарифы';
+$lang['def']['(separator - comma)']='(разделитель - запятая)';
+$lang['def']['Display city input']='Показывать поле ввода города';
+$lang['def']['Show city input as combobox']='Показывать поле ввода города как комбобокс';
+$lang['def']['Show street input as combobox']='Показывать поле ввода улицы в виде комбобокса';
+$lang['def']['Display email field']='Показывать поле ввода електропочты';
+$lang['def']['Render spambots protection traps']='Использовать защиту от спамботов';
+$lang['def']['City and streets hide lists']='Список скрываемых городов и улиц';
 $lang['def']['']='';
-$lang['def']['']='';
+
+
 
 ?>
