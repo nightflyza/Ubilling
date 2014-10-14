@@ -1778,5 +1778,6 @@ $lang['def']['Show street input as combobox']='Відображати поле �
 $lang['def']['Display email field']='Показувати поле вводу електронної пошти';
 $lang['def']['Render spambots protection traps']='Використовувати захист від спамботів';
 $lang['def']['City and streets hide lists']='Список приховуваних міст та вулиць';
+$lang['def']['Database connections caching']='Кешування виборок з БД';
 
 ?>

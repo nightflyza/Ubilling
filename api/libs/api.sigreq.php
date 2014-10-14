@@ -388,12 +388,14 @@ class SignupConfig {
         $streetSelFlag= $this->checkConf('STREET_SELECTABLE');
         $emailDispFlag= $this->checkConf('EMAIL_DISPLAY');
         $spamDispFlag= $this->checkConf('SPAM_TRAPS');
+        $cachingFlag= $this->checkConf('CACHING');
         
         $inputs.= wf_CheckInput('newcitydisplay', __('Display city input'), true, $cityDispFlag);
         $inputs.= wf_CheckInput('newcityselectable', __('Show city input as combobox'), true, $citySelFlag);
         $inputs.= wf_CheckInput('newstreetselectable', __('Show street input as combobox'), true, $streetSelFlag);
         $inputs.= wf_CheckInput('newemaildisplay', __('Display email field'), true, $emailDispFlag);
         $inputs.= wf_CheckInput('newespamtraps', __('Render spambots protection traps'), true, $spamDispFlag);
+        $inputs.= wf_CheckInput('newcaching', __('Database connections caching'), true, $cachingFlag);
         
         $inputs.= wf_TextInput('newispname', __('Your ISP Name'), @$this->configRaw['ISP_NAME'], true, 25);
         $inputs.= wf_TextInput('newispurl', __('Your ISP site URL'), @$this->configRaw['ISP_URL'], true, 25);
@@ -480,6 +482,18 @@ class SignupConfig {
                 if ($this->checkConf('SPAM_TRAPS')) {
                 $this->deleteConf('SPAM_TRAPS');
                 log_register('SIGREQCONF DISABLED SPAM_TRAPS');
+                }
+            }
+            //caching
+            if (isset($_POST['newcaching'])) {
+                if (!$this->checkConf('CACHING')) {
+                  $this->setConf('CACHING', 'NOP');
+                  log_register('SIGREQCONF ENABLED CACHING');
+                }
+            } else {
+                if ($this->checkConf('CACHING')) {
+                $this->deleteConf('CACHING');
+                log_register('SIGREQCONF DISABLED CACHING');
                 }
             }
             //isp name

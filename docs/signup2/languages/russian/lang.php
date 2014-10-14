@@ -3,6 +3,7 @@
 $lang['def']['Signup'] = 'Подключение';
 $lang['def']['Signup request'] = 'Заявка на подключение';
 $lang['def']['City'] = 'Город';
+$lang['def']['Town'] = 'Населенный пункт';
 $lang['def']['Show all'] = 'Показать все';
 $lang['def']['Street'] = 'Улица';
 $lang['def']['Build'] = 'Дом';

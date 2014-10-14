@@ -9,6 +9,7 @@ class SignupService {
     protected $optionCityDisplay = true;
     protected $optionEmailDisplay = true;
     protected $optionSpamTraps = true;
+    protected $optionCaching = false;
     protected $optionServices = '';
     protected $optionTariffs = '';
     protected $optionIspName = '';
@@ -17,6 +18,11 @@ class SignupService {
     protected $optionSidebarText = '';
     protected $optionGreetingText = '';
     protected $optionHideouts = '';
+
+    //caching
+    const CACHE_PATH = 'cache/';
+    const CACHE_TIME = 3600;
+
     //other properties
     protected $cities = array();
     protected $streets = array();
@@ -74,6 +80,7 @@ class SignupService {
         $this->optionStreetSelectable = (isset($this->configRaw['STREET_SELECTABLE'])) ? true : false;
         $this->optionEmailDisplay = (isset($this->configRaw['EMAIL_DISPLAY'])) ? true : false;
         $this->optionSpamTraps = (isset($this->configRaw['SPAM_TRAPS'])) ? true : false;
+        $this->optionCaching = (isset($this->configRaw['CACHING'])) ? true : false;
     }
 
     /*
@@ -103,11 +110,49 @@ class SignupService {
      */
 
     protected function loadCities() {
-        $query = "SELECT * from city";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->cities[$each['id']] = $each['cityname'];
+        if ($this->optionCaching) {
+            $cacheTime = self::CACHE_TIME;
+            $cacheTime = time() - $cacheTime;
+            $cacheName = self::CACHE_PATH . 'city.dat';
+            $updateCache = false;
+            if (file_exists($cacheName)) {
+                $updateCache = false;
+                if ((filemtime($cacheName) > $cacheTime)) {
+                    $updateCache = false;
+                } else {
+                    $updateCache = true;
+                }
+            } else {
+                $updateCache = true;
+            }
+
+            if (!$updateCache) {
+                //read data directly from cache
+                $result = array();
+                $rawData = file_get_contents($cacheName);
+                if (!empty($rawData)) {
+                    $result = unserialize($rawData);
+                }
+                $this->cities = $result;
+            } else {
+                //updating cache
+                $query = "SELECT * from `city`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->cities[$each['id']] = $each['cityname'];
+                    }
+                }
+                $cacheStoreData = serialize($this->cities);
+                file_put_contents($cacheName, $cacheStoreData);
+            }
+        } else {
+            $query = "SELECT * from `city`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->cities[$each['id']] = $each['cityname'];
+                }
             }
         }
     }
@@ -123,7 +168,7 @@ class SignupService {
             $tmpArr = explode(',', $this->optionServices);
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    $this->services[$each] = $each;
+                    $this->services[trim($each)] = trim($each);
                 }
             }
         }
@@ -140,7 +185,7 @@ class SignupService {
             $tmpArr = explode(',', $this->optionTariffs);
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    $this->tariffs[$each] = $each;
+                    $this->tariffs[trim($each)] = trim($each);
                 }
             }
         }
@@ -165,11 +210,50 @@ class SignupService {
      */
 
     protected function loadStreets() {
-        $query = "SELECT * from street";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $this->streets[$each['id']] = $each['streetname'];
+        if ($this->optionCaching) {
+            $cacheTime = self::CACHE_TIME;
+            $cacheTime = time() - $cacheTime;
+            $cacheName = self::CACHE_PATH . 'street.dat';
+            $updateCache = false;
+            if (file_exists($cacheName)) {
+                $updateCache = false;
+                if ((filemtime($cacheName) > $cacheTime)) {
+                    $updateCache = false;
+                } else {
+                    $updateCache = true;
+                }
+            } else {
+                $updateCache = true;
+            }
+
+            if (!$updateCache) {
+                //read data directly from cache
+                $result = array();
+                $rawData = file_get_contents($cacheName);
+                if (!empty($rawData)) {
+                    $result = unserialize($rawData);
+                }
+                $this->streets = $result;
+            } else {
+                //updating cache
+                $query = "SELECT * from `street`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->streets[$each['id']] = $each['streetname'];
+                    }
+                }
+                $cacheStoreData = serialize($this->streets);
+                file_put_contents($cacheName, $cacheStoreData);
+            }
+        } else {
+            //cache disabled
+            $query = "SELECT * from `street`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->streets[$each['id']] = $each['streetname'];
+                }
             }
         }
     }
@@ -197,10 +281,10 @@ class SignupService {
                         }
                     }
                 }
-                $result = la_JuiComboBox('city', $cityNames, __('City') . $this->important, '', false);
+                $result = la_JuiComboBox('city', $cityNames, __('Town') . $this->important, '', false);
             }
         } else {
-            $result = la_TextInput('city', __('City') . $this->important, '', false, 15);
+            $result = la_TextInput('city', __('Town') . $this->important, '', false, 15);
         }
         return ($result);
     }
@@ -318,7 +402,7 @@ class SignupService {
 
     protected function tariffsInput() {
         $result = '';
-        if (!empty($this->services)) {
+        if (!empty($this->tariffs)) {
             $result = la_JuiComboBox('tariff', $this->tariffs, __('Tariff'), '', false);
         }
         return ($result);
@@ -434,14 +518,15 @@ class SignupService {
         $data = mysql_real_escape_string($data);
         return ($data);
     }
-    
+
     /*
      * checks spam fields availability
      * 
      * @return bool 
      */
+
     protected function spamCheck() {
-        $result=true;
+        $result = true;
         if ($this->optionSpamTraps) {
             foreach ($this->spamTraps as $eachTrap) {
                 if (la_CheckPost(array($eachTrap))) {
@@ -472,7 +557,7 @@ class SignupService {
             }
             $street.=$this->filter($_POST['street']);
             $build = $this->filter($_POST['build']);
-            
+
             if (la_CheckPost(array('apt'))) {
                 $apt = $this->filter($_POST['apt']);
             } else {
@@ -499,7 +584,7 @@ class SignupService {
             } else {
                 $tariff = '';
             }
-            
+
             $notes = '';
             if (la_CheckPost(array('notes'))) {
                 $notes.=$this->filter($_POST['notes']) . "\n";
@@ -507,7 +592,7 @@ class SignupService {
             $notes.=$tariff;
             $notes.=$email;
 
-         
+
             $query = "INSERT INTO `sigreq` (
                                 `id` ,
                                 `date` ,
@@ -538,7 +623,7 @@ class SignupService {
             //silent spam check
             if ($this->spamCheck()) {
                 nr_query($query);
-            } 
+            }
         } else {
             $result = false;
         }
