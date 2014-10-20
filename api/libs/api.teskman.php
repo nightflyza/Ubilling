@@ -592,7 +592,9 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_TaskCreateForm() {
-        $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+        global $ubillingConfig;
+        $altercfg = $ubillingConfig->getAlter();
+        
         $alljobtypes= ts_GetAllJobtypes();
         $allemployee= ts_GetActiveEmployee();
         //construct sms sending inputs
@@ -605,7 +607,12 @@ function ts_DetectUserByAddress($address) {
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=  wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
-        $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
+        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+            $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
+        } else {
+            $allAddress=  zb_AddressGetFulladdresslistCached();
+            $inputs.=wf_AutocompleteTextInput('newtaskaddress', $allAddress,__('Address').'<sup>*</sup>', '', true, '30');
+        }
         $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', '', true, '30');
         $inputs.=wf_tag('br');
@@ -810,6 +817,8 @@ function ts_DetectUserByAddress($address) {
     
     
     function ts_TaskModifyForm($taskid) {
+        global $ubillingConfig;
+        $altercfg = $ubillingConfig->getAlter();
         $taskid=vf($taskid,3);
         $taskdata=  ts_GetTaskData($taskid);
         $result='';
@@ -818,17 +827,23 @@ function ts_DetectUserByAddress($address) {
         $alljobtypes= ts_GetAllJobtypes();
         if (!empty($taskdata)) {
         $inputs=wf_HiddenInput('modifytask', $taskid);
-        $inputs.=wf_TextInput('modifystartdate', __('Target date').'<sup>*</sup>', $taskdata['startdate'], false);
-        $inputs.='<br>';
-        $inputs.=wf_TextInput('modifytaskaddress', __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
-        $inputs.='<br>';
+        $inputs.='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+        $inputs.= wf_DatePickerPreset('modifystartdate', $taskdata['startdate']).  wf_tag('label').__('Target date').'<sup>*</sup>'.wf_tag('label',true);
+        $inputs.=wf_tag('br');
+        if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+            $alladdress=  zb_AddressGetFulladdresslistCached();
+            $inputs.=wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
+        } else {
+            $inputs.=wf_TextInput('modifytaskaddress', __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
+        }
+        $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('modifytaskphone', __('Phone').'<sup>*</sup>', $taskdata['phone'], true, '30');
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
-        $inputs.='<br>';
+        $inputs.=wf_tag('br');
         $inputs.=wf_Selector('modifytaskemployee', $activeemployee, __('Who should do'), $taskdata['employee'], true);
-        $inputs.='<br>';
-        $inputs.='<label>'.__('Job note').'</label><br>';
+        $inputs.=wf_tag('br');
+        $inputs.=wf_tag('label').__('Job note').wf_tag('label',true).  wf_tag('br');
         $inputs.=wf_TextArea('modifytaskjobnote', '', $taskdata['jobnote'], true, '35x5');
         $inputs.=wf_Submit(__('Save'));
         $result=  wf_Form("", 'POST', $inputs, 'glamour');
