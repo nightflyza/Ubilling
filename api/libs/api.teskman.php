@@ -280,7 +280,7 @@ log_register("ADD JOB W:[".$worker_id."] J:[".$jobtype_id."] (".$login.")");
 
 function ts_DetectUserByAddress($address) {
     $address= strtolower_utf8($address);
-    $usersAddress= zb_AddressGetFulladdresslist();
+    $usersAddress= zb_AddressGetFulladdresslistCached();
     $alladdress=array();
     if (!empty($usersAddress)) {
         foreach ($usersAddress as $login=>$eachaddress) {
@@ -611,6 +611,7 @@ function ts_DetectUserByAddress($address) {
             $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
         } else {
             $allAddress=  zb_AddressGetFulladdresslistCached();
+            natsort($allAddress);
             $inputs.=wf_AutocompleteTextInput('newtaskaddress', $allAddress,__('Address').'<sup>*</sup>', '', true, '30');
         }
         $inputs.=wf_tag('br');
@@ -832,6 +833,7 @@ function ts_DetectUserByAddress($address) {
         $inputs.=wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress=  zb_AddressGetFulladdresslistCached();
+            natsort($alladdress);
             $inputs.=wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
             $inputs.=wf_TextInput('modifytaskaddress', __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
