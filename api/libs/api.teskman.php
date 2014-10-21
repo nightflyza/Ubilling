@@ -279,21 +279,8 @@ log_register("ADD JOB W:[".$worker_id."] J:[".$jobtype_id."] (".$login.")");
 //
 
 function ts_DetectUserByAddress($address) {
-    $address= strtolower_utf8($address);
-    $usersAddress= zb_AddressGetFulladdresslistCached();
-    $alladdress=array();
-    if (!empty($usersAddress)) {
-        foreach ($usersAddress as $login=>$eachaddress) {
-            $alladdress[$login]=  strtolower_utf8($eachaddress);
-        }
-    }
-    $alladdress=  array_flip($alladdress);
-    
-    if (isset($alladdress[$address])) {
-        return ($alladdress[$address]);
-    } else {
-        return(false);
-    }
+    $telepathy=new Telepathy(false, true);
+    return($telepathy->getLogin($address));
 }
 
    function ts_GetAllEmployee() {

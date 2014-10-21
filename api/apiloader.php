@@ -11,6 +11,7 @@ include('api/libs/api.astral.php');
 include('api/libs/api.dbconnect.php');
 include('api/libs/api.userdata.php');
 include('api/libs/api.address.php');
+include('api/libs/api.telepathy.php');
 include('api/libs/api.teskman.php');
 include('api/libs/api.networking.php');
 include('api/libs/api.userreg.php');
@@ -48,6 +49,7 @@ include('api/libs/api.capabdir.php');
 include('api/libs/api.sigreq.php');
 include('api/libs/api.roskomnadzor.php');
 include('api/libs/api.userprofile.php');
+
 
 
 /*
