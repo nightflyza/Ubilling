@@ -1,12 +1,14 @@
 <?php
 
 /*
- * Base class prophetic guessing login by the address
+ * Base class prophetic guessing login by the address/surname/realname
  */
 
 class Telepathy {
 
     protected $alladdress = array();
+    protected $allrealnames = array();
+    protected $allsurnames = array();
     protected $caseSensitive = false;
     protected $cachedAddress = true;
     protected $useraddress = '';
@@ -39,6 +41,53 @@ class Telepathy {
     }
 
     /*
+     * Loads all user realnames from database into private prop
+     * 
+     * @return void
+     */
+
+    protected function loadRealnames() {
+        $this->allrealnames = zb_UserGetAllRealnames();
+    }
+
+    /*
+     * Preprocess all user surnames into usable data
+     * 
+     * @return void
+     */
+
+    protected function surnamesExtract() {
+        if (!empty($this->allrealnames)) {
+            foreach ($this->allrealnames as $login=>$realname) {
+                $raw=explode(' ',$realname);
+                if (!empty($raw)) {
+                    $this->allsurnames[$login]=$raw[0];
+                }
+            }
+        }
+    }
+    
+    /*
+     * external passive constructor for name realname login detection
+     * 
+     * @return void
+     */
+    public function useNames() {
+        $this->loadRealnames();
+        $this->surnamesExtract();
+        
+        if (!empty($this->allrealnames)) {
+            $this->allrealnames=  array_flip($this->allrealnames);
+        }
+        
+        if (!empty($this->allrealnames)) {
+            $this->allsurnames=  array_flip($this->allsurnames);
+        }
+    }
+    
+  
+
+    /*
      * preprocess available address data into lower case
      * 
      * @return void
@@ -64,26 +113,25 @@ class Telepathy {
         }
 
         if (($alterconf['ADDRESS_CACHE_TIME']) AND ( $this->cachedAddress)) {
-           if ($updateCache) {
+            if ($updateCache) {
                 $tmpArr = array();
-            if (!empty($this->alladdress)) {
-                foreach ($this->alladdress as $eachlogin => $eachaddress) {
-                    $tmpArr[$eachlogin] = strtolower_utf8($eachaddress);
+                if (!empty($this->alladdress)) {
+                    foreach ($this->alladdress as $eachlogin => $eachaddress) {
+                        $tmpArr[$eachlogin] = strtolower_utf8($eachaddress);
+                    }
+                    $this->alladdress = $tmpArr;
+                    $tmpArr = array();
                 }
-                $this->alladdress = $tmpArr;
-                $tmpArr = array();
+                //store property to cache
+                $cacheStoreData = serialize($this->alladdress);
+                file_put_contents($cacheName, $cacheStoreData);
+                $cacheStoreData = '';
+            } else {
+                $rawCacheData = file_get_contents($cacheName);
+                $rawCacheData = unserialize($rawCacheData);
+                $this->alladdress = $rawCacheData;
+                $rawCacheData = array();
             }
-            //store property to cache
-            $cacheStoreData=  serialize($this->alladdress);
-            file_put_contents($cacheName, $cacheStoreData);
-            $cacheStoreData='';
-            
-           } else {
-               $rawCacheData=  file_get_contents($cacheName);
-               $rawCacheData= unserialize($rawCacheData);
-               $this->alladdress=$rawCacheData;
-               $rawCacheData=array();
-           }
         } else {
             $tmpArr = array();
             if (!empty($this->alladdress)) {
@@ -93,7 +141,6 @@ class Telepathy {
                 $this->alladdress = $tmpArr;
                 $tmpArr = array();
             }
-
         }
     }
 
@@ -112,6 +159,21 @@ class Telepathy {
 
         if (isset($this->alladdress[$address])) {
             return ($this->alladdress[$address]);
+        } else {
+            return(false);
+        }
+    }
+    
+    /*
+     * returns user login by surname
+     * 
+     * @param string $surname
+     * 
+     * @return string
+     */
+    public function getBySurname($surname) {
+        if (isset($this->allsurnames[$surname])) {
+            return ($this->allsurnames[$surname]);
         } else {
             return(false);
         }
