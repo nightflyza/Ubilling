@@ -2,7 +2,7 @@
 
 if (cfr('TURBOSMS')) {
     set_time_limit(0);
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['TSMS_ENABLED']) {
         
         //custom function to preload stargazer users data
@@ -18,6 +18,34 @@ if (cfr('TURBOSMS')) {
             return ($result);
         }
         
+        
+       //get pay ID
+       function tsms_PaymentIDGetAll() {
+       global $altercfg;
+       $result=array();
+       if ($altercfg['OPENPAYZ_REALID']) {
+       $query="SELECT `virtualid`,`realid` from `op_customers`;";
+       $all=  simple_queryall($query);
+           if (!empty($all)) {
+               foreach ($all as $io=>$each) {
+                   $result[$each['realid']]=$each['virtualid'];
+               }
+           }
+       } else {
+           //transform from IPs
+           $query="SELECT `login`,`IP` from `users`";
+           $all=  simple_queryall($query);
+           if (!empty($all)) {
+               foreach ($all as $io=>$each) {
+                   $result[$each['login']]=  ip2int($each['IP']);
+               }
+           }
+
+       }
+       
+       return ($result);
+       }
+       
         //convert realnames to translit
         function tsms_RealnamesTranslit($realnames) {
             $result=array();
@@ -68,7 +96,9 @@ if (cfr('TURBOSMS')) {
         $td_curdate=  curdate();
         $td_users=  tsms_UserGetAllStargazerData();
         $td_mobiles=  tsms_GetAllMobileNumbers();
-        $td_alladdress=  zb_AddressGetFulladdresslist();
+        $td_alladdress= zb_AddressGetFulladdresslistCached();
+        $td_allpayids= tsms_PaymentIDGetAll();
+     
         
         
         function tsms_query($query) {
@@ -337,7 +367,7 @@ if (cfr('TURBOSMS')) {
         }
         
         function tsms_ParseTemplate($login,$template) {
-            global $td_curdate,$td_realnames,$td_realnamestrans,$td_tariffprices,$td_users;
+            global $td_curdate,$td_realnames,$td_realnamestrans,$td_tariffprices,$td_users,$td_allpayids;
              $result=$template;
             //known macro
             $result=str_ireplace('{LOGIN}', $login, $result);
@@ -349,6 +379,7 @@ if (cfr('TURBOSMS')) {
             $result=str_ireplace('{TARIFF}', @$td_users[$login]['Tariff'], $result);
             $result=str_ireplace('{TARIFFPRICE}', @$td_tariffprices[$td_users[$login]['Tariff']], $result);
             $result=str_ireplace('{CURDATE}', @$td_curdate, $result);
+            $result=str_ireplace('{PAYID}', @$td_allpayids[$login], $result);
             return ($result);
         }
        
@@ -559,7 +590,7 @@ if (cfr('TURBOSMS')) {
         $availMacro.='{TARIFF}'.wf_tag('br');
         $availMacro.='{TARIFFPRICE}'.wf_tag('br');
         $availMacro.='{CURDATE}'.wf_tag('br');
- 
+        $availMacro.='{PAYID}'.wf_tag('br');
         
         $templateEditForm=  wf_TableCell(web_TsmsTemplateEditForm(),'50%','','valign="top"');
         $templateEditForm.= wf_TableCell($availMacro,'50%','','valign="top"');
