@@ -227,7 +227,8 @@ class SignupRequests {
         } else {
             $capabControl = '';
         }
-
+        
+    
         $cells = wf_TableCell(__('Full address'));
         $cells.=wf_TableCell($reqAddress . ' ' . $capabControl);
         $rows.= wf_TableRow($cells, 'row3');
@@ -249,7 +250,10 @@ class SignupRequests {
         $rows.=wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Notes'));
-        $cells.=wf_TableCell($reqdata['notes']);
+        $notes= nl2br($reqdata['notes']);
+        $notes=  str_replace('Tariff:', __('Tariff').':', $notes);
+        $notes=  str_replace('Email:', __('Email').':', $notes);
+        $cells.=wf_TableCell($notes);
         $rows.=wf_TableRow($cells, 'row3');
 
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
