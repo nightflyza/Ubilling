@@ -111,6 +111,9 @@ function __($str) {
 
 function cfr($right) {
     global $system;
+   // uncomment following to run phpunit tests (realy ugly hack, i know)
+   // run as: phpunit --bootstrap puboot.php tests
+   // if (empty($system)) {@$system = new rcms_system(); }
     if ($system->checkForRight($right)) {
     return(true);
     } else {
