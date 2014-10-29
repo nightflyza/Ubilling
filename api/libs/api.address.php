@@ -629,7 +629,7 @@ function web_CitySelectorAc() {
     }
 
     $selector = wf_SelectorAC('citysel', $allcity, '', '', false);
-    $selector.= wf_tag('a', false, '', 'href="?module=city" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
+    $selector.= wf_tag('a', false, '', 'href="?module=city" target="_BLANK"') . web_city_icon() . wf_tag('a', true);
     return ($selector);
 }
 
@@ -674,45 +674,73 @@ function web_StreetSelectorAc($cityid) {
     
     return ($selector);
 }
-//finish this tomorrow, wanna sleep
+/**
+ * Returns build selector
+ * 
+ * @param int $streetid
+ * @return string
+ */
 function web_BuildSelector($streetid) {
-    $allbuilds = zb_AddressGetBuildAllDataByStreet($streetid);
-    $selector = '<select name="buildsel">';
-    if (!empty($allbuilds)) {
-        foreach ($allbuilds as $io => $eachbuild) {
-            $selector.='<option value="' . $eachbuild['id'] . '">' . $eachbuild['buildnum'] . '</option>';
+    $allbuilds = array();
+    $tmpBuilds= zb_AddressGetBuildAllDataByStreet($streetid);
+    if (!empty($tmpBuilds)) {
+        foreach ($tmpBuilds as $io => $each) {
+            $allbuilds[$each['id']]=$each['buildnum'];
         }
     }
-    $selector.='</select>';
+    $selector=  wf_Selector('buildsel', $allbuilds, '', '', false);
     return ($selector);
 }
 
+/**
+ * Returns auto-clicking build selector
+ * 
+ * @param int $streetid
+ * 
+ * @return string
+ */
 function web_BuildSelectorAc($streetid) {
-    $allbuilds = zb_AddressGetBuildAllDataByStreet($streetid);
-    $selector = '<select name="buildsel" onChange="this.form.submit();">';
-    $selector.='<option value="-">-</option>';
-    if (!empty($allbuilds)) {
-        foreach ($allbuilds as $io => $eachbuild) {
-            $selector.='<option value="' . $eachbuild['id'] . '">' . $eachbuild['buildnum'] . '</option>';
+    $allbuilds = array();
+    $tmpBuilds= zb_AddressGetBuildAllDataByStreet($streetid);
+    $allbuilds['-']='-'; //placeholder
+    
+    if (!empty($tmpBuilds)) {
+        foreach ($tmpBuilds as $io => $each) {
+            $allbuilds[$each['id']]=$each['buildnum'];
         }
     }
-    $selector.='</select> <a href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK">' . web_build_icon() . '</a>';
+ 
+    $selector= wf_SelectorAC('buildsel', $allbuilds, '', '', false);
+    $selector.= wf_tag('a', false, '', 'href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
     return ($selector);
 }
 
+/**
+ * Returns auto-clicking apartment selector
+ * 
+ * @param int $buildid
+ * @return string
+ */
 function web_AptSelectorAc($buildid) {
-    $allapts = zb_AddressGetAptAllDataByBuild($buildid);
-    $selector = '<select name="aptsel" onChange="this.form.submit();">';
-    $selector.='<option value="-">-</option>';
-    if (!empty($allapts)) {
-        foreach ($allapts as $io => $eachapt) {
-            $selector.='<option value="' . $eachapt['id'] . '">' . $eachapt['apt'] . '</option>';
+    $allapts = array(); 
+    $tmpApts = zb_AddressGetAptAllDataByBuild($buildid);
+    
+    $allapts['-']='-'; //placeholder
+    
+    if (!empty($tmpApts)) {
+        foreach ($tmpApts as $io => $each) {
+            $allapts[$each['id']]=$each['apt'];
         }
     }
-    $selector.='</select>';
+    $selector=  wf_SelectorAC('aptsel', $allapts, '', '', false);
     return ($selector);
 }
 
+/**
+ * Returns street creation form
+ * 
+ * @return string
+ */
 function web_StreetCreateForm() {
     $cities = simple_query("SELECT `id` from `city`");
     if (!empty($cities)) {
@@ -727,6 +755,11 @@ function web_StreetCreateForm() {
     return($form);
 }
 
+/**
+ * Returns available streets list with editing controls
+ * 
+ * @return string
+ */
 function web_StreetLister() {
     $allstreets = zb_AddressGetStreetAllData();
     $tmpCities = zb_AddressGetCityAllData();
@@ -763,6 +796,11 @@ function web_StreetLister() {
     return($result);
 }
 
+/**
+ * Returns list of available builds with edit control
+ * 
+ * @return string
+ */
 function web_StreetListerBuildsEdit() {
     $allstreets = zb_AddressGetStreetAllData();
 
@@ -793,6 +831,13 @@ function web_StreetListerBuildsEdit() {
     return($result);
 }
 
+/**
+ * Returns build lister with controls for some streetID
+ * 
+ * @global array $ubillingConfig
+ * @param int $streetid
+ * @return string
+ */
 function web_BuildLister($streetid) {
     global $ubillingConfig;
     $altcfg = $ubillingConfig->getAlter();
@@ -830,6 +875,11 @@ function web_BuildLister($streetid) {
     return ($result);
 }
 
+/**
+ * Returns build creation form
+ * 
+ * @return string
+ */
 function web_BuildAddForm() {
     $inputs = wf_TextInput('newbuildnum', __('New build number'), '', true, 10);
     $inputs.= wf_Submit(__('Create'));
@@ -837,30 +887,44 @@ function web_BuildAddForm() {
     return($form);
 }
 
+/**
+ * Returns street editing form
+ * 
+ * @param int $streetid
+ * @return string
+ */
 function web_StreetEditForm($streetid) {
     $streetdata = zb_AddressGetStreetData($streetid);
     $streetname = $streetdata['streetname'];
     $streetalias = $streetdata['streetalias'];
-    $form = '
-            <form action="" method="POST">
-            <input type="text" name="editstreetname" value="' . $streetname . '"> ' . __('Street name') . '<sup>*</sup> <br>
-            <input type="text" name="editstreetalias" value="' . $streetalias . '"> ' . __('Street alias') . ' <br>
-            <input type="submit" value="' . __('Save') . '">
-            </form>
-            ';
+ 
+    $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+    $inputs=  wf_TextInput('editstreetname', __('Street name').$sup, $streetname, true);
+    $inputs.= wf_TextInput('editstreetalias', __('Street alias').$sup, $streetalias, true);
+    $inputs.= wf_Submit(__('Save'));
+    $form=  wf_Form('', 'POST', $inputs, 'glamour');
+    
     return($form);
 }
 
+/**
+ * Returns only apartemen creation inputs for future include into occupancy dialogue
+ * 
+ * @return string
+ */
 function web_AptCreateForm() {
-    $form = '
-                <input type="text" name="entrance"> ' . __('Entrance') . '<br>
-                <input type="text" name="floor"> ' . __('Floor') . '<br>
-                <input type="text" id="apt" name="apt" onchange="checkapt();"> ' . __('Apartment') . '<br>
-                ';
-    return($form);
+    $inputs=  wf_TextInput('entrance', __('Entrance'), '', true);
+    $inputs.= wf_TextInput('floor', __('Floor'), '', true);
+    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" onchange="checkapt();"'). __('Apartment').  wf_tag('br');
+    
+    return($inputs);
 }
 
-// returns all addres array in view like login=>address
+/**
+ * returns all addres array in view like login=>address
+ * 
+ * @return array
+ */
 function zb_AddressGetFulladdresslist() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $result = array();
@@ -918,7 +982,12 @@ function zb_AddressGetFulladdresslist() {
     return($result);
 }
 
-// returns all addres array in view like login=>address
+/**
+ * returns all addres array in view like login=>address
+ * 
+ * @global array $ubillingConfig
+ * @return array
+ */
 function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
@@ -1007,7 +1076,12 @@ function zb_AddressGetFulladdresslistCached() {
     }
 }
 
-// returns all addres array in view like login=>city address
+
+/**
+ * Returns all addres array in view like login=>city address
+ * 
+ * @return array
+ */
 function zb_AddressGetFullCityaddresslist() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $result = array();
