@@ -640,15 +640,15 @@ function web_CitySelectorAc() {
  * @return string
  */
 function web_StreetSelector($cityid) {
-    $allstreets =array();
-    $tmpStreets= zb_AddressGetStreetAllDataByCity($cityid);
- 
+    $allstreets = array();
+    $tmpStreets = zb_AddressGetStreetAllDataByCity($cityid);
+
     if (!empty($tmpStreets)) {
         foreach ($tmpStreets as $io => $each) {
-            $allstreets[$each['id']]=$each['streetname'];
+            $allstreets[$each['id']] = $each['streetname'];
         }
     }
-    $selector=  wf_Selector('streetsel', $allstreets, '', '', false);
+    $selector = wf_Selector('streetsel', $allstreets, '', '', false);
     return ($selector);
 }
 
@@ -660,20 +660,21 @@ function web_StreetSelector($cityid) {
  */
 function web_StreetSelectorAc($cityid) {
     $allstreets = array();
-    $tmpStreets= zb_AddressGetStreetAllDataByCity($cityid);
-        
-    $allstreets['-']='-'; // placeholder
+    $tmpStreets = zb_AddressGetStreetAllDataByCity($cityid);
+
+    $allstreets['-'] = '-'; // placeholder
     if (!empty($tmpStreets)) {
         foreach ($tmpStreets as $io => $each) {
-            $allstreets[$each['id']]=$each['streetname'];
+            $allstreets[$each['id']] = $each['streetname'];
         }
     }
-  
-    $selector= wf_SelectorAC('streetsel', $allstreets, '', '', false);
+
+    $selector = wf_SelectorAC('streetsel', $allstreets, '', '', false);
     $selector.= wf_tag('a', false, '', 'href="?module=streets" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
-    
+
     return ($selector);
 }
+
 /**
  * Returns build selector
  * 
@@ -682,13 +683,13 @@ function web_StreetSelectorAc($cityid) {
  */
 function web_BuildSelector($streetid) {
     $allbuilds = array();
-    $tmpBuilds= zb_AddressGetBuildAllDataByStreet($streetid);
+    $tmpBuilds = zb_AddressGetBuildAllDataByStreet($streetid);
     if (!empty($tmpBuilds)) {
         foreach ($tmpBuilds as $io => $each) {
-            $allbuilds[$each['id']]=$each['buildnum'];
+            $allbuilds[$each['id']] = $each['buildnum'];
         }
     }
-    $selector=  wf_Selector('buildsel', $allbuilds, '', '', false);
+    $selector = wf_Selector('buildsel', $allbuilds, '', '', false);
     return ($selector);
 }
 
@@ -701,16 +702,16 @@ function web_BuildSelector($streetid) {
  */
 function web_BuildSelectorAc($streetid) {
     $allbuilds = array();
-    $tmpBuilds= zb_AddressGetBuildAllDataByStreet($streetid);
-    $allbuilds['-']='-'; //placeholder
-    
+    $tmpBuilds = zb_AddressGetBuildAllDataByStreet($streetid);
+    $allbuilds['-'] = '-'; //placeholder
+
     if (!empty($tmpBuilds)) {
         foreach ($tmpBuilds as $io => $each) {
-            $allbuilds[$each['id']]=$each['buildnum'];
+            $allbuilds[$each['id']] = $each['buildnum'];
         }
     }
- 
-    $selector= wf_SelectorAC('buildsel', $allbuilds, '', '', false);
+
+    $selector = wf_SelectorAC('buildsel', $allbuilds, '', '', false);
     $selector.= wf_tag('a', false, '', 'href="?module=builds&action=edit&streetid=' . $streetid . '" target="_BLANK"') . web_build_icon() . wf_tag('a', true);
     return ($selector);
 }
@@ -722,17 +723,17 @@ function web_BuildSelectorAc($streetid) {
  * @return string
  */
 function web_AptSelectorAc($buildid) {
-    $allapts = array(); 
+    $allapts = array();
     $tmpApts = zb_AddressGetAptAllDataByBuild($buildid);
-    
-    $allapts['-']='-'; //placeholder
-    
+
+    $allapts['-'] = '-'; //placeholder
+
     if (!empty($tmpApts)) {
         foreach ($tmpApts as $io => $each) {
-            $allapts[$each['id']]=$each['apt'];
+            $allapts[$each['id']] = $each['apt'];
         }
     }
-    $selector=  wf_SelectorAC('aptsel', $allapts, '', '', false);
+    $selector = wf_SelectorAC('aptsel', $allapts, '', '', false);
     return ($selector);
 }
 
@@ -897,13 +898,13 @@ function web_StreetEditForm($streetid) {
     $streetdata = zb_AddressGetStreetData($streetid);
     $streetname = $streetdata['streetname'];
     $streetalias = $streetdata['streetalias'];
- 
-    $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
-    $inputs=  wf_TextInput('editstreetname', __('Street name').$sup, $streetname, true);
-    $inputs.= wf_TextInput('editstreetalias', __('Street alias').$sup, $streetalias, true);
+
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $inputs = wf_TextInput('editstreetname', __('Street name') . $sup, $streetname, true);
+    $inputs.= wf_TextInput('editstreetalias', __('Street alias') . $sup, $streetalias, true);
     $inputs.= wf_Submit(__('Save'));
-    $form=  wf_Form('', 'POST', $inputs, 'glamour');
-    
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
+
     return($form);
 }
 
@@ -913,11 +914,80 @@ function web_StreetEditForm($streetid) {
  * @return string
  */
 function web_AptCreateForm() {
-    $inputs=  wf_TextInput('entrance', __('Entrance'), '', true);
+    $inputs = wf_TextInput('entrance', __('Entrance'), '', true);
     $inputs.= wf_TextInput('floor', __('Floor'), '', true);
-    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" onchange="checkapt();"'). __('Apartment').  wf_tag('br');
-    
+    $inputs.= wf_tag('input', false, '', 'type="text" id="apt" name="apt" onchange="checkapt();"') . __('Apartment') . wf_tag('br');
+
     return($inputs);
+}
+
+/**
+ * Returns city creation form
+ * 
+ * @return string
+ */
+function web_CityCreateForm() {
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $inputs = wf_TextInput('newcityname', __('New City name') . $sup, '', true);
+    $inputs.= wf_TextInput('newcityalias', __('New City alias'), '', true);
+    $inputs.= wf_Submit(__('Create'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
+
+    return($form);
+}
+
+/**
+ * Returns available cities lister with some controls
+ * 
+ * @return string
+ */
+function web_CityLister() {
+    $allcity = zb_AddressGetCityAllData();
+
+    $cells = wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('City name'));
+    $cells.= wf_TableCell(__('City alias'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    if (!empty($allcity)) {
+        foreach ($allcity as $io => $eachcity) {
+
+            $cells = wf_TableCell($eachcity['id']);
+            $cells.= wf_TableCell($eachcity['cityname']);
+            $cells.= wf_TableCell($eachcity['cityalias']);
+            $acts = wf_JSAlert('?module=city&action=delete&cityid=' . $eachcity['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+            $acts.= wf_JSAlert('?module=city&action=edit&cityid=' . $eachcity['id'], web_edit_icon(), 'Are you serious') . ' ';
+            $acts.= wf_Link('?module=streets', web_street_icon(), false, '');
+            $cells.= wf_TableCell($acts);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+    }
+    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    return($result);
+}
+
+/**
+ * Returns existing city editing form
+ * 
+ * @param int $cityid
+ * @return string
+ */
+function web_CityEditForm($cityid) {
+    $citydata = zb_AddressGetCityData($cityid);
+    $cityname = $citydata['cityname'];
+    $cityalias = $citydata['cityalias'];
+
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $inputs = wf_TextInput('editcityname', __('City name') . $sup, $cityname, true);
+    $inputs.= wf_TextInput('editcityalias', __('City alias'), $cityalias, true);
+    $inputs.= wf_Submit(__('Save'));
+
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
+
+    $form.=wf_Link('?module=city', 'Back', true, 'ubButton');
+
+    return($form);
 }
 
 /**
@@ -1075,7 +1145,6 @@ function zb_AddressGetFulladdresslistCached() {
         return($result);
     }
 }
-
 
 /**
  * Returns all addres array in view like login=>city address
