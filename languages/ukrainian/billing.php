@@ -1780,4 +1780,5 @@ $lang['def']['Render spambots protection traps']='Використовувати
 $lang['def']['City and streets hide lists']='Список приховуваних міст та вулиць';
 $lang['def']['Database connections caching']='Кешування виборок з БД';
 
+
 ?>

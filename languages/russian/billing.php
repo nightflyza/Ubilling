@@ -1765,7 +1765,9 @@ $lang['def']['Display email field']='Показывать поле ввода е
 $lang['def']['Render spambots protection traps']='Использовать защиту от спамботов';
 $lang['def']['City and streets hide lists']='Список скрываемых городов и улиц';
 $lang['def']['Database connections caching']='Кеширование выборок из БД';
+
 $lang['def']['']='';
+
 
 
 

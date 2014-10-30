@@ -1,30 +1,30 @@
 <?php
 
+/**
+ * Creates card in database with some serial and price
+ * 
+ * @param int   $serial
+ * @param float $cash
+ * 
+ * @return void
+ */
 function zb_CardCreate($serial,$cash) {
     $admin=whoami();
     $date=curdatetime();
-    $query="
-        INSERT INTO `cardbank` (
-                    `id` ,
-                    `serial` ,
-                    `cash` ,
-                    `admin` ,
-                    `date` ,
-                    `active` ,
-                    `used` ,
-                    `usedate` ,
-                    `usedlogin` ,
-                    `usedip`
-                    )
-                    VALUES (
-                    NULL , '".$serial."', '".$cash."', '".$admin."', '".$date."', '1', '0', NULL , '', NULL
-                    );
-                    ";
+    $query="INSERT INTO `cardbank` (`id` ,`serial` , `cash` , `admin` , `date` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
+         . "VALUES (NULL , '".$serial."', '".$cash."', '".$admin."', '".$date."', '1', '0', NULL , '', NULL);";
     nr_query($query);
 }
 
+/**
+ * Generates cards in database with some price, and returns it serials
+ * 
+ * @param int   $count
+ * @param float $price
+ * @return string
+ */
 function zb_CardGenerate($count,$price) {
-    $count=vf($count);
+    $count=vf($count,3);
     $price=vf($price);
     if ((empty ($count)) OR (empty ($price))) {
         die("No count or price");
@@ -35,10 +35,15 @@ function zb_CardGenerate($count,$price) {
         $reported.=$serial."\n";
         zb_CardCreate($serial, $price);
     }
-    log_register("CARDS CREATED ".$cardcount." PRICE ".$price);
+    log_register("CARDS CREATED `".$cardcount."` PRICE `".$price."`");
     return($reported);
 }
 
+/**
+ * Returns count of available payment cards
+ * 
+ * @return int
+ */
 function zb_CardsGetCount() {
         $query="SELECT COUNT(`id`) from `cardbank`";
         $result=  simple_query($query);
@@ -46,8 +51,13 @@ function zb_CardsGetCount() {
         return ($result);
 }
 
+/**
+ * Returns available list with some controls
+ * 
+ * @return string
+ */
 function web_CardsShow() {
-    
+    $result='';
     $totalcount=zb_CardsGetCount();
     $perpage=100;
     
@@ -73,74 +83,64 @@ function web_CardsShow() {
     
     
     $allcards=  simple_queryall($query);
-    $result='<table width="100%" boder="0">
-        <form action="" method="POST">
-        ';
-     $result.='
-                 <tr class="row1">
-                 <td>'.__('ID').'</td>
-                 <td>'.__('Serial number').'</td>
-                 <td>'.__('Price').'</td>
-                 <td>'.__('Admin').'</td>
-                 <td>'.__('Date').'</td>
-                 <td>'.__('Active').'</td>
-                 <td>'.__('Used').'</td>
-                 <td>'.__('Usage date').'</td>
-                 <td>'.__('Used login').'</td>
-                 <td>'.__('Used IP').'</td>
-                 <td></td>
-                 </tr>
-                 ';
+        
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('Serial number'));
+    $cells.= wf_TableCell(__('Price'));
+    $cells.= wf_TableCell(__('Admin'));
+    $cells.= wf_TableCell(__('Date'));
+    $cells.= wf_TableCell(__('Active'));
+    $cells.= wf_TableCell(__('Used'));
+    $cells.= wf_TableCell(__('Usage date'));
+    $cells.= wf_TableCell(__('Used login'));
+    $cells.= wf_TableCell(__('Used IP'));
+    $cells.= wf_TableCell('');
+    $rows= wf_TableRow($cells, 'row1') ;
              
     if (!empty ($allcards)) {
         foreach ($allcards as $io => $eachcard) {
-            
-             $result.='
-                 <tr class="row3">
-                 <td>'.$eachcard['id'].'</td>
-                 <td>'.$eachcard['serial'].'</td>
-                 <td>'.$eachcard['cash'].'</td>
-                 <td>'.$eachcard['admin'].'</td>
-                 <td>'.$eachcard['date'].'</td>
-                 <td>'.web_bool_led($eachcard['active']).'</td>
-                 <td>'.web_bool_led($eachcard['used']).'</td>
-                 <td>'.$eachcard['usedate'].'</td>
-                 <td>'.$eachcard['usedlogin'].'</td>
-                 <td>'.$eachcard['usedip'].'</td>
-                 <td><input type="checkbox" name="_cards['.$eachcard['id'].']"></td>
-                 </tr>
-                 ';
+ 
+            $cells=  wf_TableCell($eachcard['id']);
+            $cells.= wf_TableCell($eachcard['serial']);
+            $cells.= wf_TableCell($eachcard['cash']);
+            $cells.= wf_TableCell($eachcard['admin']);
+            $cells.= wf_TableCell($eachcard['date']);
+            $cells.= wf_TableCell(web_bool_led($eachcard['active']));
+            $cells.= wf_TableCell(web_bool_led($eachcard['used']));
+            $cells.= wf_TableCell($eachcard['usedate']);
+            $cells.= wf_TableCell($eachcard['usedlogin']);
+            $cells.= wf_TableCell($eachcard['usedip']);
+            $cells.= wf_TableCell(wf_CheckInput('_cards['.$eachcard['id'].']', '', false, false));
+            $rows.= wf_TableRow($cells, 'row3') ;
              
         }
     }
-    $result.='</table>';
+   
+    $result=  wf_TableBody($rows, '100%', 0, '');
     $result.=$paginator.  wf_delimiter();
-    $result.='
-        <select name="cardactions">
-        <option value="caexport">'.__('Export serials').'</option>
-        <option value="caactive">'.__('Mark as active').'</option>
-        <option value="cainactive">'.__('Mark as inactive').'</option>
-        <option value="cadelete">'.__('Delete').'</option>
-        </select>
-        <input type="submit" value="'.__('With selected').'">
-        </form>
-        ';
     
+   
+    $cardActions=array(
+        'caexport'=>__('Export serials'),
+        'caactive'=>__('Mark as active'),
+        'cainactive'=>__('Mark as inactive'),
+        'cadelete'=>__('Delete')
+    );
     
+    $actionSelect=  wf_Selector('cardactions', $cardActions, '', '', false);
+    $actionSelect.= wf_Submit(__('With selected'));
+    $result.=$actionSelect;
+    $result= wf_Form('', 'POST', $result, '');
     
     return($result);
 }
 
-
+/**
+ * Returns new cards generation form
+ * 
+ * @return string
+ */
 function web_CardsGenerateForm() {
-    $form='
-        <form action="" method="POST">
-       '.__('Count').': <input type="text" name="gencount" size="3">
-       '.__('Price').': <input type="text" name="genprice" size="3">
-        <input type="submit" value="'.__('Create').'">
-        </form>
-        ';
-    
     $inputs=  wf_TextInput('gencount', 'Count', '', false,'5');
     $inputs.=wf_TextInput('genprice', 'Price', '', false,'5');
     $inputs.=wf_Submit('Create');
@@ -149,6 +149,11 @@ function web_CardsGenerateForm() {
     return($form);
 }
 
+/**
+ * Returns cards search form
+ * 
+ * @return string
+ */
 function web_CardsSearchForm() {
     $inputs=  wf_TextInput('cardsearch', __('Serial number'), '', false, '17');
     $inputs.= wf_Submit('Search');
@@ -156,6 +161,12 @@ function web_CardsSearchForm() {
     return ($result);
 }
 
+/**
+ * Returns card by serial search results
+ * 
+ * @param string $serial
+ * @return string
+ */
 function web_CardsSearchBySerial($serial) {
     $serial=  mysql_real_escape_string($serial);
     $query="SELECT * from `cardbank` WHERE `serial` LIKE '%".$serial."%'";
@@ -195,36 +206,63 @@ function web_CardsSearchBySerial($serial) {
     return ($result);
 }
 
+/**
+ * Gets payment card data by its ID
+ * 
+ * @param int $id
+ * @return array
+ */
 function zb_CardsGetData($id) {
-    $id=vf($id);
+    $id=vf($id,3);
     $query="SELECT * from `cardbank` WHERE `id`='".$id."'";
     $result=simple_query($query);
     return($result);
 }
 
+/**
+ * Marks payment card as inactive
+ * 
+ * @param int $id
+ */
 function zb_CardsMarkInactive($id) {
-    $id=vf($id);
+    $id=vf($id,3);
     $query="UPDATE `cardbank` SET `active` = '0' WHERE `id` = '".$id."'";
     nr_query($query);
-    log_register("CARDS INACTIVE ".$id);
+    log_register("CARDS INACTIVE [".$id."]");
 }
 
+/**
+ * Marks payment card as active
+ * 
+ * @param int $id
+ */
 function zb_CardsMarkActive($id) {
-    $id=vf($id);
+    $id=vf($id,3);
     $query="UPDATE `cardbank` SET `active` = '1' WHERE `id` = '".$id."'";
     nr_query($query);
-    log_register("CARDS ACTIVE ".$id);
+    log_register("CARDS ACTIVE [".$id."]");
 }
 
-
+/**
+ * Delete card from database by its ID
+ * 
+ * @param int $id
+ */
 function zb_CardsDelete($id) {
-    $id=vf($id);
+    $id=vf($id,3);
     $query="DELETE FROM `cardbank` WHERE `id`='".$id."'";
     nr_query($query);
-    log_register("CARDS DELETE ".$id);
+    log_register("CARDS DELETE [".$id."]");
 }
 
+/**
+ * Exports payment card number 
+ * 
+ * @param int $id
+ * @return string
+ */
 function zb_CardsExport($id) {
+    $id=vf($id,3);
     $carddata=zb_CardsGetData($id);
     $cardnum=$carddata['serial'];
     // i want to templatize it later
@@ -238,12 +276,13 @@ function zb_CardsMassactions() {
        if (!empty ($cards_arr)) {
         //cards export
         if ($_POST['cardactions']=='caexport') {
-            $exportdata='<textarea rows="20" cols="80">';
+         $exportdata='';
          foreach ($cards_arr as $cardid=>$on) {
              $exportdata.=zb_CardsExport($cardid)."\n";
          }
-         $exportdata.='</textarea>';
-         show_window(__('Export'),$exportdata);
+         
+         $exportresult=  wf_TextArea($exportdata, '', $exportdata, true, '80x20');
+         show_window(__('Export'),$exportresult);
         }
        // cards activate
        if ($_POST['cardactions']=='caactive') {
@@ -271,11 +310,15 @@ function zb_CardsMassactions() {
  
          
     } else {
-        show_error('No cards selected');
+        show_error(__('No cards selected'));
     }
 }
 
-
+/**
+ * Returns payment card brutes attempts list
+ * 
+ * @return string
+ */
 function web_CardShowBrutes() {
     $query="SELECT * from `cardbrute`";
     $allbrutes=simple_queryall($query);
@@ -312,12 +355,23 @@ function web_CardShowBrutes() {
     return ($result);
 }
 
+/**
+ * Deletes some brute attempt by target IP
+ * 
+ * @param string $ip
+ * @return void
+ */
 function zb_CardBruteCleanIP($ip) {
     $query="DELETE from `cardbrute` where `ip`='".$ip."'";
     nr_query($query);
     log_register("CARDBRUTE DELETE `".$ip."`");
 }
 
+/**
+ * Deletes all brute attempts
+ * 
+ * @return void
+ */
 function zb_CardBruteCleanupAll() {
     $query="TRUNCATE TABLE `cardbrute`;";
     nr_query($query);

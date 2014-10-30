@@ -5,13 +5,14 @@
  * 
  *  @return  string
  */
+
 function wf_InputId() {
     // I know it looks really funny. 
     // You can also get a truly random values​by throwing dice ;)
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $result = "";
     for ($p = 0; $p < 8; $p++) {
-        $result.= $characters[mt_rand(0, (strlen($characters)-1))];
+        $result.= $characters[mt_rand(0, (strlen($characters) - 1))];
     }
     return ($result);
 }
@@ -20,66 +21,67 @@ function wf_InputId() {
  *
  * Return web form body
  *
- * @param   $action action URL
- * @param   $method method: POST or GET
- * @param   $inputs inputs string to include
- * @param   $class  class for form
- * @param   $legend form legend
+ * @param  string $action action URL
+ * @param  string $method method: POST or GET
+ * @param  string $inputs inputs string to include
+ * @param  string $class  class for form
+ * @param  string $legend form legend
  * @return  string
  *
  */
-function wf_Form($action,$method,$inputs,$class='',$legend='') {
-    if ($class!='') {
-        $form_class=' class="'.$class.'" ';
+function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
+    if ($class != '') {
+        $form_class = ' class="' . $class . '" ';
     } else {
-        $form_class='';
+        $form_class = '';
     }
-    if ($legend!='') {
-        $form_legend='<legend>'.__($legend).'</legend> <br>';
+    if ($legend != '') {
+        $form_legend = '<legend>' . __($legend) . '</legend> <br>';
     } else {
-        $form_legend='';
+        $form_legend = '';
     }
-    
-    $form='
-        <form action="'.$action.'" method="'.$method.'" '.$form_class.'>
-         '.$form_legend.'
-        '.$inputs.'
+
+    $form = '
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . '>
+         ' . $form_legend . '
+        ' . $inputs . '
         </form>
         <div style="clear:both;"></div>
         ';
     return ($form);
 }
+
 /**
  *
  * Return text input Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value current value
- * @param   $br append new line - bool
- * @param   $size input size
- * @return  string
+ * @param  string $name name of element
+ * @param  string $label text label for input
+ * @param  string $value current value
+ * @param  bool   $br append new line
+ * @param  string $size input size
+ * @return string
  *
  */
-
-function wf_TextInput($name,$label='',$value='',$br=false,$size='') {
-    $inputid=wf_InputId();
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '') {
+    $inputid = wf_InputId();
     //set size
-    if ($size!='') {
-        $input_size='size="'.$size.'"';
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
     } else {
-        $input_size='';
+        $input_size = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<input type="text" name="'.$name.'" value="'.$value.'" '.$input_size.' id="'.$inputid.'">'."\n";
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -87,53 +89,52 @@ function wf_TextInput($name,$label='',$value='',$br=false,$size='') {
  *
  * Return link form element
  *
- * @param   $url needed URL
- * @param   $title text title of URL
- * @param   $br append new line - bool
- * @param   $class class for link
+ * @param string  $url needed URL
+ * @param string  $title text title of URL
+ * @param bool    $br append new line
+ * @param string  $class class for link
  * @return  string
  *
  */
-
-function wf_Link($url,$title,$br=false,$class='') {
-    if ($class!='') {
-        $link_class='class="'.$class.'"';
+function wf_Link($url, $title, $br = false, $class = '') {
+    if ($class != '') {
+        $link_class = 'class="' . $class . '"';
     } else {
-        $link_class='';
+        $link_class = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<a href="'.$url.'" '.$link_class.'>'.__($title).'</a>'."\n";
-    $result.=$newline."\n";
+    $result = '<a href="' . $url . '" ' . $link_class . '>' . __($title) . '</a>' . "\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
 /**
  * Return ajax loader compatible link
  *  
- * @param   $url needed URL
- * @param   $title text title of URL
- * @param   $container output container for ajax content
- * @param   $br append new line - bool
- * @param   $class class for link
+ * @param string  $url needed URL
+ * @param string  $title text title of URL
+ * @param string  $container output container for ajax content
+ * @param bool    $br append new line
+ * @param string  $class class for link
  * @return  string
  */
-function wf_AjaxLink($url,$title,$container,$br=false,$class='') {
-    if ($class!='') {
-        $link_class='class="'.$class.'"';
+function wf_AjaxLink($url, $title, $container, $br = false, $class = '') {
+    if ($class != '') {
+        $link_class = 'class="' . $class . '"';
     } else {
-        $link_class='';
+        $link_class = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<a href="#" onclick="goajax(\''.$url.'\',\''.$container.'\');" '.$link_class.'>'.$title.'</a>'."\n";
-    $result.=$newline."\n";
+    $result = '<a href="#" onclick="goajax(\'' . $url . '\',\'' . $container . '\');" ' . $link_class . '>' . $title . '</a>' . "\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -141,65 +142,64 @@ function wf_AjaxLink($url,$title,$container,$br=false,$class='') {
  *
  * Return Radio  box Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value current value
- * @param   $br append new line - bool
- * @param   $checked is checked? - bool
- * @return  string
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param string  $value current value
+ * @param bool    $br append new line
+ * @param bool    $checked is checked?
+ * @return string
  *
  */
-
-function wf_RadioInput($name,$label='',$value='',$br=false,$checked=false) {
-    $inputid=wf_InputId();
+function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = false) {
+    $inputid = wf_InputId();
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
     if ($checked) {
-        $check='checked=""';
+        $check = 'checked=""';
     } else {
-        $check='';
+        $check = '';
     }
-    $result='<input type="radio" name="'.$name.'" value="'.$value.'"  id="'.$inputid.'" '.$check.'>'."\n";
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+    $result = '<input type="radio" name="' . $name . '" value="' . $value . '"  id="' . $inputid . '" ' . $check . '>' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
-
 
 /**
  *
  * Return check box Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $br append new line - bool
- * @param   $checked is checked? - bool
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param bool    $br append new line
+ * @param bool    $checked is checked?
  * @return  string
  *
  */
-
-function wf_CheckInput($name,$label='',$br=false,$checked=false) {
-    $inputid=wf_InputId();
+function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
+    $inputid = wf_InputId();
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
     if ($checked) {
-        $check='checked=""';
+        $check = 'checked=""';
     } else {
-        $check='';
+        $check = '';
     }
-    $result='<input type="checkbox" id="'.$inputid.'" name="'.$name.'" '.$check.' />';
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+    $result = '<input type="checkbox" id="' . $inputid . '" name="' . $name . '" ' . $check . ' />';
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -207,33 +207,34 @@ function wf_CheckInput($name,$label='',$br=false,$checked=false) {
  *
  * Return textarea Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value value for element
- * @param   $br append new line - bool
- * @param   $size size in format "10x20"
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param string  $value value for element
+ * @param bool    $br append new line - bool
+ * @param string  $size size in format "10x20"
  * @return  string
  *
  */
-function wf_TextArea($name,$label='',$value='',$br=false,$size='') {
-    $inputid=wf_InputId();
+function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
+    $inputid = wf_InputId();
     //set columns and rows count
-    if ($size!='') {
-        $sizexplode=explode('x',$size);
-        $input_size='cols="'.$sizexplode[0].'" rows="'.$sizexplode[1].'" ';
+    if ($size != '') {
+        $sizexplode = explode('x', $size);
+        $input_size = 'cols="' . $sizexplode[0] . '" rows="' . $sizexplode[1] . '" ';
     } else {
-        $input_size='';
+        $input_size = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<textarea name="'.$name.'" '.$input_size.' id="'.$inputid.'">'.$value.'</textarea>'."\n";
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+    $result = '<textarea name="' . $name . '" ' . $input_size . ' id="' . $inputid . '">' . $value . '</textarea>' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -241,28 +242,26 @@ function wf_TextArea($name,$label='',$value='',$br=false,$size='') {
  *
  * Return hidden input web form element
  *
- * @param   $name name of element
- * @param   $value value for input
+ * @param string  $name name of element
+ * @param string  $value value for input
  * @return  string
  *
  */
-function wf_HiddenInput($name,$value='') {
-    $result='<input type="hidden" name="'.$name.'" value="'.$value.'">';
+function wf_HiddenInput($name, $value = '') {
+    $result = '<input type="hidden" name="' . $name . '" value="' . $value . '">';
     return ($result);
 }
-
 
 /**
  *
  * Return submit web form element
  *
- * @param   $value text label for button
- * @return  string
+ * @param string  $value text label for button
+ * @return string
  *
  */
-
 function wf_Submit($value) {
-    $result='<input type="submit" value="'.__($value).'">';
+    $result = '<input type="submit" value="' . __($value) . '">';
     return ($result);
 }
 
@@ -270,35 +269,36 @@ function wf_Submit($value) {
  *
  * Return Trigger select web form input
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $state selected $value for trigger
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param string  $state selected $value for trigger
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_Trigger($name,$label='',$state='',$br=false) {
-    $inputid=wf_InputId();
+function wf_Trigger($name, $label = '', $state = '', $br = false) {
+    $inputid = wf_InputId();
     if (!$state) {
-        $noflag='SELECTED';
+        $noflag = 'SELECTED';
     } else {
-        $noflag='';
+        $noflag = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='
-           <select name="'.$name.'" id="'.$inputid.'">
-                       <option value="1">'.__('Yes').'</option>
-                       <option value="0" '.$noflag.'>'.__('No').'</option>
+    $result = '
+           <select name="' . $name . '" id="' . $inputid . '">
+                       <option value="1">' . __('Yes') . '</option>
+                       <option value="0" ' . $noflag . '>' . __('No') . '</option>
            </select>
-        '."\n";
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+        ' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -306,128 +306,126 @@ function wf_Trigger($name,$label='',$state='',$br=false) {
  *
  * Return select Web From element 
  *
- * @param   $name name of element
- * @param   $params array of elements $value=>$option
- * @param   $label text label for input
- * @param   $selected selected $value for selector
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $params array of elements $value=>$option
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_Selector($name,$params,$label,$selected='',$br=false) {
-    $inputid=wf_InputId();
+function wf_Selector($name, $params, $label, $selected = '', $br = false) {
+    $inputid = wf_InputId();
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<select name="'.$name.'" id="'.$inputid.'">';
-    if (!empty ($params)) {
-        foreach ($params as $value=>$eachparam) {
-             $sel_flag='';
-            if ($selected!='') {
-                if ($selected==$value) {
-                    $sel_flag='SELECTED';
-                } 
+    $result = '<select name="' . $name . '" id="' . $inputid . '">';
+    if (!empty($params)) {
+        foreach ($params as $value => $eachparam) {
+            $sel_flag = '';
+            if ($selected != '') {
+                if ($selected == $value) {
+                    $sel_flag = 'SELECTED';
+                }
             }
-            $result.='<option value="'.$value.'" '.$sel_flag.'>'.$eachparam.'</option>'."\n";
+            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
-    
-    $result.='</select>'."\n";
-    if ($label!='') {
-        $result.='<label for="'.$inputid.'">'.__($label).'</label>';
+
+    $result.='</select>' . "\n";
+    if ($label != '') {
+        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
-
 
 /**
  *
  * Return select Web From element with auto click option
  *
- * @param   $name name of element
- * @param   $params array of elements $value=>$option
- * @param   $label text label for input
- * @param   $selected selected $value for selector
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $params array of elements $value=>$option
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_SelectorAC($name,$params,$label,$selected='',$br=false) {
-    $inputid=wf_InputId();
+function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
+    $inputid = wf_InputId();
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<select name="'.$name.'" id="'.$inputid.'" onChange="this.form.submit();">';
-    if (!empty ($params)) {
-        foreach ($params as $value=>$eachparam) {
-             $sel_flag='';
-            if ($selected!='') {
-                if ($selected==$value) {
-                    $sel_flag='SELECTED';
-                } 
+    $result = '<select name="' . $name . '" id="' . $inputid . '" onChange="this.form.submit();">';
+    if (!empty($params)) {
+        foreach ($params as $value => $eachparam) {
+            $sel_flag = '';
+            if ($selected != '') {
+                if ($selected == $value) {
+                    $sel_flag = 'SELECTED';
+                }
             }
-            $result.='<option value="'.$value.'" '.$sel_flag.'>'.$eachparam.'</option>'."\n";
+            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
-    
-    $result.='</select>'."\n";
-    if ($label!='') {
-        $result.='<label for="'.$inputid.'">'.__($label).'</label>';
+
+    $result.='</select>' . "\n";
+    if ($label != '') {
+        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
-
 
 /**
  *
  * Return Month select Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $selected selected $value for selector
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_MonthSelector($name,$label,$selected='',$br=false) {
-    $allmonth=months_array();
-    $params=array();
-    
+function wf_MonthSelector($name, $label, $selected = '', $br = false) {
+    $allmonth = months_array();
+    $params = array();
+
     //localize months
-    foreach ($allmonth as $monthnum=>$monthname) {
-        $params[$monthnum]=rcms_date_localise($monthname);
+    foreach ($allmonth as $monthnum => $monthname) {
+        $params[$monthnum] = rcms_date_localise($monthname);
     }
-    
-    $inputid=wf_InputId();
+
+    $inputid = wf_InputId();
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $result='<select name="'.$name.'" id="'.$inputid.'">';
-    if (!empty ($params)) {
-        foreach ($params as $value=>$eachparam) {
-             $sel_flag='';
-            if ($selected!='') {
-                if ($selected==$value) {
-                    $sel_flag='SELECTED';
-                } 
+    $result = '<select name="' . $name . '" id="' . $inputid . '">';
+    if (!empty($params)) {
+        foreach ($params as $value => $eachparam) {
+            $sel_flag = '';
+            if ($selected != '') {
+                if ($selected == $value) {
+                    $sel_flag = 'SELECTED';
+                }
             }
-            $result.='<option value="'.$value.'" '.$sel_flag.'>'.$eachparam.'</option>'."\n";
+            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
         }
     }
-    
-    $result.='</select>'."\n";
-    if ($label!='') {
-        $result.='<label for="'.$inputid.'">'.__($label).'</label>';
+
+    $result.='</select>' . "\n";
+    if ($label != '') {
+        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
     }
-    $result.=$newline."\n";
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -435,28 +433,28 @@ function wf_MonthSelector($name,$label,$selected='',$br=false) {
  *
  * Return Year select Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_YearSelector($name,$label='',$br=false) {
-    $curyear=curyear();
-    $inputid=wf_InputId();
-    $count=7;
+function wf_YearSelector($name, $label = '', $br = false) {
+    $curyear = curyear();
+    $inputid = wf_InputId();
+    $count = 7;
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $selector='<select name="'.$name.'">';
-    for ($i=0;$i<$count;$i++) {
-        $selector.='<option value="'.($curyear-$i).'">'.($curyear-$i).'</option>';
+    $selector = '<select name="' . $name . '">';
+    for ($i = 0; $i < $count; $i++) {
+        $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
     }
     $selector.='</select>';
-     if ($label!='') {
-        $selector.='<label for="'.$inputid.'">'.__($label).'</label>';
+    if ($label != '') {
+        $selector.='<label for="' . $inputid . '">' . __($label) . '</label>';
     }
     $selector.=$newline;
     return($selector);
@@ -466,188 +464,187 @@ function wf_YearSelector($name,$label='',$br=false) {
  *
  * Check for POST have needed variables
  *
- * @param   $params array of POST variables to check
+ * @param array  $params array of POST variables to check
  * @return  bool
  *
  */
 function wf_CheckPost($params) {
-    $result=true;
-    if (!empty ($params)) {
+    $result = true;
+    if (!empty($params)) {
         foreach ($params as $eachparam) {
             if (isset($_POST[$eachparam])) {
-                if (empty ($_POST[$eachparam])) {
-                $result=false;                    
+                if (empty($_POST[$eachparam])) {
+                    $result = false;
                 }
             } else {
-                $result=false;
+                $result = false;
             }
         }
-     }
-     return ($result);
-   }
- 
-   
-   
+    }
+    return ($result);
+}
+
 /**
  *
  * Check for GET have needed variables
  *
- * @param   $params array of GET variables to check
+ * @param array  $params array of GET variables to check
  * @return  bool
  *
  */
 function wf_CheckGet($params) {
-    $result=true;
-    if (!empty ($params)) {
+    $result = true;
+    if (!empty($params)) {
         foreach ($params as $eachparam) {
             if (isset($_GET[$eachparam])) {
-                if (empty ($_GET[$eachparam])) {
-                $result=false;                    
+                if (empty($_GET[$eachparam])) {
+                    $result = false;
                 }
             } else {
-                $result=false;
+                $result = false;
             }
         }
-     }
-     return ($result);
-   } 
+    }
+    return ($result);
+}
 
 /*
  * 
  * Construct HTML table row element
  * 
- * @param $cells table row cells
- * @param $class table row class
+ * @param string $cells table row cells
+ * @param string $class table row class
  * @return string
  *  
  */
-   
- function wf_TableRow($cells,$class='') {
-    if ($class!='') {
-        $rowclass='class="'.$class.'"';
-    } else {
-        $rowclass='';
-    }
-    $result='<tr '.$rowclass.'>'.$cells.'</tr>'."\n";
-    return ($result);
- }
 
- 
- /*
- * 
- * Construct HTML table cell element
- * 
- * @param $data table cell data
- * @param $width width of cell element
- * @param $class table cell class
- * @param $customkey table cell custom param
- * @return string
- *  
- */
-   
- function wf_TableCell($data,$width='',$class='',$customkey='') {
-    if ($width!='') {
-        $cellwidth='width="'.$width.'"';
+function wf_TableRow($cells, $class = '') {
+    if ($class != '') {
+        $rowclass = 'class="' . $class . '"';
     } else {
-        $cellwidth='';
+        $rowclass = '';
     }
-    if ($class!='') {
-        $cellclass='class="'.$class.'"';
-    } else {
-        $cellclass='';
-    }
-    if ($customkey!='') {
-        $customkey=$customkey;
-    } else {
-        $customkey='';
-    }
-    $result='<td '.$cellwidth.' '.$cellclass.' '.$customkey.'>'.$data.'</td>'."\n";
-    return ($result);
- }
- 
- /*
- * 
- * Construct HTML table body
- * 
- * @param $rows table rows data
- * @param $width width of cell element
- * @param $border table border width
- * @param $class table cell class
- * @return string
- *  
- */
-   
- function wf_TableBody($rows, $width='',$border='0',$class='') {
-    if ($width!='') {
-        $tablewidth='width="'.$width.'"';
-    } else {
-        $tablewidth='';
-    }
-    if ($class!='') {
-        $tableclass='class="'.$class.'"';
-    } else {
-        $tableclass='';
-    }
-    
-    if ($border!='') {
-        $tableborder='border="'.$border.'"';
-    } else {
-        $tableborder='';
-    }
-    
-    $result='
-        <table '.$tablewidth.' '.$tableborder.' '.$tableclass.' >
-            '.$rows.'
-        </table>
-        ';
-    return ($result);
- }
- 
- 
- /*
- * 
- * Returns JS confirmation url 
- * 
- * @param $url URL if confirmed
- * @param $title link title
- * @param $alerttext alert text
- * @return string
- *  
- */
- function wf_JSAlert($url,$title,$alerttext) {
-    $result='<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="'.$url.'">'.$title.'</a>';
+    $result = '<tr ' . $rowclass . '>' . $cells . '</tr>' . "\n";
     return ($result);
 }
 
-
- /*
+/*
  * 
- * Returns filled paginator
+ * Construct HTML table cell element
  * 
- * @param $total Total items count
- * @param $perpage Per page items count
- * @param $current current page
- * @param $link module link which use paginator
- * @param $class page links class
+ * @param string $data table cell data
+ * @param string $width width of cell element
+ * @param string $class table cell class
+ * @param string $customkey table cell custom param
  * @return string
  *  
  */
-function wf_pagination($total, $perpage, $current, $link,$class=''){
-    if ($class!='') {
-        $pageclass='class="'.$class.'"';
+
+function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
+    if ($width != '') {
+        $cellwidth = 'width="' . $width . '"';
     } else {
-        $pageclass='';
+        $cellwidth = '';
     }
-    
+    if ($class != '') {
+        $cellclass = 'class="' . $class . '"';
+    } else {
+        $cellclass = '';
+    }
+    if ($customkey != '') {
+        $customkey = $customkey;
+    } else {
+        $customkey = '';
+    }
+    $result = '<td ' . $cellwidth . ' ' . $cellclass . ' ' . $customkey . '>' . $data . '</td>' . "\n";
+    return ($result);
+}
+
+/*
+ * 
+ * Construct HTML table body
+ * 
+ * @param string $rows table rows data
+ * @param string $width width of cell element
+ * @param string $border table border width
+ * @param string $class table cell class
+ * @return string
+ *  
+ */
+
+function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
+    if ($width != '') {
+        $tablewidth = 'width="' . $width . '"';
+    } else {
+        $tablewidth = '';
+    }
+    if ($class != '') {
+        $tableclass = 'class="' . $class . '"';
+    } else {
+        $tableclass = '';
+    }
+
+    if ($border != '') {
+        $tableborder = 'border="' . $border . '"';
+    } else {
+        $tableborder = '';
+    }
+
+    $result = '
+        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' >
+            ' . $rows . '
+        </table>
+        ';
+    return ($result);
+}
+
+/*
+ * 
+ * Returns JS confirmation url 
+ * 
+ * @param string $url URL if confirmed
+ * @param string $title link title
+ * @param string $alerttext alert text
+ * @return string
+ *  
+ */
+
+function wf_JSAlert($url, $title, $alerttext) {
+    $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+    return ($result);
+}
+
+/*
+ * 
+ * Returns filled paginator
+ * 
+ * @param int $total Total items count
+ * @param int $perpage Per page items count
+ * @param int $current current page
+ * @param string $link module link which use paginator
+ * @param string $class page links class
+ * @return string
+ *  
+ */
+
+function wf_pagination($total, $perpage, $current, $link, $class = '') {
+    if ($class != '') {
+        $pageclass = 'class="' . $class . '"';
+    } else {
+        $pageclass = '';
+    }
+
     $return = '';
     $link = preg_replace("/((&amp;|&)page=(\d*))/", '', $link);
-    if(!empty($perpage)) {
-        $pages = ceil($total/$perpage);
-        if($pages != 1){
+    if (!empty($perpage)) {
+        $pages = ceil($total / $perpage);
+        if ($pages != 1) {
             $c = 1;
-            while($c <= $pages){
-                if($c != $current) $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" '.$pageclass.'>' . $c . '</a> ';
-                else $return .= ' ' . '<a href="#" '.$pageclass.' style="color: #ff0000;">' . $c . '</a> ';
+            while ($c <= $pages) {
+                if ($c != $current)
+                    $return .= ' ' . '<a href="' . $link . '&amp;page=' . $c . '" ' . $pageclass . '>' . $c . '</a> ';
+                else
+                    $return .= ' ' . '<a href="#" ' . $pageclass . ' style="color: #ff0000;">' . $c . '</a> ';
                 $c++;
             }
         }
@@ -655,28 +652,26 @@ function wf_pagination($total, $perpage, $current, $link,$class=''){
     return $return;
 }
 
-
- /*
+/*
  * 
  * Returns image body
  * 
- * @param $url image url
+ * @param string $url image url
  * @return string
  *  
  */
 
-function wf_img($url,$title='') {
-    if ($title!='') {
-        $imgtitle='title="'.$title.'"';
+function wf_img($url, $title = '') {
+    if ($title != '') {
+        $imgtitle = 'title="' . $title . '"';
     } else {
-        $imgtitle='';
+        $imgtitle = '';
     }
-    $result='<img src="'.$url.'" '.$imgtitle.' border="0">';
+    $result = '<img src="' . $url . '" ' . $imgtitle . ' border="0">';
     return ($result);
 }
 
-
- /*
+/*
  * 
  * Returns image body with some dimensions
  * 
@@ -689,33 +684,31 @@ function wf_img($url,$title='') {
  *  
  */
 
-function wf_img_sized($url,$title='',$width='',$height='') {
-    $imgtitle= ($title!='') ? 'title="'.$title.'"' : '' ;
-    $imgwidth= ($width!='') ? 'width="'.$width.'"' : '' ;
-    $imgheight= ($height!='') ? 'height="'.$height.'"' : '' ;
-    $result='<img src="'.$url.'" '.$imgtitle.' '.$imgwidth.' '.$imgheight.' border="0">';
+function wf_img_sized($url, $title = '', $width = '', $height = '') {
+    $imgtitle = ($title != '') ? 'title="' . $title . '"' : '';
+    $imgwidth = ($width != '') ? 'width="' . $width . '"' : '';
+    $imgheight = ($height != '') ? 'height="' . $height . '"' : '';
+    $result = '<img src="' . $url . '" ' . $imgtitle . ' ' . $imgwidth . ' ' . $imgheight . ' border="0">';
     return ($result);
 }
 
-
-
- /*
+/*
  * 
  * Returns link that calls new modal window
  * 
- * @param $link link text
- * @param $title modal window title
- * @param $content modal window content
- * @param $linkclass link class
- * @param $width modal window width 
- * @param $height modal window height
+ * @param string $link link text
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * @param string $linkclass link class
+ * @param string $width modal window width 
+ * @param string $height modal window height
  * @return string
  *  
  */
 
-function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height='') {
-   $wid = wf_inputid();
-    
+function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height = '') {
+    $wid = wf_inputid();
+
 //setting link class
     if ($linkclass != '') {
         $link_class = 'class="' . $linkclass . '"';
@@ -727,11 +720,11 @@ function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height
     if ($width == '') {
         $width = '600';
     }
-    
+
 //setting auto width if not specified
     if ($height == '') {
         $height = '400';
-    }    
+    }
 
     $dialog = '
 <script type="text/javascript">
@@ -739,7 +732,7 @@ $(function() {
 		$( "#dialog-modal_' . $wid . '" ).dialog({
 			autoOpen: false,
 			width: ' . $width . ',
-                        height: '.$height.',
+                        height: ' . $height . ',
 			modal: true,
 			show: "drop",
 			hide: "fold"
@@ -754,7 +747,7 @@ $(function() {
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
 	<p>
-        '.$content.'
+        ' . $content . '
         </p>
 </div>
 
@@ -768,18 +761,18 @@ $(function() {
  * 
  * Returns link that calls new modal window with automatic dimensions by inside content
  * 
- * @param $link link text
- * @param $title modal window title
- * @param $content modal window content
- * @param $linkclass link class
+ * @param string $link link text
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * @param string $linkclass link class
  *
  * @return string
  *  
  */
 
 function wf_modalAuto($link, $title, $content, $linkclass = '') {
-   $wid = wf_inputid();
-    
+    $wid = wf_inputid();
+
 //setting link class
     if ($linkclass != '') {
         $link_class = 'class="' . $linkclass . '"';
@@ -787,8 +780,8 @@ function wf_modalAuto($link, $title, $content, $linkclass = '') {
         $link_class = '';
     }
 
-  $width = "'auto'";
-  $height = "'auto'";
+    $width = "'auto'";
+    $height = "'auto'";
 
     $dialog = '
 <script type="text/javascript">
@@ -811,7 +804,7 @@ $(function() {
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
 	<p>
-        '.$content.'
+        ' . $content . '
         </p>
 </div>
 
@@ -821,35 +814,35 @@ $(function() {
     return($dialog);
 }
 
-
- /*
+/*
  * 
  * Returns calendar widget
  * 
- * @param $field field name to insert calendar
- * @param $extControls extended year and month controls
+ * @param string $field field name to insert calendar
+ * @param bool $extControls extended year and month controls
  * 
  * @return string
  *  
  */
-function wf_DatePicker($field,$extControls=false) {
-    $inputid=wf_InputId();
-    $curlang=curlang();
+
+function wf_DatePicker($field, $extControls = false) {
+    $inputid = wf_InputId();
+    $curlang = curlang();
     if ($extControls) {
-        $extControls=',
+        $extControls = ',
                         changeMonth: true,
                         changeYear: true';
     } else {
-        $extControls='';
+        $extControls = '';
     }
-    $result='<script>
+    $result = '<script>
 	$(function() {
-		$( "#'.$inputid.'" ).datepicker({
+		$( "#' . $inputid . '" ).datepicker({
 			showOn: "both",
 			buttonImage: "skins/icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
-                        showAnim: "slideDown"'.$extControls.'
+                        showAnim: "slideDown"' . $extControls . '
 		});
                
                     
@@ -910,43 +903,44 @@ function wf_DatePicker($field,$extControls=false) {
 		showMonthAfterYear: false,
 		yearSuffix: \'\'};
                 
-	$.datepicker.setDefaults($.datepicker.regional[\''.$curlang.'\']);
+	$.datepicker.setDefaults($.datepicker.regional[\'' . $curlang . '\']);
       
 
 	});
 	</script>
         
-        <input type="text" id="'.$inputid.'" name="'.$field.'" size="10">
+        <input type="text" id="' . $inputid . '" name="' . $field . '" size="10">
         ';
     return($result);
 }
 
- /*
+/*
  * 
  * Returns calendar widget with preset date
  * 
- * @param $field field name to insert calendar
+ * @param string $field field name to insert calendar
  * @return string
  *  
  */
-function wf_DatePickerPreset($field,$date,$extControls=false) {
-    $inputid=wf_InputId();
-    $curlang=curlang();
+
+function wf_DatePickerPreset($field, $date, $extControls = false) {
+    $inputid = wf_InputId();
+    $curlang = curlang();
     if ($extControls) {
-        $extControls=',
+        $extControls = ',
                         changeMonth: true,
                         changeYear: true';
     } else {
-        $extControls='';
+        $extControls = '';
     }
-    $result='<script>
+    $result = '<script>
 	$(function() {
-		$( "#'.$inputid.'" ).datepicker({
+		$( "#' . $inputid . '" ).datepicker({
 			showOn: "both",
 			buttonImage: "skins/icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
-                        showAnim: "slideDown"'.$extControls.'
+                        showAnim: "slideDown"' . $extControls . '
 		});
                
                     
@@ -1007,31 +1001,31 @@ function wf_DatePickerPreset($field,$date,$extControls=false) {
 		showMonthAfterYear: false,
 		yearSuffix: \'\'};
                 
-	$.datepicker.setDefaults($.datepicker.regional[\''.$curlang.'\']);
+	$.datepicker.setDefaults($.datepicker.regional[\'' . $curlang . '\']);
       
 
 	});
 	</script>
         
-        <input type="text" id="'.$inputid.'" name="'.$field.'" value="'.$date.'" size="10">
+        <input type="text" id="' . $inputid . '" name="' . $field . '" value="' . $date . '" size="10">
         ';
     return($result);
 }
 
-
- /*
+/*
  * 
  * Returns FullCalendar widget
  * 
- * @param $data prepeared data to show
+ * @param string $data prepeared data to show
  * @return string
  *  
  */
+
 function wf_FullCalendar($data) {
-    
-    $elementid=wf_InputId();
-   
-    $calendar="<script type='text/javascript'>
+
+    $elementid = wf_InputId();
+
+    $calendar = "<script type='text/javascript'>
 
 	$(document).ready(function() {
 	
@@ -1040,65 +1034,65 @@ function wf_FullCalendar($data) {
 		var m = date.getMonth();
 		var y = date.getFullYear();
          
-		$('#".$elementid."').fullCalendar({
+		$('#" . $elementid . "').fullCalendar({
 			editable: false,
                         theme: true,
                         weekends: true,
                         monthNamesShort: [
-                        '".  rcms_date_localise('Jan')."',
-                        '".  rcms_date_localise('Feb')."',
-                        '".  rcms_date_localise('Mar')."',
-                        '".  rcms_date_localise('Apr')."',
-                        '".  rcms_date_localise('May')."',
-                        '".  rcms_date_localise('Jun')."',
-                        '".  rcms_date_localise('Jul')."',
-                        '".  rcms_date_localise('Aug')."',
-                        '".  rcms_date_localise('Sep')."',
-                        '".  rcms_date_localise('Oct')."',
-                        '".  rcms_date_localise('Nov')."',
-                        '".  rcms_date_localise('Dec')."'
+                        '" . rcms_date_localise('Jan') . "',
+                        '" . rcms_date_localise('Feb') . "',
+                        '" . rcms_date_localise('Mar') . "',
+                        '" . rcms_date_localise('Apr') . "',
+                        '" . rcms_date_localise('May') . "',
+                        '" . rcms_date_localise('Jun') . "',
+                        '" . rcms_date_localise('Jul') . "',
+                        '" . rcms_date_localise('Aug') . "',
+                        '" . rcms_date_localise('Sep') . "',
+                        '" . rcms_date_localise('Oct') . "',
+                        '" . rcms_date_localise('Nov') . "',
+                        '" . rcms_date_localise('Dec') . "'
                         ],
 
                         monthNames: [
-                        '".  rcms_date_localise('January')."',
-                        '".  rcms_date_localise('February')."',
-                        '".  rcms_date_localise('March')."',
-                        '".  rcms_date_localise('April')."',
-                        '".  rcms_date_localise('May')."',
-                        '".  rcms_date_localise('June')."',
-                        '".  rcms_date_localise('July')."',
-                        '".  rcms_date_localise('August')."',
-                        '".  rcms_date_localise('September')."',
-                        '".  rcms_date_localise('October')."',
-                        '".  rcms_date_localise('November')."',
-                        '".  rcms_date_localise('December')."'
+                        '" . rcms_date_localise('January') . "',
+                        '" . rcms_date_localise('February') . "',
+                        '" . rcms_date_localise('March') . "',
+                        '" . rcms_date_localise('April') . "',
+                        '" . rcms_date_localise('May') . "',
+                        '" . rcms_date_localise('June') . "',
+                        '" . rcms_date_localise('July') . "',
+                        '" . rcms_date_localise('August') . "',
+                        '" . rcms_date_localise('September') . "',
+                        '" . rcms_date_localise('October') . "',
+                        '" . rcms_date_localise('November') . "',
+                        '" . rcms_date_localise('December') . "'
                         ],
                         
                         dayNamesShort: [
-                        '".  rcms_date_localise('Sun')."',
-                        '".  rcms_date_localise('Mon')."',
-                        '".  rcms_date_localise('Tue')."',
-                        '".  rcms_date_localise('Wed')."',
-                        '".  rcms_date_localise('Thu')."',
-                        '".  rcms_date_localise('Fri')."',
-                        '".  rcms_date_localise('Sat')."'
+                        '" . rcms_date_localise('Sun') . "',
+                        '" . rcms_date_localise('Mon') . "',
+                        '" . rcms_date_localise('Tue') . "',
+                        '" . rcms_date_localise('Wed') . "',
+                        '" . rcms_date_localise('Thu') . "',
+                        '" . rcms_date_localise('Fri') . "',
+                        '" . rcms_date_localise('Sat') . "'
                         ],
                         
                         dayNames: [
-                        '".  rcms_date_localise('Sunday')."',
-                        '".  rcms_date_localise('Monday')."',
-                        '".  rcms_date_localise('Tuesday')."',
-                        '".  rcms_date_localise('Wednesday')."',
-                        '".  rcms_date_localise('Thursday')."',
-                        '".  rcms_date_localise('Friday')."',
-                        '".  rcms_date_localise('Saturday')."'
+                        '" . rcms_date_localise('Sunday') . "',
+                        '" . rcms_date_localise('Monday') . "',
+                        '" . rcms_date_localise('Tuesday') . "',
+                        '" . rcms_date_localise('Wednesday') . "',
+                        '" . rcms_date_localise('Thursday') . "',
+                        '" . rcms_date_localise('Friday') . "',
+                        '" . rcms_date_localise('Saturday') . "'
                         ],
                         
                         buttonText: {
-                            today:    '".__('Today')."',
-                            month:    '".__('Month')."',
-                            week:     '".__('Week')."',
-                            day:      '".__('Day')."'
+                            today:    '" . __('Today') . "',
+                            month:    '" . __('Month') . "',
+                            week:     '" . __('Week') . "',
+                            day:      '" . __('Day') . "'
                         },
 
                         header: {
@@ -1108,7 +1102,7 @@ function wf_FullCalendar($data) {
 			},
                         
 			events: [
-				".$data."
+				" . $data . "
 			
 			]
                         
@@ -1117,95 +1111,94 @@ function wf_FullCalendar($data) {
 	});
 
 </script>
-<div id='".$elementid."'></div>
+<div id='" . $elementid . "'></div>
 ";
-    
-return($calendar);
+
+    return($calendar);
 }
 
-function wf_Plate($content, $width='', $height='', $class='') {
-    if ($width!='') {
-        $width='width: '.$width.';';
-    } 
-    
-    if ($height!='') {
-        $height='height: '.$height.';';
-    } 
-    
-       
-    if ($class!='') {
-        $class='class="'.$class.'"';
-    } 
-    
-    $result='
-        <div style="'.$width.' '.$height.' float: left;" '.$class.'>
-		'.$content.'
+function wf_Plate($content, $width = '', $height = '', $class = '') {
+    if ($width != '') {
+        $width = 'width: ' . $width . ';';
+    }
+
+    if ($height != '') {
+        $height = 'height: ' . $height . ';';
+    }
+
+
+    if ($class != '') {
+        $class = 'class="' . $class . '"';
+    }
+
+    $result = '
+        <div style="' . $width . ' ' . $height . ' float: left;" ' . $class . '>
+		' . $content . '
         </div>
         ';
     return ($result);
- }
- 
- 
- /*
+}
+
+/*
  * 
  * Returns some count of delimiters
  * 
- * @param $count count of delimited rows
+ * @param int $count count of delimited rows
  * @return string
  *  
  */
- function wf_delimiter($count=1) {
-     $result='';
-     for($i=0;$i<=$count;$i++) {
-         $result.='<br />';
-     }
-     return ($result);
- }
- 
- 
- /*
+
+function wf_delimiter($count = 1) {
+    $result = '';
+    for ($i = 0; $i <= $count; $i++) {
+        $result.='<br />';
+    }
+    return ($result);
+}
+
+/*
  * 
  * Returns some html styled tag
  * 
- * @param $tag HTML tag entity
- * @param $closed tag is closing?
- * @param $class tag styling class
- * @param $options tag extra options
+ * @param int    $tag HTML tag entity
+ * @param bool   $closed tag is closing?
+ * @param string $class tag styling class
+ * @param string $options tag extra options
  * @return string
  *  
  */
- function wf_tag($tag,$closed=false,$class='',$options='') {
-     if (!empty($class)) {
-         $tagclass=' class="'.$class.'"';
-     } else {
-         $tagclass='';
-     }
-     
-     if ($closed) {
-         $tagclose='/';
-     } else {
-         $tagclose='';
-     }
-     
-     if ($options!='') {
-         $tagoptions=$options;
-     } else {
-         $tagoptions='';
-     }
-     
-     $result='<'.$tagclose.$tag.$tagclass.' '.$tagoptions.'>';
-     return ($result);
- }
- 
- 
- /*
-  * Constructs ajax loader 
-  * 
-  * @return string
-  */    
-     
-  function wf_AjaxLoader() {
-      $result='
+
+function wf_tag($tag, $closed = false, $class = '', $options = '') {
+    if (!empty($class)) {
+        $tagclass = ' class="' . $class . '"';
+    } else {
+        $tagclass = '';
+    }
+
+    if ($closed) {
+        $tagclose = '/';
+    } else {
+        $tagclose = '';
+    }
+
+    if ($options != '') {
+        $tagoptions = $options;
+    } else {
+        $tagoptions = '';
+    }
+
+    $result = '<' . $tagclose . $tag . $tagclass . ' ' . $tagoptions . '>';
+    return ($result);
+}
+
+/*
+ * Constructs ajax loader 
+ * 
+ * @return string
+ */
+
+function wf_AjaxLoader() {
+    $result = '
           <script type="text/javascript">
            
 
@@ -1272,7 +1265,7 @@ function wf_Plate($content, $width='', $height='', $class='') {
                 }
                 else
                 {
-                    contentElem.innerHTML = \''.__('Error').'\';
+                    contentElem.innerHTML = \'' . __('Error') . '\';
                 }
             }
  
@@ -1281,35 +1274,34 @@ function wf_Plate($content, $width='', $height='', $class='') {
     }
     </script>
           ';
-      return ($result);
-  } 
+    return ($result);
+}
 
-  
-   /*
+/*
  * 
  * Returns new opened modal window with some content
  * 
- * @param $title modal window title
- * @param $content modal window content
- * @param $width modal window width 
- * @param $height modal window height
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * @param string $width modal window width 
+ * @param string $height modal window height
  * @return string
  *  
  */
 
-function wf_modalOpened($title, $content, $width = '',$height='') {
+function wf_modalOpened($title, $content, $width = '', $height = '') {
 
     $wid = wf_inputid();
-    
+
 //setting auto width if not specified
     if ($width == '') {
         $width = '600';
     }
-    
+
 //setting auto width if not specified
     if ($height == '') {
         $height = '400';
-    }    
+    }
 
     $dialog = '
 <script type="text/javascript">
@@ -1317,7 +1309,7 @@ $(function() {
 		$( "#dialog-modal_' . $wid . '" ).dialog({
 			autoOpen: true,
 			width: ' . $width . ',
-                        height: '.$height.',
+                        height: ' . $height . ',
 			modal: true,
 			show: "drop",
 			hide: "fold"
@@ -1332,7 +1324,7 @@ $(function() {
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
 	<p>
-        '.$content.'
+        ' . $content . '
         </p>
 </div>
 ';
@@ -1340,65 +1332,66 @@ $(function() {
     return($dialog);
 }
 
+/*
+ * Returns Chart source
+ * 
+ * @param string $data      - CSV formatted data
+ * @param string $widht     - graph width in pixels
+ * @param string $height    - graph height in pixels
+ * @param bool   $errorbars - display error bars around data series
+ * 
+ * @return string
+ */
 
-     /*
-       * Returns Chart source
-       * 
-       * @param $data      - CSV formatted data
-       * @param $widht     - graph width in pixels
-       * @param $height    - graph height in pixels
-       * @param $errorbars - display error bars around data series
-       * 
-       * @return string
-       */
-      function wf_Graph($data,$width='500',$height='300',$errorbars=false) {
-          $randomId=wf_InputId();
-          $objectId='graph_'.$randomId;
-          $data=trim($data);
-          $data=  explodeRows($data);
-          $cleandata='';
-          if ($errorbars) {
-              $errorbars='true';
-          } else {
-              $errorbars='false';
-          }
-          if (!empty($data)) {
-              foreach ($data as $eachrow) {
-                  $cleandata.='"'.trim($eachrow).'\n" +'."\n";
-              }
-              $cleandata=mb_substr($cleandata, 0, -2,'utf-8');
-          }
-          
-          $result=  wf_tag('div', false, '', 'id="'.$randomId.'" style="width:'.$width.'px; height:'.$height.'px;"').wf_tag('div',true);
-          $result.= wf_tag('script', false, '', 'type="text/javascript"');
-          $result.= $objectId.' = new Dygraph(';
-          $result.= 'document.getElementById("'.$randomId.'"),'."\n";
-          $result.= $cleandata;
-          
-          $result.=', {  errorBars: '.$errorbars.' }'."\n";
-            
-          $result.=');';
-          $result.= wf_tag('script', true);
-          
-          return ($result);
-      }
+function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
+    $randomId = wf_InputId();
+    $objectId = 'graph_' . $randomId;
+    $data = trim($data);
+    $data = explodeRows($data);
+    $cleandata = '';
+    if ($errorbars) {
+        $errorbars = 'true';
+    } else {
+        $errorbars = 'false';
+    }
+    if (!empty($data)) {
+        foreach ($data as $eachrow) {
+            $cleandata.='"' . trim($eachrow) . '\n" +' . "\n";
+        }
+        $cleandata = mb_substr($cleandata, 0, -2, 'utf-8');
+    }
 
-       /*
-       * Returns color picker dialog
-       * 
-       * @param string $name   input name
-       * @param string $label input text label
-       * @param string $value input pre setted data
-       * @param bool   $br add line break after input?
-       * @param string $size size of element
-       * 
-       * @return string
-       */
-    function wf_ColPicker($name, $label='', $value='', $br=false, $size='') {
-        $id  = wf_InputId();
-        $css = '
+    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
+    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+    $result.= $objectId . ' = new Dygraph(';
+    $result.= 'document.getElementById("' . $randomId . '"),' . "\n";
+    $result.= $cleandata;
+
+    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+
+    $result.=');';
+    $result.= wf_tag('script', true);
+
+    return ($result);
+}
+
+/*
+ * Returns color picker dialog
+ * 
+ * @param string $name   input name
+ * @param string $label input text label
+ * @param string $value input pre setted data
+ * @param bool   $br add line break after input?
+ * @param string $size size of element
+ * 
+ * @return string
+ */
+
+function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') {
+    $id = wf_InputId();
+    $css = '
             <link rel="stylesheet" href="modules/jsc/colpick/colpick.css" type="text/css"/>';
-        $js  = '
+    $js = '
             <script src="modules/jsc/colpick/colpick.js" type="text/javascript"></script>
             <script type="text/javascript">
             $(document).ready(function() {
@@ -1406,7 +1399,7 @@ $(function() {
                     colorScheme: "light",
                     layout: "hex",
                     submit: true,
-                    color:  "' . ( !empty($value) ? $value : "#f57601" ) . '",
+                    color:  "' . (!empty($value) ? $value : "#f57601" ) . '",
                     onSubmit: function(hsb,hex,rgb,el) {
                         var hex_str = $("div.colpick_hex_field > input").val();
                         $(el).val("#" + hex_str);
@@ -1416,51 +1409,51 @@ $(function() {
             });
             </script>
         ';
-        $size = ( !empty($size) ) ? 'size="' . $size . '"' : null;
-        $result  = '<input type="text" name="' . $name . '" value="' . $value . '" id="' . $id . '" ' . $size . '>'."\n";
-        $result .= ( !empty($label) ) ? '<label for="' . $id . '">' . __($label) . '</label>' : null ;
-        $result .= ( !empty($br)    ) ? '<br>' : null;
-        $result .= "\n";
-        return $css . $js . $result;
-    }
-    
- /**
+    $size = (!empty($size) ) ? 'size="' . $size . '"' : null;
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" id="' . $id . '" ' . $size . '>' . "\n";
+    $result .= (!empty($label) ) ? '<label for="' . $id . '">' . __($label) . '</label>' : null;
+    $result .= (!empty($br) ) ? '<br>' : null;
+    $result .= "\n";
+    return $css . $js . $result;
+}
+
+/**
  *
  * Return Jquery UI selectable combobox
  *
- * @param   $name name of element
- * @param   $params array of elements $value=>$option
- * @param   $label text label for input
- * @param   $selected selected $value for selector (now ignored)
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param array   $params array of elements $value=>$option
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector (now ignored)
+ * @param bool    $br append new line
  * @return  string
  *
  */
-function wf_JuiComboBox($name,$params,$label,$selected='',$br=false) {
-$id=  wf_InputId();
-$select='';
+function wf_JuiComboBox($name, $params, $label, $selected = '', $br = false) {
+    $id = wf_InputId();
+    $select = '';
 
-if (!empty($params)) {
-    foreach ($params as $io=>$each) {
-        $select.='<option value="'.$io.'">'.$each.'</option>'."\n";
+    if (!empty($params)) {
+        foreach ($params as $io => $each) {
+            $select.='<option value="' . $io . '">' . $each . '</option>' . "\n";
+        }
     }
-}
 
-$result='
+    $result = '
 
  <style>
-.custom-combobox_'.$id.' {
+.custom-combobox_' . $id . ' {
 position: relative;
 display: inline-block;
 }
-.custom-combobox-toggle_'.$id.' {
+.custom-combobox-toggle_' . $id . ' {
 position: absolute;
 top: 0;
 bottom: 0;
 margin-left: -1px;
 padding: 0;
 }
-.custom-combobox-input_'.$id.' {
+.custom-combobox-input_' . $id . ' {
 margin: 0;
 padding: 5px 10px;
 }
@@ -1474,10 +1467,10 @@ padding: 5px 10px;
 </style>
 <script>
 (function( $ ) {
-$.widget( "custom.combobox_'.$id.'", {
+$.widget( "custom.combobox_' . $id . '", {
 _create: function() {
 this.wrapper = $( "<span>" )
-.addClass( "custom-combobox_'.$id.'" )
+.addClass( "custom-combobox_' . $id . '" )
 .insertAfter( this.element );
 this.element.hide();
 this._createAutocomplete();
@@ -1490,7 +1483,7 @@ this.input = $( "<input>" )
 .appendTo( this.wrapper )
 .val( value )
 .attr( "title", "" )
-.addClass( "custom-combobox-input_'.$id.' ui-widget_'.$id.' ui-widget-content ui-state-default ui-corner-left" )
+.addClass( "custom-combobox-input_' . $id . ' ui-widget_' . $id . ' ui-widget-content ui-state-default ui-corner-left" )
 .autocomplete({
 delay: 0,
 minLength: 0,
@@ -1514,7 +1507,7 @@ var input = this.input,
 wasOpen = false;
 $( "<a>" )
 .attr( "tabIndex", -1 )
-.attr( "title", "'.__('Show all').'" )
+.attr( "title", "' . __('Show all') . '" )
 .tooltip()
 .appendTo( this.wrapper )
 .button({
@@ -1524,7 +1517,7 @@ primary: "ui-icon-triangle-1-s"
 text: false
 })
 .removeClass( "ui-corner-all" )
-.addClass( "custom-combobox-toggle_'.$id.' ui-corner-right" )
+.addClass( "custom-combobox-toggle_' . $id . ' ui-corner-right" )
 .mousedown(function() {
 wasOpen = input.autocomplete( "widget" ).is( ":visible" );
 })
@@ -1580,82 +1573,81 @@ this.element.show();
 })( jQuery );
 
 $(function() {
-$( "#combobox_'.$id.'" ).combobox_'.$id.'();
+$( "#combobox_' . $id . '" ).combobox_' . $id . '();
 });
 </script>
 
 
-<div class="ui-widget_'.$id.'">
-<label for="combobox_'.$id.'">'.$label.'</label>
-<select id="combobox_'.$id.'" name='.$name.'>
-'.$select.'
+<div class="ui-widget_' . $id . '">
+<label for="combobox_' . $id . '">' . $label . '</label>
+<select id="combobox_' . $id . '" name=' . $name . '>
+' . $select . '
 </select>
 </div>
 ';
-if ($br) {
-    $result.=wf_tag('br');
-}
+    if ($br) {
+        $result.=wf_tag('br');
+    }
 
     return ($result);
-    
 }
-
 
 /*
  * returns auto complete text input element
  * 
- * @param   $name name of element
- * @param   $data data array for autocomplete box
- * @param   $label text label for input
- * @param   $value current value
- * @param   $br append new line - bool
- * @param   $size input size
+ * @param string $name name of element
+ * @param array  $data data array for autocomplete box
+ * @param string $label text label for input
+ * @param string $value current value
+ * @param bool   $br append new line - bool
+ * @param string $size input size
  * @return  string
  *
  */
 
-function wf_AutocompleteTextInput($name,$data=array(),$label='',$value='',$br=false,$size='') {
-    $inputid=wf_InputId();
+function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = '', $br = false, $size = '') {
+    $inputid = wf_InputId();
     //set size
-    if ($size!='') {
-        $input_size='size="'.$size.'"';
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
     } else {
-        $input_size='';
+        $input_size = '';
     }
     if ($br) {
-        $newline='<br>';
+        $newline = '<br>';
     } else {
-        $newline='';
+        $newline = '';
     }
-    $acData='';
-    $autocomplete='<script>
+    $acData = '';
+    $autocomplete = '<script>
                     $(function() {
                     var availableAddrs = [
                   ';
-     if (!empty($data)) {
-                  foreach ($data as $io=>$each) {
-                      $acData.='"'.$each.'",';
-                  }
-              }
-              //removing ending coma
-              $acData=mb_substr($acData, 0, -1,'UTF-8');
-              
-              $autocomplete.=$acData;
-     
+    if (!empty($data)) {
+        foreach ($data as $io => $each) {
+            $acData.='"' . $each . '",';
+        }
+    }
+    //removing ending coma
+    $acData = mb_substr($acData, 0, -1, 'UTF-8');
+
+    $autocomplete.=$acData;
+
     $autocomplete.='
                                       ];
-                    $( "#'.$name.'_autocomplete" ).autocomplete({
+                    $( "#' . $name . '_autocomplete" ).autocomplete({
                     source: availableAddrs
                     });
                     });
                     </script>';
-    $result= $autocomplete;
-    $result.='<input type="text" id="'.$name.'_autocomplete" name="'.$name.'" value="'.$value.'" '.$input_size.' id="'.$inputid.'">'."\n";
-    if ($label!='') {
-    $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
+    $result = $autocomplete;
+    $result.='<input type="text" id="' . $name . '_autocomplete" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
     }
-    
-    $result.=$newline."\n";
+
+    $result.=$newline . "\n";
     return ($result);
 }
 
