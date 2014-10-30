@@ -15,8 +15,8 @@ if (isset($_GET['deletesm'])) {
 }
 
 if (!isset($_GET['edit'])) {
-$navlinks=  wf_modal(__('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '420', '250');
-$navlinks.=wf_Link('?module=switches', 'Available switches', true, 'ubButton');
+$navlinks=  wf_modal(wf_img('skins/add_icon.png').' '.__('Create'), __('Create'), web_SwitchModelAddForm(), 'ubButton', '420', '250');
+$navlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png').' '.__('Available switches'), true, 'ubButton');
 
 show_window('',  $navlinks);
 show_window(__('Available switch models'),  web_SwitchModelsShow());

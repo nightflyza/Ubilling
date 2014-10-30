@@ -55,15 +55,15 @@ if (isset($_GET['switchdelete'])) {
 if (!isset($_GET['edit'])) {
 $swlinks='';    
 if (cfr('SWITCHESEDIT')) {
-    $swlinks.=  wf_modal(__('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton', '470', '280');
+    $swlinks.=  wf_modal(wf_img('skins/add_icon.png').' '.__('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton', '470', '280');
 }
 
 if (cfr('SWITCHM')) {
-    $swlinks.=wf_Link('?module=switchmodels', 'Available switch models', false, 'ubButton');
+    $swlinks.=wf_Link('?module=switchmodels', wf_img('skins/switch_models.png').' '.__('Available switch models'), false, 'ubButton');
 }
 
-$swlinks.=wf_Link('?module=switches&forcereping=true', 'Force ping', false, 'ubButton');
-$swlinks.=wf_Link('?module=switches&timemachine=true', 'Time machine', false, 'ubButton');
+$swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif').' '.__('Force ping'), false, 'ubButton');
+$swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png').' '.__('Time machine'), false, 'ubButton');
 
 $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
 if ($alter_conf['SWYMAP_ENABLED']) {

@@ -191,8 +191,8 @@ function web_SwitchFormAdd() {
     $addinputs.=wf_TextInput('newsnmp', 'SNMP community', '', true,20);
     $addinputs.=wf_TextInput('newgeo', 'Geo location', '', true,20);
     $addinputs.=web_SwitchModelSelector('newswitchmodel').' '.__('Model');
-    $addinputs.='<br>';
-    $addinputs.=web_add_icon().' '.wf_Submit('Save');
+    $addinputs.=wf_tag('br');
+    $addinputs.=wf_Submit('Save');
     $addform=wf_Form("", 'POST', $addinputs, 'glamour');
     return($addform);
 }
