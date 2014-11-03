@@ -32,6 +32,11 @@
 				if ( isset($_GET['ubagent']) ) {
 					zbs_UserShowAgentData($user_login);
 				}
+                                
+                                // XMLAgent SUPPORT:
+				if ( isset($_GET['xmlagent']) ) {
+					zbs_UserShowXmlAgentData($user_login);
+				}
 			}
                         //announcements notice
                         if (isset($us_config['AN_ENABLED'])) {

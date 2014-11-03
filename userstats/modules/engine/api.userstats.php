@@ -31,7 +31,7 @@ function zbs_UserDetectIp($debug=false)  {
        }
      }
     if ($debug) {
-      // $ip='172.30.0.2'; 
+      //  $ip='172.30.0.2'; 
     }
        
     return($ip);
@@ -365,6 +365,153 @@ function zbs_UserShowAgentData($login) {
     $result.='currency='.$us_currency;
     print($result);
     die();
+}
+
+function zbs_UserShowXmlAgentData($login) {
+    if (isset($_GET['payments'])) {
+       $allpayments=zbs_CashGetUserPayments($login);
+
+   $payments='<?xml version="1.0" encoding="utf-8"?>
+<data>'."\n";
+        if (!empty($allpayments)) {
+            foreach ($allpayments as $io=>$eachpayment) {
+                $payments.='<payment>'."\n";
+                $payments.="\t".'<date>'.$eachpayment['date'].'</date>'."\n";
+                $payments.="\t".'<summ>'.$eachpayment['summ'].'</summ>'."\n";
+                $payments.="\t".'<balance>'.$eachpayment['balance'].'</balance>'."\n";
+                $payments.='</payment>'."\n";
+            }
+        }
+        $payments.='</data>'."\n";
+        die($payments);
+    }
+    
+    
+    $us_config=zbs_LoadConfig();
+    $us_currency=$us_config['currency'];
+    $userdata=zbs_UserGetStargazerData($login);
+    $alladdress=zbs_AddressGetFulladdresslist();
+    $allrealnames=zbs_UserGetAllRealnames();
+    $contract=zbs_UserGetContract($login);
+    $email=zbs_UserGetEmail($login);
+    $mobile=zbs_UserGetMobile($login);
+    $phone=zbs_UserGetPhone($login);
+    
+    $passive        = $userdata['Passive'];
+    $down           = $userdata['Down'];
+    
+    
+    if ($userdata['CreditExpire']!=0) {
+    $credexpire=date("d-m-Y",$userdata['CreditExpire']);
+    } else {
+    $credexpire='No';    
+    }
+    
+    if ($userdata['TariffChange']) {
+        $tariffNm=$userdata['TariffChange'];
+    } else {
+        $tariffNm='No';
+    }
+    $traffdown=0;
+    $traffup=0;
+    $traffdgb=0;
+    $traffugb=0;
+    
+    for ($i=0;$i<=9;$i++) {
+        $traffdown=$traffdown+$userdata['D'.$i];
+        $traffup=$traffup+$userdata['U'.$i];
+    }
+    
+     $traffdgb = round($traffdown / 1073741824);
+     $traffugb = round($traffup / 1073741824);
+     
+     if ($traffdgb==0) {
+        $traffdgb=1;    
+     }
+     
+     if ($traffugb==0) {
+        $traffugb=1;    
+     }
+     
+       // pasive state check
+    if ($passive) {
+        $passive_state='frozen';
+    } else {
+        $passive_state='active';
+    }
+    
+    //down state check
+    if ($down) {
+        $down_state=' + disabled';
+    } else {
+        $down_state='';
+    }
+    
+        // START OF ONLINELEFT COUNTING <<
+    if ($us_config['ONLINELEFT_COUNT'] != 0) {
+        // DEFINE VARS:
+        $userBalance = $userdata['Cash'];
+        $tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
+        $daysOnLine = 0;
+        if ($userBalance >= 0) {
+            // HERE WE GO... 
+            if ($tariffFee > 0) {
+                if ($us_config['ONLINELEFT_SPREAD'] != 0) {
+                    while ($userBalance >= 0) {
+                        $daysOnLine++;
+                        $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+                        $userBalance = $userBalance - $dayFee;
+                    }
+                } else {
+                    while ($userBalance >= 0) {
+                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                        $userBalance = $userBalance - $tariffFee;
+                    }
+                }
+            }
+
+            // STYLING OF THE RESULT:
+            $balanceExpire =$daysOnLine;                    
+            
+        } else $balanceExpire = 'debt';
+    } else {
+        $balanceExpire='No';
+    }
+    // >> END OF ONLINELEFT COUNTING
+    
+    
+    $result='<?xml version="1.0" encoding="utf-8"?>
+<userdata>'."\n";
+    $result.="\t".'<address>'.@$alladdress[$login].'</address>'."\n";
+    $result.="\t".'<realname>'.@$allrealnames[$login].'</realname>'."\n";
+    $result.="\t".'<login>'.$login.'</login>'."\n";
+    $result.="\t".'<cash>'.@round($userdata['Cash'],2).'</cash>'."\n";
+    $result.="\t".'<ip>'.@$userdata['IP'].'</ip>'."\n";
+    $result.="\t".'<phone>'.$phone.'</phone>'."\n";
+    $result.="\t".'<mobile>'.$mobile.'</mobile>'."\n";
+    $result.="\t".'<email>'.$email.'</email>'."\n";
+    $result.="\t".'<credit>'.@$userdata['Credit'].'</credit>'."\n";
+    $result.="\t".'<creditexpire>'.$credexpire.'</creditexpire>'."\n";
+    $result.="\t".'<payid>'.ip2int($userdata['IP']).'</payid>'."\n";
+    $result.="\t".'<contract>'.$contract.'</contract>'."\n";
+    $result.="\t".'<tariff>'.$userdata['Tariff'].'</tariff>'."\n";
+    $result.="\t".'<tariffnm>'.$tariffNm.'</tariffnm>'."\n";
+    $result.="\t".'<traffdownload>'.zbs_convert_size($traffdown).'</traffdownload>'."\n";
+    $result.="\t".'<traffupload>'.zbs_convert_size($traffup).'</traffupload>'."\n";
+    $result.="\t".'<trafftotal>'.zbs_convert_size($traffdown+$traffup).'</trafftotal>'."\n";
+    $result.="\t".'<accountstate>'.$passive_state.$down_state.'</accountstate>'."\n";
+    $result.="\t".'<accountexpire>'.$balanceExpire.'</accountexpire>'."\n";
+    $result.="\t".'<currency>'.$us_currency.'</currency>'."\n";
+    
+    
+    $result.='</userdata>'."\n";
+    
+    header('Last-Modified: ' . gmdate('r'));
+    header('Content-Type: text/html; charset=utf-8');
+    header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+    header("Pragma: no-cache");
+    
+    die($result);
 }
 
 function zbs_PaymentIDGet($login) {

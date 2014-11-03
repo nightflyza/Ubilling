@@ -1156,8 +1156,8 @@ function wf_delimiter($count = 1) {
     return ($result);
 }
 
-/*
- * 
+
+ /* *
  * Returns some html styled tag
  * 
  * @param int    $tag HTML tag entity
