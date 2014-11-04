@@ -15,7 +15,11 @@ function web_UserControls($login) {
     return($controls);
 }
 
-//return current locale
+/**
+ * return current locale in two letter format
+ * 
+ * @return string
+ */
 function curlang() {
     global $system;
     $result = $system->language;
@@ -23,6 +27,11 @@ function curlang() {
     return ($result);
 }
 
+/**
+ * Returns user logins with non unique passwords
+ * 
+ * @return array
+ */
 function zb_GetNonUniquePasswordUsers() {
     $query_p = "SELECT `Password`,count(*) as cnt from `users` GROUP BY `Password` having cnt >1;";
     $duppasswords = simple_queryall($query_p);
@@ -41,6 +50,12 @@ function zb_GetNonUniquePasswordUsers() {
     return ($result);
 }
 
+/**
+ * Checks is some password unique
+ * 
+ * @param string $password
+ * @return bool
+ */
 function zb_CheckPasswordUnique($password) {
     $password = mysql_real_escape_string($password);
     $query = "SELECT `login` from `users` WHERE `Password`='" . $password . "'";
@@ -52,18 +67,24 @@ function zb_CheckPasswordUnique($password) {
     }
 }
 
-//function for show localized calendar control
+/**
+ * Returns localised calendar control. Used only for backward compat with old modules. 
+ * Use wf_DatePicker() instead.
+ * 
+ * @param string $field
+ * @return string
+ */
 function web_CalendarControl($field) {
-//    $lang=curlang();
-//    $result='
-//        <script src="modules/jsc/CalendarControl_'.$lang.'.js" language="javascript"></script> 
-//        <input name="'.$field.'"  onfocus="showCalendarControl(this);" type="text" size="10">
-//        ';
-
     $result = wf_DatePicker($field);
     return ($result);
 }
 
+/**
+ * Returns localised boolean value in human-readable view
+ * 
+ * @param bool $value
+ * @return string
+ */
 function web_trigger($value) {
     if ($value) {
         $result = __('Yes');
@@ -73,33 +94,44 @@ function web_trigger($value) {
     return($result);
 }
 
+/**
+ * Returns form for editing one field string data
+ * 
+ * @param array $fieldnames 
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '') {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3"><input type="text" name="' . $fieldkey . '"></td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, ''), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $form = wf_TableBody($rows, '100%', 0);
+    $form.= wf_Submit(__('Change'));
+    $form = wf_Form("", 'POST', $form, '');
+    $form.= wf_delimiter();
+
     return($form);
 }
 
-//apt check javascript code
+/**
+ * Returns suspect cash JS alert
+ * 
+ * @param float $suspect
+ * @return string
+ */
 function js_CashCheck($suspect) {
     $suspect = vf($suspect, 3);
 
@@ -123,46 +155,57 @@ function js_CashCheck($suspect) {
     return ($result);
 }
 
+/**
+ * Returns form for editing one field string password data
+ * 
+ * @param array $fieldnames 
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorStringDataFormPassword($fieldnames, $fieldkey, $useraddress, $olddata = '') {
+    global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $alterconf = $ubillingConfig->getAlter();
     if (isset($alterconf['PASSWORD_GENERATION_LENGHT'])) {
-
-        if ($alterconf['PASSWORD_TYPE']) {
-            $password_proposal = zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']);
-        } else {
-            $password_proposal = zb_rand_digits($alterconf['PASSWORD_GENERATION_LENGHT']);
-        }
+        $password_proposal = ($alterconf['PASSWORD_TYPE']) ? zb_rand_string($alterconf['PASSWORD_GENERATION_LENGHT']) : zb_rand_digits($alterconf['PASSWORD_GENERATION_LENGHT']);
     } else {
         //default size
         $password_proposal = zb_rand_string(8);
     }
 
 
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3"><input type="text" name="' . $fieldkey . '" value="' . $password_proposal . '"></td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $password_proposal, false, ''), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $form = wf_TableBody($rows, '100%', 0);
+    $form.= wf_Submit(__('Change'));
+    $form = wf_Form("", 'POST', $form, '');
+    $form.= wf_delimiter();
+
+
     return($form);
 }
 
+/**
+ * Returns form for editing one field string contract data
+ * 
+ * @param array $fieldnames 
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, $olddata = '') {
     $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $field1 = $fieldnames['fieldname1'];
@@ -195,7 +238,7 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     $cells.= wf_TableCell($olddata, '', 'row3');
     $rows.= wf_TableRow($cells);
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $contract_proposal, false, 5), '', 'row3');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $contract_proposal, false, ''), '', 'row3');
     $rows.= wf_TableRow($cells);
     $table = wf_TableBody($rows, '100%', 0);
 
@@ -208,16 +251,24 @@ function web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, 
     return($form);
 }
 
+/**
+ * Returns MAC address changing form - manual input
+ * 
+ * @param array $fieldnames
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $olddata = '') {
+    global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
-    $altconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $altconf = $ubillingConfig->getAlter();
     //mac vendor search
     if ($altconf['MACVEN_ENABLED']) {
-        $backlogin = $_GET['username'];
-        // old style
-        // $lookuplink=  wf_Link('?module=macvendor&mac='.$olddata.'&username='.$backlogin, wf_img("skins/macven.gif"), false, '');
-        $vendorframe = '<iframe src="?module=macvendor&mac=' . $olddata . '&username=' . $backlogin . '" width="360" height="160" frameborder="0"></iframe';
+        $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+        $vendorframe.= wf_tag('iframe', true);
         $lookuplink = wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
     } else {
         $lookuplink = '';
@@ -236,32 +287,38 @@ function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $oldd
     } else {
         $newvalue = '';
     }
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . ' ' . $lookuplink . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3"><input type="text" name="' . $fieldkey . '" value="' . $newvalue . '"></td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', $newvalue, false, ''), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
+/**
+ * Returns simple MAC address selector
+ * 
+ * @global object $ubillingConfig
+ * @param string $name
+ * @return string
+ */
 function zb_NewMacSelect($name = 'newmac') {
-    global $billing_config;
-    $alter_conf = parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $billing_config = $ubillingConfig->getBilling();
+    $alter_conf = $ubillingConfig->getAlter();
     $sudo = $billing_config['SUDO'];
     $cat = $billing_config['CAT'];
     $grep = $billing_config['GREP'];
@@ -271,8 +328,9 @@ function zb_NewMacSelect($name = 'newmac') {
     $command = $sudo . ' ' . $cat . ' ' . $leases . ' | ' . $grep . '  "' . $leasesmark . '" | ' . $tail . ' -n 200';
     $rawdata = shell_exec($command);
     $allUsedMacs = zb_getAllUsedMac();
+    $resultArr = array();
 
-    $result = '<select name="' . $name . '">';
+
     if (!empty($rawdata)) {
         $cleardata = exploderows($rawdata);
         foreach ($cleardata as $eachline) {
@@ -285,81 +343,99 @@ function zb_NewMacSelect($name = 'newmac') {
         if (!empty($unique_nmarr)) {
             foreach ($unique_nmarr as $newmac) {
                 if (zb_checkMacFree($newmac, $allUsedMacs)) {
-                    $result.='<option value="' . $newmac . '">' . $newmac . '</option>';
+                    $resultArr[$newmac] = $newmac;
                 }
             }
         }
     }
-    $result.='</select>';
+
+    $result = wf_Selector($name, $resultArr, '', '', false);
 
     return($result);
 }
 
+/**
+ * Returns MAC editing form with default select box
+ * 
+ * @param array  $fieldnames
+ * @param string $fieldkey (deprecated?)
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress, $olddata = '') {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
     //mac vendor search
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['MACVEN_ENABLED']) {
-        $backlogin = $_GET['username'];
-        // old style
-        //$lookuplink=  wf_Link('?module=macvendor&mac='.$olddata.'&username='.$backlogin, wf_img("skins/macven.gif"), false, '');
-        $vendorframe = '<iframe src="?module=macvendor&mac=' . $olddata . '&username=' . $backlogin . '" width="360" height="160" frameborder="0"></iframe';
+        $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
+        $vendorframe.= wf_tag('iframe', true);
         $lookuplink = wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
     } else {
         $lookuplink = '';
     }
 
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
 
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . ' ' . $lookuplink . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3">' . zb_NewMacSelect() . '</td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+    $cells = wf_TableCell($field1 . ' ' . $lookuplink, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell(zb_NewMacSelect(), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
+/**
+ * Credit expire date editor
+ * 
+ * @param array  $fieldnames
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '') {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3">' . web_CalendarControl($fieldkey) . '</td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell(wf_DatePicker($fieldkey, false), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
+
     return($form);
 }
 
+/**
+ * Returns cash type selector for manual payments
+ * 
+ * @return string
+ */
 function web_CashTypeSelector() {
     $allcashtypes = zb_CashGetAlltypes();
     $cashtypes = array();
@@ -380,12 +456,29 @@ function web_CashTypeSelector() {
     return($selector);
 }
 
+/**
+ * Checks is table with some name exists, and returns int value 0/1 used as bool (Oo)
+ * 
+ * @param string $tablename
+ * @return int
+ */
 function zb_CheckTableExists($tablename) {
     $query = "SELECT CASE WHEN (SELECT COUNT(*) AS STATUS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = (SELECT DATABASE()) AND TABLE_NAME = '" . $tablename . "') = 1 THEN (SELECT 1)  ELSE (SELECT 0) END AS result;";
     $result = simple_query($query);
     return ($result['result']);
 }
 
+/**
+ * Returns primary cash management form
+ * 
+ * @global object $ubillingConfig
+ * @param array   $fieldnames
+ * @param string  $fieldkey
+ * @param string  $useraddress
+ * @param string  $olddata
+ * @param float   $tariff_price
+ * @return string
+ */
 function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $tariff_price = '') {
     global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
@@ -408,137 +501,176 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
 
     if ($alterconf['SETCASH_ONLY_ROOT']) {
         if (cfr('ROOT')) {
-            $setCashControl = '<input type="radio" name="operation" value="set" id="omradset"> ';
-            $setCashControl.= '<label for="omradset">' . __('Set cash') . '</label>';
+            $setCashControl = wf_RadioInput('operation', __('Set cash'), 'set', false, false);
         } else {
             $setCashControl = '';
         }
     } else {
-        $setCashControl = '<input type="radio" name="operation" value="set" id="omradset"> ';
-        $setCashControl.= '<label for="omradset">' . __('Set cash') . '</label>';
+        $setCashControl = wf_RadioInput('operation', __('Set cash'), 'set', false, false);
     }
 
-    $radio = '
-        <input type="radio" name="operation" value="add" id="omradadd" CHECKED> <label for="omradadd">' . __('Add cash') . '</label>
-        <input type="radio" name="operation" value="correct" id="omradcorr"> <label for="omradcorr">' . __('Correct saldo') . '</label>
-        <input type="radio" name="operation" value="mock" id="omradmock"> <label for="omradmock">' . __('Mock payment') . '</label>
-        ';
+
+    $radio = wf_RadioInput('operation', __('Add cash'), 'add', false, true);
+    $radio.= wf_RadioInput('operation', __('Correct saldo'), 'correct', false, false);
+    $radio.= wf_RadioInput('operation', __('Mock payment'), 'mock', false, false);
     $radio.=$setCashControl;
 
-    $form = '
-        ' . $suspnotifyscript . '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field1 . '</td>
-        <td class="row3"><b>' . $olddata . '</b>' . $expected_time . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . $field2 . '</td>
-        <td class="row3"><input type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . '> ' . __('The expected payment') . ': ' . $tariff_price . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . __('Actions') . '</td>
-        <td class="row3">' . $radio . '</td>
-        </tr>
-         <tr>
-        <td class="row2">' . __('Payment type') . '</td>
-        <td class="row3">' . web_CashTypeSelector() . '</td>
-        </tr>
-        <tr>
-        <td class="row2">' . __('Payment notes') . '</td>
-        <td class="row3"><input type="text" name="newpaymentnote" size="40"></td>
-        </tr>
-        </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+    //cash input widget
+    $cashInputControl = wf_tag('input', false, '', ' type="text" name="' . $fieldkey . '" size="5" id="cashfield" ' . $cashfieldanchor . '');
+    $cashInputControl.= ' ' . __('The expected payment') . ': ' . $tariff_price;
+
+
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true) . $expected_time, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($field2, '', 'row2');
+    $cells.= wf_TableCell($cashInputControl, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell(__('Actions'), '', 'row2');
+    $cells.= wf_TableCell($radio, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell(__('Payment type'), '', 'row2');
+    $cells.= wf_TableCell(web_CashTypeSelector(), '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell(__('Payment notes'), '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput('newpaymentnote', '', '', false, 40), '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $table = wf_TableBody($rows, '100%', 0, '');
+    $table.= wf_Submit(__('Payment'));
+
+    $form = $suspnotifyscript;
+    $form.= wf_Form('', 'POST', $table, '');
+    $form.= wf_delimiter();
+
     return($form);
 }
 
+/**
+ * Returns 0/1 trigger selector
+ * 
+ * @param string $name
+ * @param int    $state
+ * @return string
+ */
 function web_TriggerSelector($name, $state = '') {
-    if (!$state) {
-        $noflag = 'SELECTED';
-    } else {
-        $noflag = '';
-    }
-    $selector = '
-           <select name="' . $name . '">
-                       <option value="1">' . __('Yes') . '</option>
-                       <option value="0" ' . $noflag . '>' . __('No') . '</option>
-           </select>
-        ';
+    $noflag = (!$state) ? 'SELECTED' : '';
+
+    $selector = wf_tag('select', false, '', 'name="' . $name . '"');
+    $selector.= wf_tag('option', false, '', 'value="1"') . __('Yes') . wf_tag('option', true);
+    $selector.= wf_tag('option', false, '', 'value="0" ' . $noflag) . __('No') . wf_tag('option', true);
+    $selector.= wf_tag('select', true);
+
+
     return ($selector);
 }
 
+/**
+ * Returns string editor grid edit form
+ * 
+ * @param string $fieldname
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorTrigerDataForm($fieldname, $fieldkey, $useraddress, $olddata = '') {
     $curstate = web_trigger($olddata);
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-         <tr>
-        <td class="row2">' . $fieldname . '</td>
-        <td class="row3">' . $curstate . '</td>
-        </tr>
-         <tr>
-         <td class="row2">
-         </td>
-         <td class="row3">
-          ' . web_TriggerSelector($fieldkey, $olddata) . '
-         </td>
-         </tr>
-         </table>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+    $cells = wf_TableCell($fieldname, '', 'row2');
+    $cells.= wf_TableCell($curstate, '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $cells = wf_TableCell('', '', 'row2');
+    $cells.= wf_TableCell(web_TriggerSelector($fieldkey, $olddata), '', 'row3');
+    $rows.= wf_TableRow($cells);
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
-// list all tariff names
+/**
+ * Returns all available tariff names
+ * 
+ * @return array
+ */
 function zb_TariffsGetAll() {
     $query = "SELECT `name` from `tariffs`";
     $alltariffs = simple_queryall($query);
     return ($alltariffs);
 }
 
+/**
+ * Returns available tariffs selector
+ * 
+ * @param string $fieldname
+ * @return string
+ */
 function web_tariffselector($fieldname = 'tariffsel') {
     $alltariffs = zb_TariffsGetAll();
-    $selector = '<select name="' . $fieldname . '">';
+    $options = array();
+
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
-            $selector.='<option value="' . $eachtariff['name'] . '">' . $eachtariff['name'] . '</option>';
+
+            $options[$eachtariff['name']] = $eachtariff['name'];
         }
     }
-    $selector.='</select>';
+
+    $selector = wf_Selector($fieldname, $options, '', '', false);
     return($selector);
 }
 
+/**
+ * Returns tariff selector without lousy tariffs
+ * 
+ * @param string $fieldname
+ * @return string
+ */
 function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
     $alltariffs = zb_TariffsGetAll();
     $allousytariffs = zb_LousyTariffGetAll();
+    $options = array();
 
-    $selector = '<select name="' . $fieldname . '">';
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
             if (!zb_LousyCheckTariff($eachtariff['name'], $allousytariffs)) {
-                $selector.='<option value="' . $eachtariff['name'] . '">' . $eachtariff['name'] . '</option>';
+                $options[$eachtariff['name']] = $eachtariff['name'];
             }
         }
     }
-    $selector.='</select>';
+
+    $selector = wf_Selector($fieldname, $options, '', '', false);
+
     return($selector);
 }
 
+/**
+ * Returns full tariff changing form
+ * 
+ * @global object $ubillingConfig
+ * @param string  $fieldname
+ * @param string  $fieldkey
+ * @param string  $useraddress
+ * @param string  $olddata
+ * @return string
+ */
 function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = '') {
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
@@ -560,37 +692,44 @@ function web_EditorTariffForm($fieldname, $fieldkey, $useraddress, $olddata = ''
         $charge_signup_price_checkbox = null;
     }
 
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-         <tr>
-        <td class="row2">' . $fieldname . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-         <tr>
-         <td class="row2" align="right">
-          <label for="nm"> ' . __('Next month') . '
-         <input type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag . '> 
-         </label>
-         </td>
-         <td class="row3">
-            ' . web_tariffselector($fieldkey) . '
-            ' . $charge_signup_price_checkbox . '
-         </td>
-         </tr>
-         </table>
-         <br>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+    $nmControl = wf_tag('label', false, '', 'for="nm"');
+    $nmControl.= __('Next month');
+    $nmControl.= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
+    $nmControl.= wf_tag('label', true);
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($fieldname, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
+    $cells.= wf_TableCell(web_tariffselector($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_tag('br');
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
+/**
+ * Returns tariff changing form without lousy tariffs
+ * 
+ * @global object $ubillingConfig
+ * @param string  $fieldname
+ * @param string $fieldkey
+ * @param string $useraddress
+ * @param string $olddata
+ * @return string
+ */
 function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $olddata = '') {
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
@@ -612,60 +751,73 @@ function web_EditorTariffFormWithoutLousy($fieldname, $fieldkey, $useraddress, $
         $charge_signup_price_checkbox = null;
     }
 
-    $form = '
-        <form action="" method="POST">
-        <table width="100%" border="0">
-        <tr>
-        <td class="row2">' . __('User') . '</td>
-        <td class="row3">' . $useraddress . '</td>
-        </tr>
-         <tr>
-        <td class="row2">' . $fieldname . '</td>
-        <td class="row3">' . $olddata . '</td>
-        </tr>
-         <tr>
-         <td class="row2" align="right">
-         <label for="nm"> ' . __('Next month') . '
-         <input type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag . '> 
-         </label>
-         </td>
-         <td class="row3">
-            ' . web_tariffselectorNoLousy($fieldkey) . '
-            ' . $charge_signup_price_checkbox . '
-         </td>
-         </tr>
-         </table>
-         <br>
-        <input type="submit" value="' . __('Change') . '">
-        </form>
-        <br><br>
-        ';
+    $nmControl = wf_tag('label', false, '', 'for="nm"');
+    $nmControl.= __('Next month');
+    $nmControl.= wf_tag('input', false, '', 'type="checkbox"  name="nextmonth" id="nm" ' . $nm_flag);
+    $nmControl.= wf_tag('label', true);
+
+    $cells = wf_TableCell(__('User'), '', 'row2');
+    $cells.= wf_TableCell($useraddress, '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($fieldname, '', 'row2');
+    $cells.= wf_TableCell($olddata, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $cells = wf_TableCell($nmControl, '', 'row2', 'align="right"');
+    $cells.= wf_TableCell(web_tariffselectorNoLousy($fieldkey) . $charge_signup_price_checkbox, '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_tag('br');
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
+/**
+ * Returns two strings data grid editor (used in tariffspeeds)
+ * 
+ * @param array $fieldnames
+ * @param array $fieldkeys
+ * @param array $olddata
+ * @return string
+ */
 function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
     $fieldkey1 = $fieldkeys['fieldkey1'];
     $fieldkey2 = $fieldkeys['fieldkey2'];
-    $form = '
-        <form action="" method="POST">
-            <table width="100%" border="0">
-                <tr>
-                    <td class="row2">' . $field1 . '</td>
-                    <td class="row3"><input type="text" name="' . $fieldkey1 . '" value="' . $olddata[1] . '"></td>
-                </tr>
-                <tr>
-                    <td class="row2">' . $field2 . '</td>
-                    <td class="row3"><input type="text" name="' . $fieldkey2 . '" value="' . $olddata[2] . '"></td>
-                </tr>
-            </table>
-            <input type="submit" value="' . __('Change') . '">
-        </form><br><br>
-        ';
+
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
+    $rows = wf_TableRow($cells);
+
+    $cells = wf_TableCell($field1, '', 'row2');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
+    $rows.= wf_TableRow($cells);
+
+    $table = wf_TableBody($rows, '100%', 0);
+
+    $inputs = $table;
+    $inputs.= wf_Submit(__('Change'));
+    $inputs.= wf_delimiter();
+    $form = wf_Form("", 'POST', $inputs, '');
+
     return($form);
 }
 
+/**
+ * Translates payment notes into human-readable string
+ * 
+ * @param string $paynote
+ * @param array $allservicenames
+ * @return string
+ */
 function zb_TranslatePaymentNote($paynote, $allservicenames) {
     if ($paynote == '') {
         $paynote = __('Internet');
@@ -716,52 +868,45 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
     return ($paynote);
 }
 
-function web_TariffSpeedForm() {
-    $alltariffnames_q = "SELECT `name` from `tariffs`";
-    $alltariffs = simple_queryall($alltariffnames_q);
+/**
+ * Returns list of available tariffs speeds
+ * 
+ * @return string
+ */
+function web_TariffSpeedLister() {
+    $alltariffs = zb_TariffsGetAll();
     $allspeeds = zb_TariffGetAllSpeeds();
-    $form = '<table width="100%" class="sortable" border="0">';
-    $form.='
-                    <tr class="row1">
-                        <td>
-                        ' . __('Tariff') . '
-                        </td>
-                        <td>
-                        ' . __('Download speed') . '
-                        </td>
-                        <td>
-                        ' . __('Upload speed') . '
-                        </td>
-                        <td>
-                        ' . __('Actions') . '
-                        </td>
-                    </tr>
-                    ';
+
+    $cells = wf_TableCell(__('Tariff'));
+    $cells.= wf_TableCell(__('Download speed'));
+    $cells.= wf_TableCell(__('Upload speed'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells, 'row1');
+
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
-            $form.='
-                    <tr class="row3">
-                        <td>
-                        ' . $eachtariff['name'] . '
-                        </td>
-                        <td>
-                        ' . @$allspeeds[$eachtariff['name']]['speeddown'] . '
-                        </td>
-                        <td>
-                        ' . @$allspeeds[$eachtariff['name']]['speedup'] . '
-                        </td>
-                        <td>
-                        <a href="?module=tariffspeeds&tariff=' . $eachtariff['name'] . '">' . web_edit_icon() . '</a>
-                        </td>
-                    </tr>
-                    ';
+            $cells = wf_TableCell($eachtariff['name']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
+            $actLinks = wf_JSAlert('?module=tariffspeeds&tariff=' . $eachtariff['name'], web_edit_icon(), __('Are you serious'));
+            $cells.= wf_TableCell($actLinks);
+            $rows.= wf_TableRow($cells, 'row3');
         }
     }
-    $form.='</table>';
 
-    return($form);
+
+
+    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+
+    return($result);
 }
 
+/**
+ * Returns an array with stargazer user data by some login
+ * 
+ * @param string $login
+ * @return array
+ */
 function zb_ProfileGetStgData($login) {
     $login = vf($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "'";
@@ -769,6 +914,12 @@ function zb_ProfileGetStgData($login) {
     return($userdata);
 }
 
+/**
+ * Returns switch data in profile form
+ * 
+ * @param string $login
+ * @return string
+ */
 function web_ProfileSwitchControlForm($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `switchportassign` WHERE `login`='" . $login . "'";
@@ -876,6 +1027,11 @@ function web_ProfileSwitchControlForm($login) {
     return ($result);
 }
 
+/**
+ * Returns all dates of admin actions (deprecated?)
+ * 
+ * @return array
+ */
 function zb_EventGetAllDateTimes() {
     $query = "SELECT `admin`,`date` from `weblogs`";
     $result = array();
@@ -888,6 +1044,7 @@ function zb_EventGetAllDateTimes() {
     return ($result);
 }
 
+//refactoring is needed below
 function web_PaymentsByUser($login) {
     $allpayments = zb_CashGetUserPayments($login);
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
@@ -1449,52 +1606,6 @@ function web_PaymentsShowGraph($year) {
     show_window(__('Payments by') . ' ' . $year, $result);
 }
 
-function web_Overlay($title, $text, $opacity = '0.65') {
-    $text = str_replace("\n", '', $text);
-    $text = str_replace("\r", '', $text);
-    $overlayname = 'overlay' . rand(0, 9999);
-    $overlaystyle = '
-            <style type="text/css">
-            .overLayer
-            {
-                background:black;
-                display:block;
-                left:0;
-                opacity:' . $opacity . ';
-                filter: alpha(opacity = 65);
-                position:fixed;
-                top:0;
-                width: 100%;
-                height: 100%;
-                z-index: 1000;
-                color: white;
-                padding: 50px;
-                }
-             </style>
-            ';
-    $overlaycode = '
-            <p><a href="" class="' . $overlayname . '">' . $title . '</a></p>
-            <script type="text/javascript" src="modules/jsc/jquery.min.js"></script>
-            <script type="text/javascript">
-            $(function()
-                {
-                 $(\'.' . $overlayname . '\').click(function()
-                  {
-                var ol = $(\'<div class="overLayer">' . $text . '</div>\');
-                ol.click(function()
-                {
-                 $(this).remove();
-                });
-                $(\'body\').append(ol);
-                return false;
-                });
-               })
-            </script>
-        <div style=\'clear: both;\'></div>
-         ';
-    $overlay = $overlaystyle . $overlaycode;
-    return($overlay);
-}
 
 function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '') {
     $result = '<table width="100%" class="sortable" border="0">';
@@ -3594,6 +3705,8 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
+
 
         
 //Initializations

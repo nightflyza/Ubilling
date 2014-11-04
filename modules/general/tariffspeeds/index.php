@@ -23,7 +23,7 @@ if (cfr('TARIFFSPEED')) {
             rcms_redirect("?module=tariffspeeds");
         }
     } else {
-       show_window(__('Tariff speeds'),web_TariffSpeedForm());
+       show_window(__('Tariff speeds'),web_TariffSpeedLister());
     }
     
    
