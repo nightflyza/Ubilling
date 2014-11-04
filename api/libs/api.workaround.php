@@ -2010,20 +2010,24 @@ function web_UserTraffStats($login) {
 
         // Modal window sizes:
         if (!empty($bwd['days'])) {
+            //bandwidthd
             $width = 920;
-            $heidht = 600;
+            $heidht = 640;
+            $graphLegend=  wf_tag('br').wf_img('skins/bwdlegend.gif');
         } else {
+            //mikrotik
             $width = 530;
             $heidht = 230;
+            $graphLegend= '';
         }
 
         $result .= wf_delimiter();
         $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
-        $bwcells = wf_TableCell(wf_modal(__('Graph by day'), __('Graph by day'), $daybw, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by week'), __('Graph by week'), $weekbw, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by year'), __('Graph by year'), $yearbw, 'ubButton', $width, $heidht));
+        $bwcells = wf_TableCell(wf_modal(__('Graph by day'), __('Graph by day'), $daybw.$graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(__('Graph by week'), __('Graph by week'), $weekbw.$graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw.$graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(__('Graph by year'), __('Graph by year'), $yearbw.$graphLegend, 'ubButton', $width, $heidht));
         $bwrows = wf_TableRow($bwcells);
 
         // Adding graphs buttons to result:

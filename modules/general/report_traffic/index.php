@@ -67,11 +67,12 @@
                             
                             // Modals:
                             $width      = 920;
-                            $height     = 620;
+                            $height     = 650;
                             $daygraph   = __('Downloaded') . wf_img($d_day)   . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_day);
                             $weekgraph  = __('Downloaded') . wf_img($d_week)  . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_week);
                             $monthgraph = __('Downloaded') . wf_img($d_month) . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_month);
                             $yeargraph  = __('Downloaded') . wf_img($d_year)  . wf_tag('br') . __('Uploaded') . wf_tag('br') . wf_img($u_year);
+                            $graphLegend= wf_tag('br').wf_img('skins/bwdlegend.gif');
                             break;
                         case 'mikrotik':
                             $options = zb_NasOptionsGet($nas['id']);
@@ -92,15 +93,16 @@
                                 $weekgraph  = wf_img($weekly);
                                 $monthgraph = wf_img($monthly);
                                 $yeargraph  = wf_img($yearly);
+                                $graphLegend= '';
                                 break;
                             } else show_window(__('Error'), __('For NAS') . ' `' . $nas['nasname'] . '` ' . __('was not set correct graph interface'));
                     }
 
                     // Buttons:
-                    $gday   = wf_modal(__('Graph by day'),   __('Graph by day'),   $daygraph,   '', $width, $height);
-                    $gweek  = wf_modal(__('Graph by week'),  __('Graph by week'),  $weekgraph,  '', $width, $height);
-                    $gmonth = wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph, '', $width, $height);
-                    $gyear  = wf_modal(__('Graph by year'),  __('Graph by year'),  $yeargraph,  '', $width, $height);
+                    $gday   = wf_modal(__('Graph by day'),   __('Graph by day'),   $daygraph.$graphLegend,   '', $width, $height);
+                    $gweek  = wf_modal(__('Graph by week'),  __('Graph by week'),  $weekgraph.$graphLegend,  '', $width, $height);
+                    $gmonth = wf_modal(__('Graph by month'), __('Graph by month'), $monthgraph.$graphLegend, '', $width, $height);
+                    $gyear  = wf_modal(__('Graph by year'),  __('Graph by year'),  $yeargraph.$graphLegend,  '', $width, $height);
 
                     // Put buttons to table row:
                     $graphCells  = wf_TableCell($nas['nasname'], '', 'row2');

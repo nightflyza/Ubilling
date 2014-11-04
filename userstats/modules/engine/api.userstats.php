@@ -400,6 +400,12 @@ function zbs_UserShowXmlAgentData($login) {
     $passive        = $userdata['Passive'];
     $down           = $userdata['Down'];
     
+    //payment id handling
+    if ($us_config['OPENPAYZ_REALID']) {
+        $paymentid=  zbs_PaymentIDGet($login);
+    } else {
+        $paymentid=  ip2int($userdata['IP']);
+    }
     
     if ($userdata['CreditExpire']!=0) {
     $credexpire=date("d-m-Y",$userdata['CreditExpire']);
@@ -492,7 +498,7 @@ function zbs_UserShowXmlAgentData($login) {
     $result.="\t".'<email>'.$email.'</email>'."\n";
     $result.="\t".'<credit>'.@$userdata['Credit'].'</credit>'."\n";
     $result.="\t".'<creditexpire>'.$credexpire.'</creditexpire>'."\n";
-    $result.="\t".'<payid>'.ip2int($userdata['IP']).'</payid>'."\n";
+    $result.="\t".'<payid>'.$paymentid.'</payid>'."\n";
     $result.="\t".'<contract>'.$contract.'</contract>'."\n";
     $result.="\t".'<tariff>'.$userdata['Tariff'].'</tariff>'."\n";
     $result.="\t".'<tariffnm>'.$tariffNm.'</tariffnm>'."\n";
