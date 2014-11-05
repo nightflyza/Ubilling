@@ -396,6 +396,7 @@ function zbs_UserShowXmlAgentData($login) {
     $email=zbs_UserGetEmail($login);
     $mobile=zbs_UserGetMobile($login);
     $phone=zbs_UserGetPhone($login);
+    $apiVer='1';
     
     $passive        = $userdata['Passive'];
     $down           = $userdata['Down'];
@@ -508,6 +509,7 @@ function zbs_UserShowXmlAgentData($login) {
     $result.="\t".'<accountstate>'.$passive_state.$down_state.'</accountstate>'."\n";
     $result.="\t".'<accountexpire>'.$balanceExpire.'</accountexpire>'."\n";
     $result.="\t".'<currency>'.$us_currency.'</currency>'."\n";
+    $result.="\t".'<version>'.$apiVer.'</version>'."\n";
     
     
     $result.='</userdata>'."\n";
