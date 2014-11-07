@@ -1044,10 +1044,16 @@ function zb_EventGetAllDateTimes() {
     return ($result);
 }
 
-//refactoring is needed below
+/**
+ * Returns list of previous user payments
+ * 
+ * @param string $login
+ * @return string
+ */
 function web_PaymentsByUser($login) {
+    global $ubillingConfig;
     $allpayments = zb_CashGetUserPayments($login);
-    $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    $alter_conf = $ubillingConfig->getAlter();
     $alltypes = zb_CashGetAllCashTypes();
     $allservicenames = zb_VservicesGetAllNamesLabeled();
     $total_payments = "0";
@@ -1064,21 +1070,17 @@ function web_PaymentsByUser($login) {
         $iCanDeletePayments = true;
     }
 
-
-    $result = '<table width="100%" border="0" class="sortable">';
-    $result.='
-                    <tr class="row1">
-                    <td>' . __('ID') . '</td>
-                    <td>' . __('IDENC') . '</td>
-                    <td>' . __('Date') . '</td>
-                    <td>' . __('Payment') . '</td>
-                    <td>' . __('Balance before') . '</td>
-                    <td>' . __('Cash type') . '</td>
-                    <td>' . __('Payment note') . '</td>
-                    <td>' . __('Admin') . '</td>
-                    <td>' . __('Actions') . '</td>
-                    </tr>
-                    ';
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__('IDENC'));
+    $cells.= wf_TableCell(__('Date'));
+    $cells.= wf_TableCell(__('Payment'));
+    $cells.= wf_TableCell(__('Balance before'));
+    $cells.= wf_TableCell(__('Cash type'));
+    $cells.= wf_TableCell(__('Payment note'));
+    $cells.= wf_TableCell(__('Admin'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells, 'row1');
+    
     if (!empty($allpayments)) {
         foreach ($allpayments as $eachpayment) {
             if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
@@ -1088,18 +1090,20 @@ function web_PaymentsByUser($login) {
             //hightlight of today payments
             if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
                 if (ispos($eachpayment['date'], $curdate)) {
-                    $hlight = "paytoday";
+                    $hlight = 'paytoday';
                 } else {
-                    $hlight = "row3";
+                    $hlight = 'row3';
                 }
             } else {
-                $hlight = "row3";
+                $hlight = 'row3';
             }
 
             if (!empty($alter_conf['DOCX_SUPPORT']) && !empty($alter_conf['DOCX_CHECK'])) {
-                $printcheck = '<a href="?module=printcheck&paymentid=' . $eachpayment['id'] . '"><img src="skins/printer_small.gif" border="0"></a>';
+                $printcheck = wf_Link('?module=printcheck&paymentid=' . $eachpayment['id'], wf_img('skins/printer_small.gif', __('Print')), false);
             } else {
-                $printcheck = '<a href="#"  onClick="window.open(\'?module=printcheck&paymentid=' . $eachpayment['id'] . '\',\'checkwindow\',\'width=800,height=600\')"><img src="skins/printer_small.gif" border="0"></a>';
+                $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcheck&paymentid=' . $eachpayment['id'] . '\',\'checkwindow\',\'width=800,height=600\')"');
+                $printcheck.= wf_img('skins/printer_small.gif', __('Print'));
+                $printcheck.= wf_tag('a',true);
             }
 
             if ($iCanDeletePayments) {
@@ -1108,28 +1112,34 @@ function web_PaymentsByUser($login) {
                 $deleteControls = '';
             }
 
-            $result .= '
-                    <tr class="' . $hlight . '">
-                    <td>' . $eachpayment['id'] . '</td>
-                    <td>' . zb_NumEncode($eachpayment['id']) . '</td>
-                    <td>' . $eachpayment['date'] . '</td>
-                    <td>' . $eachpayment['summ'] . '</td>
-                    <td>' . $eachpayment['balance'] . '</td>
-                    <td>' . @__($alltypes[$eachpayment['cashtypeid']]) . '</td>
-                    <td>' . $eachpayment['note'] . '</td>
-                    <td>' . $eachpayment['admin'] . '</td>
-                    <td>' . $deleteControls . $printcheck . '</td>
-                    </tr>
-                    ';
+       
+                $cells=  wf_TableCell($eachpayment['id']);
+                $cells.= wf_TableCell(zb_NumEncode($eachpayment['id']));
+                $cells.= wf_TableCell($eachpayment['date']);
+                $cells.= wf_TableCell($eachpayment['summ']);
+                $cells.= wf_TableCell($eachpayment['balance']);
+                $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
+                $cells.= wf_TableCell($eachpayment['note'] );
+                $cells.= wf_TableCell($eachpayment['admin']);
+                $cells.= wf_TableCell($deleteControls . $printcheck);
+                $rows.= wf_TableRow($cells, $hlight);
+            
             $total_payments = $total_payments + $eachpayment['summ'];
         }
     }
-    $result.='</table>';
-    $result.=__('Total payments') . ': <b>' . abs($total_payments) . '</b> <br>';
+  
+    $result= wf_TableBody($rows, '100%', '0', 'sortable');
+    $result.=__('Total payments') . ': '.  wf_tag('b') . abs($total_payments) .  wf_tag('b').  wf_tag('br');
 
     return($result);
 }
-
+/**
+ * Returns actions performed on user parsed from log
+ * 
+ * @param string $login
+ * @param bool   $strict
+ * @return string
+ */
 function web_GrepLogByUser($login, $strict = false) {
     $login = ($strict) ? '(' . $login . ')' : $login;
     $query = 'SELECT * from `weblogs` WHERE `event` LIKE "%' . $login . '%" ORDER BY `date` DESC';
@@ -1153,110 +1163,120 @@ function web_GrepLogByUser($login, $strict = false) {
     return($result);
 }
 
+/**
+ * Cash types one sting data editor
+ * 
+ * @param string $fieldname
+ * @param string $fieldkey
+ * @param string $formurl
+ * @param array $olddata
+ * @return string
+ */
 function web_EditorTableDataFormOneField($fieldname, $fieldkey, $formurl, $olddata) {
-    $form = '<table width="100%" class="sortable" border="0">';
-    $form.='<tr class="row1">
-                    <td>' . __('ID') . '</td>
-                    <td>' . __($fieldname) . '</td>
-                    <td>' . __('Actions') . '</td>
-                    </tr>';
+    $cells=  wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(__($fieldname));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells,'row1');
+    
     if (!empty($olddata)) {
         foreach ($olddata as $io => $value) {
-            $form.='<tr class="row3">
-                    <td>' . $value['id'] . '</td>
-                    <td>' . $value[$fieldkey] . '</td>
-                    <td>
-                    ' . wf_JSAlert($formurl . '&action=delete&id=' . $value['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . '
-                    <a href="' . $formurl . '&action=edit&id=' . $value['id'] . '">' . web_edit_icon() . '</a>
-                    </td>
-                    </tr>';
+            $cells=  wf_TableCell($value['id']);
+            $cells.= wf_TableCell($value[$fieldkey]);
+            $actLinks=  wf_JSAlert($formurl . '&action=delete&id=' . $value['id'], web_delete_icon(), 'Removing this may lead to irreparable results').' ';
+            $actLinks.= wf_Link($formurl . '&action=edit&id=' . $value['id'], web_edit_icon(), false) ;
+            $cells.= wf_TableCell($actLinks);
+            $rows.= wf_TableRow($cells,'row3');
         }
     }
-    $form.='</table>';
-    $form.='
-        <form action="" method="POST">
-        ' . __($fieldname) . ' <input type="text" name="new' . $fieldkey . '">
-        <input type="submit" value="' . __('Create') . '">
-        </form>
-        ';
-    return($form);
+
+    $table= wf_TableBody($rows, '100%', 0, 'sortable');
+    
+    $inputs=  wf_TextInput('new'.$fieldkey,__($fieldname),'',false);
+    $inputs.= wf_Submit(__('Create'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
+    
+    return($table.$form);
 }
 
+/**
+ * Retuns year selector. Is here, only for backward compatibility with old modules.
+ * use only wf_YearSelector() in new code.
+ * 
+ * @return string
+ */
 function web_year_selector() {
-    $curyear = curyear();
-    $count = 5;
-    $selector = '<select name="yearsel">';
-    for ($i = 0; $i < $count; $i++) {
-        $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
-    }
-    $selector.='</select>';
+    $selector= wf_YearSelector('yearsel');
     return($selector);
 }
 
+/**
+ * Shows list for available traffic classes
+ * 
+ * @return void
+ */
 function web_DirectionsShow() {
     $allrules = zb_DirectionsGetAll();
-    $result = '<table width="100%" class="sortable" border="0">';
-    $result.='
-                  <tr class="row1">
-                   <td>
-                    ' . __('Rule number') . '
-                    </td>
-                    <td>
-                    ' . __('Rule name') . '
-                    </td>
-                     <td>
-                    ' . __('Actions') . '
-                    </td>
-                  </tr>
-                  ';
+    
+    $cells =  wf_TableCell(__('Rule number'));
+    $cells.= wf_TableCell(__('Rule name'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells,'row1');
+    
     if (!empty($allrules)) {
         foreach ($allrules as $io => $eachrule) {
-            $result.='
-                  <tr class="row3">
-                    <td>
-                    ' . $eachrule['rulenumber'] . '
-                    </td>
-                    <td>
-                    ' . $eachrule['rulename'] . '
-                    </td>
-                     <td>
-                    ' . wf_JSAlert('?module=rules&delete=' . $eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . '
-                    ' . wf_JSAlert("?module=rules&edit=" . $eachrule['id'], web_edit_icon(), 'Are you serious') . '    
-                    </td>
-                  </tr>
-                  ';
+            $cells =  wf_TableCell($eachrule['rulenumber']);
+            $cells.= wf_TableCell($eachrule['rulename']);
+            $actLinks= wf_JSAlert('?module=rules&delete=' . $eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results').' ';
+            $actLinks.= wf_JSAlert("?module=rules&edit=" . $eachrule['id'], web_edit_icon(), 'Are you serious');
+            $cells.= wf_TableCell($actLinks);
+            $rows.= wf_TableRow($cells,'row3');
         }
     }
-    $result.='</table>';
+    
+    
+    $result=  wf_TableBody($rows, '100%', 0, 'sortable');
     show_window(__('Traffic classes'), $result);
 }
 
+/**
+ * Shows traffic class adding form
+ * 
+ * @return void
+ */
 function web_DirectionAddForm() {
     $allrules = zb_DirectionsGetAll();
     $availrules = array();
+    $selectArr=array();
     if (!empty($allrules)) {
         foreach ($allrules as $io => $eachrule) {
             $availrules[$eachrule['rulenumber']] = $eachrule['rulename'];
         }
     }
-    $selector = '<select name="newrulenumber">';
+
     for ($i = 0; $i <= 9; $i++) {
         if (!isset($availrules[$i])) {
-            $selector.='<option value="' . $i . '">' . $i . '</option>';
+            $selectArr[$i]=$i;
         }
     }
-    $selector.='</select>';
 
-    $form = '
-          <form action="" method="POST" class="glamour">
-            ' . $selector . ' ' . __('Direction number') . '<br>
-            <input type="text" name="newrulename"> ' . __('Direction name') . ' <br>
-           <input type="submit" value="' . __('Create') . '">
-          </form>
-          ';
+    
+    $inputs=  wf_Selector('newrulenumber', $selectArr, __('Direction number'), '', true);
+    $inputs.= wf_TextInput('newrulename', __('Direction name') , '', true);
+    $inputs.= wf_Submit(__('Create'));
+
+    
+    $form=  wf_Form('', 'POST', $inputs, 'glamour');
+    
     show_window(__('Add new traffic class'), $form);
 }
 
+/**
+ * Shows traffic class edit form
+ * 
+ * @param int $ruleid
+ * 
+ * @return void
+ */
 function web_DirectionsEditForm($ruleid) {
     $ruleid = vf($ruleid, 3);
     $query = "SELECT * from `directions` WHERE `id`='" . $ruleid . "'";
@@ -1269,6 +1289,12 @@ function web_DirectionsEditForm($ruleid) {
     show_window(__('Edit') . ' ' . __('Rule name'), $editform);
 }
 
+/**
+ * Renders payments extracted from database with some query
+ * 
+ * @param string $query
+ * @return string
+ */
 function web_PaymentsShow($query) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $alladrs = zb_AddressGetFulladdresslist();
@@ -1350,6 +1376,13 @@ function web_PaymentsShow($query) {
     return($result);
 }
 
+/**
+ * Returns visual bar with count/total proportional size
+ * 
+ * @param float $count
+ * @param float $total
+ * @return string
+ */
 function web_bar($count, $total) {
     $barurl = 'skins/bar.png';
     if ($total != 0) {
@@ -1358,11 +1391,17 @@ function web_bar($count, $total) {
         $width = 0;
     }
 
-    $code = '<img src="' . $barurl . '"  height="14" width="' . $width . '%" border="0">';
+    $code= wf_img_sized($barurl, '', $width.'%', '14');
     return($code);
 }
 
-//retunt all months with names in two digit notation
+
+/**
+ * Returns all months with names in two digit notation
+ * 
+ * @param string $number
+ * @return array/string
+ */
 function months_array($number = null) {
     $months = array(
         '01' => 'January',
@@ -1385,7 +1424,11 @@ function months_array($number = null) {
     }
 }
 
-//retunt all months with names without begin zeros
+/**
+ * Retuns all months with names without begin zeros
+ * 
+ * @return array
+ */
 function months_array_wz() {
     $months = array(
         '1' => 'January',
@@ -1403,98 +1446,11 @@ function months_array_wz() {
     return($months);
 }
 
-function web_PaymentsShowGraph_old($year) {
-    $months = months_array();
-    $year_summ = zb_PaymentsGetYearSumm($year);
-    $curtime = time();
-    $yearPayData = array();
-    $cacheTime = 3600;
-
-    $cells = wf_TableCell('');
-    $cells.= wf_TableCell(__('Month'));
-    $cells.= wf_TableCell(__('Payments count'));
-    $cells.= wf_TableCell(__('ARPU'));
-    $cells.= wf_TableCell(__('Cash'));
-    $cells.= wf_TableCell(__('Visual'), '50%');
-    $rows = wf_TableRow($cells, 'row1');
-
-    //caching subroutine
-    $renewTime = zb_StorageGet('YPD_LAST');
-    if (empty($renewTime)) {
-        //first usage
-        $renewTime = $curtime;
-        zb_StorageSet('YPD_LAST', $renewTime);
-        $updateCache = true;
-    } else {
-        //cache time already set
-        $timeShift = $curtime - $renewTime;
-        if ($timeShift > $cacheTime) {
-            //cache update needed
-            $updateCache = true;
-        } else {
-            //load data from cache or init new cache
-            $yearPayData_raw = zb_StorageGet('YPD_CACHE');
-            if (empty($yearPayData_raw)) {
-                //first usage
-                $emptyCache = array();
-                $emptyCache = serialize($emptyCache);
-                $emptyCache = base64_encode($emptyCache);
-                zb_StorageSet('YPD_CACHE', $emptyCache);
-                $updateCache = true;
-            } else {
-                // data loaded from cache
-                $yearPayData = base64_decode($yearPayData_raw);
-                $yearPayData = unserialize($yearPayData);
-                $updateCache = false;
-                //check is current year already cached?
-                if (!isset($yearPayData[$year]['graphs'])) {
-                    $updateCache = true;
-                }
-
-                //check is manual cache refresh is needed?
-                if (wf_CheckGet(array('forcecache'))) {
-                    $updateCache = true;
-                    rcms_redirect("?module=report_finance");
-                }
-            }
-        }
-    }
-
-    if ($updateCache) {
-        foreach ($months as $eachmonth => $monthname) {
-            $month_summ = zb_PaymentsGetMonthSumm($year, $eachmonth);
-            $paycount = zb_PaymentsGetMonthCount($year, $eachmonth);
-
-            $cells = wf_TableCell($eachmonth);
-            $cells.= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
-            $cells.= wf_TableCell($paycount);
-            $cells.= wf_TableCell(@round($month_summ / $paycount, 2));
-            $cells.= wf_TableCell(web_roundValue($month_summ, 2));
-            $cells.= wf_TableCell(web_bar($month_summ, $year_summ));
-            $rows.= wf_TableRow($cells, 'row3');
-        }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
-        $yearPayData[$year]['graphs'] = $result;
-        //write to cache
-        zb_StorageSet('YPD_LAST', $curtime);
-        $newCache = serialize($yearPayData);
-        $newCache = base64_encode($newCache);
-        zb_StorageSet('YPD_CACHE', $newCache);
-    } else {
-        //take data from cache
-        if (isset($yearPayData[$year]['graphs'])) {
-            $result = $yearPayData[$year]['graphs'];
-            $result.=__('Cache state at time') . ': ' . date("Y-m-d H:i:s", ($renewTime)) . ' ';
-            $result.=wf_Link("?module=report_finance&forcecache=true", wf_img('skins/icon_cleanup.png', __('Renew')), false, '');
-        } else {
-            $result = __('Strange exeption');
-        }
-    }
-
-
-    show_window(__('Payments by') . ' ' . $year, $result);
-}
-
+/**
+ * Shows payments year graph with caching
+ * 
+ * @param int $year
+ */
 function web_PaymentsShowGraph($year) {
     $months = months_array();
     $year_summ = zb_PaymentsGetYearSumm($year);
@@ -1606,21 +1562,35 @@ function web_PaymentsShowGraph($year) {
     show_window(__('Payments by') . ' ' . $year, $result);
 }
 
-
+/**
+ * Returns editor for some array data.
+ * 
+ * @param array $titles
+ * @param array $keys
+ * @param array $alldata
+ * @param string $module
+ * @param bool $delete
+ * @param bool $edit
+ * @param string $prefix
+ * @return string
+ */
 function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit = false, $prefix = '') {
-    $result = '<table width="100%" class="sortable" border="0">';
-    $result.='<tr class="row1">';
+    
+    //headers
+    $cells='';
     foreach ($titles as $eachtitle) {
-        $result.='<td>' . __($eachtitle) . '</td>';
+        $cells.= wf_TableCell(__($eachtitle));
     }
-    $result.='<td>' . __('Actions') . '</td>';
-    $result.='</tr>';
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells, 'row1');
+    //headers end
+   
+    $cells='';
     if (!empty($alldata)) {
         foreach ($alldata as $io => $eachdata) {
-            $result.='<tr class="row3">';
             foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
-                    $result.='<td>' . $eachdata[$eachkey] . '</td>';
+                    $cells.=  wf_TableCell($eachdata[$eachkey]);
                 }
             }
             if ($delete) {
@@ -1630,19 +1600,34 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
             }
 
             if ($edit) {
-                $editcontrol = '<a href="?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'] . '">' . web_edit_icon() . '</a>';
+                $editcontrol = wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'], web_edit_icon(), false);
             } else {
                 $editcontrol = '';
             }
-            $result.='<td>' . $deletecontrol . ' ' . $editcontrol . ' </td>';
-            $result.='</tr>';
+
+            $cells.= wf_TableCell($deletecontrol . ' ' . $editcontrol );
+            $rows.= wf_TableRow($cells, 'row3');
+
         }
     }
 
-    $result.='</table>';
+
+    $result= wf_TableBody($rows, '100%', 0, 'sortable');
     return($result);
 }
 
+/**
+ * Returns NAS editing grid
+ * 
+ * @param array $titles
+ * @param array $keys
+ * @param array $alldata
+ * @param string $module
+ * @param bool $delete
+ * @param bool $edit
+ * @param string $prefix
+ * @return string
+ */
 function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $edit = TRUE, $prefix = '') {
 
     $allnetworkdata = multinet_get_all_networks();
@@ -1654,53 +1639,59 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $e
         }
     }
 
-    // NAS LIST TABLE BEGIN
-    $result = '<table width="100%" class="sortable" border="0">';
-
     // FIRST ROW WITH TITLES:
-    $result .= '<tr class="row1">';
+    $cells='';
     foreach ($titles as $eachtitle) {
-        $result .= '<td>' . __($eachtitle) . '</td>';
+        $cells.= wf_TableCell(__($eachtitle));
     }
-    $result .= '<td>' . __('Actions') . '</td>';
-    $result .= '</tr>';
+
+    $cells.= wf_TableCell(__('Actions'));
+    $rows= wf_TableRow($cells, 'row1');
     // END OF "FIRST ROW WITH TITLES".
     // BEGIN GENERATION OF ROWS, CONTAINING NAS DATA:
+
     if (!empty($alldata)) {
         foreach ($alldata as $eachdata) {
-            $result .= '<tr class="row3">';
-            foreach ($keys as $eachkey) {
+            $cells='';
+           foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
                     if ($eachkey == 'netid') {
-                        $result .= '<td>' . $eachdata[$eachkey] . ': ' . $netcidrs[$eachdata[$eachkey]] . '</td>';
-                    } else
-                        $result .= '<td>' . $eachdata[$eachkey] . '</td>';
+                        $cells.= wf_TableCell($eachdata[$eachkey] . ': ' . $netcidrs[$eachdata[$eachkey]]);
+                    } else {
+                        $cells.= wf_TableCell($eachdata[$eachkey]);
+                    }
 
                     if ($eachkey == 'nastype') {
                         if ($eachdata[$eachkey] == 'mikrotik') {
-                            $mikrotikExtendedLink = '<a href="?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'] . '">' . web_icon_extended(__('MikroTik extended configuration')) . '</a>';
-                        } else
+                            $mikrotikExtendedLink = wf_Link('?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'], web_icon_extended(__('MikroTik extended configuration')), false, '');
+                        } else {
                             $mikrotikExtendedLink = NULL;
+                        }
                     }
                 }
             }
             if ($delete) {
                 $deleteLink = wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            } else
+            } else {
                 $deleteLink = NULL;
+            }
 
             if ($edit) {
-                $editLink = '<a href="?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'] . '">' . web_edit_icon() . '</a>';
-            } else
+                $editLink = wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'] , web_edit_icon(), false, '');
+            } else {
                 $editLink = NULL;
+            }
 
-            $result .= '<td>' . $deleteLink . ' ' . $editLink . ' ' . $mikrotikExtendedLink . '</td>';
-            $result .= '</tr>';
+            
+            $cells.= wf_TableCell($deleteLink.' '.$editLink.' '.$mikrotikExtendedLink);
+            $rows.= wf_TableRow($cells, 'row3');
+          
         }
     }
     // STOP GENERATION OF ROWS, CONTAINING NAS DATA.
 
-    $result .= '</table>';
+
+    $result= wf_TableBody($rows, '100%', 0, 'sortable');
     // END OF NAS LIST TABLE.
     // RETURN RESULT:
     return $result;
