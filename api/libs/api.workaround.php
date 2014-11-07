@@ -7,10 +7,13 @@
  * @return string
  */
 function web_UserControls($login) {
+    $urlProfile='?module=userprofile&username=';
+    $urlUserEdit='?module=useredit&username=';
+    
     $controls = wf_tag('div', false);
-    $controls.= wf_Link('?module=userprofile&username=' . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
+    $controls.= wf_Link($urlProfile . $login, wf_img_sized('skins/icon_user_big.gif', __('Back to user profile'), '48') . __('Back to user profile'), true, '');
     $controls.= wf_tag('br');
-    $controls.= wf_Link('?module=useredit&username=' . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
+    $controls.= wf_Link($urlUserEdit . $login, wf_img_sized('skins/icon_user_edit_big.gif', __('Back to user edit'), '48') . __('Back to user edit'), false, '');
     $controls.= wf_tag('div', true);
     return($controls);
 }
@@ -921,9 +924,31 @@ function zb_ProfileGetStgData($login) {
  * @return string
  */
 function web_ProfileSwitchControlForm($login) {
+    global $ubillingConfig;
+    $alterconf=$ubillingConfig->getAlter();
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `switchportassign` WHERE `login`='" . $login . "'";
-    $allswitches = zb_SwitchesGetAll();
+    
+    //switch selector arranged by id (default)
+    if (($alterconf['SWITCHPORT_IN_PROFILE']==1) OR ($alterconf['SWITCHPORT_IN_PROFILE']==4)) {
+     $allswitches = zb_SwitchesGetAll();
+    }
+    
+    //switch selector arranged by location
+     if ($alterconf['SWITCHPORT_IN_PROFILE']==2) {
+     $allswitches_q="SELECT * FROM `switches` ORDER BY `location` ASC";
+     $allswitches = simple_queryall($allswitches_q);
+    }
+    
+    //switch selector arranged by ip
+     if ($alterconf['SWITCHPORT_IN_PROFILE']==3) {
+     $allswitches_q="SELECT * FROM `switches` ORDER BY `ip` ASC";
+     $allswitches = simple_queryall($allswitches_q);
+    }
+    
+    
+    
+
     $switcharr = array();
     $switcharrFull = array();
     $switchswpoll = array();
@@ -975,15 +1000,22 @@ function web_ProfileSwitchControlForm($login) {
     }
 
     //control form construct
+    $formStyle='glamour';
     $inputs = wf_HiddenInput('swassignlogin', $login);
-    $inputs.= wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+    if ($alterconf['SWITCHPORT_IN_PROFILE']!=4) {
+        $inputs.= wf_Selector('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+    } else {
+       
+       $inputs.= wf_JuiComboBox('swassignswid', $switcharr, __('Switch'), $currentSwitchId, true);
+       $formStyle='floatpanelswide';
+    }
     $inputs.= wf_TextInput('swassignswport', __('Port'), $currentSwitchPort, false, '2');
     $inputs.= wf_CheckInput('swassigndelete', __('Delete'), true, false);
     $inputs.= wf_Submit('Save');
-    $controlForm = wf_Form('', "POST", $inputs, 'glamour');
+    $controlForm = wf_Form('', "POST", $inputs, $formStyle);
     //form end
 
-    $switchAssignController = wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '200');
+    $switchAssignController = wf_modal(web_edit_icon(), __('Switch port assign'), $controlForm, '', '450', '220');
 
     //switch location and polling controls
     $switchLocators = '';
@@ -1588,6 +1620,7 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
     $cells='';
     if (!empty($alldata)) {
         foreach ($alldata as $io => $eachdata) {
+             $cells='';
             foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
                     $cells.=  wf_TableCell($eachdata[$eachkey]);
@@ -1697,6 +1730,7 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $e
     return $result;
 }
 
+//need to refactor it later
 function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = true, $edit = false) {
     $alltagnames = stg_get_alltagnames();
     $result = '<table width="100%" class="sortable" border="0">';
@@ -1739,6 +1773,11 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
     return($result);
 }
 
+/**
+ * Retruns nas creation form
+ * 
+ * @return string
+ */
 function web_NasAddForm() {
 
     $nastypes = array(
@@ -1760,7 +1799,13 @@ function web_NasAddForm() {
     return($form);
 }
 
-// simple backup routine
+/**
+ * Native database backup function. Stores dump in filesystem and returns it name.
+ * 
+ * @param string $tables
+ * @param bool   $silent
+ * @return string
+ */
 function zb_backup_tables($tables = '*', $silent = false) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $exclude_tables = $alter_conf['NOBACKUPTABLESLIKE'];
@@ -1845,6 +1890,11 @@ function zb_backup_tables($tables = '*', $silent = false) {
     return ($backname);
 }
 
+/**
+ * Returns database backup creation form
+ * 
+ * @return string
+ */
 function web_BackupForm() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $excludes = $alterconf['NOBACKUPTABLESLIKE'];

@@ -3,26 +3,7 @@
  * Framework abstraction functions and wrappers
  */
 
-// replace for content output
-if (!function_exists('show_window')) {
-function show_window($title,$data,$align="left") {
-    $result='
-        <table width="100%" border="0" id="window">
-        <tr>
-            <td align="center">
-            <b>'.$title.'</b>
-            </td>
-        </tr>
-        <tr>
-            <td align="'.$align.'">
-            '.$data.'
-            </td>
-        </tr>
-        </table>
-        ';
-    print($result);
-}
-}
+
 
 //show error
 if (!function_exists('show_error')) {
@@ -104,6 +85,27 @@ function stg_putlogevent($event) {
 if (!function_exists('__')) {
 function __($str) {
     return($str);
+}
+}
+
+// replace for content output
+if (!function_exists('show_window')) {
+function show_window($title,$data,$align="left") {
+    $result='
+        <table width="100%" border="0" id="window">
+        <tr>
+            <td align="center">
+            <b>'.$title.'</b>
+            </td>
+        </tr>
+        <tr>
+            <td align="'.$align.'">
+            '.$data.'
+            </td>
+        </tr>
+        </table>
+        ';
+    print($result);
 }
 }
 
