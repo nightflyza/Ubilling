@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Фронтенд для получения уведомлений о платежах от Приватбанка
  * Протокол: https://docs.google.com/document/d/1JrH84x2p4FOjm89q3xArvnEfsFXRnbIoa6qJFNq2VYw/edit#
@@ -13,15 +14,15 @@
 // Имя POST переменной в которой должны приходить запросы, либо raw в случае получения 
 // запросов в виде HTTP_RAW_POST_DATA.
 define('PBX_REQUEST_MODE', 'raw');
-//Режим отладки - заставляет данные подгружаться из файла debug.xml
-define('PBX_DEBUG_MODE',0);
+//Режим отладки - заставляет данные подгружаться из файла debug.xml 
+//(Да-да, ложите туда запрос и смотрите в браузере как на него отвечает фронтенд)
+define('PBX_DEBUG_MODE', 0);
 
 //Текст уведомлений и екзепшнов
-define('ISP_NAME','НашПровайдер'); //Информация о поставщике услуг
-define('ISP_CODE','1'); // Id в ПС
-define('ISP_SERVICE_NAME','Интернет'); // Наименование услуги
-define('ISP_SERVICE_CODE','101'); //Код услуги
-
+define('ISP_NAME', 'НашПровайдер'); //Информация о поставщике услуг
+define('ISP_CODE', '1'); // Id в ПС
+define('ISP_SERVICE_NAME', 'Интернет'); // Наименование услуги
+define('ISP_SERVICE_CODE', '101'); //Код услуги
 //Исключения
 define('PBX_EX_NOT_FOUND', 'Абонент не найден');
 define('PBX_EX_DUPLICATE', 'Дублирование платежа');
@@ -32,11 +33,10 @@ include ("../../libs/api.openpayz.php");
 error_reporting(E_ALL);
 
 // Send main headers
-header('Last-Modified: ' . gmdate('r')); 
+header('Last-Modified: ' . gmdate('r'));
 header('Content-Type: text/html; charset=utf-8');
 header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
 header("Pragma: no-cache");
-
 
 /**
  *
@@ -76,7 +76,7 @@ function pbx_RequestGet() {
         }
     } else {
         //$result = $HTTP_RAW_POST_DATA;
-        $result=file_get_contents('php://input');
+        $result = file_get_contents('php://input');
     }
     return ($result);
 }
@@ -122,10 +122,11 @@ function pbx_UserGetAllRealnames() {
  * 
  * @return array
  */
+
 function pbx_UserGetStargazerData($login) {
-    $login=  mysql_real_escape_string($login);
-    $query="SELECT * from `users` WHERE `login`='".$login."';";
-    $result=  simple_query($query);
+    $login = mysql_real_escape_string($login);
+    $query = "SELECT * from `users` WHERE `login`='" . $login . "';";
+    $result = simple_query($query);
     return ($result);
 }
 
@@ -167,69 +168,85 @@ function pbx_TariffGetPricesAll() {
     return ($result);
 }
 
+/**
+ * Returns random numeric string, which will be used as unique transaction hash
+ * 
+ * @param int $size
+ * @return int
+ */
+function pbx_GenerateHash($size = 12) {
+    $characters = '0123456789';
+    $string = "";
+    for ($p = 0; $p < $size; $p++) {
+        $string.= $characters[mt_rand(0, (strlen($characters) - 1))];
+    }
+
+    return ($string);
+}
+
 /*
  * Returns full address list
  * 
  * @return array
  */
+
 function pbx_AddressGetFulladdresslist() {
-$result=array();
-$apts=array();
-$builds=array();
+    $result = array();
+    $apts = array();
+    $builds = array();
 //наглая заглушка
-$alterconf['ZERO_TOLERANCE']=0;
-$alterconf['CITY_DISPLAY']=0;
-$city_q="SELECT * from `city`";
-$adrz_q="SELECT * from `address`";
-$apt_q="SELECT * from `apt`";
-$build_q="SELECT * from build";
-$streets_q="SELECT * from `street`";
-$alladdrz=simple_queryall($adrz_q);
-$allapt=simple_queryall($apt_q);
-$allbuilds=simple_queryall($build_q);
-$allstreets=simple_queryall($streets_q);
-if (!empty ($alladdrz)) {
-   
-        foreach ($alladdrz as $io1=>$eachaddress) {
-        $address[$eachaddress['id']]=array('login'=>$eachaddress['login'],'aptid'=>$eachaddress['aptid']);
+    $alterconf['ZERO_TOLERANCE'] = 0;
+    $alterconf['CITY_DISPLAY'] = 0;
+    $city_q = "SELECT * from `city`";
+    $adrz_q = "SELECT * from `address`";
+    $apt_q = "SELECT * from `apt`";
+    $build_q = "SELECT * from build";
+    $streets_q = "SELECT * from `street`";
+    $alladdrz = simple_queryall($adrz_q);
+    $allapt = simple_queryall($apt_q);
+    $allbuilds = simple_queryall($build_q);
+    $allstreets = simple_queryall($streets_q);
+    if (!empty($alladdrz)) {
+
+        foreach ($alladdrz as $io1 => $eachaddress) {
+            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
         }
-        foreach ($allapt as $io2=>$eachapt) {
-        $apts[$eachapt['id']]=array('apt'=>$eachapt['apt'],'buildid'=>$eachapt['buildid']);
+        foreach ($allapt as $io2 => $eachapt) {
+            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
         }
-        foreach ($allbuilds as $io3=>$eachbuild) {
-        $builds[$eachbuild['id']]=array('buildnum'=>$eachbuild['buildnum'],'streetid'=>$eachbuild['streetid']);
+        foreach ($allbuilds as $io3 => $eachbuild) {
+            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
         }
-        foreach ($allstreets as $io4=>$eachstreet) {
-        $streets[$eachstreet['id']]=array('streetname'=>$eachstreet['streetname'],'cityid'=>$eachstreet['cityid']);
+        foreach ($allstreets as $io4 => $eachstreet) {
+            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
         }
 
-    foreach ($address as $io5=>$eachaddress) {
-        $apartment=$apts[$eachaddress['aptid']]['apt'];
-        $building=$builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
-        $streetname=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
-        $cityid=$streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
-        // zero apt handle
-        if ($alterconf['ZERO_TOLERANCE']) {
-            if ($apartment==0) {
-            $apartment_filtered='';
+        foreach ($address as $io5 => $eachaddress) {
+            $apartment = $apts[$eachaddress['aptid']]['apt'];
+            $building = $builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
+            $streetname = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
+            $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+            // zero apt handle
+            if ($alterconf['ZERO_TOLERANCE']) {
+                if ($apartment == 0) {
+                    $apartment_filtered = '';
+                } else {
+                    $apartment_filtered = '/' . $apartment;
+                }
             } else {
-            $apartment_filtered='/'.$apartment;
+                $apartment_filtered = '/' . $apartment;
             }
-        } else {
-        $apartment_filtered='/'.$apartment;    
-        }
-    
-        if (!$alterconf['CITY_DISPLAY']) {
-        $result[$eachaddress['login']]=$streetname.' '.$building.$apartment_filtered;
-        } else {
-        $result[$eachaddress['login']]=$cities[$cityid].' '.$streetname.' '.$building.$apartment_filtered;
+
+            if (!$alterconf['CITY_DISPLAY']) {
+                $result[$eachaddress['login']] = $streetname . ' ' . $building . $apartment_filtered;
+            } else {
+                $result[$eachaddress['login']] = $cities[$cityid] . ' ' . $streetname . ' ' . $building . $apartment_filtered;
+            }
         }
     }
-}
 
-return($result);
+    return($result);
 }
-
 
 /*
  * Returns presearch reply
@@ -238,11 +255,11 @@ return($result);
  */
 
 function pbx_ReplyPresearch($customerid) {
-    $allcustomers=  op_CustomersGetAll();
-    
+    $allcustomers = op_CustomersGetAll();
+
     if (isset($allcustomers[$customerid])) {
         $customerLogin = $allcustomers[$customerid];
-        $allrealnames= pbx_UserGetAllRealnames();
+        $allrealnames = pbx_UserGetAllRealnames();
 
         //normal search reply
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -284,34 +301,34 @@ function pbx_ReplyPresearch($customerid) {
  */
 
 function pbx_ReplySearch($customerid) {
-    $allcustomers=  op_CustomersGetAll();
+    $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
-        $customerLogin=$allcustomers[$customerid];
-        $allrealnames= pbx_UserGetAllRealnames();
-        $alladdress=  pbx_AddressGetFulladdresslist();
-        $allmobiles= pbx_UserGetAllMobiles();
-        $userdata=  pbx_UserGetStargazerData($customerLogin);
-        $userBalance=$userdata['Cash'];
-        
+        $customerLogin = $allcustomers[$customerid];
+        $allrealnames = pbx_UserGetAllRealnames();
+        $alladdress = pbx_AddressGetFulladdresslist();
+        $allmobiles = pbx_UserGetAllMobiles();
+        $userdata = pbx_UserGetStargazerData($customerLogin);
+        $userBalance = $userdata['Cash'];
+
         //normal reply
-        $templateOk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Search">
-                    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="DebtPack" billPeriod="'.date("Ym").'">
-                    <PayerInfo billIdentifier="'.$customerid.'">
-                     <Fio>'.@$allrealnames[$customerLogin].'</Fio>
-                     <Phone>'.@$allmobiles[$customerLogin].'</Phone>
-                     <Address>'.@$alladdress[$customerLogin].'</Address>
+                    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="DebtPack" billPeriod="' . date("Ym") . '">
+                    <PayerInfo billIdentifier="' . $customerid . '">
+                     <Fio>' . @$allrealnames[$customerLogin] . '</Fio>
+                     <Phone>' . @$allmobiles[$customerLogin] . '</Phone>
+                     <Address>' . @$alladdress[$customerLogin] . '</Address>
                     </PayerInfo>
                     <ServiceGroup>
-                     <DebtService  serviceCode="'.ISP_SERVICE_CODE.'" >
+                     <DebtService  serviceCode="' . ISP_SERVICE_CODE . '" >
                         <CompanyInfo>
-                         <CompanyCode>'.ISP_CODE.'</CompanyCode>
-                         <CompanyName>'.ISP_NAME.'</CompanyName>
+                         <CompanyCode>' . ISP_CODE . '</CompanyCode>
+                         <CompanyName>' . ISP_NAME . '</CompanyName>
                         </CompanyInfo>
                         <DebtInfo>
-                         <Balance>'.$userBalance.'</Balance>
+                         <Balance>' . $userBalance . '</Balance>
                         </DebtInfo>
-                       <ServiceName>'.ISP_SERVICE_NAME.'</ServiceName>
+                       <ServiceName>' . ISP_SERVICE_NAME . '</ServiceName>
                     </DebtService>
                     </ServiceGroup>
                     </Data>
@@ -320,23 +337,23 @@ function pbx_ReplySearch($customerid) {
         $result = $templateOk;
     } else {
         //reply fail
-        $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        $templateFail = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Search">
                         <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="2">
-                        <Message>'.PBX_EX_NOT_FOUND.'</Message>
+                        <Message>' . PBX_EX_NOT_FOUND . '</Message>
                         </Data>
                         </Transfer>';
-        $result=$templateFail;
+        $result = $templateFail;
     }
-    $result=trim($result);
+    $result = trim($result);
     return ($result);
 }
 
 //function that gets last id from table
-function  pbx_simple_get_lastid($tablename) {
-    $tablename=mysql_real_escape_string($tablename);
-    $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
-    $result=simple_query($query);
+function pbx_simple_get_lastid($tablename) {
+    $tablename = mysql_real_escape_string($tablename);
+    $query = "SELECT `id` from `" . $tablename . "` ORDER BY `id` DESC LIMIT 1";
+    $result = simple_query($query);
     return ($result['id']);
 }
 
@@ -347,32 +364,30 @@ function  pbx_simple_get_lastid($tablename) {
  */
 
 function pbx_ReplyCheck($customerid) {
-    $allcustomers=  op_CustomersGetAll();
-     if (isset($allcustomers[$customerid])) {
-        $customerLogin=$allcustomers[$customerid];
-        $reference=  pbx_simple_get_lastid('op_transactions')+1;
-        
-        $templateOk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    $allcustomers = op_CustomersGetAll();
+    if (isset($allcustomers[$customerid])) {
+        $customerLogin = $allcustomers[$customerid];
+        $reference = pbx_simple_get_lastid('op_transactions') + 1;
+
+        $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Check">
-                    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="'.$reference.'" />
+                    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="' . $reference . '" />
                     </Transfer>
                     ';
-        $result=$templateOk;
-        
-     } else {
-         $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        $result = $templateOk;
+    } else {
+        $templateFail = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Check">
                         <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="2">
-                        <Message>'.PBX_EX_NOT_FOUND.'</Message>
+                        <Message>' . PBX_EX_NOT_FOUND . '</Message>
                         </Data>
                         </Transfer>
                         ';
-         $result=$templateFail;
-     }
-     $result=trim($result);
+        $result = $templateFail;
+    }
+    $result = trim($result);
     return ($result);
 }
-
 
 /*
  * Checks is reference unique?
@@ -381,11 +396,12 @@ function pbx_ReplyCheck($customerid) {
  * 
  * @return bool
  */
-function pbx_CheckHash($rawhash) { 
-    $rawhash=  mysql_real_escape_string($rawhash);
-    $hash='PBX_'.$rawhash;
-    $query="SELECT * from `op_transactions` WHERE `hash`='".$hash."';";
-    $data=  simple_query($query);
+
+function pbx_CheckHash($rawhash) {
+    $rawhash = mysql_real_escape_string($rawhash);
+    $hash = 'PBX_' . $rawhash;
+    $query = "SELECT * from `op_transactions` WHERE `hash`='" . $hash . "';";
+    $data = simple_query($query);
     if (empty($data)) {
         return (true);
     } else {
@@ -393,52 +409,49 @@ function pbx_CheckHash($rawhash) {
     }
 }
 
-
 /*
  * Returns payment processing reply
  * 
  * @return string
  */
 
-function pbx_ReplyPayment($customerid,$summ,$rawhash) {
-    $allcustomers=  op_CustomersGetAll();
+function pbx_ReplyPayment($customerid, $summ, $rawhash) {
+    $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
         if (pbx_CheckHash($rawhash)) {
-           //do the payment 
-            $hash='PBX_'.$rawhash;
-            $paysys='PBANKX';
-            $note='no debug info yet';
-             op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
-             op_ProcessHandlers();
-             $reference=  pbx_simple_get_lastid('op_transactions');
-        $templateOk='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            //do the payment 
+            $hash = 'PBX_' . $rawhash;
+            $paysys = 'PBANKX';
+            $note = 'no debug info yet';
+            op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
+            op_ProcessHandlers();
+            $reference = pbx_simple_get_lastid('op_transactions');
+            $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
-                     <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="'.$rawhash.'">
+                     <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="' . $rawhash . '">
                     </Data>
                     </Transfer>';
-        $result=$templateOk;
-        
+            $result = $templateOk;
         } else {
-                  $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            $templateFail = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
                         <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="7">
-                        <Message>'.PBX_EX_DUPLICATE.'</Message>
+                        <Message>' . PBX_EX_DUPLICATE . '</Message>
                         </Data>
                         </Transfer>';
-                  $result=$templateFail;
+            $result = $templateFail;
         }
-        
     } else {
-         $templateFail='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        $templateFail = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
                         <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="2">
-                        <Message>'.PBX_EX_NOT_FOUND.'</Message>
+                        <Message>' . PBX_EX_NOT_FOUND . '</Message>
                         </Data>
                         </Transfer>';
-         $result=$templateFail;
+        $result = $templateFail;
     }
-    
-     $result=trim($result);
+
+    $result = trim($result);
     return ($result);
 }
 
@@ -446,10 +459,10 @@ function pbx_ReplyPayment($customerid,$summ,$rawhash) {
  *  Controller part
  */
 if (!PBX_DEBUG_MODE) {
-$xmlRequest = pbx_RequestGet();
+    $xmlRequest = pbx_RequestGet();
 } else {
     if (file_exists('debug.xml')) {
-        $xmlRequest=  file_get_contents('debug.xml');
+        $xmlRequest = file_get_contents('debug.xml');
     } else {
         die('PBX_DEBUG_MODE requires existing debug.xml file');
     }
@@ -459,8 +472,8 @@ $xmlRequest = pbx_RequestGet();
 if (!empty($xmlRequest)) {
     $xmlParse = xml2array($xmlRequest);
     if (!empty($xmlParse)) {
-       
-       
+
+
         // Presearch action handling
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
             if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'ls') {
@@ -470,44 +483,42 @@ if (!empty($xmlRequest)) {
                 }
             }
         }
-        
+
         // Main search
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
-           if ($xmlParse['Transfer']['Data']['Unit_attr']['name']=='billIdentifier') {
-               if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
-                   if ($xmlParse['Transfer_attr']['action']=='Search') {
-                    $customerid=vf($xmlParse['Transfer']['Data']['Unit_attr']['value'],3);
-                    die(pbx_ReplySearch($customerid));
-                   }
-                   
-               }
-           }
+            if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'billIdentifier') {
+                if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
+                    if ($xmlParse['Transfer_attr']['action'] == 'Search') {
+                        $customerid = vf($xmlParse['Transfer']['Data']['Unit_attr']['value'], 3);
+                        die(pbx_ReplySearch($customerid));
+                    }
+                }
+            }
         }
-        
+
         // Check payment possibility
         if (isset($xmlParse['Transfer_attr']['action'])) {
-            if ($xmlParse['Transfer_attr']['action']=='Check') {
+            if ($xmlParse['Transfer_attr']['action'] == 'Check') {
                 if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'])) {
-                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'],3);
+                    $customerid = vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'], 3);
                     die(pbx_ReplyCheck($customerid));
                 }
             }
         }
-        
+
         // Pay transaction handling
         if (isset($xmlParse['Transfer_attr']['action'])) {
-            if ($xmlParse['Transfer_attr']['action']=='Pay') {
+            if ($xmlParse['Transfer_attr']['action'] == 'Pay') {
                 if (isset($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'])) {
-                    $customerid=vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'],3);
-                    $summ=$xmlParse['Transfer']['Data']['TotalSum'];
-                    $summ=  str_replace(',', '.', $summ);
-                    $rawhash=$xmlParse['Transfer']['Data']['CompanyInfo']['CheckReference'];
-                    
-                    die(pbx_ReplyPayment($customerid,$summ,$rawhash));
+                    $customerid = vf($xmlParse['Transfer']['Data']['PayerInfo_attr']['billIdentifier'], 3);
+                    $summ = $xmlParse['Transfer']['Data']['TotalSum'];
+                    $summ = str_replace(',', '.', $summ);
+                    $rawhash = $xmlParse['Transfer']['Data']['CompanyInfo']['CheckReference'];
+
+                    die(pbx_ReplyPayment($customerid, $summ, $rawhash));
                 }
             }
         }
-        
     } else {
         die('XML_PARSER_FAIL');
     }

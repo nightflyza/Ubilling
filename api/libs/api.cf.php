@@ -102,7 +102,7 @@ function cf_TypeAddForm() {
  * 
  * @param int $typeid Existing CF type ID
  * 
- * @return string
+ * @return void
  */
 
 function cf_TypeEditForm($typeid) {
