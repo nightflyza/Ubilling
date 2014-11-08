@@ -1730,26 +1730,39 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $e
     return $result;
 }
 
-//need to refactor it later
+/**
+ * Returns virtual services editor grid
+ * 
+ * @param array $titles
+ * @param array $keys
+ * @param array $alldata
+ * @param string $module
+ * @param bool $delete
+ * @param bool $edit
+ * @return string
+ */
 function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = true, $edit = false) {
     $alltagnames = stg_get_alltagnames();
-    $result = '<table width="100%" class="sortable" border="0">';
-    $result.='<tr class="row1">';
+    $cells='';
     foreach ($titles as $eachtitle) {
-        $result.='<td>' . __($eachtitle) . '</td>';
+
+        $cells.= wf_TableCell(__($eachtitle));
     }
-    $result.='<td>' . __('Actions') . '</td>';
-    $result.='</tr>';
+   
+    $cells.= wf_TableCell(__('Actions'));
+    $rows=  wf_TableRow($cells, 'row1');
+    
     if (!empty($alldata)) {
         foreach ($alldata as $io => $eachdata) {
-            $result.='<tr class="row3">';
+            $cells='';
+  
             foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
                     if ($eachkey == 'tagid') {
                         @$tagname = $alltagnames[$eachdata['tagid']];
-                        $result.='<td>' . $tagname . '</td>';
+                        $cells.=wf_TableCell($tagname);
                     } else {
-                        $result.='<td>' . $eachdata[$eachkey] . '</td>';
+                        $cells.=wf_TableCell($eachdata[$eachkey]);
                     }
                 }
             }
@@ -1764,12 +1777,14 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
             } else {
                 $editcontrol = '';
             }
-            $result.='<td>' . $deletecontrol . ' ' . $editcontrol . ' </td>';
-            $result.='</tr>';
+     
+            $cells.=wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            $rows.=wf_TableRow($cells, 'row3');
         }
     }
 
-    $result.='</table>';
+    
+    $result=  wf_TableBody($rows, '100%', 0, 'sortable');
     return($result);
 }
 
@@ -1907,81 +1922,106 @@ function web_BackupForm() {
     return($form);
 }
 
+/**
+ * Returns user apartment editing form
+ * 
+ * @param string $login
+ * @return string
+ */
 function web_AddressAptForm($login) {
     $login = vf($login);
     $aptdata = zb_AddressGetAptData($login);
     $useraddress = zb_AddressGetFulladdresslist();
     @$useraddress = $useraddress[$login];
-    $form = '
-             <form action="" method="POST">
-                <table width="100%" border="0">
-                 <tr class="row1">
-                    <td>' . __('Value') . '</td>
-                    <td>' . __('Current state') . '</td>
-                    <td>' . __('Actions') . '</td>
-                </tr>    
-                 <tr class="row3">
-                    <td>' . __('Login') . '</td>
-                    <td>' . $login . '</td>
-                    <td></td>
-                </tr>  
-                <tr class="row3">
-                    <td>' . __('Full address') . '</td>
-                    <td>' . @$useraddress . '</td>
-                    <td>
-                    ' . wf_JSAlert('?module=binder&username=' . $login . '&orphan=true', web_delete_icon(), __('Are you sure you want to make the homeless this user') . "?") . '
-                    </td>
-                </tr>    
-                <tr class="row3">
-                    <td>' . __('Entrance') . '</td>
-                    <td>' . @$aptdata['entrance'] . '</td>
-                    <td><input type="text" value="' . @$aptdata['entrance'] . '" name="changeentrance"></td>
-                </tr>    
-                <tr class="row3">
-                    <td>' . __('Floor') . '</td>
-                    <td>' . @$aptdata['floor'] . '</td>
-                    <td><input type="text" value="' . @$aptdata['floor'] . '" name="changefloor"></td>
-                </tr>    
-                <tr class="row3">
-                    <td>' . __('Apartment') . '<sup>*</sup></td>
-                    <td>' . @$aptdata['apt'] . '</td>
-                    <td><input type="text" value="' . @$aptdata['apt'] . '" name="changeapt"></td>
-                </tr>    
-                </table>
-                <input type="submit" value="' . __('Save') . '">
-             </form>
-             ';
-
+   
+    $cells=  wf_TableCell(__('Value'));
+    $cells.= wf_TableCell(__('Current state'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows=   wf_TableRow($cells, 'row1');
+    
+    $cells=  wf_TableCell(__('Login'));
+    $cells.= wf_TableCell($login);
+    $cells.= wf_TableCell('');
+    $rows.=   wf_TableRow($cells, 'row3');
+    
+    $cells=  wf_TableCell(__('Full address'));
+    $cells.= wf_TableCell(@$useraddress);
+    $cells.= wf_TableCell(wf_JSAlert('?module=binder&username=' . $login . '&orphan=true', web_delete_icon(), __('Are you sure you want to make the homeless this user') . "?"));
+    $rows.=   wf_TableRow($cells, 'row3');
+    
+    $cells=  wf_TableCell(__('Entrance'));
+    $cells.= wf_TableCell(@$aptdata['entrance']);
+    $cells.= wf_TableCell(wf_TextInput('changeentrance', '', @$aptdata['entrance'], false));
+    $rows.=   wf_TableRow($cells, 'row3');
+    
+    $cells=  wf_TableCell(__('Floor'));
+    $cells.= wf_TableCell(@$aptdata['floor']);
+    $cells.= wf_TableCell(wf_TextInput('changefloor', '', @$aptdata['floor'], false));
+    $rows.=   wf_TableRow($cells, 'row3');
+    
+    $cells=  wf_TableCell(__('Apartment').  wf_tag('sup').'*'.  wf_tag('sup',true));
+    $cells.= wf_TableCell(@$aptdata['apt']);
+    $cells.= wf_TableCell(wf_TextInput('changeapt', '', @$aptdata['apt'], false));
+    $rows.=   wf_TableRow($cells, 'row3');
+    
+    $table=  wf_TableBody($rows, '100%', 0, '');
+    $table.= wf_Submit(__('Save'));
+    
+    $form=  wf_Form("", 'POST', $table, '');
+    
     return($form);
 }
 
+/**
+ * Returns user occupancy form
+ * 
+ * @return string
+ */
 function web_AddressOccupancyForm() {
-    $form = '<form action="" method="POST">';
+    
+    $inputs='';
     if (!isset($_POST['citysel'])) {
-        $form.=__('City') . ' ' . web_CitySelectorAc();
+      
+        $inputs= __('City').' '. web_CitySelectorAc();
     } else {
         $cityname = zb_AddressGetCityData($_POST['citysel']);
         $cityname = $cityname['cityname'];
-        $form.=web_ok_icon() . ' <input type="hidden" name="citysel" value="' . $_POST['citysel'] . '"> ' . $cityname . '<br>';
-
+      
+        $inputs.= web_ok_icon().' ';
+        $inputs.= wf_HiddenInput('citysel', $_POST['citysel']);
+        $inputs.= $cityname.wf_tag('br');
+        
         if (!isset($_POST['streetsel'])) {
-            $form.=__('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
+          
+            $inputs.=__('Street') . ' ' . web_StreetSelectorAc($_POST['citysel']);
         } else {
             $streetname = zb_AddressGetStreetData($_POST['streetsel']);
             $streetname = $streetname['streetname'];
-            $form.=web_ok_icon() . '<input type="hidden" name="streetsel" value="' . $_POST['streetsel'] . '"> ' . $streetname . '<br>';
+           
+            $inputs.= web_ok_icon().' ';
+            $inputs.= wf_HiddenInput('streetsel', $_POST['streetsel']);
+            $inputs.= $streetname.wf_tag('br');
+            
+            
             if (!isset($_POST['buildsel'])) {
-                $form.=__('Build') . ' ' . web_BuildSelectorAc($_POST['streetsel']);
+               
+                $inputs.=__('Build') . ' ' . web_BuildSelectorAc($_POST['streetsel']);
             } else {
                 $buildnum = zb_AddressGetBuildData($_POST['buildsel']);
                 $buildnum = $buildnum['buildnum'];
-                $form.=web_ok_icon() . '<input type="hidden" name="buildsel" value="' . $_POST['buildsel'] . '"> ' . $buildnum . '<br>';
-                $form.=web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm();
-                $form.='<input type="submit" value="' . __('Create') . '">';
+           
+                
+                $inputs.= web_ok_icon().' ';
+                $inputs.= wf_HiddenInput('buildsel', $_POST['buildsel']);
+                $inputs.= $buildnum.wf_tag('br');
+                $inputs.= web_AddressBuildShowAptsCheck($_POST['buildsel']) . web_AptCreateForm();
+                $inputs.= wf_Submit(__('Create'));
             }
         }
     }
-    $form.='</form>';
+   
+    
+    $form=  wf_Form('', 'POST', $inputs, '');
 
     return($form);
 }
@@ -2116,6 +2156,11 @@ function web_UserTraffStats($login) {
     return $result;
 }
 
+/**
+ * Returns array of users count on each available tariff plan (deprecated?)
+ * 
+ * @return array
+ */
 function zb_TariffGetCount() {
     $alltariffs = zb_TariffsGetAll();
     $result = array();
@@ -2133,6 +2178,11 @@ function zb_TariffGetCount() {
     return($result);
 }
 
+/**
+ * Returns alive/dead user counts on each tariff
+ * 
+ * @return array
+ */
 function zb_TariffGetLiveCount() {
     $allusers = zb_UserGetAllStargazerData();
     $alltariffs = zb_TariffsGetAll();
@@ -2161,6 +2211,13 @@ function zb_TariffGetLiveCount() {
     return($result);
 }
 
+/**
+ * Returns visual bar for display tariffs dead/alive user proportions
+ * 
+ * @param int $alive
+ * @param int $dead
+ * @return string
+ */
 function web_barTariffs($alive, $dead) {
     $barurl = 'skins/bargreen.png';
     $barblackurl = 'skins/barblack.png';
@@ -2173,11 +2230,17 @@ function web_barTariffs($alive, $dead) {
         $widthDead = 0;
     }
 
-    $code = '<img src="' . $barurl . '"  height="14" width="' . $widthAlive . '%" title="' . __('Active users') . ': ' . $alive . '" border="0">';
-    $code.='<img src="' . $barblackurl . '"  height="14" width="' . $widthDead . '%" title="' . __('Inactive users') . ': ' . $dead . '" border="0">';
+    $code=  wf_img_sized($barurl, __('Active users').': '.$alive, $widthAlive.'%', '14');
+    $code.= wf_img_sized($barblackurl, __('Inactive users').': '.$dead, $widthDead.'%', '14');
+    
     return($code);
 }
 
+/**
+ * Returns tariffs popularity report
+ * 
+ * @return string
+ */
 function web_TariffShowReport() {
     $tariffcount = zb_TariffGetLiveCount();
     $maxArr = array();
@@ -2219,6 +2282,12 @@ function web_TariffShowReport() {
     return($result);
 }
 
+/**
+ * Returns report by planned next month tariffs change
+ * 
+ * @global object $ubillingConfig
+ * @return string
+ */
 function web_TariffShowMoveReport() {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
@@ -2289,8 +2358,11 @@ function web_TariffShowMoveReport() {
     } else {
         $profitcolor = '#005304';
     }
-    $result.='<b>' . __('Total') . ': ' . $movecount . '</b><br>';
-    $result.='<font color="' . $profitcolor . '">' . __('PROFIT') . ': ' . $totaldiff . '</font>';
+        
+    $result.= wf_tag('b').__('Total') . ': ' . $movecount.wf_tag('b',true).  wf_tag('br');
+    $result.= wf_tag('font', false, '', 'color="'.$profitcolor.'"');
+    $result.= __('PROFIT') . ': ' . $totaldiff;
+    $result.= wf_tag('font', true);
 
     //yep, lets write nmchange
     if ($alter_conf['NMCHANGE']) {
@@ -2303,6 +2375,12 @@ function web_TariffShowMoveReport() {
     return($result);
 }
 
+/**
+ * Translits cyryllic string into latin chars
+ * 
+ * @param string $var
+ * @return string
+ */
 function translit_string($var) {
     $NpjLettersFrom = "абвгдезиклмнопрстуфцыіїє ";
     $NpjLettersTo = "abvgdeziklmnoprstufcyiie_";
@@ -2324,7 +2402,13 @@ function translit_string($var) {
     return ($var);
 }
 
-//check for substring in string
+/**
+ * Checks for substring in string
+ * 
+ * @param string $string
+ * @param string $search
+ * @return bool
+ */
 function ispos($string, $search) {
     if (strpos($string, $search) === false) {
         return(false);
@@ -2333,7 +2417,12 @@ function ispos($string, $search) {
     }
 }
 
-//encode numbers as letters as backarray
+/**
+ * Encodes numbers as letters as backarray
+ * 
+ * @param int $data
+ * @return string
+ */
 function zb_NumEncode($data) {
     $numbers = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
@@ -2342,7 +2431,12 @@ function zb_NumEncode($data) {
     return($result);
 }
 
-//reverse function to 
+/**
+ * Reverse function to zb_NumEncode
+ * 
+ * @param string $data
+ * @return int
+ */
 function zb_NumUnEncode($data) {
     $numbers = array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
     $letters = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
@@ -2351,6 +2445,13 @@ function zb_NumUnEncode($data) {
     return($result);
 }
 
+/**
+ * Performs login search by partial address
+ * 
+ * @global object $ubillingConfig
+ * @param string $query
+ * @return array
+ */
 function zb_UserSearchAddressPartial($query) {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
@@ -2378,49 +2479,13 @@ function zb_UserSearchAddressPartial($query) {
     return ($result);
 }
 
-function web_UserSearchShowResults($usersarr) {
-    if (!empty($usersarr)) {
-        $alladdress = zb_AddressGetFulladdresslist();
-        $allrealnames = zb_UserGetAllRealnames();
-        $result = '<table width="100%" boerder="0" class="sortable">
-                    <tr class="row1">
-                    <td>
-                   ' . __('Login') . '
-                    </td>
-                    <td>
-                   ' . __('Address') . '
-                    </td>
-                    <td>
-                    ' . __('Real Name') . '
-                    </td>
-                    </tr>
-                    ';
-        foreach ($usersarr as $eachlogin) {
-            $result.='
-                    <tr class="row3">
-                    <td>
-                     <a href="?module=userprofile&username=' . $eachlogin . '">
-                    ' . web_profile_icon() . '
-                    ' . $eachlogin . '
-                    </a>
-                    </td>
-                    <td>
-                   ' . @$alladdress[$eachlogin] . '
-                    </td>
-                    <td>
-                    ' . @$allrealnames[$eachlogin] . '
-                    </td>
-                    </tr>
-                    ';
-        }
-        $result.="</table>";
-
-        show_window(__('Search results'), $result);
-    } else {
-        show_window(__('Error'), __('Any users found'));
-    }
-}
-
+/**
+ * Returns user array in table view
+ * 
+ * @global object $ubillingConfig
+ * @param array $usersarr
+ * @return string
+ */
 function web_UserArrayShower($usersarr) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
@@ -2479,7 +2544,7 @@ function web_UserArrayShower($usersarr) {
 
             //fast cash link
             if ($fastcash) {
-                $financelink = ' <a href="?module=addcash&username=' . $eachlogin . '"><img src="skins/icon_dollar.gif" border="0" title="' . __('Finance operations') . '"></a> ';
+                $financelink= wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
             } else {
                 $financelink = '';
             }
@@ -2515,7 +2580,7 @@ function web_UserArrayShower($usersarr) {
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.='<b>' . __('Total') . ':</b> ' . sizeof($usersarr);
+        $result.= wf_tag('b') . __('Total') . ': '.  wf_tag('b',true) . sizeof($usersarr);
     } else {
         $result = __('Any users found');
     }
@@ -2542,6 +2607,9 @@ function strtolower_utf8($string) {
     return str_replace($convert_from, $convert_to, $string);
 }
 
+/**
+ * Ajax backend for checking Ubilling updates
+ */
 function zb_BillingCheckUpdates() {
     $release_url = 'http://ubilling.net.ua/RELEASE';
     @$last_release = file_get_contents($release_url);
@@ -2553,10 +2621,12 @@ function zb_BillingCheckUpdates() {
 
     die($result);
 }
-
+/**
+ * Collects billing stats
+ * 
+ * @param bool $quiet
+ */
 function zb_BillingStats($quiet = false) {
-//        $ubstatsurl=file_get_contents(CONFIG_PATH."ubstats");
-//        $ubstatsurl=trim($ubstatsurl);
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
 
     //detect host id
@@ -2632,9 +2702,9 @@ function zb_BillingStats($quiet = false) {
 
     $ubstatsinputs = zb_AjaxLoader();
 
-    $ubstatsinputs.='<b>' . __('Serial key') . ':</b> ' . $thisubid . '<br>';
-    $ubstatsinputs.='<b>' . __('Use this to request technical support') . ':</b> ' . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . '<br>';
-    $ubstatsinputs.='<b>' . __('Ubilling version') . ':</b> ' . $updatechecker . '<br>';
+    $ubstatsinputs.=wf_tag('b') . __('Serial key') . ': '.wf_tag('b',true) . $thisubid . '<br>';
+    $ubstatsinputs.=wf_tag('b') . __('Use this to request technical support') . ': '.wf_tag('b',true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . '<br>';
+    $ubstatsinputs.=wf_tag('b') . __('Ubilling version') . ': '.wf_tag('b',true) . $updatechecker . wf_tag('br');
     $ubstatsinputs.=$releasebox;
     $ubstatsinputs.=wf_HiddenInput('editcollect', 'true');
     $ubstatsinputs.=wf_CheckInput('collectflag', 'I want to help make Ubilling better', false, $thiscollect);
@@ -2653,6 +2723,12 @@ function zb_BillingStats($quiet = false) {
     }
 }
 
+/**
+ * Returns CRC16 hash for the some string
+ * 
+ * @param string $string
+ * @return string
+ */
 function crc16($string) {
     $crc = 0xFFFF;
     for ($x = 0; $x < strlen($string); $x++) {
@@ -2668,6 +2744,12 @@ function crc16($string) {
     return $crc;
 }
 
+/**
+ * Retuns vendor name for some MAC address using searchmac.com GET API
+ * 
+ * @param string $mac
+ * @return string
+ */
 function zb_MacVendorSearchmac($mac) {
     // searchmac.com API request
     $url = 'http://searchmac.com/api/raw/' . $mac;
@@ -2681,7 +2763,13 @@ function zb_MacVendorSearchmac($mac) {
     return ($result);
 }
 
-//lookups vendor by mac
+
+/**
+ * Lookups vendor by mac via searchmac.com or macvendorlookup.com
+ * 
+ * @param string $mac
+ * @return string
+ */
 function zb_MacVendorLookup($mac) {
     $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $result = '';
@@ -2716,6 +2804,11 @@ function zb_MacVendorLookup($mac) {
 // discounts support //
 ///////////////////////
 
+/**
+ * Returns array of all users with their discounts
+ * 
+ * @return array
+ */
 function zb_DiscountsGetAllUsers() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $cfid = $alterconf['DISCOUNT_PERCENT_CFID'];
@@ -2733,6 +2826,12 @@ function zb_DiscountsGetAllUsers() {
     return ($result);
 }
 
+/**
+ * Returns array of all month payments made during some month
+ * 
+ * @param string $month
+ * @return array
+ */
 function zb_DiscountsGetMonthPayments($month) {
     $query = "SELECT * from `payments` WHERE `date` LIKE '" . $month . "%' AND `summ`>0";
     $allpayments = simple_queryall($query);
@@ -2750,6 +2849,11 @@ function zb_DiscountsGetMonthPayments($month) {
     return ($result);
 }
 
+/**
+ * Do the processing of discounts by the payments
+ * 
+ * @param bool $debug
+ */
 function zb_DiscountProcessPayments($debug = false) {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $cashtype = $alterconf['DISCOUNT_CASHTYPEID'];
@@ -2798,6 +2902,15 @@ function zb_DiscountProcessPayments($debug = false) {
     }
 }
 
+/**
+ * Returns configuration editor to display in sysconf module
+ * 
+ * @global bool $hide_passwords
+ * @param string $prefix
+ * @param array $configdata
+ * @param array $optsdata
+ * @return string
+ */
 function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
     global $hide_passwords;
     $result = '';
@@ -2836,7 +2949,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                     } else {
                         $datavalue = $configdata[$option];
                     }
-                    $control = '<input type="text" name="' . $prefix . '_' . $option . '" size="25" value="' . $datavalue . '" readonly>' . "\n";
+                    $control = wf_tag('input', false, '', 'type="text" name="' . $prefix . '_' . $option . '" size="25" value="' . $datavalue . '" readonly')."\n";
                 }
 
 
@@ -2850,7 +2963,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                     $result.=wf_tag('font', false, '', 'color="#FF0000"');
                     $result.=__('You missed an important option') . ': ' . $option . '';
                     $result.=wf_tag('font', true);
-                    $result.='<br>';
+                    $result.=wf_tag('br');
                 }
             }
         }
@@ -2941,6 +3054,11 @@ function zb_AjaxLoader() {
     return ($result);
 }
 
+/**
+ * Construct JS hider
+ * 
+ * @return string
+ */
 function zb_JSHider() {
     $result = '
           <script language=javascript type=\'text/javascript\'>
@@ -3218,7 +3336,8 @@ function zb_DBCleanupAutoClean() {
     return ($counter);
 }
 
-/*  UTF8-safe translit function
+/**
+ * UTF8-safe translit function
  * 
  * @param $string  string to be transliterated
  * @return string
@@ -3283,6 +3402,12 @@ function web_roundValue($value, $precision = 2) {
     return $rounded;
 }
 
+/**
+ * Returns array of year signups per month
+ * 
+ * @param int $year
+ * @return array
+ */
 function zb_AnalyticsSignupsGetCountYear($year) {
     $months = months_array();
     $result = array();
@@ -3295,6 +3420,12 @@ function zb_AnalyticsSignupsGetCountYear($year) {
     return($result);
 }
 
+/**
+ * Returns singup requests for some year per month
+ * 
+ * @param int $year
+ * @return array
+ */
 function zb_AnalyticsSigReqGetCountYear($year) {
     $months = months_array();
     $result = array();
@@ -3307,6 +3438,12 @@ function zb_AnalyticsSigReqGetCountYear($year) {
     return($result);
 }
 
+/**
+ * Returns array of tickets recieved during the year
+ * 
+ * @param int $year
+ * @return array
+ */
 function zb_AnalyticsTicketingGetCountYear($year) {
     $months = months_array();
     $result = array();
@@ -3319,6 +3456,12 @@ function zb_AnalyticsTicketingGetCountYear($year) {
     return($result);
 }
 
+/**
+ * Returns array of planned tasks per year
+ * 
+ * @param int $year
+ * @return array
+ */
 function zb_AnalyticsTaskmanGetCountYear($year) {
     $months = months_array();
     $result = array();
@@ -3331,6 +3474,12 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
     return($result);
 }
 
+/**
+ * Returns graph with dynamics if ARPU change during the year
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsArpuMonthGraph($year) {
     $months = months_array();
     $data = __('Month') . ',' . __('ARPU') . "\n";
@@ -3347,6 +3496,12 @@ function web_AnalyticsArpuMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Returns graph of per month payment dynamics
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsPaymentsMonthGraph($year) {
     $months = months_array();
     $data = __('Month') . ',' . __('Payments count') . ',' . __('Cash') . "\n";
@@ -3363,6 +3518,12 @@ function web_AnalyticsPaymentsMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Returns graph of signups per year dynamics
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsSignupsMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsSignupsGetCountYear($year);
@@ -3377,6 +3538,12 @@ function web_AnalyticsSignupsMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Returns graph of received signup requests
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsSigReqMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsSigReqGetCountYear($year);
@@ -3391,6 +3558,12 @@ function web_AnalyticsSigReqMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Returns graph of received user tickets in helpdesk
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsTicketingMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsTicketingGetCountYear($year);
@@ -3405,6 +3578,12 @@ function web_AnalyticsTicketingMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Returns graph of planned tasks in taskmanager
+ * 
+ * @param int $year
+ * @return string
+ */
 function web_AnalyticsTaskmanMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsTaskmanGetCountYear($year);
@@ -3419,6 +3598,13 @@ function web_AnalyticsTaskmanMonthGraph($year) {
     return ($result);
 }
 
+/**
+ * Initializes file download procedure
+ * 
+ * @param string $filePath
+ * @param string $contentType
+ * @throws Exception
+ */
 function zb_DownloadFile($filePath, $contentType = '') {
     if (!empty($filePath)) {
         if (file_exists($filePath)) {
@@ -3459,6 +3645,13 @@ function zb_DownloadFile($filePath, $contentType = '') {
     }
 }
 
+/**
+ * Returns current stargazer DB version
+ * =<2.408 - 0
+ * >=2.409 - 1+
+ * 
+ * @return int
+ */
 function zb_CheckDbSchema() {
     if (zb_CheckTableExists('info')) {
         $query = "SELECT `version` from `info`";
@@ -3470,6 +3663,16 @@ function zb_CheckDbSchema() {
     return ($result);
 }
 
+/**
+ * Returns swtitch and port assign form. Includes internal controller.
+ * 
+ * @param string $login
+ * @param array $allswitches
+ * @param array $allportassigndata
+ * @param int $suggestswitchid
+ * @param int $suggestswitchport
+ * @return string
+ */
 function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $suggestswitchid = '', $suggestswitchport = '') {
     $login = mysql_real_escape_string($login);
 
@@ -3537,6 +3740,11 @@ function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $su
     return ($result);
 }
 
+/**
+ * Returns array of Stargazer tariffs payment periods
+ * 
+ * @return array
+ */
 function zb_TariffGetPeriodsAll() {
     $result = array();
     $dbSchema = zb_CheckDbSchema();
@@ -3584,7 +3792,7 @@ function zb_CreditLogCheckMonth($login) {
     }
 }
 
-/*
+/**
  * Returns all users used SC module this month
  * 
  * @return array
@@ -3603,7 +3811,7 @@ function zb_CreditLogGetAll() {
     return ($result);
 }
 
-/*
+/**
  * returns list of available free radius clients/nases
  * 
  * @return string
@@ -3695,8 +3903,8 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     return ($result);
 }
 
-/*
- * returns custom report sysload scripts output
+/**
+ * Returns custom report sysload scripts output
  * 
  * @param string $scriptoption option from alter.ini -> SYSLOAD_CUSTOM_SCRIPTS
  * 
@@ -3730,7 +3938,14 @@ function web_ReportSysloadCustomScripts($scriptoption) {
     return ($result);
 }
 
-//native XML parser function
+/**
+ * Native XML parser function
+ * 
+ * @param string $contents
+ * @param int $get_attributes
+ * @param string $priority
+ * @return array
+ */
 function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
     if (!$contents)
         return array();
