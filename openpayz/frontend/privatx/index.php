@@ -349,7 +349,12 @@ function pbx_ReplySearch($customerid) {
     return ($result);
 }
 
-//function that gets last id from table
+/**
+ * Function that gets last id from table
+ * 
+ * @param string $tablename
+ * @return int
+ */
 function pbx_simple_get_lastid($tablename) {
     $tablename = mysql_real_escape_string($tablename);
     $query = "SELECT `id` from `" . $tablename . "` ORDER BY `id` DESC LIMIT 1";
@@ -367,7 +372,9 @@ function pbx_ReplyCheck($customerid) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
         $customerLogin = $allcustomers[$customerid];
-        $reference = pbx_simple_get_lastid('op_transactions') + 1;
+        $reference = pbx_GenerateHash();
+        // following method may cause reference ID collisions
+        // $reference = pbx_simple_get_lastid('op_transactions') + 1;
 
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Check">
@@ -422,10 +429,10 @@ function pbx_ReplyPayment($customerid, $summ, $rawhash) {
             //do the payment 
             $hash = 'PBX_' . $rawhash;
             $paysys = 'PBANKX';
-            $note = 'no debug info yet';
+            $note = 'inputreference: ' . $rawhash;
             op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
             op_ProcessHandlers();
-            $reference = pbx_simple_get_lastid('op_transactions');
+
             $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Pay">
                      <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Gateway" reference="' . $rawhash . '">
@@ -474,7 +481,7 @@ if (!empty($xmlRequest)) {
     if (!empty($xmlParse)) {
 
 
-        // Presearch action handling
+        // Presearch action handling (deprecated?)
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
             if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'ls') {
                 if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
