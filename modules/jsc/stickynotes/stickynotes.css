@@ -1,0 +1,28 @@
+.stickynote  { 
+	display: block;
+	padding:25px 25px 40px;
+	margin:20px auto 20px auto;
+	width:250px;
+	height:250px;   
+	font:14px sans-serif, cursive; 
+	line-height:1.5;
+	border:0;
+	border-radius:3px;
+	background: -webkit-linear-gradient(#F9EFAF, #F7E98D);
+	background: -moz-linear-gradient(#F9EFAF, #F7E98D);
+	background: -o-linear-gradient(#F9EFAF, #F7E98D);
+	background: -ms-linear-gradient(#F9EFAF, #F7E98D);
+	background: linear-gradient(#F9EFAF, #F7E98D);
+	box-shadow:0 8px 8px rgba(0,0,0,0.1);
+	overflow:hidden;
+	transition:box-shadow 0.5s ease;
+	font-smoothing:subpixel-antialiased;
+	max-width:520px;
+	max-height:250px;
+        
+        position: absolute;
+        top  :0;
+        left: 70%;
+        
+        z-index: 9999;
+}

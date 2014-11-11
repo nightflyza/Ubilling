@@ -1250,3 +1250,17 @@ CREATE TABLE IF NOT EXISTS `sigreqconf` (
   KEY `key` (`key`),
   FULLTEXT KEY `value` (`value`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+-- 0.6.0 update
+CREATE TABLE IF NOT EXISTS `stickynotes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `owner` varchar(255) NOT NULL,
+  `createdate` datetime NOT NULL,
+  `reminddate` date DEFAULT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `text` text,
+  PRIMARY KEY (`id`),
+  KEY `owner` (`owner`),
+  KEY `reminddate` (`reminddate`),
+  KEY `active` (`active`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

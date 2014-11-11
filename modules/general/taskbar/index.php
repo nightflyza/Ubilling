@@ -204,6 +204,14 @@ if ($altconf['TB_UBIM_REFRESH']) {
 }
  }
  
+ //sticky notes support
+ if (isset($altconf['STICKY_NOTES_ENABLED'])) {
+     if ($altconf['STICKY_NOTES_ENABLED']) {
+         $stickyNotes=new StickyNotes();
+         show_window('',$stickyNotes->renderStickyNote($stickyNotes->getAll()));
+     }
+ }
+ 
 }
 else {
 	show_error(__('Access denied'));
