@@ -1780,5 +1780,18 @@ $lang['def']['Render spambots protection traps']='Використовувати
 $lang['def']['City and streets hide lists']='Список приховуваних міст та вулиць';
 $lang['def']['Database connections caching']='Кешування виборок з БД';
 
+// rev 3908
+$lang['def']['Taskbar personal sticky notes']='Персональні нотатки на панелі задач';
+$lang['def']['right to manage registry of banned sites']='Право керувати списком заборонених сайтів';
+$lang['def']['right to use personal sticky notes']='Право користуватись особистими нотатками';
+$lang['def']['Available personal notes']='Наявні персональні нотатки';
+$lang['def']['Create new personal note']='Створити нову нотатку';
+$lang['def']['Create note as active']='Створити нотатку як активну';
+$lang['def']['Remind only after this date']='Нагадати тільки після цієї дати';
+$lang['def']['Creation date']='Дата створення';
+$lang['def']['Remind date']='Дата нагадування';
+$lang['def']['Sticky note']='Персональная нотатка';
+$lang['def']['Personal notes and reminders']='Персональні нотатки та нагадування';
+$lang['def']['Personal note active']='Персональна нотатка активна';
 
 ?>

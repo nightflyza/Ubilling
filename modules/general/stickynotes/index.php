@@ -34,7 +34,7 @@ if (cfr('STICKYNOTES')) {
         if (!wf_CheckGet(array('calendarview'))) {
             show_window(__('Available personal notes'), $stickyNotes->renderListGrid());
         } else {
-            deb('CALENDAR_VIEW_HERE');
+           show_window(__('Available personal notes'), $stickyNotes->renderListCalendar());
         }
         } else {
             show_window(__('Sticky note'), $stickyNotes->renderNote($_GET['shownote']));

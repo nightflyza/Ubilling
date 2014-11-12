@@ -47,7 +47,7 @@ class StickyNotes {
      * @return void
      */
     protected function loadActiveNotes() {
-        $query = "SELECT * from `stickynotes` WHERE `owner`= '" . $this->myLogin . "' AND `active`='1' ORDER BY `id` DESC";
+        $query = "SELECT * from `stickynotes` WHERE `owner`= '" . $this->myLogin . "' AND `active`='1' ORDER BY `id` ASC";
         $tmpArr = simple_queryall($query);
         //map id=>id
         if (!empty($tmpArr)) {
@@ -119,6 +119,58 @@ class StickyNotes {
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
         return ($result);
     }
+    
+    
+    /**
+     * Returns available sticky notes list as full calendar
+     * 
+     * @return string
+     */
+    public function renderListCalendar() {
+    $calendarData='';
+    if (!empty($this->allnotes)) {
+        foreach ($this->allnotes as $io=>$each) {
+                $timestamp=strtotime($each['createdate']);
+                $date=date("Y, n-1, j",$timestamp);
+                $rawTime=date("H:i:s",$timestamp);
+                
+               if ($each['active']==1) {
+                    $coloring="className : 'undone',";
+                } else {
+                    $coloring='';
+                }
+                
+                if (!empty($each['reminddate'])) {
+                    $remindtimestamp=strtotime($each['reminddate']);
+                    $reminddate=date("Y, n-1, j",$remindtimestamp);
+                    $textLenght=48;
+                } else {
+                    $reminddate=$date;
+                    $textLenght=24;
+                }
+                
+                $shortText=$each['text'];
+                $shortText=  str_replace("\n", '', $shortText);
+                $shortText=  str_replace("\r", '', $shortText);
+                $shortText=  str_replace("'", '`', $shortText);
+                $shortText= strip_tags($shortText);
+                $shortText= $this->cutString($shortText, $textLenght);
+                
+                      $calendarData.="
+                      {
+                        title: '".$rawTime." ".$shortText." ',
+                        url: '?module=stickynotes&shownote=".$each['id']."',
+                        start: new Date(".$date."),
+                        end: new Date(".$reminddate."),
+                       ".$coloring."     
+                   },
+                    ";
+        }
+    }
+    
+    $result=  wf_FullCalendar($calendarData);
+    return ($result);
+    }
 
     /**
      * 
@@ -149,13 +201,22 @@ class StickyNotes {
      * @param string $text
      * @return string
      */
-    protected function renderStickyNote($text) {
+    protected function renderStickyNote($text,$offsetLeft=0) {
         $result = '';
         if (!empty($text)) {
-            $result.= wf_tag('div', false, 'stickynote');
-            $result.= wf_Link('?module=stickynotes', wf_img('skins/pushpin.png'), false, '') . ' ';
+            if ($offsetLeft) {
+                $offsetLeft=35+$offsetLeft.'px';
+                $offsetTop=25+round($offsetLeft/5).'px';
+            } else {
+                $offsetLeft='35px';
+                $offsetTop='30px';
+            }
+            
+            $result.= wf_tag('div', false, 'stickynote','style="margin:'.$offsetTop.' '.$offsetLeft.' 20px 20px;"');
+            $result.= wf_Link('?module=stickynotes', wf_img('skins/pushpin.png'), false, '').  wf_tag('br');
             $result.= $text;
             $result.= wf_tag('div', true);
+            
         }
         return ($result);
     }
@@ -206,7 +267,7 @@ class StickyNotes {
             $inputs.= wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
             $inputs.= wf_TextArea('edittext', '', $noteData['text'], true, '50x15');
             $checkState = ($noteData['active'] == 1) ? true : false;
-            $inputs.= wf_CheckInput('editactive', __('Active'), true, $checkState);
+            $inputs.= wf_CheckInput('editactive', __('Personal note active'), true, $checkState);
             $inputs.= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
             $inputs.= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
             $inputs.= wf_tag('br');
@@ -314,8 +375,10 @@ class StickyNotes {
            if ($noteData['owner']==$this->myLogin) {
                $result= strip_tags($noteData['text']);
                $result= nl2br($result);
-               $result.= wf_delimiter();
-               $result.=  wf_Link('?module=stickynotes', __('Back'), true, 'ubButton');
+               $result.= wf_delimiter(2);
+               $result.= wf_Link('?module=stickynotes', __('Back'), false, 'ubButton');
+               $result.= wf_modal(__('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton', '500', '450') . ' ';
+               
            } else {
                $result=__('Access denied');
            }
@@ -334,22 +397,32 @@ class StickyNotes {
        $result='';
        $output='';
        $delimiterId='{'.zb_rand_string(8).'}';
-       $delimiterCode=  '<hr>';
+       $delimiterCode=  '';
+       $offsetLeft=0;
+       
        if (!empty($this->activenotes)) {
            foreach ($this->activenotes as $io=>$each) {
+               if (empty($each['reminddate']) OR (  strtotime($each['reminddate'])<time())) {
                $tmpText=$each['text'];
                $tmpText=strip_tags($tmpText);
-               $output.=$tmpText;
+               $output=$tmpText;
                $output.=$delimiterId;
                
-           }
-           
-           if (!empty($output)) {
                $output= str_replace($delimiterId, $delimiterCode, $output);
                $output=$this->cutString($output, 190);
                $output=  nl2br($output);
                
-               $result=$this->renderStickyNote($output);
+               
+               $result.=$this->renderStickyNote($output,$offsetLeft);
+               $offsetLeft=$offsetLeft+10;
+               }
+               
+           }
+           
+           if (!empty($output)) {
+               
+               
+               
            }
        }
        return ($result);
