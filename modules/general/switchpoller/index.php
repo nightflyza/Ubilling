@@ -9,14 +9,20 @@ if(cfr('SWITCHPOLL')) {
                 
 		$(document).ready(function() {
 		$(\'#fdbcachehp\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "'.__('Show').' _MENU_",
-			"sZeroRecords": "'.__('Nothing found').'",
-			"sInfo": "'.__('Showing').' _START_ '.__('to').' _END_ '.__('of').' _TOTAL_ '.__('entries').'",
-			"sInfoEmpty": "'.__('Showing').' 0 '.__('to').' 0 '.__('of').' 0 '.__('entries').'",
-			"sInfoFiltered": "('.__('Filtered').' '.__('from').' _MAX_ '.__('Total').')",
-                        "sSearch":       "'.__('Search').'",
-                        "sProcessing":   "'.__('Processing').'..."
+ 	          "oLanguage": {
+			"sLengthMenu": "' . __('Show') . ' _MENU_",
+			"sZeroRecords": "' . __('Nothing found') . '",
+			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __('users') . '",
+			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
+			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
+                        "sSearch":       "' . __('Search') . '",
+                        "sProcessing":   "' . __('Processing') . '...",
+                        "oPaginate": {
+                        "sFirst": "'.__('First').'",
+                        "sPrevious": "'.__('Previous').'",
+                        "sNext": "'.__('Next').'",
+                        "sLast": "'.__('Last').'"
+                    },
 		},
            
                 "aoColumns": [
