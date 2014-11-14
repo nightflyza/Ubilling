@@ -3,7 +3,7 @@ if($system->checkForRight('EMPLOYEE')) {
     
 function ts_EmployeeMonthGraphs() {
     $curmonth=  curmonth();
-    $active_employee=  ts_GetActiveEmployee();
+    $employees =ts_GetAllEmployee();
     $month_jobs_q="SELECT `workerid`,`jobid` from `jobs` WHERE `date` LIKE '".$curmonth."%'";
     $alljobs=  simple_queryall($month_jobs_q);
     $jobtypes= ts_GetAllJobtypes();
@@ -11,7 +11,7 @@ function ts_EmployeeMonthGraphs() {
     $jobdata=array();
     $result='';
     
-    if (!empty($active_employee)) {
+    if (!empty($employees)) {
      if (!empty($alljobs)) {
          foreach ($alljobs as $io=>$eachjob) {
              if (isset($jobdata[$eachjob['workerid']][$eachjob['jobid']])) {
@@ -26,7 +26,8 @@ function ts_EmployeeMonthGraphs() {
      //build graphs for each employee
      if (!empty($jobdata)) {
          foreach ($jobdata as $employee=>$each) {
-             $result.=wf_tag('h3',false).$active_employee[$employee].  wf_tag('h3', true);
+             $employeeName=isset($employees[$employee]) ? $employees[$employee] : __('Deleted');
+             $result.=wf_tag('h3',false).$employeeName.  wf_tag('h3', true);
              $rows='';
              if (!empty($each)) {
                    foreach ($each as $jobid=>$count) {

@@ -46,14 +46,25 @@ if (cfr('UHW')) {
                 $profileLink= str_replace('"', '', $profileLink);
                 $profileLink= str_replace("'", '', $profileLink);
                 $profileLink= trim($profileLink);
+                
+                $userAddress=@$alladdress[$each['login']];
+                $userAddress=  str_replace("'", '`', $userAddress);
+                $userAddress=  str_replace('"', '``', $userAddress);
+                $userAddress= trim($userAddress);
+                
+                $userRealname=@$allrealnames[$each['login']];
+                $userRealname=  str_replace("'", '`', $userRealname);
+                $userRealname=  str_replace('"', '``', $userRealname);
+                $userRealname= trim($userRealname);
+                
                  $result.='
                     [
                     "'.$each['id'].'",
                     "'.$each['date'].'",
                     "'.$each['password'].'",
                     "'.  $profileLink.'",
-                    "'.@$alladdress[$each['login']].'",
-                    "'.@$allrealnames[$each['login']].'",
+                    "'.$userAddress.'",
+                    "'.$userRealname.'",
                     "'.$each['ip'].'",
                     "'.$each['nhid'].'",
                     "'.$each['oldmac'].'",
