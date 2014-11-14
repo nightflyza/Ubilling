@@ -1,143 +1,317 @@
-<?php
-    if ( cfr('FREERADIUS') ) {
-        $alter = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-        if ( $alter['FREERADIUS_ENABLED'] ) {
-            if ( wf_CheckGet(array('netid')) ) {
-                
-                // Define data array:
-                $data = array(
-                    'id'    => NULL,
-                    'netid' => vf($_GET['netid'], 3),
-                    'attr'  => NULL,
-                    'op'    => NULL,
-                    'value' => NULL
-                );
-                
-                // Check the network presence in database:
-                $query = "SELECT * FROM `networks` WHERE `id` = " . $data['netid'];
-                $result = simple_query($query);
-                
-                // If network is present:
-                if ( !empty($result) ) {
-                    if ( wf_CheckPost(array('attr_add_form')) ) {
-                        foreach ($_POST['attr_add_form'] as $key => $value) {
-                            $data[$key] = $value;
-                        }
-                        if ( !empty($data['attr']) && !empty($data['op']) && !empty($data['value']) ) {
-                            $query = "INSERT INTO `radius_custom_attributes` (`netid`, `Attribute`, `op`, `Value`) VALUES ('" . $data['netid'] . "', '" . $data['attr'] . "', '" . $data['op'] . "', '" . $data['value'] . "')";
-                            nr_query($query);
-                        } else show_window(__('Error'), __('No all of required fields is filled'));
-                    } elseif ( wf_CheckGet(array('delete')) ) {
-                        $data['id'] = vf($_GET['delete'], 3);
-                        $query = "DELETE FROM `radius_custom_attributes` WHERE `id` = " . $data['id'];
-                        nr_query($query);
-                        rcms_redirect('?module=freeradius&netid=' . $data['netid']);
-                    }
-
-                    // Attribute's list table's header:
-                    $columns  = wf_TableCell(__('Attribute'));
-                    $columns .= wf_TableCell(__('op'));
-                    $columns .= wf_TableCell(__('Value'));
-                    $columns .= wf_TableCell(__('Actions'));
-                    $rows = wf_TableRow($columns, 'row1');
-                    
-                    // Get attribute's list for network:
-                    $query = "SELECT * FROM `radius_custom_attributes` WHERE `netid` = " . $data['netid'];
-                    $result = simple_queryall($query);
-
-                    if ( !empty($result) ) {
-                        foreach ($result as $value) {
-                            $columns  = wf_TableCell($value['Attribute']);
-                            $columns .= wf_TableCell($value['op']);
-                            $columns .= wf_TableCell($value['Value']);
-                            $columns .= wf_TableCell(wf_JSAlert('?module=freeradius&netid=' . $data['netid'] . '&delete=' . $value['id'], web_delete_icon(), 'Are you serious'));
-                            $rows .= wf_TableRow($columns, 'row3');
-                        }
-                    } else {
-                        $columns = wf_TableCell(__('There are no defined attributes for network'), NULL, NULL, 'colspan=5');
-                        $rows .= wf_TableRow($columns, NULL);
-                    }
-
-                    // Show attribute's table:
-                    $return = wf_TableBody($rows, '100%', '0', 'sortable');
-                    show_window(__('Attributes, defined for network'), $return);
-
-                    // Attribute add form:
-                    $form = new InputForm();
-                    $form->InputForm('?module=freeradius&netid=' . $data['netid'], 'post', __('Save'), NULL, NULL, NULL, 'attr_add_form', NULL);
-                    $form->addrow(__('Attribute'), $form->text_box('attr_add_form[attr]', NULL, 0, 32, FALSE, NULL));
-                    $form->addrow(__('op'), $form->text_box('attr_add_form[op]', NULL, 0, 2, FALSE, NULL));
-                    $form->addrow(__('Value'), $form->text_box('attr_add_form[value]', NULL, 0, 253, FALSE, NULL));
-                    show_window(__('New attribute add'), $form->show(TRUE));
-                // If network is absent - show error
-                } else show_window(__('Error'), __('Selected network is absent in database!'));
-                
-            } elseif (  wf_CheckGet(array('username')) ) {
-                
-                // Define data array:
-                $data = array(
-                    'id'    => NULL,
-                    'login' => vf($_GET['username'], 5),
-                    'attr'  => NULL,
-                    'op'    => NULL,
-                    'value' => NULL
-                );
-                
-                $query = "SELECT * FROM `users` WHERE `login` = '" . $data['login'] . "'";
-                $result = simple_query($query);
-
-                if ( !empty($result) ) {
-                    if ( wf_CheckPost(array('attr_add_form')) ) {
-                        foreach ($_POST['attr_add_form'] as $key => $value) {
-                            $data[$key] = $value;
-                        }
-                        if ( !empty($data['attr']) && !empty($data['op']) && !empty($data['value']) ) {
-                            $query = "INSERT INTO `radius_custom_attributes` (`login`, `Attribute`, `op`, `Value`) VALUES ('" . $data['login'] . "', '" . $data['attr'] . "', '" . $data['op'] . "', '" . $data['value'] . "')";
-                            nr_query($query);
-                        } else show_window(__('Error'), __('No all of required fields is filled'));
-                    } elseif ( wf_CheckGet(array('delete')) ) {
-                        $data['id'] = vf($_GET['delete'], 3);
-                        $query = "DELETE FROM `radius_custom_attributes` WHERE `id` = " . $data['id'];
-                        nr_query($query);
-                        rcms_redirect('?module=freeradius&username=' . $data['login']);
-                    }
-
-                    // Attribute's list table's header:
-                    $columns  = wf_TableCell(__('Attribute'));
-                    $columns .= wf_TableCell(__('op'));
-                    $columns .= wf_TableCell(__('Value'));
-                    $columns .= wf_TableCell(__('Actions'));
-                    $rows = wf_TableRow($columns, 'row1');
-
-                    $query = "SELECT * FROM `radius_custom_attributes` WHERE `login` = '" . $data['login'] . "'";
-                    $result = simple_queryall($query);
-
-                    if ( !empty($result) ) {
-                        foreach ($result as $value) {
-                            $columns  = wf_TableCell($value['Attribute']);
-                            $columns .= wf_TableCell($value['op']);
-                            $columns .= wf_TableCell($value['Value']);
-                            $columns .= wf_TableCell(wf_JSAlert('?module=freeradius&username=' . $data['login'] . '&delete=' . $value['id'], web_delete_icon(), 'Are you serious'));
-                            $rows .= wf_TableRow($columns, 'row3');
-                        }
-                    } else {
-                        $columns = wf_TableCell(__('There are no defined attributes for user'), NULL, NULL, 'colspan=5');
-                        $rows .= wf_TableRow($columns, NULL);
-                    }
-
-                    $return = wf_TableBody($rows, '100%', '0', 'sortable');
-                    show_window(__('Attributes, defined for user'), $return);
-
-                    // Attribute add form:
-                    $form = new InputForm();
-                    $form->InputForm('?module=freeradius&username=' . $data['login'], 'post', __('Save'), NULL, NULL, NULL, 'attr_add_form', NULL);
-                    $form->addrow(__('Attribute'), $form->text_box('attr_add_form[attr]', NULL, 0, 32, FALSE, NULL));
-                    $form->addrow(__('op'), $form->text_box('attr_add_form[op]', NULL, 0, 2, FALSE, NULL));
-                    $form->addrow(__('Value'), $form->text_box('attr_add_form[value]', NULL, 0, 253, FALSE, NULL));
-                    show_window(__('New attribute add'), $form->show(TRUE));
-
-                } else show_window(__('Error'), __('Selected user is absent in database!'));
-            } else show_window(__('Error'), __('Module startup error'));
-        } else show_window(__('Error'), __('This module is disabled'));
-    } else show_error(__('You cant control this module'));
-?>
+<?php if ( cfr('FREERADIUS') ) {
+  $alter = $ubillingConfig->getAlter();
+  if ( $alter['FREERADIUS_ENABLED'] ) {
+    // Содержимое страницы
+    $title = ''; $html = '';
+    // Доступные сценарии
+    $scenarios = array(
+      'check' => 'check',
+      'reply' => 'reply'
+    );
+    // Доступные операторы
+    $operators = array(
+      '='  => '=', ':='  => ':=', '==' => '==', '+=' => '+=',
+      '!=' => '!=', '>'  => '>',  '>=' => '>=', '<'  => '<',
+      '<=' => '<=', '=~' => '=~', '!~' => '!~', '=*' => '=*',
+      '!*' => '!*'
+    );
+    
+    /**
+     * Возвращает массив, в котором ключи - это IP-адреса серверов, а
+     * значения - "IP-адрес NAS - Имя NAS"
+     * @return  array
+     */
+    function getNasIPName() {
+      $return = array('');
+      $nasses = zb_NasGetAllData();
+      foreach ( $nasses as $nas )
+        $return[$nas['nasip']] = $nas['nasip'] . ' - ' . $nas['nasname'];
+      return $return;
+    }
+    
+    /**
+     * Возвращает массив, в котором ключи - это ID сети, а
+     * значения - "ID сети - Название сервиса"
+     * @return  array
+     */
+    function getServiceIdDesc() {
+      $return = array('');
+      $services = multinet_get_services();
+      foreach ( $services as $service )
+        $return[$service['id']] = $service['id'] . ' - ' . $service['desc'];
+      return $return;
+    }
+    
+    if ( wf_CheckGet(array('username')) ) {
+      /* Редактирование атрибутов для конкретного пользователя */
+      $title = __('RADIUS-attributes for user');
+      $login = vf($_GET['username'], 4);
+     
+      // Сабмит формы добавления атрибута
+      if ( wf_CheckPost(array('add'))  ) {
+        // Экранируем все введённые данные
+        foreach ( $_POST['add'] as &$value)
+          $value = mysql_real_escape_string($value);
+        extract($_POST['add'], EXTR_SKIP);
+        $query = "INSERT INTO `radius_attributes` (`scenario`, `login`, `Attribute`, `op`, `Value`) VALUES ('$scenario', '$login', '$Attribute', '$op', '$Value')";
+        if ( nr_query($query) ) 
+          rcms_redirect("?module=freeradius&username=$login");
+      }
+      
+      // Удаление атрибута
+      if ( wf_CheckGet(array('delete')) ) {
+        $id = vf($_GET['delete'], 3);
+        $query = "DELETE FROM `radius_attributes` WHERE `id` = '$id'";
+        if ( nr_query($query) ) 
+          rcms_redirect("?module=freeradius&username=$login");
+      }
+      
+      // Редактирование атрибута
+      if ( wf_CheckGet(array('edit')) ) {
+        // ID редактируемого атрибута
+        $id = vf($_GET['edit'], 3);
+        // Сабмит формы редактирования атрибута
+        if ( wf_CheckPost(array('edit'))  ) {
+          // Экранируем все введённые данные
+          foreach ( $_POST['edit'] as &$value)
+            $value = mysql_real_escape_string($value);
+          extract($_POST['edit'], EXTR_SKIP);
+          $query = "UPDATE `radius_attributes` SET `scenario` = '$scenario', `Attribute` = '$Attribute', `op` = '$op', `Value` = '$Value' WHERE `id` = '$id'";
+          if ( nr_query($query) ) 
+            rcms_redirect("?module=freeradius&username=$login");
+        }
+        // Получаем уже существующие данные об атрибуте
+        $query  = "SELECT * FROM `radius_attributes` WHERE `id` = '$id'";
+        $result = simple_query($query);
+        // Форма редактирования
+        $form = new InputForm('', 'POST', __('Save'), '', '', '', 'edit');
+        // Сценарий
+        $content = $form->radio_button('edit[scenario]', $scenarios, $result['scenario']);
+        $form->addrow(__('Scenario'), $content);
+        // Логин пользователя (disabled)
+        $content = $form->text_box('edit[login]', $result['login'], 0, 0, false, 'disabled');
+        $form->addrow(__('Login'), $content);
+        // Атрибут
+        $content = $form->text_box('edit[Attribute]', $result['Attribute']);
+        $form->addrow(__('Attribute'), $content);
+        // Оператор
+        $content = $form->select_tag('edit[op]', $operators, $result['op']);
+        $form->addrow(__('op'), $content);
+        // Значение
+        $content = $form->text_box('edit[Value]', $result['Value']);
+        $form->addrow(__('Value'), $content);
+        // Добавляем в код страницы открытое модальное окно
+        $html .= wf_modalOpened(__('Editing of RADIUS-attribute'), $form->show(1), 450, 275);
+      }
+      
+      $query = "
+SELECT `radius_attributes`.`id`, `radius_attributes`.`login`, `radius_attributes`.`scenario`, `radius_attributes`.`Attribute`, `radius_attributes`.`Value` AS `Macros`, `radius_attributes`.`op`,
+CASE 
+	WHEN `radius_attributes`.`Value` LIKE '%{user[login]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{user[login]}',    `users`.`login`)
+	WHEN `radius_attributes`.`Value` LIKE '%{user[Password]}%' THEN REPLACE(`radius_attributes`.`Value`, '{user[Password]}', `users`.`Password`)
+	WHEN `radius_attributes`.`Value` LIKE '%{user[Tariff]}%'   THEN REPLACE(`radius_attributes`.`Value`, '{user[Tariff]}',   `users`.`Tariff`)
+	WHEN `radius_attributes`.`Value` LIKE '%{nethost[ip]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{nethost[ip]}',    `nethosts`.`ip`)
+	WHEN `radius_attributes`.`Value` LIKE '%{nethost[mac]}%'   THEN REPLACE(`radius_attributes`.`Value`, '{nethost[mac]}',   `nethosts`.`mac`)
+	WHEN `radius_attributes`.`Value` LIKE '%{network[id]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{network[id]}',    `networks`.`id`)
+	WHEN `radius_attributes`.`Value` LIKE '%{network[ip]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{network[ip]}',    SUBSTRING_INDEX(`networks`.`desc`, '/',  1))
+	WHEN `radius_attributes`.`Value` LIKE '%{network[start]}%' THEN REPLACE(`radius_attributes`.`Value`, '{network[start]}', `networks`.`startip`)
+	WHEN `radius_attributes`.`Value` LIKE '%{network[end]}%'   THEN REPLACE(`radius_attributes`.`Value`, '{network[end]}',   `networks`.`endip`)
+	WHEN `radius_attributes`.`Value` LIKE '%{network[desc]}%'  THEN REPLACE(`radius_attributes`.`Value`, '{network[desc]}',  `networks`.`desc`)
+	WHEN `radius_attributes`.`Value` LIKE '%{network[cidr]}%'  THEN REPLACE(`radius_attributes`.`Value`, '{network[cidr]}',  SUBSTRING_INDEX(`networks`.`desc`, '/', -1))
+	WHEN `radius_attributes`.`Value` LIKE '%{switch[ip]}%'     THEN REPLACE(`radius_attributes`.`Value`, '{switch[ip]}',     `switches`.`ip`)
+	WHEN `radius_attributes`.`Value` LIKE '%{switch[port]}%'   THEN REPLACE(`radius_attributes`.`Value`, '{switch[port]}',   `switchportassign`.`port`)
+	WHEN `radius_attributes`.`Value` LIKE '%{speed[up]}%'      THEN REPLACE(`radius_attributes`.`Value`, '{speed[up]}',      `speeds`.`speedup`)
+	WHEN `radius_attributes`.`Value` LIKE '%{speed[down]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{speed[down]}',    `speeds`.`speeddown`)
+	WHEN `radius_attributes`.`Value` LIKE '%{user[state]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{user[state]}',   (
+    CASE
+      WHEN `users`.`Down`     THEN 'DOWN'
+      WHEN `users`.`Passive`  THEN 'PASSIVE'
+      WHEN `users`.`Cash` < -`users`.`Credit`
+                              THEN 'OFF-LINE'
+      ELSE 'ON-LINE'
+    END
+  ))
+  ELSE `radius_attributes`.`Value`
+END as `Value`
+ FROM `users`
+      JOIN `nethosts` ON `nethosts`.`ip` = `users`.`IP`
+      JOIN `networks` ON `networks`.`id` = `nethosts`.`netid`
+      JOIN `nas`      ON `nas`.`netid`   = `nethosts`.`netid`
+      JOIN `radius_attributes` ON  `radius_attributes`.`login` = `users`.`login`
+                               OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`netid` = `networks`.`id` )
+                               OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`nasip` = INET_ATON(`nas`.`nasip`))
+ LEFT JOIN `switchportassign` ON `switchportassign`.`login` = `users`.`login`
+ LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
+ LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
+WHERE `users`.`login` = '$login'
+    ";
+      $results = simple_queryall($query);
+      $cells  = wf_TableCell(__('ID'));
+      $cells .= wf_TableCell(__('Scenario'));
+      $cells .= wf_TableCell(__('Attribute'));
+      $cells .= wf_TableCell(__('op'));
+      $cells .= wf_TableCell(__('Value'));
+      $cells .= wf_TableCell(__('Inherited'));
+      $cells .= wf_TableCell(__('Actions'));
+      $rows   = wf_TableRow($cells, 'row1');
+      if ( !empty($results) ) {
+        foreach ( $results as $result ) {
+          $cells  = wf_TableCell($result['id']);
+          $cells .= wf_TableCell($result['scenario']);
+          $cells .= wf_TableCell($result['Attribute']);
+          $cells .= wf_TableCell($result['op']);
+          $content = '<abbr title="' . __('Macros') . ': ' . $result['Macros'] . '" style="cursor: help">' . $result['Value'] . '</abbr>';
+          $cells .= wf_TableCell($content);
+          $content  = web_bool_led($result['login'] == '*');
+          $cells .= wf_TableCell($content);
+          $content = '';
+          if ( $result['login'] == $login ) {
+            $content  = wf_Link("?module=freeradius&username=$login&edit=" . $result['id'], web_edit_icon());
+            $content .= wf_JSAlert("?module=freeradius&username=$login&delete=" . $result['id'], web_delete_icon(), 'Are you serious');
+          }
+          $cells .= wf_TableCell($content);
+          $rows .= wf_TableRow($cells, 'row3');
+        }
+      }
+      // Форма добавления атрибута
+      $form = new InputForm('', 'POST', __('Save'), '', '', '', 'add');
+      // Сценарий
+      $content = $form->radio_button('add[scenario]', $scenarios, 'check');
+      $form->addrow(__('Scenario'), $content);
+      // Логин (disabled)
+      $content = $form->text_box('add[login]', $login, 0, 0, false, 'disabled');
+      $form->addrow(__('Login'), $content);
+      // Атрибут 
+      $content = $form->text_box('add[Attribute]', '');
+      $form->addrow(__('Attribute'), $content);
+      // Оператор
+      $content = $form->select_tag('add[op]', $operators, '');
+      $form->addrow(__('op'), $content);
+      // Значение
+      $content = $form->text_box('add[Value]', '');
+      $form->addrow(__('Value'), $content);
+      // Таблица со списком атрибутов для пользователя
+      $html .= wf_Link("?module=userprofile&username=$login", __('Back'), false, 'ubButton');
+      $html .= wf_modal(__('Append'), __('Adding of RADIUS-attribute'), $form->show(1), 'ubButton', 450, 275);
+      $html .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } elseif ( wf_CheckGet(array('netid')) ) {
+      /* Редактирование атрибутов для конкретной сети */
+      $title = __('RADIUS-attributes for network');
+      $netid = vf($_GET['netid']);
+      
+      // Сабмит формы добавления атрибута
+      if ( wf_CheckPost(array('add'))  ) {
+        // Экранируем все введённые данные
+        foreach ( $_POST['add'] as &$value)
+          $value = mysql_real_escape_string($value);
+        extract($_POST['add']);
+        $login = isset($login) ? "'$login'" : 'NULL';
+        $query = "INSERT INTO `radius_attributes` (`scenario`, `login`, `netid`, `Attribute`, `op`, `Value`) VALUES ('$scenario', $login, '$netid', '$Attribute', '$op', '$Value')";
+        if ( nr_query($query) ) 
+          rcms_redirect("?module=freeradius&netid=$netid");
+      }
+      
+      // Удаление атрибута
+      if ( wf_CheckGet(array('delete')) ) {
+        $id = vf($_GET['delete'], 3);
+        $query = "DELETE FROM `radius_attributes` WHERE `id` = '$id'";
+        if ( nr_query($query) ) 
+          rcms_redirect("?module=freeradius&netid=$netid");
+      }
+      
+      // Редактирование атрибута
+      if ( wf_CheckGet(array('edit')) ) {
+        // ID редактируемого атрибута
+        $id = vf($_GET['edit'], 3);
+        // Сабмит формы редактирования атрибута
+        if ( wf_CheckPost(array('edit'))  ) {
+          // Экранируем все введённые данные
+          foreach ( $_POST['edit'] as &$value)
+            $value = mysql_real_escape_string($value);
+          extract($_POST['edit']);
+          $login = isset($login) ? "'$login'" : 'NULL';
+          $query = "UPDATE `radius_attributes` SET `scenario` = '$scenario', `login` = $login, `Attribute` = '$Attribute', `op` = '$op', `Value` = '$Value' WHERE `id` = '$id'";
+          if ( nr_query($query) ) 
+            rcms_redirect("?module=freeradius&netid=$netid");
+        }
+        // Получаем уже существующие данные об атрибуте
+        $query  = "SELECT * FROM `radius_attributes` WHERE `id` = '$id'";
+        $result = simple_query($query);
+        // Форма редактирования
+        $form = new InputForm('', 'POST', __('Save'), '', '', '', 'edit');
+        // Сценарий
+        $content = $form->radio_button('edit[scenario]', $scenarios, $result['scenario']);
+        $form->addrow(__('Scenario'), $content);
+        // Сервис (disabled)
+        $content  = $form->select_tag('edit[netid]', getServiceIdDesc(), $netid, 'disabled');
+        $content .= $form->checkbox('edit[login]', '*', __('Foreach'), $result['login']);
+        $form->addrow(__('Service'), $content);
+        // Атрибут
+        $content = $form->text_box('edit[Attribute]', $result['Attribute']);
+        $form->addrow(__('Attribute'), $content);
+        // Оператор
+        $content = $form->select_tag('edit[op]', $operators, $result['op']);
+        $form->addrow(__('op'), $content);
+        // Значение
+        $content = $form->text_box('edit[Value]', $result['Value']);
+        $form->addrow(__('Value'), $content);
+        // Добавляем в код страницы открытое модальное окно
+        $html .= wf_modalOpened(__('Editing of RADIUS-attribute'), $form->show(1), 450, 275);
+      }
+      
+      $query = "SELECT `id`, `login`, `scenario`, `Attribute`, `op`, `Value` FROM `radius_attributes` WHERE `netid` = '$netid'";
+      $results = simple_queryall($query);
+      $cells  = wf_TableCell(__('ID'));
+      $cells .= wf_TableCell(__('Scenario'));
+      $cells .= wf_TableCell(__('Attribute'));
+      $cells .= wf_TableCell(__('op'));
+      $cells .= wf_TableCell(__('Value'));
+      $cells .= wf_TableCell(__('Foreach'));
+      $cells .= wf_TableCell(__('Actions'));
+      $rows   = wf_TableRow($cells, 'row1');
+      if ( !empty($results) ) {
+        foreach ( $results as $result ) {
+          $cells  = wf_TableCell($result['id']);
+          $cells .= wf_TableCell($result['scenario']);
+          $cells .= wf_TableCell($result['Attribute']);
+          $cells .= wf_TableCell($result['op']);
+          $cells .= wf_TableCell($result['Value']);
+          $content  = web_bool_led($result['login'] == '*');
+          $cells .= wf_TableCell($content);
+          $content  = wf_Link("?module=freeradius&netid=$netid&edit=" . $result['id'], web_edit_icon());
+          $content .= wf_JSAlert("?module=freeradius&netid=$netid&delete=" . $result['id'], web_delete_icon(), 'Are you serious');
+          $cells .= wf_TableCell($content);
+          $rows .= wf_TableRow($cells, 'row3');
+        }
+      }
+      // Форма добавления атрибута
+      $form = new InputForm('', 'POST', __('Save'), '', '', '', 'add');
+      // Сценарий
+      $content = $form->radio_button('add[scenario]', $scenarios, 'check');
+      $form->addrow(__('Scenario'), $content);
+      // Сервис (disabled)
+      $content  = $form->select_tag('add[netid]', getServiceIdDesc(), $netid, 'disabled');
+      $content .= $form->checkbox('add[login]', '*', __('Foreach'), '');
+      $form->addrow(__('Service'), $content);
+      // Атрибут 
+      $content = $form->text_box('add[Attribute]', '');
+      $form->addrow(__('Attribute'), $content);
+      // Оператор
+      $content = $form->select_tag('add[op]', $operators, '');
+      $form->addrow(__('op'), $content);
+      // Значение
+      $content = $form->text_box('add[Value]', '');
+      $form->addrow(__('Value'), $content);
+      // Нацигация и таблица со списком атрибутов
+      $html .= wf_Link("?module=multinet", __('Back'), false, 'ubButton');
+      $html .= wf_modal(__('Append'), __('Adding of RADIUS-attribute'), $form->show(1), 'ubButton', 450, 275);
+      $html .= wf_TableBody($rows, '100%', '0', 'sortable');
+    } elseif (wf_CheckGet(array('nasid')) ) {
+      /* Редактирование атрибутов для конкретного NAS */
+      $title = __('Sorry');
+      $html .= __('This part of module is not ready yet! Coming soon...');
+    }
+    /* Показываем содержимое модуля */
+    show_window($title, $html);
+  } else show_window(__('Error'), __('This module is disabled'));
+} else show_error(__('You cant control this module'));

@@ -178,6 +178,17 @@ function web_icon_extended($title = NULL) {
 }
 
 /**
+ * Returns FreeRADIUS icon:
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_freeradius($title = NULL) {
+    $icon = wf_img('skins/icon_freeradius_small.png', __($title));
+    return $icon;
+}
+
+/**
  * Returns boolean led indicator
  * 
  * @param bool/string $flag

@@ -1660,72 +1660,55 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
  * @param string $prefix
  * @return string
  */
-function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = TRUE, $edit = TRUE, $prefix = '') {
-
-    $allnetworkdata = multinet_get_all_networks();
-    $netcidrs = array();
-
-    if (!empty($allnetworkdata)) {
-        foreach ($allnetworkdata as $eachnet) {
-            $netcidrs[$eachnet['id']] = $eachnet['desc'];
+function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
+  // Получаем список сетей
+  $networks = multinet_get_all_networks();
+  $cidrs = array();
+  if ( !empty($networks) ) {
+    foreach ( $networks as $network )
+      $cidrs[$network['id']] = $network['desc'];
+  }
+  // Заголовок таблицы
+  $cells = '';
+  foreach ( $titles as $title )
+    $cells .= wf_TableCell(__($title));
+  $cells .= wf_TableCell(__('Actions'));
+  $rows = wf_TableRow($cells, 'row1');
+  // Содержимое таблицы
+  if ( !empty($alldata) ) {
+    foreach ( $alldata as $data ) {
+      $cells = ''; $actions = '';
+      if ( $delete )
+        $actions .= wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $data['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+      if ( $edit )
+        $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
+      foreach ( $keys as $key ) {
+        if ( array_key_exists($key, $data) ) {
+          switch ($key) {
+            case 'netid':
+              $cells .= wf_TableCell($data[$key] . ': ' . $cidrs[$data[$key]]);
+              break;
+            case 'nastype':
+              if ( $data[$key] == 'mikrotik' )
+                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
+              if ( $data[$key] == 'radius' )
+                $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
+              $cells .= wf_TableCell($data[$key]);
+              break;
+            default:
+              $cells .= wf_TableCell($data[$key]);
+              break;
+          }
         }
+      }
+      $cells .= wf_TableCell($actions);
+      $rows .= wf_TableRow($cells, 'row3');
     }
-
-    // FIRST ROW WITH TITLES:
-    $cells = '';
-    foreach ($titles as $eachtitle) {
-        $cells.= wf_TableCell(__($eachtitle));
-    }
-
-    $cells.= wf_TableCell(__('Actions'));
-    $rows = wf_TableRow($cells, 'row1');
-    // END OF "FIRST ROW WITH TITLES".
-    // BEGIN GENERATION OF ROWS, CONTAINING NAS DATA:
-
-    if (!empty($alldata)) {
-        foreach ($alldata as $eachdata) {
-            $cells = '';
-            foreach ($keys as $eachkey) {
-                if (array_key_exists($eachkey, $eachdata)) {
-                    if ($eachkey == 'netid') {
-                        $cells.= wf_TableCell($eachdata[$eachkey] . ': ' . $netcidrs[$eachdata[$eachkey]]);
-                    } else {
-                        $cells.= wf_TableCell($eachdata[$eachkey]);
-                    }
-
-                    if ($eachkey == 'nastype') {
-                        if ($eachdata[$eachkey] == 'mikrotik') {
-                            $mikrotikExtendedLink = wf_Link('?module=mikrotikextconf&' . $prefix . 'nasid=' . $eachdata['id'], web_icon_extended(__('MikroTik extended configuration')), false, '');
-                        } else {
-                            $mikrotikExtendedLink = NULL;
-                        }
-                    }
-                }
-            }
-            if ($delete) {
-                $deleteLink = wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $eachdata['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-            } else {
-                $deleteLink = NULL;
-            }
-
-            if ($edit) {
-                $editLink = wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $eachdata['id'], web_edit_icon(), false, '');
-            } else {
-                $editLink = NULL;
-            }
-
-
-            $cells.= wf_TableCell($deleteLink . ' ' . $editLink . ' ' . $mikrotikExtendedLink);
-            $rows.= wf_TableRow($cells, 'row3');
-        }
-    }
-    // STOP GENERATION OF ROWS, CONTAINING NAS DATA.
-
-
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    // END OF NAS LIST TABLE.
-    // RETURN RESULT:
-    return $result;
+  }
+  // Результат - таблица
+  $result = wf_TableBody($rows, '100%', 0, 'sortable');
+  // Отображаем результат
+  return $result;
 }
 
 /**

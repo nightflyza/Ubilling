@@ -1,48 +1,43 @@
 <?php
-    function multinet_show_available_networks() {
-        
-        $alter = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-        
-        $query = "SELECT * from `networks`";
-        $networks = simple_queryall($query);
-
-        $tablecells   = wf_TableCell(__('ID'));
-        $tablecells .= wf_TableCell(__('First IP'));
-        $tablecells .= wf_TableCell(__('Last IP'));
-        $tablecells .= wf_TableCell(__('Network/CIDR'));
-        $tablecells .= wf_TableCell(__('Network type'));
-        if ( $alter['FREERADIUS_ENABLED'] ) {
-            $tablecells .= wf_TableCell(__('Use Radius'));
-        }
-        $tablecells .= wf_TableCell(__('Actions'));
-        $tablerows = wf_TableRow($tablecells, 'row1');
-
-
-        if ( !empty($networks) ) {
-            foreach ($networks as $network) {
-
-                $tablecells  = wf_TableCell($network['id']);
-                $tablecells .= wf_TableCell($network['startip']);
-                $tablecells .= wf_TableCell($network['endip']);
-                $tablecells .= wf_TableCell($network['desc']);
-                $tablecells .= wf_TableCell($network['nettype']);
-                if ( $alter['FREERADIUS_ENABLED' ]) {
-                    $tablecells .= wf_TableCell(web_bool_led($network['use_radius']));
-                }
-                $actionlinks  = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-                $actionlinks .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
-                if ( $network['use_radius'] ) {
-                    $actionlinks .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_extended(__('Set RADIUS-attributes')), FALSE, NULL);
-                }
-                $tablecells .= wf_TableCell($actionlinks);
-                $tablerows .= wf_TableRow($tablecells, 'row3');
-            }
-        }
-
-        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-
-        show_window(__('Networks'), $result);
+function multinet_show_available_networks() {
+  global $ubillingConfig;
+  $alter = $ubillingConfig->getAlter();
+  // Выбираем все сети
+  $query = "SELECT * from `networks`";
+  $networks = simple_queryall($query);
+  // Заголовок таблицы
+  $cells = wf_TableCell(__('ID'));
+  $cells .= wf_TableCell(__('First IP'));
+  $cells .= wf_TableCell(__('Last IP'));
+  $cells .= wf_TableCell(__('Network/CIDR'));
+  $cells .= wf_TableCell(__('Network type'));
+  if ( $alter['FREERADIUS_ENABLED'] )
+    $cells .= wf_TableCell(__('Use Radius'));
+  $cells .= wf_TableCell(__('Actions'));
+  $rows = wf_TableRow($cells, 'row1');
+  // Содержимое таблицы
+  if ( !empty($networks) ) {
+    foreach ( $networks as $network ) {
+      $cells = wf_TableCell($network['id']);
+      $cells .= wf_TableCell($network['startip']);
+      $cells .= wf_TableCell($network['endip']);
+      $cells .= wf_TableCell($network['desc']);
+      $cells .= wf_TableCell($network['nettype']);
+      if ( $alter['FREERADIUS_ENABLED'] )
+        $cells .= wf_TableCell(web_bool_led($network['use_radius']));
+      $actions  = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+      $actions .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
+      if ( $alter['FREERADIUS_ENABLED'] && $network['use_radius'] )
+        $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
+      $cells .= wf_TableCell($actions);
+      $rows .= wf_TableRow($cells, 'row3');
     }
+  }
+  // Результат - таблица
+  $result = wf_TableBody($rows, '100%', '0', 'sortable');
+  // Отображаем результат
+  show_window(__('Networks'), $result);
+}
 
 function multinet_show_neteditform($netid) {
     $netid=vf($netid);
