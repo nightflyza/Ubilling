@@ -383,6 +383,12 @@ function zbs_UserShowXmlAgentData($login) {
             }
         }
         $payments.='</data>'."\n";
+        
+        header('Last-Modified: ' . gmdate('r'));
+        header('Content-Type: text/html; charset=utf-8');
+        header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+        header("Pragma: no-cache");
+        header('Access-Control-Allow-Origin: *');
         die($payments);
     }
     
@@ -518,6 +524,7 @@ function zbs_UserShowXmlAgentData($login) {
     header('Content-Type: text/html; charset=utf-8');
     header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
     header("Pragma: no-cache");
+    header('Access-Control-Allow-Origin: *');
     
     die($result);
 }
