@@ -572,6 +572,8 @@ return long2ip($netmask);
 }
 
 function multinet_rebuild_globalconf() {
+    global $ubillingConfig;
+    $altCfg=$ubillingConfig->getAlter();
     $global_template=file_get_contents("config/dhcp/global.template");
     $subnets_template=file_get_contents("config/dhcp/subnets.template");
     $alldhcpsubnets_q="SELECT `id`,`netid` from `dhcp` ORDER BY `id` ASC";
@@ -579,12 +581,29 @@ function multinet_rebuild_globalconf() {
     $allMembers_q="SELECT `ip` from `nethosts` WHERE `option` != 'NULL'";
     $allMembers= simple_queryall($allMembers_q);
     $membersMacroContent='';
+    $vlanMembersMacroContent='';
+    
     if (!empty($allMembers)) {
         foreach ($allMembers as $ix=>$eachMember) {
             $memberClass='m'.str_replace('.', 'x', $eachMember['ip']);;
             $membersMacroContent.='deny members of "'.$memberClass.'";'."\n";
         }
     }
+    
+    if (isset($altCfg['VLANGEN_SUPPORT'])) {
+        if ($altCfg['VLANGEN_SUPPORT']) {
+            $vlanMembers_q="SELECT `ip` FROM `users` WHERE `login` IN(SELECT `login` FROM `vlanhosts`);";
+            $allVlanMembers=  simple_queryall($vlanMembers_q);
+            if (!empty($allVlanMembers)) {
+                  foreach ($allVlanMembers as $ivl=>$eachVlanMember) {
+                    $memberVlanClass='m'.str_replace('.', 'x', $eachVlanMember['ip']);;
+                    $vlanMembersMacroContent.='deny members of "'.$memberVlanClass.'";'."\n";
+                  }
+            }
+        }
+    }
+    
+    
     
     $subnets='';
     if (!empty ($alldhcpsubnets)) {
@@ -613,6 +632,7 @@ function multinet_rebuild_globalconf() {
     
     $globdata['{SUBNETS}']=$subnets;
     $globdata['{DENYMEMBERS}']=$membersMacroContent;
+    $globdata['{DENYVLANGENMEMBERS}']=$vlanMembersMacroContent;
     $globconf=multinet_ParseTemplate($global_template,$globdata);
     file_write_contents("multinet/dhcpd.conf", $globconf);
 }
