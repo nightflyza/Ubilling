@@ -57,6 +57,46 @@ function zbs_CreditLogCheckMonth($login) {
     }
 }
 
+/**
+ * Checks is user tariff allowed for use of credit feature
+ * 
+ * @param array  $sc_allowed
+ * @param string $usertariff
+ * @return bool
+ */
+function zbs_CreditCheckAllowed($sc_allowed,$usertariff) {
+    $result=true;
+    if (!empty($sc_allowed)) {
+        if (isset($sc_allowed[$usertariff])) {
+            $result=true;
+        } else {
+            $result=false;
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Sets credit for user, logs it, sets expire date and redirects in main profile
+ * 
+ * @param string $user_login
+ * @param float  $tariffprice
+ * @param int    $sc_price
+ * @param string $scend
+ * @param int $sc_cashtypeid
+ * 
+ *  @return void
+ */
+function zbs_CreditDoTheCredit($user_login,$tariffprice,$sc_price,$scend,$sc_cashtypeid) {
+    zbs_CreditLogPush($user_login);
+    billing_setcredit($user_login, $tariffprice + $sc_price);
+    billing_setcreditexpire($user_login, $scend);
+    zbs_PaymentLog($user_login, '-' . $sc_price, $sc_cashtypeid, "SCFEE");
+    billing_addcash($user_login, '-' . $sc_price);
+    show_window('', __('Now you have a credit'));
+    rcms_redirect("index.php");
+}
+
 // if SC enabled
 if ($us_config['SC_ENABLED']) {
     
@@ -71,6 +111,14 @@ $sc_term=$us_config['SC_TERM'];
 $sc_price=$us_config['SC_PRICE'];
 $sc_cashtypeid=$us_config['SC_CASHTYPEID'];
 $sc_monthcontrol=$us_config['SC_MONTHCONTROL'];
+$sc_allowed=array();
+//allowed tariffs option
+if (isset($us_config['SC_TARIFFSALLOWED'])) {
+    if (!empty($us_config['SC_TARIFFSALLOWED'])) {
+    $sc_allowed= explode(',', $us_config['SC_TARIFFSALLOWED']);
+    $sc_allowed= array_flip($sc_allowed);
+    }
+}
 $tariff=zbs_UserGetTariff($user_login);
 $tariffprice=zbs_UserGetTariffPrice($tariff);
 $cday=date("d");
@@ -98,29 +146,24 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
 
             if (abs($current_cash)<=$tariffprice) {
             if ($current_cash<0) {
-                //additional month contol enabled
-            if ($sc_monthcontrol) { 
-               if (zbs_CreditLogCheckMonth($user_login)) {
-                    zbs_CreditLogPush($user_login);
-                    billing_setcredit($user_login,$tariffprice+$sc_price);
-                    billing_setcreditexpire($user_login, $scend);
-                    zbs_PaymentLog($user_login, '-'.$sc_price, $sc_cashtypeid, "SCFEE");
-                    billing_addcash($user_login, '-'.$sc_price);
-                    show_window('',__('Now you have a credit'));
-                    rcms_redirect("index.php");
-                 
-               } else {
-                   show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
-               }
+                
+                
+            if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {    
+            //additional month contol enabled
+            if ($sc_monthcontrol) {
+                                if (zbs_CreditLogCheckMonth($user_login)) {
+                                    //check for allow option
+                                    zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                } else {
+                                    show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                }
+                            } else {
+                                   zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                            }
+                            //end of self credit main code
             } else {
-                zbs_CreditLogPush($user_login);
-                billing_setcredit($user_login,$tariffprice+$sc_price);
-                billing_setcreditexpire($user_login, $scend);
-                zbs_PaymentLog($user_login, '-'.$sc_price, $sc_cashtypeid, "SCFEE");
-                billing_addcash($user_login, '-'.$sc_price);
-                show_window('',__('Now you have a credit'));
-                rcms_redirect("index.php");
-            }
+                     show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
+            } 
             
             } else {
                 //to many money
