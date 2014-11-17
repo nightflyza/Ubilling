@@ -105,7 +105,7 @@ class StickyNotes {
             foreach ($this->allnotes as $io => $each) {
                 $cells = wf_TableCell($each['createdate']);
                 $cells.= wf_TableCell($each['reminddate']);
-                $cells.= wf_TableCell(web_bool_led($each['active']));
+                $cells.= wf_TableCell(web_bool_led($each['active']),'','','sorttable_customkey="'.$each['active'].'"');
                 $viewLink = wf_Link('?module=stickynotes&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
                 $cells.= wf_TableCell($viewLink);
                 $actLinks = wf_JSAlert('?module=stickynotes&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
