@@ -35,14 +35,34 @@ CREATE TABLE IF NOT EXISTS `radius_acct` (
   KEY `acctstoptime` (`acctstoptime`),
   KEY `nasipaddress` (`nasipaddress`)
 ) ENGINE=InnoDB;
-CREATE TABLE radius_postauth (
-  `id` int(11) NOT NULL auto_increment,
+
+CREATE TABLE  IF NOT EXISTS `radius_postauth` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(64) NOT NULL default '',
   `pass` varchar(64) NOT NULL default '',
   `reply` varchar(32) NOT NULL default '',
   `authdate` timestamp NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE = INNODB;
+
+CREATE TABLE IF NOT EXISTS `radius_attributes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `scenario` enum('check','reply') DEFAULT NULL,
+  `login` varchar(50) DEFAULT NULL,
+  `netid` int(11) unsigned DEFAULT NULL,
+  `nasip` int(15) unsigned DEFAULT NULL,
+  `Attribute` varchar(32) NOT NULL,
+  `op` varchar(2) NOT NULL,
+  `Value` varchar(253) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `radius_username_bind` (
+  `id` int(10) unsigned NOT NULL  AUTO_INCREMENT,
+  `netid` int(10) unsigned DEFAULT NULL,
+  `value` enum('IP','MAC') DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE OR REPLACE VIEW `radius_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
 SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
@@ -51,7 +71,12 @@ LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`
 WHERE `networks`.`use_radius` = TRUE;
 
 CREATE OR REPLACE VIEW `radius_check` (`UserName`, `Attribute`, `op`, `Value`) AS
-SELECT `users`.`login`, `radius_attributes`.`Attribute`, `radius_attributes`.`op`, 
+SELECT 
+  CASE `radius_username_bind`.`value`
+    WHEN 'IP'   THEN `nethosts`.`ip`
+    WHEN 'MAC'  THEN `nethosts`.`mac`
+  ELSE `users`.`login`
+END, `radius_attributes`.`Attribute`, `radius_attributes`.`op`, 
 -- Обработка макросов значений
 CASE 
 	-- Общая информация о пользователе
@@ -98,6 +123,8 @@ END as `Value`
       JOIN `radius_attributes` ON  `radius_attributes`.`login` = `users`.`login`
                                OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`netid` = `networks`.`id` )
                                OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`nasip` = INET_ATON(`nas`.`nasip`))
+ -- ...
+ LEFT JOIN `radius_username_bind` ON `radius_username_bind`.`netid` = `nethosts`.`netid`
  -- ...для получения информации о коммутаторе, к которому подключен пользователь
  LEFT JOIN `switchportassign` ON `switchportassign`.`login` = `users`.`login`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
@@ -107,7 +134,12 @@ WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRU
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_reply` (`UserName`, `Attribute`, `op`, `Value`) AS
-SELECT `users`.`login`, `radius_attributes`.`Attribute`, `radius_attributes`.`op`, 
+SELECT 
+  CASE `radius_username_bind`.`value`
+    WHEN 'IP'   THEN `nethosts`.`ip`
+    WHEN 'MAC'  THEN `nethosts`.`mac`
+  ELSE `users`.`login`
+END, `radius_attributes`.`Attribute`, `radius_attributes`.`op`, 
 -- Обработка макросов значений
 CASE 
 	-- Общая информация о пользователе
@@ -154,6 +186,8 @@ END as `Value`
       JOIN `radius_attributes` ON  `radius_attributes`.`login` = `users`.`login`
                                OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`netid` = `networks`.`id` )
                                OR (`radius_attributes`.`login` = '*' AND `radius_attributes`.`nasip` = INET_ATON(`nas`.`nasip`))
+ -- ...
+ LEFT JOIN `radius_username_bind` ON `radius_username_bind`.`netid` = `nethosts`.`netid`
  -- ...для получения информации о коммутаторе, к которому подключен пользователь
  LEFT JOIN `switchportassign` ON `switchportassign`.`login` = `users`.`login`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
