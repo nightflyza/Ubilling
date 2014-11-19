@@ -7,6 +7,9 @@ $lang['def']['RADIUS-attributes for NAS'] = 'RADIUS-атрибуты для се
 $lang['def']['Adding of RADIUS-attribute'] = 'Добавление RADIUS-атрибута';
 $lang['def']['Editing of RADIUS-attribute'] = 'Редактирование RADIUS-атрибута';
 
+$lang['def']['Reassign User-Name'] = 'Переопределить User-Name';
+$lang['def']['Reassignment of User-Name'] = 'Переопределение User-Name';
+
 $lang['def']['Append']    = 'Добавить';
 $lang['def']['Macros']    = 'Макрос';
 $lang['def']['Scenario']  = 'Сценарий';

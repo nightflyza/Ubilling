@@ -234,7 +234,6 @@ WHERE `users`.`login` = '$login'
           if ( nr_query($query) ) 
             rcms_redirect("?module=freeradius&netid=$netid");
         }
-        // Получаем уже существующие данные об атрибуте
         $query  = "SELECT * FROM `radius_attributes` WHERE `id` = '$id'";
         $result = simple_query($query);
         // Форма редактирования
@@ -257,6 +256,17 @@ WHERE `users`.`login` = '$login'
         $form->addrow(__('Value'), $content);
         // Добавляем в код страницы открытое модальное окно
         $html .= wf_modalOpened(__('Editing of RADIUS-attribute'), $form->show(1), 450, 275);
+      }
+      
+      if ( wf_checkPost(array('reassignment')) ) {
+        // Экранируем все введённые данные
+        foreach ( $_POST['reassignment'] as &$value)
+          $value = mysql_real_escape_string($value);
+        extract($_POST['reassignment']);
+        // Добавляем информацию о переназначении
+        $query = "INSERT INTO `radius_reassigns` (`netid`, `value`) VALUES ($netid, '$value') ON DUPLICATE KEY UPDATE `value` = '$value'";
+        if ( nr_query($query) )
+          rcms_redirect("?module=freeradius&netid=$netid");
       }
       
       $query = "SELECT `id`, `login`, `scenario`, `Attribute`, `op`, `Value` FROM `radius_attributes` WHERE `netid` = '$netid'";
@@ -284,32 +294,44 @@ WHERE `users`.`login` = '$login'
           $rows .= wf_TableRow($cells, 'row3');
         }
       }
-      // Форма добавления атрибута
+      /* Кнопка "Назад" */
+      $html .= wf_Link("?module=multinet", __('Back'), false, 'ubButton');
+      // Форма добавления нового атрибута
       $form = new InputForm('', 'POST', __('Save'), '', '', '', 'add');
-      // Сценарий
+      //  - Сценарий
       $content = $form->radio_button('add[scenario]', $scenarios, 'check');
       $form->addrow(__('Scenario'), $content);
-      // Сервис (disabled)
+      //  - Сервис (disabled)
       $content  = $form->select_tag('add[netid]', getServiceIdDesc(), $netid, 'disabled');
       $content .= $form->checkbox('add[login]', '*', __('Foreach'), '');
       $form->addrow(__('Service'), $content);
-      // Атрибут 
+      //  - Атрибут 
       $content = $form->text_box('add[Attribute]', '');
       $form->addrow(__('Attribute'), $content);
-      // Оператор
+      //  - Оператор
       $content = $form->select_tag('add[op]', $operators, '');
       $form->addrow(__('op'), $content);
-      // Значение
+      //  - Значение
       $content = $form->text_box('add[Value]', '');
       $form->addrow(__('Value'), $content);
-      // Нацигация и таблица со списком атрибутов
-      $html .= wf_Link("?module=multinet", __('Back'), false, 'ubButton');
+      /* Кнопка модального окна с формой добавления нового атрибута */
       $html .= wf_modal(__('Append'), __('Adding of RADIUS-attribute'), $form->show(1), 'ubButton', 450, 275);
+      // Форма переопределения атрибута 'User-Name'
+      $query  = "SELECT `value` FROM `radius_reassigns` WHERE `netid` = '$netid'";
+      $result = simple_query($query);
+      $result['value'] = !empty($result['value']) ? $result['value'] : '';
+      $form = new InputForm('', 'POST', __('Save'), '', '', '', 'reassignment');
+      //  - Значение 
+      $content = $form->radio_button('reassignment[value]', array(
+        ''    => __('Login'),
+        'ip'  => __('IP'),
+        'mac' => __('MAC')
+      ), $result['value']);
+      $form->addrow(__('Value'), $content);
+      /* Кнопка модального окна с формой переназначения атрибута 'User-Name' */
+      $html .= wf_modal(__('Reassign User-Name'), __('Reassignment of User-Name'), $form->show(1), 'ubButton', 450, 155);
+      /* Атрибуты сети */
       $html .= wf_TableBody($rows, '100%', '0', 'sortable');
-    } elseif (wf_CheckGet(array('nasid')) ) {
-      /* Редактирование атрибутов для конкретного NAS */
-      $title = __('Sorry');
-      $html .= __('This part of module is not ready yet! Coming soon...');
     }
     /* Показываем содержимое модуля */
     show_window($title, $html);
