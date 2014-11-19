@@ -611,5 +611,73 @@ function ub_SwitchesTimeMachineCleanup() {
     nr_query($query);
    log_register("SWITCH TIMEMACHINE FLUSH");
 }
+
+/**
+ * Returns time machine search form
+ * 
+ * @return string
+ */
+function web_SwitchTimeMachineSearchForm() {
+    $inputs=  wf_TextInput('switchdeadlogsearch', __('Location').', '.__('IP'), '', false, 30);
+    $inputs.= wf_Submit(__('Search'));
+    $result=  wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
+
+/**
+ * Do the search in dead switches time machine
+ * 
+ * @param string $query
+ * @return string
+ */
+function ub_SwitchesTimeMachineSearch($request) {
+    $request=  strtolower_utf8($request);
+    $result='';
+    $query="SELECT * from `switchdeadlog` ORDER BY `id` DESC";
+    $raw=  simple_queryall($query);
+    $deadcount=0;
+
+    $tmpArr=array();
+    if (!empty($raw)) {
+        foreach ($raw as $io=>$each) {
+            if (!empty($each)) {
+                $switchData=  unserialize($each['swdead']);
+                foreach ($switchData as $switchIp=>$switchLocation) {
+       
+                    if ((ispos(strtolower_utf8($switchIp), $request)) OR (ispos(strtolower_utf8($switchLocation), $request))) {
+                        $searchId=  zb_rand_string(8);
+                        $tmpArr[$searchId]['date']=$each['date'];
+                        $tmpArr[$searchId]['ip']=$switchIp;
+                        $tmpArr[$searchId]['location']=$switchLocation;
+                        
+                    }
+                }
+            }
+        }
+    }
+    
+    if (!empty($tmpArr)) {
+        $cells=  wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('IP'));
+        $cells.= wf_TableCell(__('Location'));
+        $rows=  wf_TableRow($cells, 'row1');
+        
+        foreach ($tmpArr as $ia=>$eachResult) {
+            $cells=  wf_TableCell($eachResult['date']);
+            $cells.= wf_TableCell($eachResult['ip']);
+            $cells.= wf_TableCell($eachResult['location']);
+            $rows.=  wf_TableRow($cells, 'row3');
+            $deadcount++;
+        }
+        
+        $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.= __('Total').': '.$deadcount;
+        
+    } else {
+        $result=__('Nothing found');
+    }
+    return ($result);
+    
+}
    
 ?>

@@ -83,10 +83,21 @@ show_window(__('Available switches'), web_SwitchesShow());
             ub_SwitchesTimeMachineCleanup();
             rcms_redirect("?module=switches&timemachine=true");
         }
+
+        //calendar view time machine
+        if (!wf_CheckPost(array('switchdeadlogsearch'))) {
         $deadTimeMachine=  ub_JGetSwitchDeadLog();
-        $timeMachineCleanupControl= wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
         $timeMachine= wf_FullCalendar($deadTimeMachine);
-        show_window(__('Dead switches time machine').' '.$timeMachineCleanupControl,$timeMachine);
+        } else {
+             //search processing
+            $timeMachine=ub_SwitchesTimeMachineSearch($_POST['switchdeadlogsearch']);
+        }
+        $timeMachineCleanupControl= wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
+        //here some searchform
+        $timeMachineSearchForm=web_SwitchTimeMachineSearchForm().  wf_tag('br');
+        
+        show_window(__('Dead switches time machine').' '.$timeMachineCleanupControl,$timeMachineSearchForm.$timeMachine);
+        
     } else {
         //showing dead switches snapshot
         ub_SwitchesTimeMachineShowSnapshot($_GET['snapshot']);

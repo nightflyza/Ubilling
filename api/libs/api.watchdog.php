@@ -974,12 +974,12 @@ class WatchDogInterface {
     public function panel() {
         $createWindow=$this->newTaskForm();
         $settingsWindow=$this->settingsForm();
-        $result=  wf_modal(__('Create new task'), __('Create new task'), $createWindow, 'ubButton', '400', '300');
-        $result.= wf_Link("?module=watchdog", __('Show all tasks'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&manual=true", __('Manual run'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&showsmsqueue=true", __('View SMS sending queue'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&previousalerts=true", __('Previous alerts'), false, 'ubButton');
-        $result.= wf_modal(__('Settings'), __('Settings'), $settingsWindow, 'ubButton', '750', '350');
+        $result=  wf_modal(wf_img('skins/add_icon.png').' '.__('Create new task'), __('Create new task'), $createWindow, 'ubButton', '400', '300');
+        $result.= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif').' '.__('Show all tasks'), false, 'ubButton');
+        $result.= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif').' '.__('Manual run'), false, 'ubButton');
+        $result.= wf_Link("?module=watchdog&showsmsqueue=true", wf_img('skins//icon_sms_micro.gif').' '.__('View SMS sending queue'), false, 'ubButton');
+        $result.= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png').' '.__('Previous alerts'), false, 'ubButton');
+        $result.= wf_modal(wf_img('skins/settings.png').' '.__('Settings'), __('Settings'), $settingsWindow, 'ubButton', '750', '350');
         
         return ($result);
     }
@@ -1129,7 +1129,12 @@ class WatchDogInterface {
      * @retun string
      */
     public function renderAlertsCalendar() {
-        $result=$this->yearSelectorAlerts();
+        $result='';
+        $controls=  wf_TableCell($this->yearSelectorAlerts());
+        $controls.= wf_TableCell($this->alertsSearchForm());
+        $controls= wf_TableRow($controls);
+        $result= wf_TableBody($controls, '60%', 0,'');
+        
         if (!empty($this->previousAlerts)) {
             $calendarData='';
             foreach ($this->previousAlerts as $io=>$each) {
@@ -1153,6 +1158,56 @@ class WatchDogInterface {
         
         return ($result);
     } 
+    
+    
+    /**
+     * Returns previous alerts search form
+     * 
+     * @return string
+     */
+    public function alertsSearchForm() {
+        $result='';
+        $availTaskNames=array();
+        if (!empty($this->allTasks)) {
+            foreach ($this->allTasks as $io=>$each) {
+                $availTaskNames[$each['name']]=$each['name'];
+            }
+        }
+        
+        $inputs=  wf_Selector('previousalertsearch', $availTaskNames, __('Name'), '', false);
+        $inputs.= wf_Submit(__('Search'));
+        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+        
+        return ($result);    
+    }
+    
+    /**
+     * Returns previousa alerts search results
+     * 
+     * @param string $request
+     * @return string
+     */
+    public function alertSearchResults($request) {
+    $result=$this->alertsSearchForm();
+    $cells=  wf_TableCell(__('Date'));
+    $cells.= wf_TableCell(__('Event'));
+    $rows=  wf_TableRow($cells, 'row1');
+    $counter=0;
+    if (!empty($this->previousAlerts)) {
+        foreach ($this->previousAlerts as $io=>$each) {
+            if (ispos($each['event'], $request)) {
+                $cells=  wf_TableCell($each['date']);
+                $cells.= wf_TableCell($each['event']);
+                $rows.=  wf_TableRow($cells, 'row3');
+                $counter++;
+            }
+        }
+    }
+    $result.=  wf_TableBody($rows, '100%', 0, 'sortable');
+    $result.= __('Total').': '.$counter;
+    
+    return ($result);
+    }
     
     
 }

@@ -55,8 +55,16 @@ if(cfr('WATCHDOG')) {
    if (!wf_CheckGet(array('edit'))) {
     //show previous detections
     if (wf_CheckGet(array('previousalerts'))) {
-            $interface->loadAllPreviousAlerts();
+        $interface->loadAllPreviousAlerts();
+        
+        if (wf_CheckPost(array('previousalertsearch'))) {
+            //do the search
+            show_window(__('Search results'), $interface->alertSearchResults($_POST['previousalertsearch']));
+        } else {
+            //calendar
             show_window(__('Previous alerts'),$interface->renderAlertsCalendar());
+        }
+       
     } else {
         //or list of existing tasks
             show_window(__('Available Watchdog tasks'),$interface->listAllTasks());
