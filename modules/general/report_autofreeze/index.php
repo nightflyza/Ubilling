@@ -83,9 +83,16 @@ if (cfr('REPORTAUTOFREEZE')) {
          * @return string
          */
         public function render() {
-            $allAddress=  zb_AddressGetFulladdresslist();
+            $allAddress= zb_AddressGetFulladdresslistCached();
             $allRealNames= zb_UserGetAllRealnames();
-            
+            $stargazerUsers=  zb_UserGetAllStargazerData();
+            $allUsers=array();
+            if (!empty($stargazerUsers)) {
+                foreach ($stargazerUsers as $io=>$each) {
+                   $allUsers[$each['login']] =$each['Credit'];
+                }
+            }
+        
             $cells=  wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Date'));
             $cells.= wf_TableCell(__('Login'));
@@ -103,7 +110,13 @@ if (cfr('REPORTAUTOFREEZE')) {
                     $cells.= wf_TableCell(@$allAddress[$each['login']]);
                     $cells.= wf_TableCell(@$allRealNames[$each['login']]);
                     $cells.= wf_TableCell(@$each['balance']);
-                    $rows.=  wf_TableRow($cells, 'row3');
+                    //deleded users indication
+                    if (@isset($allUsers[$each['login']])) {
+                        $rowClass='row3';
+                    } else {
+                        $rowClass='sigdeleteduser';
+                    }
+                    $rows.=  wf_TableRow($cells, $rowClass);
                 }
             }
             $result=  wf_TableBody($rows, '100%', '0', 'sortable');
