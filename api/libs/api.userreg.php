@@ -274,6 +274,13 @@ function zb_RegLoginProposal($cityalias,$streetalias,$buildnum,$apt,$ip_proposal
             $result=zb_rand_string(10);
         }
         
+         // just random string as login
+        if ($type=='RANDOMSAFE') {
+            $randomStringProposal=zb_rand_string(10);
+            $filteredChars=array('q','Q','i','I','l','L','j','J','o','O','1','0','g','G');
+            $result=  str_replace($filteredChars, 'x', $randomStringProposal);
+        }
+        
         //contrahent based model
         if ($type=='DEREBAN') {
             $busylogins=zb_AllBusyLogins();
