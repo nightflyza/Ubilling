@@ -368,7 +368,9 @@ function zbs_UserShowAgentData($login) {
 }
 
 function zbs_UserShowXmlAgentData($login) {
+    $us_config=zbs_LoadConfig();
     if (isset($_GET['payments'])) {
+       if ($us_config['PAYMENTS_ENABLED']) {
        $allpayments=zbs_CashGetUserPayments($login);
 
    $payments='<?xml version="1.0" encoding="utf-8"?>
@@ -383,7 +385,9 @@ function zbs_UserShowXmlAgentData($login) {
             }
         }
         $payments.='</data>'."\n";
-        
+       } else {
+              $payments='<?xml version="1.0" encoding="utf-8"?>'."\n".'<data>'."\n".'</data>'."\n";  
+       }
         header('Last-Modified: ' . gmdate('r'));
         header('Content-Type: text/html; charset=utf-8');
         header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
@@ -391,9 +395,7 @@ function zbs_UserShowXmlAgentData($login) {
         header('Access-Control-Allow-Origin: *');
         die($payments);
     }
-    
-    
-    $us_config=zbs_LoadConfig();
+
     $us_currency=$us_config['currency'];
     $userdata=zbs_UserGetStargazerData($login);
     $alladdress=zbs_AddressGetFulladdresslist();

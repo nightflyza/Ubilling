@@ -468,9 +468,28 @@
             }
         }
     }
+    
+    /**
+     * Check MAC address for filter
+     * 
+     * @param string $mac
+     * @param array $allfilters
+     * @return bool
+     */
+    function sn_FDBFilterCheckMac($mac,$allfilters) {
+        $result=true;
+        if (!empty($allfilters)) {
+            if (isset($allfilters[$mac])) {
+                $result=true;
+            } else {
+                $result=false;
+            }
+        }
+        return ($result);
+    }
    
     
-        /*
+     /*
      * function that display JSON data for display FDB cache
      * 
      * @param $fdbData_raw - array of existing cache _fdb files
@@ -482,14 +501,28 @@
         $allusermacs=  array_flip($allusermacs);
         $alladdress= zb_AddressGetFulladdresslist();
         $allswitches=  zb_SwitchesGetAll();
+        $rawFilters=  zb_StorageGet('FDBCACHEMACFILTERS');
+        $filteredCounter=0;
         $switchdata=array();
-        
+        $allfilters=array();
+        //switch data preprocessing
         if (!empty($allswitches)) {
             foreach ($allswitches as $io=>$eachswitch) {
                 $switchdata[$eachswitch['ip']]=$eachswitch['location'];
             }
         }
+        //mac filters preprocessing
+        if (!empty($rawFilters)) {
+            $rawFilters=  base64_decode($rawFilters);
+            $rawFilters=  explodeRows($rawFilters);
+            if (!empty($rawFilters)) {
+                foreach ($rawFilters as $rawfindex=>$rawfmac) {
+                    $allfilters[trim($rawfmac)]=$rawfindex;
+                }
+            }
+        }
         
+      
           $result='{ 
                   "aaData": [';
           
@@ -513,6 +546,8 @@
                       } else {
                           $userlink='';
                       }
+                      
+                      if (sn_FDBFilterCheckMac($mac, $allfilters)) {
                             $result.='
                     [
                     "'.$switchIp.'",
@@ -521,9 +556,22 @@
                     "'.$mac.'",
                     "'.$userlink.'"
                     ],';
+                        $filteredCounter++;
+                       }
                       }
                   }
               }
+          }
+          //show some data if filters failed
+          if ($filteredCounter==0) {
+                  $result.='
+                    [
+                    "",
+                    "",
+                    "",
+                    "'.__('Nothing found').'",
+                    ""
+                    ],';
           }
           
           $result=substr($result, 0, -1);

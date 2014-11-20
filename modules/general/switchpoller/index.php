@@ -2,6 +2,30 @@
 set_time_limit (0);
 
 if(cfr('SWITCHPOLL')) {
+    
+    /**
+     * Returns FDB cache lister MAC filters setup form
+     * 
+     * @return string
+     */
+    function web_FDBTableFiltersForm() {
+        $currentFilters='';
+        $oldFilters=  zb_StorageGet('FDBCACHEMACFILTERS');
+        if (!empty($oldFilters)) {
+            $currentFilters=  base64_decode($oldFilters);
+        }
+        
+        $inputs=__('One MAC address per line').  wf_tag('br');
+        $inputs.=  wf_TextArea('newmacfilters', '', $currentFilters, true, '40x10');
+        $inputs.= wf_HiddenInput('setmacfilters', 'true');
+        $inputs.= wf_CheckInput('deletemacfilters', __('Cleanup'), true, false);
+        $inputs.= wf_Submit(__('Save'));
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        
+        return ($result);    
+    }
+    
+    
     function web_FDBTableShowDataTable() {
       
       $jq_dt='
@@ -63,8 +87,9 @@ if(cfr('SWITCHPOLL')) {
       $result.= wf_TableRow($cells);
       $result.= wf_tag('thead',true);
       $result.= wf_tag('table', true);
-              
-     show_window(__('Current FDB cache'),$result);
+      $filtersForm=  wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
+      
+     show_window(__('Current FDB cache').' '.$filtersForm,$result);
   }
     
     $allDevices=  sp_SnmpGetAllDevices();
@@ -118,9 +143,24 @@ if(cfr('SWITCHPOLL')) {
     //display all of available fdb tables
       $fdbData_raw=  rcms_scandir('./exports/', '*_fdb');
       if (!empty($fdbData_raw)) {
+   
+          //// mac filters setup
+             if (wf_CheckPost(array('setmacfilters'))) {
+              //setting new MAC filters
+              if (!empty($_POST['newmacfilters'])) {
+              $newFilters=  base64_encode($_POST['newmacfilters']);
+              zb_StorageSet('FDBCACHEMACFILTERS', $newFilters);
+              }
+              //deleting old filters
+              if (isset($_POST['deletemacfilters'])) {
+                  zb_StorageDelete('FDBCACHEMACFILTERS');
+              }
+          }
+          
+          
          //push ajax data
          if (wf_CheckGet(array('ajax'))) {
-           die(sn_SnmpParseFdbCacheJson($fdbData_raw));
+            die(sn_SnmpParseFdbCacheJson($fdbData_raw));
          } else {
              web_FDBTableShowDataTable();
          }

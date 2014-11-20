@@ -10,6 +10,7 @@ $lang['def']['Editing of RADIUS-attribute'] = 'Редагування RADIUS-а�
 $lang['def']['Reassign User-Name'] = 'Переназначення User-Name';
 $lang['def']['Reassignment of User-Name'] = 'Переназначення User-Name';
 
+$lang['def']['Append']    = 'Додати';
 $lang['def']['Macros']    = 'Макрос';
 $lang['def']['Scenario']  = 'Сценарій';
 $lang['def']['Attribute'] = 'Атрибут';

@@ -1794,4 +1794,8 @@ $lang['def']['Sticky note']='Персональная нотатка';
 $lang['def']['Personal notes and reminders']='Персональні нотатки та нагадування';
 $lang['def']['Personal note active']='Персональна нотатка активна';
 
+//rev 3942
+$lang['def']['MAC filters setup']='Налаштування фільтрів за MAC';
+$lang['def']['One MAC address per line']='Одна MAC адреса на рядок';
+
 ?>

@@ -1779,7 +1779,14 @@ $lang['def']['Remind date']='Дата напоминания';
 $lang['def']['Sticky note']='Персональная заметка';
 $lang['def']['Personal notes and reminders']='Персональные заметки и напоминания';
 $lang['def']['Personal note active']='Персональная заметка активна';
+
+//rev 3942
+$lang['def']['MAC filters setup']='Настройка фильтров по MAC';
+$lang['def']['One MAC address per line']='Один MAC адрес на строку';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 
 

@@ -178,6 +178,29 @@ function web_icon_extended($title = NULL) {
 }
 
 /**
+ * Returns default settings icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_settings($title = 'Settings') {
+    $icon = wf_img('skins/settings.png', __($title));
+    return $icon;
+}
+
+/**
+ * Returns default search icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_search($title = 'Search') {
+    $icon = wf_img('skins/icon_search_small.gif', __($title));
+    return $icon;
+}
+
+
+/**
  * Returns FreeRADIUS icon:
  * 
  * @param string $title
