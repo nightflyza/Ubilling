@@ -1783,7 +1783,7 @@ $lang['def']['Personal note active']='Персональная заметка а
 //rev 3942
 $lang['def']['MAC filters setup']='Настройка фильтров по MAC';
 $lang['def']['One MAC address per line']='Один MAC адрес на строку';
-$lang['def']['']='';
+$lang['def']['All users with tariff']='Все пользователи с тарифом';
 $lang['def']['']='';
 $lang['def']['']='';
 

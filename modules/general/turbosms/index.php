@@ -123,7 +123,7 @@ if (cfr('TURBOSMS')) {
             }
         }
         
-        function tsms_UserFilter($type) {
+        function tsms_UserFilter($type,$params='') {
             global $td_mobiles,$td_users,$td_tariffprices,$td_tariffperiods;
             $result=array();
             
@@ -171,6 +171,20 @@ if (cfr('TURBOSMS')) {
                     @$userMobile=$td_mobiles[$login];
                     if (tsms_CheckMobile($userMobile)) {
                         if ($data['Cash']==0) {
+                            $result[$login]=$userMobile;
+                        }
+                    }
+                }
+                }
+            }
+            
+            //tariff = params
+            if ($type=='msendtariff') {
+               if (!empty($td_users)) {
+                foreach ($td_users as $login=>$data) {
+                    @$userMobile=$td_mobiles[$login];
+                    if (tsms_CheckMobile($userMobile)) {
+                        if ($data['Tariff']==$params) {
                             $result[$login]=$userMobile;
                         }
                     }
@@ -238,10 +252,20 @@ if (cfr('TURBOSMS')) {
         }
         
         function web_TsmsMassendForm() {
+            $tariffsRaw=  zb_TariffsGetAll();
+            $alltariffs=array();
+            if (!empty($tariffsRaw)) {
+                foreach ($tariffsRaw as $io=>$each) {
+                    $alltariffs[$each['name']]=$each['name'];
+                }
+            }
+            
             $inputs=   wf_RadioInput('msendtype', __('Debtors with balance less then 0'), 'msenddebtors', true, true);
             $inputs.=  wf_RadioInput('msendtype', __('Users who have money left for 5 days'), 'msendless5', true, false);
             $inputs.=  wf_RadioInput('msendtype', __('Users who have zero balance'), 'msendzero', true, false);
             $inputs.=  wf_RadioInput('msendtype', __('All users with mobile'), 'msendall', true, false);
+            $inputs.=  wf_RadioInput('msendtype', __('All users with tariff'), 'msendtariff', false, false);
+            $inputs.= wf_Selector('msendtariffname', $alltariffs, '', '', true);
             $inputs.=  wf_Submit(__('Search'));
             $result=  wf_Form("", "POST", $inputs, 'glamour');
             return ($result);
@@ -641,7 +665,11 @@ if (cfr('TURBOSMS')) {
             
             //group user sending
             if (wf_CheckPost(array('msendtype'))) {
-                $userFilters=  tsms_UserFilter($_POST['msendtype']);
+                $filterParams='';
+                if (wf_CheckPost(array('msendtariffname'))) {
+                    $filterParams=$_POST['msendtariffname'];
+                }
+                $userFilters=  tsms_UserFilter($_POST['msendtype'],$filterParams);
                 show_window(__('Confirmation'),web_TsmsMassendConfirm($userFilters));
             }
             
