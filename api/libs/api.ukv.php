@@ -1578,6 +1578,7 @@ class UkvSystem {
         $cells.= wf_TableCell(__('Contract'));
         $cells.= wf_TableCell(__('Real Name'));
         $cells.= wf_TableCell(__('Address'));
+        $cells.= wf_TableCell(__('Tariff'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($all)) {
@@ -1609,6 +1610,9 @@ class UkvSystem {
                     $detectedContract = wf_Link(self::URL_USERS_PROFILE . $detectedUser['id'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
                     $detectedAddress = $detectedUser['street'] . ' ' . $detectedUser['build'] . '/' . $detectedUser['apt'];
                     $detectedRealName = $detectedUser['realname'];
+                    $detectedTariff=$detectedUser['tariffid'];
+                    $detectedTariff=$this->tariffs[$detectedTariff]['tariffname'];
+                        
                     if (!$processed) {
                         $cashPairs[$each['id']]['bankstaid'] = $each['id'];
                         $cashPairs[$each['id']]['userid'] = $detectedUser['id'];
@@ -1627,6 +1631,7 @@ class UkvSystem {
                     $detectedContract = '';
                     $detectedAddress = '';
                     $detectedRealName = '';
+                    $detectedTariff='';
                     if ($each['processed'] == 1) {
                         $rowClass = 'row2';
                     } else {
@@ -1637,6 +1642,7 @@ class UkvSystem {
                 $cells.= wf_TableCell($detectedContract);
                 $cells.= wf_TableCell($detectedRealName);
                 $cells.= wf_TableCell($detectedAddress);
+                $cells.= wf_TableCell($detectedTariff);
                 $rows.= wf_TableRow($cells, $rowClass);
             }
         }

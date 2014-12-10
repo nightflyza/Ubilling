@@ -76,7 +76,7 @@ function web_MigrationPreprocessing($filename,$delimiter,$encoding) {
     if (sizeof($parsed_data)>1) {
         $col_count=  sizeof($parsed_data[0]);
         
-        $cells=  wf_TableCell(__('Conumn number'));
+        $cells=  wf_TableCell(__('Column number'));
         $cells.= wf_TableCell(__('Column content'));
         $rows=   wf_TableRow($cells, 'row1');
         
