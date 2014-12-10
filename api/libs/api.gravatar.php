@@ -1,4 +1,5 @@
 <?
+
 /*
  * Gravatar API
  */
@@ -7,55 +8,55 @@
 /*
  * Get gravatar url by some email
  * 
- * @param $email  user email
+ * @param string $email  user email
  * @return string
  */
 
 function gravatar_GetUrl($email) {
-    $hash=md5($email);
-    $proto='http://gravatar.com/avatar/';
-    $result=$proto.$hash;
+    $hash = strtolower($email);
+    $hash = md5($hash);
+    $proto = 'http://gravatar.com/avatar/';
+    $result = $proto . $hash;
     return ($result);
 }
-
 
 /*
  * Function that shows avatar by user email
  * 
- * @param $email  user email
- * @param $size   user avatar size
+ * @param string $email  user email
+ * @param int $size   user avatar size
  * @return string
  */
 
-function gravatar_GetAvatar($email,$size='') {
-    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
-    $getsize= ($size!='') ? '?s='.$size : '';
+function gravatar_GetAvatar($email, $size = '') {
+    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $getsize = ($size != '') ? '?s=' . $size : '';
     if (isset($altercfg['GRAVATAR_DEFAULT'])) {
-        $default=$altercfg['GRAVATAR_DEFAULT'];
+        $default = $altercfg['GRAVATAR_DEFAULT'];
     } else {
-        $default='monsterid';
+        $default = 'monsterid';
     }
-    
-    $url=  gravatar_GetUrl($email);
-    $result=  wf_img(($url.$getsize.'&d='.$default));
+
+    $url = gravatar_GetUrl($email);
+    $result = wf_img(($url . $getsize . '&d=' . $default));
     return ($result);
 }
 
 /*
  * Get framework user email
  * 
- * @param $username rcms user login
+ * @param string $username rcms user login
  * @return string
  */
 
 function gravatar_GetUserEmail($username) {
-    $storePath=DATA_PATH."users/";
-    if (file_exists($storePath.$username)) {
-        $userContent=  file_get_contents($storePath.$username);
-        $userData= unserialize($userContent);
-        $result=$userData['email'];
+    $storePath = DATA_PATH . "users/";
+    if (file_exists($storePath . $username)) {
+        $userContent = file_get_contents($storePath . $username);
+        $userData = unserialize($userContent);
+        $result = $userData['email'];
     } else {
-        $result='';
+        $result = '';
     }
     return ($result);
 }
@@ -63,19 +64,19 @@ function gravatar_GetUserEmail($username) {
 /*
  * Shows avatar for some framework user - use only this in production!
  * 
- * @param $username rcms user login
- * @param $size - size of returning avatar
+ * @param string $username rcms user login
+ * @param int    $size - size of returning avatar
  * @return string
  */
-function gravatar_ShowAdminAvatar($username,$size='') {
-    $adminEmail=  gravatar_GetUserEmail($username);
+
+function gravatar_ShowAdminAvatar($username, $size = '') {
+    $adminEmail = gravatar_GetUserEmail($username);
     if ($adminEmail) {
-        $result=  gravatar_GetAvatar($adminEmail,$size);
+        $result = gravatar_GetAvatar($adminEmail, $size);
     } else {
-        $result=  wf_img('skins/admava.png');
+        $result = wf_img('skins/admava.png');
     }
     return ($result);
 }
-
 
 ?>

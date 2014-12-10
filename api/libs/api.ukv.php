@@ -51,13 +51,11 @@ class UkvSystem {
     const BANKSTA_NOTES = 'NAME_PLAT';
     const BANKSTA_TIME = 'PTIME';
     const BANKSTA_DATE = 'PDATE';
-
     //finance coloring options
     const COLOR_FEE = 'a90000';
     const COLOR_PAYMENT = '005304';
     const COLOR_CORRECTING = 'ff6600';
     const COLOR_MOCK = '006699';
-
     //some exeptions
     const EX_TARIFF_FIELDS_EMPTY = 'EMPTY_TARIFF_OPTS_RECEIVED';
     const EX_USER_NOT_EXISTS = 'NO_EXISTING_UKV_USER';
@@ -430,7 +428,7 @@ class UkvSystem {
         //push payment to user
         $newCashValue = $currentBalance + $summ;
         $this->userSetCash($userid, $newCashValue);
-        $this->users[$userid]['cash']=$newCashValue;
+        $this->users[$userid]['cash'] = $newCashValue;
         log_register('UKV BALANCEADD ((' . $userid . ')) ON ' . $summ);
     }
 
@@ -721,10 +719,10 @@ class UkvSystem {
             $userData = $this->users[$userid];
 
             $inputs = '';
-            
-            $inputs= wf_tag('tr', false);
+
+            $inputs = wf_tag('tr', false);
             $inputs.= wf_tag('td', false, '', 'valign="top"');
-            
+
             $inputs.= wf_HiddenInput('usereditprocessing', $userid);
             $inputs.= wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_tag('h3') . __('Full address') . wf_tag('h3', true);
@@ -733,7 +731,7 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditbuild', __('Build'), $userData['build'], false, '5');
             $inputs.= wf_TextInput('ueditapt', __('Apartment'), $userData['apt'], true, '4');
             $inputs.= wf_tag('div', true);
-            
+
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('td', false, '', 'valign="top"');
 
@@ -743,7 +741,7 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditphone', __('Phone'), $userData['phone'], true, '20');
             $inputs.= wf_TextInput('ueditmobile', __('Mobile'), $userData['mobile'], true, '20');
             $inputs.= wf_tag('div', true);
-            
+
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
             $inputs.= wf_tag('td', false, '', 'valign="top"');
@@ -756,7 +754,7 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditregdate', __('Contract date'), $userData['regdate'], true, '20');
             $inputs.= wf_TextInput('ueditinetlogin', __('Login'), $userData['inetlogin'], true, '20');
             $inputs.= wf_tag('div', true);
-            
+
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('td', false, '', 'valign="top"');
 
@@ -768,27 +766,27 @@ class UkvSystem {
             $inputs.= wf_TextInput('ueditssn', __('SSN'), $userData['ssn'], true, '20');
             $inputs.= wf_TextInput('ueditpaddr', __('Registration address'), $userData['paddr'], true, '20');
             $inputs.= wf_tag('div', true);
-            
+
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
-            
+
             $inputs.= wf_tag('tr', false);
             $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
-            
+
             $inputs.=wf_tag('div', false, 'floatpanelswide');
             $inputs.= wf_TextInput('ueditnotes', __('Notes'), $userData['notes'], false, '60');
             $inputs.= wf_tag('div', true);
-            
+
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
-            
+
             $inputs.= wf_tag('tr', false);
             $inputs.= wf_tag('td', false, '', 'colspan="2" valign="top"');
             $inputs.= wf_Submit(__('Save'));
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
-            
-            $inputs=  wf_TableBody($inputs, '100%', 0, '');
+
+            $inputs = wf_TableBody($inputs, '100%', 0, '');
 
             $result = wf_Form('', 'POST', $inputs, 'ukvusereditform');
 
@@ -827,7 +825,7 @@ class UkvSystem {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         return ($result);
     }
-    
+
     /*
      * checks is user contract unique
      * 
@@ -835,11 +833,12 @@ class UkvSystem {
      * 
      * @return bool
      */
+
     protected function checkContract($contract) {
         if (isset($this->contracts[$contract])) {
-            $result=false;
+            $result = false;
         } else {
-            $result=true;
+            $result = true;
         }
         return ($result);
     }
@@ -870,22 +869,23 @@ class UkvSystem {
 
             //saving build
             if ($this->users[$userId]['build'] != $_POST['ueditbuild']) {
-                simple_update_field($tablename, 'build', $_POST['ueditbuild'], $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $_POST['ueditbuild'] . '`');
+                $newBuild = $this->filterStringData($_POST['ueditbuild']);
+                simple_update_field($tablename, 'build', $newBuild, $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $newBuild . '`');
             }
 
             //saving apartment
             if ($this->users[$userId]['apt'] != $_POST['ueditapt']) {
-                simple_update_field($tablename, 'apt', $_POST['ueditapt'], $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE APT `' . $_POST['ueditapt'] . '`');
+                $newApt = $this->filterStringData($_POST['ueditapt']);
+                simple_update_field($tablename, 'apt', $newApt, $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE APT `' . $newApt . '`');
             }
 
             //saving realname
             if ($this->users[$userId]['realname'] != $_POST['ueditrealname']) {
-                $newRealname = str_replace('"', '`', $_POST['ueditrealname']);
-                $newRealname = str_replace("'", '`', $newRealname);
+                $newRealname = $this->filterStringData($_POST['ueditrealname']);
                 simple_update_field($tablename, 'realname', $newRealname, $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE REALNAME `' . $_POST['ueditrealname'] . '`');
+                log_register('UKV USER ((' . $userId . ')) CHANGE REALNAME `' . $newRealname . '`');
             }
 
             //saving phone
@@ -909,7 +909,6 @@ class UkvSystem {
                 } else {
                     log_register('UKV USER ((' . $userId . ')) CHANGE FAIL CONTRACT `' . $newContract . '` DUPLICATE');
                 }
-                
             }
 
             //saving tariff
@@ -991,11 +990,14 @@ class UkvSystem {
 
         simple_update_field('ukv_users', 'street', $_POST['uregstreet'], $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE STREET `' . $_POST['uregstreet'] . '`');
-
-        simple_update_field('ukv_users', 'build', $_POST['uregbuild'], $whereReg);
+        
+        
+        $newBuild=$this->filterStringData($_POST['uregbuild']);
+        simple_update_field('ukv_users', 'build', $newBuild, $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $_POST['uregbuild'] . '`');
 
         $newApt = (!empty($_POST['uregapt'])) ? $_POST['uregapt'] : 0;
+        $newApt= $this->filterStringData($newApt);
         simple_update_field('ukv_users', 'apt', $newApt, $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE APT `' . $newApt . '`');
     }
@@ -1103,6 +1105,18 @@ class UkvSystem {
         }
     }
 
+    /**
+     * Filter for quotes etc
+     * 
+     * @param string $data
+     * @return string
+     */
+    protected function filterStringData($data) {
+        $result = str_replace('"', '`', $data);
+        $result = str_replace("'", '`', $result);
+        return ($result);
+    }
+
     /*
      * renders full user list with some ajax data
      * 
@@ -1124,10 +1138,10 @@ class UkvSystem {
                         "sSearch":       "' . __('Search') . '",
                         "sProcessing":   "' . __('Processing') . '...",
                         "oPaginate": {
-                        "sFirst": "'.__('First').'",
-                        "sPrevious": "'.__('Previous').'",
-                        "sNext": "'.__('Next').'",
-                        "sLast": "'.__('Last').'"
+                        "sFirst": "' . __('First') . '",
+                        "sPrevious": "' . __('Previous') . '",
+                        "sNext": "' . __('Next') . '",
+                        "sLast": "' . __('Last') . '"
                     },
 		},
            
@@ -1601,15 +1615,14 @@ class UkvSystem {
                         $cashPairs[$each['id']]['usercontract'] = $detectedUser['contract'];
                         $cashPairs[$each['id']]['summ'] = $each['summ'];
                     }
-                    
+
                     $rowClass = 'row3';
                     //try to highlight multiple payments
                     if (!isset($this->bankstafoundusers[$each['contract']])) {
-                        $this->bankstafoundusers[$each['contract']]=$detectedUser['id'];
+                        $this->bankstafoundusers[$each['contract']] = $detectedUser['id'];
                     } else {
-                        $rowClass='ukvbankstadup';
+                        $rowClass = 'ukvbankstadup';
                     }
-                    
                 } else {
                     $detectedContract = '';
                     $detectedAddress = '';
@@ -1866,7 +1879,7 @@ class UkvSystem {
      */
 
     protected function reportPrintable($title, $data) {
- 
+
         $style = '
         <style type="text/css">
         table.printable {
@@ -1902,29 +1915,29 @@ class UkvSystem {
         }
         </style>
         ';
-        
-       $header='<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+        $header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
         <head>                                                        
-        <title>'.$title.'</title>
+        <title>' . $title . '</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        '.$style.'
+        ' . $style . '
         </head>
         <body>
         ';
-       
-       $footer='</body> </html>';
-        
+
+        $footer = '</body> </html>';
+
         $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
-        $data = $header . $title . $data. $footer;
+        $data = $header . $title . $data . $footer;
         $profileIconMask = web_profile_icon();
-        $connectedMask= web_bool_led(1, true);
-        $disconnectedMask= web_bool_led(0,true);
-        
+        $connectedMask = web_bool_led(1, true);
+        $disconnectedMask = web_bool_led(0, true);
+
         $data = str_replace('sortable', 'printable', $data);
         $data = str_replace($profileIconMask, '', $data);
         $data = str_replace($connectedMask, __('Connected'), $data);
-        $data = str_replace($disconnectedMask, wf_tag('b').__('Disconnected').wf_tag('b',true), $data);
+        $data = str_replace($disconnectedMask, wf_tag('b') . __('Disconnected') . wf_tag('b', true), $data);
 
         die($data);
     }
@@ -1945,7 +1958,7 @@ class UkvSystem {
                 $userTariff = $eachUser['tariffid'];
                 $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
                 $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
-                if (($eachUser['cash'] <= $debtMaxLimit) AND ($eachUser['active'] == 1) AND ($tariffPrice != 0)) {
+                if (($eachUser['cash'] <= $debtMaxLimit) AND ( $eachUser['active'] == 1) AND ( $tariffPrice != 0)) {
                     $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
                     $counter++;
                     $summDebt = $summDebt + $eachUser['cash'];
@@ -2009,7 +2022,7 @@ class UkvSystem {
             foreach ($this->users as $ix => $eachUser) {
                 $userTariff = $eachUser['tariffid'];
                 $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
-                if (($eachUser['cash'] >= 0) AND ($eachUser['active'] == 0) AND ($tariffPrice != 0)) {
+                if (($eachUser['cash'] >= 0) AND ( $eachUser['active'] == 0) AND ( $tariffPrice != 0)) {
                     $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
                     $counter++;
                 }
@@ -2077,14 +2090,14 @@ class UkvSystem {
             }
         }
 
-        if ((!empty($tariffArr)) AND (!empty($this->users))) {
+        if ((!empty($tariffArr)) AND ( !empty($this->users))) {
             foreach ($this->users as $io => $eachUser) {
                 if (!empty($eachUser['tariffid'])) {
-                $tariffUsers[$eachUser['tariffid']][] = $eachUser;
-                $tariffCounter[$eachUser['tariffid']]['all'] = $tariffCounter[$eachUser['tariffid']]['all'] + 1;
-                if ($eachUser['active']) {
-                    $tariffCounter[$eachUser['tariffid']]['alive'] = $tariffCounter[$eachUser['tariffid']]['alive'] + 1;
-                 }
+                    $tariffUsers[$eachUser['tariffid']][] = $eachUser;
+                    $tariffCounter[$eachUser['tariffid']]['all'] = $tariffCounter[$eachUser['tariffid']]['all'] + 1;
+                    if ($eachUser['active']) {
+                        $tariffCounter[$eachUser['tariffid']]['alive'] = $tariffCounter[$eachUser['tariffid']]['alive'] + 1;
+                    }
                 }
             }
         }
@@ -2390,16 +2403,16 @@ class UkvSystem {
 
         $controlcells = wf_TableCell(wf_tag('h3', false, 'title') . __('Year') . wf_tag('h3', true));
         $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payments by date') . wf_tag('h3', true));
-        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Debt'). wf_tag('h3', true));
+        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Debt') . wf_tag('h3', true));
         $controlrows = wf_TableRow($controlcells);
 
         $controlcells = wf_TableCell($yearform);
         $controlcells.= wf_TableCell($dateform);
         //extract total debt summ
-        $debt_q="SELECT SUM(`cash`) as `totaldebt`, COUNT(`id`) as `debtcount` from `ukv_users` WHERE `cash`<0";
-        $totalDebt=  simple_query($debt_q);
-        $debtData=  __('Cash').': '.wf_tag('b').$totalDebt['totaldebt'].wf_tag('b',true). wf_tag('br');
-        $debtData.= __('Count').': '.wf_tag('b').$totalDebt['debtcount'].wf_tag('b',true);
+        $debt_q = "SELECT SUM(`cash`) as `totaldebt`, COUNT(`id`) as `debtcount` from `ukv_users` WHERE `cash`<0";
+        $totalDebt = simple_query($debt_q);
+        $debtData = __('Cash') . ': ' . wf_tag('b') . $totalDebt['totaldebt'] . wf_tag('b', true) . wf_tag('br');
+        $debtData.= __('Count') . ': ' . wf_tag('b') . $totalDebt['debtcount'] . wf_tag('b', true);
         $controlcells.= wf_TableCell($debtData);
         $controlrows.= wf_TableRow($controlcells);
 
@@ -2537,174 +2550,169 @@ class UkvSystem {
      */
 
     public function reportFees() {
-       $allFeesDates_q="SELECT * from `ukv_fees` ORDER BY `id` DESC;";
-       $allFeesDates= simple_queryall($allFeesDates_q);
-       $result='';
-       $csvData='';
-       
-       //existing report download
-       if (wf_CheckGet(array('downloadfeereport'))) {
-           $filenameToDownload=  base64_decode($_GET['downloadfeereport']);
-           zb_DownloadFile('exports/'.$filenameToDownload, 'docx');
-       }
-       
-       //render fees list
-         $cells=  wf_TableCell(__('Month'));
-         $rows=  wf_TableRow($cells, 'row1');
-       if (!empty($allFeesDates)) {
-           foreach ($allFeesDates as $ia=>$eachFee) {
-               $feeLink=  wf_Link(self::URL_REPORTS_MGMT.'reportFees&showfees='.$eachFee['yearmonth'], $eachFee['yearmonth'], false);
-               $cells=  wf_TableCell($feeLink);
-               $rows.=  wf_TableRow($cells, 'row3');
-           }
-       }
-       $result.=wf_TableBody($rows, '30%', '0', 'sortable');
-       show_window(__('By date'),$result);
-       
-       //render fees by selected month
-       if (wf_CheckGet(array('showfees'))) {
-           $feesSumm=0;
-           $feesCount=0;
-           $searchFees=  mysql_real_escape_string($_GET['showfees']);
-           $payments_q="SELECT * from `ukv_payments` WHERE `date` LIKE '".$searchFees."%' AND `note` LIKE 'UKVFEE:%' ORDER BY `id` DESC";
-           $allPayments=  simple_queryall($payments_q);
-           if (!empty($allPayments)) {
-               
-               $cells=  wf_TableCell(__('ID'));
-               $cells.=  wf_TableCell(__('Date'));
-               $cells.=  wf_TableCell(__('Cash'));
-               $cells.=  wf_TableCell(__('Full address'));
-               $cells.=  wf_TableCell(__('Real Name'));
-               $rowsf= wf_TableRow($cells, 'row1');
-               
-               foreach ($allPayments as $io=>$eachPayment) {
-                   if ($eachPayment['summ']<0) {
-                    $cells=  wf_TableCell($eachPayment['id']);
-                    $cells.=  wf_TableCell($eachPayment['date']);
-                    $cells.=  wf_TableCell($eachPayment['summ']);
-                    $userLink=  wf_Link(self::URL_USERS_PROFILE.$eachPayment['userid'], web_profile_icon().' ', false);
-                    $userAddress=$this->userGetFullAddress($eachPayment['userid']);
-                    $cells.=  wf_TableCell($userLink.$userAddress);
-                    $userRealName=$this->users[$eachPayment['userid']]['realname'];
-                    $cells.=  wf_TableCell($userRealName);
-                    $rowsf.= wf_TableRow($cells, 'row3');
-                    $feesCount++;
-                    $feesSumm=$feesSumm+$eachPayment['summ'];
-                    $csvData.=$eachPayment['id'].';'.$eachPayment['date'].';'.$eachPayment['summ'].';'.$userAddress.';'.$userRealName."\r"."\n";
-                   }
-               }
-               
-               //saving downloadable report
-               $csvSaveName=$searchFees.'_ukvfeesreport.csv';
-               $csvData=  iconv('utf-8', 'windows-1251', $csvData);
-               file_put_contents('exports/'.$csvSaveName, $csvData);
-               $downloadLink=  wf_Link(self::URL_REPORTS_MGMT.'reportFees&downloadfeereport='.base64_encode($csvSaveName), wf_img('skins/excel.gif', __('Download')), false);
-               
-               $result= wf_tag('strong').__('Count').': '.$feesCount;
-               $result.= wf_tag('br');
-               $result.= __('Money').': '.$feesSumm;
-               $result.= wf_tag('strong',true);
-               $result.= wf_TableBody($rowsf, '100%', '0', 'sortable');
+        $allFeesDates_q = "SELECT * from `ukv_fees` ORDER BY `id` DESC;";
+        $allFeesDates = simple_queryall($allFeesDates_q);
+        $result = '';
+        $csvData = '';
 
-               show_window(__('Money fees').' '.$searchFees.' '.$downloadLink, $result);
-           }
-       }
-       
-       
+        //existing report download
+        if (wf_CheckGet(array('downloadfeereport'))) {
+            $filenameToDownload = base64_decode($_GET['downloadfeereport']);
+            zb_DownloadFile('exports/' . $filenameToDownload, 'docx');
+        }
+
+        //render fees list
+        $cells = wf_TableCell(__('Month'));
+        $rows = wf_TableRow($cells, 'row1');
+        if (!empty($allFeesDates)) {
+            foreach ($allFeesDates as $ia => $eachFee) {
+                $feeLink = wf_Link(self::URL_REPORTS_MGMT . 'reportFees&showfees=' . $eachFee['yearmonth'], $eachFee['yearmonth'], false);
+                $cells = wf_TableCell($feeLink);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+        $result.=wf_TableBody($rows, '30%', '0', 'sortable');
+        show_window(__('By date'), $result);
+
+        //render fees by selected month
+        if (wf_CheckGet(array('showfees'))) {
+            $feesSumm = 0;
+            $feesCount = 0;
+            $searchFees = mysql_real_escape_string($_GET['showfees']);
+            $payments_q = "SELECT * from `ukv_payments` WHERE `date` LIKE '" . $searchFees . "%' AND `note` LIKE 'UKVFEE:%' ORDER BY `id` DESC";
+            $allPayments = simple_queryall($payments_q);
+            if (!empty($allPayments)) {
+
+                $cells = wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Date'));
+                $cells.= wf_TableCell(__('Cash'));
+                $cells.= wf_TableCell(__('Full address'));
+                $cells.= wf_TableCell(__('Real Name'));
+                $rowsf = wf_TableRow($cells, 'row1');
+
+                foreach ($allPayments as $io => $eachPayment) {
+                    if ($eachPayment['summ'] < 0) {
+                        $cells = wf_TableCell($eachPayment['id']);
+                        $cells.= wf_TableCell($eachPayment['date']);
+                        $cells.= wf_TableCell($eachPayment['summ']);
+                        $userLink = wf_Link(self::URL_USERS_PROFILE . $eachPayment['userid'], web_profile_icon() . ' ', false);
+                        $userAddress = $this->userGetFullAddress($eachPayment['userid']);
+                        $cells.= wf_TableCell($userLink . $userAddress);
+                        $userRealName = $this->users[$eachPayment['userid']]['realname'];
+                        $cells.= wf_TableCell($userRealName);
+                        $rowsf.= wf_TableRow($cells, 'row3');
+                        $feesCount++;
+                        $feesSumm = $feesSumm + $eachPayment['summ'];
+                        $csvData.=$eachPayment['id'] . ';' . $eachPayment['date'] . ';' . $eachPayment['summ'] . ';' . $userAddress . ';' . $userRealName . "\r" . "\n";
+                    }
+                }
+
+                //saving downloadable report
+                $csvSaveName = $searchFees . '_ukvfeesreport.csv';
+                $csvData = iconv('utf-8', 'windows-1251', $csvData);
+                file_put_contents('exports/' . $csvSaveName, $csvData);
+                $downloadLink = wf_Link(self::URL_REPORTS_MGMT . 'reportFees&downloadfeereport=' . base64_encode($csvSaveName), wf_img('skins/excel.gif', __('Download')), false);
+
+                $result = wf_tag('strong') . __('Count') . ': ' . $feesCount;
+                $result.= wf_tag('br');
+                $result.= __('Money') . ': ' . $feesSumm;
+                $result.= wf_tag('strong', true);
+                $result.= wf_TableBody($rowsf, '100%', '0', 'sortable');
+
+                show_window(__('Money fees') . ' ' . $searchFees . ' ' . $downloadLink, $result);
+            }
+        }
     }
-    
-    
-     /*
+
+    /*
      * renders streets report
      * 
      * @return void
      */
+
     public function reportStreets() {
-        $ukvCities=array();
-        $ukvStreets=array();
+        $ukvCities = array();
+        $ukvStreets = array();
         //loads cities and streets occupied by UKV users
-        $ukvCities_q="SELECT DISTINCT `city` from `ukv_users` ORDER BY `city` ASC";
-        $ukvCitiesRaw=  simple_queryall($ukvCities_q);
+        $ukvCities_q = "SELECT DISTINCT `city` from `ukv_users` ORDER BY `city` ASC";
+        $ukvCitiesRaw = simple_queryall($ukvCities_q);
         if (!empty($ukvCitiesRaw)) {
-            foreach ($ukvCitiesRaw as $ieuc=>$euc) {
-                $ukvCities[$euc['city']]=$euc['city'];
+            foreach ($ukvCitiesRaw as $ieuc => $euc) {
+                $ukvCities[$euc['city']] = $euc['city'];
             }
         }
-        
-        $ukvStreets_q="SELECT DISTINCT `street` from `ukv_users` ORDER BY `street` ASC";
-        $ukvStreetsRaw=  simple_queryall($ukvStreets_q);
+
+        $ukvStreets_q = "SELECT DISTINCT `street` from `ukv_users` ORDER BY `street` ASC";
+        $ukvStreetsRaw = simple_queryall($ukvStreets_q);
         if (!empty($ukvStreetsRaw)) {
-            foreach ($ukvStreetsRaw as $ieus=>$eus) {
-                $ukvStreets[$eus['street']]=$eus['street'];
+            foreach ($ukvStreetsRaw as $ieus => $eus) {
+                $ukvStreets[$eus['street']] = $eus['street'];
             }
         }
-        
+
         //main codepart
-        $citySelected=(wf_CheckPost(array('streetreportcity'))) ? $_POST['streetreportcity'] : '';
-        $streetSelected=(wf_CheckPost(array('streetreportstreet'))) ? $_POST['streetreportstreet'] : '';
-        
-        $inputs=  wf_Selector('streetreportcity', $ukvCities, __('City'), $citySelected, false);
+        $citySelected = (wf_CheckPost(array('streetreportcity'))) ? $_POST['streetreportcity'] : '';
+        $streetSelected = (wf_CheckPost(array('streetreportstreet'))) ? $_POST['streetreportstreet'] : '';
+
+        $inputs = wf_Selector('streetreportcity', $ukvCities, __('City'), $citySelected, false);
         $inputs.= wf_Selector('streetreportstreet', $ukvStreets, __('Street'), $streetSelected, false);
         $inputs.= wf_Submit(__('Show'));
-        $form=  wf_Form('', 'POST', $inputs, 'glamour');
-        
+        $form = wf_Form('', 'POST', $inputs, 'glamour');
+
         show_window(__('Streets report'), $form);
-        
-        if ((wf_CheckPost(array('streetreportcity','streetreportstreet'))) OR (wf_CheckGet(array('rc','rs'))) ) {
-            
+
+        if ((wf_CheckPost(array('streetreportcity', 'streetreportstreet'))) OR ( wf_CheckGet(array('rc', 'rs')))) {
+
             //set form data
-            if (wf_CheckPost(array('streetreportcity','streetreportstreet'))) {
-                $citySearch=$_POST['streetreportcity'];
-                $streetSearch=$_POST['streetreportstreet'];
+            if (wf_CheckPost(array('streetreportcity', 'streetreportstreet'))) {
+                $citySearch = $_POST['streetreportcity'];
+                $streetSearch = $_POST['streetreportstreet'];
             }
-            
+
             //or printable report
-            if (wf_CheckGet(array('rc','rs'))) {
-                $citySearch=   $_GET['rc'];
-                $streetSearch= $_GET['rs'];
+            if (wf_CheckGet(array('rc', 'rs'))) {
+                $citySearch = $_GET['rc'];
+                $streetSearch = $_GET['rs'];
             }
-            
+
             if (!empty($this->users)) {
-           $counter=0;
-           
-               $cells = wf_TableCell(__('Contract'), '10%');
-               $cells.= wf_TableCell(__('Full address'), '31%');
-               $cells.= wf_TableCell(__('Real Name'), '30%');
-               $cells.= wf_TableCell(__('Tariff'), '15%');
-               $cells.= wf_TableCell(__('Cash'), '7%');
-               $cells.= wf_TableCell(__('Status'), '7%');
-               $rows = wf_TableRow($cells, 'row1');
-     
-                foreach ($this->users as $io=>$eachUser) {
-                    if (($eachUser['city']==$citySearch)  AND ($eachUser['street']==$streetSearch)) {
-                    $cells = wf_TableCell($eachUser['contract']);
-                    $fullAddress = $this->userGetFullAddress($eachUser['id']);
-                    $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
-                    $cells.= wf_TableCell($profileLink . $fullAddress);
-                    $cells.= wf_TableCell($eachUser['realname']);
-                    $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
-                    $cells.= wf_TableCell($eachUser['cash']);
-                    $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
-                    $rows.= wf_TableRow($cells, 'row3');
-                    $counter++;
+                $counter = 0;
+
+                $cells = wf_TableCell(__('Contract'), '10%');
+                $cells.= wf_TableCell(__('Full address'), '31%');
+                $cells.= wf_TableCell(__('Real Name'), '30%');
+                $cells.= wf_TableCell(__('Tariff'), '15%');
+                $cells.= wf_TableCell(__('Cash'), '7%');
+                $cells.= wf_TableCell(__('Status'), '7%');
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($this->users as $io => $eachUser) {
+                    if (($eachUser['city'] == $citySearch) AND ( $eachUser['street'] == $streetSearch)) {
+                        $cells = wf_TableCell($eachUser['contract']);
+                        $fullAddress = $this->userGetFullAddress($eachUser['id']);
+                        $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
+                        $cells.= wf_TableCell($profileLink . $fullAddress);
+                        $cells.= wf_TableCell($eachUser['realname']);
+                        $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell($eachUser['cash']);
+                        $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
+                        $rows.= wf_TableRow($cells, 'row3');
+                        $counter++;
                     }
                 }
-               $result= wf_TableBody($rows, '100%', '0', 'sortable');
-               $result.= __('Total').': '.$counter;
-               
-               if (wf_CheckGet(array('printable'))) {
-                   $this->reportPrintable($citySearch.' / '.$streetSearch, $result);
-               } else {
-                   $printlink=  wf_Link(self::URL_REPORTS_MGMT.'reportStreets&rc='.$citySearch.'&rs='.$streetSearch.'&printable=true', wf_img('skins/icon_print.png', __('Print')), false, '');
-                   show_window($citySearch.' / '.$streetSearch.' '.$printlink, $result);     
-               }
-               
-               
+                $result = wf_TableBody($rows, '100%', '0', 'sortable');
+                $result.= __('Total') . ': ' . $counter;
+
+                if (wf_CheckGet(array('printable'))) {
+                    $this->reportPrintable($citySearch . ' / ' . $streetSearch, $result);
+                } else {
+                    $printlink = wf_Link(self::URL_REPORTS_MGMT . 'reportStreets&rc=' . $citySearch . '&rs=' . $streetSearch . '&printable=true', wf_img('skins/icon_print.png', __('Print')), false, '');
+                    show_window($citySearch . ' / ' . $streetSearch . ' ' . $printlink, $result);
+                }
             } else {
                 show_window(__('Result'), __('Any users found'));
             }
         }
-        
     }
 
 }
