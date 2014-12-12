@@ -307,7 +307,7 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * Return select Web From element 
  *
  * @param string  $name name of element
- * @param string  $params array of elements $value=>$option
+ * @param array   $params array of elements $value=>$option
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
@@ -347,7 +347,7 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false) {
  * Return select Web From element with auto click option
  *
  * @param string  $name name of element
- * @param string  $params array of elements $value=>$option
+ * @param array   $params array of elements $value=>$option
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line

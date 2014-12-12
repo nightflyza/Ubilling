@@ -31,7 +31,7 @@ function zbs_UserDetectIp($debug=false)  {
        }
      }
     if ($debug) {
-      //  $ip='172.30.0.2'; 
+     //   $ip='172.30.0.2'; 
     }
        
     return($ip);
@@ -394,6 +394,34 @@ function zbs_UserShowXmlAgentData($login) {
         header("Pragma: no-cache");
         header('Access-Control-Allow-Origin: *');
         die($payments);
+    }
+    
+    
+    if (isset($_GET['announcements'])) {
+        if ($us_config['AN_ENABLED']) {
+        $announcements_query="SELECT * from `zbsannouncements` WHERE `public`='1' ORDER by `id` DESC";
+        $allAnnouncements=simple_queryall($announcements_query);
+        
+        $announcements='<?xml version="1.0" encoding="utf-8"?>
+<data>'."\n";
+        if (!empty($allAnnouncements)) {
+            foreach ($allAnnouncements as $ian=>$eachAnnouncement) {
+                $annText=  strip_tags($eachAnnouncement['text']);
+                $allTitle= strip_tags($eachAnnouncement['title']);
+                $announcements.='<message unic="'.$eachAnnouncement['id'].'" title="'.$allTitle.'">'.$annText.'</message>'."\n";
+            }
+        }
+        $announcements.='</data>'."\n";
+    } else {
+        $announcements='<?xml version="1.0" encoding="utf-8"?>'."\n".'<data>'."\n".'</data>'."\n";  
+    }
+        header('Last-Modified: ' . gmdate('r'));
+        header('Content-Type: text/html; charset=utf-8');
+        header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
+        header("Pragma: no-cache");
+        header('Access-Control-Allow-Origin: *');
+        die($announcements);
+        
     }
 
     $us_currency=$us_config['currency'];
