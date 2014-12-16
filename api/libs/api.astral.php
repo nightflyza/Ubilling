@@ -1100,7 +1100,7 @@ function wf_FullCalendar($data) {
 				center: 'title',
 				right: 'month,basicWeek,basicDay'
 			},
-                        
+                   
 			events: [
 				" . $data . "
 			
@@ -1648,6 +1648,38 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     }
 
     $result.=$newline . "\n";
+    return ($result);
+}
+
+
+
+ /* *
+ * Returns calendar widget with preset time
+ * 
+ * @param string $field field name to insert time select widget
+ * @param string $time default value time for widget
+ * @param string $label label of widget
+ * @param bool $br add break after the widget body?
+ * @return string
+ */
+function wf_TimePickerPreset($field, $time='',$label='',$br=false) {
+    $inputId=  wf_InputId();
+    
+    $result= wf_tag('input', false, '', 'type="text" value="'.$time.'" name="'.$field.'" size="5" id="'.$inputId.'"');
+    $result.= wf_tag('script');
+    $result.='$(\'#'.$inputId.'\').timepicker({\'scrollDefault\': \''.$time.'\', \'timeFormat\': \'H:i\' });';
+    $result.= wf_tag('script',true);
+    
+    //clickable icon and label
+    if (!empty($label)) {
+        $label=' '.__($label);
+    }
+    $result.=wf_tag('label', false, '', 'for="'.$inputId.'"').wf_img('skins/icon_time_small.png', __('Time')).$label.wf_tag('label',true);
+    //break at end
+    if ($br) {
+        $result.= wf_tag('br');
+    }
+    
     return ($result);
 }
 

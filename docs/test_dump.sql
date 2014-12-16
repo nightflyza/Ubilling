@@ -1269,3 +1269,5 @@ CREATE TABLE IF NOT EXISTS `stickynotes` (
 ALTER TABLE `jobtypes` ADD `jobcolor` VARCHAR(40) NULL AFTER `jobname`, ADD INDEX (`jobcolor`) ; 
 
 ALTER TABLE `taskman` ADD `login` VARCHAR(255) NULL AFTER `address`, ADD INDEX (`login`) ; 
+
+ALTER TABLE `taskman` ADD `starttime` TIME NULL AFTER `startdate`, ADD INDEX (`starttime`) ; 

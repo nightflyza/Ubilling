@@ -362,7 +362,7 @@ function ts_DetectUserByAddress($address) {
                         }
                     }
                 }
-                $customJobColorStyle.='</style>';
+                $customJobColorStyle.='</style>'."\n";
                 return ($customJobColorStyle);
     }
     
@@ -455,6 +455,7 @@ function ts_DetectUserByAddress($address) {
                 
                 $startdate=strtotime($eachtask['startdate']);
                 $startdate=date("Y, n-1, j",$startdate);
+                
                 if ($eachtask['enddate']!='') {
                     $enddate=strtotime($eachtask['enddate']);
                     $enddate=date("Y, n-1, j",$enddate);
@@ -472,11 +473,21 @@ function ts_DetectUserByAddress($address) {
                 } else {
                     $jobColorClass='undone';
                 }
+                
+                //time ordering
+                if (!empty($eachtask['starttime'])) {
+                    $startTime=$eachtask['starttime'];
+                    $startTime=substr($startTime,0,5).' ';
+                    $startTimeTimestamp=', '.str_replace(':',', ',$startTime);
+                } else {
+                    $startTime='';
+                    $startTimeTimestamp= '';
+                }
           
                 $result.="
                       {
-                        title: '".$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
-                        start: new Date(".$startdate."),
+                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
+                        start: new Date(".$startdate.$startTimeTimestamp."),
                         end: new Date(".$enddate."),
                         className : '".$jobColorClass."',
                         url: '?module=taskman&edittask=".$eachtask['id']."'
@@ -586,6 +597,17 @@ function ts_DetectUserByAddress($address) {
                 
                 $startdate=strtotime($eachtask['startdate']);
                 $startdate=date("Y, n-1, j",$startdate);
+                
+                //time ordering
+                if (!empty($eachtask['starttime'])) {
+                    $startTime=$eachtask['starttime'];
+                    $startTime=substr($startTime,0,5).' ';
+                    $startTimeTimestamp=', '.str_replace(':',', ',$startTime);
+                } else {
+                    $startTime='';
+                    $startTimeTimestamp= '';
+                }
+                
                 if ($eachtask['enddate']!='') {
                     $enddate=strtotime($eachtask['enddate']);
                     $enddate=date("Y, n-1, j",$enddate);
@@ -612,8 +634,8 @@ function ts_DetectUserByAddress($address) {
           
                 $result.="
                       {
-                        title: '".$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
-                        start: new Date(".$startdate."),
+                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
+                        start: new Date(".$startdate.$startTimeTimestamp."),
                         end: new Date(".$enddate."),
                         ".$coloring."
                         url: '?module=taskman&edittask=".$eachtask['id']."'
@@ -676,7 +698,11 @@ function ts_DetectUserByAddress($address) {
         
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=  wf_HiddenInput('createtask', 'true');
-        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+        $inputs.=wf_DatePicker('newstartdate');
+        $inputs.=wf_TimePickerPreset('newstarttime', '','',false);
+        $inputs.=wf_tag('label').__('Target date').wf_tag('sup').'*'.wf_tag('sup',true).  wf_tag('label',true);
+        $inputs.=wf_delimiter();
+
         if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', '', true, '30');
         } else {
@@ -718,7 +744,10 @@ function ts_DetectUserByAddress($address) {
         
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=wf_HiddenInput('createtask', 'true');
-        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+        $inputs.=wf_DatePicker('newstartdate');
+        $inputs.=wf_TimePickerPreset('newstarttime', '','',false);
+        $inputs.=wf_tag('label').__('Target date').wf_tag('sup').'*'.wf_tag('sup',true).  wf_tag('label',true);
+        $inputs.=wf_delimiter();
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
         //hidden for new task login input
         $inputs.=wf_HiddenInput('newtasklogin', $login);
@@ -753,7 +782,10 @@ function ts_DetectUserByAddress($address) {
         
         $inputs='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
         $inputs.=wf_HiddenInput('createtask', 'true');
-        $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
+           $inputs.=wf_DatePicker('newstartdate');
+        $inputs.=wf_TimePickerPreset('newstarttime', '','',false);
+        $inputs.=wf_tag('label').__('Target date').wf_tag('sup').'*'.wf_tag('sup',true).  wf_tag('label',true);
+        $inputs.=wf_delimiter();
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
         //hidden for new task login input
         $inputs.=wf_HiddenInput('newtasklogin', '');
@@ -827,7 +859,7 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
-     function ts_CreateTask($startdate,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
+     function ts_CreateTask($startdate,$starttime,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
         $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $curdate=curdatetime();
         $admin=  whoami();
@@ -835,6 +867,13 @@ function ts_DetectUserByAddress($address) {
         $address=  mysql_real_escape_string($address);
         $login=  mysql_real_escape_string($login);
         $phone=  mysql_real_escape_string($phone);
+        $startdate=  mysql_real_escape_string($startdate);
+        
+        if (!empty($starttime)) {
+            $starttime="'".mysql_real_escape_string($starttime)."'";
+        } else {
+            $starttime='NULL';
+        }
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
         $jobnote=  mysql_real_escape_string($jobnote);
@@ -863,6 +902,7 @@ function ts_DetectUserByAddress($address) {
                             `employeedone` ,
                             `donenote` ,
                             `startdate` ,
+                            `starttime`,
                             `enddate` ,
                             `admin` ,
                             `status`,
@@ -880,6 +920,7 @@ function ts_DetectUserByAddress($address) {
                                     'NULL',
                                     NULL ,
                                     '".$startdate."',
+                                    ".$starttime.",
                                     NULL ,
                                     '".$admin."',
                                     '0',
@@ -909,7 +950,10 @@ function ts_DetectUserByAddress($address) {
         if (!empty($taskdata)) {
         $inputs=wf_HiddenInput('modifytask', $taskid);
         $inputs.='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-        $inputs.= wf_DatePickerPreset('modifystartdate', $taskdata['startdate']).  wf_tag('label').__('Target date').'<sup>*</sup>'.wf_tag('label',true);
+        $inputs.=wf_DatePickerPreset('modifystartdate', $taskdata['startdate']);
+        $inputs.=wf_TimePickerPreset('modifystarttime', $taskdata['starttime'],'',false);
+        $inputs.=wf_tag('label').__('Target date').wf_tag('sup').'*'.wf_tag('sup',true).  wf_tag('label',true);
+        $inputs.=wf_delimiter();
         $inputs.=wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress=  zb_AddressGetFulladdresslistCached();
@@ -941,9 +985,15 @@ function ts_DetectUserByAddress($address) {
     }
     
     
-        function ts_ModifyTask($taskid,$startdate,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
+        function ts_ModifyTask($taskid,$startdate,$starttime,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
         $taskid=vf($taskid,3);
         $startdate=  mysql_real_escape_string($startdate);
+        if (!empty($starttime)) {
+            $starttime="'".mysql_real_escape_string($starttime)."'";
+        } else {
+            $starttime='NULL';
+        }
+        
         $address=  str_replace('\'', '`', $address);
         $address=  mysql_real_escape_string($address);
         $login=  mysql_real_escape_string($login);
@@ -952,6 +1002,7 @@ function ts_DetectUserByAddress($address) {
         $employeeid=vf($employeeid,3);
         
         simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='".$taskid."'");
+        nr_query("UPDATE `taskman` SET `starttime` = ".$starttime." WHERE `id`='".$taskid."'"); //that shit for preventing quotes
         simple_update_field('taskman', 'address', $address, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'login', $login, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'phone', $phone, "WHERE `id`='".$taskid."'");
@@ -1028,7 +1079,7 @@ function ts_DetectUserByAddress($address) {
             $tablerows=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Target date'));
-            $tablecells.=  wf_TableCell('<strong>'.$taskdata['startdate'].'</strong>');
+            $tablecells.=  wf_TableCell(wf_tag('strong').$taskdata['startdate'].' '.$taskdata['starttime']. wf_tag('strong',true));
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Task address'));
