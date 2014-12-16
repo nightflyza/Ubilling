@@ -1784,7 +1784,9 @@ $lang['def']['Personal note active']='Персональная заметка а
 $lang['def']['MAC filters setup']='Настройка фильтров по MAC';
 $lang['def']['One MAC address per line']='Один MAC адрес на строку';
 $lang['def']['All users with tariff']='Все пользователи с тарифом';
-$lang['def']['']='';
+$lang['def']['With this the user has not yet signed a contract']='C этим пользователем еще не заключен договор';
+$lang['def']['Contract date in user profile']='Показывать дату заключения договора в профиле';
+$lang['def']['telepathically guessed']='телепатически угадано';
 $lang['def']['']='';
 
 

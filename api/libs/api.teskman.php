@@ -60,6 +60,7 @@ function em_JobTypeForm() {
      
      $cells=  wf_TableCell(__('ID'));
      $cells.= wf_TableCell(__('Job type'));
+     $cells.= wf_TableCell(__('Color'));
      $cells.= wf_TableCell(__('Actions'));
      $rows=  wf_TableRow($cells, 'row1');
      
@@ -68,6 +69,8 @@ function em_JobTypeForm() {
       
             $cells=  wf_TableCell($eachjob['id']);
             $cells.= wf_TableCell($eachjob['jobname']);
+            $jobColor= (!empty($eachjob['jobcolor'])) ? wf_tag('font', false, '', 'color="'.$eachjob['jobcolor'].'"').$eachjob['jobcolor'].  wf_tag('font',true) : '' ;
+            $cells.= wf_TableCell($jobColor);
               $actionlinks= wf_JSAlert('?module=employee&deletejob='.$eachjob['id'], web_delete_icon(), 'Removing this may lead to irreparable results') .' ';
               $actionlinks.=wf_JSAlert('?module=employee&editjob='.$eachjob['id'], web_edit_icon(), 'Are you serious');
             $cells.= wf_TableCell($actionlinks);
@@ -78,7 +81,8 @@ function em_JobTypeForm() {
       $inputs=  wf_HiddenInput('addjobtype','true');
       $inputs.= wf_TableCell('');
       $inputs.= wf_TableCell(wf_TextInput('newjobtype', '', '', false, '30'));
-      $inputs.= wf_TableCell(wf_img('skins/icon_add.gif').' '.  wf_Submit(__('Create')));
+      $inputs.= wf_TableCell(wf_ColPicker('newjobcolor', __('Color'), '', false, 8) );
+      $inputs.= wf_TableCell(wf_Submit(__('Create')));
       $inputs= wf_TableRow($inputs, 'row2');
       $createForm=  wf_Form("", 'POST', $inputs, '');
       $rows.= $createForm;
@@ -119,15 +123,18 @@ function em_EmployeeDelete($id) {
      log_register('EMPLOYEE DEL ['.$id.']');
     }
 
- function stg_add_jobtype($jobtype) {
+ function stg_add_jobtype($jobtype,$jobcolor) {
         $jobtype=mysql_real_escape_string(trim($jobtype));
+        $jobcolor=  mysql_real_escape_string($jobcolor);
+        
         $query="
             INSERT INTO `jobtypes` (
                 `id` ,
-                `jobname`
+                `jobname`,
+                `jobcolor`
                 )
                 VALUES (
-                NULL , '".$jobtype."'
+                NULL , '".$jobtype."', '".$jobcolor."'
                 );
                 ";
      nr_query($query);
@@ -158,6 +165,11 @@ $jobtype=simple_query($query);
 return($jobtype['jobname']);
 }
 
+function stg_get_jobtype_color($id) {
+$query='SELECT `jobcolor` from `jobtypes` WHERE `id`="'.$id.'"';
+$jobcolor=simple_query($query);
+return($jobcolor['jobcolor']);
+}
 
 function stg_worker_selector() {
     $query="SELECT * from `employee` WHERE `active`='1'";
@@ -307,6 +319,53 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
+        function ts_GetAllJobColors() {
+        $query="SELECT * from `jobtypes`";
+        $alljt=  simple_queryall($query);
+        $result=array();
+        if (!empty($alljt)) {
+            foreach ($alljt as $io=>$each) {
+                $color= (!empty($each['jobcolor'])) ? $each['jobcolor'] : '';
+                $result[$each['id']]=$color;
+            }
+        }
+        return ($result);
+    }
+    
+    function ts_GetAllJobtypesData() {
+        $query="SELECT * from `jobtypes`";
+        $alljt=  simple_queryall($query);
+        $result=array();
+        if (!empty($alljt)) {
+            foreach ($alljt as $io=>$each) {
+                $result[$each['id']]['jobname']=$each['jobname'];
+                $result[$each['id']]['jobcolor']=$each['jobcolor'];
+            }
+        }
+        return ($result);
+    }
+    
+    function ts_GetAllJobtypesColorStyles() {
+                $customJobColorStyle='<style>';
+                $alljobcolors=  ts_GetAllJobColors();
+                if (!empty($alljobcolors)) {
+                    foreach ($alljobcolors as $jcio=>$eachjobcolor) {
+                        if (!empty($eachjobcolor)) {
+                            $customJobColorStyleName='jobcolorcustom_'.$jcio;
+                            $customJobColorStyle.='.'.$customJobColorStyleName.',
+                                                   .'.$customJobColorStyleName.' div,
+                                                   .'.$customJobColorStyleName.' span {
+                                                        background-color: '.$eachjobcolor.'; 
+                                                        border-color: '.$eachjobcolor.'; 
+                                                        color: #FFFFFF;           
+                                                    }';
+                        }
+                    }
+                }
+                $customJobColorStyle.='</style>';
+                return ($customJobColorStyle);
+    }
+    
        function ts_GetActiveEmployee () {
         $query="SELECT * from `employee` WHERE `active`='1'";
         $allemployee=  simple_queryall($query);
@@ -359,10 +418,10 @@ function ts_DetectUserByAddress($address) {
    
     function ts_JGetUndoneTasks() {
         $allemployee=  ts_GetAllEmployee();
-        $alljobtypes= ts_GetAllJobtypes();
+        $alljobdata=ts_getAllJobtypesData();
         $curyear=curyear();
         $curmonth=date("m");
-        
+                
         //per employee filtering
         $displaytype =  (isset($_POST['displaytype'])) ? $_POST['displaytype'] : 'all';
         if ($displaytype=='onlyme') {
@@ -384,6 +443,8 @@ function ts_DetectUserByAddress($address) {
         $i=1;
         $taskcount=sizeof($allundone);
         
+       
+        
         if (!empty($allundone)) {
             foreach ($allundone as $io=>$eachtask) {
                 if ($i!=$taskcount) {
@@ -400,13 +461,24 @@ function ts_DetectUserByAddress($address) {
                 } else {
                     $enddate=$startdate;
                 }
+                
+                 //custom task color preprocessing
+                if (isset($alljobdata[$eachtask['jobtype']])) {
+                    if (!empty($alljobdata[$eachtask['jobtype']]['jobcolor'])) {
+                        $jobColorClass='jobcolorcustom_'.$eachtask['jobtype'];
+                    } else {
+                        $jobColorClass='undone';
+                    }
+                } else {
+                    $jobColorClass='undone';
+                }
           
                 $result.="
                       {
-                        title: '".$eachtask['address']." - ".@$alljobtypes[$eachtask['jobtype']]."',
+                        title: '".$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
                         start: new Date(".$startdate."),
                         end: new Date(".$enddate."),
-                        className : 'undone',
+                        className : '".$jobColorClass."',
                         url: '?module=taskman&edittask=".$eachtask['id']."'
                         
 		      } 
@@ -478,7 +550,7 @@ function ts_DetectUserByAddress($address) {
     
     function ts_JGetAllTasks() {
         $allemployee=  ts_GetAllEmployee();
-        $alljobtypes= ts_GetAllJobtypes();
+        $alljobdata=  ts_GetAllJobtypesData();
         
         $curyear=curyear();
         $curmonth=date("m");
@@ -488,7 +560,7 @@ function ts_DetectUserByAddress($address) {
         if ($displaytype=='onlyme') {
             $whoami=whoami();
             $curempid=  ts_GetEmployeeByLogin($whoami);
-            $appendQuery=" AND `employee`='".$curempid."'";
+            $appendQuery=" WHERE `employee`='".$curempid."'";
         } else {
             $appendQuery='';
         }
@@ -522,14 +594,25 @@ function ts_DetectUserByAddress($address) {
                 }
                 
                 if ($eachtask['status']==0) {
-                    $coloring="className : 'undone',";
+                   $coloring="className : 'undone',";
+                  if (isset($alljobdata[$eachtask['jobtype']])) {
+                    if (!empty($alljobdata[$eachtask['jobtype']]['jobcolor'])) {
+                        $coloring="className : 'jobcolorcustom_".$eachtask['jobtype']."',";
+                    } else {
+                        $coloring="className : 'undone',";
+                    }
+                } else {
+                    $jobColorClass="className : 'undone',";
+                }
                 } else {
                     $coloring='';
                 }
+                
+                
           
                 $result.="
                       {
-                        title: '".$eachtask['address']." - ".@$alljobtypes[$eachtask['jobtype']]."',
+                        title: '".$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
                         start: new Date(".$startdate."),
                         end: new Date(".$enddate."),
                         ".$coloring."
@@ -577,7 +660,7 @@ function ts_DetectUserByAddress($address) {
         $selector=  wf_Selector('typicalnote', $typycalNotes, __('Problem').' '.$settingsControl, '', true);
         return ($selector);
     }
-    
+        
     function ts_TaskCreateForm() {
         global $ubillingConfig;
         $altercfg = $ubillingConfig->getAlter();
@@ -602,6 +685,9 @@ function ts_DetectUserByAddress($address) {
             $inputs.=wf_AutocompleteTextInput('newtaskaddress', $allAddress,__('Address').'<sup>*</sup>', '', true, '30');
         }
         $inputs.=wf_tag('br');
+        //hidden for new task login input
+        $inputs.=wf_HiddenInput('newtasklogin', '');
+
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', '', true, '30');
         $inputs.=wf_tag('br');
         $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
@@ -618,7 +704,7 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
-    function ts_TaskCreateFormProfile($address,$mobile,$phone) {
+    function ts_TaskCreateFormProfile($address,$mobile,$phone,$login) {
         $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $alljobtypes= ts_GetAllJobtypes();
         $allemployee= ts_GetActiveEmployee();
@@ -634,6 +720,8 @@ function ts_DetectUserByAddress($address) {
         $inputs.=wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
+        //hidden for new task login input
+        $inputs.=wf_HiddenInput('newtasklogin', $login);
         $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $mobile.' '.$phone, true, '30');
         $inputs.=wf_tag('br');
@@ -667,6 +755,8 @@ function ts_DetectUserByAddress($address) {
         $inputs.=wf_HiddenInput('createtask', 'true');
         $inputs.=wf_DatePicker('newstartdate').' <label>'.__('Target date').'<sup>*</sup></label><br><br>';
         $inputs.=wf_TextInput('newtaskaddress', __('Address').'<sup>*</sup>', $address, true, '30');
+        //hidden for new task login input
+        $inputs.=wf_HiddenInput('newtasklogin', '');
         $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('newtaskphone', __('Phone').'<sup>*</sup>', $phone, true, '30');
         $inputs.=wf_tag('br');
@@ -737,12 +827,13 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
-     function ts_CreateTask($startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
+     function ts_CreateTask($startdate,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
         $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $curdate=curdatetime();
         $admin=  whoami();
         $address=  str_replace('\'', '`', $address);
         $address=  mysql_real_escape_string($address);
+        $login=  mysql_real_escape_string($login);
         $phone=  mysql_real_escape_string($phone);
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
@@ -764,6 +855,7 @@ function ts_DetectUserByAddress($address) {
                             `id` ,
                             `date` ,
                             `address` ,
+                            `login` ,
                             `jobtype` ,
                             `jobnote` ,
                             `phone` ,
@@ -780,6 +872,7 @@ function ts_DetectUserByAddress($address) {
                                     NULL ,
                                     '".$curdate."',
                                     '".$address."',
+                                    '".$login."',
                                     '".$jobtypeid."',
                                     '".$jobnote."',
                                     '".$phone."',
@@ -826,6 +919,9 @@ function ts_DetectUserByAddress($address) {
             $inputs.=wf_TextInput('modifytaskaddress', __('Address').'<sup>*</sup>', $taskdata['address'], true, '30');
         }
         $inputs.=wf_tag('br');
+        //custom login text input
+        $inputs.=wf_TextInput('modifytasklogin', __('Login'), $taskdata['login'], true, 30);
+        $inputs.=wf_tag('br');
         $inputs.=wf_TextInput('modifytaskphone', __('Phone').'<sup>*</sup>', $taskdata['phone'], true, '30');
         $inputs.=wf_tag('br');
         $inputs.=wf_Selector('modifytaskjobtype', $alljobtypes, __('Job type'), $taskdata['jobtype'], true);
@@ -845,22 +941,24 @@ function ts_DetectUserByAddress($address) {
     }
     
     
-        function ts_ModifyTask($taskid,$startdate,$address,$phone,$jobtypeid,$employeeid,$jobnote) {
+        function ts_ModifyTask($taskid,$startdate,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
         $taskid=vf($taskid,3);
         $startdate=  mysql_real_escape_string($startdate);
         $address=  str_replace('\'', '`', $address);
         $address=  mysql_real_escape_string($address);
+        $login=  mysql_real_escape_string($login);
         $phone=  mysql_real_escape_string($phone);
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
         
         simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'address', $address, "WHERE `id`='".$taskid."'");
+        simple_update_field('taskman', 'login', $login, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'phone', $phone, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'jobtype', $jobtypeid, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'employee', $employeeid, "WHERE `id`='".$taskid."'");
         simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='".$taskid."'");
-        log_register("TASKMAN MODIFY `".$address.'`');
+        log_register("TASKMAN MODIFY [".$taskid."] `".$address.'`');
         
     }
     
@@ -875,17 +973,27 @@ function ts_DetectUserByAddress($address) {
         
         if (!empty($taskdata)) {
             //not done task
+            if (empty($taskdata['login'])) {
             $login_detected=ts_DetectUserByAddress($taskdata['address']);
             if ($login_detected) {
                 $addresslink=wf_Link("?module=userprofile&username=".$login_detected, web_profile_icon().' '.$taskdata['address'], false);
+                $loginType=' ('.__('telepathically guessed').')';
+                $taskLogin=$login_detected;
             } else {
                 $addresslink=$taskdata['address'];
+                $loginType=' ('.__('No').' - '.__('telepathically guessed').')';
+                $taskLogin='';
+            }
+            } else {
+                $addresslink=wf_Link("?module=userprofile&username=".$taskdata['login'], web_profile_icon().' '.$taskdata['address'], false);
+                $taskLogin=$taskdata['login'];
+                $loginType='';
             }
             
             //job generation form
-            if ($login_detected) {
+            if ($taskLogin) {
                 $jobgencheckbox=  wf_CheckInput('generatejob', __('Generate job performed for this task'), true, true);
-                $jobgencheckbox.= wf_HiddenInput('generatelogin', $login_detected);
+                $jobgencheckbox.= wf_HiddenInput('generatelogin', $taskLogin);
                 $jobgencheckbox.= wf_HiddenInput('generatejobid', $taskdata['jobtype']);
                 $jobgencheckbox.= wf_delimiter();
                 
@@ -925,6 +1033,10 @@ function ts_DetectUserByAddress($address) {
             
             $tablecells=  wf_TableCell(__('Task address'));
             $tablecells.=  wf_TableCell($addresslink);
+            $tablerows.=  wf_TableRow($tablecells,'row3');
+            
+            $tablecells=  wf_TableCell(__('Login'));
+            $tablecells.=  wf_TableCell($taskLogin.$loginType);
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
             $tablecells=  wf_TableCell(__('Phone'));

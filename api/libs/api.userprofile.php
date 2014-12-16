@@ -450,7 +450,7 @@ class UserProfile {
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             $fulladdresslist = zb_AddressGetFulladdresslistCached();
             @$shortAddress = $fulladdresslist[$this->login];
-            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone), '', '420', '500');
+            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone,$this->login), '', '420', '500');
         } else {
             $result = '';
         }
@@ -577,6 +577,28 @@ class UserProfile {
             }
         }
         return ($result);
+    }
+    
+    
+    /**
+     * Returns Optional contract date row
+     * 
+     * @return string
+     */
+    protected function getContractDate() {
+    $result='';
+    if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
+       if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
+           if (!empty($this->contract)) {
+               $allContractDates=zb_UserContractDatesGetAll();
+               $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
+               $result.=$this->addRow(__('Contract date'), $contractDate);
+           } else {
+               $result.=$this->addRow(__('Contract date'), __('No'));
+           }
+       }
+    }
+    return ($result);
     }
 
     /*
@@ -743,6 +765,8 @@ class UserProfile {
         $profile.= $this->addRow(__('Real name') . $this->getPassportDataControl(), $this->realname, true);
         //contract row
         $profile.= $this->addRow(__('Contract'), $this->contract, false);
+        //contract date row
+        $profile.= $this->getContractDate();
         //assigned agents row
         $profile.= $this->getAgentsControls();
         //old corporate users aka userlinking

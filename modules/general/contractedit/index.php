@@ -47,6 +47,7 @@ show_window(__('Edit contract'), $form);
    
    //someone creates new contractdate or changes old
    if (wf_CheckPost(array('newcontractdate'))) {
+       if (!empty($current_contract)) {
        if (empty($currentContractDate)) {
            zb_UserContractDateCreate($current_contract, $_POST['newcontractdate']);
        } else {
@@ -54,6 +55,9 @@ show_window(__('Edit contract'), $form);
        }
        //back to fresh form
        rcms_redirect("?module=contractedit&username=".$login);
+       } else {
+           show_window(__('Error'), __('With this the user has not yet signed a contract'));
+       }
    }
    
    

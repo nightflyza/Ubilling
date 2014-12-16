@@ -1798,5 +1798,9 @@ $lang['def']['Personal note active']='Персональна нотатка ак
 $lang['def']['MAC filters setup']='Налаштування фільтрів за MAC';
 $lang['def']['One MAC address per line']='Одна MAC адреса на рядок';
 $lang['def']['All users with tariff']='Усі користувачі з тарифом';
+$lang['def']['With this the user has not yet signed a contract']='З цим користувачем ще не укладено угоду';
+$lang['def']['Contract date in user profile']='Відображати дату угоди в профілі користувача';
+$lang['def']['telepathically guessed']='телепатично вгадано';
+
 
 ?>

@@ -13,7 +13,7 @@ if (cfr('EMPLOYEE')) {
    }
    
    if (wf_CheckPost(array('addjobtype','newjobtype'))) {
-   stg_add_jobtype($_POST['newjobtype']);
+   stg_add_jobtype($_POST['newjobtype'],$_POST['newjobcolor']);
    }
    
    if (isset ($_GET['deletejob'])) {
@@ -34,13 +34,16 @@ if (cfr('EMPLOYEE')) {
            //edit job subroutine
            if (wf_CheckPost(array('editjobtype'))) {
                simple_update_field('jobtypes', 'jobname', $_POST['editjobtype'], "WHERE `id`='".$editjob."'");
-               log_register('JOBTYPE CHANGE ['.$editjob.']');
+               simple_update_field('jobtypes', 'jobcolor', $_POST['editjobcolor'], "WHERE `id`='".$editjob."'");
+               log_register('JOBTYPE CHANGE ['.$editjob.'] `'.$_POST['editjobtype'].'`');
                rcms_redirect("?module=employee");
            }
            
            //edit jobtype form
            $jobdata=  stg_get_jobtype_name($editjob);
+           $jobcolor= stg_get_jobtype_color($editjob);
            $jobinputs=  wf_TextInput('editjobtype', 'Job type', $jobdata, true, 20);
+           $jobinputs.= wf_ColPicker('editjobcolor', __('Color'), $jobcolor, true, 10);
            $jobinputs.=wf_Submit('Save');
            $jobform=  wf_Form("", "POST", $jobinputs, 'glamour');
            show_window(__('Edit'), $jobform);

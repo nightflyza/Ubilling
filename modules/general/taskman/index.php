@@ -9,7 +9,7 @@ if(cfr('TASKMAN')) {
         } else {
          $newjobnote=$_POST['newjobnote'];      
         }
-        ts_CreateTask($_POST['newstartdate'], $_POST['newtaskaddress'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $newjobnote);
+        ts_CreateTask($_POST['newstartdate'], $_POST['newtaskaddress'],@$_POST['newtasklogin'], $_POST['newtaskphone'], $_POST['newtaskjobtype'], $_POST['newtaskemployee'], $newjobnote);
         if (!isset($_GET['gotolastid'])) {
             rcms_redirect("?module=taskman");
         } else {
@@ -27,7 +27,7 @@ if(cfr('TASKMAN')) {
     if (isset($_POST['modifytask'])) {
        if (wf_CheckPost(array('modifystartdate','modifytaskaddress','modifytaskphone'))) {
         $taskid=$_POST['modifytask'];
-        ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifytaskaddress'], $_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
+        ts_ModifyTask($taskid, $_POST['modifystartdate'], $_POST['modifytaskaddress'], @$_POST['modifytasklogin'],$_POST['modifytaskphone'], $_POST['modifytaskjobtype'], $_POST['modifytaskemployee'], $_POST['modifytaskjobnote']);
         rcms_redirect("?module=taskman&edittask=".$taskid);
     } else {
         show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
@@ -97,8 +97,10 @@ if(cfr('TASKMAN')) {
     if (!isset($_GET['edittask'])) {
         if (!wf_CheckGet(array('print'))) {
             if (!wf_CheckGet(array('lateshow'))) {
+                //custom jobtypes color styling
+                $customJobColorStyle=ts_GetAllJobtypesColorStyles();
                 //show full calendar view
-                show_window('',wf_FullCalendar($showtasks));
+                show_window('',$customJobColorStyle.wf_FullCalendar($showtasks));
             } else {
                 show_window(__('Show late'),ts_ShowLate());
             }

@@ -1264,3 +1264,8 @@ CREATE TABLE IF NOT EXISTS `stickynotes` (
   KEY `reminddate` (`reminddate`),
   KEY `active` (`active`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.6.1 update
+ALTER TABLE `jobtypes` ADD `jobcolor` VARCHAR(40) NULL AFTER `jobname`, ADD INDEX (`jobcolor`) ; 
+
+ALTER TABLE `taskman` ADD `login` VARCHAR(255) NULL AFTER `address`, ADD INDEX (`login`) ; 
