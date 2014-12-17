@@ -114,6 +114,12 @@ if(cfr('TASKMAN')) {
         }
     } else {
         ts_TaskChangeForm($_GET['edittask']);
+        //additional comments 
+        $altCfg=$ubillingConfig->getAlter();
+        if ($altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments=new ADcomments('TASKMAN');
+            show_window(__('Additional comments'), $adcomments->renderComments($_GET['edittask']));
+        }
     }
     
     } else {

@@ -1271,3 +1271,16 @@ ALTER TABLE `jobtypes` ADD `jobcolor` VARCHAR(40) NULL AFTER `jobname`, ADD INDE
 ALTER TABLE `taskman` ADD `login` VARCHAR(255) NULL AFTER `address`, ADD INDEX (`login`) ; 
 
 ALTER TABLE `taskman` ADD `starttime` TIME NULL AFTER `startdate`, ADD INDEX (`starttime`) ; 
+
+CREATE TABLE IF NOT EXISTS `adcomments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `scope` varchar(255) NOT NULL,
+  `item` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(40) NOT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `scope` (`scope`),
+  KEY `item` (`item`),
+  KEY `date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

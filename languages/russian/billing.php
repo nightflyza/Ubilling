@@ -1787,9 +1787,9 @@ $lang['def']['All users with tariff']='Все пользователи с тар
 $lang['def']['With this the user has not yet signed a contract']='C этим пользователем еще не заключен договор';
 $lang['def']['Contract date in user profile']='Показывать дату заключения договора в профиле';
 $lang['def']['telepathically guessed']='телепатически угадано';
+$lang['def']['Additional comments']='Дополнительные примечания';
+$lang['def']['Additional comments functionality enabled']='Функционал дополнительных примечаний';
 $lang['def']['']='';
-
-
 
 
 ?>

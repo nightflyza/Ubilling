@@ -1801,6 +1801,8 @@ $lang['def']['All users with tariff']='Усі користувачі з тари
 $lang['def']['With this the user has not yet signed a contract']='З цим користувачем ще не укладено угоду';
 $lang['def']['Contract date in user profile']='Відображати дату угоди в профілі користувача';
 $lang['def']['telepathically guessed']='телепатично вгадано';
+$lang['def']['Additional comments']='Додаткові примітки';
+$lang['def']['Additional comments functionality enabled']='Функціонал додаткових приміток';
 
 
 ?>

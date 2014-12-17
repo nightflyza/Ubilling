@@ -136,6 +136,7 @@ AUTO_LOGOUT_EXCLUDE=VARCHAR|Auto logout administrators exclude
 VOLS_ENABLED=TRIGGER|VOLS Module is enabled
 CORPS_ENABLED=TRIGGER|Corporate users management enabled
 NETWORKS_EXT=TRIGGER|Extended networks and pools management
+ADCOMMENTS_ENABLED=TRIGGER|Additional comments functionality enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
