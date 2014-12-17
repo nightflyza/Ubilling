@@ -188,6 +188,18 @@
           return($allassigns);
      }
      
+     function zb_AgentAssignStrictGetAllData() {
+          $result=array();
+          $query="SELECT * from `ahenassignstrict`";
+          $all=simple_queryall($query);
+          if (!empty($all)) {
+              foreach ($all as $io=>$each) {
+                  $result[$each['login']]=$each['agentid'];
+              }
+          }
+          return ($result);
+     }
+     
      function zb_AgentAssignDelete($id) {
          $id=vf($id);
          $query="DELETE from `ahenassign` where `id`='".$id."'";
@@ -252,6 +264,44 @@
            $result=  wf_TableBody($rows, '100%', '0', 'sortable');
            return($result);
        }
+       
+        function web_AgentAssignStrictShow() {
+           $allassigns=  zb_AgentAssignStrictGetAllData();
+           $allahens=zb_ContrAhentGetAllData();
+           $allrealnames=  zb_UserGetAllRealnames();
+           $alladdress=  zb_AddressGetFulladdresslistCached();
+           $allusertariffs=  zb_TariffsGetAllUsers();
+           
+           $agentnames=array();
+           if (!empty ($allahens)) {
+               foreach ($allahens as $io=>$eachahen) {
+                   $agentnames[$eachahen['id']]=$eachahen['contrname'];
+               }
+           }
+  
+           
+           $cells= wf_TableCell(__('Login'));
+           $cells.= wf_TableCell(__('Full address'));
+           $cells.= wf_TableCell(__('Real Name'));
+           $cells.= wf_TableCell(__('Tariff'));
+           $cells.= wf_TableCell(__('Contrahent name'));
+           $rows= wf_TableRow($cells,'row1');
+              
+           if (!empty ($allassigns)) {
+               foreach ($allassigns as $eachlogin=>$eachagent) {
+                   $loginLink=  wf_Link('?module=userprofile&username='.$eachlogin, web_profile_icon().' '.$eachlogin, false, '');
+                   $cells=  wf_TableCell($loginLink);
+                   $cells.= wf_TableCell(@$alladdress[$eachlogin]);
+                   $cells.= wf_TableCell(@$allrealnames[$eachlogin]);
+                   $cells.= wf_TableCell($allusertariffs[$eachlogin]);
+                   $cells.= wf_TableCell(@$agentnames[$eachagent]);
+                   $rows.= wf_TableRow($cells,'row3');
+               
+               }
+           }
+           $result=  wf_TableBody($rows, '100%', '0', 'sortable');
+           return($result);
+       }
          
     function zb_AgentAssignCheckLogin($login,$allassigns,$alladdress) {
         $alter_cfg=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
@@ -282,10 +332,17 @@
         return($result);
     }
     
-        function zb_AgentAssignCheckLoginFast($login,$allassigns,$address) {
+        function zb_AgentAssignCheckLoginFast($login,$allassigns,$address,$allassignsstrict) {
           global $ubillingConfig;
           $alter_cfg=$ubillingConfig->getAlter();
           $result=array();
+          //быстренько проверяем нету ли принудительной привязки по логину
+          if (isset($allassignsstrict[$login])) {
+              $result=$allassignsstrict[$login];
+              return ($result);
+          }
+          
+          
           // если пользователь куда-то заселен
           if (!empty($address)) {
               // возвращаем дефолтного агента если присваиваний нет вообще
@@ -306,6 +363,9 @@
                     }
            }
            }
+          } else {
+              //если пользователь бомжует - возвращаем тоже умолчательного
+              $result=$alter_cfg['DEFAULT_ASSIGN_AGENT'];
           }
         // если присваивание выключено возвращаем умолчального
         if (!$alter_cfg['AGENTS_ASSIGN']) {
@@ -521,7 +581,8 @@
    
     function zb_AgentAssignedGetDataFast($login,$address) {
        $allassigns=zb_AgentAssignGetAllData();
-       $assigned_agent=  zb_AgentAssignCheckLoginFast($login, $allassigns, $address);
+       $allassignsStrict= zb_AgentAssignStrictGetAllData();
+       $assigned_agent=  zb_AgentAssignCheckLoginFast($login, $allassigns, $address,$allassignsStrict);
        $result=zb_ContrAhentGetData($assigned_agent);
        return($result);
    }

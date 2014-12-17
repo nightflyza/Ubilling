@@ -7,6 +7,7 @@
 class agentAssignReport {
 
     protected $allassigns = array();
+    protected $allassignsstrict=array();
     protected $assigns = array();
     protected $agents = array();
     protected $agentsNamed = array();
@@ -46,6 +47,18 @@ class agentAssignReport {
 
     protected function loadAllAssigns() {
         $this->allassigns = zb_AgentAssignGetAllData();
+    }
+    
+    
+    
+    /*
+     * loads available assigns from database into private prop
+     * 
+     * @return void
+     */
+
+    protected function loadAllAssignsStrict() {
+        $this->allassignsstrict = zb_AgentAssignStrictGetAllData();
     }
 
     /*
@@ -129,7 +142,7 @@ class agentAssignReport {
     protected function assignsPreprocess() {
         if (!empty($this->users)) {
             foreach ($this->users as $userid => $eachuser) {
-                $assignedAgentId = zb_AgentAssignCheckLoginFast($eachuser['login'], $this->allassigns, @$this->alladdress[$eachuser['login']]);
+                $assignedAgentId = zb_AgentAssignCheckLoginFast($eachuser['login'], $this->allassigns, @$this->alladdress[$eachuser['login']],  $this->allassignsstrict);
                 if (!empty($assignedAgentId)) {
                     $this->assigns[$eachuser['login']] = $assignedAgentId;
                 } else {

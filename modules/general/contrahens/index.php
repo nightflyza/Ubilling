@@ -75,6 +75,7 @@ if (cfr('AGENTS')) {
         if (!wf_CheckGet(array('edit'))) {
         show_window(__('Contrahent assign'), web_AgentAssignForm());
         show_window(__('Available assigns'), web_AgentAssignShow());
+        show_window(__('Assign overrides'), web_AgentAssignStrictShow());
         }
     }
 } else {

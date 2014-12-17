@@ -1803,6 +1803,7 @@ $lang['def']['Contract date in user profile']='Відображати дату �
 $lang['def']['telepathically guessed']='телепатично вгадано';
 $lang['def']['Additional comments']='Додаткові примітки';
 $lang['def']['Additional comments functionality enabled']='Функціонал додаткових приміток';
+$lang['def']['Assign overrides']='Перепризначення присвоєнь';
 
 
 ?>

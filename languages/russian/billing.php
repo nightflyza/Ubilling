@@ -1789,6 +1789,9 @@ $lang['def']['Contract date in user profile']='Показывать дату з�
 $lang['def']['telepathically guessed']='телепатически угадано';
 $lang['def']['Additional comments']='Дополнительные примечания';
 $lang['def']['Additional comments functionality enabled']='Функционал дополнительных примечаний';
+$lang['def']['Assign overrides']='Переназначения привязок';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 
 

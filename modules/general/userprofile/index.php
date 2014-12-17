@@ -2,6 +2,7 @@
 if(cfr('USERPROFILE')) {
  if (isset ($_GET['username'])) {
         $login=vf($_GET['username']);
+        $login=trim($login);
         try {
         $profile=new UserProfile($login);
         show_window(__('User profile'),$profile->render());

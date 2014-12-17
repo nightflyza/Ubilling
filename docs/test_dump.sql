@@ -1284,3 +1284,12 @@ CREATE TABLE IF NOT EXISTS `adcomments` (
   KEY `item` (`item`),
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `ahenassignstrict` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `agentid` int(11) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`)
+  ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
