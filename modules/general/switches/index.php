@@ -139,6 +139,15 @@ show_window(__('Available switches'), web_SwitchesShow());
     $editinputs.=wf_Submit('Save');
     $editform=wf_Form('', 'POST', $editinputs, 'glamour');
     show_window(__('Edit switch'),$editform);
+    
+        //additional comments engine
+        $altCfg=$ubillingConfig->getAlter();
+        if ($altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments=new ADcomments('SWITCHES');
+            show_window(__('Additional comments'), $adcomments->renderComments($switchid));
+        }
+    
+    
     show_window('',  wf_Link('?module=switches', 'Back',true, 'ubButton'));
     }
 
