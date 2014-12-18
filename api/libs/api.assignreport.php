@@ -30,6 +30,7 @@ class agentAssignReport {
 
     public function __construct() {
         $this->loadAllAssigns();
+        $this->loadAllAssignsStrict();
         $this->loadUsers();
         $this->loadTariffExcludes();
         $this->excludeUsersTariffMask();
