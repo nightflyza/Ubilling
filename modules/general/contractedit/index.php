@@ -1,6 +1,6 @@
 <?php
 if (cfr('CONTRACT')) {
-$alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+$alter_conf=$ubillingConfig->getAlter();
 
 if (isset ($_GET['username'])) {
     $login=vf($_GET['username']);
@@ -36,8 +36,6 @@ $form=  web_EditorStringDataFormContract($fieldnames, $fieldkey, $useraddress, $
 show_window(__('Edit contract'), $form);
 
 //contract date editing
-//no crm mode required now
-//if ($alter_conf['CRM_MODE']) {
    $allcontractdates=zb_UserContractDatesGetAll();
    if (isset($allcontractdates[$current_contract])) {
        $currentContractDate=$allcontractdates[$current_contract];
@@ -63,9 +61,23 @@ show_window(__('Edit contract'), $form);
    
    //editing form
    show_window(__('User contract date'),web_UserContractDateChangeForm($current_contract, $currentContractDate));
-       
-//}
-   //end of checking crm mode for contract date
+
+//agent strict assigning form
+if ($alter_conf['AGENTS_ASSIGN']) {
+    if (wf_CheckPost(array('ahentsel','assignstrictlogin'))) {
+        if (isset($_POST['deleteassignstrict'])) {
+            // deletion of manual assign
+            zb_AgentAssignStrictDelete($_POST['assignstrictlogin']);
+        } else {
+            //create new assign
+            zb_AgentAssignStrictCreate($_POST['assignstrictlogin'], $_POST['ahentsel']);
+        }
+        rcms_redirect('?module=contractedit&username='.$_POST['assignstrictlogin']);
+    }
+    
+    $allAssignsStrict=  zb_AgentAssignStrictGetAllData();
+    show_window(__('Manual agent assign'), web_AgentAssignStrictForm($login, @$allAssignsStrict[$login]));
+}
 
 
 show_window('',web_UserControls($login));

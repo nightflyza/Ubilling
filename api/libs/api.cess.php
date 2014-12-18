@@ -181,6 +181,19 @@
          return($select);
      }
      
+      function zb_ContrAhentSelectPreset($currentId='') {
+         $allagents=zb_ContrAhentGetAllData();
+         $tmpArr=array();
+         if (!empty ($allagents)) {
+             foreach ($allagents as $io=>$eachagent) {
+                 $tmpArr[$eachagent['id']]=$eachagent['contrname'];
+             }
+             
+         }
+         $select=  wf_Selector('ahentsel', $tmpArr, '', $currentId, false);
+         return($select);
+     }
+     
           
      function zb_AgentAssignGetAllData() {
           $query="SELECT * from `ahenassign`";
@@ -285,6 +298,7 @@
            $cells.= wf_TableCell(__('Real Name'));
            $cells.= wf_TableCell(__('Tariff'));
            $cells.= wf_TableCell(__('Contrahent name'));
+           $cells.= wf_TableCell(__('Actions'));
            $rows= wf_TableRow($cells,'row1');
               
            if (!empty ($allassigns)) {
@@ -295,6 +309,8 @@
                    $cells.= wf_TableCell(@$allrealnames[$eachlogin]);
                    $cells.= wf_TableCell($allusertariffs[$eachlogin]);
                    $cells.= wf_TableCell(@$agentnames[$eachagent]);
+                   $actLinks=  wf_JSAlert('?module=contractedit&username='.$eachlogin, web_edit_icon(), __('Are you serious'));
+                   $cells.= wf_TableCell($actLinks);
                    $rows.= wf_TableRow($cells,'row3');
                
                }
@@ -920,6 +936,60 @@ function web_NdsPaymentsShowYear($year) {
      }
 
 
+ /*
+ * Shows agent strict assign form
+ * 
+ * @return string
+ */
+
+function web_AgentAssignStrictForm($login,$currentassign) {
+    if (!empty($currentassign)) {
+        $agentData=  zb_ContrAhentGetData($currentassign);
+        @$currentAgentName=$agentData['contrname'];
+    } else {
+        $currentAgentName=__('No');
+    }
+    $inputs= zb_ContrAhentSelectPreset($currentassign);
+    $inputs.= wf_HiddenInput('assignstrictlogin', $login);
     
+    $deleteCheckbox=  wf_CheckInput('deleteassignstrict', __('Delete'), false, false);
+    
+    $cells=  wf_TableCell(__('Service provider'), '', 'row2');
+    $cells.= wf_TableCell($currentAgentName, '', 'row3');
+    $rows=wf_tablerow($cells);
+    $cells=  wf_TableCell(__('New assign'), '', 'row2');
+    $cells.= wf_TableCell($inputs, '', 'row3');
+    $rows.=wf_tablerow($cells);
+    $cells=  wf_TableCell('', '', 'row2');
+    $cells.= wf_TableCell($deleteCheckbox, '', 'row3');
+    $rows.=wf_tablerow($cells);
+    $form=  wf_TableBody($rows, '100%', 0);
+    $form.=wf_Submit('Save');
+    
+    $result=wf_Form("", 'POST', $form, '');
+    return ($result);
+} 
+
+
+function zb_AgentAssignStrictDelete($login) {
+    $login= mysql_real_escape_string($login);
+    $query="DELETE from `ahenassignstrict` WHERE `login`='".$login."';";
+    nr_query($query);
+    log_register("AGENTASSIGNSTRICT DELETE (".$login.")");
+}
+
+function zb_AgentAssignStrictCreate($login,$agentid) {
+    zb_AgentAssignStrictDelete($login);
+    $clearLogin=  mysql_real_escape_string($login);
+    $agentid=vf($agentid,3);
+    $query="INSERT INTO `ahenassignstrict` (`id` ,  `agentid` ,`login`)
+                VALUES (
+                NULL , '". $agentid."', '".$clearLogin."'
+                );";
+    nr_query($query);
+    log_register("AGENTASSIGNSTRICT ADD (".$login.") [".$agentid."]");
+}
+    
+
     
 ?>

@@ -1790,9 +1790,10 @@ $lang['def']['telepathically guessed']='телепатически угадан�
 $lang['def']['Additional comments']='Дополнительные примечания';
 $lang['def']['Additional comments functionality enabled']='Функционал дополнительных примечаний';
 $lang['def']['Assign overrides']='Переназначения привязок';
+$lang['def']['Manual agent assign']='Ручная привязка контрагента';
+$lang['def']['Assigned agent']='Связанний предприниматель';
+$lang['def']['New assign']='Новая привязка';
+$lang['def']['Service provider']='Поставщик услуг';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-
 
 ?>
