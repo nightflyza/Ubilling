@@ -79,6 +79,9 @@ if (cfr('PLDOCS')) {
             
             $documents->loadAllUserData();
             $templateData=$documents->getUserData();
+            $userAgentData=$documents->getUserAgentData();
+            $templateData=  array_merge($templateData,$userAgentData);
+   
             if (wf_checkget(array('custom'))) {
             show_window(__('Custom template fields'),$documents->customDocumentFieldsForm());
             

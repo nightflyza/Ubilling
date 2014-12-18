@@ -19,7 +19,7 @@ if ( cfr('PRINTCHECK') ) {
             @$user['email'] = zb_UserGetEmail($user['login']);
             @$user['phone'] = zb_UserGetPhone($user['login']);
             @$user['mobile'] = zb_UserGetMobile($user['login']);
-            @$user['agent'] = zb_AgentAssignedGetData($user['login']);
+            @$user['agent'] = zb_AgentAssignedGetDataFast($user['login'],$user['address']);
             @$cashier = zb_PrintCheckLoadCassNames(true);
             @$current['day'] = date('d');
             @$current['month'] = date('m');
@@ -51,7 +51,17 @@ if ( cfr('PRINTCHECK') ) {
             $template['CMONTH'] = ( !empty($current['month_loc']) ) ? $current['month_loc'] : '';
             $template['CYEAR']  = ( !empty($current['year']) )      ? $current['year']      : '';
             $template['DAYPAYID'] = ( !empty($payment['daypayid']) ) ? $payment['daypayid'] : '';
-            
+             //contragent full data
+             $template['AGENTID']=(!empty( $user['agent']['id'])) ? $user['agent']['id']  : '';
+             $template['AGENTBANKACC']=(!empty( $user['agent']['bankacc'])) ? $user['agent']['bankacc']  : '';
+             $template['AGENTBANKNAME']=(!empty( $user['agent']['bankname'])) ? $user['agent']['bankname']  : '';
+             $template['AGENTBANKCODE']=(!empty( $user['agent']['bankcode'])) ? $user['agent']['bankcode']  : '';
+             $template['AGENTIPN']=(!empty( $user['agent']['ipn'])) ? $user['agent']['ipn']  : '';
+             $template['AGENTLICENSE']=(!empty( $user['agent']['licensenum'])) ? $user['agent']['licensenum']  : '';;
+             $template['AGENTJURADDR']=(!empty( $user['agent']['juraddr'])) ? $user['agent']['juraddr']  : '';;
+             $template['AGENTPHISADDR']=(!empty( $user['agent']['phisaddr'])) ? $user['agent']['phisaddr']  : '';;
+             $template['AGENTPHONE']=(!empty( $user['agent']['phone'])) ? $user['agent']['phone']  : '';;
+        
             // Update fix:
             switch ( true ) {
                 case ( !file_exists(DATA_PATH . 'documents/printcheck.docx') ):

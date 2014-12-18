@@ -743,8 +743,6 @@
         //forming template data
         @$templatedata['{PAYID}']=$paymentdata['id'];
         @$templatedata['{PAYIDENC}']=zb_NumEncode($paymentdata['id']);;
-        @$templatedata['{AGENTEDRPO}']=$agent_data['edrpo'];
-        @$templatedata['{AGENTNAME}']=$agent_data['contrname'];
         @$templatedata['{PAYDATE}']=$paymentdata['date'];
         @$templatedata['{PAYSUMM}']=$paymentdata['summ'];
         @$templatedata['{PAYSUMM_LIT}']=num2str($paymentdata['summ']); // omg omg omg 
@@ -757,7 +755,20 @@
         @$templatedata['{CMONTH}']=rcms_date_localise($cmonth_name);
         @$templatedata['{CYEAR}']=$cyear;
         @$templatedata['{DAYPAYID}']=zb_PrintCheckGetDayNum($paymentdata['id'],$paymentdata['date']);
-     
+        //contragent full data
+        @$templatedata['{AGENTEDRPO}']=$agent_data['edrpo'];
+        @$templatedata['{AGENTNAME}']=$agent_data['contrname'];
+        @$templatedata['{AGENTID}']=$agent_data['id'];
+        @$templatedata['{AGENTBANKACC}']=$agent_data['bankacc'];
+        @$templatedata['{AGENTBANKNAME}']=$agent_data['bankname'];
+        @$templatedata['{AGENTBANKCODE}']=$agent_data['bankcode'];
+        @$templatedata['{AGENTIPN}']=$agent_data['ipn'];
+        @$templatedata['{AGENTLICENSE}']=$agent_data['licensenum'];
+        @$templatedata['{AGENTJURADDR}']=$agent_data['juraddr'];
+        @$templatedata['{AGENTPHISADDR}']=$agent_data['phisaddr'];
+        @$templatedata['{AGENTPHONE}']=$agent_data['phone'];
+        
+        
         //parsing result
         $result=zb_ExportParseTemplate($templatebody,$templatedata);
         return($result);

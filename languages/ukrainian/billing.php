@@ -1804,6 +1804,10 @@ $lang['def']['telepathically guessed']='телепатично вгадано';
 $lang['def']['Additional comments']='Додаткові примітки';
 $lang['def']['Additional comments functionality enabled']='Функціонал додаткових приміток';
 $lang['def']['Assign overrides']='Перепризначення присвоєнь';
+$lang['def']['Manual agent assign']='Ручна привязка контрагента';
+$lang['def']['Assigned agent']='Звязанний підприємець';
+$lang['def']['New assign']='Нова привязка';
+$lang['def']['Service provider']='Постачальник послуг';
 
 
 ?>
