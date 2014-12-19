@@ -975,7 +975,26 @@ class Corps {
             }
             return ($result);
         }
+        
+        
+        /**
+         * Returns array of available corps
+         * 
+         * @return array
+         */
+        public function getCorps() {
+            return ($this->corps);    
+        }
     
+        
+         /**
+         * Returns array of available corps users
+         * 
+         * @return array
+         */
+        public function getUsers() {
+            return ($this->users);    
+        }
 
 }
 
