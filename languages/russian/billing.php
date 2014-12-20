@@ -1794,6 +1794,14 @@ $lang['def']['Manual agent assign']='Ручная привязка контра�
 $lang['def']['Assigned agent']='Связанний предприниматель';
 $lang['def']['New assign']='Новая привязка';
 $lang['def']['Service provider']='Поставщик услуг';
+$lang['def']['Num #']='№ п/п';
+$lang['def']['Organisation']='Организация';
+$lang['def']['Income']='Поступления';
+$lang['def']['on deposit']='на депозит';
+$lang['def']['corr.']='корр.';
+$lang['def']['Current deposit']='Текущий депозит';
+$lang['def']['Expenditure']='Израсходовано';
+$lang['def']['Report']='Отчет';
 $lang['def']['']='';
 
 ?>

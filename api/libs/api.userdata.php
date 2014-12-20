@@ -297,6 +297,18 @@ function zb_UserGetAllStargazerData() {
     return($userdata);
 }
 
+function zb_UserGetAllBalance() {
+    $result=array();
+    $query="SELECT `login`,`Cash` from `users`";
+    $all=simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $result[$each['login']]=$each['Cash'];
+        }
+    }
+    return($result);
+}
+
 function zb_UserGetSpeedOverride($login) {
     $login=vf($login);
     $query="SELECT `speed` from `userspeeds` where `login`='".$login."'";

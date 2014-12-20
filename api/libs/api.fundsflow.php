@@ -269,8 +269,7 @@ class FundsFlow {
         }
         return ($fundsflow);
     }
-    
-    
+
     /**
      * Extracts funds only with some date pattern
      * 
@@ -278,16 +277,137 @@ class FundsFlow {
      * @param string $date
      * @return array
      */
-    public function filterByDate($fundsflow,$date) {
-        $result=array();
+    public function filterByDate($fundsflow, $date) {
+        $result = array();
         if (!empty($fundsflow)) {
-            foreach ($fundsflow as $timestamp=>$flowdata) {
+            foreach ($fundsflow as $timestamp => $flowdata) {
                 if (ispos($flowdata['date'], $date)) {
-                    $result[$timestamp]=$flowdata;
+                    $result[$timestamp] = $flowdata;
                 }
             }
         }
-    
+
+        return ($result);
+    }
+
+    /**
+     * Renders table for corps users payments/fees stats
+     * 
+     * @param array $fundsFlows
+     * @param array $corpsData
+     * @param array $corpUsers
+     * @param array $allUserTariffs
+     * @param array $allUserContracts
+     * @return string
+     */
+    public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash) {
+        $result = '';
+        $rawData = array();
+        $rawData['balance'] = 0;
+        $rawData['payments'] = 0;
+        $rawData['paymentscorr'] = 0;
+        $rawData['fees'] = 0;
+        $rawData['login'] = '';
+        $rawData['contract'] = '';
+        $rawData['corpid'] = '';
+        $rawData['corpname'] = '';
+        $rawData['balance'] = 0;
+        $rawData['used'] = 0;
+
+
+
+        if (!empty($fundsFlows)) {
+            foreach ($fundsFlows as $io => $eachop) {
+                if ($eachop['operation'] == 'Fee') {
+                    $rawData['fees'] = $rawData['fees'] + abs($eachop['summ']);
+                }
+
+                if ($eachop['operation'] == 'Payment') {
+                    $rawData['payments'] = $rawData['payments'] + abs($eachop['summ']);
+                }
+
+                if ($eachop['operation'] == 'Correcting') {
+                    $rawData['paymentscorr'] = $rawData['paymentscorr'] + abs($eachop['summ']);
+                }
+            }
+
+
+            $rawData['login'] = $eachop['login'];
+            @$rawData['contract'] = $allUserContracts[$eachop['login']];
+            @$rawData['corpid'] = $corpUsers[$eachop['login']];
+            @$rawData['corpname'] = $corpsData[$rawData['corpid']]['corpname'];
+            $rawData['balance'] = $allUsersCash[$eachop['login']];
+            $rawData['used'] = abs($rawData['payments'] - $rawData['fees']);
+
+            //forming result
+            $cells = wf_TableCell($num);
+            $corpLink = wf_Link('?module=corps&show=corps&editid=' . $rawData['corpid'], $rawData['corpname'], false, '');
+            $cells.=wf_TableCell($corpLink);
+            if ($rawData['contract']) {
+                $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['contract'], false, '');
+            } else {
+                $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
+            }
+            $cells.=wf_TableCell($loginLink);
+            $cells.=wf_TableCell($rawData['fees']);
+            $cells.=wf_TableCell($rawData['payments']);
+            $cells.=wf_TableCell($rawData['paymentscorr']);
+            $cells.=wf_TableCell($rawData['balance']);
+            $cells.=wf_TableCell($rawData['used']);
+            $result.=wf_TableRow($cells, 'row3');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns corpsacts table headers
+     * 
+     * @param string $year
+     * @param string $month
+     * @return string
+     */
+    public function renderCorpsFlowsHeaders($year, $month) {
+        $monthArr = months_array();
+        $month = $monthArr[$month];
+        $month = rcms_date_localise($month);
+
+        $cd = wf_tag('p', false, '', 'align="center"') . wf_tag('b');
+        $cde = wf_tag('b', true) . wf_tag('p', true);
+
+        $result = wf_tag('tr', false, 'row2');
+        $result.= wf_TableCell($cd . __('Num #') . $cde, '15', '', 'rowspan="3"');
+        $result.= wf_TableCell($cd . __('Organisation') . $cde, '141', '', 'rowspan="3"');
+        $result.= wf_TableCell('', '62', '', '');
+        $result.= wf_TableCell('', '62', '', '');
+        $result.= wf_TableCell($cd . $month . ' ' . $year . $cde, '240', '', 'colspan="4"');
+        $result.= wf_tag('tr', true);
+
+        $result.= wf_tag('tr', false, 'row2');
+        $result.= wf_TableCell($cd . __('Contract') . $cde, '62', '', 'rowspan="2"');
+        $result.= wf_TableCell($cd . __('Fee') . $cde, '62', '', 'rowspan="2"');
+        $result.= wf_TableCell($cd . __('Income') . $cde, '84', '', 'colspan="2"');
+        $result.= wf_TableCell($cd . __('Current deposit') . $cde, '68', '', 'rowspan="2"');
+        $result.= wf_TableCell($cd . __('Expenditure') . $cde, '84', '', 'rowspan="2"');
+        $result.= wf_tag('tr', true);
+
+        $result.= wf_tag('tr', false, 'row2');
+        $result.= wf_TableCell($cd . __('on deposit') . $cde, '41');
+        $result.= wf_TableCell($cd . __('corr.') . $cde, '41');
+        $result.= wf_tag('tr', true);
+
+        return ($result);
+    }
+
+    /**
+     * Returns year/month selectors form
+     * 
+     * @return string
+     */
+    public function renderCorpsFlowsDateForm() {
+        $inputs = wf_YearSelector('yearsel', __('Year'), false);
+        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false);
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
