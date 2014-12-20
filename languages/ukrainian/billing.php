@@ -1510,7 +1510,7 @@ $lang['def']['Only users with root rights can use set cash option']='Тільк�
 $lang['def']['Stargazer currently not running. We strongly advise against trying to use Ubilling in this case. If you are absolutely sure of what you are doing - you can turn off this alert with the option NOSTGCHECKPID']='Stargazer зараз не запущений. Ми категорично не рекомендуємо намагатися використовувати Ubilling в цьому випадку. Якщо ви абсолютно впевнені в тому що робите - ви можете вимкнути це сповіщення за допомогою опції NOSTGCHECKPID';
 
 //rev 2952
-$lang['def']['New DHCP option 82'] = 'Нове значення optoin 82';
+$lang['def']['New DHCP option 82'] = 'Нове значення option 82';
 $lang['def']['Set random'] = 'Встановити випадкові';
 $lang['def']['No DHCP option 82 networks available'] = 'Нема мереж, що використовують DHCP option 82';
 $lang['def']['right to set option 82 values for users'] = 'Привілей керування DHCP опцією 82 для користувачів';

@@ -1779,6 +1779,7 @@ function web_NasAddForm() {
     $nastypes = array(
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
+        'radius'=>'Radius',
         'local' => 'Local NAS'
     );
 

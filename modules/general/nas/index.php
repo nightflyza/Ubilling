@@ -85,6 +85,7 @@ if (cfr('NAS')) {
        $nastypes=array(
            'rscriptd'=>'rscriptd',
            'mikrotik'=>'MikroTik',
+           'radius'=>'Radius',
            'local'=>'Local NAS'
            );
        
