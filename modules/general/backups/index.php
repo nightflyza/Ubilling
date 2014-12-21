@@ -160,9 +160,10 @@ show_window(__('Database cleanup'),web_DBCleanupForm());
                   $lastChanceInputs.= wf_Submit(__('Restore DB'));
                   $lastChanceForm=  wf_Form('', 'POST', $lastChanceInputs, 'glamour');
                   show_window(__('Warning'),$lastChanceForm);
+                  show_window('', wf_Link('?module=backups', __('Back'), true, 'ubButton'));
               } else {
                   $restoreCommand=$alterConf['MYSQL_PATH'].' -u '.$mysqlConf['username'].' -p'.$mysqlConf['password'].' '.$mysqlConf['db'].' --default-character-set=utf8 < '.$restoreFilename;
-                  show_window(__('Debug'),$restoreCommand);
+                  //show_window(__('Debug'),$restoreCommand);
                   show_window(__('Result'), shell_exec($restoreCommand));
                   
               }
