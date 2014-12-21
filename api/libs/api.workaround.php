@@ -1890,7 +1890,6 @@ function zb_backup_tables($tables = '*', $silent = false) {
 /**
  * Dumps database to file and returns filename
  * 
- * @param string $tables
  * @param bool   $silent
  * @return string
  */

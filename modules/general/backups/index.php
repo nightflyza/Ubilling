@@ -1,9 +1,9 @@
 <?php
 if (cfr('BACKUP')) {
 set_time_limit (0);
-
 $alterConf=$ubillingConfig->getAlter();
 
+if (!wf_CheckGet(array('restore'))) {
 if (isset ($_POST['createbackup'])) {
     if (isset($_POST['imready'])) {
         if (!empty($alterConf['MYSQLDUMP_PATH'])) {
@@ -67,6 +67,7 @@ function web_AvailableDBBackupsList() {
             $downloadLink=  wf_Link('?module=backups&download='.  $encodedDumpPath, $eachDump, false, '');
             $actLinks=  wf_JSAlert('?module=backups&deletedump='.$encodedDumpPath, web_delete_icon(), __('Removing this may lead to irreparable results')).' ';
             $actLinks.= wf_Link('?module=backups&download='.  $encodedDumpPath, wf_img('skins/icon_download.png',__('Download')), false, '');
+            $actLinks.= wf_JSAlert('?module=backups&restore=true&restoredump='.  $encodedDumpPath, wf_img('skins/icon_restoredb.png',__('Restore DB')), __('Are you serious'));
             
             $cells=  wf_TableCell($fileDate);
             $cells.= wf_TableCell($fileSize);
@@ -140,7 +141,49 @@ show_window(__('Create backup'), web_BackupForm());
 show_window(__('Available database backups'), web_AvailableDBBackupsList());
 show_window(__('Important Ubilling configs'), web_ConfigsUbillingList());
 show_window(__('Database cleanup'),web_DBCleanupForm());
-
+} else {
+    //database restoration functionality
+    if (cfr('ROOT')) {
+        if (!empty($alterConf['MYSQL_PATH'])) {
+         if (wf_CheckGet(array('restoredump'))) {
+            $mysqlConf=  rcms_parse_ini_file(CONFIG_PATH.'mysql.ini');
+            $billingConf=$ubillingConfig->getBilling();
+            $restoreFilename=base64_decode($_GET['restoredump']);
+            if (file_exists($restoreFilename)) {
+              if (($billingConf['NOSTGCHECKPID']) AND (!file_exists($billingConf['STGPID']))) {  
+              if (!isset($_POST['lastchanceok'])) {
+                  $lastChanceInputs=__('Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.');
+                  $lastChanceInputs.=wf_tag('br');
+                  $lastChanceInputs.=__('Filename').': '.$restoreFilename;
+                  $lastChanceInputs.=wf_tag('br');
+                  $lastChanceInputs.=  wf_CheckInput('lastchanceok', __('I`m ready'), true, false);
+                  $lastChanceInputs.= wf_Submit(__('Restore DB'));
+                  $lastChanceForm=  wf_Form('', 'POST', $lastChanceInputs, 'glamour');
+                  show_window(__('Warning'),$lastChanceForm);
+              } else {
+                  $restoreCommand=$alterConf['MYSQL_PATH'].' -u '.$mysqlConf['username'].' -p'.$mysqlConf['password'].' '.$mysqlConf['db'].' --default-character-set=utf8 < '.$restoreFilename;
+                  show_window(__('Debug'),$restoreCommand);
+                  show_window(__('Result'), shell_exec($restoreCommand));
+                  
+              }
+              } else {
+                  show_window(__('Error'),__('You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer'));
+              }   
+              
+            } else {
+                show_window(__('Error'), __('Strange exeption').': NOT_EXISTING_DUMP_FILE');
+            }
+         } else {
+             show_window(__('Error'), __('Strange exeption').': GET_NO_DUMP_FILENAME');
+         }
+        } else {
+            show_window(__('Error'), __('You missed an important option').': MYSQL_PATH');
+        }
+    } else {
+       show_error(__('You cant control this module')); 
+    }
+    //////////////////////////////////////////////////////
+}
 
 } else {
       show_error(__('You cant control this module'));

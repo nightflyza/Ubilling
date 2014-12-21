@@ -1818,5 +1818,9 @@ $lang['def']['Expenditure']='Витрачено';
 $lang['def']['Report']='Звіт';
 $lang['def']['mysqldump system command path']='Шлях до команди mysqldump';
 $lang['def']['mysql system command path']='Шлях до команди mysql';
+$lang['def']['Restore DB']='Відновити БД';
+$lang['def']['Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.']='Відновлення БД з дампа, повністю і назавжди знищить вашу поточну БД. Подумайте ще раз, чи дійсно ви цього бажаєте.';
+$lang['def']['You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer']='Відновлення БД з дампу можливо тільки з увімкненою опцією NOSTGCHECKPID та зупиненим Stargazer.';
+
 
 ?>
