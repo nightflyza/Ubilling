@@ -115,7 +115,11 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                         * database backup
                         */
                        if ($_GET['action']=='backupdb') {
-                           $backpath=zb_backup_tables('*',true);
+                           if ($alterconf['MYSQLDUMP_PATH']) {
+                             $backpath=  zb_backup_database(true);   
+                           } else {
+                             $backpath=zb_backup_tables('*',true);
+                           }
                            die('OK:BACKUPDB '.$backpath);
                        }
                        

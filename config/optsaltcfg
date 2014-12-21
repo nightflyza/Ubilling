@@ -75,6 +75,8 @@ DN_ONLINE_DETECT=TRIGGER|Online detection via /content/dn
 NMLEASES = VARCHAR|New MAC leases file
 NMLEASEMARK=VARCHAR|Mask for search new MAC
 STG_LOG_PATH= VARCHAR|Path to stargazer log file
+MYSQLDUMP_PATH=VARCHAR|mysqldump system command path
+MYSQL_PATH=VARCHAR|mysql system command path
 NMCHANGE=TRIGGER|Generate nmchange sript while view tariffs report
 STRICT_CONTRACTS_PROTECT=TRIGGER|Dont delete contracts with user
 STRICT_CONTRACTS_UNIQUE=TRIGGER|Check contracts unique
@@ -202,3 +204,4 @@ TSMS_DB="VARCHAR|Working database name
 TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
 TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
 TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
+

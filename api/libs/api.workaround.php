@@ -1874,10 +1874,34 @@ function zb_backup_tables($tables = '*', $silent = false) {
   ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
                ";
     }
-    $backname = DATA_PATH . 'backups/sql/ubilling-db-backup-' . time() . '.sql';
+    $backname = DATA_PATH . 'backups/sql/ubilling-db-backup-' . date("Y-m-d_H:i:s",time()) . '.sql';
     $handle = fopen($backname, 'w+');
     fwrite($handle, $return);
     fclose($handle);
+
+    if (!$silent) {
+        show_window(__('Backup saved'), $backname);
+    }
+
+    log_register("BACKUP CREATE `" . $backname . "`");
+    return ($backname);
+}
+
+/**
+ * Dumps database to file and returns filename
+ * 
+ * @param string $tables
+ * @param bool   $silent
+ * @return string
+ */
+function zb_backup_database($silent = false) {
+    global $ubillingConfig;
+    $alterConf=$ubillingConfig->getAlter();
+    $mysqlConf=  rcms_parse_ini_file(CONFIG_PATH.'mysql.ini');
+    
+    $backname = DATA_PATH.'backups/sql/ubilling-' . date("Y-m-d_H_i_s",time()) . '.sql';
+    $command=$alterConf['MYSQLDUMP_PATH'].' -u '.$mysqlConf['username'].' -p'.$mysqlConf['password'].' '.$mysqlConf['db'].' > '.$backname;
+    shell_exec($command);
 
     if (!$silent) {
         show_window(__('Backup saved'), $backname);
@@ -1893,9 +1917,7 @@ function zb_backup_tables($tables = '*', $silent = false) {
  * @return string
  */
 function web_BackupForm() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $excludes = $alterconf['NOBACKUPTABLESLIKE'];
-    $backupinputs = __('This will create a backup copy of all tables in the database, except those whose names are found') . ': ' . $excludes . '<br>';
+    $backupinputs = __('This will create a backup copy of all tables in the database').  wf_tag('br');
     $backupinputs.=wf_HiddenInput('createbackup', 'true');
     $backupinputs.=wf_CheckInput('imready', 'I`m ready', true, false);
     $backupinputs.=wf_Submit('Create');

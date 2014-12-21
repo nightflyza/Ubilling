@@ -38,6 +38,7 @@
                     $this->queue();
                     $this->dhcp();
                     $this->arp();
+                    $this->ppp();
                 }
             } else $this->log->message(__CLASS__, "Cannot put data to MikroTik, no IP address!", 'error');
         }
@@ -388,6 +389,53 @@
                     } else $this->log->message(__CLASS__, "No configurated DHCP-server found for this network!", 'error');
                 } else $this->log->message(__CLASS__, "There is no `user_interface` was not defined in database!", 'error');
             } else $this->log->message(__CLASS__, "MikroTik DHCP-leases managing is not enabled", 'debug');
+        }
+        
+        private function ppp() {
+            if ( !empty($this->options['manage_ppp']) ) {
+                if ( !empty($this->options['users_interface']) ) {
+                    $reply = NULL;
+                    $template = NULL;
+                    // Check custom profile exists&
+                    $profile = $this->command('/ppp/profile/print', array(
+                        '.proplist' => 'name',
+                        '?name' => $this->options['users_interface']
+                    ));
+                    switch ( ENVIRONMENT ) {
+                        case 'OnConnect':
+                        case 'OnDisconnect':
+                            // Load template:
+                            $template = parse_ini_file(NASPATH . 'tpls/ppp.ini');
+                            $template['password']  = $this->database->get_user_password();
+                            $template['profile']   = !empty( $profile ) ? $profile[0]['name'] : $template['profile'];
+                            $template['caller-id'] = ( isset( $template['caller-id'] ) ) ? strtoupper($this->database->get_user_mac()) : null;
+                            $template['disabled']  = ( isset( $template['disabled'] ) && ENVIRONMENT != 'OnConnect' ) ? 'yes' : 'no';
+                        case 'OnChange':
+                        case 'OnUserDel':
+                        // Find entry on NAS:
+                            $entries = $this->command('/ppp/secret/print', array(
+                                '.proplist' => '.id',
+                                '?name'  => LOGIN
+                            ));
+                            // a. If entry is present:
+                            if ( !empty($entries) ) {
+                                foreach ($entries as $entry) {
+                                    // Update entry:
+                                    $template['.id'] = $entry['.id'];
+                                    $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                    $reply = $this->command('/ppp/secret/' . $action, $template);
+                                }
+                            // b. If entry is absent:
+                            } else {
+                                if ( ENVIRONMENT == 'OnConnect' || ENVIRONMENT == 'OnDisconnect') {
+                                    $reply = $this->command('/ppp/secret/add', $template);
+                               } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
+                            }
+                            break;
+                    }
+                    $this->logReply($reply, __FUNCTION__);
+                } else $this->log->message(__CLASS__, "MikroTik PPP-secrets managing is not enabled", 'debug');
+            } else $this->log->message(__CLASS__, "There is no `user_interface` was not defined in database!", 'error');
         }
     }
 ?>

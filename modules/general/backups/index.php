@@ -2,12 +2,21 @@
 if (cfr('BACKUP')) {
 set_time_limit (0);
 
+$alterConf=$ubillingConfig->getAlter();
+
 if (isset ($_POST['createbackup'])) {
     if (isset($_POST['imready'])) {
-        zb_backup_tables();
+        if (!empty($alterConf['MYSQLDUMP_PATH'])) {
+            //run system mysqldump command
+            zb_backup_database();
+        } else {
+            //using old native mysql storing function
+            zb_backup_tables();
+        }
+        
         
     } else {
-        show_error(__('You are not mentally prepared for this'));
+        show_window(__('Error'),__('You are not mentally prepared for this'));
     }
 }
 

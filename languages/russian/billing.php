@@ -851,7 +851,7 @@ $lang['def']['right to view streets report']='Право просматрива�
 //rev 1360
 $lang['def']['This MAC is currently used']='Этот MAC уже кем-то используется';
 $lang['def']['This MAC have wrong format']='Получен MAC с неверным форматом';
-$lang['def']['This will create a backup copy of all tables in the database, except those whose names are found']='Будет создана резервная копия всех таблиц базы данных, за исключением тех, в именах которых встречаются';
+$lang['def']['This will create a backup copy of all tables in the database']='Будет создана резервная копия всех таблиц базы данных.';
 $lang['def']['You are not mentally prepared for this']='Вы морально не готовы к этому';
 $lang['def']['This month has already been assessed fee']='За этот месяц уже была начислена абонплата, не дадим обирать пользователей :)';
 $lang['def']['Normal icons']='Нормальные иконки';
@@ -1802,6 +1802,8 @@ $lang['def']['corr.']='корр.';
 $lang['def']['Current deposit']='Текущий депозит';
 $lang['def']['Expenditure']='Израсходовано';
 $lang['def']['Report']='Отчет';
+$lang['def']['mysqldump system command path']='Путь к комманде mysqldump';
+$lang['def']['mysql system command path']='Путь к комманде mysql';
 $lang['def']['']='';
 
 ?>

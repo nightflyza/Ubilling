@@ -62,7 +62,7 @@
         }
 
         /* DATABASE DATA QUERIES << */
-
+        
         public function get_user_rate() {
             $return = array('tx' => 0, 'rx' => 0);
             if ( $this->connected ) {
@@ -213,6 +213,14 @@
                 } else $this->log->message(__CLASS__, "Can't find user's MAC", 'error');
                 return $return;
             } else $this->log->message(__CLASS__, "Can't get user's MAC from database, no connection!", 'error');
+        }
+
+        public function get_user_password() {
+            $default = '';
+            if ( $this->connected ) {
+                $result = $this->select('Password', 'users', array('login' => LOGIN));
+                return !empty($result) ? $result[0]['Password'] : $default;
+            } else $this->log->message(__CLASS__, "Can't get user's password from database, no connection!", 'error');
         }
         
         /* >> DATABASE DATA QUERIES */
