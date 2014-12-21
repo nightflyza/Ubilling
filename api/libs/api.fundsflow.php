@@ -349,11 +349,11 @@ class FundsFlow {
                 $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
             }
             $cells.=wf_TableCell($loginLink);
-            $cells.=wf_TableCell($rawData['fees']);
-            $cells.=wf_TableCell($rawData['payments']);
-            $cells.=wf_TableCell($rawData['paymentscorr']);
-            $cells.=wf_TableCell($rawData['balance']);
-            $cells.=wf_TableCell($rawData['used']);
+            $cells.=wf_TableCell(round($rawData['fees'],2));
+            $cells.=wf_TableCell(round($rawData['payments'],2));
+            $cells.=wf_TableCell(round($rawData['paymentscorr'],2));
+            $cells.=wf_TableCell(round($rawData['balance'],2));
+            $cells.=wf_TableCell(round($rawData['used'],2));
             $result.=wf_TableRow($cells, 'row3');
         }
         return ($result);
