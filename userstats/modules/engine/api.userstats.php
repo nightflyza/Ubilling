@@ -62,6 +62,117 @@ function zbs_UserGetLoginByIp($ip) {
       }
 }
 
+/**
+ * Checks is table with some name exists, and returns int value 0/1 used as bool (Oo)
+ * 
+ * @param string $tablename
+ * @return int
+ */
+function zbs_CheckTableExists($tablename) {
+    $query = "SELECT CASE WHEN (SELECT COUNT(*) AS STATUS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = (SELECT DATABASE()) AND TABLE_NAME = '" . $tablename . "') = 1 THEN (SELECT 1)  ELSE (SELECT 0) END AS result;";
+    $result = simple_query($query);
+    return ($result['result']);
+}
+
+/**
+ * Returns current stargazer DB version
+ * =<2.408 - 0
+ * >=2.409 - 1+
+ * 
+ * @return int
+ */
+function zbs_CheckDbSchema() {
+    if (zbs_CheckTableExists('info')) {
+        $query = "SELECT `version` from `info`";
+        $result = simple_query($query);
+        $result = $result['version'];
+    } else {
+        $result = 0;
+    }
+    return ($result);
+}
+
+
+/**
+ * Returns user online left days
+ * 
+ * @param string $login existing users login
+ * @param double $userBalance current users balance
+ * @param string $userTariff users tariff
+ * @param bool   $rawdays show only days count
+ * @return string
+ */
+function zbs_GetOnlineLeftCount($login,$userBalance,$userTariff,$rawDays=false) {
+        // DEFINE VARS:
+        $us_config=  zbs_LoadConfig();
+        $tariffData=  zbs_UserGetTariffData($userTariff);
+        $tariffFee = $tariffData['Fee'];
+        $tariffPeriod=  isset($tariffData['period']) ? $tariffData['period'] : 'month';
+
+        $daysOnLine = 0;
+        $balanceExpire='';
+        
+        if ($userBalance >= 0) {
+            if ($tariffFee > 0) {
+                //spread fee
+                if ($us_config['ONLINELEFT_SPREAD'] != 0) {
+                    if ($tariffPeriod=='month') {
+                        //monthly period
+                        while ($userBalance >= 0) {
+                            $daysOnLine++;
+                            $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+                            $userBalance = $userBalance - $dayFee;
+                        }
+                    } else {
+                        //daily period
+                          while ($userBalance >= 0) {
+                            $daysOnLine++;
+                            $userBalance = $userBalance - $tariffFee;
+                        }
+                    }
+                    
+                } else {
+                    //non spread fee
+                    if ($tariffPeriod=='month') {
+                        //monthly non spread fee
+                        while ($userBalance >= 0) {
+                            $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                            $userBalance = $userBalance - $tariffFee;
+                        }
+                    } else {
+                        //daily non spread fee
+                         while ($userBalance >= 0) {
+                            $daysOnLine++;
+                            $userBalance = $userBalance - $tariffFee;
+                        }
+                        
+                    }
+                }
+            }
+
+            // STYLING OF THE RESULT:
+            switch ($us_config['ONLINELEFT_STYLE']) {
+                case 'days':
+                    $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days');                    
+                    break;
+                case 'date':
+                    $balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60)); 
+                    break;
+                default:
+                    $balanceExpire = NULL; 
+                    break;
+            }
+        } else {
+            $balanceExpire = la_tag('span', false, '', 'style="color:red;"').', ' . __('indebtedness!') . la_tag('span',true);
+        }
+        
+        if ($rawDays) {
+            $balanceExpire=$daysOnLine;
+        }
+        
+return ($balanceExpire);
+}
+
 function zbs_LoginForm() {
     $form='
         <table width="100%" border="0">
@@ -494,29 +605,11 @@ function zbs_UserShowXmlAgentData($login) {
     if ($us_config['ONLINELEFT_COUNT'] != 0) {
         // DEFINE VARS:
         $userBalance = $userdata['Cash'];
-        $tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
-        $daysOnLine = 0;
         if ($userBalance >= 0) {
-            // HERE WE GO... 
-            if ($tariffFee > 0) {
-                if ($us_config['ONLINELEFT_SPREAD'] != 0) {
-                    while ($userBalance >= 0) {
-                        $daysOnLine++;
-                        $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
-                        $userBalance = $userBalance - $dayFee;
-                    }
-                } else {
-                    while ($userBalance >= 0) {
-                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
-                        $userBalance = $userBalance - $tariffFee;
-                    }
-                }
-            }
-
-            // STYLING OF THE RESULT:
-            $balanceExpire =$daysOnLine;                    
-            
-        } else $balanceExpire = 'debt';
+           $balanceExpire=  zbs_GetOnlineLeftCount($login, $userBalance, $userdata['Tariff'], true);
+        } else {
+            $balanceExpire = 'debt';
+        }
     } else {
         $balanceExpire='No';
     }
@@ -701,43 +794,9 @@ function zbs_UserShowProfile($login) {
 
     // START OF ONLINELEFT COUNTING <<
     if ($us_config['ONLINELEFT_COUNT'] != 0) {
-        // DEFINE VARS:
-        $userBalance = $userdata['Cash'];
-        $tariffFee = zbs_UserGetTariffPrice($userdata['Tariff']);
-        $daysOnLine = 0;
-        if ($userBalance >= 0) {
-            // HERE WE GO... 
-            if ($tariffFee > 0) {
-                if ($us_config['ONLINELEFT_SPREAD'] != 0) {
-                    while ($userBalance >= 0) {
-                        $daysOnLine++;
-                        $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
-                        $userBalance = $userBalance - $dayFee;
-                        /* DISPLAY COUNT PROCESS (DEBUG):
-                         * print "DAY: " . $daysOnLine . " DATE: " . date('d-m-Y', time() + ($daysOnLine * 24 * 60 * 60)) . " FEE: " . $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60)) . "BALANCE: " . $userBalance . "<br>";
-                         */
-                    }
-                } else {
-                    while ($userBalance >= 0) {
-                        $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
-                        $userBalance = $userBalance - $tariffFee;
-                    }
-                }
-            }
-
-            // STYLING OF THE RESULT:
-            switch ($us_config['ONLINELEFT_STYLE']) {
-                case 'days':
-                    $balanceExpire = ", " . __('enought for') . ' ' . $daysOnLine . ' ' . __('days');                    
-                    break;
-                case 'date':
-                    $balanceExpire = ", " . __('enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60)); 
-                    break;
-                default:
-                    $balanceExpire = NULL; 
-                    break;
-            }
-        } else $balanceExpire = ', <span style="color:red;">' . __('indebtedness!') . '</span>';
+        $userBalance=$userdata['Cash'];
+        $userTariff=$userdata['Tariff'];
+        $balanceExpire=  zbs_GetOnlineLeftCount($login, $userBalance, $userTariff,false);
     } else {
         $balanceExpire='';
     }
@@ -1208,6 +1267,13 @@ function zbs_CashGetUserCredit($login) {
     $query="SELECT `Fee` from `tariffs` WHERE `name`='".$tariff."'";
     $res=simple_query($query);
     return($res['Fee']); 
+ }
+ 
+  function zbs_UserGetTariffData($tariff) {
+    $login=mysql_real_escape_string($tariff);
+    $query="SELECT * from `tariffs` WHERE `name`='".$tariff."'";
+    $res=simple_query($query);
+    return($res); 
  }
  
 

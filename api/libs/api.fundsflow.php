@@ -300,7 +300,7 @@ class FundsFlow {
      * @param array $allUserContracts
      * @return string
      */
-    public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash) {
+    public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices) {
         $result = '';
         $rawData = array();
         $rawData['balance'] = 0;
@@ -333,11 +333,11 @@ class FundsFlow {
 
 
             $rawData['login'] = $eachop['login'];
-            @$rawData['contract'] = $allUserContracts[$eachop['login']];
+            @$rawData['contract'] = array_search($eachop['login'], $allUserContracts);
             @$rawData['corpid'] = $corpUsers[$eachop['login']];
             @$rawData['corpname'] = $corpsData[$rawData['corpid']]['corpname'];
             $rawData['balance'] = $allUsersCash[$eachop['login']];
-            $rawData['used'] = abs($rawData['payments'] - $rawData['fees']);
+            $rawData['used'] = $rawData['fees'];
 
             //forming result
             $cells = wf_TableCell($num);
@@ -349,7 +349,7 @@ class FundsFlow {
                 $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
             }
             $cells.=wf_TableCell($loginLink);
-            $cells.=wf_TableCell(round($rawData['fees'],2));
+            $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
             $cells.=wf_TableCell(round($rawData['payments'],2));
             $cells.=wf_TableCell(round($rawData['paymentscorr'],2));
             $cells.=wf_TableCell(round($rawData['balance'],2));

@@ -14,8 +14,10 @@ if (cfr('CORPS')) {
             $corpsData = $corps->getCorps();
             $corpUsers = $corps->getUsers();
             $allUserContracts = zb_UserGetAllContracts();
-            $allUserContracts = array_flip($allUserContracts);
             $allUsersCash = zb_UserGetAllBalance();
+            $allUserTariffs= zb_TariffsGetAllUsers();
+            $allTariffPrices=  zb_TariffGetPricesAll();
+            
             $rows = '';
             $count = 0;
 
@@ -45,7 +47,7 @@ if (cfr('CORPS')) {
                     $fundsflow = $fees + $payments + $paymentscorr;
                     $dateFunds = $funds->filterByDate($fundsflow, $date);
 
-                    $rows.=$funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash);
+                    $rows.=$funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices);
                 }
 
                 $report = wf_TableBody($rows, '100%', 0, '');
