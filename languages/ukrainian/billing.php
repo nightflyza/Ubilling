@@ -1821,6 +1821,8 @@ $lang['def']['mysql system command path']='Шлях до команди mysql';
 $lang['def']['Restore DB']='Відновити БД';
 $lang['def']['Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.']='Відновлення БД з дампа, повністю і назавжди знищить вашу поточну БД. Подумайте ще раз, чи дійсно ви цього бажаєте.';
 $lang['def']['You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer']='Відновлення БД з дампу можливо тільки з увімкненою опцією NOSTGCHECKPID та зупиненим Stargazer.';
-
+$lang['def']['VLAN pools extended management enabled']='Розширене керування VLAN-ами увімкнено';
+$lang['def']['right to change user vlan']='Право змінювати Vlan користувача';
+$lang['def']['right to control vlan pools']='Право керувати пулами Vlan-ів';
 
 ?>

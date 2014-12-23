@@ -1807,9 +1807,9 @@ $lang['def']['mysql system command path']='Путь к комманде mysql';
 $lang['def']['Restore DB']='Восстановить БД';
 $lang['def']['Restoring a database from a dump, completely and permanently destroy your current database. Think again if you really want it.']='Восстановление БД из дампа, полностью и навсегда уничтожит вашу текущую БД. Подумайте еще раз, действительно ли вы этого хотите.';
 $lang['def']['You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer']='Восстановление БД из дампа возможно только с включенной опцией NOSTGCHECKPID и остановленным Stargazer.';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['VLAN pools extended management enabled']='Продвинутое управление VLAN-ами включено';
+$lang['def']['right to change user vlan']='Право изменять Vlan пользователя';
+$lang['def']['right to control vlan pools']='Право управлять пулами Vlan-ов';
 $lang['def']['']='';
 
 
