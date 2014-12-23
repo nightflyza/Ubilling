@@ -302,7 +302,72 @@ function um_MapLocationBuildForm() {
              ';
          
          show_window('', $js);
+        }
+        
+        /*
+ * 
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return nothing
+ *  
+ */
+    function sm_MapInitBasic($center,$zoom,$type,$placemarks='',$editor='',$lang='ru-RU') {
+        if (empty($center)) {
+            $center='ymaps.geolocation.latitude, ymaps.geolocation.longitude';
+        }
+        
+        if (wf_CheckGet(array('clusterer'))) {
+            $clusterer=',
+ 		clusterer = new ymaps.Clusterer({
+            //preset: \'twirl#invertedVioletClusterIcons\',
+            groupByCoordinates: false,
+            clusterDisableClickZoom: true
+        });
 
+        clusterer.options.set({
+        gridSize: 80,
+        clusterDisableClickZoom: false
+        });  myMap.geoObjects.add(clusterer); ';
+            
+        } else {
+            $clusterer=';';
+        }
+        
+         $js='
+              <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang='.$lang.'"  type="text/javascript"></script>
+
+    <script type="text/javascript">
+        ymaps.ready(init);
+    function init () {
+            var myMap = new ymaps.Map(\'swmap\', {
+                    center: ['.$center.'], 
+                    zoom: '.$zoom.',
+                    type: \'yandex#'.$type.'\',
+                    behaviors: [\'default\',\'scrollZoom\']
+                })'.$clusterer.'
+               
+                   myMap.controls
+                .add(\'zoomControl\')
+                .add(\'typeSelector\')
+                .add(\'searchControl\');
+               
+         '.$placemarks.'    
+         '.$editor.'
+             
+    }
+        
+
+    </script>
+             ';
+         
+         return($js);
         }
         
 /*
