@@ -54,7 +54,7 @@ include('api/libs/api.userprofile.php');
 include('api/libs/api.stickynotes.php');
 include('api/libs/api.fundsflow.php');
 include('api/libs/api.adcomments.php');
-
+include('api/libs/api.vlan.php');
 
 
 /*

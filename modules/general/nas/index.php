@@ -51,6 +51,62 @@ if (cfr('NAS')) {
     }
     show_window(__('Network Access Servers').' '.$radiusControls,web_GridEditorNas($titles, $keys, $allnas,'nas'));
     show_window(__('Add new'),web_NasAddForm());
+    //vlangen patch start
+    	if($altCfg['VLANGEN_SUPPORT']) {
+
+	        if (isset($_GET['deleteterm'])) {
+                $term_id=$_GET['deleteterm'];
+                delete_term($term_id);
+                rcms_redirect('?module=nas');
+        	}
+
+		if(!isset($_GET['editterm'])) {
+			if (isset ($_POST['addterm'])) {
+                	$terminator_req=array('ip', 'username', 'password');
+                		if (wf_CheckPost($terminator_req)) {
+                        		$netid=$_POST['networkselect'];
+                        		$vlanpoolid=$_POST['vlanpoolselect'];
+                        		$terminator_ip=$_POST['ip'];
+                        		$terminator_type=$_POST['type'];
+                        		$terminator_username=$_POST['username'];
+                        		$terminator_password=$_POST['password'];
+					$terminator_remoteid=$_POST['remoteid'];
+					$terminator_ifname=$_POST['interface'];
+					$relay=$_POST['relay'];
+                        		term_add($netid,$vlanpoolid,$terminator_ip,$terminator_type,$terminator_username,$terminator_password,$terminator_remoteid,$terminator_ifname,$relay);
+                        		rcms_redirect("?module=nas");
+                		} else {
+                        		show_window(__('Error'), __('No all of required fields is filled'));
+                		}
+       			}
+			show_all_terminators();
+			terminators_show_form();
+			} else {
+				if(isset($_GET['editterm'])) {
+					$term_id=$_GET['editterm'];
+					if(isset($_POST['termedit'])) {
+					$terminator_req=array('editip','editusername','editpassword');
+                                                        if (wf_CheckPost($terminator_req)) {
+                                                                simple_update_field('vlan_terminators', 'netid', $_POST['networkselect'], "WHERE `id`='".$term_id."'");
+                                                                simple_update_field('vlan_terminators', 'vlanpoolid', $_POST['vlanpoolselect'], "WHERE `id`='".$term_id."'");
+                                                                simple_update_field('vlan_terminators', 'ip', $_POST['editip'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'type', $_POST['edittype'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'username', $_POST['editusername'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'password', $_POST['editpassword'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'remote-id', $_POST['editremoteid'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'interface', $_POST['editinterface'], "WHERE `id`='".$term_id."'");
+								simple_update_field('vlan_terminators', 'relay', $_POST['editrelay'], "WHERE `id`='".$term_id."'");
+								log_register('MODIFY Vlan Terminator ['.$term_id.']');
+                                                                rcms_redirect("?module=nas");
+                                                        } else {
+                                                                show_window(__('Error'), __('No all of required fields is filled'));
+                                                        }
+					}
+							term_show_editform($term_id);
+				}
+		}
+	}
+        //vlangen patch end
     } else {
         //show editing form
        $nasid=vf($_GET['edit']);

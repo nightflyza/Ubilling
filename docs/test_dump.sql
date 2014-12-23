@@ -1293,3 +1293,46 @@ CREATE TABLE IF NOT EXISTS `ahenassignstrict` (
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
   ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `vlan_pools` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`desc` varchar(32) DEFAULT "*",
+`firstvlan` int(4) DEFAULT NULL,
+`endvlan` int(4) DEFAULT NULL,
+`qinq` int(1) DEFAULT NULL,
+`svlan` int(4) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `vlanhosts` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`vlanpoolid` int(11) NOT NULL,
+`login` varchar(32) DEFAULT "*",
+`vlan` int(4) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `vlanhosts_qinq` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`vlanpoolid` int(11) NOT NULL,
+`login` varchar(32) DEFAULT "*",
+`svlan` int(4) DEFAULT NULL,
+`cvlan` int(4) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `vlan_terminators` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`netid` int(4) DEFAULT NULL,
+`vlanpoolid` int(4) DEFAULT NULL,
+`ip` varchar(20) DEFAULT NULL,
+`type` varchar (50) DEFAULT NULL,
+`username` varchar(50) DEFAULT NULL,
+`password` varchar(50) DEFAULT NULL,
+`remote-id` varchar(50) DEFAULT NULL,
+`interface` varchar(50) DEFAULT NULL,
+`relay` varchar(50) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
