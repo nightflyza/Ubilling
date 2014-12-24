@@ -152,7 +152,7 @@ function show_all_terminators() {
 *	for FreeBSD, Linux, Cisco 35xx/37xx
 */
 function OnVlanConnect ($ip,$vlan) {
-	$netid=GetNetidByIP($ip);
+	 multinet_rebuild_all_handlers();	$netid=GetNetidByIP($ip);
 	$termid=GetTermIdByNetid($netid);
 	$term_data=term_get_params($termid);
 	$term_ip=$term_data['ip'];
