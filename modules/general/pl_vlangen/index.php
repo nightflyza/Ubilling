@@ -10,30 +10,11 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 				$cur_vlan= UserGetQinQVlan($login);
 			}
 
-			function web_VlanChangeFormService() {
-				global $cur_vlan;
-				$inputs = vlan_pool_selector() . ' ' . __('New VLAN');
-				$inputs.= wf_delimiter();
-				$inputs.= wf_Submit(__('Save'));
-				$result = wf_Form("", 'POST', $inputs, 'floatpanels');
-				return($result);
-			}
-
-			function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login,$qinq) {
-				global $ip;
-				vlan_pool_delete_host($login);
-				vlan_pool_qinq_delete_host($login);
-				if($qinq==0) {
-					vlan_pool_add_host($new_vlan_pool_id, $new_free_vlan, $login);
-				} else {
-					$svlan=vlan_get_pool_params($new_vlan_pool_id);
-					$svlan=$svlan['svlan'];
-					vlan_pool_add_qinq_host($new_vlan_pool_id, $svlan, $new_free_vlan, $login); 
-				}
-			OnVlanConnect($ip,$new_free_vlan); 
-			}
-
         // primary module part    
+		if (isset($_POST['vlandel'])) {
+			vlan_delete_host($login);
+			rcms_redirect("?module=pl_vlangen&username=" . $login);
+		}
 		if (isset($_POST['vlanpoolselect'])) {
 			$new_vlan_pool_id = $_POST['vlanpoolselect'];
 			$qinq=vlan_pool_get_qinq($new_vlan_pool_id);
@@ -55,7 +36,8 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 		} else {
 			show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
 			show_window(__('Change user Vlan'), web_VlanChangeFormService());
-	        }
+			show_window(__('Delete user Vlan'), web_VlanDelete($login));
+				        }
 		show_window('', web_UserControls($login));
 		}
 	} else {

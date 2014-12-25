@@ -1,5 +1,35 @@
 <?php
 
+function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login,$qinq) {
+	global $ip;
+	vlan_delete_host($login);
+	vlan_qinq_delete_host($login);
+	if($qinq==0) {
+		vlan_add_host($new_vlan_pool_id, $new_free_vlan, $login);
+	} else {
+		$svlan=vlan_get_pool_params($new_vlan_pool_id);
+		$svlan=$svlan['svlan'];
+		vlan_pool_add_qinq_host($new_vlan_pool_id, $svlan, $new_free_vlan, $login);
+	}
+	OnVlanConnect($ip,$new_free_vlan);
+}
+
+function web_VlanDelete($login) {
+	$inputs = wf_HiddenInput('vlandel', '', 'delete',true, '25');
+	$inputs.= wf_Submit(__('Delete'));
+	$result = wf_form("", 'POST', $inputs, 'floatpanels');
+	return($result);
+}
+
+function web_VlanChangeFormService() {
+	global $cur_vlan;
+	$inputs = vlan_pool_selector() . ' ' . __('New VLAN');
+	$inputs.= wf_delimiter();
+	$inputs.= wf_Submit(__('Save'));
+	$result = wf_Form("", 'POST', $inputs, 'floatpanels');
+	return($result);
+}
+
 function GetTermRemoteByNetid($netid) {
 $query="SELECT `remote-id` FROM `vlan_terminators` where `netid`='".$netid."'";
 $remote=simple_query($query);
@@ -74,7 +104,7 @@ function term_show_editform($term_id) {
 	$inputs.= wf_TextInput('editrelay', __('Relay Address').$sup, $termdata['relay'], true, '20');
         $inputs.= wf_Tag('br');
         $inputs.= wf_Submit(__('Save'));
-        $form=  wf_Form('', "POST", $inputs, 'glamour');
+        $form=  wf_Form("", 'POST', $inputs, 'glamour');
  
         $form.=wf_Link('?module=nas', 'Back', true, 'ubButton');
         show_window(__('Edit'), $form);
@@ -152,7 +182,8 @@ function show_all_terminators() {
 *	for FreeBSD, Linux, Cisco 35xx/37xx
 */
 function OnVlanConnect ($ip,$vlan) {
-	 multinet_rebuild_all_handlers();	$netid=GetNetidByIP($ip);
+	multinet_rebuild_all_handlers();
+	$netid=GetNetidByIP($ip);
 	$termid=GetTermIdByNetid($netid);
 	$term_data=term_get_params($termid);
 	$term_ip=$term_data['ip'];
@@ -163,20 +194,20 @@ function OnVlanConnect ($ip,$vlan) {
 	$relay=$term_data['relay'];
 	if($term_ip=='127.0.0.1') {
 		if($term_type=='FreeBSD') {
-			$res=shell_exec("/etc/exp/bsd.local.sh $term_int $ip $vlan");
+			$res=shell_exec("CONFIG_PATH.'scripts/bsd.local.sh' $term_int $ip $vlan");
 		}  
 		if($term_type=='Linux') {
-			$res=shell_exec("/etc/exp/linux.local.sh");
+			$res=shell_exec("CONFIG_PATH.'scripts/linux.local.sh'");
 		}
 	} else {
 		if($term_type=='FreeBSD') {
-			$res=shell_exec("/etc/exp/bsd.remote.sh $term_user $term_pass $term_int $ip $vlan");
+			$res=shell_exec("CONFIG_PATH.'scripts/bsd.remote.sh' $term_user $term_pass $term_int $ip $vlan");
 		}
 		if($term_type=='Linux') {
-			$res=shell_exec("/etc/exp/linux.remote.sh $term_user $term_pass $term_int $ip $vlan");
+			$res=shell_exec("CONFIG_PATH.'scripts/linux.remote.sh' $term_user $term_pass $term_int $ip $vlan");
 		}
 		if($term_type=='Cisco') {
-			$res=shell_exec("/etc/exp/cisco.sh $term_user $term_pass $vlan $term_int $relay $term_ip");
+			$res=shell_exec("CONFIG_PATH.'scripts/cisco.sh' $term_user $term_pass $vlan $term_int $relay $term_ip");
 		}
 	}	
 }
@@ -399,21 +430,21 @@ function vlan_show_available_pools() {
 }
 
 //Unassign vlan from host
-function vlan_pool_delete_host($login) {
+function vlan_delete_host($login) {
 	$query="DELETE from `vlanhosts` WHERE `login`='".$login."'";
 	nr_query($query);
 	log_register("DELETE VLanPoolHost ".$login);
 }
 
 //Unassign qinq vlan from host
-function vlan_pool_qinq_delete_host($login) {
+function vlan_qinq_delete_host($login) {
 	$query="DELETE FROM `vlanhosts_qinq` WHERE `login`='".$login."'";
 	nr_query($query);
 	log_register("DELETE VlanPoolHost ".$login);
 }
 
 //Assign vlan for host
-function vlan_pool_add_host($vlanpoolid,$vlan,$login) {
+function vlan_add_host($vlanpoolid,$vlan,$login) {
 	$query="
 		INSERT INTO `vlanhosts` (
 			`id` ,
