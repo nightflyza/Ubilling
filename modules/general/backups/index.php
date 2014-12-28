@@ -168,6 +168,7 @@ show_window(__('Database cleanup'),web_DBCleanupForm());
                   
               }
               } else {
+                  log_register("BACKUP RESTORE TRY WITH RUNNING STARGAZER");
                   show_window(__('Error'),__('You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer'));
               }   
               

@@ -517,7 +517,8 @@
             $rawFilters=  explodeRows($rawFilters);
             if (!empty($rawFilters)) {
                 foreach ($rawFilters as $rawfindex=>$rawfmac) {
-                    $allfilters[trim($rawfmac)]=$rawfindex;
+                    $eachMacFilter=  strtolower($rawfmac);
+                    $allfilters[trim($eachMacFilter)]=$rawfindex;
                 }
             }
         }
