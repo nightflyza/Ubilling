@@ -3411,13 +3411,29 @@ function web_roundValue($value, $precision = 2) {
  * @return array
  */
 function zb_AnalyticsSignupsGetCountYear($year) {
+    $year=vf($year,3);
     $months = months_array();
     $result = array();
+    $tmpArr=array();
+    
+    $query = "SELECT * from `userreg` WHERE `date` LIKE '" . $year . "-%'";
+    $all =  simple_queryall($query);
+    
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $time=  strtotime($each['date']);
+            $month= date("m",$time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count']++;
+            } else {
+                $tmpArr[$month]['count']=1;
+            }
+        }
+    }
+    
+    
     foreach ($months as $eachmonth => $monthname) {
-        $query = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $year . "-" . $eachmonth . "%'";
-        $monthcount = simple_query($query);
-        $monthcount = $monthcount['COUNT(`id`)'];
-        $result[$eachmonth] = $monthcount;
+        $result[$eachmonth] = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
     }
     return($result);
 }
@@ -3429,12 +3445,27 @@ function zb_AnalyticsSignupsGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsSigReqGetCountYear($year) {
+    $year=vf($year,3);
     $months = months_array();
     $result = array();
+    $tmpArr=array();
+    
+    $query = "SELECT * from `sigreq` WHERE `date` LIKE '" . $year . "-%'";
+    $all=  simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+             $time=  strtotime($each['date']);
+             $month= date("m",$time);
+             if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count']++;
+             } else {
+                $tmpArr[$month]['count']=1;
+            }
+        }
+    }
+    
     foreach ($months as $eachmonth => $monthname) {
-        $query = "SELECT COUNT(`id`) from `sigreq` WHERE `date` LIKE '" . $year . "-" . $eachmonth . "%'";
-        $monthcount = simple_query($query);
-        $monthcount = $monthcount['COUNT(`id`)'];
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3447,12 +3478,27 @@ function zb_AnalyticsSigReqGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsTicketingGetCountYear($year) {
+    $year=vf($year,3);
     $months = months_array();
     $result = array();
+    $tmpArr=array();
+    
+     $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%'";
+     $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                 $time=  strtotime($each['date']);
+                 $month= date("m",$time);
+                 if (isset($tmpArr[$month])) {
+                    $tmpArr[$month]['count']++;
+                 } else {
+                    $tmpArr[$month]['count']=1;
+                }
+            }
+        }
+    
     foreach ($months as $eachmonth => $monthname) {
-        $query = "SELECT COUNT(`id`) from `ticketing` WHERE `date` LIKE '" . $year . "-" . $eachmonth . "%'";
-        $monthcount = simple_query($query);
-        $monthcount = $monthcount['COUNT(`id`)'];
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3465,12 +3511,28 @@ function zb_AnalyticsTicketingGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsTaskmanGetCountYear($year) {
+    $year=vf($year,3);
     $months = months_array();
     $result = array();
+    $tmpArr=array();
+    
+    $query = "SELECT * from `taskman` WHERE `date` LIKE '" . $year . "-%'";
+      $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io=>$each) {
+                 $time=  strtotime($each['date']);
+                 $month= date("m",$time);
+                 if (isset($tmpArr[$month])) {
+                    $tmpArr[$month]['count']++;
+                 } else {
+                    $tmpArr[$month]['count']=1;
+                }
+            }
+        }
+        
+        
     foreach ($months as $eachmonth => $monthname) {
-        $query = "SELECT COUNT(`id`) from `taskman` WHERE `date` LIKE '" . $year . "-" . $eachmonth . "%'";
-        $monthcount = simple_query($query);
-        $monthcount = $monthcount['COUNT(`id`)'];
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3483,15 +3545,41 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
  * @return string
  */
 function web_AnalyticsArpuMonthGraph($year) {
+    $year=vf($year,3);
     $months = months_array();
+    $tmpArr=array();
+    
+    $query="SELECT * from `payments` WHERE `date` LIKE '".$year."-%' AND `summ` > 0;";
+    $allPayments=  simple_queryall($query);
+    
+    if (!empty($allPayments)) {
+        foreach ($allPayments as $io=>$each) {
+            $time=  strtotime($each['date']);
+            $month= date("m",$time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count']++;
+                $tmpArr[$month]['summ']=$tmpArr[$month]['summ']+$each['summ'];
+            } else {
+                $tmpArr[$month]['count']=1;
+                $tmpArr[$month]['summ']=$each['summ'];
+            }
+        }   
+    }
+    
     $data = __('Month') . ',' . __('ARPU') . "\n";
 
-    foreach ($months as $eachmonth => $monthname) {
-        $month_summ = zb_PaymentsGetMonthSumm($year, $eachmonth);
-        $paycount = zb_PaymentsGetMonthCount($year, $eachmonth);
-        $arpu = @round($month_summ / $paycount, 2);
-        $data.=$year . '-' . $eachmonth . '-30,' . $arpu . "\n";
-    }
+     foreach ($months as $eachmonth => $monthname) {
+        $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
+        $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
+        if ($paycount!=0) {
+            $arpu = round($month_summ / $paycount, 2);
+        } else {
+            $arpu=0;
+        }
+        $data.=$year . '-' . $eachmonth . '-01,' . $arpu . "\n";
+     }
+    
+
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of changes in ARPU for the year');
     $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
@@ -3505,14 +3593,33 @@ function web_AnalyticsArpuMonthGraph($year) {
  * @return string
  */
 function web_AnalyticsPaymentsMonthGraph($year) {
+    $year=vf($year,3);
     $months = months_array();
+    $tmpArr=array();
     $data = __('Month') . ',' . __('Payments count') . ',' . __('Cash') . "\n";
+    
+    $query="SELECT * from `payments` WHERE `date` LIKE '".$year."-%' AND `summ` > 0;";
+    $allPayments=  simple_queryall($query);
+    
+    if (!empty($allPayments)) {
+        foreach ($allPayments as $io=>$each) {
+            $time=  strtotime($each['date']);
+            $month= date("m",$time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count']++;
+                $tmpArr[$month]['summ']=$tmpArr[$month]['summ']+$each['summ'];
+            } else {
+                $tmpArr[$month]['count']=1;
+                $tmpArr[$month]['summ']=$each['summ'];
+            }
+        }   
+    }
 
     foreach ($months as $eachmonth => $monthname) {
-        $month_summ = zb_PaymentsGetMonthSumm($year, $eachmonth);
-        $paycount = zb_PaymentsGetMonthCount($year, $eachmonth);
-        $arpu = @round($month_summ / $paycount, 2);
-        $data.=$year . '-' . $eachmonth . '-30,' . $paycount . ',' . $month_summ . "\n";
+        $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
+        $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
+        
+        $data.=$year . '-' . $eachmonth . '-01,' . $paycount . ',' . $month_summ . "\n";
     }
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of cash flow for the year');
@@ -3532,7 +3639,7 @@ function web_AnalyticsSignupsMonthGraph($year) {
     $data = __('Month') . ',' . __('Signups') . "\n";
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-30,' . $count . "\n";
+        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of change signups of the year');
@@ -3552,7 +3659,7 @@ function web_AnalyticsSigReqMonthGraph($year) {
     $data = __('Month') . ',' . __('Signup request') . "\n";
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-30,' . $count . "\n";
+        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Signup requests received during the year');
@@ -3572,7 +3679,7 @@ function web_AnalyticsTicketingMonthGraph($year) {
     $data = __('Month') . ',' . __('Ticket') . "\n";
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-30,' . $count . "\n";
+        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Ticketing activity during the year');
@@ -3592,7 +3699,7 @@ function web_AnalyticsTaskmanMonthGraph($year) {
     $data = __('Month') . ',' . __('Jobs') . "\n";
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-30,' . $count . "\n";
+        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
     $result = wf_tag('div', false, 'dashtask', '') . __('Task manager activity during the year');

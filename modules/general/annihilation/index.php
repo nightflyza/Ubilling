@@ -22,7 +22,7 @@ if (cfr('ANNIHILATION')) {
         log_register("DELETE VCASH ".$login);
         cf_FlushAllUserCF($login);
         zb_FlushAllUserTags($login);
-		vlan_delete_host($login);
+	vlan_delete_host($login);
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
         //destroy stargazer user
@@ -32,19 +32,17 @@ if (cfr('ANNIHILATION')) {
     
     function web_AnnihilateFormShow($login) {
         $alladdress=zb_AddressGetFulladdresslist();
-        $form='
-            '.__('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.').' <br>
-            '.__('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.').'
-            <br>
-            <br>
-            <form action="" method="POST">
-            <input type="text" name="confirmation" autocomplete="off" > 
-            <input type="hidden" name="anihilation" value="true">
-            <br>
-            <br>
-            <input type="submit" value="'.__('I really want to stop suffering User').'">
-            </form>
-            ';
+    
+        $inputs=__('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.');
+        $inputs.= wf_tag('br');
+        $inputs.=__('To ensure that we have seen the seriousness of your intentions to enter the word сonfirm the field below.');
+        $inputs.= wf_tag('br');
+        $inputs.=wf_tag('input', false, '', 'type="text" name="confirmation" autocomplete="off"');
+        $inputs.= wf_HiddenInput('anihilation', 'true');
+        $inputs.=wf_delimiter();
+        $inputs.= wf_Submit(__('I really want to stop suffering User'));
+        $form=  wf_Form('', 'POST', $inputs, 'glamour');
+        
         show_window(__('Deleting user').' '.@$alladdress[$login].' ('.$login.')', $form);
     }
     
