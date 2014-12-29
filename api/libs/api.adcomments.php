@@ -6,6 +6,8 @@ class ADcomments {
     protected $scope = '';
     protected $item = '';
     protected $mylogin = '';
+    protected $scopeItems = array();
+    protected $scopeItemsLoaded = false;
 
     const EX_EMPTY_SCOPE = 'EMPTY_SCOPE_RECEIVED';
     const EX_EMPTY_ITEM = 'EMPTY_ITEMID_RECEIVED';
@@ -179,6 +181,17 @@ class ADcomments {
     }
 
     /**
+     * Returns JavaScript comfirmation box for deleting/editing inputs
+     * 
+     * @param string $alert
+     * @return string
+     */
+    protected function jsAlert($alert) {
+        $result = 'onClick="return confirm(\'' . $alert . '\');"';
+        return ($result);
+    }
+
+    /**
      * Returns coment controls for own comments or if im root user
      * 
      * @param int $commentid existing additional comment ID
@@ -189,11 +202,11 @@ class ADcomments {
         if (isset($this->data[$commentid])) {
             if (($this->data[$commentid]['admin'] == $this->mylogin) OR ( cfr('ROOT'))) {
                 $deleteInputs = wf_HiddenInput('adcommentsdeleteid', $commentid);
-                $deleteInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '"');
+                $deleteInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_del.gif" title="' . __('Delete') . '" ' . $this->jsAlert(__('Removing this may lead to irreparable results')));
                 $deleteForm = wf_Form('', 'POST', $deleteInputs, '');
 
                 $editInputs = wf_HiddenInput('adcommentseditid', $commentid);
-                $editInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_edit.gif" title="' . __('Edit') . '"');
+                $editInputs.= wf_tag('input', false, '', 'type="image" src="skins/icon_edit.gif"  title="' . __('Edit') . '" ' . $this->jsAlert(__('Are you serious')));
                 $editForm = wf_Form('', 'POST', $editInputs, '');
 
                 $result.=wf_tag('div', false, '', 'style="display:inline-block;"') . $deleteForm . wf_tag('div', true);
@@ -264,6 +277,81 @@ class ADcomments {
 
         $result.=$this->commentAddForm();
 
+        return ($result);
+    }
+
+    /**
+     * Loads scope items list if its really needed
+     * 
+     * @rerturn void
+     */
+    protected function loadScopeItems() {
+        if ($this->scope) {
+            $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "';";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    if (isset($this->scopeItems[$each['item']])) {
+                        $this->scopeItems[$each['item']] ++;
+                    } else {
+                        $this->scopeItems[$each['item']] = 1;
+                    }
+                }
+            }
+            $this->scopeItemsLoaded = true;
+        } else {
+            throw new Exception(self::EX_EMPTY_SCOPE);
+        }
+    }
+
+    /**
+     * Checks have item some comments or not?
+     * 
+     * @param string $item
+     * @return bool
+     */
+    public function haveComments($item) {
+        if (!$this->scopeItemsLoaded) {
+            $this->loadScopeItems();
+        }
+
+        if (isset($this->scopeItems[$item])) {
+            $result = true;
+        } else {
+            $result = false;
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks have item some additional comments and return native indicator
+     * 
+     * @param string $item
+     * @return int
+     */
+    public function getCommentsCount($item) {
+        if ($this->haveComments($item)) {
+            $result = $this->scopeItems[$item];
+        } else {
+            $result = 0;
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks have item some additional comments and return native indicator
+     * 
+     * @param string $item
+     * @return string
+     */
+    public function getCommentsIndicator($item, $size = '') {
+        if ($this->haveComments($item)) {
+            $size = (!$size) ? 16 : $size;
+            $counter = $this->getCommentsCount($item);
+            $result = wf_img_sized('skins/adcomments.png', __('Additional comments') . ' (' . $counter . ')', $size, $size);
+        } else {
+            $result = '';
+        }
         return ($result);
     }
 

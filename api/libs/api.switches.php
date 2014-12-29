@@ -348,6 +348,8 @@ function web_SwitchesShow() {
         $reping_timeout=$alterconf['SW_PINGTIMEOUT'];
         $deathTime=zb_SwitchesGetAllDeathTime();
         
+        
+        
         //non realtime switches pinging
         $last_pingtime=zb_StorageGet('SWPINGTIME');
         
@@ -432,6 +434,10 @@ function web_SwitchesShow() {
             $dead_switches=  unserialize($dead_switches_raw);
         }
         
+        //create new ADcomments object if enabled 
+         if ($alterconf['ADCOMMENTS_ENABLED']) {
+            $adcomments=new ADcomments('SWITCHES');
+         } 
 			
         $tablecells=wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('IP'));
@@ -485,6 +491,10 @@ function web_SwitchesShow() {
                  if (!empty($eachswitch['geo'])) {
                      $switchcontrols.=wf_Link('?module=switchmap&finddevice='.$eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
                  }
+                }
+                
+                if ($alterconf['ADCOMMENTS_ENABLED']) {
+                    $switchcontrols.=$adcomments->getCommentsIndicator($eachswitch['id']);
                 }
                 
                 $tablecells.=wf_TableCell($switchcontrols);
