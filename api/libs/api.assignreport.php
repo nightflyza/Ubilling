@@ -203,10 +203,27 @@ class agentAssignReport {
             $yesterday = curdate();
         }
         
+       //try to save cashtype selector state
+        if (wf_CheckPost(array('cashtypeid'))) {
+            $currentCashtypeId=$_POST['cashtypeid'];
+        } else {
+            //cash money by default
+            $currentCashtypeId=1;
+        }
+        
+        $allcashtypes = zb_CashGetAlltypes();
+        $cashTypesArr=  array();
+        if (!empty($allcashtypes)) {
+            foreach ($allcashtypes as $io=>$each) {
+                $cashTypesArr[$each['id']]=__($each['cashtype']);
+            }
+        }
+        $cashTypesArr['any']=__('Any');
         
         $inputs = __('Date');
         $inputs.= wf_DatePickerPreset('datefrom', $yesterday) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To');
+        $inputs.= wf_DatePickerPreset('dateto', $curdate) . ' ' . __('To').' ';
+        $inputs.= wf_Selector('cashtypeid', $cashTypesArr, __('Cash type'), $currentCashtypeId, false);
         $inputs.= wf_HiddenInput('dosearch', 'true');
         $inputs.= wf_Submit(__('Search'));
         
@@ -471,7 +488,7 @@ class agentAssignReport {
      * 
      * @return string
      */
-    public function paymentSearch ($datefrom,$dateto) {
+    public function paymentSearch ($datefrom,$dateto,$cashtypeid) {
         
         if (!empty($this->altcfg)) {
             $altercfg=$this->altcfg;
@@ -487,7 +504,14 @@ class agentAssignReport {
         $this->loadCashTypes();
         $allservicenames = zb_VservicesGetAllNamesLabeled();
         $result='';
-        $query="SELECT * from `payments` WHERE `cashtypeid`='1' AND `date`  BETWEEN '".$datefrom."' AND '".$dateto."' AND `summ`> '0' ;";
+        if ($cashtypeid!='any') {
+            $cashtypeid=vf($cashtypeid,3);
+            $cashtypeSub_q="`cashtypeid`='".$cashtypeid."' AND ";
+        } else {
+            $cashtypeSub_q='';
+        }
+        
+        $query="SELECT * from `payments` WHERE ".$cashtypeSub_q." `date`  BETWEEN '".$datefrom."' AND '".$dateto."' AND `summ`> '0' ;";
         $allPayments=  simple_queryall($query);
         $totalCount=0;
         $totalSumm=0;

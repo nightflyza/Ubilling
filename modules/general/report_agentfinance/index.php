@@ -20,8 +20,8 @@ if ($altcfg['AGENTS_ASSIGN']==2) {
     show_window('',  wf_Link('?module=report_finance', __('Back'), true, 'ubButton'));
     
     //do the search and display results
-    if (wf_CheckPost(array('datefrom','dateto','dosearch'))) {
-        show_window(__('Search results'),$assignReport->paymentSearch($_POST['datefrom'], $_POST['dateto']));
+    if (wf_CheckPost(array('datefrom','dateto','dosearch','cashtypeid'))) {
+        show_window(__('Search results'),$assignReport->paymentSearch($_POST['datefrom'], $_POST['dateto'],$_POST['cashtypeid']));
     }
     
 } else {

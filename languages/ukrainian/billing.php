@@ -1825,4 +1825,8 @@ $lang['def']['VLAN pools extended management enabled']='Розширене ке�
 $lang['def']['right to change user vlan']='Право змінювати Vlan користувача';
 $lang['def']['right to control vlan pools']='Право керувати пулами Vlan-ів';
 
+//rev 4027
+$lang['def']['All']='Усі';
+$lang['def']['Any']='Будь-який';
+
 ?>

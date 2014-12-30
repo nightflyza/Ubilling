@@ -1810,8 +1810,11 @@ $lang['def']['You can restore database only with enabled NOSTGCHECKPID option an
 $lang['def']['VLAN pools extended management enabled']='Продвинутое управление VLAN-ами включено';
 $lang['def']['right to change user vlan']='Право изменять Vlan пользователя';
 $lang['def']['right to control vlan pools']='Право управлять пулами Vlan-ов';
-$lang['def']['']='';
 
+//rev 4027
+$lang['def']['All']='Все';
+$lang['def']['Any']='Любой';
+$lang['def']['']='';
 
 
 ?>
