@@ -115,7 +115,8 @@ $sqlform=wf_Form('', 'POST', $sqlinputs, 'glamour');
 $phpinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
 $phpinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
 if (cfr('ROOT')) {
-$phpinputs.=wf_Link("?module=migration", 'Migration', true, 'ubButton');
+$phpinputs.=wf_Link("?module=migration", 'Migration', false, 'ubButton');
+$phpinputs.=wf_Link("?module=migration2", __('Migration').' 2', true, 'ubButton');
 }
 //is template run or clear area?
 if (wf_CheckGet(array('runtpl'))) {
