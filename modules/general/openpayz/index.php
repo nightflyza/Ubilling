@@ -119,7 +119,7 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         if (!empty($all)) {
             foreach ($all as $io=>$each) {
                 $timestamp=  strtotime($each['date']);
-                $date= date("Y-m-d",$timestamp); 
+                $date= date("Y-m-01",$timestamp); 
                 if (isset($psysdata[$each['paysys']][$date]['count'])) {
                     $psysdata[$each['paysys']][$date]['count']++;
                     $psysdata[$each['paysys']][$date]['summ']=$psysdata[$each['paysys']][$date]['summ']+$each['summ'];
