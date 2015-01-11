@@ -23,7 +23,7 @@
              } else {
                  //hiding
                 $( "#sidebar" ).fadeOut("fast");
-                $("#main").css("width","97%");
+                $("#main").css("width","99%");
                 $.cookie('globalMenuToggle', 'hidden', { path: '/' });
                
                  
@@ -33,8 +33,8 @@
            
        $(document).ready(function() {
            if ($.cookie('globalMenuToggle')=='hidden') {
-               $( "#sidebar" ).fadeOut("fast");
-               $("#main").css("width","97%");
+               $( "#sidebar" ).hide();
+               $("#main").css("width","99%");
                }
               });
        
@@ -65,7 +65,7 @@
 	<section id="secondary_bar">
 		<div class="user">
                     <p><?=  whoami();?></p>
-                    <a class="logout_user" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 
+                    <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 
                 </div>
 		<div class="breadcrumbs_container">
 			<article class="breadcrumbs"><a href="index.php?module=taskbar"><?=__('Taskbar');?></a> <div class="breadcrumb_divider"></div> <a class="current">надо отслеживать</a></article>

@@ -136,6 +136,15 @@ text-indent: -5000px;
 background: url(../images/icn_logout.png) center no-repeat;
 }
 
+.user a.menu_toggle {
+float: left;
+display: block;
+width: 16px;
+height: 35px;
+text-indent: -5000px;
+background: url(../images/menutoggle.png) center no-repeat;
+}
+
 /* Breadcrumbs */
 
 section#secondary_bar .breadcrumbs_container {
