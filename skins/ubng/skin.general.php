@@ -11,25 +11,33 @@
 	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
 	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
+        <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
          <script language=javascript type='text/javascript'>
             function showhideGlobalMenu(){
              if ( $( "#sidebar" ).is( ":hidden" ) ) {
                 //showing
                 $( "#sidebar" ).fadeIn( "fast" );
                 $("#main").css("width","77%");
-        
+                $.cookie('globalMenuToggle', 'visible', { path: '/' });
+          
              } else {
                  //hiding
                 $( "#sidebar" ).fadeOut("fast");
                 $("#main").css("width","97%");
+                $.cookie('globalMenuToggle', 'hidden', { path: '/' });
                
                  
             }
          
            }
            
-           
-     
+       $(document).ready(function() {
+           if ($.cookie('globalMenuToggle')=='hidden') {
+               $( "#sidebar" ).fadeOut("fast");
+               $("#main").css("width","97%");
+               }
+              });
+       
          
         </script> 
 </head>
@@ -56,8 +64,8 @@
 	<? if (LOGGED_IN) {  ?> 
 	<section id="secondary_bar">
 		<div class="user">
-                    <p><?=  whoami();?> | <a href="javascript:showhideGlobalMenu();">менюшка</a></p>
-                    <a class="logout_user" href="?idleTimerAutoLogout=true" title="<?=__('Log out');?>"><?=__('Log out');?></a> 
+                    <p><?=  whoami();?></p>
+                    <a class="logout_user" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 
                 </div>
 		<div class="breadcrumbs_container">
 			<article class="breadcrumbs"><a href="index.php?module=taskbar"><?=__('Taskbar');?></a> <div class="breadcrumb_divider"></div> <a class="current">надо отслеживать</a></article>
