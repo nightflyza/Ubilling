@@ -27,7 +27,7 @@ define('RCMS_VERSION_B', '2');
 define('RCMS_VERSION_C', '11');
 if(is_file(RCMS_ROOT_PATH . '_nightly.txt')) define('RCMS_VERSION_SUFFIX', '-svn'); else define('RCMS_VERSION_SUFFIX', '');
 define('RCMS_LINK', 'http://reloadcms.com/main/');
-define('RCMS_COPYRIGHT', '&copy; 2013');
+define('RCMS_COPYRIGHT', '&copy; 2015');
 define('RCMS_POWERED', '<a href="' . RCMS_LINK . '">RCMS Framework</a>');
 
 // Main paths

@@ -79,6 +79,6 @@ function show_window($title, $data, $align = 'left'){
 }
 
 function show_error($data){
-    return show_window('', $data, 'center');
+    return show_window('', '<span class="alert_error">'.$data.'</span>', 'center');
 }
 ?>
