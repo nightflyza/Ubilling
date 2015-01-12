@@ -860,7 +860,7 @@ $lang['def']['Macro']='Макро';
 $lang['def']['Micro']='Микро';
 $lang['def']['Nano']='Нано';
 $lang['def']['support tickets expected processing']='заявок ожидают обработки';
-$lang['def']['You know, we really would like to let you perform this action, but his conscience does not allow us to do']='Знаете, нам очень бы хотелось позволить вам совершить это действие, но совесть не позволяет нам этого сделать :(';
+$lang['def']['You know, we really would like to let you perform this action, but his conscience does not allow us to do']='Знаете, нам очень бы хотелось позволить вам совершить это действие, но совесть не разрешает нам этого сделать :(';
 $lang['def']['Mass sender use ticketing']='Массовая рассылка использует для работы хелпдеск';
 $lang['def']['Enabled arpdiag module']='Модуль ARPдиагностики включен';
 $lang['def']['Administrators can set the size of icons on their own']='Администраторы могут самостоятельно выбирать размер иконок';
@@ -1814,7 +1814,13 @@ $lang['def']['right to control vlan pools']='Право управлять пу�
 //rev 4027
 $lang['def']['All']='Все';
 $lang['def']['Any']='Любой';
+$lang['def']['Address pools']='Пулы адресов';
+$lang['def']['Cities']='Города';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 
 ?>

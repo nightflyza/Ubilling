@@ -1,1 +1,1 @@
-$taskbar.=build_task('ROOT','?module=adminreg','lenin.jpg',__('Administrators registration'));
+/* $taskbar.=build_task('ROOT','?module=adminreg','lenin.jpg',__('Administrators registration')); */

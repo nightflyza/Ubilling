@@ -82,31 +82,19 @@
 		</form>
 		<hr/>
 		
-		<h3><?=__('Users');?></h3>
-		<ul class="toggle">
-			<li class="icn_add_user"><a href="?module=userreg"><?=__('Users registration');?></a></li>
-			<li class="icn_view_users"><a href="?module=online"><?=__('Online users');?></a></li>
-			<li class="icn_profile"><a href="?module=usersearch"><?=__('Search users');?></a></li>
-                        <li class="icn_tags"><a href="?module=tagcloud"><?=__('Tag cloud');?></a></li>
-		</ul>
-                
-                <h3><?=__('Manage tasks');?></h3>
-		<ul class="toggle">
-                        <li class="icn_folder"><a href="?module=taskman&show=all"><?=__('List all tasks');?></a></li>
-			<li class="icn_new_article"><a href="?module=taskman&show=done"><?=__('Done tasks');?></a></li>
-			<li class="icn_categories"><a href="?module=taskman&show=undone"><?=__('Undone tasks');?></a></li>
-			
-		</ul>
+                <?php
+                $globalMenu=new GlobalMenu();
+                print($globalMenu->render());
+                ?>
 	
 		<h3><?=__('Administrator');?></h3>
 		<ul class="toggle">
-			<li class="icn_jump_back"><a href="?idleTimerAutoLogout=true"><?=__('Log out');?></a></li>
+                    <li><a href="?idleTimerAutoLogout=true"><img src="skins/menuicons/icn_jump_back.png"> <?=__('Log out');?></a></li>
 		
-                       <li class="icn_settings">
-                        <a name="skinlang">
-                            <form name="lang_select" method="post" action=""><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
-                            <form name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>
-                           </a>
+                       <li>
+                            <form name="lang_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
+                            <form name="skin_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>
+                           
                         </li>
                     </ul>
                 

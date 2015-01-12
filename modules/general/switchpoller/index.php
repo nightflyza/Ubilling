@@ -167,7 +167,7 @@ if(cfr('SWITCHPOLL')) {
        
          
       } else {
-          show_window(__('Error'), __('Nothing found'));
+          show_warning(__('Nothing found'));
       }
 
     }

@@ -6,8 +6,10 @@ class DarkVoid {
     protected $alerts = '';
 
     public function __construct() {
-        $this->loadAlter();
-        $this->loadAlerts();
+        if (LOGGED_IN) {
+            $this->loadAlter();
+            $this->loadAlerts();
+        }
     }
 
     /**
@@ -58,7 +60,7 @@ class DarkVoid {
             }
         }
 
-        //switchmon at nptify area
+        //switchmon at notify area
         if ($this->altCfg['TB_SWITCHMON']) {
             $dead_raw = zb_StorageGet('SWDEAD');
             $last_pingtime = zb_StorageGet('SWPINGTIME');
@@ -125,6 +127,11 @@ class DarkVoid {
         }
     }
 
+    /**
+     * Returns raw alerts data
+     * 
+     * @return string
+     */
     public function render() {
         return ($this->alerts);
     }

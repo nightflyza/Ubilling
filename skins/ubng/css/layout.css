@@ -306,7 +306,7 @@ margin: 0 0 0 12%; padding: 0;
 
 #sidebar li a {
 color: #666666;
-padding-left: 25px;
+/* padding-left: 25px; */
 text-decoration: none;
 display: inline-block;
 height: 17px;
@@ -314,6 +314,7 @@ line-height: 17px;
 text-shadow: 0 1px 0 #fff;
 margin: 2px 0;
 }
+
 
 #sidebar li a:hover {
 color: #444444;

@@ -266,6 +266,7 @@ function web_list_admins() {
 
 show_window(__('Admins'),web_list_admins());
 
+show_window('',  wf_Link('?module=adminreg', __('Administrators registration'),true,'ubButton'));
 
 } else {
       show_error(__('You cant control this module'));

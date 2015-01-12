@@ -85,14 +85,7 @@ if ($altconf['TB_ICONCUSTOMSIZE']) {
 // new tickets notify
 $ticketnotify='';
 
- 
-
-
-
-
-
-
-  show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
+show_window(__('Taskbar').' '.$ticketnotify,$taskbar);
   
   
 //refresh IM container with notify
