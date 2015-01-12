@@ -500,7 +500,7 @@ function rcms_show_element($element, $parameters = ''){
             break;
         case 'copyright':
             if(!defined('RCMS_COPYRIGHT_SHOWED') || !RCMS_COPYRIGHT_SHOWED){
-                echo RCMS_POWERED . ' ' . RCMS_VERSION_A . '.'  . RCMS_VERSION_B . '.' . RCMS_VERSION_C . RCMS_VERSION_SUFFIX . '<br />' . RCMS_COPYRIGHT;
+                echo RCMS_POWERED . ' ' . RCMS_VERSION_A . '.'  . RCMS_VERSION_B . '.' . RCMS_VERSION_C . RCMS_VERSION_SUFFIX . ' ' . RCMS_COPYRIGHT.'<br /> ';
             }
             break;
     }

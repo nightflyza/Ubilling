@@ -81,4 +81,18 @@ function show_window($title, $data, $align = 'left'){
 function show_error($data){
     return show_window('', '<span class="alert_error">'.$data.'</span>', 'center');
 }
+
+function show_warning($data){
+    return show_window('', '<span class="alert_warning">'.$data.'</span>', 'center');
+}
+
+function show_success($data){
+    return show_window('', '<span class="alert_success">'.$data.'</span>', 'center');
+}
+
+function show_info($data){
+    return show_window('', '<span class="alert_info">'.$data.'</span>', 'center');
+}
+
+
 ?>

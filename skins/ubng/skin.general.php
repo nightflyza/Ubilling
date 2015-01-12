@@ -52,13 +52,17 @@
                     <img src="<?=CUR_SKIN_PATH?>/images/logo.png" height="32" border="0">
                     </a> 
                     Ubilling
-                    <sup><?=file_get_contents('RELEASE')?></sup>
+                    <sup class="ubverinfo"><?=file_get_contents('RELEASE')?></sup>
                     </h1>
-                   
                         
-                    <h2 class="section_title">
-                    <!-- main center pagetitle --> 
-                    </h2><div class="btn_view_site"><?=web_HelpIconShow();?>  <? if (XHPROF) { print($xhprof_link); } ?> <?=zb_IdleAutologoutRun(); ?></div>
+                    <div class="notificationArea">
+                    <?php 
+                    $notifyArea=new DarkVoid();
+                    print($notifyArea->render());
+                    ?>
+                    </div>
+                    
+                    <div class="btn_view_help"><?=web_HelpIconShow();?>  <? if (XHPROF) { print($xhprof_link); } ?> <?=zb_IdleAutologoutRun(); ?></div>
 		</hgroup>
 	</header> <!-- end of header bar -->
 	<? if (LOGGED_IN) {  ?> 
@@ -107,9 +111,7 @@
                     </ul>
                 
 		<footer>
-                    <hr />
-                                             
-  
+           
                     	<hr />
 			<p><strong><?rcms_show_element('copyright')?> </strong></p>
 			<p>
