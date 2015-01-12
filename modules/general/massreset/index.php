@@ -40,7 +40,7 @@ if(cfr('MASSRESET')) {
                 //preventing F5
                 rcms_redirect("?module=massreset");
             } else {
-                show_window(__('Error'), __('Any users found'));
+                show_error(__('Any users found'));
             }
         }
 
@@ -59,10 +59,10 @@ if(cfr('MASSRESET')) {
                         mrst_MassReset();
                         
                     } else {
-                        show_window(__('Error'),__('You are not mentally prepared for this'));
+                        show_error(__('You are not mentally prepared for this'));
                     }
                 } else {
-                    show_window(__('Error'),__('You are not mentally prepared for this'));
+                    show_error(__('You are not mentally prepared for this'));
                 }
                 
             } else {

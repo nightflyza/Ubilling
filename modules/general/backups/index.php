@@ -16,7 +16,7 @@ if (isset ($_POST['createbackup'])) {
         
         
     } else {
-        show_window(__('Error'),__('You are not mentally prepared for this'));
+        show_error(__('You are not mentally prepared for this'));
     }
 }
 
@@ -26,7 +26,7 @@ if (wf_CheckGet(array('download'))) {
         $filePath=  base64_decode($_GET['download']);
         zb_DownloadFile($filePath);
     } else {
-        show_window(__('Error'), __('Access denied'));
+        show_error(__('Access denied'));
     }
 }
 
@@ -40,10 +40,10 @@ if (wf_CheckGet(array('deletedump'))) {
             log_register('BACKUP DELETE `'.$deletePath.'`');
             rcms_redirect('?module=backups');
         } else {
-            show_window(__('Error'), __('Not existing item'));
+            show_error(__('Not existing item'));
         }
     } else {
-        show_window(__('Error'), __('Access denied'));
+         show_error(__('Access denied'));
     }
 }
 
@@ -169,17 +169,18 @@ show_window(__('Database cleanup'),web_DBCleanupForm());
               }
               } else {
                   log_register("BACKUP RESTORE TRY WITH RUNNING STARGAZER");
-                  show_window(__('Error'),__('You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer'));
+                  show_error(__('You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer'));
+                  show_window('', wf_Link('?module=backups', __('Back'),true,'ubButton'));
               }   
               
             } else {
-                show_window(__('Error'), __('Strange exeption').': NOT_EXISTING_DUMP_FILE');
+                show_error( __('Strange exeption').': NOT_EXISTING_DUMP_FILE');
             }
          } else {
-             show_window(__('Error'), __('Strange exeption').': GET_NO_DUMP_FILENAME');
+          show_error( __('Strange exeption').': GET_NO_DUMP_FILENAME');
          }
         } else {
-            show_window(__('Error'), __('You missed an important option').': MYSQL_PATH');
+            show_error( __('You missed an important option').': MYSQL_PATH');
         }
     } else {
        show_error(__('You cant control this module')); 

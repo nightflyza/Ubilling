@@ -1816,11 +1816,18 @@ $lang['def']['All']='Все';
 $lang['def']['Any']='Любой';
 $lang['def']['Address pools']='Пулы адресов';
 $lang['def']['Cities']='Города';
+$lang['def']['Toggle menu']='Переключить меню';
+$lang['def']['Profile fields']='Поля профиля';
+$lang['def']['Mass reset']='Массовый ресет';
+$lang['def']['Personal notes']='Персональные заметки';
+$lang['def']['Signup capabilities']='Возможности подключений';
+$lang['def']['TurboSMS sending']='Рассылка TurboSMS';
+$lang['def']['Announcements']='Объявления';
+$lang['def']['License keys']='Ключи лицензий';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
 
 
 ?>
