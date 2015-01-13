@@ -1845,6 +1845,9 @@ $lang['def']['Users without port']='Користувачі без порта';
 $lang['def']['Signup requests']='Заявки на підключення';
 $lang['def']['Instant messaging']='Миттєві повідомлення';
 $lang['def']['Corporate users funds']='Фінзвіт юр. осіб';
-$lang['def']['']='';
+$lang['def']['right to personalize global menu']='Право персоналізувати глобальне меню';
+$lang['def']['Personalize menu']='Пресоналізувати меню';
+$lang['def']['Selfcredits']='Самокредитування';
+$lang['def']['Fast access']='Швидкий доступ';
 
 ?>

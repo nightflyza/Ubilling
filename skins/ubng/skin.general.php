@@ -33,6 +33,7 @@
                     <div class="notificationArea">
                     <?php 
                     if (LOGGED_IN) {
+                        //display notification area
                         $notifyArea=new DarkVoid();
                         print($notifyArea->render());
                     }
@@ -50,11 +51,11 @@
                 </div>
 		<div class="breadcrumbs_container">
 			<article class="breadcrumbs">
-                            <a href="?module=taskbar"><?=__('Taskbar');?></a> 
-                            <div class="breadcrumb_divider"></div> 
-                            <a href="?module=online"><?=__('Online');?></a>
-                            <div class="breadcrumb_divider"></div> 
-                            <a href="?module=usersearch"><?=__('User search');?></a>
+                            <?php
+                            $globalMenu=new GlobalMenu();
+                            print($globalMenu->renderFastAccessMenu());
+                            ?>
+                           
                         </article>
 		</div>
 	</section><!-- end of secondary bar -->
@@ -66,19 +67,19 @@
 		<hr/>
 		
                 <?php
-                $globalMenu=new GlobalMenu();
+                //display global menu widget
                 print($globalMenu->render());
                 ?>
 	
 		<h3><?=__('Administrator');?></h3>
 		<ul class="toggle">
                     <li><a href="?idleTimerAutoLogout=true"><img src="skins/menuicons/icn_jump_back.png"> <?=__('Log out');?></a></li>
-		
-                       <li>
+		    <li>
                             <form name="lang_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
                             <form name="skin_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>
                            
-                        </li>
+                    </li>
+                   <?php if (cfr('GLMENUCONF')) { ?> <li><img src="skins/menuicons/icn_settings.png"><a href="?module=glmenuconf"><?=__('Personalize menu');?></a></li> <?php } ?>
                     </ul>
                 
 		<footer>

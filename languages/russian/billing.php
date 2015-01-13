@@ -1831,8 +1831,10 @@ $lang['def']['Users without port']='Пользователи без порта';
 $lang['def']['Signup requests']='Заявки на подключение';
 $lang['def']['Instant messaging']='Мгновенные сообщения';
 $lang['def']['Corporate users funds']='Финотчет юрлиц';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['right to personalize global menu']='Право персонализировать глобальное меню';
+$lang['def']['Personalize menu']='Пресонализировать меню';
+$lang['def']['Selfcredits']='Самокредитование';
+$lang['def']['Fast access']='Быстрый доступ';
 $lang['def']['']='';
 
 
