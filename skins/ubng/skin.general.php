@@ -12,34 +12,7 @@
 	<![endif]-->
 	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
         <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
-         <script language=javascript type='text/javascript'>
-            function showhideGlobalMenu(){
-             if ( $( "#sidebar" ).is( ":hidden" ) ) {
-                //showing
-                $( "#sidebar" ).fadeIn( "fast" );
-                $("#main").css("width","77%");
-                $.cookie('globalMenuToggle', 'visible', { path: '/' });
-          
-             } else {
-                 //hiding
-                $( "#sidebar" ).fadeOut("fast");
-                $("#main").css("width","99%");
-                $.cookie('globalMenuToggle', 'hidden', { path: '/' });
-               
-                 
-            }
-         
-           }
-           
-       $(document).ready(function() {
-           if ($.cookie('globalMenuToggle')=='hidden') {
-               $( "#sidebar" ).hide();
-               $("#main").css("width","99%");
-               }
-              });
-       
-         
-        </script> 
+        <script src="modules/jsc/glmenuCollapser.js" type='text/javascript'></script> 
 </head>
 
 
@@ -74,7 +47,7 @@
                     <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 
                 </div>
 		<div class="breadcrumbs_container">
-			<article class="breadcrumbs"><a href="index.php?module=taskbar"><?=__('Taskbar');?></a> <div class="breadcrumb_divider"></div> <a class="current">надо отслеживать</a></article>
+			<article class="breadcrumbs"><a href="?module=taskbar"><?=__('Taskbar');?></a> <div class="breadcrumb_divider"></div> <a class="current">надо отслеживать</a></article>
 		</div>
 	</section><!-- end of secondary bar -->
 	

@@ -39,6 +39,12 @@ width: 100%;
 background: #222222 url(../images/header_bg.png) repeat-x;
 }
 
+header .toggleLink {
+    color: #222222;
+    padding-top: 8px;
+    text-decoration: none;
+}
+
 
 /* responsive release info */
 @media only screen and (max-width: 1000px) {
@@ -521,4 +527,3 @@ margin: 8px 0px;
 #main .module_content li {
 line-height: 150%;
 }
-
