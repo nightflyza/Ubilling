@@ -1,113 +1,17 @@
-<style type="text/css">
- .stny {
-
- border:3px solid #BBBBBB;opacity: 2.1;
- -webkit-animation: ring 19s 19s ease-in-out infinite;
- -webkit-transform-origin: 50% 14px;
- -moz-animation: ring 19s 19s ease-in-out infinite;
- -moz-transform-origin: 50% 14px;
- animation: ring 19s 19s ease-in-out infinite;
- transform-origin: 50% 14px;
-}
-
-
-@-webkit-keyframes ring {
- 0% { -webkit-transform: rotateZ(0); }
- 1%, 9% { -webkit-transform: rotateZ(30deg); }
- 3% { -webkit-transform: rotateZ(-28deg); }
- 5% { -webkit-transform: rotateZ(34deg); }
- 7% { -webkit-transform: rotateZ(-32deg); }
- 11% { -webkit-transform: rotateZ(-28deg); }
- 13% { -webkit-transform: rotateZ(26deg); }
- 15% { -webkit-transform: rotateZ(-24deg); }
- 17% { -webkit-transform: rotateZ(22deg); }
- 19% { -webkit-transform: rotateZ(-20deg); }
- 21% { -webkit-transform: rotateZ(18deg); }
- 23% { -webkit-transform: rotateZ(-16deg); }
- 25% { -webkit-transform: rotateZ(14deg); }
- 27% { -webkit-transform: rotateZ(-12deg); }
- 29% { -webkit-transform: rotateZ(10deg); }
- 31% { -webkit-transform: rotateZ(-8deg); }
- 33% { -webkit-transform: rotateZ(6deg); }
- 35% { -webkit-transform: rotateZ(-4deg); }
- 37% { -webkit-transform: rotateZ(2deg); }
- 39% { -webkit-transform: rotateZ(-1deg); }
- 41% { -webkit-transform: rotateZ(1deg); }
- 43% { -webkit-transform: rotateZ(0); }
- 100% { -webkit-transform: rotateZ(0); }
-}
-
-@-moz-keyframes ring {
- 0% { -moz-transform: rotate(0); }
- 1%, 9% { -moz-transform: rotate(30deg); }
- 3% { -moz-transform: rotate(-28deg); }
- 5% { -moz-transform: rotate(34deg); }
- 7% { -moz-transform: rotate(-32deg); }
- 11% { -moz-transform: rotate(-28deg); }
- 13% { -moz-transform: rotate(26deg); }
- 15% { -moz-transform: rotate(-24deg); }
- 17% { -moz-transform: rotate(22deg); }
- 19% { -moz-transform: rotate(-20deg); }
- 21% { -moz-transform: rotate(18deg); }
- 23% { -moz-transform: rotate(-16deg); }
- 25% { -moz-transform: rotate(14deg); }
- 27% { -moz-transform: rotate(-12deg); }
- 29% { -moz-transform: rotate(10deg); }
- 31% { -moz-transform: rotate(-8deg); }
- 33% { -moz-transform: rotate(6deg); }
- 35% { -moz-transform: rotate(-4deg); }
- 37% { -moz-transform: rotate(2deg); }
- 39% { -moz-transform: rotate(-1deg); }
- 41% { -moz-transform: rotate(1deg); }
- 43% { -moz-transform: rotate(0); }
- 100% { -moz-transform: rotate(0); }
-}
-
-@keyframes ring {
- 0% { transform: rotate(0); }
- 1%, 9% { transform: rotate(30deg); }
- 3% { transform: rotate(-28deg); }
- 5% { transform: rotate(34deg); }
- 7% { transform: rotate(-32deg); }
- 9% { transform: rotate(30deg); }
- 11% { transform: rotate(-28deg); }
- 13% { transform: rotate(26deg); }
- 15% { transform: rotate(-24deg); }
- 17% { transform: rotate(22deg); }
- 19% { transform: rotate(-20deg); }
- 21% { transform: rotate(18deg); }
- 23% { transform: rotate(-16deg); }
- 25% { transform: rotate(14deg); }
- 27% { transform: rotate(-12deg); }
- 29% { transform: rotate(10deg); }
- 31% { transform: rotate(-8deg); }
- 33% { transform: rotate(6deg); }
- 35% { transform: rotate(-4deg); }
- 37% { transform: rotate(2deg); }
- 39% { transform: rotate(-1deg); }
- 41% { transform: rotate(1deg); }
- 43% { transform: rotate(0); }
- 100% { transform: rotate(0); }
-
-
-</style>
-
-<div style="padding: 0px;">
-<img class="stny" src="skins/ubny/b-ball_n4.png" style="position:fixed; top: 0px;right:310px;border:none;z-index:5;"/></div>
-<img class="stny"  src="skins/ubny/b-ball_n3.png" style="position:fixed; top: 0px;right:620px;border:none;z-index:9;"/>
-<img class="stny"  src="skins/ubny/b-ball_n2.png" style="position:fixed; top: 0px;right:470px;border:none;z-index:9;"/>
-<img class="stny" src="skins/ubny/b-ball_n3.png" style="position:fixed; top: 0px;right:170px;border:none;z-index:9;"/>
-<img src="skins/ubny/christmas-icon.png" style="position:fixed; top: 0px;left:0px;border:none;z-index:9;" width="65"/> 
-<img src="skins/ubny/christmas-icon2.png" style="position:fixed; top: 0px;right:0px;border:none;z-index:5;"/>
-<img src="skins/ubny/b-head-decor_newyear.png" style="position:fixed; top: 0px;right:0px;border:none;z-index:1;"/>
-<img src="skins/ubny/b-head-decor_newyear.png" style="position:fixed; top: 0px;right:810px;border:none;z-index:5;"/>
-<img src="skins/ubny/b-head-decor_newyear.png" style="position:fixed; top: 0px;right:210px;border:none;z-index:5;"/>
-<img src="skins/ubny/b-head-decor_newyear.png" style="position:fixed; top: 0px;right:510px;border:none;z-index:5;"/>
-</div>
+<script>
+!function(n){n.fn.snow=function(o){var e=n('<div id="flake" />').css({position:"absolute",top:"-50px"}).html("&#10052;"),t=n(document).height(),a=n(document).width(),i={minSize:10,maxSize:20,newOn:500,flakeColor:"#FFFFFF"},o=n.extend({},i,o);setInterval(function(){var i=Math.random()*a-100,m=.5+Math.random(),r=o.minSize+Math.random()*o.maxSize,d=t-40,l=i-100+200*Math.random(),c=10*t+5e3*Math.random();e.clone().appendTo("body").css({left:i,opacity:m,"font-size":r,color:o.flakeColor}).animate({top:d,left:l,opacity:.2},c,"linear",function(){n(this).remove()})},o.newOn)}}(jQuery);
+</script>
 
 
 
-<div style="padding: 0px;">
-<img class="stny1" src="skins/ubny/b-ball_n4.png" style="position:fixed; top: 0px;left:250px;border:none;z-index:6;"/></div>
-</div>
-<div style="clear:both;"></div>
+
+<script>
+$(document).ready(function(){
+	$.fn.snow({
+		minSize: 5,
+		maxSize: 25, 
+		newOn: 3500, 
+		flakeColor: '#b4cdff' 
+	});
+});
+</script>

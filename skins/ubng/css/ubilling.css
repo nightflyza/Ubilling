@@ -140,7 +140,6 @@ div.dhtml_menu div.vert_menu a.active:hover
     text-decoration:none;
     text-shadow:1px 1px 0px #ffffff;
     color:#777777;
-    
 }
 
 .ubButton:hover {
@@ -155,6 +154,14 @@ div.dhtml_menu div.vert_menu a.active:hover
 .ubButton:active {
     position:relative;
     top:1px;
+}
+
+.ubButton:visited {
+    color: #777777;
+}
+
+.ubButton:link {
+    color: #777777;
 }
 
 /* glamour forms =) */
@@ -293,6 +300,7 @@ div.dhtml_menu div.vert_menu a.active:hover
     font-size: 8pt;
     overflow: hidden;
     box-shadow: 3px 3px 4px rgba(0,0,0,0);
+    line-height: 100%;
 }
 
 .dashtask:hover {

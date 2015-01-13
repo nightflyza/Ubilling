@@ -35,6 +35,8 @@ class DarkVoid {
             } else {
                 $updateCache = true;
             }
+        } else {
+            $updateCache=true;
         }
 
         if ($updateCache) {

@@ -190,7 +190,7 @@ class UserProfile {
         if ($this->alterCfg['MACVEN_ENABLED']) {
             $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $this->mac . '&username=' . $this->login . '" width="360" height="160" frameborder="0"');
             $vendorframe.= wf_tag('iframe', true);
-            $result = wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+            $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
         }
         return ($result);
     }
