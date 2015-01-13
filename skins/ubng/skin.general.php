@@ -10,9 +10,11 @@
 	<link rel="stylesheet" href="css/ie.css" type="text/css" media="screen" />
 	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
-	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
-        <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
         <script src="modules/jsc/glmenuCollapser.js" type='text/javascript'></script> 
+	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
+        <script src="modules/jsc/winman.js" type="text/javascript"></script>
+        <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
+
 </head>
 
 
@@ -47,7 +49,13 @@
                     <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 
                 </div>
 		<div class="breadcrumbs_container">
-			<article class="breadcrumbs"><a href="?module=taskbar"><?=__('Taskbar');?></a> <div class="breadcrumb_divider"></div> <a class="current">надо отслеживать</a></article>
+			<article class="breadcrumbs">
+                            <a href="?module=taskbar"><?=__('Taskbar');?></a> 
+                            <div class="breadcrumb_divider"></div> 
+                            <a href="?module=online"><?=__('Online');?></a>
+                            <div class="breadcrumb_divider"></div> 
+                            <a href="?module=usersearch"><?=__('User search');?></a>
+                        </article>
 		</div>
 	</section><!-- end of secondary bar -->
 	

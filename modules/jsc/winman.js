@@ -5,21 +5,21 @@ $(document).ready(function() {
 
     var is_visible = false;
 
-    $('.toggleGMENU').prev().append(' <a href="#" class="toggleLinkGMENU">' + hideText + '</a>');
+    $('.toggleWMAN').prev().append(' <a href="#" class="toggleLinkWMAN">' + hideText + '</a>');
 
-    $('.toggleGMENU').show();
+    $('.toggleWMAN').show();
 
-    $('a.toggleLinkGMENU').click(function() {
+    $('a.toggleLinkWMAN').click(function() {
 
         is_visible = !is_visible;
 
         if ($(this).text() == showText) {
             $(this).text(hideText);
-            $(this).parent().next('.toggleGMENU').slideDown('slow');
+            $(this).parent().next('.toggleWMAN').slideDown('slow');
         }
         else {
             $(this).text(showText);
-            $(this).parent().next('.toggleGMENU').slideUp('slow');
+            $(this).parent().next('.toggleWMAN').slideUp('slow');
         }
 
         return false;

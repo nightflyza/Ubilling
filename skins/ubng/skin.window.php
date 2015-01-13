@@ -1,5 +1,5 @@
 <?php if(!empty($title)) {?>
-<header><h3><?=$title?></h3></header><div class="toggle">
+<header><h3><?=$title?></h3></header><div class="toggleWMAN">
 <?php }?>
 <div class="module_content" style="text-align: <?=$align?>;">
     <?=$content?>
