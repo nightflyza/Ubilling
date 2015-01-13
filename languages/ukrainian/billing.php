@@ -1828,5 +1828,23 @@ $lang['def']['right to control vlan pools']='Право керувати пул�
 //rev 4027
 $lang['def']['All']='Усі';
 $lang['def']['Any']='Будь-який';
+$lang['def']['Address pools']='Пули адрес';
+$lang['def']['Cities']='Міста';
+$lang['def']['Toggle menu']='Перемкнути меню';
+$lang['def']['Profile fields']='Поля профілю';
+$lang['def']['Mass reset']='Масовий ресет';
+$lang['def']['Personal notes']='Персональні нотатки';
+$lang['def']['Signup capabilities']='Можливості підключень';
+$lang['def']['TurboSMS sending']='Розсилання TurboSMS';
+$lang['def']['Announcements']='Оголошення кабінету';
+$lang['def']['License keys']='Ключі ліцензій';
+$lang['def']['Paycards report']='Звіт по картках';
+$lang['def']['Complex services']='Комплексні послуги';
+$lang['def']['Documents report']='Звіт по документах';
+$lang['def']['Users without port']='Користувачі без порта';
+$lang['def']['Signup requests']='Заявки на підключення';
+$lang['def']['Instant messaging']='Миттєві повідомлення';
+$lang['def']['Corporate users funds']='Фінзвіт юр. осіб';
+$lang['def']['']='';
 
 ?>

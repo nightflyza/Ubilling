@@ -91,6 +91,7 @@ function web_ConfigsUbillingList() {
         'config/dhcp/global.template',
         'config/dhcp/subnets.template',
         'config/dhcp/option82.template',
+        'config/dhcp/option82_vpu.template',
         'userstats/config/mysql.ini',
         'userstats/config/userstats.ini',
         'userstats/config/tariffmatrix.ini'

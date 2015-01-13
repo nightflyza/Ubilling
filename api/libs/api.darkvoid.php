@@ -3,13 +3,56 @@
 class DarkVoid {
 
     protected $altCfg = array();
+    protected $myLogin = '';
     protected $alerts = '';
+    protected $cacheTime = '10';
+
+    const CACHE_PATH = 'exports/';
+    const CACHE_PREFIX = 'darkvoid.';
 
     public function __construct() {
         if (LOGGED_IN) {
+            $this->setMyLogin();
             $this->loadAlter();
             $this->loadAlerts();
         }
+    }
+
+    /**
+     * Loads alerts from per-user cache or from database if needed
+     * 
+     * @return void
+     */
+    protected function loadAlerts() {
+        $cacheName = self::CACHE_PATH . self::CACHE_PREFIX . $this->myLogin;
+        $cacheTime = time() - ($this->cacheTime * 60); //in minutes
+
+        $updateCache = false;
+        if (file_exists($cacheName)) {
+            $updateCache = false;
+            if ((filemtime($cacheName) > $cacheTime)) {
+                $updateCache = false;
+            } else {
+                $updateCache = true;
+            }
+        }
+
+        if ($updateCache) {
+            //renew cache
+            $this->updateAlerts();
+        } else {
+            //read from cache
+            $this->alerts = file_get_contents($cacheName);
+        }
+    }
+
+    /**
+     * Sets private login property
+     * 
+     * @return
+     */
+    protected function setMyLogin() {
+        $this->myLogin = whoami();
     }
 
     /**
@@ -28,7 +71,7 @@ class DarkVoid {
      * 
      * @return void
      */
-    public function loadAlerts() {
+    public function updateAlerts() {
         //new tickets alert
         if ($this->altCfg['TB_NEWTICKETNOTIFY']) {
             $newticketcount = zb_TicketsGetAllNewCount();
@@ -55,7 +98,7 @@ class DarkVoid {
                     $unreadIMNotify = __('You received') . ' ' . $unreadMessageCount . ' ' . __('new messages');
                     $urlIM = $unreadIMNotify . wf_delimiter() . wf_Link("?module=ubim&checknew=true", __('Click here to go to the instant messaging service.'), false, 'ubButton');
                     $this->alerts.=wf_Link("?module=ubim&checknew=true", wf_img("skins/ubim_blink.gif", $unreadMessageCount . ' ' . __('new message received')), false, '');
-                    $this->alerts.=wf_modalOpened(__('New messages received'), $urlIM, '450', '200');
+                    //$this->alerts.=wf_modalOpened(__('New messages received'), $urlIM, '450', '200');
                 }
             }
         }
@@ -69,7 +112,7 @@ class DarkVoid {
             $content = '';
 
             if ($this->altCfg['SWYMAP_ENABLED']) {
-                $content= wf_Link('?module=switchmap', wf_img('skins/swmapsmall.png',__('Switches map')), false);
+                $content = wf_Link('?module=switchmap', wf_img('skins/swmapsmall.png', __('Switches map')), false);
             }
 
             $content.= wf_AjaxLoader() . wf_AjaxLink("?module=switches&forcereping=true&ajaxping=true", wf_img('skins/refresh.gif', __('Force ping')), 'switchping', true, '');
@@ -118,13 +161,16 @@ class DarkVoid {
                     $this->alerts.='<div class="ubButton">' . wf_modal(__('Dead switches') . ': ' . $deadcount, __('Dead switches'), $content, '', '500', '400') . '</div>';
                 } else {
                     $content.=wf_tag('div', false, '', 'id="switchping"') . __('Switches are okay, everything is fine - I guarantee') . wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s", $last_pingtime) . wf_tag('div', true);
-                    $this->alerts.=wf_tag('div',false,'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div',true);
+                    $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div', true);
                 }
             } else {
                 $content.=wf_tag('div', false, '', 'id="switchping"') . __('Switches are okay, everything is fine - I guarantee') . wf_delimiter() . __('Cache state at time') . ': ' . @date("H:i:s", $last_pingtime) . wf_tag('div', true);
-                $this->alerts.=wf_tag('div',false,'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div',true);
+                $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div', true);
             }
         }
+
+
+        file_put_contents(self::CACHE_PATH . self::CACHE_PREFIX . $this->myLogin, $this->alerts);
     }
 
     /**
@@ -137,4 +183,5 @@ class DarkVoid {
     }
 
 }
+
 ?>

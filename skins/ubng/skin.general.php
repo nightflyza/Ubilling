@@ -57,8 +57,10 @@
                         
                     <div class="notificationArea">
                     <?php 
-                    $notifyArea=new DarkVoid();
-                    print($notifyArea->render());
+                    if (LOGGED_IN) {
+                        $notifyArea=new DarkVoid();
+                        print($notifyArea->render());
+                    }
                     ?>
                     </div>
                     

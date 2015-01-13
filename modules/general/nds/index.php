@@ -1,7 +1,8 @@
 <?php
 if (cfr('NDS')) {
+    $altCfg=$ubillingConfig->getAlter();
     
-    
+    if ($altCfg['NDS_ENABLED']) {
     if (!isset($_POST['yearsel'])) {
         $show_year=curyear();
         } else {
@@ -51,7 +52,9 @@ show_window(__('Today payments'),  web_NdsPaymentsShow("SELECT * from `payments`
     
     show_window(__('Month payments'),  web_NdsPaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paymonth."%'"));
 }
-
+    } else {
+        show_error(__('This module is disabled'));
+    }
 
 } else {
       show_error(__('You cant control this module'));

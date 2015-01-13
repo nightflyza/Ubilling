@@ -16,6 +16,14 @@
                                       
                         </form>
                         <?=web_HelpIconShow();?> <?=zb_IdleAutologoutRun(); ?>
+                          <div class="notificationArea">
+                 <?php 
+                    if (LOGGED_IN) {
+                        $notifyArea=new DarkVoid();
+                        print($notifyArea->render());
+                    }
+                    ?>
+            </div> 
 		</div> <? if (LOGGED_IN) {  ?>
            <form action="" method="POST">
 	  <input name="logout_form" value="1" type="hidden">

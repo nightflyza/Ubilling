@@ -11,7 +11,14 @@
 		<div id="logo">
 			<h1><a href="http://ubilling.net.ua"><img src="skins/logo.png" height="64" border="0"></a><a href="?module=taskbar">Ubilling</a> </h1>
 			   <p><?=file_get_contents('RELEASE')?></p>
-  
+                        <div class="notificationArea">
+                 <?php 
+                    if (LOGGED_IN) {
+                        $notifyArea=new DarkVoid();
+                        print($notifyArea->render());
+                    }
+                    ?>
+            </div> 
   		</div>
 		<div id="menu">
                 <ul>
@@ -22,6 +29,7 @@
                 <form name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>                    
                 <br>
                      <p align="right"><?=web_HelpIconShow();?></p> <?=zb_IdleAutologoutRun(); ?>
+             
                 </li>
                 
                 </ul>

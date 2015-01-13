@@ -67,7 +67,7 @@ class GlobalMenu {
                 $icon = $this->iconsPath . $icon;
                 $name = __($each['NAME']);
                 $checkRight = (!empty($each['NEED_RIGHT'])) ? cfr($each['NEED_RIGHT']) : true;
-                $checkOption = (!empty($each['NEED_OPTION'])) ? $this->altCfg[$each['NEED_OPTION']] : true;
+                $checkOption = (!empty($each['NEED_OPTION'])) ? @$this->altCfg[$each['NEED_OPTION']] : true;
                 if ($checkRight and $checkOption) {
                     $this->menuData[$each['CATEGORY']].=wf_tag('li', false) . wf_Link($each['URL'], wf_img($icon) . ' ' . $name, false) . wf_tag('li', true);
                 }

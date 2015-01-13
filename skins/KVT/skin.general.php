@@ -14,16 +14,25 @@
                         <form name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?>
                         </form>
                         <?=web_HelpIconShow();?>  <? if (XHPROF) { print($xhprof_link); } ?> <?=zb_IdleAutologoutRun(); ?>
+            <div class="notificationArea">
+                 <?php 
+                    if (LOGGED_IN) {
+                        $notifyArea=new DarkVoid();
+                        print($notifyArea->render());
+                    }
+                    ?>
+            </div> 
 		</div> <? if (LOGGED_IN) {  ?>  
           <form action="" method="POST">
 	  <input name="logout_form" value="1" type="hidden">
               <input value="<?=__('Log out').' '.whoami();?>" type="submit">
       	  </form> 
-    </div> 
+         
 	<div id="menu">
 		<ul>
 				<?rcms_show_element('navigation', '<li><a href="{link}" target="{target}" id="{id}">{title}</a></li>')?>
 		</ul>
+            
 	</div>
 	<center>
 <table style="text-align: left; width: 90%;" border="0" cellpadding="2" cellspacing="2" bgcolor="#FFFFFF">

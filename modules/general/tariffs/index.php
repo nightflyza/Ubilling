@@ -115,10 +115,10 @@ if (cfr('TARIFFS')) {
                 <td>' . __('Night') . '</td>
                 <td><input   id="pricenight' . $dir['rulenumber'] . '"  size="3" type="text" name="options[PriceNight][' . $dir['rulenumber'] . ']" value=""></td>
                 <td>' . __('Price night') . '</td>
-                <td><input id="no0" OnClick="hide(0,\'no\')" name="options[NoDiscount][' . $dir['rulenumber'] . ']" value="1" type="checkbox" > ' . __('Without threshold') . '</td>
+                <td><input id="no0" OnClick="hide(0,\'no\')" name="options[NoDiscount][' . $dir['rulenumber'] . ']" value="1" type="checkbox" checked> ' . __('Without threshold') . '</td>
             </tr>
         </table>
-        <input id="single' . $dir['rulenumber'] . '" OnClick="hide(0,\'si\')" name="options[SinglePrice][' . $dir['rulenumber'] . ']" type="checkbox" value="1" > ' . __('Price does not depend on time') . '
+        <input id="single' . $dir['rulenumber'] . '" OnClick="hide(0,\'si\')" name="options[SinglePrice][' . $dir['rulenumber'] . ']" type="checkbox" value="1" checked> ' . __('Price does not depend on time') . '
     </fieldset>';
         }
 

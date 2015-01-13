@@ -51,8 +51,12 @@ if (cfr('CASHTYPES')) {
      //creating new cash type
     if (isset($_POST['newcashtype'])) {
         $newcashtype=mysql_real_escape_string($_POST['newcashtype']);
+        if (!empty($newcashtype)) {
         zb_CashCreateCashType($newcashtype);
         rcms_redirect("?module=cashtypes");
+        } else {
+            show_error(__('No all of required fields is filled'));
+        }
     }
     
     //setting default cashtype

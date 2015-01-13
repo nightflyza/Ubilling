@@ -876,3 +876,12 @@ color: #32510F;
 padding: 10px 0;
 text-indent: 40px;
 font-size: 14px;}
+
+.notificationArea {
+    position: absolute;
+    float:right;
+    top: 5px;
+    right: 10px;
+    padding-right: 320px;
+    
+}
