@@ -248,7 +248,7 @@ if (cfr('SCREPORT')) {
             $result.=wf_TableBody($this->tabledata, '100%', '0', 'sortable');
             $result.=wf_tag('span', false, 'glamour').__('Our final profit').': '.$this->yearsumm.wf_tag('span', true);
             $result.= wf_delimiter();
-            $result.= wf_tag('div', false, 'dashtask', '');
+            $result.= wf_tag('div', false, '', '');
             $result.= wf_Graph($this->chartdata, '800', '400', false);
             $result.= wf_tag('div', true);
             return ($result);

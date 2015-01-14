@@ -85,19 +85,6 @@ width: 68%;
 background: url(../images/header_shadow.png) no-repeat left top;
 }
 
-.notificationArea {
-    float: left;
-    padding-left: 10px;
-    padding-top: 5px;
-}
-
-.notificationArea img{
-    float: left;
-    padding-left: 10px;
-    padding-right: 5px;
-    
-}
-
 
 .btn_view_help {
 float: right;

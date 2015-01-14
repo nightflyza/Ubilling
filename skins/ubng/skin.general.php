@@ -10,11 +10,10 @@
 	<link rel="stylesheet" href="css/ie.css" type="text/css" media="screen" />
 	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 	<![endif]-->
+        <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
         <script src="modules/jsc/glmenuCollapser.js" type='text/javascript'></script> 
 	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
         <script src="modules/jsc/winman.js" type="text/javascript"></script>
-        <script src="modules/jsc/jquery.cookie.js" type="text/javascript"></script>
-
 </head>
 
 
@@ -81,9 +80,8 @@
 		<ul class="toggle">
                     <li>
                          <form action="" method="POST">
-                         <img src="skins/menuicons/icn_jump_back.png">
                          <input name="logout_form" value="1" type="hidden">
-                         <input value="<?=__('Log out').' '.whoami();?>" type="submit">
+                         <img src="skins/menuicons/icn_jump_back.png"><input value="<?=__('Log out').' '.whoami();?>" type="submit">
                         </form>
                         </li>
 		    <li>

@@ -516,3 +516,24 @@ margin-top: -130px;
     color: #666; 
     padding-left: 4px;
 }
+
+
+.notificationArea {
+    float: left;
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+.notificationArea a {
+    color: #666;
+}
+
+.notificationArea a:hover {
+    text-decoration: none;
+}
+
+.notificationArea img{
+    float: left;
+    padding-left: 10px;
+    padding-right: 5px;
+}

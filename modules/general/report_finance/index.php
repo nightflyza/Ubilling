@@ -87,41 +87,16 @@ show_window(__('Today payments'),  web_PaymentsShow("SELECT * from `payments` WH
      show_window(__('Year'), $yearform);
      
      $graphs=  wf_Link("?module=report_finance", __('Back'), true, 'ubButton');
-     $graphs= '<script type="text/javascript">
-
-	$(function() {
-
-	
-
-		var dataArray = [["01-10-2014", "3"], ["01-11-2014", 8], ["01-12-2014", 5], ["01-01-2015", 13]];
-                var dataArray2 = [["01-10-2014", 13], ["01-11-2014", 18], ["01-12-2014", 15], ["01-01-2015", 23]]; 
-                
-		$.plot("#placeholder", [ dataArray,dataArray2 ], {
-		
-			xaxis: {
-				mode: "categories",
-				tickLength: 0
-			},
-                        
- series: {
-        lines: { show: true },
-        points: { show: true }
-    }
-    
-		});
-
-
-	});
-
-	</script> <div id="placeholder" style="width:100%; height:400px;"></div>';
      
      
-//     $graphs.= web_AnalyticsArpuMonthGraph($currentYear);
-//     $graphs.= web_AnalyticsPaymentsMonthGraph($currentYear);
-//     $graphs.= web_AnalyticsSignupsMonthGraph($currentYear);
-//     $graphs.= web_AnalyticsSigReqMonthGraph($currentYear);
-//     $graphs.= web_AnalyticsTicketingMonthGraph($currentYear);
-//     $graphs.= web_AnalyticsTaskmanMonthGraph($currentYear);
+      $graphs.= web_AnalyticsArpuMonthGraph($currentYear);
+      $graphs.= web_AnalyticsPaymentsMonthGraph($currentYear);
+      $graphs.= web_AnalyticsSignupsMonthGraph($currentYear);
+      $graphs.= web_AnalyticsSigReqMonthGraph($currentYear);
+      $graphs.= web_AnalyticsTicketingMonthGraph($currentYear);
+      $graphs.= web_AnalyticsTaskmanMonthGraph($currentYear);
+      
+      
      show_window('',$graphs);
      
 

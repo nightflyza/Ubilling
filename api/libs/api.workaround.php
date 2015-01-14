@@ -1903,7 +1903,7 @@ function zb_backup_database($silent = false) {
     shell_exec($command);
 
     if (!$silent) {
-        show_window(__('Backup saved'), $backname);
+        show_success(__('Backup saved').': '.$backname);
     }
 
     log_register("BACKUP CREATE `" . $backname . "`");
@@ -3581,8 +3581,8 @@ function web_AnalyticsArpuMonthGraph($year) {
     
 
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of changes in ARPU for the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Dynamics of changes in ARPU for the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3622,8 +3622,8 @@ function web_AnalyticsPaymentsMonthGraph($year) {
         $data.=$year . '-' . $eachmonth . '-01,' . $paycount . ',' . $month_summ . "\n";
     }
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of cash flow for the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Dynamics of cash flow for the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3642,8 +3642,8 @@ function web_AnalyticsSignupsMonthGraph($year) {
         $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Dynamics of change signups of the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Dynamics of change signups of the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3662,8 +3662,8 @@ function web_AnalyticsSigReqMonthGraph($year) {
         $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Signup requests received during the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Signup requests received during the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3682,8 +3682,8 @@ function web_AnalyticsTicketingMonthGraph($year) {
         $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Ticketing activity during the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Ticketing activity during the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3702,8 +3702,8 @@ function web_AnalyticsTaskmanMonthGraph($year) {
         $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
     }
 
-    $result = wf_tag('div', false, 'dashtask', '') . __('Task manager activity during the year');
-    $result.= wf_Graph($data, '500', '300', false) . wf_tag('div', true);
+    $result = wf_tag('div', false, '', '') . __('Task manager activity during the year');
+    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 

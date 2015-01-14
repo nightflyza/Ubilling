@@ -137,9 +137,9 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
                    $gdata.=$datestamp.','.$optrans['count'].','.$optrans['summ']."\n";
                 }
                 
-                $result.=wf_tag('div', false, 'dashtask', '');
-                $result.=wf_tag('span').$psys.wf_tag('span',true).wf_delimiter();
-                $result.= wf_Graph($gdata, '600', '200',false);
+                $result.=wf_tag('div', false, '', '');
+                $result.=wf_tag('h2').$psys.wf_tag('h2',true).wf_delimiter();
+                $result.= wf_Graph($gdata, '800', '200',false);
                 $result.=wf_tag('div',true);
             }
             

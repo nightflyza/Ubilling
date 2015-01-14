@@ -1864,7 +1864,7 @@ class UkvSystem {
      */
 
     public function reportList() {
-        $reports = '';
+        $reports = '<div style="min-height:800px;">';
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportAntiDebtors', 'antidebtors.png', __('AntiDebtors'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTariffs', 'tariffsreport.jpg', __('Tariffs report'));
@@ -1872,6 +1872,7 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportSignup', 'signupreport.jpg', __('Signup report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
+        $reports.='<div>';
         show_window(__('Reports'), $reports);
     }
 
