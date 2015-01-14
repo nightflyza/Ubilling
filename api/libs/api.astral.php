@@ -87,6 +87,40 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
 
 /**
  *
+ * Return password input Web From element 
+ *
+ * @param  string $name name of element
+ * @param  string $label text label for input
+ * @param  string $value current value
+ * @param  bool   $br append new line
+ * @param  string $size input size
+ * @return string
+ *
+ */
+function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = '') {
+    $inputid = wf_InputId();
+    //set size
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
+    } else {
+        $input_size = '';
+    }
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
+    }
+    $result.=$newline . "\n";
+    return ($result);
+}
+
+/**
+ *
  * Return link form element
  *
  * @param string  $url needed URL

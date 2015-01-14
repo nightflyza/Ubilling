@@ -57,6 +57,7 @@ include('api/libs/api.adcomments.php');
 include('api/libs/api.vlan.php');
 include('api/libs/api.darkvoid.php');
 include('api/libs/api.globalmenu.php');
+include('api/libs/api.loginform.php');
 
 /*
  * Initial class creation

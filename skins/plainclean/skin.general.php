@@ -51,19 +51,7 @@
                          <?rcms_show_element('main_point', $module . '@window')?>
 			</div>
                     
-                <? } else { 
-			$loginform='
-                            <center>
-                            <form action="" method="post" class="glamour">
-	<input type="hidden" name="login_form" value="1">
-	'.__('Login').'<br> <input name="username" type="text" size="15"><br>
-        '.__('Password').'<br> <input name="password" type="password" size="15"><br>
-		<input value="'.__('Log in').'" type="submit">
-		</form>
-		
-                </center>'; 
-		print($loginform);
-		  }?>	
+                
 			<div style="clear: both;">&nbsp;</div>
 		</div>
 	
@@ -83,6 +71,10 @@
   print(' QC: '.$query_counter);
  ?> </p>
 </div>
+    <? } else { 
+			$ubLoginForm=new LoginForm();
+		        print($ubLoginForm->render());
+		  }?>	
 <!-- end #footer -->
 </body>
 </html>

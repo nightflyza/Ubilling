@@ -48,32 +48,9 @@
 </center>
 			
       
-		<? } else { 
-                    
-                    if (file_exists('DEMO_MODE')) {
-			$loginform='
-                <form action="" method="post">
-                <input type="hidden" name="login_form" value="1">
-        	&nbsp; '.__('Login').' <input name="username" type="text" value="admin" size="12">
-		&nbsp; '.__('Password').' <input name="password" type="password"  value="demo" size="12">
-		<input value="'.__('Log in').'" type="submit">
-		</form>
-		'; 
-                        
-                } else {
-                    $loginform='
-                <form action="" method="post">
-                <input type="hidden" name="login_form" value="1">
-        	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
-		&nbsp; '.__('Password').' <input name="password" type="password" size="12">
-		<input value="'.__('Log in').'" type="submit">
-		</form>
-		'; 
-                }
-		print($loginform);
-		  }?>	
-<div style="clear: both;">&nbsp;</div>
-	
+		
+	<div style="clear: both;">&nbsp;</div>
+        
 	<?php
         if ((LOGGED_IN) AND (!file_exists('I_HATE_NEW_YEAR'))) {
         $dateny = time();
@@ -108,6 +85,12 @@
   print(__('GT:').round($totaltime,2));
   print(' QC: '.$query_counter);
  ?></p>
+            
+            <? } else { 
+                     $ubLoginForm=new LoginForm();
+		     print($ubLoginForm->render());
+		  }?>	
+
 	</div>
 	</body>
 </html>

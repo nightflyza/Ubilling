@@ -36,6 +36,12 @@
                         //display notification area
                         $notifyArea=new DarkVoid();
                         print($notifyArea->render());
+                    } else { ?>
+                        <div>
+                            <form style="float:left;" name="lang_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
+                            <form style="float:left;" name="skin_select" method="post" action=""><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>
+                        </div>
+                    <?php    
                     }
                     ?>
                     </div>
@@ -73,7 +79,13 @@
 	
 		<h3><?=__('Administrator');?></h3>
 		<ul class="toggle">
-                    <li><a href="?idleTimerAutoLogout=true"><img src="skins/menuicons/icn_jump_back.png"> <?=__('Log out');?></a></li>
+                    <li>
+                         <form action="" method="POST">
+                         <img src="skins/menuicons/icn_jump_back.png">
+                         <input name="logout_form" value="1" type="hidden">
+                         <input value="<?=__('Log out').' '.whoami();?>" type="submit">
+                        </form>
+                        </li>
 		    <li>
                             <form name="lang_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_lang_select('lang_form', $system->language, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'lang_select\'].submit()" title="' . __('Lang') . '"')?></form>
                             <form name="skin_select" method="post" action=""><img src="skins/menuicons/icn_settings.png"><?=user_skin_select(SKIN_PATH, 'user_selected_skin', $system->skin, 'font-size: 90%; width: 100px;', 'onchange="document.forms[\'skin_select\'].submit()" title="' . __('Skin') . '"')?></form>
@@ -105,29 +117,11 @@
 		<div class="spacer"></div>
 	</section>
 <? } else { 
-                    
-                    if (file_exists('DEMO_MODE')) {
-			$loginform='
-                <form action="" method="post">
-                <input type="hidden" name="login_form" value="1">
-        	&nbsp; '.__('Login').' <input name="username" type="text" value="admin" size="12">
-		&nbsp; '.__('Password').' <input name="password" type="password"  value="demo" size="12">
-		<input value="'.__('Log in').'" type="submit">
-		</form>
-		'; 
-                        
-                } else {
-                    $loginform='
-                <form action="" method="post">
-                <input type="hidden" name="login_form" value="1">
-        	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
-		&nbsp; '.__('Password').' <input name="password" type="password" size="12">
-		<input value="'.__('Log in').'" type="submit">
-		</form>
-		'; 
-                }
-		print($loginform);
-		  }?>	
+                $ubLoginForm=new LoginForm();
+		print($ubLoginForm->render());
+		  }
+                  ?>	
+               
 
 </body>
 

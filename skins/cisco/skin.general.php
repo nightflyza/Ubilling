@@ -50,16 +50,7 @@
 </center>
 			
       
-		<? } else { 
-			$loginform='<form action="" method="post">
-	<input type="hidden" name="login_form" value="1">
-	&nbsp; '.__('Login').' <input name="username" type="text" size="12">
-		&nbsp; '.__('Password').' <input name="password" type="password" size="12">
-		<input value="'.__('Go').'" type="submit">
-		</form>
-		<form method="post" action=""><P><P><P><P><P>';
-		print($loginform);
-		  }?>	
+		
 <div style="clear: both;">&nbsp;</div>
 	
 	
@@ -72,6 +63,11 @@
   print(__('GT:').round($totaltime,2));
   print(' QC: '.$query_counter);
  ?> </p>
+            
+            <? } else { 
+			$ubLoginForm=new LoginForm();
+                        print($ubLoginForm->render());
+		  }?>	
 	</div>
 	</body>
 </html>
