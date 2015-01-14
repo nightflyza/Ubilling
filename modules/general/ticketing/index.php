@@ -4,6 +4,9 @@ if (cfr('TICKETING')) {
   // close ticket
   if (isset($_GET['closeticket'])) {
       zb_TicketSetDone($_GET['closeticket']);
+      //update notification area
+      $darkVoid=new DarkVoid();
+      $darkVoid->flushCache();
       rcms_redirect("?module=ticketing");
   } 
   

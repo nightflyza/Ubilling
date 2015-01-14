@@ -13,6 +13,9 @@ if (cfr('SIGREQ')) {
             //set request done
             if (isset($_GET['reqdone'])) {
                 $signups->setDone($_GET['reqdone']);
+                //update notification area
+                      $darkVoid=new DarkVoid();
+                      $darkVoid->flushCache();
                 rcms_redirect("?module=sigreq");
             }
 

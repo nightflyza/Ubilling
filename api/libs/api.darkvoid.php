@@ -73,7 +73,7 @@ class DarkVoid {
      * 
      * @return void
      */
-    public function updateAlerts() {
+    protected function updateAlerts() {
         //new tickets alert
         if ($this->altCfg['TB_NEWTICKETNOTIFY']) {
             $newticketcount = zb_TicketsGetAllNewCount();
@@ -160,7 +160,7 @@ class DarkVoid {
                     //ajax container end
                     $content.=wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s", $last_pingtime) . wf_tag('div', true);
 
-                    $this->alerts.='<div class="ubButton">' . wf_modal(__('Dead switches') . ': ' . $deadcount, __('Dead switches'), $content, '', '500', '400') . '</div>';
+                    $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('Dead switches') . ': ' . $deadcount, __('Dead switches'), $content, '', '500', '400') . wf_tag('div',true);
                 } else {
                     $content.=wf_tag('div', false, '', 'id="switchping"') . __('Switches are okay, everything is fine - I guarantee') . wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s", $last_pingtime) . wf_tag('div', true);
                     $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div', true);
@@ -182,6 +182,20 @@ class DarkVoid {
      */
     public function render() {
         return ($this->alerts);
+    }
+    
+    /**
+     * Flushes all users alert cache
+     * 
+     * @return void
+     */
+    public function flushCache() {
+        $allCache=  rcms_scandir(self::CACHE_PATH,self::CACHE_PREFIX.'*', 'file');
+        if (!empty($allCache)) {
+            foreach ($allCache as $io=>$each) {
+                unlink(self::CACHE_PATH.$each);
+            }
+        }
     }
 
 }

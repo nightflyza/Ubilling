@@ -14,7 +14,7 @@ class GlobalMenu {
     protected $myLogin = '';
 
     const DEFAULT_ICON = 'defaulticon.png';
-    const CUSTOMS_PATH = 'content/users/glmcustoms/';
+    const CUSTOMS_PATH = 'content/documents/glmcustoms/';
 
     public function __construct() {
         $this->setLogin();

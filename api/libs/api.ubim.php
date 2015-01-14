@@ -154,7 +154,7 @@ function im_ContactList() {
                 if (wf_CheckGet(array('checknew'))) {
                     $unreadCounter = im_CheckForUnreadMessagesByUser($eachadmin);
                     if ($unreadCounter != 0) {
-                        $blinker = wf_img('skins/ticketnotify.gif', __('Unread message'));
+                        $blinker = wf_img('skins/ubim_blink.gif', __('Unread message'));
                     } else {
                         $blinker = '';
                     }

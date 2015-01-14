@@ -422,6 +422,10 @@ function web_SwitchesShow() {
                  }
                   $ajaxResult.=wf_delimiter().__('Cache state at time').': '.date("H:i:s");
                   print($ajaxResult);
+                  //darkvoid update
+                  $notifyArea=new DarkVoid();
+                  $notifyArea->flushCache();
+                  
                   die();
                 }
         }
