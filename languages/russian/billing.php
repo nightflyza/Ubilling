@@ -1835,6 +1835,7 @@ $lang['def']['right to personalize global menu']='Право персонали�
 $lang['def']['Personalize menu']='Пресонализировать меню';
 $lang['def']['Selfcredits']='Самокредитование';
 $lang['def']['Fast access']='Быстрый доступ';
+$lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
 $lang['def']['']='';
 
 

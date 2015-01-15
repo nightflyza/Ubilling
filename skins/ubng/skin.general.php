@@ -25,7 +25,7 @@
                     <a href="http://ubilling.net.ua">
                     <img src="<?=CUR_SKIN_PATH?>/images/logo.png" height="32" border="0">
                     </a> 
-                    Ubilling
+                    <span class="ubproductname">Ubilling</span>
                     <sup class="ubverinfo"><?=file_get_contents('RELEASE')?></sup>
                     </h1>
                         

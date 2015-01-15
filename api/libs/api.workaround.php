@@ -272,7 +272,7 @@ function web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $oldd
     if ($altconf['MACVEN_ENABLED']) {
         $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
         $vendorframe.= wf_tag('iframe', true);
-        $lookuplink = wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
     } else {
         $lookuplink = '';
     }
@@ -375,7 +375,7 @@ function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress,
     if ($alterconf['MACVEN_ENABLED']) {
         $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
         $vendorframe.= wf_tag('iframe', true);
-        $lookuplink = wf_modal(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '', '400', '220');
+        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe,'');
     } else {
         $lookuplink = '';
     }

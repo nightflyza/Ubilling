@@ -537,3 +537,21 @@ margin-top: -130px;
     padding-left: 10px;
     padding-right: 5px;
 }
+
+
+/* responsive release info */
+@media only screen and (max-width: 1000px) {
+    .ubverinfo {
+        display: none;
+    }
+    
+    .ubproductname {
+        font-size: 12pt;
+    }
+}
+
+@media only screen and (max-width: 800px) {
+    .ubproductname {
+       display: none;
+    }
+}
