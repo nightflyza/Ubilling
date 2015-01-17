@@ -58,6 +58,10 @@
 			<article class="breadcrumbs">
                             <?php
                             $globalMenu=new GlobalMenu();
+                            //rebuild fast access menu cache on language switch
+                            if (wf_CheckPost(array('lang_form'))) {
+                                $globalMenu->rebuildFastAccessMenuData();
+                            }
                             print($globalMenu->renderFastAccessMenu());
                             ?>
                            

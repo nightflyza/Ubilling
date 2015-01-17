@@ -1851,4 +1851,7 @@ $lang['def']['Selfcredits']='Самокредитування';
 $lang['def']['Fast access']='Швидкий доступ';
 $lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
 
+//rev 4112
+$lang['def']['Edit map']='Редагувати карту';
+
 ?>

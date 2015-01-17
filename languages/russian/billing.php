@@ -1836,6 +1836,11 @@ $lang['def']['Personalize menu']='Пресонализировать меню';
 $lang['def']['Selfcredits']='Самокредитование';
 $lang['def']['Fast access']='Быстрый доступ';
 $lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
+
+//rev 4112
+$lang['def']['Edit map']='Редактировать карту';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 
 

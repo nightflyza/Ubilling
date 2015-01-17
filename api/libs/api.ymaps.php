@@ -17,7 +17,7 @@
         
         $controls= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png').' '. __('Builds map'), false, 'ubButton');
         $controls.=  wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png').' '.__('Switches map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Find location'), false, 'ubButton');
+        $controls.=  wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Edit map'), false, 'ubButton');
         $controls.=  wf_Link("?module=switchmap&clusterer=true", wf_img('skins/ymaps/cluster.png').' '.__('Clusterer'), false, 'ubButton');
         $controls.=  wf_Link("?module=switchmap&coverage=true", wf_img('skins/ymaps/coverage.png').' '.__('Coverage area'), false, 'ubButton');
         $controls.=  wf_Link("?module=switches", wf_img('skins/ymaps/switchdir.png').' '.__('Available switches'), true, 'ubButton');
@@ -41,7 +41,7 @@
         
         $controls=  wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png').' '.__('Switches map'), false, 'ubButton');
         $controls.=  wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png').' '.__('Builds map'), false, 'ubButton');
-        $controls.=  wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Find location'), false, 'ubButton');
+        $controls.=  wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/search.png').' '.__('Edit map'), false, 'ubButton');
         $controls.=  wf_Link("?module=usersmap&clusterer=true", wf_img('skins/ymaps/cluster.png').' '.__('Clusterer'), false, 'ubButton');
       
        
@@ -215,6 +215,8 @@ function um_MapLocationBuildForm() {
  *  
  */   
     function um_MapLocationFinder() {
+        $buildSelector=str_replace("'",'`',um_MapLocationBuildForm());
+        $buildSelector=str_replace("\n",'',$buildSelector);
         
         $result='
             myMap.events.add(\'click\', function (e) {
@@ -226,7 +228,7 @@ function um_MapLocationBuildForm() {
                             \'<p>\' + [
                             coords[0].toPrecision(6),
                             coords[1].toPrecision(6)
-                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">'.str_replace("\n",'',um_MapLocationBuildForm()).'</form> \'
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">'.$buildSelector.'</form> \'
                  
                     });
                 } else {

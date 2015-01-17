@@ -19,3 +19,5 @@ if (cfr('GLMENUCONF')) {
 } else {
     show_error(__('You cant control this module'));
 }
+
+?>
