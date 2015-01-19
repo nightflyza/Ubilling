@@ -1,7 +1,7 @@
 <?php
 
 function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login,$qinq) {
-	global $ip;
+	$ip=zb_UserGetIP($login);
 	vlan_delete_host($login);
 	vlan_qinq_delete_host($login);
 	if($qinq==0) {
@@ -194,20 +194,20 @@ function OnVlanConnect ($ip,$vlan) {
 	$relay=$term_data['relay'];
 	if($term_ip=='127.0.0.1') {
 		if($term_type=='FreeBSD') {
-			$res=shell_exec("CONFIG_PATH.'scripts/bsd.local.sh' $term_int $ip $vlan");
+			$res=shell_exec("./config/scripts/bsd.local.sh $term_int $ip $vlan");
 		}  
 		if($term_type=='Linux') {
-			$res=shell_exec("CONFIG_PATH.'scripts/linux.local.sh'");
+			$res=shell_exec("./config/scripts/linux.local.sh");
 		}
 	} else {
 		if($term_type=='FreeBSD') {
-			$res=shell_exec("CONFIG_PATH.'scripts/bsd.remote.sh' $term_user $term_pass $term_int $ip $vlan");
+			$res=shell_exec("./config/scripts/bsd.remote.sh $term_user $term_pass $term_int $ip $vlan");
 		}
 		if($term_type=='Linux') {
-			$res=shell_exec("CONFIG_PATH.'scripts/linux.remote.sh' $term_user $term_pass $term_int $ip $vlan");
+			$res=shell_exec("./config/scripts/linux.remote.sh $term_user $term_pass $term_int $ip $vlan");
 		}
 		if($term_type=='Cisco') {
-			$res=shell_exec("CONFIG_PATH.'scripts/cisco.sh' $term_user $term_pass $vlan $term_int $relay $term_ip");
+			$res=shell_exec("./config/scripts/cisco.sh $term_user $term_pass $vlan $term_int $relay $term_ip");
 		}
 	}	
 }

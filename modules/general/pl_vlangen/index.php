@@ -5,7 +5,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 		if (isset($_GET['username'])) {
 			$login = mysql_real_escape_string($_GET['username']);
 			$cur_vlan = UserGetVlan($login); // getting vlan by login
-			$ip=zb_UserGetIP($login);
 			if(!isset($cur_vlan)) {
 				$cur_vlan= UserGetQinQVlan($login);
 			}
@@ -32,7 +31,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 
 			zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login, $qinq);
 			log_register("CHANGE Vlan (" . $login . ") FROM " . $cur_vlan . " ON " . $new_free_vlan."");
-		rcms_redirect("?module=pl_vlangen&username=" . $login);
+                        rcms_redirect("?module=pl_vlangen&username=" . $login);
 		} else {
 			show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
 			show_window(__('Change user Vlan'), web_VlanChangeFormService());
