@@ -583,5 +583,62 @@
         return($result);
     }
     
+    
+     /**
+     * function that returns array data for existing FDB cache
+     * 
+     * @param $fdbData_raw - array of existing cache _fdb files
+     * 
+     * @return  array
+     */
+    function sn_SnmpParseFdbCacheArray($fdbData_raw) {
+        $allswitches=  zb_SwitchesGetAll();
+        $switchdata=array();
+        $result=array();
+        
+        //switch data preprocessing
+        if (!empty($allswitches)) {
+            foreach ($allswitches as $io=>$eachswitch) {
+                $switchdata[$eachswitch['ip']]=$eachswitch['location'];
+            }
+        }
+          foreach ($fdbData_raw as $each_raw) {
+              $nameExplode=  explode('_', $each_raw);
+              if (sizeof($nameExplode)==2) {
+                  $switchIp=$nameExplode[0];
+                  $eachfdb_raw=  file_get_contents('exports/'.$each_raw);
+                  $eachfdb= unserialize($eachfdb_raw);
+                  if (!empty($eachfdb_raw)) {
+                      foreach ($eachfdb as $mac=>$port) {
+                      if (@!empty($switchdata[$switchIp])) {
+                          $switchDesc=wf_tag('abbr',false,'','title="'.$switchIp.'"').@$switchdata[$switchIp].  wf_tag('abbr',true);
+                      } else {
+                          $switchDesc=$switchIp;
+                      }
+                       $result[$mac][]=  $switchDesc.' '.__('Port').': '.$port;
+                      }
+                  }
+              }
+          }
+        return($result);
+    }
+    
+    /**
+     * Extracts array data for some mac from sn_SnmpParseFdbCacheArray results
+     * 
+     * @param array $data
+     * 
+     * @return string
+     */
+    function sn_SnmpParseFdbExtract($data) {
+        $result='';
+        if (!empty($data)) {
+            foreach ($data as $io=>$each) {
+                $result.=$each.  wf_tag('br');
+            }
+        }
+        return ($result);
+    }
+    
 
 ?>

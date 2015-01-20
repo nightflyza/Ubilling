@@ -1195,10 +1195,24 @@ function zb_NewMacShow() {
     $command=$sudo.' '.$cat.' '.$leases.' | '.$grep.' "'.$leasemark.'" | '.$tail.' -n 200';
     $rawdata=shell_exec($command);
     $allusedMacs=  zb_getAllUsedMac();
-   $result=''; 
+    $result=''; 
+    
+//fdb cache preprocessing  
+   $fdbData_raw=  rcms_scandir('./exports/', '*_fdb');
+        if (!empty($fdbData_raw)) {
+             $fdbArr= sn_SnmpParseFdbCacheArray($fdbData_raw);
+             $fdbColumn=true;
+            } else {
+             $fdbArr= array();
+             $fdbColumn=false;
+            }
+   
    $cells=  wf_TableCell(__('MAC'));
+   if (!empty($fdbColumn)) {
+       $cells.= wf_TableCell(__('Switch'));
+   }
    if ($alter_config['MACVEN_ENABLED']) {
-   $cells.= wf_TableCell('');
+   $cells.= wf_TableCell(__('Manufacturer'));
    }
    $rows = wf_TableRow($cells, 'row1');
     
@@ -1219,6 +1233,10 @@ function zb_NewMacShow() {
              foreach ($un_arr as $io => $eachmac) {
                  if (zb_checkMacFree($eachmac,$allusedMacs)) {
                  $cells=  wf_TableCell(@$eachmac);
+                  if (!empty($fdbColumn)) {
+                    $cells.= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
+                 }
+                 
                  if ($alter_config['MACVEN_ENABLED']) {
                  $containerName='NMRSMCNT_'.  zb_rand_string(8);
                  $lookupVendorLink=  wf_AjaxLink('?module=macvendor&mac='.@$eachmac.'&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
@@ -1234,7 +1252,7 @@ function zb_NewMacShow() {
         }
       }
       
-    $result.=  wf_TableBody($rows,'50%', '0', 'sortable');
+    $result.=  wf_TableBody($rows,'80%', '0', 'sortable');
     
     
    return($result);

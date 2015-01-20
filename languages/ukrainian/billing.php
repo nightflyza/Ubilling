@@ -1853,5 +1853,6 @@ $lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
 
 //rev 4112
 $lang['def']['Edit map']='Редагувати карту';
+$lang['def']['Manufacturer']='Виробник';
 
 ?>
