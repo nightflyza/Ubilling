@@ -391,10 +391,10 @@ class ProfileDocuments {
                     show_error(__('Error'), __('Cant upload file to') . ' ' . self::TEMPLATES_PATH);
                 }
             } else {
-                show_window(__('Error'), __('No display name for template'));
+                show_error(__('No display name for template'));
             }
         } else {
-            show_window(__('Error'), __('Wrong file type'));
+            show_error(__('Wrong file type'));
         }
         return ($result);
     }

@@ -611,7 +611,7 @@
                   if (!empty($eachfdb_raw)) {
                       foreach ($eachfdb as $mac=>$port) {
                       if (@!empty($switchdata[$switchIp])) {
-                          $switchDesc=wf_tag('abbr',false,'','title="'.$switchIp.'"').@$switchdata[$switchIp].  wf_tag('abbr',true);
+                          $switchDesc=$switchIp.' - '.@$switchdata[$switchIp];
                       } else {
                           $switchDesc=$switchIp;
                       }
@@ -632,9 +632,17 @@
      */
     function sn_SnmpParseFdbExtract($data) {
         $result='';
+        $modalContent='';
         if (!empty($data)) {
-            foreach ($data as $io=>$each) {
-                $result.=$each.  wf_tag('br');
+            if (sizeof($data)==1) {
+             foreach ($data as $io=>$each) {
+                $result.=$each;
+             }
+            } else {
+                foreach ($data as $io=>$each) {
+                    $modalContent.=$each.wf_tag('br');
+                }
+                $result.=$each.' '.wf_modal(wf_img_sized('skins/menuicons/switches.png',__('Switches'),'12','12'), __('Switches'), $modalContent, '','600','400');
             }
         }
         return ($result);

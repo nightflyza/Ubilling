@@ -1659,11 +1659,13 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
                   ';
     if (!empty($data)) {
         foreach ($data as $io => $each) {
+            $each=  str_replace('"', '`', $each);
             $acData.='"' . $each . '",';
         }
     }
     //removing ending coma
     $acData = mb_substr($acData, 0, -1, 'UTF-8');
+    
 
     $autocomplete.=$acData;
 

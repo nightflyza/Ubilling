@@ -23,7 +23,7 @@ if (cfr('STREETS')) {
             if (!in_array(strtolower_utf8($newstreetname), $existingStreets)) {
             zb_AddressCreateStreet($newstreetcityid, $newstreetname, $newstreetalias);
             } else {
-                show_window(__('Error'), __('The same street already exists'));
+                show_error(__('The same street already exists'));
             }
             
         } else {
@@ -40,7 +40,7 @@ if (cfr('STREETS')) {
             zb_AddressDeleteStreet($streetid);
             rcms_redirect('?module=streets');
             } else {
-                show_window(__('Error'),__('You can not delete the street if it has existing buildings'));
+                show_error(__('You can not delete the street if it has existing buildings'));
             }
         }
         if ($_GET['action']=='edit') {

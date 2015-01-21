@@ -11,7 +11,7 @@ if (isset ($_GET['username'])) {
         if ($alter_conf['STRICT_CONTRACTS_UNIQUE']) {
             $allcontracts=zb_UserGetAllContracts();
             if (isset($allcontracts[$contract])) {
-                show_window(__('Error'),__('This contract is already used'));
+                show_error(__('This contract is already used'));
             } else {
                 zb_UserChangeContract($login, $contract);
                 rcms_redirect("?module=contractedit&username=".$login);
@@ -54,7 +54,7 @@ show_window(__('Edit contract'), $form);
        //back to fresh form
        rcms_redirect("?module=contractedit&username=".$login);
        } else {
-           show_window(__('Error'), __('With this the user has not yet signed a contract'));
+           show_error( __('With this the user has not yet signed a contract'));
        }
    }
    

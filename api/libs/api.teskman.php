@@ -251,7 +251,7 @@ function stg_show_jobs($username) {
         if ((!empty($activeemployee)) AND (!empty($alljobtypes))) {
             $rows.=$addform;
         } else {
-            show_window(__('Error'),__('No job types and employee available'));
+            show_error(__('No job types and employee available'));
         }
         
         $result=  wf_TableBody($rows, '100%', '0', '');

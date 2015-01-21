@@ -88,7 +88,7 @@ if (cfr('REPORTNOSWPORT')) {
    $noSwitchPortReport=new ReportNoSwitchPort();
    show_window(__('Users without port assigned'),$noSwitchPortReport->render());
    } else {
-       show_window(__('Error'), __('This module disabled'));
+       show_error(__('This module disabled'));
    }
    
 } else {

@@ -13,17 +13,13 @@ if (isset ($_GET['username'])) {
         log_register('CHANGE Password ('.$login.') ON `'.$password.'`');
         rcms_redirect("?module=passwordedit&username=".$login);
         } else {
-            show_window(__('Error'),__('We do not recommend using the same password for different users. Try another.'));
+            show_error(__('We do not recommend using the same password for different users. Try another.'));
         }
     }
     
     $alter_conf=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
     $current_password=zb_UserGetStargazerData($login);
     $current_password=$current_password['Password'];
-// ignoring PASSWORDSHIDE option    
-//    if ($alter_conf['PASSWORDSHIDE']) {
-//        $current_password=__('Hidden');
-//    }
     
     $useraddress=zb_UserGetFullAddress($login).' ('.$login.')';
 

@@ -76,7 +76,7 @@ if(cfr('WATCHDOG')) {
    }
    
    } else {
-       show_window(__('Error'), __('This module is disabled'));
+       show_error(__('This module is disabled'));
    }
     
 } else {

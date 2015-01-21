@@ -22,7 +22,7 @@ function zb_DeployConfigOption($path, $option, $value) {
             log_register("DEPLOY CFG OPT (" . $option . ") SKIP");
         }
     } else {
-        show_window(__('Error'), __('Config not exists'));
+        show_error(__('Config not exists'));
         log_register("DEPLOY CFG OPT (" . $option . ") FAIL");
     }
 }
@@ -50,7 +50,7 @@ function zb_DeployConfigOptionOverride($path, $option, $value) {
             log_register("DEPLOY CFG OPTOVR (" . $option . ") OVR");
         }
     } else {
-        show_window(__('Error'), __('Config not exists'));
+        show_error(__('Config not exists'));
         log_register("DEPLOY CFG OPTOVR (" . $option . ") FAIL");
     }
 }

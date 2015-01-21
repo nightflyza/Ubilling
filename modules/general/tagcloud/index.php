@@ -232,6 +232,6 @@ if (cfr('TAGS')) {
         $tagCloud->renderTagUsers($tagid);
     }
 } else {
-    show_window(__('Error'), __('You cant control this module'));
+    show_error(__('You cant control this module'));
 }
 ?>

@@ -21,7 +21,7 @@ if (cfr('BUILDS')) {
                    if (!in_array(strtolower_utf8($_POST['newbuildnum']), $existingBuilds)) {
                        zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
                    } else {
-                       show_window(__('Error'), __('The same build already exists'));
+                       show_error(__('The same build already exists'));
                    }
                    
                } else {

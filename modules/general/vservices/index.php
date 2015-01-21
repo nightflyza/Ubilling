@@ -10,7 +10,7 @@ if(cfr('VSERVICES')) {
         zb_VserviceCreate($tagid, $price, $cashtype, $priority);
         rcms_redirect("?module=vservices");
         } else {
-            show_window(__('Error'), __('Required fields'));
+            show_error(__('No all of required fields is filled'));
         }
     }
     

@@ -25,11 +25,11 @@ if ($altcfg['AGENTS_ASSIGN']==2) {
     }
     
 } else {
-    show_window(__('Error'), __('This module is disabled'));
+    show_error(__('This module is disabled'));
 }
     
 } else {
-    show_window(__('Error'), __('Access denied'));
+    show_error(__('Access denied'));
 }
     
 

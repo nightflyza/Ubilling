@@ -15,7 +15,7 @@ if(cfr('SWITCHMAP')) {
             log_register('SWITCH CHANGE ['.$switchid.']'.' GEO '.$placegeo);
             rcms_redirect("?module=switchmap&locfinder=true");
         } else {
-             show_window(__('Error'), __('Access denied'));
+             show_error(__('Access denied'));
         }
     }    
         
@@ -60,7 +60,7 @@ if(cfr('SWITCHMAP')) {
     }
     
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error(__('This module is disabled'));
     }
         
 

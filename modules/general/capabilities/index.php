@@ -13,7 +13,7 @@ if (cfr('CAPAB')) {
                 $capabilities->deleteCapability($_GET['delete']);
                 rcms_redirect("?module=capabilities");
             } else {
-                show_window(__('Error'), __('Permission denied'));
+                show_error(__('Permission denied'));
             }
         }
 
@@ -71,7 +71,7 @@ if (cfr('CAPAB')) {
             }
         }
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error(__('This module is disabled'));
     }
 } else {
     show_error(__('You cant control this module'));

@@ -348,7 +348,7 @@ if (!empty($rawResult)) {
     zb_AskoziaParseCallHistory($rawResult);
     
 } else {
-    show_window(__('Error'), __('Empty reply received'));
+    show_error( __('Empty reply received'));
 }
 
 }
@@ -496,7 +496,7 @@ if (!empty($rawResult)) {
     show_window(__('Current PBX status'), zb_AskoziaParseStatus($rawResult));
     
 } else {
-    show_window(__('Error'), __('Empty reply received'));
+    show_error(__('Empty reply received'));
 }
     
 }
@@ -567,7 +567,7 @@ if (wf_CheckGet(array('config'))) {
 }
 
 } else {
-    show_error(__('Error'),__('Permission denied'));
+    show_error(__('Permission denied'));
 }
 
 if (wf_CheckPost(array('datefrom','dateto'))) {
@@ -580,7 +580,7 @@ if (wf_CheckPost(array('datefrom','dateto'))) {
 }
 
 } else {
-    show_window(__('Error'), __('AskoziaPBX integration now disabled'));
+    show_error(__('AskoziaPBX integration now disabled'));
 }
 
 

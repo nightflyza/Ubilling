@@ -152,7 +152,7 @@ class ADcomments {
             $returnUrl = '?' . $_SERVER['QUERY_STRING'];
         } else {
             $returnUrl = '';
-            show_window(__('Error'), __('Strange exeption') . ': ' . self::EX_EMPTY_QUERY_STRING);
+            show_error(__('Strange exeption') . ': ' . self::EX_EMPTY_QUERY_STRING);
         }
 
         ///new comment creation

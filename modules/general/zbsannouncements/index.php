@@ -248,7 +248,7 @@ if (cfr('ZBSANN')) {
             show_window('', wf_modal(__('Create'), __('Create'), $announcements->createForm(), 'ubButton', '600', '400'));
         }
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error(__('This module is disabled'));
     }
 } else {
     show_error(__('Access denied'));

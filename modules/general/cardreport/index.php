@@ -92,7 +92,7 @@ if (cfr('CARDREPORT')) {
    web_CardShowUsageByMonth($needyear,$needmonth);
    
    } else {
-       show_window(__('Error'), __('This module is disabled'));
+       show_error(__('This module is disabled'));
    }
    
 } else {
