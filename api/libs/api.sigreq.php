@@ -83,6 +83,11 @@ class SignupRequests {
             $this->loadRequests(0, $this->perpage);
         }
         $result = '';
+        
+        //additional comments indicator
+        if ($this->altcfg['ADCOMMENTS_ENABLED']) {
+             $adcomments=new ADcomments('SIGREQ');
+        }
 
         $tablecells = wf_TableCell(__('ID'));
         $tablecells.= wf_TableCell(__('Date'));
@@ -105,7 +110,14 @@ class SignupRequests {
                 $reqaddr = $eachreq['street'] . ' ' . $eachreq['build'] . '/' . $apt;
                 $tablecells.= wf_TableCell($reqaddr);
                 $tablecells.= wf_TableCell($eachreq['realname']);
-                $tablecells.= wf_TableCell(web_bool_led($eachreq['state']));
+                
+                if ($this->altcfg['ADCOMMENTS_ENABLED']) {
+                    $commIndicator=' '.$adcomments->getCommentsIndicator($eachreq['id']);
+                } else {
+                    $commIndicator='';
+                }
+                
+                $tablecells.= wf_TableCell(web_bool_led($eachreq['state']).$commIndicator);
                 $actlinks = wf_Link('?module=sigreq&showreq=' . $eachreq['id'], wf_img('skins/icon_search_small.gif').' '.__('Show'), true, 'ubButton');
                 $tablecells.= wf_TableCell($actlinks);
                 $tablerows.= wf_TableRow($tablecells, 'row3');
@@ -270,6 +282,12 @@ class SignupRequests {
 
         show_window(__('Signup request') . ': ' . $reqid . $deletelink, $result);
         show_window('', $actlinks);
+        
+        //additional comments
+        if ($this->altcfg['ADCOMMENTS_ENABLED']) {
+             $adcomments=new ADcomments('SIGREQ');
+             show_window(__('Additional comments'), $adcomments->renderComments($requid));
+        }
     }
 
     /*

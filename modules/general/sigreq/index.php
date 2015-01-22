@@ -55,7 +55,7 @@ if (cfr('SIGREQ')) {
             show_window(__('Settings'), $signupConf->renderForm());
         }
     } else {
-        show_window(__('Error'), __('This module disabled'));
+        show_error(__('This module disabled'));
     }
 } else {
     show_error(__('You cant control this module'));
