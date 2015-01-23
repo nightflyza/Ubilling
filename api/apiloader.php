@@ -58,6 +58,7 @@ include('api/libs/api.vlan.php');
 include('api/libs/api.darkvoid.php');
 include('api/libs/api.globalmenu.php');
 include('api/libs/api.loginform.php');
+include('api/libs/api.photostorage.php');
 
 /*
  * Initial class creation

@@ -20,7 +20,7 @@ if(cfr('USERSMAP')) {
     }    
         
     
-    $ymconf=  rcms_parse_ini_file(CONFIG_PATH."ymaps.ini");
+    $ymconf=  $ubillingConfig->getYmaps();
     $ym_center=$ymconf['CENTER'];
     $ym_zoom=$ymconf['ZOOM'];
     $ym_type=$ymconf['TYPE'];

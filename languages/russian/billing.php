@@ -1840,7 +1840,13 @@ $lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
 //rev 4112
 $lang['def']['Edit map']='Редактировать карту';
 $lang['def']['Manufacturer']='Производитель';
-$lang['def']['']='';
+$lang['def']['Photo upload complete']='Фото успешно загружено';
+$lang['def']['Photo upload failed']='Загрузка фото завершилась неудачей';
+$lang['def']['Webcamera snapshot']='Снимок с вебкамеры';
+$lang['def']['Take snapshot']='Сфотографировать';
+$lang['def']['avatar']='аватар';
+$lang['def']['File not exist']='Файл не существует';
+$lang['def']['Empty file name']='Пустое имя файла';
 $lang['def']['']='';
 
 

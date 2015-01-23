@@ -1336,3 +1336,16 @@ CREATE TABLE IF NOT EXISTS `vlan_terminators` (
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
+-- 0.6.3 update
+CREATE TABLE IF NOT EXISTS `photostorage` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `scope` varchar(255) NOT NULL,
+  `item` varchar(255) NOT NULL,
+  `date` datetime NOT NULL,
+  `admin` varchar(40) NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `scope` (`scope`),
+  KEY `item` (`item`),
+  KEY `date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

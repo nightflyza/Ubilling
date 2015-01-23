@@ -6,9 +6,11 @@
 
 class UbillingConfig {
 
-    //stores system alter.ini & billing configs
-    private $alterCfg = array();
-    private $billingCfg = array();
+    //stores system configs
+    protected $alterCfg = array();
+    protected $billingCfg = array();
+    protected $photoCfg = array();
+    protected $ymapsCfg = array();
 
     public function __construct() {
         $this->loadAlter();
@@ -49,6 +51,48 @@ class UbillingConfig {
      */
     public function getBilling() {
         return ($this->billingCfg);
+    }
+
+    /**
+     * loads system ymaps.ini to private ymapsCfg prop
+     * 
+     * @return void
+     */
+    protected function loadYmaps() {
+        $this->ymapsCfg = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
+    }
+
+    /**
+     * getter of private ymapsCfg prop
+     * 
+     * @return array
+     */
+    public function getYmaps() {
+        if (empty($this->ymapsCfg)) {
+            $this->loadYmaps();
+        }
+        return ($this->ymapsCfg);
+    }
+
+    /**
+     * loads system photostorage.ini to private photoCfg prop
+     * 
+     * @return void
+     */
+    protected function loadPhoto() {
+        $this->photoCfg = rcms_parse_ini_file(CONFIG_PATH . "photostorage.ini");
+    }
+
+    /**
+     * getter of private photoCfg prop
+     * 
+     * @return array
+     */
+    public function getPhoto() {
+        if (empty($this->photoCfg)) {
+            $this->loadPhoto();
+        }
+        return ($this->photoCfg);
     }
 
 }

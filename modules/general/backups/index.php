@@ -88,6 +88,7 @@ function web_ConfigsUbillingList() {
         'config/alter.ini',
         'config/ymaps.ini',
         'config/catv.ini',
+        'config/photostorage.ini',
         'config/dhcp/global.template',
         'config/dhcp/subnets.template',
         'config/dhcp/option82.template',

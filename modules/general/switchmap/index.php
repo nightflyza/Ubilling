@@ -1,7 +1,7 @@
 <?php
 if(cfr('SWITCHMAP')) {
 
-    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $altercfg=  $ubillingConfig->getAlter();
     
     if ($altercfg['SWYMAP_ENABLED']) {
    
@@ -20,7 +20,7 @@ if(cfr('SWITCHMAP')) {
     }    
         
     
-    $ymconf=  rcms_parse_ini_file(CONFIG_PATH."ymaps.ini");
+    $ymconf=  $ubillingConfig->getYmaps();
     $ym_center=$ymconf['CENTER'];
     $ym_zoom=$ymconf['ZOOM'];
     $ym_type=$ymconf['TYPE'];
