@@ -3730,6 +3730,10 @@ function zb_DownloadFile($filePath, $contentType = '') {
                 if ($contentType == 'csv') {
                     $contentType = 'text/csv; charset=Windows-1251';
                 }
+                
+                if ($contentType == 'jpg') {
+                    $contentType = 'Content-Type: image/jpeg';
+                }
             }
 
             header('Content-Type: ' . $contentType);

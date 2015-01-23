@@ -17,6 +17,11 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
             if (wf_CheckGet(array('download'))) {
                 $photoStorage->catchDownloadImage($_GET['download']);
             }
+            
+            //catch file deletion event
+            if (wf_CheckGet(array('delete'))) {
+                $photoStorage->catchDeleteImage($_GET['delete']);
+            }
        
             //show webcam snapshot form
             if (wf_CheckGet(array('mode'))) {

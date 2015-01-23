@@ -4,7 +4,6 @@ class PhotoStorage {
 
     protected $photoCfg = array();
     protected $altCfg = array();
-    protected $images = array();
     protected $allimages = array();
     protected $scope = '';
     protected $itemId = '';
@@ -80,13 +79,13 @@ class PhotoStorage {
      * 
      * @return void
      */
-    protected function loadImages() {
+    protected function loadAllImages() {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
-            $query = "SELECT * from `photostorage` WHERE `scope`='" . $this->scope . "' AND `item`='" . $this->itemId . "';";
+            $query = "SELECT * from `photostorage`;";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
-                    $this->images[$each['id']] = $each;
+                    $this->allimages[$each['id']] = $each;
                 }
             }
         }
@@ -107,26 +106,50 @@ class PhotoStorage {
             log_register('PHOTOSTORAGE CREATE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
         }
     }
-
+    
+    
     /**
+     * Returns basic image controls
+     * 
+     * @param int $imageId existing image ID
+     * @return string
+     */
+    protected function imageControls($imageId) {
+        $result=wf_tag('br');
+        $downloadUrl=self::MODULE_URL . '&scope=' . $this->scope. '&itemid=' . $this->itemId . '&download=' . $imageId;
+        $result.= wf_Link($downloadUrl, wf_img('skins/icon_download.png', __('Download')), false, '');
+        $deleteUrl=self::MODULE_URL . '&scope=' . $this->scope. '&itemid=' . $this->itemId . '&delete=' . $imageId;
+        $result.= wf_AjaxLink($deleteUrl, web_delete_icon(), 'ajRefCont_'.$imageId, false, '');
+        return ($result);    
+    }
+
+
+        /**
      * Returns current scope/item images list
      * 
      * @return string
      */
     public function renderImagesList() {
-        $this->loadImages();
+        if (empty($this->allimages)) {
+            $this->loadAllImages();
+        }
+        
         $result = '<div>';
+        $result.= wf_AjaxLoader();
 
-        if (!empty($this->images)) {
-            foreach ($this->images as $io => $eachimage) {
+        if (!empty($this->allimages)) {
+            foreach ($this->allimages as $io => $eachimage) {
+                if (($eachimage['scope']==$this->scope) AND ($eachimage['item']==$this->itemId)) {
                 $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
                 $imgFull = wf_img(self::STORAGE_PATH . $eachimage['filename']);
                 
-                $result.=wf_tag('div',false,'','style="float:left; padding:10px;"');
+                $dimensions= 'width:'.($this->photoCfg['IMGLIST_PREV_W']+10).'px;';
+                $dimensions.='height:'.($this->photoCfg['IMGLIST_PREV_H']+10).'px;';
+                $result.=wf_tag('div',false,'','style="float:left; '.$dimensions.' padding:10px;" id="ajRefCont_'.$eachimage['id'].'"');
                 $result.=wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull, '');
-                $result.= wf_tag('br');
-                $result.= wf_Link(self::MODULE_URL . '&scope=' . $eachimage['scope'] . '&itemid=' . $eachimage['item'] . '&download=' . base64_encode($eachimage['filename']), wf_img('skins/icon_download.png', __('Download')), false, '');
+                $result.=$this->imageControls($eachimage['id']);
                 $result.=wf_tag('div',true);
+                }
             }
         }
         
@@ -135,23 +158,52 @@ class PhotoStorage {
     }
 
     /**
-     * Downloads image file
+     * Downloads image file by its id
      * 
-     * @param string $filename base64 filename 
+     * @param int $id database image ID
      */
-    public function catchDownloadImage($filename) {
-        if (!empty($filename)) {
-            $filename = base64_decode($filename);
+    public function catchDownloadImage($id) {
+        $id=vf($id,3);
+        if (empty($this->allimages)) {
+            $this->loadAllImages();
+        }
+        if (!empty($id)) {
+            @$filename = $this->allimages[$id]['filename'];
             if (file_exists(self::STORAGE_PATH . $filename)) {
-                zb_DownloadFile(self::STORAGE_PATH . $filename);
+                zb_DownloadFile(self::STORAGE_PATH . $filename,'jpg');
             } else {
                 show_error(__('File not exist'));
             }
         } else {
-            show_error(__('Empty file name'));
+            show_error(__('Image not exists'));
         }
     }
-
+    
+     /**
+     * deletes image from database and FS by its ID
+     * 
+     * @param int $id database image ID
+     */
+    public function catchDeleteImage($id) {
+        $id=vf($id,3);
+        if (empty($this->allimages)) {
+            $this->loadAllImages();
+        }
+        if (!empty($id)) {
+            @$filename = $this->allimages[$id]['filename'];
+            if (file_exists(self::STORAGE_PATH . $filename)) {
+                //deleting file here
+                $deleteResult= wf_tag('span', false, 'alert_warning') . __('Deleted') . wf_tag('span', true);
+            } else {
+                 $deleteResult= wf_tag('span', false, 'alert_error') . __('File not exist'). wf_tag('span', true);
+            }
+        } else {
+            $deleteResult= wf_tag('span', false, 'alert_error') .__('Image not exists'). wf_tag('span', true);
+        }
+        die($deleteResult);
+    }
+    
+    
     /**
      * Catches webcam snapshot upload in background
      * 
