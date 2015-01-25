@@ -10,9 +10,11 @@ class PhotoStorage {
     protected $myLogin = '';
 
     const STORAGE_PATH = 'content/documents/photostorage/';
-    const UPLOAD_URL = '?module=photostorage&uploadcamphoto=true';
+    const UPLOAD_URL_WEBC = '?module=photostorage&uploadcamphoto=true';
+    const UPLOAD_URL_FILE = '?module=photostorage&uploadfilephoto=true';
     const MODULE_URL = '?module=photostorage';
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
+    const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
 
     public function __construct($scope = '', $itemid = '') {
         $this->loadConfig();
@@ -81,7 +83,7 @@ class PhotoStorage {
      */
     protected function loadAllImages() {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
-            $query = "SELECT * from `photostorage`;";
+            $query = "SELECT * from `photostorage` ORDER by `id` ASC;";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
@@ -106,8 +108,22 @@ class PhotoStorage {
             log_register('PHOTOSTORAGE CREATE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
         }
     }
-    
-    
+
+    /**
+     * Deletes uploaded image from database
+     * 
+     * @param int $imageid
+     */
+    protected function unregisterImage($imageid) {
+        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+            $imageid = vf($imageid, 3);
+            $date = curdatetime();
+            $query = "DELETE from `photostorage` WHERE `id`='" . $imageid . "';";
+            nr_query($query);
+            log_register('PHOTOSTORAGE DELETE SCOPE `' . $this->scope . '` ITEM [' . $this->itemId . ']');
+        }
+    }
+
     /**
      * Returns basic image controls
      * 
@@ -115,16 +131,44 @@ class PhotoStorage {
      * @return string
      */
     protected function imageControls($imageId) {
-        $result=wf_tag('br');
-        $downloadUrl=self::MODULE_URL . '&scope=' . $this->scope. '&itemid=' . $this->itemId . '&download=' . $imageId;
+        $result = wf_tag('br');
+        $downloadUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&download=' . $imageId;
         $result.= wf_Link($downloadUrl, wf_img('skins/icon_download.png', __('Download')), false, '');
-        $deleteUrl=self::MODULE_URL . '&scope=' . $this->scope. '&itemid=' . $this->itemId . '&delete=' . $imageId;
-        $result.= wf_AjaxLink($deleteUrl, web_delete_icon(), 'ajRefCont_'.$imageId, false, '');
-        return ($result);    
+        $deleteUrl = self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&delete=' . $imageId;
+        $result.= wf_AjaxLink($deleteUrl, web_delete_icon(), 'ajRefCont_' . $imageId, false, '');
+        return ($result);
     }
 
+    /**
+     * Returns image upload controls
+     * 
+     * @return string
+     */
+    public function uploadControlsPanel() {
+        $result = '';
+        if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
+            $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=cam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot'), false, 'ubButton');
+            $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=avacam', wf_img('skins/photostorage.png') . ' ' . __('Webcamera snapshot') . ' - ' . __('avatar'), false, 'ubButton');
+            $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), false, 'ubButton');
+        }
 
-        /**
+        return ($result);
+    }
+
+    /**
+     * Returns custom module backlinks for some scopes
+     * 
+     * @return string
+     */
+    protected function backUrlHelper() {
+        $result = '';
+        if ($this->scope == 'USERPROFILE') {
+            $result = web_UserControls($this->itemId);
+        }
+        return ($result);
+    }
+
+    /**
      * Returns current scope/item images list
      * 
      * @return string
@@ -133,27 +177,33 @@ class PhotoStorage {
         if (empty($this->allimages)) {
             $this->loadAllImages();
         }
-        
-        $result = '<div>';
-        $result.= wf_AjaxLoader();
+
+
+        $result = wf_AjaxLoader();
 
         if (!empty($this->allimages)) {
             foreach ($this->allimages as $io => $eachimage) {
-                if (($eachimage['scope']==$this->scope) AND ($eachimage['item']==$this->itemId)) {
-                $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
-                $imgFull = wf_img(self::STORAGE_PATH . $eachimage['filename']);
-                
-                $dimensions= 'width:'.($this->photoCfg['IMGLIST_PREV_W']+10).'px;';
-                $dimensions.='height:'.($this->photoCfg['IMGLIST_PREV_H']+10).'px;';
-                $result.=wf_tag('div',false,'','style="float:left; '.$dimensions.' padding:10px;" id="ajRefCont_'.$eachimage['id'].'"');
-                $result.=wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull, '');
-                $result.=$this->imageControls($eachimage['id']);
-                $result.=wf_tag('div',true);
+                if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
+                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img(self::STORAGE_PATH . $eachimage['filename']);
+                    $imgFull.= wf_tag('br');
+                    $imgFull.= __('Date') . ': ' . $eachimage['date'] . ' / ';
+                    $imgFull.= __('Admin') . ': ' . $eachimage['admin'];
+
+                    $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
+                    $dimensions.='height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
+                    $result.=wf_tag('div', false, '', 'style="float:left;  ' . $dimensions . ' padding:15px;" id="ajRefCont_' . $eachimage['id'] . '"');
+                    $result.=wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull, '');
+                    $result.=$this->imageControls($eachimage['id']);
+                    $result.=wf_tag('div', true);
                 }
             }
         }
-        
-        $result.='</div>';
+
+
+        $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+        $result.= wf_delimiter();
+        $result.= $this->backUrlHelper();
         return ($result);
     }
 
@@ -163,14 +213,14 @@ class PhotoStorage {
      * @param int $id database image ID
      */
     public function catchDownloadImage($id) {
-        $id=vf($id,3);
+        $id = vf($id, 3);
         if (empty($this->allimages)) {
             $this->loadAllImages();
         }
         if (!empty($id)) {
             @$filename = $this->allimages[$id]['filename'];
             if (file_exists(self::STORAGE_PATH . $filename)) {
-                zb_DownloadFile(self::STORAGE_PATH . $filename,'jpg');
+                zb_DownloadFile(self::STORAGE_PATH . $filename, 'jpg');
             } else {
                 show_error(__('File not exist'));
             }
@@ -178,32 +228,32 @@ class PhotoStorage {
             show_error(__('Image not exists'));
         }
     }
-    
-     /**
+
+    /**
      * deletes image from database and FS by its ID
      * 
      * @param int $id database image ID
      */
     public function catchDeleteImage($id) {
-        $id=vf($id,3);
+        $id = vf($id, 3);
         if (empty($this->allimages)) {
             $this->loadAllImages();
         }
         if (!empty($id)) {
             @$filename = $this->allimages[$id]['filename'];
             if (file_exists(self::STORAGE_PATH . $filename)) {
-                //deleting file here
-                $deleteResult= wf_tag('span', false, 'alert_warning') . __('Deleted') . wf_tag('span', true);
+                unlink(self::STORAGE_PATH . $filename);
+                $this->unregisterImage($id);
+                $deleteResult = wf_tag('span', false, 'alert_warning') . __('Deleted') . wf_tag('span', true);
             } else {
-                 $deleteResult= wf_tag('span', false, 'alert_error') . __('File not exist'). wf_tag('span', true);
+                $deleteResult = wf_tag('span', false, 'alert_error') . __('File not exist') . wf_tag('span', true);
             }
         } else {
-            $deleteResult= wf_tag('span', false, 'alert_error') .__('Image not exists'). wf_tag('span', true);
+            $deleteResult = wf_tag('span', false, 'alert_error') . __('Image not exists') . wf_tag('span', true);
         }
         die($deleteResult);
     }
-    
-    
+
     /**
      * Catches webcam snapshot upload in background
      * 
@@ -226,6 +276,71 @@ class PhotoStorage {
             }
             die($uploadResult);
         }
+    }
+
+    /**
+     * Catches file upload in background
+     * 
+     * @return void
+     */
+    public function catchFileUpload() {
+        if (wf_CheckGet(array('uploadfilephoto'))) {
+            if (!empty($this->scope)) {
+                $allowedExtensions = array("jpg", "gif", "png", "jpeg");
+                $fileAccepted = true;
+                foreach ($_FILES as $file) {
+                    if ($file['tmp_name'] > '') {
+                        if (!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
+                            $fileAccepted = false;
+                        }
+                    }
+                }
+
+                if ($fileAccepted) {
+                    $newFilename = zb_rand_string(16) . '_upload.jpg';
+                    $newSavePath = self::STORAGE_PATH . $newFilename;
+                    move_uploaded_file($_FILES['photostorageFileUpload']['tmp_name'], $newSavePath);
+                    if (file_exists($newSavePath)) {
+                        $uploadResult = wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
+                        $this->registerImage($newFilename);
+                        rcms_redirect(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader&preview=' . $newFilename);
+                    } else {
+                        $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . wf_tag('span', true);
+                    }
+                } else {
+                    $uploadResult = wf_tag('span', false, 'alert_error') . __('Photo upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);
+                }
+            } else {
+                $uploadResult = wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': ' . self::EX_NOSCOPE . wf_tag('span', true);
+            }
+
+            show_window('', $uploadResult);
+            show_window('', wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', __('Back'), false, 'ubButton'));
+        }
+    }
+
+    /**
+     * Returns file upload form
+     * 
+     * @return string
+     */
+    public function renderUploadForm() {
+        $postUrl = self::UPLOAD_URL_FILE . '&scope=' . $this->scope . '&itemid=' . $this->itemId;
+        $inputs = wf_tag('form', false, 'glamour', 'action="' . $postUrl . '" enctype="multipart/form-data" method="POST"');
+        $inputs.= wf_tag('input', false, '', 'type="file" name="photostorageFileUpload"');
+        $inputs.= wf_Submit(__('Upload'));
+        $inputs.= wf_tag('form', true);
+
+        $result = $inputs;
+        $result.= wf_delimiter(2);
+        if (wf_CheckGet(array('preview'))) {
+            $result.=wf_img_sized(self::STORAGE_PATH . $_GET['preview'], __('Preview'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+            $result.=wf_delimiter();
+            $result.=wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
+            $result.=wf_delimiter();
+        }
+        $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list', __('Back'), true, 'ubButton');
+        return ($result);
     }
 
     /**
@@ -280,7 +395,7 @@ class PhotoStorage {
                                         document.getElementById(\'webcamResults\').innerHTML = 
                                                 \'<img src="\'+data_uri+\'" width=' . $prev_w . ' height=' . $prev_h . ' />\';
 
-                                                var url = \'' . self::UPLOAD_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '\';
+                                                var url = \'' . self::UPLOAD_URL_WEBC . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '\';
                                                 Webcam.upload( data_uri, url, function(code, text) {
 
                                             } );
@@ -311,6 +426,8 @@ class PhotoStorage {
 
         $result = wf_TableBody($rows, '100%', 0);
         $result.= $uploadProgress;
+        $result.= wf_delimiter();
+        $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list', __('Back'), true, 'ubButton');
 
 
         return ($result);

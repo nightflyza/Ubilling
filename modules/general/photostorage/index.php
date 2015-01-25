@@ -13,6 +13,11 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage->catchWebcamUpload();
             }
             
+            //catch file upload request
+            if (wf_CheckGet(array('uploadfilephoto'))) {
+                $photoStorage->catchFileUpload();
+            }
+            
             //catch file download
             if (wf_CheckGet(array('download'))) {
                 $photoStorage->catchDownloadImage($_GET['download']);
@@ -26,15 +31,22 @@ if ($altCfg['PHOTOSTORAGE_ENABLED']) {
             //show webcam snapshot form
             if (wf_CheckGet(array('mode'))) {
                 $modeSet=$_GET['mode'];
+                //webcamera snapshot
                 if ($modeSet=='cam') {
                    show_window(__('Webcamera snapshot'), $photoStorage->renderWebcamForm(false));
                 }
-                
+                //webcamera cropped snapshot
                 if ($modeSet=='avacam') {
                     show_window(__('Webcamera snapshot').' - '.__('avatar'), $photoStorage->renderWebcamForm(true));
                 }
+                //just file upload interface
+                if ($modeSet=='loader') {
+                    show_window(__('Upload images'), $photoStorage->renderUploadForm());
+                }
                 
+                //listing images for some object
                 if ($modeSet=='list') {
+                    show_window(__('Upload images'),$photoStorage->uploadControlsPanel());
                     show_window(__('Uploaded images'), $photoStorage->renderImagesList());
                 }
             }

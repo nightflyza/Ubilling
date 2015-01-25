@@ -728,6 +728,20 @@ class UserProfile {
         }
         return ($result);
     }
+    
+    /**
+     * Photostorage controls
+     * 
+     * @return string
+     */
+    protected function getPhotostorageControls() {
+        $result='';
+        if ($this->alterCfg['PHOTOSTORAGE_ENABLED']) {
+            $photostorageUrl='?module=photostorage&scope=USERPROFILE&itemid='.$this->login.'&mode=list';
+            $result.=' '.wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'),'10','10'), false);
+        }
+        return ($result);    
+    }
 
     /*
      * Renders user profile with all loaded data
@@ -762,7 +776,7 @@ class UserProfile {
         //apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
         //realname row
-        $profile.= $this->addRow(__('Real name') . $this->getPassportDataControl(), $this->realname, true);
+        $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls().$this->getPassportDataControl(), $this->realname, true);
         //contract row
         $profile.= $this->addRow(__('Contract'), $this->contract, false);
         //contract date row

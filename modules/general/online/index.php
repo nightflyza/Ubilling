@@ -5,20 +5,12 @@ if ($system->checkForRight('ONLINE')) {
     $alter_conf = $ubillingConfig->getAlter();
     $hp_mode = $alter_conf['ONLINE_HP_MODE'];
 
-    function stg_show_fulluserlist2() {
+    function stg_show_fulluserlistOld() {
         global $alter_conf;
-        $query = "SELECT * FROM `users`";
-        $query_fio = "SELECT * from `realname`";
-        $allusers = simple_queryall($query);
-        $allfioz = simple_queryall($query_fio);
-        $fioz = array();
-        if (!empty($allfioz)) {
-            foreach ($allfioz as $ia => $eachfio) {
-                $fioz[$eachfio['login']] = $eachfio['realname'];
-            }
-        }
+        $allusers = zb_UserGetAllStargazerData();
+        $allrealnames = zb_UserGetAllRealnames();
+        $alladdress = zb_AddressGetFulladdresslist();
 
-        $detect_address = zb_AddressGetFulladdresslist();
         if ($alter_conf['USER_LINKING_ENABLED']) {
             $alllinkedusers = cu_GetAllLinkedUsers();
             $allparentusers = cu_GetAllParentUsers();
@@ -35,7 +27,7 @@ if ($system->checkForRight('ONLINE')) {
 
         // LAT column
         if ($alter_conf['ONLINE_LAT']) {
-            $lat_col_head = '<td>' . __('LAT') . '</td>';
+            $lat_col_head = wf_TableCell(__('LAT'));
             $act_offset = 1;
         } else {
             $lat_col_head = '';
@@ -43,7 +35,7 @@ if ($system->checkForRight('ONLINE')) {
         }
         //online stars
         if ($alter_conf['DN_ONLINE_DETECT']) {
-            $true_online_header = '<td>' . __('Users online') . '</td>';
+            $true_online_header = wf_TableCell(__('Users online'));
             $true_online_selector = ' col_' . (5 + $act_offset) . ': "select",';
         } else {
             $true_online_header = '';
@@ -51,7 +43,7 @@ if ($system->checkForRight('ONLINE')) {
         }
         //extended filters
         if ($alter_conf['ONLINE_FILTERS_EXT']) {
-            $extfilters = ' <a href="javascript:showfilter();">' . __('Extended filters') . '</a>';
+            $extfilters = wf_Link('javascript:showfilter();', __('Extended filters'), false);
         } else {
             $extfilters = '';
         }
@@ -65,21 +57,21 @@ if ($system->checkForRight('ONLINE')) {
 
 
         $result = $extfilters;
-        $result.='<table width="100%" class="sortable" id="onlineusers">';
-        $result.='
-  <tr class="row1">
-  <td>' . __('Full address') . '</td>
-  <td>' . __('Real Name') . '</td>
-  <td>IP</ip></td>
-  <td>' . __('Tariff') . '</td>
-  ' . $lat_col_head . '
-  <td>' . __('Active') . '</td>
-  ' . $true_online_header . '
-  <td>' . __('Traffic') . '</td>
-  <td>' . __('Balance') . '</td>
-  <td>' . __('Credit') . '</td>
-  
-  </tr>';
+        $result.= wf_tag('table', false, 'sortable', 'width="100%" id="onlineusers"');
+
+        $headerCells = wf_TableCell(__('Full address'));
+        $headerCells.= wf_TableCell(__('Real Name'));
+        $headerCells.= wf_TableCell(__('IP'));
+        $headerCells.= wf_TableCell(__('Tariff'));
+        $headerCells.= $lat_col_head;
+        $headerCells.= wf_TableCell(__('Active'));
+        $headerCells.=$true_online_header;
+        $headerCells.= wf_TableCell(__('Traffic'));
+        $headerCells.= wf_TableCell(__('Balance'));
+        $headerCells.= wf_TableCell(__('Credit'));
+        $headerRow = wf_TableRow($headerCells, 'row1');
+        $result.=$headerRow;
+
         if (!empty($allusers)) {
             foreach ($allusers as $io => $eachuser) {
                 $tinet = 0;
@@ -103,7 +95,7 @@ if ($system->checkForRight('ONLINE')) {
                 }
 
                 if ($alter_conf['ONLINE_LAT']) {
-                    $user_lat = '<td>' . date("Y-m-d H:i:s", $eachuser['LastActivityTime']) . '</td>';
+                    $user_lat = wf_TableCell(date("Y-m-d H:i:s", $eachuser['LastActivityTime']));
                 } else {
                     $user_lat = '';
                 }
@@ -116,7 +108,7 @@ if ($system->checkForRight('ONLINE')) {
                     } else {
                         $online_flag = 0;
                     }
-                    $online_cell = '<td sorttable_customkey="' . $online_flag . '">' . web_bool_star($online_flag, true) . '</td>';
+                    $online_cell = wf_TableCell(web_bool_star($online_flag, true), '', '', 'sorttable_customkey="' . $online_flag . '"');
                 } else {
                     $online_cell = '';
                     $online_flag = 0;
@@ -133,14 +125,14 @@ if ($system->checkForRight('ONLINE')) {
 
                     //is user child? 
                     if (isset($alllinkedusers[$eachuser['login']])) {
-                        $corporate = '<a href="?module=corporate&userlink=' . $alllinkedusers[$eachuser['login']] . '">' . web_corporate_icon() . '</a>';
+                        $corporate = wf_Link('?module=corporate&userlink=' . $alllinkedusers[$eachuser['login']], web_corporate_icon(), false);
                     } else {
                         $corporate = '';
                     }
 
                     //is  user parent?
                     if (isset($allparentusers[$eachuser['login']])) {
-                        $corporate = '<a href="?module=corporate&userlink=' . $allparentusers[$eachuser['login']] . '">' . web_corporate_icon('Corporate parent') . '</a>';
+                        $corporate = wf_Link('?module=corporate&userlink=' . $allparentusers[$eachuser['login']], web_corporate_icon('Corporate parent'), false);
                     }
                 } else {
                     $corporate = '';
@@ -148,75 +140,74 @@ if ($system->checkForRight('ONLINE')) {
 
                 //fast cash link
                 if ($fastcash) {
-                    $financelink = '<a href="?module=addcash&username=' . $eachuser['login'] . '#profileending"><img src="skins/icon_dollar.gif" border="0" title="' . __('Finance operations') . '"></a>';
+                    $financelink = wf_Link('?module=addcash&username=' . $eachuser['login'] . '#profileending', wf_img('skins/icon_dollar.gif', __('Finance operations')), false);
                 } else {
                     $financelink = '';
                 }
 
-                $result.='
-        <tr class="row3" ' . $lighter . '>
-         <td>
-     <a href="?module=traffstats&username=' . $eachuser['login'] . '">' . web_stats_icon() . '</a>
-     ' . $financelink . '         
-     <a href="?module=userprofile&username=' . $eachuser['login'] . '">' . web_profile_icon() . '</a>
-     
-      ' . $corporate . '
-         ' . @$detect_address[$eachuser['login']] . '</td>
-         <td>' . @$fioz[$eachuser['login']] . '</td>
-         <td sorttable_customkey="' . ip2int($eachuser['IP']) . '">' . $eachuser['IP'] . '</td>
-         <td>' . $eachuser['Tariff'] . '</td>
-         ' . $user_lat . '
-         <td>' . $act . '</td>
-         ' . $online_cell . '
-         <td sorttable_customkey="' . $tinet . '">' . stg_convert_size($tinet) . '</td>
-         <td>' . round($eachuser['Cash'], 2) . '</td>
-         <td>' . round($eachuser['Credit'], 2) . '</td>
 
-         </tr>
-        ';
+                $result.= wf_tag('tr', false, 'row3', $lighter);
+                $result.= wf_tag('td', false);
+                $result.= wf_Link('?module=traffstats&username=' . $eachuser['login'], web_stats_icon(), false);
+                $result.= $financelink;
+                $result.= wf_Link('?module=userprofile&username=' . $eachuser['login'], web_profile_icon(), false);
+                $result.= $corporate;
+                $result.= @$alladdress[$eachuser['login']];
+                $result.= wf_tag('td', true);
+                $result.= wf_TableCell(@$allrealnames[$eachuser['login']]);
+                $result.= wf_TableCell($eachuser['IP'], '', '', 'sorttable_customkey="' . ip2int($eachuser['IP']) . '"');
+                $result.= wf_TableCell($eachuser['Tariff']);
+                $result.= $user_lat;
+                $result.= wf_TableCell($act);
+                $result.= $online_cell;
+                $result.= wf_TableCell(stg_convert_size($tinet), '', '', 'sorttable_customkey="' . $tinet . '"');
+                $result.= wf_TableCell(round($eachuser['Cash'], 2));
+                $result.= wf_TableCell(round($eachuser['Credit'], 2));
+                $result.= wf_tag('tr', true);
             }
         }
-        
-        
-    if ( $alter_conf['DN_ONLINE_DETECT'] ) {
-        $true_online_counter = '<td>' . __('Users online') . ' ' . $trueonline . '</td>';
-    } else {
-        $true_online_counter = null;
-    }
-    
-        $result.='
-    </table>
-    <table width="100%">
-    <tr class="row1">
-         <td>' . __('Total') . ': ' . $ucount . '</td>
-         <td>' . __('Active users') . ' ' . ($ucount - $inacacount) . ' / ' . __('Inactive users') . ' ' . $inacacount . '</td>
-         ' . $true_online_counter . '
-         <td>' . __('Traffic') . ': ' . stg_convert_size($totaltraff) . '</td>
-         <td>' . __('Total') . ': ' . round($tcash, 2) . '</td>
-         <td>' . __('Credit total') . ': ' . $tcredit . '</td>
-         </tr>
-        ';
+
+
+        if ($alter_conf['DN_ONLINE_DETECT']) {
+            $true_online_counter = wf_TableCell(__('Users online') . ' ' . $trueonline);
+        } else {
+            $true_online_counter = null;
+        }
+
+        $result.= wf_tag('table', true);
+
+
+
+        $footerCells = wf_TableCell(__('Total') . ': ' . $ucount);
+        $footerCells.= wf_TableCell(__('Active users') . ' ' . ($ucount - $inacacount) . ' / ' . __('Inactive users') . ' ' . $inacacount);
+        $footerCells.= $true_online_counter;
+        $footerCells.= wf_TableCell(__('Traffic') . ': ' . stg_convert_size($totaltraff));
+        $footerCells.= wf_TableCell(__('Total') . ': ' . round($tcash, 2));
+        $footerCells.= wf_TableCell(__('Credit total') . ': ' . $tcredit);
+        $footerRows = wf_TableRow($footerCells, 'row1');
+
+        $result.= wf_TableBody($footerRows, '100%', '0');
         //extended filters again
         if ($alter_conf['ONLINE_FILTERS_EXT']) {
-            $filtercode = '
-            <script language="javascript" type="text/javascript">
+            $filtercode = wf_tag('script', false, '', 'language="javascript" type="text/javascript"');
+            $filtercode.= '
             //<![CDATA[
-        function showfilter() {
-          var onlinefilters = {
+            function showfilter() {
+            var onlinefilters = {
 		btn: false,
           	col_' . (4 + $act_offset) . ': "select",
                ' . $true_online_selector . '
 		btn_text: ">"
-	}
-	setFilterGrid("onlineusers",0,onlinefilters);
-        }
-        //]]>
-        </script>';
+               }
+                setFilterGrid("onlineusers",0,onlinefilters);
+             }
+            //]]>';
+            $filtercode.=wf_tag('script', true);
         } else {
             $filtercode = '';
         }
 
-        $result.='</table>' . $filtercode;
+        $result.=$filtercode;
         return ($result);
     }
 
@@ -370,7 +361,6 @@ if ($system->checkForRight('ONLINE')) {
         "bInfo": true,
         "bAutoWidth": false,
         "bProcessing": true,
-        "bStateSave": false,
         "iDisplayLength": 50,
         "sAjaxSource": \'?module=online&ajax\',
 	"bDeferRender": true,
@@ -385,29 +375,28 @@ if ($system->checkForRight('ONLINE')) {
 
        ';
         $result = $dtcode;
-        $result.='<table width="100%" id="onlineusershp" class="display compact">';
+        $result.= wf_tag('table', false, 'display compact', 'width="100%" id="onlineusershp"');
         //dn activity check
         if ($alter_conf['DN_ONLINE_DETECT']) {
-            $onlineCells = '<td>' . __('Users online') . '</td>';
+            $onlineCells = wf_TableCell(__('Users online'));
         } else {
             $onlineCells = '';
         }
-        $result.='
-  <thead>
-  <tr class="row2">
-  <td>' . __('Full address') . '</td>
-  <td>' . __('Real Name') . '</td>
-  <td>' . __('IP') . '</ip></td>
-  <td>' . __('Tariff') . '</td>
-  <td>' . __('Active') . '</td>
-  ' . $onlineCells . '
-  <td>' . __('Traffic') . '</td>
-  <td>' . __('Balance') . '</td>
-  <td>' . __('Credit') . '</td>
-  
-  </tr>
-  </thead>
-  </table>';
+   
+        $result.= wf_tag('thead',false);
+        $result.= wf_tag('tr',false,'row2');
+        $result.= wf_TableCell(__('Full address'));
+        $result.= wf_TableCell(__('Real Name'));
+        $result.= wf_TableCell(__('IP'));
+        $result.= wf_TableCell(__('Tariff'));
+        $result.= wf_TableCell(__('Active'));
+        $result.= $onlineCells;
+        $result.= wf_TableCell(__('Traffic'));
+        $result.= wf_TableCell(__('Balance'));
+        $result.= wf_TableCell(__('Credit'));
+        $result.= wf_tag('tr',true);
+        $result.= wf_tag('thead',true);
+        $result.= wf_tag('table',true);
 
         return ($result);
     }
@@ -567,7 +556,7 @@ if ($system->checkForRight('ONLINE')) {
 
 
     if (!$hp_mode) {
-        show_window(__('Users online'), stg_show_fulluserlist2());
+        show_window(__('Users online'), stg_show_fulluserlistOld());
     } else {
         show_window(__('Users online'), stg_show_fulluserlist_hp());
     }

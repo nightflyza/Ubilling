@@ -1848,7 +1848,7 @@ $lang['def']['avatar']='аватар';
 $lang['def']['File not exist']='Файл не существует';
 $lang['def']['Empty file name']='Пустое имя файла';
 $lang['def']['Image not exists']='Не существует такого изображения';
-$lang['def']['']='';
+$lang['def']['Upload file from HDD']='Загрузка файла с HDD';
 $lang['def']['']='';
 
 
