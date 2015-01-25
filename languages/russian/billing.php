@@ -1849,7 +1849,27 @@ $lang['def']['File not exist']='Файл не существует';
 $lang['def']['Empty file name']='Пустое имя файла';
 $lang['def']['Image not exists']='Не существует такого изображения';
 $lang['def']['Upload file from HDD']='Загрузка файла с HDD';
+$lang['def']['Photostorage']='Хранилище изображений';
+$lang['def']['System photostorage enabled']='Хранилище изображений включено';
+$lang['def']['right to use photostorage']='Право использовать хранилище изображений';
+$lang['def']['webcam preview image width']='Ширина превью вебкамеры';
+$lang['def']['webcam preview image height']='Высота превью вебкамеры';
+$lang['def']['webcam output image width']='Ширина изображений с вебкамеры';
+$lang['def']['webcam output image height']='Высота изображений с вебкамеры';
+$lang['def']['webcam output format']='Формат изображений вебкамеры';
+$lang['def']['jpeg image quality']='Качество изображений JPEG';
+$lang['def']['avatar crop']='Обрезка камеры в режиме аватара';
+$lang['def']['force flash fallback']='Принудительно использовать flash';
+$lang['def']['images list preview width']='Ширина превью изображений';
+$lang['def']['images list preview height']='Высота превью изображений';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 
 

@@ -140,6 +140,7 @@ CORPS_ENABLED=TRIGGER|Corporate users management enabled
 NETWORKS_EXT=TRIGGER|Extended networks and pools management
 ADCOMMENTS_ENABLED=TRIGGER|Additional comments functionality enabled
 VLANGEN_SUPPORT=TRIGGER|VLAN pools extended management enabled
+PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

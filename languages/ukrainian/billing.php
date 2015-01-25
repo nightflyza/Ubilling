@@ -1854,5 +1854,27 @@ $lang['def']['Mikrotik AP signals']='Сигнал БС Mikrotik';
 //rev 4112
 $lang['def']['Edit map']='Редагувати карту';
 $lang['def']['Manufacturer']='Виробник';
+$lang['def']['Photo upload complete']='Фото успішно завантажено';
+$lang['def']['Photo upload failed']='Завантаження фото завершилось невдачею';
+$lang['def']['Webcamera snapshot']='Знімок з вебкамери';
+$lang['def']['Take snapshot']='Сфотографувати';
+$lang['def']['avatar']='аватар';
+$lang['def']['File not exist']='Файл не існує';
+$lang['def']['Empty file name']='Порожнє ім`я файла';
+$lang['def']['Image not exists']='Не існує такого зображення';
+$lang['def']['Upload file from HDD']='Завантаження файлу з HDD';
+$lang['def']['Photostorage']='Сховище зображень';
+$lang['def']['System photostorage enabled']='Сховище зображень увімкнено';
+$lang['def']['right to use photostorage']='Право використовувати сховище зображень';
+$lang['def']['webcam preview image width']='Ширина превью вебкамери';
+$lang['def']['webcam preview image height']='Висота превью вебкамери';
+$lang['def']['webcam output image width']='Ширина зображень з вебкамери';
+$lang['def']['webcam output image height']='Висота зображень з вебкамери';
+$lang['def']['webcam output format']='Формат зображень вебкамери';
+$lang['def']['jpeg image quality']='Якість зображень JPEG';
+$lang['def']['avatar crop']='Обрізка камери в режимі аватара';
+$lang['def']['force flash fallback']='Примусово використовувати flash';
+$lang['def']['images list preview width']='Ширина превью зображень';
+$lang['def']['images list preview height']='Висота превью зображень';
 
 ?>

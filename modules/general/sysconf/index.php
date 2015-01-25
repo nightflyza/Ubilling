@@ -15,6 +15,9 @@ if (cfr('SYSCONF')) {
  
  $ymconf=rcms_parse_ini_file(CONFIG_PATH."ymaps.ini");
  $ymopts=  rcms_parse_ini_file(CONFIG_PATH."optsymcfg");
+ 
+ $photoconf=  rcms_parse_ini_file(CONFIG_PATH."photostorage.ini");
+ $photoopts= rcms_parse_ini_file(CONFIG_PATH."optsphotocfg");
 
 if ($alterconf['PASSWORDSHIDE']) {
     $hide_passwords=true;
@@ -27,14 +30,15 @@ $billcell=web_ConfigEditorShow('billingini', $billingconf, $billopts);
 $altercell=web_ConfigEditorShow('alterini', $alterconf, $alteropts);
 $catvcell=web_ConfigEditorShow('catvini', $catvconf, $catvopts);
 $ymcells=  web_ConfigEditorShow('ymaps', $ymconf, $ymopts);
+$photocells= web_ConfigEditorShow('photostorage', $photoconf, $photoopts);
 
 $header_ub=wf_tag('h2',false).__('Ubilling setup').  wf_tag('h2',true);
-$cells=  wf_TableCell($header_ub.$dbcell.$billcell.$catvcell.$ymcells,'','','valign="top"');
+$cells=  wf_TableCell($header_ub.$dbcell.$billcell.$catvcell.$ymcells.$photocells,'','','valign="top"');
 $header_alter=wf_tag('h2',false).__('Custom features').  wf_tag('h2',true);
 $cells.=wf_TableCell($header_alter.$altercell,'','','valign="top"');
 $rows=  wf_TableRow($cells);
 
-$grid= wf_TableBody($rows, '100%', 0, 'glamour');
+$grid= wf_TableBody($rows, '100%', 0, '');
 
    
 
