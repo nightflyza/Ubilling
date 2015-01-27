@@ -37,7 +37,7 @@ if (cfr('SYSLOAD')) {
  $sysInfoData='';
  //phpinfo()
  $phpInfoCode=  wf_tag('iframe', false, '', 'src="?module=report_sysload&phpinfo=true" width="1000" height="500" frameborder="0"').wf_tag('iframe',true);
- $sysInfoData.= wf_modal(__('Information about PHP version'), __('Information about PHP version'), $phpInfoCode, 'ubButton', 1020, 570);
+ $sysInfoData.= wf_modalAuto(__('Information about PHP version'), __('Information about PHP version'), $phpInfoCode, 'ubButton');
 
  //database info
  $dbInfoCode= zb_DBStatsRenderContainer();
@@ -46,7 +46,7 @@ if (cfr('SYSLOAD')) {
  //phpsysinfo frame
  if (!empty($monit_url)) {
   $monitCode=  wf_tag('iframe', false, '', 'src="'.$monit_url.'" width="1000" height="500" frameborder="0"').wf_tag('iframe',true);
-  $sysInfoData.= wf_modal(__('System health with phpSysInfo'), __('phpSysInfo'), $monitCode, 'ubButton', 1020, 570);
+  $sysInfoData.= wf_modalAuto(__('System health with phpSysInfo'), __('phpSysInfo'), $monitCode, 'ubButton');
  }
  
  show_window('', $sysInfoData);

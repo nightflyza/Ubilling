@@ -221,6 +221,14 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
         
+        //alternate center styling
+        $alternateStyle='';
+        if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
+            if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
+            $alternateStyle=wf_tag('style',false).'#onlineusershp  td { text-align:center !important; }'.wf_tag('style', true);
+            }
+        }
+        
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
              null,
@@ -350,7 +358,7 @@ if ($system->checkForRight('ONLINE')) {
                     },
 		},
             "aoColumns": [
-               ' . $columnFilters . '
+                  ' . $columnFilters . '
             ],      
         
                 
@@ -397,6 +405,8 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_tag('tr',true);
         $result.= wf_tag('thead',true);
         $result.= wf_tag('table',true);
+        
+        $result.= $alternateStyle;
 
         return ($result);
     }
@@ -417,6 +427,14 @@ if ($system->checkForRight('ONLINE')) {
         $detect_address = zb_AddressGetFulladdresslist();
         $ucount = 0;
         $deadUsers = array();
+        
+        //alternate view of online module
+        $addrDelimiter='';
+        if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
+            if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
+                $addrDelimiter=  wf_tag('br');
+            }
+        }
 
         //hide dead users array
         if ($alter_conf['DEAD_HIDE']) {
@@ -491,7 +509,7 @@ if ($system->checkForRight('ONLINE')) {
                 if (!$alter_conf['DEAD_HIDE']) {
                     $result.='
      [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
+     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink .$addrDelimiter. $clearuseraddress . '",
      
          "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
          "' . $eachuser['IP'] . '",
