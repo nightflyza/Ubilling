@@ -809,7 +809,7 @@ function ts_DetectUserByAddress($address) {
     
     function ts_ShowPanel() {
         $createform=  ts_TaskCreateForm();
-        $result=  wf_modal(__('Create task'), __('Create task'), $createform, 'ubButton', '420', '500');
+        $result=  wf_modal(__('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
         $result.=wf_Link('?module=taskman&show=undone', __('Undone tasks'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&show=done', __('Done tasks'), false, 'ubButton');
         $result.=wf_Link('?module=taskman&show=all', __('List all tasks'), false, 'ubButton');
@@ -1053,7 +1053,7 @@ function ts_DetectUserByAddress($address) {
             }
             
             //modify form handlers
-            $modform=  wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '420', '500');
+            $modform=  wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
             //modform end
             
             //extracting sms data
@@ -1112,13 +1112,13 @@ function ts_DetectUserByAddress($address) {
             
             //if task undone
             if ($taskdata['status']==0) {
-            
+            $sup=  wf_tag('sup').'*'.wf_tag('sup',false);
             $inputs=  wf_HiddenInput('changetask', $taskid);
-            $inputs.=wf_DatePicker('editenddate').' <label>'.__('Finish date').'<sup>*</sup></label> <br>';
-            $inputs.='<br>';
+            $inputs.=wf_DatePicker('editenddate').wf_tag('label',false).__('Finish date').$sup.wf_tag('label',true).wf_tag('br');
+            $inputs.=wf_tag('br');
             $inputs.=wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
             $inputs.=wf_tag('br');
-            $inputs.='<label>'.__('Finish note').'</label> <br>';
+            $inputs.=wf_tag('label',false).__('Finish note').  wf_tag('label',true).wf_tag('br');
             $inputs.=wf_TextArea('editdonenote', '', '', true, '35x3');
             $inputs.=wf_tag('br');
             $inputs.= $jobgencheckbox;
