@@ -75,6 +75,7 @@
                     }
                     
                 }
+                
         ?>
 	<div id="footer">
 		<p><?rcms_show_element('copyright')?> 

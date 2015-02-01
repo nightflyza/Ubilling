@@ -97,7 +97,32 @@
                     </ul>
                 
 		<footer>
-           
+       <?php
+        if ((LOGGED_IN) AND (!file_exists('I_HATE_NEW_YEAR'))) {
+        $dateny = time();
+        $monthny = date('m');
+
+        $date_startny = null;
+        $date_stopny  = null;
+
+        switch ($monthny) {
+                case '12':
+                        $date_startny = strtotime (date('Y') . '-12-25');
+                        $date_stopny  = strtotime ((date('Y') + 1) . '-1-05');
+                        break;
+                case '1':
+                        $date_startny = strtotime ((date('Y') - 1) . '-12-25');
+                        $date_stopny  = strtotime (date('Y') . '-1-05');
+                        break;
+        }
+
+             if ( $dateny >= $date_startny && $dateny < $date_stopny ) {
+                    print(file_get_contents('skins/ubny.txt')); 
+                    }
+                    
+                }
+                
+        ?>
                     	<hr />
 			<p><strong><?rcms_show_element('copyright')?> </strong></p>
 			<p>
