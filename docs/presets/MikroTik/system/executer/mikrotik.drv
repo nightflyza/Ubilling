@@ -434,8 +434,8 @@
                             break;
                     }
                     $this->logReply($reply, __FUNCTION__);
-                } else $this->log->message(__CLASS__, "MikroTik PPP-secrets managing is not enabled", 'debug');
-            } else $this->log->message(__CLASS__, "There is no `user_interface` was not defined in database!", 'error');
+		} else $this->log->message(__CLASS__, "There is no `user_interface` was not defined in database!", 'error');
+            } else $this->log->message(__CLASS__, "MikroTik PPP-secrets managing is not enabled", 'debug');
         }
     }
 ?>
