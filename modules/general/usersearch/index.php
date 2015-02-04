@@ -83,12 +83,21 @@ if (cfr('USERSEARCH')) {
             $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
             $query = "SELECT `login` from `users` WHERE `IP` LIKE '" . $mask . $query . $mask . "'";
         }
+        //mac-address search
         if ($searchtype == 'mac') {
-            $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
-            $ip_q = "SELECT `ip` from `nethosts` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
-            $ip_r = simple_query($ip_q);
-            $query = "SELECT `login` from `users` WHERE `IP`='" . $ip_r['ip'] . "'";
+            $allfoundlogins = array();
+            $allMacs = zb_UserGetAllMACs();
+            $searchMacPart = strtolower($query);
+            if (!empty($allMacs)) {
+                $allMacs = array_flip($allMacs);
+                foreach ($allMacs as $eachMac => $macLogin) {
+                    if (ispos($eachMac, $searchMacPart)) {
+                        $allfoundlogins[] = $macLogin;
+                    }
+                }
+            }
         }
+        
         if ($searchtype == 'apt') {
             $query = "SELECT `login` from `address` WHERE `aptid` = '" . $query . "'";
         }
@@ -101,17 +110,20 @@ if (cfr('USERSEARCH')) {
         }
 
         // пытаемся изобразить результат
-        $allresults = simple_queryall($query);
-        $allfoundlogins = array();
-        if (!empty($allresults)) {
-            foreach ($allresults as $io => $eachresult) {
-                $allfoundlogins[] = $eachresult['login'];
-            }
-            //если таки по четкому адресу искали - давайте уж в профиль со старта
-            if ($searchtype == 'apt') {
-                rcms_redirect("?module=userprofile&username=" . $eachresult['login']);
+        if ($searchtype != 'mac') {
+            $allresults = simple_queryall($query);
+            $allfoundlogins = array();
+            if (!empty($allresults)) {
+                foreach ($allresults as $io => $eachresult) {
+                    $allfoundlogins[] = $eachresult['login'];
+                }
+                //если таки по четкому адресу искали - давайте уж в профиль со старта
+                if ($searchtype == 'apt') {
+                    rcms_redirect("?module=userprofile&username=" . $eachresult['login']);
+                }
             }
         }
+
         $result = web_UserArrayShower($allfoundlogins);
         return($result);
     }
@@ -268,7 +280,7 @@ if (cfr('USERSEARCH')) {
     $gridRows.= wf_TableCell(wf_tag('h3', false, 'row3') . __('Partial address') . wf_tag('h3', true) . web_UserSearchAddressPartialForm(), '', '');
     $gridRows.= wf_tag('tr', true);
     $gridRows.= wf_tag('tr', false, '', 'valign="top"');
-    $gridRows.= wf_TableCell(wf_tag('h3',false).__('Profile fields search') .wf_tag('h3',true). web_UserSearchFieldsForm(), '', 'row3');
+    $gridRows.= wf_TableCell(wf_tag('h3', false) . __('Profile fields search') . wf_tag('h3', true) . web_UserSearchFieldsForm(), '', 'row3');
     $gridRows.= wf_TableCell(web_UserSearchContractForm() . web_UserSearchCFForm(), '', 'row3');
     $gridRows.= wf_tag('tr', true);
 

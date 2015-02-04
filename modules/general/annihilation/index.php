@@ -19,7 +19,7 @@ if (cfr('ANNIHILATION')) {
         zb_UserDeleteContract($login);
         }
         zb_VserviceCashClear($login);
-        log_register("DELETE VCASH ".$login);
+        log_register("DELETE VCASH (".$login.")");
         cf_FlushAllUserCF($login);
         zb_FlushAllUserTags($login);
 	vlan_delete_host($login);
@@ -27,7 +27,7 @@ if (cfr('ANNIHILATION')) {
         multinet_rebuild_all_handlers();
         //destroy stargazer user
         $billing->deleteuser($login);
-        log_register("StgUser DELETE ".$login);
+        log_register("StgUser DELETE (".$login.")");
     }
     
     function web_AnnihilateFormShow($login) {

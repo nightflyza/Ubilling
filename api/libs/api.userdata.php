@@ -109,7 +109,7 @@ function zb_UserGetAllIpMACs() {
 }
 
 /**
- * Returns all of used by users IP=>MAC bindings from database as array userip=>mac
+ * Returns all of used by users MAC bindings from database as array login=>mac
  * 
  * @return array
  */

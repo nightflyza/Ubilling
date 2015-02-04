@@ -433,14 +433,14 @@ function vlan_show_available_pools() {
 function vlan_delete_host($login) {
 	$query="DELETE from `vlanhosts` WHERE `login`='".$login."'";
 	nr_query($query);
-	log_register("DELETE VLanPoolHost ".$login);
+	log_register("DELETE VLanHost (" . $login . ")");
 }
 
 //Unassign qinq vlan from host
 function vlan_qinq_delete_host($login) {
 	$query="DELETE FROM `vlanhosts_qinq` WHERE `login`='".$login."'";
 	nr_query($query);
-	log_register("DELETE VlanPoolHost ".$login);
+	log_register("DELETE VlanHost ".$login);
 }
 
 //Assign vlan for host
