@@ -71,19 +71,15 @@ if ( cfr('CASH') ) {
                     $deletingAdmins=array();
                     $iCanDeletePayments=false;
                     $currentAdminLogin=whoami();
-                    //extract admin logins
+                    //extract delete admin logins
                     if (!empty($alter['CAN_DELETE_PAYMENTS'])) {
                         $deletingAdmins= explode(',', $alter['CAN_DELETE_PAYMENTS']);
                         $deletingAdmins= array_flip($deletingAdmins);
                     }
-                    
-
-                    if (isset($deletingAdmins[$currentAdminLogin])) {
-                        $iCanDeletePayments=true;
-                    }
-
+       
+                    $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
+                  //right check
                   if ($iCanDeletePayments) {
-
                      $queryDeletion="DELETE from `payments` WHERE `id`='".$deletePaymentId."' ;";
                      nr_query($queryDeletion);
                      log_register("PAYMENT DELETE [".$deletePaymentId."] (".$login.")");
@@ -92,6 +88,34 @@ if ( cfr('CASH') ) {
                       log_register("PAYMENT UNAUTH DELETION ATTEMPT [".$deletePaymentId."] (".$login.")");
                   }
             }
+        
+        //payments date editing
+        if (wf_CheckPost(array('editpaymentid','newpaymentdate','oldpaymentdate','oldpaymenttime'))) {
+            $editPaymentId=vf($_POST['editpaymentid'],3);
+            $newPaymentDate=$_POST['newpaymentdate'];
+            $oldPaymentDate=$_POST['oldpaymentdate'];
+            $oldPaymentTime=$_POST['oldpaymenttime'];
+            $newPaymentDateTime=$newPaymentDate.' '.$oldPaymentTime;
+            $editingAdmins=array();
+            $iCanEditPayments=false;
+            $currentAdminLogin=whoami();
+             //extract edit admin logins
+                    if (!empty($alter['CAN_EDIT_PAYMENTS'])) {
+                        $editingAdmins= explode(',', $alter['CAN_EDIT_PAYMENTS']);
+                        $editingAdmins= array_flip($editingAdmins);
+                    }
+       
+                    $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
+                //right check
+                if ($iCanEditPayments) {
+                     simple_update_field('payments', 'date', $newPaymentDateTime, "WHERE `id`='".$editPaymentId."'");
+                     log_register("PAYMENT EDIT DATE [".$editPaymentId."] (".$login.") FROM `".$oldPaymentDate."` ON `".$newPaymentDate."`");
+                     rcms_redirect('?module=addcash&username='.$login);
+                  } else {
+                      log_register("PAYMENT UNAUTH EDITING ATTEMPT [".$editPaymentId."] (".$login.")");
+                  }
+        }    
+            
         // Show form
         show_window(__('Money'), $form);
         // Previous payments show:

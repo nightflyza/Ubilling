@@ -126,6 +126,7 @@ DOCX_SERVICES=VARCHAR|additional services printable within documents
 DOCX_CHECK=TRIGGER|Enable parsing of check in docx format
 ADDRESS_CACHE_TIME=VARCHAR|Full address list caching time
 CAN_DELETE_PAYMENTS=VARCHAR|Administrator logins that can delete payments
+CAN_EDIT_PAYMENTS=VARCHAR|Administrator logins that can edit payments
 SIGNUP_PAYMENTS=TRIGGER|Signup payments managenent
 SIGNUP_TYPEID=VARCHAR|Signup cashtype id
 BUILD_EXTENDED=TRIGGER|Extended builds management

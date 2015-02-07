@@ -1876,5 +1876,6 @@ $lang['def']['avatar crop']='Обрізка камери в режимі ава�
 $lang['def']['force flash fallback']='Примусово використовувати flash';
 $lang['def']['images list preview width']='Ширина превью зображень';
 $lang['def']['images list preview height']='Висота превью зображень';
+$lang['def']['Administrator logins that can edit payments']='Адміністратори, що можуть редагувати оплати';
 
 ?>

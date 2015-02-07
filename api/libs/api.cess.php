@@ -307,7 +307,7 @@
                    $cells=  wf_TableCell($loginLink);
                    $cells.= wf_TableCell(@$alladdress[$eachlogin]);
                    $cells.= wf_TableCell(@$allrealnames[$eachlogin]);
-                   $cells.= wf_TableCell($allusertariffs[$eachlogin]);
+                   $cells.= wf_TableCell(@$allusertariffs[$eachlogin]);
                    $cells.= wf_TableCell(@$agentnames[$eachagent]);
                    $actLinks=  wf_JSAlert('?module=contractedit&username='.$eachlogin, web_edit_icon(), __('Are you serious'));
                    $cells.= wf_TableCell($actLinks);

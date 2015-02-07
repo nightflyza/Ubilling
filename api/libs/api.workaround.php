@@ -1077,6 +1077,33 @@ function zb_EventGetAllDateTimes() {
 }
 
 /**
+ * Returns payment date editing form
+ * 
+ * @param array $paymentData
+ * 
+ * @return string
+ */
+function web_PaymentEditForm($paymentData) {
+    $result='';
+    if (!empty($paymentData)) {
+        $paymentTimestamp=  strtotime($paymentData['date']);
+        $paymentDate=date("Y-m-d",$paymentTimestamp);
+        $paymentTime=date("H:i:s",$paymentTimestamp);
+        
+        $inputs= __('New date').' ';
+        $inputs.='<!--ugly hack to prevent datepicker autoopen -->';
+        $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+        $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
+        $inputs.= wf_DatePickerPreset('newpaymentdate', $paymentDate);
+        $inputs.= wf_HiddenInput('oldpaymentdate', $paymentDate);
+        $inputs.= wf_HiddenInput('oldpaymenttime', $paymentTime);
+        $inputs.= wf_Submit(__('Save'));
+        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+    }
+    return ($result);
+}
+
+/**
  * Returns list of previous user payments
  * 
  * @param string $login
@@ -1091,16 +1118,27 @@ function web_PaymentsByUser($login) {
     $total_payments = "0";
     $curdate = curdate();
     $deletingAdmins = array();
+    $editingAdmins= array();
     $iCanDeletePayments = false;
+    $iCanEditPayments= false;
     $currentAdminLogin = whoami();
-    //extract admin logins
+    
+    //extract admin logins with payments delete rights
     if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
         $deletingAdmins = explode(',', $alter_conf['CAN_DELETE_PAYMENTS']);
         $deletingAdmins = array_flip($deletingAdmins);
     }
-    if (isset($deletingAdmins[$currentAdminLogin])) {
-        $iCanDeletePayments = true;
+    
+    //extract admin logins with date edit rights
+    if (!empty($alter_conf['CAN_EDIT_PAYMENTS'])) {
+        $editingAdmins=explode(',', $alter_conf['CAN_EDIT_PAYMENTS']);
+        $editingAdmins=  array_flip($editingAdmins);
     }
+    
+    //setting editing/deleting flags
+    $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
+    $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
+    
 
     $cells = wf_TableCell(__('ID'));
     $cells.= wf_TableCell(__('IDENC'));
@@ -1138,12 +1176,19 @@ function web_PaymentsByUser($login) {
                 $printcheck.= wf_tag('a', true);
             }
 
+            //payments deleting controls
             if ($iCanDeletePayments) {
                 $deleteControls = wf_JSAlert('?module=addcash&username=' . $login . '&paymentdelete=' . $eachpayment['id'], wf_img('skins/delete_small.png', __('Delete')), __('Removing this may lead to irreparable results')) . ' &nbsp; ';
             } else {
                 $deleteControls = '';
             }
 
+            //payments editing form
+            if ($iCanEditPayments) {
+                $editControls=  wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '').' &nbsp; ';
+            } else {
+                $editControls='';
+            }
 
             $cells = wf_TableCell($eachpayment['id']);
             $cells.= wf_TableCell(zb_NumEncode($eachpayment['id']));
@@ -1153,7 +1198,7 @@ function web_PaymentsByUser($login) {
             $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
             $cells.= wf_TableCell($eachpayment['note']);
             $cells.= wf_TableCell($eachpayment['admin']);
-            $cells.= wf_TableCell($deleteControls . $printcheck);
+            $cells.= wf_TableCell($deleteControls.$editControls . $printcheck);
             $rows.= wf_TableRow($cells, $hlight);
 
             $total_payments = $total_payments + $eachpayment['summ'];
