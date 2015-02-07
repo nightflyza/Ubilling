@@ -1,6 +1,17 @@
 <?php
 
 if (cfr('USERSEARCH')) {
+    
+    if (wf_CheckGet(array('glosearch'))) {
+        $globalSearch=new GlobalSearch();
+        $globalSearch->ajaxCallback();
+    }
+    
+    
+    if (wf_CheckPost(array('globalsearchquery'))) {
+       
+        debarr($_POST);
+    }
 
     /**
      * Returns user profile fileds search form
@@ -260,7 +271,8 @@ if (cfr('USERSEARCH')) {
 
     function web_UserSearchContractForm() {
         $result = '';
-        $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        global $ubillingConfig;
+        $altercfg = $ubillingConfig->getAlter();
         if (isset($altercfg['SEARCH_CUSTOM_CONTRACT'])) {
             if ($altercfg['SEARCH_CUSTOM_CONTRACT']) {
                 $result.=wf_tag('h3') . __('Contract search') . wf_tag('h3', true);
@@ -273,6 +285,32 @@ if (cfr('USERSEARCH')) {
         }
         return ($result);
     }
+    
+    function web_CorpsSearchForm() {
+        global $ubillingConfig;
+        $alterCfg=$ubillingConfig->getAlter();
+        $result='';
+        if ($alterCfg['CORPS_ENABLED']) {
+            $result.=wf_tag('h3') . __('Corporate users') . wf_tag('h3', true);
+            if ($alterCfg['SEARCHADDR_AUTOCOMPLETE']) {
+            $corps=new Corps();
+            $corpsDataRaw=$corps->getCorps();
+            $corpsNames=array();
+            if (!empty($corpsDataRaw)) {
+                foreach ($corpsDataRaw as $io=>$each) {
+                    $corpsNames[]=$each['corpname'];
+                }
+            }
+            
+            $inputs=  wf_AutocompleteTextInput('searchcorpname', $corpsNames, '', '', false, '30');
+            } else {
+                $inputs= wf_TextInput('searchcorpname', '', '', false, '30');
+            }
+            $inputs.= wf_Submit(__('Search'));
+            $result.= wf_Form('?module=corps&show=search', 'POST', $inputs, '');
+        }
+        return ($result);
+    }
 
     // show search forms
     $gridRows = wf_tag('tr', false, '', 'valign="top"');
@@ -281,7 +319,7 @@ if (cfr('USERSEARCH')) {
     $gridRows.= wf_tag('tr', true);
     $gridRows.= wf_tag('tr', false, '', 'valign="top"');
     $gridRows.= wf_TableCell(wf_tag('h3', false) . __('Profile fields search') . wf_tag('h3', true) . web_UserSearchFieldsForm(), '', 'row3');
-    $gridRows.= wf_TableCell(web_UserSearchContractForm() . web_UserSearchCFForm(), '', 'row3');
+    $gridRows.= wf_TableCell(web_CorpsSearchForm().web_UserSearchContractForm() . web_UserSearchCFForm(), '', 'row3');
     $gridRows.= wf_tag('tr', true);
 
     $search_forms_grid = wf_TableBody($gridRows, '100%', 0, '');

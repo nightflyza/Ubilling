@@ -44,9 +44,15 @@ PROFILE_LAT=TRIGGER|Show LAT column in user profile
 DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
+EASY_CREDIT=VARCHAR|Days interval to set one-click credit
+
+CHAPTER_SEARCHOPTS=Search
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search
 SEARCH_CUSTOM_CONTRACT=TRIGGER|Contract additional search fields
-EASY_CREDIT=VARCHAR|Days interval to set one-click credit
+SEARCH_STRICT=VARCHAR|Strict search options
+GLOBALSEARCH_ENABLED=TRIGGER|GlobalSearch enabled
+GLOBALSEARCH_FIELDS=VARCHAR|GlobalSearch fields
+GLOBALSEARCH_CACHE=VARCHAR|GlobalSearch caching timeout in minutes
 
 CHAPTER_PAYEX=Payments export
 EXPORT_ENABLED=TRIGGER|Payments export
@@ -95,7 +101,6 @@ SWYMAP_ENABLED=TRIGGER|Switch map enabled
 FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled
 MASSRESET_ENABLED=TRIGGER|Massreset function enabled
 CRM_MODE=TRIGGER|Advanced customer relationship management
-SEARCH_STRICT=VARCHAR|Strict search options
 UBIM_REFRESH=VARCHAR|Instant messenger refresh timeout in seconds
 DEVCON_SQL_KEEP=TRIGGER|Query remains in SQL console after exec
 DEVCON_VERBOSE_DEBUG=TRIGGER|Verbose debug data in developers console

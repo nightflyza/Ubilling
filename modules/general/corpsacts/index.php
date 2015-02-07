@@ -38,6 +38,16 @@ if (cfr('CORPS')) {
 
             if (!empty($corpUsers)) {
                 $rows = $funds->renderCorpsFlowsHeaders($needYear, $needMonth);
+                
+                //contragent filter
+                if (wf_CheckPost(array('agentsel'))) {
+                   $agentFilter=$_POST['agentsel'];
+                    $allassigns=zb_AgentAssignGetAllData();
+                    $allassignsStrict= zb_AgentAssignStrictGetAllData();
+                    $alladdress=  zb_AddressGetFulladdresslistCached();
+                } else {
+                    $agentFilter='';
+                }
 
                 foreach ($corpUsers as $eachlogin => $eachcorpid) {
                     $count++;
@@ -46,8 +56,15 @@ if (cfr('CORPS')) {
                     $paymentscorr = $funds->getPaymentsCorr($eachlogin);
                     $fundsflow = $fees + $payments + $paymentscorr;
                     $dateFunds = $funds->filterByDate($fundsflow, $date);
-
+                    if (!$agentFilter) { 
                     $rows.=$funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices);
+                    } else {
+                        @$userAddress=$alladdress[$eachlogin];
+                        $assigned_agent=  zb_AgentAssignCheckLoginFast($eachlogin, $allassigns, $userAddress,$allassignsStrict);
+                        if ($assigned_agent==$agentFilter) {
+                            $rows.=$funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices);
+                        }
+                    }
                 }
 
                 $report = wf_TableBody($rows, '100%', 0, '');

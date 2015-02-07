@@ -8,6 +8,8 @@ class Corps {
     const URL_TAXTYPE_DEL = '?module=corps&show=taxtypes&deltaxtypeid=';
     const URL_CORPS = 'corps';
     const URL_CORPS_LIST = '?module=corps&show=corps';
+    const URL_SEARCH='search';
+    const URL_CORPS_SEARCH='?module=corps&show=search';
     const URL_CORPS_EDIT = '?module=corps&show=corps&editid=';
     const URL_CORPS_ADD = '?module=corps&show=corps&add=true';
     const URL_CORPS_DEL = '?module=corps&show=corps&deleteid=';
@@ -995,7 +997,8 @@ class Corps {
         public function getUsers() {
             return ($this->users);    
         }
-
+        
+    
 }
 
 ?>

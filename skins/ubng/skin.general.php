@@ -71,7 +71,12 @@
 	
 	<aside id="sidebar" class="column">
 		<form class="quick_search" method="POST" action="?module=usersearch">
-                    <input type="text" name="partialaddr" value="<?=__('User search');?>" onfocus="if(!this._haschanged){this.value=''};this._haschanged=true;">
+                   <?php
+                   if (cfr('USERSEARCH')) {
+                    $globalSearch=new GlobalSearch();
+                    print($globalSearch->renderSearchInput());
+                   }
+                   ?>
 		</form>
 		<hr/>
 		

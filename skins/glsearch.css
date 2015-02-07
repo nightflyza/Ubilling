@@ -1,0 +1,11 @@
+.ui-autocomplete-loading {
+   background: white url("ui-anim_basic_16x16.gif") left center no-repeat ! important;
+   background-position: 10px 6px ! important;
+}
+
+.ui-autocomplete-category {
+    font-weight: bold;
+    padding: .2em .4em;
+    margin: .8em 0 .2em;
+    line-height: 1.5;
+}

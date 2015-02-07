@@ -404,12 +404,32 @@ class FundsFlow {
      * @return string
      */
     public function renderCorpsFlowsDateForm() {
-        $inputs = wf_YearSelector('yearsel', __('Year'), false);
-        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false);
+         $allagents=zb_ContrAhentGetAllData();
+         $tmpArr=array();
+         $tmpArr['']=__('Any');
+         if (!empty ($allagents)) {
+             foreach ($allagents as $io=>$eachagent) {
+                 $tmpArr[$eachagent['id']]=$eachagent['contrname'];
+             }
+             
+         }
+         
+        /**
+        * Again and again we're drowning in this web
+        * Again and again we make the same mistake
+        * Always hunting the same lamb
+        * All we get is the same crap....
+        */
+       
+        $inputs = wf_YearSelector('yearsel', __('Year'), false).' ';
+        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false).' ';
+        $inputs.= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), '', false);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
+    
+    
 
 }
 

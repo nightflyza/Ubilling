@@ -162,6 +162,10 @@ if (cfr('CORPS')) {
                        }
                    }
                }
+               
+               if ($route==Corps::URL_SEARCH) {
+                   show_window(__('Search results'), 'SEARCH_RESULTS_HERE');
+               }
                 
                 
                 

@@ -1877,5 +1877,8 @@ $lang['def']['force flash fallback']='Примусово використову�
 $lang['def']['images list preview width']='Ширина превью зображень';
 $lang['def']['images list preview height']='Висота превью зображень';
 $lang['def']['Administrator logins that can edit payments']='Адміністратори, що можуть редагувати оплати';
+$lang['def']['GlobalSearch enabled']='Глобальний пошук увімкнено';
+$lang['def']['GlobalSearch fields']='Поля глобального пошуку';
+$lang['def']['GlobalSearch caching timeout in minutes']='Час кешування глобального пошуку';
 
 ?>
