@@ -1,17 +1,13 @@
 <?php
 
 if (cfr('USERSEARCH')) {
-    
+    //catch ajax backend callback
     if (wf_CheckGet(array('glosearch'))) {
         $globalSearch=new GlobalSearch();
         $globalSearch->ajaxCallback();
     }
     
-    
-    if (wf_CheckPost(array('globalsearchquery'))) {
-       
-        debarr($_POST);
-    }
+
 
     /**
      * Returns user profile fileds search form
@@ -358,6 +354,37 @@ if (cfr('USERSEARCH')) {
             show_window(__('Search results'), web_UserArrayShower($found_users));
         }
     }
+    
+    //do the global search
+    if (wf_CheckPost(array('globalsearchquery'))) {
+         $globalSearchQuery = $_POST['globalsearchquery'];
+        if (wf_CheckPost(array('globalsearch_type'))) {
+            $globalSearchType=$_POST['globalsearch_type'];
+        } else {
+            $globalSearch=new GlobalSearch();
+            $globalSearchType=$globalSearch->detectSearchType($globalSearchQuery);
+        }
+        
+        
+        if ($globalSearchType) {
+            //partial address search
+            if ($globalSearchType=='address') {
+                 $globalSearchQuery=trim($globalSearchQuery);
+                 $found_users = zb_UserSearchAddressPartial($globalSearchQuery);
+                 show_window(__('Search results'), web_UserArrayShower($found_users));
+            } else {
+              //other fields search
+               if (!empty($globalSearchQuery)) {
+                    show_window(__('Search results'), zb_UserSearchFields($globalSearchQuery, $globalSearchType));
+                }
+            }
+        } else {
+            show_warning(__('Nothing found'));
+        }    
+        
+    }
+    
+    
 
     zb_BillingStats(true);
 } else {

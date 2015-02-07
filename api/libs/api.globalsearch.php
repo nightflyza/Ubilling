@@ -10,6 +10,7 @@ class GlobalSearch {
     protected $fields = array();
 
     const CACHE_NAME = 'exports/globalsearchcache.dat';
+    const EX_NO_SEARCHTYPE='SEARCHTYPE_NOT_DETECTED';
 
     public function __construct() {
         $this->loadAlter();
@@ -135,17 +136,10 @@ class GlobalSearch {
                 $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllRealnames(), __('Real Name'), 'realname');
             }
 
-            if (isset($this->fields['mac'])) {
-                $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIpMACs(), __('MAC address'), 'mac');
-            }
-
             if (isset($this->fields['address'])) {
                 $this->rawData = $this->rawData + $this->transformArray(zb_AddressGetFulladdresslist(), __('Full address'), 'address');
             }
 
-            if (isset($this->fields['ip'])) {
-                $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIPs(), __('IP'), 'ip');
-            }
 
             if (isset($this->fields['contract'])) {
                 $allContracts = zb_UserGetAllContracts();
@@ -175,7 +169,15 @@ class GlobalSearch {
                     }
                 }
             }
-         
+
+            if (isset($this->fields['ip'])) {
+                $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIPs(), __('IP'), 'ip');
+            }
+
+            if (isset($this->fields['mac'])) {
+                $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIpMACs(), __('MAC address'), 'mac');
+            }
+
 
             file_put_contents(self::CACHE_NAME, serialize($this->rawData));
         } else {
@@ -205,6 +207,30 @@ class GlobalSearch {
             }
         }
         die(json_encode($data));
+    }
+
+    /**
+     * Detects searchtype by search query fragment
+     * 
+     * @param string $term
+     * @return string
+     */
+    public function detectSearchType($term) {
+        $result = '';
+        $term = trim($term);
+        if (!empty($term)) {
+            $term = strtolower_utf8($term);
+            $this->loadRawdata();
+            if (!empty($this->rawData)) {
+                foreach ($this->rawData as $io=>$each) {
+                    if (ispos($each['lower'], $term)) {
+                        $result=$each['type'];
+                        break;
+                    }
+                }
+            }
+        }
+        return ($result);
     }
 
 }
