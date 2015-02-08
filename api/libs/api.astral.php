@@ -1655,7 +1655,7 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     $acData = '';
     $autocomplete = '<script>
                     $(function() {
-                    var availableAddrs = [
+                    var availableOpts_'.$inputid.' = [
                   ';
     if (!empty($data)) {
         foreach ($data as $io => $each) {
@@ -1672,7 +1672,7 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     $autocomplete.='
                                       ];
                     $( "#' . $name . '_autocomplete" ).autocomplete({
-                    source: availableAddrs
+                    source: availableOpts_'.$inputid.'
                     });
                     });
                     </script>';

@@ -11,6 +11,7 @@ include('api/libs/api.bootstrap.php');
 include('api/libs/api.astral.php');
 include('api/libs/api.dbconnect.php');
 include('api/libs/api.userdata.php');
+include('api/libs/api.usersearch.php');
 include('api/libs/api.address.php');
 include('api/libs/api.telepathy.php');
 include('api/libs/api.teskman.php');
