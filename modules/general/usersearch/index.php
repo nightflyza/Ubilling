@@ -27,7 +27,7 @@ if (cfr('USERSEARCH')) {
         $query = $_POST['searchquery'];
         $searchtype = $_POST['searchtype'];
         if (!empty($query)) {
-            show_window(__('Search results'), zb_UserSearchFields($query, $searchtype));
+            show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize($searchtype,$query), zb_UserSearchFields($query, $searchtype));
         }
     }
 
@@ -42,7 +42,7 @@ if (cfr('USERSEARCH')) {
         $search_query = trim($_POST['partialaddr']);
         if (!empty($search_query)) {
             $found_users = zb_UserSearchAddressPartial($search_query);
-            show_window(__('Search results'), web_UserArrayShower($found_users));
+            show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize('partialaddr', $search_query), web_UserArrayShower($found_users));
         }
     }
 
@@ -51,7 +51,7 @@ if (cfr('USERSEARCH')) {
         $search_query = $_POST['cfquery'];
         if (sizeof($search_query) > 0) {
             $found_users = zb_UserSearchCF($_POST['cftypeid'], $search_query);
-            show_window(__('Search results'), web_UserArrayShower($found_users));
+            show_window(__('Search results').' - '.__('Additional profile fields'), web_UserArrayShower($found_users));
         }
     }
     
@@ -71,11 +71,11 @@ if (cfr('USERSEARCH')) {
             if ($globalSearchType=='address') {
                  $globalSearchQuery=trim($globalSearchQuery);
                  $found_users = zb_UserSearchAddressPartial($globalSearchQuery);
-                 show_window(__('Search results'), web_UserArrayShower($found_users));
+                 show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize('partialaddr',$globalSearchQuery), web_UserArrayShower($found_users));
             } else {
               //other fields search
                if (!empty($globalSearchQuery)) {
-                    show_window(__('Search results'), zb_UserSearchFields($globalSearchQuery, $globalSearchType));
+                    show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize($globalSearchType,$globalSearchQuery), zb_UserSearchFields($globalSearchQuery, $globalSearchType));
                 }
             }
         } else {

@@ -324,4 +324,93 @@ function web_CorpsSearchForm() {
     return ($result);
 }
 
+/**
+ * Performs login search by partial address
+ * 
+ * @global object $ubillingConfig
+ * @param string $query
+ * @return array
+ */
+function zb_UserSearchAddressPartial($query) {
+    global $ubillingConfig;
+    $altercfg = $ubillingConfig->getAlter();
+    $query = mysql_real_escape_string($query);
+    if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+        $query = strtolower_utf8($query);
+    }
+    $alluseraddress = zb_AddressGetFulladdresslist();
+    $result = array();
+    if (!empty($alluseraddress)) {
+        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
+            foreach ($alluseraddress as $login => $address) {
+                if (ispos(strtolower_utf8($address), $query)) {
+                    $result[] = $login;
+                }
+            }
+        } else {
+            foreach ($alluseraddress as $login => $address) {
+                if (ispos($address, $query)) {
+                    $result[] = $login;
+                }
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Try to apply localte to searctype
+ * 
+ * @param string $searchtype
+ * @return string
+ */
+function zb_UserSearchTypeLocalize($searchtype, $query = '') {
+    $result = __('Search by') . ' ';
+
+    switch ($searchtype) {
+        case 'realname':
+            $result .= __('Real Name');
+            break;
+        case 'login':
+            $result .= __('Login');
+            break;
+        case 'phone':
+            $result .= __('Phone');
+            break;
+        case 'mobile':
+            $result .= __('Mobile');
+            break;
+        case 'email':
+            $result .= __('Email');
+            break;
+        case 'Note':
+            $result .= __('Note');
+            break;
+        case 'contract':
+            $result .= __('Contract');
+            break;
+        case 'payid':
+            $result .= __('Payment ID');
+            break;
+        case 'ip':
+            $result .= __('IP');
+            break;
+        case 'mac':
+            $result .= __('MAC');
+            break;
+        case 'partialaddr':
+            $result .= __('Partial address');
+            break;
+        default:
+            $result .= '';
+            break;
+    }
+
+    if (!empty($query)) {
+        $result.=' "'.$query.'"';
+    }
+
+    return ($result);
+}
+
 ?>

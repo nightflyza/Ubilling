@@ -2493,39 +2493,6 @@ function zb_NumUnEncode($data) {
     return($result);
 }
 
-/**
- * Performs login search by partial address
- * 
- * @global object $ubillingConfig
- * @param string $query
- * @return array
- */
-function zb_UserSearchAddressPartial($query) {
-    global $ubillingConfig;
-    $altercfg = $ubillingConfig->getAlter();
-    $query = mysql_real_escape_string($query);
-    if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-        $query = strtolower_utf8($query);
-    }
-    $alluseraddress = zb_AddressGetFulladdresslist();
-    $result = array();
-    if (!empty($alluseraddress)) {
-        if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
-            foreach ($alluseraddress as $login => $address) {
-                if (ispos(strtolower_utf8($address), $query)) {
-                    $result[] = $login;
-                }
-            }
-        } else {
-            foreach ($alluseraddress as $login => $address) {
-                if (ispos($address, $query)) {
-                    $result[] = $login;
-                }
-            }
-        }
-    }
-    return ($result);
-}
 
 /**
  * Returns user array in table view
