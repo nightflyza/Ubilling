@@ -485,6 +485,7 @@ class ProfileDocuments {
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
             @$this->customFields['CUSTSUMPDVLIT'] = num2str($this->customFields['CUSTSUMPDV']);
+            @$this->customFields['CUSTSUMLIT']= num2str($this->customFields['CUSTSUM']);
             
             if ($this->altcfg['CORPS_ENABLED']) {
                 //corporate user fields

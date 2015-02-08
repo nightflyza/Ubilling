@@ -10,7 +10,7 @@ class GlobalSearch {
     protected $fields = array();
 
     const CACHE_NAME = 'exports/globalsearchcache.dat';
-    const EX_NO_SEARCHTYPE='SEARCHTYPE_NOT_DETECTED';
+    const EX_NO_SEARCHTYPE = 'SEARCHTYPE_NOT_DETECTED';
 
     public function __construct() {
         $this->loadAlter();
@@ -108,7 +108,7 @@ class GlobalSearch {
      * 
      * @return void
      */
-    protected function loadRawdata() {
+    protected function loadRawdata($forceCache = false) {
         $cacheTime = $this->alterConf['GLOBALSEARCH_CACHE'];
         $cacheTime = time() - ($cacheTime * 60); //in minutes
         //extracting user fields types to load
@@ -126,6 +126,11 @@ class GlobalSearch {
                 $updateCache = true;
             }
         } else {
+            $updateCache = true;
+        }
+
+        //force cache parameter
+        if ($forceCache) {
             $updateCache = true;
         }
 
@@ -191,8 +196,8 @@ class GlobalSearch {
      * 
      * @return void
      */
-    public function ajaxCallback() {
-        $this->loadRawdata();
+    public function ajaxCallback($forceCache = false) {
+        $this->loadRawdata($forceCache);
         $data = array();
         if (!empty($this->rawData)) {
             $term = (wf_CheckGet(array('term'))) ? strtolower_utf8($_GET['term']) : '';
@@ -206,7 +211,11 @@ class GlobalSearch {
                 }
             }
         }
-        die(json_encode($data));
+        
+        if (!$forceCache) {
+            //output not needed
+            die(json_encode($data));
+        }
     }
 
     /**
@@ -222,9 +231,9 @@ class GlobalSearch {
             $term = strtolower_utf8($term);
             $this->loadRawdata();
             if (!empty($this->rawData)) {
-                foreach ($this->rawData as $io=>$each) {
+                foreach ($this->rawData as $io => $each) {
                     if (ispos($each['lower'], $term)) {
-                        $result=$each['type'];
+                        $result = $each['type'];
                         break;
                     }
                 }

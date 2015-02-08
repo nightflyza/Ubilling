@@ -485,6 +485,15 @@ if ($alterconf['REMOTEAPI_ENABLED'])  {
                           $coverageSwMap.= sm_MapInitBasic($ym_center,$ym_zoom,$ym_type,$area.$switchesCoverage, '',$ym_lang);
                            die($coverageSwMap);
                        }
+                       
+                       /*
+                        * GlobalSearch cache rebuild
+                        */
+                       if ($_GET['action']=='rebuildglscache') {
+                           $globalSearch=new GlobalSearch();
+                           $globalSearch->ajaxCallback(true);
+                           die('OK:REBUILDGLSCACHE');
+                       }
   ////
   //// End of actions
   ////
