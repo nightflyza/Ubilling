@@ -40,10 +40,14 @@ if ($us_config['DOCX_SUPPORT']) {
                         $saveFullPath=$documentsSavePath.$saveFileName;
                         
                         $templateData=$documents->getUserData();
-                        
+                        if (isset($us_config['AGENTS_ASSIGN'])) {
+                            $userAgentData=$documents->getUserAgentData();
+                        } else {
+                            $userAgentData=array();
+                        }
                         $documents->setCustomFields();
                         
-                        $templateData=  array_merge($templateData,$documents->getCustomFields());
+                        $templateData=  array_merge($templateData,$documents->getCustomFields(),$userAgentData);
 
                     //parse document template
                     $docx = new DOCXTemplate($fullPath);

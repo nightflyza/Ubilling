@@ -9,6 +9,7 @@ class UsProfileDocuments {
     protected $templates = array();
     protected $userLogin = '';
     protected $userData = array();
+    protected $userAgentData=array();
     protected $customFields = array();
     protected $altcfg = array();
     protected $userDocuments = array();
@@ -76,6 +77,43 @@ class UsProfileDocuments {
             }
         } else {
             throw new Exception('NO_USER_LOGIN_SET');
+        }
+    }
+    
+     /**
+     * Loads current user assigned agent data into private property
+     * 
+     * @return void
+     */
+    protected function loadUserAgentData() {
+        if (!empty($this->userLogin)) {
+        $rawData=zbs_AgentAssignedGetDataFast($this->userLogin, $this->userData[$this->userLogin]['ADDRESS']);
+           @$this->userAgentData['AGENTEDRPO']=$rawData['edrpo'];
+           @$this->userAgentData['AGENTNAME']=$rawData['contrname'];
+           @$this->userAgentData['AGENTID']=$rawData['id'];
+           @$this->userAgentData['AGENTBANKACC']=$rawData['bankacc'];
+           @$this->userAgentData['AGENTBANKNAME']=$rawData['bankname'];
+           @$this->userAgentData['AGENTBANKCODE']=$rawData['bankcode'];
+           @$this->userAgentData['AGENTIPN']=$rawData['ipn'];
+           @$this->userAgentData['AGENTLICENSE']=$rawData['licensenum'];
+           @$this->userAgentData['AGENTJURADDR']=$rawData['juraddr'];
+           @$this->userAgentData['AGENTPHISADDR']=$rawData['phisaddr'];
+           @$this->userAgentData['AGENTPHONE']=$rawData['phone'];
+        }
+    }
+    
+    
+    /**
+     * Returns current user assigned agent data
+     * 
+     * @return array
+     */
+    public function getUserAgentData() {
+        if (!empty($this->userLogin)) {
+            $this->loadUserAgentData();
+            return ($this->userAgentData);
+        } else {
+          throw new Exception('NO_USER_LOGIN_SET'); 
         }
     }
     

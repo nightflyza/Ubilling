@@ -5,6 +5,7 @@
 	include('modules/engine/api.compat.php');
 	include('modules/engine/api.lightastral.php');
 	include('modules/engine/api.userstats.php');
+        include('modules/engine/api.agents.php');
 
 	$db = new MySQLDB();
 
