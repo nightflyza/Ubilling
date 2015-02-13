@@ -185,7 +185,7 @@ function rcms_parse_dynamik_menu($format) {
 			$result[] = array($link['url'], __($link['name']));
 		}
 	}
-	$menu = ' <script type="text/javascript" src="navigation.js"></script> <div class="dhtml_menu"> <div class="horz_menu"> ';
+	$menu = ' <script type="text/javascript" src="modules/jsc/navigation.js"></script> <div class="dhtml_menu"> <div class="horz_menu"> ';
 	foreach ($result as $item){
 		if(empty($item[2])) {
 			$item[2] = '_top';

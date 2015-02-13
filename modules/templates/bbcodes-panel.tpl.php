@@ -8,7 +8,7 @@ bbtags = new Array('[b]','[/b]','[i]','[/i]','[u]','[/u]','[quote]','[/quote]','
 imageTag = false;
 //-->
 </script>
-<script language="javascript" type="text/javascript" src="<?=RCMS_ROOT_PATH?>editor.js"></script>
+<script language="javascript" type="text/javascript" src="<?=RCMS_ROOT_PATH?>/modules/jsc/editor.js"></script>
 <table cellspacing="0" cellpadding="0" border="0" align="center">
 <tr align="center" valign="middle">
     <td>

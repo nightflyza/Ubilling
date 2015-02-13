@@ -16,7 +16,7 @@ function zb_LousyTariffAdd($tariff) {
     $tariff=mysql_real_escape_string($tariff);
     $query="INSERT INTO `lousytariffs` (`id`,`tariff`) VALUES ('','".$tariff."'); ";
     nr_query($query);
-    log_register("LOUSYTARIFF ADD ".$tariff);
+    log_register("LOUSYTARIFF ADD `".$tariff."`");
 }
 
 
@@ -32,7 +32,7 @@ function zb_LousyTariffDelete($tariff) {
     $tariff=mysql_real_escape_string($tariff);
     $query="DELETE from `lousytariffs` WHERE `tariff`='".$tariff."' ";
     nr_query($query);
-    log_register("LOUSYTARIFF DELETE ".$tariff);
+    log_register("LOUSYTARIFF DELETE `".$tariff."`");
 }
 
 
@@ -84,6 +84,7 @@ function zb_LousyCheckTariff($tariff,$lousyarr) {
  */
 function web_LousyShowAll() {
     $allousy=zb_LousyTariffGetAll();
+    $allTariffs=   zb_TariffGetPricesAll();
     
     $tablecells=wf_TableCell(__('Tariff'));
     $tablecells.=wf_TableCell(__('Actions'));
@@ -91,10 +92,15 @@ function web_LousyShowAll() {
     
     if (!empty ($allousy)) {
         foreach ($allousy as $eachtariff=>$id) {
+            if (isset($allTariffs[$eachtariff])) {
+                $rowClass='row3';
+            } else {
+                $rowClass='sigdeleteduser';
+            }
             $tablecells=wf_TableCell($eachtariff);
             $dellink=  wf_JSAlert('?module=lousytariffs&delete='.$eachtariff, web_delete_icon(), 'Removing this may lead to irreparable results');
             $tablecells.=wf_TableCell($dellink);
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablerows.=wf_TableRow($tablecells, $rowClass);
         }
         
     }

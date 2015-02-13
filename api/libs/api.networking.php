@@ -892,14 +892,14 @@ function zb_TariffGetAllSpeeds() {
         NULL , '".$tariff."', '".$speeddown."', '".$speedup."'
         );";
      nr_query($query);
-     log_register('CREATE TariffSpeed '.$tariff.' '.$speeddown.' '.$speedup);
+     log_register('CREATE TariffSpeed `'.$tariff.'` '.$speeddown.' '.$speedup);
  }
  
  function zb_TariffDeleteSpeed($tariff) {
      $tariff=mysql_real_escape_string($tariff);
      $query="DELETE from `speeds` where `tariff`='".$tariff."'";
      nr_query($query);
-     log_register('DELETE TariffSpeed '.$tariff);
+     log_register('DELETE TariffSpeed `'.$tariff.'`');
  }
  
 function zb_TariffGetAllSignupPrices() {

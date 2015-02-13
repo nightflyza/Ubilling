@@ -352,6 +352,8 @@ if (cfr('TARIFFS')) {
             if ($_GET['action'] == 'delete') {
                 $billing->deletetariff($tariffname);
                 log_register("TARIFF DELETE `".$tariffname."`");
+                zb_LousyTariffDelete($tariffname);
+                zb_TariffDeleteSpeed($tariffname);
                 rcms_redirect('?module=tariffs');
             }
 

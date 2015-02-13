@@ -877,9 +877,12 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
  * @return string
  */
 function web_TariffSpeedLister() {
+    $results='';
     $alltariffs = zb_TariffsGetAll();
+    $availTariffs=array();
     $allspeeds = zb_TariffGetAllSpeeds();
-
+    $cleanSpeedCount=0;
+    
     $cells = wf_TableCell(__('Tariff'));
     $cells.= wf_TableCell(__('Download speed'));
     $cells.= wf_TableCell(__('Upload speed'));
@@ -888,6 +891,7 @@ function web_TariffSpeedLister() {
 
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
+            $availTariffs[$eachtariff['name']]=$eachtariff['name'];
             $cells = wf_TableCell($eachtariff['name']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
@@ -900,6 +904,31 @@ function web_TariffSpeedLister() {
 
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    
+    if (!empty($allspeeds)) {
+        $cells=  wf_TableCell(__('Tariff').' ('.__('Deleted').')');
+        $cells.= wf_TableCell(__('Download speed'));
+        $cells.= wf_TableCell(__('Upload speed'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows=  wf_TableRow($cells,'row1');
+        
+        foreach ($allspeeds as $eachtariff=>$eachspeed) {
+            if (!isset($availTariffs[$eachtariff])) {
+            $cells=  wf_TableCell($eachtariff);
+            $cells.= wf_TableCell($eachspeed['speeddown']);
+            $cells.= wf_TableCell($eachspeed['speedup']);
+            $cells.= wf_TableCell(wf_JSAlert('?module=tariffspeeds&deletespeed='.$eachtariff, web_delete_icon(), __('Are you serious')));
+            $rows.=  wf_TableRow($cells,'row3');
+            $cleanSpeedCount++;
+            }
+        }
+        if ($cleanSpeedCount!=0) {
+            $result.= wf_delimiter();
+            $result.= wf_tag('h3').__('Database cleanup').  wf_tag('h3',true);
+            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        
+    }
 
     return($result);
 }
