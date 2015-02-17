@@ -8,7 +8,8 @@ class DynamicShaper {
      * @return string
      */
     public function renderList() {
-        $query = "SELECT * from `dshape_time`";
+        $allTariffs = zb_TariffGetPricesAll();
+        $query = "SELECT * from `dshape_time` ORDER BY `id` and `tariff` ASC";
         $allrules = simple_queryall($query);
 
         $cells = wf_TableCell(__('ID'));
@@ -21,6 +22,7 @@ class DynamicShaper {
 
         if (!empty($allrules)) {
             foreach ($allrules as $io => $eachrule) {
+                $rowClass = (isset($allTariffs[$eachrule['tariff']])) ? 'row3' : 'sigdeleteduser';
                 $cells = wf_TableCell($eachrule['id']);
                 $cells.= wf_TableCell($eachrule['tariff']);
                 $cells.= wf_TableCell($eachrule['threshold1']);
@@ -29,7 +31,7 @@ class DynamicShaper {
                 $actions = wf_JSAlert('?module=dshaper&delete=' . $eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
                 $actions.= wf_JSAlert('?module=dshaper&edit=' . $eachrule['id'], web_edit_icon(), __('Are you serious'));
                 $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, $rowClass);
             }
         }
 
@@ -44,9 +46,21 @@ class DynamicShaper {
      */
     public function delete($ruleid) {
         $ruleid = vf($ruleid, 3);
-        $query = "DELETE from dshape_time where `id`='" . $ruleid . "'";
+        $query = "DELETE from `dshape_time` where `id`='" . $ruleid . "'";
         nr_query($query);
         log_register("DSHAPE DELETE [" . $ruleid . ']');
+    }
+
+    /**
+     * Deletes shaper rules from database by tariff name
+     * 
+     * @param string $tariff
+     */
+    public function flushTariff($tariff) {
+        $tariff = mysql_real_escape_string($tariff);
+        $query = "DELETE from `dshape_time` WHERE `tariff`='" . $tariff . "';";
+        nr_query($query);
+        log_register("DSHAPE FLUSH TARIFF `" . $tariff . '`');
     }
 
     /**
@@ -58,9 +72,11 @@ class DynamicShaper {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = web_tariffselector('newdshapetariff') . ' ' . __('Tariff') . wf_tag('br');
-        $inputs.= wf_TextInput('newthreshold1', __('Time from') . $sup, '', true);
-        $inputs.= wf_TextInput('newthreshold2', __('Time to') . $sup, '', true);
-        $inputs.= wf_TextInput('newspeed', __('Speed') . $sup, '', true);
+
+        $inputs.= wf_TimePickerPresetSeconds('newthreshold1', '', __('Time from') . $sup . ' ', true);
+        $inputs.= wf_TimePickerPresetSeconds('newthreshold2', '', __('Time to') . $sup . ' ', true);
+
+        $inputs.= wf_TextInput('newspeed', __('Speed') . $sup, '', true, 8);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -81,9 +97,9 @@ class DynamicShaper {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = wf_tag('input', false, '', 'type="text" name="editdshapetariff" value="' . $timerule_data['tariff'] . '" READONLY') . wf_tag('br');
-        $inputs.= wf_TextInput('editthreshold1', __('Time from') . $sup, $timerule_data['threshold1'], true);
-        $inputs.= wf_TextInput('editthreshold2', __('Time to') . $sup, $timerule_data['threshold2'], true);
-        $inputs.= wf_TextInput('editspeed', __('Speed') . $sup, $timerule_data['speed'], true);
+        $inputs.= wf_TimePickerPresetSeconds('editthreshold1', $timerule_data['threshold1'], __('Time from') . $sup, true);
+        $inputs.= wf_TimePickerPresetSeconds('editthreshold2', $timerule_data['threshold2'], __('Time to') . $sup, true);
+        $inputs.= wf_TextInput('editspeed', __('Speed') . $sup, $timerule_data['speed'], true, 8);
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $form.= wf_Link('?module=dshaper', __('Back'), true, 'ubButton');

@@ -354,6 +354,8 @@ if (cfr('TARIFFS')) {
                 log_register("TARIFF DELETE `".$tariffname."`");
                 zb_LousyTariffDelete($tariffname);
                 zb_TariffDeleteSpeed($tariffname);
+                $dshaper=new DynamicShaper();
+                $dshaper->flushTariff($tariffname);
                 rcms_redirect('?module=tariffs');
             }
 

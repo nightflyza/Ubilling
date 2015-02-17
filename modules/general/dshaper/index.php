@@ -2,11 +2,11 @@
 
 if (cfr('DSHAPER')) {
 
-   
+
     $alterconf = $ubillingConfig->getAlter();
     if (isset($alterconf['DSHAPER_ENABLED'])) {
         if ($alterconf['DSHAPER_ENABLED']) {
-$dshaper= new DynamicShaper();
+            $dshaper = new DynamicShaper();
 
 //if someone deleting time rule
             if (isset($_GET['delete'])) {
@@ -26,14 +26,13 @@ $dshaper= new DynamicShaper();
                     $dshaper->edit($_GET['edit'], $_POST['editthreshold1'], $_POST['editthreshold2'], $_POST['editspeed']);
                     rcms_redirect("?module=dshaper");
                 }
-                //show edit form
+//show edit form
                 show_window(__('Edit time shaper rule'), $dshaper->renderEditForm($_GET['edit']));
+            } else {
+//show rules lister
+                show_window(__('Available dynamic shaper time rules'), $dshaper->renderList());
+                show_window(__('Add new time shaper rule'), $dshaper->renderAddForm());
             }
-
-
-
-            show_window(__('Available dynamic shaper time rules'), $dshaper->renderList());
-            show_window(__('Add new time shaper rule'), $dshaper->renderAddForm());
         } else {
             show_error(__('This module is disabled'));
         }
