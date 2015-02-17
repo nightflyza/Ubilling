@@ -61,6 +61,7 @@ include('api/libs/api.darkvoid.php');
 include('api/libs/api.globalmenu.php');
 include('api/libs/api.loginform.php');
 include('api/libs/api.photostorage.php');
+include('api/libs/api.dshaper.php');
 
 /*
  * Initial class creation

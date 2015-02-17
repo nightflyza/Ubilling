@@ -182,6 +182,13 @@ class GlobalSearch {
             if (isset($this->fields['mac'])) {
                 $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIpMACs(), __('MAC address'), 'mac');
             }
+            
+            
+            if (isset($this->fields['login'])) {
+                $allLogins= zb_UserGetAllBalance();
+                $allLogins=  array_flip($allLogins);
+                $this->rawData = $this->rawData+ $this->transformArray($allLogins, __('Login'), 'login');
+            }
 
 
             file_put_contents(self::CACHE_NAME, serialize($this->rawData));
