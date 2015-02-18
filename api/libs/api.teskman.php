@@ -809,12 +809,12 @@ function ts_DetectUserByAddress($address) {
     
     function ts_ShowPanel() {
         $createform=  ts_TaskCreateForm();
-        $result=  wf_modal(__('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
-        $result.=wf_Link('?module=taskman&show=undone', __('Undone tasks'), false, 'ubButton');
-        $result.=wf_Link('?module=taskman&show=done', __('Done tasks'), false, 'ubButton');
-        $result.=wf_Link('?module=taskman&show=all', __('List all tasks'), false, 'ubButton');
-        $result.=wf_Link('?module=taskman&lateshow=true', __('Show late'), false, 'ubButton');
-        $result.=wf_Link('?module=taskman&print=true', __('Tasks printing'), false, 'ubButton');
+        $result=  wf_modal(wf_img('skins/add_icon.png').' '.__('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
+        $result.=wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png').' '.__('Undone tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png').' '.__('Done tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&show=all',  wf_img('skins/icon_calendar.gif').' '.__('List all tasks'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&lateshow=true', wf_img('skins/time_machine.png').' '.__('Show late'), false, 'ubButton');
+        $result.=wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png').' '.__('Tasks printing'), false, 'ubButton');
         
         //show type selector
         $whoami=whoami();
@@ -868,6 +868,7 @@ function ts_DetectUserByAddress($address) {
         $login=  mysql_real_escape_string($login);
         $phone=  mysql_real_escape_string($phone);
         $startdate=  mysql_real_escape_string($startdate);
+        $jobSendTime=(!empty($starttime)) ? ' '.date("H:i",  strtotime($starttime)) : '';
         
         if (!empty($starttime)) {
             $starttime="'".mysql_real_escape_string($starttime)."'";
@@ -877,11 +878,12 @@ function ts_DetectUserByAddress($address) {
         $jobtypeid=vf($jobtypeid,3);
         $employeeid=vf($employeeid,3);
         $jobnote=  mysql_real_escape_string($jobnote);
+        
         $smsData='NULL';
         //store sms for backround processing via watchdog
         if ($altercfg['WATCHDOG_ENABLED']) {
             if (isset($_POST['newtasksendsms'])) {
-                $newSmsText=$address.' '.$phone.' '.$jobnote;
+                $newSmsText=$address.' '.$phone.' '.$jobnote.$jobSendTime;
                 $smsDataRaw=ts_SendSMS($employeeid, $newSmsText);
                 if (!empty($smsDataRaw)) {
                 $smsData=  serialize($smsDataRaw);
@@ -1014,6 +1016,8 @@ function ts_DetectUserByAddress($address) {
     }
     
       function ts_TaskChangeForm($taskid) {
+        global $ubillingConfig;
+        $altercfg=$ubillingConfig->getAlter();
         $taskid=vf($taskid,3);
         $taskdata=  ts_GetTaskData($taskid);
         $result='';
@@ -1065,13 +1069,42 @@ function ts_DetectUserByAddress($address) {
                 
                 $smsDataCells=  wf_TableCell(__('Mobile'), '', 'row2');
                 $smsDataCells.= wf_TableCell($rawSmsData['number']);
-                $smsDataRows= wf_TableRow($smsDataCells, 'row3');
+                $smsDataRows=   wf_TableRow($smsDataCells, 'row3');
                 $smsDataCells=  wf_TableCell(__('Message'), '', 'row2');
                 $smsDataCells.= wf_TableCell($rawSmsData['message']);
-                $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+                $smsDataRows.=  wf_TableRow($smsDataCells, 'row3');
                 $smsDataTable=  wf_TableBody($smsDataRows, '100%', '0', 'glamour');
                 
                 $smsData=  wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable, '', '400', '200');
+            } else {
+                //post sending form
+                if ($altercfg['WATCHDOG_ENABLED']) {
+            $smsAddress=  str_replace('\'', '`', $taskdata['address']);
+            $smsAddress=  mysql_real_escape_string($smsAddress);
+            $smsPhone=  mysql_real_escape_string($taskdata['phone']);
+            $smsJobTime=(!empty($taskdata['starttime'])) ? ' '.date("H:i",  strtotime($taskdata['starttime'])) : '';
+            $smsJobNote=  mysql_real_escape_string($taskdata['jobnote']);
+            $smsEmployee=vf($taskdata['employee']);
+            
+                $newSmsText=$smsAddress.' '.$smsPhone.' '.$smsJobNote. $smsJobTime;
+
+                $smsDataCells=  wf_TableCell(__('Employee'), '', 'row2');
+                $smsDataCells.= wf_TableCell(@$allemployee[$taskdata['employee']]);
+                $smsDataRows=   wf_TableRow($smsDataCells, 'row3');
+                $smsDataCells=  wf_TableCell(__('Message'), '', 'row2');
+                $smsDataCells.= wf_TableCell(zb_TranslitString($newSmsText));
+                $smsDataRows.= wf_TableRow($smsDataCells, 'row3');
+                
+                $smsDataTable=  wf_TableBody($smsDataRows, '100%', '0', 'glamour');
+                
+                $smsInputs=$smsDataTable;
+                $smsInputs.= wf_HiddenInput('postsendemployee', $smsEmployee);
+                $smsInputs.= wf_HiddenInput('postsendsmstext', $newSmsText);
+                $smsInputs.= wf_Submit(__('Send SMS'));
+                $smsForm= wf_Form('', 'POST', $smsInputs, '');
+                
+                $smsData= wf_modal(wf_img_sized('skins/icon_mobile.gif', __('Send SMS'),'10'), __('Send SMS'), $smsForm, '', '400', '200');
+                }
             }
             
             $tablecells=  wf_TableCell(__('Task creation date').' / '.__('Administrator'),'30%');

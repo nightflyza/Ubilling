@@ -113,6 +113,18 @@ if(cfr('TASKMAN')) {
             show_window(__('Tasks printing'), ts_PrintDialogue());
         }
     } else {
+        //sms post sending
+        if (wf_CheckPost(array('postsendemployee','postsendsmstext'))) {
+                $smsDataRaw=ts_SendSMS($_POST['postsendemployee'], $_POST['postsendsmstext']);
+                if (!empty($smsDataRaw)) {
+                  $smsDataSave=  serialize($smsDataRaw);
+                  $smsDataSave= "'".base64_encode($smsDataSave)."'";
+                  simple_update_field('taskman', 'smsdata', $smsDataSave, "WHERE `id`='".$_GET['edittask']."'");
+                  rcms_redirect('?module=taskman&edittask='.$_GET['edittask']);
+                }
+        }
+        
+        //display task change form
         ts_TaskChangeForm($_GET['edittask']);
         //additional comments 
         $altCfg=$ubillingConfig->getAlter();
