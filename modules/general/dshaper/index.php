@@ -30,8 +30,9 @@ if (cfr('DSHAPER')) {
                 show_window(__('Edit time shaper rule'), $dshaper->renderEditForm($_GET['edit']));
             } else {
 //show rules lister
+                show_window('',  wf_modalAuto(wf_img('skins/add_icon.png').' '.__('Add new time shaper rule'), __('Create'),  $dshaper->renderAddForm(), 'ubButton'));
                 show_window(__('Available dynamic shaper time rules'), $dshaper->renderList());
-                show_window(__('Add new time shaper rule'), $dshaper->renderAddForm());
+                
             }
         } else {
             show_error(__('This module is disabled'));
