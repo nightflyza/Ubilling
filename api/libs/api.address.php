@@ -608,7 +608,10 @@ function web_CitySelector() {
             $allcity[$each['id']] = $each['cityname'];
         }
     }
-    $selector = wf_Selector('citysel', $allcity, '', '', false);
+    
+    $selected= (wf_CheckGet(array('citypreset'))) ? vf($_GET['citypreset'],3) : '' ;
+    
+    $selector = wf_Selector('citysel', $allcity, '', $selected, false);
     return ($selector);
 }
 
@@ -670,7 +673,7 @@ function web_StreetSelectorAc($cityid) {
     }
 
     $selector = wf_SelectorAC('streetsel', $allstreets, '', '', false);
-    $selector.= wf_tag('a', false, '', 'href="?module=streets" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
+    $selector.= wf_tag('a', false, '', 'href="?module=streets&citypreset='.$cityid.'" target="_BLANK"') . web_street_icon() . wf_tag('a', true);
 
     return ($selector);
 }

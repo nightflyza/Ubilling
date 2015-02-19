@@ -134,8 +134,21 @@ if (cfr('UKV')) {
         if (wf_CheckPost(array('uploadukvbanksta'))) {
             $bankstaUploaded=$ukv->bankstaDoUpload();
             if (!empty($bankstaUploaded)) {
-                $processedBanksta=$ukv->bankstaPreprocessing($bankstaUploaded);
-                    rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
+                if (wf_CheckPost(array('ukvbankstatype'))) {
+                    if ($_POST['ukvbankstatype']=='oschad') {
+                        $processedBanksta=$ukv->bankstaPreprocessing($bankstaUploaded);
+                        rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
+                    }
+                    
+                    if ($_POST['ukvbankstatype']=='oschadterm') {
+                        $processedBanksta=$ukv->bankstaPreprocessingTerminal($bankstaUploaded);
+                        rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
+                    }
+                    
+                } else {
+                    show_error(__('Strange exeption').' NO_BANKSTA_TYPE');
+                }
+                
             }
         } else {
             

@@ -1881,4 +1881,9 @@ $lang['def']['GlobalSearch enabled']='Глобальний пошук увімк
 $lang['def']['GlobalSearch fields']='Поля глобального пошуку';
 $lang['def']['GlobalSearch caching timeout in minutes']='Час кешування глобального пошуку';
 
+//rev 4200
+$lang['def']['Bankstatement type']='Тип виписки';
+$lang['def']['Oschadbank']='ОщадБанк';
+$lang['def']['Oschadbank terminal']='Термінал ОщадБанку';
+
 ?>

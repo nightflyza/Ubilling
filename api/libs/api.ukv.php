@@ -39,8 +39,7 @@ class UkvSystem {
 
     protected $debtLimit = 2; //debt limit in month count
 
-    //bank statements options
-
+    //bank statements options (Oschadbank)
     const BANKSTA_IN_CHARSET = 'cp866';
     const BANKSTA_OUT_CHARSET = 'utf-8';
     const BANKSTA_PATH = 'content/documents/ukv_banksta/';
@@ -51,6 +50,16 @@ class UkvSystem {
     const BANKSTA_NOTES = 'NAME_PLAT';
     const BANKSTA_TIME = 'PTIME';
     const BANKSTA_DATE = 'PDATE';
+    
+    //bank statements options (Oschadbank terminals)
+    const OT_BANKSTA_CONTRACT = 'ABCOUNTT';
+    const OT_BANKSTA_ADDRESS = 'ADDRT';
+    const OT_BANKSTA_REALNAME = 'FIOTDT';
+    const OT_BANKSTA_SUMM = 'SUMMT';
+    const OT_BANKSTA_NOTES = 'NAME_PLAT';
+    const OT_BANKSTA_TIME = 'PTIMETT';
+    const OT_BANKSTA_DATE = 'PDATETT';
+    
     //finance coloring options
     const COLOR_FEE = 'a90000';
     const COLOR_PAYMENT = '005304';
@@ -1378,7 +1387,7 @@ class UkvSystem {
         }
     }
 
-    /*     * ******************************
+    /*************************************
      * Bank statements processing
      * ****************************** */
 
@@ -1392,6 +1401,10 @@ class UkvSystem {
         $uploadinputs = wf_HiddenInput('uploadukvbanksta', 'true');
         $uploadinputs.=__('Bank statement') . wf_tag('br');
         $uploadinputs.=wf_tag('input', false, '', 'id="fileselector" type="file" name="ukvbanksta"') . wf_tag('br');
+        $uploadinputs.=__('Bankstatement type');
+        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank'), 'oschad', false, true);
+        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank terminal'), 'oschadterm', true, false);
+        
 
         $uploadinputs.=wf_Submit('Upload');
         $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
@@ -1554,6 +1567,99 @@ class UkvSystem {
         }
         return ($result);
     }
+    
+    
+        /*
+     * new banksta store in database bankstaDoUpload() method and returns preprocessed
+     * bank statement hash for further usage
+     * 
+     * @param $bankstadata   array returned from 
+     * 
+     * @return string
+     */
+
+    public function bankstaPreprocessingTerminal($bankstadata) {
+        $result = '';
+        if (!empty($bankstadata)) {
+            if (file_exists(self::BANKSTA_PATH . $bankstadata['savedname'])) {
+                //processing raw data
+                $newHash = $bankstadata['hash'];
+                $result = $newHash;
+                $newFilename = $bankstadata['filename'];
+                $newAdmin = whoami();
+
+                $dbf = new dbf_class(self::BANKSTA_PATH . $bankstadata['savedname']);
+                $num_rec = $dbf->dbf_num_rec;
+                $importCounter = 0;
+                for ($i = 0; $i <= $num_rec; $i++) {
+                    $eachRow = $dbf->getRowAssoc($i);
+                  
+                    if (!empty($eachRow)) {
+                        if (!empty($eachRow[self::OT_BANKSTA_CONTRACT])) {
+                            $newDate = date("Y-m-d H:i:s");
+                            $newContract = trim($eachRow[self::OT_BANKSTA_CONTRACT]);
+                            $newContract = mysql_real_escape_string($newContract);
+                            $newSumm = trim($eachRow[self::OT_BANKSTA_SUMM]);
+                            $newSumm = mysql_real_escape_string($newSumm);
+                            $newAddress = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_ADDRESS]);
+                            $newAddress = mysql_real_escape_string($newAddress);
+                            $newRealname = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_REALNAME]);
+                            $newRealname = mysql_real_escape_string($newRealname);
+                            $newNotes = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_NOTES]);
+                            $newNotes = mysql_real_escape_string($newNotes);
+                            $newPdate = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_DATE]);
+                            $newPdate = mysql_real_escape_string($newPdate);
+                            $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_TIME]);
+                            $newPtime = mysql_real_escape_string($newPtime);
+
+                            $query = "INSERT INTO `ukv_banksta` (
+                                    `id` ,
+                                    `date` ,
+                                    `hash` ,
+                                    `filename` ,
+                                    `admin` ,
+                                    `contract` ,
+                                    `summ` ,
+                                    `address` ,
+                                    `realname` ,
+                                    `notes` ,
+                                    `pdate` ,
+                                    `ptime` ,
+                                    `processed`
+                                    )
+                                VALUES (
+                                NULL ,
+                                '" . $newDate . "',
+                                '" . $newHash . "',
+                                '" . $newFilename . "',
+                                '" . $newAdmin . "',
+                                '" . $newContract . "',
+                                '" . $newSumm . "',
+                                '" . $newAddress . "',
+                                '" . $newRealname . "',
+                                '" . $newNotes . "',
+                                '" . $newPdate . "',
+                                '" . $newPtime . "',
+                                '0'
+                                );
+                            ";
+                            nr_query($query);
+
+                            $importCounter++;
+                        }
+                    }
+                }
+
+                log_register('UKV BANKSTA IMPORTED ' . $importCounter . ' ROWS');
+            } else {
+                show_error(__('Strange exeption'));
+            }
+        } else {
+            throw new Exception(self::EX_BANKSTA_PREPROCESS_EMPTY);
+        }
+        return ($result);
+    }
+
 
     /*
      * returns banksta processing form for some hash

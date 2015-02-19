@@ -1866,6 +1866,14 @@ $lang['def']['Administrator logins that can edit payments']='Администр�
 $lang['def']['GlobalSearch enabled']='Глобальный поиск включен';
 $lang['def']['GlobalSearch fields']='Поля глобального поиска';
 $lang['def']['GlobalSearch caching timeout in minutes']='Время кеширования глобального поиска';
+
+//rev 4200
+$lang['def']['Bankstatement type']='Тип выписки';
+$lang['def']['Oschadbank']='ОщадБанк';
+$lang['def']['Oschadbank terminal']='Терминал ОщадБанка';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
