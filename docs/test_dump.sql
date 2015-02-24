@@ -1349,3 +1349,7 @@ CREATE TABLE IF NOT EXISTS `photostorage` (
   KEY `item` (`item`),
   KEY `date` (`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- 0.6.4 update
+ALTER TABLE `switches` ADD `parentid` INT NULL AFTER `geo`, ADD INDEX (`parentid`) ; 

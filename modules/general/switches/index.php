@@ -24,7 +24,7 @@ if (isset($_GET['cronping'])) {
 
 if(cfr('SWITCHES')) {
 
-
+// need rewrite it tonight
 if (isset($_POST['newswitchmodel'])) {
     if (cfr('SWITCHESEDIT')) {
     $modelid=$_POST['newswitchmodel'];
@@ -55,7 +55,7 @@ if (isset($_GET['switchdelete'])) {
 if (!isset($_GET['edit'])) {
 $swlinks='';    
 if (cfr('SWITCHESEDIT')) {
-    $swlinks.=  wf_modal(wf_img('skins/add_icon.png').' '.__('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton', '470', '280');
+    $swlinks.= wf_modalAuto(wf_img('skins/add_icon.png').' '.__('Add switch'), __('Add switch'), web_SwitchFormAdd(), 'ubButton');
 }
 
 if (cfr('SWITCHM')) {
