@@ -33,6 +33,10 @@ if(cfr('SWITCHMAP')) {
     //collect switches geolocation data
     if (!wf_CheckGet(array('coverage'))) {
         $placemarks=sm_MapDrawSwitches();
+        //uplinks display mode
+        if (wf_CheckGet(array('showuplinks'))) {
+            $placemarks.=sm_MapDrawSwitchUplinks();
+        }
     } else {
         $placemarks=sm_MapDrawSwitchesCoverage();
     }

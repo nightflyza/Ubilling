@@ -209,19 +209,19 @@ function ub_SwitchModelDelete($modelid) {
  * 
  * @return string
  */
-function web_SwitchUplinkSelector($name,$label='',$selected='') {
-    $tmpArr=array(''=>'-');
-    
-    $query="SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ;";
-    $allswitches=  simple_queryall($query);
+function web_SwitchUplinkSelector($name, $label = '', $selected = '') {
+    $tmpArr = array('' => '-');
+
+    $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ;";
+    $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
-        foreach ($allswitches as $io=>$each) {
-            $tmpArr[$each['id']]=$each['location'].' - '.$each['ip'];
+        foreach ($allswitches as $io => $each) {
+            $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
         }
     }
-    
-    
-    $result= wf_Selector($name, $tmpArr, $label, $selected, false);
+
+
+    $result = wf_Selector($name, $tmpArr, $label, $selected, false);
     return ($result);
 }
 
@@ -238,13 +238,39 @@ function web_SwitchFormAdd() {
     $addinputs.=wf_TextInput('newgeo', 'Geo location', '', true, 20);
     $addinputs.=web_SwitchModelSelector('newswitchmodel');
     $addinputs.= wf_tag('br');
-    $addinputs.=web_SwitchUplinkSelector('newparentid',__('Uplink switch'),'');
+    $addinputs.=web_SwitchUplinkSelector('newparentid', __('Uplink switch'), '');
     $addinputs.= wf_tag('br');
-    
+
     $addinputs.=wf_tag('br');
     $addinputs.=wf_Submit('Save');
     $addform = wf_Form("", 'POST', $addinputs, 'glamour');
     return($addform);
+}
+
+/**
+ * Returns switch edit form for some existing device ID
+ * 
+ * @param int $switchid
+ * @return string
+ */
+function web_SwitchEditForm($switchid) {
+    $switchid = vf($switchid, 3);
+    $allswitchmodels = zb_SwitchModelsGetAllTag();
+    $switchdata = zb_SwitchGetData($switchid);
+
+    $editinputs = wf_Selector('editmodel', $allswitchmodels, 'Model', $switchdata['modelid'], true);
+    $editinputs.=wf_TextInput('editip', 'IP', $switchdata['ip'], true, 20);
+    $editinputs.=wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
+    $editinputs.=wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
+    $editinputs.=wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
+    $editinputs.=wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20);
+    $editinputs.=web_SwitchUplinkSelector('editparentid', __('Uplink switch'), $switchdata['parentid']);
+    $editinputs.= wf_tag('br');
+
+    $editinputs.=wf_Submit('Save');
+    $result = wf_Form('', 'POST', $editinputs, 'glamour');
+
+    return ($result);
 }
 
 /**
@@ -258,7 +284,6 @@ function zb_SwitchesGetAll() {
     return ($allswitches);
 }
 
-
 /**
  * Return geo data in ip->geo format
  * 
@@ -271,6 +296,23 @@ function zb_SwitchesGetAllGeo() {
     if (!empty($alldata)) {
         foreach ($alldata as $io => $each) {
             $result[$each['ip']] = $each['geo'];
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Return geo data in ip->geo format
+ * 
+ * @return array
+ */
+function zb_SwitchesGetAllGeoId() {
+    $query = "SELECT `id`,`geo` from `switches`";
+    $alldata = simple_queryall($query);
+    $result = array();
+    if (!empty($alldata)) {
+        foreach ($alldata as $io => $each) {
+            $result[$each['id']] = $each['geo'];
         }
     }
     return ($result);
@@ -423,7 +465,7 @@ function zb_SwitchesRepingAll() {
  */
 function web_SwitchesShow() {
     global $ubillingConfig;
-    $alterconf =$ubillingConfig->getAlter();
+    $alterconf = $ubillingConfig->getAlter();
     $allswitches = zb_SwitchesGetAll();
     $modelnames = zb_SwitchModelsGetAllTag();
     $currenttime = time();
@@ -584,23 +626,34 @@ function web_SwitchesShow() {
     return ($result);
 }
 
-function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $geo,$parentid='') {
-    $modelid = vf($modelid);
+/**
+ * Creates new switch device in database
+ * 
+ * @param int    $modelid
+ * @param string $ip
+ * @param string $desc
+ * @param string $location
+ * @param string $snmp
+ * @param string $geo
+ * @param int    $parentid
+ */
+function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $geo, $parentid = '') {
+    $modelid = vf($modelid, 3);
     $ip = mysql_real_escape_string($ip);
     $desc = mysql_real_escape_string($desc);
     $location = mysql_real_escape_string($location);
     $snmp = mysql_real_escape_string($snmp);
-    $parentid=vf($parentid,3);
+    $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
-        $parentid="'".$parentid."'";
+        $parentid = "'" . $parentid . "'";
     } else {
-        $parentid='NULL';
+        $parentid = 'NULL';
     }
     $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`geo`,`parentid`) "
-           . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "','" . $geo . "', ".$parentid." );";
+            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "','" . $geo . "', " . $parentid . " );";
     nr_query($query);
     $lastid = simple_get_lastid('switches');
-    log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location.'`');
+    log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');
     show_window(__('Add switch'), __('Was added new switch') . ' ' . $ip . ' ' . $location);
 }
 

@@ -1885,5 +1885,7 @@ $lang['def']['GlobalSearch caching timeout in minutes']='Час кешуванн
 $lang['def']['Bankstatement type']='Тип виписки';
 $lang['def']['Oschadbank']='ОщадБанк';
 $lang['def']['Oschadbank terminal']='Термінал ОщадБанку';
+$lang['def']['Uplink switch']='Аплінковий світч';
+$lang['def']['Show links']='Показати зв`язки';
 
 ?>
