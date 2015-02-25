@@ -212,7 +212,7 @@ function ub_SwitchModelDelete($modelid) {
 function web_SwitchUplinkSelector($name, $label = '', $selected = '') {
     $tmpArr = array('' => '-');
 
-    $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ;";
+    $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
@@ -611,6 +611,10 @@ function web_SwitchesShow() {
             if ($alterconf['SWYMAP_ENABLED']) {
                 if (!empty($eachswitch['geo'])) {
                     $switchcontrols.=wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
+                }
+                
+                if (!empty($eachswitch['parentid'])) {
+                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'].'&showuplinks=true', wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
                 }
             }
 

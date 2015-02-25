@@ -55,6 +55,11 @@ if(cfr('SWITCHMAP')) {
                 $area='';
             }
             
+        //uplinks display mode
+        if (wf_CheckGet(array('showuplinks'))) {
+            $placemarks.=sm_MapDrawSwitchUplinks();
+        }
+            
     }
 
     if (wf_CheckGet(array('locfinder'))) {
