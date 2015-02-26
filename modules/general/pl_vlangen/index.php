@@ -8,7 +8,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 			if(!isset($cur_vlan)) {
 				$cur_vlan= UserGetQinQVlan($login);
 			}
-
         // primary module part    
 		if (isset($_POST['vlandel'])) {
 			vlan_delete_host($login);
@@ -42,5 +41,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 	} else {
 		show_error(__('You cant control this module'));
 	}
+} else {
+     show_error(__('This module is disabled'));
 }
 ?>

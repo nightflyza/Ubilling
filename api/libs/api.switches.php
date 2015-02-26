@@ -107,8 +107,12 @@ function web_SwitchModelsShow() {
     $tablecells.=wf_TableCell(__('SNMP template'));
     $tablecells.=wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
-
-
+    /**
+     * Now its time to break up with the system
+     * Our reasons are clear and listed
+     * Come on and change the cause of the history
+     * Take off disguise of that rotten mystery
+     */
     if (!empty($allmodels)) {
         foreach ($allmodels as $io => $eachmodel) {
 
@@ -612,9 +616,9 @@ function web_SwitchesShow() {
                 if (!empty($eachswitch['geo'])) {
                     $switchcontrols.=wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
                 }
-                
+
                 if (!empty($eachswitch['parentid'])) {
-                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'].'&showuplinks=true&traceid='.$eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'] . '&showuplinks=true&traceid=' . $eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
                 }
             }
 

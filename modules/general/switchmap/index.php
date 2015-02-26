@@ -34,7 +34,7 @@ if(cfr('SWITCHMAP')) {
     if (!wf_CheckGet(array('coverage'))) {
         $placemarks=sm_MapDrawSwitches();
         //uplinks display mode
-        if (wf_CheckGet(array('showuplinks'))) {
+        if ((wf_CheckGet(array('showuplinks'))) AND (!wf_CheckGet(array('traceid')))) {
             $placemarks.=sm_MapDrawSwitchUplinks();
         }
     } else {

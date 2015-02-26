@@ -699,7 +699,6 @@ function sm_MapDrawSwitchesCoverage() {
     return ($result);
 }
 
-
 /**
  * Returns JS code to draw line within two points
  * 
@@ -709,18 +708,18 @@ function sm_MapDrawSwitchesCoverage() {
  * @param string $hint
  * @return string
  */
-function sm_MapAddLine($coord1,$coord2,$color='',$hint='',$width='') {
-    $hint=  (!empty($hint)) ? 'hintContent: "'.$hint.'"' : '';
-    $color= (!empty($color)) ? $color : '#000000';
-    $width= (!empty($color)) ? $width : '1';
-    
+function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
+    $hint = (!empty($hint)) ? 'hintContent: "' . $hint . '"' : '';
+    $color = (!empty($color)) ? $color : '#000000';
+    $width = (!empty($color)) ? $width : '1';
+
     $result = '
-         var myPolyline = new ymaps.Polyline([['.$coord1.'],['.$coord2.']], 
-             {'.$hint.'}, 
+         var myPolyline = new ymaps.Polyline([[' . $coord1 . '],[' . $coord2 . ']], 
+             {' . $hint . '}, 
              {
               draggable: false,
-              strokeColor: \''.$color.'\',
-              strokeWidth: \''.$width.'\'
+              strokeColor: \'' . $color . '\',
+              strokeWidth: \'' . $width . '\'
              }
              
              );
@@ -729,9 +728,7 @@ function sm_MapAddLine($coord1,$coord2,$color='',$hint='',$width='') {
     return ($result);
 }
 
-
-
- /** 
+/**
  * Return full map of switch links
  * 
  * @param int $traceid switch ID to trace uplinks
@@ -739,13 +736,12 @@ function sm_MapAddLine($coord1,$coord2,$color='',$hint='',$width='') {
  * @return string
  *  
  */
-
-function sm_MapDrawSwitchUplinks($traceid='') {
+function sm_MapDrawSwitchUplinks($traceid = '') {
     global $ubillingConfig;
     $ym_conf = $ubillingConfig->getYmaps();
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
     $tmpSwitches = simple_queryall($query);
-    $allswitches=array();
+    $allswitches = array();
     $result = '';
     //dead switches detection
     $dead_raw = zb_StorageGet('SWDEAD');
@@ -753,46 +749,63 @@ function sm_MapDrawSwitchUplinks($traceid='') {
     if ($dead_raw) {
         $deadarr = unserialize($dead_raw);
     }
-    
-    
+
+
     if (!empty($tmpSwitches)) {
         //transform array to id=>switchdata
         foreach ($tmpSwitches as $io => $each) {
-           $allswitches[$each['id']]=$each;
+            $allswitches[$each['id']] = $each;
         }
     }
-    
+
     if (!empty($allswitches)) {
-        foreach ($allswitches as $io=>$each) {
+        foreach ($allswitches as $io => $each) {
             if (!empty($each['parentid'])) {
                 if (isset($allswitches[$each['parentid']])) {
-                    if ($allswitches[$each['parentid']]['geo']!='') {
-                        $coord1=$each['geo'];
-                        $coord2=$allswitches[$each['parentid']]['geo'];
-                        $hint=$each['location'].' → '.$allswitches[$each['parentid']]['location'];
-                        
-                        if ((!isset($deadarr[$each['ip']])) AND (!isset($deadarr[$allswitches[$each['parentid']]['ip']])) ) {
-                            $color='#00FF00';
+                    if ($allswitches[$each['parentid']]['geo'] != '') {
+                        $coord1 = $each['geo'];
+                        $coord2 = $allswitches[$each['parentid']]['geo'];
+                        $hint = $each['location'] . ' → ' . $allswitches[$each['parentid']]['location'];
+
+                        if ((!isset($deadarr[$each['ip']])) AND ( !isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
+                            $color = '#00FF00';
                         } else {
-                            $color='#FF0000';
+                            $color = '#FF0000';
                         }
-                        //uplink line widthd trace
-                        $width=1;
-                        if ($traceid) {
-                            if ($each['id']==$traceid) {
-                                $width=5;
+
+                        /**
+                         * Круглый год без забот жить бы в норке как енот,
+                         * Вырыть ход в огород, воровать, что в нём растёт,
+                         * Но боюсь, снег пойдёт - все тропинки заметёт.
+                         * Кто-нибудь не разберёт и с ружьём за мной придёт.
+                         * 
+                         * 
+                         * Жрать не буду целый день, и сдохну всем на зло!
+                         * Пусть охотники идут - им не повезло!
+                         */
+                        
+                        //trace mode
+                        if (!empty($traceid)) {
+                            //switch is traced device
+                            if ($each['id'] == $traceid) {
+                                $width = 5;
+                                $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                            } else {
+                                //detecting uplinks
+                                $width = 1;
+                                $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                             }
-                        }                         
-                        
-                        $result.=sm_MapAddLine($coord1,$coord2 , $color, $hint,$width);
-                        
+                        } else {
+                            $width = 1;
+                            $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                        }
                     }
                 }
             }
         }
     }
-    
-    
+
+
     return ($result);
 }
 

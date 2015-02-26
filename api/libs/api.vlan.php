@@ -16,16 +16,16 @@ function web_ProfileVlanControlForm($login) {
                         $current_vlan_pool_desc=simple_query($query_desc);
                         $current_vlan_pool_descr=$current_vlan_pool_desc['desc'];
                 
-						$cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
-						$cells.= wf_TableCell($current_vlan_pool_descr);
-						$rows = wf_TableRow($cells, 'row3');
-						$cells = wf_TableCell(__('Vlan'), '30%', 'row2');
-						$cells.= wf_TableCell($current_vlan);
-						$rows.= wf_TableRow($cells, 'row3');
-						$result = wf_TableBody($rows, '100%', '0');
-						return($result);
+			$cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
+			$cells.= wf_TableCell($current_vlan_pool_descr);
+			$rows = wf_TableRow($cells, 'row3');
+			$cells = wf_TableCell(__('Vlan'), '30%', 'row2');
+			$cells.= wf_TableCell($current_vlan);
+			$rows.= wf_TableRow($cells, 'row3');
+			$result = wf_TableBody($rows, '100%', '0');
+			return($result);
 				}
-        }
+        } 
 }
 
 function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login,$qinq) {
@@ -154,10 +154,10 @@ function terminators_show_form() {
         $inputs.= wf_TextInput('ip', __('IP').$sup, '', true, '20');
         $inputs.= wf_Selector('type', $type, __('Type'), '',true);
         $inputs.= wf_TextInput('username', __('Username').$sup, '', true, '20');
-		$inputs.= wf_TextInput('password', __('Password').$sup, '', true, '20');
-		$inputs.= wf_TextInput('remoteid', __('Remote-ID').$sup, '', true, '20');
-		$inputs.= wf_TextInput('interface', __('Interface').$sup, '', true, '20');
-		$inputs.= wf_TextInput('relay', __('Relay Address').$sup, '', true, '20');
+	$inputs.= wf_TextInput('password', __('Password').$sup, '', true, '20');
+	$inputs.= wf_TextInput('remoteid', __('Remote-ID').$sup, '', true, '20');
+	$inputs.= wf_TextInput('interface', __('Interface').$sup, '', true, '20');
+	$inputs.= wf_TextInput('relay', __('Relay Address').$sup, '', true, '20');
         $inputs.= wf_Tag('br');
         $inputs.= wf_Submit(__('Add'));
         $form=  wf_Form("", 'POST', $inputs, 'glamour');
@@ -173,10 +173,10 @@ function show_all_terminators() {
         $tablecells .= wf_TableCell(__('IP'));
         $tablecells .= wf_TableCell(__('Type'));
         $tablecells .= wf_TableCell(__('Username'));
-		$tablecells .= wf_TableCell(__('Password'));
-		$tablecells .= wf_TableCell(__('Remote-ID'));
-		$tablecells .= wf_TableCell(__('Interface'));
-		$tablecells .= wf_TableCell(__('Relay Address'));
+	$tablecells .= wf_TableCell(__('Password'));
+	$tablecells .= wf_TableCell(__('Remote-ID'));
+	$tablecells .= wf_TableCell(__('Interface'));
+	$tablecells .= wf_TableCell(__('Relay Address'));
         $tablecells .= wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
         if ( !empty($terminators) ) {
@@ -186,11 +186,11 @@ function show_all_terminators() {
                         $tablecells .= wf_TableCell($term['vlanpoolid']);
                         $tablecells .= wf_TableCell($term['ip']);
                         $tablecells .= wf_TableCell($term['type']);
-						$tablecells .= wf_TableCell($term['username']);
-						$tablecells .= wf_TableCell($term['password']);
-						$tablecells .= wf_TableCell($term['remote-id']);
-						$tablecells .= wf_TableCell($term['interface']);
-						$tablecells .= wf_TableCell($term['relay']);
+			$tablecells .= wf_TableCell($term['username']);
+			$tablecells .= wf_TableCell($term['password']);
+			$tablecells .= wf_TableCell($term['remote-id']);
+			$tablecells .= wf_TableCell($term['interface']);
+			$tablecells .= wf_TableCell($term['relay']);
                         $actionlinks  = wf_JSAlert('?module=nas&deleteterm=' . $term['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
                         $actionlinks .= wf_JSAlert('?module=nas&editterm=' . $term['id'], web_edit_icon(),'');
                         $tablecells .= wf_TableCell($actionlinks);
@@ -426,7 +426,6 @@ function vlan_delete_pool($vlanpool_id) {
 
 //Look for all pools
 function vlan_show_available_pools() {
-	$alter = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
 	$query = "SELECT * from `vlan_pools`";
 	$vlans = simple_queryall($query);
 	$tablecells   = wf_TableCell(__('ID'));
