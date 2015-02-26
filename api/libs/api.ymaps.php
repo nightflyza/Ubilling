@@ -709,9 +709,10 @@ function sm_MapDrawSwitchesCoverage() {
  * @param string $hint
  * @return string
  */
-function sm_MapAddLine($coord1,$coord2,$color='',$hint='') {
+function sm_MapAddLine($coord1,$coord2,$color='',$hint='',$width='') {
     $hint=  (!empty($hint)) ? 'hintContent: "'.$hint.'"' : '';
     $color= (!empty($color)) ? $color : '#000000';
+    $width= (!empty($color)) ? $width : '1';
     
     $result = '
          var myPolyline = new ymaps.Polyline([['.$coord1.'],['.$coord2.']], 
@@ -719,6 +720,7 @@ function sm_MapAddLine($coord1,$coord2,$color='',$hint='') {
              {
               draggable: false,
               strokeColor: \''.$color.'\',
+              strokeWidth: \''.$width.'\'
              }
              
              );
@@ -732,11 +734,13 @@ function sm_MapAddLine($coord1,$coord2,$color='',$hint='') {
  /** 
  * Return full map of switch links
  * 
+ * @param int $traceid switch ID to trace uplinks
+ * 
  * @return string
  *  
  */
 
-function sm_MapDrawSwitchUplinks() {
+function sm_MapDrawSwitchUplinks($traceid='') {
     global $ubillingConfig;
     $ym_conf = $ubillingConfig->getYmaps();
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
@@ -772,8 +776,16 @@ function sm_MapDrawSwitchUplinks() {
                         } else {
                             $color='#FF0000';
                         }
+                        //uplink line widthd trace
+                        $width=1;
+                        if ($traceid) {
+                            if ($each['id']==$traceid) {
+                                $width=5;
+                            }
+                        }                         
                         
-                        $result.=sm_MapAddLine($coord1,$coord2 , $color, $hint);
+                        $result.=sm_MapAddLine($coord1,$coord2 , $color, $hint,$width);
+                        
                     }
                 }
             }

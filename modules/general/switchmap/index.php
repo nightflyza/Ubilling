@@ -57,7 +57,8 @@ if(cfr('SWITCHMAP')) {
             
         //uplinks display mode
         if (wf_CheckGet(array('showuplinks'))) {
-            $placemarks.=sm_MapDrawSwitchUplinks();
+            $traceLinks=(wf_CheckGet(array('traceid'))) ? $_GET['traceid'] : '';
+            $placemarks.=sm_MapDrawSwitchUplinks($traceLinks);
         }
             
     }

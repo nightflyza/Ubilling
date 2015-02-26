@@ -614,7 +614,7 @@ function web_SwitchesShow() {
                 }
                 
                 if (!empty($eachswitch['parentid'])) {
-                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'].'&showuplinks=true', wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'].'&showuplinks=true&traceid='.$eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
                 }
             }
 

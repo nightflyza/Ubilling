@@ -617,6 +617,16 @@ class UserProfile {
         return ($result);
     }
 
+     protected function getVlanAssignControls() {
+        //switchport section
+        if ($this->alterCfg['VLAN_IN_PROFILE']) {
+            $result = web_ProfileVlanControlForm($this->login);
+        } else {
+            $result = '';
+        }
+        return ($result);
+    }
+    
     /*
      * returns DN online detect aka "star"
      * 
@@ -852,6 +862,8 @@ class UserProfile {
         $profile.= wf_tag('table', true); //end of all profile container
         //profile switch port controls
         $profile.=$this->getSwitchAssignControls();
+        //profile vlan controls
+        $profile.=$this->getVlanAssignControls();
 
         //Custom filelds display
         $profile.=cf_FieldShower($this->login);

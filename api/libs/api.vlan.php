@@ -1,5 +1,32 @@
 <?php
 
+function web_ProfileVlanControlForm($login) {
+        global $ubillingConfig;
+        $alterconf = $ubillingConfig->getAlter();
+        $login = mysql_real_escape_string($login);
+        $query = "SELECT * from `vlanhosts` WHERE `login`='" . $login . "'";
+        $formStyle = 'glamour';
+
+        if ($alterconf['VLAN_IN_PROFILE'] == 1) {
+                $data=simple_query($query);
+                if(!empty($data)) {
+                        $current_vlan = $data['vlan'];
+                        $current_vlan_pool = $data['vlanpoolid'];
+                        $query_desc="SELECT * FROM `vlan_pools` WHERE `id`='". $current_vlan_pool ."'";
+                        $current_vlan_pool_desc=simple_query($query_desc);
+                        $current_vlan_pool_descr=$current_vlan_pool_desc['desc'];
+                }
+                $cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
+                $cells.= wf_TableCell($current_vlan_pool_descr);
+                $rows = wf_TableRow($cells, 'row3');
+                $cells = wf_TableCell(__('Vlan'), '30%', 'row2');
+                $cells.= wf_TableCell($current_vlan);
+                $rows.= wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', '0');
+                return($result);
+        }
+}
+
 function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login,$qinq) {
 	$ip=zb_UserGetIP($login);
 	vlan_delete_host($login);

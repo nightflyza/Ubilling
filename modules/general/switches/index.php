@@ -76,6 +76,7 @@ if (cfr('SWITCHES')) {
         show_window('', $swlinks);
 
         if (!isset($_GET['timemachine'])) {
+            //display switches list
             show_window(__('Available switches'), web_SwitchesShow());
         } else {
             //show dead switch time machine
