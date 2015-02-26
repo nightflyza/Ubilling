@@ -15,15 +15,16 @@ function web_ProfileVlanControlForm($login) {
                         $query_desc="SELECT * FROM `vlan_pools` WHERE `id`='". $current_vlan_pool ."'";
                         $current_vlan_pool_desc=simple_query($query_desc);
                         $current_vlan_pool_descr=$current_vlan_pool_desc['desc'];
-                }
-                $cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
-                $cells.= wf_TableCell($current_vlan_pool_descr);
-                $rows = wf_TableRow($cells, 'row3');
-                $cells = wf_TableCell(__('Vlan'), '30%', 'row2');
-                $cells.= wf_TableCell($current_vlan);
-                $rows.= wf_TableRow($cells, 'row3');
-                $result = wf_TableBody($rows, '100%', '0');
-                return($result);
+                
+						$cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
+						$cells.= wf_TableCell($current_vlan_pool_descr);
+						$rows = wf_TableRow($cells, 'row3');
+						$cells = wf_TableCell(__('Vlan'), '30%', 'row2');
+						$cells.= wf_TableCell($current_vlan);
+						$rows.= wf_TableRow($cells, 'row3');
+						$result = wf_TableBody($rows, '100%', '0');
+						return($result);
+				}
         }
 }
 

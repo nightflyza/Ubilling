@@ -194,19 +194,19 @@ if (cfr('UKV')) {
                //call method
                $ukv->$reportName();
             } else {
-                show_window(__('Error'), __('Non existent method'));
+                show_error(__('Non existent method'));
             }
            } else {
-               show_window(__('Error'), __('Strange exeption'));
+               show_error(__('Strange exeption'));
            }
        }
    }
    
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error(__('This module is disabled'));
     }
 } else {
-    show_window(__('Error'), __('Access denied'));
+    show_error(__('Access denied'));
 }
 
 ?>

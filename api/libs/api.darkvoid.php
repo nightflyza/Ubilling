@@ -104,6 +104,15 @@ class DarkVoid {
                 }
             }
         }
+        
+        //check sms sending queue 
+        if ($this->altCfg['WATCHDOG_ENABLED']) {
+            $smsQueueCount=  rcms_scandir(DATA_PATH.'tsms/');
+            $smsQueueCount = sizeof($smsQueueCount);
+            if ($smsQueueCount>0) {
+            $this->alerts.=wf_Link("?module=tsmsqueue", wf_img("skins/sms.png", $smsQueueCount.' '.__('SMS in queue')), false, '');
+            }
+        }
 
         //switchmon at notify area
         if ($this->altCfg['TB_SWITCHMON']) {

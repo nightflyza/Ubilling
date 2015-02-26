@@ -2405,6 +2405,7 @@ class UkvSystem {
         }
         $alltypes = $this->cashtypes;
         $allapayments = simple_queryall($query);
+        $cashTypesStats=array();
 
         $total = 0;
         $totalPaycount = 0;
@@ -2451,13 +2452,40 @@ class UkvSystem {
                 if ($eachpayment['summ'] > 0) {
                     $total = $total + $eachpayment['summ'];
                     $totalPaycount++;
+                    //per cashtype tiny stats
+                    if (isset($cashTypesStats[$eachpayment['cashtypeid']])) {
+                        $cashTypesStats[$eachpayment['cashtypeid']]['count']++;
+                        $cashTypesStats[$eachpayment['cashtypeid']]['summ']+=$eachpayment['summ'];
+                    } else {
+                        $cashTypesStats[$eachpayment['cashtypeid']]['count']=1;
+                        $cashTypesStats[$eachpayment['cashtypeid']]['summ']=$eachpayment['summ'];
+                    }
                 }
             }
         }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
-        $result.=wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
+        $result.=wf_tag('strong') . __('Payments count') . ': ' . $totalPaycount . wf_tag('strong', true);
+        
+        //render cashtype stats
+        if (!empty($cashTypesStats)) {
+            $cells=  wf_TableCell(__('Cash type'));
+            $cells.= wf_TableCell(__('Count'));
+            $cells.= wf_TableCell(__('Cash'));
+            $rows=  wf_TableRow($cells,'row1');
+            
+            foreach ($cashTypesStats as $cashtypeid=>$eachct) {
+                $cells=  wf_TableCell(@$this->cashtypes[$cashtypeid]);
+                $cells.= wf_TableCell($eachct['count']);
+                $cells.= wf_TableCell($eachct['summ']);
+                $rows.=  wf_TableRow($cells,'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        
+        
+        
         return($result);
     }
 

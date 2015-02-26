@@ -9,7 +9,7 @@ class DynamicShaper {
      */
     public function renderList() {
         $allTariffs = zb_TariffGetPricesAll();
-        $query = "SELECT * from `dshape_time` ORDER BY `id` and `tariff` ASC";
+        $query = "SELECT * from `dshape_time` ORDER BY `id` ASC";
         $allrules = simple_queryall($query);
 
         $cells = wf_TableCell(__('ID'));
