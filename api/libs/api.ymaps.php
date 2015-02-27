@@ -729,6 +729,26 @@ function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
 }
 
 /**
+ * Checks is some switch id linked with
+ * 
+ * @param array $alllinks  Array of id=>parentid
+ * @param int  $traceid    Switch ID wich will be traced
+ * @param int  $checkid    Switch ID to check
+ * @return bool
+ */
+function sm_MapIsLinked($alllinks, $traceid, $checkid) {
+    $parent = $alllinks[$checkid];
+    while (!empty($parent)) {
+        if ($parent == $traceid) {
+            return (true);
+        } else {
+            $parent = $alllinks[$parent];
+        }
+    }
+    return (false); 
+}
+
+/**
  * Return full map of switch links
  * 
  * @param int $traceid switch ID to trace uplinks
@@ -742,6 +762,7 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
     $tmpSwitches = simple_queryall($query);
     $allswitches = array();
+    $alllinks = array();
     $result = '';
     //dead switches detection
     $dead_raw = zb_StorageGet('SWDEAD');
@@ -755,6 +776,13 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
         //transform array to id=>switchdata
         foreach ($tmpSwitches as $io => $each) {
             $allswitches[$each['id']] = $each;
+        }
+
+        //making id=>parentid array if needed
+        if (!empty($traceid)) {
+            foreach ($tmpSwitches as $io => $each) {
+                $alllinks[$each['id']] = $each['parentid'];
+            }
         }
     }
 
@@ -783,7 +811,6 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                          * Жрать не буду целый день, и сдохну всем на зло!
                          * Пусть охотники идут - им не повезло!
                          */
-                        
                         //trace mode
                         if (!empty($traceid)) {
                             //switch is traced device
@@ -791,10 +818,14 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                                 $width = 5;
                                 $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                             } else {
-                                //detecting uplinks
+                            //detecting uplinks
+//                            if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
+//                                deb($each['id'] . ' - LINKED!');
                                 $width = 1;
+//                                $color = '#000000';
                                 $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
-                            }
+//                            }
+                              }
                         } else {
                             $width = 1;
                             $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);

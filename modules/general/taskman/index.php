@@ -120,6 +120,9 @@ if(cfr('TASKMAN')) {
                   $smsDataSave=  serialize($smsDataRaw);
                   $smsDataSave= "'".base64_encode($smsDataSave)."'";
                   simple_update_field('taskman', 'smsdata', $smsDataSave, "WHERE `id`='".$_GET['edittask']."'");
+                  //flushing dark void
+                  $darkVoid=new DarkVoid();
+                  $darkVoid->flushCache();
                   rcms_redirect('?module=taskman&edittask='.$_GET['edittask']);
                 }
         }

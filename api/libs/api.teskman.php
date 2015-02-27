@@ -888,6 +888,9 @@ function ts_DetectUserByAddress($address) {
                 if (!empty($smsDataRaw)) {
                 $smsData=  serialize($smsDataRaw);
                 $smsData= "'".base64_encode($smsData)."'";
+                //flushing darkvoid
+                $darkVoid=new DarkVoid();
+                $darkVoid->flushCache();
                 }
             }
         }
