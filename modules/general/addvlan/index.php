@@ -57,6 +57,8 @@ if(cfr('ADDVLAN')) {
     } else {
              show_error(__('This module is disabled'));
     }
+} else {
+    show_error(__("You can't control this module"));
 }
 
 ?>

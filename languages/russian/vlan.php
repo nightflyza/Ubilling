@@ -7,4 +7,5 @@ $lang['def']['Vlan assigment'] = 'Присвоение VLAN-а';
 $lang['def']['Current user Vlan'] = 'Текущий VLAN пользователя';
 $lang['def']['Change user Vlan'] = 'Изменить VLAN пользователя';
 $lang['def']['Delete user Vlan'] = 'Удалить VLAN пользователя';
+$lang['def']['Show vlan on profile if vlan was assigned'] = 'Показывать влан в профиле, если влан был назначен';
 ?>
