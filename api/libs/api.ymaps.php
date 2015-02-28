@@ -737,15 +737,16 @@ function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
  * @return bool
  */
 function sm_MapIsLinked($alllinks, $traceid, $checkid) {
-    $parent = $alllinks[$checkid];
-    while (!empty($parent)) {
-        if ($parent == $traceid) {
-            return (true);
-        } else {
-            $parent = $alllinks[$parent];
-        }
-    }
-    return (false); 
+//    $parent = $alllinks[$checkid];
+//    while (!empty($parent)) {
+//        if ($parent == $traceid) {
+//            return (true);
+//        } else {
+//            $parent = $alllinks[$parent];
+//        }
+//    }
+//    return (false); 
+ 
 }
 
 /**
