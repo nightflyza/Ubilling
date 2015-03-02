@@ -1889,4 +1889,5 @@ $lang['def']['Uplink switch']='Аплінковий світч';
 $lang['def']['Show links']='Показати зв`язки';
 $lang['def']['SMS in queue']='SMS у черзі';
 $lang['def']['Permission denied']='Недостатньо прав';
+
 ?>

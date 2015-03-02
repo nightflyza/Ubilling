@@ -1875,10 +1875,6 @@ $lang['def']['Uplink switch']='Аплинковый свитч';
 $lang['def']['Show links']='Показать связи';
 $lang['def']['SMS in queue']='SMS в очереди';
 $lang['def']['Permission denied']='Недостаточно прав';
-$lang['def']['']='';
-$lang['def']['']='';
-
-
 
 
 

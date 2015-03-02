@@ -859,6 +859,13 @@ function ts_DetectUserByAddress($address) {
         return ($result);
     }
     
+    function ts_FlushSMSData($taskid) {
+        $taskid=vf($taskid,3);
+        $query="UPDATE `taskman` SET `smsdata`=NULL WHERE `id`='".$taskid."';";
+        nr_query($query);
+        log_register('TASKMAN FLUSH SMS ['.$taskid.']');
+    }
+    
      function ts_CreateTask($startdate,$starttime,$address,$login,$phone,$jobtypeid,$employeeid,$jobnote) {
         $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
         $curdate=curdatetime();
@@ -1078,7 +1085,10 @@ function ts_DetectUserByAddress($address) {
                 $smsDataRows.=  wf_TableRow($smsDataCells, 'row3');
                 $smsDataTable=  wf_TableBody($smsDataRows, '100%', '0', 'glamour');
                 
-                $smsData=  wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable, '', '400', '200');
+                $smsDataFlushControl= wf_delimiter(). wf_JSAlert('?module=taskman&edittask='.$taskid.'&flushsmsdata='.$taskid, web_delete_icon(), __('Are you serious'));
+                
+                
+                $smsData=  wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable.$smsDataFlushControl, '', '400', '200');
             } else {
                 //post sending form
                 if ($altercfg['WATCHDOG_ENABLED']) {

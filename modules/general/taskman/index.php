@@ -127,6 +127,12 @@ if(cfr('TASKMAN')) {
                 }
         }
         
+        //sms data flush
+        if (wf_CheckGet(array('flushsmsdata'))) {
+            ts_FlushSMSData($_GET['flushsmsdata']);
+            rcms_redirect('?module=taskman&edittask='.$_GET['flushsmsdata']);
+        }
+        
         //display task change form
         ts_TaskChangeForm($_GET['edittask']);
         //additional comments 
