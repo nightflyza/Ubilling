@@ -737,16 +737,27 @@ function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
  * @return bool
  */
 function sm_MapIsLinked($alllinks, $traceid, $checkid) {
-//    $parent = $alllinks[$checkid];
-//    while (!empty($parent)) {
-//        if ($parent == $traceid) {
-//            return (true);
-//        } else {
-//            $parent = $alllinks[$parent];
-//        }
-//    }
-//    return (false); 
+  $road=array();
+  $road[]=$traceid;
+  $x=$traceid;
+
+  
+  while (!empty($x)) {
+      foreach ($alllinks as $id=>$parentid) {
+      if ($x==$id) {
+          $road[]=$parentid;
+          $x=$parentid;
+      }
+      }
+  }
  
+  if (in_array($checkid, $road)) {
+      $result=true;
+  } else {
+      $result=false;
+  }
+  return ($result);
+  
 }
 
 /**
@@ -820,12 +831,10 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                                 $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                             } else {
                             //detecting uplinks
-//                            if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
-//                                deb($each['id'] . ' - LINKED!');
-                                $width = 1;
-//                                $color = '#000000';
+                            if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
+                                $width = 3;
                                 $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
-//                            }
+                            }
                               }
                         } else {
                             $width = 1;

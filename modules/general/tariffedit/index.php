@@ -9,7 +9,7 @@ if (isset ($_GET['username'])) {
         $tariff=$_POST['newtariff'];
         if (!isset($_POST['nextmonth'])) {
         $billing->settariff($login,$tariff);
-        log_register('CHANGE Tariff ('.$login.') ON '.$tariff);
+        log_register('CHANGE Tariff ('.$login.') ON `'.$tariff.'`');
         //optional user reset
         if ($alter_conf['TARIFFCHGRESET']) {
         $billing->resetuser($login);
@@ -18,14 +18,14 @@ if (isset ($_GET['username'])) {
         
         } else {
             $billing->settariffnm($login,$tariff);
-            log_register('CHANGE TariffNM ('.$login.') ON '.$tariff);
+            log_register('CHANGE TariffNM ('.$login.') ON `'.$tariff.'`');
         }
         
         //auto credit option handling
         if ($alter_conf['TARIFFCHGAUTOCREDIT']) {
             $newtariffprice=  zb_TariffGetPrice($tariff);
             $billing->setcredit($login,$newtariffprice);
-            log_register("CHANGE AutoCredit (".$login.") ON ".$newtariffprice);
+            log_register("CHANGE AutoCredit (".$login.") ON `".$newtariffprice.'`');
         }
         
         if ( isset($alter_conf['SIGNUP_PAYMENTS']) && !empty($alter_conf['SIGNUP_PAYMENTS']) ) {
