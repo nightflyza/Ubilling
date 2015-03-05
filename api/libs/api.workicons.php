@@ -132,6 +132,18 @@ function web_green_led($title = '') {
     return($icon);
 }
 
+
+/**
+ * Returns standard yellow led icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_yellow_led($title = '') {
+    $icon = wf_img('skins/yellow_led.png', __($title));
+    return($icon);
+}
+
 /**
  * Returns standard red led icon
  * 

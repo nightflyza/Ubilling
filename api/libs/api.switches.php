@@ -574,7 +574,8 @@ function web_SwitchesShow() {
     $tablecells.=wf_TableCell(__('Description'));
     $tablecells.=wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
-
+    $lighter='onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
+    
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $eachswitch) {
             if (isset($dead_switches[$eachswitch['ip']])) {
@@ -586,8 +587,14 @@ function web_SwitchesShow() {
                 $aliveled = web_red_led($obituary);
                 $aliveflag = '0';
             } else {
-                $aliveled = web_green_led();
-                $aliveflag = '1';
+                if (strpos($eachswitch['desc'], 'NP')===false) {
+                   $aliveled = web_green_led();
+                   $aliveflag = '1';
+                } else {
+                   $aliveled = web_yellow_led();
+                   $aliveflag = '2';
+                }
+                
             }
 
 
@@ -627,7 +634,9 @@ function web_SwitchesShow() {
             }
 
             $tablecells.=wf_TableCell($switchcontrols);
-            $tablerows.=wf_TableRow($tablecells, 'row3');
+            $tablerows.=wf_tag('tr', false, 'row3', $lighter);
+            $tablerows.=$tablecells;
+            $tablerows.=wf_tag('tr', true);
         }
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
