@@ -108,6 +108,16 @@ CASE
       ELSE 'ON-LINE'
     END
   ))
+  -- reject
+        WHEN `radius_attributes`.`Value` LIKE '%{user[reject]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{user[reject]}',   (
+    CASE
+      WHEN `users`.`Down`     THEN 'Reject'
+      WHEN `users`.`Passive`  THEN 'Reject'
+      WHEN `users`.`Cash` < -`users`.`Credit`
+                              THEN 'Reject'
+      ELSE NULL
+    END
+  ))
   -- Или возвращаем значание
 	ELSE `radius_attributes`.`Value`
 END as `Value`
@@ -129,7 +139,7 @@ END as `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE
+WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `Value` IS NOT NULL
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_reply` (`UserName`, `Attribute`, `op`, `Value`) AS
@@ -171,6 +181,16 @@ CASE
       ELSE 'ON-LINE'
     END
   ))
+  -- reject
+        WHEN `radius_attributes`.`Value` LIKE '%{user[reject]}%'    THEN REPLACE(`radius_attributes`.`Value`, '{user[reject]}',   (
+    CASE
+      WHEN `users`.`Down`     THEN 'Reject'
+      WHEN `users`.`Passive`  THEN 'Reject'
+      WHEN `users`.`Cash` < -`users`.`Credit`
+                              THEN 'Reject'
+      ELSE NULL
+    END
+  ))
   -- Или возвращаем значание
 	ELSE `radius_attributes`.`Value`
 END AS `Value`
@@ -192,7 +212,7 @@ END AS `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE
+WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `Value` IS NOT NULL
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_usergroup` (`UserName`, `GroupName`, `priority`) AS 
