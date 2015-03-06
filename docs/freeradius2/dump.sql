@@ -115,7 +115,7 @@ CASE
       WHEN `users`.`Passive`  THEN 'Reject'
       WHEN `users`.`Cash` < -`users`.`Credit`
                               THEN 'Reject'
-      ELSE NULL
+      ELSE 'Accept'
     END
   ))
   -- Или возвращаем значание
@@ -188,7 +188,7 @@ CASE
       WHEN `users`.`Passive`  THEN 'Reject'
       WHEN `users`.`Cash` < -`users`.`Credit`
                               THEN 'Reject'
-      ELSE NULL
+      ELSE 'Accept'
     END
   ))
   -- Или возвращаем значание
