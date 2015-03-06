@@ -1,74 +1,3 @@
-CREATE TABLE IF NOT EXISTS `radius_acct` (
-  `radacctid` bigint(21) NOT NULL AUTO_INCREMENT,
-  `acctsessionid` varchar(64) NOT NULL DEFAULT '',
-  `acctuniqueid` varchar(32) NOT NULL DEFAULT '',
-  `username` varchar(64) NOT NULL DEFAULT '',
-  `groupname` varchar(64) NOT NULL DEFAULT '',
-  `realm` varchar(64) DEFAULT '',
-  `nasipaddress` varchar(15) NOT NULL DEFAULT '',
-  `nasportid` varchar(15) DEFAULT NULL,
-  `nasporttype` varchar(32) DEFAULT NULL,
-  `acctstarttime` datetime DEFAULT NULL,
-  `acctstoptime` datetime DEFAULT NULL,
-  `acctsessiontime` int(12) DEFAULT NULL,
-  `acctauthentic` varchar(32) DEFAULT NULL,
-  `connectinfo_start` varchar(50) DEFAULT NULL,
-  `connectinfo_stop` varchar(50) DEFAULT NULL,
-  `acctinputoctets` bigint(20) DEFAULT NULL,
-  `acctoutputoctets` bigint(20) DEFAULT NULL,
-  `calledstationid` varchar(50) NOT NULL DEFAULT '',
-  `callingstationid` varchar(50) NOT NULL DEFAULT '',
-  `acctterminatecause` varchar(32) NOT NULL DEFAULT '',
-  `servicetype` varchar(32) DEFAULT NULL,
-  `framedprotocol` varchar(32) DEFAULT NULL,
-  `framedipaddress` varchar(15) NOT NULL DEFAULT '',
-  `acctstartdelay` int(12) DEFAULT NULL,
-  `acctstopdelay` int(12) DEFAULT NULL,
-  `xascendsessionsvrkey` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`radacctid`),
-  UNIQUE KEY `acctuniqueid` (`acctuniqueid`),
-  KEY `username` (`username`),
-  KEY `framedipaddress` (`framedipaddress`),
-  KEY `acctsessionid` (`acctsessionid`),
-  KEY `acctsessiontime` (`acctsessiontime`),
-  KEY `acctstarttime` (`acctstarttime`),
-  KEY `acctstoptime` (`acctstoptime`),
-  KEY `nasipaddress` (`nasipaddress`)
-) ENGINE=InnoDB;
-
-CREATE TABLE  IF NOT EXISTS `radius_postauth` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL default '',
-  `pass` varchar(64) NOT NULL default '',
-  `reply` varchar(32) NOT NULL default '',
-  `authdate` timestamp NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE = INNODB;
-
-CREATE TABLE IF NOT EXISTS `radius_attributes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `scenario` enum('check','reply') DEFAULT NULL,
-  `login` varchar(50) DEFAULT NULL,
-  `netid` int(11) unsigned DEFAULT NULL,
-  `nasip` int(15) unsigned DEFAULT NULL,
-  `Attribute` varchar(32) NOT NULL,
-  `op` varchar(2) NOT NULL,
-  `Value` varchar(253) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `radius_reassigns` (
-  `netid` int(11) DEFAULT NULL,
-  `value` varchar(253) DEFAULT NULL,
-  UNIQUE (`netid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE OR REPLACE VIEW `radius_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
-SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
-     JOIN `networks` ON `networks`.`id` = `nas`.`netid`
-LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`
-WHERE `networks`.`use_radius` = TRUE;
-
 CREATE OR REPLACE VIEW `radius_check` (`UserName`, `Attribute`, `op`, `Value`) AS
 SELECT
   CASE `radius_reassigns`.`value`
@@ -129,7 +58,7 @@ END as `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE
+WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `users`.`Down` IS NOT TRUE AND `users`.`Passive` IS NOT TRUE AND `users`.`Cash` < -`users`.`Credit`
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_reply` (`UserName`, `Attribute`, `op`, `Value`) AS
@@ -192,42 +121,5 @@ END AS `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE
+WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `users`.`Down` IS NOT TRUE AND `users`.`Passive` IS NOT TRUE AND `users`.`Cash` < -`users`.`Credit`
 ORDER BY `users`.`login`;
-
-CREATE OR REPLACE VIEW `radius_usergroup` (`UserName`, `GroupName`, `priority`) AS 
-SELECT
-  CASE `radius_reassigns`.`value`
-    WHEN 'ip'  THEN `nethosts`.`ip`
-    WHEN 'mac' THEN `nethosts`.`mac`
-  ELSE `users`.`login`
-END AS `UserName`, CONCAT(`networks`.`id`, ':', INET_ATON(`nas`.`nasip`)), '1'
- FROM `users`
-      JOIN `nethosts` ON `nethosts`.`ip` = `users`.`IP`
-      JOIN `networks` ON `networks`.`id` = `nethosts`.`netid`
-      JOIN `nas`      ON `nas`.`netid`   = `nethosts`.`netid`
- -- ...для переназначения User-Name на IP или MAC
- LEFT JOIN `radius_reassigns` ON `radius_reassigns`.`netid` = `nethosts`.`netid`
-WHERE `networks`.`use_radius` = TRUE;
-
-CREATE OR REPLACE VIEW `radius_groupcheck` (`GroupName`, `Attribute`, `op`, `Value`) AS 
-SELECT DISTINCT CONCAT(`networks`.`id`, ':', INET_ATON(`nas`.`nasip`)), `radius_attributes`.`Attribute`, `radius_attributes`.`op`, `radius_attributes`.`Value` FROM `users`
- JOIN `nethosts` ON `nethosts`.`ip` = `users`.`IP`
- JOIN `networks` ON `networks`.`id` = `nethosts`.`netid`
- JOIN `nas`      ON `nas`.`netid`   = `nethosts`.`netid`
- JOIN `radius_attributes` ON `radius_attributes`.`netid` = `networks`.`id`
-                          OR `radius_attributes`.`nasip` = INET_ATON(`nas`.`nasip`)
-WHERE `radius_attributes`.`scenario` = 'check'
-  AND `radius_attributes`.`login` IS NULL
-  AND `networks`.`use_radius` = TRUE;
-
-CREATE OR REPLACE VIEW `radius_groupreply` (`GroupName`, `Attribute`, `op`, `Value`) AS 
-SELECT DISTINCT CONCAT(`networks`.`id`, ':', INET_ATON(`nas`.`nasip`)), `radius_attributes`.`Attribute`, `radius_attributes`.`op`, `radius_attributes`.`Value` FROM `users`
- JOIN `nethosts` ON `nethosts`.`ip` = `users`.`IP`
- JOIN `networks` ON `networks`.`id` = `nethosts`.`netid`
- JOIN `nas`      ON `nas`.`netid`   = `nethosts`.`netid`
- JOIN `radius_attributes` ON `radius_attributes`.`netid` = `networks`.`id`
-                          OR `radius_attributes`.`nasip` = INET_ATON(`nas`.`nasip`)
-WHERE `radius_attributes`.`scenario` = 'reply'
-  AND `radius_attributes`.`login` IS NULL
-  AND `networks`.`use_radius` = TRUE;
