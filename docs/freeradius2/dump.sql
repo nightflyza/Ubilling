@@ -139,7 +139,7 @@ END as `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `Value` IS NOT NULL
+WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `radius_check`.`Value` IS NOT NULL
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_reply` (`UserName`, `Attribute`, `op`, `Value`) AS
@@ -212,7 +212,7 @@ END AS `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `Value` IS NOT NULL
+WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `radius_reply`.`Value` IS NOT NULL
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_usergroup` (`UserName`, `GroupName`, `priority`) AS 
