@@ -58,7 +58,7 @@ END as `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `users`.`Down` IS NOT TRUE AND `users`.`Passive` IS NOT TRUE AND `users`.`Cash` < -`users`.`Credit`
+WHERE `radius_attributes`.`scenario` = 'check' AND `networks`.`use_radius` = TRUE AND `users`.`Down` != '1' AND `users`.`Passive` != '1' AND `users`.`Cash` >= -`users`.`Credit`
 ORDER BY `users`.`login`;
 
 CREATE OR REPLACE VIEW `radius_reply` (`UserName`, `Attribute`, `op`, `Value`) AS
@@ -121,5 +121,5 @@ END AS `Value`
  LEFT JOIN `switches` ON `switches`.`id` = `switchportassign`.`switchid`
  -- ...для получения информации о скорости по тарифному плану
  LEFT JOIN `speeds`   ON `speeds`.`tariff` = `users`.`Tariff`
-WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `users`.`Down` IS NOT TRUE AND `users`.`Passive` IS NOT TRUE AND `users`.`Cash` < -`users`.`Credit`
+WHERE `radius_attributes`.`scenario` = 'reply' AND `networks`.`use_radius` = TRUE AND `users`.`Down` != '1' AND `users`.`Passive` != '1' AND `users`.`Cash` >= -`users`.`Credit`
 ORDER BY `users`.`login`;
