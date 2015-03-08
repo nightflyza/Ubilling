@@ -1353,3 +1353,15 @@ CREATE TABLE IF NOT EXISTS `photostorage` (
 
 -- 0.6.4 update
 ALTER TABLE `switches` ADD `parentid` INT NULL AFTER `geo`, ADD INDEX (`parentid`) ; 
+
+-- 0.6.5 update
+CREATE TABLE IF NOT EXISTS `switch_login` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`swid` int(5) DEFAULT NULL,
+`swlogin` varchar(50) DEFAULT NULL,
+`swpass` varchar(50) DEFAULT NULL,
+`method` varchar(10) DEFAULT NULL,
+`community` varchar(50) DEFAULT NULL,
+`enable` varchar(3) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM;

@@ -35,7 +35,33 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 			show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
 			show_window(__('Change user Vlan'), web_VlanChangeFormService());
 			show_window(__('Delete user Vlan'), web_VlanDelete($login));
-				        }
+			$swparam=get_user_switch_modelname($login);
+//switch configuration start
+		if(isset($_POST['change_vlan_on_port'])) {
+			$swport=get_user_port($login);
+			$port=$swport['port'];
+			$modelname=get_user_switch_modelname($login);
+			$swtype=$modelname['modelname'];
+			if(strpos($swtype,'Huawei')===false && strpos($swtype,'HUAWEI')===false && strpos($swtype,'huawei')===false) {
+				$type="dlink";
+			} else {
+				$type="huawei";
+			}
+			$ports=$modelname['ports'];
+			$swip=get_sw_ip($login);
+			$swip=$swip['ip'];
+			$rwcommunity=get_swlogin_param_swid($swport['switchid']);
+			$rwcommunity=$rwcommunity['community'];
+			sw_snmp_control($port,$type,$ports,$cur_vlan,$rwcommunity,$swip);
+			log_register('Added vlan '.$cur_vlan.' on switch ip' .$swip);
+		}
+			if ($altcfg['SWITCH_AUTOCONFIG']) {
+				$tbinputs = wf_HiddenInput('change_vlan_on_port', 'true');
+				$tbinputs.= wf_Submit(__('Change'));
+				$form=  wf_Form("", 'POST', $tbinputs, 'glamour');
+			}
+			show_window(__('Change vlan on switch port'),$form);
+		}
 		show_window('', web_UserControls($login));
 		}
 	} else {

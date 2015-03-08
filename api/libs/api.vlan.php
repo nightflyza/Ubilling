@@ -1,5 +1,293 @@
 <?php
 
+function sw_snmp_control($port,$swtype,$ports,$vlan,$community,$ip) {
+$port_number=$port;
+
+if($swtype == "dlink") {
+	if($port_number >=1 and $port_number <= 4) { $group=0; $port_group=$port_number; }
+	if($port_number >= 5 and $port_number <= 8) { $group=1; $port_group=$port_number - 4; }
+	if($port_number >= 9 and $port_number <= 12) { $group=2; $port_group=$port_number - 8; }
+	if($port_number >= 13 and $port_number <= 16) { $group=3; $port_group=$port_number - 12; }
+	if($port_number >= 17 and $port_number <= 20) { $group=4; $port_group=$port_number - 16; }
+	if($port_number >= 21 and $port_number <= 24) { $group=5; $port_group=$port_number - 20; }
+	if($port_number >= 25 and $port_number <= 28) { $group=6; $port_group=$port_number - 24; }
+	if($port_number >= 29 and $port_number <= 32) { $group=7; $port_group=$port_number - 28; }
+	if($port_number >= 33 and $port_number <= 36) { $group=8; $port_group=$port_number - 32; }
+	if($port_number >= 37 and $port_number <= 40) { $group=9; $port_group=$port_number - 36; }
+	if($port_number >= 41 and $port_number <= 44) { $group=10; $port_group=$port_number - 40; }
+	if($port_number >= 45 and $port_number <= 48) { $group=11; $port_group=$port_number - 44; }
+	if($port_number >= 49 and $port_number <= 52) { $group=12; $port_group=$port_number - 48; }
+
+	if ($plist[$group] == "1") {
+	        if($port_group == "4") { $offset = "0"; }
+	}
+	if ($plist[$group] == "2") {
+		if($port_group == 3) { $offset = "0"; }
+	}
+	if ($plist[$group] == "3") {
+		if($port_group == "3") { $offset = "1"; }
+		if($port_group == "4") { $offset = "2"; }
+	}
+	if ($plist[$group] == "4") {
+		if($port_group == "2") { $offset = "0"; }
+	}
+	if ($plist[$group] == "5") {
+		if($port_group == "2") { $offset = "1"; }
+		if($port_group == "4") { $offset = "4"; }
+	}
+	if ($plist[$group] == "6") {
+		if($port_group == "2") { $offset = "2"; }
+		if($port_group == "3") { $offset = "4"; }
+	}
+	if ($plist[$group] == "7") {
+	        if($port_group == "2") { $offset = "3"; }
+	        if($port_group == "3") { $offset = "5"; }
+		if($port_group == "4") { $offset = "6"; }
+	}
+	if ($plist[$group] == "8") {
+	        if($port_group == "1") { $offset = "0"; }
+	}
+	if ($plist[$group] == "9") {
+        	if($port_group == "1") { $offset = "1"; }
+        	if($port_group == "4") { $offset = "8"; }
+	}
+	if ($plist[$group] == "A") {
+        	if($port_group == "1") { $offset = "2"; }
+        	if($port_group == "3") { $offset = "8"; }
+	}
+	if ($plist[$group] == "B") {
+	        if($port_group == "1") { $offset = "3"; }
+	        if($port_group == "3") { $offset = "9"; }
+		if($port_group == "4") { $offset = "A"; }
+	}
+	if ($plist[$group] == "C") {
+	        if($port_group == "1") { $offset = "4"; }
+	        if($port_group == "2") { $offset = "8"; }
+	}
+	if ($plist[$group] == "D") {
+	        if($port_group == "1") { $offset = "5"; }
+	        if($port_group == "2") { $offset = "9"; }
+		if($port_group == "4") { $offset = "C"; }
+	}
+	if ($plist[$group] == "E") {
+	        if($port_group == "1") { $offset = "6"; }
+	        if($port_group == "2") { $offset = "A"; }
+		if($port_group == "3") { $offset = "C"; }
+	}
+	if ($plist[$group] == "F") {
+	        if($port_group == "1") { $offset = "7"; }
+	        if($port_group == "2") { $offset = "B"; }
+		if($port_group == "3") { $offset = "D"; }
+	        if($port_group == "4") { $offset = "E"; }
+	}
+
+        $port_list=snmp2_get( $ip, $community, "1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.3.$vlan");
+        $plist=str_replace(array(' ','Hex-STRING:'),'',$plist);
+        $plist=trim($port_list);
+
+} else if ($swtype == "huawei") {
+
+	if($port_number >=1 and $port_number <= 3) { $group=0; $port_group=$port_number; }
+	if($port_number >= 4 and $port_number <= 7) { $group=1; $port_group=$port_number - 3; }
+	if($port_number >= 8 and $port_number <= 11) { $group=2; $port_group=$port_number - 7; }
+	if($port_number >= 12 and $port_number <= 15) { $group=3; $port_group=$port_number - 11; }
+	if($port_number >= 16 and $port_number <= 19) { $group=4; $port_group=$port_number - 15; }
+	if($port_number >= 20 and $port_number <= 23) { $group=5; $port_group=$port_number - 19; }
+	if($port_number >= 24 and $port_number <= 27) { $group=6; $port_group=$port_number - 23; }
+	if($port_number >= 28 and $port_number <= 31) { $group=7; $port_group=$port_number - 27; }
+	if($port_number >= 32 and $port_number <= 35) { $group=8; $port_group=$port_number - 31; }
+	if($port_number >= 36 and $port_number <= 39) { $group=9; $port_group=$port_number - 35; }
+	if($port_number >= 40 and $port_number <= 43) { $group=10; $port_group=$port_number - 39; }
+	if($port_number >= 44 and $port_number <= 47) { $group=11; $port_group=$port_number - 43; }
+	if($port_number >= 48 and $port_number <= 51) { $group=12; $port_group=$port_number - 47; }
+	if($port_number >= 52 and $port_number <= 55) { $group=13; $port_group=$port_number - 51; }
+	if($group == "0") {
+	        if($port_group == "1") { $offset = "4"; }
+		if($port_group == "2") { $offset = "2"; }
+		if($port_group == "3") { $offset = "1"; }
+	} if($group == "6") {
+		if($port_group == "1") { $offset = "E"; }
+	} else {
+                if($port_group == "1") { $offset = "8"; }
+		if($port_group == "2") { $offset = "4"; }
+		if($port_group == "3") { $offset = "2"; }
+		if($port_group == "4") { $offset = "1"; }
+	}
+
+	if($ports == "9") { $plist_add = "004000000000000000"; }
+	if($ports == "18") { $plist_add = "000020000000000000"; }
+	if($ports == "26") { $plist_add = "000000600000000000"; }
+	if($ports == "52") { $plist_add = "000000000000780000"; }
+
+	if(!empty($offset) or $offset == "0") {$plist_add[$group]=$offset;}
+
+	snmp2_set("$ip", "$community", array("1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan","1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.3.$vlan","1.3.6.1.4.1.2011.6.10.1.3.6.0"), array('i','x','i'), array('4',"$plist_add",'1'));
+
+
+	}
+show_success("Vlan $vlan successfully applied on switch port $port");
+}
+
+function get_sw_ip($login) {
+$switchid=get_user_port($login);
+$switchid=$switchid['switchid'];
+$query="SELECT * FROM `switches` WHERE `id`='".$switchid."'";
+$result=simple_query($query);
+return($result);
+}
+
+function get_user_port($login) {
+$query="SELECT * FROM `switchportassign` WHERE `login`='".$login."'";
+$result=simple_query($query);
+return($result);
+}
+
+function get_user_switch_modelname($login) {
+$swid=get_user_port($login);
+$swid=$swid['switchid'];
+$query="SELECT * FROM `switchmodels` WHERE `id` IN (SELECT `modelid` FROM `switches` WHERE `id`='".$swid."')";
+$result=simple_query($query);
+return($result);
+}
+
+function get_swlogin_param_swid($id) {
+$query="SELECT * FROM `switch_login` WHERE `swid`='".$id."'";
+$result=simple_query($query);
+return($result);
+}
+
+function get_swlogin_param($id) {
+$query="SELECT * FROM `switch_login` WHERE `id`='".$id."'";
+$result=simple_query($query);
+return($result);
+}
+
+function swlogin_edit_form($id) {
+	$id=vf($id);
+	$param=get_swlogin_param($id);
+        $conn=array('SSH'=>__('SSH'), 'TELNET'=>__('TELNET'), 'SNMP'=>__('SNMP'));
+	$enable=array('yes'=>__('yes'), 'no'=>__('no'));
+        $sup=  wf_tag('sup').'*'.wf_tag('sup', true);
+        $inputs=  wf_HiddenInput('edit', 'true');
+        $inputs.= sw_selector($param['swid']) . ' ' . __('Switch Model') . ' ' . wf_tag('br');
+	$inputs.= wf_Selector('editconn', $conn, __('Connection method'), $param['method'],true);
+        $inputs.= wf_TextInput('editswlogin', __('Username').$sup, $param['swlogin'], true, '20');
+	$inputs.= wf_TextInput('editswpassword', __('Password').$sup, $param['swpass'], true, '20');
+        $inputs.= wf_TextInput('editrwcommunity', __('SNMP RW Community ').$sup, $param['community'], true, '20');
+	$inputs.= wf_Selector('editenable', $enable, __('enable propmpt for cisco,bdcom,etc (should be same as password)'), $param['enable'],true);
+        $inputs.= wf_Tag('br');
+        $inputs.= wf_Submit(__('Save'));
+        $form=  wf_Form("", 'POST', $inputs, 'glamour');
+ 
+        $form.=wf_Link('?module=switchlogin', 'Back', true, 'ubButton');
+        show_window(__('Edit'), $form);
+	
+}
+
+function swlogin_delete($id) {
+        $id=vf($id);
+        $query="DELETE FROM `switch_login` WHERE `id`='".$id."'";
+        nr_query($query);
+        log_register('DELETE Switch Login ['.$id.']');
+}
+
+function swlogin_add($swmodel,$login,$pass,$method,$community,$enable) {
+        $swmodel=vf($swmodel);
+        $login=vf($login);
+        $pass=vf($pass);
+	$method=vf($method);
+	$community=vf($community);
+	$enable=vf($enable);
+                $query=" INSERT INTO `switch_login` (
+                                `id`,
+                                `swid`,
+                                `swlogin`,
+                                `swpass`,
+                                `method`,
+                                `community`,
+				`enable`
+		)
+                VALUES (
+                                NULL,
+                                '".$swmodel."',
+                                '".$login."',
+                                '".$pass."',
+                                '".$method."',
+                                '".$community."',
+				'".$enable."'
+                )
+                ";
+        nr_query($query);
+        log_register('ADD Switch login `'.$swmodel.'`');
+}
+
+function show_all_switchlogin() {
+       	$query = "SELECT * from `switch_login`";
+       	$swlogins = simple_queryall($query);
+       	$tablecells   = wf_TableCell(__('ID'));
+       	$tablecells .= wf_TableCell(__('SwID'));
+       	$tablecells .= wf_TableCell(__('Username'));
+       	$tablecells .= wf_TableCell(__('Password'));
+       	$tablecells .= wf_TableCell(__('method'));
+       	$tablecells .= wf_TableCell(__('community'));
+	$tablecells .= wf_TableCell(__('enable'));
+	$tablecells .= wf_TableCell(__('Actions'));
+       	$tablerows = wf_TableRow($tablecells, 'row1');
+       	if ( !empty($swlogins) ) {
+               	foreach ($swlogins as $login) {
+			$query_switches="SELECT * FROM `switches` WHERE `id`='".$login['swid']."'";
+			$location=simple_query($query_switches);
+			$location=$location['location'];
+                       	$tablecells  = wf_TableCell($login['id']);
+                       	$tablecells .= wf_TableCell(($location));
+                       	$tablecells .= wf_TableCell($login['swlogin']);
+                       	$tablecells .= wf_TableCell($login['swpass']);
+                       	$tablecells .= wf_TableCell($login['method']);
+			$tablecells .= wf_TableCell($login['community']);
+			$tablecells .= wf_TableCell($login['enable']);
+                       	$actionlinks  = wf_JSAlert('?module=switchlogin&delete=' . $login['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+                       	$actionlinks .= wf_JSAlert('?module=switchlogin&edit=' . $login['id'], web_edit_icon(),'Are you serious');
+                       	$tablecells .= wf_TableCell($actionlinks);
+                       	$tablerows .= wf_TableRow($tablecells, 'row3');
+               	}
+       	}
+       	$result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+       	show_window(__('Switch Logins'), $result);
+}
+
+
+function get_all_sw() {
+        $query="SELECT * from `switches`";
+        $result=simple_queryall($query);
+        return($result);
+}
+
+function get_sw_modelname($id) {
+	$query="SELECT * FROM `switchmodels` WHERE `id` IN (SELECT `modelid` FROM `switches` WHERE `id`='".$id."')";
+	$modelid=simple_query($query);
+	return($modelid['modelname']);
+}
+
+function sw_selector($current='') {
+	$allsw=get_all_sw();
+	$result='<select name="swmodel">';
+	if (!empty ($allsw)) {
+		foreach ($allsw as $io=>$eachsw) {
+			if ($current==$eachsw['id']) {
+				$flag='SELECTED';
+			} else {
+				$flag='';
+			}
+		$query_switches="SELECT * FROM `switches` WHERE `id`='".$eachsw['id']."'";
+                        $location=simple_query($query_switches);
+                        $location=$location['location'];
+		$result.='<option value="'.$eachsw['id'].'" '.$flag.'>'.$location.'</option>';
+		}
+	}               
+	$result.='</select>';
+	return ($result);
+}
+
 function web_ProfileVlanControlForm($login) {
         global $ubillingConfig;
         $alterconf = $ubillingConfig->getAlter();
