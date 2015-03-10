@@ -1876,6 +1876,7 @@ $lang['def']['Show links']='Показать связи';
 $lang['def']['SMS in queue']='SMS в очереди';
 $lang['def']['Permission denied']='Недостаточно прав';
 
-
+//rev 4260
+$lang['def']['MAC address']='MAC адрес';
 
 ?>

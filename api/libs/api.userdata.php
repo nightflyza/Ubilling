@@ -395,6 +395,24 @@ function zb_UserGetAllStargazerData() {
     return($userdata);
 }
 
+
+/**
+ * Returns array of all available stargazer user logins
+ * 
+ * @return array
+ */
+function zb_UserGetAllStargazerLogins() {
+    $result=array();
+    $query = "SELECT `login` from `users`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io=>$each) {
+            $result[]=$each['login'];
+        }
+    }
+    return ($result);
+}
+
 /**
  * Returns all users actual balance from database as array login=>cash
  * 

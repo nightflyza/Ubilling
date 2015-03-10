@@ -185,8 +185,7 @@ class GlobalSearch {
             
             
             if (isset($this->fields['login'])) {
-                $allLogins= zb_UserGetAllBalance();
-                $allLogins=  array_flip($allLogins);
+                $allLogins= zb_UserGetAllStargazerLogins();
                 $this->rawData = $this->rawData+ $this->transformArray($allLogins, __('Login'), 'login');
             }
 
@@ -220,7 +219,7 @@ class GlobalSearch {
         }
         
         if (!$forceCache) {
-            //output not needed
+            //output not needed 
             die(json_encode($data));
         }
     }

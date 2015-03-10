@@ -1890,4 +1890,7 @@ $lang['def']['Show links']='Показати зв`язки';
 $lang['def']['SMS in queue']='SMS у черзі';
 $lang['def']['Permission denied']='Недостатньо прав';
 
+//rev 4260
+$lang['def']['MAC address']='MAC адреса';
+
 ?>
