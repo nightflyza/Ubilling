@@ -468,6 +468,13 @@ function sm_MapDrawSwitches() {
     $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
     $allswitches = simple_queryall($query);
+  
+    $uplinkTraceIcon=wf_img('skins/ymaps/uplinks.png',__('Show links'));
+    $switchEditIcon=wf_img('skins/icon_edit.gif',__('Edit'));
+    $switchPollerIcon=wf_img('skins/snmp.png',__('SNMP query'));
+    $switchLocatorIcon=wf_img('skins/icon_search_small.gif',__('Zoom in'));
+    
+    $footerDelimiter=wf_tag('br');
     $result = '';
     //dead switches detection
     $dead_raw = zb_StorageGet('SWDEAD');
@@ -480,7 +487,11 @@ function sm_MapDrawSwitches() {
         foreach ($allswitches as $io => $each) {
             $geo = mysql_real_escape_string($each['geo']);
             $title = mysql_real_escape_string($each['ip']);
+            
+            //switch hint content
             $content = mysql_real_escape_string($each['location']);
+            
+            
             $iconlabel = '';
 
             if (!isset($deadarr[$each['ip']])) {
@@ -533,6 +544,24 @@ function sm_MapDrawSwitches() {
                 }
             }
 
+            
+            //switch footer controls
+            $footer.=$footerDelimiter;
+            $footer.=wf_tag('a', false, '', 'href="?module=switches&edit='.$each['id'].'"').$switchEditIcon.wf_tag('a',true).' ';
+            
+            
+            if (!empty($each['snmp'])) {
+                $footer.=wf_tag('a', false, '', 'href="?module=switchpoller&switchid='.$each['id'].'"').$switchPollerIcon.wf_tag('a',true).' ';
+            }
+     
+             $footer.=wf_tag('a', false, '', 'href="?module=switchmap&finddevice='.$each['geo'].'"').$switchLocatorIcon.wf_tag('a',true).' ';
+            
+            
+            if (!empty($each['parentid'])) {
+                $uplinkTraceUrl=  '?module=switchmap&finddevice='.$each['geo'].'&showuplinks=true&traceid='.$each['id'];
+                $uplinkTraceLink=wf_tag('a', false, '', 'href="'.$uplinkTraceUrl.'"').$uplinkTraceIcon.wf_tag('a',true).' ';
+                $footer.= $uplinkTraceLink;
+            }
 
             if ($ym_conf['CANVAS_RENDER']) {
                 $result.=sm_MapAddMark($geo, $title, $content, $footer, $icon, $iconlabel, true);

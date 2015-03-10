@@ -288,6 +288,18 @@ function zb_SwitchesGetAll() {
     return ($allswitches);
 }
 
+
+/**
+ * Returns array of all available switches with its full data ordered by location
+ * 
+ * @return array
+ */
+function zb_SwitchesGetAllLocationOrder() {
+    $query = 'SELECT * FROM `switches` ORDER BY `location` ASC';
+    $allswitches = simple_queryall($query);
+    return ($allswitches);
+}
+
 /**
  * Return geo data in ip->geo format
  * 
@@ -410,7 +422,7 @@ function zb_SwitchesDeadLog($currenttime, $deadSwitches) {
 function zb_SwitchesRepingAll() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
-    $allswitches = zb_SwitchesGetAll();
+    $allswitches = zb_SwitchesGetAllLocationOrder();
     $deadswitches = array();
     $deathTime = zb_SwitchesGetAllDeathTime();
 

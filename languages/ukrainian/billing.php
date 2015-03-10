@@ -1892,5 +1892,6 @@ $lang['def']['Permission denied']='Недостатньо прав';
 
 //rev 4260
 $lang['def']['MAC address']='MAC адреса';
+$lang['def']['Zoom in']='Збільшити';
 
 ?>
