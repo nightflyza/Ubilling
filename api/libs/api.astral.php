@@ -418,6 +418,46 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
 
 /**
  *
+ * Return select Web From element with auto click option into ajax container
+ *
+ * @param string  $container name of container element
+ * @param array   $params array of elements $value=>$option
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector
+ * @param bool    $br append new line
+ * @return  string
+ *
+ */
+function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = false) {
+    $inputid = wf_InputId();
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    $result = '<select name="' . $inputid . '" id="' . $inputid . '" >';
+    if (!empty($params)) {
+        foreach ($params as $value => $eachparam) {
+            $sel_flag = '';
+            if ($selected != '') {
+                if ($selected == $value) {
+                    $sel_flag = 'SELECTED';
+                }
+            }
+            $result.='<option value="' . $value . '" ' . $sel_flag . ' onClick="goajax(\'' . $value . '\',\'' . $container . '\');">' . $eachparam . '</option>' . "\n";
+        }
+    }
+
+    $result.='</select>' . "\n";
+    if ($label != '') {
+        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+    }
+    $result.=$newline . "\n";
+    return ($result);
+}
+
+/**
+ *
  * Return Month select Web From element 
  *
  * @param string  $name name of element
