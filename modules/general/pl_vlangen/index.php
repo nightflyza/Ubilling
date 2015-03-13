@@ -17,9 +17,9 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 			$new_vlan_pool_id = $_POST['vlanpoolselect'];
 			$qinq=vlan_pool_get_qinq($new_vlan_pool_id);
 			if($qinq==0) {
-				@$new_free_vlan = vlan_pool_get_next_free_vlan('vlanhosts', 'vlan', $new_vlan_pool_id);}
+                            $new_free_vlan = vlan_pool_get_next_free_vlan('vlanhosts', 'vlan', $new_vlan_pool_id);}
 			else {
-				@$new_free_vlan = vlan_pool_get_next_free_qinq_vlan('vlanhosts_qinq', 'svlan','cvlan', $new_vlan_pool_id);
+                            $new_free_vlan = vlan_pool_get_next_free_qinq_vlan('vlanhosts_qinq', 'svlan','cvlan', $new_vlan_pool_id);
 			}
 			if (empty($new_free_vlan)) {
 				$alert = wf_tag('script', false, '', 'type="text/javascript"') . 'alert("' . __('Error') . ': ' . __('No free Vlan available in selected pool') . '");' . wf_tag('script', true);
@@ -35,33 +35,90 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 			show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
 			show_window(__('Change user Vlan'), web_VlanChangeFormService());
 			show_window(__('Delete user Vlan'), web_VlanDelete($login));
-			$swparam=get_user_switch_modelname($login);
+
 //switch configuration start
 		if(isset($_POST['change_vlan_on_port'])) {
-			$swport=get_user_port($login);
-			$port=$swport['port'];
-			$modelname=get_user_switch_modelname($login);
-			$swtype=$modelname['modelname'];
-			if(strpos($swtype,'Huawei')===false && strpos($swtype,'HUAWEI')===false && strpos($swtype,'huawei')===false) {
-				$type="dlink";
-			} else {
-				$type="huawei";
-			}
-			$ports=$modelname['ports'];
-			$swip=get_sw_ip($login);
-			$swip=$swip['ip'];
-			$rwcommunity=get_swlogin_param_swid($swport['switchid']);
-			$rwcommunity=$rwcommunity['community'];
-			sw_snmp_control($port,$type,$ports,$cur_vlan,$rwcommunity,$swip);
-			log_register('Added vlan '.$cur_vlan.' on switch ip' .$swip);
-		}
-			if ($altcfg['SWITCH_AUTOCONFIG']) {
+                    $obj = new AutoConfigurator;
+                    $param = $obj->GetSwParam($login);
+                    $swid=$param['0'];
+                    $swip=$obj->GetCurSwIP($swid);
+                    $ModelParam=$obj->GetSwModelParam($swid);
+                    $conn=$obj->GetConnParam($swid);                    
+                    $swport=$param['1'];
+                    $type=$ModelParam[1];
+                    $swports=$ModelParam[0];                    
+                    $community=$conn[0];
+                    $swlogin=$conn[1];
+                    $password=$conn[2];
+                    sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$swip);
+                    $UplinkId=$obj->GetSwUplinkID($swid);
+                    $termip=$obj->GetSwUplinkIP($UplinkId);
+                    $TermData=$obj->CheckTermIP($termip);
+                    if($TermData=='false') {                        
+                        while(!empty($UplinkId)) {
+                            $ip=$obj->GetSwUplinkIP($UplinkId);
+                            $TermData=$obj->CheckTermIP($ip);                        
+                            if($TermData==='true') {
+                                break;
+                            }
+                            $modelid=$obj->GetModelidByIP($ip);
+                            $swmodelid=$modelid[0];
+                            $swid=$modelid[1];
+                            $ModelParam=$obj->GetSwModelParam($swmodelid);
+                            $type=$ModelParam[1];
+                            $swports=$ModelParam[0];
+                            $conn=$obj->GetConnParam($swid);
+                            $community=$conn[0];
+                            $swlogin=$conn[1];
+                            $password=$conn[2];
+                            $swport='NULL';
+                            sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$ip);
+                            $UplinkId=$obj->GetSwUplinkID($UplinkId);
+                        }                     
+                    }
+                    log_register('Added vlan '.$cur_vlan.' on switch ip' .$swip);
+
+
+    		}
+ 
+ 			if ($altcfg['SWITCH_AUTOCONFIG']) {
 				$tbinputs = wf_HiddenInput('change_vlan_on_port', 'true');
 				$tbinputs.= wf_Submit(__('Change'));
 				$form=  wf_Form("", 'POST', $tbinputs, 'glamour');
 			}
-			show_window(__('Change vlan on switch port'),$form);
-		}
+			show_window(__('Change vlan on switch port'),$form);                        
+                        }
+/*                    $obj = new AutoConfigurator;
+                    $param = $obj->GetSwParam($login);
+                    $swid=$param['0'];
+                    $swip=$obj->GetCurSwIP($swid);
+                    $ModelParam=$obj->GetSwModelParam($swid);
+                    $conn=$obj->GetConnParam($swid);                    
+                    $swport=$param['1'];
+                    $type=$ModelParam[1];
+                    $swports=$ModelParam[0];                    
+                    $community=$conn[0];
+                    $swlogin=$conn[1];
+                    $password=$conn[2];
+//                    sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$swip);
+                    $UplinkId=$obj->GetSwUplinkID($swid);
+                    $termip=$obj->GetSwUplinkIP($UplinkId);
+                    $TermData=$obj->CheckTermIP($termip);
+                    if($TermData=='false') {
+                        while(!empty($UplinkId)) {
+                            $ip=$obj->GetSwUplinkIP($UplinkId);
+                            $TermData=$obj->CheckTermIP($ip);                        
+                            if($TermData) {
+                                break;
+                            }                         
+                            sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$ip);
+                            $UplinkId=$obj->GetSwUplinkID($UplinkId);
+                        }
+
+ *                     }
+ */
+
+                        show_window(__('DEBUG'),'');
 		show_window('', web_UserControls($login));
 		}
 	} else {
