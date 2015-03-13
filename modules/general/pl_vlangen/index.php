@@ -39,46 +39,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 //switch configuration start
 		if(isset($_POST['change_vlan_on_port'])) {
                     $obj = new AutoConfigurator;
-                    $param = $obj->GetSwParam($login);
-                    $swid=$param['0'];
-                    $swip=$obj->GetCurSwIP($swid);
-                    $ModelParam=$obj->GetSwModelParam($swid);
-                    $conn=$obj->GetConnParam($swid);                    
-                    $swport=$param['1'];
-                    $type=$ModelParam[1];
-                    $swports=$ModelParam[0];                    
-                    $community=$conn[0];
-                    $swlogin=$conn[1];
-                    $password=$conn[2];
-                    sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$swip);
-                    $UplinkId=$obj->GetSwUplinkID($swid);
-                    $termip=$obj->GetSwUplinkIP($UplinkId);
-                    $TermData=$obj->CheckTermIP($termip);
-                    if($TermData=='false') {                        
-                        while(!empty($UplinkId)) {
-                            $ip=$obj->GetSwUplinkIP($UplinkId);
-                            $TermData=$obj->CheckTermIP($ip);                        
-                            if($TermData==='true') {
-                                break;
-                            }
-                            $modelid=$obj->GetModelidByIP($ip);
-                            $swmodelid=$modelid[0];
-                            $swid=$modelid[1];
-                            $ModelParam=$obj->GetSwModelParam($swmodelid);
-                            $type=$ModelParam[1];
-                            $swports=$ModelParam[0];
-                            $conn=$obj->GetConnParam($swid);
-                            $community=$conn[0];
-                            $swlogin=$conn[1];
-                            $password=$conn[2];
-                            $swport='NULL';
-                            sw_snmp_control($swport,$type,$swports,$cur_vlan,$community,$swlogin,$password,$ip);
-                            $UplinkId=$obj->GetSwUplinkID($UplinkId);
-                        }                     
-                    }
-                    log_register('Added vlan '.$cur_vlan.' on switch ip' .$swip);
-
-
+                    $obj->sw_snmp_control2($cur_vlan, $login);                   
     		}
  
  			if ($altcfg['SWITCH_AUTOCONFIG']) {

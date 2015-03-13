@@ -1,146 +1,5 @@
 <?php
 //AUTO CONFIGURATOR
-function sw_snmp_control($port,$swtype,$ports,$vlan,$community,$login,$passwod,$ip) {
-$port_number=$port;
-
-if($port=='NULL') {
-        if ($swtype == 'huawei') {
-            
-        
-            $session = new SNMP(SNMP::VERSION_2c, $ip, $community,'2');
-            $set = $session->set(array("1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan","1.3.6.1.4.1.2011.6.10.1.3.6.0"), array('i','i'),array('4','1'));
-            $session->close();
-            $group="NULL";
-            $port_group="NULL";
-            $offset='';
-        }
-} else { 
-        
-if($swtype == "dlink") {
-	if($port_number >=1 and $port_number <= 4) { $group=0; $port_group=$port_number; }
-	if($port_number >= 5 and $port_number <= 8) { $group=1; $port_group=$port_number - 4; }
-	if($port_number >= 9 and $port_number <= 12) { $group=2; $port_group=$port_number - 8; }
-	if($port_number >= 13 and $port_number <= 16) { $group=3; $port_group=$port_number - 12; }
-	if($port_number >= 17 and $port_number <= 20) { $group=4; $port_group=$port_number - 16; }
-	if($port_number >= 21 and $port_number <= 24) { $group=5; $port_group=$port_number - 20; }
-	if($port_number >= 25 and $port_number <= 28) { $group=6; $port_group=$port_number - 24; }
-	if($port_number >= 29 and $port_number <= 32) { $group=7; $port_group=$port_number - 28; }
-	if($port_number >= 33 and $port_number <= 36) { $group=8; $port_group=$port_number - 32; }
-	if($port_number >= 37 and $port_number <= 40) { $group=9; $port_group=$port_number - 36; }
-	if($port_number >= 41 and $port_number <= 44) { $group=10; $port_group=$port_number - 40; }
-	if($port_number >= 45 and $port_number <= 48) { $group=11; $port_group=$port_number - 44; }
-	if($port_number >= 49 and $port_number <= 52) { $group=12; $port_group=$port_number - 48; }
-
-	if ($plist[$group] == "1") {
-	        if($port_group == "4") { $offset = "0"; }
-	}
-	if ($plist[$group] == "2") {
-		if($port_group == 3) { $offset = "0"; }
-	}
-	if ($plist[$group] == "3") {
-		if($port_group == "3") { $offset = "1"; }
-		if($port_group == "4") { $offset = "2"; }
-	}
-	if ($plist[$group] == "4") {
-		if($port_group == "2") { $offset = "0"; }
-	}
-	if ($plist[$group] == "5") {
-		if($port_group == "2") { $offset = "1"; }
-		if($port_group == "4") { $offset = "4"; }
-	}
-	if ($plist[$group] == "6") {
-		if($port_group == "2") { $offset = "2"; }
-		if($port_group == "3") { $offset = "4"; }
-	}
-	if ($plist[$group] == "7") {
-	        if($port_group == "2") { $offset = "3"; }
-	        if($port_group == "3") { $offset = "5"; }
-		if($port_group == "4") { $offset = "6"; }
-	}
-	if ($plist[$group] == "8") {
-	        if($port_group == "1") { $offset = "0"; }
-	}
-	if ($plist[$group] == "9") {
-        	if($port_group == "1") { $offset = "1"; }
-        	if($port_group == "4") { $offset = "8"; }
-	}
-	if ($plist[$group] == "A") {
-        	if($port_group == "1") { $offset = "2"; }
-        	if($port_group == "3") { $offset = "8"; }
-	}
-	if ($plist[$group] == "B") {
-	        if($port_group == "1") { $offset = "3"; }
-	        if($port_group == "3") { $offset = "9"; }
-		if($port_group == "4") { $offset = "A"; }
-	}
-	if ($plist[$group] == "C") {
-	        if($port_group == "1") { $offset = "4"; }
-	        if($port_group == "2") { $offset = "8"; }
-	}
-	if ($plist[$group] == "D") {
-	        if($port_group == "1") { $offset = "5"; }
-	        if($port_group == "2") { $offset = "9"; }
-		if($port_group == "4") { $offset = "C"; }
-	}
-	if ($plist[$group] == "E") {
-	        if($port_group == "1") { $offset = "6"; }
-	        if($port_group == "2") { $offset = "A"; }
-		if($port_group == "3") { $offset = "C"; }
-	}
-	if ($plist[$group] == "F") {
-	        if($port_group == "1") { $offset = "7"; }
-	        if($port_group == "2") { $offset = "B"; }
-		if($port_group == "3") { $offset = "D"; }
-	        if($port_group == "4") { $offset = "E"; }
-	}
-
-        $port_list=snmp2_get( $ip, $community, "1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.3.$vlan");
-        $plist=str_replace(array(' ','Hex-STRING:'),'',$plist);
-        $plist=trim($port_list);
-
-} else if ($swtype == "huawei") {
-
-	if($port_number >=1 and $port_number <= 3) { $group=0; $port_group=$port_number; }
-	if($port_number >= 4 and $port_number <= 7) { $group=1; $port_group=$port_number - 3; }
-	if($port_number >= 8 and $port_number <= 11) { $group=2; $port_group=$port_number - 7; }
-	if($port_number >= 12 and $port_number <= 15) { $group=3; $port_group=$port_number - 11; }
-	if($port_number >= 16 and $port_number <= 19) { $group=4; $port_group=$port_number - 15; }
-	if($port_number >= 20 and $port_number <= 23) { $group=5; $port_group=$port_number - 19; }
-	if($port_number >= 24 and $port_number <= 27) { $group=6; $port_group=$port_number - 23; }
-	if($port_number >= 28 and $port_number <= 31) { $group=7; $port_group=$port_number - 27; }
-	if($port_number >= 32 and $port_number <= 35) { $group=8; $port_group=$port_number - 31; }
-	if($port_number >= 36 and $port_number <= 39) { $group=9; $port_group=$port_number - 35; }
-	if($port_number >= 40 and $port_number <= 43) { $group=10; $port_group=$port_number - 39; }
-	if($port_number >= 44 and $port_number <= 47) { $group=11; $port_group=$port_number - 43; }
-	if($port_number >= 48 and $port_number <= 51) { $group=12; $port_group=$port_number - 47; }
-	if($port_number >= 52 and $port_number <= 55) { $group=13; $port_group=$port_number - 51; }
-	if($group == "0") {
-	        if($port_group == "1") { $offset = "4"; }
-		if($port_group == "2") { $offset = "2"; }
-		if($port_group == "3") { $offset = "1"; }
-	} if($group == "6") {
-		if($port_group == "1") { $offset = "E"; }
-	} else {
-                if($port_group == "1") { $offset = "8"; }
-		if($port_group == "2") { $offset = "4"; }
-		if($port_group == "3") { $offset = "2"; }
-		if($port_group == "4") { $offset = "1"; }
-	}
-
-	if($ports == "9") { $plist_add = "004000000000000000"; }
-	if($ports == "18") { $plist_add = "000020000000000000"; }
-	if($ports == "26") { $plist_add = "000000600000000000"; }
-	if($ports == "52") { $plist_add = "000000000000780000"; }
-	if(!empty($offset) or $offset == "0") {$plist_add[$group]=$offset;}
-
-        $session = new SNMP(SNMP::VERSION_2c, $ip, $community,'2');
-        $set = $session->set(array("1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan","1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.3.$vlan","1.3.6.1.4.1.2011.6.10.1.3.6.0"), array('i','x','i'),array('4',"$plist_add",'1'));
-        
-        $session->close();
-	}
-    }
-}
-
 class AutoConfigurator {
     public $allsw = array ();
     public $allswlogin = array ();
@@ -322,6 +181,80 @@ class AutoConfigurator {
             }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         show_window(__('Switch Logins'), $result);
+    }
+    public function sw_snmp_control2($vlan,$login) {
+        $param = $this->GetSwParam($login);
+        $swid=$param['0'];
+        $swip=$this->GetCurSwIP($swid);
+        $ModelParam=$this->GetSwModelParam($swid);
+        $conn=$this->GetConnParam($swid);                    
+        $swport=$param['1'];
+        $type=$ModelParam[1];
+        $swports=$ModelParam[0];                    
+        $community=$conn[0];
+        $swlogin=$conn[1];
+        $password=$conn[2];
+        $UplinkId=$this->GetSwUplinkID($swid);
+        $termip=$this->GetSwUplinkIP($UplinkId);
+        $TermData=$this->CheckTermIP($termip);
+        if($TermData=='false') {                        
+            while(!empty($UplinkId)) {
+                $upip=$this->GetSwUplinkIP($UplinkId);
+                $TermData=$this->CheckTermIP($upip);                        
+                if($TermData==='true') {
+                    break;
+                }
+                $upModelId=$this->GetModelidByIP($upip);
+                $upSwmodelId=$upModelId[0];
+                $upSwid=$upModelId[1];
+                $upModelParam = $this->GetSwModelParam($upSwmodelId);
+                $upType=$upModelParam[1];
+                $upSwPorts=$upModelParam[0];
+                $upConn=$this->GetConnParam($swid);
+                $upCommunity=$upConn[0];
+                $upSwLogin=$upConn[1];
+                $upPassword=$upConn[2];
+                $upsession = new SNMP(SNMP::VERSION_2c, $upip, $upCommunity,'2');
+                @$upset=$upsession->set(array("1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan","1.3.6.1.4.1.2011.6.10.1.3.6.0"), array('i','i'),array('4','1'));
+                $upseterr=$upsession->getError();
+                $upsession->close();    
+                if(isset($upseterr)) {
+                    show_warning($upseterr);
+                }
+                $UplinkId=$this->GetSwUplinkID($UplinkId);
+                }
+        }
+
+        if($type=='huawei') {                       
+            if($swports=='26') {
+                $IniData=parse_ini_file(CONFIG_PATH.'autoconfig/HuaweiS2326.ini',true);
+                $upPorts=explode(',',$IniData['ports']['uplink']);
+                if(empty($upPorts[1])) {                    
+                    if($upPorts[0]=='25') {
+                        $plist_add = "000000200000000000";                        
+                    } else {
+                        $plist_add = "000000400000000000";                        
+                    }
+                } else {
+                    $plist_add = "000000600000000000";
+                }
+            } 
+            $VlanCreateOid = $IniData['oids']['VlanCreate'];
+            $VlanAddOid = $IniData['oids']['VlanAddPort'];
+            $SaveConfigOid = $IniData['oids']['SaveConfig'];
+            $TypeCreate = $IniData['OidType']['TypeCreate'];
+            $TypeAdd = $IniData['OidType']['TypeAdd'];
+            $TypeSave = $IniData['OidType']['TypeSave'];
+            include(CONFIG_PATH.'autoconfig/huawei_offset.php');
+            if(!empty($offset) or $offset == "0") {$plist_add[$group]=$offset;}
+            $session = new SNMP(SNMP::VERSION_2c, $swip, $community,'2');
+            @$set=$session->set(array("$VlanCreateOid$vlan","$VlanAddOid$vlan","$SaveConfigOid"), array($TypeCreate,$TypeAdd,$TypeSave),array('4',"$plist_add",'1'));
+            $seterr=$session->getError();
+            $session->close();
+            if(isset($seterr)) {
+                show_warning($seterr);
+            }
+        }
     }
 }
 
