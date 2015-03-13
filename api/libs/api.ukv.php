@@ -705,6 +705,26 @@ class UkvSystem {
 
         return ($result);
     }
+    
+    /**
+     * Returns cable seal edit form
+     * 
+     * @param int $userid Existing user ID
+     * @return string
+     */
+    protected function userCableSealForm($userid) {
+        $userid = vf($userid, 3);
+        $result='';
+        if (isset($this->users[$userid])) {
+            $currentSeal=$this->users[$userid]['cableseal'];
+            
+            $inputs=  wf_TextInput('ueditcableseal', __('Cable seal'), $currentSeal, true, 20);
+            $inputs.= wf_HiddenInput('usercablesealprocessing', $userid);
+            $inputs.= wf_Submit(__('Save'));
+            $result= wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
 
     /*
      * returns user edit form for some userid
@@ -795,7 +815,7 @@ class UkvSystem {
             $inputs.= wf_tag('td', true);
             $inputs.= wf_tag('tr', true);
 
-            $inputs = wf_TableBody($inputs, '100%', 0, '');
+            $inputs = wf_TableBody($inputs, '800', 0, '');
 
             $result = wf_Form('', 'POST', $inputs, 'ukvusereditform');
 
@@ -850,6 +870,28 @@ class UkvSystem {
             $result = true;
         }
         return ($result);
+    }
+    
+    /**
+     * Saves new cable seal value into database
+     * 
+     * @throws Exception
+     * @return void
+     */
+    public function userCableSealSave() {
+        if (wf_CheckPost(array('usercablesealprocessing'))) {
+            $userId = vf($_POST['usercablesealprocessing']);
+            $where = "WHERE `id`='" . $userId . "';";
+            $tablename = 'ukv_users';
+            
+            if ($this->users[$userId]['cableseal']!=$_POST['ueditcableseal']) {
+                simple_update_field($tablename, 'cableseal', $_POST['ueditcableseal'], $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE CABLESEAL `' . $_POST['ueditcableseal'] . '`');
+            }
+            
+        } else {
+            throw new Exception(self::EX_USER_NOT_SET);
+        }
     }
 
     /*
@@ -943,7 +985,7 @@ class UkvSystem {
                 simple_update_field($tablename, 'inetlogin', $_POST['ueditinetlogin'], $where);
                 log_register('UKV USER ((' . $userId . ')) CHANGE INETLOGIN `' . $_POST['ueditinetlogin'] . '`');
             }
-
+          
             //saving passport number
             if ($this->users[$userId]['passnum'] != $_POST['ueditpassnum']) {
                 simple_update_field($tablename, 'passnum', $_POST['ueditpassnum'], $where);
@@ -1076,6 +1118,10 @@ class UkvSystem {
             $inetLink = (!empty($userData['inetlogin'])) ? wf_Link(self::URL_INET_USER_PROFILE . $userData['inetlogin'], web_profile_icon() . ' ' . $userData['inetlogin'], false, '') : '';
             $cells.= wf_TableCell($inetLink);
             $rows.= wf_TableRow($cells, 'row3');
+            
+            $cells = wf_TableCell(__('Cable seal'), '20%', 'row2');
+            $cells.= wf_TableCell($userData['cableseal']);
+            $rows.= wf_TableRow($cells, 'row3');
 
             $cells = wf_TableCell(__('Notes'), '20%', 'row2');
             $cells.= wf_TableCell($userData['notes']);
@@ -1091,7 +1137,10 @@ class UkvSystem {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/money.png', __('Cash')), __('Finance operations'), $this->userManualPaymentsForm($userid), '', '600', '250') . __('Cash') . wf_tag('div', true);
             }
             if (cfr('UKVREG')) {
-                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '', '900', '570') . __('Edit') . wf_tag('div', true);
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/useredit.png', __('Edit user')), __('Edit user'), $this->userEditForm($userid), '') . __('Edit') . wf_tag('div', true);
+            }
+            if (cfr('UKVSEAL')) {
+                $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modalAuto(wf_img('skins/ukv/cableseal.png', __('Cable seal')), __('Cable seal'), $this->userCableSealForm($userid), '') . __('Cable seal') . wf_tag('div', true);
             }
             if (cfr('UKVDEL')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/annihilation.gif', __('Deleting user')), __('Deleting user'), $this->userDeletionForm($userid), '', '800', '300') . __('Delete') . wf_tag('div', true);
@@ -2060,6 +2109,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '30%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Seal'));
                     $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
@@ -2070,6 +2120,7 @@ class UkvSystem {
                         $cells.= wf_TableCell($eachDebtor['realname']);
                         $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
                         $cells.= wf_TableCell($eachDebtor['cash']);
+                        $cells.= wf_TableCell($eachDebtor['cableseal']);
                         $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
                         $rows.= wf_TableRow($cells, 'row3');
                     }
@@ -2122,6 +2173,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '30%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Seal'));
                     $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
@@ -2132,6 +2184,7 @@ class UkvSystem {
                         $cells.= wf_TableCell($eachDebtor['realname']);
                         $cells.= wf_TableCell($this->tariffs[$eachDebtor['tariffid']]['tariffname']);
                         $cells.= wf_TableCell($eachDebtor['cash']);
+                        $cells.= wf_TableCell($eachDebtor['cableseal']);
                         $cells.= wf_TableCell(web_bool_led($eachDebtor['active'], true));
                         $rows.= wf_TableRow($cells, 'row3');
                     }

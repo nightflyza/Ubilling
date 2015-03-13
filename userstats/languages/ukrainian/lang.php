@@ -193,4 +193,6 @@ $lang['def']['The test may not be accurate and is dependent on the type and conf
 
 $lang['def']['This feature is not allowed on your tariff']='На жаль ця функція не є доступною для вашого тарифного плану';
 
+$lang['def']['Get credit']='Отримати кредит';
+
 ?>

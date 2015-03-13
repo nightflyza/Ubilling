@@ -1365,3 +1365,6 @@ CREATE TABLE IF NOT EXISTS `switch_login` (
 `enable` varchar(3) DEFAULT NULL,
 PRIMARY KEY (`id`)
 ) ENGINE=MyISAM;
+
+
+ALTER TABLE `ukv_users` ADD `cableseal` VARCHAR(40) NULL AFTER `inetlogin`; 

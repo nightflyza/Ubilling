@@ -163,7 +163,17 @@ function zbs_GetOnlineLeftCount($login,$userBalance,$userTariff,$rawDays=false) 
                     break;
             }
         } else {
-            $balanceExpire = la_tag('span', false, '', 'style="color:red;"').', ' . __('indebtedness!') . la_tag('span',true);
+            //fast credit control id debt
+            $creditControl='';
+            if (isset($us_config['ONLINELEFT_CREDIT'])) {
+                if ($us_config['ONLINELEFT_CREDIT']) {
+                    if ($us_config['SC_ENABLED']) {
+                        $creditControl= ' '. la_Link('?module=creditor', __('Get credit').'?', false, '');
+                    }
+                }
+                
+            }
+            $balanceExpire = la_tag('span', false, '', 'style="color:red;"').', ' . __('indebtedness!').' '.$creditControl . la_tag('span',true);
         }
         
         if ($rawDays) {

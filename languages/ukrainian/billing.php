@@ -1893,5 +1893,8 @@ $lang['def']['Permission denied']='Недостатньо прав';
 //rev 4260
 $lang['def']['MAC address']='MAC адреса';
 $lang['def']['Zoom in']='Збільшити';
+$lang['def']['right to manage UKV cable seals']='Право керувати мітками кабелю УКВ';
+$lang['def']['Cable seal']='Мітка кабелю';
+$lang['def']['Seal']='Мітка';
 
 ?>

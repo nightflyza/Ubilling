@@ -81,6 +81,12 @@ if (cfr('UKV')) {
             rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['usereditprocessing']);
         }
         
+        //user cable seal editing processing
+        if (wf_CheckPost(array('usercablesealprocessing'))) {
+            $ukv->userCableSealSave();
+            rcms_redirect(UkvSystem::URL_USERS_PROFILE.$_POST['usercablesealprocessing']);
+        }
+        
         //user deletion processing
         if (wf_CheckPost(array('userdeleteprocessing','deleteconfirmation'))) {
             if ($_POST['deleteconfirmation']=='confirm') {
