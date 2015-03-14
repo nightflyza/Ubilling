@@ -883,10 +883,11 @@ class UkvSystem {
             $userId = vf($_POST['usercablesealprocessing']);
             $where = "WHERE `id`='" . $userId . "';";
             $tablename = 'ukv_users';
+            $newSeal=vf($_POST['ueditcableseal']);
             
-            if ($this->users[$userId]['cableseal']!=$_POST['ueditcableseal']) {
-                simple_update_field($tablename, 'cableseal', $_POST['ueditcableseal'], $where);
-                log_register('UKV USER ((' . $userId . ')) CHANGE CABLESEAL `' . $_POST['ueditcableseal'] . '`');
+            if ($this->users[$userId]['cableseal']!=$newSeal) {
+                simple_update_field($tablename, 'cableseal', $newSeal, $where);
+                log_register('UKV USER ((' . $userId . ')) CHANGE CABLESEAL `' . $newSeal . '`');
             }
             
         } else {
