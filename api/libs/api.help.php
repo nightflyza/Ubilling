@@ -1,7 +1,7 @@
 <?php
 
 
-/*
+/**
  *  Returns help chapter in current locale
  *  @param   $chapter Help chapter name
  *  @return  string
@@ -20,7 +20,7 @@
     
 
 
-/*
+/**
  *  Shows help icon if context chapter 
  *  available for current language
  * 

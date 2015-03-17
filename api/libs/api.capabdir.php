@@ -14,32 +14,31 @@ class CapabilitiesDirectory {
     const NO_ID = 'NO_SUCH_CAPABILITY_ID';
     const PER_PAGE = 100;
     const DEFAULT_ORDER = 'ORDER BY `stateid` ASC';
-    const URL_CREATE='?module=capabilities';
+    const URL_CREATE = '?module=capabilities';
 
-    /*
-     * param bool $noloaders Do not protess load subroutines at object creation
+    /**
+     * @param bool $noloaders Do not protess load subroutines at object creation
      * 
      * @return void
      */
-    public function __construct($noloaders=false) {
+    public function __construct($noloaders = false) {
         if (!$noloaders) {
-        //load existing capabilities
-        $this->loadCapabilities();
-        //load they ids
-        $this->loadAllIds();
-        //load existing states
-        $this->loadCapabStates();
-        //load employees
-        $this->loadEmployees();
+            //load existing capabilities
+            $this->loadCapabilities();
+            //load they ids
+            $this->loadAllIds();
+            //load existing states
+            $this->loadCapabStates();
+            //load employees
+            $this->loadEmployees();
         }
     }
 
-    /*
+    /**
      * stores all available capab ids into protected prop - used in pagination
      * 
      * @return void
      */
-
     protected function loadAllIds() {
         $query = "SELECT `id` from `capab`";
         $all = simple_queryall($query);
@@ -50,12 +49,11 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * loads all of available capabilities as protected prop allcapab
      * 
      * @return void
      */
-
     protected function loadCapabilities() {
 
         if (!wf_CheckGet(array('page'))) {
@@ -83,12 +81,11 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * loads available capability states into protected prop capabstates
      * 
      * @return void
      */
-
     protected function loadCapabStates() {
         $query = "SELECT * from `capabstates`";
         $all = simple_queryall($query);
@@ -106,12 +103,11 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * Loads all existing employees into protected employees prop
      * 
      * @return void
      */
-
     protected function loadEmployees() {
         $query = "SELECT * from `employee`";
         $all = simple_queryall($query);
@@ -124,12 +120,11 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * Renders base capabilities grid
      * 
      * @rerturn string
      */
-
     public function render() {
 
         //pagination processing
@@ -203,14 +198,13 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * delete some capability from database
      * 
      * @param $id - capability id
      * 
      * @return void
      */
-
     public function deleteCapability($id) {
         $id = vf($id, 3);
         if (isset($this->availids[$id])) {
@@ -222,7 +216,7 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * creates new capability in database
      * 
      * @param $address - users address
@@ -231,7 +225,6 @@ class CapabilitiesDirectory {
      * 
      * @return integer
      */
-
     public function addCapability($address, $phone, $notes) {
         $date = curdatetime();
         $address = mysql_real_escape_string($address);
@@ -246,18 +239,17 @@ class CapabilitiesDirectory {
         log_register("CAPABILITY ADD [" . $lastId . "] `" . $address . "`");
     }
 
-    /*
+    /**
      * Generates random HTML color
      * 
      * @return string
      */
-
     protected function genRandomColor() {
         $result = strtoupper(dechex(rand(0, 10000000)));
         return ($result);
     }
 
-    /*
+    /**
      * returns capability creation form
      * 
      * @param string $address Pre set address fo form
@@ -266,8 +258,7 @@ class CapabilitiesDirectory {
      * 
      * @return string
      */
-
-    public function createForm($address='',$phone='',$notes='') {
+    public function createForm($address = '', $phone = '', $notes = '') {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = wf_TextInput('newaddress', __('Full address') . $sup, $address, true);
@@ -280,12 +271,11 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * returns capability editing form by existing cap id
      * 
      * @return string
      */
-
     public function editForm($id) {
         $id = vf($id, 3);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -329,10 +319,20 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * update capability into database by its id
+     * 
+     * @param int $id
+     * @param int $address
+     * @param string $phone
+     * @param int $stateid
+     * @param string $notes
+     * @param string $price
+     * @param int $employeeid
+     * @throws Exception
+     * 
+     * @return void
      */
-
     public function editCapability($id, $address, $phone, $stateid, $notes, $price, $employeeid) {
         $id = vf($id, 3);
         $address = mysql_real_escape_string($address);
@@ -355,12 +355,11 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * shows currently available capability states in table grid
      * 
      * @return string
      */
-
     public function statesList() {
 
         $cells = wf_TableCell(__('ID'));
@@ -391,12 +390,11 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * returns capability states adding form
      * 
      * @return string
      */
-
     public function statesAddForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $result = wf_Link('?module=capabilities', __('Back'), true, 'ubButton');
@@ -407,12 +405,12 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * returns capability states adding form
      * 
+     * @param int $id
      * @return string
      */
-
     public function statesEditForm($id) {
 
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -424,15 +422,14 @@ class CapabilitiesDirectory {
         return ($result);
     }
 
-    /*
+    /**
      * creates new capability state
      * 
-     * @param $state new state label
-     * @param $color new state color
+     * @param string $state new state label
+     * @param string $color new state color
      * 
      * @return void
      */
-
     public function statesCreate($state, $color) {
         $state = mysql_real_escape_string($state);
         $color = mysql_real_escape_string($color);
@@ -443,14 +440,13 @@ class CapabilitiesDirectory {
         log_register("CAPABILITY STATE ADD `" . $state . "`");
     }
 
-    /*
+    /**
      * delete state by its id
      * 
-     * @param $id - state id in database
+     * @param int $id - state id in database
      * 
      * @return void
      */
-
     public function statesDelete($id) {
         $id = vf($id, 3);
         if (!empty($id)) {
@@ -460,16 +456,15 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * updates state into database
      * 
-     * @param $id    - existing state id
-     * @param $state - new state title
-     * @param $color - new state color
+     * @param int    $id    - existing state id
+     * @param int    $state - new state title
+     * @param string $color - new state color
      * 
      * @return void
      */
-
     public function statesChange($id, $state, $color) {
         $id = vf($id, 3);
         $state = mysql_real_escape_string($state);
@@ -482,18 +477,17 @@ class CapabilitiesDirectory {
         }
     }
 
-    /*
+    /**
      * returns capabilities directory control panel
      * 
      * @return string
      */
-
     protected function panel() {
         $result = '';
         if (cfr('ROOT')) {
             $result.= wf_Link("?module=capabilities&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
-        $result.= wf_modal(__('Create'),__('Create'), $this->createForm(), 'ubButton', '400', '300');
+        $result.= wf_modal(__('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
 
         return ($result);
     }

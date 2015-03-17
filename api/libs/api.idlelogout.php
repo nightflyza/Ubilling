@@ -7,7 +7,7 @@ class AutoLogout {
     
     const LOGOUT_URL='?idleTimerAutoLogout=true';
     
-    /*
+    /**
      * returns logout dialog localised template
      * 
      * @return string
@@ -23,7 +23,7 @@ class AutoLogout {
         return ($autoLogoutTimerContainer);
     }
     
-    /*
+    /**
      * returns JQuery subroutine for auto-logout
      * 
      * @return string
@@ -78,7 +78,7 @@ class AutoLogout {
 
     }
     
-    /*
+    /**
      * renders idle timeout auto logout scripts id needed
      * 
      * @return string
@@ -117,7 +117,7 @@ class AutoLogout {
     
 }
 
-/*
+/**
  * run idle auto logout object into template
  * 
  * @return string

@@ -25,7 +25,7 @@ class ExtNets {
     }
     
     
-    /*
+    /**
      * transform net/CIDR notation to netmask
      * 
      * @param $cidr string - network/CIDR
@@ -37,7 +37,7 @@ class ExtNets {
     return array($cidr[0], long2ip(-1 << (32 - (int)$cidr[1])));
     } 
     
-    /*
+    /**
      * prepare private CIDR mask data for following usage
      * 
      * @return void
@@ -62,7 +62,7 @@ class ExtNets {
 
 
 
-    /*
+    /**
      * loads actual `other` networks array from database
      * 
      * @return void
@@ -77,7 +77,7 @@ class ExtNets {
         }
     }
     
-    /*
+    /**
      * loads existing extpools from database into private pools property
      * 
      * @return void
@@ -92,7 +92,7 @@ class ExtNets {
         }
     }
     
-    /*
+    /**
      * renders existing networks list accessible for pools assign
      * 
      * @return string
@@ -129,7 +129,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * returns network CIDR by id 
      * 
      * @param $netid
@@ -148,7 +148,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * renders available pools assigned by some network
      * 
      * @param $netid int existing network ID
@@ -208,7 +208,7 @@ class ExtNets {
     }
     
     
-    /*
+    /**
      * returns last unused network address for new pool for some netid
      * 
      * @param $netid existing network ID
@@ -242,7 +242,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * returns new pool creation form
      * 
      * @param $netid int existing network ID
@@ -262,7 +262,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * Creates new address pool in database
      * 
      * @param ...
@@ -292,7 +292,7 @@ class ExtNets {
         
     }
     
-    /*
+    /**
      * deletes existing pool by ID from database
      * 
      * @param $poolid int existing pool ID
@@ -313,7 +313,7 @@ class ExtNets {
     }
     
     
-     /*
+     /**
      * returns full list of associated IPs for all pools
      * 
      * @return void
@@ -330,7 +330,7 @@ class ExtNets {
     
     
     
-    /*
+    /**
      * returns full list of associated IPs for some pool
      * 
      * @param $poolid int existing pool ID
@@ -350,7 +350,7 @@ class ExtNets {
         return ($result);
     }
     
-     /*
+     /**
      * Deletes ips for some pool by ID
      * 
      * @param $poolid int existing pool ID
@@ -364,7 +364,7 @@ class ExtNets {
         log_register("POOL [".$poolid."] IPS DELETED");
     }
     
-    /*
+    /**
      * creates some ips range for newly created pool
      * 
      * @return void
@@ -389,7 +389,7 @@ class ExtNets {
     }
     
     
-    /*
+    /**
      * returns raw list of ips associated with some pool
      * 
      * @param int $poolid Existing pool ID
@@ -419,7 +419,7 @@ class ExtNets {
     }
     
     
-    /*
+    /**
      * Returns pool editing form
      * 
      * @param int $poolid
@@ -439,7 +439,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * Updates pool data into database
      * 
      * @param int $poolid $
@@ -462,7 +462,7 @@ class ExtNets {
         }
     }
     
-    /*
+    /**
      * renders control links for pools associated with some login
      * 
      * @param string $login Existing ubilling user login
@@ -490,7 +490,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * loads available switches array into private switches property
      * 
      * @return void
@@ -505,7 +505,7 @@ class ExtNets {
         }
     }
     
-    /*
+    /**
      * returns IP editin control 
      * 
      * @param int $ipid Existing IP database ID
@@ -540,7 +540,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * edits some ip in database
      * 
      * @param 
@@ -556,7 +556,7 @@ class ExtNets {
         log_register("POOL IP [".$ipid."] EDIT `".$this->ips[$ipid]['ip']."`");
     }
 
-    /*
+    /**
      * Renders ips associated with some poolid
      * 
      * @param int $poolid Existing pool ID
@@ -618,7 +618,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * returns user attach pool control
      * 
      * @param string $login existing ubilling user login
@@ -642,7 +642,7 @@ class ExtNets {
         return ($result);
     }
     
-    /*
+    /**
      * changes pool login
      * 
      * @param int $poolid Existing poolID
@@ -661,7 +661,7 @@ class ExtNets {
         }
     }
     
-    /*
+    /**
      * returns data for docx templatizer for login and associated pools
      * 
      * @param string $login Existing ubilling user login

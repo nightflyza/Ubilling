@@ -3,7 +3,8 @@
 //
 //  signup reporting API
 //
-/*
+
+/**
  * Base signup requests handling class
  */
 
@@ -19,7 +20,7 @@ class SignupRequests {
         $this->loadAlter();
     }
 
-    /*
+    /**
      * loads actual alter config into private property
      * 
      * @return void
@@ -31,7 +32,7 @@ class SignupRequests {
         $this->perpage = $this->altcfg['TICKETS_PERPAGE'];
     }
 
-    /*
+    /**
      * returns available signup requests count
      * 
      * @return int
@@ -43,7 +44,7 @@ class SignupRequests {
         return ($result['COUNT(`id`)']);
     }
 
-    /*
+    /**
      * loads signup requests into private data property
      * 
      * @return void
@@ -60,7 +61,7 @@ class SignupRequests {
         }
     }
 
-    /*
+    /**
      * renders available signups data
      * 
      * @return void
@@ -137,7 +138,7 @@ class SignupRequests {
         show_window($confControl.__('Available signup requests').' '.$viewControl, $result);
     }
 
-    /*
+    /**
      * renders available signups data in calendar view
      * 
      * @return void
@@ -182,7 +183,7 @@ class SignupRequests {
         $viewControl=  wf_Link('?module=sigreq', wf_img('skins/icon_table.png', __('Grid view')), false, '');
         show_window($confControl.__('Available signup requests').' '.$viewControl, $result);
     }
-    /*
+    /**
      * returns signup request data by selected ID
      * 
      * @param int $requid Existing signup request ID
@@ -197,7 +198,7 @@ class SignupRequests {
         return($result);
     }
 
-    /*
+    /**
      * shows selected signup request by its ID
      * 
      * @param int $requid Existing signup request ID
@@ -290,7 +291,7 @@ class SignupRequests {
         }
     }
 
-    /*
+    /**
      * Marks signup request as done in database
      * 
      * @param int $reqid Existing request ID
@@ -304,7 +305,7 @@ class SignupRequests {
         log_register('SIGREQ DONE [' . $reqid . ']');
     }
 
-    /*
+    /**
      * Marks signup request as undone in database
      * 
      * @param int $reqid Existing request ID
@@ -318,7 +319,7 @@ class SignupRequests {
         log_register('SIGREQ UNDONE [' . $reqid . ']');
     }
 
-    /*
+    /**
      * Deletes signup request as done in database
      * 
      * @param int $reqid Existing request ID
@@ -333,7 +334,7 @@ class SignupRequests {
         log_register('SIGREQ DELETE [' . $reqid . ']');
     }
 
-    /*
+    /**
      * Gets all undone requests count, used by taskbar notifier
      * 
      * @return int
@@ -348,7 +349,7 @@ class SignupRequests {
 
 }
 
-/*
+/**
  * sigreq configuration class
  */
 
@@ -360,7 +361,7 @@ class SignupConfig {
         $this->loadConfig();
     }
 
-    /*
+    /**
      * Loads sigreqconf config from database
      *  
      * @return void 
@@ -376,7 +377,7 @@ class SignupConfig {
         }
     }
     
-    /*
+    /**
      * checks key existance into raw config array
      * 
      * @param string $key key value to check
@@ -391,7 +392,7 @@ class SignupConfig {
         }
     }
     
-    /*
+    /**
      * deletes key from database config
      * 
      * @param string $key key to delete from database config
@@ -404,7 +405,7 @@ class SignupConfig {
         nr_query($query);
     }
     
-    /*
+    /**
      * creates/replaces config key with some data into database config
      * 
      * @param string $key key set data
@@ -420,7 +421,7 @@ class SignupConfig {
         nr_query($query);
     }
     
-    /*
+    /**
      * checks diff key text data
      * 
      * @param string $key key to check
@@ -442,7 +443,7 @@ class SignupConfig {
     }
 
 
-    /*
+    /**
     * renders editing form
     * 
     * @return string
@@ -483,7 +484,7 @@ class SignupConfig {
         return ($result);
     }
     
-    /*
+    /**
      * saves config to database if needed
      * 
      * @return void

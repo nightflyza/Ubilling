@@ -23,7 +23,7 @@ class ProfileDocuments {
         $this->altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     }
 
-    /*
+    /**
      * load templates into private prop
      * 
      * @return void
@@ -39,7 +39,7 @@ class ProfileDocuments {
         }
     }
 
-    /*
+    /**
      * Sets user login
      * @param $login existing users login
      * 
@@ -51,7 +51,7 @@ class ProfileDocuments {
         $this->userLogin = $login;
     }
 
-    /*
+    /**
      * gets current user login
      * 
      * @return string
@@ -61,7 +61,7 @@ class ProfileDocuments {
         return ($this->userLogin);
     }
 
-    /*
+    /**
      * gets user data by previously setted login
      * 
      * @return array
@@ -119,7 +119,7 @@ class ProfileDocuments {
     }
     
     
-    /*
+    /**
      * returns last generated ID from documents registry
      * 
      * @return int
@@ -135,7 +135,7 @@ class ProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * loads user data for template processing 
      * 
      * @return void
@@ -239,7 +239,7 @@ class ProfileDocuments {
         $this->userData = $userdata;
     }
 
-    /*
+    /**
      * Returns available document templates prop
      * 
      * @return array
@@ -249,7 +249,7 @@ class ProfileDocuments {
         return ($this->templates);
     }
 
-    /*
+    /**
      * returns available templates list
      * 
      * @return string
@@ -286,7 +286,7 @@ class ProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * returns template upload form 
      * 
      * @return string
@@ -304,7 +304,7 @@ class ProfileDocuments {
         return ($uploadform);
     }
 
-    /*
+    /**
      * register uploaded template into database
      * 
      * @param $path string            path to template file
@@ -326,7 +326,7 @@ class ProfileDocuments {
         log_register("PLDOCS ADD TEMPLATE `" . $displayname . "`");
     }
 
-    /*
+    /**
      * unregister existing document template
      * 
      * @param $id int   existing template id
@@ -341,7 +341,7 @@ class ProfileDocuments {
         log_register("PLDOCS DEL TEMPLATE [" . $id . "]");
     }
 
-    /*
+    /**
      * deletes existing template
      * 
      * @param $id int   existing template id
@@ -354,7 +354,7 @@ class ProfileDocuments {
         $this->unregisterTemplateDB($id);
     }
 
-    /*
+    /**
      * do the docx template upload subroutine
      * 
      * @return boolean
@@ -399,7 +399,7 @@ class ProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * returns custom documents form fields
      * 
      * @return string
@@ -464,7 +464,7 @@ class ProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * sets some custom template fields from post request
      * 
      * @return void
@@ -512,7 +512,7 @@ class ProfileDocuments {
         }
     }
 
-    /*
+    /**
      * receives custom fields from object
      * 
      * @return array
@@ -522,7 +522,7 @@ class ProfileDocuments {
         return ($this->customFields);
     }
 
-    /*
+    /**
      * register generated document in database
      * 
      * @param $login - current user login
@@ -554,7 +554,7 @@ class ProfileDocuments {
         nr_query($query);
     }
     
-     /*
+     /**
      * kills document in database
      * 
      * @param $documentid - existing document ID
@@ -570,7 +570,7 @@ class ProfileDocuments {
         log_register("PLDOCS DEL DOCUMENT [" . $documentid . "]");
     }
 
-    /*
+    /**
      * loads user documents from database
      * 
      * @param $login user login to search public docs
@@ -588,7 +588,7 @@ class ProfileDocuments {
         }
     }
     
-     /*
+     /**
      * loads all user generated documents from database
      * 
      * @return void
@@ -607,7 +607,7 @@ class ProfileDocuments {
         }
     }
     
-    /*
+    /**
      * gets all user generated documents from database by this year
      * 
      * @return array
@@ -626,7 +626,7 @@ class ProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * Renders previously generated user documents 
      * 
      * @return string
@@ -660,7 +660,7 @@ class ProfileDocuments {
         return ($result);
     }
     
-     /*
+     /**
      * Renders previously generated all users documents 
      * 
      * @return string
@@ -704,7 +704,7 @@ class ProfileDocuments {
         return ($result);
     }
     
-    /*
+    /**
      * Renders previously generated all users as fullcalendar widget 
      * 
      * @return string
@@ -735,7 +735,7 @@ class ProfileDocuments {
         return ($result);
     }
     
-    /*
+    /**
      * show calendar contol form
      * 
      * @return string

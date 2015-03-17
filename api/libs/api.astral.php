@@ -1,11 +1,10 @@
 <?php
 
-/*
+/**
  *  Returns web form element id
  * 
  *  @return  string
  */
-
 function wf_InputId() {
     // I know it looks really funny. 
     // You can also get a truly random values​by throwing dice ;)
@@ -18,7 +17,6 @@ function wf_InputId() {
 }
 
 /**
- *
  * Return web form body
  *
  * @param  string $action action URL
@@ -52,7 +50,6 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
 }
 
 /**
- *
  * Return text input Web From element 
  *
  * @param  string $name name of element
@@ -86,7 +83,6 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
 }
 
 /**
- *
  * Return password input Web From element 
  *
  * @param  string $name name of element
@@ -120,7 +116,6 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
 }
 
 /**
- *
  * Return link form element
  *
  * @param string  $url needed URL
@@ -173,7 +168,6 @@ function wf_AjaxLink($url, $title, $container, $br = false, $class = '') {
 }
 
 /**
- *
  * Return Radio  box Web From element 
  *
  * @param string  $name name of element
@@ -206,7 +200,6 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
 }
 
 /**
- *
  * Return check box Web From element 
  *
  * @param string  $name name of element
@@ -238,7 +231,6 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
 }
 
 /**
- *
  * Return textarea Web From element 
  *
  * @param string  $name name of element
@@ -273,7 +265,6 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
 }
 
 /**
- *
  * Return hidden input web form element
  *
  * @param string  $name name of element
@@ -287,7 +278,6 @@ function wf_HiddenInput($name, $value = '') {
 }
 
 /**
- *
  * Return submit web form element
  *
  * @param string  $value text label for button
@@ -300,7 +290,6 @@ function wf_Submit($value) {
 }
 
 /**
- *
  * Return Trigger select web form input
  *
  * @param string  $name name of element
@@ -337,7 +326,6 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
 }
 
 /**
- *
  * Return select Web From element 
  *
  * @param string  $name name of element
@@ -377,7 +365,6 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false) {
 }
 
 /**
- *
  * Return select Web From element with auto click option
  *
  * @param string  $name name of element
@@ -417,7 +404,6 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
 }
 
 /**
- *
  * Return select Web From element with auto click option into ajax container
  *
  * @param string  $container name of container element
@@ -457,7 +443,6 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
 }
 
 /**
- *
  * Return Month select Web From element 
  *
  * @param string  $name name of element
@@ -504,7 +489,6 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false) {
 }
 
 /**
- *
  * Return Year select Web From element 
  *
  * @param string  $name name of element
@@ -535,7 +519,6 @@ function wf_YearSelector($name, $label = '', $br = false) {
 }
 
 /**
- *
  * Check for POST have needed variables
  *
  * @param array  $params array of POST variables to check
@@ -559,7 +542,6 @@ function wf_CheckPost($params) {
 }
 
 /**
- *
  * Check for GET have needed variables
  *
  * @param array  $params array of GET variables to check
@@ -582,8 +564,7 @@ function wf_CheckGet($params) {
     return ($result);
 }
 
-/*
- * 
+/**
  * Construct HTML table row element
  * 
  * @param string $cells table row cells
@@ -591,7 +572,6 @@ function wf_CheckGet($params) {
  * @return string
  *  
  */
-
 function wf_TableRow($cells, $class = '') {
     if ($class != '') {
         $rowclass = 'class="' . $class . '"';
@@ -602,8 +582,7 @@ function wf_TableRow($cells, $class = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Construct HTML table cell element
  * 
  * @param string $data table cell data
@@ -613,7 +592,6 @@ function wf_TableRow($cells, $class = '') {
  * @return string
  *  
  */
-
 function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
     if ($width != '') {
         $cellwidth = 'width="' . $width . '"';
@@ -634,8 +612,7 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Construct HTML table body
  * 
  * @param string $rows table rows data
@@ -645,7 +622,6 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
  * @return string
  *  
  */
-
 function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
     if ($width != '') {
         $tablewidth = 'width="' . $width . '"';
@@ -672,8 +648,7 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns JS confirmation url 
  * 
  * @param string $url URL if confirmed
@@ -682,14 +657,12 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
  * @return string
  *  
  */
-
 function wf_JSAlert($url, $title, $alerttext) {
     $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns filled paginator
  * 
  * @param int $total Total items count
@@ -700,7 +673,6 @@ function wf_JSAlert($url, $title, $alerttext) {
  * @return string
  *  
  */
-
 function wf_pagination($total, $perpage, $current, $link, $class = '') {
     if ($class != '') {
         $pageclass = 'class="' . $class . '"';
@@ -726,15 +698,13 @@ function wf_pagination($total, $perpage, $current, $link, $class = '') {
     return $return;
 }
 
-/*
- * 
+/**
  * Returns image body
  * 
  * @param string $url image url
  * @return string
  *  
  */
-
 function wf_img($url, $title = '') {
     if ($title != '') {
         $imgtitle = 'title="' . $title . '"';
@@ -745,8 +715,7 @@ function wf_img($url, $title = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns image body with some dimensions
  * 
  * @param string $url image url
@@ -757,7 +726,6 @@ function wf_img($url, $title = '') {
  * @return string
  *  
  */
-
 function wf_img_sized($url, $title = '', $width = '', $height = '') {
     $imgtitle = ($title != '') ? 'title="' . $title . '"' : '';
     $imgwidth = ($width != '') ? 'width="' . $width . '"' : '';
@@ -766,8 +734,7 @@ function wf_img_sized($url, $title = '', $width = '', $height = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns link that calls new modal window
  * 
  * @param string $link link text
@@ -779,7 +746,6 @@ function wf_img_sized($url, $title = '', $width = '', $height = '') {
  * @return string
  *  
  */
-
 function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height = '') {
     $wid = wf_inputid();
 
@@ -831,8 +797,7 @@ $(function() {
     return($dialog);
 }
 
-/*
- * 
+/**
  * Returns link that calls new modal window with automatic dimensions by inside content
  * 
  * @param string $link link text
@@ -843,7 +808,6 @@ $(function() {
  * @return string
  *  
  */
-
 function wf_modalAuto($link, $title, $content, $linkclass = '') {
     $wid = wf_inputid();
 
@@ -888,8 +852,7 @@ $(function() {
     return($dialog);
 }
 
-/*
- * 
+/**
  * Returns calendar widget
  * 
  * @param string $field field name to insert calendar
@@ -898,7 +861,6 @@ $(function() {
  * @return string
  *  
  */
-
 function wf_DatePicker($field, $extControls = false) {
     $inputid = wf_InputId();
     $curlang = curlang();
@@ -988,15 +950,13 @@ function wf_DatePicker($field, $extControls = false) {
     return($result);
 }
 
-/*
- * 
+/**
  * Returns calendar widget with preset date
  * 
  * @param string $field field name to insert calendar
  * @return string
  *  
  */
-
 function wf_DatePickerPreset($field, $date, $extControls = false) {
     $inputid = wf_InputId();
     $curlang = curlang();
@@ -1086,15 +1046,13 @@ function wf_DatePickerPreset($field, $date, $extControls = false) {
     return($result);
 }
 
-/*
- * 
+/**
  * Returns FullCalendar widget
  * 
  * @param string $data prepeared data to show
  * @return string
  *  
  */
-
 function wf_FullCalendar($data) {
 
     $elementid = wf_InputId();
@@ -1191,6 +1149,15 @@ function wf_FullCalendar($data) {
     return($calendar);
 }
 
+/**
+ * Returns div plate with some content
+ * 
+ * @param string $content Data to include into plate widget
+ * @param string $width   Widget width
+ * @param string $height  Widget height
+ * @param string $class   Widget class to assign
+ * @return string
+ */
 function wf_Plate($content, $width = '', $height = '', $class = '') {
     if ($width != '') {
         $width = 'width: ' . $width . ';';
@@ -1213,15 +1180,13 @@ function wf_Plate($content, $width = '', $height = '', $class = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns some count of delimiters
  * 
  * @param int $count count of delimited rows
  * @return string
  *  
  */
-
 function wf_delimiter($count = 1) {
     $result = '';
     for ($i = 0; $i <= $count; $i++) {
@@ -1230,8 +1195,7 @@ function wf_delimiter($count = 1) {
     return ($result);
 }
 
-
- /* *
+/**
  * Returns some html styled tag
  * 
  * @param int    $tag HTML tag entity
@@ -1241,7 +1205,6 @@ function wf_delimiter($count = 1) {
  * @return string
  *  
  */
-
 function wf_tag($tag, $closed = false, $class = '', $options = '') {
     if (!empty($class)) {
         $tagclass = ' class="' . $class . '"';
@@ -1265,12 +1228,11 @@ function wf_tag($tag, $closed = false, $class = '', $options = '') {
     return ($result);
 }
 
-/*
+/**
  * Constructs ajax loader 
  * 
  * @return string
  */
-
 function wf_AjaxLoader() {
     $result = '
           <script type="text/javascript">
@@ -1351,8 +1313,7 @@ function wf_AjaxLoader() {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns new opened modal window with some content
  * 
  * @param string $title modal window title
@@ -1362,7 +1323,6 @@ function wf_AjaxLoader() {
  * @return string
  *  
  */
-
 function wf_modalOpened($title, $content, $width = '', $height = '') {
 
     $wid = wf_inputid();
@@ -1406,7 +1366,7 @@ $(function() {
     return($dialog);
 }
 
-/*
+/**
  * Returns Chart source
  * 
  * @param string $data      - CSV formatted data
@@ -1416,7 +1376,6 @@ $(function() {
  * 
  * @return string
  */
-
 function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
@@ -1449,7 +1408,7 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
     return ($result);
 }
 
-/*
+/**
  * Returns color picker dialog
  * 
  * @param string $name   input name
@@ -1460,7 +1419,6 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
  * 
  * @return string
  */
-
 function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') {
     $id = wf_InputId();
     $css = '
@@ -1492,7 +1450,6 @@ function wf_ColPicker($name, $label = '', $value = '', $br = false, $size = '') 
 }
 
 /**
- *
  * Return Jquery UI selectable combobox
  *
  * @param string  $name name of element
@@ -1666,8 +1623,8 @@ $( "#combobox_' . $id . '" ).combobox_' . $id . '();
     return ($result);
 }
 
-/*
- * returns auto complete text input element
+/**
+ * Returns auto complete text input element
  * 
  * @param string $name name of element
  * @param array  $data data array for autocomplete box
@@ -1678,7 +1635,6 @@ $( "#combobox_' . $id . '" ).combobox_' . $id . '();
  * @return  string
  *
  */
-
 function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = '', $br = false, $size = '') {
     $inputid = wf_InputId();
     //set size
@@ -1695,24 +1651,24 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     $acData = '';
     $autocomplete = '<script>
                     $(function() {
-                    var availableOpts_'.$inputid.' = [
+                    var availableOpts_' . $inputid . ' = [
                   ';
     if (!empty($data)) {
         foreach ($data as $io => $each) {
-            $each=  str_replace('"', '`', $each);
+            $each = str_replace('"', '`', $each);
             $acData.='"' . $each . '",';
         }
     }
     //removing ending coma
     $acData = mb_substr($acData, 0, -1, 'UTF-8');
-    
+
 
     $autocomplete.=$acData;
 
     $autocomplete.='
                                       ];
                     $( "#' . $name . '_autocomplete" ).autocomplete({
-                    source: availableOpts_'.$inputid.'
+                    source: availableOpts_' . $inputid . '
                     });
                     });
                     </script>';
@@ -1727,9 +1683,7 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
     return ($result);
 }
 
-
-
- /* *
+/**
  * Returns calendar widget with preset time
  * 
  * @param string $field field name to insert time select widget
@@ -1738,28 +1692,28 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPreset($field, $time='',$label='',$br=false) {
-    $inputId=  wf_InputId();
-    
-    $result= wf_tag('input', false, '', 'type="text" value="'.$time.'" name="'.$field.'" size="5" id="'.$inputId.'"');
+function wf_TimePickerPreset($field, $time = '', $label = '', $br = false) {
+    $inputId = wf_InputId();
+
+    $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="5" id="' . $inputId . '"');
     $result.= wf_tag('script');
-    $result.='$(\'#'.$inputId.'\').timepicker({\'scrollDefault\': \''.$time.'\', \'timeFormat\': \'H:i\' });';
-    $result.= wf_tag('script',true);
-    
+    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i\' });';
+    $result.= wf_tag('script', true);
+
     //clickable icon and label
     if (!empty($label)) {
-        $label=' '.__($label);
+        $label = ' ' . __($label);
     }
-    $result.=wf_tag('label', false, '', 'for="'.$inputId.'"').wf_img('skins/icon_time_small.png', __('Time')).$label.wf_tag('label',true);
+    $result.=wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
     //break at end
     if ($br) {
         $result.= wf_tag('br');
     }
-    
+
     return ($result);
 }
 
- /* *
+/**
  * Returns calendar widget with preset time
  * 
  * @param string $field field name to insert time select widget
@@ -1768,28 +1722,25 @@ function wf_TimePickerPreset($field, $time='',$label='',$br=false) {
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPresetSeconds($field, $time='',$label='',$br=false) {
-    $inputId=  wf_InputId();
-    
-    $result= wf_tag('input', false, '', 'type="text" value="'.$time.'" name="'.$field.'" size="8" id="'.$inputId.'"');
+function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false) {
+    $inputId = wf_InputId();
+
+    $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="8" id="' . $inputId . '"');
     $result.= wf_tag('script');
-    $result.='$(\'#'.$inputId.'\').timepicker({\'scrollDefault\': \''.$time.'\', \'timeFormat\': \'H:i:s\' });';
-    $result.= wf_tag('script',true);
-    
+    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i:s\' });';
+    $result.= wf_tag('script', true);
+
     //clickable icon and label
     if (!empty($label)) {
-        $label=' '.__($label);
+        $label = ' ' . __($label);
     }
-    $result.=wf_tag('label', false, '', 'for="'.$inputId.'"').wf_img('skins/icon_time_small.png', __('Time')).$label.wf_tag('label',true);
+    $result.=wf_tag('label', false, '', 'for="' . $inputId . '"') . wf_img('skins/icon_time_small.png', __('Time')) . $label . wf_tag('label', true);
     //break at end
     if ($br) {
         $result.= wf_tag('br');
     }
-    
+
     return ($result);
 }
-
-
-
 
 ?>

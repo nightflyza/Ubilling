@@ -1,11 +1,11 @@
 <?php
 
-/*
+/**
  * Appends new option to config 
  * 
- * @param $path - config file path
- * @param $option - option key
- * @param $value - option raw value
+ * @param string $path - config file path
+ * @param string $option - option key
+ * @param string $value - option raw value
  * 
  * @return void
  */
@@ -27,12 +27,12 @@ function zb_DeployConfigOption($path, $option, $value) {
     }
 }
 
-/*
+/**
  * Appends new option to config with override if old option if exists
  * 
- * @param $path - config file path
- * @param $option - option key
- * @param $value - option raw value
+ * @param string $path - config file path
+ * @param string $option - option key
+ * @param string $value - option raw value
  * 
  * @return void
  */
@@ -55,10 +55,10 @@ function zb_DeployConfigOptionOverride($path, $option, $value) {
     }
 }
 
-/*
+/**
  * Create new config file if not exist
  * 
- * @param $path - config file path
+ * @param string $path - config file path
  * 
  * @return void
  */
@@ -74,6 +74,13 @@ function zb_DeployConfigCreate($path) {
     }
 }
 
+/**
+ * Pushes some query into database
+ * 
+ * @param string $query
+ * 
+ * @return void
+ */
 function zb_DeployDBQuery($query) {
     nr_query($query);
     log_register("DEPLOY DB QUERY");
@@ -90,7 +97,7 @@ class Avarice {
         $this->load();
     }
 
-    /*
+    /**
      * encodes data string by some sey
      * 
      * @param $data data to encode
@@ -109,7 +116,7 @@ class Avarice {
         return($result);
     }
 
-    /*
+    /**
      * pack xorored binary data into storable ascii data
      * 
      * @param $data
@@ -123,7 +130,7 @@ class Avarice {
         return ($data);
     }
 
-    /*
+    /**
      * unpack packed ascii data into xorored binary
      * 
      * @param $data
@@ -137,7 +144,7 @@ class Avarice {
         return ($data);
     }
 
-    /*
+    /**
      * loads all stored licenses into private data prop
      * 
      * @return void
@@ -175,7 +182,7 @@ class Avarice {
         }
     }
 
-    /*
+    /**
      * gets ubilling system key into private key prop
      * 
      * @return void
@@ -191,7 +198,7 @@ class Avarice {
         }
     }
 
-    /*
+    /**
      * checks module license availability
      * 
      * @param $module module name to check
@@ -209,7 +216,7 @@ class Avarice {
         }
     }
 
-    /*
+    /**
      * returns module runtime 
      * 
      * @return array
@@ -223,7 +230,7 @@ class Avarice {
         return ($result);
     }
 
-    /*
+    /**
      * returns list available license keys
      * 
      * @return array
@@ -233,7 +240,7 @@ class Avarice {
         return ($this->raw);
     }
 
-    /*
+    /**
      * check license key before storing it
      * 
      * @param $key string key to check valid format
@@ -252,7 +259,7 @@ class Avarice {
         }
     }
     
-    /*
+    /**
      * public function that deletes key from database
      * 
      * @param $keyname string identify key into database
@@ -266,7 +273,7 @@ class Avarice {
         log_register("AVARICE DELETE KEY `".$keyname.'`');
     }
     
-    /*
+    /**
      * installs new license key
      * 
      * @param $key string valid license key
@@ -287,7 +294,7 @@ class Avarice {
         }
     }
     
-    /*
+    /**
      * updates existing license key
      */
     public function updateKey($index,$key) {

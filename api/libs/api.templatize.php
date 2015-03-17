@@ -6,7 +6,7 @@
  * API templatizer
  */
 
-/*
+/**
  *  return add data from multinet hosts
  * 
  *  @return  array
@@ -28,7 +28,7 @@ function zb_MultinetGetAllData() {
     return ($result);
 }
 
-/*
+/**
  * return NAS params by netid
  * 
  * @param   $netid - integer netid
@@ -49,7 +49,7 @@ function zb_NasGetParams($netid,$allnasdata) {
     return ($result);
 }
 
-/*
+/**
  * return all CF content by login
  * 
  * @param   $login - login
@@ -70,7 +70,7 @@ function zb_cfGetContent($login,$allcfdata) {
     return ($result);
 }
 
-/*
+/**
  * fetch all real openids from database as virtualid=>login
  * 
  * @return array
@@ -87,7 +87,7 @@ function zb_TemplateGetAllOPCustomers() {
     return ($result);
 }
 
-/*
+/**
  *  return add data about current userbase
  *  which used for templatizing functions
  * 
@@ -188,7 +188,7 @@ function zb_TemplateGetAllUserData() {
 }
 
 
-/*
+/**
  *  replaces all known macro in template with current per-user values
  *  
  *  @param   $template raw template 
@@ -255,7 +255,7 @@ function zb_TemplateReplaceAll($template,$alluserdata) {
 }
 
 
-/*
+/**
  *  replaces all known macro in template with per-user values for selected user
  *
  *  @param   $login user login
@@ -320,7 +320,11 @@ function zb_TemplateReplace($login,$template,$alluserdata) {
     return ($result); 
 }
 
-
+/**
+ * Shows all templates
+ * 
+ * @param string $username
+ */
  function zb_DocsShowAllTemplates($username='') {
         $docpath=DATA_PATH.'documents/';
         $headerspath=$docpath.'headers/';

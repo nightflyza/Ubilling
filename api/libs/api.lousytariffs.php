@@ -6,7 +6,6 @@
  */
 
 /**
- *
  * Marks tariff as not polular
  *
  * @param   $tariff tariff name
@@ -20,7 +19,6 @@ function zb_LousyTariffAdd($tariff) {
 }
 
 /**
- *
  * Remove lousy mark
  *
  * @param   $tariff tariff name
@@ -33,7 +31,7 @@ function zb_LousyTariffDelete($tariff) {
     log_register("LOUSYTARIFF DELETE `" . $tariff . "`");
 }
 
-/*
+/**
  *  Returns full list of tariffs marked as lousy
  *  @return  array
  */
@@ -51,7 +49,6 @@ function zb_LousyTariffGetAll() {
 }
 
 /**
- *
  * Checks is tariff lousy or not?
  *
  * @param   $tariff tariff name
@@ -74,7 +71,7 @@ function zb_LousyCheckTariff($tariff, $lousyarr) {
     }
 }
 
-/*
+/**
  *  Returns list of lousy tariffs
  *  @return  string
  */

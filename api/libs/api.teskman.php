@@ -1152,7 +1152,8 @@ function ts_DetectUserByAddress($address) {
             $tablecells.=  wf_TableCell(nl2br($taskdata['jobnote']));
             $tablerows.=  wf_TableRow($tablecells,'row3');
             
-            $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
+            $result.= wf_TableBody($tablerows, '100%', '0', 'glamour');
+            $result.= wf_tag('div', false, '', 'style="clear:both;"').wf_tag('div',true);
             // show task preview
             show_window(__('View task').' '.$modform,$result);
             

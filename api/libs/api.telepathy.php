@@ -26,7 +26,7 @@ class Telepathy {
         }
     }
 
-    /*
+    /**
      * Loads cached address data to private data property 
      * 
      * @return void
@@ -40,7 +40,7 @@ class Telepathy {
         }
     }
 
-    /*
+    /**
      * Loads all user realnames from database into private prop
      * 
      * @return void
@@ -50,7 +50,7 @@ class Telepathy {
         $this->allrealnames = zb_UserGetAllRealnames();
     }
 
-    /*
+    /**
      * Preprocess all user surnames into usable data
      * 
      * @return void
@@ -67,7 +67,7 @@ class Telepathy {
         }
     }
     
-    /*
+    /**
      * external passive constructor for name realname login detection
      * 
      * @return void
@@ -87,7 +87,7 @@ class Telepathy {
     
   
 
-    /*
+    /**
      * preprocess available address data into lower case
      * 
      * @return void
@@ -144,7 +144,7 @@ class Telepathy {
         }
     }
 
-    /*
+    /**
      * detects user login by its address
      * 
      * @param string $address address to guess
@@ -164,7 +164,7 @@ class Telepathy {
         }
     }
     
-    /*
+    /**
      * returns user login by surname
      * 
      * @param string $surname

@@ -4221,3 +4221,4 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     return($xml_array);
 }
+

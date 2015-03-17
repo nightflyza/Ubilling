@@ -5,7 +5,7 @@
  */
 
 
-/*
+/**
  * Get gravatar url by some email
  * 
  * @param string $email  user email
@@ -20,7 +20,7 @@ function gravatar_GetUrl($email) {
     return ($result);
 }
 
-/*
+/**
  * Function that shows avatar by user email
  * 
  * @param string $email  user email
@@ -42,7 +42,7 @@ function gravatar_GetAvatar($email, $size = '') {
     return ($result);
 }
 
-/*
+/**
  * Get framework user email
  * 
  * @param string $username rcms user login
@@ -61,7 +61,7 @@ function gravatar_GetUserEmail($username) {
     return ($result);
 }
 
-/*
+/**
  * Shows avatar for some framework user - use only this in production!
  * 
  * @param string $username rcms user login

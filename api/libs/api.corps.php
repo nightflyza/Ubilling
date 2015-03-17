@@ -33,7 +33,7 @@ class Corps {
         $this->loadTaxtypes();
     }
 
-    /*
+    /**
      * loads available corps from database into private prop
      * 
      * @return void
@@ -49,7 +49,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * loads taxtypes from database
      * 
      * @return void
@@ -65,7 +65,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * loads contact persons from database
      * 
      * @return void
@@ -81,7 +81,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * loads user bindings from database and store it into private prop users
      * 
      * @return void
@@ -97,7 +97,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * returns existing taxtype edit form
      * 
      * @param $id int existing tax type ID
@@ -121,7 +121,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns new taxtype creation form
      * 
      * @return string
@@ -135,7 +135,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * creates new taxtype 
      * 
      * @param $type string new taxtype
@@ -151,7 +151,7 @@ class Corps {
         log_register("CORPS CREATE TAXTYPE [" . $newId . "]");
     }
 
-    /*
+    /**
      * returns standard localized deletion alert
      * 
      * @return string
@@ -161,7 +161,7 @@ class Corps {
         return (__('Removing this may lead to irreparable results'));
     }
 
-    /*
+    /**
      * return existing taxtypes list with edit controls
      * 
      * @return string
@@ -188,7 +188,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * deletes existing tax type from database
      * 
      * @return void
@@ -203,7 +203,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * edits existing tax type
      * 
      * @param $id int existing taxtype ID
@@ -220,7 +220,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * list available corps with some controls
      * 
      * @return string
@@ -266,7 +266,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * show existing corp preview
      * 
      * @param $id int existing corp ID
@@ -349,7 +349,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns selector of existing doctypes
      * 
      * @param $name string input name
@@ -368,7 +368,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns list of users which linked with this corp
      * 
      * @param $id int Existing corp ID
@@ -400,7 +400,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * filter array for unacceptable entities
      * 
      * @param $data array Data array for escaping
@@ -418,7 +418,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns corp edit form
      * 
      * @param $id existing corp ID
@@ -459,7 +459,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns corp creation form
      * 
      * 
@@ -494,7 +494,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * deletes existing corp by ID
      * 
      * @param $id int existing corp ID
@@ -511,7 +511,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * edits corp in database
      * 
      * @param $id int existing corp ID
@@ -539,7 +539,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * creates new corp in database
      * 
      * @return int
@@ -567,7 +567,7 @@ class Corps {
         return ($newID);
     }
 
-    /*
+    /**
      * returns corps link panel
      * 
      * @return string
@@ -580,7 +580,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns contact persons list for some corp
      * 
      * @param $corpid int Existing corp ID
@@ -618,7 +618,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns contact persons edit control for some corp
      * 
      * @param $corpid int Existing corp ID
@@ -662,7 +662,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns conact person creation form
      * 
      * @param $corpid int existing corp ID
@@ -689,7 +689,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns conact person creation form
      * 
      * @param $id int existing contact person ID
@@ -718,7 +718,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * edits contact person in database
      * 
      * @param $id int existing contact person ID
@@ -739,7 +739,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * creates new contact person in database
      * 
      * @return void
@@ -763,7 +763,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * check is taxtype used by someone?
      * 
      * @param $id int existing taxtype ID
@@ -785,7 +785,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * deletes an existing contact person
      * 
      * @param $id int existing contact person ID
@@ -800,7 +800,7 @@ class Corps {
         log_register("CORPS DELETE PERSON [" . $id . "]");
     }
 
-    /*
+    /**
      * binds user login to existing corp ID
      * 
      * @param $login string Existing user login
@@ -819,7 +819,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * unbinds user login from any corp and sets him as just private user
      * 
      * @param $login string Existing user login
@@ -836,7 +836,7 @@ class Corps {
         }
     }
 
-    /*
+    /**
      * checks is user associated with some corp or not? If associated - returns corp ID
      * 
      * @param $login string Existing user login
@@ -852,7 +852,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns user unbind form
      * 
      * @param $login string Existing user login
@@ -876,7 +876,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns existing coorps selector
      * 
      * @param $login string Existing user login
@@ -900,7 +900,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * returns user binding form
      * 
      * @param $login string Existing user login
@@ -936,7 +936,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * checks is corp used by something or not?
      * 
      * @param $id int Existing corp ID
@@ -958,7 +958,7 @@ class Corps {
         return ($result);
     }
 
-    /*
+    /**
      * Gets corp data by associated username
      * 
      * @param $login string Existing users login
