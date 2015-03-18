@@ -3,19 +3,18 @@
 if (cfr('EVENTVIEW')) {
 
     /**
-     * Returns login of administrator that attempts something in weblogs
+     * Returns selector of administrator logins
      * 
      * @param type $name
      * @param type $label
      * @return string
      */
     function web_EventsAdminSelector($name, $label = '') {
-        $query = "SELECT DISTINCT `admin` from `weblogs`";
-        $all = simple_queryall($query);
+        $all=  rcms_scandir(USERS_PATH);      
         $alllogins = array('' => '-');
         if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $alllogins[$each['admin']] = $each['admin'];
+            foreach ($all as $each) {
+                $alllogins[$each] = $each;
             }
         }
 
