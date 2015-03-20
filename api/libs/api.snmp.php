@@ -82,6 +82,8 @@ class SNMPHelper {
                 file_put_contents($cacheFile, $result);
             }
         }
+        
+        return ($result);
     }
 
     /**
@@ -95,10 +97,40 @@ class SNMPHelper {
      * @return string
      */
     protected function snmpWalkNative($ip, $community, $oid, $cache = true) {
-        snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-        $raw= snmp2_real_walk($ip , $community , $oid , 1000000 ,2);
-        $result='';
-        debarr($raw);
+        $cachetime = time() - $this->cacheTime;
+        $cachepath = self::CACHE_PATH;
+        $cacheFile = $cachepath . $ip . '_' . $oid;
+        $result = '';
+        //cache handling
+        if (file_exists($cacheFile)) {
+            //cache not expired
+            if ((filemtime($cacheFile) > $cachetime) AND ( $cache == true)) {
+                $result = file_get_contents($cacheFile);
+            } else {
+                //cache expired - refresh data
+                snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                $raw = snmp2_real_walk($ip, $community, $oid, 1000000, 2);
+                if (!empty($raw)) {
+                    foreach ($raw as $oid => $value) {
+                        $result.=$oid . ' = ' . $value."\n";
+                    }
+                }
+                file_put_contents($cacheFile, $result);
+            }
+        } else {
+            //no cached file exists
+            snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+            $raw = snmp2_real_walk($ip, $community, $oid, 1000000, 2);
+            if (!empty($raw)) {
+                foreach ($raw as $oid => $value) {
+                    $result.=$oid . ' = ' . $value."\n";
+                }
+            }
+            file_put_contents($cacheFile, $result);
+        }
+
+
+        return ($result);
     }
 
     /**
@@ -115,8 +147,8 @@ class SNMPHelper {
         if ($this->mode == 'system') {
             $result = $this->snmpWalkSystem($ip, $community, $oid, $cache);
         }
-        
-        if ($this->mode=='native') {
+
+        if ($this->mode == 'native') {
             $result = $this->snmpWalkNative($ip, $community, $oid, $cache);
         }
 
