@@ -3,11 +3,17 @@
 class SNMPHelper {
 
     protected $altCfg = array();
+    protected $mode = '';
+    protected $background = false;
+    protected $cacheTime = 60;
+    protected $pathWalk = '';
+    protected $pathSet = '';
 
     const CACHE_PATH = 'exports/';
 
     public function __construct() {
         $this->loadAlter();
+        $this->setOptions();
     }
 
     /**
@@ -23,6 +29,21 @@ class SNMPHelper {
     }
 
     /**
+     * Sets all needed options to protected props
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (!empty($this->altCfg)) {
+            $this->mode = $this->altCfg['SNMP_MODE'];
+            $this->background = ($this->altCfg['SNMP_MODE']) ? true : false;
+            $this->cacheTime = ($this->altCfg['SNMPCACHE_TIME'] * 60); //in minutes
+            $this->pathWalk = $this->altCfg['SNMPWALK_PATH'];
+            $this->pathSet = $this->altCfg['SNMPSET_PATH'];
+        }
+    }
+
+    /**
      * Executes system SNMP walk interface
      * 
      * @param string $ip
@@ -32,15 +53,13 @@ class SNMPHelper {
      * @param bool   $nowait
      * @return string
      */
-    protected function snmpWalkSystem($ip, $community, $oid, $cache = true, $nowait = false) {
-        $snmpwalk = $this->altCfg['SNMPWALK_PATH'];
-        $command = $snmpwalk . ' -c ' . $community . ' ' . $ip . ' ' . $oid;
-        $cachetimeout = ($this->altCfg['SNMPCACHE_TIME'] * 60); //in minutes
-        $cachetime = time() - $cachetimeout;
+    protected function snmpWalkSystem($ip, $community, $oid, $cache = true) {
+        $command = $this->pathWalk . ' -c ' . $community . ' ' . $ip . ' ' . $oid;
+        $cachetime = time() - $this->cacheTime;
         $cachepath = self::CACHE_PATH;
         $cacheFile = $cachepath . $ip . '_' . $oid;
         $result = '';
-        if ($nowait) {
+        if ($this->background) {
             $command = $command . ' > ' . $cacheFile . '&';
         }
 
@@ -52,17 +71,34 @@ class SNMPHelper {
             } else {
                 //cache expired - refresh data
                 $result = shell_exec($command);
-                if (!$nowait) {
+                if (!$this->background) {
                     file_put_contents($cacheFile, $result);
                 }
             }
         } else {
             //no cached file exists
             $result = shell_exec($command);
-            if (!$nowait) {
+            if (!$this->background) {
                 file_put_contents($cacheFile, $result);
             }
         }
+    }
+
+    /**
+     * Executes native SNMP walk interface
+     * 
+     * @param string $ip
+     * @param string $community
+     * @param string $oid
+     * @param bool   $cache
+     * @param bool   $nowait
+     * @return string
+     */
+    protected function snmpWalkNative($ip, $community, $oid, $cache = true) {
+        snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+        $raw= snmp2_real_walk($ip , $community , $oid , 1000000 ,2);
+        $result='';
+        debarr($raw);
     }
 
     /**
@@ -75,8 +111,15 @@ class SNMPHelper {
      * @param bool   $nowait
      * @return string
      */
-    public function walk($ip, $community, $oid, $cache = true, $nowait = false) {
-        $result = $this->snmpWalkSystem($ip, $community, $oid, $cache, $nowait);
+    public function walk($ip, $community, $oid, $cache = true) {
+        if ($this->mode == 'system') {
+            $result = $this->snmpWalkSystem($ip, $community, $oid, $cache);
+        }
+        
+        if ($this->mode=='native') {
+            $result = $this->snmpWalkNative($ip, $community, $oid, $cache);
+        }
+
 
         return ($result);
     }

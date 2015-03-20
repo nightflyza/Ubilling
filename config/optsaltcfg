@@ -112,8 +112,6 @@ TARIFFCHGAUTOCREDIT=TRIGGER|Automatically set the credit limit when you change t
 MIKROTIK_SUPPORT=TRIGGER|MikroTik extended support enabled
 ASKOZIA_ENABLED=TRIGGER|AskoziaPBX support enabled
 ASTERISK_ENABLED=TRIGGER|Asterisk support enabled
-SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
-SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
 NMAP_PATH=VARCHAR|Path to installed nmap
 CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode
 PAYMENTCARDS_ENABLED=TRIGGER|Payment cards functionality enabled
@@ -147,7 +145,15 @@ CORPS_ENABLED=TRIGGER|Corporate users management enabled
 NETWORKS_EXT=TRIGGER|Extended networks and pools management
 ADCOMMENTS_ENABLED=TRIGGER|Additional comments functionality enabled
 VLANGEN_SUPPORT=TRIGGER|VLAN pools extended management enabled
+SWITCH_AUTOCONFIG=TRIGGER|VLAN switch autoconfiguration
 PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
+
+CHAPTER_SNMP=SNMP options
+SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
+SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
+SNMPSET_PATH=VARCHAR|Path to snmpset binary path
+SNMP_MODE=VARCHAR|SNMP operation mode
+SNMPWALK_BACKGROUND=TRIGGER|SNMP walk background mode
 
 CHAPTER_OPAYZ=OpenPayz
 OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support

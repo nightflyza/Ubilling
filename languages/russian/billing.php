@@ -1882,6 +1882,12 @@ $lang['def']['Zoom in']='Увеличить';
 $lang['def']['right to manage UKV cable seals']='Право управлять метками кабеля УКВ';
 $lang['def']['Cable seal']='Метка кабеля';
 $lang['def']['Seal']='Метка';
+$lang['def']['VLAN switch autoconfiguration']='Автоконфигурация VLAN-ов на свитчах';
+$lang['def']['SNMP options']='Настройки SNMP';
+$lang['def']['Path to snmpset binary path']='Путь к системному snmpset';
+$lang['def']['SNMP operation mode']='Режим работы с SNMP';
+$lang['def']['SNMP walk background mode']='Возможность фонового snmpwalk';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 
