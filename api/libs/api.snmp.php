@@ -82,7 +82,7 @@ class SNMPHelper {
                 file_put_contents($cacheFile, $result);
             }
         }
-        
+
         return ($result);
     }
 
@@ -112,7 +112,7 @@ class SNMPHelper {
                 $raw = snmp2_real_walk($ip, $community, $oid, 1000000, 2);
                 if (!empty($raw)) {
                     foreach ($raw as $oid => $value) {
-                        $result.=$oid . ' = ' . $value."\n";
+                        $result.=$oid . ' = ' . $value . "\n";
                     }
                 }
                 file_put_contents($cacheFile, $result);
@@ -123,7 +123,7 @@ class SNMPHelper {
             $raw = snmp2_real_walk($ip, $community, $oid, 1000000, 2);
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
-                    $result.=$oid . ' = ' . $value."\n";
+                    $result.=$oid . ' = ' . $value . "\n";
                 }
             }
             file_put_contents($cacheFile, $result);

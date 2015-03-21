@@ -197,6 +197,8 @@ function sp_SnmpPollData($ip, $community, $oid, $cache = true) {
         $result = shell_exec($command);
         file_put_contents($cacheFile, $result);
     }
+//    $snmp=new SNMPHelper();
+//    $result=$snmp->walk($ip, $community, $oid, $cache);
 
     return ($result);
 }
