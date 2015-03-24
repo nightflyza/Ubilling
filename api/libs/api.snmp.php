@@ -192,13 +192,13 @@ class SNMPHelper {
             } else {
                 //cache expired - refresh data
                 snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-                $raw = snmp2_real_walk($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+                @$raw = snmpwalkoid($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
                 if (!empty($raw)) {
                     foreach ($raw as $oid => $value) {
                         $result.=$oid . ' = ' . $value . "\n";
                     }
                 } else {
-                    $value = snmp2_get($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+                    @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative); 
                     $result = $oid . ' = ' . $value;
                 }
                 file_put_contents($cacheFile, $result);
@@ -206,13 +206,14 @@ class SNMPHelper {
         } else {
             //no cached file exists
             snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-            $raw = snmp2_real_walk($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+            @$raw = snmpwalkoid($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+            
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
                     $result.=$oid . ' = ' . $value . "\n";
                 }
             } else {
-                $value = snmp2_get($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+                @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative); 
                 $result = $oid . ' = ' . $value;
             }
             file_put_contents($cacheFile, $result);

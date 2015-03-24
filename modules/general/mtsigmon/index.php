@@ -43,6 +43,7 @@ if (cfr('MTSIGMON')) {
 
             $snmp = new SNMPHelper();
             $snmp->setBackground(false);
+            $snmp->setMode('native');
             $tmpSnmp = $snmp->walk($ip, $community, $oid, false);
 
             if (!empty($tmpSnmp)) {
