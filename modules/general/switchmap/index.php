@@ -50,7 +50,7 @@ if(cfr('SWITCHMAP')) {
            
             if ($ymconf['FINDING_CIRCLE']) {
                 $radius=30;
-                $area=sm_MapAddCircle($_GET['finddevice'], $radius,__('Search area radius').' '.$radius.' '.__('meters'),__('Search area'));
+                $area=  sm_MapAddCircle($_GET['finddevice'], $radius,__('Search area radius').' '.$radius.' '.__('meters'),__('Search area'));
             } else {
                 $area='';
             }

@@ -442,7 +442,7 @@ function sm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
                     balloonContent: "' . $content . '",
                     hintContent: "' . $hint . '"
                 }, {
-                    draggable: false,
+                    draggable: true,
              
                     fillColor: "#00a20b55",
                     strokeColor: "#006107",
@@ -455,6 +455,8 @@ function sm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
 
     return ($result);
 }
+
+
 
 /*
  * 
