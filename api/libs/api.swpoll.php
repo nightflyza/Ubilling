@@ -174,31 +174,11 @@ function sp_SnmpGetModelTemplatesAssoc() {
  * @return   string
  */
 function sp_SnmpPollData($ip, $community, $oid, $cache = true) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-    $snmpwalk = $altercfg['SNMPWALK_PATH'];
-    $command = $snmpwalk . ' -c ' . $community . ' ' . $ip . ' ' . $oid;
-    $cachetimeout = ($altercfg['SNMPCACHE_TIME'] * 60); //in minutes
-    $cachetime = time() - $cachetimeout;
-    $cachepath = 'exports/';
-    $cacheFile = $cachepath . $ip . '_' . $oid;
-
-    //cache handling
-    if (file_exists($cacheFile)) {
-        //cache not expired
-        if ((filemtime($cacheFile) > $cachetime) AND ( $cache == true)) {
-            $result = file_get_contents($cacheFile);
-        } else {
-            //cache expired - refresh data
-            $result = shell_exec($command);
-            file_put_contents($cacheFile, $result);
-        }
-    } else {
-        //no cached file exists
-        $result = shell_exec($command);
-        file_put_contents($cacheFile, $result);
-    }
-//    $snmp=new SNMPHelper();
-//    $result=$snmp->walk($ip, $community, $oid, $cache);
+    // migrated to SNMPHelper class in 0.6.5
+    // left this for backward compatibility
+    $snmp = new SNMPHelper();
+    $snmp->setBackground(false);
+    $result = $snmp->walk($ip, $community, $oid, $cache);
 
     return ($result);
 }
@@ -298,6 +278,7 @@ function sp_SnmpParseFdbDl($portTable) {
  * @return  void
  */
 function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $quiet = false) {
+    global $ubillingConfig;
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
         if (!empty($currentTemplate)) {
@@ -307,7 +288,9 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             $sectionName = '';
             $finalResult = '';
             $tempArray = array();
-            $alterCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+            $alterCfg = $ubillingConfig->getAlter();
+            $snmp=new SNMPHelper();
+            
             //selecting FDB processing mode
             if (isset($currentTemplate['define']['FDB_MODE'])) {
                 $deviceFdbMode = $currentTemplate['define']['FDB_MODE'];
@@ -337,7 +320,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     //now parse each oid
                     foreach ($sectionOids as $eachOid) {
                         $eachOid = trim($eachOid);
-                        $rawData = sp_SnmpPollData($ip, $community, $eachOid, true);
+                        $rawData = $snmp->walk($ip, $community, $eachOid, true);
                         $rawData = str_replace('"', '`', $rawData);
                         $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
                         eval($parseCode);
@@ -359,15 +342,17 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             //parsing data from FDB table
             //
                 if ($deviceFdb == 'true') {
-                //$macTable=  sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.4.3.1.1', true);
                 $portData = array();
+                $snmp->setBackground(false); // need to process data with system + background
+                
                 if ($deviceFdbMode == 'default') {
                     //default zyxel & cisco port table
-                    $portTable = sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
+                    
+                    $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
                 } else {
                     if ($deviceFdbMode == 'dlp') {
                         //custom dlink port table with VLANS
-                        $portTable = sp_SnmpPollData($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true);
+                        $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true);
                     }
                 }
                 if (!empty($portTable)) {
