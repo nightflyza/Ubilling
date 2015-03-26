@@ -322,7 +322,7 @@ class SNMPHelper {
                     if (isset($each['oid']) AND ( isset($each['type']) AND ( isset($each['value'])))) {
                         @$pushResult = snmp2_set($ip, $community, $each['oid'], $each['type'], $each['value'], $this->timeoutNative, $this->retriesNative);
                         if ($pushResult) {
-                            $result.=$this->snmpWalkNative($ip, $community, $each['oid'], false) . "\n";
+                            $result.=trim($this->snmpWalkNative($ip, $community, $each['oid'], false)) . "\n";
                         }
                     } else {
                         throw new Exception(self::EX_WRONG_DATA);
@@ -353,7 +353,7 @@ class SNMPHelper {
                         @$pushResult = $session->set($each['oid'],$each['type'],$each['value']);
                         $session->close();
                         if ($pushResult) {
-                            $result.=$this->snmpWalkClass($ip, $community, $each['oid'], false) . "\n"; //need review this results for multiple values
+                            $result.=trim($this->snmpWalkClass($ip, $community, $each['oid'], false)) . "\n";
                         }
                      
                     } else {
