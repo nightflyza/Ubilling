@@ -198,7 +198,7 @@ class SNMPHelper {
                         $result.=$oid . ' = ' . $value . "\n";
                     }
                 } else {
-                    @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative); 
+                    @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
                     $result = $oid . ' = ' . $value;
                 }
                 file_put_contents($cacheFile, $result);
@@ -207,13 +207,13 @@ class SNMPHelper {
             //no cached file exists
             snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
             @$raw = snmpwalkoid($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
-            
+
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
                     $result.=$oid . ' = ' . $value . "\n";
                 }
             } else {
-                @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative); 
+                @$value = snmpget($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
                 $result = $oid . ' = ' . $value;
             }
             file_put_contents($cacheFile, $result);
@@ -224,7 +224,7 @@ class SNMPHelper {
     }
 
     /**
-     * Public SNMP walk interface
+     * Executes php 5.4 SNMP class walk interface
      * 
      * @param string $ip
      * @param string $community
@@ -233,23 +233,46 @@ class SNMPHelper {
      * @param bool   $nowait
      * @return string
      */
-    public function walk($ip, $community, $oid, $cache = true) {
-        switch ($this->mode) {
-            case 'system':
-                $result = $this->snmpWalkSystem($ip, $community, $oid, $cache);
-                break;
+    protected function snmpWalkClass($ip, $community, $oid, $cache = true) {
+        $cachetime = time() - $this->cacheTime;
+        $cachepath = self::CACHE_PATH;
+        $cacheFile = $cachepath . $ip . '_' . $oid;
+        $result = '';
+        //cache handling
+        if (file_exists($cacheFile)) {
+            //cache not expired
+            if ((filemtime($cacheFile) > $cachetime) AND ( $cache == true)) {
+                $result = file_get_contents($cacheFile);
+            } else {
+                //cache expired - refresh data
+                snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                $session = new SNMP(SNMP::VERSION_1, $ip, $community, $this->timeoutNative, $this->retriesNative);
+                $raw = $session->walk($oid);
+                $session->close();
 
-            case 'native':
-                $result = $this->snmpWalkNative($ip, $community, $oid, $cache);
-                break;
+                if (!empty($raw)) {
+                    foreach ($raw as $oid => $value) {
+                        $result.=$oid . ' = ' . $value . "\n";
+                    }
+                }
+                file_put_contents($cacheFile, $result);
+            }
+        } else {
+            //no cached file exists
+            snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+            $session = new SNMP(SNMP::VERSION_1, $ip, $community, $this->timeoutNative, $this->retriesNative);
+            $raw = $session->walk($oid);
+            $session->close();
 
-            case 'class':
-                throw new Exception(self::EX_NOT_IMPL);
-                break;
+            if (!empty($raw)) {
+                foreach ($raw as $oid => $value) {
+                    $result.=$oid . ' = ' . $value . "\n";
+                }
+            }
 
-            default :
-                throw new Exception(self::EX_NOT_IMPL);
+            file_put_contents($cacheFile, $result);
         }
+
 
         return ($result);
     }
@@ -311,6 +334,69 @@ class SNMPHelper {
         }
         return ($result);
     }
+    
+     /**
+     * Executes PHP 5.4 SNMP set interface
+     * 
+     * @param string $ip
+     * @param string $community
+     * @param array  $data
+     * @return string
+     */
+    protected function snmpSetClass($ip, $community, $data) {
+        $result = '';
+        if (!empty($data)) {
+            if (is_array($data)) {
+                foreach ($data as $io => $each) {
+                    if (isset($each['oid']) AND ( isset($each['type']) AND ( isset($each['value'])))) {
+                        $session = new SNMP(SNMP::VERSION_2c, $ip, $community, $this->timeoutNative, $this->retriesNative);
+                        @$pushResult = $session->set($each['oid'],$each['type'],$each['value']);
+                        $session->close();
+                        if ($pushResult) {
+                            $result.=$this->snmpWalkClass($ip, $community, $each['oid'], false) . "\n"; //need review this results for multiple values
+                        }
+                     
+                    } else {
+                        throw new Exception(self::EX_WRONG_DATA);
+                    }
+                }
+            } else {
+                throw new Exception(self::EX_WRONG_DATA);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Public SNMP walk interface
+     * 
+     * @param string $ip
+     * @param string $community
+     * @param string $oid
+     * @param bool   $cache
+     * @param bool   $nowait
+     * @return string
+     */
+    public function walk($ip, $community, $oid, $cache = true) {
+        switch ($this->mode) {
+            case 'system':
+                $result = $this->snmpWalkSystem($ip, $community, $oid, $cache);
+                break;
+
+            case 'native':
+                $result = $this->snmpWalkNative($ip, $community, $oid, $cache);
+                break;
+
+            case 'class':
+                $result = $this->snmpWalkClass($ip, $community, $oid, $cache);
+                break;
+
+            default :
+                throw new Exception(self::EX_NOT_IMPL);
+        }
+
+        return ($result);
+    }
 
     /**
      * Public SNMP set interface 
@@ -338,7 +424,7 @@ class SNMPHelper {
                 break;
 
             case 'class':
-                throw new Exception(self::EX_NOT_IMPL);
+                $result = $this->snmpSetClass($ip, $community, $data);
                 break;
 
             default :
