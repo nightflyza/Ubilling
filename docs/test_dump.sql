@@ -1364,7 +1364,7 @@ CREATE TABLE IF NOT EXISTS `switch_login` (
 `community` varchar(50) DEFAULT NULL,
 `enable` varchar(3) DEFAULT NULL,
 PRIMARY KEY (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
 ALTER TABLE `ukv_users` ADD `cableseal` VARCHAR(40) NULL AFTER `inetlogin`; 
