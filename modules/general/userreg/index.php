@@ -1,6 +1,6 @@
 <?php
 if(cfr('USERREG')) {
-    $alter_conf=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $alter_conf= $ubillingConfig->getAlter();
     
     if ((!isset($_POST['apt'])) AND (!isset($_POST['IP']))) {
     show_window(__('User registration step 1 (location)'),web_UserRegFormLocation());
