@@ -1,0 +1,13 @@
+#!/usr/local/bin/php
+<?php
+$login = $argv[1];
+$cfid = $argv[2];
+$config = parse_ini_file(dirname(__FILE__) . "/config");
+$link = mysql_connect($config['host'], $config['username'], $config['password']);
+mysql_select_db($config['database']);
+$query = 'SELECT * FROM `netextpools` WHERE `login`="' . $login . '"';
+$raw = mysql_query($query);
+while ($line2 = mysql_fetch_array($raw, MYSQL_ASSOC)) {
+    print($line2['pool'] . '/' . $line2['netmask'] . "\n");
+}
+?>

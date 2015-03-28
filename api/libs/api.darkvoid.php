@@ -36,15 +36,23 @@ class DarkVoid {
                 $updateCache = true;
             }
         } else {
-            $updateCache=true;
+            $updateCache = true;
         }
 
         if ($updateCache) {
-            //renew cache
-            $this->updateAlerts();
+            //ugly hack to prevent alerts update on tsms and watchdog modules
+            if (isset($_GET['module'])) {
+                if (($_GET['module'] != 'turbosms') AND ( $_GET['module'] != 'watchdog')) {
+                    //renew cache
+                    $this->updateAlerts();
+                }
+            } else {
+                //renew cache
+                $this->updateAlerts();
+            }
         } else {
             //read from cache
-            $this->alerts = file_get_contents($cacheName);
+            @$this->alerts = file_get_contents($cacheName);
         }
     }
 
@@ -104,13 +112,13 @@ class DarkVoid {
                 }
             }
         }
-        
+
         //check sms sending queue 
         if ($this->altCfg['WATCHDOG_ENABLED']) {
-            $smsQueueCount=  rcms_scandir(DATA_PATH.'tsms/');
+            $smsQueueCount = rcms_scandir(DATA_PATH . 'tsms/');
             $smsQueueCount = sizeof($smsQueueCount);
-            if ($smsQueueCount>0) {
-            $this->alerts.=wf_Link("?module=tsmsqueue", wf_img("skins/sms.png", $smsQueueCount.' '.__('SMS in queue')), false, '');
+            if ($smsQueueCount > 0) {
+                $this->alerts.=wf_Link("?module=tsmsqueue", wf_img("skins/sms.png", $smsQueueCount . ' ' . __('SMS in queue')), false, '');
             }
         }
 
@@ -169,7 +177,7 @@ class DarkVoid {
                     //ajax container end
                     $content.=wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s", $last_pingtime) . wf_tag('div', true);
 
-                    $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('Dead switches') . ': ' . $deadcount, __('Dead switches'), $content, '', '500', '400') . wf_tag('div',true);
+                    $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('Dead switches') . ': ' . $deadcount, __('Dead switches'), $content, '', '500', '400') . wf_tag('div', true);
                 } else {
                     $content.=wf_tag('div', false, '', 'id="switchping"') . __('Switches are okay, everything is fine - I guarantee') . wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s", $last_pingtime) . wf_tag('div', true);
                     $this->alerts.=wf_tag('div', false, 'ubButton') . wf_modal(__('All switches alive'), __('All switches alive'), $content, '', '500', '400') . wf_tag('div', true);
@@ -192,17 +200,17 @@ class DarkVoid {
     public function render() {
         return ($this->alerts);
     }
-    
+
     /**
      * Flushes all users alert cache
      * 
      * @return void
      */
     public function flushCache() {
-        $allCache=  rcms_scandir(self::CACHE_PATH,self::CACHE_PREFIX.'*', 'file');
+        $allCache = rcms_scandir(self::CACHE_PATH, self::CACHE_PREFIX . '*', 'file');
         if (!empty($allCache)) {
-            foreach ($allCache as $io=>$each) {
-                unlink(self::CACHE_PATH.$each);
+            foreach ($allCache as $io => $each) {
+                unlink(self::CACHE_PATH . $each);
             }
         }
     }

@@ -700,7 +700,7 @@ if (cfr('TURBOSMS')) {
         }
        
     } else {
-        show_window(__('Error'), __('TurboSMS support is disabled'));
+        show_error( __('TurboSMS support is disabled'));
     }
 } else {
     show_error(__('You cant control this module'));

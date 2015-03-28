@@ -70,15 +70,15 @@ if (cfr('CORPS')) {
                 $report = wf_TableBody($rows, '100%', 0, '');
                 show_window(__('Report'), $report);
             } else {
-                show_window(__('Error'), __('Nothing found'));
+                show_warning(__('Nothing found'));
             }
         } else {
-            show_window(__('Error'), __('No license key available'));
+            show_error(__('No license key available'));
         }
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error( __('This module is disabled'));
     }
 } else {
-    show_window(__('Error'), __('Access denied'));
+    show_error(__('Access denied'));
 }
 ?>
