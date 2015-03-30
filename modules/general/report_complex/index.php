@@ -108,35 +108,24 @@ if (cfr('REPORTCOMPLEX')) {
         }
 
         public function printable($data) {
-            $style = wf_tag('style', false, '', 'type="text/css"');
-            $style.='
-                    table.sortable {
-                    border-width: 1px;
-                    border-spacing: 2px;
-                    border-style: outset;
-                    border-color: gray;
-                    border-collapse: separate;
-                    background-color: white;
-                    }
-                    table.sortable th {
-                    border-width: 1px;
-                    padding: 1px;
-                    border-style: dashed;
-                    border-color: gray;
-                    background-color: white;
-                    -moz-border-radius: ;
-                    }
-                    table.sortable td {
-                    border-width: 1px;
-                    padding: 1px;
-                    border-style: dashed;
-                    border-color: gray;
-                    background-color: white;
-                    -moz-border-radius: ;
-                    }
-                ';
-            $style.= wf_tag('style', true);
-            $result = $style . $data;
+        $style = file_get_contents(CONFIG_PATH."ukvprintable.css");
+
+        $header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+        <head>                                                        
+        <title></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <style type="text/css">
+        ' . $style . '
+        </style>
+        <script src="modules/jsc/sorttable.js" language="javascript"></script>
+        </head>
+        <body>
+        ';
+
+        $footer = '</body> </html>';
+        
+        $result=$header.$data.$footer;
             return ($result);
         }
 
@@ -510,7 +499,7 @@ if (cfr('REPORTCOMPLEX')) {
             
             
         } else {
-            show_window(__('Error'), __('This module is disabled'));
+            show_error( __('This module is disabled'));
         }
     }
     
