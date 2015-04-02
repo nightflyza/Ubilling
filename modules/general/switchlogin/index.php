@@ -42,7 +42,7 @@ if ($altcfg['SWITCH_AUTOCONFIG']) {
             show_window('Switches',$megaForm);
 	}
         $new = new AutoConfigurator;
-        $show = $new->GetSwAllLogin();
+        $show = $new->ShowSwAllLogin();
 	if(isset($_POST['add'])) {
             if(isset($_POST['swmodel'])) { $model=$_POST['swmodel']; } else { show_error('No switch selected'); }
             if(isset($_POST['swlogin'])) { $login=trim(vf($_POST['swlogin'])); } else { $login=''; }
