@@ -1902,4 +1902,12 @@ $lang['def']['Path to snmpset binary path']='Шлях до системного 
 $lang['def']['SNMP operation mode']='Режим роботи з SNMP';
 $lang['def']['SNMP walk background mode']='Можливість фонового snmpwalk';
 
+//rev 4323
+$lang['def']['Alive switches']='Живі комутатори';
+$lang['def']['NP switches']='NP комутатори';
+$lang['def']['SWPOLL query']='SWPOLL опитування';
+$lang['def']['MTSIGMON devices']='MTSIGMON пристрої';
+$lang['def']['Placed on map']='Розміщені на карті';
+$lang['def']['Have uplinks']='Вказані аплінки';
+
 ?>

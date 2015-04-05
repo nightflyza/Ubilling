@@ -123,7 +123,7 @@ if (cfr('MTSIGMON')) {
             foreach ($allMonitoredDevices as $io => $eachdevice) {
                 $userCounter = 0;
                 $hostdata = $sigmon->deviceQuery($eachdevice['ip'], $eachdevice['community']);
-                $result.=wf_tag('h2', false) . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
+                $result.=wf_tag('h2', false).  wf_img('skins/wifi.png').' ' . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
                 $tablecells = wf_TableCell(__('Full address'));
                 $tablecells.= wf_TableCell(__('Real Name'));
                 $tablecells.= wf_TableCell(__('Tariff'));

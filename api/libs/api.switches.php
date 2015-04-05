@@ -288,7 +288,6 @@ function zb_SwitchesGetAll() {
     return ($allswitches);
 }
 
-
 /**
  * Returns array of all available switches with its full data ordered by location
  * 
@@ -488,6 +487,15 @@ function web_SwitchesShow() {
     $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
     $deathTime = zb_SwitchesGetAllDeathTime();
 
+    //counters
+    $countTotal = 0;
+    $countAlive = 0;
+    $countDead = 0;
+    $countNp = 0;
+    $countOnMap = 0;
+    $countSwpoll = 0;
+    $countMtsigmon = 0;
+    $countLinked = 0;
 
 
     //non realtime switches pinging
@@ -586,8 +594,8 @@ function web_SwitchesShow() {
     $tablecells.=wf_TableCell(__('Description'));
     $tablecells.=wf_TableCell(__('Actions'));
     $tablerows = wf_TableRow($tablecells, 'row1');
-    $lighter='onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
-    
+    $lighter = 'onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
+
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $eachswitch) {
             if (isset($dead_switches[$eachswitch['ip']])) {
@@ -598,15 +606,17 @@ function web_SwitchesShow() {
                 }
                 $aliveled = web_red_led($obituary);
                 $aliveflag = '0';
+                $countDead++;
             } else {
-                if (strpos($eachswitch['desc'], 'NP')===false) {
-                   $aliveled = web_green_led();
-                   $aliveflag = '1';
+                if (strpos($eachswitch['desc'], 'NP') === false) {
+                    $aliveled = web_green_led();
+                    $aliveflag = '1';
+                    $countAlive++;
                 } else {
-                   $aliveled = web_yellow_led();
-                   $aliveflag = '2';
+                    $aliveled = web_yellow_led();
+                    $aliveflag = '2';
+                    $countNp++;
                 }
-                
             }
 
 
@@ -628,17 +638,24 @@ function web_SwitchesShow() {
             if (cfr('SWITCHPOLL')) {
                 if ((!empty($eachswitch['snmp'])) AND ( ispos($eachswitch['desc'], 'SWPOLL'))) {
                     $switchcontrols.='&nbsp;' . wf_Link('?module=switchpoller&switchid=' . $eachswitch['id'], wf_img('skins/snmp.png', __('SNMP query')));
+                    $countSwpoll++;
                 }
             }
 
             if ($alterconf['SWYMAP_ENABLED']) {
                 if (!empty($eachswitch['geo'])) {
                     $switchcontrols.=wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
+                    $countOnMap++;
                 }
 
                 if (!empty($eachswitch['parentid'])) {
                     $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'] . '&showuplinks=true&traceid=' . $eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    $countLinked++;
                 }
+            }
+            
+            if (ispos($eachswitch['desc'], 'MTSIGMON')) {
+                $countMtsigmon++;
             }
 
             if ($alterconf['ADCOMMENTS_ENABLED']) {
@@ -649,9 +666,23 @@ function web_SwitchesShow() {
             $tablerows.=wf_tag('tr', false, 'row3', $lighter);
             $tablerows.=$tablecells;
             $tablerows.=wf_tag('tr', true);
+            $countTotal++;
         }
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+
+    $result.=wf_img('skins/icon_active.gif') . ' ' . __('Alive switches') . ' - ' . ($countAlive+$countNp).' ('.$countAlive.'+'.$countNp.')' . wf_tag('br');
+    $result.=wf_img('skins/icon_inactive.gif') . ' ' . __('Dead switches') . ' - ' . $countDead . wf_tag('br');
+    $result.=wf_img('skins/yellow_led.png') . ' ' . __('NP switches') . ' - ' . $countNp . wf_tag('br');
+    $result.=wf_img('skins/snmp.png') . ' ' . __('SWPOLL query') . ' - ' . $countSwpoll . wf_tag('br');
+    $result.=wf_img('skins/wifi.png') . ' ' . __('MTSIGMON devices') . ' - ' . $countMtsigmon . wf_tag('br');
+    
+    $result.=wf_img('skins/icon_search_small.gif') . ' ' . __('Placed on map') . ' - ' . $countOnMap . wf_tag('br');
+    $result.=wf_img('skins/ymaps/uplinks.png') . ' ' . __('Have uplinks') . ' - ' . $countLinked . wf_tag('br');
+    
+    $result.=wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');
+
+
     return ($result);
 }
 

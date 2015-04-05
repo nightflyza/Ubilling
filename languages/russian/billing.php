@@ -1887,8 +1887,19 @@ $lang['def']['SNMP options']='Настройки SNMP';
 $lang['def']['Path to snmpset binary path']='Путь к системному snmpset';
 $lang['def']['SNMP operation mode']='Режим работы с SNMP';
 $lang['def']['SNMP walk background mode']='Возможность фонового snmpwalk';
+
+//rev 4323
+$lang['def']['Alive switches']='Живые свитчи';
+$lang['def']['NP switches']='NP свитчи';
+$lang['def']['SWPOLL query']='SWPOLL опрос';
+$lang['def']['MTSIGMON devices']='MTSIGMON устройства';
+$lang['def']['Placed on map']='Размещены на карте';
+$lang['def']['Have uplinks']='Указаны аплинки';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 ?>
