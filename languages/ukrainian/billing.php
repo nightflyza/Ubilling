@@ -1908,6 +1908,9 @@ $lang['def']['NP switches']='NP комутатори';
 $lang['def']['SWPOLL query']='SWPOLL опитування';
 $lang['def']['MTSIGMON devices']='MTSIGMON пристрої';
 $lang['def']['Placed on map']='Розміщені на карті';
-$lang['def']['Have uplinks']='Вказані аплінки';
+$lang['def']['Have uplinks']='Вказано аплінки';
+$lang['def']['Mini-map']='Міні-карта';
+$lang['def']['Downlinks']='Даунлінки';
+
 
 ?>

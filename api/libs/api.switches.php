@@ -252,13 +252,90 @@ function web_SwitchFormAdd() {
 }
 
 /**
+ * Returns switch mini-map
+ * 
+ * @param array $switchdata
+ * @return string
+ */
+function web_SwitchMiniMap($switchdata) {
+    global $ubillingConfig;
+    $ymconf = $ubillingConfig->getYmaps();
+    $result = '';
+    $result.= wf_tag('div', false, '', 'id="swmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
+    $result.=wf_delimiter();
+    $placemarks = sm_MapDrawSwitches();
+    $placemarks.=sm_MapDrawSwitchUplinks();
+    $radius = 30;
+    $area = sm_MapAddCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
+    $result.= sm_MapInitQuiet($switchdata['geo'], $ymconf['FINDING_ZOOM'], $ymconf['TYPE'], $area . $placemarks, '', $ymconf['LANG']);
+    $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+    return ($result);
+}
+
+/**
+ * Returns list of all available downlink switches
+ * 
+ * @param int $switchId
+ * 
+ * @return string
+ */
+function web_SwitchDownlinksList($switchId) {
+    $switchId = vf($switchId, 3);
+    $all = zb_SwitchesGetAll();
+    $downlinks = array();
+    $result = '';
+    if (!empty($all)) {
+        if (!empty($switchId)) {
+            foreach ($all as $io => $each) {
+                if ($each['parentid'] == $switchId) {
+                    $downlinks[$each['id']] = $each;
+                }
+            }
+        }
+    }
+
+    if (!empty($downlinks)) {
+        $allModels=  zb_SwitchModelsGetAllTag();
+        $cells = wf_TableCell(__('ID'));
+        $cells.=wf_TableCell(__('IP'));
+        $cells.=wf_TableCell(__('Location'));
+        $cells.=wf_TableCell(__('Model'));
+        $cells.=wf_TableCell(__('SNMP community'));
+        $cells.=wf_TableCell(__('Geo location'));
+        $cells.=wf_TableCell(__('Description'));
+        $cells.=wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+        foreach ($downlinks as $io => $each) {
+            $cells = wf_TableCell($each['id']);
+            $cells.=wf_TableCell($each['ip']);
+            $cells.=wf_TableCell($each['location']);
+            $cells.=wf_TableCell(@$allModels[$each['modelid']]);
+            $cells.=wf_TableCell($each['snmp']);
+            $cells.=wf_TableCell($each['geo']);
+            $cells.=wf_TableCell($each['desc']);
+            $actLinks=  wf_Link('?module=switches&edit='.$each['id'], web_edit_icon(),false);
+            $cells.=wf_TableCell($actLinks);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+
+        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        show_window(__('Downlinks'),$result);
+    }
+
+    
+}
+
+/**
  * Returns switch edit form for some existing device ID
  * 
  * @param int $switchid
  * @return string
  */
 function web_SwitchEditForm($switchid) {
+    global $ubillingConfig;
     $switchid = vf($switchid, 3);
+    $altCfg = $ubillingConfig->getAlter();
+    $result = '';
     $allswitchmodels = zb_SwitchModelsGetAllTag();
     $switchdata = zb_SwitchGetData($switchid);
 
@@ -272,7 +349,12 @@ function web_SwitchEditForm($switchid) {
     $editinputs.= wf_tag('br');
 
     $editinputs.=wf_Submit('Save');
-    $result = wf_Form('', 'POST', $editinputs, 'glamour');
+    $result.= wf_Form('', 'POST', $editinputs, 'glamour');
+    $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+
+    $result.=wf_delimiter();
+    $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
+
 
     return ($result);
 }
@@ -630,7 +712,7 @@ function web_SwitchesShow() {
             $tablecells.=wf_TableCell($eachswitch['desc']);
             $switchcontrols = '';
             if (cfr('SWITCHESEDIT')) {
-                $switchcontrols.=wf_JSAlert('?module=switches&switchdelete=' . $eachswitch['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+                //$switchcontrols.=wf_JSAlert('?module=switches&switchdelete=' . $eachswitch['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
                 $switchcontrols.=wf_Link('?module=switches&edit=' . $eachswitch['id'], web_edit_icon());
             }
 
@@ -653,7 +735,7 @@ function web_SwitchesShow() {
                     $countLinked++;
                 }
             }
-            
+
             if (ispos($eachswitch['desc'], 'MTSIGMON')) {
                 $countMtsigmon++;
             }
@@ -671,15 +753,15 @@ function web_SwitchesShow() {
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
 
-    $result.=wf_img('skins/icon_active.gif') . ' ' . __('Alive switches') . ' - ' . ($countAlive+$countNp).' ('.$countAlive.'+'.$countNp.')' . wf_tag('br');
+    $result.=wf_img('skins/icon_active.gif') . ' ' . __('Alive switches') . ' - ' . ($countAlive + $countNp) . ' (' . $countAlive . '+' . $countNp . ')' . wf_tag('br');
     $result.=wf_img('skins/icon_inactive.gif') . ' ' . __('Dead switches') . ' - ' . $countDead . wf_tag('br');
     $result.=wf_img('skins/yellow_led.png') . ' ' . __('NP switches') . ' - ' . $countNp . wf_tag('br');
     $result.=wf_img('skins/snmp.png') . ' ' . __('SWPOLL query') . ' - ' . $countSwpoll . wf_tag('br');
     $result.=wf_img('skins/wifi.png') . ' ' . __('MTSIGMON devices') . ' - ' . $countMtsigmon . wf_tag('br');
-    
+
     $result.=wf_img('skins/icon_search_small.gif') . ' ' . __('Placed on map') . ' - ' . $countOnMap . wf_tag('br');
     $result.=wf_img('skins/ymaps/uplinks.png') . ' ' . __('Have uplinks') . ' - ' . $countLinked . wf_tag('br');
-    
+
     $result.=wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');
 
 

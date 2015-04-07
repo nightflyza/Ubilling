@@ -174,7 +174,7 @@ class GlobalMenu {
                     //table headers
                     if (!isset($tmpArr[$each['CATEGORY']])) {
                         $formCells = wf_TableCell(__('Module'), '50%');
-                        $formCells.= wf_TableCell(__('Disabled'));
+                        $formCells.= wf_TableCell(__('Hidden'));
                         $formCells.= wf_TableCell(__('Fast access'));
                         $formRows = wf_TableRow($formCells, 'row1');
                         $tmpArr[$each['CATEGORY']] = $formRows;

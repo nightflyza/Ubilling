@@ -24,6 +24,7 @@ if (isset($_GET['cronping'])) {
 
 
 if (cfr('SWITCHES')) {
+    $altCfg = $ubillingConfig->getAlter();
 
 //switch adding
     if (isset($_POST['newswitchmodel'])) {
@@ -67,8 +68,8 @@ if (cfr('SWITCHES')) {
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
         $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
 
-        $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
-        if ($alter_conf['SWYMAP_ENABLED']) {
+
+        if ($altCfg['SWYMAP_ENABLED']) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
 
@@ -108,13 +109,12 @@ if (cfr('SWITCHES')) {
     } else {
         //editing switch form
         $switchid = vf($_GET['edit'], 3);
-      
-      
+        $switchdata = zb_SwitchGetData($switchid);
+
 
         //if someone edit switch 
         if (wf_CheckPost(array('editmodel'))) {
             if (cfr('SWITCHESEDIT')) {
-                $switchdata = zb_SwitchGetData($switchid);
                 simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
@@ -122,8 +122,8 @@ if (cfr('SWITCHES')) {
                 simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'geo', $_POST['editgeo'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
-                log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation']."`");
-                rcms_redirect("?module=switches");
+                log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
+                rcms_redirect("?module=switches&edit=" . $switchid);
             } else {
                 show_window(__('Error'), __('Access denied'));
             }
@@ -131,9 +131,18 @@ if (cfr('SWITCHES')) {
 
         //render switch edit form
         show_window(__('Edit switch'), web_SwitchEditForm($switchid));
+        //minimap container
+        if ($altCfg['SWYMAP_ENABLED']) {
+            if (!empty($switchdata['geo'])) {
+                show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
+            }
+        }
+
+        //downlinks list
+        web_SwitchDownlinksList($switchid);
+
 
         //additional comments engine
-        $altCfg = $ubillingConfig->getAlter();
         if ($altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('SWITCHES');
             show_window(__('Additional comments'), $adcomments->renderComments($switchid));

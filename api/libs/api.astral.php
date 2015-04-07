@@ -663,6 +663,21 @@ function wf_JSAlert($url, $title, $alerttext) {
 }
 
 /**
+ * Returns JS confirmation url with some applied class
+ * 
+ * @param string $url URL if confirmed
+ * @param string $title link title
+ * @param string $alerttext alert text
+ * @return string
+ *  
+ */
+function wf_JSAlertStyled($url, $title, $alerttext,$class='') {
+    $class=(!empty($class)) ? 'class="'.$class.'"' : '';
+    $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" '.$class.'>' . $title . '</a>';
+    return ($result);
+}
+
+/**
  * Returns filled paginator
  * 
  * @param int $total Total items count
