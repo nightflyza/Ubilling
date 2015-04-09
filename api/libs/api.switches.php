@@ -264,7 +264,7 @@ function web_SwitchMiniMap($switchdata) {
     $result.= wf_tag('div', false, '', 'id="swmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
     $result.=wf_delimiter();
     $placemarks = sm_MapDrawSwitches();
-    $placemarks.=sm_MapDrawSwitchUplinks();
+    $placemarks.=sm_MapDrawSwitchUplinks($switchdata['id']);
     $radius = 30;
     $area = sm_MapAddCircle($switchdata['geo'], $radius, __('Search area radius') . ' ' . $radius . ' ' . __('meters'), __('Search area'));
     $result.= sm_MapInitQuiet($switchdata['geo'], $ymconf['FINDING_ZOOM'], $ymconf['TYPE'], $area . $placemarks, '', $ymconf['LANG']);

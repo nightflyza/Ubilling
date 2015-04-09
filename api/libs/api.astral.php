@@ -671,9 +671,9 @@ function wf_JSAlert($url, $title, $alerttext) {
  * @return string
  *  
  */
-function wf_JSAlertStyled($url, $title, $alerttext,$class='') {
-    $class=(!empty($class)) ? 'class="'.$class.'"' : '';
-    $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" '.$class.'>' . $title . '</a>';
+function wf_JSAlertStyled($url, $title, $alerttext, $class = '') {
+    $class = (!empty($class)) ? 'class="' . $class . '"' : '';
+    $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
     return ($result);
 }
 
@@ -1755,6 +1755,16 @@ function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false
         $result.= wf_tag('br');
     }
 
+    return ($result);
+}
+
+/**
+ * Returns div with styles cleanup
+ * 
+ * @return string
+ */
+function wf_CleanDiv() {
+    $result = wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
     return ($result);
 }
 
