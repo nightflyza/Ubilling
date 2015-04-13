@@ -1478,7 +1478,7 @@ function zbs_AnnouncementsNotice() {
     $result='';
     if (zbs_AnnouncementsAvailable()) {
         $cells=  la_TableCell(la_Link('?module=announcements', la_img('iconz/alert.gif'), true, ''));
-        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements is available'), true, ''));
+        $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, ''));
         $rows= la_TableRow($cells);
         $result.=la_TableBody($rows, '70%', 0, '');
         show_window('', $result);

@@ -135,7 +135,7 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed,$tc_priceup,$tc_pricedo
     $user_tariff=zbs_UserGetTariff($login);
     $alltariffs=zbs_TariffGetAllPrices();
     $form='
-        '.__('You current tariff is').': '.__($user_tariff).' '.__('with monthly fee').' '.$alltariffs[$user_tariff].' '.$us_currency.'<br>
+        '.__('Your current tariff is').': '.__($user_tariff).' '.__('with monthly fee').' '.$alltariffs[$user_tariff].' '.$us_currency.'<br>
         '.__('The cost of switching to a lower rate monthly fee').': '.$tc_pricedown.' '.$us_currency.'<br>
         '.__('The cost of switching to a higher monthly fee tariff').': '.$tc_priceup.' '.$us_currency.'<br>
         '.__('The cost of the transition rate for the same monthly fee').': '.$tc_pricesimilar.' '.$us_currency.'<br>
@@ -211,7 +211,7 @@ if ($tc_enabled) {
         show_window(__('Sorry'),__('You already have planned tariff change'));
     }
  } else {
-        show_window(__('Sorry'),__('Your current tariff does not provide an independent tariff change'));
+        show_window(__('Sorry'),__('Your current tariff does not allow tariff change on your own'));
  }
  //end of TC enabled check
  

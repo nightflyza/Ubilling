@@ -32,7 +32,7 @@ function zbs_AnnouncementsShow() {
             
         }
     } else {
-        show_window(__('Sorry'), __('Do not have any announcements.'));
+        show_window(__('Sorry'), __('There are not any announcements.'));
     }
     
     show_window('',$result);

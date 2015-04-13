@@ -31,7 +31,7 @@ if ($us_config['ZL_ENABLED']) {
     }
 
 } else {
-     show_window(__('Sorry'),__('Unfortunately downloads is now disabled'));
+     show_window(__('Sorry'),__('Unfortunately downloads are now disabled'));
 }
 
 ?>

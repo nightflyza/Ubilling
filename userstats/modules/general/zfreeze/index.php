@@ -54,7 +54,7 @@ if ($us_config['AF_ENABLED']) {
                  $af_form.='<input type="checkbox" name="afagree">';
                  $af_form.=__('I am sure that I am an adult and have read everything that is written above');
                  $af_form.='<input type="hidden" name="dofreeze" value="true"> <br><br>';
-                 $af_form.='<input type="submit" value="'.__('I want freeze my account right now').'">';
+                 $af_form.='<input type="submit" value="'.__('I want to freeze my account right now').'">';
                  $af_form.='</form>';
                  show_window('',$af_form);
                  }
@@ -68,7 +68,7 @@ if ($us_config['AF_ENABLED']) {
          }
          
      } else {
-         show_window(__('Sorry'),__('For your service plan does not provide this service'));
+         show_window(__('Sorry'),__('Your tariff does not provide this service'));
      }
      
     

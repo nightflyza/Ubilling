@@ -120,7 +120,7 @@ if ($pc_enabled) {
       show_window(__('Error'),__('Sorry, but you have a limit number of attempts'));
     }
 } else {
-    show_window(__('Sorry'), __('Payment cards not enabled at this moment'));
+    show_window(__('Sorry'), __('Payment cards are disabled at this moment'));
 }
 
 

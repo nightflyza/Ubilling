@@ -15,7 +15,7 @@ function zbs_ShowCreditForm() {
     $inputs.= la_HiddenInput('setcredit', 'true');
     $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
     $inputs.= la_delimiter();
-    $inputs.= la_Submit(__('Take me credit please'));
+    $inputs.= la_Submit(__('Set me credit please'));
     $inputs.= la_tag('center', true);
     $form = la_Form("", 'POST', $inputs, '');
 
@@ -125,7 +125,7 @@ $cday=date("d");
 
 //welcome message
 $wmess=__('If you wait too long to pay for the service, here you can get credit for').' '.$sc_term.' '.__('days. The price of this service is').': '.$sc_price.' '.$us_currency.'. ';
-$wmess.= __('Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
+$wmess.= __('Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
 show_window(__('Credits'),$wmess);
  
 //if day is something like that needed
@@ -167,11 +167,11 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
             
             } else {
                 //to many money
-                show_window(__('Sorry'),__('Sorry sum of money in the account is enought for use service without credit'));
+                show_window(__('Sorry'),__('Sorry, sum of money in the account is enought to use service without credit'));
             }
             } else {
                 //no use self credit
-                show_window(__('Sorry'),__('Sorry sum of money in the account does not allow to continue working in the credit'));
+                show_window(__('Sorry'),__('Sorry, your debt does not allow to continue working in the credit'));
             }
           
             } else {
@@ -188,7 +188,7 @@ if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
  
     
 } else {
-    show_window(__('Sorry'),__('You can take a credit only between').' '.$sc_minday.__(' and ').$sc_maxday.' '.__('days of month'));
+    show_window(__('Sorry'),__('You can take a credit only between').' '.$sc_minday.__(' and ').$sc_maxday.' '.__('days of the month'));
 }
     
     

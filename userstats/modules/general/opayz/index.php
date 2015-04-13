@@ -44,7 +44,7 @@ if (!empty ($paysys)) {
 
     
 } else {
-    show_window(__('Sorry'),__('Unfortunately online payments is disabled'));
+    show_window(__('Sorry'),__('Unfortunately online payments are disabled'));
 }
 
 ?>

@@ -39,15 +39,15 @@ $lang['def']['Sorry'] = 'Извините';
 $lang['def']['You already have a credit'] = 'У вас уже установлен кредитный лимит';
 $lang['def']['You can take a credit only between'] = 'Вы можете воспользоваться этой услугой только между';
 $lang['def'][' and '] = ' и ';
-$lang['def']['days of month'] = 'числами месяца';
+$lang['def']['days of the month'] = 'числами месяца';
 $lang['def']['Unfortunately self credits is disabled'] = 'К сожелению услуга кредитирования сейчас отключена';
 $lang['def']['I am sure that I am an adult and have read everything that is written above'] = 'Я уверен в том, что являюсь совершеннолетним а также внимательно прочитал все что написано выше и согласен с условиями.';
-$lang['def']['Take me credit please'] = 'Пустите меня в кредит пожалуйста';
+$lang['def']['Set me credit please'] = 'Пустите меня в кредит пожалуйста';
 $lang['def']['Error'] = 'Ошибка';
 $lang['def']['You must accept our policy'] = 'Вы должны согласиться с условиями выше';
 $lang['def']['Now you have a credit'] = 'Теперь вы можете продолжить работу в кредит';
 
-$lang['def']['You current tariff is'] = 'Ваш текущий тариф';
+$lang['def']['Your current tariff is'] = 'Ваш текущий тариф';
 $lang['def']['The cost of switching to a lower rate monthly fee'] = 'Стоимость перехода на тариф с меньшей стоимостью';
 $lang['def']['The cost of switching to a higher monthly fee tariff'] = 'Стоимость перехода на тариф с большей стоимостью';
 $lang['def']['The cost of the transition rate for the same monthly fee'] = 'Стоимость перехода на тариф с одинаковой стоимостью';
@@ -63,17 +63,17 @@ $lang['def']['Payment cards'] = 'Платежные карты';
 $lang['def']['Payment card number'] = 'Номер карточки';
 $lang['def']['Payment card invalid'] = 'Неверный номер';
 $lang['def']['Sorry, but you have a limit number of attempts'] = 'Извините но вы исчерпали количество попыток';
-$lang['def']['Payment cards not enabled at this moment'] = 'Карточные платежи сейчас отключены';
+$lang['def']['Payment cards are disabled at this moment'] = 'Карточные платежи сейчас отключены';
 $lang['def']['Use this card'] = 'Использовать карточку';
 
 $lang['def']['Error: Cookies and JavaScript must be enabled!'] = 'Ошибка: куки и яваскрипт должны быть включены!';
 $lang['def']['Payment ID'] = 'Платежный ID';
 $lang['def']['Language'] = 'Язык';
 $lang['def']['Online payments'] = 'Онлайн платежи';
-$lang['def']['Unfortunately online payments is disabled'] = 'К сожалению интеграция с OpenPayz сейчас отключена';
+$lang['def']['Unfortunately online payments are disabled'] = 'К сожалению интеграция с OpenPayz сейчас отключена';
 $lang['def']['No available payment systems'] = 'Платежные системы не определены';
 
-$lang['def']['Ticketing'] = 'Помощь';
+$lang['def']['Help Desk'] = 'Помощь';
 $lang['def']['Help request'] = 'Запрос в техническую поддержку';
 $lang['def']['Previous help requests'] = 'Предыдущие запросы помощи';
 $lang['def']['Post'] = 'Отослать';
@@ -87,15 +87,15 @@ $lang['def']['No such ticket'] = 'Нету такого тикета';
 $lang['def']['Reply'] = 'Ответить';
 $lang['def']['Messages from administration'] = 'Сообщения от администрации';
 $lang['def']['Message'] = 'Сообщение';
-$lang['def']['Sorry sum of money in the account does not allow to continue working in the credit'] = 'Извините сумма денег на счету не позволяет продолжить работу в кредит';
-$lang['def']['Your current tariff does not provide an independent tariff change'] = 'Ваш текущий тарифный план не предусматривает самостоятельную смену тарифа';
+$lang['def']['Sorry, your debt does not allow to continue working in the credit'] = 'Извините сумма денег на счету не позволяет продолжить работу в кредит';
+$lang['def']['Your current tariff does not allow tariff change on your own'] = 'Ваш текущий тарифный план не предусматривает самостоятельную смену тарифа';
 $lang['def']['Login with your account'] = 'Введите свои учетные данные';
 $lang['def']['Enter'] = 'Войти';
 $lang['def']['Logout'] = 'Выйти';
 $lang['def']['Speed test'] = 'Тест скорости';
 $lang['def']['Unfortunately speedtest is now disabled'] = 'К сожалению тест скорости сейчас отключен';
 $lang['def']['Downloads'] = 'Загрузки';
-$lang['def']['Unfortunately downloads is now disabled'] = 'К сожалению раздел закачек сейчас отключен';
+$lang['def']['Unfortunately downloads are now disabled'] = 'К сожалению раздел закачек сейчас отключен';
 $lang['def']['Tariff price'] = 'Стоимость тарифа';
 
 $lang['def']['Account state'] = 'Состояние счета';
@@ -106,10 +106,10 @@ $lang['def']['Account freezing'] = 'Заморозка счета';
 $lang['def']['Unfortunately account freeze is now disabled'] = 'К сожалению заморозка счета сейчас отключена';
 $lang['def']['Service "account freeze" will allow you to suspend the charge of the monthly fee during your long absence - such as holidays or vacations. The cost of this service is:'] = 'Услуга "заморозка счета" позволит вам приостановить начисление месячной абонплаты за услуги на время вашего длительного отсутствия - например отпуска или каникул. Стоимость этой услуги составляет:';
 $lang['def']['Be aware that access to the network will be limited to immediately after you confirm your desire to freeze the account. To unfreeze the account you need to contact the nearest office.'] = 'Будьте внимательны, доступ к сети будет ограничен сразу после подтверждения вами своего желания заморозить счет. Для разморозки счета  вам необходимо обратиться в наше ближайшее представительство.';
-$lang['def']['For your service plan does not provide this service'] = 'Для вашего тарифного плана не предусмотрено использование данной услуги';
+$lang['def']['Your tariff does not provide this service'] = 'Для вашего тарифного плана не предусмотрено использование данной услуги';
 $lang['def']['Your account is now a negative amount'] = 'На вашем счету сейчас отрицательная сумма';
 $lang['def']['Your account has been frozen'] = 'Ваш счет уже заморожен';
-$lang['def']['I want freeze my account right now'] = 'Я хочу заморозить свой счет прямо сейчас';
+$lang['def']['I want to freeze my account right now'] = 'Я хочу заморозить свой счет прямо сейчас';
 
 $lang['def']['CaTV'] = 'КТВ';
 $lang['def']['No CaTV account associated with your Internet service'] = 'Нету учетной записи КТВ ассоциированной с вашим сервисом Интернет';
@@ -156,7 +156,7 @@ $lang['def']['indebtedness!'] = 'задолженность!';
 $lang['def']['Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals'] = 'Платежный ID используется, для совершения онлайн-платежей посредством различных платежных систем, а также для пополнения счета при помощи терминалов';
 $lang['def']['Public offer'] = 'Договор публичной оферты';
 
-$lang['def']['Sorry sum of money in the account is enought for use service without credit']='Сума средств на вашем счету, достаточна для того, чтобы продолжить использование услуги без кредита';
+$lang['def']['Sorry, sum of money in the account is enought to use service without credit']='Сума средств на вашем счету, достаточна для того, чтобы продолжить использование услуги без кредита';
 
 $lang['def']['Documents'] = 'Документы';
 $lang['def']['Unfortunately documents printing is now disabled'] = 'К сожалению, печать документов сейчас отключена';
@@ -174,12 +174,12 @@ $lang['def']['Previous documents'] = 'Предыдущие документы';
 $lang['def']['No such document'] = 'Нету такого документа';
 $lang['def']['Not existing template'] = 'Нету такого шаблона';
  
-$lang['def']['Also promising us you pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Также вы обязываетесь оплатить услуги за текущий месяц в соответствии с вашим тарифным планом. Дополнительные услуги не подлежат кредитованию.';
+$lang['def']['Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Также вы обязываетесь оплатить услуги за текущий месяц в соответствии с вашим тарифным планом. Дополнительные услуги не подлежат кредитованию.';
 
 $lang['def']['You already used credit feature in current month. Only one usage per month is allowed.']='Вы уже использовали функцию кредитования в текущем месяце. Использование кредита доступно только раз в месяц.';
 $lang['def']['Announcements'] = 'Объявления';
-$lang['def']['Do not have any announcements.'] = 'На данный момент нету никаких объявлений.';
-$lang['def']['Some announcements is available'] = 'Доступны важные объявления';
+$lang['def']['There are not any announcements.'] = 'На данный момент нету никаких объявлений.';
+$lang['def']['Some announcements are available'] = 'Доступны важные объявления';
 $lang['def']['This module is disabled'] = 'Этот модуль сейчас отключен';
 
 $lang['def']['Mark as read'] = 'Пометить как прочитанное';
