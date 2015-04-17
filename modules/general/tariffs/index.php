@@ -349,7 +349,9 @@ if (cfr('TARIFFS')) {
     if (isset($_GET['action'])) {
         if (isset($_GET['tariffname'])) {
             $tariffname = $_GET['tariffname'];
+            
             if ($_GET['action'] == 'delete') {
+                if (!zb_TariffProtected($tariffname)) {
                 $billing->deletetariff($tariffname);
                 log_register("TARIFF DELETE `".$tariffname."`");
                 zb_LousyTariffDelete($tariffname);
@@ -357,6 +359,11 @@ if (cfr('TARIFFS')) {
                 $dshaper=new DynamicShaper();
                 $dshaper->flushTariff($tariffname);
                 rcms_redirect('?module=tariffs');
+                } else {
+                    log_register("TARIFF DELETE TRY USED `".$tariffname."`");
+                    show_error(__('Tariff is used by some users'));
+                    show_window('', wf_Link('?module=tariffs', __('Back'), true, 'ubButton'));
+                }
             }
 
             if ($_GET['action'] == 'edit') {

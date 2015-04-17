@@ -351,6 +351,7 @@ class UsProfileDocuments {
     public function setCustomFields() {
         $pdvPercent = $this->altcfg['DOCX_NDS'];
         if (la_CheckPost(array('customfields'))) {
+            $morph= new UBMorph();
             @$this->customFields['CUSTDATE'] = $_POST['customdate'];
             @$this->customFields['CUSTREALNAME'] = $_POST['customrealname'];
             @$this->customFields['CUSTPHONE'] = $_POST['customphone'];
@@ -362,7 +363,8 @@ class UsProfileDocuments {
             @$pdv = ($this->customFields['CUSTSUM'] / 100) * $pdvPercent;
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
-            $this->customFields['CUSTSUMPDVLIT'] = zbs_num2str($this->customFields['CUSTSUMPDV']);
+            @$this->customFields['CUSTSUMLIT']=  $morph->sum2str($this->customFields['CUSTSUM']);
+            @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
         }
     }
 

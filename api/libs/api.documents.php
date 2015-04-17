@@ -474,6 +474,7 @@ class ProfileDocuments {
         //ugly debug code
         $pdvPercent = $this->altcfg['DOCX_NDS'];
         if (wf_CheckPost(array('customfields'))) {
+            $morph=new UBMorph();
             @$this->customFields['CUSTDATE'] = $_POST['customdate'];
             @$this->customFields['CUSTREALNAME'] = $_POST['customrealname'];
             @$this->customFields['CUSTPHONE'] = $_POST['customphone'];
@@ -484,8 +485,8 @@ class ProfileDocuments {
             @$pdv = ($this->customFields['CUSTSUM'] / 100) * $pdvPercent;
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
-            @$this->customFields['CUSTSUMPDVLIT'] = num2str($this->customFields['CUSTSUMPDV']);
-            @$this->customFields['CUSTSUMLIT']= num2str($this->customFields['CUSTSUM']);
+            @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
+            @$this->customFields['CUSTSUMLIT']= $morph->sum2str($this->customFields['CUSTSUM']);
             
             if ($this->altcfg['CORPS_ENABLED']) {
                 //corporate user fields

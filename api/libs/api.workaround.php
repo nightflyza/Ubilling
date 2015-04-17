@@ -4222,3 +4222,16 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
     return($xml_array);
 }
 
+/**
+ * Checks is tariff protected by some user usage?
+ * 
+ * @param string $tariffname    Existing stargazer tariff name
+ * @return bool
+ */
+function zb_TariffProtected($tariffname) {
+    $tariffname=  mysql_real_escape_string($tariffname);
+    $query="SELECT `login` from `users` WHERE `Tariff`='".$tariffname."' OR `TariffChange`='".$tariffname."' LIMIT 1;";
+    $raw=  simple_query($query);
+    $result=(empty($raw)) ? false : true;
+    return ($result);
+}

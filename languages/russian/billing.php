@@ -1897,9 +1897,8 @@ $lang['def']['Placed on map']='Размещены на карте';
 $lang['def']['Have uplinks']='Указаны аплинки';
 $lang['def']['Mini-map']='Мини-карта';
 $lang['def']['Downlinks']='Даунлинки';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
+
 
 
 ?>

@@ -4,14 +4,12 @@
  * Yandex maps API implementation
  */
 
-/*
- * 
+/**
  * Shows map container
  *
- * @return nothing
+ * @return void
  *  
  */
-
 function sm_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="swmap" style="width: 1000; height:800px;"');
     $container.=wf_tag('div', true);
@@ -28,14 +26,11 @@ function sm_ShowMapContainer() {
     show_window(__('Active equipment map'), $controls . $container);
 }
 
-/*
- * 
+/**
  * Shows map container for builds
  *
- * @return nothing
- *  
+ * @return void
  */
-
 function um_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="swmap" style="width: 1000; height:800px;"');
     $container.=wf_tag('div', true);
@@ -52,16 +47,13 @@ function um_ShowMapContainer() {
     show_window(__('Builds and users map'), $controls . $container);
 }
 
-/*
+/**
+ * Returns bad icon class
  * 
- * Return bad icon class
- * 
- * @param $stretchy - icon resizable by content?
+ * @param bool $stretchy - icon resizable by content?
  * 
  * @return string
- *  
  */
-
 function sm_MapBadIcon($stretchy = true) {
     if ($stretchy) {
         return ('twirl#redStretchyIcon');
@@ -70,16 +62,13 @@ function sm_MapBadIcon($stretchy = true) {
     }
 }
 
-/*
+/**
+ * Returns good icon class
  * 
- * Return good icon class
- * 
- * @param $stretchy - icon resizable by content?
+ * @param bool $stretchy - icon resizable by content?
  * 
  * @return string
- *  
  */
-
 function sm_MapGoodIcon($stretchy = true) {
     if ($stretchy) {
         return ('twirl#lightblueStretchyIcon');
@@ -88,16 +77,13 @@ function sm_MapGoodIcon($stretchy = true) {
     }
 }
 
-/*
+/**
+ * Returns build icon class 
  * 
- * Return build icon class 
- * 
- * @param $usersCount - count of users in building
+ * @param int $usersCount - count of users in building
  * 
  * @return string
- *  
  */
-
 function um_MapBuildIcon($usersCount) {
     if ($usersCount < 3) {
         $iconClass = 'twirl#houseIcon';
@@ -111,12 +97,11 @@ function um_MapBuildIcon($usersCount) {
     return ($iconClass);
 }
 
-/*
- * Return form for placing switch to selected coordinates
+/**
+ * Returns form for placing switch to selected coordinates
  * 
  * @return string
  */
-
 function sm_MapLocationSwitchForm() {
     $query = "SELECT * from `switches` WHERE `geo`='' AND `desc` NOT LIKE '%NP%'";
     $allNoGeoSwitches = simple_queryall($query);
@@ -138,12 +123,11 @@ function sm_MapLocationSwitchForm() {
     return ($result);
 }
 
-/*
- * Return form for placing switch to selected coordinates
+/**
+ * Returns form for placing switch to selected coordinates
  * 
  * @return string
  */
-
 function um_MapLocationBuildForm() {
     $query = "SELECT * from `build` WHERE `geo` IS NULL OR `geo`='' ORDER by `streetid`";
     $allNoGeoBuilds = simple_queryall($query);
@@ -173,14 +157,11 @@ function um_MapLocationBuildForm() {
     return ($result);
 }
 
-/*
- * 
- * Return geo coordinates locator
+/**
+ * Returns geo coordinates locator
  * 
  * @return string
- *  
  */
-
 function sm_MapLocationFinder() {
 
     $result = '
@@ -204,14 +185,11 @@ function sm_MapLocationFinder() {
     return ($result);
 }
 
-/*
- * 
+/**
  * Return geo coordinates locator for builds
  * 
  * @return string
- *  
  */
-
 function um_MapLocationFinder() {
     $buildSelector = str_replace("'", '`', um_MapLocationBuildForm());
     $buildSelector = str_replace("\n", '', $buildSelector);
@@ -247,10 +225,8 @@ function um_MapLocationFinder() {
  * @param $editor - field for visual editor or geolocator
  * @param $lang - map language in format ru-RU
  * 
- * @return nothing
- *  
+ * @return void
  */
-
 function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     if (empty($center)) {
         $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
@@ -313,10 +289,8 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
  * @param $editor - field for visual editor or geolocator
  * @param $lang - map language in format ru-RU
  * 
- * @return nothing
- *  
+ * @return void
  */
-
 function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     if (empty($center)) {
         $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
@@ -369,8 +343,7 @@ function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', 
     return ($js);
 }
 
-/*
- * 
+/**
  * Initialize map container with some settings
  * 
  * @param $center - map center lat,long
@@ -380,10 +353,8 @@ function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', 
  * @param $editor - field for visual editor or geolocator
  * @param $lang - map language in format ru-RU
  * 
- * @return nothing
- *  
+ * @return void
  */
-
 function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     if (empty($center)) {
         $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
@@ -436,7 +407,7 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
 }
 
 /**
- * Return map mark
+ * Returns map mark
  * 
  * @param $coords - map coordinates
  * @param $title - ballon title
@@ -445,8 +416,8 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
  * @param $icon - YM icon class
  * @param $iconlabel - icon label string
  * @param $canvas - is canvas rendering enabled?
+ * 
  * @return string
- *  
  */
 function sm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '', $canvas = false) {
     if ($canvas) {
@@ -488,11 +459,12 @@ function sm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon 
 }
 
 /**
- * Return map circle
+ * Returns map circle
  * 
  * @param $coords - map coordinates
  * @param $radius - circle radius in meters
  * @param $canvas - is canvas rendering enabled?
+ * 
  * @return string
  *  
  */
@@ -521,27 +493,23 @@ function sm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
     return ($result);
 }
 
-
-
-/*
- * 
- * Return full map marks for switches with filled GEO field
+/**
+ * Returns full map marks for switches with filled GEO field
  * 
  * @return string
  *  
  */
-
 function sm_MapDrawSwitches() {
     $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
     $allswitches = simple_queryall($query);
-  
-    $uplinkTraceIcon=wf_img('skins/ymaps/uplinks.png',__('Show links'));
-    $switchEditIcon=wf_img('skins/icon_edit.gif',__('Edit'));
-    $switchPollerIcon=wf_img('skins/snmp.png',__('SNMP query'));
-    $switchLocatorIcon=wf_img('skins/icon_search_small.gif',__('Zoom in'));
-    
-    $footerDelimiter=wf_tag('br');
+
+    $uplinkTraceIcon = wf_img('skins/ymaps/uplinks.png', __('Show links'));
+    $switchEditIcon = wf_img('skins/icon_edit.gif', __('Edit'));
+    $switchPollerIcon = wf_img('skins/snmp.png', __('SNMP query'));
+    $switchLocatorIcon = wf_img('skins/icon_search_small.gif', __('Zoom in'));
+
+    $footerDelimiter = wf_tag('br');
     $result = '';
     //dead switches detection
     $dead_raw = zb_StorageGet('SWDEAD');
@@ -554,11 +522,11 @@ function sm_MapDrawSwitches() {
         foreach ($allswitches as $io => $each) {
             $geo = mysql_real_escape_string($each['geo']);
             $title = mysql_real_escape_string($each['ip']);
-            
+
             //switch hint content
             $content = mysql_real_escape_string($each['location']);
-            
-            
+
+
             $iconlabel = '';
 
             if (!isset($deadarr[$each['ip']])) {
@@ -611,22 +579,22 @@ function sm_MapDrawSwitches() {
                 }
             }
 
-            
+
             //switch footer controls
             $footer.=$footerDelimiter;
-            $footer.=wf_tag('a', false, '', 'href="?module=switches&edit='.$each['id'].'"').$switchEditIcon.wf_tag('a',true).' ';
-            
-            
+            $footer.=wf_tag('a', false, '', 'href="?module=switches&edit=' . $each['id'] . '"') . $switchEditIcon . wf_tag('a', true) . ' ';
+
+
             if (!empty($each['snmp'])) {
-                $footer.=wf_tag('a', false, '', 'href="?module=switchpoller&switchid='.$each['id'].'"').$switchPollerIcon.wf_tag('a',true).' ';
+                $footer.=wf_tag('a', false, '', 'href="?module=switchpoller&switchid=' . $each['id'] . '"') . $switchPollerIcon . wf_tag('a', true) . ' ';
             }
-     
-             $footer.=wf_tag('a', false, '', 'href="?module=switchmap&finddevice='.$each['geo'].'"').$switchLocatorIcon.wf_tag('a',true).' ';
-            
-            
+
+            $footer.=wf_tag('a', false, '', 'href="?module=switchmap&finddevice=' . $each['geo'] . '"') . $switchLocatorIcon . wf_tag('a', true) . ' ';
+
+
             if (!empty($each['parentid'])) {
-                $uplinkTraceUrl=  '?module=switchmap&finddevice='.$each['geo'].'&showuplinks=true&traceid='.$each['id'];
-                $uplinkTraceLink=wf_tag('a', false, '', 'href="'.$uplinkTraceUrl.'"').$uplinkTraceIcon.wf_tag('a',true).' ';
+                $uplinkTraceUrl = '?module=switchmap&finddevice=' . $each['geo'] . '&showuplinks=true&traceid=' . $each['id'];
+                $uplinkTraceLink = wf_tag('a', false, '', 'href="' . $uplinkTraceUrl . '"') . $uplinkTraceIcon . wf_tag('a', true) . ' ';
                 $footer.= $uplinkTraceLink;
             }
 
@@ -640,14 +608,11 @@ function sm_MapDrawSwitches() {
     return ($result);
 }
 
-/*
- * 
- * Return full map marks for builds with filled GEO field
+/**
+ * Returns full map marks for builds with filled GEO field
  * 
  * @return string
- *  
  */
-
 function um_MapDrawBuilds() {
     $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `build` WHERE `geo` != '' ";
@@ -773,14 +738,11 @@ function um_MapDrawBuilds() {
     return ($result);
 }
 
-/*
+/**
+ * Returns indications point to nuclear strikes :)
  * 
- * Return indications point to nuclear strikes :)
- * 
- * @return string
- *  
+ * @return string 
  */
-
 function sm_MapDrawSwitchesCoverage() {
     $ym_conf = rcms_parse_ini_file(CONFIG_PATH . "ymaps.ini");
     $query = "SELECT * from `switches` WHERE `geo` != '' ";
@@ -802,6 +764,7 @@ function sm_MapDrawSwitchesCoverage() {
  * @param string $coord2
  * @param string $color
  * @param string $hint
+ * 
  * @return string
  */
 function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
@@ -830,39 +793,38 @@ function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
  * @param array $alllinks  Array of id=>parentid
  * @param int  $traceid    Switch ID wich will be traced
  * @param int  $checkid    Switch ID to check
+ * 
  * @return bool
  */
 function sm_MapIsLinked($alllinks, $traceid, $checkid) {
-  $road=array();
-  $road[]=$traceid;
-  $x=$traceid;
+    $road = array();
+    $road[] = $traceid;
+    $x = $traceid;
 
-  
-  while (!empty($x)) {
-      foreach ($alllinks as $id=>$parentid) {
-      if ($x==$id) {
-          $road[]=$parentid;
-          $x=$parentid;
-      }
-      }
-  }
- 
-  if (in_array($checkid, $road)) {
-      $result=true;
-  } else {
-      $result=false;
-  }
-  return ($result);
-  
+
+    while (!empty($x)) {
+        foreach ($alllinks as $id => $parentid) {
+            if ($x == $id) {
+                $road[] = $parentid;
+                $x = $parentid;
+            }
+        }
+    }
+
+    if (in_array($checkid, $road)) {
+        $result = true;
+    } else {
+        $result = false;
+    }
+    return ($result);
 }
 
 /**
- * Return full map of switch links
+ * Returns full map of switch links
  * 
  * @param int $traceid switch ID to trace uplinks
  * 
  * @return string
- *  
  */
 function sm_MapDrawSwitchUplinks($traceid = '') {
     global $ubillingConfig;
@@ -926,12 +888,12 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                                 $width = 5;
                                 $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
                             } else {
-                            //detecting uplinks
-                            if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
-                                $width = 3;
-                                $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                                //detecting uplinks
+                                if (sm_MapIsLinked($alllinks, $traceid, $each['id'])) {
+                                    $width = 3;
+                                    $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);
+                                }
                             }
-                              }
                         } else {
                             $width = 1;
                             $result.=sm_MapAddLine($coord1, $coord2, $color, $hint, $width);

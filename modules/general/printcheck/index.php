@@ -5,9 +5,10 @@ if ( cfr('PRINTCHECK') ) {
         $paymentid = $_GET['paymentid'];
         $alter = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
         if ( !empty($alter['DOCX_SUPPORT']) && !empty($alter['DOCX_CHECK']) ) {
+            $morph=new UBMorph();
             @$payment = zb_PaymentGetData($paymentid); // id, date, summ...
             @$payment['idenc'] = zb_NumEncode($payment['id']);
-            @$payment['summ_lit'] = num2str($payment['summ']);
+            @$payment['summ_lit'] = $morph->sum2str($payment['summ']);
             @$payment['summ_exp'] = explode('.', $payment['summ']);
             @$payment['summ_cels'] = ( !empty($payment['summ_exp'][0]) ) ? $payment['summ_exp'][0] : '0';
             @$payment['summ_cops'] = ( !empty($payment['summ_exp'][1]) ) ? $payment['summ_exp'][1] : '00';

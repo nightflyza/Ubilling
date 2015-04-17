@@ -273,11 +273,11 @@ function web_SwitchMiniMap($switchdata) {
 }
 
 /**
- * Returns list of all available downlink switches
+ * Shows list of all available downlink switches
  * 
  * @param int $switchId
  * 
- * @return string
+ * @return void
  */
 function web_SwitchDownlinksList($switchId) {
     $switchId = vf($switchId, 3);
@@ -321,9 +321,8 @@ function web_SwitchDownlinksList($switchId) {
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
         show_window(__('Downlinks'),$result);
     }
-
-    
 }
+
 
 /**
  * Returns switch edit form for some existing device ID
