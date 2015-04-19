@@ -1,9 +1,14 @@
 <?php
 if (cfr('OPENPAYZ')) {
-$alter_conf=rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+$alter_conf=$ubillingConfig->getAlter();
 //check is openpayz enabled?
 if ($alter_conf['OPENPAYZ_SUPPORT']) {
     
+    /**
+     * Returns full paymentID=>realID array
+     * 
+     * @return array
+     */
     function zb_OPGetAllCustomers() {
         $query="SELECT * from `op_customers`";
         $allcustomers=simple_queryall($query);
@@ -16,6 +21,11 @@ if ($alter_conf['OPENPAYZ_SUPPORT']) {
         return ($result);
     }
     
+    /**
+     * Returns array of available payment systems
+     * 
+     * @return array
+     */
     function zb_OPGetPaysys() {
         $result=array();
         $query="SELECT DISTINCT `paysys` from `op_transactions`";
