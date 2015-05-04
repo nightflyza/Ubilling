@@ -61,22 +61,7 @@ if (lq_CheckPost(array('operation_xml','signature'))) {
     $reqSig=$_POST['signature'];
   
     $xml_decoded=base64_decode($xml); 
-//    $xml_decoded="<response>      
-//      <version>1.2</version>
-//      <merchant_id>ixxxxxx</merchant_id>
-//      <order_id>LIQPAY_x3b23angk66xjqj7</order_id>
-//      <amount>35</amount>
-//      <currency>UAH</currency>
-//      <description>2887647521</description>
-//      <status>success</status>
-//      <code></code>
-//      <transaction_id>31</transaction_id>
-//      <pay_way>card</pay_way>
-//      <sender_phone>+3801234567890</sender_phone>
-//      <goods_id>1234</goods_id>
-//      <pays_count>5</pays_count>
-//   </response>           
-//   ";
+
     if (!empty($xml_decoded)) {
 
     //разбираем на куски пойманный XML
