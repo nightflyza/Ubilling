@@ -192,6 +192,14 @@ if (cfr('USEREDIT')) {
         $cells.= wf_TableCell(wf_Link('?module=pdataedit&username='.$login, wf_img('skins/icon_passport.gif').' '. __('Change').' '.__('passport data')));
         $rows.=  wf_TableRow($cells, 'row3');
         
+        if ($alter_conf['CONDET_ENABLED']) {
+        $conDet=new ConnectionDetails();
+        $cells=  wf_TableCell(__('Connection details'));
+        $cells.= wf_TableCell($conDet->renderData($login));
+        $cells.= wf_TableCell(wf_Link('?module=condetedit&username='.$login, wf_img('skins/cableseal_small.png').' '.__('Change').' '.__('Connection details')));
+        $rows.=  wf_TableRow($cells, 'row3');
+        }
+        
         $cells=  wf_TableCell(__('Notes'));
         $cells.= wf_TableCell($notes);
         $cells.= wf_TableCell(wf_Link('?module=notesedit&username='.$login, wf_img('skins/icon_note.gif').' '.__('Notes')));

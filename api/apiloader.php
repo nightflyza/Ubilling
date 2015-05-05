@@ -53,6 +53,7 @@ include('api/libs/api.assignreport.php');
 include('api/libs/api.capabdir.php');
 include('api/libs/api.sigreq.php');
 include('api/libs/api.roskomnadzor.php');
+include('api/libs/api.condet.php');
 include('api/libs/api.userprofile.php');
 include('api/libs/api.stickynotes.php');
 include('api/libs/api.fundsflow.php');

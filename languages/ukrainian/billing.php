@@ -1911,6 +1911,10 @@ $lang['def']['Placed on map']='Розміщені на карті';
 $lang['def']['Have uplinks']='Вказано аплінки';
 $lang['def']['Mini-map']='Міні-карта';
 $lang['def']['Downlinks']='Даунлінки';
-
+$lang['def']['Connection details module enabled']='Деталі підключення увімкнуто';
+$lang['def']['Connection details in user profile']='Деталі підключення в профілі';
+$lang['def']['right to edit connection details']='Право редагувати деталі підключення';
+$lang['def']['Cable length']='Довжина кабелю';
+$lang['def']['Connection details']='Деталі підключення';
 
 ?>

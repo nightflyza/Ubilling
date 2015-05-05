@@ -1897,6 +1897,16 @@ $lang['def']['Placed on map']='Размещены на карте';
 $lang['def']['Have uplinks']='Указаны аплинки';
 $lang['def']['Mini-map']='Мини-карта';
 $lang['def']['Downlinks']='Даунлинки';
+$lang['def']['Connection details module enabled']='Детали подключения включены';
+$lang['def']['Connection details in user profile']='Детали подключения в профиле';
+$lang['def']['right to edit connection details']='Право изменять детали подключения';
+$lang['def']['Cable length']='Длина кабеля';
+$lang['def']['Connection details']='Детали подключения';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
+
 
 
 

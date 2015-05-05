@@ -557,8 +557,26 @@ class UserProfile {
         }
         return ($result);
     }
+    
+    /**
+     * Returns user connection details with optional controls inside if enabled
+     * 
+     * @return string
+     */
+    protected function getUserConnectionDetails() {
+        $result='';
+        if ($this->alterCfg['CONDET_IN_PROFILE']) {
+            $conDet=new ConnectionDetails();
+            $data=$conDet->renderData($this->login);
+            if (cfr('CONDET')) {
+                $data.=' '.wf_Link('?module=condetedit&username='.$this->login, wf_img_sized('skins/cableseal_small.png', __('Change').' '.__('Connection details'),'10'), false);
+            }
+            $result = $this->addRow(__('Connection details'), $data);
+        }
+        return ($result);
+    }
 
-    /*
+    /**
      * gets and preformats last activity time
      * 
      * @return string
@@ -843,6 +861,8 @@ class UserProfile {
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
         //Disable aka Down flag row
         $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+        //Connection details  row
+        $profile.= $this->getUserConnectionDetails();
         //User notes row
         $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login));
 

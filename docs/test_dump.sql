@@ -1368,3 +1368,14 @@ PRIMARY KEY (`id`)
 
 
 ALTER TABLE `ukv_users` ADD `cableseal` VARCHAR(40) NULL AFTER `inetlogin`; 
+
+-- 0.6.6 update
+CREATE TABLE IF NOT EXISTS `condet` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) DEFAULT NULL,
+  `seal` varchar(40) DEFAULT NULL,
+  `length` varchar(40) DEFAULT NULL,
+  `price` int(40) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

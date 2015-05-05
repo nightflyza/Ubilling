@@ -147,6 +147,8 @@ ADCOMMENTS_ENABLED=TRIGGER|Additional comments functionality enabled
 VLANGEN_SUPPORT=TRIGGER|VLAN pools extended management enabled
 SWITCH_AUTOCONFIG=TRIGGER|VLAN switch autoconfiguration
 PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
+CONDET_ENABLED=TRIGGER|Connection details module enabled
+CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
 
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
