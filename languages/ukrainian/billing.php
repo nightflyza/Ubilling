@@ -1918,5 +1918,6 @@ $lang['def']['Cable length']='Довжина кабелю';
 $lang['def']['Connection details']='Деталі підключення';
 $lang['def']['Cable']='Кабель';
 $lang['def']['m']='м';
+$lang['def']['Connection details report']='Звіт деталей підключення';
 
 ?>
