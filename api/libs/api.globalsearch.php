@@ -188,6 +188,12 @@ class GlobalSearch {
                 $allLogins= zb_UserGetAllStargazerLogins();
                 $this->rawData = $this->rawData+ $this->transformArray($allLogins, __('Login'), 'login');
             }
+            
+            if (isset($this->fields['seal'])) {
+                $conDet=new ConnectionDetails();
+                $allSeals=$conDet->getAllSeals();
+                $this->rawData=  $this->rawData+$this->transformArray($allSeals, __('Cable seal'), 'seal');
+            }
 
 
             file_put_contents(self::CACHE_NAME, serialize($this->rawData));

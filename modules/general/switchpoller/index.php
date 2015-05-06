@@ -26,8 +26,8 @@ if(cfr('SWITCHPOLL')) {
     }
     
     
-    function web_FDBTableShowDataTable() {
-      
+    function web_FDBTableShowDataTable($fdbSwitchFilter='') {
+      $filter=(!empty($fdbSwitchFilter)) ? '&swfilter='.$fdbSwitchFilter : '' ;
       $jq_dt='
           <script type="text/javascript" charset="utf-8">
                 
@@ -66,7 +66,7 @@ if(cfr('SWITCHPOLL')) {
         "bProcessing": true,
         "bStateSave": true,
         "iDisplayLength": 50,
-        "sAjaxSource": \'?module=switchpoller&ajax=true\',
+        "sAjaxSource": \'?module=switchpoller&ajax=true'.$filter.'\',
 	"bDeferRender": true,
         "bJQueryUI": true
 
@@ -143,8 +143,7 @@ if(cfr('SWITCHPOLL')) {
     //display all of available fdb tables
       $fdbData_raw=  rcms_scandir('./exports/', '*_fdb');
       if (!empty($fdbData_raw)) {
-   
-          //// mac filters setup
+             //// mac filters setup
              if (wf_CheckPost(array('setmacfilters'))) {
               //setting new MAC filters
               if (!empty($_POST['newmacfilters'])) {
@@ -160,9 +159,17 @@ if(cfr('SWITCHPOLL')) {
           
          //push ajax data
          if (wf_CheckGet(array('ajax'))) {
+            if (wf_CheckGet(array('swfilter'))) {
+                $fdbData_raw=array($_GET['swfilter'].'_fdb');
+            }
             die(sn_SnmpParseFdbCacheJson($fdbData_raw));
          } else {
-             web_FDBTableShowDataTable();
+             if (wf_CheckGet(array('fdbfor'))) {
+                 $fdbSwitchFilter=$_GET['fdbfor'];
+             } else {
+                 $fdbSwitchFilter='';
+             }
+             web_FDBTableShowDataTable($fdbSwitchFilter);
          }
        
          

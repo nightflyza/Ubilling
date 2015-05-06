@@ -125,7 +125,7 @@ if (cfr('SWITCHES')) {
                 log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
                 rcms_redirect("?module=switches&edit=" . $switchid);
             } else {
-                show_window(__('Error'), __('Access denied'));
+                show_error(__('Access denied'));
             }
         }
 

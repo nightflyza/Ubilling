@@ -4,15 +4,14 @@
  * Ubilling instant messenger API
  */
 
-/*
+/**
  * Creates message for some admin user
  * 
- * @param $to   admin login
- * @param $text message text
+ * @param string $to   admin login
+ * @param string $text message text
  * 
  * @return void
  */
-
 function im_CreateMessage($to, $text) {
     $to = mysql_real_escape_string($to);
     $text = mysql_real_escape_string($text);
@@ -37,14 +36,13 @@ function im_CreateMessage($to, $text) {
     log_register("UBIM SEND FROM {" . $from . "} TO {" . $to . "}");
 }
 
-/*
+/**
  * Deletes message by its id
  * 
- * @param $msgid   message id from `ub_im`
+ * @param int $msgid   message id from `ub_im`
  * 
  * @return void
  */
-
 function im_DeleteMessage($msgid) {
     $msgid = vf($msgid, 3);
     $query = "DELETE from `ub_im` WHERE `id`='" . $msgid . "'";
@@ -52,12 +50,11 @@ function im_DeleteMessage($msgid) {
     log_register("UBIM DELETE [" . $msgid . "]");
 }
 
-/*
+/**
  * Shows avatar control form
  * 
  * @return string
  */
-
 function im_AvatarControlForm() {
     $me = whoami();
     $mail = gravatar_GetUserEmail($me);
@@ -76,14 +73,13 @@ function im_AvatarControlForm() {
     return ($result);
 }
 
-/*
+/**
  * Check is message created by me?
  * 
- * @param $msgid   message id from `ub_im`
+ * @param int $msgid   message id from `ub_im`
  * 
  * @return bool
  */
-
 function im_IsMineMessage($msgid) {
     $msgid = vf($msgid, 3);
     $me = whoami();
@@ -103,14 +99,13 @@ function im_IsMineMessage($msgid) {
     }
 }
 
-/*
+/**
  * mark thread as read by sender
  * 
- * @param $sender   sender login
+ * @param string $sender   sender login
  * 
  * @return void
  */
-
 function im_ThreadMarkAsRead($sender) {
     $sender = mysql_real_escape_string($sender);
     $me = whoami();
@@ -118,14 +113,13 @@ function im_ThreadMarkAsRead($sender) {
     nr_query($query);
 }
 
-/*
+/**
  * Return unread messages count for each contact
  * 
- * @param $username framework admin username
+ * @param string $username framework admin username
  * 
  * @return string
  */
-
 function im_CheckForUnreadMessagesByUser($username) {
     $username = mysql_real_escape_string($username);
     $me = whoami();
@@ -135,16 +129,15 @@ function im_CheckForUnreadMessagesByUser($username) {
     return ($result);
 }
 
-/*
+/**
  * Return contact list 
  * 
  * @return string
  */
-
 function im_ContactList() {
     $me = whoami();
     $alladmins = rcms_scandir(DATA_PATH . "users/");
-    $activeAdmins=  im_GetActiveAdmins();
+    $activeAdmins = im_GetActiveAdmins();
     $result = '';
     $rows = '';
     if (!empty($alladmins)) {
@@ -161,17 +154,17 @@ function im_ContactList() {
                 } else {
                     $blinker = '';
                 }
-                
+
                 if (isset($activeAdmins[$eachadmin])) {
-                    $aliveFlag=  web_bool_led(true);
+                    $aliveFlag = web_bool_led(true);
                 } else {
-                    $aliveFlag=  web_bool_led(false);
+                    $aliveFlag = web_bool_led(false);
                 }
                 $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '32') . ' ';
-                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $eachadmin, 'threadContainer', false, 'ubButton');
+                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $eachadmin, 'threadContainer', false, 'ubimcontact');
                 $threadLink.=$blinker;
-                
-                $cells=  wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
+
+                $cells = wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
                 $cells.= wf_TableCell($conatactAvatar, '35', '', 'valign="center" align="left"');
                 $cells.= wf_TableCell($threadLink, '', '', 'valign="center" align="left"');
                 $rows.=wf_TableRow($cells, '');
@@ -183,12 +176,11 @@ function im_ContactList() {
     return ($result);
 }
 
-/*
+/**
  * Return UB im main window grid
  * 
  * @return string
  */
-
 function im_MainWindow() {
     $contactList = wf_AjaxLoader();
     $contactList.= im_ContactList();
@@ -202,35 +194,31 @@ function im_MainWindow() {
     return ($result);
 }
 
-/*
+/**
  * Return conversation form for some thread
  * 
- * @param $to - thread username 
+ * @param string $to - thread username 
+ * 
+ * @return string
  */
-
 function im_ConversationForm($to) {
     $inputs = wf_HiddenInput('im_message_to', $to);
     $inputs.=wf_TextArea('im_message_text', '', '', true, '60x4');
     $inputs.=wf_Submit('Send message');
     $result = wf_Form("", 'POST', $inputs, 'glamour');
-    //scroll down the conversation area - now not work
-    //in all browsers - than disabled
-//        $result.='
-//             <script type="text/javascript">
-//                var objDiv = document.getElementById("threadContainer");
-//                objDiv.scrollTop = objDiv.scrollHeight;
-//            </script>
-//            ';
     return ($result);
 }
 
-/*
+/**
  * Shows thread for me with some user
  * 
- * @param $threadUser  user to show thread
+ * @param string $threadUser  user to show thread
+ * 
+ * @return string
  */
-
 function im_ThreadShow($threadUser) {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $me = whoami();
     $threadUser = mysql_real_escape_string($threadUser);
     $result = __('No conversations with') . ' ' . $threadUser . ' ' . __('yet') . wf_delimiter();
@@ -245,8 +233,15 @@ function im_ThreadShow($threadUser) {
             $cells = wf_TableCell(wf_tag('b') . $each['from'] . wf_tag('b', true), '20%', '', 'align="center"');
             $cells.= wf_TableCell($each['date'] . ' ' . $readIcon, '80%');
             $rows.= wf_TableRow($cells, 'row2');
-            //$controls=  wf_delimiter().'controls here';
+         
             $messageText = nl2br($each['text']);
+            if (!isset($altCfg['UBIM_NO_LINKIFY'])) {
+                $messageText=  im_linkify($messageText);
+            } else {
+                if (!$altCfg['UBIM_NO_LINKIFY']) {
+                    $messageText=  im_linkify($messageText);
+                }
+            }
             $cells = wf_TableCell(gravatar_ShowAdminAvatar($each['from'], '64'), '', 'row3', 'align="center"');
             $cells.= wf_TableCell($messageText, '', 'row3');
             $rows.= wf_TableRow($cells);
@@ -259,28 +254,24 @@ function im_ThreadShow($threadUser) {
     return ($result);
 }
 
-/*
+/**
  * Loads some thread after message posted into standard grid
- * @param $threadUser  thread username
+ * @param string $threadUser  thread username
  * 
  * @return string
  */
-
 function im_ThreadLoad($threadUser) {
-    $result = '
-        <script type="text/javascript">
-        goajax(\'?module=ubim&showthread=' . $threadUser . '\',\'threadContainer\');
-        </script>
-        ';
+    $result = wf_tag('script', false, '', 'type="text/javascript"');
+    $result.= 'goajax(\'?module=ubim&showthread=' . $threadUser . '\',\'threadContainer\');';
+    $result.= wf_tag('script', true);
     return ($result);
 }
 
-/*
+/**
  * Checks how many unread messages we have?
  * 
  * @return string
  */
-
 function im_CheckForUnreadMessages() {
     $me = whoami();
     $result = 0;
@@ -292,12 +283,11 @@ function im_CheckForUnreadMessages() {
     return ($result);
 }
 
-/*
+/**
  * Draw update container and refresh into in some code
  * 
  * @return void
  */
-
 function im_RefreshContainer($timeout) {
     //  setInterval(function(){ goajax(\'?module=ubim&timecheckunread=true\',\'refreshcontainer\'); },'.$timeout.');
     $timeout = $timeout * 1000;
@@ -359,6 +349,61 @@ function im_GetActiveAdmins() {
         }
     }
     return ($result);
+}
+
+/**
+ * Turn all URLs in clickable links.
+ *
+ * @param string $value
+ * @param array $protocols http/https, ftp, mail, twitter
+ * @param array $attributes
+ * @param string $mode normal or all
+ * @return string
+ */
+function im_linkify($value, $protocols = array('http', 'mail'), array $attributes = array(), $mode = 'normal') {
+    // Link attributes
+    $attr = '';
+    foreach ($attributes as $key => $val) {
+        $attr = ' ' . $key . '="' . htmlentities($val) . '"';
+    }
+
+    $links = array();
+
+    // Extract existing links and tags
+    $value = preg_replace_callback('~(<a .*?>.*?</a>|<.*?>)~i', function ($match) use (&$links) {
+        return '<' . array_push($links, $match[1]) . '>';
+    }, $value);
+
+    // Extract text links for each protocol
+    foreach ((array) $protocols as $protocol) {
+        switch ($protocol) {
+            case 'http':
+            case 'https': $value = preg_replace_callback($mode != 'all' ? '~(?:(https?)://([^\s<]+)|(www\.[^\s<]+?\.[^\s<]+))(?<![\.,:])~i' : '~([^\s<]+\.[^\s<]+)(?<![\.,:])~i', function ($match) use ($protocol, &$links, $attr) {
+                    if ($match[1])
+                        $protocol = $match[1];
+                    $link = $match[2] ? : $match[3];
+                    return '<' . array_push($links, '<a' . $attr . ' href="' . $protocol . '://' . $link . '">' . $link . '</a>') . '>';
+                }, $value);
+                break;
+            case 'mail': $value = preg_replace_callback('~([^\s<]+?@[^\s<]+?\.[^\s<]+)(?<![\.,:])~', function ($match) use (&$links, $attr) {
+                    return '<' . array_push($links, '<a' . $attr . ' href="mailto:' . $match[1] . '">' . $match[1] . '</a>') . '>';
+                }, $value);
+                break;
+            case 'twitter': $value = preg_replace_callback('~(?<!\w)[@#](\w++)~', function ($match) use (&$links, $attr) {
+                    return '<' . array_push($links, '<a' . $attr . ' href="https://twitter.com/' . ($match[0][0] == '@' ? '' : 'search/%23') . $match[1] . '">' . $match[0] . '</a>') . '>';
+                }, $value);
+                break;
+            default: $value = preg_replace_callback($mode != 'all' ? '~' . preg_quote($protocol, '~') . '://([^\s<]+?)(?<![\.,:])~i' : '~([^\s<]+)(?<![\.,:])~i', function ($match) use ($protocol, &$links, $attr) {
+                    return '<' . array_push($links, '<a' . $attr . ' href="' . $protocol . '://' . $match[1] . '">' . $match[1] . '</a>') . '>';
+                }, $value);
+                break;
+        }
+    }
+
+    // Insert all link
+    return preg_replace_callback('/<(\d+)>/', function ($match) use (&$links) {
+        return $links[$match[1] - 1];
+    }, $value);
 }
 
 ?>

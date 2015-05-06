@@ -53,7 +53,7 @@ class UserProfile {
         }
     }
 
-    /*
+    /**
      * loads current alter.ini config into private prop, once at start
      * 
      * @return void
@@ -64,7 +64,7 @@ class UserProfile {
         $this->alterCfg = $ubillingConfig->getAlter();
     }
 
-    /*
+    /**
      * loads highlight properties if needed
      * 
      * @return void
@@ -79,7 +79,7 @@ class UserProfile {
         }
     }
 
-    /*
+    /**
      * loads stargazer user data from database in pricate data property
      * 
      * @return void
@@ -91,7 +91,7 @@ class UserProfile {
         }
     }
 
-    /*
+    /**
      * loads all available users address from database (yep, with forced cities)
      * 
      * @return void
@@ -102,7 +102,7 @@ class UserProfile {
         @$this->useraddress = $this->alladdress[$this->login];
     }
 
-    /*
+    /**
      * loads user realname from database and sets it to private prop
      * 
      * @return void
@@ -112,7 +112,7 @@ class UserProfile {
         $this->realname = zb_UserGetRealName($this->login);
     }
 
-    /*
+    /**
      * gets phonedata from database and sets it to private data properties
      * 
      * @return void
@@ -129,7 +129,7 @@ class UserProfile {
         }
     }
 
-    /*
+    /**
      * loads user contract from database
      * 
      * @return void
@@ -139,7 +139,7 @@ class UserProfile {
         $this->contract = zb_UserGetContract($this->login);
     }
 
-    /*
+    /**
      * loads user email from database
      * 
      * @return void
@@ -149,7 +149,7 @@ class UserProfile {
         $this->mail = zb_UserGetEmail($this->login);
     }
 
-    /*
+    /**
      * loads user apartment data like floor or entrance from database
      * 
      * @return void
@@ -159,7 +159,7 @@ class UserProfile {
         $this->aptdata = zb_AddressGetAptData($this->login);
     }
 
-    /*
+    /**
      * loads user speed override from database
      * 
      * @return void
@@ -169,7 +169,7 @@ class UserProfile {
         $this->speedoverride = zb_UserGetSpeedOverride($this->login);
     }
 
-    /*
+    /**
      * loads user nethosts mac address by IP
      * 
      * @return void
@@ -179,7 +179,7 @@ class UserProfile {
         $this->mac = zb_MultinetGetMAC($this->userdata['IP']);
     }
 
-    /*
+    /**
      * returns vendor by MAC search control if this enabled in config
      * 
      * @return string
@@ -195,7 +195,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * returns catv backlinks if enabled 
      * 
      * @return string
@@ -216,7 +216,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * Returns raw plugins data. Plugins initialization files must be stored in CONFIG_PATH
      * 
      * @return array
@@ -230,7 +230,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * load plugins overlay data
      * 
      * @return string
@@ -259,7 +259,7 @@ class UserProfile {
         return($result);
     }
 
-    /*
+    /**
      * loads pofile plugins if enabled into private plugins property
      * 
      * @return void
@@ -284,7 +284,7 @@ class UserProfile {
         }
     }
 
-    /*
+    /**
      * calculates PaymentID or extract from database as is
      * 
      * @return void
@@ -298,7 +298,7 @@ class UserProfile {
         }
     }
     
-    /*
+    /**
      * returns private userdata property to external scope
      * 
      * @return array
@@ -307,7 +307,7 @@ class UserProfile {
         return ($this->userdata);
     }
     
-     /*
+     /**
      * returns private useraddress property to external scope
      * 
      * @return array
@@ -317,7 +317,7 @@ class UserProfile {
     }
     
 
-    /*
+    /**
      * returns prepared main profile body row with two data cells
      * 
      * @param string $header Header cell data that will be displayed left
@@ -339,7 +339,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * returns task control for getMainControls
      * 
      * @return string 
@@ -365,7 +365,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * Returns primary prifile controls with most used actions
      * 
      * @param string $login Existing Ubilling user login
@@ -396,7 +396,7 @@ class UserProfile {
         return($result);
     }
 
-    /*
+    /**
      * returns user password and masks it if needed
      * 
      * @return string
@@ -411,7 +411,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * processing of old user linking with redirects to parent user
      * 
      * @return string
@@ -439,7 +439,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * Processing of task creation in profile feature
      * 
      * @return string
@@ -457,7 +457,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * gets build location control and neighbors cache lister
      * 
      * @return string
@@ -493,7 +493,7 @@ class UserProfile {
         return ($buildLocator);
     }
 
-    /*
+    /**
      * returns passport data controls
      * 
      * @return string
@@ -510,7 +510,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * returns user cash data with round and colorize if needed
      * 
      * @return string
@@ -538,7 +538,7 @@ class UserProfile {
         return ($Cash);
     }
 
-    /*
+    /**
      * gets and formats credit expiration date
      * 
      * @retun string
@@ -566,12 +566,14 @@ class UserProfile {
     protected function getUserConnectionDetails() {
         $result='';
         if ($this->alterCfg['CONDET_IN_PROFILE']) {
+            if ($this->alterCfg['CONDET_ENABLED']) {
             $conDet=new ConnectionDetails();
             $data=$conDet->renderData($this->login);
             if (cfr('CONDET')) {
-                $data.=' '.wf_Link('?module=condetedit&username='.$this->login, wf_img_sized('skins/cableseal_small.png', __('Change').' '.__('Connection details'),'10'), false);
+                $data.=' '.wf_Link('?module=condetedit&username='.$this->login, wf_img_sized('skins/cableseal_small.png', __('Change').' '.__('Connection details'),'12'), false);
             }
             $result = $this->addRow(__('Connection details'), $data);
+            }
         }
         return ($result);
     }
@@ -619,7 +621,7 @@ class UserProfile {
     return ($result);
     }
 
-    /*
+    /**
      * gets switch assing profile controls
      * 
      * @return string
@@ -645,7 +647,7 @@ class UserProfile {
         return ($result);
     }
     
-    /*
+    /**
      * returns DN online detect aka "star"
      * 
      * @return string
@@ -667,7 +669,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * gets corporate users handling controls
      * 
      * @return string
@@ -689,7 +691,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * Checks agent assing and return controls if needed
      * 
      * @return string
@@ -704,7 +706,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * signup prices controller
      * 
      * @return string
@@ -718,7 +720,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * returns easy credit controller if feature is enabled
      * 
      * @return
@@ -736,7 +738,7 @@ class UserProfile {
         return ($result);
     }
 
-    /*
+    /**
      * extended network pools controller
      * 
      * @return string
@@ -770,8 +772,10 @@ class UserProfile {
         }
         return ($result);    
     }
+    
+    /* Брат, братан, братишка Когда меня отпустит? */
 
-    /*
+    /**
      * Renders user profile with all loaded data
      * 
      * @return string

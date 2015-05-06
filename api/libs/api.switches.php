@@ -352,8 +352,26 @@ function web_SwitchEditForm($switchid) {
     $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
 
     $result.=wf_delimiter();
-    $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
-
+    
+    $result.=wf_Link('?module=switches', __('Back'), false, 'ubButton') ; 
+    if (cfr('SWITCHPOLL')) {
+        $fdbCacheName='exports/'.$switchdata['ip'].'_fdb';
+        if (file_exists($fdbCacheName)) {
+           $result.=wf_Link('?module=switchpoller&fdbfor='.$switchdata['ip'], wf_img('skins/menuicons/switchpoller.png').' '.__('Current FDB cache'), false, 'ubButton') ; 
+        }
+        
+        if (!empty($switchdata['snmp'])) {
+           $result.=wf_Link('?module=switchpoller&switchid='.$switchid, wf_img('skins/snmp.png').' '.__('SNMP query'), false, 'ubButton') ;
+        }
+       
+    }
+    
+    
+    if (cfr('SWITCHESEDIT')) {
+        $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
+    }
+    
+   
 
     return ($result);
 }

@@ -95,9 +95,9 @@ class ConnectionDetails {
         } else {
             $this->create($login, $seal, $length, $price);
         }
-        log_register('CONDET SET ('.$login.') SEAL `'.$seal.'` LENGTH `'.$length.'` PRICE `'.$price.'`');
+        log_register('CONDET SET (' . $login . ') SEAL `' . $seal . '` LENGTH `' . $length . '` PRICE `' . $price . '`');
     }
-    
+
     /**
      * Retuns connection details edit form
      * 
@@ -105,20 +105,20 @@ class ConnectionDetails {
      * @return string
      */
     public function editForm($login) {
-        $login=  mysql_real_escape_string($login);
-        $currentData=  $this->getByLogin($login);
-        
-        $inputs=  wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');
+        $login = mysql_real_escape_string($login);
+        $currentData = $this->getByLogin($login);
+
+        $inputs = wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');
         $inputs.= wf_TextInput('newlength', __('Cable length'), @$currentData['length'], true, '5');
         $inputs.= wf_TextInput('newprice', __('Signup price'), @$currentData['price'], true, '5');
         $inputs.= wf_HiddenInput('editcondet', 'true');
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Save'));
-        
-        $result=  wf_Form("", 'POST', $inputs, 'glamour');
+
+        $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
     }
-    
+
     /**
      * Renders connection details data for profile and edit form
      * 
@@ -126,14 +126,40 @@ class ConnectionDetails {
      * @return string
      */
     public function renderData($login) {
-        $currentData=  $this->getByLogin($login);
-        $result='';
+        $currentData = $this->getByLogin($login);
+        $result = '';
         if (!empty($currentData)) {
-            $result=$currentData['seal'].' / '.$currentData['length'].' / '.$currentData['price'];
+            $result = $currentData['seal'] . ' / ' . $currentData['length'] . ' / ' . $currentData['price'];
         }
         return ($result);
     }
 
+    /*
+      Now it's too late, too late to live
+      and my conscience killing me
+      so am I alive
+      but I'm not free
+
+      and for all of you that can relate to this too
+      and for all of you that can relate to this too
+     */
+        
+    /**
+     * Returns array of all existing cable seals
+     * 
+     * @return array
+     */
+    public function getAllSeals() {
+        $result=array();
+        if (!empty($this->allDetails)) {
+            foreach ($this->allDetails as $io=>$each) {
+                if (!empty($each['seal'])) {
+                    $result[$each['login']]=$each['seal'];
+                }
+            }
+        }
+        return ($result);
+    }
 }
 
 ?>

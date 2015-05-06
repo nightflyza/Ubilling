@@ -81,6 +81,10 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `IP` LIKE '" . $mask . $query . $mask . "'";
     }
+    if ($searchtype=='seal') {
+        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+        $query = "SELECT `login` from `condet` WHERE `seal` LIKE '" . $mask . $query . $mask . "'";
+    }
     //mac-address search
     if ($searchtype == 'mac') {
         $allfoundlogins = array();
@@ -400,6 +404,9 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
             break;
         case 'partialaddr':
             $result .= __('Partial address');
+            break;
+        case 'seal':
+            $result .= __('Cable seal');
             break;
         default:
             $result .= '';

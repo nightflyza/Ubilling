@@ -498,6 +498,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw) {
         $nameExplode = explode('_', $each_raw);
         if (sizeof($nameExplode) == 2) {
             $switchIp = $nameExplode[0];
+            if (file_exists('exports/' . $each_raw)) {
             $eachfdb_raw = file_get_contents('exports/' . $each_raw);
             $eachfdb = unserialize($eachfdb_raw);
             if (!empty($eachfdb_raw)) {
@@ -528,6 +529,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw) {
                     }
                 }
             }
+         }
         }
     }
     //show some data if filters failed
