@@ -1916,5 +1916,7 @@ $lang['def']['Connection details in user profile']='Деталі підключ�
 $lang['def']['right to edit connection details']='Право редагувати деталі підключення';
 $lang['def']['Cable length']='Довжина кабелю';
 $lang['def']['Connection details']='Деталі підключення';
+$lang['def']['Cable']='Кабель';
+$lang['def']['m']='м';
 
 ?>

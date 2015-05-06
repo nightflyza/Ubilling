@@ -58,7 +58,7 @@ class ConnectionDetails {
         $seal = mysql_real_escape_string($seal);
         $length = mysql_real_escape_string($length);
         $price = mysql_real_escape_string($price);
-        $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "','" . $price . "');";
+        $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "', '" . $price . "');";
         nr_query($query);
     }
 
@@ -129,7 +129,18 @@ class ConnectionDetails {
         $currentData = $this->getByLogin($login);
         $result = '';
         if (!empty($currentData)) {
-            $result = $currentData['seal'] . ' / ' . $currentData['length'] . ' / ' . $currentData['price'];
+            if (!empty($currentData['seal'])) {
+                $result.=__('Seal').': '.$currentData['seal'].' ';
+            }
+            
+            if (!empty($currentData['price'])) {
+                $result.=__('Cost').': '.$currentData['price'].' ';
+            }
+            
+            if (!empty($currentData['length'])) {
+                $result.=__('Cable').': '.$currentData['length'].__('m');
+            }
+            
         }
         return ($result);
     }

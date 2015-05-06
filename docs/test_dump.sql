@@ -1375,7 +1375,7 @@ CREATE TABLE IF NOT EXISTS `condet` (
   `login` varchar(255) DEFAULT NULL,
   `seal` varchar(40) DEFAULT NULL,
   `length` varchar(40) DEFAULT NULL,
-  `price` int(40) DEFAULT NULL,
+  `price` varchar(40) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `login` (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
