@@ -220,7 +220,7 @@ class ConnectionDetails {
         "bAutoWidth": false,
         "bProcessing": true,
         "bStateSave": true,
-        "iDisplayLength": 50,
+        "iDisplayLength": 100,
         "sAjaxSource": \'?module=report_condet&ajax=true\',
 	"bDeferRender": true,
         "bJQueryUI": true
