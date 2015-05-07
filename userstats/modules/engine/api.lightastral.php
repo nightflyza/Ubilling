@@ -431,8 +431,7 @@ function la_CheckGet($params) {
  }
 
  
- /*
- * 
+ /**
  * Construct HTML table cell element
  * 
  * @param $data table cell data
@@ -463,8 +462,7 @@ function la_CheckGet($params) {
     return ($result);
  }
  
- /*
- * 
+ /**
  * Construct HTML table body
  * 
  * @param $rows table rows data

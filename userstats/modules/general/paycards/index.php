@@ -8,40 +8,46 @@ $us_config=zbs_LoadConfig();
 $pc_enabled=$us_config['PC_ENABLED'];
 $pc_brute=$us_config['PC_BRUTE'];
 
+/**
+ * Returns payment card input form
+ * 
+ * @return string
+ */
 function zbs_PaycardsShowForm() {
-    $form='
-        <br>
-        <form action="" method="POST">
-       '.__('Payment card number').' <input type="text" size="25" name="paycard"> 
-        <input type="submit" value="'.__('Use this card').'">
-        <br>
-        <br>
-        </form>
-        ';
+    $inputs=  la_tag('br');
+    $inputs.= __('Payment card number').' ';
+    $inputs.= la_TextInput('paycard', '', '', false, 25);
+    $inputs.= la_Submit(__('Use this card'));
+    $inputs.= la_delimiter();
+    $form=  la_Form('', 'POST', $inputs, '');
+    
     return ($form);
 }
 
+/**
+ * Logs card brute-frorce attempt into database
+ * 
+ * @global string $user_login
+ * @global string $user_ip
+ * @param string $cardnumber
+ */
 function zbs_PaycardBruteLog($cardnumber) {
     global $user_login;
     global $user_ip;
     $cardnumber=vf($cardnumber);
     $ctime=curdatetime();
-    $query="
-        INSERT INTO `cardbrute` (
-        `id` ,
-        `serial` ,
-        `date` ,
-        `login` ,
-        `ip`
-        )
+    $query="INSERT INTO `cardbrute` (`id` , `serial` , `date` , `login` , `ip` )
         VALUES (
-        NULL , '".$cardnumber."', '".$ctime."', '".$user_login."', '".$user_ip."'
-        );
-        ";
+        NULL , '".$cardnumber."', '".$ctime."', '".$user_login."', '".$user_ip."');";
     nr_query($query);
 }
 
-
+/**
+ * Checks is card-number valid?
+ * 
+ * @param string $cardnumber
+ * @return bool
+ */
 function zbs_PaycardCheck($cardnumber) {
     $cardnumber=vf($cardnumber);
     $query="SELECT `id` from `cardbank` WHERE `serial`='".$cardnumber."' AND `active`='1' AND `used`='0'";
@@ -54,7 +60,12 @@ function zbs_PaycardCheck($cardnumber) {
     }
 }
 
-
+/**
+ * Returns array of existing payment card props
+ * 
+ * @param string $cardnumber
+ * @return array
+ */
 function zbs_PaycardGetParams($cardnumber) {
     $cardnumber=vf($cardnumber);
     $carddata=array();
@@ -63,6 +74,13 @@ function zbs_PaycardGetParams($cardnumber) {
     return ($carddata);
 }
 
+/**
+ * Marks payment card ad used in database and pushes its price to user account
+ * 
+ * @global string $user_ip
+ * @global string $user_login
+ * @param string $cardnumber
+ */
 function zbs_PaycardUse($cardnumber) {
     global $user_ip;
     global $user_login;
@@ -84,6 +102,13 @@ function zbs_PaycardUse($cardnumber) {
     rcms_redirect("index.php");
 }
 
+/**
+ * Check card brute attempts by user`s IP
+ * 
+ * @param string $user_ip
+ * @param string $pc_brute
+ * @return bool
+ */
 function zbs_PayCardCheckBrute($user_ip, $pc_brute) {
     $attempts=0;
     $query="SELECT COUNT(`id`) FROM `cardbrute` WHERE `ip`='".$user_ip."'";

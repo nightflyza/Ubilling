@@ -1,6 +1,6 @@
 <?php
 if (cfr('UBIM')) {
-$altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+$altcfg=  $ubillingConfig->getAlter();
     
 //posting new message 
     if (wf_CheckPost(array('im_message_to','im_message_text'))) {

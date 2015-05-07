@@ -10,23 +10,22 @@ if ($us_config['ZL_ENABLED']) {
     if (!empty ($zl_options)) {
     $zl_options=explode(',',$zl_options);
     
-    $result='<table  border="0">';
+    
+    $rows='';
     if (!empty ($zl_options)) {
         foreach ($zl_options as $eachlink) {
             $ldata=explode('|', $eachlink);
             $icon=$ldata[0];
             $url=$ldata[1];
             $title=$ldata[2];
-            
-            $result.='
-                <tr >
-                 <td><a href="'.$url.'"><img src="'.$icon.'" border="0"></td>
-                 <td><h3><a href="'.$url.'">'.$title.'</a></h3></td>
-                </tr>
-                ';
+      
+            $cells=  la_TableCell(la_Link($url, la_img($icon)));
+            $cells.= la_TableCell(la_tag('h3').la_Link($url, $title).la_tag('h3',true));
+            $rows.=la_TableRow($cells);
         }
     }
-    $result.='</table>';
+    $result=la_TableBody($rows, '', 0);
+    
     show_window(__('Downloads'),$result);
     }
 

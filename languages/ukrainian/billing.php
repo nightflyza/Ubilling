@@ -1919,5 +1919,6 @@ $lang['def']['Connection details']='Деталі підключення';
 $lang['def']['Cable']='Кабель';
 $lang['def']['m']='м';
 $lang['def']['Connection details report']='Звіт деталей підключення';
+$lang['def']['right to add login prompts for switches']='Право керувати авторизаційними даними комутаторів';
 
 ?>

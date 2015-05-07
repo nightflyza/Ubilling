@@ -316,8 +316,8 @@ function cf_FieldDisplay($type, $data) {
  * @return void
  */
 function cf_FieldEditor($login) {
-    global $billing;
-    $alter_conf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $billing,$ubillingConfig;
+    $alter_conf = $ubillingConfig->getAlter();
     $result = '';
     //edit routine 
     if (isset($_POST['modtype'])) {

@@ -4,7 +4,7 @@ $user_ip=zbs_UserDetectIp('debug');
 $user_login=zbs_UserGetLoginByIp($user_ip);
 $us_config=zbs_LoadConfig();
 
-/*
+/**
  * returns main self-credit module form
  * 
  * @return string
@@ -22,7 +22,7 @@ function zbs_ShowCreditForm() {
     return($form);
 }
 
-/*
+/**
  * logs succeful self credit fact into database
  * 
  * @param  string $login existing users login
@@ -37,7 +37,7 @@ function zbs_CreditLogPush($login) {
     nr_query($query);
 }
 
-/*
+/**
  * checks is user current month use SC module and returns false if used or true if feature available
  * 
  * @param  string $login existing users login

@@ -147,7 +147,7 @@ function im_ContactList() {
                 if (wf_CheckGet(array('checknew'))) {
                     $unreadCounter = im_CheckForUnreadMessagesByUser($eachadmin);
                     if ($unreadCounter != 0) {
-                        $blinker = wf_img('skins/ubim_blink.gif', __('Unread message'));
+                        $blinker = wf_img('skins/icon_mail.gif');
                     } else {
                         $blinker = '';
                     }
@@ -161,8 +161,8 @@ function im_ContactList() {
                     $aliveFlag = web_bool_led(false);
                 }
                 $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '32') . ' ';
-                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $eachadmin, 'threadContainer', false, 'ubimcontact');
-                $threadLink.=$blinker;
+                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $eachadmin.' '.$blinker, 'threadContainer', false, 'ubimcontact');
+                //$threadLink.=$blinker;
 
                 $cells = wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
                 $cells.= wf_TableCell($conatactAvatar, '35', '', 'valign="center" align="left"');

@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('CONDET')) {
+if (cfr('ONLINE')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['CONDET_ENABLED']) {
 

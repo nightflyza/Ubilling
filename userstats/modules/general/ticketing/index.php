@@ -1,257 +1,273 @@
 <?php
-$user_ip=zbs_UserDetectIp('debug');
-$user_login=zbs_UserGetLoginByIp($user_ip);
-$us_config=zbs_LoadConfig();
-$us_helpdenied=  zbs_GetHelpdeskDeniedAll();
+
+$user_ip = zbs_UserDetectIp('debug');
+$user_login = zbs_UserGetLoginByIp($user_ip);
+$us_config = zbs_LoadConfig();
+$us_helpdenied = zbs_GetHelpdeskDeniedAll();
 
 if ($us_config['TICKETING_ENABLED']) {
-    ///// ticketing API
 
-function zbs_TicketsGetAllMy($mylogin){
-    $query="SELECT * from `ticketing` WHERE `from`= '".$mylogin."' AND `replyid` IS NULL ORDER BY `date` DESC";
-    $result=simple_queryall($query);
-    return ($result);
-}
-
-function zbs_MessagesGetAllMy($mylogin){
-    $query="SELECT * from `ticketing` WHERE `to`= '".$mylogin."' AND `from`='NULL' AND `status`='1' ORDER BY `date` DESC";
-    $result=simple_queryall($query);
-    return ($result);
-}
-
-
-function zbs_TicketGetData($ticketid) {
-    $ticketid=vf($ticketid,3);
-    $query="SELECT * from `ticketing` WHERE `id`='".$ticketid."'";
-    $result=simple_query($query);
-    return ($result);
-}
-
-function zbs_TicketGetReplies($ticketid) {
-    $ticketid=vf($ticketid,3);
-    $query="SELECT * from `ticketing` WHERE `replyid`='".$ticketid."' ORDER by `id` ASC";
-    $result=simple_queryall($query);
-    return ($result);
-}
-
-function zbs_TicketIsMy($ticketid,$login) {
-    $ticketid=vf($ticketid,3);
-    $login=mysql_real_escape_string($login);
-    $query="SELECT `id` from `ticketing` WHERE `id`='".$ticketid."' AND `from`='".$login."'";
-    $result=simple_query($query);
-    if (!empty ($result)) {
-        return(true);
-    } else {
-        return(false);
+    /**
+     * Returns array of all tickets by some login
+     * 
+     * @param string $mylogin
+     * @return array
+     */
+    function zbs_TicketsGetAllMy($mylogin) {
+        $query = "SELECT * from `ticketing` WHERE `from`= '" . $mylogin . "' AND `replyid` IS NULL ORDER BY `date` DESC";
+        $result = simple_queryall($query);
+        return ($result);
     }
-}
 
-function zbs_TicketCreate($from,$to,$text,$replyto='NULL') {
-    $from=mysql_real_escape_string($from);
-    $to=mysql_real_escape_string($to);
-    $text=mysql_real_escape_string(strip_tags($text));
-    $date=curdatetime();
-    $replyto=vf($replyto);
-    $query="
-        INSERT INTO `ticketing` (
-    `id` ,
-    `date` ,
-    `replyid` ,
-    `status` ,
-    `from` ,
-    `to` ,
-    `text`
-        )
-    VALUES (
-    NULL ,
-    '".$date."',
-    ".$replyto.",
-    '0',
-    '".$from."',
-    ".$to.",
-    '".$text."'
-          );
-        ";
-    nr_query($query);
-  }
-  
+    /**
+     * Returns array of all available direct messages
+     * 
+     * @param string $mylogin
+     * @return array
+     */
+    function zbs_MessagesGetAllMy($mylogin) {
+        $query = "SELECT * from `ticketing` WHERE `to`= '" . $mylogin . "' AND `from`='NULL' AND `status`='1' ORDER BY `date` DESC";
+        $result = simple_queryall($query);
+        return ($result);
+    }
+
+    /**
+     * Returns array of some ticket properties
+     * 
+     * @param int $ticketid
+     * @return array
+     */
+    function zbs_TicketGetData($ticketid) {
+        $ticketid = vf($ticketid, 3);
+        $query = "SELECT * from `ticketing` WHERE `id`='" . $ticketid . "'";
+        $result = simple_query($query);
+        return ($result);
+    }
+
+    /**
+     * Returns array of all replies available for ticket
+     * 
+     * @param int $ticketid
+     * @return array
+     */
+    function zbs_TicketGetReplies($ticketid) {
+        $ticketid = vf($ticketid, 3);
+        $query = "SELECT * from `ticketing` WHERE `replyid`='" . $ticketid . "' ORDER by `id` ASC";
+        $result = simple_queryall($query);
+        return ($result);
+    }
+
+    /**
+     * Checks is some ticket accessible by login
+     * 
+     * @param int $ticketid
+     * @param string $login
+     * @return bool
+     */
+    function zbs_TicketIsMy($ticketid, $login) {
+        $ticketid = vf($ticketid, 3);
+        $login = mysql_real_escape_string($login);
+        $query = "SELECT `id` from `ticketing` WHERE `id`='" . $ticketid . "' AND `from`='" . $login . "'";
+        $result = simple_query($query);
+        if (!empty($result)) {
+            return(true);
+        } else {
+            return(false);
+        }
+    }
+
+    /**
+     * Creates new ticket in database
+     * 
+     * @param string $from
+     * @param string $to
+     * @param string $text
+     * @param string $replyto
+     */
+    function zbs_TicketCreate($from, $to, $text, $replyto = 'NULL') {
+        $from = mysql_real_escape_string($from);
+        $to = mysql_real_escape_string($to);
+        $text = mysql_real_escape_string(strip_tags($text));
+        $date = curdatetime();
+        $replyto = vf($replyto);
+        $query = "INSERT INTO `ticketing` (`id` ,`date` ,`replyid` , `status` ,`from` ,`to` ,`text`)
+    VALUES ( NULL ,'" . $date . "', " . $replyto . ", '0','" . $from . "', " . $to . ",'" . $text . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Returns new ticket creation form
+     * 
+     * @return string
+     */
     function zbs_TicketCreateForm() {
-        $result='
-            <form action="" method="POST">
-            <textarea cols="60" rows="10" name="newticket"></textarea> <br>
-            <input type="submit" value="'.__('Post').'">
-            </form>
-            ';
+        $inputs = la_TextArea('newticket', '', '', true, '60x10');
+        $inputs.= la_Submit(__('Post'));
+
+        $result = la_Form('', 'POST', $inputs, '');
         return ($result);
     }
-    
-      function zbs_TicketReplyForm($ticketid) {
-          $ticketid=vf($ticketid);
-          $ticketdata=zbs_TicketGetData($ticketid);
-          if ($ticketdata['status']==0) {
-           $result='
-            <form action="" method="POST">
-            <textarea cols="60" rows="10" name="replyticket"></textarea> <br>
-            <input type="submit" value="'.__('Post').'">
-            </form>
-            ';
-          } else   {
-              $result=__('Closed');
-          }
+
+    /**
+     * Returns ticket reply form if ticket state is open
+     * 
+     * @param int $ticketid
+     * @return string
+     */
+    function zbs_TicketReplyForm($ticketid) {
+        $ticketid = vf($ticketid);
+        $ticketdata = zbs_TicketGetData($ticketid);
+        if ($ticketdata['status'] == 0) {
+            $inputs = la_TextArea('replyticket', '', '', true, '60x10');
+            $inputs.= la_Submit(__('Post'));
+            $result = la_Form('', 'POST', $inputs, '');
+        } else {
+            $result = __('Closed');
+        }
         return ($result);
-          
     }
-    
+
+    /**
+     * Returns available tickets list
+     * 
+     * @global string $user_login
+     * @return string
+     */
     function zbs_TicketsShowMy() {
         global $user_login;
-        $allmytickets=zbs_TicketsGetAllMy($user_login);
-        $result='<table width="100%" border="0">';
-        $result.='
-                    <tr class="row1">
-                    <td>'.__('ID').'</td>
-                    <td>'.__('Date').'</td>
-                    <td>'.__('Status').'</td>
-                    <td>'.__('Actions').'</td>
-                    </tr>
-                    ';
-        if (!empty ($allmytickets)) {
-            foreach ($allmytickets as $io=>$eachticket) {
+        $allmytickets = zbs_TicketsGetAllMy($user_login);
+
+        $cells = la_TableCell(__('ID'));
+        $cells.= la_TableCell(__('Date'));
+        $cells.= la_TableCell(__('Status'));
+        $cells.= la_TableCell(__('Actions'));
+        $rows = la_TableRow($cells, 'row1');
+
+        if (!empty($allmytickets)) {
+            foreach ($allmytickets as $io => $eachticket) {
                 if ($eachticket['status']) {
-                    $ticketstatus=  la_img('iconz/anread.gif').' '.__('Closed');
+                    $ticketstatus = la_img('iconz/anread.gif') . ' ' . __('Closed');
                 } else {
-                    $ticketstatus=la_img('iconz/anunread.gif').' '.__('Open');
+                    $ticketstatus = la_img('iconz/anunread.gif') . ' ' . __('Open');
                 }
-                $result.='
-                    <tr class="row2">
-                    <td>'.$eachticket['id'].'</td>
-                    <td>'.$eachticket['date'].'</td>
-                    <td>'.$ticketstatus.'</td>
-                    <td><a href="?module=ticketing&showticket='.$eachticket['id'].'">'.__('View').'</a></td>
-                    </tr>
-                    ';
+                $cells = la_TableCell($eachticket['id']);
+                $cells.= la_TableCell($eachticket['date']);
+                $cells.= la_TableCell($ticketstatus);
+                $cells.= la_TableCell(la_Link('?module=ticketing&showticket=' . $eachticket['id'], __('View')));
+                $rows.= la_TableRow($cells, 'row2');
             }
         }
-        $result.='</table>';
+        $result = la_TableBody($rows, '100%', 0);
         return ($result);
     }
-    
+
+    /**
+     * Returns ticket with all replies
+     * 
+     * @param int $ticketid
+     * @return string
+     */
     function zbs_TicketShowWithReplies($ticketid) {
-        $ticketid=vf($ticketid,3);
-        $ticketdata=zbs_TicketGetData($ticketid);
-        $ticketreplies=zbs_TicketGetReplies($ticketid);
-        $result='<table width="100%" border="0">';
-        if (!empty ($ticketdata)) {
-            $result.='
-                <tr class="row1">
-                <td>'.__('Date').'</td>
-                <td>'.$ticketdata['date'].'</td>
-                </tr>
-                <tr class="row2">
-                <td></td>
-                <td>'.nl2br($ticketdata['text']).'</td>
-                </tr>
-                ';
-            }
-            if (!empty ($ticketreplies)) {
-                foreach ($ticketreplies as $io=>$eachreply) {
-                    $result.='
-                        <tr class="row1">
-                        <td>'.__('Date').'</td>
-                        <td>'.$eachreply['date'].'</td>
-                        </tr>
-                        <tr class="row3">
-                        <td></td>
-                        <td>'.nl2br($eachreply['text']).'</td>
-                        </tr>
-                        
-                        ';
-                }
-            }
-            
-            $result.='</table>';
-             return ($result);
+        $ticketid = vf($ticketid, 3);
+        $ticketdata = zbs_TicketGetData($ticketid);
+        $ticketreplies = zbs_TicketGetReplies($ticketid);
+
+        if (!empty($ticketdata)) {
+
+            $cells = la_TableCell(__('Date'));
+            $cells.= la_TableCell($ticketdata['date']);
+            $rows = la_TableRow($cells, 'row1');
+
+            $cells = la_TableCell('');
+            $cells.= la_TableCell(nl2br($ticketdata['text']));
+            $rows.= la_TableRow($cells, 'row2');
         }
-        
-        
-        
-  function zbs_MessagesShowMy() {
-      global $user_login;
-        $allmymessages=zbs_MessagesGetAllMy($user_login);
-        $result='<table width="100%" border="0">';
-        $result.='
-                    <tr class="row1">
-                    <td>'.__('Date').'</td>
-                    <td>'.__('Message').'</td>
-                    </tr>
-                    ';
-        if (!empty ($allmymessages)) {
-            foreach ($allmymessages as $io=>$eachmessage) {
-                $result.='
-                    <tr class="row2">
-                    <td>'.$eachmessage['date'].'</td>
-                    <td>'.$eachmessage['text'].'</td>
-                    </tr>
-                    ';
+        if (!empty($ticketreplies)) {
+            foreach ($ticketreplies as $io => $eachreply) {
+                $cells = la_TableCell(__('Date'));
+                $cells.= la_TableCell($eachreply['date']);
+                $rows.= la_TableRow($cells, 'row1');
+
+                $cells = la_TableCell('');
+                $cells.= la_TableCell(nl2br($eachreply['text']));
+                $rows.= la_TableRow($cells, 'row3');
             }
         }
-        $result.='</table>';
+
+        $result = la_TableBody($rows, '100%', 0);
         return ($result);
-  }
-       
-    
-    
- //////////////////////
-    
+    }
+
+    /**
+     * Returns list of available direct messages
+     * 
+     * @global string $user_login
+     * @return string
+     */
+    function zbs_MessagesShowMy() {
+        global $user_login;
+        $allmymessages = zbs_MessagesGetAllMy($user_login);
+
+        $cells = la_TableCell(__('Date'));
+        $cells.= la_TableCell(__('Message'));
+        $rows = la_TableRow($cells, 'row1');
+
+        if (!empty($allmymessages)) {
+            foreach ($allmymessages as $io => $eachmessage) {
+
+                $cells = la_TableCell($eachmessage['date']);
+                $cells.= la_TableCell($eachmessage['text']);
+                $rows.= la_TableRow($cells, 'row2');
+            }
+        }
+        $result = la_TableBody($rows, '100%', 0);
+        return ($result);
+    }
+
+    //////////////////////
+
     if (!isset($_GET['showticket'])) {
         //mb post new ticket?
-       if (isset($_POST['newticket'])) {
-           $newtickettext=strip_tags($_POST['newticket']);
-           if (!empty ($newtickettext)) {
-               if (!isset($us_helpdenied[$user_login])) {
-               zbs_TicketCreate($user_login, 'NULL', $newtickettext);
-               }
-               rcms_redirect("?module=ticketing");
-           }
-       }
-      //show previous tickets
-      if (!isset($us_helpdenied[$user_login])) {
-          show_window(__('Help request'),  zbs_TicketCreateForm());    
-      }
-      
-      show_window(__('Previous help requests'),zbs_TicketsShowMy());
-      show_window(__('Messages from administration'),  zbs_MessagesShowMy());
-      
+        if (isset($_POST['newticket'])) {
+            $newtickettext = strip_tags($_POST['newticket']);
+            if (!empty($newtickettext)) {
+                if (!isset($us_helpdenied[$user_login])) {
+                    zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+                }
+                rcms_redirect("?module=ticketing");
+            }
+        }
+        //show previous tickets
+        if (!isset($us_helpdenied[$user_login])) {
+            show_window(__('Help request'), zbs_TicketCreateForm());
+        }
+
+        show_window(__('Previous help requests'), zbs_TicketsShowMy());
+        show_window(__('Messages from administration'), zbs_MessagesShowMy());
     } else {
-        $ticketid=vf($_GET['showticket'],3);
-        if (!empty ($ticketid)) {
+        $ticketid = vf($_GET['showticket'], 3);
+        if (!empty($ticketid)) {
             //ok thats my ticket
             if (zbs_TicketIsMy($ticketid, $user_login)) {
                 //mb post reply?
                 if (isset($_POST['replyticket'])) {
-                    $replytickettext=strip_tags($_POST['replyticket']);
-                    if (!empty ($replytickettext)) {
-                    zbs_TicketCreate($user_login, 'NULL', $replytickettext, $ticketid);
-                    rcms_redirect("?module=ticketing&showticket=".$ticketid);
+                    $replytickettext = strip_tags($_POST['replyticket']);
+                    if (!empty($replytickettext)) {
+                        zbs_TicketCreate($user_login, 'NULL', $replytickettext, $ticketid);
+                        rcms_redirect("?module=ticketing&showticket=" . $ticketid);
                     }
-                    
                 }
-                
-                
+
+
                 //let view it
-                show_window(__('Help request').': '.$ticketid,zbs_TicketShowWithReplies($ticketid));
-                show_window(__('Reply'),  zbs_TicketReplyForm($ticketid));
-                
-               
+                show_window(__('Help request') . ': ' . $ticketid, zbs_TicketShowWithReplies($ticketid));
+                show_window(__('Reply'), zbs_TicketReplyForm($ticketid));
             } else {
                 show_window(__('Error'), __('No such ticket'));
             }
         }
-        
     }
-    
-    
-    
 } else {
-     show_window(__('Sorry'),__('Unfortunately helpdesk is now disabled'));
+    show_window(__('Sorry'), __('Unfortunately helpdesk is now disabled'));
 }
 ?>
