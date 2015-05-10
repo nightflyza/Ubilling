@@ -1906,9 +1906,16 @@ $lang['def']['Cable']='Кабель';
 $lang['def']['m']='м';
 $lang['def']['Connection details report']='Очет по деталям подключений';
 $lang['def']['right to add login prompts for switches']='Право управлять авторизационными данными свичей';
+
+//rev 4376
+$lang['def']['PHP extension not found']='Расширение PHP не найдено';
+$lang['def']['PHP extension loaded']='Расширение PHP загружено';
+$lang['def']['Check required PHP extensions']='Проверка нужных расширений PHP';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
+
+
 
 
 

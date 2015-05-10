@@ -2815,26 +2815,23 @@ function zb_MacVendorSearchmac($mac) {
  * @return string
  */
 function zb_MacVendorLookup($mac) {
-    $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $altcfg = $ubillingConfig->getALter();
     $result = '';
     //use old macvendorlookup.com API
     if (isset($altcfg['MACVEN_OLD'])) {
         if ($altcfg['MACVEN_OLD']) {
-            if (!empty($altcfg['MACVENAPI_KEY'])) {
-                $apikey = $altcfg['MACVENAPI_KEY'];
-                $url = 'http://www.macvendorlookup.com/api/' . $apikey . '/';
+                $url = 'http://www.macvendorlookup.com/api/v2/';
                 $mac = str_replace(':', '', $mac);
-                @$rawdata = file_get_contents($url . $mac);
-
+                $rawdata = file_get_contents($url . $mac.'/pipe');
+            
                 if (!empty($rawdata)) {
                     $data = explode("|", $rawdata);
                     if (!empty($data)) {
-                        $result = $data[0];
+                        $result = $data[4];
                     }
                 }
-            } else {
-                $result = __('No macvendorlookup.com API key set');
-            }
+          
         } else {
             $result = zb_MacVendorSearchmac($mac);
         }
@@ -4233,5 +4230,32 @@ function zb_TariffProtected($tariffname) {
     $query="SELECT `login` from `users` WHERE `Tariff`='".$tariffname."' OR `TariffChange`='".$tariffname."' LIMIT 1;";
     $raw=  simple_query($query);
     $result=(empty($raw)) ? false : true;
+    return ($result);
+}
+
+/**
+ * Checks PHP loaded modules
+ * 
+ * @return string
+ */
+function zb_CheckPHPExtensions() {
+    $result = '';
+    if (file_exists(CONFIG_PATH . 'optsextcfg')) {
+        $allRequired = file_get_contents(CONFIG_PATH . 'optsextcfg');
+        if (!empty($allRequired)) {
+            $allRequired = explodeRows($allRequired);
+            if (!empty($allRequired)) {
+                foreach ($allRequired as $io => $each) {
+                    if (!extension_loaded($each)) {
+                        $result.=wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . wf_tag('span', true);
+                    } else {
+                        $result.=wf_tag('span', false, 'alert_success') . __('PHP extension loaded') . ': ' . $each . wf_tag('span', true);
+                    }
+                }
+            }
+        }
+    } else {
+        $result.=wf_tag('span', false, 'alert_error').__('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND'.wf_tag('span',true);
+    }
     return ($result);
 }

@@ -1,6 +1,6 @@
 <?php
 if (cfr('MAC')) {
-    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $altercfg=  $ubillingConfig->getAlter();
     
     if ($altercfg['MACVEN_ENABLED']) {
     if (wf_CheckGet(array('mac'))) {

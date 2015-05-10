@@ -189,15 +189,11 @@ ARPING_EXTRA_OPTIONS=VARCHAR|arping extra options
 ARPDIAG_ENABLED=TRIGGER|Enabled arpdiag module
 ARPDIAG_LOG=VARCHAR|arpdiag log file
 MACVEN_ENABLED=TRIGGER|Vendor detection by MAC
-MACVENAPI_KEY=VARCHAR|MAC vendor detection API key|PASSWD
 
 CHAPTER_NDS=NDS accounting
 NDS_ENABLED=TRIGGER|NDS processing support enabled
 NDS_TAGID=VARCHAR|NDS tag ID
 NDS_TAX_PERCENT=VARCHAR|NDS tax rate
-
-
-
 
 
 CHAPTER_DISCOUNT=Discounts support

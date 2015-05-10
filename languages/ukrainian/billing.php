@@ -1921,4 +1921,9 @@ $lang['def']['m']='м';
 $lang['def']['Connection details report']='Звіт деталей підключення';
 $lang['def']['right to add login prompts for switches']='Право керувати авторизаційними даними комутаторів';
 
+//rev 4376
+$lang['def']['PHP extension not found']='Розширення PHP не знайдено';
+$lang['def']['PHP extension loaded']='Розширення PHP завантажено';
+$lang['def']['Check required PHP extensions']='Перевірка потрібних розширень PHP';
+
 ?>
