@@ -1911,13 +1911,14 @@ $lang['def']['right to add login prompts for switches']='Право управл
 $lang['def']['PHP extension not found']='Расширение PHP не найдено';
 $lang['def']['PHP extension loaded']='Расширение PHP загружено';
 $lang['def']['Check required PHP extensions']='Проверка нужных расширений PHP';
+$lang['def']['Custom maps enabled']='Пользовательские карты включены';
+$lang['def']['Custom maps']='Пользовательские карты';
+$lang['def']['right to control custom maps']='Право управлять пользовательскими картами';
+$lang['def']['Available custom maps']='Существующие пользовательские карты';
+$lang['def']['Create new map']='Создать новую карту';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
-
-
-
 
 
 

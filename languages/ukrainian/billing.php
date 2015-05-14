@@ -1925,5 +1925,10 @@ $lang['def']['right to add login prompts for switches']='Право керува
 $lang['def']['PHP extension not found']='Розширення PHP не знайдено';
 $lang['def']['PHP extension loaded']='Розширення PHP завантажено';
 $lang['def']['Check required PHP extensions']='Перевірка потрібних розширень PHP';
+$lang['def']['Custom maps enabled']='Користувацькі карти увімкнено';
+$lang['def']['Custom maps']='Користувацькі карти';
+$lang['def']['right to control custom maps']='Право керувати користувацькими картами';
+$lang['def']['Available custom maps']='Існуючі користувацькі карти';
+$lang['def']['Create new map']='Створити нову карту';
 
 ?>

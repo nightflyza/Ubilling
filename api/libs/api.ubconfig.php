@@ -97,4 +97,51 @@ class UbillingConfig {
 
 }
 
+/**
+ * Draft message helper
+ */
+class UbillingMessageHelper {
+
+    protected $deleteAlert = '';
+    protected $editAlert = '';
+
+    public function __construct() {
+        $this->setDeleteAlert();
+        $this->setEditAlert();
+    }
+
+    /**
+     * Sets localized string as default deletion warning
+     */
+    protected function setDeleteAlert() {
+        $this->deleteAlert = __('Removing this may lead to irreparable results');
+    }
+
+    /**
+     * Sets localized string as default edit warning
+     */
+    protected function setEditAlert() {
+        $this->editAlert = __('Are you serious');
+    }
+
+    /**
+     * Returns localized deletion warning message
+     * 
+     * @return string
+     */
+    public function getDeleteAlert() {
+        return ($this->deleteAlert);
+    }
+
+    /**
+     * Returns localized editing warning message
+     * 
+     * @return string
+     */
+    public function getEditAlert() {
+        return ($this->editAlert);
+    }
+
+}
+
 ?>
