@@ -1394,6 +1394,7 @@ CREATE TABLE IF NOT EXISTS `custmapsitems` (
   `type` varchar(40) DEFAULT NULL,
   `geo` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `mapid` (`mapid`,`type`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

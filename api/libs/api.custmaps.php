@@ -61,6 +61,22 @@ class CustomMaps {
             }
         }
     }
+    
+    
+    /**
+     * Returns map controls
+     * 
+     * @return string
+     */
+    protected function mapControls() {
+        $result='';
+        $result.=wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
+        if (wf_CheckGet(array('showmap'))) {
+            $result.=wf_Link('?module=custmaps&showmap='.$_GET['showmap'].'&mapedit=true', wf_img('skins/ymaps/edit.png').' '.__('Edit'), false, 'ubButton');
+        }
+        $result.=wf_delimiter();
+        return ($result);
+    }
 
     /**
      * Returns empty map container
@@ -68,7 +84,7 @@ class CustomMaps {
      * @return string
      */
     protected function mapContainer() {
-        $container = wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
+        $container= wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         return ($container);
     }
@@ -87,7 +103,8 @@ class CustomMaps {
             $center = $this->center;
         }
 
-        $result = $this->mapContainer();
+        $result=$this->mapControls();
+        $result.= $this->mapContainer();
         $result.= wf_tag('script', false, '', 'src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
         $result.=wf_tag('script', true);
         $result.=wf_tag('script', false, '', 'type="text/javascript"');
@@ -229,8 +246,7 @@ class CustomMaps {
             throw new Exception(self::EX_NO_MAP_ID);
         }
     }
-    
-    
+
     /**
      * Returns existing custom map name by its Id
      * 
@@ -238,9 +254,111 @@ class CustomMaps {
      * @return string
      */
     public function mapGetName($id) {
-        $id=vf($id,3);
-        return ($this->allMaps[$id]['name']);    
+        $id = vf($id, 3);
+        return ($this->allMaps[$id]['name']);
     }
+
+    /**
+     * Returns list of map placemarks
+     * 
+     * @param int $id
+     * 
+     * @return string
+     */
+    public function mapGetPlacemarks($id) {
+        $id=vf($id,3);
+        $result='';
+        if (!empty($this->allItems)) {
+            foreach ($this->allItems as $io=>$each) {
+                if (($each['mapid']==$id) AND (!empty($each['geo']))) {
+                    $result.=$this->mapAddMark($each['geo'], $each['name'], $each['location'], 'some footer', sm_MapGoodIcon(), '');
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns map mark
+     * 
+     * @param string $coords - map coordinates
+     * @param string $title - ballon title
+     * @param string $content - ballon content
+     * @param string $footer - ballon footer content
+     * @param string $icon - YM icon class
+     * @param string $iconlabel - icon label string
+     * 
+     * @return string
+     */
+    protected function mapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '') {
+        if ($this->ymapsCfg['CANVAS_RENDER']) {
+            if ($iconlabel == '') {
+                $overlay = 'overlayFactory: "default#interactiveGraphics"';
+            } else {
+                $overlay = '';
+            }
+        } else {
+            $overlay = '';
+        }
+
+        if (!wf_CheckGet(array('clusterer'))) {
+            $markType = 'myMap.geoObjects';
+        } else {
+            $markType = 'clusterer';
+        }
+
+        $result = '
+            myPlacemark = new ymaps.Placemark([' . $coords . '], {
+                 iconContent: \'' . $iconlabel . '\',
+                 balloonContentHeader: \'' . $title . '\',
+                 balloonContentBody: \'' . $content . '\',
+                 balloonContentFooter: \'' . $footer . '\',
+                 hintContent: "' . $content . '",
+                } , {
+                    draggable: false,
+                    preset: \'' . $icon . '\',
+                    ' . $overlay . '
+                        
+                }),
+ 
+            
+           ' . $markType . '.add(myPlacemark);
+        
+            
+            ';
+        return ($result);
+    }
+    
+ /**
+ * Return geo coordinates locator with embedded form
+ * 
+ * @return string
+ */
+public function mapLocationEditor() {
+    $buildSelector = str_replace("'", '`', 'zzzzzzz');
+    $buildSelector = str_replace("\n", '', $buildSelector);
+
+    $result = '
+            myMap.events.add(\'click\', function (e) {
+                if (!myMap.balloon.isOpen()) {
+                    var coords = e.get(\'coordPosition\');
+                    myMap.balloon.open(coords, {
+                        contentHeader: \'' . __('Place coordinates') . '\',
+                        contentBody: \' \' +
+                            \'<p>\' + [
+                            coords[0].toPrecision(6),
+                            coords[1].toPrecision(6)
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">' . $buildSelector . '</form> \'
+                 
+                    });
+                } else {
+                    myMap.balloon.close();
+                }
+            });
+            ';
+    return ($result);
+}
+
 
 }
 

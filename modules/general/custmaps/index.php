@@ -31,8 +31,13 @@ if (cfr('SWITCHMAP')) {
             show_window(__('Available custom maps'),$custmaps->renderMapList());
         } else {
             $mapId=$_GET['showmap'];
-            $placemarks=  sm_MapAddMark('48.9269, 24.7111', 'test', 'content', 'footer', sm_MapGoodIcon(), 'ok', true);
-            show_window($custmaps->mapGetName($mapId), $custmaps->mapInit($placemarks, ''));
+            $placemarks=  $custmaps->mapGetPlacemarks($mapId);
+            if (wf_CheckGet(array('mapedit','showmap'))) {
+                $editor=  $custmaps->mapLocationEditor();
+            } else {
+                $editor='';
+            }
+            show_window($custmaps->mapGetName($mapId), $custmaps->mapInit($placemarks, $editor));
         }
         
         
