@@ -1,10 +1,10 @@
 <?php
 
-if (cfr('SWITCHMAP')) {
+if (cfr('CUSTMAP')) {
 
-    $altercfg = $ubillingConfig->getAlter();
+    $altCfg = $ubillingConfig->getAlter();
 
-    if ($altercfg['CUSTMAP_ENABLED']) {
+    if ($altCfg['CUSTMAP_ENABLED']) {
         $custmaps = new CustomMaps();
 
         // new custom map creation
@@ -49,15 +49,47 @@ if (cfr('SWITCHMAP')) {
             }
         }
 
+        //deleting map item
+        if (wf_CheckGet(array('deleteitem'))) {
+            if (cfr('CUSTMAPEDIT')) {
+                $deleteResult = $custmaps->itemDelete($_GET['deleteitem']);
+                rcms_redirect('?module=custmaps&showitems=' . $deleteResult);
+            } else {
+                show_error(__('Permission denied'));
+            }
+        }
+
 
 
         if (!wf_CheckGet(array('showmap'))) {
-            //render existing custom maps list
+
             if (!wf_CheckGet(array('showitems'))) {
-                show_window(__('Available custom maps'), $custmaps->renderMapList());
+                if (!wf_CheckGet(array('edititem'))) {
+                    //render existing custom maps list
+                    show_window(__('Available custom maps'), $custmaps->renderMapList());
+                } else {
+                    $editItemId = $_GET['edititem'];
+                    //editing item
+                    if (wf_CheckPost(array('edititemid', 'edititemtype'))) {
+                        if (cfr('CUSTMAPEDIT')) {
+                            $custmaps->itemEdit($editItemId, $_POST['edititemtype'], $_POST['edititemgeo'], $_POST['edititemname'], $_POST['edititemlocation']);
+                            rcms_redirect('?module=custmaps&edititem=' . $editItemId);
+                        } else {
+                            show_error(__('Permission denied'));
+                        }
+                    }
+
+                    //show item edit form
+                    show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
+                    //additional comments
+                    if ($altCfg['ADCOMMENTS_ENABLED']) {
+                       $adcomments=new ADcomments('CUSTMAPITEMS');
+                       show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
+                    }
+                }
             } else {
                 //render map items list
-                show_window(__('Objects'), $custmaps->renderItemsList($_GET['showitems']));
+                show_window(__('Objects') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemsList($_GET['showitems']));
             }
         } else {
             $mapId = $_GET['showmap'];
@@ -81,6 +113,12 @@ if (cfr('SWITCHMAP')) {
                 $editor = $custmaps->mapLocationEditor();
             } else {
                 $editor = '';
+            }
+            //additional centering and zoom
+            if (wf_CheckGet(array('locateitem','zoom'))) {
+                $custmaps->setCenter($_GET['locateitem']);
+                $custmaps->setZoom($_GET['zoom']);
+               // debarr($custmaps);
             }
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit($placemarks, $editor));
         }

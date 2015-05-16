@@ -5,14 +5,19 @@ class CustomMaps {
     protected $allMaps = array();
     protected $allItems = array();
     protected $ymapsCfg = array();
+    protected $altCfg = array();
+    protected $itemTypes = array();
     protected $center = '';
     protected $zoom = '';
 
     const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
+    const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
 
     public function __construct() {
         $this->loadYmapsConfig();
+        $this->loadAlterConfig();
         $this->setDefaults();
+        $this->setItemTypes();
         $this->loadMaps();
         $this->loadItems();
     }
@@ -25,6 +30,16 @@ class CustomMaps {
     protected function loadYmapsConfig() {
         global $ubillingConfig;
         $this->ymapsCfg = $ubillingConfig->getYmaps();
+    }
+
+    /**
+     * Loads system-wide alter config into private config storage
+     * 
+     * @global object $ubillingConfig
+     */
+    protected function loadAlterConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -42,9 +57,47 @@ class CustomMaps {
         }
     }
 
+    /**
+     * Sets default map center and zoom
+     * 
+     * @return void
+     */
     protected function setDefaults() {
         $this->center = $this->ymapsCfg['CENTER'];
         $this->zoom = $this->ymapsCfg['ZOOM'];
+    }
+
+    /**
+     * Sets available item types into private data property
+     * 
+     * @return void
+     */
+    protected function setItemTypes() {
+        $this->itemTypes = array(
+            'pillar' => __('Pillar'),
+            'sump' => __('Sump'),
+            'coupling' => __('Coupling'),
+            'node' => __('Node'),
+            'box'=>__('Box'),
+            'amplifier'=>__('Amplifier'),
+            'optrec'=>__('Optical reciever')
+        );
+    }
+
+    /**
+     * Returns item type localized name
+     * 
+     * @param string $type
+     * @return string
+     */
+    protected function itemGetTypeName($type) {
+        $result = '';
+        if (isset($this->itemTypes[$type])) {
+            $result = $this->itemTypes[$type];
+        } else {
+            $result.=__('Unknown');
+        }
+        return ($result);
     }
 
     /**
@@ -60,6 +113,24 @@ class CustomMaps {
                 $this->allItems[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Sets override map center
+     * 
+     * @param string $coords
+     */
+    public function setCenter($coords) {
+        $this->center = $coords;
+    }
+
+    /**
+     * Sets map override zoom
+     * 
+     * @param int $zoom
+     */
+    public function setZoom($zoom) {
+        $this->zoom = $zoom;
     }
 
     /**
@@ -94,6 +165,7 @@ class CustomMaps {
                 $curLayers = '';
             }
 
+            $result.=wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_table.png') . ' ' . __('Objects'), false, 'ubButton');
             $result.=wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false, 'ubButton');
             $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=bs' . $this->filterLayers($curLayers, 'bs'), wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
             $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=sw' . $this->filterLayers($curLayers, 'sw'), wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -112,48 +184,6 @@ class CustomMaps {
         $container = wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         return ($container);
-    }
-
-    /**
-     * Returns initialized JS map
-     * 
-     * @param string $placemarks
-     * @param string $editor
-     * @return string
-     */
-    public function mapInit($placemarks, $editor = '') {
-        if (empty($this->center)) {
-            $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
-        } else {
-            $center = $this->center;
-        }
-
-        $result = $this->mapControls();
-        $result.= $this->mapContainer();
-        $result.= wf_tag('script', false, '', 'src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
-        $result.=wf_tag('script', true);
-        $result.=wf_tag('script', false, '', 'type="text/javascript"');
-        $result.= '
-        ymaps.ready(init);
-        function init () {
-            var myMap = new ymaps.Map(\'custmap\', {
-                    center: [' . $center . '], 
-                    zoom: ' . $this->zoom . ',
-                    type: \'yandex#' . $this->ymapsCfg['TYPE'] . '\',
-                    behaviors: [\'default\',\'scrollZoom\']
-                })
-               
-                 myMap.controls
-                .add(\'zoomControl\')
-                .add(\'typeSelector\')
-                .add(\'mapTools\')
-                .add(\'searchControl\');
-               
-         ' . $placemarks . '    
-         ' . $editor . '
-    }';
-        $result.=wf_tag('script', true);
-        return ($result);
     }
 
     /**
@@ -183,7 +213,7 @@ class CustomMaps {
                 }
                 $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_search_small.gif', __('Show')), false);
                 $actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
-                
+
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -192,45 +222,131 @@ class CustomMaps {
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
         return ($result);
     }
-    
-     /**
+
+    /**
+     * Returns item edit form
+     * 
+     * @param int $itemid
+     * @return string
+     */
+    public function itemEditForm($itemid) {
+        $itemid = vf($itemid, 3);
+        $result = '';
+        if (isset($this->allItems[$itemid])) {
+            $result.= wf_Link('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid'], __('Back'), false, 'ubButton');
+            $result.= wf_delimiter();
+
+            $inputs = wf_HiddenInput('edititemid', $itemid);
+            $inputs.= wf_Selector('edititemtype', $this->itemTypes, __('Type'), $this->allItems[$itemid]['type'], true);
+            $inputs.= wf_TextInput('edititemgeo', __('Geo location'), $this->allItems[$itemid]['geo'], true, '20');
+            $inputs.= wf_TextInput('edititemname', __('Name'), $this->allItems[$itemid]['name'], true, '20');
+            $inputs.= wf_TextInput('edititemlocation', __('Location'), $this->allItems[$itemid]['location'], true, '20');
+            $inputs.= wf_Submit(__('Save'));
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            throw new Exception(self::EX_NO_ITM_ID);
+        }
+        return ($result);
+    }
+
+    /**
+     * Changes existing item properties in database
+     * 
+     * @param string $itemid
+     * @param string $type
+     * @param string $geo
+     * @param string $name
+     * @param string $location
+     * @throws Exception
+     */
+    public function itemEdit($itemid, $type, $geo, $name, $location) {
+        $itemid = vf($itemid, 3);
+        if (isset($this->allItems[$itemid])) {
+            simple_update_field('custmapsitems', 'name', $name, "WHERE `id`='" . $itemid . "'");
+            simple_update_field('custmapsitems', 'type', $type, "WHERE `id`='" . $itemid . "'");
+            simple_update_field('custmapsitems', 'geo', $geo, "WHERE `id`='" . $itemid . "'");
+            simple_update_field('custmapsitems', 'location', $location, "WHERE `id`='" . $itemid . "'");
+            log_register('CUSTMAPS EDIT ITEM [' . $itemid . ']');
+        } else {
+            throw new Exception(self::EX_NO_ITM_ID);
+        }
+    }
+
+    /**
      * Returns existing map items list view
      * 
      * @return string
      */
     public function renderItemsList($mapid) {
-        $mapid=vf($mapid,3);
+        $mapid = vf($mapid, 3);
         $messages = new UbillingMessageHelper();
 
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('CUSTMAPITEMS');
+            $adc = true;
+        } else {
+            $adc = false;
+        }
+
+
         $result = '';
+        $result.=wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
+        $result.=wf_delimiter();
 
         $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Type'));
+        $cells.= wf_TableCell(__('Geo location'));
         $cells.= wf_TableCell(__('Name'));
+        $cells.= wf_TableCell(__('Location'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
-                
-                if ($each['mapid']==$mapid) {
-                $cells = wf_TableCell($each['id']);
-                
-                $cells.= wf_TableCell($each['name']);
-                $actLinks = '';
-                if (cfr('CUSTMAPEDIT')) {
-                    $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                    //$actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
-                }
-                //$actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_search_small.gif', __('Show')), false);
-                //$actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
-                
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
+                if ($each['mapid'] == $mapid) {
+                    $cells = wf_TableCell($each['id']);
+                    $cells.= wf_TableCell($this->itemGetTypeName($each['type']));
+                    $cells.= wf_TableCell($each['geo']);
+                    $cells.= wf_TableCell($each['name']);
+                    $cells.= wf_TableCell($each['location']);
+                    $actLinks = '';
+                    if (cfr('CUSTMAPEDIT')) {
+                        $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                    }
+                    $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
+                    $actLinks.= wf_Link('?module=custmaps&showmap='.$each['mapid'].'&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+
+                    $actLinks.=$indicator;
+
+                    $cells.= wf_TableCell($actLinks);
+                    $rows.= wf_TableRow($cells, 'row3');
                 }
             }
         }
 
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+        return ($result);
+    }
+
+    /**
+     * Deletes item from database by its ID
+     * 
+     * @param int $itemid
+     * 
+     * @return int
+     */
+    public function itemDelete($itemid) {
+        $itemid = vf($itemid, 3);
+        $result = '';
+        if (isset($this->allItems[$itemid])) {
+            $result = $this->allItems[$itemid]['mapid'];
+            $query = "DELETE from `custmapsitems` WHERE `id`='" . $itemid . "';";
+            nr_query($query);
+            log_register('CUSTMAPS DELETE ITEM  ID [' . $itemid . ']');
+        } else {
+            throw new Exception(self::EX_NO_ITM_ID);
+        }
         return ($result);
     }
 
@@ -284,7 +400,6 @@ class CustomMaps {
         $newId = simple_get_lastid('custmaps');
         log_register('CUSTMAPS CREATE MAP `' . $name . '` ID [' . $newId . ']');
     }
-    
 
     /**
      * Deletes existing custom map by its ID
@@ -297,7 +412,7 @@ class CustomMaps {
             $query = "DELETE from `custmaps` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register('CUSTMAPS DELETE MAP [' . $id . ']');
-            $query="DELETE from `custmapsitems` WHERE `id`='".$id."';";
+            $query = "DELETE from `custmapsitems` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register('CUSTMAPS FLUSH ITEMS [' . $id . ']');
         } else {
@@ -316,7 +431,7 @@ class CustomMaps {
         $id = vf($id, 3);
         if (isset($this->allMaps[$id])) {
             simple_update_field('custmaps', 'name', $name, "WHERE `id`='" . $id . "'");
-            log_register('CUSTMAPS EDIT [' . $id . '] SET `' . $name . '`');
+            log_register('CUSTMAPS EDIT MAP [' . $id . '] SET `' . $name . '`');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
         }
@@ -376,11 +491,55 @@ class CustomMaps {
             foreach ($this->allItems as $io => $each) {
                 if (($each['mapid'] == $id) AND ( !empty($each['geo']))) {
                     $icon = $this->itemGetIcon($each['type']);
-                    $result.=$this->mapAddMark($each['geo'], $each['location'], $each['name'], 'FOOTER_CONTROLS', $icon, '');
+                    $content = $this->itemGetTypeName($each['type']) . ': ' . $each['name'];
+                    $controls = wf_Link('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), false);
+                    $controls = str_replace("'", '`', $controls);
+                    $controls = str_replace("\n", '', $controls);
+                    $result.=$this->mapAddMark($each['geo'], $each['location'], $content, $controls, $icon, '');
                 }
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns item location form
+     * 
+     * @return string
+     */
+    protected function itemLocationForm() {
+        $result = wf_Selector('newitemtype', $this->itemTypes, __('Type'), '', true);
+        $result.= wf_TextInput('newitemname', __('Name'), '', true, 20);
+        $result.= wf_TextInput('newitemlocation', __('Location'), '', true, 20);
+        $result.= wf_Submit(__('Create'));
+        return ($result);
+    }
+
+    /**
+     * Creates new map item in database
+     * 
+     * @param int $mapid
+     * @param string $type
+     * @param string $geo
+     * @param string $name
+     * @param string $location
+     */
+    public function itemCreate($mapid, $type, $geo, $name, $location) {
+        $mapid = vf($mapid, 3);
+        $type = mysql_real_escape_string($type);
+        $geo = mysql_real_escape_string($geo);
+        $nameFiltered = mysql_real_escape_string($name);
+        $location = mysql_real_escape_string($location);
+
+        if (isset($this->allMaps[$mapid])) {
+            $query = "INSERT INTO `custmapsitems` (`id`, `mapid`, `type`, `geo`, `name`, `location`) "
+                    . "VALUES (NULL, '" . $mapid . "', '" . $type . "', '" . $geo . "', '" . $nameFiltered . "', '" . $location . "');";
+            nr_query($query);
+            $newId = simple_get_lastid('custmapsitems');
+            log_register('CUSTMAPS CREATE ITEM `' . $name . '` ID [' . $newId . ']');
+        } else {
+            throw new Exception(self::EX_NO_MAP_ID);
+        }
     }
 
     /**
@@ -435,49 +594,45 @@ class CustomMaps {
     }
 
     /**
-     * Returns item location form
+     * Returns initialized JS map
      * 
+     * @param string $placemarks
+     * @param string $editor
      * @return string
      */
-    protected function itemLocationForm() {
-        $itemtypes = array(
-            'pillar' => __('Pillar'),
-            'sump' => __('Sump'),
-            'coupling' => __('Coupling'),
-            'node' => __('Node')
-        );
-        $result = wf_Selector('newitemtype', $itemtypes, __('Type'), '', true);
-        $result.= wf_TextInput('newitemname', __('Name'), '', true, 20);
-        $result.= wf_TextInput('newitemlocation', __('Location'), '', true, 20);
-        $result.= wf_Submit(__('Create'));
-        return ($result);
-    }
-
-    /**
-     * Creates new map item in database
-     * 
-     * @param int $mapid
-     * @param string $type
-     * @param string $geo
-     * @param string $name
-     * @param string $location
-     */
-    public function itemCreate($mapid, $type, $geo, $name, $location) {
-        $mapid = vf($mapid, 3);
-        $type = mysql_real_escape_string($type);
-        $geo = mysql_real_escape_string($geo);
-        $nameFiltered = mysql_real_escape_string($name);
-        $location = mysql_real_escape_string($location);
-
-        if (isset($this->allMaps[$mapid])) {
-            $query = "INSERT INTO `custmapsitems` (`id`, `mapid`, `type`, `geo`, `name`, `location`) "
-                    . "VALUES (NULL, '" . $mapid . "', '" . $type . "', '" . $geo . "', '" . $nameFiltered . "', '" . $location . "');";
-            nr_query($query);
-            $newId = simple_get_lastid('custmapsitems');
-            log_register('CUSTMAPS CREATE ITEM `' . $name . '` ID [' . $newId . ']');
+    public function mapInit($placemarks, $editor = '') {
+        if (empty($this->center)) {
+            $center = 'ymaps.geolocation.latitude, ymaps.geolocation.longitude';
         } else {
-            throw new Exception(self::EX_NO_MAP_ID);
+            $center = $this->center;
         }
+
+        $result = $this->mapControls();
+        $result.= $this->mapContainer();
+        $result.= wf_tag('script', false, '', 'src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
+        $result.=wf_tag('script', true);
+        $result.=wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= '
+        ymaps.ready(init);
+        function init () {
+            var myMap = new ymaps.Map(\'custmap\', {
+                    center: [' . $center . '], 
+                    zoom: ' . $this->zoom . ',
+                    type: \'yandex#' . $this->ymapsCfg['TYPE'] . '\',
+                    behaviors: [\'default\',\'scrollZoom\']
+                })
+               
+                 myMap.controls
+                .add(\'zoomControl\')
+                .add(\'typeSelector\')
+                .add(\'mapTools\')
+                .add(\'searchControl\');
+               
+         ' . $placemarks . '    
+         ' . $editor . '
+    }';
+        $result.=wf_tag('script', true);
+        return ($result);
     }
 
     /**

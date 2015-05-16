@@ -1922,9 +1922,13 @@ $lang['def']['Sump']='Колодец';
 $lang['def']['Coupling']='Муфта';
 $lang['def']['Node']='Узел';
 $lang['def']['Objects']='Объекты';
+$lang['def']['Box']='Ящик';
+$lang['def']['Amplifier']='Усилитель';
+$lang['def']['Optical reciever']='Оптический приемник';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
+
 
 
 

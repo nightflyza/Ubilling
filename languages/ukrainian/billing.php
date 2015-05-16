@@ -1936,5 +1936,8 @@ $lang['def']['Sump']='Колодязь';
 $lang['def']['Coupling']='Муфта';
 $lang['def']['Node']='Вузол';
 $lang['def']['Objects']='Об`єкти';
+$lang['def']['Box']='Ящик';
+$lang['def']['Amplifier']='Підсилювач';
+$lang['def']['Optical reciever']='Оптичний приймач';
 
 ?>
