@@ -61,18 +61,43 @@ class CustomMaps {
             }
         }
     }
-    
-    
+
+    /**
+     * Filters some layer from current
+     * 
+     * @param string $layers
+     * @param string $filter
+     * @return string
+     */
+    protected function filterLayers($layers, $filter) {
+        $result = str_replace($filter, '', $layers);
+        return ($result);
+    }
+
     /**
      * Returns map controls
      * 
      * @return string
      */
     protected function mapControls() {
-        $result='';
+        $result = '';
         $result.=wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
         if (wf_CheckGet(array('showmap'))) {
-            $result.=wf_Link('?module=custmaps&showmap='.$_GET['showmap'].'&mapedit=true', wf_img('skins/ymaps/edit.png').' '.__('Edit'), false, 'ubButton');
+            $mapId = $_GET['showmap'];
+            if (cfr('CUSTMAPEDIT')) {
+                $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit'), false, 'ubButton');
+            }
+
+            if (wf_CheckGet(array('layers'))) {
+                $curLayers = $_GET['layers'];
+            } else {
+                $curLayers = '';
+            }
+
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false, 'ubButton');
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=bs' . $this->filterLayers($curLayers, 'bs'), wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=sw' . $this->filterLayers($curLayers, 'sw'), wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=ul' . $this->filterLayers($curLayers, 'ul'), wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
         }
         $result.=wf_delimiter();
         return ($result);
@@ -84,7 +109,7 @@ class CustomMaps {
      * @return string
      */
     protected function mapContainer() {
-        $container= wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
+        $container = wf_tag('div', false, '', 'id="custmap" style="width: 1000; height:800px;"');
         $container.=wf_tag('div', true);
         return ($container);
     }
@@ -103,7 +128,7 @@ class CustomMaps {
             $center = $this->center;
         }
 
-        $result=$this->mapControls();
+        $result = $this->mapControls();
         $result.= $this->mapContainer();
         $result.= wf_tag('script', false, '', 'src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
         $result.=wf_tag('script', true);
@@ -151,11 +176,57 @@ class CustomMaps {
                 $cells = wf_TableCell($each['id']);
                 $nameLink = wf_Link('?module=custmaps&showmap=' . $each['id'], $each['name'], false);
                 $cells.= wf_TableCell($nameLink);
-                $actLinks = wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
+                $actLinks = '';
+                if (cfr('CUSTMAPEDIT')) {
+                    $actLinks.= wf_JSAlertStyled('?module=custmaps&deletemap=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                    $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
+                }
                 $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_search_small.gif', __('Show')), false);
+                $actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
+                
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+
+        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+        return ($result);
+    }
+    
+     /**
+     * Returns existing map items list view
+     * 
+     * @return string
+     */
+    public function renderItemsList($mapid) {
+        $mapid=vf($mapid,3);
+        $messages = new UbillingMessageHelper();
+
+        $result = '';
+
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Name'));
+        $cells.= wf_TableCell(__('Actions'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($this->allItems)) {
+            foreach ($this->allItems as $io => $each) {
+                
+                if ($each['mapid']==$mapid) {
+                $cells = wf_TableCell($each['id']);
+                
+                $cells.= wf_TableCell($each['name']);
+                $actLinks = '';
+                if (cfr('CUSTMAPEDIT')) {
+                    $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                    //$actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->mapEditForm($each['id']));
+                }
+                //$actLinks.= wf_Link('?module=custmaps&showmap=' . $each['id'], wf_img('skins/icon_search_small.gif', __('Show')), false);
+                //$actLinks.= wf_Link('?module=custmaps&showitems=' . $each['id'], wf_img('skins/icon_table.png', __('Objects')), false);
+                
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+                }
             }
         }
 
@@ -211,8 +282,9 @@ class CustomMaps {
         $query = "INSERT INTO `custmaps` (`id`, `name`) VALUES (NULL, '" . $nameFiltered . "'); ";
         nr_query($query);
         $newId = simple_get_lastid('custmaps');
-        log_register('CUSTMAPS CREATE NEW `' . $name . '` ID [' . $newId . ']');
+        log_register('CUSTMAPS CREATE MAP `' . $name . '` ID [' . $newId . ']');
     }
+    
 
     /**
      * Deletes existing custom map by its ID
@@ -224,7 +296,10 @@ class CustomMaps {
         if (isset($this->allMaps[$id])) {
             $query = "DELETE from `custmaps` WHERE `id`='" . $id . "';";
             nr_query($query);
-            log_register('CUSTMAPS DELETE [' . $id . ']');
+            log_register('CUSTMAPS DELETE MAP [' . $id . ']');
+            $query="DELETE from `custmapsitems` WHERE `id`='".$id."';";
+            nr_query($query);
+            log_register('CUSTMAPS FLUSH ITEMS [' . $id . ']');
         } else {
             throw new Exception(self::EX_NO_MAP_ID);
         }
@@ -259,6 +334,35 @@ class CustomMaps {
     }
 
     /**
+     * Returns icon for some item type
+     * 
+     * @param string $type
+     * 
+     * @return string
+     */
+    protected function itemGetIcon($type) {
+
+        switch ($type) {
+            case 'pillar':
+                $result = 'twirl#greenIcon';
+                break;
+            case 'sump':
+                $result = 'twirl#brownIcon';
+                break;
+            case 'coupling':
+                $result = 'twirl#yellowIcon';
+                break;
+            case 'node':
+                $result = 'twirl#orangeIcon';
+                break;
+            default :
+                $result = 'twirl#lightblueIcon';
+                break;
+        }
+        return ($result);
+    }
+
+    /**
      * Returns list of map placemarks
      * 
      * @param int $id
@@ -266,12 +370,13 @@ class CustomMaps {
      * @return string
      */
     public function mapGetPlacemarks($id) {
-        $id=vf($id,3);
-        $result='';
+        $id = vf($id, 3);
+        $result = '';
         if (!empty($this->allItems)) {
-            foreach ($this->allItems as $io=>$each) {
-                if (($each['mapid']==$id) AND (!empty($each['geo']))) {
-                    $result.=$this->mapAddMark($each['geo'], $each['name'], $each['location'], 'some footer', sm_MapGoodIcon(), '');
+            foreach ($this->allItems as $io => $each) {
+                if (($each['mapid'] == $id) AND ( !empty($each['geo']))) {
+                    $icon = $this->itemGetIcon($each['type']);
+                    $result.=$this->mapAddMark($each['geo'], $each['location'], $each['name'], 'FOOTER_CONTROLS', $icon, '');
                 }
             }
         }
@@ -328,17 +433,63 @@ class CustomMaps {
             ';
         return ($result);
     }
-    
- /**
- * Return geo coordinates locator with embedded form
- * 
- * @return string
- */
-public function mapLocationEditor() {
-    $buildSelector = str_replace("'", '`', 'zzzzzzz');
-    $buildSelector = str_replace("\n", '', $buildSelector);
 
-    $result = '
+    /**
+     * Returns item location form
+     * 
+     * @return string
+     */
+    protected function itemLocationForm() {
+        $itemtypes = array(
+            'pillar' => __('Pillar'),
+            'sump' => __('Sump'),
+            'coupling' => __('Coupling'),
+            'node' => __('Node')
+        );
+        $result = wf_Selector('newitemtype', $itemtypes, __('Type'), '', true);
+        $result.= wf_TextInput('newitemname', __('Name'), '', true, 20);
+        $result.= wf_TextInput('newitemlocation', __('Location'), '', true, 20);
+        $result.= wf_Submit(__('Create'));
+        return ($result);
+    }
+
+    /**
+     * Creates new map item in database
+     * 
+     * @param int $mapid
+     * @param string $type
+     * @param string $geo
+     * @param string $name
+     * @param string $location
+     */
+    public function itemCreate($mapid, $type, $geo, $name, $location) {
+        $mapid = vf($mapid, 3);
+        $type = mysql_real_escape_string($type);
+        $geo = mysql_real_escape_string($geo);
+        $nameFiltered = mysql_real_escape_string($name);
+        $location = mysql_real_escape_string($location);
+
+        if (isset($this->allMaps[$mapid])) {
+            $query = "INSERT INTO `custmapsitems` (`id`, `mapid`, `type`, `geo`, `name`, `location`) "
+                    . "VALUES (NULL, '" . $mapid . "', '" . $type . "', '" . $geo . "', '" . $nameFiltered . "', '" . $location . "');";
+            nr_query($query);
+            $newId = simple_get_lastid('custmapsitems');
+            log_register('CUSTMAPS CREATE ITEM `' . $name . '` ID [' . $newId . ']');
+        } else {
+            throw new Exception(self::EX_NO_MAP_ID);
+        }
+    }
+
+    /**
+     * Return geo coordinates locator with embedded form
+     * 
+     * @return string
+     */
+    public function mapLocationEditor() {
+        $form = str_replace("'", '`', $this->itemLocationForm());
+        $form = str_replace("\n", '', $form);
+
+        $result = '
             myMap.events.add(\'click\', function (e) {
                 if (!myMap.balloon.isOpen()) {
                     var coords = e.get(\'coordPosition\');
@@ -348,7 +499,7 @@ public function mapLocationEditor() {
                             \'<p>\' + [
                             coords[0].toPrecision(6),
                             coords[1].toPrecision(6)
-                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="placecoords" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">' . $buildSelector . '</form> \'
+                            ].join(\', \') + \'</p> <form action="" method="POST"><input type="hidden" name="newitemgeo" value="\'+coords[0].toPrecision(6)+\', \'+coords[1].toPrecision(6)+\'">' . $form . '</form> \'
                  
                     });
                 } else {
@@ -356,9 +507,8 @@ public function mapLocationEditor() {
                 }
             });
             ';
-    return ($result);
-}
-
+        return ($result);
+    }
 
 }
 
