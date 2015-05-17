@@ -470,6 +470,15 @@ class CustomMaps {
             case 'node':
                 $result = 'twirl#orangeIcon';
                 break;
+             case 'box':
+                $result = 'twirl#greyIcon';
+                break;
+             case 'amplifier':
+                $result = 'twirl#pinkDotIcon';
+                break;
+             case 'optrec':
+                $result = 'twirl#nightDotIcon';
+                break;
             default :
                 $result = 'twirl#lightblueIcon';
                 break;
