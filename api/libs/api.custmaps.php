@@ -10,8 +10,12 @@ class CustomMaps {
     protected $center = '';
     protected $zoom = '';
 
+    const UPLOAD_PATH = 'exports/';
     const EX_NO_MAP_ID = 'NOT_EXISTING_MAP_ID';
     const EX_NO_ITM_ID = 'NOT_EXISTING_ITEM_ID';
+    const EX_NO_FILE = 'NOT_EXISTING_FILE';
+    const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
+    const EX_WRONG_KML = 'WRONG_KML_FILE_FORMAT';
 
     public function __construct() {
         $this->loadYmapsConfig();
@@ -78,9 +82,9 @@ class CustomMaps {
             'sump' => __('Sump'),
             'coupling' => __('Coupling'),
             'node' => __('Node'),
-            'box'=>__('Box'),
-            'amplifier'=>__('Amplifier'),
-            'optrec'=>__('Optical reciever')
+            'box' => __('Box'),
+            'amplifier' => __('Amplifier'),
+            'optrec' => __('Optical reciever')
         );
     }
 
@@ -273,6 +277,154 @@ class CustomMaps {
     }
 
     /**
+     * Returns items import form
+     * 
+     * @return string
+     */
+    protected function itemsImportForm() {
+        $inputs = wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
+        $inputs.= wf_tag('input', false, '', 'type="file" name="itemsUploadFile"');
+        $inputs.= wf_tag('br');
+        $inputs.= wf_Selector('itemsUploadTypes', $this->itemTypes, __('Type'), '', true);
+        $inputs.= wf_Submit(__('Upload'));
+        $inputs.= wf_tag('form', true);
+
+        $result = $inputs;
+        return ($result);
+    }
+
+    /**
+     * Catches file upload
+     * 
+     * @return string
+     */
+    public function catchFileUpload() {
+        $result = '';
+        $allowedExtensions = array("kml");
+        $fileAccepted = true;
+        foreach ($_FILES as $file) {
+            if ($file['tmp_name'] > '') {
+                if (!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
+                    $fileAccepted = false;
+                }
+            }
+        }
+
+        if ($fileAccepted) {
+            $newFilename = zb_rand_string(10) . '_custmap.kml';
+            $newSavePath = self::UPLOAD_PATH . $newFilename;
+            move_uploaded_file($_FILES['itemsUploadFile']['tmp_name'], $newSavePath);
+            if (file_exists($newSavePath)) {
+                $uploadResult = wf_tag('span', false, 'alert_success') . __('Upload complete') . wf_tag('span', true);
+                $result = $newFilename;
+            } else {
+                $uploadResult = wf_tag('span', false, 'alert_error') . __('Upload failed') . wf_tag('span', true);
+            }
+        } else {
+            $uploadResult = wf_tag('span', false, 'alert_error') . __('Upload failed') . ': ' . self::EX_WRONG_EXT . wf_tag('span', true);
+        }
+
+        show_window('', $uploadResult);
+        if ($result) {
+            $this->itemsImportKml($newFilename, $_GET['showitems'], $_POST['itemsUploadTypes']);
+        }
+        return ($result);
+    }
+
+    /**
+     * Extract placemarks to import
+     * 
+     * @param array $data
+     * @return array
+     */
+    protected function kmlExtractPlacemarks($data) {
+        $result = array();
+        $i = 0;
+        if (!empty($data)) {
+            foreach ($data as $io => $each) {
+                if (isset($each['Point'])) {
+                    $result[$i]['name'] = trim($each['name']);
+                    $coordsRaw = trim($each['Point']['coordinates']);
+                    $coordsRaw = explode(',', $coordsRaw);
+                    $result[$i]['geo'] = $coordsRaw[1] . ', ' . $coordsRaw[0];
+                    $i++;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs import of uploaded KML file
+     * 
+     * @param string $filename
+     */
+    protected function itemsImportKml($filename, $mapId, $type) {
+        $mapId = vf($mapId, 3);
+        $type = vf($type);
+        $toImport = array();
+        $importCount = 0;
+
+        if (file_exists(self::UPLOAD_PATH . '/' . $filename)) {
+            $rawData = file_get_contents(self::UPLOAD_PATH . '/' . $filename);
+            if (!empty($rawData)) {
+                $rawData = zb_xml2array($rawData);
+
+                if (isset($this->allMaps[$mapId])) {
+                    if (!empty($rawData)) {
+                        if (isset($rawData['kml'])) {
+                            if (isset($rawData['kml']['Document'])) {
+                                $importDocument = $rawData['kml']['Document'];
+                                if (!empty($importDocument)) {
+                                    //turbo GPS 3 broken format
+                                    foreach ($importDocument as $io => $each) {
+                                        if ($io == 'Placemark') {
+                                            $toImport = $each;
+                                        } else {
+                                            //natural google earth format
+                                            if (is_array($each)) {
+                                                foreach ($each as $ia => $deeper) {
+                                                    if ($ia == 'Placemark') {
+                                                        $toImport = $deeper;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        //extracting placemarks
+                                        if (!empty($toImport)) {
+                                            $placemarks = $this->kmlExtractPlacemarks($toImport);
+                                            if (!empty($placemarks)) {
+                                                foreach ($placemarks as $ix => $importPm) {
+                                                    $this->itemCreate($mapId, $type, $importPm['geo'], $importPm['name'], '');
+                                                    $importCount++;
+                                                }
+                                                show_info(__('Objects') . ': ' . $importCount);
+                                                show_window('', wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/refresh.gif') . ' ' . __('Renew'), false, 'ubButton'));
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                show_error(self::EX_WRONG_KML);
+                            }
+                        } else {
+                            show_error(self::EX_WRONG_KML);
+                        }
+                    } else {
+                        show_warning(__('Empty file') . ' ' . self::EX_WRONG_KML);
+                    }
+                } else {
+                    show_error(self::EX_NO_MAP_ID);
+                }
+            } else {
+                show_warning(__('Empty file') . ' (.kml)');
+            }
+        } else {
+            show_error(self::EX_NO_FILE);
+        }
+    }
+
+    /**
      * Returns existing map items list view
      * 
      * @return string
@@ -290,8 +442,9 @@ class CustomMaps {
 
 
         $result = '';
-        $result.=wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
-        $result.=wf_delimiter();
+        $result.= wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
+        $result.= wf_modalAuto(wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), __('Upload') . ' KML', $this->itemsImportForm(), 'ubButton');
+        $result.= wf_delimiter();
 
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Type'));
@@ -315,7 +468,7 @@ class CustomMaps {
                         $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
                     }
                     $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
-                    $actLinks.= wf_Link('?module=custmaps&showmap='.$each['mapid'].'&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+                    $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
 
                     $actLinks.=$indicator;
 
@@ -470,13 +623,13 @@ class CustomMaps {
             case 'node':
                 $result = 'twirl#orangeIcon';
                 break;
-             case 'box':
+            case 'box':
                 $result = 'twirl#greyIcon';
                 break;
-             case 'amplifier':
+            case 'amplifier':
                 $result = 'twirl#pinkDotIcon';
                 break;
-             case 'optrec':
+            case 'optrec':
                 $result = 'twirl#nightDotIcon';
                 break;
             default :

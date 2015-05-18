@@ -58,6 +58,11 @@ if (cfr('CUSTMAP')) {
                 show_error(__('Permission denied'));
             }
         }
+        
+        //items upload as KML
+        if (wf_CheckPost(array('itemsUploadTypes'))) {
+            $custmaps->catchFileUpload();
+        }
 
 
 
@@ -118,7 +123,6 @@ if (cfr('CUSTMAP')) {
             if (wf_CheckGet(array('locateitem','zoom'))) {
                 $custmaps->setCenter($_GET['locateitem']);
                 $custmaps->setZoom($_GET['zoom']);
-               // debarr($custmaps);
             }
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit($placemarks, $editor));
         }

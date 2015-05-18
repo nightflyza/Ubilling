@@ -1939,5 +1939,8 @@ $lang['def']['Objects']='Об`єкти';
 $lang['def']['Box']='Ящик';
 $lang['def']['Amplifier']='Підсилювач';
 $lang['def']['Optical reciever']='Оптичний приймач';
+$lang['def']['Upload complete']='Завантаження успішно завершено';
+$lang['def']['Upload failed']='Завантаження не вдалося';
+$lang['def']['Empty file']='Порожній файл';
 
 ?>
