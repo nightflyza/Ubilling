@@ -300,11 +300,11 @@ class CustomMaps {
      */
     public function catchFileUpload() {
         $result = '';
-        $allowedExtensions = array("kml");
+        $allowedExtensions = array("kml","txt");
         $fileAccepted = true;
         foreach ($_FILES as $file) {
             if ($file['tmp_name'] > '') {
-                if (!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
+                if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
                     $fileAccepted = false;
                 }
             }
