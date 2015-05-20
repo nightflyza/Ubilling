@@ -43,7 +43,9 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                         $form=  wf_Form("", 'POST', $tbinputs, 'glamour');
                         if(isset($_POST['change_vlan_on_port'])) {
 	                        $set=$obj->sw_snmp_control2($cur_vlan, $login);
+                                if(isset($set)) {
 	                        show_success($set);
+                                }
                         }
 	                        show_window(__('Change vlan on switch port'),$form);  
                     }			                      

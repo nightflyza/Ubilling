@@ -2,6 +2,7 @@
 
 //AUTO CONFIGURATOR
 class AutoConfigurator {
+
     protected $allsw = array();
     protected $allswlogin = array();
     protected $allmodel = array();
@@ -42,7 +43,7 @@ class AutoConfigurator {
             }
         }
     }
-    
+
     protected function LoadSwitches() {
         $AllSwitchesTmp = zb_SwitchesGetAll();
         if (!empty($AllSwitchesTmp)) {
@@ -61,6 +62,11 @@ class AutoConfigurator {
         }
     }
 
+    /**
+     * 
+     * @param type $ip
+     * @return type
+     */
     protected function CheckTermIP($ip) {
         $tmp = $this->allterm;
         if (!empty($tmp)) {
@@ -75,6 +81,11 @@ class AutoConfigurator {
         return($res);
     }
 
+    /**
+     * 
+     * @param type $swid
+     * @return type
+     */
     protected function GetSwUplinkID($swid) {
         foreach ($this->allsw as $io) {
             if ($io['id'] == $swid) {
@@ -84,6 +95,11 @@ class AutoConfigurator {
         return($result);
     }
 
+    /**
+     * 
+     * @param type $parentid
+     * @return type
+     */
     protected function GetSwUplinkIP($parentid) {
         foreach ($this->allsw as $io) {
             if ($io['id'] == $parentid) {
@@ -93,6 +109,11 @@ class AutoConfigurator {
         return($result);
     }
 
+    /**
+     * 
+     * @param type $login
+     * @return type
+     */
     protected function GetSwParam($login) {
         $AllAssign = $this->allasing;
         foreach ($AllAssign as $io) {
@@ -104,8 +125,14 @@ class AutoConfigurator {
         return($param);
     }
 
+    /**
+     * 
+     * @param type $swid
+     * @return type
+     */
     protected function GetConnParam($swid) {
         $AllSwitchesLogin = $this->allswlogin;
+        $param = array();
         foreach ($AllSwitchesLogin as $io) {
             if ($io['swid'] == $swid) {
                 if (!empty($io['community'])) {
@@ -122,6 +149,11 @@ class AutoConfigurator {
         return($param);
     }
 
+    /**
+     * 
+     * @param type $swid
+     * @return type
+     */
     protected function GetCurSwIP($swid) {
         $AllSwitches = $this->allsw;
         foreach ($AllSwitches as $io) {
@@ -132,6 +164,11 @@ class AutoConfigurator {
         return($swip);
     }
 
+    /**
+     * 
+     * @param type $ip
+     * @return type
+     */
     protected function GetModelidByIP($ip) {
         $tmp = $this->allsw;
         foreach ($tmp as $io) {
@@ -143,9 +180,15 @@ class AutoConfigurator {
         return($result);
     }
 
+    /**
+     * 
+     * @param type $swid
+     * @return type
+     */
     protected function GetSwModelParam($swid) {
         $AllModels = $this->allmodel;
         $AllSwitches = $this->allsw;
+        $param = array();
         foreach ($AllSwitches as $each) {
             if ($each['id'] == $swid) {
                 $modelid = $each['modelid'];
@@ -157,13 +200,7 @@ class AutoConfigurator {
                 $param[] = $io['ports'];
             }
         }
-        $swtype = strtolower($modelname);
-        if (strpos($swtype, 'huawei') === false) {
-            $type = "dlink";
-        } else {
-            $type = "huawei";
-        }
-        $param[] = $type;   
+        $param[] = $modelname;
         return($param);
     }
 
@@ -197,44 +234,29 @@ class AutoConfigurator {
         show_window(__('Switch Logins'), $result);
     }
 
-    public function sw_snmp_control2($vlan, $login) {
-        $param = $this->GetSwParam($login);
-        $swid = $param['0'];
-        $swip = $this->GetCurSwIP($swid);
-        $ModelParam = $this->GetSwModelParam($swid);
-        $conn = $this->GetConnParam($swid);
-        $swport = $param['1'];
-        $type = $ModelParam[1];
-        $swports = $ModelParam[0];
-        $community = $conn[0];
-        $swlogin = $conn[1];
-        $password = $conn[2];
-        $UplinkId = $this->GetSwUplinkID($swid);
-        $termip = $this->GetSwUplinkIP($UplinkId);
-        $TermData = $this->CheckTermIP($termip);
-        if ($TermData == 'false') {
-            while (!empty($UplinkId)) {
-                $upip = $this->GetSwUplinkIP($UplinkId);
-                $TermData = $this->CheckTermIP($upip);
-                if ($TermData === 'true') {
-                    break;
-                }
-                $upModelId = $this->GetModelidByIP($upip);
-                $upSwmodelId = $upModelId[0];
-                $upSwid = $upModelId[1];
-                $upModelParam = $this->GetSwModelParam($upSwmodelId);
-                $upType = $upModelParam[1];
-                $upSwPorts = $upModelParam[0];
-                $upConn = $this->GetConnParam($swid);
-                $upCommunity = $upConn[0];
-                $upSwLogin = $upConn[1];
-                $upPassword = $upConn[2];
-                if ($upType == 'huawei') {                    
-                    $VlanCreateOid = "1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan";
-                    $SaveConfigOid = '1.3.6.1.4.1.2011.6.10.1.3.6.0';
+    protected function TerminatorSnmpControl($UplinkId, $termip, $vlan) {
+        while (!empty($UplinkId)) {
+            $upip = $this->GetSwUplinkIP($UplinkId);
+            $TermData = $this->CheckTermIP($upip);
+            if ($TermData === 'true') {
+                break;
+            }
+            $upModelId = $this->GetModelidByIP($upip);
+            $upSwid = $upModelId[1];
+            $upModelParam = $this->GetSwModelParam($upSwid);
+            $modelname = $upModelParam[1];
+            $upConn = $this->GetConnParam($upSwid);
+            $upCommunity = $upConn[0];
+            $upSwLogin = $upConn[1];
+            $upPassword = $upConn[2];
+            if (file_exists(CONFIG_PATH . 'autoconfig/' . $modelname)) {
+                $IniData = parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
+                if ($IniData['define']['type'] == 'huawei') {
+                    $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
+                    $SaveConfigOid = $IniData['oid']['ConfigSave'];
                     $TypeCreate = "i";
                     $TypeSave = "i";
-                    $upData = array ();
+                    $upData = array();
                     $upData[] = array(
                         'oid' => $VlanCreateOid,
                         'type' => $TypeCreate,
@@ -246,62 +268,151 @@ class AutoConfigurator {
                         'value' => '1'
                     );
                     $upsession = new SNMPHelper();
-                    $upset = $upsession->set($upip,$upCommunity,$upData);
+                    $upset = $upsession->set($upip, $upCommunity, $upData);
                     $UplinkId = $this->GetSwUplinkID($UplinkId);
-			$counter++;
                 }
+            } else {
+                show_error('file not set');
             }
         }
-
-        if ($type == 'huawei') {
-            if ($swports == '26') {
-                $IniData = parse_ini_file(CONFIG_PATH . 'autoconfig/HuaweiS2326.ini', true);
-                $upPorts = explode(',', $IniData['ports']['uplink']);
-                if (empty($upPorts[1])) {
-                    if ($upPorts[0] == '25') {
-                        $plist_add = "000000200000000000";
-                    } else {
-                        $plist_add = "000000400000000000";
-                    }
-                } else {
-                    $plist_add = "000000600000000000";
-                }
-            }
-            $VlanCreateOid = "1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.$vlan";
-            $VlanAddOid = "1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.3.$vlan";
-            $SaveConfigOid = "1.3.6.1.4.1.2011.6.10.1.3.6.0";
-            $TypeCreate = "i";
-            $TypeAdd = "x";
-            $TypeSave = "i";
-            include(CONFIG_PATH . 'autoconfig/huawei_offset.php');
-            if (!empty($offset) or $offset == "0") {
-                $plist_add[$group] = $offset;
-            } 
-            $data = array ();
-                    $data[] = array(
-                        'oid' => $VlanCreateOid,
-                        'type' => $TypeCreate,
-                        'value' => '4'
-                    );
-                    $data[] = array (
-                        'oid' => $VlanAddOid,
-                        'type' => $TypeAdd,
-                        'value' => $plist_add
-                    );
-                    $data[] = array(
-                        'oid' => $SaveConfigOid,
-                        'type' => $TypeSave,
-                        'value' => '1'
-                    );
-             $snmp = new SNMPHelper();
-             $set = $snmp->set($swip,$community,$data);                    
-        }
-
     }
+
+    /**
+     * 
+     * @param type $vlan
+     * @param type $login
+     */
+    public function sw_snmp_control2($vlan, $login) {
+        $param = $this->GetSwParam($login);
+        $swid = $param['0'];
+        $swip = $this->GetCurSwIP($swid);
+        $ModelParam = $this->GetSwModelParam($swid);
+        $conn = $this->GetConnParam($swid);
+        $swport = $param['1'];
+        $modelname = $ModelParam[1];
+        $swports = $ModelParam[0];
+        $community = $conn[0];
+        $swlogin = $conn[1];
+        $password = $conn[2];
+        $UplinkId = $this->GetSwUplinkID($swid);
+        $termip = $this->GetSwUplinkIP($UplinkId);
+        $TermData = $this->CheckTermIP($termip);
+        if ($TermData == 'false') {
+            $this->TerminatorSnmpControl($UplinkId, $termip, $vlan);
+        }
+        if (file_exists(CONFIG_PATH . 'autoconfig/' . $modelname)) {
+            $IniData = parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
+            if ($IniData['define']['type'] == 'huawei') {
+                if ($swports == '26') {
+                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    if (empty($upPorts[1])) {
+                        if ($upPorts[0] == '25') {
+                            $plist_add = "000000200000000000";
+                        } else {
+                            $plist_add = "000000400000000000";
+                        }
+                    } else {
+                        $plist_add = "000000600000000000";
+                    }
+                }
+                include(CONFIG_PATH . 'autoconfig/huawei_offset.php');
+                if (!empty($offset) or $offset == "0") {
+                    $plist_add[$group] = $offset;
+                }
+                $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
+                $VlanAddOid = $IniData['oid']['VlanAdd'] . $vlan;
+                $SaveConfigOid = $IniData['oid']['ConfigSave'];
+                $TypeCreate = "i";
+                $TypeAdd = "x";
+                $TypeSave = "i";
+                $data = array();
+                $data[] = array(
+                    'oid' => $VlanCreateOid,
+                    'type' => $TypeCreate,
+                    'value' => '4'
+                );
+                $data[] = array(
+                    'oid' => $VlanAddOid,
+                    'type' => $TypeAdd,
+                    'value' => $plist_add
+                );
+                $data[] = array(
+                    'oid' => $SaveConfigOid,
+                    'type' => $TypeSave,
+                    'value' => '1'
+                );
+                $snmp = new SNMPHelper();
+                $set = $snmp->set($swip, $community, $data);
+            } elseif ($IniData['define']['type'] == 'dlink') {
+                if ($swports == '26') {
+                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    if (empty($upPorts[1])) {
+                        switch ($upPorts[0]) {
+                            case '25':
+                                $plist_add_tagged = "0000008000000000";
+                                break;
+                            case '26':
+                                $plist_add_tagged = "0000004000000000";
+                                break;
+                        }
+                    } else {
+                        $plist_add_tagged = "000000C000000000";
+                    }
+                } elseif ($swports == '28') {
+                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    include(CONFIG_PATH . 'autoconfig/dlink_ports.php');
+                }
+                include(CONFIG_PATH . 'autoconfig/dlink_port_add.php');
+                $plist_add_untagged = "0000000000000000";
+                $plist_add_untagged[$group] = $plist_add;
+                $plist_add_tagged[$group] = $plist_add;
+
+                $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
+                if (isset($IniData['oid']['TaggedVlan'])) {
+                    $MakeTaggedVlan = $IniData['oid']['TaggedVlan'] . $vlan;
+                }
+                if (isset($IniData['oid']['UntaggedVlan'])) {
+                    $MakeUntuggedVlan = $IniData['oid']['UntaggedVlan'] . $vlan;
+                }
+                $SaveConfigOid = $IniData['oid']['ConfigSave'];
+                $TypeCreate = "i";
+                $TypeAdd = "x";
+                $TypeSave = "i";
+                $data = array();
+                $data[] = array(
+                    'oid' => $VlanCreateOid, 
+                    'type' => $TypeCreate, 
+                    'value' => '5'
+                );
+                $data[] = array(
+                    'oid' => $MakeTaggedVlan, 
+                    'type' => $TypeAdd, 
+                    'value' => $plist_add_tagged
+                );
+                $data[] = array(
+                    'oid' => $MakeUntuggedVlan, 
+                    'type' => $TypeAdd, 
+                    'value' => $plist_add_untagged
+                );
+                $data[] = array(
+                    'oid' => $SaveConfigOid,
+                    'type' => $TypeSave, 
+                    'value' => '3'
+                );
+                $snmp = new SNMPHelper();
+                $set = $snmp->set($swip, $community, $data);
+            }
+            return ($set);
+        } else {
+            show_error('file not set');
+        }
+    }
+
 }
 
 function get_all_swassign() {
     $query = "SELECT * FROM `switchportassign`";
+
     $res = simple_queryall($query);
     return($res);
 }
@@ -318,12 +429,21 @@ function get_all_swlogin() {
     return($result);
 }
 
+/**
+ * 
+ * @param type $id
+ * @return type
+ */
 function get_swlogin_param($id) {
     $query = "SELECT * FROM `switch_login` WHERE `id`='" . $id . "'";
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * 
+ * @param type $id
+ */
 function swlogin_edit_form($id) {
     $id = vf($id);
     $param = get_swlogin_param($id);
@@ -332,25 +452,42 @@ function swlogin_edit_form($id) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('edit', 'true');
     $inputs.= sw_selector($param['swid']) . ' ' . __('Switch Model') . ' ' . wf_tag('br');
-    $inputs.= wf_Selector('editconn', $conn, __('Connection method'), $param['method'], true);
-    $inputs.= wf_TextInput('editswlogin', __('Username') . $sup, $param['swlogin'], true, '20');
+    $inputs .= wf_Selector('editconn', $conn, __('Connection method'), $param ['method'], true);
+    $inputs.= wf_TextInput('editswlogin', __('Username') . $sup, $param ['swlogin'], true, '20');
     $inputs.= wf_TextInput('editswpassword', __('Password') . $sup, $param['swpass'], true, '20');
     $inputs.= wf_TextInput('editrwcommunity', __('SNMP RW Community ') . $sup, $param['community'], true, '20');
+
     $inputs.= wf_Selector('editenable', $enable, __('enable propmpt for cisco,bdcom,etc (should be same as password)'), $param['enable'], true);
     $inputs.= wf_Tag('br');
+
     $inputs.= wf_Submit(__('Save'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
     $form.=wf_Link('?module=switchlogin', 'Back', true, 'ubButton');
     show_window(__('Edit'), $form);
 }
 
+/**
+ * 
+ * @param type $id
+ */
 function swlogin_delete($id) {
     $id = vf($id);
+
     $query = "DELETE FROM `switch_login` WHERE `id`='" . $id . "'";
     nr_query($query);
     log_register('DELETE Switch Login [' . $id . ']');
 }
 
+/**
+
+ * 
+ * @param type $swmodel
+ * @param type $login
+ * @param type $pass
+ * @param type $method
+ * @param type $community
+ * @param type $enable
+ */
 function swlogin_add($swmodel, $login, $pass, $method, $community, $enable) {
     $swmodel = vf($swmodel);
     $login = vf($login);
@@ -369,7 +506,8 @@ function swlogin_add($swmodel, $login, $pass, $method, $community, $enable) {
 		)
                 VALUES (
                                 NULL,
-                                '" . $swmodel . "',
+                                '" .
+            $swmodel . "',
                                 '" . $login . "',
                                 '" . $pass . "',
                                 '" . $method . "',
@@ -381,24 +519,37 @@ function swlogin_add($swmodel, $login, $pass, $method, $community, $enable) {
     log_register('ADD Switch login `' . $swmodel . '`');
 }
 
+/**
+ * 
+ * @return type
+ */
 function get_all_sw() {
     $query = "SELECT * from `switches`";
     $result = simple_queryall($query);
     return($result);
 }
 
-function get_sw_modelname($id) {
+/**
+ * 
+ * @param type $id
+ * @return type
+ */ function get_sw_modelname($id) {
     $query = "SELECT * FROM `switchmodels` WHERE `id` IN (SELECT `modelid` FROM `switches` WHERE `id`='" . $id . "')";
     $modelid = simple_query($query);
     return($modelid['modelname']);
 }
 
-function sw_selector($current = '') {
+/**
+ * 
+ * @param type $current
+ * @return type
+ */ function sw_selector($current = '') {
     $allsw = get_all_sw();
     $result = '<select name="swmodel">';
     if (!empty($allsw)) {
         foreach ($allsw as $io => $eachsw) {
             if ($current == $eachsw['id']) {
+
                 $flag = 'SELECTED';
             } else {
                 $flag = '';
@@ -410,38 +561,52 @@ function sw_selector($current = '') {
         }
     }
     $result.='</select>';
-    return ($result);
+    return ( $result);
 }
 
 //VLANGEN
-function web_ProfileVlanControlForm($login) {
-    global $ubillingConfig;
-    $alterconf = $ubillingConfig->getAlter();
+/**
+ * 
+ * @param type $login
+ * @return type
+ */ function web_ProfileVlanControlForm($login) {
+
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `vlanhosts` WHERE `login`='" . $login . "'";
     $formStyle = 'glamour';
-
+    $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     if ($alterconf['VLAN_IN_PROFILE'] == 1) {
         $data = simple_query($query);
         if (!empty($data)) {
-            $current_vlan = $data['vlan'];
+            $current_vlan = $data ['vlan'];
             $current_vlan_pool = $data['vlanpoolid'];
             $query_desc = "SELECT * FROM `vlan_pools` WHERE `id`='" . $current_vlan_pool . "'";
+
             $current_vlan_pool_desc = simple_query($query_desc);
             $current_vlan_pool_descr = $current_vlan_pool_desc['desc'];
 
             $cells = wf_TableCell(__('Vlan Pool'), '30%', 'row2');
+
             $cells.= wf_TableCell($current_vlan_pool_descr);
             $rows = wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Vlan'), '30%', 'row2');
             $cells.= wf_TableCell($current_vlan);
             $rows.= wf_TableRow($cells, 'row3');
+
             $result = wf_TableBody($rows, '100%', '0');
             return($result);
         }
     }
 }
 
+/**
+ * 
+ * @param type $cur_vlan
+ * @param type $new_vlan_pool_id
+ * @param type $new_free_vlan
+ * @param type $login
+ * @param type $qinq
+ */
 function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login, $qinq) {
     $ip = zb_UserGetIP($login);
     vlan_delete_host($login);
@@ -451,11 +616,16 @@ function zb_VlanChange($cur_vlan, $new_vlan_pool_id, $new_free_vlan, $login, $qi
     } else {
         $svlan = vlan_get_pool_params($new_vlan_pool_id);
         $svlan = $svlan['svlan'];
+
         vlan_pool_add_qinq_host($new_vlan_pool_id, $svlan, $new_free_vlan, $login);
-    }
-    OnVlanConnect($ip, $new_free_vlan);
+    } OnVlanConnect($ip, $new_free_vlan);
 }
 
+/**
+ * 
+ * @param type $login
+ * @return type
+ */
 function web_VlanDelete($login) {
     $inputs = wf_HiddenInput('vlandel', '', 'delete', true, '25');
     $inputs.= wf_Submit(__('Delete'));
@@ -463,8 +633,12 @@ function web_VlanDelete($login) {
     return($result);
 }
 
+/**
+ * 
+ * @global type $cur_vlan
+ * @return type
+ */
 function web_VlanChangeFormService() {
-    global $cur_vlan;
     $inputs = vlan_pool_selector() . ' ' . __('New VLAN');
     $inputs.= wf_delimiter();
     $inputs.= wf_Submit(__('Save'));
@@ -472,30 +646,62 @@ function web_VlanChangeFormService() {
     return($result);
 }
 
+/**
+ * 
+ * @return type
+ */
 function GetAllTerm() {
     $query = "SELECT * FROM `vlan_terminators`";
     $tmp = simple_queryall($query);
     return($tmp);
 }
 
+/**
+ * 
+ * @param type $netid
+ * @return type
+ */
 function GetTermRemoteByNetid($netid) {
     $query = "SELECT `remote-id` FROM `vlan_terminators` where `netid`='" . $netid . "'";
     $remote = simple_query($query);
-    return($remote['remote-id']);
+    return($remote ['remote-id'] );
 }
 
+/**
+ * 
+ * @param type $netid
+ * @return type
+ */
 function GetTermIdByNetid($netid) {
     $query = "SELECT `id` FROM `vlan_terminators` where `netid`='" . $netid . "'";
+
     $remote = simple_query($query);
     return($remote['id']);
 }
 
+/**
+ * 
+ * @param type $term_id
+ * @return type
+ */
 function term_get_params($term_id) {
     $query = 'SELECT * from `vlan_terminators` WHERE `id`="' . $term_id . '"';
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * 
+ * @param type $netid
+ * @param type $vlanpoolid
+ * @param type $ip
+ * @param type $type
+ * @param type $username
+ * @param type $password
+ * @param type $remote
+ * @param type $interface
+ * @param type $relay
+ */
 function term_add($netid, $vlanpoolid, $ip, $type, $username, $password, $remote, $interface, $relay) {
     $netid = vf($netid);
     $vlanpoolid = vf($vlanpoolid);
@@ -535,18 +741,23 @@ function term_add($netid, $vlanpoolid, $ip, $type, $username, $password, $remote
     log_register('ADD Terminator `' . $type . '`');
 }
 
+/**
+ * 
+ * @param type $term_id
+ */
 function term_show_editform($term_id) {
     $term_id = vf($term_id);
     $termdata = term_get_params($term_id);
     $type = array('FreeBSD' => __('FreeBSD'), 'Linux' => __('Linux'), 'Cisco' => __('Cisco'));
-    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $sup = wf_tag(
+                    'sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('termedit', 'true');
     $inputs.= multinet_network_selector($termdata['netid']) . ' ' . __('Network') . ' ' . wf_tag('br');
     $inputs.= vlan_pool_selector($termdata['vlanpoolid']) . ' ' . __('Vlan Pool ID') . ' ' . wf_tag('br');
     $inputs.= wf_TextInput('editip', __('IP') . $sup, $termdata['ip'], true, '20');
     $inputs.= wf_Selector('edittype', $type, __('Type'), $termdata['type'], true);
     $inputs.= wf_TextInput('editusername', __('Username') . $sup, $termdata['username'], true, '20');
-    $inputs.= wf_TextInput('editpassword', __('Password') . $sup, $termdata['password'], true, '20');
+    $inputs .= wf_TextInput('editpassword', __('Password') . $sup, $termdata['password'], true, '20');
     $inputs.= wf_TextInput('editremoteid', __('Remote-ID') . $sup, $termdata['remote-id'], true, '20');
     $inputs.= wf_TextInput('editinterface', __('Interface') . $sup, $termdata['interface'], true, '20');
     $inputs.= wf_TextInput('editrelay', __('Relay Address') . $sup, $termdata['relay'], true, '20');
@@ -558,6 +769,10 @@ function term_show_editform($term_id) {
     show_window(__('Edit'), $form);
 }
 
+/**
+ * 
+ * @param type $term_id
+ */
 function delete_term($term_id) {
     $term_id = vf($term_id);
     $query = "DELETE FROM `vlan_terminators` WHERE `id`='" . $term_id . "'";
@@ -589,6 +804,7 @@ function show_all_terminators() {
     $tablecells = wf_TableCell(__('ID'));
     $tablecells .= wf_TableCell(__('Network'));
     $tablecells .= wf_TableCell(__('Vlan pool id'));
+
     $tablecells .= wf_TableCell(__('IP'));
     $tablecells .= wf_TableCell(__('Type'));
     $tablecells .= wf_TableCell(__('Username'));
@@ -601,7 +817,7 @@ function show_all_terminators() {
     if (!empty($terminators)) {
         foreach ($terminators as $term) {
             $tablecells = wf_TableCell($term['id']);
-            $tablecells .= wf_TableCell($term['netid']);
+            $tablecells .= wf_TableCell($term ['netid']);
             $tablecells .= wf_TableCell($term['vlanpoolid']);
             $tablecells .= wf_TableCell($term['ip']);
             $tablecells .= wf_TableCell($term['type']);
@@ -611,9 +827,13 @@ function show_all_terminators() {
             $tablecells .= wf_TableCell($term['interface']);
             $tablecells .= wf_TableCell($term['relay']);
             $actionlinks = wf_JSAlert('?module=nas&deleteterm=' . $term['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+
             $actionlinks .= wf_JSAlert('?module=nas&editterm=' . $term['id'], web_edit_icon(), '');
             $tablecells .= wf_TableCell($actionlinks);
-            $tablerows .= wf_TableRow($tablecells, 'row3');
+
+            $tablerows .= wf_TableRow($tablecells, 'row3')
+
+            ;
         }
     }
     $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -627,12 +847,19 @@ function show_all_terminators() {
  * 	for FreeBSD, Linux, Cisco 35xx/37xx
  */
 
+/**
+ * 
+ * @param type $ip
+ * @param type $vlan
+ */
 function OnVlanConnect($ip, $vlan) {
     multinet_rebuild_all_handlers();
-    $netid = GetNetidByIP($ip);
+    $netid = GetNetidByIP($ip)
+
+    ;
     $termid = GetTermIdByNetid($netid);
     $term_data = term_get_params($termid);
-    $term_ip = $term_data['ip'];
+    $term_ip = $term_data ['ip'];
     $term_type = $term_data['type'];
     $term_user = $term_data['username'];
     $term_pass = $term_data['password'];
@@ -646,11 +873,14 @@ function OnVlanConnect($ip, $vlan) {
             $res = shell_exec("./config/scripts/linux.local.sh");
         }
     } else {
+
         if ($term_type == 'FreeBSD') {
             $res = shell_exec("./config/scripts/bsd.remote.sh $term_user $term_pass $term_int $ip $vlan");
         }
         if ($term_type == 'Linux') {
-            $res = shell_exec("./config/scripts/linux.remote.sh $term_user $term_pass $term_int $ip $vlan");
+            $res = shell_exec("
+
+./config/scripts/linux.remote.sh $term_user $term_pass $term_int $ip $vlan");
         }
         if ($term_type == 'Cisco') {
             $res = shell_exec("./config/scripts/cisco.sh $term_user $term_pass $vlan $term_int $relay $term_ip");
@@ -658,29 +888,48 @@ function OnVlanConnect($ip, $vlan) {
     }
 }
 
-// 	Get users netid
+/**
+ * 
+ * @param type $ip
+ * @return type
+ */
 function GetNetidByIP($ip) {
     $query = "SELECT `netid` FROM `nethosts` WHERE `ip`='" . $ip . "'";
     $res = simple_query($query);
     return($res['netid']);
 }
 
-//Get user's login by it's ip
+/**
+ * 
+ * @param type $ip
+ * @return type
+ */
 function UserGetLoginByIP($ip) {
     $query = "SELECT * FROM `users` WHERE `ip`='" . $ip . "'";
-    $res = simple_query($query);
+    $res = simple_query($query
+    );
     $login = $res['login'];
     return($login);
 }
 
-//Get user's vlan by it's login
+/**
+ * 
+ * @param type $login
+ * @return type
+ */
 function UserGetVlan($login) {
+
+
     $query = "select vlan from vlanhosts where login='" . $login . "'";
     $vlan = simple_query($query);
     return($vlan['vlan']);
 }
 
-//Check wheather user get q-in-q vlan get it if exists
+/**
+ * 
+ * @param type $login
+ * @return type
+ */
 function UserGetQinQVlan($login) {
     $query = "SELECT `svlan`,`cvlan` FROM `vlanhosts_qinq` WHERE `login`='" . $login . "'";
     $vlans = simple_query($query);
@@ -691,46 +940,57 @@ function UserGetQinQVlan($login) {
     return($vlan);
 }
 
-//Get svlan for user
+/**
+ * 
+ * @param type $vlanpoolid
+ * @return type
+ */
 function UserGetSvlan($vlanpoolid) {
     $query = "SELECT `svlan` FROM `vlan_pools` WHERE `id`='" . $vlanpoolid . "'";
+
     $svlan = simple_query($query);
     return($svlan['svlan']);
 }
 
-//Check wheather vlan pool supports qinq and get it
+/**
+ * 
+ * @param type $vlanpoolid
+ * @return type
+ */
 function vlan_pool_get_qinq($vlanpoolid) {
     $query = "SELECT `qinq` FROM `vlan_pools` WHERE `id`='" . $vlanpoolid . "'";
     $qinq = simple_query($query);
-    return($qinq['qinq']);
+    return($qinq['qinq'] );
 }
 
-//Form for selecting vlan pool
-function vlan_pool_selector($currentvlanpoolid = '') {
+/**
+ * 
+ * @param type $currentvlanpoolid
+ * @return type
+ */ function vlan_pool_selector($currentvlanpoolid = '') {
     $allvlanpools = vlan_get_all_pools();
     $result = '<select name="vlanpoolselect">';
     if (!empty($allvlanpools)) {
         foreach ($allvlanpools as $io => $eachvlanpool) {
-            if ($currentvlanpoolid == $eachvlanpool['id']) {
+            if ($currentvlanpoolid == $eachvlanpool ['id']) {
                 $flag = 'SELECTED';
             } else {
                 $flag = '';
-            }
-            $result.='<option value="' . $eachvlanpool['id'] . '" ' . $flag . '>' . $eachvlanpool['desc'] . '</option>';
+            } $result.= '<option value="' . $eachvlanpool['id'] . '" ' . $flag . '>' . $eachvlanpool['desc'] . '</option>';
         }
-    }
-    $result.='</select>';
+    } $result.= '</select>';
     return ($result);
 }
 
-//Get all vlan pools
-function vlan_get_all_pools() {
+/**
+ * 
+ * @return type
+ */ function vlan_get_all_pools() {
     $query = "SELECT * from `vlan_pools`";
     $result = simple_queryall($query);
     return($result);
 }
 
-//Form for deleting vlan
 function vlan_show_pool_delete_form() {
     $allvlanpools = vlan_get_all_pools();
     if (!empty($allvlanpools)) {
@@ -745,34 +1005,46 @@ function vlan_show_pool_delete_form() {
     }
 }
 
-//Get vlan pool parameters
+/**
+ * 
+ * @param type $vlanpool_id
+ * @return type
+ */
 function vlan_get_pool_params($vlanpool_id) {
     $query = 'SELECT * from `vlan_pools` WHERE `id`="' . $vlanpool_id . '"';
     $result = simple_query($query);
     return($result);
 }
 
-//Form for editing vlan pool
+/**
+ * 
+ * @param type $vlanpoolid
+ */
 function vlan_show_pooleditform($vlanpoolid) {
     $vlanpoolid = vf($vlanpoolid);
     $vlanpooldata = vlan_get_pool_params($vlanpoolid);
-    $useQinQArr = array('0' => __('No'), '1' => __('Yes'));
+    $useQinQArr = array('0' => __('No'), '1' => __('Yes'))
+
+    ;
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('vlanpooledit', 'true');
     $inputs.= wf_TextInput('editfirstvlan', __('First Vlan') . $sup, $vlanpooldata['firstvlan'], true, '20');
-    $inputs.= wf_TextInput('editendvlan', __('Last Vlan') . $sup, $vlanpooldata['endvlan'], true, '20');
-    $inputs.= wf_TextInput('editdesc', __('Desc') . $sup, $vlanpooldata['desc'], true, '20');
+    $inputs.= wf_TextInput('editendvlan', __('Last Vlan') . $sup, $vlanpooldata ['endvlan'], true, '20');
+    $inputs .= wf_TextInput('editdesc', __('Desc') . $sup, $vlanpooldata['desc'], true, '20');
     $inputs.= wf_Selector('edituse_qinq', $useQinQArr, __('Use qinq'), $vlanpooldata['qinq'], true);
-    $inputs.= wf_TextInput('editsvlan', __('Svlan') . $sup, $vlanpooldata['svlan'], true, '20');
+    $inputs.= wf_TextInput('editsvlan', __('Svlan') . $sup, $vlanpooldata ['svlan'], true, '20');
     $inputs.= wf_Tag('br');
-    $inputs.= wf_Submit(__('Save'));
+    $inputs .= wf_Submit(__('Save'));
     $form = wf_Form('', "POST", $inputs, 'glamour');
 
-    $form.=wf_Link('?module=addvlan', 'Back', true, 'ubButton');
+    $form .= wf_Link('?module=addvlan', 'Back', true, 'ubButton'
+    );
     show_window(__('Edit'), $form);
 }
 
-//Form to choose vlan pool
+/**
+ * 
+ */
 function vlan_show_pools_form() {
     $useQinQArr = array('0' => __('No'), '1' => __('Yes'));
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -788,7 +1060,14 @@ function vlan_show_pools_form() {
     show_window(__('Add Vlan'), $form);
 }
 
-//Create vlan pool
+/**
+ * 
+ * @param type $desc
+ * @param type $firstvlan
+ * @param type $lastvlan
+ * @param type $qinq
+ * @param type $svlan
+ */
 function vlan_add_pool($desc, $firstvlan, $lastvlan, $qinq, $svlan) {
     $desc = mysql_real_escape_string($desc);
     $firstvlan = vf($firstvlan);
@@ -833,20 +1112,24 @@ function vlan_add_pool($desc, $firstvlan, $lastvlan, $qinq, $svlan) {
     log_register('ADD VlanPool `' . $desc . '`');
 }
 
-//Delete vlan pool
+/**
+ * 
+ * @param type $vlanpool_id
+ */
 function vlan_delete_pool($vlanpool_id) {
     $vlanpool_id = vf($vlanpool_id, 3);
     $query = "DELETE FROM `vlan_pools` WHERE `id`='" . $vlanpool_id . "'";
     nr_query($query);
+
     log_register('DELETE VlanPool [' . $vlanpool_id . ']');
 }
 
-//Look for all pools
 function vlan_show_available_pools() {
     $query = "SELECT * from `vlan_pools`";
     $vlans = simple_queryall($query);
     $tablecells = wf_TableCell(__('ID'));
-    $tablecells .= wf_TableCell(__('First Vlan'));
+    $tablecells .= wf_TableCell(__('First Vlan'
+    ));
     $tablecells .= wf_TableCell(__('Last Vlan'));
     $tablecells .= wf_TableCell(__('Desc'));
     $tablecells .= wf_TableCell(__('qinq'));
@@ -859,11 +1142,12 @@ function vlan_show_available_pools() {
             $tablecells .= wf_TableCell($vlan['firstvlan']);
             $tablecells .= wf_TableCell($vlan['endvlan']);
             $tablecells .= wf_TableCell($vlan['desc']);
-            $tablecells .= wf_TableCell($vlan['qinq']);
+            $tablecells .= wf_TableCell($vlan ['qinq']);
             if (isset($vlan['qinq'])) {
                 $tablecells .= wf_TableCell($vlan['svlan']);
             }
-            $actionlinks = wf_JSAlert('?module=addvlan&deletevlanpool=' . $vlan['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+            $actionlinks = wf_JSAlert(
+                    '?module=addvlan&deletevlanpool=' . $vlan['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actionlinks .= wf_JSAlert('?module=addvlan&editvlanpool=' . $vlan['id'], web_edit_icon(), 'Are you serious');
             $tablecells .= wf_TableCell($actionlinks);
             $tablerows .= wf_TableRow($tablecells, 'row3');
@@ -873,24 +1157,35 @@ function vlan_show_available_pools() {
     show_window(__('Vlans'), $result);
 }
 
-//Unassign vlan from host
+/**
+ * 
+ * @param type $login
+ */
 function vlan_delete_host($login) {
     $query = "DELETE from `vlanhosts` WHERE `login`='" . $login . "'";
     nr_query($query);
     log_register("DELETE VLanHost (" . $login . ")");
 }
 
-//Unassign qinq vlan from host
+/**
+ * 
+ * @param type $login
+ */
 function vlan_qinq_delete_host($login) {
     $query = "DELETE FROM `vlanhosts_qinq` WHERE `login`='" . $login . "'";
     nr_query($query);
     log_register("DELETE VlanHost " . $login);
 }
 
-//Assign vlan for host
+/**
+ * 
+ * @param type $vlanpoolid
+ * @param type $vlan
+ * @param type $login
+ */
 function vlan_add_host($vlanpoolid, $vlan, $login) {
     $query = "
-		INSERT INTO `vlanhosts` (
+		INSERT INTO `vl anhosts ` (
 			`id` ,
 			`vlanpoolid` ,
 			`vlan` ,
@@ -907,7 +1202,13 @@ function vlan_add_host($vlanpoolid, $vlan, $login) {
     nr_query($query);
 }
 
-//Assign qinq vlan for host
+/**
+ * 
+ * @param type $vlanpoolid
+ * @param type $svlan
+ * @param type $cvlan
+ * @param type $login
+ */
 function vlan_pool_add_qinq_host($vlanpoolid, $svlan, $cvlan, $login) {
     $query = "
 		INSERT INTO `vlanhosts_qinq` (
@@ -929,13 +1230,20 @@ function vlan_pool_add_qinq_host($vlanpoolid, $svlan, $cvlan, $login) {
     nr_query($query);
 }
 
-//Expand range of vlan pool
+/**
+ * 
+ * @param type $first_vlan
+ * @param type $end_vlan
+ * @return type
+ */
 function vlan_pool_expand($first_vlan, $end_vlan) {
     $first = $first_vlan;
     $last = $end_vlan;
     for ($i = $first; $i <= $last; $i++) {
         $totalpool[] = $i;
     }
+
+
     if (!empty($totalpool)) {
         foreach ($totalpool as $eachvlan) {
             if (isset($eachvlan)) {
@@ -946,11 +1254,18 @@ function vlan_pool_expand($first_vlan, $end_vlan) {
     return($filteredpool);
 }
 
-//Get all free vlan from pool
+/**
+ * 
+ * @param type $table
+ * @param type $field
+ * @param type $vlanpoolid
+ * @return type
+ */
 function vlan_pool_get_all_free_vlan($table, $field, $vlanpoolid) {
     $vlan_spec = vlan_get_pool_params($vlanpoolid);
     $first_vlan = $vlan_spec['firstvlan'];
     $last_vlan = $vlan_spec['endvlan'];
+
     $clear_vlans = array();
     $full_vlan_pool = vlan_pool_expand($first_vlan, $last_vlan);
     $current_state_q = 'SELECT `' . $field . '` from `' . $table . '`';
@@ -966,7 +1281,14 @@ function vlan_pool_get_all_free_vlan($table, $field, $vlanpoolid) {
     return($free_vlan_pool);
 }
 
-//Get all free vlan from qinq pool
+/**
+ * 
+ * @param type $table
+ * @param type $svlan
+ * @param type $field
+ * @param type $vlanpoolid
+ * @return type
+ */
 function vlan_pool_get_all_free_qinq_vlan($table, $svlan, $field, $vlanpoolid) {
     $vlan_spec = vlan_get_pool_params($vlanpoolid);
     $first_vlan = $vlan_spec['firstvlan'];
@@ -986,14 +1308,27 @@ function vlan_pool_get_all_free_qinq_vlan($table, $svlan, $field, $vlanpoolid) {
     return($free_vlan_pool);
 }
 
-//Get next free vlan from vlan pool
+/**
+ * 
+ * @param type $table
+ * @param type $field
+ * @param type $vlanpoolid
+ * @return type
+ */
 function vlan_pool_get_next_free_vlan($table, $field, $vlanpoolid) {
     $all_free_vlans = vlan_pool_get_all_free_vlan($table, $field, $vlanpoolid);
     $temp = array_keys($all_free_vlans);
     return(@$all_free_vlans[$temp[0]]);
 }
 
-//Get next free vlan from qinq vlan pool
+/**
+ * 
+ * @param type $table
+ * @param type $svlan
+ * @param type $field
+ * @param type $vlanpoolid
+ * @return type
+ */
 function vlan_pool_get_next_free_qinq_vlan($table, $svlan, $field, $vlanpoolid) {
     $all_free_vlans = vlan_pool_get_all_free_qinq_vlan($table, $svlan, $field, $vlanpoolid);
     $temp = array_keys($all_free_vlans);
