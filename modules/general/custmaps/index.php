@@ -58,7 +58,7 @@ if (cfr('CUSTMAP')) {
                 show_error(__('Permission denied'));
             }
         }
-        
+
         //items upload as KML
         if (wf_CheckPost(array('itemsUploadTypes'))) {
             $custmaps->catchFileUpload();
@@ -88,13 +88,18 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
                     //additional comments
                     if ($altCfg['ADCOMMENTS_ENABLED']) {
-                       $adcomments=new ADcomments('CUSTMAPITEMS');
-                       show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
+                        $adcomments = new ADcomments('CUSTMAPITEMS');
+                        show_window(__('Additional comments'), $adcomments->renderComments($editItemId));
                     }
                 }
             } else {
-                //render map items list
-                show_window(__('Objects') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemsList($_GET['showitems']));
+                if (!wf_CheckGet(array('duplicates'))) {
+                    //render map items list
+                    show_window(__('Objects') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemsList($_GET['showitems']));
+                } else {
+                    //show duplicate map objects
+                    show_window(__('Show duplicates') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemDuplicateList($_GET['showitems']));
+                }
             }
         } else {
             $mapId = $_GET['showmap'];
@@ -120,7 +125,7 @@ if (cfr('CUSTMAP')) {
                 $editor = '';
             }
             //additional centering and zoom
-            if (wf_CheckGet(array('locateitem','zoom'))) {
+            if (wf_CheckGet(array('locateitem', 'zoom'))) {
                 $custmaps->setCenter($_GET['locateitem']);
                 $custmaps->setZoom($_GET['zoom']);
             }
