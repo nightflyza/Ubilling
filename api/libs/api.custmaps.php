@@ -510,7 +510,7 @@ class CustomMaps {
             $adc = false;
         }
         
-        $query="SELECT COUNT(DISTINCT `geo`) AS count, `name`,`id`
+        $query="SELECT COUNT(DISTINCT `geo`) AS count, `name`,`geo`,`id`
                 FROM `custmapsitems`
                 WHERE `mapid`='".$mapid."'
                 ";
