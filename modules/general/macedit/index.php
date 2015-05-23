@@ -32,14 +32,14 @@ if (isset ($_GET['username'])) {
 
          } else {
              //show error when MAC haz wrong format
-            show_window(__('Error'),__('This MAC have wrong format'));
+            show_error(__('This MAC have wrong format'));
             //debuglog
             log_register("MACINVALID TRY (".$login.")");
          }
         
         } else {
             //show error when MAC is in usage
-            show_window(__('Error'),__('This MAC is currently used'));
+            show_error(__('This MAC is currently used'));
             //debuglog
             log_register("MACDUPLICATE TRY (".$login.")");
         }
@@ -63,7 +63,7 @@ if (($newmacselector) AND (!isset ($_GET['oldform']))) {
 
   $form.=wf_Link('?module=macedit&username='.$login.'', 'Simple MAC selector', false, 'ubButton');
   $form.=wf_Link('?module=macedit&username='.$login.'&oldform=true', 'Manual MAC input', false, 'ubButton');
-  $form.='<br><br>';
+  $form.=wf_delimiter();
 
 if ($newmac_report) {
    $form.= wf_tag('h2').__('Unknown MAC address').  wf_tag('h2',true).zb_NewMacShow();

@@ -67,6 +67,7 @@ include('api/libs/api.loginform.php');
 include('api/libs/api.photostorage.php');
 include('api/libs/api.dshaper.php');
 include('api/libs/api.uhw.php');
+include('api/libs/api.pon.php');
 
 /*
  * Initial class creation

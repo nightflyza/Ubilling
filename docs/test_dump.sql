@@ -1398,3 +1398,14 @@ CREATE TABLE IF NOT EXISTS `custmapsitems` (
   PRIMARY KEY (`id`),
   KEY `mapid` (`mapid`,`type`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `pononu` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `onumodelid` int(11) DEFAULT NULL,
+  `oltmodelid` int(11) DEFAULT NULL,
+  `ip` varchar(20) DEFAULT NULL,
+  `mac` varchar(20) DEFAULT NULL,
+  `serial` varchar(255) DEFAULT NULL,
+  `login` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

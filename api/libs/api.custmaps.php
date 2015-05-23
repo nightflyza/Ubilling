@@ -501,7 +501,7 @@ class CustomMaps {
         $result = '';
         $messages = new UbillingMessageHelper();
         $itemsCount = 0;
-        $filterArray=array();
+        $filterArray = array();
 
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('CUSTMAPITEMS');
@@ -509,19 +509,16 @@ class CustomMaps {
         } else {
             $adc = false;
         }
-        
-        $query="SELECT COUNT(DISTINCT `geo`) AS count, `name`,`geo`,`id`
-                FROM `custmapsitems`
-                WHERE `mapid`='".$mapid."'
-                ";
-        
-        $allCount=  simple_queryall($query);
-        debarr($allCount);
-        
-        if (!empty($allCount)) {
-            foreach ($allCount as $ia=>$eachCount) {
-                if ($eachCount['count']>1) {
-                    $filterArray[$eachCount['id']]=$eachCount;
+
+        //counting unique geo coords
+        if (!empty($this->allItems)) {
+            foreach ($this->allItems as $ia => $eachItem) {
+                if ($eachItem['mapid'] == $mapid) {
+                    if (isset($filterArray[$eachItem['geo']])) {
+                        $filterArray[$eachItem['geo']] ++;
+                    } else {
+                        $filterArray[$eachItem['geo']] = 1;
+                    }
                 }
             }
         }
@@ -542,26 +539,27 @@ class CustomMaps {
             foreach ($this->allItems as $io => $each) {
                 $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
                 if ($each['mapid'] == $mapid) {
-                    if (isset($filterArray[$each['id']])) {
-                        
-                    
-                    $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($this->itemGetTypeName($each['type']));
-                    $cells.= wf_TableCell($each['geo']);
-                    $cells.= wf_TableCell($each['name']);
-                    $cells.= wf_TableCell($each['location']);
-                    $actLinks = '';
-                    if (cfr('CUSTMAPEDIT')) {
-                        $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
-                    }
-                    $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
-                    $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
+                    if (isset($filterArray[$each['geo']])) {
+                        if ($filterArray[$each['geo']] > 1) {
 
-                    $actLinks.=$indicator;
+                            $cells = wf_TableCell($each['id']);
+                            $cells.= wf_TableCell($this->itemGetTypeName($each['type']));
+                            $cells.= wf_TableCell($each['geo']);
+                            $cells.= wf_TableCell($each['name']);
+                            $cells.= wf_TableCell($each['location']);
+                            $actLinks = '';
+                            if (cfr('CUSTMAPEDIT')) {
+                                $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
+                            }
+                            $actLinks.= wf_JSAlertStyled('?module=custmaps&edititem=' . $each['id'], web_edit_icon(), $messages->getEditAlert()) . ' ';
+                            $actLinks.= wf_Link('?module=custmaps&showmap=' . $each['mapid'] . '&locateitem=' . $each['geo'] . '&zoom=' . $this->ymapsCfg['FINDING_ZOOM'], wf_img('skins/icon_search_small.gif', __('Find on map')), false) . ' ';
 
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row3');
-                    $itemsCount++;
+                            $actLinks.=$indicator;
+
+                            $cells.= wf_TableCell($actLinks);
+                            $rows.= wf_TableRow($cells, 'row3');
+                            $itemsCount++;
+                        }
                     }
                 }
             }

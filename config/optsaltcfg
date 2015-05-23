@@ -146,6 +146,7 @@ CORPS_ENABLED=TRIGGER|Corporate users management enabled
 NETWORKS_EXT=TRIGGER|Extended networks and pools management
 ADCOMMENTS_ENABLED=TRIGGER|Additional comments functionality enabled
 VLANGEN_SUPPORT=TRIGGER|VLAN pools extended management enabled
+PON_ENABLED=TRIGGER|PON support enabled
 SWITCH_AUTOCONFIG=TRIGGER|VLAN switch autoconfiguration
 PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
 CONDET_ENABLED=TRIGGER|Connection details module enabled
