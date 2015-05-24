@@ -86,6 +86,12 @@ if (cfr('CUSTMAP')) {
 
                     //show item edit form
                     show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
+                    //photostorage link
+                    if ($altCfg['PHOTOSTORAGE_ENABLED']) {
+                        $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png').' '.__('Upload images'), false, 'ubButton');
+                        show_window('', $imageControl);
+                    }
+
                     //additional comments
                     if ($altCfg['ADCOMMENTS_ENABLED']) {
                         $adcomments = new ADcomments('CUSTMAPITEMS');

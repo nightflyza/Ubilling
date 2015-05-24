@@ -3,7 +3,7 @@
 class PONizer {
 
     protected $allOnu = array();
-    protected $allModels = array();
+    protected $allModelsData = array();
 
     public function __construct() {
         $this->loadOnu();
@@ -34,7 +34,7 @@ class PONizer {
         $tmpModels = zb_SwitchModelsGetAll();
         if (!empty($tmpModels)) {
             foreach ($tmpModels as $io => $each) {
-                $this->allModels[$each['id']] = $each;
+                $this->allModelsData[$each['id']] = $each;
             }
         }
     }
@@ -47,8 +47,8 @@ class PONizer {
      */
     protected function getModelName($id) {
         $result = '';
-        if (isset($this->allModels[$id])) {
-            $result = $this->allModels[$id]['modelname'];
+        if (isset($this->allModelsData[$id])) {
+            $result = $this->allModelsData[$id]['modelname'];
         }
         return ($result);
     }
@@ -83,6 +83,44 @@ class PONizer {
                 log_register('PON MACINVALID TRY');
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Returns ONU creation form
+     * 
+     * @return string
+     */
+    protected function onuCreateForm() {
+        $models = array();
+        if (!empty($this->allModelsData)) {
+            foreach ($this->allModelsData as $io => $each) {
+                $models[$each['id']] = $each['modelname'];
+            }
+        }
+
+        $inputs = wf_Selector('newonumodelid', $models, __('ONU model'), '', true);
+        $inputs.= wf_Selector('newoltmodelid', $models, __('OLT model'), '', true);
+        $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
+        $inputs.= wf_TextInput('newmac', __('MAC'), '', true, 20);
+        $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+        $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
+        $inputs.= wf_Submit(__('Create'));
+
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+    
+    
+    /**
+     * Returns default list controls
+     * 
+     * @return string
+     */
+    public function controls() {
+        $result='';
+
+        $result.=wf_modalAuto(wf_img('skins/add_icon.png').' '.__('Create'), __('Create'), $this->onuCreateForm(), 'ubButton');
         return ($result);
     }
 

@@ -417,6 +417,16 @@ function ts_DetectUserByAddress($address) {
    
    
     function ts_JGetUndoneTasks() {
+        global $ubillingConfig;
+        $altCfg=$ubillingConfig->getAlter();
+        //ADcomments init
+        if ($altCfg['ADCOMMENTS_ENABLED']) {
+             $adcomments=new ADcomments('TASKMAN');
+             $adcFlag=true;
+        } else {
+            $adcFlag=false;
+        }
+ 
         $allemployee=  ts_GetAllEmployee();
         $alljobdata=ts_getAllJobtypesData();
         $curyear=curyear();
@@ -483,10 +493,23 @@ function ts_DetectUserByAddress($address) {
                     $startTime='';
                     $startTimeTimestamp= '';
                 }
+                
+                //adcomments detect
+                if ($adcFlag) {
+                    $adcommentsCount=$adcomments->getCommentsCount($eachtask['id']);
+                } else {
+                    $adcommentsCount=0;
+                }
+                
+                if ($adcommentsCount>0) {
+                    $adcText=' ('.$adcommentsCount.')';
+                } else {
+                    $adcText='';
+                }
           
                 $result.="
                       {
-                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
+                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname'].$adcText."',
                         start: new Date(".$startdate.$startTimeTimestamp."),
                         end: new Date(".$enddate."),
                         className : '".$jobColorClass."',
@@ -501,6 +524,15 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_JGetDoneTasks() {
+        global $ubillingConfig;
+        $altCfg=$ubillingConfig->getAlter();
+        //ADcomments init
+        if ($altCfg['ADCOMMENTS_ENABLED']) {
+             $adcomments=new ADcomments('TASKMAN');
+             $adcFlag=true;
+        } else {
+            $adcFlag=false;
+        }
         $allemployee=  ts_GetAllEmployee();
         $alljobtypes= ts_GetAllJobtypes();
         
@@ -544,10 +576,24 @@ function ts_DetectUserByAddress($address) {
                 } else {
                     $enddate=$startdate;
                 }
+                
+                
+            //adcomments detect
+                if ($adcFlag) {
+                    $adcommentsCount=$adcomments->getCommentsCount($eachtask['id']);
+                } else {
+                    $adcommentsCount=0;
+                }
+                
+                if ($adcommentsCount>0) {
+                    $adcText=' ('.$adcommentsCount.')';
+                } else {
+                    $adcText='';
+                }
           
                 $result.="
                       {
-                        title: '".$eachtask['address']." - ".@$allemployee[$eachtask['employeedone']]."',
+                        title: '".$eachtask['address']." - ".@$allemployee[$eachtask['employeedone']].$adcText."',
                         start: new Date(".$startdate."),
                         end: new Date(".$enddate."),
                         url: '?module=taskman&edittask=".$eachtask['id']."'
@@ -560,6 +606,15 @@ function ts_DetectUserByAddress($address) {
     }
     
     function ts_JGetAllTasks() {
+        global $ubillingConfig;
+        $altCfg=$ubillingConfig->getAlter();
+        //ADcomments init
+        if ($altCfg['ADCOMMENTS_ENABLED']) {
+             $adcomments=new ADcomments('TASKMAN');
+             $adcFlag=true;
+        } else {
+            $adcFlag=false;
+        }
         $allemployee=  ts_GetAllEmployee();
         $alljobdata=  ts_GetAllJobtypesData();
         
@@ -629,12 +684,24 @@ function ts_DetectUserByAddress($address) {
                 } else {
                     $coloring='';
                 }
+                  
+                //adcomments detect
+                if ($adcFlag) {
+                    $adcommentsCount=$adcomments->getCommentsCount($eachtask['id']);
+                } else {
+                    $adcommentsCount=0;
+                }
                 
+                if ($adcommentsCount>0) {
+                    $adcText=' ('.$adcommentsCount.')';
+                } else {
+                    $adcText='';
+                }
                 
           
                 $result.="
                       {
-                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname']."',
+                        title: '".$startTime.$eachtask['address']." - ".@$alljobdata[$eachtask['jobtype']]['jobname'].$adcText."',
                         start: new Date(".$startdate.$startTimeTimestamp."),
                         end: new Date(".$enddate."),
                         ".$coloring."

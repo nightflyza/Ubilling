@@ -239,7 +239,6 @@ class CustomMaps {
         if (isset($this->allItems[$itemid])) {
             $result.= wf_Link('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid'], __('Back'), false, 'ubButton');
             $result.= wf_delimiter();
-
             $inputs = wf_HiddenInput('edititemid', $itemid);
             $inputs.= wf_Selector('edititemtype', $this->itemTypes, __('Type'), $this->allItems[$itemid]['type'], true);
             $inputs.= wf_TextInput('edititemgeo', __('Geo location'), $this->allItems[$itemid]['geo'], true, '20');

@@ -165,6 +165,9 @@ class PhotoStorage {
         if ($this->scope == 'USERPROFILE') {
             $result = web_UserControls($this->itemId);
         }
+        if ($this->scope == 'CUSTMAPSITEMS') {
+            $result = wf_Link('?module=custmaps&edititem=' . $this->itemId, __('Back'), false, 'ubButton');
+        }
         return ($result);
     }
 
