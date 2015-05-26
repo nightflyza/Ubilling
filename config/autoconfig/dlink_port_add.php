@@ -55,15 +55,15 @@ if ($port_number >= 49 and $port_number <= 52) {
 
 
 if ($port == "1") {
-    $offset_add = "8";
+    $plist_add = "8";
 }
 if ($port == "2") {
-    $offset_add = "4";
+    $plist_add = "4";
 }
 if ($port == "3") {
-    $offset_add = "2";
+    $plist_add = "2";
 }
 if ($port == "4") {
-    $offset_add = "1";
+    $plist_add = "1";
 }
 	
