@@ -4,15 +4,17 @@ class CumulativeDiscounts {
 
     protected $allDiscounts = array();
     protected $allUsers = array();
-    protected $fillPercent = 1;
-    protected $discountLimit=10;
+    protected $altCfg=array();
     protected $tariffPrices = array();
-    protected $discountPullDays = 3;
-    protected $discountPayId = 1;
-    protected $customDiscountCfId='';
+    protected $discountPullDays = 30; // via CUD_PULLDAYS
+    protected $fillPercent = 1; //via CUD_PERCENT
+    protected $discountPayId = 1; // via CUD_PAYID
+    protected $discountLimit=10; //via CUD_PERCENTLIMIT
+    protected $customDiscountCfId=''; //via CUD_CFID
     protected $debug = 0;
 
     public function __construct() {
+        $this->loadAlter();
         $this->setOptions();
         $this->loadUsers();
         $this->loadDiscounts();
@@ -21,7 +23,19 @@ class CumulativeDiscounts {
         debarr($this->allDiscounts);
     }
     
-    
+    /**
+     * Loads system-wide alter.ini for further usage
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg=$ubillingConfig->getAlter();
+    }
+
+
+
+
     /**
      * Sets default options
      * 
