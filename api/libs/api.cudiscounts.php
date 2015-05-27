@@ -78,7 +78,7 @@ class CumulativeDiscounts {
             if (!empty($raw)) {
                 foreach ($raw as $io => $each) {
                     if ($each['typeid'] == $this->customDiscountCfId) {
-                        $discount=vf($each['coontent'],3); // numeric int
+                        $discount=vf($each['content'],3); // numeric int
                         if ($discount) {
                             $this->customDiscount[$each['login']] = $discount;
                         }
