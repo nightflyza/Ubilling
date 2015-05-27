@@ -11,7 +11,9 @@ class CumulativeDiscounts {
     protected $discountPayId = 1; // via CUD_PAYID
     protected $discountLimit=10; //via CUD_PERCENTLIMIT
     protected $customDiscountCfId=''; //via CUD_CFID
-    protected $debug = 0;
+    protected $debug = 0; //via CUD_ENABLED
+    protected $logPath='';
+    protected $curdate='';
 
     public function __construct() {
         $this->loadAlter();
@@ -19,8 +21,6 @@ class CumulativeDiscounts {
         $this->loadUsers();
         $this->loadDiscounts();
         $this->loadTariffPrices();
-
-        debarr($this->allDiscounts);
     }
     
     /**
@@ -42,7 +42,14 @@ class CumulativeDiscounts {
      * @return void
      */
     protected function setOptions() {
-        
+        $this->curdate=curdatetime();
+        $this->discountPullDays=  $this->altCfg['CUD_PULLDAYS'];
+        $this->fillPercent=  $this->altCfg['CUD_PERCENT'];
+        $this->discountPayId=  $this->altCfg['CUD_PAYID'];
+        $this->discountLimit=  $this->altCfg['CUD_PERCENTLIMIT'];
+        $this->customDiscountCfId=  $this->altCfg['CUD_CFID'];
+        $this->logPath=DATA_PATH.'documents/cudiscounts.log';
+        $this->setDebug($this->altCfg['CUD_ENABLED']);
     }
 
     /**
@@ -109,11 +116,11 @@ class CumulativeDiscounts {
      */
     protected function createDiscount($login, $days) {
         $login = mysql_real_escape_string($login);
-        $curdate = curdatetime();
+    
         $currentDiscount = 0;
         $days = vf($days, 3);
         $query = "INSERT INTO `cudiscounts` (`id`, `login`, `discount`, `date`, `days`) "
-                . "VALUES (NULL,'" . $login . "','" . $currentDiscount . "','" . $curdate . "','" . $days . "');";
+                . "VALUES (NULL,'" . $login . "','" . $currentDiscount . "','" . $this->curdate . "','" . $days . "');";
         nr_query($query);
         $this->debugLog("CUDISC CREATE (" . $login . ")");
     }
@@ -155,7 +162,11 @@ class CumulativeDiscounts {
      * @param string $data
      */
     protected function debugLog($data) {
-        if ($this->debug==2) {
+        if ($this->debug) {
+          file_put_contents($this->logPath, $this->curdate.' '.$data."\n", FILE_APPEND); //append data to log
+        }
+        
+        if ($this->debug>1) {
             log_register($data);
         }
     }
@@ -215,6 +226,7 @@ class CumulativeDiscounts {
                         if ($discountData['days'] < $this->discountPullDays) {
                             $daysFill = $discountData['days'] + 1;
                             $this->setDiscount($login, $daysFill, $discountData['discount']);
+                            $this->debugLog('CUDISCOUNTS UPDATE ('.$login.') DAYS:'.$daysFill.' PERCENT:'.$discountData['discount']);
                         } else {
                             $newDiscount = ($discountData['discount']<$this->discountLimit) ? $discountData['discount']+$this->fillPercent : $this->discountLimit;
                             $this->setDiscount($login, 0, $newDiscount);
