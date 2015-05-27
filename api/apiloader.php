@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Including all needed APIs and Libs
  */
@@ -68,11 +69,12 @@ include('api/libs/api.photostorage.php');
 include('api/libs/api.dshaper.php');
 include('api/libs/api.uhw.php');
 include('api/libs/api.pon.php');
+include ('api/libs/api.cudiscounts.php');
 
 /*
  * Initial class creation
  */
 $billing = new ApiBilling();
 $db = new MySQLDB();
-$ubillingConfig=new UbillingConfig();
+$ubillingConfig = new UbillingConfig();
 
