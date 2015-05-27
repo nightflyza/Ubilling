@@ -1946,5 +1946,11 @@ $lang['def']['Show duplicates']='Показати дублікати';
 $lang['def']['PON support enabled']='Підтримка PON увімкнена';
 $lang['def']['PONizer']='ПОНізатор';
 $lang['def']['right to control PONizer']='Право керувати ПОНізатором';
+$lang['def']['Is Cumulative discounts enabled']='Накопичувальні знижки увімкнено';
+$lang['def']['Cumulative discounts period']='Періодичність накопичувальних знижок у днях';
+$lang['def']['Cumulative discounts percent per alive period']='Відсоток знижки що встановлюється при проходженні періоду';
+$lang['def']['Cumulative discounts percent upper limit']='Верхній поріг накопичувальної знижки';
+$lang['def']['Cumulative discounts payment type ID']='ID типу оплат, для внесення накопичувальної знижки на рахунок';
+$lang['def']['Cumulative discounts custom profile field ID']='ID додаткового поля для примусової знижки';
 
 ?>

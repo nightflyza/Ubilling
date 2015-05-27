@@ -1932,12 +1932,21 @@ $lang['def']['Show duplicates']='Показать дубликаты';
 $lang['def']['PON support enabled']='Поддержка PON включена';
 $lang['def']['PONizer']='ПОНизатор';
 $lang['def']['right to control PONizer']='Право управлять ПОНизатором';
+$lang['def']['Is Cumulative discounts enabled']='Накопительные скидки включены';
+$lang['def']['Cumulative discounts period']='Периодичность накопительных скидок в днях';
+$lang['def']['Cumulative discounts percent per alive period']='Процент скидки, выставляемый при прохождении периода';
+$lang['def']['Cumulative discounts percent upper limit']='Верхний порог процента накопительной скидки';
+$lang['def']['Cumulative discounts payment type ID']='ID типа оплат, для внесения скидки на счет абонента';
+$lang['def']['Cumulative discounts custom profile field ID']='ID дополнительного поля профиля жесткой скидки';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 
 
 
