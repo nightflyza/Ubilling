@@ -4,16 +4,17 @@ class CumulativeDiscounts {
 
     protected $allDiscounts = array();
     protected $allUsers = array();
-    protected $altCfg=array();
+    protected $altCfg = array();
     protected $tariffPrices = array();
+    protected $customDiscount = array();
     protected $discountPullDays = 30; // via CUD_PULLDAYS
     protected $fillPercent = 1; //via CUD_PERCENT
     protected $discountPayId = 1; // via CUD_PAYID
-    protected $discountLimit=10; //via CUD_PERCENTLIMIT
-    protected $customDiscountCfId=''; //via CUD_CFID
+    protected $discountLimit = 10; //via CUD_PERCENTLIMIT
+    protected $customDiscountCfId = ''; //via CUD_CFID
     protected $debug = 0; //via CUD_ENABLED
-    protected $logPath='';
-    protected $curdate='';
+    protected $logPath = '';
+    protected $curdate = '';
 
     public function __construct() {
         $this->loadAlter();
@@ -21,8 +22,9 @@ class CumulativeDiscounts {
         $this->loadUsers();
         $this->loadDiscounts();
         $this->loadTariffPrices();
+        $this->loadCustomDiscounts();
     }
-    
+
     /**
      * Loads system-wide alter.ini for further usage
      * 
@@ -30,11 +32,8 @@ class CumulativeDiscounts {
      */
     protected function loadAlter() {
         global $ubillingConfig;
-        $this->altCfg=$ubillingConfig->getAlter();
+        $this->altCfg = $ubillingConfig->getAlter();
     }
-
-
-
 
     /**
      * Sets default options
@@ -42,14 +41,15 @@ class CumulativeDiscounts {
      * @return void
      */
     protected function setOptions() {
-        $this->curdate=curdatetime();
-        $this->discountPullDays=  $this->altCfg['CUD_PULLDAYS'];
-        $this->fillPercent=  $this->altCfg['CUD_PERCENT'];
-        $this->discountPayId=  $this->altCfg['CUD_PAYID'];
-        $this->discountLimit=  $this->altCfg['CUD_PERCENTLIMIT'];
-        $this->customDiscountCfId=  $this->altCfg['CUD_CFID'];
-        $this->logPath=DATA_PATH.'documents/cudiscounts.log';
+        $this->curdate = curdatetime();
+        $this->discountPullDays = vf($this->altCfg['CUD_PULLDAYS'], 3);
+        $this->fillPercent = vf($this->altCfg['CUD_PERCENT'], 3);
+        $this->discountPayId = vf($this->altCfg['CUD_PAYID'], 3);
+        $this->discountLimit = vf($this->altCfg['CUD_PERCENTLIMIT'], 3);
+        $this->customDiscountCfId = vf($this->altCfg['CUD_CFID'], 3);
+        $this->logPath = DATA_PATH . 'documents/cudiscounts.log';
         $this->setDebug($this->altCfg['CUD_ENABLED']);
+        $this->customDiscountCfId = vf($this->altCfg['CUD_CFID'], 3);
     }
 
     /**
@@ -63,6 +63,27 @@ class CumulativeDiscounts {
         if (!empty($tmp)) {
             foreach ($tmp as $io => $each) {
                 $this->allUsers[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads custom discounts if its available for all users
+     * 
+     * @return void
+     */
+    protected function loadCustomDiscounts() {
+        if (!empty($this->customDiscountCfId)) {
+            $raw = cf_FieldsGetAll();
+            if (!empty($raw)) {
+                foreach ($raw as $io => $each) {
+                    if ($each['typeid'] == $this->customDiscountCfId) {
+                        $discount=vf($each['coontent'],3); // numeric int
+                        if ($discount) {
+                            $this->customDiscount[$each['login']] = $discount;
+                        }
+                    }
+                }
             }
         }
     }
@@ -116,7 +137,7 @@ class CumulativeDiscounts {
      */
     protected function createDiscount($login, $days) {
         $login = mysql_real_escape_string($login);
-    
+
         $currentDiscount = 0;
         $days = vf($days, 3);
         $query = "INSERT INTO `cudiscounts` (`id`, `login`, `discount`, `date`, `days`) "
@@ -136,8 +157,8 @@ class CumulativeDiscounts {
         $days = vf($days, 3);
         $discount = mysql_real_escape_string($discount);
         $login = mysql_real_escape_string($login);
-        $this->allDiscounts[$login]['days']=$days;
-        $this->allDiscounts[$login]['discount']=$discount;
+        $this->allDiscounts[$login]['days'] = $days;
+        $this->allDiscounts[$login]['discount'] = $discount;
         $query = "UPDATE `cudiscounts` SET `days`='" . $days . "', `discount`='" . $discount . "' WHERE `login`='" . $login . "'; ";
         nr_query($query);
     }
@@ -163,10 +184,10 @@ class CumulativeDiscounts {
      */
     protected function debugLog($data) {
         if ($this->debug) {
-          file_put_contents($this->logPath, $this->curdate.' '.$data."\n", FILE_APPEND); //append data to log
+            file_put_contents($this->logPath, $this->curdate . ' ' . $data . "\n", FILE_APPEND); //append data to log
         }
-        
-        if ($this->debug>1) {
+
+        if ($this->debug > 1) {
             log_register($data);
         }
     }
@@ -189,7 +210,7 @@ class CumulativeDiscounts {
                         $discountPercent = $discountData['discount'];
                         $discountPayment = ($tariffPrice / 100) * $discountPercent;
                         zb_CashAdd($login, $discountPayment, 'add', $this->discountPayId, 'DISCOUNT:' . $discountPercent);
-                        $this->debugLog('CUDISCOUNTS PUSH (' . $login . ') PERCENT:' . $discountPercent . ' DAYS:' . $discountData['days'] . ' TARIFF:' . $userTariff);
+                        $this->debugLog('CUDISCOUNTS PUSH (' . $login . ') PERCENT:' . $discountPercent . ' DAYS:' . $discountData['days'] . ' CASH:' . $discountPayment . ' TARIFF:' . $userTariff);
                     } else {
                         $this->debugLog('CUDISCOUNTS IGNORE (' . $login . ') TARIFF ' . $userTariff . ' ZERO PRICE');
                     }
@@ -226,9 +247,9 @@ class CumulativeDiscounts {
                         if ($discountData['days'] < $this->discountPullDays) {
                             $daysFill = $discountData['days'] + 1;
                             $this->setDiscount($login, $daysFill, $discountData['discount']);
-                            $this->debugLog('CUDISCOUNTS UPDATE ('.$login.') DAYS:'.$daysFill.' PERCENT:'.$discountData['discount']);
+                            $this->debugLog('CUDISCOUNTS UPDATE (' . $login . ') DAYS:' . $daysFill . ' PERCENT:' . $discountData['discount']);
                         } else {
-                            $newDiscount = ($discountData['discount']<$this->discountLimit) ? $discountData['discount']+$this->fillPercent : $this->discountLimit;
+                            $newDiscount = ($discountData['discount'] < $this->discountLimit) ? $discountData['discount'] + $this->fillPercent : $this->discountLimit;
                             $this->setDiscount($login, 0, $newDiscount);
                             $this->pushDiscount($login); // pay some money, flush counters
                         }
@@ -237,7 +258,7 @@ class CumulativeDiscounts {
                         //try to save mysql query count
                         if ($discountData['days'] != 0) {
                             $this->setDiscount($login, 0, 0);
-                            $this->debugLog('CUDISCOUNTS SET DOWN (' . $login . ') PERCENT:' . $discountData['discount'] . ' DAYS:' . $discountData['days']);
+                            $this->debugLog('CUDISCOUNTS SET DOWN (' . $login . ') PERCENT: 0 DAYS: 0');
                         }
                     }
                 }
