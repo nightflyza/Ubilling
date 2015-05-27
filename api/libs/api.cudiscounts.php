@@ -4,18 +4,31 @@ class CumulativeDiscounts {
 
     protected $allDiscounts = array();
     protected $allUsers = array();
-    protected $dayPercent = 0.33;
+    protected $fillPercent = 1;
+    protected $discountLimit=10;
     protected $tariffPrices = array();
     protected $discountPullDays = 3;
     protected $discountPayId = 1;
-    protected $debug = false;
+    protected $customDiscountCfId='';
+    protected $debug = 0;
 
     public function __construct() {
+        $this->setOptions();
         $this->loadUsers();
         $this->loadDiscounts();
         $this->loadTariffPrices();
 
         debarr($this->allDiscounts);
+    }
+    
+    
+    /**
+     * Sets default options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        
     }
 
     /**
@@ -69,7 +82,7 @@ class CumulativeDiscounts {
      */
     public function setDebug($state) {
         if ($state) {
-            $this->debug = true;
+            $this->debug = $state;
         }
     }
 
@@ -88,7 +101,7 @@ class CumulativeDiscounts {
         $query = "INSERT INTO `cudiscounts` (`id`, `login`, `discount`, `date`, `days`) "
                 . "VALUES (NULL,'" . $login . "','" . $currentDiscount . "','" . $curdate . "','" . $days . "');";
         nr_query($query);
-        log_register("CUDISC CREATE (" . $login . ")");
+        $this->debugLog("CUDISC CREATE (" . $login . ")");
     }
 
     /**
@@ -102,6 +115,8 @@ class CumulativeDiscounts {
         $days = vf($days, 3);
         $discount = mysql_real_escape_string($discount);
         $login = mysql_real_escape_string($login);
+        $this->allDiscounts[$login]['days']=$days;
+        $this->allDiscounts[$login]['discount']=$discount;
         $query = "UPDATE `cudiscounts` SET `days`='" . $days . "', `discount`='" . $discount . "' WHERE `login`='" . $login . "'; ";
         nr_query($query);
     }
@@ -126,7 +141,7 @@ class CumulativeDiscounts {
      * @param string $data
      */
     protected function debugLog($data) {
-        if ($this->debug) {
+        if ($this->debug==2) {
             log_register($data);
         }
     }
@@ -147,10 +162,8 @@ class CumulativeDiscounts {
                     $tariffPrice = $this->tariffPrices[$userTariff];
                     if ($tariffPrice != 0) {
                         $discountPercent = $discountData['discount'];
-                        $discountPercent = round($discountPercent);
                         $discountPayment = ($tariffPrice / 100) * $discountPercent;
                         zb_CashAdd($login, $discountPayment, 'add', $this->discountPayId, 'DISCOUNT:' . $discountPercent);
-                        $this->setDiscount($login, 0, 0); // flushing counters
                         $this->debugLog('CUDISCOUNTS PUSH (' . $login . ') PERCENT:' . $discountPercent . ' DAYS:' . $discountData['days'] . ' TARIFF:' . $userTariff);
                     } else {
                         $this->debugLog('CUDISCOUNTS IGNORE (' . $login . ') TARIFF ' . $userTariff . ' ZERO PRICE');
@@ -161,6 +174,8 @@ class CumulativeDiscounts {
             } else {
                 $this->debugLog('CUDISCOUNTS IGNORE (' . $login . ') EMPTY DISCOUNT DATA');
             }
+        } else {
+            $this->debugLog('CUDISCOUNTS IGNORE (' . $login . ') LOGIN NOT EXISTS');
         }
     }
 
@@ -183,11 +198,12 @@ class CumulativeDiscounts {
                     //discount already available
                     $discountData = $this->getDiscountData($login);
                     if (($each['Cash'] >= -$each['Credit']) AND ( $each['Passive'] == 0) AND ( $each['Down'] == 0)) {
-
                         if ($discountData['days'] < $this->discountPullDays) {
                             $daysFill = $discountData['days'] + 1;
-                            $this->setDiscount($login, $daysFill, ($this->dayPercent * $daysFill));
+                            $this->setDiscount($login, $daysFill, $discountData['discount']);
                         } else {
+                            $newDiscount = ($discountData['discount']<$this->discountLimit) ? $discountData['discount']+$this->fillPercent : $this->discountLimit;
+                            $this->setDiscount($login, 0, $newDiscount);
                             $this->pushDiscount($login); // pay some money, flush counters
                         }
                     } else {
