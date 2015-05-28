@@ -151,6 +151,11 @@ if (cfr('UKV')) {
                         rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
                     }
                     
+                    if ($_POST['ukvbankstatype']=='privatbankdbf') {
+                        $processedBanksta=$ukv->bankstaPreprocessingPrivatDbf($bankstaUploaded);
+                        rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING.$processedBanksta);
+                    }
+                    
                 } else {
                     show_error(__('Strange exeption').' NO_BANKSTA_TYPE');
                 }

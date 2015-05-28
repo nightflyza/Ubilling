@@ -303,10 +303,6 @@ class CumulativeDiscounts {
         }
     }
 
-    /*     * *********************
-     * Report methods below
-     */
-
     /**
      * Sets filtering login private property
      * 

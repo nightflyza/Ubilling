@@ -1955,5 +1955,6 @@ $lang['def']['Cumulative discounts custom profile field ID']='ID додатко�
 $lang['def']['Cumulative discount']='Накопичувальна знижка';
 $lang['def']['right to control cumulative discounts']='Право керувати накопичувальними знижками';
 $lang['def']['Custom discount']='Примусова знижка';
+$lang['def']['PrivatBank']='ПриватБанк';
 
 ?>

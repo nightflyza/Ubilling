@@ -6,14 +6,13 @@ if (cfr('CUDISCOUNTS')) {
         $config = $ubillingConfig->getBilling();
         $alterconfig = $ubillingConfig->getAlter();
         if ($alterconfig['CUD_ENABLED']) {
-            
-            $discounts=new CumulativeDiscounts();
+
+            $discounts = new CumulativeDiscounts();
             $discounts->setLogin($login);
-            show_window(__('Cumulative discount'),$discounts->renderReport());
+            show_window(__('Cumulative discount'), $discounts->renderReport());
             show_window('', web_UserControls($login));
-            
         } else {
-            show_error( __('This module disabled'));
+            show_error(__('This module disabled'));
         }
     } else {
         show_error(__('Strange exeption'));

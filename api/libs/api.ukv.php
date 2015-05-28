@@ -40,6 +40,7 @@ class UkvSystem {
     protected $debtLimit = 2; //debt limit in month count
 
     //bank statements options (Oschadbank)
+
     const BANKSTA_IN_CHARSET = 'cp866';
     const BANKSTA_OUT_CHARSET = 'utf-8';
     const BANKSTA_PATH = 'content/documents/ukv_banksta/';
@@ -50,7 +51,6 @@ class UkvSystem {
     const BANKSTA_NOTES = 'NAME_PLAT';
     const BANKSTA_TIME = 'PTIME';
     const BANKSTA_DATE = 'PDATE';
-    
     //bank statements options (Oschadbank terminals)
     const OT_BANKSTA_CONTRACT = 'ABCOUNTT';
     const OT_BANKSTA_ADDRESS = 'ADDRT';
@@ -59,7 +59,14 @@ class UkvSystem {
     const OT_BANKSTA_NOTES = 'NAME_PLAT';
     const OT_BANKSTA_TIME = 'PTIMETT';
     const OT_BANKSTA_DATE = 'PDATETT';
-    
+    //bank statements options (PrivatBank dbf)
+    const PB_BANKSTA_CONTRACT = 'N_DOGOV';
+    const PB_BANKSTA_ADDRESS = 'ADR_TEL';
+    const PB_BANKSTA_REALNAME = 'FIO_PLAT';
+    const PB_BANKSTA_SUMM = 'SUMMA';
+    const PB_BANKSTA_NOTES = 'N_DOKUM';
+    const PB_BANKSTA_TIME = 'NOPE';
+    const PB_BANKSTA_DATE = 'OPERDEN';
     //finance coloring options
     const COLOR_FEE = 'a90000';
     const COLOR_PAYMENT = '005304';
@@ -82,12 +89,11 @@ class UkvSystem {
         $this->loadDebtLimit();
     }
 
-    /*
+    /**
      * loads all tariffs into private tariffs prop
      * 
      * @return void
      */
-
     protected function loadTariffs() {
         $query = "SELECT * from `ukv_tariffs` ORDER by `tariffname` ASC;";
         $alltariffs = simple_queryall($query);
@@ -98,12 +104,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * loads all existing cities into private cities prop
      * 
      * @return void
      */
-
     protected function loadCities() {
         $query = "SELECT * from `city` ORDER BY `id` ASC;";
         $allcities = simple_queryall($query);
@@ -114,12 +119,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * loads all existing streets into private streets prop
      * 
      * @return void
      */
-
     protected function loadStreets() {
         $query = "SELECT DISTINCT `streetname` from `street` ORDER BY `streetname` ASC;";
         $allstreets = simple_queryall($query);
@@ -130,12 +134,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * load all existing cashtypes into private cashtypes prop
      * 
      * @return void
      */
-
     protected function loadCashtypes() {
         $query = "SELECT `id`,`cashtype` from `cashtype` ORDER BY `id` ASC;";
         $all = simple_queryall($query);
@@ -146,12 +149,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * loads current month data into private props
      * 
      * @return void
      */
-
     protected function loadMonth() {
         $monthArr = months_array();
         $this->month['currentmonth'] = date("m");
@@ -162,27 +164,25 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * loads current debt limit from global config
      * 
      * @return void
      */
-
     function loadDebtLimit() {
         global $ubillingConfig;
         $altCfg = $ubillingConfig->getAlter();
         $this->debtLimit = $altCfg['UKV_MONTH_DEBTLIMIT'];
     }
 
-    /*
+    /**
      * creates new tariff into database
      * 
-     * @param $name  tariff name
-     * @param $price tariff price 
+     * @param string $name  tariff name
+     * @param float $price tariff price 
      * 
      * @return void
      */
-
     public function tariffCreate($name, $price) {
         $name = mysql_real_escape_string($name);
         $name = trim($name);
@@ -198,14 +198,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * check is tariff protected/used by some users
      * 
-     * @param @tariffid  existing tariff ID
+     * @param int $tariffid  existing tariff ID
      * 
      * @return bool
      */
-
     protected function tariffIsProtected($tariffid) {
         $tariffid = vf($tariffid, 3);
         $query = "SELECT `id` from `ukv_users` WHERE `tariffid`='" . $tariffid . "';";
@@ -217,14 +216,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * deletes some existing tariff from database
      * 
-     * @param $tariffid existing tariff ID
+     * @param int $tariffid existing tariff ID
      * 
      * @return void
      */
-
     public function tariffDelete($tariffid) {
         $tariffid = vf($tariffid, 3);
         //check - is tariff used by anyone?
@@ -238,14 +236,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * saves some tariff params into database
      * 
-     * @param $tariffid    existing tariff ID
-     * @param $tariffname  new name of the tariff
-     * @param $price       new tariff price
+     * @param int $tariffid    existing tariff ID
+     * @param string $tariffname  new name of the tariff
+     * @param float $price       new tariff price
      */
-
     public function tariffSave($tariffid, $tariffname, $price) {
         $tariffid = vf($tariffid, 3);
         $tariffname = mysql_real_escape_string($tariffname);
@@ -263,14 +260,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * returns tariff edit form 
      * 
-     * @param $tariffid existing tariff id
+     * @param int $tariffid existing tariff id
      * 
      * @rerturn string
      */
-
     protected function tariffEditForm($tariffid) {
         $tariffid = vf($tariffid, 3);
 
@@ -282,12 +278,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * returns tariff creation form
      * 
      * @return string
      */
-
     protected function tariffCreateForm() {
         $inputs = wf_HiddenInput('createtariff', 'true');
         $inputs.= wf_TextInput('createtariffname', __('Tariff name'), '', true, '20');
@@ -297,12 +292,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * renders CaTV tariffs list with some controls
      * 
      * @return void
      */
-
     public function renderTariffs() {
 
         $cells = wf_TableCell(__('ID'));
@@ -328,12 +322,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * returns module control panel
      * 
      * @return string
      */
-
     public function panel() {
         $result = '';
         if (cfr('UKV')) {
@@ -354,12 +347,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * loads all users from database to private prop users
      * 
      * @return void
      */
-
     protected function loadUsers() {
         $query = "SELECT * from `ukv_users`";
         $allusers = simple_queryall($query);
@@ -371,35 +363,32 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * just sets user balance to specified value
      * 
-     * @param $userid existing user id
-     * @param $cash   cash value to set
+     * @param int $userid existing user id
+     * @param float $cash   cash value to set
      * 
      * @return void
      */
-
     protected function userSetCash($userid, $cash) {
         if (isset($this->users[$userid])) {
             simple_update_field('ukv_users', 'cash', $cash, "WHERE `id`='" . $userid . "';");
         }
     }
 
-    /*
+    /**
      * logs payment to database
      * 
      * 
-     * @param $userid
-     * @param $summ
-     * @param $visible
-     * @param $cashtypeid
-     * @param $notes
+     * @param int $userid
+     * @param float $summ
+     * @param bool $visible
+     * @param int $cashtypeid
+     * @param string $notes
      * 
      * @return void
-     * 
      */
-
     public function logPayment($userid, $summ, $visible = true, $cashtypeid = 1, $notes = '') {
         $userid = vf($userid, 3);
         $summ = mysql_real_escape_string($summ);
@@ -415,18 +404,17 @@ class UkvSystem {
         nr_query($query);
     }
 
-    /*
+    /**
      * External interface for private setCash method used in manual finance ops
      * 
-     * @param $userid
-     * @param $summ
-     * @param $visible
-     * @param $cashtypeid
-     * @param $notes
+     * @param int $userid
+     * @param float $summ
+     * @param bool $visible
+     * @param int $cashtypeid
+     * @param string $notes
      * 
      * @return void
      */
-
     public function userAddCash($userid, $summ, $visible = true, $cashtypeid = 1, $notes = '') {
         $userid = vf($userid, 3);
         $summ = mysql_real_escape_string($summ);
@@ -441,26 +429,24 @@ class UkvSystem {
         log_register('UKV BALANCEADD ((' . $userid . ')) ON ' . $summ);
     }
 
-    /*
+    /**
      * checks is input number valid money format or not?
      * 
-     * @param $number an string to check
+     * @param float $number an string to check
      * 
      * @return bool 
      */
-
     public function isMoney($number) {
         return preg_match("/^-?[0-9]+(?:\.[0-9]{1,2})?$/", $number);
     }
 
-    /*
+    /**
      * charges month fee for some user
      * 
-     * @param $userid  existing user ID
+     * @param int $userid  existing user ID
      * 
      * @return void
      */
-
     protected function feeCharge($userid) {
         $userid = vf($userid, 3);
         if ($this->users[$userid]['tariffid']) {
@@ -487,24 +473,22 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * logs fee charge fact to database
      * 
      * @return void
      */
-
     protected function feeChargeLog() {
         $curyearmonth = date("Y-m");
         $query = "INSERT INTO `ukv_fees` (`id`, `yearmonth`) VALUES (NULL, '" . $curyearmonth . "');";
         nr_query($query);
     }
 
-    /*
+    /**
      * charges fee for all users and controls per month validity
      * 
      * @return int
      */
-
     public function feeChargeAll() {
         $curyearmonth = date("Y-m");
         $query_check = "SELECT `id` from `ukv_fees` WHERE `yearmonth`='" . $curyearmonth . "'";
@@ -526,14 +510,13 @@ class UkvSystem {
         return ($chargeCounter);
     }
 
-    /*
+    /**
      * public interface view for manual payments processing
      * 
-     * @param $userid - existing user ID
+     * @param int $userid - existing user ID
      * 
      * @return string
      */
-
     public function userManualPaymentsForm($userid) {
         $userid = vf($userid, 3);
         $this->loadCashtypes();
@@ -552,14 +535,13 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * returns user full address if this one exists
      * 
-     * @param $userid   existing user id
+     * @param int $userid   existing user id
      * 
      * @return string
      */
-
     protected function userGetFullAddress($userid) {
         if (isset($this->users[$userid])) {
             global $ubillingConfig;
@@ -583,14 +565,13 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * user deletion form
      * 
-     * @param $userid existing user ID
+     * @param int $userid existing user ID
      * 
      * @return string
      */
-
     public function userDeletionForm($userid) {
         $userid = vf($userid, 3);
         $inputs = __('Be careful, this module permanently deletes user and all data associated with it. Opportunities to raise from the dead no longer.') . ' <br>
@@ -605,12 +586,13 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * deletes some user from database
      * 
-     * @param userid
+     * @param int $userid
+     * 
+     * @return void
      */
-
     public function userDelete($userid) {
         $userid = vf($userid, 3);
         if (isset($this->users[$userid])) {
@@ -622,12 +604,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * Returns user registration form
      * 
      * @return string
      */
-
     public function userRegisterForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = '';
@@ -642,12 +623,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * registers new users into database and returns new user ID
      * 
      * @return int 
      */
-
     public function userCreate() {
         $curdate = date("Y-m-d H:i:s");
         $query = "
@@ -705,7 +685,7 @@ class UkvSystem {
 
         return ($result);
     }
-    
+
     /**
      * Returns cable seal edit form
      * 
@@ -714,26 +694,25 @@ class UkvSystem {
      */
     protected function userCableSealForm($userid) {
         $userid = vf($userid, 3);
-        $result='';
+        $result = '';
         if (isset($this->users[$userid])) {
-            $currentSeal=$this->users[$userid]['cableseal'];
-            
-            $inputs=  wf_TextInput('ueditcableseal', __('Cable seal'), $currentSeal, true, 20);
+            $currentSeal = $this->users[$userid]['cableseal'];
+
+            $inputs = wf_TextInput('ueditcableseal', __('Cable seal'), $currentSeal, true, 20);
             $inputs.= wf_HiddenInput('usercablesealprocessing', $userid);
             $inputs.= wf_Submit(__('Save'));
-            $result= wf_Form('', 'POST', $inputs, 'glamour');
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
     }
 
-    /*
+    /**
      * returns user edit form for some userid
      * 
-     * @param $userid  existing user ID
+     * @param int $userid  existing user ID
      * 
      * @return string
      */
-
     protected function userEditForm($userid) {
         $userid = vf($userid, 3);
         if (isset($this->users[$userid])) {
@@ -823,14 +802,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * returns user lifestory strict parsed from system log
      * 
-     * @param $userid existing user id
+     * @param int $userid existing user id
      * 
      * @return string
      */
-
     protected function userLifeStoryForm($userid) {
         $userid = vf($userid, 3);
         $query = "SELECT * from `weblogs` WHERE `event` LIKE '%((" . $userid . "))%' ORDER BY `id` DESC;";
@@ -855,14 +833,13 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * checks is user contract unique
      * 
-     * @param $contract - contract number to check
+     * @param string $contract - contract number to check
      * 
      * @return bool
      */
-
     protected function checkContract($contract) {
         if (isset($this->contracts[$contract])) {
             $result = false;
@@ -871,7 +848,7 @@ class UkvSystem {
         }
         return ($result);
     }
-    
+
     /**
      * Saves new cable seal value into database
      * 
@@ -883,24 +860,22 @@ class UkvSystem {
             $userId = vf($_POST['usercablesealprocessing']);
             $where = "WHERE `id`='" . $userId . "';";
             $tablename = 'ukv_users';
-            $newSeal=vf($_POST['ueditcableseal']);
-            
-            if ($this->users[$userId]['cableseal']!=$newSeal) {
+            $newSeal = vf($_POST['ueditcableseal']);
+
+            if ($this->users[$userId]['cableseal'] != $newSeal) {
                 simple_update_field($tablename, 'cableseal', $newSeal, $where);
                 log_register('UKV USER ((' . $userId . ')) CHANGE CABLESEAL `' . $newSeal . '`');
             }
-            
         } else {
             throw new Exception(self::EX_USER_NOT_SET);
         }
     }
 
-    /*
+    /**
      * saves some user params into database
      * 
      * @return void
      */
-
     public function userSave() {
         if (wf_CheckPost(array('usereditprocessing'))) {
             $userId = vf($_POST['usereditprocessing']);
@@ -986,7 +961,7 @@ class UkvSystem {
                 simple_update_field($tablename, 'inetlogin', $_POST['ueditinetlogin'], $where);
                 log_register('UKV USER ((' . $userId . ')) CHANGE INETLOGIN `' . $_POST['ueditinetlogin'] . '`');
             }
-          
+
             //saving passport number
             if ($this->users[$userId]['passnum'] != $_POST['ueditpassnum']) {
                 simple_update_field($tablename, 'passnum', $_POST['ueditpassnum'], $where);
@@ -1027,14 +1002,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * protected method using to save address data for newly registered user
      * 
-     * @param $userId - existin new user ID
+     * @param int $userId - existin new user ID
      * 
      * @return void
      */
-
     protected function userPostRegSave($userId) {
         $whereReg = "WHERE `id` = '" . $userId . "';";
         simple_update_field('ukv_users', 'city', $_POST['uregcity'], $whereReg);
@@ -1042,26 +1016,25 @@ class UkvSystem {
 
         simple_update_field('ukv_users', 'street', $_POST['uregstreet'], $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE STREET `' . $_POST['uregstreet'] . '`');
-        
-        
-        $newBuild=$this->filterStringData($_POST['uregbuild']);
+
+
+        $newBuild = $this->filterStringData($_POST['uregbuild']);
         simple_update_field('ukv_users', 'build', $newBuild, $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $_POST['uregbuild'] . '`');
 
         $newApt = (!empty($_POST['uregapt'])) ? $_POST['uregapt'] : 0;
-        $newApt= $this->filterStringData($newApt);
+        $newApt = $this->filterStringData($newApt);
         simple_update_field('ukv_users', 'apt', $newApt, $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE APT `' . $newApt . '`');
     }
 
-    /*
+    /**
      * returns some existing user profile
      * 
-     * @param $userid existing user`s ID
+     * @param int $userid existing user`s ID
      * 
      * @return string
      */
-
     public function userProfile($userid) {
         global $ubillingConfig;
         $altcfg = $ubillingConfig->getAlter();
@@ -1119,7 +1092,7 @@ class UkvSystem {
             $inetLink = (!empty($userData['inetlogin'])) ? wf_Link(self::URL_INET_USER_PROFILE . $userData['inetlogin'], web_profile_icon() . ' ' . $userData['inetlogin'], false, '') : '';
             $cells.= wf_TableCell($inetLink);
             $rows.= wf_TableRow($cells, 'row3');
-            
+
             $cells = wf_TableCell(__('Cable seal'), '20%', 'row2');
             $cells.= wf_TableCell($userData['cableseal']);
             $rows.= wf_TableRow($cells, 'row3');
@@ -1176,12 +1149,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * renders full user list with some ajax data
      * 
      * @return string
      */
-
     public function renderUsers() {
         $jqDt = '
           <script type="text/javascript" charset="utf-8">
@@ -1304,14 +1276,13 @@ class UkvSystem {
         die($result);
     }
 
-    /*
+    /**
      * translates payment note for catv users
      * 
-     * @param $paynote some payment note to translate
+     * @param string $paynote some payment note to translate
      * 
      * @return string 
      */
-
     protected function translatePaymentNote($paynote) {
         if ($paynote == '') {
             $paynote = __('CaTV');
@@ -1344,14 +1315,13 @@ class UkvSystem {
         return ($paynote);
     }
 
-    /*
+    /**
      * renders all of user payments from database
      * 
-     * @param $userid existing user ID
+     * @param string $userid existing user ID
      *
      * @return string
      */
-
     public function userPaymentsRender($userid) {
         global $ubillingConfig;
         $altcfg = $ubillingConfig->getAlter();
@@ -1437,38 +1407,37 @@ class UkvSystem {
         }
     }
 
-    /*************************************
-     * Bank statements processing
-     * ****************************** */
-
     /*
+     * Bank statements processing
+     */
+
+    /**
      * returns bank statement upload form
      * 
      * @return string
      */
-
     public function bankstaLoadForm() {
         $uploadinputs = wf_HiddenInput('uploadukvbanksta', 'true');
         $uploadinputs.=__('Bank statement') . wf_tag('br');
         $uploadinputs.=wf_tag('input', false, '', 'id="fileselector" type="file" name="ukvbanksta"') . wf_tag('br');
         $uploadinputs.=__('Bankstatement type');
         $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank'), 'oschad', false, true);
-        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank terminal'), 'oschadterm', true, false);
-        
+        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('Oschadbank terminal'), 'oschadterm', false, false);
+        $uploadinputs.= wf_RadioInput('ukvbankstatype', __('PrivatBank'), 'privatbankdbf', true, false);
+
 
         $uploadinputs.=wf_Submit('Upload');
         $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
         return ($uploadform);
     }
 
-    /*
+    /**
      * checks is banksta hash unique?
      * 
-     * @param $hash  bank statement raw content hash
+     * @param string $hash  bank statement raw content hash
      * 
      * @return bool
      */
-
     protected function bankstaCheckHash($hash) {
         $query = "SELECT `id` from `ukv_banksta` WHERE `hash`='" . $hash . "';";
         $data = simple_query($query);
@@ -1479,12 +1448,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * process of uploading of bank statement
      * 
      * @return void
      */
-
     public function bankstaDoUpload() {
         $uploaddir = self::BANKSTA_PATH;
         $allowedExtensions = array("dbf");
@@ -1528,7 +1496,7 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * new banksta store in database bankstaDoUpload() method and returns preprocessed
      * bank statement hash for further usage
      * 
@@ -1536,7 +1504,6 @@ class UkvSystem {
      * 
      * @return string
      */
-
     public function bankstaPreprocessing($bankstadata) {
         $result = '';
         if (!empty($bankstadata)) {
@@ -1617,17 +1584,15 @@ class UkvSystem {
         }
         return ($result);
     }
-    
-    
-        /*
+
+    /**
      * new banksta store in database bankstaDoUpload() method and returns preprocessed
      * bank statement hash for further usage
      * 
-     * @param $bankstadata   array returned from 
+     * @param string $bankstadata   array returned from 
      * 
      * @return string
      */
-
     public function bankstaPreprocessingTerminal($bankstadata) {
         $result = '';
         if (!empty($bankstadata)) {
@@ -1643,7 +1608,7 @@ class UkvSystem {
                 $importCounter = 0;
                 for ($i = 0; $i <= $num_rec; $i++) {
                     $eachRow = $dbf->getRowAssoc($i);
-                  
+
                     if (!empty($eachRow)) {
                         if (!empty($eachRow[self::OT_BANKSTA_CONTRACT])) {
                             $newDate = date("Y-m-d H:i:s");
@@ -1710,15 +1675,106 @@ class UkvSystem {
         return ($result);
     }
 
-
-    /*
-     * returns banksta processing form for some hash
+    /**
+     * new banksta store in database bankstaDoUpload() method and returns preprocessed
+     * bank statement hash for further usage
      * 
-     * @param $hash  existing preprocessing bank statement hash
+     * @param string $bankstadata   array returned from 
      * 
      * @return string
      */
+    public function bankstaPreprocessingPrivatDbf($bankstadata) {
+        $result = '';
+        if (!empty($bankstadata)) {
+            if (file_exists(self::BANKSTA_PATH . $bankstadata['savedname'])) {
+                //processing raw data
+                $newHash = $bankstadata['hash'];
+                $result = $newHash;
+                $newFilename = $bankstadata['filename'];
+                $newAdmin = whoami();
 
+                $dbf = new dbf_class(self::BANKSTA_PATH . $bankstadata['savedname']);
+                $num_rec = $dbf->dbf_num_rec;
+                $importCounter = 0;
+                for ($i = 0; $i <= $num_rec; $i++) {
+                    $eachRow = $dbf->getRowAssoc($i);
+
+                    if (!empty($eachRow)) {
+                        if ($eachRow[self::PB_BANKSTA_CONTRACT]!='') {
+                            $newDate = date("Y-m-d H:i:s");
+                            $newContract = trim($eachRow[self::PB_BANKSTA_CONTRACT]);
+                            $newContract = mysql_real_escape_string($newContract);
+                            $newSumm = trim($eachRow[self::PB_BANKSTA_SUMM]);
+                            $newSumm = mysql_real_escape_string($newSumm);
+                            $newAddress = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_ADDRESS]);
+                            $newAddress = mysql_real_escape_string($newAddress);
+                            $newRealname = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_REALNAME]);
+                            $newRealname = mysql_real_escape_string($newRealname);
+                            $newNotes = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_NOTES]);
+                            $newNotes = mysql_real_escape_string($newNotes);
+                            $pbDate = $eachRow[self::PB_BANKSTA_DATE];
+                            $pbDate = strtotime($pbDate);
+                            $pbDate = date("Y-m-d", $pbDate);
+                            $newPdate = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $pbDate);
+                            $newPdate = mysql_real_escape_string($newPdate);
+                            $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, curtime());
+                            $newPtime = mysql_real_escape_string($newPtime);
+
+                            $query = "INSERT INTO `ukv_banksta` (
+                                    `id` ,
+                                    `date` ,
+                                    `hash` ,
+                                    `filename` ,
+                                    `admin` ,
+                                    `contract` ,
+                                    `summ` ,
+                                    `address` ,
+                                    `realname` ,
+                                    `notes` ,
+                                    `pdate` ,
+                                    `ptime` ,
+                                    `processed`
+                                    )
+                                VALUES (
+                                NULL ,
+                                '" . $newDate . "',
+                                '" . $newHash . "',
+                                '" . $newFilename . "',
+                                '" . $newAdmin . "',
+                                '" . $newContract . "',
+                                '" . $newSumm . "',
+                                '" . $newAddress . "',
+                                '" . $newRealname . "',
+                                '" . $newNotes . "',
+                                '" . $newPdate . "',
+                                '" . $newPtime . "',
+                                '0'
+                                );
+                            ";
+                            nr_query($query);
+
+                            $importCounter++;
+                        }
+                    }
+                }
+
+                log_register('UKV BANKSTA IMPORTED ' . $importCounter . ' ROWS');
+            } else {
+                show_error(__('Strange exeption'));
+            }
+        } else {
+            throw new Exception(self::EX_BANKSTA_PREPROCESS_EMPTY);
+        }
+        return ($result);
+    }
+
+    /**
+     * returns banksta processing form for some hash
+     * 
+     * @param string $hash  existing preprocessing bank statement hash
+     * 
+     * @return string
+     */
     public function bankstaProcessingForm($hash) {
         $hash = mysql_real_escape_string($hash);
         $query = "SELECT * from `ukv_banksta` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
@@ -1766,9 +1822,9 @@ class UkvSystem {
                     $detectedContract = wf_Link(self::URL_USERS_PROFILE . $detectedUser['id'], web_profile_icon() . ' ' . $detectedUser['contract'], false, '');
                     $detectedAddress = $detectedUser['street'] . ' ' . $detectedUser['build'] . '/' . $detectedUser['apt'];
                     $detectedRealName = $detectedUser['realname'];
-                    $detectedTariff=$detectedUser['tariffid'];
-                    $detectedTariff=$this->tariffs[$detectedTariff]['tariffname'];
-                        
+                    $detectedTariff = $detectedUser['tariffid'];
+                    $detectedTariff = $this->tariffs[$detectedTariff]['tariffname'];
+
                     if (!$processed) {
                         $cashPairs[$each['id']]['bankstaid'] = $each['id'];
                         $cashPairs[$each['id']]['userid'] = $detectedUser['id'];
@@ -1787,7 +1843,7 @@ class UkvSystem {
                     $detectedContract = '';
                     $detectedAddress = '';
                     $detectedRealName = '';
-                    $detectedTariff='';
+                    $detectedTariff = '';
                     if ($each['processed'] == 1) {
                         $rowClass = 'row2';
                     } else {
@@ -1817,14 +1873,13 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * returns detailed banksta row info
      * 
-     * @param $id   existing banksta ID
+     * @param int $id   existing banksta ID
      * 
      * @return string
      */
-
     public function bankstaGetDetailedRowInfo($id) {
         $id = vf($id, 3);
         $query = "SELECT * from `ukv_banksta` WHERE `id`='" . $id . "'";
@@ -1842,12 +1897,11 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * loads all of banksta rows to further checks to private prop
      * 
      * @return void
      */
-
     protected function loadBankstaAll() {
         $query = "SELECT * from `ukv_banksta`";
         $all = simple_queryall($query);
@@ -1858,14 +1912,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * checks is banksta row ID unprocessed?
      * 
-     * @param $bankstaid   existing banksta row ID
+     * @param int $bankstaid   existing banksta row ID
      * 
      * @return bool
      */
-
     protected function bankstaIsUnprocessed($bankstaid) {
         $result = false;
         if (isset($this->bankstarecords[$bankstaid])) {
@@ -1878,25 +1931,23 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * sets banksta row as processed
      * 
-     * @param $bankstaid  existing bank statement ID
+     * @param int $bankstaid  existing bank statement ID
      * 
      * @return void
      */
-
     public function bankstaSetProcessed($bankstaid) {
         $bankstaid = vf($bankstaid, 3);
         simple_update_field('ukv_banksta', 'processed', 1, "WHERE `id`='" . $bankstaid . "'");
     }
 
-    /*
+    /**
      * push payments to some user accounts via bank statements
      * 
      * @return void
      */
-
     public function bankstaPushPayments() {
         if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
             global $ubillingConfig;
@@ -1924,12 +1975,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * renders bank statements list 
      * 
      * @return string
      */
-
     public function bankstaRenderList() {
         $query = "SELECT `filename`,`hash`,`date`,`admin`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
@@ -1957,13 +2007,12 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
+    /**
      * cnahges banksta contract number for some existing row
      * 
-     * @param $bankstaid    existing bank statement transaction ID
-     * @param $contract     new contract number for this row
+     * @param int $bankstaid    existing bank statement transaction ID
+     * @param string $contract     new contract number for this row
      */
-
     public function bankstaSetContract($bankstaid, $contract) {
         $bankstaid = vf($bankstaid, 3);
         $contract = mysql_real_escape_string($contract);
@@ -1985,12 +2034,11 @@ class UkvSystem {
      * and there is some reports for UKV subsystem
      */
 
-    /*
+    /**
      * returns report icon and link
      * 
      * @return string
      */
-
     protected function buildReportTask($link, $icon, $text) {
         $icon_path = 'skins/ukv/';
 
@@ -2014,12 +2062,11 @@ class UkvSystem {
         return ($template);
     }
 
-    /*
+    /**
      * renders report list
      * 
      * @return void
      */
-
     public function reportList() {
         $reports = '';
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtors', 'debtors.png', __('Debtors'));
@@ -2033,7 +2080,7 @@ class UkvSystem {
         show_window(__('Reports'), $reports);
     }
 
-    /*
+    /**
      * shows printable report content
      * 
      * @param $title report title
@@ -2041,10 +2088,9 @@ class UkvSystem {
      * 
      * @return void
      */
-
     protected function reportPrintable($title, $data) {
 
-        $style = file_get_contents(CONFIG_PATH."ukvprintable.css");
+        $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
 
         $header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
@@ -2074,12 +2120,11 @@ class UkvSystem {
         die($data);
     }
 
-    /*
+    /**
      * renders debtors report
      * 
      * @return void
      */
-
     public function reportDebtors() {
         $debtorsArr = array();
         $result = '';
@@ -2141,12 +2186,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * renders anti-debtors report
      * 
      * @return void
      */
-
     public function reportAntiDebtors() {
         $debtorsArr = array();
         $result = '';
@@ -2205,12 +2249,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * renders tariffs popularity report
      * 
      * @return void
      */
-
     public function reportTariffs() {
         $tariffArr = array();
         $tariffUsers = array();
@@ -2298,14 +2341,13 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * returns payments year summ by selected year
      * 
-     * @param $year year to show
+     * @param string $year year to show
      * 
      * @return string
      */
-
     protected function paymentsGetYearSumm($year) {
         $year = vf($year);
         $query = "SELECT SUM(`summ`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0 AND `visible`='1'";
@@ -2313,15 +2355,14 @@ class UkvSystem {
         return($result['SUM(`summ`)']);
     }
 
-    /*
+    /**
      * returns month payments summ by some year and month
      * 
-     * @param $year year to select
-     * @param $month month to select
+     * @param string  $year year to select
+     * @param string $month month to select
      * 
      * @return string
      */
-
     protected function paymentsGetMonthSumm($year, $month) {
         $year = vf($year);
         $query = "SELECT SUM(`summ`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0 AND `visible`='1'";
@@ -2329,7 +2370,7 @@ class UkvSystem {
         return($result['SUM(`summ`)']);
     }
 
-    /*
+    /**
      * returns month payments count by some year and month
      * 
      * @param $year year to select
@@ -2337,7 +2378,6 @@ class UkvSystem {
      * 
      * @return string
      */
-
     protected function paymentsGetMonthCount($year, $month) {
         $year = vf($year);
         $query = "SELECT COUNT(`id`) from `ukv_payments` WHERE `date` LIKE '" . $year . "-" . $month . "%' AND `summ` > 0 AND `visible`='1'";
@@ -2345,14 +2385,13 @@ class UkvSystem {
         return($result['COUNT(`id`)']);
     }
 
-    /*
+    /**
      * shows payments graph for some year
      * 
-     * @param $year year to show
+     * @param string $year year to show
      * 
      * @return void
      */
-
     protected function paymentsShowGraph($year) {
         $months = months_array();
         $year_summ = $this->paymentsGetYearSumm($year);
@@ -2444,14 +2483,13 @@ class UkvSystem {
         show_window(__('Payments by') . ' ' . $year, $result);
     }
 
-    /*
+    /**
      * returns UKV payments by some query
      * 
-     * @param $query raw SQL query to select data
+     * @param string $query raw SQL query to select data
      * 
      * @return string
      */
-
     protected function paymentsShow($query) {
         global $ubillingConfig;
         $alter_conf = $ubillingConfig->getAlter();
@@ -2460,7 +2498,7 @@ class UkvSystem {
         }
         $alltypes = $this->cashtypes;
         $allapayments = simple_queryall($query);
-        $cashTypesStats=array();
+        $cashTypesStats = array();
 
         $total = 0;
         $totalPaycount = 0;
@@ -2509,11 +2547,11 @@ class UkvSystem {
                     $totalPaycount++;
                     //per cashtype tiny stats
                     if (isset($cashTypesStats[$eachpayment['cashtypeid']])) {
-                        $cashTypesStats[$eachpayment['cashtypeid']]['count']++;
+                        $cashTypesStats[$eachpayment['cashtypeid']]['count'] ++;
                         $cashTypesStats[$eachpayment['cashtypeid']]['summ']+=$eachpayment['summ'];
                     } else {
-                        $cashTypesStats[$eachpayment['cashtypeid']]['count']=1;
-                        $cashTypesStats[$eachpayment['cashtypeid']]['summ']=$eachpayment['summ'];
+                        $cashTypesStats[$eachpayment['cashtypeid']]['count'] = 1;
+                        $cashTypesStats[$eachpayment['cashtypeid']]['summ'] = $eachpayment['summ'];
                     }
                 }
             }
@@ -2522,34 +2560,33 @@ class UkvSystem {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
         $result.=wf_tag('strong') . __('Payments count') . ': ' . $totalPaycount . wf_tag('strong', true);
-        
+
         //render cashtype stats
         if (!empty($cashTypesStats)) {
-            $cells=  wf_TableCell(__('Cash type'));
+            $cells = wf_TableCell(__('Cash type'));
             $cells.= wf_TableCell(__('Count'));
             $cells.= wf_TableCell(__('Cash'));
-            $rows=  wf_TableRow($cells,'row1');
-            
-            foreach ($cashTypesStats as $cashtypeid=>$eachct) {
-                $cells=  wf_TableCell(@$this->cashtypes[$cashtypeid]);
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($cashTypesStats as $cashtypeid => $eachct) {
+                $cells = wf_TableCell(@$this->cashtypes[$cashtypeid]);
                 $cells.= wf_TableCell($eachct['count']);
                 $cells.= wf_TableCell($eachct['summ']);
-                $rows.=  wf_TableRow($cells,'row3');
+                $rows.= wf_TableRow($cells, 'row3');
             }
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         }
-        
-        
-        
+
+
+
         return($result);
     }
 
-    /*
+    /**
      * renders finance report
      * 
      * @return void
      */
-
     public function reportFinance() {
 
         $show_year = (!wf_CheckPost(array('yearsel'))) ? curyear() : $_POST['yearsel'];
@@ -2606,12 +2643,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * renders users signup report
      * 
      * @return void
      */
-
     public function reportSignup() {
         $regdates = array();
         $months = months_array();
@@ -2707,12 +2743,11 @@ class UkvSystem {
         show_window($monthTitle, $result);
     }
 
-    /*
+    /**
      * renders fees report by selected month
      * 
      * @return void
      */
-
     public function reportFees() {
         $allFeesDates_q = "SELECT * from `ukv_fees` ORDER BY `id` DESC;";
         $allFeesDates = simple_queryall($allFeesDates_q);
@@ -2788,12 +2823,11 @@ class UkvSystem {
         }
     }
 
-    /*
+    /**
      * renders streets report
      * 
      * @return void
      */
-
     public function reportStreets() {
         $ukvCities = array();
         $ukvStreets = array();
