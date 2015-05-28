@@ -15,6 +15,7 @@ class CumulativeDiscounts {
     protected $debug = 0; //via CUD_ENABLED
     protected $logPath = '';
     protected $curdate = '';
+    protected $login = '';
 
     public function __construct() {
         $this->loadAlter();
@@ -78,7 +79,7 @@ class CumulativeDiscounts {
             if (!empty($raw)) {
                 foreach ($raw as $io => $each) {
                     if ($each['typeid'] == $this->customDiscountCfId) {
-                        $discount=vf($each['content'],3); // numeric int
+                        $discount = vf($each['content'], 3); // numeric int
                         if ($discount) {
                             $this->customDiscounts[$each['login']] = $discount;
                         }
@@ -87,7 +88,7 @@ class CumulativeDiscounts {
             }
         }
     }
-    
+
     /**
      * Getter for custom discount for some users
      * 
@@ -95,9 +96,9 @@ class CumulativeDiscounts {
      * @return int
      */
     protected function getCustomDiscount($login) {
-        $result=0;
+        $result = 0;
         if (isset($this->customDiscounts[$login])) {
-            $result=  $this->customDiscounts[$login];
+            $result = $this->customDiscounts[$login];
         }
         return ($result);
     }
@@ -159,7 +160,7 @@ class CumulativeDiscounts {
         $query = "INSERT INTO `cudiscounts` (`id`, `login`, `discount`, `date`, `days`) "
                 . "VALUES (NULL,'" . $login . "','" . $currentDiscount . "','" . $this->curdate . "','" . $days . "');";
         nr_query($query);
-        $this->debugLog("CUDISC CREATE (" . $login . ")");
+        $this->debugLog("CUDISCOUNTS CREATE (" . $login . ")");
     }
 
     /**
@@ -209,7 +210,7 @@ class CumulativeDiscounts {
     }
 
     /**
-     * Adds cash for user, flushes counters
+     * Adds cash for user
      * 
      * @param string $login
      * 
@@ -256,7 +257,6 @@ class CumulativeDiscounts {
                     } else {
                         $this->createDiscount($login, 0); // you are looser, man
                     }
-                    
                 } else {
                     //discount already available
                     $discountData = $this->getDiscountData($login);
@@ -264,26 +264,26 @@ class CumulativeDiscounts {
                         if ($discountData['days'] < $this->discountPullDays) {
                             //user active - normal processing
                             $daysFill = $discountData['days'] + 1;
-                            $customDiscount=$this->getCustomDiscount($login);
+                            $customDiscount = $this->getCustomDiscount($login);
                             if ($customDiscount) {
-                            //is custom discount set for this user?
-                            $newDiscount=$customDiscount;
-                            $this->debugLog('CUDISCOUNTS OVERRIDE ('.$login.') PERCENT:'.$customDiscount);
+                                //is custom discount set for this user?
+                                $newDiscount = $customDiscount;
+                                $this->debugLog('CUDISCOUNTS OVERRIDE (' . $login . ') PERCENT:' . $customDiscount);
                             } else {
-                                $newDiscount=$discountData['discount']; 
+                                $newDiscount = $discountData['discount'];
                             }
                             $this->setDiscount($login, $daysFill, $newDiscount);
                             $this->debugLog('CUDISCOUNTS UPDATE (' . $login . ') DAYS:' . $daysFill . ' PERCENT:' . $discountData['discount']);
                         } else {
                             //discount pushing, clearing days counter
                             //may be override with custom field?
-                            $customDiscount=$this->getCustomDiscount($login);
+                            $customDiscount = $this->getCustomDiscount($login);
                             if ($customDiscount) {
                                 //CF override
-                                $newDiscount =$customDiscount;
+                                $newDiscount = $customDiscount;
                             } else {
                                 //natural cumulative discount
-                             $newDiscount = ($discountData['discount'] < $this->discountLimit) ? $discountData['discount'] + $this->fillPercent : $this->discountLimit;
+                                $newDiscount = ($discountData['discount'] < $this->discountLimit) ? $discountData['discount'] + $this->fillPercent : $this->discountLimit;
                             }
                             $this->setDiscount($login, 0, $newDiscount);
                             $this->pushDiscount($login); // pay some money, flush counters
@@ -293,7 +293,7 @@ class CumulativeDiscounts {
                         //try to save mysql query count
                         if ($discountData['days'] != 0) {
                             $this->setDiscount($login, 0, 0);
-                            $this->debugLog('CUDISCOUNTS SET DOWN (' . $login . ') PERCENT: 0 DAYS: 0');
+                            $this->debugLog('CUDISCOUNTS SETDOWN (' . $login . ') DAYS: 0 PERCENT: 0');
                         }
                     }
                 }
@@ -301,6 +301,141 @@ class CumulativeDiscounts {
         } else {
             $this->debugLog('CUDISCOUNTS NO USERS');
         }
+    }
+
+    /*     * *********************
+     * Report methods below
+     */
+
+    /**
+     * Sets filtering login private property
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function setLogin($login) {
+        $this->login = $login;
+    }
+
+    /**
+     * Parses log data for some user login
+     * 
+     * @return array
+     */
+    protected function getLogData() {
+        $result = array();
+        global $ubillingConfig;
+        $billCfg = $ubillingConfig->getBilling();
+        $cat = $billCfg['CAT'];
+        $grep = $billCfg['GREP'];
+        $i = 0;
+
+        if (!empty($this->login)) {
+            if (file_exists($this->logPath)) {
+                $command = $cat . ' ' . $this->logPath . ' | grep "(' . $this->login . ')"';
+                $raw = shell_exec($command);
+                if (!empty($raw)) {
+                    $raw = explodeRows($raw);
+                    if (!empty($raw)) {
+                        foreach ($raw as $io => $each) {
+                            if (!empty($each)) {
+                                $line = explode(' ', $each);
+                                $date = $line[0] . ' ' . $line[1];
+                                $event = $line[3];
+                                $params = explode(')', $each);
+                                $params = $params[1];
+                                $result[$i]['date'] = $date;
+                                $result[$i]['event'] = $event;
+                                $result[$i]['params'] = $params;
+                                $i++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders cumulative discounts report
+     * 
+     * @return string
+     */
+    public function renderReport() {
+        $result = '';
+
+        $currentData = $this->getDiscountData($this->login);
+        $customDiscount = $this->getCustomDiscount($this->login);
+        if (!empty($currentData)) {
+            $cells = wf_TableCell(__('Discount'));
+            $cells.= wf_TableCell(__('Day'));
+            $cells.= wf_TableCell(__('Custom discount'));
+            $rows = wf_TableRow($cells, 'row1');
+            $cells = wf_TableCell($currentData['discount'] . '%');
+            $cells.= wf_TableCell($currentData['days']);
+            if ($customDiscount == 0) {
+                $customDiscount = __('No');
+            } else {
+                $customDiscount = $customDiscount . '%';
+            }
+            $cells.= wf_TableCell($customDiscount);
+            $rows.=wf_TableRow($cells, 'row3');
+            $result.=wf_TableBody($rows, '100%', 0, 'glamour');
+            $result.=wf_CleanDiv();
+            $result.=wf_delimiter();
+        }
+
+        $logData = $this->getLogData();
+        if (!empty($logData)) {
+            $cells = wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Event'));
+            $cells.= wf_TableCell(__('Details'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($logData as $io => $each) {
+                $fc = wf_tag('font', false);
+                $efc = wf_tag('font', true);
+
+                if ($each['event'] == 'CREATE') {
+                    $fc = wf_tag('font', false, '', 'color="#ffac1b"');
+                }
+
+                if ($each['event'] == 'UPDATE') {
+                    $fc = wf_tag('font', false, '', 'color="#6396ff"');
+                }
+
+                if ($each['event'] == 'PUSH') {
+                    $fc = wf_tag('font', false, '', 'color="#1c7700"');
+                }
+
+                if ($each['event'] == 'SET') {
+                    $fc = wf_tag('font', false, '', 'color="#a90000"');
+                }
+
+                if ($each['event'] == 'SETDOWN') {
+                    $fc = wf_tag('font', false, '', 'color="#a90000"');
+                }
+
+                $params = $each['params'];
+                $params = str_replace('DAYS', __('Day'), $params);
+                $params = str_replace('PERCENT', __('Percent'), $params);
+                $params = str_replace('CASH', __('Cash'), $params);
+                $params = str_replace('TARIFF', __('Tariff'), $params);
+
+                $cells = wf_TableCell($fc . $each['date'] . $efc);
+                $cells.= wf_TableCell($fc . $each['event'] . $efc);
+                $cells.= wf_TableCell($params);
+
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.= wf_tag('span', false, 'alert_warning') . __('Nothing found') . wf_tag('span', true);
+        }
+        return ($result);
     }
 
 }
