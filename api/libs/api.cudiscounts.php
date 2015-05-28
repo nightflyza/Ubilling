@@ -134,7 +134,9 @@ class CumulativeDiscounts {
     /**
      * Basic setter for the debugging mode
      * 
-     * @param bool $state
+     * @param int $state
+     * 
+     * @return void
      */
     public function setDebug($state) {
         if ($state) {
