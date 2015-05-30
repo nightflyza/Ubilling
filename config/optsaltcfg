@@ -211,6 +211,13 @@ CUD_PERCENTLIMIT=VARCHAR|Cumulative discounts percent upper limit
 CUD_PAYID=VARCHAR|Cumulative discounts payment type ID
 CUD_CFID=VARCHAR|Cumulative discounts custom profile field ID
 
+CHAPTER_DOSTOEVSKY=Dostoevsky
+CAP_ENABLED=TRIGGER|Crime and punishment enabled
+CAP_DAYLIMIT=VARCHAR|Days limit to push penalty
+CAP_PENALTY=VARCHAR|Penalty cash summ
+CAP_PAYID=VARCHAR|Payment type
+CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
+
 
 CHAPTER_DOCSIS=DOCSIS
 DOCSIS_SUPPORT=TRIGGER|Enable DOCSIS support

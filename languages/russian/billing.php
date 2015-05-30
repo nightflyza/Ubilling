@@ -1946,12 +1946,19 @@ $lang['def']['UKV functionality enabled']='УКВ включено';
 $lang['def']['UKV bank statements cash type OschadBank']='Тип оплат выписок ОщадБанка';
 $lang['def']['UKV bank statements cash type PrivatBank']='Тип оплат выписок ПриватБанка';
 $lang['def']['UKV month debt limit']='Лимит в месяцах должников';
+$lang['def']['Crime and punishment enabled']='Преступление и наказание включено';
+$lang['def']['Dostoevsky']='Достоевский';
+$lang['def']['Days limit to push penalty']='Количество дней до начисления штрафа';
+$lang['def']['Penalty cash summ']='Сумма штрафа';
+$lang['def']['Do not call Raskolnikov frozen']='Не считать Раскольниковыми замороженных';
+$lang['def']['Penalty']='Штраф';
+$lang['def']['Ressurected']='Воскрес';
+$lang['def']['Inactive days']='Дней неактивен';
+$lang['def']['Crime and punishment']='Преступление и наказание';
+$lang['def']['right to control crime and punishment']='Право использовать преступление и наказание';
 $lang['def']['']='';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
 
 
 

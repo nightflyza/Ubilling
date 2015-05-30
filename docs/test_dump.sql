@@ -1420,4 +1420,13 @@ CREATE TABLE IF NOT EXISTS `cudiscounts` (
   KEY `login` (`login`)
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+ CREATE TABLE IF NOT EXISTS `capdata` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `date` datetime DEFAULT NULL,
+  `days` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 ALTER TABLE `ukv_banksta` ADD `payid` INT NULL ; 

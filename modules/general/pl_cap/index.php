@@ -1,14 +1,14 @@
 <?php
 
-if (cfr('CUDISCOUNTS')) {
+if (cfr('CAP')) {
     if (isset($_GET['username'])) {
         $login = $_GET['username'];
         $alterconfig = $ubillingConfig->getAlter();
-        if ($alterconfig['CUD_ENABLED']) {
+        if ($alterconfig['CAP_ENABLED']) {
 
-            $discounts = new CumulativeDiscounts();
-            $discounts->setLogin($login);
-            show_window(__('Cumulative discount'), $discounts->renderReport());
+            $raskolnikov = new CrimeAndPunishment();
+            $raskolnikov->setLogin($login);
+            show_window(__('Crime and punishment'), $raskolnikov->renderReport());
             show_window('', web_UserControls($login));
         } else {
             show_error(__('This module disabled'));

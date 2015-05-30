@@ -69,7 +69,8 @@ include('api/libs/api.photostorage.php');
 include('api/libs/api.dshaper.php');
 include('api/libs/api.uhw.php');
 include('api/libs/api.pon.php');
-include ('api/libs/api.cudiscounts.php');
+include('api/libs/api.cudiscounts.php');
+include('api/libs/api.cap.php');
 
 /*
  * Initial class creation

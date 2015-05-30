@@ -58,7 +58,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadAlter() {
         global $ubillingConfig;
         $this->alterCfg = $ubillingConfig->getAlter();
@@ -69,7 +68,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadHighlight() {
         if (isset($this->alterCfg['HIGHLIGHT_IMPORTANT'])) {
             if ($this->alterCfg['HIGHLIGHT_IMPORTANT']) {
@@ -84,7 +82,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadUserdata() {
         if (!empty($this->login)) {
             $this->userdata = zb_ProfileGetStgData($this->login);
@@ -96,7 +93,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadAlladdress() {
         $this->alladdress = zb_AddressGetFullCityaddresslist();
         @$this->useraddress = $this->alladdress[$this->login];
@@ -107,7 +103,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadRealname() {
         $this->realname = zb_UserGetRealName($this->login);
     }
@@ -117,7 +112,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadPhonedata() {
         if (!empty($this->login)) {
             $query = "SELECT * from `phones` WHERE `login`='" . $this->login . "'";
@@ -134,7 +128,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadContract() {
         $this->contract = zb_UserGetContract($this->login);
     }
@@ -144,7 +137,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadEmail() {
         $this->mail = zb_UserGetEmail($this->login);
     }
@@ -154,7 +146,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadAptdata() {
         $this->aptdata = zb_AddressGetAptData($this->login);
     }
@@ -164,7 +155,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadSpeedoverride() {
         $this->speedoverride = zb_UserGetSpeedOverride($this->login);
     }
@@ -174,7 +164,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadNethostsMac() {
         $this->mac = zb_MultinetGetMAC($this->userdata['IP']);
     }
@@ -184,7 +173,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getSearchmacControl() {
         $result = '';
         if ($this->alterCfg['MACVEN_ENABLED']) {
@@ -200,7 +188,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getCatvBacklinks() {
         $result = '';
         if ($this->alterCfg['CATV_ENABLED']) {
@@ -221,7 +208,6 @@ class UserProfile {
      * 
      * @return array
      */
-
     protected function loadPluginsRaw($filename) {
         $result = array();
         if (file_exists(CONFIG_PATH . $filename)) {
@@ -235,7 +221,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function loadPluginsOverlay($filename) {
         $plugins = $this->loadPluginsRaw($filename);
 
@@ -245,10 +230,19 @@ class UserProfile {
 
         if (!empty($plugins)) {
             foreach ($plugins as $modulename => $eachplugin) {
-                $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
-                $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
-                $result.= wf_tag('br') . __($eachplugin['name']);
-                $result.= wf_tag('div', true);
+                if (isset($eachplugin['need_option'])) {
+                    if (@$this->alterCfg[$eachplugin['need_option']]) {
+                        $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
+                        $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                        $result.= wf_tag('br') . __($eachplugin['name']);
+                        $result.= wf_tag('div', true);
+                    }
+                } else {
+                    $result.= wf_tag('div', false, '', 'style="width: ' . self::MAIN_OVERLAY_DISTANCE . '; height: ' . self::MAIN_OVERLAY_DISTANCE . '; float: left; font-size: 8pt;"');
+                    $result.= wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', ''), false, '');
+                    $result.= wf_tag('br') . __($eachplugin['name']);
+                    $result.= wf_tag('div', true);
+                }
             }
         }
 
@@ -264,7 +258,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadPlugins() {
         if ($this->alterCfg['PROFILE_PLUGINS']) {
             // $this->plugins = web_ProfilePluginsShow($this->login);
@@ -274,7 +267,7 @@ class UserProfile {
                     foreach ($rawPlugins as $modulename => $eachplugin) {
                         if (isset($eachplugin['overlay'])) {
                             $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
-                            $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 570);
+                            $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
                         } else {
                             $this->plugins.=wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
                         }
@@ -289,7 +282,6 @@ class UserProfile {
      * 
      * @return void
      */
-
     protected function loadPaymentID() {
         if ($this->alterCfg['OPENPAYZ_REALID']) {
             $this->paymentid = zb_PaymentIDGet($this->login);
@@ -297,7 +289,7 @@ class UserProfile {
             $this->paymentid = ip2int($this->userdata['IP']);
         }
     }
-    
+
     /**
      * returns private userdata property to external scope
      * 
@@ -306,8 +298,8 @@ class UserProfile {
     public function extractUserData() {
         return ($this->userdata);
     }
-    
-     /**
+
+    /**
      * returns private useraddress property to external scope
      * 
      * @return array
@@ -315,7 +307,6 @@ class UserProfile {
     public function extractUserAddress() {
         return ($this->useraddress);
     }
-    
 
     /**
      * returns prepared main profile body row with two data cells
@@ -326,7 +317,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function addRow($header, $data, $highlight = false) {
         if ($highlight) {
             $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, self::MAIN_ROW_HEADER_WIDTH, 'row2');
@@ -344,7 +334,6 @@ class UserProfile {
      * 
      * @return string 
      */
-
     protected function getControl($link, $icon, $title, $shorttitle, $right = '') {
         $result = '';
         if (($right != '')) {
@@ -372,7 +361,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getMainControls() {
         $result = wf_tag('table', false, '', 'width="100%"  border="0"');
         $result.= wf_tag('tbody');
@@ -401,7 +389,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getUserPassword() {
         if ($this->alterCfg['PASSWORDSHIDE']) {
             $result = __('Hidden');
@@ -416,7 +403,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getUserLinking() {
         $result = '';
         if ($this->alterCfg['USER_LINKING_ENABLED']) {
@@ -444,13 +430,12 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getTaskCreateControl() {
         //profile task creation icon
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             $fulladdresslist = zb_AddressGetFulladdresslistCached();
             @$shortAddress = $fulladdresslist[$this->login];
-            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone,$this->login), '', '420', '500');
+            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login), '', '420', '500');
         } else {
             $result = '';
         }
@@ -462,7 +447,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getBuildControls() {
         $buildLocator = '';
         if ($this->alterCfg['SWYMAP_ENABLED']) {
@@ -498,7 +482,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getPassportDataControl() {
         $result = '';
         if ($this->alterCfg['PASSPDATA_IN_PROFILE']) {
@@ -515,7 +498,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getUserCash() {
         //rounding cash if needed
         if ($this->alterCfg['ROUND_PROFILE_CASH']) {
@@ -543,36 +525,35 @@ class UserProfile {
      * 
      * @retun string
      */
-
     protected function getUserCreditExpire() {
         //user credit expiration date
         if ($this->userdata['CreditExpire'] != 0) {
             $result = date("Y-m-d", $this->userdata['CreditExpire']);
         } else {
-            if ($this->userdata['Credit']>0) {
-               $result = __('Forever and ever');
+            if ($this->userdata['Credit'] > 0) {
+                $result = __('Forever and ever');
             } else {
-               $result = __('No');
+                $result = __('No');
             }
         }
         return ($result);
     }
-    
+
     /**
      * Returns user connection details with optional controls inside if enabled
      * 
      * @return string
      */
     protected function getUserConnectionDetails() {
-        $result='';
+        $result = '';
         if ($this->alterCfg['CONDET_IN_PROFILE']) {
             if ($this->alterCfg['CONDET_ENABLED']) {
-            $conDet=new ConnectionDetails();
-            $data=$conDet->renderData($this->login);
-            if (cfr('CONDET')) {
-                $data.=' '.wf_Link('?module=condetedit&username='.$this->login, wf_img_sized('skins/cableseal_small.png', __('Change').' '.__('Connection details'),'12'), false);
-            }
-            $result = $this->addRow(__('Connection details'), $data);
+                $conDet = new ConnectionDetails();
+                $data = $conDet->renderData($this->login);
+                if (cfr('CONDET')) {
+                    $data.=' ' . wf_Link('?module=condetedit&username=' . $this->login, wf_img_sized('skins/cableseal_small.png', __('Change') . ' ' . __('Connection details'), '12'), false);
+                }
+                $result = $this->addRow(__('Connection details'), $data);
             }
         }
         return ($result);
@@ -583,7 +564,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getUserLat() {
         $result = '';
         if (isset($this->alterCfg['PROFILE_LAT'])) {
@@ -598,27 +578,26 @@ class UserProfile {
         }
         return ($result);
     }
-    
-    
+
     /**
      * Returns Optional contract date row
      * 
      * @return string
      */
     protected function getContractDate() {
-    $result='';
-    if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
-       if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
-           if (!empty($this->contract)) {
-               $allContractDates=zb_UserContractDatesGetAll();
-               $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
-               $result.=$this->addRow(__('Contract date'), $contractDate);
-           } else {
-               $result.=$this->addRow(__('Contract date'), __('No'));
-           }
-       }
-    }
-    return ($result);
+        $result = '';
+        if (isset($this->alterCfg['CONTRACTDATE_IN_PROFILE'])) {
+            if ($this->alterCfg['CONTRACTDATE_IN_PROFILE']) {
+                if (!empty($this->contract)) {
+                    $allContractDates = zb_UserContractDatesGetAll();
+                    $contractDate = (isset($allContractDates[$this->contract])) ? $allContractDates[$this->contract] : __('No');
+                    $result.=$this->addRow(__('Contract date'), $contractDate);
+                } else {
+                    $result.=$this->addRow(__('Contract date'), __('No'));
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -626,7 +605,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getSwitchAssignControls() {
         //switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
@@ -637,7 +615,7 @@ class UserProfile {
         return ($result);
     }
 
-     protected function getVlanAssignControls() {
+    protected function getVlanAssignControls() {
         //switchport section
         if ($this->alterCfg['VLAN_IN_PROFILE']) {
             $result = web_ProfileVlanControlForm($this->login);
@@ -646,13 +624,12 @@ class UserProfile {
         }
         return ($result);
     }
-    
+
     /**
      * returns DN online detect aka "star"
      * 
      * @return string
      */
-
     protected function getUserOnlineDN() {
         $result = '';
         if ($this->alterCfg['DN_ONLINE_DETECT']) {
@@ -674,7 +651,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getCorporateControls() {
         $result = '';
         if ($this->alterCfg['CORPS_ENABLED']) {
@@ -696,7 +672,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getAgentsControls() {
         $result = '';
         if ($this->alterCfg['AGENTS_ASSIGN'] == 2) {
@@ -711,7 +686,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getSignupPricing() {
         $result = '';
         if (isset($this->alterCfg['SIGNUP_PAYMENTS']) && !empty($this->alterCfg['SIGNUP_PAYMENTS'])) {
@@ -725,7 +699,6 @@ class UserProfile {
      * 
      * @return
      */
-
     protected function getEasyCreditController() {
         $result = '';
         if ($this->alterCfg['EASY_CREDIT']) {
@@ -743,7 +716,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     protected function getExtNetsControls() {
         $result = '';
         if ($this->alterCfg['NETWORKS_EXT']) {
@@ -758,21 +730,21 @@ class UserProfile {
         }
         return ($result);
     }
-    
+
     /**
      * Photostorage controls
      * 
      * @return string
      */
     protected function getPhotostorageControls() {
-        $result='';
+        $result = '';
         if ($this->alterCfg['PHOTOSTORAGE_ENABLED']) {
-            $photostorageUrl='?module=photostorage&scope=USERPROFILE&itemid='.$this->login.'&mode=list';
-            $result.=' '.wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'),'10','10'), false);
+            $photostorageUrl = '?module=photostorage&scope=USERPROFILE&itemid=' . $this->login . '&mode=list';
+            $result.=' ' . wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'), '10', '10'), false);
         }
-        return ($result);    
+        return ($result);
     }
-    
+
     /* Брат, братан, братишка Когда меня отпустит? */
 
     /**
@@ -780,7 +752,6 @@ class UserProfile {
      * 
      * @return string
      */
-
     public function render() {
         //all configurable features must be received via getters
         $profile = '';
@@ -808,7 +779,7 @@ class UserProfile {
         //apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
         //realname row
-        $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls().$this->getPassportDataControl(), $this->realname, true);
+        $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
         //contract row
         $profile.= $this->addRow(__('Contract'), $this->contract, false);
         //contract date row
