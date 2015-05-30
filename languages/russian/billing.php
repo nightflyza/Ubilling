@@ -1942,11 +1942,17 @@ $lang['def']['Cumulative discount']='Накопительная скидка';
 $lang['def']['right to control cumulative discounts']='Право управлять накопительными скидками';
 $lang['def']['Custom discount']='Принудительная скидка';
 $lang['def']['PrivatBank']='ПриватБанк';
+$lang['def']['UKV functionality enabled']='УКВ включено';
+$lang['def']['UKV bank statements cash type OschadBank']='Тип оплат выписок ОщадБанка';
+$lang['def']['UKV bank statements cash type PrivatBank']='Тип оплат выписок ПриватБанка';
+$lang['def']['UKV month debt limit']='Лимит в месяцах должников';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
+$lang['def']['']='';
+
 
 
 

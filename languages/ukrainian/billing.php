@@ -1956,5 +1956,9 @@ $lang['def']['Cumulative discount']='Накопичувальна знижка';
 $lang['def']['right to control cumulative discounts']='Право керувати накопичувальними знижками';
 $lang['def']['Custom discount']='Примусова знижка';
 $lang['def']['PrivatBank']='ПриватБанк';
+$lang['def']['UKV functionality enabled']='УКВ увімкнено';
+$lang['def']['UKV bank statements cash type OschadBank']='Тип оплат виписок ОщадБанку';
+$lang['def']['UKV bank statements cash type PrivatBank']='Тип оплат виписок ПриватБанку';
+$lang['def']['UKV month debt limit']='Ліміт в місяцях боржників';
 
 ?>
