@@ -15,6 +15,7 @@ class UkvSystem {
     protected $contracts = array();
     protected $bankstarecords = array();
     protected $bankstafoundusers = array();
+    protected $altCfg = array();
 
     //static routing URLs
 
@@ -81,12 +82,25 @@ class UkvSystem {
     const EX_BANKSTA_PREPROCESS_EMPTY = 'BANK_STATEMENT_INPUT_INVALID';
 
     public function __construct() {
+        $this->loadConfigs();
         $this->loadTariffs();
         $this->loadUsers();
         $this->loadCities();
         $this->loadStreets();
         $this->loadMonth();
         $this->loadDebtLimit();
+    }
+
+    /**
+     * Loads needed system configs into private data property
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -1497,6 +1511,46 @@ class UkvSystem {
     }
 
     /**
+     * Creates new banksta row in Database
+     * 
+     * @param string $newDate
+     * @param string $newHash
+     * @param string $newFilename
+     * @param string $newAdmin
+     * @param string $newContract
+     * @param string $newSumm
+     * @param string $newAddress
+     * @param string $newRealname
+     * @param string $newNotes
+     * @param string $newPate
+     * @param string $newPtime
+     * @param int $payId
+     * 
+     * @return void
+     */
+    protected function bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId) {
+        $query = "INSERT INTO `ukv_banksta` (`id`, `date`, `hash`, `filename`, `admin`, `contract`, `summ`, `address`, `realname`, `notes`, `pdate`, `ptime`, `processed`, `payid`)
+                                VALUES (
+                                NULL ,
+                                '" . $newDate . "',
+                                '" . $newHash . "',
+                                '" . $newFilename . "',
+                                '" . $newAdmin . "',
+                                '" . $newContract . "',
+                                '" . $newSumm . "',
+                                '" . $newAddress . "',
+                                '" . $newRealname . "',
+                                '" . $newNotes . "',
+                                '" . $newPdate . "',
+                                '" . $newPtime . "',
+                                '0',
+                                '" . $payId . "'
+                                );
+                            ";
+        nr_query($query);
+    }
+
+    /**
      * new banksta store in database bankstaDoUpload() method and returns preprocessed
      * bank statement hash for further usage
      * 
@@ -1513,6 +1567,7 @@ class UkvSystem {
                 $result = $newHash;
                 $newFilename = $bankstadata['filename'];
                 $newAdmin = whoami();
+                $payId = vf($this->altCfg['UKV_BS_PAYID'], 3);
 
                 $dbf = new dbf_class(self::BANKSTA_PATH . $bankstadata['savedname']);
                 $num_rec = $dbf->dbf_num_rec;
@@ -1537,38 +1592,7 @@ class UkvSystem {
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_TIME]);
                             $newPtime = mysql_real_escape_string($newPtime);
 
-                            $query = "INSERT INTO `ukv_banksta` (
-                                    `id` ,
-                                    `date` ,
-                                    `hash` ,
-                                    `filename` ,
-                                    `admin` ,
-                                    `contract` ,
-                                    `summ` ,
-                                    `address` ,
-                                    `realname` ,
-                                    `notes` ,
-                                    `pdate` ,
-                                    `ptime` ,
-                                    `processed`
-                                    )
-                                VALUES (
-                                NULL ,
-                                '" . $newDate . "',
-                                '" . $newHash . "',
-                                '" . $newFilename . "',
-                                '" . $newAdmin . "',
-                                '" . $newContract . "',
-                                '" . $newSumm . "',
-                                '" . $newAddress . "',
-                                '" . $newRealname . "',
-                                '" . $newNotes . "',
-                                '" . $newPdate . "',
-                                '" . $newPtime . "',
-                                '0'
-                                );
-                            ";
-                            nr_query($query);
+                            $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
                             $importCounter++;
                         }
@@ -1602,6 +1626,7 @@ class UkvSystem {
                 $result = $newHash;
                 $newFilename = $bankstadata['filename'];
                 $newAdmin = whoami();
+                $payId = vf($this->altCfg['UKV_BS_PAYID'], 3);
 
                 $dbf = new dbf_class(self::BANKSTA_PATH . $bankstadata['savedname']);
                 $num_rec = $dbf->dbf_num_rec;
@@ -1627,38 +1652,7 @@ class UkvSystem {
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_TIME]);
                             $newPtime = mysql_real_escape_string($newPtime);
 
-                            $query = "INSERT INTO `ukv_banksta` (
-                                    `id` ,
-                                    `date` ,
-                                    `hash` ,
-                                    `filename` ,
-                                    `admin` ,
-                                    `contract` ,
-                                    `summ` ,
-                                    `address` ,
-                                    `realname` ,
-                                    `notes` ,
-                                    `pdate` ,
-                                    `ptime` ,
-                                    `processed`
-                                    )
-                                VALUES (
-                                NULL ,
-                                '" . $newDate . "',
-                                '" . $newHash . "',
-                                '" . $newFilename . "',
-                                '" . $newAdmin . "',
-                                '" . $newContract . "',
-                                '" . $newSumm . "',
-                                '" . $newAddress . "',
-                                '" . $newRealname . "',
-                                '" . $newNotes . "',
-                                '" . $newPdate . "',
-                                '" . $newPtime . "',
-                                '0'
-                                );
-                            ";
-                            nr_query($query);
+                            $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
                             $importCounter++;
                         }
@@ -1692,6 +1686,7 @@ class UkvSystem {
                 $result = $newHash;
                 $newFilename = $bankstadata['filename'];
                 $newAdmin = whoami();
+                $payId = vf($this->altCfg['UKV_BSPB_PAYID'], 3);
 
                 $dbf = new dbf_class(self::BANKSTA_PATH . $bankstadata['savedname']);
                 $num_rec = $dbf->dbf_num_rec;
@@ -1700,7 +1695,7 @@ class UkvSystem {
                     $eachRow = $dbf->getRowAssoc($i);
 
                     if (!empty($eachRow)) {
-                        if ($eachRow[self::PB_BANKSTA_CONTRACT]!='') {
+                        if (@$eachRow[self::PB_BANKSTA_CONTRACT] != '') {
                             $newDate = date("Y-m-d H:i:s");
                             $newContract = trim($eachRow[self::PB_BANKSTA_CONTRACT]);
                             $newContract = mysql_real_escape_string($newContract);
@@ -1720,38 +1715,7 @@ class UkvSystem {
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, curtime());
                             $newPtime = mysql_real_escape_string($newPtime);
 
-                            $query = "INSERT INTO `ukv_banksta` (
-                                    `id` ,
-                                    `date` ,
-                                    `hash` ,
-                                    `filename` ,
-                                    `admin` ,
-                                    `contract` ,
-                                    `summ` ,
-                                    `address` ,
-                                    `realname` ,
-                                    `notes` ,
-                                    `pdate` ,
-                                    `ptime` ,
-                                    `processed`
-                                    )
-                                VALUES (
-                                NULL ,
-                                '" . $newDate . "',
-                                '" . $newHash . "',
-                                '" . $newFilename . "',
-                                '" . $newAdmin . "',
-                                '" . $newContract . "',
-                                '" . $newSumm . "',
-                                '" . $newAddress . "',
-                                '" . $newRealname . "',
-                                '" . $newNotes . "',
-                                '" . $newPdate . "',
-                                '" . $newPtime . "',
-                                '0'
-                                );
-                            ";
-                            nr_query($query);
+                            $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
                             $importCounter++;
                         }
@@ -1830,6 +1794,7 @@ class UkvSystem {
                         $cashPairs[$each['id']]['userid'] = $detectedUser['id'];
                         $cashPairs[$each['id']]['usercontract'] = $detectedUser['contract'];
                         $cashPairs[$each['id']]['summ'] = $each['summ'];
+                        $cashPairs[$each['id']]['payid'] = $each['payid'];
                     }
 
                     $rowClass = 'row3';
@@ -1950,9 +1915,6 @@ class UkvSystem {
      */
     public function bankstaPushPayments() {
         if (wf_CheckPost(array('bankstaneedpaymentspush'))) {
-            global $ubillingConfig;
-            $altcfg = $ubillingConfig->getAlter();
-            $cashtype = $altcfg['UKV_BS_PAYID'];
             $rawData = base64_decode($_POST['bankstaneedpaymentspush']);
             $rawData = unserialize($rawData);
             if (!empty($rawData)) {
@@ -1964,7 +1926,8 @@ class UkvSystem {
                     if ($this->bankstaIsUnprocessed($eachstatement['bankstaid'])) {
                         //all good is with this row
                         // push payment and mark banksta as processed
-                        $this->userAddCash($eachstatement['userid'], $eachstatement['summ'], 1, $cashtype, 'BANKSTA: [' . $eachstatement['bankstaid'] . '] ASCONTRACT ' . $eachstatement['usercontract']);
+                        $payid = (!empty($eachstatement['payid'])) ? vf($eachstatement['payid'], 3) : 1; //default cash
+                        $this->userAddCash($eachstatement['userid'], $eachstatement['summ'], 1, $payid, 'BANKSTA: [' . $eachstatement['bankstaid'] . '] ASCONTRACT ' . $eachstatement['usercontract']);
                         $this->bankstaSetProcessed($eachstatement['bankstaid']);
                     } else {
                         //duplicate payment try
@@ -1981,11 +1944,13 @@ class UkvSystem {
      * @return string
      */
     public function bankstaRenderList() {
-        $query = "SELECT `filename`,`hash`,`date`,`admin`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
+        $query = "SELECT `filename`,`hash`,`date`,`admin`,`payid`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
-
+        $this->loadCashtypes();
+        
         $cells = wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Filename'));
+        $cells.= wf_TableCell(__('Type'));
         $cells.= wf_TableCell(__('Rows'));
         $cells.= wf_TableCell(__('Admin'));
         $cells.= wf_TableCell(__('Actions'));
@@ -1993,8 +1958,10 @@ class UkvSystem {
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
+                
                 $cells = wf_TableCell($each['date']);
                 $cells.= wf_TableCell($each['filename']);
+                $cells.= wf_TableCell(@$this->cashtypes[$each['payid']]);
                 $cells.= wf_TableCell($each['rowcount']);
                 $cells.= wf_TableCell($each['admin']);
                 $actLinks = wf_Link(self::URL_BANKSTA_PROCESSING . $each['hash'], wf_img('skins/icon_search_small.gif', __('Show')), false, '');
@@ -2491,8 +2458,6 @@ class UkvSystem {
      * @return string
      */
     protected function paymentsShow($query) {
-        global $ubillingConfig;
-        $alter_conf = $ubillingConfig->getAlter();
         if (empty($this->cashtypes)) {
             $this->loadCashtypes();
         }
@@ -2507,7 +2472,7 @@ class UkvSystem {
         $cells.= wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Cash'));
         //optional contract display
-        if ($alter_conf['FINREP_CONTRACT']) {
+        if ($this->altCfg['FINREP_CONTRACT']) {
             $cells.= wf_TableCell(__('Contract'));
         }
 
@@ -2522,7 +2487,7 @@ class UkvSystem {
             foreach ($allapayments as $io => $eachpayment) {
                 @$userData = $this->users[$eachpayment['userid']];
 
-                if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
+                if ($this->altCfg['TRANSLATE_PAYMENTS_NOTES']) {
                     $eachpayment['note'] = $this->translatePaymentNote($eachpayment['note']);
                 }
 
@@ -2530,7 +2495,7 @@ class UkvSystem {
                 $cells.= wf_TableCell($eachpayment['date']);
                 $cells.= wf_TableCell($eachpayment['summ']);
                 //optional contract display
-                if ($alter_conf['FINREP_CONTRACT']) {
+                if ($this->altCfg['FINREP_CONTRACT']) {
                     $cells.= wf_TableCell(@$userData['contract']);
                 }
 
