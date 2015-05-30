@@ -867,6 +867,11 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $disountset = explode(':', $paynote);
         $paynote = __('Discount') . ' ' . $disountset[1] . '%';
     }
+    
+    if (ispos($paynote, 'PENALTY')) {
+        $penalty= explode(':', $paynote);
+        $paynote= __('Penalty').' '.$penalty[1].' '.__('days');
+    }
 
     return ($paynote);
 }
