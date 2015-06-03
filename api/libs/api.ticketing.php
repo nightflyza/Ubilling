@@ -1,11 +1,21 @@
 <?php
 
+/**
+ * Returns all tickets list
+ * 
+ * @return array
+ */
 function zb_TicketsGetAll() {
     $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL ORDER BY `date` DESC";
     $result = simple_queryall($query);
     return ($result);
 }
 
+/**
+ * Returns available tickets count
+ * 
+ * @return int
+ */
 function zb_TicketsGetCount() {
     $query = "SELECT COUNT(`id`) from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL";
     $result = simple_query($query);
@@ -13,12 +23,24 @@ function zb_TicketsGetCount() {
     return ($result);
 }
 
+/**
+ * Returns tickets limited from-to
+ * 
+ * @param int $from
+ * @param int $to
+ * @return array
+ */
 function zb_TicketsGetLimited($from, $to) {
     $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL  ORDER BY `date` DESC LIMIT " . $from . "," . $to . ";";
     $result = simple_queryall($query);
     return ($result);
 }
 
+/**
+ * Returns count of new opened tickets
+ * 
+ * @return int
+ */
 function zb_TicketsGetAllNewCount() {
     $query = "SELECT COUNT(`id`) from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL AND `status`='0' ORDER BY `date` DESC";
     $result = simple_query($query);
@@ -26,6 +48,12 @@ function zb_TicketsGetAllNewCount() {
     return ($result);
 }
 
+/**
+ * Returns all tickets by some existing usrname
+ * 
+ * @param string $login
+ * @return array
+ */
 function zb_TicketsGetAllByUser($login) {
     $login = vf($login);
     $query = "SELECT `id`,`date`,`status` from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL AND `from`='" . $login . "' ORDER BY `date` DESC";
@@ -33,6 +61,12 @@ function zb_TicketsGetAllByUser($login) {
     return ($result);
 }
 
+/**
+ * Returns tickets data by its ID
+ * 
+ * @param int $ticketid
+ * @return array
+ */
 function zb_TicketGetData($ticketid) {
     $ticketid = vf($ticketid, 3);
     $query = "SELECT * from `ticketing` WHERE `id`='" . $ticketid . "'";
@@ -40,6 +74,12 @@ function zb_TicketGetData($ticketid) {
     return ($result);
 }
 
+/**
+ * Returns array of replies by some existing ticket
+ * 
+ * @param int $ticketid
+ * @return array
+ */
 function zb_TicketGetReplies($ticketid) {
     $ticketid = vf($ticketid, 3);
     $query = "SELECT * from `ticketing` WHERE `replyid`='" . $ticketid . "' ORDER by `id` ASC";
@@ -47,6 +87,13 @@ function zb_TicketGetReplies($ticketid) {
     return ($result);
 }
 
+/**
+ * Deletes ticket from database
+ * 
+ * @param int $ticketid
+ * 
+ * @return void
+ */
 function zb_TicketDelete($ticketid) {
     $ticketid = vf($ticketid, 3);
     $query = "DELETE FROM `ticketing` WHERE `id`='" . $ticketid . "'";
@@ -54,6 +101,13 @@ function zb_TicketDelete($ticketid) {
     log_register("TICKET DELETE [" . $ticketid . "]");
 }
 
+/**
+ * Deletes all of ticket replies followed by some ticket
+ * 
+ * @param int $ticketid
+ * 
+ * @return void
+ */
 function zb_TicketDeleteReplies($ticketid) {
     $ticketid = vf($ticketid, 3);
     $query = "DELETE FROM `ticketing` WHERE `replyid`='" . $ticketid . "'";
@@ -61,6 +115,13 @@ function zb_TicketDeleteReplies($ticketid) {
     log_register("TICKET REPLIES DELETE [" . $ticketid . "]");
 }
 
+/**
+ * Deletes ticket reply from database
+ * 
+ * @param int $replyid
+ * 
+ * @return void
+ */
 function zb_TicketDeleteReply($replyid) {
     $replyid = vf($replyid, 3);
     $query = "DELETE FROM `ticketing` WHERE `id`='" . $replyid . "'";
@@ -68,6 +129,14 @@ function zb_TicketDeleteReply($replyid) {
     log_register("TICKET REPLY DELETE [" . $replyid . "]");
 }
 
+/**
+ * Updates reply text by its ID
+ * 
+ * @param int $replyid
+ * @param string $newtext
+ * 
+ * @return void
+ */
 function zb_TicketUpdateReply($replyid, $newtext) {
     $replyid = vf($replyid, 3);
     $newtext = strip_tags($newtext);
@@ -75,6 +144,17 @@ function zb_TicketUpdateReply($replyid, $newtext) {
     log_register("TICKET REPLY EDIT [" . $replyid . "]");
 }
 
+/**
+ * Creates new ticket into database
+ * 
+ * @param string $from
+ * @param string $to
+ * @param string $text
+ * @param int $replyto
+ * @param string $admin
+ * 
+ * @return void
+ */
 function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     $from = mysql_real_escape_string($from);
     $to = mysql_real_escape_string($to);
@@ -82,44 +162,44 @@ function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
     $text = mysql_real_escape_string(strip_tags($text));
     $date = curdatetime();
     $replyto = vf($replyto);
-    $query = "
-        INSERT INTO `ticketing` (
-    `id` ,
-    `date` ,
-    `replyid` ,
-    `status` ,
-    `from` ,
-    `to` ,
-    `text`,
-    `admin`
-        )
-    VALUES (
-    NULL ,
-    '" . $date . "',
-    " . $replyto . ",
-    '0',
-    '" . $from . "',
-    '" . $to . "',
-    '" . $text . "',
-    '" . $admin . "'
-           );
-        ";
+    $query = "INSERT INTO `ticketing` (`id` , `date` , `replyid` , `status` ,`from` , `to` , `text`, `admin`) "
+            . "VALUES (NULL , '" . $date . "', " . $replyto . ", '0', '" . $from . "', '" . $to . "', '" . $text . "', '" . $admin . "');";
     nr_query($query);
     log_register("TICKET CREATE (" . $to . ")");
 }
 
+/**
+ * Marks ticket as closed in database
+ * 
+ * @param int $ticketid
+ * 
+ * @return void
+ */
 function zb_TicketSetDone($ticketid) {
-    $ticketid = vf($ticketid);
+    $ticketid = vf($ticketid, 3);
     simple_update_field('ticketing', 'status', '1', "WHERE `id`='" . $ticketid . "'");
     log_register("TICKET CLOSE [" . $ticketid . "]");
 }
 
+/**
+ * Marks ticket as unreviewed in database
+ * 
+ * @param int $ticketid
+ * 
+ * @return void
+ */
 function zb_TicketSetUnDone($ticketid) {
-    $ticketid = vf($ticketid);
+    $ticketid = vf($ticketid, 3);
     simple_update_field('ticketing', 'status', '0', "WHERE `id`='" . $ticketid . "'");
     log_register("TICKET OPEN [" . $ticketid . "]");
 }
 
+/**
+ * Renders available tickets list with controls
+ * 
+ * @global object $ubillingConfig
+ * @return string
+ */
 function web_TicketsShow() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
@@ -189,6 +269,11 @@ function web_TicketsShow() {
     return ($result);
 }
 
+/**
+ * Returns typical answer preset creation form
+ * 
+ * @return string
+ */
 function web_TicketsTAPAddForm() {
     $inputs = wf_HiddenInput('createnewtap', 'true');
     $inputs.= wf_TextArea('newtaptext', '', '', true, '60x10');
@@ -197,6 +282,14 @@ function web_TicketsTAPAddForm() {
     return ($result);
 }
 
+/**
+ * Returns typical answer preset edit form
+ * 
+ * @param string $keyname
+ * @param string $text
+ * 
+ * @return string
+ */
 function web_TicketsTAPEditForm($keyname, $text) {
     $inputs = wf_HiddenInput('edittapkey', $keyname);
     $inputs.= wf_TextArea('edittaptext', '', $text, true, '60x10');
@@ -205,6 +298,13 @@ function web_TicketsTAPEditForm($keyname, $text) {
     return ($result);
 }
 
+/**
+ * Creates new typical answer preset in database
+ * 
+ * @param string $taptext
+ * 
+ * @return void
+ */
 function zb_TicketsTAPCreate($taptext) {
     $keyName = 'HELPDESKTAP_' . zb_rand_string(8);
     $storeData = base64_encode($taptext);
@@ -212,6 +312,13 @@ function zb_TicketsTAPCreate($taptext) {
     log_register('TICKET TAP CREATE `' . $keyName . '`');
 }
 
+/**
+ * Deletes existing typical answer preset from database
+ * 
+ * @param string $keyname
+ * 
+ * @return void
+ */
 function zb_TicketsTAPDelete($keyname) {
     $keyname = mysql_real_escape_string($keyname);
     $query = "DELETE from `ubstorage` WHERE `key`='" . $keyname . "'";
@@ -219,12 +326,25 @@ function zb_TicketsTAPDelete($keyname) {
     log_register('TICKET TAP DELETE `' . $keyname . '`');
 }
 
+/**
+ * Changes existing typical answer preset data in database
+ * 
+ * @param string $key
+ * @param string $text
+ * 
+ * @return void
+ */
 function zb_TicketsTAPEdit($key, $text) {
     $storeData = base64_encode($text);
     zb_StorageSet($key, $storeData);
     log_register('TICKET TAP CHANGE `' . $key . '`');
 }
 
+/**
+ * Returns all available typical answer presets array
+ * 
+ * @return array
+ */
 function zb_TicketsTAPgetAll() {
     $result = array();
     $query = "SELECT * from `ubstorage` WHERE `key` LIKE 'HELPDESKTAP_%' ORDER BY `id` ASC";
@@ -239,6 +359,11 @@ function zb_TicketsTAPgetAll() {
     return ($result);
 }
 
+/**
+ * Renders available typical answer presets list with controls
+ * 
+ * @return string
+ */
 function web_TicketsTapShowAvailable() {
     $all = zb_TicketsTAPgetAll();
 
@@ -260,6 +385,11 @@ function web_TicketsTapShowAvailable() {
     return ($result);
 }
 
+/**
+ * Returns typical answer preset insertion form
+ * 
+ * @return string
+ */
 function web_TicketsTAPLister() {
     $result = '';
     $maxLen = 50;
@@ -285,15 +415,23 @@ function web_TicketsTAPLister() {
             } else {
                 $linkText = $rawText;
             }
-            $result.='<li><a href="#" onClick="jsAddReplyText_' . $randId . '();">' . $linkText . '</a></li>';
+
+            $result.= wf_tag('li') . wf_tag('a', false, '', 'href="#" onClick="jsAddReplyText_' . $randId . '();"') . $linkText . wf_tag('a', true) . wf_tag('li', true);
         }
         $result.=wf_tag('ul', true);
     }
     return ($result);
 }
 
+/**
+ * Returns ticket reply form with typical answer presets if its available
+ * 
+ * @param int $ticketid
+ * 
+ * @return string
+ */
 function web_TicketReplyForm($ticketid) {
-    $ticketid = vf($ticketid);
+    $ticketid = vf($ticketid, 3);
     $ticketdata = zb_TicketGetData($ticketid);
     $ticketstate = $ticketdata['status'];
     if (!$ticketstate) {
@@ -309,8 +447,15 @@ function web_TicketReplyForm($ticketid) {
     return ($replyform);
 }
 
+/**
+ * Returns reply edit form
+ * 
+ * @param int $replyid
+ * 
+ * @return string
+ */
 function web_TicketReplyEditForm($replyid) {
-    $replyid = vf($replyid);
+    $replyid = vf($replyid, 3);
     $ticketdata = zb_TicketGetData($replyid);
     $replytext = $ticketdata['text'];
 
@@ -322,11 +467,18 @@ function web_TicketReplyEditForm($replyid) {
     return ($form);
 }
 
+/**
+ * Renders ticket, all of replies and all needed controls/forms for they
+ * 
+ * @param int $ticketid
+ * 
+ * @return string
+ */
 function web_TicketDialogue($ticketid) {
-    $ticketid = vf($ticketid,3);
+    $ticketid = vf($ticketid, 3);
     $ticketdata = zb_TicketGetData($ticketid);
     $ticketreplies = zb_TicketGetReplies($ticketid);
-    $result = wf_tag('p', false, '', 'align="right"'). wf_Link('?module=ticketing', 'Back to tickets list', true, 'ubButton') . wf_tag('p',true);
+    $result = wf_tag('p', false, '', 'align="right"') . wf_Link('?module=ticketing', 'Back to tickets list', true, 'ubButton') . wf_tag('p', true);
     if (!empty($ticketdata)) {
         $alladdress = zb_AddressGetFulladdresslist();
         $allrealnames = zb_UserGetAllRealnames();
@@ -368,9 +520,7 @@ function web_TicketDialogue($ticketid) {
         $tablerows.=wf_TableRow($tablecells, 'row3');
         $result.=wf_TableBody($tablerows, '100%', '0');
 
-        //
         //ticket body
-        // 
 
         $tickettext = strip_tags($ticketdata['text']);
         $tickettext = nl2br($tickettext);
@@ -378,8 +528,8 @@ function web_TicketDialogue($ticketid) {
         $tablecells.=wf_TableCell($ticketdata['date']);
         $tablerows = wf_TableRow($tablecells, 'row2');
 
-        $ticketauthor = wf_tag('center').  wf_tag('b') . @$allrealnames[$ticketdata['from']] . wf_tag('b',true).  wf_tag('center',true);
-        $ticketavatar = wf_tag('center'). wf_img('skins/userava.png').wf_tag('center',true);
+        $ticketauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$ticketdata['from']] . wf_tag('b', true) . wf_tag('center', true);
+        $ticketavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
         $ticketpanel = $ticketauthor . wf_tag('br') . $ticketavatar;
 
         $tablecells = wf_TableCell($ticketpanel);
@@ -388,33 +538,30 @@ function web_TicketDialogue($ticketid) {
 
         $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
         $result.=$actionlink;
-        
     }
 
 
     if (!empty($ticketreplies)) {
-        $result.=wf_tag('h2') . __('Replies') . wf_tag('h2',true);
+        $result.=wf_tag('h2') . __('Replies') . wf_tag('h2', true);
         $result.= wf_CleanDiv();
         foreach ($ticketreplies as $io => $eachreply) {
             //reply
             if ($eachreply['admin']) {
-                $replyauthor = '<center><b>' . $eachreply['admin'] . '</b></center>';
-                $replyavatar = '<center>' . gravatar_ShowAdminAvatar($eachreply['admin'], '64') . '</center>';
+                $replyauthor = wf_tag('center') . wf_tag('b') . $eachreply['admin'] . wf_tag('b', true) . wf_tag('center', true);
+                $replyavatar = wf_tag('center') . gravatar_ShowAdminAvatar($eachreply['admin'], '64') . wf_tag('center', true);
             } else {
-                $replyauthor = '<center><b>' . @$allrealnames[$eachreply['from']] . '</b></center>';
-                $replyavatar = '<center><img src="skins/userava.png"></center>';
+                $replyauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$eachreply['from']] . wf_tag('b', true) . wf_tag('center', true);
+                $replyavatar = wf_tag('center') . wf_img('skins/userava.png') . wf_tag('center', true);
             }
 
-            $replyactions = '<center>';
+            $replyactions = wf_tag('center');
             $replyactions.= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&deletereply=' . $eachreply['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
             $replyactions.= wf_JSAlert('?module=ticketing&showticket=' . $ticketdata['id'] . '&editreply=' . $eachreply['id'], web_edit_icon(), 'Are you serious');
-            $replyactions.='</center>';
+            $replyactions.= wf_tag('center', true);
 
-            //
             // reply body 
-            //
-          
-          if (isset($_GET['editreply'])) {
+
+            if (isset($_GET['editreply'])) {
 
                 if ($_GET['editreply'] == $eachreply['id']) {
                     //is this reply editing?
@@ -429,7 +576,7 @@ function web_TicketDialogue($ticketid) {
                 $replytext = nl2br($replytext);
             }
 
-            $replypanel = $replyauthor . '<br>' . $replyavatar . '<br>' . $replyactions;
+            $replypanel = $replyauthor . wf_tag('br') . $replyavatar . wf_tag('br') . $replyactions;
 
 
 
@@ -453,7 +600,7 @@ function web_TicketDialogue($ticketid) {
     $allprevious = zb_TicketsGetAllByUser($ticketdata['from']);
     $previoustickets = '';
     if (!empty($allprevious)) {
-        $previoustickets = '<h2>' . __('All tickets by this user') . '</h2>';
+        $previoustickets = wf_tag('h2') . __('All tickets by this user') . wf_tag('h2', true);
         foreach ($allprevious as $io => $eachprevious) {
             $tablecells = wf_TableCell($eachprevious['date']);
             $tablecells.=wf_TableCell(web_bool_led($eachprevious['status']));
@@ -469,9 +616,15 @@ function web_TicketDialogue($ticketid) {
     $tablerows = wf_TableRow($tablecells);
 
     $result.=wf_TableBody($tablerows, '100%', '0', 'glamour');
+    $result.=wf_CleanDiv();
     return ($result);
 }
 
+/**
+ * Renders tickets calendar view widget
+ * 
+ * @return string
+ */
 function web_TicketsCalendar() {
     $curyear = curyear();
     $query = "SELECT * from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL AND `date` LIKE '" . $curyear . "-%' ORDER BY `date` ASC";
