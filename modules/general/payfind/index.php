@@ -415,11 +415,13 @@ if (cfr('PAYFIND')) {
             }
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        
         //additional total counters
         $result.=wf_tag('div', false, 'glamour').__('Count').': '.$totalcount.wf_tag('div',true);
         $result.=wf_tag('div', false, 'glamour').__('Total payments').': '.$totalsumm.wf_tag('div',true);
         $result.=wf_tag('div', false, 'glamour').__('Payment systems %').': '.$paysyssumm.wf_tag('div',true);
         $result.=wf_tag('div', false, 'glamour').__('Our final profit').': '.$profitsumm.wf_tag('div',true);
+        $result.=wf_CleanDiv();
         
         show_window(__('Payments found').' '.$csvDownloadLink, $result);
     }
