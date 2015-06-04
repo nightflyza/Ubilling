@@ -146,7 +146,9 @@ class UHW {
 
         $result.= wf_tag('thead', true);
         $result.= wf_tag('table', true);
-
+        
+        $columns= array('ID','Date','Password','Login','Address','Real name','IP','NHID','Old MAC','New MAC');
+        $result=  wf_JqDtLoader($columns, '?module=uhw&ajax=true', true, 'users', 50);
         return ($result);
     }
 

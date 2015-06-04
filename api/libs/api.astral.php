@@ -1775,15 +1775,15 @@ function wf_CleanDiv() {
  * @param string $ajaxUrl
  * @param bool $saveState
  * @param string $objects
+ * @param int $rowsCount
  * 
  * @return string
  */
-function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users') {
+function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rowsCount=100) {
     $tableId = wf_InputId();
     $result = '';
     $saveState=($saveState) ? 'true' : 'false';
-    
-    $columnsCount=  sizeof($columns);
+
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
  		$(document).ready(function() {
@@ -1813,7 +1813,7 @@ function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users') {
         "bAutoWidth": false,
         "bProcessing": true,
         "bStateSave": '.$saveState.',
-        "iDisplayLength": 100,
+        "iDisplayLength": '.$rowsCount.',
         "sAjaxSource": \''.$ajaxUrl.'\',
 	"bDeferRender": true,
         "bJQueryUI": true

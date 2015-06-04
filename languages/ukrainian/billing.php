@@ -1970,5 +1970,9 @@ $lang['def']['Ressurected']='Воскрес';
 $lang['def']['Inactive days']='Днів неактивний';
 $lang['def']['Crime and punishment']='Злочин і кара';
 $lang['def']['right to control crime and punishment']='Право використовувати злочин та кару';
+$lang['def']['OLT devices']='OLT пристрої';
+$lang['def']['ONU directory']='Довідник ONU';
+$lang['def']['OLT device']='OLT пристрій';
+$lang['def']['ONU model']='Модель ONU';
 
 ?>

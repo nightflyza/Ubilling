@@ -26,68 +26,17 @@ if(cfr('SWITCHPOLL')) {
     }
     
     
-    function web_FDBTableShowDataTable($fdbSwitchFilter='') {
-      $filter=(!empty($fdbSwitchFilter)) ? '&swfilter='.$fdbSwitchFilter : '' ;
-      $jq_dt='
-          <script type="text/javascript" charset="utf-8">
-                
-		$(document).ready(function() {
-		$(\'#fdbcachehp\').dataTable( {
- 	          "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __('users') . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
-                        "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '...",
-                        "oPaginate": {
-                        "sFirst": "'.__('First').'",
-                        "sPrevious": "'.__('Previous').'",
-                        "sNext": "'.__('Next').'",
-                        "sLast": "'.__('Last').'"
-                    },
-		},
-           
-                "aoColumns": [
-                null,
-                null,
-                null,
-                null,
-                null
-            ],      
-         
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": true,
-        "iDisplayLength": 50,
-        "sAjaxSource": \'?module=switchpoller&ajax=true'.$filter.'\',
-	"bDeferRender": true,
-        "bJQueryUI": true
-
-                } );
-		} );
-		</script>
-
-          ';
-
-      $result=$jq_dt;
-      $result.= wf_tag('table', false, 'display compact', 'id="fdbcachehp"');
-      $result.= wf_tag('thead',false);
-      $cells=  wf_TableCell(__('Switch IP'));
-      $cells.= wf_TableCell(__('Port'));
-      $cells.= wf_TableCell(__('Location'));
-      $cells.= wf_TableCell(__('MAC'));
-      $cells.= wf_TableCell(__('User'));
-      $result.= wf_TableRow($cells);
-      $result.= wf_tag('thead',true);
-      $result.= wf_tag('table', true);
-      $filtersForm=  wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
+  /**
+   * Shows current FDB cache list container
+   * 
+   * @param string $fdbSwitchFilter
+   */
+ function web_FDBTableShowDataTable($fdbSwitchFilter='') {
+     $filter=(!empty($fdbSwitchFilter)) ? '&swfilter='.$fdbSwitchFilter : '' ;
+     $filtersForm=  wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
+     
+     $columns=array('Switch IP','Port','Location','MAC','User');
+     $result=  wf_JqDtLoader($columns, '?module=switchpoller&ajax=true'.$filter, true, 'Objects',100);
       
      show_window(__('Current FDB cache').' '.$filtersForm,$result);
   }

@@ -83,7 +83,7 @@ class PONizer {
      * Creates new ONU in database and returns it Id or 0 if action fails
      * 
      * @param int $onumodelid
-     * @param int $oltmodelid
+     * @param int $oltid
      * @param string $ip
      * @param string $mac
      * @param string $serial
@@ -114,6 +114,47 @@ class PONizer {
     }
 
     /**
+     * Saves ONU changes into database
+     * 
+     * @param int $onuId
+     * @param int $onumodelid
+     * @param int $oltid
+     * @param string $ip
+     * @param string $mac
+     * @param string $serial
+     * @param string $login
+     */
+    public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
+        $onuId = vf($onuId, 3);
+        $onumodelid = vf($onumodelid, 3);
+        $oltid = vf($oltid, 3);
+        $ip = mysql_real_escape_string($ip);
+        $mac = mysql_real_escape_string($mac);
+        $serial = mysql_real_escape_string($serial);
+        $login = mysql_real_escape_string($login);
+        $where = " WHERE `id`='" . $onuId . "';";
+        simple_update_field('pononu', 'onumodelid', $onumodelid, $where);
+        simple_update_field('pononu', 'oltid', $oltid, $where);
+        simple_update_field('pononu', 'ip', $ip, $where);
+        simple_update_field('pononu', 'mac', $mac, $where);
+        simple_update_field('pononu', 'serial', $serial, $where);
+        simple_update_field('pononu', 'login', $login, $where);
+        log_register('PON EDIT ONU [' . $onuId . ']');
+    }
+
+    /**
+     * Deletes onu from database by its ID
+     * 
+     * @param int $onuId
+     */
+    public function onuDelete($onuId) {
+        $onuId = vf($onuId, 3);
+        $query = "DELETE from `pononu` WHERE `id`='" . $onuId . "';";
+        nr_query($query);
+        log_register('PON DELETE ONU [' . $onuId . ']');
+    }
+
+    /**
      * Returns ONU creation form
      * 
      * @return string
@@ -140,6 +181,48 @@ class PONizer {
     }
 
     /**
+     * Returns ONU edit form
+     * 
+     * @param int $onuId
+     * 
+     * @return string
+     */
+    public function onuEditForm($onuId) {
+        $onuId = vf($onuId, 3);
+        $result = '';
+        if (isset($this->allOnu[$onuId])) {
+            $messages = new UbillingMessageHelper();
+
+            $models = array();
+            if (!empty($this->allModelsData)) {
+                foreach ($this->allModelsData as $io => $each) {
+                    $models[$each['id']] = $each['modelname'];
+                }
+            }
+
+            $inputs = wf_HiddenInput('editonu', $onuId);
+            $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device'), $this->allOnu[$onuId]['oltid'], true);
+            $inputs.= wf_Selector('editonumodelid', $models, __('ONU model'), $this->allOnu[$onuId]['onumodelid'], true);
+            $inputs.= wf_TextInput('editip', __('IP'), $this->allOnu[$onuId]['ip'], true, 20);
+            $inputs.= wf_TextInput('editmac', __('MAC'), $this->allOnu[$onuId]['mac'], true, 20);
+            $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
+            $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
+            $inputs.= wf_Submit(__('Save'));
+
+
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+            $result.= wf_CleanDiv();
+            $result.= wf_delimiter();
+
+            $result.= wf_Link('?module=ponizer', __('Back'), false, 'ubButton');
+            $result.= wf_JSAlertStyled('?module=ponizer&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
+        } else {
+            $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
+        }
+        return ($result);
+    }
+
+    /**
      * Returns default list controls
      * 
      * @return string
@@ -158,7 +241,7 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Serial number', 'Login','Actions');
+        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Serial number', 'Login', 'Actions');
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU');
         return ($result);
     }
@@ -175,12 +258,17 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (!empty($each['login'])) {
-                    $userLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login'], false);
-                    $userLink=  str_replace('"', '', $userLink);
-                    $userLink=trim($userLink);
+                    $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
+                    $userLink = str_replace('"', '', $userLink);
+                    $userLink = trim($userLink);
                 } else {
-                    $userLink='';
+                    $userLink = '';
                 }
+
+                $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
+                $actLinks = str_replace('"', '', $actLinks);
+                $actLinks = trim($actLinks);
+
                 $result.='
                     [
                     "' . $each['id'] . '",
@@ -190,7 +278,7 @@ class PONizer {
                     "' . $each['mac'] . '",
                     "' . $each['serial'] . '",
                     "' . $userLink . '",
-                    "ACTIONS_HERE"
+                    "' . $actLinks . '"
                     ],';
             }
         }

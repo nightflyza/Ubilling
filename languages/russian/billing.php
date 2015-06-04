@@ -1956,8 +1956,12 @@ $lang['def']['Ressurected']='Воскрес';
 $lang['def']['Inactive days']='Дней неактивен';
 $lang['def']['Crime and punishment']='Преступление и наказание';
 $lang['def']['right to control crime and punishment']='Право использовать преступление и наказание';
+$lang['def']['OLT devices']='OLT устройства';
+$lang['def']['ONU directory']='Справочник ONU';
+$lang['def']['OLT device']='OLT устройство';
+$lang['def']['ONU model']='Модель ONU';
 $lang['def']['']='';
-$lang['def']['']='';
+
 
 
 

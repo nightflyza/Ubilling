@@ -594,6 +594,7 @@ function web_SwitchesShow() {
     $countOnMap = 0;
     $countSwpoll = 0;
     $countMtsigmon = 0;
+    $countOlt=0;
     $countLinked = 0;
 
 
@@ -756,6 +757,10 @@ function web_SwitchesShow() {
             if (ispos($eachswitch['desc'], 'MTSIGMON')) {
                 $countMtsigmon++;
             }
+            
+            if (ispos($eachswitch['desc'], 'OLT')) {
+                $countOlt++;
+            }
 
             if ($alterconf['ADCOMMENTS_ENABLED']) {
                 $switchcontrols.=$adcomments->getCommentsIndicator($eachswitch['id']);
@@ -775,6 +780,7 @@ function web_SwitchesShow() {
     $result.=wf_img('skins/yellow_led.png') . ' ' . __('NP switches') . ' - ' . $countNp . wf_tag('br');
     $result.=wf_img('skins/snmp.png') . ' ' . __('SWPOLL query') . ' - ' . $countSwpoll . wf_tag('br');
     $result.=wf_img('skins/wifi.png') . ' ' . __('MTSIGMON devices') . ' - ' . $countMtsigmon . wf_tag('br');
+    $result.=wf_img('skins/pon_icon.gif') . ' ' . __('OLT devices') . ' - ' . $countOlt . wf_tag('br');
 
     $result.=wf_img('skins/icon_search_small.gif') . ' ' . __('Placed on map') . ' - ' . $countOnMap . wf_tag('br');
     $result.=wf_img('skins/ymaps/uplinks.png') . ' ' . __('Have uplinks') . ' - ' . $countLinked . wf_tag('br');
