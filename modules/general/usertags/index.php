@@ -47,7 +47,7 @@ if (isset ($_GET['edit'])) {
 }
 
 //show available tagtypes
-stg_show_tagtypes();
+show_window(__('Tag types'), stg_show_tagtypes());
 
 } else {
 $uname=$_GET['username'];

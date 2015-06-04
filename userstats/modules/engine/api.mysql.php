@@ -206,7 +206,14 @@ class MySQLDB
 }
 
 /**
- * Returns cutted down entry data
+ * Returns cutted down data entry 
+ *  Available modes:
+ *  1 - digits, letters
+ *  2 - only letters
+ *  3 - only digits
+ *  4 - digits, letters, "-", "_", "."
+ *  5 - current lang alphabet + digits + punctuation
+ *  default - filter only blacklist chars
  *
  * @param string $data
  * @param int $mode

@@ -4,10 +4,28 @@ class PONizer {
 
     protected $allOnu = array();
     protected $allModelsData = array();
+    protected $allOltDevices=array();
 
     public function __construct() {
+        $this->loadOltDevices();
         $this->loadOnu();
         $this->loadModels();
+    }
+    
+    
+    /**
+     * Loads all available devices set as OLT
+     * 
+     * @return void
+     */
+    protected function loadOltDevices() {
+        $query="SELECT `id`,`ip`,`location` from `switches` WHERE `desc` LIKE '%OLT%';";
+        $raw=  simple_queryall($query);
+        if (!empty($raw)) {
+            foreach ($raw as $io=>$each) {
+                $this->allOltDevices[$each['id']]=$each['ip'].' - '.$each['location'];
+            }
+        }
     }
 
     /**
@@ -64,9 +82,9 @@ class PONizer {
      * @param string $login
      * @return int
      */
-    public function onuCreate($onumodelid, $oltmodelid, $ip, $mac, $serial, $login) {
+    public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $onumodelid = vf($onumodelid, 3);
-        $oltmodelid = vf($oltmodelid, 3);
+        $oltid = vf($oltid, 3);
         $ip = mysql_real_escape_string($ip);
         $mac = mysql_real_escape_string($mac);
         $serial = mysql_real_escape_string($serial);
@@ -74,8 +92,8 @@ class PONizer {
         $result = 0;
         if (!empty($mac)) {
             if (check_mac_format($mac)) {
-                $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltmodelid`, `ip`, `mac`, `serial`, `login`) "
-                        . "VALUES (NULL, '" . $onumodelid . "', '" . $oltmodelid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
+                        . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                 nr_query($query);
                 $result = simple_get_lastid('pononu');
                 log_register('PON CREATE ONU [' . $result . ']');
@@ -99,8 +117,9 @@ class PONizer {
             }
         }
 
-        $inputs = wf_Selector('newonumodelid', $models, __('ONU model'), '', true);
-        $inputs.= wf_Selector('newoltmodelid', $models, __('OLT model'), '', true);
+        $inputs= wf_HiddenInput('createnewonu', 'true');
+        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device'), '', true);
+        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model'), '', true);
         $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
         $inputs.= wf_TextInput('newmac', __('MAC'), '', true, 20);
         $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
@@ -121,6 +140,7 @@ class PONizer {
         $result='';
 
         $result.=wf_modalAuto(wf_img('skins/add_icon.png').' '.__('Create'), __('Create'), $this->onuCreateForm(), 'ubButton');
+        
         return ($result);
     }
 
