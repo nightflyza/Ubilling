@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * backport of user tags API from kvtstg
  */
 
