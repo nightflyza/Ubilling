@@ -177,77 +177,8 @@ class ConnectionDetails {
      * @return string
      */
     public function renderReportBody() {
-        $result = '';
-
-        $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
-        $jq_dt.= '
- 		$(document).ready(function() {
-		$(\'#condetlisthp\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __('users') . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
-                        "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '...",
-                        "oPaginate": {
-                        "sFirst": "' . __('First') . '",
-                        "sPrevious": "' . __('Previous') . '",
-                        "sNext": "' . __('Next') . '",
-                        "sLast": "' . __('Last') . '"
-                    },
-		},
-           
-                "aoColumns": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            ],      
-         
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": true,
-        "iDisplayLength": 100,
-        "sAjaxSource": \'?module=report_condet&ajax=true\',
-	"bDeferRender": true,
-        "bJQueryUI": true
-
-                } );
-		} );
-          ';
-        $jq_dt.=wf_tag('script', true);
-
-        $result = $jq_dt;
-        $result.= wf_tag('table', false, 'display compact', 'id="condetlisthp"');
-        $result.= wf_tag('thead', false);
-
-        $tablecells = wf_TableCell(__('Address'));
-        $tablecells.=wf_TableCell(__('Real Name'));
-        $tablecells.=wf_TableCell(__('IP'));
-        $tablecells.=wf_TableCell(__('Tariff'));
-        $tablecells.=wf_TableCell(__('Active'));
-        $tablecells.=wf_TableCell(__('Cash'));
-        $tablecells.=wf_TableCell(__('Credit'));
-        $tablecells.=wf_TableCell(__('Seal'));
-        $tablecells.=wf_TableCell(__('Cost'));
-        $tablecells.=wf_TableCell(__('Cable'));
-        $result.= wf_TableRow($tablecells);
-
-        $result.= wf_tag('thead', true);
-        $result.= wf_tag('table', true);
+        $columns = array('Address', 'Real Name', 'IP', 'Tariff', 'Active', 'Cash', 'Credit', 'Seal', 'Cost', 'Cable');
+        $result = wf_JqDtLoader($columns, '?module=report_condet&ajax=true', true, 'users');
 
         return ($result);
     }

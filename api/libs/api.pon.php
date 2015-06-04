@@ -4,26 +4,25 @@ class PONizer {
 
     protected $allOnu = array();
     protected $allModelsData = array();
-    protected $allOltDevices=array();
+    protected $allOltDevices = array();
 
     public function __construct() {
         $this->loadOltDevices();
         $this->loadOnu();
         $this->loadModels();
     }
-    
-    
+
     /**
      * Loads all available devices set as OLT
      * 
      * @return void
      */
     protected function loadOltDevices() {
-        $query="SELECT `id`,`ip`,`location` from `switches` WHERE `desc` LIKE '%OLT%';";
-        $raw=  simple_queryall($query);
+        $query = "SELECT `id`,`ip`,`location` from `switches` WHERE `desc` LIKE '%OLT%';";
+        $raw = simple_queryall($query);
         if (!empty($raw)) {
-            foreach ($raw as $io=>$each) {
-                $this->allOltDevices[$each['id']]=$each['ip'].' - '.$each['location'];
+            foreach ($raw as $io => $each) {
+                $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
             }
         }
     }
@@ -41,6 +40,15 @@ class PONizer {
                 $this->allOnu[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Getter for loaded ONU devices
+     * 
+     * @return array
+     */
+    public function getAllOnu() {
+        return ($this->allOnu);
     }
 
     /**
@@ -80,6 +88,7 @@ class PONizer {
      * @param string $mac
      * @param string $serial
      * @param string $login
+     * 
      * @return int
      */
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
@@ -117,7 +126,7 @@ class PONizer {
             }
         }
 
-        $inputs= wf_HiddenInput('createnewonu', 'true');
+        $inputs = wf_HiddenInput('createnewonu', 'true');
         $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device'), '', true);
         $inputs.= wf_Selector('newonumodelid', $models, __('ONU model'), '', true);
         $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
@@ -129,18 +138,68 @@ class PONizer {
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
-    
-    
+
     /**
      * Returns default list controls
      * 
      * @return string
      */
     public function controls() {
-        $result='';
+        $result = '';
 
-        $result.=wf_modalAuto(wf_img('skins/add_icon.png').' '.__('Create'), __('Create'), $this->onuCreateForm(), 'ubButton');
-        
+        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->onuCreateForm(), 'ubButton');
+        $result.=wf_delimiter();
+        return ($result);
+    }
+
+    /**
+     * Renders available ONU JQDT list container
+     * 
+     * @return string
+     */
+    public function renderOnuList() {
+        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Serial number', 'Login','Actions');
+        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU');
+        return ($result);
+    }
+
+    /**
+     * Renders json formatted data for jquery data tables list
+     * 
+     * @return string
+     */
+    public function ajaxOnuData() {
+        $result = '{ 
+                  "aaData": [ ';
+
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if (!empty($each['login'])) {
+                    $userLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login'], false);
+                    $userLink=  str_replace('"', '', $userLink);
+                    $userLink=trim($userLink);
+                } else {
+                    $userLink='';
+                }
+                $result.='
+                    [
+                    "' . $each['id'] . '",
+                    "' . $this->getModelName($each['onumodelid']) . '",
+                    "' . @$this->allOltDevices[$each['oltid']] . '",
+                    "' . $each['ip'] . '",
+                    "' . $each['mac'] . '",
+                    "' . $each['serial'] . '",
+                    "' . $userLink . '",
+                    "ACTIONS_HERE"
+                    ],';
+            }
+        }
+
+        $result = substr($result, 0, -1);
+
+        $result.='] 
+        }';
+
         return ($result);
     }
 

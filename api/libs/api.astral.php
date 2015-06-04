@@ -1768,4 +1768,77 @@ function wf_CleanDiv() {
     return ($result);
 }
 
+/**
+ * Renders JQuery Data Tables container
+ * 
+ * @param array $columns
+ * @param string $ajaxUrl
+ * @param bool $saveState
+ * @param string $objects
+ * 
+ * @return string
+ */
+function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users') {
+    $tableId = wf_InputId();
+    $result = '';
+    $saveState=($saveState) ? 'true' : 'false';
+    
+    $columnsCount=  sizeof($columns);
+    $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
+    $jq_dt.= '
+ 		$(document).ready(function() {
+		$(\'#' . $tableId . '\').dataTable( {
+ 	       "oLanguage": {
+			"sLengthMenu": "' . __('Show') . ' _MENU_",
+			"sZeroRecords": "' . __('Nothing found') . '",
+			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __($objects) . '",
+			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __($objects) . '",
+			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
+                        "sSearch":       "' . __('Search') . '",
+                        "sProcessing":   "' . __('Processing') . '...",
+                        "oPaginate": {
+                        "sFirst": "' . __('First') . '",
+                        "sPrevious": "' . __('Previous') . '",
+                        "sNext": "' . __('Next') . '",
+                        "sLast": "' . __('Last') . '"
+                    },
+		},
+   
+         
+        "bPaginate": true,
+        "bLengthChange": true,
+        "bFilter": true,
+        "bSort": true,
+        "bInfo": true,
+        "bAutoWidth": false,
+        "bProcessing": true,
+        "bStateSave": '.$saveState.',
+        "iDisplayLength": 100,
+        "sAjaxSource": \''.$ajaxUrl.'\',
+	"bDeferRender": true,
+        "bJQueryUI": true
+
+                } );
+		} );
+          ';
+    $jq_dt.=wf_tag('script', true);
+
+    $result = $jq_dt;
+    $result.= wf_tag('table', false, 'display compact', 'id="'.$tableId.'"');
+    $result.= wf_tag('thead', false);
+
+    $tablecells='';
+    foreach ($columns as $io=>$eachColumn) {
+    $tablecells.= wf_TableCell(__($eachColumn));
+    }
+    
+        
+    $result.= wf_TableRow($tablecells);
+
+    $result.= wf_tag('thead', true);
+    $result.= wf_tag('table', true);
+    
+    return ($result);
+}
+
 ?>
