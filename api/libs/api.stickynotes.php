@@ -354,7 +354,7 @@ class StickyNotes {
         if (!empty($id)) {
             $query = "DELETE FROM `stickynotes` WHERE `id`='" . $id . "';";
             nr_query($query);
-            log_register("STICKY CREATE [" . $id . "]");
+            log_register("STICKY DELETE [" . $id . "]");
         }
     }
     
