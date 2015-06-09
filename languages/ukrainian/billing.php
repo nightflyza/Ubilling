@@ -1975,4 +1975,7 @@ $lang['def']['ONU directory']='Довідник ONU';
 $lang['def']['OLT device']='OLT пристрій';
 $lang['def']['ONU model']='Модель ONU';
 
+//rev 4495
+$lang['def']['All time']='Весь час';
+
 ?>

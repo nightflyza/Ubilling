@@ -1779,10 +1779,10 @@ function wf_CleanDiv() {
  * 
  * @return string
  */
-function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rowsCount=100) {
-    $tableId='jqdt_'.  md5($ajaxUrl);
+function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100) {
+    $tableId = 'jqdt_' . md5($ajaxUrl);
     $result = '';
-    $saveState=($saveState) ? 'true' : 'false';
+    $saveState = ($saveState) ? 'true' : 'false';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
@@ -1812,9 +1812,9 @@ function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rows
         "bInfo": true,
         "bAutoWidth": false,
         "bProcessing": true,
-        "bStateSave": '.$saveState.',
-        "iDisplayLength": '.$rowsCount.',
-        "sAjaxSource": \''.$ajaxUrl.'\',
+        "bStateSave": ' . $saveState . ',
+        "iDisplayLength": ' . $rowsCount . ',
+        "sAjaxSource": \'' . $ajaxUrl . '\',
 	"bDeferRender": true,
         "bJQueryUI": true
                 } );
@@ -1823,20 +1823,74 @@ function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rows
     $jq_dt.=wf_tag('script', true);
 
     $result = $jq_dt;
-    $result.= wf_tag('table', false, 'display compact', 'id="'.$tableId.'"');
+    $result.= wf_tag('table', false, 'display compact', 'id="' . $tableId . '"');
     $result.= wf_tag('thead', false);
 
-    $tablecells='';
-    foreach ($columns as $io=>$eachColumn) {
-    $tablecells.= wf_TableCell(__($eachColumn));
+    $tablecells = '';
+    foreach ($columns as $io => $eachColumn) {
+        $tablecells.= wf_TableCell(__($eachColumn));
     }
-    
-        
+
+
     $result.= wf_TableRow($tablecells);
 
     $result.= wf_tag('thead', true);
     $result.= wf_tag('table', true);
-    
+
+    return ($result);
+}
+
+/**
+ * Renders Google 3d pie chart
+ * 
+ * @param array $params data in format like string=>count
+ * @param string $title chart title
+ * @param type $width chart width in px or %, 500px default
+ * @param type $height chart height in px or %, 500px default
+ * @return string
+ */
+function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
+    $containerId = wf_InputId();
+    $width = ($width) ? $width : '500px';
+    $height = ($height) ? $height : '500px';
+    $result = '';
+    $chartData = '';
+
+    if (!empty($params)) {
+        foreach ($params as $io => $each) {
+            $chartData.= '[\'' . $io . '\',' . $each . '],';
+        }
+        $chartData = substr($chartData, 0, -1);
+    }
+
+
+    $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.google.com/jsapi"') . wf_tag('script', true);
+    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+    $result.='
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          [\'X\', \'Y\'],
+           ' . $chartData . '
+         ]);
+
+        var options = {
+          title: \'' . $title . '\',
+          is3D: true,
+          \'tooltip\' : {
+             trigger: \'none\'
+            }
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById(\'' . $containerId . '\'));
+        chart.draw(data, options);
+      }
+';
+
+    $result.=wf_tag('script', true);
+    $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
+
     return ($result);
 }
 

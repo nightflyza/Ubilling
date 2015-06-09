@@ -1960,6 +1960,9 @@ $lang['def']['OLT devices']='OLT устройства';
 $lang['def']['ONU directory']='Справочник ONU';
 $lang['def']['OLT device']='OLT устройство';
 $lang['def']['ONU model']='Модель ONU';
+
+//rev 4495
+$lang['def']['All time']='Все время';
 $lang['def']['']='';
 
 

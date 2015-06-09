@@ -71,6 +71,7 @@ include('api/libs/api.uhw.php');
 include('api/libs/api.pon.php');
 include('api/libs/api.cudiscounts.php');
 include('api/libs/api.cap.php');
+include('api/libs/api.opayz.php');
 
 /*
  * Initial class creation
