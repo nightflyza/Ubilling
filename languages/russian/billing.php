@@ -1005,8 +1005,8 @@ $lang['def']['Statements']='Выписки';
 $lang['def']['User poroposal']='Предполагаемый пользователь';
 $lang['def']['Force ping']='Принудительный опрос';
 $lang['def']['Dead switches']='Мертвые свичи';
-$lang['def']['Switches are okay, everything is fine - I guarantee']='Свичи впорядке, все отлично - гарантирую';
-$lang['def']['All switches alive']='Свичи впорядке';
+$lang['def']['Switches are okay, everything is fine - I guarantee']='Свичи в порядке, все отлично - гарантирую';
+$lang['def']['All switches alive']='Свичи в порядке';
 $lang['def']['Taskbar notify for dead switches']='Панель задач уведомляет о мертвых свитчах';
 $lang['def']['Switches ping cache timeout']='Время задержки между обновлениями кеша опроса свитчей';
 
