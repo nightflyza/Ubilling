@@ -1169,71 +1169,8 @@ class UkvSystem {
      * @return string
      */
     public function renderUsers() {
-        $jqDt = '
-          <script type="text/javascript" charset="utf-8">
-                
-		$(document).ready(function() {
-		$(\'#ukvusershp\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __('users') . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
-                        "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '...",
-                        "oPaginate": {
-                        "sFirst": "' . __('First') . '",
-                        "sPrevious": "' . __('Previous') . '",
-                        "sNext": "' . __('Next') . '",
-                        "sLast": "' . __('Last') . '"
-                    },
-		},
-           
-                "aoColumns": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            ],      
-         
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": false,
-        "iDisplayLength": 50,
-        "sAjaxSource": \'' . self::URL_USERS_AJAX_SOURCE . '\',
-	"bDeferRender": true,
-        "bJQueryUI": true
-
-                } );
-		} );
-		</script>
-
-          ';
-
-        $result = $jqDt;
-
-        $result.= wf_tag('table', false, '', 'width="100%" id="ukvusershp" class="display compact"');
-        $result.= wf_tag('thead');
-        $cells = wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Contract'));
-        $cells.= wf_TableCell(__('Tariff'));
-        $cells.= wf_TableCell(__('Connected'));
-        $cells.= wf_TableCell(__('Cash'));
-        $result.= wf_TableRow($cells, 'row1');
-        $result.= wf_tag('thead', true);
-
-        $result.= wf_tag('table', true);
-
-
+        $columns=array('Full address','Real Name','Contract','Tariff','Connected','Cash');
+        $result=  wf_JqDtLoader($columns, self::URL_USERS_AJAX_SOURCE, false, 'users', 50);
         return ($result);
     }
 

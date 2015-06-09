@@ -179,88 +179,6 @@ if (cfr('OPENPAYZ')) {
         }
 
         /**
-         * Renders list of available openpayz transactions
-         * 
-         * @global object $ubillingConfig
-         */
-        function web_OPShowTransactions() {
-            global $ubillingConfig;
-            $alter_conf = $ubillingConfig->getAlter();
-            $perpage = 100;
-            $manual_mode = $alter_conf['OPENPAYZ_MANUAL'];
-            $allcustomers = zb_OPGetAllCustomers();
-            $allrealnames = zb_UserGetAllRealnames();
-            $alladdress = zb_AddressGetFulladdresslist();
-            $totalcount = zb_OPGetCount();
-
-            //pagination
-            //pagination 
-            if (!isset($_GET['page'])) {
-                $current_page = 1;
-            } else {
-                $current_page = vf($_GET['page'], 3);
-            }
-
-            if ($totalcount > $perpage) {
-                $paginator = wf_pagination($totalcount, $perpage, $current_page, "?module=openpayz", 'ubButton');
-                $from = $perpage * ($current_page - 1);
-                $to = $perpage;
-                $query = "SELECT * from `op_transactions` ORDER by `id` DESC LIMIT " . $from . "," . $to . ";";
-                $alluhw = simple_queryall($query);
-            } else {
-                $paginator = '';
-                $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
-                $alluhw = simple_queryall($query);
-            }
-
-            $alltransactions = simple_queryall($query);
-
-            $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Cash'));
-            $cells.= wf_TableCell(__('Payment ID'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Full address'));
-            $cells.= wf_TableCell(__('Payment system'));
-            $cells.= wf_TableCell(__('Processed'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-
-
-            if (!empty($alltransactions)) {
-                foreach ($alltransactions as $io => $eachtransaction) {
-                    if ($manual_mode) {
-                        if ($eachtransaction['processed'] == 0) {
-                            $control = wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
-                        } else {
-                            $control = '';
-                        }
-                    } else {
-                        $control = '';
-                    }
-                    @$user_login = $allcustomers[$eachtransaction['customerid']];
-                    @$user_realname = $allrealnames[$user_login];
-                    @$user_address = $alladdress[$user_login];
-
-                    $cells = wf_TableCell($eachtransaction['id']);
-                    $cells.= wf_TableCell($eachtransaction['date']);
-                    $cells.= wf_TableCell($eachtransaction['summ']);
-                    $cells.= wf_TableCell($eachtransaction['customerid']);
-                    $cells.= wf_TableCell($user_realname);
-                    $cells.= wf_TableCell($user_address);
-                    $cells.= wf_TableCell($eachtransaction['paysys']);
-                    $cells.= wf_TableCell(web_bool_led($eachtransaction['processed']));
-                    $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon()) . $control);
-                    $rows.= wf_TableRow($cells, 'row3');
-                }
-            }
-            $result = wf_TableBody($rows, '100%', '0', 'sortable');
-            $result.=$paginator;
-            $graphs = wf_Link('?module=openpayz&graphs=true', wf_img('skins/icon_stats.gif', __('Graphs')), false, '');
-            show_window(__('OpenPayz transactions') . ' ' . $graphs, $result);
-        }
-
-        /**
          * Sets openpayz transaction as processed in database
          * 
          * @param int $transactionid
@@ -304,6 +222,85 @@ if (cfr('OPENPAYZ')) {
             return ($result);
         }
 
+        /**
+         * Retruns json data for jquery data tables with transactions list
+         * 
+         * @global object $ubillingConfig
+         * @return string
+         */
+        function zb_OpTransactionAjaxSource() {
+            global $ubillingConfig;
+            $alter_conf = $ubillingConfig->getAlter();
+            $manual_mode = $alter_conf['OPENPAYZ_MANUAL'];
+            $allcustomers = zb_OPGetAllCustomers();
+            $allrealnames = zb_UserGetAllRealnames();
+            $alladdress = zb_AddressGetFulladdresslist();
+            $totalcount = zb_OPGetCount();
+            $result = '{ 
+                  "aaData": [ ';
+
+            $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
+            $alltransactions = simple_queryall($query);
+
+
+            if (!empty($alltransactions)) {
+                foreach ($alltransactions as $io => $eachtransaction) {
+                    if ($manual_mode) {
+                        if ($eachtransaction['processed'] == 0) {
+                            $control = wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
+                            $control= str_replace('"', '', $control);
+                            $control=trim($control);
+                        } else {
+                            $control = '';
+                        }
+                    } else {
+                        $control = '';
+                    }
+
+                    @$user_login = $allcustomers[$eachtransaction['customerid']];
+                    @$user_realname = $allrealnames[$user_login];
+                    $user_realname = str_replace('"', '', $user_realname);
+                    $user_realname = trim($user_realname);
+                    
+                    @$user_address = $alladdress[$user_login];
+                    $user_address = str_replace('"', '', $user_address);
+                    $user_address = trim($user_address);
+                    
+
+                    if (!empty($user_login)) {
+                    $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon());
+                    $profileLink = str_replace('"', '', $profileLink);
+                    $profileLink = trim($profileLink);
+                    } else {
+                        $profileLink='';
+                    }
+
+                    $stateIcon = web_bool_led($eachtransaction['processed']);
+                    $stateIcon = str_replace('"', '', $stateIcon);
+                    $stateIcon = trim($stateIcon).' '.$control;
+
+
+                    $result.='
+                    [
+                    "' . $eachtransaction['id'] . '",
+                    "' . $eachtransaction['date'] . '",
+                    "' . $eachtransaction['summ'] . '",
+                    "' . $eachtransaction['customerid'] . '",
+                    "' . $user_realname . '",
+                    "' . $profileLink.' '.$user_address . '",
+                    "' . $eachtransaction['paysys'] . '",
+                    "' . $stateIcon . '"
+                    ],';
+                }
+            }
+            $result = substr($result, 0, -1);
+
+            $result.='] 
+        }';
+
+          return ($result);
+        }
+
         //if manual processing transaction
         if ($alter_conf['OPENPAYZ_MANUAL']) {
             if (isset($_GET['process'])) {
@@ -326,6 +323,9 @@ if (cfr('OPENPAYZ')) {
             }
         }
 
+        if (wf_CheckGet(array('ajax'))) {
+            die(zb_OpTransactionAjaxSource());
+        }
 
 
         if (!wf_CheckGet(array('graphs'))) {
@@ -340,7 +340,10 @@ if (cfr('OPENPAYZ')) {
                 show_window('', wf_Link('?module=openpayz', __('Back'), true, 'ubButton'));
                 web_OPDoSearch($_POST['searchyear'], $_POST['searchmonth'], $_POST['searchpaysys']);
             } else {
-                web_OPShowTransactions();
+                //show transactions list
+                $columns = array('ID', 'Date', 'Cash', 'Payment ID', 'Real Name', 'Full address', 'Payment system', 'Processed');
+                $graphsUrl = wf_Link('?module=openpayz&graphs=true', wf_img('skins/icon_stats.gif', __('Graphs')), false, '');
+                show_window(__('OpenPayz transactions') . ' ' . $graphsUrl, wf_JqDtLoader($columns, '?module=openpayz&ajax=true', true, 'payments', 100));
             }
         } else {
             zb_OPShowGraphs();

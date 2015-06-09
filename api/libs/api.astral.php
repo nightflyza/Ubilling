@@ -1780,7 +1780,7 @@ function wf_CleanDiv() {
  * @return string
  */
 function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rowsCount=100) {
-    $tableId = wf_InputId();
+    $tableId='jqdt_'.  md5($ajaxUrl);
     $result = '';
     $saveState=($saveState) ? 'true' : 'false';
 
@@ -1817,7 +1817,6 @@ function wf_JqDtLoader($columns,$ajaxUrl,$saveState=false,$objects='users',$rows
         "sAjaxSource": \''.$ajaxUrl.'\',
 	"bDeferRender": true,
         "bJQueryUI": true
-
                 } );
 		} );
           ';
