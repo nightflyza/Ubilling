@@ -14,8 +14,12 @@ if ($altCfg['PON_ENABLED']) {
 
         //creating new ONU device
         if (wf_CheckPost(array('createnewonu', 'newoltid', 'newmac'))) {
-            $pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
+            $onuCreateResult=$pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
+            if ($onuCreateResult) {
             rcms_redirect('?module=ponizer');
+            } else {
+                show_error(__('This MAC have wrong format'));
+            }
         }
 
         //edits existing ONU in database

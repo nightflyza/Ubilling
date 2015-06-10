@@ -5,11 +5,27 @@ class PONizer {
     protected $allOnu = array();
     protected $allModelsData = array();
     protected $allOltDevices = array();
+    protected $altCfg = array();
+    protected $sup = '';
 
     public function __construct() {
+        $this->loadAlter();
         $this->loadOltDevices();
         $this->loadOnu();
         $this->loadModels();
+        $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    }
+
+    /**
+     * Loads system alter.ini config into private data property
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -95,6 +111,7 @@ class PONizer {
         $onumodelid = vf($onumodelid, 3);
         $oltid = vf($oltid, 3);
         $ip = mysql_real_escape_string($ip);
+        $macRaw = $mac;
         $mac = mysql_real_escape_string($mac);
         $serial = mysql_real_escape_string($serial);
         $login = mysql_real_escape_string($login);
@@ -105,9 +122,9 @@ class PONizer {
                         . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
                 nr_query($query);
                 $result = simple_get_lastid('pononu');
-                log_register('PON CREATE ONU [' . $result . ']');
+                log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
             } else {
-                log_register('PON MACINVALID TRY');
+                log_register('PON MACINVALID TRY `' . $macRaw . '`');
             }
         }
         return ($result);
@@ -123,6 +140,8 @@ class PONizer {
      * @param string $mac
      * @param string $serial
      * @param string $login
+     * 
+     * @return void
      */
     public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
         $onuId = vf($onuId, 3);
@@ -136,7 +155,15 @@ class PONizer {
         simple_update_field('pononu', 'onumodelid', $onumodelid, $where);
         simple_update_field('pononu', 'oltid', $oltid, $where);
         simple_update_field('pononu', 'ip', $ip, $where);
-        simple_update_field('pononu', 'mac', $mac, $where);
+        if (!empty($mac)) {
+            if (check_mac_format($mac)) {
+                simple_update_field('pononu', 'mac', $mac, $where);
+            } else {
+                log_register('PON MACINVALID TRY `' . $mac . '`');
+            }
+        } else {
+            log_register('PON MACEMPTY TRY `' . $mac . '`');
+        }
         simple_update_field('pononu', 'serial', $serial, $where);
         simple_update_field('pononu', 'login', $login, $where);
         log_register('PON EDIT ONU [' . $onuId . ']');
@@ -168,10 +195,10 @@ class PONizer {
         }
 
         $inputs = wf_HiddenInput('createnewonu', 'true');
-        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device'), '', true);
-        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model'), '', true);
+        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
+        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
         $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
-        $inputs.= wf_TextInput('newmac', __('MAC'), '', true, 20);
+        $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
         $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
         $inputs.= wf_Submit(__('Create'));
@@ -201,10 +228,10 @@ class PONizer {
             }
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device'), $this->allOnu[$onuId]['oltid'], true);
-            $inputs.= wf_Selector('editonumodelid', $models, __('ONU model'), $this->allOnu[$onuId]['onumodelid'], true);
+            $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
+            $inputs.= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             $inputs.= wf_TextInput('editip', __('IP'), $this->allOnu[$onuId]['ip'], true, 20);
-            $inputs.= wf_TextInput('editmac', __('MAC'), $this->allOnu[$onuId]['mac'], true, 20);
+            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup, $this->allOnu[$onuId]['mac'], true, 20);
             $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
             $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
             $inputs.= wf_Submit(__('Save'));
@@ -219,6 +246,15 @@ class PONizer {
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
+
+        //additional comments handling
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('PONONU');
+            $result.=wf_delimiter();
+            $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+            $result.=$adcomments->renderComments($onuId);
+        }
+
         return ($result);
     }
 
@@ -252,6 +288,13 @@ class PONizer {
      * @return string
      */
     public function ajaxOnuData() {
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('PONONU');
+            $adc=true;
+        } else {
+            $adc=false;
+        }
+        
         $result = '{ 
                   "aaData": [ ';
 
@@ -264,11 +307,20 @@ class PONizer {
                 } else {
                     $userLink = '';
                 }
+                //checking adcomments availability
+                if ($adc) {
+                     $indicatorIcon=$adcomments->getCommentsIndicator($each['id']);
+                     $indicatorIcon=str_replace('"', '\'', $indicatorIcon);
+                     $indicatorIcon=trim($indicatorIcon);
+                } else {
+                    $indicatorIcon='';
+                }
 
                 $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
                 $actLinks = str_replace('"', '', $actLinks);
                 $actLinks = trim($actLinks);
-
+                $actLinks.= ' '.$indicatorIcon;
+                
                 $result.='
                     [
                     "' . $each['id'] . '",

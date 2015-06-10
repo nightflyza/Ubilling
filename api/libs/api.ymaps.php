@@ -863,7 +863,7 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                     if ($allswitches[$each['parentid']]['geo'] != '') {
                         $coord1 = $each['geo'];
                         $coord2 = $allswitches[$each['parentid']]['geo'];
-                        $hint = $each['location'] . ' → ' . $allswitches[$each['parentid']]['location'];
+                        $hint = $each['location'].' '.$each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'].' '.$allswitches[$each['parentid']]['ip'];
 
                         if ((!isset($deadarr[$each['ip']])) AND ( !isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
                             $color = '#00FF00';
