@@ -1,5 +1,64 @@
 <?php
 
+class OnuConfigurator {
+
+    public $allOnu = array();
+
+    public function __construct() {
+        $this->loadOnu();
+    }
+
+    protected function loadOnu() {
+        $query = "SELECT * from `pononu`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allOnu[$each['id']] = $each;
+            }
+        }
+    }
+
+    protected function GetOnuMac($login) {
+        $allOnu = $this->allOnu;
+        foreach ($allOnu as $eachOnu => $each) {
+            if ($each['login'] == "$login") {
+                return($each['mac']);
+            }
+        }
+    }
+
+    protected function MacHexToDec($macOnu) {
+        if (check_mac_format($macOnu)) {
+            $res = array();
+            $args = explode(":", $macOnu);
+            foreach ($args as $each) {
+                $res[] = hexdec($each);
+            }
+            $string = implode(".",$res);
+            return ($string);
+        } else
+            show_error("Wrong mac format (shoud be XX:XX:XX:XX:XX:XX)");
+    }
+
+     protected function GetClientIface($macOnu) {
+        $snmp = new SNMPHelper();
+        $macOnu = $this->MacHexToDec($macOnu);
+        $oltIp = "10.200.0.2";
+        $oltCommunity = "Happyli";
+        $interface = ("1.3.6.1.2.1.17.4.3.1.2." . $macOnu);
+        $OltInt = $snmp->walk($oltIp, $oltCommunity, $interface);
+        $tmp = explode("=",$OltInt);
+        $tmp = explode(":",$tmp[1]);
+        $tmp = trim($tmp[1]);
+        $OltNameIntOid = (".1.3.6.1.2.1.2.2.1.2." . $tmp);
+        $OltNameInt = $snmp->walk($oltIp,$oltCommunity,$OltNameIntOid);
+        $tmp = explode("=", $OltNameInt);
+        $tmp = str_replace("STRING: ", "", $tmp[1]);
+        return($tmp);
+    }
+
+}
+
 //AUTO CONFIGURATOR
 class AutoConfigurator {
 
