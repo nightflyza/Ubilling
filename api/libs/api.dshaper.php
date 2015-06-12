@@ -2,12 +2,73 @@
 
 class DynamicShaper {
 
+    protected $allTariffs = array();
+    protected $allSpeeds = array();
+    protected $selectorParams = array();
+
+    public function __construct() {
+        $this->loadTariffs();
+        $this->loadSpeeds();
+        $this->preprocessTariffs();
+    }
+
+    /**
+     * Loads existing tariffs from database
+     * 
+     * @return void
+     */
+    protected function loadTariffs() {
+        $raw = zb_TariffsGetAll();
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                $this->allTariffs[$each['name']] = $each['name'];
+            }
+        }
+    }
+
+    /**
+     * Loads available tariff speeds from database
+     * 
+     * @return void
+     */
+    protected function loadSpeeds() {
+        $this->allSpeeds = zb_TariffGetAllSpeeds();
+    }
+
+    /**
+     * Preprocess tariffs for selector boxes
+     * 
+     * @return void
+     */
+    protected function preprocessTariffs() {
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $eachTariff) {
+                $this->selectorParams[$eachTariff] = $eachTariff . $this->getSpeeds($eachTariff);
+            }
+        }
+    }
+
+    /**
+     * Returns current tariff natural speeds
+     * 
+     * @param string $tariff
+     * @return string
+     */
+    protected function getSpeeds($tariff) {
+        $result = '';
+        if (isset($this->allSpeeds[$tariff])) {
+            $result = ' (' . $this->allSpeeds[$tariff]['speeddown'] . '/' . $this->allSpeeds[$tariff]['speedup'] . ')';
+        }
+        return ($result);
+    }
+
     /**
      * Returns available time rules grid
      * 
      * @return string
      */
     public function renderList() {
+        $messages = new UbillingMessageHelper();
         $allTariffs = zb_TariffGetPricesAll();
         $query = "SELECT * from `dshape_time` ORDER BY `id` ASC";
         $allrules = simple_queryall($query);
@@ -23,13 +84,19 @@ class DynamicShaper {
         if (!empty($allrules)) {
             foreach ($allrules as $io => $eachrule) {
                 $rowClass = (isset($allTariffs[$eachrule['tariff']])) ? 'row3' : 'sigdeleteduser';
+                if (cfr('TARIFFSPEED')) {
+                    $tariffControl = wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'], false);
+                } else {
+                    $tariffControl = $eachrule['tariff'];
+                }
+
                 $cells = wf_TableCell($eachrule['id']);
-                $cells.= wf_TableCell($eachrule['tariff']);
+                $cells.= wf_TableCell($tariffControl);
                 $cells.= wf_TableCell($eachrule['threshold1']);
                 $cells.= wf_TableCell($eachrule['threshold2']);
                 $cells.= wf_TableCell($eachrule['speed']);
-                $actions = wf_JSAlert('?module=dshaper&delete=' . $eachrule['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-                $actions.= wf_JSAlert('?module=dshaper&edit=' . $eachrule['id'], web_edit_icon(), __('Are you serious'));
+                $actions = wf_JSAlert('?module=dshaper&delete=' . $eachrule['id'], web_delete_icon(), $messages->getDeleteAlert());
+                $actions.= wf_JSAlert('?module=dshaper&edit=' . $eachrule['id'], web_edit_icon(), $messages->getEditAlert());
                 $cells.= wf_TableCell($actions);
                 $rows.= wf_TableRow($cells, $rowClass);
             }
@@ -71,11 +138,9 @@ class DynamicShaper {
     public function renderAddForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
-        $inputs = web_tariffselector('newdshapetariff') . ' ' . __('Tariff') . wf_tag('br');
-
+        $inputs = wf_Selector('newdshapetariff', $this->selectorParams, __('Tariff'), '', true);
         $inputs.= wf_TimePickerPresetSeconds('newthreshold1', '', __('Time from') . $sup . ' ', true);
         $inputs.= wf_TimePickerPresetSeconds('newthreshold2', '', __('Time to') . $sup . ' ', true);
-
         $inputs.= wf_TextInput('newspeed', __('Speed') . $sup, '', true, 8);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -96,12 +161,18 @@ class DynamicShaper {
 
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
-        $inputs = wf_tag('input', false, '', 'type="text" name="editdshapetariff" value="' . $timerule_data['tariff'] . '" READONLY') . wf_tag('br');
+        $inputs = wf_tag('select', false, '', 'DISABLED');
+        $inputs.= wf_tag('option').$timerule_data['tariff'].  $this->getSpeeds($timerule_data['tariff']).wf_tag('option',true);
+        $inputs.= wf_tag('select', true);
+        $inputs.= wf_tag('br');
+        $inputs.= wf_HiddenInput('editdshapetariff', $timerule_data['tariff']);
         $inputs.= wf_TimePickerPresetSeconds('editthreshold1', $timerule_data['threshold1'], __('Time from') . $sup, true);
         $inputs.= wf_TimePickerPresetSeconds('editthreshold2', $timerule_data['threshold2'], __('Time to') . $sup, true);
         $inputs.= wf_TextInput('editspeed', __('Speed') . $sup, $timerule_data['speed'], true, 8);
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
+        $form.= wf_CleanDiv();
+        $form.=wf_tag('br');
         $form.= wf_Link('?module=dshaper', __('Back'), true, 'ubButton');
 
 
