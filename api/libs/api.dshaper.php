@@ -84,11 +84,7 @@ class DynamicShaper {
         if (!empty($allrules)) {
             foreach ($allrules as $io => $eachrule) {
                 $rowClass = (isset($allTariffs[$eachrule['tariff']])) ? 'row3' : 'sigdeleteduser';
-                if (cfr('TARIFFSPEED')) {
-                    $tariffControl = wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'], false);
-                } else {
-                    $tariffControl = $eachrule['tariff'];
-                }
+                $tariffControl = (cfr('TARIFFSPEED')) ? wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'], false) : $eachrule['tariff'];
 
                 $cells = wf_TableCell($eachrule['id']);
                 $cells.= wf_TableCell($tariffControl);
@@ -162,7 +158,7 @@ class DynamicShaper {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = wf_tag('select', false, '', 'DISABLED');
-        $inputs.= wf_tag('option').$timerule_data['tariff'].  $this->getSpeeds($timerule_data['tariff']).wf_tag('option',true);
+        $inputs.= wf_tag('option') . $timerule_data['tariff'] . $this->getSpeeds($timerule_data['tariff']) . wf_tag('option', true);
         $inputs.= wf_tag('select', true);
         $inputs.= wf_tag('br');
         $inputs.= wf_HiddenInput('editdshapetariff', $timerule_data['tariff']);
