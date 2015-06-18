@@ -365,9 +365,16 @@ function web_SwitchEditForm($switchid) {
     }
 
 
+    if (cfr('SWITCHEDIT')) {
+        if (!ispos($switchdata['desc'], 'NP')) {
+            $result.=wf_JSAlertStyled('?module=switchreplace&switchid=' . $switchid, web_icon_extended() . ' ' . __('Replacement'), __('Are you serious'), 'ubButton') . ' ';
+        }
+    }
+
     if (cfr('SWITCHESEDIT')) {
         $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
     }
+
 
 
 
@@ -843,10 +850,10 @@ function ub_SwitchIsParent($switchid) {
  * @param int $switchid
  */
 function ub_SwitchFlushChilds($switchid) {
-      $switchid = vf($switchid,3);
-      $query="UPDATE `switches` SET `parentid`=NULL WHERE `parentid`='".$switchid."';";
-      nr_query($query);
-      log_register('SWITCH FLUSH CHILDS [' . $switchid . ']');
+    $switchid = vf($switchid, 3);
+    $query = "UPDATE `switches` SET `parentid`=NULL WHERE `parentid`='" . $switchid . "';";
+    nr_query($query);
+    log_register('SWITCH FLUSH CHILDS [' . $switchid . ']');
 }
 
 /**
@@ -1016,6 +1023,87 @@ function ub_SwitchesTimeMachineSearch($request) {
         $result = __('Nothing found');
     }
     return ($result);
+}
+
+/**
+ * Returns NP switches replacement form
+ * 
+ * @param int $fromSwitchId
+ * 
+ * @return string
+ */
+function zb_SwitchReplaceForm($fromSwitchId) {
+    $fromSwitchId = vf($fromSwitchId, 3);
+    $result = '';
+    $query = "SELECT * from `switches` WHERE `desc` LIKE '%NP%' ORDER BY `id` DESC";
+    $raw = simple_queryall($query);
+    $paramsNp = array();
+    $employee = array();
+    $employee = ts_GetActiveEmployee();
+
+    if (!empty($raw)) {
+        foreach ($raw as $io => $eachNp) {
+            $paramsNp[$eachNp['id']] = $eachNp['location'] . ' - ' . $eachNp['ip'];
+        }
+    }
+
+    $inputs = wf_HiddenInput('switchreplace', $fromSwitchId);
+    $inputs.= wf_Selector('toswtichreplace', $paramsNp, 'NP ' . __('Switch'), '', false);
+    $inputs.= wf_Selector('replaceemployeeid', $employee, __('Worker'), '', false);
+    $inputs.= wf_Submit('Save');
+    $result = wf_Form('', 'POST', $inputs, 'glamour');
+    $result.= wf_CleanDiv();
+    $result.= wf_delimiter();
+    $result.= wf_Link('?module=switches&edit=' . $fromSwitchId, __('Back'), false, 'ubButton');
+    return ($result);
+}
+
+/**
+ * Performs switch replacement in database
+ * 
+ * @param int $fromId
+ * @param int $toId
+ * @param int $employeeid
+ * 
+ * @return void
+ */
+function zb_SwitchReplace($fromId, $toId, $employeeId) {
+    $fromId = vf($fromId, 3);
+    $toId = vf($toId, 3);
+    $employeeId = vf($employeeId, 3);
+    $allEmployees = ts_GetAllEmployee();
+    $fromData = zb_SwitchGetData($fromId);
+    $toData = zb_SwitchGetData($toId);
+    if (!empty($fromData)) {
+        //copy geo coordinates to new switch
+        simple_update_field('switches', 'geo', $fromData['geo'], "WHERE `id`='" . $toId . "'");
+        //setting new description and remove NP flag
+        $newDescriptionTo = str_replace('NP', 'm:' . @$allEmployees[$employeeId], $toData['desc']);
+        simple_update_field('switches', 'desc', $newDescriptionTo, "WHERE `id`='" . $toId . "'");
+        //copy location
+        simple_update_field('switches', 'location', $fromData['location'], "WHERE `id`='" . $toId . "'");
+        //copy switch parent ID
+        if (!empty($fromData['parentid'])) {
+            simple_update_field('switches', 'parentid', $fromData['parentid'], "WHERE `id`='" . $toId . "'");
+        } else {
+            $parentId_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $toId . "';";
+            nr_query($parentId_q);
+        }
+        //moving childs if it present
+        simple_update_field('switches', 'parentid', $toId, "WHERE `parentid`='" . $fromId . "'");
+
+        // doing old switch cleanup and disabling it
+        simple_update_field('switches', 'geo', '', "WHERE `id`='" . $fromId . "'");
+        $newFromLocation = __('Removed from') . ':' . $fromData['location'];
+        simple_update_field('switches', 'location', $newFromLocation, "WHERE `id`='" . $fromId . "'");
+        $newFromDesc = 'NP u:' . @$allEmployees[$employeeId];
+        simple_update_field('switches', 'desc', $newFromDesc, "WHERE `id`='" . $fromId . "'");
+        $parentIdFrom_q = "UPDATE `switches` SET `parentid`=NULL WHERE `id`='" . $fromId . "';";
+        nr_query($parentIdFrom_q);
+        log_register("SWITCH REPLACE FROM [" . $fromId . "] TO [" . $toId . "] EMPLOYEE [" . $employeeId . "]");
+    } else {
+        show_error(__('Strange exeption') . ': FROM_SWITCH_EMPTY_DATA');
+    }
 }
 
 ?>

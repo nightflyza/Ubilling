@@ -1965,9 +1965,9 @@ $lang['def']['ONU model']='Модель ONU';
 $lang['def']['All time']='Все время';
 $lang['def']['This switch is the parent for other switches']='Этот свитч установлен как родительский для других свитчей';
 $lang['def']['Force deletion']='Все равно удалить';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['Replacement']='Замена';
+$lang['def']['Switch replacement']='Замена свитча';
+$lang['def']['Removed from']='Сняли с';
  
 
 
