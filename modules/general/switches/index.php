@@ -46,8 +46,20 @@ if (cfr('SWITCHES')) {
     if (isset($_GET['switchdelete'])) {
         if (!empty($_GET['switchdelete'])) {
             if (cfr('SWITCHESEDIT')) {
-                ub_SwitchDelete($_GET['switchdelete']);
-                rcms_redirect("?module=switches");
+                if (ub_SwitchIsParent($_GET['switchdelete'])) {
+                    if (wf_CheckGet(array('forcedel'))) {
+                        //forced parent switch deletion, childs flush
+                          ub_SwitchFlushChilds($_GET['switchdelete']);
+                          ub_SwitchDelete($_GET['switchdelete']);
+                          rcms_redirect("?module=switches");
+                    } else {
+                        show_warning(__('This switch is the parent for other switches'));
+                    }
+                    
+                } else {
+                    ub_SwitchDelete($_GET['switchdelete']);
+                    rcms_redirect("?module=switches");
+                }
             } else {
                 show_window(__('Error'), __('Access denied'));
             }
@@ -73,12 +85,19 @@ if (cfr('SWITCHES')) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
 
-
+        //parental switch deletion alternate controls
+        if (isset($_GET['switchdelete'])) {
+            $swlinks = '';
+            $swlinks.= wf_Link('?module=switches&edit=' . $_GET['switchdelete'], web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
+            $swlinks.= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'].'&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
+        }
         show_window('', $swlinks);
 
         if (!isset($_GET['timemachine'])) {
-            //display switches list
-            show_window(__('Available switches'), web_SwitchesShow());
+            if ((!isset($_GET['switchdelete']))) {
+                //display switches list
+                show_window(__('Available switches'), web_SwitchesShow());
+            }
         } else {
             //show dead switch time machine
             if (!isset($_GET['snapshot'])) {
@@ -121,7 +140,9 @@ if (cfr('SWITCHES')) {
                 simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'geo', $_POST['editgeo'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+                if ($_POST['editparentid'] != $switchid) {
+                    simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+                }
                 log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
                 rcms_redirect("?module=switches&edit=" . $switchid);
             } else {

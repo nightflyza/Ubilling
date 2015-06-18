@@ -295,7 +295,7 @@ function web_SwitchDownlinksList($switchId) {
     }
 
     if (!empty($downlinks)) {
-        $allModels=  zb_SwitchModelsGetAllTag();
+        $allModels = zb_SwitchModelsGetAllTag();
         $cells = wf_TableCell(__('ID'));
         $cells.=wf_TableCell(__('IP'));
         $cells.=wf_TableCell(__('Location'));
@@ -313,16 +313,15 @@ function web_SwitchDownlinksList($switchId) {
             $cells.=wf_TableCell($each['snmp']);
             $cells.=wf_TableCell($each['geo']);
             $cells.=wf_TableCell($each['desc']);
-            $actLinks=  wf_Link('?module=switches&edit='.$each['id'], web_edit_icon(),false);
+            $actLinks = wf_Link('?module=switches&edit=' . $each['id'], web_edit_icon(), false);
             $cells.=wf_TableCell($actLinks);
             $rows.= wf_TableRow($cells, 'row3');
         }
 
         $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        show_window(__('Downlinks'),$result);
+        show_window(__('Downlinks'), $result);
     }
 }
-
 
 /**
  * Returns switch edit form for some existing device ID
@@ -352,26 +351,25 @@ function web_SwitchEditForm($switchid) {
     $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
 
     $result.=wf_delimiter();
-    
-    $result.=wf_Link('?module=switches', __('Back'), false, 'ubButton') ; 
+
+    $result.=wf_Link('?module=switches', __('Back'), false, 'ubButton');
     if (cfr('SWITCHPOLL')) {
-        $fdbCacheName='exports/'.$switchdata['ip'].'_fdb';
+        $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
-           $result.=wf_Link('?module=switchpoller&fdbfor='.$switchdata['ip'], wf_img('skins/menuicons/switchpoller.png').' '.__('Current FDB cache'), false, 'ubButton') ; 
+            $result.=wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
         }
-        
+
         if (!empty($switchdata['snmp'])) {
-           $result.=wf_Link('?module=switchpoller&switchid='.$switchid, wf_img('skins/snmp.png').' '.__('SNMP query'), false, 'ubButton') ;
+            $result.=wf_Link('?module=switchpoller&switchid=' . $switchid, wf_img('skins/snmp.png') . ' ' . __('SNMP query'), false, 'ubButton');
         }
-       
     }
-    
-    
+
+
     if (cfr('SWITCHESEDIT')) {
         $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
     }
-    
-   
+
+
 
     return ($result);
 }
@@ -594,7 +592,7 @@ function web_SwitchesShow() {
     $countOnMap = 0;
     $countSwpoll = 0;
     $countMtsigmon = 0;
-    $countOlt=0;
+    $countOlt = 0;
     $countLinked = 0;
 
 
@@ -757,7 +755,7 @@ function web_SwitchesShow() {
             if (ispos($eachswitch['desc'], 'MTSIGMON')) {
                 $countMtsigmon++;
             }
-            
+
             if (ispos($eachswitch['desc'], 'OLT')) {
                 $countOlt++;
             }
@@ -820,6 +818,35 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $geo, $parentid = 
     $lastid = simple_get_lastid('switches');
     log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');
     show_window(__('Add switch'), __('Was added new switch') . ' ' . $ip . ' ' . $location);
+}
+
+/**
+ * Checks is switch parent for someone?
+ * 
+ * @param int $switchid
+ * @return bool
+ */
+function ub_SwitchIsParent($switchid) {
+    $switchid = vf($switchid, 3);
+    $result = false;
+    $query = "SELECT `id` from `switches` WHERE `parentid`='" . $switchid . "';";
+    $raw = simple_query($query);
+    if (!empty($raw)) {
+        $result = true;
+    }
+    return ($result);
+}
+
+/**
+ * Flushes child switches for some switch
+ * 
+ * @param int $switchid
+ */
+function ub_SwitchFlushChilds($switchid) {
+      $switchid = vf($switchid,3);
+      $query="UPDATE `switches` SET `parentid`=NULL WHERE `parentid`='".$switchid."';";
+      nr_query($query);
+      log_register('SWITCH FLUSH CHILDS [' . $switchid . ']');
 }
 
 /**

@@ -1977,5 +1977,7 @@ $lang['def']['ONU model']='Модель ONU';
 
 //rev 4495
 $lang['def']['All time']='Весь час';
+$lang['def']['This switch is the parent for other switches']='Цей комутатор встановлено, як батьківський для інших комутаторів';
+$lang['def']['Force deletion']='Все одно видалити';
 
 ?>
