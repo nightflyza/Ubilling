@@ -3751,6 +3751,22 @@ function web_AnalyticsTaskmanMonthGraph($year) {
 }
 
 /**
+ * Returns all analytics report charts
+ * 
+ * @param int $year
+ * @return string
+ */
+function web_AnalyticsAllGraphs($year) {
+      $graphs=  web_AnalyticsArpuMonthGraph($year);
+      $graphs.= web_AnalyticsPaymentsMonthGraph($year);
+      $graphs.= web_AnalyticsSignupsMonthGraph($year);
+      $graphs.= web_AnalyticsSigReqMonthGraph($year);
+      $graphs.= web_AnalyticsTicketingMonthGraph($year);
+      $graphs.= web_AnalyticsTaskmanMonthGraph($year);
+      return ($graphs);
+}
+
+/**
  * Initializes file download procedure
  * 
  * @param string $filePath

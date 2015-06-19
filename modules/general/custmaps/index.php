@@ -110,6 +110,21 @@ if (cfr('CUSTMAP')) {
         } else {
             $mapId = $_GET['showmap'];
             $placemarks = $custmaps->mapGetPlacemarks($mapId);
+            
+            //custom map layers processing
+            if (wf_CheckGet(array('cl'))) {
+                if (!empty($_GET['cl'])) {
+                    $custLayers=  explode('z', $_GET['cl']);
+                    if (!empty($custLayers)) {
+                        foreach ($custLayers as $eachCustLayerId) {
+                            if (!empty($eachCustLayerId)) {
+                                $placemarks.=$custmaps->mapGetPlacemarks($eachCustLayerId);
+                            }
+                            
+                        }
+                    }
+                }
+            }
             if (wf_CheckGet(array('layers'))) {
                 $layers = $_GET['layers'];
                 //switches layer

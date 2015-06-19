@@ -367,7 +367,7 @@ function web_SwitchEditForm($switchid) {
 
     if (cfr('SWITCHEDIT')) {
         if (!ispos($switchdata['desc'], 'NP')) {
-            $result.=wf_JSAlertStyled('?module=switchreplace&switchid=' . $switchid, web_icon_extended() . ' ' . __('Replacement'), __('Are you serious'), 'ubButton') . ' ';
+            $result.=wf_JSAlertStyled('?module=switchreplace&switchid=' . $switchid, wf_img('skins/duplicate_icon.gif') . ' ' . __('Replacement'), __('Are you serious'), 'ubButton') . ' ';
         }
     }
 
@@ -1094,7 +1094,7 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
 
         // doing old switch cleanup and disabling it
         simple_update_field('switches', 'geo', '', "WHERE `id`='" . $fromId . "'");
-        $newFromLocation = __('Removed from') . ':' . $fromData['location'];
+        $newFromLocation = __('Removed from') . ': ' . $fromData['location'];
         simple_update_field('switches', 'location', $newFromLocation, "WHERE `id`='" . $fromId . "'");
         $newFromDesc = 'NP u:' . @$allEmployees[$employeeId];
         simple_update_field('switches', 'desc', $newFromDesc, "WHERE `id`='" . $fromId . "'");

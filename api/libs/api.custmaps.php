@@ -163,6 +163,14 @@ class CustomMaps {
                 $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&mapedit=true', wf_img('skins/ymaps/edit.png') . ' ' . __('Edit'), false, 'ubButton');
             }
 
+            //custom layers
+            if (wf_CheckGet(array('cl'))) {
+                $custLayers = $_GET['cl'];
+            } else {
+                $custLayers = '';
+            }
+
+            //system layers
             if (wf_CheckGet(array('layers'))) {
                 $curLayers = $_GET['layers'];
             } else {
@@ -170,10 +178,16 @@ class CustomMaps {
             }
 
             $result.=wf_Link('?module=custmaps&showitems=' . $mapId, wf_img('skins/icon_table.png') . ' ' . __('Objects'), false, 'ubButton');
+            $result.=wf_delimiter();
             $result.=wf_Link('?module=custmaps&showmap=' . $mapId, wf_img('skins/icon_cleanup.png') . ' ' . $this->mapGetName($mapId), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=bs' . $this->filterLayers($curLayers, 'bs'), wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=sw' . $this->filterLayers($curLayers, 'sw'), wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
-            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=ul' . $this->filterLayers($curLayers, 'ul'), wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
+            foreach ($this->allMaps as $cmapId => $cmapData) {
+                if ($cmapId != $mapId) {
+                    $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=' . $curLayers . '&cl=' . $cmapId . 'z' . $this->filterLayers($custLayers, $cmapId . 'z'), wf_img('skins/swmapsmall.png') . ' ' . $this->mapGetName($cmapId), false, 'ubButton');
+                }
+            }
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=bs' . $this->filterLayers($curLayers, 'bs') . '&cl=' . $custLayers, wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=sw' . $this->filterLayers($curLayers, 'sw') . '&cl=' . $custLayers, wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
+            $result.=wf_Link('?module=custmaps&showmap=' . $mapId . '&layers=ul' . $this->filterLayers($curLayers, 'ul') . '&cl=' . $custLayers, wf_img('skins/ymaps/uplinks.png') . ' ' . __('Show links'), false, 'ubButton');
         }
         $result.=wf_delimiter();
         return ($result);

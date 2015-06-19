@@ -9,6 +9,7 @@ include('api/api.stargazer.php');
 include('api/libs/api.compat.php');
 include('api/libs/api.morph.php');
 include('api/libs/api.ubconfig.php');
+include('api/libs/api.ubcache.php');
 include('api/libs/api.bootstrap.php');
 include('api/libs/api.astral.php');
 include('api/libs/api.dbconnect.php');

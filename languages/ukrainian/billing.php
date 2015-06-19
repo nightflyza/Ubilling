@@ -1982,5 +1982,7 @@ $lang['def']['Force deletion']='Все одно видалити';
 $lang['def']['Replacement']='Заміна';
 $lang['def']['Switch replacement']='Заміна комутатора';
 $lang['def']['Removed from']='Зняли з';
+$lang['def']['System cache storage']='Сховище системного кешу';
+$lang['def']['From cache']='З кешу';
 
 ?>

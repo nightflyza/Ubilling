@@ -151,6 +151,7 @@ SWITCH_AUTOCONFIG=TRIGGER|VLAN switch autoconfiguration
 PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
 CONDET_ENABLED=TRIGGER|Connection details module enabled
 CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
+UBCACHE_STORAGE=VARCHAR|System cache storage
 
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options

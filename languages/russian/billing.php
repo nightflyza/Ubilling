@@ -1968,7 +1968,15 @@ $lang['def']['Force deletion']='Все равно удалить';
 $lang['def']['Replacement']='Замена';
 $lang['def']['Switch replacement']='Замена свитча';
 $lang['def']['Removed from']='Сняли с';
- 
+$lang['def']['System cache storage']='Хранилище системного кеша';
+$lang['def']['From cache']='Из кеша';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
+
 
 
 

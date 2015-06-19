@@ -5,12 +5,12 @@ if (cfr('EVENTVIEW')) {
     /**
      * Returns selector of administrator logins
      * 
-     * @param type $name
-     * @param type $label
+     * @param string $name
+     * @param string $label
      * @return string
      */
     function web_EventsAdminSelector($name, $label = '') {
-        $all=  rcms_scandir(USERS_PATH);      
+        $all = rcms_scandir(USERS_PATH);
         $alllogins = array('' => '-');
         if (!empty($all)) {
             foreach ($all as $each) {
@@ -67,132 +67,124 @@ if (cfr('EVENTVIEW')) {
         return ($allevents);
     }
 
-    function web_EventsShowStats() {
-//caching options    
-        $cachetimeout = (120 * 60); //in minutes
-        $cachetime = time() - $cachetimeout;
-        $cachepath = 'exports/';
-        $cacheFile = $cachepath . 'eventstatscache.dat';
-        $updateCache = true;
-
-//cache handling
-        if (file_exists($cacheFile)) {
-            if (filemtime($cacheFile) > $cachetime) {
-                $updateCache = false;
-            } else {
-                $updateCache = true;
-            }
-        } else {
-            $updateCache = true;
-        }
-
-        if ($updateCache) {
-            $cmonth = date("Y-m-");
-            $cday = date("d");
-            $reg_q = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $cmonth . "%'";
-            $regc = simple_query($reg_q);
-            $regc = $regc['COUNT(`id`)'];
-            $mac_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
-            $macc = simple_query($mac_q);
-            $macc = $macc['COUNT(`id`)'];
-            $events_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
-            $eventsc = simple_query($events_q);
-            $eventsc = $eventsc['COUNT(`id`)'];
-            $switch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
-            $switchc = simple_query($switch_q);
-            $switchc = $switchc['COUNT(`id`)'];
-            $credit_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
-            $creditc = simple_query($credit_q);
-            $creditc = $creditc['COUNT(`id`)'];
-            $pay_q = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $cmonth . "%' AND `summ`>0";
-            $payc = simple_query($pay_q);
-            $payc = $payc['COUNT(`id`)'];
-            $tarch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE TariffNM%'";
-            $tarchc = simple_query($tarch_q);
-            $tarchc = $tarchc['COUNT(`id`)'];
-            $stg_q = "SELECT COUNT(`unid`) from `logs_" . date("m") . "_" . date("Y") . "`";
-            $stgc = simple_query($stg_q);
-            $stgc = $stgc['COUNT(`unid`)'];
+    /**
+     * Returns event stats 
+     * 
+     * @return string
+     */
+    function zb_GetEventStats() {
+        $cmonth = date("Y-m-");
+        $cday = date("d");
+        $reg_q = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . $cmonth . "%'";
+        $regc = simple_query($reg_q);
+        $regc = $regc['COUNT(`id`)'];
+        $mac_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE MultiNetHostMac%'";
+        $macc = simple_query($mac_q);
+        $macc = $macc['COUNT(`id`)'];
+        $events_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%'";
+        $eventsc = simple_query($events_q);
+        $eventsc = $eventsc['COUNT(`id`)'];
+        $switch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'SWITCH ADD%'";
+        $switchc = simple_query($switch_q);
+        $switchc = $switchc['COUNT(`id`)'];
+        $credit_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE Credit%' AND `event` NOT LIKE '%CreditExpire%'";
+        $creditc = simple_query($credit_q);
+        $creditc = $creditc['COUNT(`id`)'];
+        $pay_q = "SELECT COUNT(`id`) from `payments` WHERE `date` LIKE '" . $cmonth . "%' AND `summ`>0";
+        $payc = simple_query($pay_q);
+        $payc = $payc['COUNT(`id`)'];
+        $tarch_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'CHANGE TariffNM%'";
+        $tarchc = simple_query($tarch_q);
+        $tarchc = $tarchc['COUNT(`id`)'];
+        $stg_q = "SELECT COUNT(`unid`) from `logs_" . date("m") . "_" . date("Y") . "`";
+        $stgc = simple_query($stg_q);
+        $stgc = $stgc['COUNT(`unid`)'];
 // workdays fix
-            $weeks = ($cday / 7);
-            $weeks = intval($weeks);
+        $weeks = ($cday / 7);
+        $weeks = intval($weeks);
 
-            if ($weeks >= 1) {
-                $cday = $cday - (2 * $weeks);
-            }
-
-            $tablecells = wf_TableCell(__('What done') . '?');
-            $tablecells.=wf_TableCell(__('Current month'));
-            $tablecells.=wf_TableCell(__('Average per day'));
-            $tablerows = wf_TableRow($tablecells, 'row1');
-
-            $tablecells = wf_TableCell(__('Current month signups'));
-            $tablecells.=wf_TableCell($regc);
-            $tablecells.=wf_TableCell(round($regc / $cday, 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('MAC changes'));
-            $tablecells.=wf_TableCell(($macc - $regc));
-            $tablecells.=wf_TableCell(round((($macc - $regc) / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('Switches added'));
-            $tablecells.=wf_TableCell(($switchc));
-            $tablecells.=wf_TableCell(round(($switchc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('Credits set'));
-            $tablecells.=wf_TableCell($creditc);
-            $tablecells.=wf_TableCell(round(($creditc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-
-            $tablecells = wf_TableCell(__('Payments processed'));
-            $tablecells.=wf_TableCell($payc);
-            $tablecells.=wf_TableCell(round(($payc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('Planned changes to tariffs'));
-            $tablecells.=wf_TableCell($tarchc);
-            $tablecells.=wf_TableCell(round(($tarchc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('External billing events'));
-            $tablecells.=wf_TableCell($eventsc);
-            $tablecells.=wf_TableCell(round(($eventsc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $tablecells = wf_TableCell(__('Internal billing events'));
-            $tablecells.=wf_TableCell($stgc);
-            $tablecells.=wf_TableCell(round(($stgc / $cday), 2));
-            $tablerows.=wf_TableRow($tablecells, 'row3');
-
-            $template = wf_TableBody($tablerows, '50%', '0');
-            file_put_contents($cacheFile, $template);
-        } else {
-            $template = file_get_contents($cacheFile);
-            $cacheCurrentTime = filemtime($cacheFile);
-            $cacheCurrentTime = date("Y-m-d H:i:s", $cacheCurrentTime);
-            $template.= __('Cache state at time') . ': ' . $cacheCurrentTime . ' ' . wf_Link('?module=eventview&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')));
-            //cache cleanup subroutine
-            if (wf_CheckGet(array('forcecache'))) {
-                unlink($cacheFile);
-                rcms_redirect('?module=eventview');
-            }
+        if ($weeks >= 1) {
+            $cday = $cday - (2 * $weeks);
         }
 
+        $tablecells = wf_TableCell(__('What done') . '?');
+        $tablecells.=wf_TableCell(__('Current month'));
+        $tablecells.=wf_TableCell(__('Average per day'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
 
-        show_window(__('Month actions stats'), $template);
+        $tablecells = wf_TableCell(__('Current month signups'));
+        $tablecells.=wf_TableCell($regc);
+        $tablecells.=wf_TableCell(round($regc / $cday, 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('MAC changes'));
+        $tablecells.=wf_TableCell(($macc - $regc));
+        $tablecells.=wf_TableCell(round((($macc - $regc) / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('Switches added'));
+        $tablecells.=wf_TableCell(($switchc));
+        $tablecells.=wf_TableCell(round(($switchc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('Credits set'));
+        $tablecells.=wf_TableCell($creditc);
+        $tablecells.=wf_TableCell(round(($creditc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+
+        $tablecells = wf_TableCell(__('Payments processed'));
+        $tablecells.=wf_TableCell($payc);
+        $tablecells.=wf_TableCell(round(($payc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('Planned changes to tariffs'));
+        $tablecells.=wf_TableCell($tarchc);
+        $tablecells.=wf_TableCell(round(($tarchc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('External billing events'));
+        $tablecells.=wf_TableCell($eventsc);
+        $tablecells.=wf_TableCell(round(($eventsc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $tablecells = wf_TableCell(__('Internal billing events'));
+        $tablecells.=wf_TableCell($stgc);
+        $tablecells.=wf_TableCell(round(($stgc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+
+        $result = wf_TableBody($tablerows, '50%', '0');
+        return ($result);
     }
-    
-/**
- * Renders weblogs search results
- * 
- * @param int    $limit
- * @param string $adminlogin
- * @param string $searchevent
- * @return string
- */
+
+    /**
+     * Shows 
+     * 
+     * @return void
+     */
+    function web_EventsShowStats() {
+        $cache = new UbillingCache();
+        $cacheTime = 3600; // 1 hour
+        $data = $cache->getCallback('EVENTVIEW_STATS', function() {
+            return(zb_GetEventStats());
+        }, $cacheTime);
+        $data.= __('From cache') . ' ' . wf_Link('?module=eventview&forcecache=true', wf_img('skins/icon_cleanup.png', __('Renew')));
+        //cache cleanup subroutine
+        if (wf_CheckGet(array('forcecache'))) {
+            $cache->delete('EVENTVIEW_STATS');
+            rcms_redirect('?module=eventview');
+        }
+        show_window(__('Month actions stats'), $data);
+    }
+
+    /**
+     * Renders weblogs search results
+     * 
+     * @param int    $limit
+     * @param string $adminlogin
+     * @param string $searchevent
+     * @return string
+     */
     function web_EventsLister($limit, $adminlogin = '', $searchevent = '') {
         if (!isset($_POST['eventdate'])) {
             $allevents = zb_GetAllEvents($limit);
@@ -200,7 +192,7 @@ if (cfr('EVENTVIEW')) {
             $allevents = zb_GetAllEventsByDate($_POST['eventdate']);
         }
 
-        if ((!empty($searchevent)) OR (!empty($adminlogin))) {
+        if ((!empty($searchevent)) OR ( !empty($adminlogin))) {
             $allevents = zb_GetAllEventsByPattern($searchevent, $adminlogin, $limit);
         }
 
@@ -220,7 +212,7 @@ if (cfr('EVENTVIEW')) {
 
 
         $eventsearchinputs = web_EventsAdminSelector('eventadmin', __('Administrator'));
-        $currentPattern=  wf_CheckPost(array('eventsearch')) ? $_POST['eventsearch'] : '';
+        $currentPattern = wf_CheckPost(array('eventsearch')) ? $_POST['eventsearch'] : '';
         $eventsearchinputs.= wf_TextInput('eventsearch', 'Event', $currentPattern, false, '30');
         $eventsearchinputs.=wf_Submit('Find');
         $eventsearchform = wf_Form('', 'POST', $eventsearchinputs, 'glamour');
