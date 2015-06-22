@@ -25,6 +25,7 @@ if (cfr('REPORTTARIFFS')) {
         $tariffCharts = $chartsCache->getCallback('REPORT_TARIFFS_TARIFFHCHART', function () {
             return ( web_TariffShowTariffCharts());
         }, $cachingTime);
+
         $chartsControlTariffs = ' ' . wf_modalAuto(wf_img('skins/icon_stats.gif', __('Graphs')), __('Popularity of tariffs among users'), $tariffCharts);
     } else {
         $chartsControlMove = '';

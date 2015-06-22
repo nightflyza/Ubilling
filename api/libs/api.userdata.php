@@ -587,13 +587,26 @@ function zb_CreditGetAllUsers() {
  * Returns price of tariff by its name
  * 
  * @param string $tariff
- * @return int
+ * @return float
  */
 function zb_TariffGetPrice($tariff) {
     $tariff = mysql_real_escape_string($tariff);
     $query = "SELECT `Fee` from `tariffs` WHERE `name`='" . $tariff . "'";
     $res = simple_query($query);
     return($res['Fee']);
+}
+
+/**
+ * Returns full data of tariff by its name
+ * 
+ * @param string $tariff
+ * @return array
+ */
+function zb_TariffGetData($tariff) {
+    $tariff = mysql_real_escape_string($tariff);
+    $query = "SELECT * from `tariffs` WHERE `name`='" . $tariff . "'";
+    $result = simple_query($query);
+    return ($result);
 }
 
 /**

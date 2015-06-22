@@ -6,6 +6,8 @@ if (cfr('PLFUNDS')) {
         $login = $_GET['username'];
 
         $funds=new FundsFlow();
+        
+        show_window('',$funds->getOnlineLeftCount($login));
 
         $allfees = $funds->getFees($login);
         $allpayments = $funds->getPayments($login);

@@ -1970,15 +1970,17 @@ $lang['def']['Switch replacement']='Замена свитча';
 $lang['def']['removed from']='сняли с';
 $lang['def']['System cache storage']='Хранилище системного кеша';
 $lang['def']['From cache']='Из кеша';
+$lang['def']['of service usage']='использования услуги';
+$lang['def']['or enought till the']='или достаточно до';
+$lang['def']['indebtedness']='задолженность';
+$lang['def']['according to the tariff']='согласно тарифа';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
-
-
-
+$lang['def']['']='';
+$lang['def']['']='';
 
 
 

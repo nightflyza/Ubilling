@@ -487,11 +487,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
 
-    if ($tariff_price != 0) {
-        $expected_time = ', ' . __('which should be enough for another') . ' ' . intval($olddata / $tariff_price) . ' ' . __('months of service use');
-    } else {
-        $expected_time = '';
-    }
+   
     //cash suspect checking 
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['SUSP_PAYMENTS_NOTIFY']) {
@@ -529,7 +525,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $rows = wf_TableRow($cells);
 
     $cells = wf_TableCell($field1, '', 'row2');
-    $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true) . $expected_time, '', 'row3');
+    $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true), '', 'row3');
     $rows.= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
@@ -2526,15 +2522,10 @@ function web_TariffShowTariffCharts() {
         }
     }
 
-    $cells='';
-    $rows='';
     if (!empty($chartData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Users'), '500px', '500px'));
+        $result.= wf_gcharts3DPie($chartData, __('Users'), '500px', '500px');
+       
     }
-
-    $rows.= wf_TableRow($cells);
-    $result.=wf_TableBody($rows, '600', 0);
-
 
     return ($result);
 }

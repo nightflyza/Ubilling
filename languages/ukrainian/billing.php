@@ -1984,5 +1984,9 @@ $lang['def']['Switch replacement']='Заміна комутатора';
 $lang['def']['removed from']='зняли з';
 $lang['def']['System cache storage']='Сховище системного кешу';
 $lang['def']['From cache']='З кешу';
+$lang['def']['of service usage']='використання послуги';
+$lang['def']['or enought till the']='або достатньо до';
+$lang['def']['indebtedness']='заборгованість';
+$lang['def']['according to the tariff']='згідно тарифу';
 
 ?>

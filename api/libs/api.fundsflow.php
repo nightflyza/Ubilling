@@ -300,7 +300,7 @@ class FundsFlow {
      * @param array $allUserContracts
      * @return string
      */
-    public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices) {
+    public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash, $allUserTariffs, $allTariffPrices) {
         $result = '';
         $rawData = array();
         $rawData['balance'] = 0;
@@ -350,10 +350,10 @@ class FundsFlow {
             }
             $cells.=wf_TableCell($loginLink);
             $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
-            $cells.=wf_TableCell(round($rawData['payments'],2));
-            $cells.=wf_TableCell(round($rawData['paymentscorr'],2));
-            $cells.=wf_TableCell(round($rawData['balance'],2));
-            $cells.=wf_TableCell(round($rawData['used'],2));
+            $cells.=wf_TableCell(round($rawData['payments'], 2));
+            $cells.=wf_TableCell(round($rawData['paymentscorr'], 2));
+            $cells.=wf_TableCell(round($rawData['balance'], 2));
+            $cells.=wf_TableCell(round($rawData['used'], 2));
             $result.=wf_TableRow($cells, 'row3');
         }
         return ($result);
@@ -404,32 +404,117 @@ class FundsFlow {
      * @return string
      */
     public function renderCorpsFlowsDateForm() {
-         $allagents=zb_ContrAhentGetAllData();
-         $tmpArr=array();
-         $tmpArr['']=__('Any');
-         if (!empty ($allagents)) {
-             foreach ($allagents as $io=>$eachagent) {
-                 $tmpArr[$eachagent['id']]=$eachagent['contrname'];
-             }
-             
-         }
-         
+        $allagents = zb_ContrAhentGetAllData();
+        $tmpArr = array();
+        $tmpArr[''] = __('Any');
+        if (!empty($allagents)) {
+            foreach ($allagents as $io => $eachagent) {
+                $tmpArr[$eachagent['id']] = $eachagent['contrname'];
+            }
+        }
+
         /**
-        * Again and again we're drowning in this web
-        * Again and again we make the same mistake
-        * Always hunting the same lamb
-        * All we get is the same crap....
-        */
-       
-        $inputs = wf_YearSelector('yearsel', __('Year'), false).' ';
-        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false).' ';
+         * Again and again we're drowning in this web
+         * Again and again we make the same mistake
+         * Always hunting the same lamb
+         * All we get is the same crap....
+         */
+        $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
+        $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false) . ' ';
         $inputs.= wf_Selector('agentsel', $tmpArr, __('Contrahent name'), '', false);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
-    
-    
+
+    /**
+     * Returns user online left days
+     * 
+     * @param string $login existing users login
+     * @param double $userBalance current users balance
+     * @param string $userTariff users tariff
+     * @param bool   $rawdays show only days count
+     * @return string
+     */
+    public function getOnlineLeftCount($login, $rawDays = false) {
+        $userData = zb_UserGetStargazerData($login);
+        $balanceExpire = '';
+        if (!empty($userData)) {
+            $userTariff = $userData['Tariff'];
+            $userBalanceRaw = $userData['Cash'];
+            $userBalance = $userData['Cash'];
+            $tariffData = zb_TariffGetData($userTariff);
+            $tariffFee = $tariffData['Fee'];
+            $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+
+            $daysOnLine = 0;
+
+
+
+            if (isset($this->alterConf['SPREAD_FEE'])) {
+                if ($this->alterConf['SPREAD_FEE']) {
+                    $spreadFee = true;
+                } else {
+                    $spreadFee = false;
+                }
+            } else {
+                $spreadFee = false;
+            }
+
+
+            if ($userBalance >= 0) {
+                if ($tariffFee > 0) {
+                    //spread fee
+                    if ($spreadFee) {
+                        if ($tariffPeriod == 'month') {
+                            //monthly period
+                            while ($userBalance >= 0) {
+                                $daysOnLine++;
+                                $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+                                $userBalance = $userBalance - $dayFee;
+                            }
+                        } else {
+                            //daily period
+                            while ($userBalance >= 0) {
+                                $daysOnLine++;
+                                $userBalance = $userBalance - $tariffFee;
+                            }
+                        }
+                    } else {
+                        //non spread fee
+                        if ($tariffPeriod == 'month') {
+                            //monthly non spread fee
+                            while ($userBalance >= 0) {
+                                $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                                $userBalance = $userBalance - $tariffFee;
+                            }
+                        } else {
+                            //daily non spread fee
+                            while ($userBalance >= 0) {
+                                $daysOnLine++;
+                                $userBalance = $userBalance - $tariffFee;
+                            }
+                        }
+                    }
+                }
+
+
+                $balanceExpire = wf_tag('span', false, 'alert_info');
+                $balanceExpire.=__('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
+                $balanceExpire.=' ' . $daysOnLine . ' ' . __('days') . ' ' . __('of service usage') . ' ';
+                $balanceExpire.= __('or enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60)) . ' ';
+                $balanceExpire.= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
+                $balanceExpire.= wf_tag('span', true);
+            } else {
+                $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
+            }
+
+            if ($rawDays) {
+                $balanceExpire = $daysOnLine;
+            }
+        }
+        return ($balanceExpire);
+    }
 
 }
 
