@@ -1981,7 +1981,7 @@ $lang['def']['This switch is the parent for other switches']='Цей комут�
 $lang['def']['Force deletion']='Все одно видалити';
 $lang['def']['Replacement']='Заміна';
 $lang['def']['Switch replacement']='Заміна комутатора';
-$lang['def']['Removed from']='Зняли з';
+$lang['def']['removed from']='зняли з';
 $lang['def']['System cache storage']='Сховище системного кешу';
 $lang['def']['From cache']='З кешу';
 

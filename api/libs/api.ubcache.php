@@ -121,6 +121,15 @@ class UbillingCache {
         return ($result);
     }
 
+    /* If you think it's too loud
+      Bitch get the fuck out
+      If you wanna slow down
+      Bitch get the fuck out
+      If your ass ain't with me
+      Bitch get the fuck out
+      What get the fuck out
+      Bitch get the fuck out */
+
     /**
      * Puts data into cache storage
      * 

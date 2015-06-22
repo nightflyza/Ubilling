@@ -1850,12 +1850,26 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
  * @return string
  */
 function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
+    global $ubillingConfig;
+    $altCfg=$ubillingConfig->getAlter();
+   
     $containerId = wf_InputId();
     $width = ($width) ? $width : '500px';
     $height = ($height) ? $height : '500px';
     $result = '';
     $chartData = '';
-
+    $enableFlag=true;
+ if (!isset($altCfg['GCHARTS_ENABLED'])) {
+     $enableFlag=true;
+ } else {
+     if ($altCfg['GCHARTS_ENABLED']) {
+         $enableFlag=true;
+     } else {
+         $enableFlag=false;
+     }
+ }
+ 
+ if ($enableFlag) {
     if (!empty($params)) {
         foreach ($params as $io => $each) {
             $chartData.= '[\'' . $io . '\',' . $each . '],';
@@ -1890,8 +1904,9 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
 
     $result.=wf_tag('script', true);
     $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
-
+ }
     return ($result);
+    
 }
 
 ?>

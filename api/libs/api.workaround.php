@@ -375,7 +375,7 @@ function web_EditorStringDataFormMACSelect($fieldnames, $fieldkey, $useraddress,
     if ($alterconf['MACVEN_ENABLED']) {
         $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $olddata . '" width="360" height="160" frameborder="0"');
         $vendorframe.= wf_tag('iframe', true);
-        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe,'');
+        $lookuplink = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
     } else {
         $lookuplink = '';
     }
@@ -867,10 +867,10 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $disountset = explode(':', $paynote);
         $paynote = __('Discount') . ' ' . $disountset[1] . '%';
     }
-    
+
     if (ispos($paynote, 'PENALTY')) {
-        $penalty= explode(':', $paynote);
-        $paynote= __('Penalty').' '.$penalty[1].' '.__('days');
+        $penalty = explode(':', $paynote);
+        $paynote = __('Penalty') . ' ' . $penalty[1] . ' ' . __('days');
     }
 
     return ($paynote);
@@ -882,12 +882,12 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
  * @return string
  */
 function web_TariffSpeedLister() {
-    $results='';
+    $results = '';
     $alltariffs = zb_TariffsGetAll();
-    $availTariffs=array();
+    $availTariffs = array();
     $allspeeds = zb_TariffGetAllSpeeds();
-    $cleanSpeedCount=0;
-    
+    $cleanSpeedCount = 0;
+
     $cells = wf_TableCell(__('Tariff'));
     $cells.= wf_TableCell(__('Download speed'));
     $cells.= wf_TableCell(__('Upload speed'));
@@ -896,7 +896,7 @@ function web_TariffSpeedLister() {
 
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
-            $availTariffs[$eachtariff['name']]=$eachtariff['name'];
+            $availTariffs[$eachtariff['name']] = $eachtariff['name'];
             $cells = wf_TableCell($eachtariff['name']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
@@ -909,30 +909,29 @@ function web_TariffSpeedLister() {
 
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    
+
     if (!empty($allspeeds)) {
-        $cells=  wf_TableCell(__('Tariff').' ('.__('Deleted').')');
+        $cells = wf_TableCell(__('Tariff') . ' (' . __('Deleted') . ')');
         $cells.= wf_TableCell(__('Download speed'));
         $cells.= wf_TableCell(__('Upload speed'));
         $cells.= wf_TableCell(__('Actions'));
-        $rows=  wf_TableRow($cells,'row1');
-        
-        foreach ($allspeeds as $eachtariff=>$eachspeed) {
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($allspeeds as $eachtariff => $eachspeed) {
             if (!isset($availTariffs[$eachtariff])) {
-            $cells=  wf_TableCell($eachtariff);
-            $cells.= wf_TableCell($eachspeed['speeddown']);
-            $cells.= wf_TableCell($eachspeed['speedup']);
-            $cells.= wf_TableCell(wf_JSAlert('?module=tariffspeeds&deletespeed='.$eachtariff, web_delete_icon(), __('Are you serious')));
-            $rows.=  wf_TableRow($cells,'row3');
-            $cleanSpeedCount++;
+                $cells = wf_TableCell($eachtariff);
+                $cells.= wf_TableCell($eachspeed['speeddown']);
+                $cells.= wf_TableCell($eachspeed['speedup']);
+                $cells.= wf_TableCell(wf_JSAlert('?module=tariffspeeds&deletespeed=' . $eachtariff, web_delete_icon(), __('Are you serious')));
+                $rows.= wf_TableRow($cells, 'row3');
+                $cleanSpeedCount++;
             }
         }
-        if ($cleanSpeedCount!=0) {
+        if ($cleanSpeedCount != 0) {
             $result.= wf_delimiter();
-            $result.= wf_tag('h3').__('Database cleanup').  wf_tag('h3',true);
+            $result.= wf_tag('h3') . __('Database cleanup') . wf_tag('h3', true);
             $result.= wf_TableBody($rows, '100%', 0, 'sortable');
         }
-        
     }
 
     return($result);
@@ -1118,13 +1117,13 @@ function zb_EventGetAllDateTimes() {
  * @return string
  */
 function web_PaymentEditForm($paymentData) {
-    $result='';
+    $result = '';
     if (!empty($paymentData)) {
-        $paymentTimestamp=  strtotime($paymentData['date']);
-        $paymentDate=date("Y-m-d",$paymentTimestamp);
-        $paymentTime=date("H:i:s",$paymentTimestamp);
-        
-        $inputs= __('New date').' ';
+        $paymentTimestamp = strtotime($paymentData['date']);
+        $paymentDate = date("Y-m-d", $paymentTimestamp);
+        $paymentTime = date("H:i:s", $paymentTimestamp);
+
+        $inputs = __('New date') . ' ';
         $inputs.='<!--ugly hack to prevent datepicker autoopen -->';
         $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
         $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
@@ -1132,7 +1131,7 @@ function web_PaymentEditForm($paymentData) {
         $inputs.= wf_HiddenInput('oldpaymentdate', $paymentDate);
         $inputs.= wf_HiddenInput('oldpaymenttime', $paymentTime);
         $inputs.= wf_Submit(__('Save'));
-        $result=  wf_Form('', 'POST', $inputs, 'glamour');
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
     }
     return ($result);
 }
@@ -1152,27 +1151,27 @@ function web_PaymentsByUser($login) {
     $total_payments = "0";
     $curdate = curdate();
     $deletingAdmins = array();
-    $editingAdmins= array();
+    $editingAdmins = array();
     $iCanDeletePayments = false;
-    $iCanEditPayments= false;
+    $iCanEditPayments = false;
     $currentAdminLogin = whoami();
-    
+
     //extract admin logins with payments delete rights
     if (!empty($alter_conf['CAN_DELETE_PAYMENTS'])) {
         $deletingAdmins = explode(',', $alter_conf['CAN_DELETE_PAYMENTS']);
         $deletingAdmins = array_flip($deletingAdmins);
     }
-    
+
     //extract admin logins with date edit rights
     if (!empty($alter_conf['CAN_EDIT_PAYMENTS'])) {
-        $editingAdmins=explode(',', $alter_conf['CAN_EDIT_PAYMENTS']);
-        $editingAdmins=  array_flip($editingAdmins);
+        $editingAdmins = explode(',', $alter_conf['CAN_EDIT_PAYMENTS']);
+        $editingAdmins = array_flip($editingAdmins);
     }
-    
+
     //setting editing/deleting flags
     $iCanDeletePayments = (isset($deletingAdmins[$currentAdminLogin])) ? true : false;
     $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
-    
+
 
     $cells = wf_TableCell(__('ID'));
     $cells.= wf_TableCell(__('IDENC'));
@@ -1219,9 +1218,9 @@ function web_PaymentsByUser($login) {
 
             //payments editing form
             if ($iCanEditPayments) {
-                $editControls=  wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '').' &nbsp; ';
+                $editControls = wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '') . ' &nbsp; ';
             } else {
-                $editControls='';
+                $editControls = '';
             }
 
             $cells = wf_TableCell($eachpayment['id']);
@@ -1232,7 +1231,7 @@ function web_PaymentsByUser($login) {
             $cells.= wf_TableCell(@__($alltypes[$eachpayment['cashtypeid']]));
             $cells.= wf_TableCell($eachpayment['note']);
             $cells.= wf_TableCell($eachpayment['admin']);
-            $cells.= wf_TableCell($deleteControls.$editControls . $printcheck);
+            $cells.= wf_TableCell($deleteControls . $editControls . $printcheck);
             $rows.= wf_TableRow($cells, $hlight);
 
             $total_payments = $total_payments + $eachpayment['summ'];
@@ -1740,54 +1739,55 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
  * @return string
  */
 function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
-  // Получаем список сетей
-  $networks = multinet_get_all_networks();
-  $cidrs = array();
-  if ( !empty($networks) ) {
-    foreach ( $networks as $network )
-      $cidrs[$network['id']] = $network['desc'];
-  }
-  // Заголовок таблицы
-  $cells = '';
-  foreach ( $titles as $title )
-    $cells .= wf_TableCell(__($title));
-  $cells .= wf_TableCell(__('Actions'));
-  $rows = wf_TableRow($cells, 'row1');
-  // Содержимое таблицы
-  if ( !empty($alldata) ) {
-    foreach ( $alldata as $data ) {
-      $cells = ''; $actions = '';
-      if ( $delete )
-        $actions .= wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $data['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
-      if ( $edit )
-        $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
-      foreach ( $keys as $key ) {
-        if ( array_key_exists($key, $data) ) {
-          switch ($key) {
-            case 'netid':
-              $cells .= wf_TableCell($data[$key] . ': ' . $cidrs[$data[$key]]);
-              break;
-            case 'nastype':
-              if ( $data[$key] == 'mikrotik' )
-                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
-              if ( $data[$key] == 'radius' )
-                $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
-              $cells .= wf_TableCell($data[$key]);
-              break;
-            default:
-              $cells .= wf_TableCell($data[$key]);
-              break;
-          }
-        }
-      }
-      $cells .= wf_TableCell($actions);
-      $rows .= wf_TableRow($cells, 'row3');
+    // Получаем список сетей
+    $networks = multinet_get_all_networks();
+    $cidrs = array();
+    if (!empty($networks)) {
+        foreach ($networks as $network)
+            $cidrs[$network['id']] = $network['desc'];
     }
-  }
-  // Результат - таблица
-  $result = wf_TableBody($rows, '100%', 0, 'sortable');
-  // Отображаем результат
-  return $result;
+    // Заголовок таблицы
+    $cells = '';
+    foreach ($titles as $title)
+        $cells .= wf_TableCell(__($title));
+    $cells .= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells, 'row1');
+    // Содержимое таблицы
+    if (!empty($alldata)) {
+        foreach ($alldata as $data) {
+            $cells = '';
+            $actions = '';
+            if ($delete)
+                $actions .= wf_JSAlert('?module=' . $module . '&' . $prefix . 'delete=' . $data['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
+            if ($edit)
+                $actions .= wf_Link('?module=' . $module . '&' . $prefix . 'edit=' . $data['id'], web_edit_icon());
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $data)) {
+                    switch ($key) {
+                        case 'netid':
+                            $cells .= wf_TableCell($data[$key] . ': ' . $cidrs[$data[$key]]);
+                            break;
+                        case 'nastype':
+                            if ($data[$key] == 'mikrotik')
+                                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
+                            if ($data[$key] == 'radius')
+                                $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
+                            $cells .= wf_TableCell($data[$key]);
+                            break;
+                        default:
+                            $cells .= wf_TableCell($data[$key]);
+                            break;
+                    }
+                }
+            }
+            $cells .= wf_TableCell($actions);
+            $rows .= wf_TableRow($cells, 'row3');
+        }
+    }
+    // Результат - таблица
+    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    // Отображаем результат
+    return $result;
 }
 
 /**
@@ -1858,7 +1858,7 @@ function web_NasAddForm() {
     $nastypes = array(
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
-        'radius'=>'Radius',
+        'radius' => 'Radius',
         'local' => 'Local NAS'
     );
 
@@ -1953,7 +1953,7 @@ function zb_backup_tables($tables = '*', $silent = false) {
   ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
                ";
     }
-    $backname = DATA_PATH . 'backups/sql/ubilling-db-backup-' . date("Y-m-d_H:i:s",time()) . '.sql';
+    $backname = DATA_PATH . 'backups/sql/ubilling-db-backup-' . date("Y-m-d_H:i:s", time()) . '.sql';
     $handle = fopen($backname, 'w+');
     fwrite($handle, $return);
     fclose($handle);
@@ -1974,15 +1974,15 @@ function zb_backup_tables($tables = '*', $silent = false) {
  */
 function zb_backup_database($silent = false) {
     global $ubillingConfig;
-    $alterConf=$ubillingConfig->getAlter();
-    $mysqlConf=  rcms_parse_ini_file(CONFIG_PATH.'mysql.ini');
-    
-    $backname = DATA_PATH.'backups/sql/ubilling-' . date("Y-m-d_H_i_s",time()) . '.sql';
-    $command=$alterConf['MYSQLDUMP_PATH'].' -u '.$mysqlConf['username'].' -p'.$mysqlConf['password'].' '.$mysqlConf['db'].' > '.$backname;
+    $alterConf = $ubillingConfig->getAlter();
+    $mysqlConf = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
+
+    $backname = DATA_PATH . 'backups/sql/ubilling-' . date("Y-m-d_H_i_s", time()) . '.sql';
+    $command = $alterConf['MYSQLDUMP_PATH'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' > ' . $backname;
     shell_exec($command);
 
     if (!$silent) {
-        show_success(__('Backup saved').': '.$backname);
+        show_success(__('Backup saved') . ': ' . $backname);
     }
 
     log_register("BACKUP CREATE `" . $backname . "`");
@@ -1995,7 +1995,7 @@ function zb_backup_database($silent = false) {
  * @return string
  */
 function web_BackupForm() {
-    $backupinputs = __('This will create a backup copy of all tables in the database').  wf_tag('br');
+    $backupinputs = __('This will create a backup copy of all tables in the database') . wf_tag('br');
     $backupinputs.=wf_HiddenInput('createbackup', 'true');
     $backupinputs.=wf_CheckInput('imready', 'I`m ready', true, false);
     $backupinputs.=wf_Submit('Create');
@@ -2374,6 +2374,7 @@ function web_TariffShowMoveReport() {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
     $billing_conf = $ubillingConfig->getBilling();
+    $chartData = array();
     $nmchange = '#!/bin/sh' . "\n";
     //is nmchange enabled?
     if ($alter_conf['NMCHANGE']) {
@@ -2403,6 +2404,7 @@ function web_TariffShowMoveReport() {
 
     if (!empty($allmoves)) {
         foreach ($allmoves as $io => $eachmove) {
+
             //generate NMCHANGE option
             if ($alter_conf['NMCHANGE']) {
                 $nmchange.=$sgconf . ' set -s ' . $stg_host . ' -p ' . $stg_port . ' -a' . $stg_login . ' -w' . $stg_passwd . ' -u' . $eachmove['login'] . ' --always-online 0' . "\n";
@@ -2433,7 +2435,6 @@ function web_TariffShowMoveReport() {
 
     $result = wf_TableBody($tablerows, '100%', 0, 'sortable');
 
-
     //coloring profit
     if ($totaldiff < 0) {
         $profitcolor = '#a90000';
@@ -2455,6 +2456,87 @@ function web_TariffShowMoveReport() {
     }
 
     return($result);
+}
+
+/**
+ * Returns tariffs move report charts
+ * 
+ * @return string
+ */
+function web_TariffShowMoveCharts() {
+    $result = '';
+
+    $query = "SELECT `login`,`Tariff`,`TariffChange` from `users` WHERE `TariffChange` !=''";
+    $allmoves = simple_queryall($query);
+    $fromData = array();
+    $toData = array();
+
+    if (!empty($allmoves)) {
+        foreach ($allmoves as $io => $eachmove) {
+            if (isset($fromData[$eachmove['Tariff']])) {
+                $fromData[$eachmove['Tariff']] ++;
+            } else {
+                $fromData[$eachmove['Tariff']] = 1;
+            }
+
+            if (isset($toData[$eachmove['TariffChange']])) {
+                $toData[$eachmove['TariffChange']] ++;
+            } else {
+                $toData[$eachmove['TariffChange']] = 1;
+            }
+        }
+    }
+
+    $cells = '';
+    $rows = '';
+
+    if (!empty($fromData)) {
+        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Tariff'), '400px', '400px'));
+    }
+
+    if (!empty($fromData)) {
+        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px'));
+    }
+    $rows.= wf_TableRow($cells);
+    $result.=wf_TableBody($rows, '100%', 0);
+
+
+    return ($result);
+}
+
+/**
+ * Returns tariffs move report charts
+ * 
+ * @return string
+ */
+function web_TariffShowTariffCharts() {
+    $result = '';
+
+    $query = "SELECT `login`,`Tariff` from `users`";
+    $all = simple_queryall($query);
+    $chartData=array();
+
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            if (isset($chartData[$each['Tariff']])) {
+                $chartData[$each['Tariff']] ++;
+            } else {
+                $chartData[$each['Tariff']] = 1;
+            }
+        }
+    }
+
+    $cells='';
+    $rows='';
+    if (!empty($chartData)) {
+        $cells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Users'), '500px', '500px'));
+    }
+
+    $rows.= wf_TableRow($cells);
+    $result.=wf_TableBody($rows, '600', 0);
+
+
+    return ($result);
 }
 
 /**
@@ -2526,7 +2608,6 @@ function zb_NumUnEncode($data) {
     $result = str_replace($letters, $numbers, $data);
     return($result);
 }
-
 
 /**
  * Returns user array in table view
@@ -2826,17 +2907,16 @@ function zb_MacVendorLookup($mac) {
     //use old macvendorlookup.com API
     if (isset($altcfg['MACVEN_OLD'])) {
         if ($altcfg['MACVEN_OLD']) {
-                $url = 'http://www.macvendorlookup.com/api/v2/';
-                $mac = str_replace(':', '', $mac);
-                $rawdata = file_get_contents($url . $mac.'/pipe');
-            
-                if (!empty($rawdata)) {
-                    $data = explode("|", $rawdata);
-                    if (!empty($data)) {
-                        $result = $data[4];
-                    }
+            $url = 'http://www.macvendorlookup.com/api/v2/';
+            $mac = str_replace(':', '', $mac);
+            $rawdata = file_get_contents($url . $mac . '/pipe');
+
+            if (!empty($rawdata)) {
+                $data = explode("|", $rawdata);
+                if (!empty($data)) {
+                    $result = $data[4];
                 }
-          
+            }
         } else {
             $result = zb_MacVendorSearchmac($mac);
         }
@@ -3454,27 +3534,27 @@ function web_roundValue($value, $precision = 2) {
  * @return array
  */
 function zb_AnalyticsSignupsGetCountYear($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
     $result = array();
-    $tmpArr=array();
-    
+    $tmpArr = array();
+
     $query = "SELECT * from `userreg` WHERE `date` LIKE '" . $year . "-%'";
-    $all =  simple_queryall($query);
-    
+    $all = simple_queryall($query);
+
     if (!empty($all)) {
-        foreach ($all as $io=>$each) {
-            $time=  strtotime($each['date']);
-            $month= date("m",$time);
+        foreach ($all as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
             if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count']++;
+                $tmpArr[$month]['count'] ++;
             } else {
-                $tmpArr[$month]['count']=1;
+                $tmpArr[$month]['count'] = 1;
             }
         }
     }
-    
-    
+
+
     foreach ($months as $eachmonth => $monthname) {
         $result[$eachmonth] = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
     }
@@ -3488,27 +3568,27 @@ function zb_AnalyticsSignupsGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsSigReqGetCountYear($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
     $result = array();
-    $tmpArr=array();
-    
+    $tmpArr = array();
+
     $query = "SELECT * from `sigreq` WHERE `date` LIKE '" . $year . "-%'";
-    $all=  simple_queryall($query);
+    $all = simple_queryall($query);
     if (!empty($all)) {
-        foreach ($all as $io=>$each) {
-             $time=  strtotime($each['date']);
-             $month= date("m",$time);
-             if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count']++;
-             } else {
-                $tmpArr[$month]['count']=1;
+        foreach ($all as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count'] ++;
+            } else {
+                $tmpArr[$month]['count'] = 1;
             }
         }
     }
-    
+
     foreach ($months as $eachmonth => $monthname) {
-        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3521,27 +3601,27 @@ function zb_AnalyticsSigReqGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsTicketingGetCountYear($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
     $result = array();
-    $tmpArr=array();
-    
-     $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%'";
-     $all=  simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io=>$each) {
-                 $time=  strtotime($each['date']);
-                 $month= date("m",$time);
-                 if (isset($tmpArr[$month])) {
-                    $tmpArr[$month]['count']++;
-                 } else {
-                    $tmpArr[$month]['count']=1;
-                }
+    $tmpArr = array();
+
+    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%'";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count'] ++;
+            } else {
+                $tmpArr[$month]['count'] = 1;
             }
         }
-    
+    }
+
     foreach ($months as $eachmonth => $monthname) {
-        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3554,28 +3634,28 @@ function zb_AnalyticsTicketingGetCountYear($year) {
  * @return array
  */
 function zb_AnalyticsTaskmanGetCountYear($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
     $result = array();
-    $tmpArr=array();
-    
+    $tmpArr = array();
+
     $query = "SELECT * from `taskman` WHERE `date` LIKE '" . $year . "-%'";
-      $all=  simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io=>$each) {
-                 $time=  strtotime($each['date']);
-                 $month= date("m",$time);
-                 if (isset($tmpArr[$month])) {
-                    $tmpArr[$month]['count']++;
-                 } else {
-                    $tmpArr[$month]['count']=1;
-                }
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
+            if (isset($tmpArr[$month])) {
+                $tmpArr[$month]['count'] ++;
+            } else {
+                $tmpArr[$month]['count'] = 1;
             }
         }
-        
-        
+    }
+
+
     foreach ($months as $eachmonth => $monthname) {
-        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0 ;
+        $monthcount = (isset($tmpArr[$eachmonth])) ? $tmpArr[$eachmonth]['count'] : 0;
         $result[$eachmonth] = $monthcount;
     }
     return($result);
@@ -3588,40 +3668,40 @@ function zb_AnalyticsTaskmanGetCountYear($year) {
  * @return string
  */
 function web_AnalyticsArpuMonthGraph($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
-    $tmpArr=array();
-    
-    $query="SELECT * from `payments` WHERE `date` LIKE '".$year."-%' AND `summ` > 0;";
-    $allPayments=  simple_queryall($query);
-    
+    $tmpArr = array();
+
+    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
+    $allPayments = simple_queryall($query);
+
     if (!empty($allPayments)) {
-        foreach ($allPayments as $io=>$each) {
-            $time=  strtotime($each['date']);
-            $month= date("m",$time);
+        foreach ($allPayments as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
             if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count']++;
-                $tmpArr[$month]['summ']=$tmpArr[$month]['summ']+$each['summ'];
+                $tmpArr[$month]['count'] ++;
+                $tmpArr[$month]['summ'] = $tmpArr[$month]['summ'] + $each['summ'];
             } else {
-                $tmpArr[$month]['count']=1;
-                $tmpArr[$month]['summ']=$each['summ'];
+                $tmpArr[$month]['count'] = 1;
+                $tmpArr[$month]['summ'] = $each['summ'];
             }
-        }   
+        }
     }
-    
+
     $data = __('Month') . ',' . __('ARPU') . "\n";
 
-     foreach ($months as $eachmonth => $monthname) {
+    foreach ($months as $eachmonth => $monthname) {
         $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
         $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
-        if ($paycount!=0) {
+        if ($paycount != 0) {
             $arpu = round($month_summ / $paycount, 2);
         } else {
-            $arpu=0;
+            $arpu = 0;
         }
         $data.=$year . '-' . $eachmonth . '-01,' . $arpu . "\n";
-     }
-    
+    }
+
 
 
     $result = wf_tag('div', false, '', '') . __('Dynamics of changes in ARPU for the year');
@@ -3636,32 +3716,32 @@ function web_AnalyticsArpuMonthGraph($year) {
  * @return string
  */
 function web_AnalyticsPaymentsMonthGraph($year) {
-    $year=vf($year,3);
+    $year = vf($year, 3);
     $months = months_array();
-    $tmpArr=array();
+    $tmpArr = array();
     $data = __('Month') . ',' . __('Payments count') . ',' . __('Cash') . "\n";
-    
-    $query="SELECT * from `payments` WHERE `date` LIKE '".$year."-%' AND `summ` > 0;";
-    $allPayments=  simple_queryall($query);
-    
+
+    $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
+    $allPayments = simple_queryall($query);
+
     if (!empty($allPayments)) {
-        foreach ($allPayments as $io=>$each) {
-            $time=  strtotime($each['date']);
-            $month= date("m",$time);
+        foreach ($allPayments as $io => $each) {
+            $time = strtotime($each['date']);
+            $month = date("m", $time);
             if (isset($tmpArr[$month])) {
-                $tmpArr[$month]['count']++;
-                $tmpArr[$month]['summ']=$tmpArr[$month]['summ']+$each['summ'];
+                $tmpArr[$month]['count'] ++;
+                $tmpArr[$month]['summ'] = $tmpArr[$month]['summ'] + $each['summ'];
             } else {
-                $tmpArr[$month]['count']=1;
-                $tmpArr[$month]['summ']=$each['summ'];
+                $tmpArr[$month]['count'] = 1;
+                $tmpArr[$month]['summ'] = $each['summ'];
             }
-        }   
+        }
     }
 
     foreach ($months as $eachmonth => $monthname) {
         $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
         $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
-        
+
         $data.=$year . '-' . $eachmonth . '-01,' . $paycount . ',' . $month_summ . "\n";
     }
 
@@ -3757,13 +3837,13 @@ function web_AnalyticsTaskmanMonthGraph($year) {
  * @return string
  */
 function web_AnalyticsAllGraphs($year) {
-      $graphs=  web_AnalyticsArpuMonthGraph($year);
-      $graphs.= web_AnalyticsPaymentsMonthGraph($year);
-      $graphs.= web_AnalyticsSignupsMonthGraph($year);
-      $graphs.= web_AnalyticsSigReqMonthGraph($year);
-      $graphs.= web_AnalyticsTicketingMonthGraph($year);
-      $graphs.= web_AnalyticsTaskmanMonthGraph($year);
-      return ($graphs);
+    $graphs = web_AnalyticsArpuMonthGraph($year);
+    $graphs.= web_AnalyticsPaymentsMonthGraph($year);
+    $graphs.= web_AnalyticsSignupsMonthGraph($year);
+    $graphs.= web_AnalyticsSigReqMonthGraph($year);
+    $graphs.= web_AnalyticsTicketingMonthGraph($year);
+    $graphs.= web_AnalyticsTaskmanMonthGraph($year);
+    return ($graphs);
 }
 
 /**
@@ -3789,7 +3869,7 @@ function zb_DownloadFile($filePath, $contentType = '') {
                 if ($contentType == 'csv') {
                     $contentType = 'text/csv; charset=Windows-1251';
                 }
-                
+
                 if ($contentType == 'jpg') {
                     $contentType = 'Content-Type: image/jpeg';
                 }
@@ -4138,6 +4218,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
         
 //Initializations
     $xml_array = array();
@@ -4247,10 +4328,10 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
  * @return bool
  */
 function zb_TariffProtected($tariffname) {
-    $tariffname=  mysql_real_escape_string($tariffname);
-    $query="SELECT `login` from `users` WHERE `Tariff`='".$tariffname."' OR `TariffChange`='".$tariffname."' LIMIT 1;";
-    $raw=  simple_query($query);
-    $result=(empty($raw)) ? false : true;
+    $tariffname = mysql_real_escape_string($tariffname);
+    $query = "SELECT `login` from `users` WHERE `Tariff`='" . $tariffname . "' OR `TariffChange`='" . $tariffname . "' LIMIT 1;";
+    $raw = simple_query($query);
+    $result = (empty($raw)) ? false : true;
     return ($result);
 }
 
@@ -4276,7 +4357,7 @@ function zb_CheckPHPExtensions() {
             }
         }
     } else {
-        $result.=wf_tag('span', false, 'alert_error').__('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND'.wf_tag('span',true);
+        $result.=wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND' . wf_tag('span', true);
     }
     return ($result);
 }
