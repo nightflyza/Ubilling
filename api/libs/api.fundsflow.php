@@ -496,17 +496,24 @@ class FundsFlow {
                             }
                         }
                     }
+                    $daysLabel=$daysOnLine;
+                    $dateLabel= date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+                } else {
+                    $daysLabel='&infin;';
+                    $dateLabel='&infin;';
                 }
 
 
                 $balanceExpire = wf_tag('span', false, 'alert_info');
                 $balanceExpire.=__('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
-                $balanceExpire.=' ' . $daysOnLine . ' ' . __('days') . ' ' . __('of service usage') . ' ';
-                $balanceExpire.= __('or enought till the') . ' ' . date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60)) . ' ';
+                $balanceExpire.=' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
+                $balanceExpire.= __('or enought till the') . ' ' .$dateLabel. ' ';
                 $balanceExpire.= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
                 $balanceExpire.= wf_tag('span', true);
+                
             } else {
-                $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
+                $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
+                $balanceExpire.=', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);
             }
 
             if ($rawDays) {
