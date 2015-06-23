@@ -2,23 +2,130 @@
 
 class UserProfile {
 
+    /**
+     * System config alter.ini content as array key=>value
+     *
+     * @var array
+     */
     protected $alterCfg = array();
+
+    /**
+     * Current login stargazer user data
+     *
+     * @var array
+     */
     protected $userdata = array();
+
+    /**
+     * Array of all available non cached login=>address mappings
+     *
+     * @var array
+     */
     protected $alladdress = array();
+
+    /**
+     * Current user phone data as 'phone' and 'mobile' keys array
+     *
+     * @var array
+     */
     protected $phonedata = array();
+
+    /**
+     * Current user apartment data array
+     *
+     * @var array
+     */
     protected $aptdata = array();
+
+    /**
+     * Important profile fields highlighting start
+     *
+     * @var string
+     */
     protected $highlightStart = '';
+
+    /**
+     * Important profile fields highlighting end
+     *
+     * @var string
+     */
     protected $highlightEnd = '';
+
+    /**
+     * Available preloaded profile plugins
+     *
+     * @var string
+     */
     protected $plugins = '';
+
+    /**
+     * Current user login. Must be set in constructor
+     *
+     * @var string
+     */
     protected $login = '';
+
+    /**
+     * Current user full address
+     *
+     * @var string
+     */
     protected $useraddress = '';
+
+    /**
+     * Current user real name
+     *
+     * @var string
+     */
     protected $realname = '';
+
+    /**
+     * Current user phone
+     *
+     * @var string
+     */
     protected $phone = '';
+
+    /**
+     * Current user mobile phone
+     *
+     * @var string
+     */
     protected $mobile = '';
+
+    /**
+     * Current user contract number
+     *
+     * @var string
+     */
     protected $contract = '';
+
+    /**
+     * Current user e-mail address
+     *
+     * @var string
+     */
     protected $mail = '';
+
+    /**
+     * Current user tariff speed override value
+     *
+     * @var string
+     */
     protected $speedoverride = '';
+
+    /**
+     * MAC address associated with network host record, via current user IP
+     *
+     * @var string
+     */
     protected $mac = '';
+
+    /**
+     * Payment ID of current user
+     *
+     * @var string
+     */
     protected $paymentid = '';
 
     const EX_EMPTY_LOGIN = 'EMPTY_USERNAME_RECEIVED';
@@ -29,6 +136,12 @@ class UserProfile {
     const MAIN_OVERLAY_DISTANCE = '150px';
     const MAIN_TABLE_STYLE = 'style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2"';
 
+    /**
+     * Creates an user profile object instance and sets/preloads all of required data
+     * 
+     * @param string $login Existing user login
+     * @throws Exception
+     */
     public function __construct($login) {
         if (!empty($login)) {
             $this->login = $login;
