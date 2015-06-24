@@ -882,6 +882,11 @@ function zb_PrintCheck($paymentid) {
     return($result);
 }
 
+/**
+ * Returns all users with set NDS tag
+ * 
+ * @return array
+ */
 function zb_NdsGetAllUsers() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $nds_tag = $alterconf['NDS_TAGID'];
@@ -896,6 +901,13 @@ function zb_NdsGetAllUsers() {
     return ($result);
 }
 
+/**
+ * Performs fast check is user NDS payer?
+ * 
+ * @param string $login
+ * @param array $allndsusers
+ * @return bool
+ */
 function zb_NdsCheckUser($login, $allndsusers) {
     if (isset($allndsusers[$login])) {
         return (true);
@@ -904,17 +916,35 @@ function zb_NdsCheckUser($login, $allndsusers) {
     }
 }
 
+/**
+ * Returns tax rate for NDS user
+ * 
+ * @return string
+ */
 function zb_NdsGetPercent() {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $nds_rate = $alterconf['NDS_TAX_PERCENT'];
     return ($nds_rate);
 }
 
+/**
+ * Returns calculated NDS rate for summ
+ * 
+ * @param float $summ
+ * @param int $ndspercent
+ * @return float
+ */
 function zb_NdsCalc($summ, $ndspercent) {
     $result = ($summ / 100) * $ndspercent;
     return ($result);
 }
 
+/**
+ * Renders NDS users payments list
+ * 
+ * @param string $query
+ * @return string
+ */
 function web_NdsPaymentsShow($query) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $alladrs = zb_AddressGetFulladdresslist();
@@ -1016,6 +1046,13 @@ function web_NdsPaymentsShow($query) {
     return($result);
 }
 
+/**
+ * Shows list of NDS users payments per year
+ * 
+ * @param int $year
+ * 
+ * @return void
+ */
 function web_NdsPaymentsShowYear($year) {
     $months = months_array();
 
@@ -1035,11 +1072,16 @@ function web_NdsPaymentsShowYear($year) {
     show_window(__('Payments by') . ' ' . $year, $result);
 }
 
+/**
+ * Returns ahent selector for registration form
+ * 
+ * @param string $name
+ * @param int $selected
+ * @return string
+ */
 function zb_RegContrAhentSelect($name, $selected = '') {
     $allagents = zb_ContrAhentGetAllData();
     $agentArr = array();
-
-    $select = '<select name="regagent">';
     if (!empty($allagents)) {
         foreach ($allagents as $io => $eachagent) {
             $agentArr[$eachagent['id']] = $eachagent['contrname'];
@@ -1049,12 +1091,11 @@ function zb_RegContrAhentSelect($name, $selected = '') {
     return($select);
 }
 
-/*
- * Shows agent strict assign form
+/**
+ * Renders agent strict assign form
  * 
  * @return string
  */
-
 function web_AgentAssignStrictForm($login, $currentassign) {
     if (!empty($currentassign)) {
         $agentData = zb_ContrAhentGetData($currentassign);
@@ -1083,6 +1124,13 @@ function web_AgentAssignStrictForm($login, $currentassign) {
     return ($result);
 }
 
+/**
+ * Deletes existing ahent strict assign from database
+ * 
+ * @param string $login
+ * 
+ * @return void
+ */
 function zb_AgentAssignStrictDelete($login) {
     $login = mysql_real_escape_string($login);
     $query = "DELETE from `ahenassignstrict` WHERE `login`='" . $login . "';";
@@ -1090,14 +1138,20 @@ function zb_AgentAssignStrictDelete($login) {
     log_register("AGENTASSIGNSTRICT DELETE (" . $login . ")");
 }
 
+/**
+ * Creates ahent strict assign record in database
+ * 
+ * @param string $login
+ * @param int $agentid
+ * 
+ * @return void
+ */
 function zb_AgentAssignStrictCreate($login, $agentid) {
     zb_AgentAssignStrictDelete($login);
     $clearLogin = mysql_real_escape_string($login);
     $agentid = vf($agentid, 3);
     $query = "INSERT INTO `ahenassignstrict` (`id` ,  `agentid` ,`login`)
-                VALUES (
-                NULL , '" . $agentid . "', '" . $clearLogin . "'
-                );";
+              VALUES (NULL , '" . $agentid . "', '" . $clearLogin . "');";
     nr_query($query);
     log_register("AGENTASSIGNSTRICT ADD (" . $login . ") [" . $agentid . "]");
 }
