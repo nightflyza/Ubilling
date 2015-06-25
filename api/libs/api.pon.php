@@ -5,12 +5,17 @@ class PONizer {
     protected $allOnu = array();
     protected $allModelsData = array();
     protected $allOltDevices = array();
+    protected $allOltSnmp = array();
+    protected $allOltModels = array();
+    protected $snmpTemplates=array();
     protected $altCfg = array();
     protected $sup = '';
-
+    
     public function __construct() {
         $this->loadAlter();
         $this->loadOltDevices();
+        $this->loadOltModels();
+        $this->loadSnmpTemplates();
         $this->loadOnu();
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -34,11 +39,51 @@ class PONizer {
      * @return void
      */
     protected function loadOltDevices() {
-        $query = "SELECT `id`,`ip`,`location` from `switches` WHERE `desc` LIKE '%OLT%';";
+        $query = "SELECT `id`,`ip`,`location`,`snmp`,`modelid` from `switches` WHERE `desc` LIKE '%OLT%';";
         $raw = simple_queryall($query);
         if (!empty($raw)) {
             foreach ($raw as $io => $each) {
                 $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
+                if (!empty($each['snmp'])) {
+                    $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
+                    $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads all available snmp models data into private data property
+     * 
+     * @return void
+     */
+    protected function loadOltModels() {
+            $rawModels = zb_SwitchModelsGetAll();
+            foreach ($rawModels as $io => $each) {
+                $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
+                $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+            }
+    }
+    
+    /**
+     * Performs snmp templates preprocessing for OLT devices
+     * 
+     * @return void
+     */
+    protected function loadSnmpTemplates() {
+        if (!empty($this->allOltDevices)) {
+            foreach ($this->allOltDevices as $oltId=>$eachOltData) {
+                if (isset($this->allOltSnmp[$oltId])) {
+                    $oltModelid=$this->allOltSnmp[$oltId]['modelid'];
+                    if ($oltModelid) {
+                        if (isset($this->allOltModels[$oltModelid])) {
+                            $templateFile='config/snmptemplates/'.$this->allOltModels[$oltModelid]['snmptemplate'];
+                            if (file_exists($templateFile)) {
+                                $this->snmpTemplates[$oltModelid]=  rcms_parse_ini_file($templateFile,true);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -108,6 +153,8 @@ class PONizer {
      * @return int
      */
     public function onuCreate($onumodelid, $oltid, $ip, $mac, $serial, $login) {
+        $mac = strtolower($mac);
+        $mac = trim($mac);
         $onumodelid = vf($onumodelid, 3);
         $oltid = vf($oltid, 3);
         $ip = mysql_real_escape_string($ip);
@@ -144,6 +191,8 @@ class PONizer {
      * @return void
      */
     public function onuSave($onuId, $onumodelid, $oltid, $ip, $mac, $serial, $login) {
+        $mac = strtolower($mac);
+        $mac = trim($mac);
         $onuId = vf($onuId, 3);
         $onumodelid = vf($onumodelid, 3);
         $oltid = vf($oltid, 3);
@@ -290,11 +339,11 @@ class PONizer {
     public function ajaxOnuData() {
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
-            $adc=true;
+            $adc = true;
         } else {
-            $adc=false;
+            $adc = false;
         }
-        
+
         $result = '{ 
                   "aaData": [ ';
 
@@ -309,18 +358,18 @@ class PONizer {
                 }
                 //checking adcomments availability
                 if ($adc) {
-                     $indicatorIcon=$adcomments->getCommentsIndicator($each['id']);
-                     $indicatorIcon=str_replace('"', '\'', $indicatorIcon);
-                     $indicatorIcon=trim($indicatorIcon);
+                    $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
+                    $indicatorIcon = str_replace('"', '\'', $indicatorIcon);
+                    $indicatorIcon = trim($indicatorIcon);
                 } else {
-                    $indicatorIcon='';
+                    $indicatorIcon = '';
                 }
 
                 $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
                 $actLinks = str_replace('"', '', $actLinks);
                 $actLinks = trim($actLinks);
-                $actLinks.= ' '.$indicatorIcon;
-                
+                $actLinks.= ' ' . $indicatorIcon;
+
                 $result.='
                     [
                     "' . $each['id'] . '",

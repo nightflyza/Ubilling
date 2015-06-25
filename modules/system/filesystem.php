@@ -74,6 +74,13 @@ function rcms_ftp_mkdir($dir, $server, $username, $password, $path) {
 	return true;
 }
 
+/**
+ * Parses standard INI-file structure and returns this as key=>value array
+ * 
+ * @param string $filename Existing file name
+ * @param bool $blocks Section parsing flag
+ * @return array
+ */
 function rcms_parse_ini_file($filename, $blocks = false){
 	$array1 = file($filename);
 	$section = '';
