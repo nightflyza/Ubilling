@@ -1,7 +1,8 @@
 [define]
 DEVICE="BDCOM OLT P3310B"
+;Software, Version 10.1.0B Build 18099
 
-[SIGNAL]
+[signal]
 MACINDEX=".1.3.6.1.4.1.3320.101.10.5.1.5"
 SIGNAL=".1.3.6.1.4.1.3320.101.10.4.1.1"
 OFFSET="10"
@@ -9,5 +10,5 @@ OFFSETMODE="div"
 DOWNVALUE="2147483648"
 
 
-[SYSTEM]
+[system]
 CPULOAD=".1.3.6.1.2.1.25.3.3.1.2"
