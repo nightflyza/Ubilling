@@ -7,15 +7,24 @@ class PONizer {
     protected $allOltDevices = array();
     protected $allOltSnmp = array();
     protected $allOltModels = array();
-    protected $snmpTemplates=array();
+    protected $snmpTemplates = array();
+    protected $signalCache = array();
     protected $altCfg = array();
+    protected $snmp = '';
     protected $sup = '';
-    
+
+    const SIGCACHE_PATH = 'exports/';
+    const SIGCACHE_EXT = 'OLTSIGNALS';
+    const SNMPCACHE = false;
+    const SNMPPORT = 161;
+    const ONUSIG_PATH = 'content/documents/onusig/';
+
     public function __construct() {
         $this->loadAlter();
         $this->loadOltDevices();
         $this->loadOltModels();
         $this->loadSnmpTemplates();
+        $this->initSNMP();
         $this->loadOnu();
         $this->loadModels();
         $this->sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -47,6 +56,7 @@ class PONizer {
                 if (!empty($each['snmp'])) {
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
+                    $this->allOltSnmp[$each['id']]['ip'] = $each['ip'];
                 }
             }
         }
@@ -58,13 +68,13 @@ class PONizer {
      * @return void
      */
     protected function loadOltModels() {
-            $rawModels = zb_SwitchModelsGetAll();
-            foreach ($rawModels as $io => $each) {
-                $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
-                $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
-            }
+        $rawModels = zb_SwitchModelsGetAll();
+        foreach ($rawModels as $io => $each) {
+            $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
+            $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+        }
     }
-    
+
     /**
      * Performs snmp templates preprocessing for OLT devices
      * 
@@ -72,18 +82,146 @@ class PONizer {
      */
     protected function loadSnmpTemplates() {
         if (!empty($this->allOltDevices)) {
-            foreach ($this->allOltDevices as $oltId=>$eachOltData) {
+            foreach ($this->allOltDevices as $oltId => $eachOltData) {
                 if (isset($this->allOltSnmp[$oltId])) {
-                    $oltModelid=$this->allOltSnmp[$oltId]['modelid'];
+                    $oltModelid = $this->allOltSnmp[$oltId]['modelid'];
                     if ($oltModelid) {
                         if (isset($this->allOltModels[$oltModelid])) {
-                            $templateFile='config/snmptemplates/'.$this->allOltModels[$oltModelid]['snmptemplate'];
+                            $templateFile = 'config/snmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
                             if (file_exists($templateFile)) {
-                                $this->snmpTemplates[$oltModelid]=  rcms_parse_ini_file($templateFile,true);
+                                $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($templateFile, true);
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Creates single instance of SNMPHelper object
+     * 
+     * @return void
+     */
+    protected function initSNMP() {
+        $this->snmp = new SNMPHelper();
+    }
+
+    /**
+     * Performs signal preprocessing for sig/mac index arrays and stores it into cache
+     * 
+     * @param int   $oltid
+     * @param array $sigIndex
+     * @param array $macIndex
+     * @param array $snmpTemplate
+     * 
+     * @return void
+     */
+    protected function signalParseBd($oltid, $sigIndex, $macIndex, $snmpTemplate) {
+        $oltid = vf($oltid, 3);
+        $sigTmp = array();
+        $macTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+        //signal index preprocessing
+        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
+            foreach ($sigIndex as $io => $eachsig) {
+                $line = explode('=', $eachsig);
+                //signal is present
+                if (isset($line[1])) {
+                    $signalRaw = trim($line[1]); // signal level
+                    $devIndex = trim($line[0]); // device index
+                    if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
+                        $signalRaw = __('Down');
+                    } else {
+                        if ($snmpTemplate['OFFSETMODE'] == 'div') {
+                            if ($snmpTemplate['OFFSET']) {
+                                $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
+                            }
+                        }
+                    }
+                    $sigTmp[$devIndex] = $signalRaw;
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+
+            //storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($sigTmp[$devId])) {
+                        $signal = $sigTmp[$devId];
+                        $result[$eachMac] = $signal;
+                        //signal history filling
+                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
+                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
+     * Performs  OLT device polling with snmp
+     * 
+     * @param int $oltid
+     * 
+     * @return void
+     */
+    protected function pollOltSignal($oltid) {
+        $oltid = vf($oltid, 3);
+        if (isset($this->allOltDevices[$oltid])) {
+            if (isset($this->allOltSnmp[$oltid])) {
+                $oltCommunity = $this->allOltSnmp[$oltid]['community'];
+                $oltModelId = $this->allOltSnmp[$oltid]['modelid'];
+                $oltIp = $this->allOltSnmp[$oltid]['ip'];
+                if (isset($this->snmpTemplates[$oltModelId])) {
+                    if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
+                        // BDCOM/Eltex devices polling
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'BDCOM') {
+                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
+                            $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
+                            $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
+                            $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
+                            $sigIndex = explodeRows($sigIndex);
+
+                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
+                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
+                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+                            $macIndex = explodeRows($macIndex);
+                            $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Performs available OLT devices polling. Use only in remote API.
+     * 
+     * @return void
+     */
+    public function oltDevicesPolling() {
+        if (!empty($this->allOltDevices)) {
+            foreach ($this->allOltDevices as $oltid => $each) {
+                print('POLLING:' . $oltid . ' ' . $each . "\n");
+                $this->pollOltSignal($oltid);
             }
         }
     }
@@ -257,6 +395,23 @@ class PONizer {
     }
 
     /**
+     * returns vendor by MAC search control if this enabled in config
+     * 
+     * @return string
+     */
+    protected function getSearchmacControl($mac) {
+        $result = '';
+        if ($this->altCfg['MACVEN_ENABLED']) {
+            if (!empty($mac)) {
+                $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $mac . '" width="360" height="160" frameborder="0"');
+                $vendorframe.= wf_tag('iframe', true);
+                $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns ONU edit form
      * 
      * @param int $onuId
@@ -280,7 +435,7 @@ class PONizer {
             $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
             $inputs.= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             $inputs.= wf_TextInput('editip', __('IP'), $this->allOnu[$onuId]['ip'], true, 20);
-            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup, $this->allOnu[$onuId]['mac'], true, 20);
+            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup.' '.$this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
             $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
             $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
             $inputs.= wf_Submit(__('Save'));
@@ -296,6 +451,9 @@ class PONizer {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
 
+        //Signal history chart
+        $result.=$this->onuSignalHistory($onuId);
+
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
@@ -304,6 +462,31 @@ class PONizer {
             $result.=$adcomments->renderComments($onuId);
         }
 
+        return ($result);
+    }
+
+    /**
+     * Renders ONU signal history chart
+     * 
+     * @param int $onuId
+     * @return string
+     */
+    protected function onuSignalHistory($onuId) {
+        $onuId = vf($onuId, 3);
+        $result = '';
+        if (isset($this->allOnu[$onuId])) {
+            //not empty MAC
+            if ($this->allOnu[$onuId]['mac']) {
+                $historyKey = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']);
+                if (file_exists($historyKey)) {
+                    $rawData = file_get_contents($historyKey);
+                    $result.=wf_delimiter();
+                    $result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
+                    $result.= wf_tag('div', false, '', '');
+                    $result.= wf_Graph($rawData, '800', '300', false) . wf_tag('div', true);
+                }
+            }
+        }
         return ($result);
     }
 
@@ -326,9 +509,27 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Serial number', 'Login', 'Actions');
+        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Serial number', 'Login', 'Actions');
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU');
         return ($result);
+    }
+
+    /**
+     * Loads existing signal cache from FS
+     * 
+     * @return void
+     */
+    protected function loadSignalsCache() {
+        $availCacheData = rcms_scandir(self::SIGCACHE_PATH, '*_' . self::SIGCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::SIGCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $signal) {
+                    $this->signalCache[$mac] = $signal;
+                }
+            }
+        }
     }
 
     /**
@@ -343,6 +544,8 @@ class PONizer {
         } else {
             $adc = false;
         }
+
+        $this->loadSignalsCache();
 
         $result = '{ 
                   "aaData": [ ';
@@ -370,6 +573,12 @@ class PONizer {
                 $actLinks = trim($actLinks);
                 $actLinks.= ' ' . $indicatorIcon;
 
+                if (isset($this->signalCache[$each['mac']])) {
+                    $signal = $this->signalCache[$each['mac']];
+                } else {
+                    $signal = __('No');
+                }
+
                 $result.='
                     [
                     "' . $each['id'] . '",
@@ -377,6 +586,7 @@ class PONizer {
                     "' . @$this->allOltDevices[$each['oltid']] . '",
                     "' . $each['ip'] . '",
                     "' . $each['mac'] . '",
+                    "' . $signal . '",
                     "' . $each['serial'] . '",
                     "' . $userLink . '",
                     "' . $actLinks . '"

@@ -1,6 +1,5 @@
 [define]
-DEVICE="BDCOM OLT P3310B"
-;Software, Version 10.1.0B Build 18099
+DEVICE="Extralink OLT 4GE"
 
 [signal]
 SIGNALMODE="BDCOM"

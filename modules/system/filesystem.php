@@ -205,9 +205,16 @@ function write_ini_file($data, $filename, $process_sections = false){
 	return file_write_contents($filename, $ini);
 }
 
-//---------------------------------------------------------//
-// Advanced php5 scandir analog                            //
-//---------------------------------------------------------//
+
+/**
+ * Advanced php5 scandir analog
+ * 
+ * @param string $directory Directory to scan
+ * @param string $exp  Filter expression - like *.ini or *.dat
+ * @param string $type Filter type - all or dir
+ * @param bool $do_not_filter
+ * @return array
+ */
 function rcms_scandir($directory, $exp = '', $type = 'all', $do_not_filter = false) {
 	$dir = $ndir = array();
 	if(!empty($exp)){
