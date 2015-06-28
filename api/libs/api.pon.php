@@ -133,7 +133,7 @@ class PONizer {
                     $signalRaw = trim($line[1]); // signal level
                     $devIndex = trim($line[0]); // device index
                     if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                        $signalRaw = __('Down');
+                        $signalRaw = 'Offline';
                     } else {
                         if ($snmpTemplate['OFFSETMODE'] == 'div') {
                             if ($snmpTemplate['OFFSET']) {
@@ -166,6 +166,9 @@ class PONizer {
                         $result[$eachMac] = $signal;
                         //signal history filling
                         $historyFile = self::ONUSIG_PATH . md5($eachMac);
+                        if ($signal=='Offline') {
+                            $signal=-9000; //over 9000 offline signal level :P
+                        }
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
                 }
