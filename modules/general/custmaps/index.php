@@ -88,7 +88,7 @@ if (cfr('CUSTMAP')) {
                     show_window(__('Edit'), $custmaps->itemEditForm($editItemId));
                     //photostorage link
                     if ($altCfg['PHOTOSTORAGE_ENABLED']) {
-                        $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png').' '.__('Upload images'), false, 'ubButton');
+                        $imageControl = wf_Link('?module=photostorage&scope=CUSTMAPSITEMS&itemid=' . $editItemId . '&mode=list', wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
                         show_window('', $imageControl);
                     }
 
@@ -109,18 +109,26 @@ if (cfr('CUSTMAP')) {
             }
         } else {
             $mapId = $_GET['showmap'];
-            $placemarks = $custmaps->mapGetPlacemarks($mapId);
-            
+            $placemarks = '';
+            //additional centering and zoom
+            if (wf_CheckGet(array('locateitem', 'zoom'))) {
+                $custmaps->setCenter($_GET['locateitem']);
+                $custmaps->setZoom($_GET['zoom']);
+                $searchRadius = 30;
+                $placemarks.=$custmaps->mapAddCircle($_GET['locateitem'], $searchRadius, __('Search area radius') . ' ' . $searchRadius . ' ' . __('meters'), __('Search area'));
+            }
+
+            $placemarks.= $custmaps->mapGetPlacemarks($mapId);
+
             //custom map layers processing
             if (wf_CheckGet(array('cl'))) {
                 if (!empty($_GET['cl'])) {
-                    $custLayers=  explode('z', $_GET['cl']);
+                    $custLayers = explode('z', $_GET['cl']);
                     if (!empty($custLayers)) {
                         foreach ($custLayers as $eachCustLayerId) {
                             if (!empty($eachCustLayerId)) {
                                 $placemarks.=$custmaps->mapGetPlacemarks($eachCustLayerId);
                             }
-                            
                         }
                     }
                 }
@@ -145,11 +153,7 @@ if (cfr('CUSTMAP')) {
             } else {
                 $editor = '';
             }
-            //additional centering and zoom
-            if (wf_CheckGet(array('locateitem', 'zoom'))) {
-                $custmaps->setCenter($_GET['locateitem']);
-                $custmaps->setZoom($_GET['zoom']);
-            }
+
             show_window($custmaps->mapGetName($mapId), $custmaps->mapInit($placemarks, $editor));
         }
     } else {

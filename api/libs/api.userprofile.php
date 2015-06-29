@@ -317,6 +317,24 @@ class UserProfile {
     }
 
     /**
+     * Returns ADcomments indicator
+     * 
+     * @return string
+     */
+    protected function getAdcommentsIndicator() {
+        $result = '';
+        if (!isset($this->alterCfg['NO_ADCOMMENTS_IN_PROFILE'])) {
+            if ($this->alterCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('USERNOTES');
+                $result = ' ' . wf_Link('?module=notesedit&username=' . $this->login, $adcomments->getCommentsIndicator($this->login), false, '');
+            } else {
+                $result = '';
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns raw plugins data. Plugins initialization files must be stored in CONFIG_PATH
      * 
      * @return array
@@ -952,7 +970,7 @@ class UserProfile {
         //Connection details  row
         $profile.= $this->getUserConnectionDetails();
         //User notes row
-        $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login));
+        $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login).$this->getAdcommentsIndicator());
 
 
         $profile.= wf_tag('tbody', true);

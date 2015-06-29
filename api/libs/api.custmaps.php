@@ -859,6 +859,38 @@ class CustomMaps {
     }
 
     /**
+     * Returns map circle
+     * 
+     * @param $coords - map coordinates
+     * @param $radius - circle radius in meters
+     * 
+     * @return string
+     *  
+     */
+    public function mapAddCircle($coords, $radius, $content = '', $hint = '') {
+        $result = '
+             myCircle = new ymaps.Circle([
+                    [' . $coords . '],
+                    ' . $radius . '
+                ], {
+                    balloonContent: "' . $content . '",
+                    hintContent: "' . $hint . '"
+                }, {
+                    draggable: true,
+             
+                    fillColor: "#00a20b55",
+                    strokeColor: "#006107",
+                    strokeOpacity: 0.5,
+                    strokeWidth: 1
+                });
+    
+            myMap.geoObjects.add(myCircle);
+            ';
+
+        return ($result);
+    }
+
+    /**
      * Returns initialized JS map
      * 
      * @param string $placemarks
