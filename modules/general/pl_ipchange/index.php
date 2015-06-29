@@ -9,12 +9,11 @@ if (cfr('PLIPCHANGE')) {
         $current_mac = zb_MultinetGetMAC($current_ip); //extracting current user MAC
         $billingConf = $ubillingConfig->getBilling(); //getting billing.ini config
 
-        /*
+        /**
          * Returns new user service select form
          * 
          * @return string
          */
-
         function web_IPChangeFormService() {
             global $current_ip;
             $inputs = multinet_service_selector() . ' ' . __('New IP service');
@@ -24,7 +23,7 @@ if (cfr('PLIPCHANGE')) {
             return($result);
         }
 
-        /*
+        /**
          * Flushes all old user`s networking data and applies new one
          * 
          * @param   string   $current_ip        current users`s IP
@@ -35,7 +34,6 @@ if (cfr('PLIPCHANGE')) {
          * 
          * @return void
          */
-
         function zb_IPChange($current_ip, $current_mac, $new_multinet_id, $new_free_ip, $login) {
             global $billing;
             global $billingConf;
@@ -73,7 +71,7 @@ if (cfr('PLIPCHANGE')) {
             }
 
             zb_IPChange($current_ip, $current_mac, $new_multinet_id, $new_free_ip, $login);
-            log_register("CHANGE MultiNetIP (" . $login . ") FROM " . $current_ip . " ON " . $new_free_ip."");
+            log_register("CHANGE MultiNetIP (" . $login . ") FROM " . $current_ip . " ON " . $new_free_ip . "");
             rcms_redirect("?module=pl_ipchange&username=" . $login);
         } else {
             show_window(__('Current user IP'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $current_ip . wf_tag('h2', true) . '<br clear="both" />');
