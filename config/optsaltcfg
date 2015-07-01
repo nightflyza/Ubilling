@@ -152,6 +152,8 @@ PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
 CONDET_ENABLED=TRIGGER|Connection details module enabled
 CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
 UBCACHE_STORAGE=VARCHAR|System cache storage
+ONUAUTO_CONFIG=TRIGER|Set pvid on onu copper port
+PER_CITY_ACTION=TRIGER|Make per city action (user search, payments search, debtors search)
 
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options

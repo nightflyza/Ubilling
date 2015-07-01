@@ -1553,6 +1553,22 @@ function months_array_wz() {
 }
 
 /**
+ * Returns all months with names in two digit notation
+ * 
+ * @return array
+ */
+function months_array_localized() {
+    $months = months_array();
+    $result=array();
+    if (!empty($months)) {
+        foreach ($months as $io=>$each) {
+            $result[$io]=  rcms_date_localise($each);
+        }
+    }
+    return ($result);
+}
+
+/**
  * Shows payments year graph with caching
  * 
  * @param int $year

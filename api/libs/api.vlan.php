@@ -2,12 +2,39 @@
 
 class OnuConfigurator {
 
-    public $allOnu = array();
+    protected $allOnu = array();
+    protected $allOlt = array();
+    protected $allOltModels = array();
 
     public function __construct() {
         $this->loadOnu();
+        $this->LoadAllOlt();
+        $this->loadOltModels();
+        $this->snmp = new SNMPHelper();
     }
 
+    /**
+     * 
+     * Load all from `switches` to $allswitches
+     */
+    protected function LoadAllOlt() {
+        $query = "SELECT `id`,`ip`,`snmp`,`modelid` from `switches` WHERE `desc` LIKE '%OLT%'";
+        $raw = simple_queryall($query);
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                if (!empty($each['snmp'])) {
+                    $this->allOlt[$each['id']]['ip'] = $each['ip'];
+                    $this->allOlt[$each['id']]['snmp'] = $each['snmp'];
+                    $this->allOlt[$each['id']]['modelid'] = $each['modelid'];
+                }
+            }
+        }
+    }
+
+    /**
+     * 
+     * Load all from `pononu` to $allOnu
+     */
     protected function loadOnu() {
         $query = "SELECT * from `pononu`";
         $all = simple_queryall($query);
@@ -18,15 +45,69 @@ class OnuConfigurator {
         }
     }
 
-    protected function GetOnuMac($login) {
-        $allOnu = $this->allOnu;
-        foreach ($allOnu as $eachOnu => $each) {
-            if ($each['login'] == "$login") {
-                return($each['mac']);
+      /**
+     * Loads all available snmp models data into private data property
+     * 
+     * @return void
+     */
+    protected function loadOltModels() {
+            $rawModels = zb_SwitchModelsGetAll();
+            foreach ($rawModels as $io => $each) {
+                $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
+                $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
             }
+    }
+    
+    protected function GetOltModelTemplate($modelid) {
+        $result = '';
+        if(!empty($this->allOltModels)) {
+            $data = $this->allOltModels[$modelid];
+            $result = $data['snmptemplate'];
         }
+        return($result);
     }
 
+    /**
+     * 
+     * get olt data like ip and snmp community
+     * @param type $id int
+     * @return type array
+     */
+    protected function GetOltData($id) {
+        $result = array();
+        if (!empty($this->allOlt)) {
+            $Olt = $this->allOlt[$id];
+            $result[] = $Olt['ip'];
+            $result[] = $Olt['snmp'];
+            $result[] = $Olt['modelid'];
+        }
+        return($result);
+    }
+
+    /**
+     * 
+     * Get onu data mac and olt ID to which onu is linked
+     * @param type $login string
+     * @return type array
+     */
+    protected function GetOnuMac($login) {
+        $allOnu = $this->allOnu;
+        $result = array();
+        foreach ($allOnu as $eachOnu => $each) {
+            if ($each['login'] == $login) {
+                $result[] = $each['mac'];
+                $result[] = $each['oltid'];
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * 
+     * Format heximal mac address to decimal or show error
+     * @param type $macOnu string
+     * @return type string
+     */
     protected function MacHexToDec($macOnu) {
         if (check_mac_format($macOnu)) {
             $res = array();
@@ -34,27 +115,96 @@ class OnuConfigurator {
             foreach ($args as $each) {
                 $res[] = hexdec($each);
             }
-            $string = implode(".",$res);
+            $string = implode(".", $res);
             return ($string);
         } else
             show_error("Wrong mac format (shoud be XX:XX:XX:XX:XX:XX)");
     }
 
-     protected function GetClientIface($macOnu) {
-        $snmp = new SNMPHelper();
+    /**
+     * 
+     * Get snmp index which linked to onu
+     * @param type $macOnu string
+     * @param type $oltIp string
+     * @param type $oltCommunity string
+     * @return type int
+     */
+    protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $oid) {
         $macOnu = $this->MacHexToDec($macOnu);
-        $oltIp = "10.200.0.2";
-        $oltCommunity = "Happyli";
-        $interface = ("1.3.6.1.2.1.17.4.3.1.2." . $macOnu);
-        $OltInt = $snmp->walk($oltIp, $oltCommunity, $interface);
-        $tmp = explode("=",$OltInt);
-        $tmp = explode(":",$tmp[1]);
+        $interface = ($oid . "." . $macOnu);
+        $OltInt = $this->snmp->walk($oltIp, $oltCommunity, $interface);
+        $tmp = explode("=", $OltInt);
+        $tmp = explode(":", $tmp[1]);
         $tmp = trim($tmp[1]);
-        $OltNameIntOid = (".1.3.6.1.2.1.2.2.1.2." . $tmp);
-        $OltNameInt = $snmp->walk($oltIp,$oltCommunity,$OltNameIntOid);
-        $tmp = explode("=", $OltNameInt);
-        $tmp = str_replace("STRING: ", "", $tmp[1]);
         return($tmp);
+    }
+
+    /**
+     * 
+     * Check wheather vlan already exists (if exists return false, if not return true)
+     * @param type $vlan
+     * @param type $oltIp
+     * @param type $oltCommunity
+     * @return type bool
+     */
+    protected function CheckOltVlan($vlan, $oltIp, $oltCommunity, $oid) {
+        @$tmp = $this->snmp->walk($oltIp, $oltCommunity, $oid . "." . $vlan);
+        @$tmp = explode("=", $tmp);
+        @$tmp = explode(":", $tmp[1]);
+        @$tmp = trim($tmp[1]);
+        if ($tmp == '1') {
+            $res = 'false';
+        } else {
+            $res = 'true';
+        }
+        return ($res);
+    }
+
+    /**
+     * 
+     * Changes onu pvid by snmp query and if needed creates vlan
+     * @param type $login
+     * @param type $vlan
+     * @return type string
+     */
+    public function ChangeOnuPvid($login, $vlan, $onu_port = '1') {
+        $OnuData = $this->GetOnuMac($login);
+        $OnuMac = $OnuData[0];
+        $oltId = $OnuData[1];
+        $oltData = $this->GetOltData($oltId);
+        $oltIp = $oltData[0];
+        $oltCommunity = $oltData[1];
+        $template = $this->GetOltModelTemplate($oltData[2]);
+        $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template,true);
+        $vlanCreateOid = $iniData['vlan']['CREATE'];
+        $ChangeOnuPvidOid = $iniData['vlan']['PVID'];
+        $SaveConfigOid = $iniData['vlan']['SAVE'];
+        $CheckVlanOid = $iniData['vlan']['CHECK'];
+        $IfIndexOid = $iniData['vlan']['IFINDEX'];
+        $IfIndex = $this->GetClientIface($OnuMac, $oltIp, $oltCommunity, $IfIndexOid);
+        $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity,$CheckVlanOid);        
+        $data = array();
+        if ($VlanCheck) {
+            //create vlan on OLT
+            $data[] = array(
+                'oid' => $vlanCreateOid . "." . $vlan,
+                'type' => 'i',
+                'value' => '4'
+            );
+        }
+        //Change pvid on onu port by defolt port 1
+        $data[] = array(
+            'oid' => $ChangeOnuPvidOid . $IfIndex . "." . $onu_port,
+            'type' => 'i',
+            'value' => "$vlan"
+        );
+        $data[] = array(
+            'oid' => $SaveConfigOid,
+            'type' => 'i',
+            'value' => '1'
+        );
+        $result = $this->snmp->set($oltIp, $oltCommunity, $data);
+        return ($result);
     }
 
 }
@@ -121,12 +271,12 @@ class AutoConfigurator {
         }
     }
 
-    /*     * check by ip wheather switch is vlan terminator
+    /**
      * 
+     * check by ip wheather switch is vlan terminator
      * @param type $ip
      * @return type bool
      */
-
     protected function CheckTermIP($ip) {
         $tmp = $this->allterm;
         $res = '';
@@ -144,8 +294,9 @@ class AutoConfigurator {
         }
     }
 
-    /** get parentid for switch
+    /**
      * 
+     * get parentid for switch
      * @param type $swid
      * @return type int `id`
      */
@@ -161,8 +312,9 @@ class AutoConfigurator {
         }
     }
 
-    /** get uplink switch ip by parentid
+    /**
      * 
+     * get uplink switch ip by parentid
      * @param type $parentid
      * @return type int `id`
      */
@@ -178,8 +330,9 @@ class AutoConfigurator {
         }
     }
 
-    /** get switch which port beyond to user
+    /**
      * 
+     * get switch which port beyond to user
      * @param type $login
      * @return type array
      */
@@ -197,8 +350,9 @@ class AutoConfigurator {
         }
     }
 
-    /** get switch connection data snmp\login + password
+    /**
      * 
+     * get switch connection data snmp\login + password
      * @param type $swid
      * @return type array
      */
@@ -223,8 +377,9 @@ class AutoConfigurator {
         }
     }
 
-    /** get switch ip by id
+    /**
      * 
+     * get switch ip by id
      * @param type $swid
      * @return type string `ip`
      */
@@ -241,8 +396,8 @@ class AutoConfigurator {
         }
     }
 
-    /** get switches id and modelid by its ip
-     * 
+    /**
+     * get switches id and modelid by its ip
      * @param type $ip
      * @return type array
      */
@@ -261,8 +416,9 @@ class AutoConfigurator {
         }
     }
 
-    /** Get switch modelname and ports by it's id
+    /**
      * 
+     * Get switch modelname and ports by it's id
      * @param type $swid
      * @return type array
      */
@@ -316,8 +472,9 @@ class AutoConfigurator {
         show_window(__('Switch Logins'), $result);
     }
 
-    /** SNMP create Vlans on uplink switches
+    /**
      * 
+     * SNMP create Vlans on uplink switches
      * @param type $UplinkId
      * @param type $termip
      * @param type $vlan
@@ -425,8 +582,9 @@ class AutoConfigurator {
         }
     }
 
-    /** Create vlans untag on abon's port and tagged on uplink ports by snmp
+    /**
      * 
+     * Create vlans untag on abon's port and tagged on uplink ports by snmp
      * @param type $vlan
      * @param type $login
      * @return snmpresult (bad if empty)
@@ -573,19 +731,33 @@ class AutoConfigurator {
 
 }
 
+/**
+ * 
+ * Select all from `switchportassign` and return it
+ * @return type array
+ */
 function get_all_swassign() {
     $query = "SELECT * FROM `switchportassign`";
-
     $res = simple_queryall($query);
     return($res);
 }
 
+/**
+ * 
+ * Select all from `switchmodels` and return it
+ * @return type array
+ */
 function get_all_model() {
     $query = "SELECT * FROM `switchmodels`";
     $res = simple_queryall($query);
     return($res);
 }
 
+/**
+ * 
+ * Select all from `switch_login` and return it
+ * @return type array
+ */
 function get_all_swlogin() {
     $query = "SELECT * FROM `switch_login`";
     $result = simple_queryall($query);
@@ -594,8 +766,9 @@ function get_all_swlogin() {
 
 /**
  * 
+ * Select data from `switch_login` by `id` and return it
  * @param type $id
- * @return type
+ * @return type array
  */
 function get_swlogin_param($id) {
     $query = "SELECT * FROM `switch_login` WHERE `id`='" . $id . "'";
@@ -605,7 +778,8 @@ function get_swlogin_param($id) {
 
 /**
  * 
- * @param type $id
+ * Form for editing data for switches login (ip, snmp community, login, password)
+ * @param type $id int
  */
 function swlogin_edit_form($id) {
     $id = vf($id);
@@ -631,7 +805,8 @@ function swlogin_edit_form($id) {
 
 /**
  * 
- * @param type $id
+ * delete login data for switch by id
+ * @param type $id int
  */
 function swlogin_delete($id) {
     $id = vf($id);
@@ -642,14 +817,14 @@ function swlogin_delete($id) {
 }
 
 /**
-
  * 
- * @param type $swmodel
- * @param type $login
- * @param type $pass
- * @param type $method
- * @param type $community
- * @param type $enable
+ * Add login data for switch
+ * @param type $swmodel string
+ * @param type $login string
+ * @param type $pass string
+ * @param type $method string
+ * @param type $community string
+ * @param type $enable string
  */
 function swlogin_add($swmodel, $login, $pass, $method, $community, $enable) {
     $swmodel = vf($swmodel);
@@ -684,7 +859,8 @@ function swlogin_add($swmodel, $login, $pass, $method, $community, $enable) {
 
 /**
  * 
- * @return type
+ * Get all from `switches` and return it
+ * @return type array
  */
 function get_all_sw() {
     $query = "SELECT * from `switches`";
@@ -694,8 +870,9 @@ function get_all_sw() {
 
 /**
  * 
+ * Get data from `switchmodels` by `id` from `switches` and return it
  * @param type $id
- * @return type
+ * @return type array
  */ function get_sw_modelname($id) {
     $query = "SELECT * FROM `switchmodels` WHERE `id` IN (SELECT `modelid` FROM `switches` WHERE `id`='" . $id . "')";
     $modelid = simple_query($query);
