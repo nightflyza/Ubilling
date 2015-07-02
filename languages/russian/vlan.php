@@ -18,4 +18,10 @@ $lang['def']['Debtors by city'] = 'Должники по городу';
 $lang['def']['Payments by city'] = 'Платежи по городу';
 $lang['def']['Change month'] = 'Изменить месяц';
 $lang['def']['Payments'] = 'Платежи';
+$lang['def']['Per city action'] = 'Действия по городу';
+$lang['def']['Add Vlan'] = 'Добавить VLAN';
+$lang['def']['right to use action per city module'] = 'Право использовать модуль действий по городу';
+$lang['def']['right to watch payments per city'] = 'Право просматривать платежи по городу';
+$lang['def']['right to search users per city'] = 'Право искать пользователей по городу';
+$lang['def']['right to watch debtors report per city'] = 'Право просматривать должников по городу';
 ?>

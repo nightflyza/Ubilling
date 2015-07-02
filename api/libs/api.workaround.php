@@ -487,7 +487,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
 
-   
+
     //cash suspect checking 
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['SUSP_PAYMENTS_NOTIFY']) {
@@ -1559,10 +1559,10 @@ function months_array_wz() {
  */
 function months_array_localized() {
     $months = months_array();
-    $result=array();
+    $result = array();
     if (!empty($months)) {
-        foreach ($months as $io=>$each) {
-            $result[$io]=  rcms_date_localise($each);
+        foreach ($months as $io => $each) {
+            $result[$io] = rcms_date_localise($each);
         }
     }
     return ($result);
@@ -2526,7 +2526,7 @@ function web_TariffShowTariffCharts() {
 
     $query = "SELECT `login`,`Tariff` from `users`";
     $all = simple_queryall($query);
-    $chartData=array();
+    $chartData = array();
 
     if (!empty($all)) {
         foreach ($all as $io => $each) {
@@ -2540,7 +2540,6 @@ function web_TariffShowTariffCharts() {
 
     if (!empty($chartData)) {
         $result.= wf_gcharts3DPie($chartData, __('Users'), '500px', '500px');
-       
     }
 
     return ($result);
@@ -4226,6 +4225,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
         
 //Initializations
     $xml_array = array();
@@ -4366,5 +4366,20 @@ function zb_CheckPHPExtensions() {
     } else {
         $result.=wf_tag('span', false, 'alert_error') . __('Strange exeption') . ': OPTSEXTCFG_NOT_FOUND' . wf_tag('span', true);
     }
+    return ($result);
+}
+
+/**
+ * Validate a Gregorian date 
+ * 
+ * @param string $date Date in MySQL format
+ * @return bool
+ */
+function zb_checkDate($date) {
+    $explode=  explode('-', $date);
+    @$year = $explode[0];
+    @$month = $explode[1];
+    @$day = $explode[2];
+    $result = checkdate($month, $day, $year);
     return ($result);
 }

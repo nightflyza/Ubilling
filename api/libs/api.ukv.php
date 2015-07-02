@@ -1169,8 +1169,8 @@ class UkvSystem {
      * @return string
      */
     public function renderUsers() {
-        $columns=array('Full address','Real Name','Contract','Tariff','Connected','Cash');
-        $result=  wf_JqDtLoader($columns, self::URL_USERS_AJAX_SOURCE, false, 'users', 50);
+        $columns = array('Full address', 'Real Name', 'Contract', 'Tariff', 'Connected', 'Cash');
+        $result = wf_JqDtLoader($columns, self::URL_USERS_AJAX_SOURCE, false, 'users', 50);
         return ($result);
     }
 
@@ -1277,7 +1277,7 @@ class UkvSystem {
         global $ubillingConfig;
         $altcfg = $ubillingConfig->getAlter();
         $userid = vf($userid, 3);
-
+        $curdate = curdate();
         if (isset($this->users[$userid])) {
             if (empty($this->cashtypes)) {
                 $this->loadCashtypes();
@@ -1338,6 +1338,11 @@ class UkvSystem {
                         $notes = $eachpayment['note'];
                     }
 
+                    //today payments highlight
+                    $rowClass = 'row3';
+                    if (ispos($eachpayment['date'], $curdate)) {
+                        $rowClass = 'paytoday';
+                    }
                     $cells = wf_TableCell($eachpayment['id']);
                     $cells.= wf_TableCell($eachpayment['date']);
                     $cells.= wf_TableCell($eachpayment['summ']);
@@ -1347,7 +1352,7 @@ class UkvSystem {
                     $cells.= wf_TableCell($paymentCashtype);
                     $cells.= wf_TableCell($notes);
                     $cells.= wf_TableCell($eachpayment['admin']);
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows.= wf_TableRow($cells, $rowClass);
                 }
             }
 
@@ -1884,7 +1889,7 @@ class UkvSystem {
         $query = "SELECT `filename`,`hash`,`date`,`admin`,`payid`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
         $this->loadCashtypes();
-        
+
         $cells = wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Filename'));
         $cells.= wf_TableCell(__('Type'));
@@ -1895,7 +1900,7 @@ class UkvSystem {
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
-                
+
                 $cells = wf_TableCell($each['date']);
                 $cells.= wf_TableCell($each['filename']);
                 $cells.= wf_TableCell(@$this->cashtypes[$each['payid']]);

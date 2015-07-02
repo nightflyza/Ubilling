@@ -166,8 +166,8 @@ class PONizer {
                         $result[$eachMac] = $signal;
                         //signal history filling
                         $historyFile = self::ONUSIG_PATH . md5($eachMac);
-                        if ($signal=='Offline') {
-                            $signal=-9000; //over 9000 offline signal level :P
+                        if ($signal == 'Offline') {
+                            $signal = -9000; //over 9000 offline signal level :P
                         }
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
@@ -282,6 +282,25 @@ class PONizer {
     }
 
     /**
+     * Check ONU MAC address unique or not?
+     * 
+     * @param string $mac
+     * @return bool
+     */
+    protected function checkMacUnique($mac) {
+        $mac = strtolower($mac);
+        $result = true;
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['mac'] == $mac) {
+                    $result = false;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Creates new ONU in database and returns it Id or 0 if action fails
      * 
      * @param int $onumodelid
@@ -306,11 +325,15 @@ class PONizer {
         $result = 0;
         if (!empty($mac)) {
             if (check_mac_format($mac)) {
-                $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
-                        . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
-                nr_query($query);
-                $result = simple_get_lastid('pononu');
-                log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
+                if ($this->checkMacUnique($mac)) {
+                    $query = "INSERT INTO `pononu` (`id`, `onumodelid`, `oltid`, `ip`, `mac`, `serial`, `login`) "
+                            . "VALUES (NULL, '" . $onumodelid . "', '" . $oltid . "', '" . $ip . "', '" . $mac . "', '" . $serial . "', '" . $login . "');";
+                    nr_query($query);
+                    $result = simple_get_lastid('pononu');
+                    log_register('PON CREATE ONU [' . $result . '] MAC `' . $macRaw . '`');
+                } else {
+                    log_register('PON MACDUPLICATE TRY `' . $macRaw . '`');
+                }
             } else {
                 log_register('PON MACINVALID TRY `' . $macRaw . '`');
             }
@@ -347,7 +370,11 @@ class PONizer {
         simple_update_field('pononu', 'ip', $ip, $where);
         if (!empty($mac)) {
             if (check_mac_format($mac)) {
-                simple_update_field('pononu', 'mac', $mac, $where);
+                if ($this->checkMacUnique($mac)) {
+                    simple_update_field('pononu', 'mac', $mac, $where);
+                } else {
+                    log_register('PON MACDUPLICATE TRY `' . $mac . '`');
+                }
             } else {
                 log_register('PON MACINVALID TRY `' . $mac . '`');
             }
@@ -438,7 +465,7 @@ class PONizer {
             $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
             $inputs.= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             $inputs.= wf_TextInput('editip', __('IP'), $this->allOnu[$onuId]['ip'], true, 20);
-            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup.' '.$this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
+            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup . ' ' . $this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
             $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
             $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
             $inputs.= wf_Submit(__('Save'));

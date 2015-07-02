@@ -11,6 +11,7 @@ class OnuConfigurator {
         $this->LoadAllOlt();
         $this->loadOltModels();
         $this->snmp = new SNMPHelper();
+        $this->SwitchConf = new AutoConfigurator();
     }
 
     /**
@@ -45,22 +46,22 @@ class OnuConfigurator {
         }
     }
 
-      /**
+    /**
      * Loads all available snmp models data into private data property
      * 
      * @return void
      */
     protected function loadOltModels() {
-            $rawModels = zb_SwitchModelsGetAll();
-            foreach ($rawModels as $io => $each) {
-                $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
-                $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
-            }
+        $rawModels = zb_SwitchModelsGetAll();
+        foreach ($rawModels as $io => $each) {
+            $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
+            $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+        }
     }
-    
+
     protected function GetOltModelTemplate($modelid) {
         $result = '';
-        if(!empty($this->allOltModels)) {
+        if (!empty($this->allOltModels)) {
             $data = $this->allOltModels[$modelid];
             $result = $data['snmptemplate'];
         }
@@ -148,10 +149,10 @@ class OnuConfigurator {
      * @return type bool
      */
     protected function CheckOltVlan($vlan, $oltIp, $oltCommunity, $oid) {
-        @$tmp = $this->snmp->walk($oltIp, $oltCommunity, $oid . "." . $vlan);
-        @$tmp = explode("=", $tmp);
-        @$tmp = explode(":", $tmp[1]);
-        @$tmp = trim($tmp[1]);
+        $tmp = $this->snmp->walk($oltIp, $oltCommunity, $oid . "." . $vlan);
+        $tmp = explode("=", $tmp);
+        $tmp = explode(":", $tmp[1]);
+        $tmp = trim($tmp[1]);
         if ($tmp == '1') {
             $res = 'false';
         } else {
@@ -175,26 +176,26 @@ class OnuConfigurator {
         $oltIp = $oltData[0];
         $oltCommunity = $oltData[1];
         $template = $this->GetOltModelTemplate($oltData[2]);
-        $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template,true);
+        $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template, true);
         $vlanCreateOid = $iniData['vlan']['CREATE'];
         $ChangeOnuPvidOid = $iniData['vlan']['PVID'];
         $SaveConfigOid = $iniData['vlan']['SAVE'];
         $CheckVlanOid = $iniData['vlan']['CHECK'];
         $IfIndexOid = $iniData['vlan']['IFINDEX'];
         $IfIndex = $this->GetClientIface($OnuMac, $oltIp, $oltCommunity, $IfIndexOid);
-        $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity,$CheckVlanOid);        
+        $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
         $data = array();
         if ($VlanCheck) {
-            //create vlan on OLT
+//create vlan on OLT
             $data[] = array(
                 'oid' => $vlanCreateOid . "." . $vlan,
                 'type' => 'i',
                 'value' => '4'
             );
         }
-        //Change pvid on onu port by defolt port 1
+//Change pvid on onu port by defolt port 1
         $data[] = array(
-            'oid' => $ChangeOnuPvidOid . $IfIndex . "." . $onu_port,
+            'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
             'type' => 'i',
             'value' => "$vlan"
         );
@@ -203,8 +204,10 @@ class OnuConfigurator {
             'type' => 'i',
             'value' => '1'
         );
-        $result = $this->snmp->set($oltIp, $oltCommunity, $data);
-        return ($result);
+        $uplinkid = $this->SwitchConf->GetSwUplinkID($oltId);
+        $swconf = $this->SwitchConf->TerminatorSnmpControl($uplinkid, $vlan);
+        //$result = $this->snmp->set($oltIp, $oltCommunity, $data);
+        return ($swconf);
     }
 
 }
@@ -224,6 +227,7 @@ class AutoConfigurator {
         $this->LoadSwitches();
         $this->LoadAssign();
         $this->LoadTerminators();
+        $this->SnmpHelper = new SNMPHelper();
     }
 
     protected function LoadTerminators() {
@@ -289,9 +293,7 @@ class AutoConfigurator {
                 }
             }
         }
-        if (isset($res)) {
-            return($res);
-        }
+        return($res);
     }
 
     /**
@@ -300,29 +302,11 @@ class AutoConfigurator {
      * @param type $swid
      * @return type int `id`
      */
-    protected function GetSwUplinkID($swid) {
+    public function GetSwUplinkID($swid) {
         $result = '';
         foreach ($this->allsw as $io) {
             if ($io['id'] == $swid) {
                 $result = $io['parentid'];
-            }
-        }
-        if (isset($result)) {
-            return($result);
-        }
-    }
-
-    /**
-     * 
-     * get uplink switch ip by parentid
-     * @param type $parentid
-     * @return type int `id`
-     */
-    protected function GetSwUplinkIP($parentid) {
-        $result = '';
-        foreach ($this->allsw as $io) {
-            if ($io['id'] == $parentid) {
-                $result = $io['ip'];
             }
         }
         if (isset($result)) {
@@ -379,6 +363,22 @@ class AutoConfigurator {
 
     /**
      * 
+     * get uplink switch ip by parentid
+     * @param type $parentid
+     * @return type int `id`
+     */
+    protected function GetSwUplinkIP($parentid) {
+        $result = '';
+        foreach ($this->allsw as $io) {
+            if ($io['id'] == $parentid) {
+                $result = $io['ip'];
+            }
+        }
+        return($result);
+    }
+
+    /**
+     * 
      * get switch ip by id
      * @param type $swid
      * @return type string `ip`
@@ -408,12 +408,9 @@ class AutoConfigurator {
             if ($io['ip'] == $ip) {
                 $result[] = $io['modelid'];
                 $result[] = $io['id'];
-                break;
             }
         }
-        if (!empty($result)) {
-            return($result);
-        }
+        return($result);
     }
 
     /**
@@ -479,11 +476,12 @@ class AutoConfigurator {
      * @param type $termip
      * @param type $vlan
      */
-    protected function TerminatorSnmpControl($UplinkId, $termip, $vlan) {
+    public function TerminatorSnmpControl($UplinkId, $vlan) {
+
         while (!empty($UplinkId)) {
             $upip = $this->GetSwUplinkIP($UplinkId);
             $TermData = $this->CheckTermIP($upip);
-            if ($TermData === 'true') {
+            if ($TermData) {
                 break;
             }
             $upModelId = $this->GetModelidByIP($upip);
@@ -495,10 +493,10 @@ class AutoConfigurator {
             $upSwLogin = $upConn[1];
             $upPassword = $upConn[2];
             if (file_exists(CONFIG_PATH . 'autoconfig/' . $modelname)) {
-                $IniData = parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
-                if ($IniData['define']['type'] == 'huawei') {
-                    $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
-                    $SaveConfigOid = $IniData['oid']['ConfigSave'];
+                $IniData = rcms_parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
+                if ($IniData['define']['TYPE'] == 'huawei') {
+                    $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
+                    $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
                     $TypeCreate = "i";
                     $TypeSave = "i";
                     $upData = array();
@@ -512,10 +510,9 @@ class AutoConfigurator {
                         'type' => $TypeSave,
                         'value' => '1'
                     );
-                    $upsession = new SNMPHelper();
-                    $upset = $upsession->set($upip, $upCommunity, $upData);
+                    $upset = $this->SnmpHelper->set($upip, $upCommunity, $upData);
                     $UplinkId = $this->GetSwUplinkID($UplinkId);
-                } elseif ($IniData['define']['type'] == 'dlink') {
+                } elseif ($IniData['define']['TYPE'] == 'dlink') {
                     if ($swports == '26') {
                         $upPorts = explode(',', $IniData['ports']['uplink']);
                         if (empty($upPorts[1])) {
@@ -531,50 +528,53 @@ class AutoConfigurator {
                             $plist_add_tagged = "000000C000000000";
                         }
                     } elseif ($swports == '28') {
-                        $upPorts = explode(',', $IniData['ports']['uplink']);
+                        $upPorts = explode(',', $IniData['ports']['UPLINK']);
                         include(CONFIG_PATH . 'autoconfig/dlink_ports.php');
                     }
-                    $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
-                    if (isset($IniData['oid']['TaggedVlan'])) {
-                        $MakeTaggedVlan = $IniData['oid']['TaggedVlan'] . $vlan;
-                    }
-                    $MakeActive = $IniData['oid']['MakeActive'] . $vlan;
-                    $NameVlan = $IniData['oid']['Name'] . $vlan;
-                    $SaveConfigOid = $IniData['oid']['ConfigSave'];
-                    $TypeCreate = "i";
-                    $TypeAdd = "x";
-                    $TypeSave = "i";
-                    $TypeMakeActive = "i";
-                    $TypeName = "s";
                     $data = array();
+                    $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
+                    $TypeCreate = "i";
                     $data[] = array(
                         'oid' => $VlanCreateOid,
                         'type' => $TypeCreate,
                         'value' => '5'
                     );
-                    $data[] = array(
-                        'oid' => $NameVlan,
-                        'type' => $TypeName,
-                        'value' => "vlan$vlan"
-                    );
-                    $data[] = array(
-                        'oid' => $MakeActive,
-                        'type' => $TypeMakeActive,
-                        'value' => '1'
-                    );
-                    $data[] = array(
-                        'oid' => $MakeTaggedVlan,
-                        'type' => $TypeAdd,
-                        'value' => $plist_add_tagged
-                    );
+                    if (isset($IniData['oid']['TAGGEDVLAN'])) {
+                        $MakeTaggedVlan = $IniData['oid']['TAGGEDVLAN'] . $vlan;
+                        $TypeAdd = "x";
+                        $data[] = array(
+                            'oid' => $MakeTaggedVlan,
+                            'type' => $TypeAdd,
+                            'value' => $plist_add_tagged
+                        );
+                    }
+                    if (isset($IniData['oid']['MAKEACTIVE'])) {
+                        $MakeActive = $IniData['oid']['MAKEACTIVE'] . $vlan;
+                        $TypeMakeActive = "i";
+                        $data[] = array(
+                            'oid' => $MakeActive,
+                            'type' => $TypeMakeActive,
+                            'value' => '1'
+                        );
+                    }
+                    if (isset($IniData['oid']['NAME'])) {
+                        $NameVlan = $IniData['oid']['NAME'] . $vlan;
+                        $TypeName = "s";
+                        $data[] = array(
+                            'oid' => $NameVlan,
+                            'type' => $TypeName,
+                            'value' => "vlan$vlan"
+                        );
+                    }
+                    $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
+                    $TypeSave = "i";
                     $data[] = array(
                         'oid' => $SaveConfigOid,
                         'type' => $TypeSave,
                         'value' => '3'
                     );
-                    $upsession = new SNMPHelper();
-                    $upset = $upsession->set($upip, $upCommunity, $data);
                     $UplinkId = $this->GetSwUplinkID($UplinkId);
+                    $upset = $this->SnmpHelper->set($upip, $upCommunity, $data);
                 }
             } else {
                 show_error('file for uplink not set');
@@ -602,16 +602,15 @@ class AutoConfigurator {
         $swlogin = $conn[1];
         $password = $conn[2];
         $UplinkId = $this->GetSwUplinkID($swid);
-        $termip = $this->GetSwUplinkIP($UplinkId);
         $TermData = $this->CheckTermIP($termip);
         if (file_exists(CONFIG_PATH . 'autoconfig/' . $modelname)) {
             if ($TermData == 'false') {
-                $this->TerminatorSnmpControl($UplinkId, $termip, $vlan);
+                $this->TerminatorSnmpControl($UplinkId, $vlan);
             }
             $IniData = parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
-            if ($IniData['define']['type'] == 'huawei') {
+            if ($IniData['define']['TYPE'] == 'huawei') {
                 if ($swports == '26') {
-                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    $upPorts = explode(',', $IniData['ports']['UPLINK']);
                     if (empty($upPorts[1])) {
                         if ($upPorts[0] == '25') {
                             $plist_add = "000000200000000000";
@@ -626,9 +625,9 @@ class AutoConfigurator {
                 if (!empty($offset) or $offset == "0") {
                     $plist_add[$group] = $offset;
                 }
-                $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
-                $VlanAddOid = $IniData['oid']['VlanAdd'] . $vlan;
-                $SaveConfigOid = $IniData['oid']['ConfigSave'];
+                $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
+                $VlanAddOid = $IniData['oid']['VLANADD'] . $vlan;
+                $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
                 $TypeCreate = "i";
                 $TypeAdd = "x";
                 $TypeSave = "i";
@@ -648,11 +647,10 @@ class AutoConfigurator {
                     'type' => $TypeSave,
                     'value' => '1'
                 );
-                $snmp = new SNMPHelper();
-                $set = $snmp->set($swip, $community, $data);
-            } elseif ($IniData['define']['type'] == 'dlink') {
+                $set = $this->SnmpHelper->set($swip, $community, $data);
+            } elseif ($IniData['define']['TYPE'] == 'dlink') {
                 if ($swports == '26') {
-                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    $upPorts = explode(',', $IniData['ports']['UPLINK']);
                     if (empty($upPorts[1])) {
                         switch ($upPorts[0]) {
                             case '25':
@@ -666,62 +664,64 @@ class AutoConfigurator {
                         $plist_add_tagged = "000000C000000000";
                     }
                 } elseif ($swports == '28') {
-                    $upPorts = explode(',', $IniData['ports']['uplink']);
+                    $upPorts = explode(',', $IniData['ports']['UPLINK']);
                     include(CONFIG_PATH . 'autoconfig/dlink_ports.php');
                 }
                 include(CONFIG_PATH . 'autoconfig/dlink_port_add.php');
                 $plist_add_untagged = "0000000000000000";
                 $plist_add_untagged[$group] = $plist_add;
                 $plist_add_tagged[$group] = $plist_add;
-
-                $VlanCreateOid = $IniData['oid']['VlanCreate'] . $vlan;
-                if (isset($IniData['oid']['TaggedVlan'])) {
-                    $MakeTaggedVlan = $IniData['oid']['TaggedVlan'] . $vlan;
-                }
-                if (isset($IniData['oid']['UntaggedVlan'])) {
-                    $MakeUntuggedVlan = $IniData['oid']['UntaggedVlan'] . $vlan;
-                }
-                $MakeActive = $IniData['oid']['MakeActive'] . $vlan;
-                $NameVlan = $IniData['oid']['Name'] . $vlan;
-                $SaveConfigOid = $IniData['oid']['ConfigSave'];
-                $TypeCreate = "i";
-                $TypeAdd = "x";
-                $TypeSave = "i";
-                $TypeMakeActive = "i";
-                $TypeName = "s";
                 $data = array();
+                $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
+                $TypeCreate = "i";
                 $data[] = array(
                     'oid' => $VlanCreateOid,
                     'type' => $TypeCreate,
                     'value' => '5'
                 );
-                $data[] = array(
-                    'oid' => $NameVlan,
-                    'type' => $TypeName,
-                    'value' => "vlan$vlan"
-                );
-                $data[] = array(
-                    'oid' => $MakeActive,
-                    'type' => $TypeMakeActive,
-                    'value' => '1'
-                );
-                $data[] = array(
-                    'oid' => $MakeTaggedVlan,
-                    'type' => $TypeAdd,
-                    'value' => $plist_add_tagged
-                );
-                $data[] = array(
-                    'oid' => $MakeUntuggedVlan,
-                    'type' => $TypeAdd,
-                    'value' => $plist_add_untagged
-                );
+                if (isset($IniData['oid']['TAGGEDVLAN'])) {
+                    $TypeAdd = "x";
+                    $MakeTaggedVlan = $IniData['oid']['TAGGEDVLAN'] . $vlan;
+                    $data[] = array(
+                        'oid' => $MakeTaggedVlan,
+                        'type' => $TypeAdd,
+                        'value' => $plist_add_tagged
+                    );
+                }
+                if (isset($IniData['oid']['UNTAGGEDVLAN'])) {
+                    $MakeUntuggedVlan = $IniData['oid']['UNTAGGEDVLAN'] . $vlan;
+                    $data[] = array(
+                        'oid' => $MakeUntuggedVlan,
+                        'type' => $TypeAdd,
+                        'value' => $plist_add_untagged
+                    );
+                }
+                if (isset($IniData['oid']['MAKEACTIVE'])) {
+                    $TypeMakeActive = "i";
+                    $MakeActive = $IniData['oid']['MAKEACTIVE'] . $vlan;
+                    $data[] = array(
+                        'oid' => $MakeActive,
+                        'type' => $TypeMakeActive,
+                        'value' => '1'
+                    );
+                }
+                if (isset($IniData['oid']['NAME'])) {
+                    $TypeName = "s";
+                    $NameVlan = $IniData['oid']['NAME'] . $vlan;
+                    $data[] = array(
+                        'oid' => $NameVlan,
+                        'type' => $TypeName,
+                        'value' => "vlan$vlan"
+                    );
+                }
+                $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
+                $TypeSave = "i";
                 $data[] = array(
                     'oid' => $SaveConfigOid,
                     'type' => $TypeSave,
                     'value' => '3'
                 );
-                $snmp = new SNMPHelper();
-                $set = $snmp->set($swip, $community, $data);
+                $set = $this->SnmpHelper->set($swip, $community, $data);
             }
             return ($set);
         } else {
@@ -1525,7 +1525,7 @@ function vlan_qinq_delete_host($login) {
  */
 function vlan_add_host($vlanpoolid, $vlan, $login) {
     $query = "
-		INSERT INTO `vl anhosts ` (
+		INSERT INTO `vlanhosts` (
 			`id` ,
 			`vlanpoolid` ,
 			`vlan` ,

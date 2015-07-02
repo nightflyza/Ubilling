@@ -400,7 +400,7 @@ if (cfr('CITYACTION')) {
         }
     } else {
         show_error('You dont have enough permission');
-    }
+    } 
     if (cfr('CITYPAYMENTS')) {
         if (isset($_GET['city_payments'])) {
             if ($_GET['city_payments']) {

@@ -234,7 +234,20 @@ if ($tc_enabled) {
                     billing_addcash($user_login, '-' . $change_prices[$_POST['newtariff']]);
 
                     //nm set tariff routine
-                    billing_settariffnm($user_login, mysql_real_escape_string($_POST['newtariff']));
+                    $nextMonthTc=true;
+                    if (isset($us_config['TC_RIGHTNOW'])) {
+                        if ($us_config['TC_RIGHTNOW']) {
+                            $nextMonthTc=false;
+                        }
+                    }
+                    if ($nextMonthTc) {
+                        billing_settariffnm($user_login, mysql_real_escape_string($_POST['newtariff']));
+                    } else {
+                        billing_settariff($user_login, mysql_real_escape_string($_POST['newtariff']));
+                    }
+                    
+                    
+                    
                     rcms_redirect("index.php");
                 } else {
                     // agreement check fail
