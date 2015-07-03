@@ -206,7 +206,7 @@ class OnuConfigurator {
         );
         $uplinkid = $this->SwitchConf->GetSwUplinkID($oltId);
         $swconf = $this->SwitchConf->TerminatorSnmpControl($uplinkid, $vlan);
-        //$result = $this->snmp->set($oltIp, $oltCommunity, $data);
+        $result = $this->snmp->set($oltIp, $oltCommunity, $data);
         return ($swconf);
     }
 
@@ -287,9 +287,9 @@ class AutoConfigurator {
         if (!empty($tmp)) {
             foreach ($tmp as $io) {
                 if ($io['ip'] == $ip) {
-                    $res = 'true';
+                    $res = true;
                 } else {
-                    $res = 'false';
+                    $res = false;
                 }
             }
         }
@@ -479,21 +479,21 @@ class AutoConfigurator {
     public function TerminatorSnmpControl($UplinkId, $vlan) {
 
         while (!empty($UplinkId)) {
-            $upip = $this->GetSwUplinkIP($UplinkId);
+            $upip = $this->GetSwUplinkIP($UplinkId);                        
             $TermData = $this->CheckTermIP($upip);
             if ($TermData) {
                 break;
-            }
-            $upModelId = $this->GetModelidByIP($upip);
-            $upSwid = $upModelId[1];
+            }            
+            $upModelId = $this->GetModelidByIP($upip);            
+            $upSwid = $upModelId[1];            
             $upModelParam = $this->GetSwModelParam($upSwid);
             $modelname = $upModelParam[1];
             $upConn = $this->GetConnParam($upSwid);
             $upCommunity = $upConn[0];
             $upSwLogin = $upConn[1];
             $upPassword = $upConn[2];
-            if (file_exists(CONFIG_PATH . 'autoconfig/' . $modelname)) {
-                $IniData = rcms_parse_ini_file(CONFIG_PATH . 'autoconfig/' . $modelname, true);
+            if (file_exists('config/autoconfig/' . $modelname)) {                
+                $IniData = rcms_parse_ini_file('config/autoconfig/' . $modelname, true);
                 if ($IniData['define']['TYPE'] == 'huawei') {
                     $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
                     $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
@@ -512,32 +512,15 @@ class AutoConfigurator {
                     );
                     $upset = $this->SnmpHelper->set($upip, $upCommunity, $upData);
                     $UplinkId = $this->GetSwUplinkID($UplinkId);
-                } elseif ($IniData['define']['TYPE'] == 'dlink') {
-                    if ($swports == '26') {
-                        $upPorts = explode(',', $IniData['ports']['uplink']);
-                        if (empty($upPorts[1])) {
-                            switch ($upPorts[0]) {
-                                case '25':
-                                    $plist_add_tagged = "0000008000000000";
-                                    break;
-                                case '26':
-                                    $plist_add_tagged = "0000004000000000";
-                                    break;
-                            }
-                        } else {
-                            $plist_add_tagged = "000000C000000000";
-                        }
-                    } elseif ($swports == '28') {
-                        $upPorts = explode(',', $IniData['ports']['UPLINK']);
-                        include(CONFIG_PATH . 'autoconfig/dlink_ports.php');
-                    }
+                } elseif ($IniData['define']['TYPE'] == 'dlink') {                   
                     $data = array();
-                    $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
+                    $VlanCreateOid = $IniData['oid']['VLANCREATE'] . "." . $vlan;
                     $TypeCreate = "i";
+                    $CreateValue=$IniData['oid']['CREATEVALUE'];
                     $data[] = array(
                         'oid' => $VlanCreateOid,
                         'type' => $TypeCreate,
-                        'value' => '5'
+                        'value' => $CreateValue
                     );
                     if (isset($IniData['oid']['TAGGEDVLAN'])) {
                         $MakeTaggedVlan = $IniData['oid']['TAGGEDVLAN'] . $vlan;
@@ -568,16 +551,18 @@ class AutoConfigurator {
                     }
                     $SaveConfigOid = $IniData['oid']['CONFIGSAVE'];
                     $TypeSave = "i";
+                    $SaveValue = $IniData['oid']['SAVEVALUE'];
                     $data[] = array(
                         'oid' => $SaveConfigOid,
                         'type' => $TypeSave,
-                        'value' => '3'
+                        'value' => $SaveValue
                     );
                     $UplinkId = $this->GetSwUplinkID($UplinkId);
                     $upset = $this->SnmpHelper->set($upip, $upCommunity, $data);
                 }
-            } else {
-                show_error('file for uplink not set');
+            } else {           
+                show_error("file for uplink not set (id $UplinkId)");
+                break;
             }
         }
     }

@@ -57,8 +57,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                     $onuForm = wf_Form("", 'POST', $onuInputs);
                     show_window(__('Change pvid on onu port'), $onuForm);
                     if (isset($_POST['change_onu_pvid'])) {
-                        $onu_cfg = $onuconfig->ChangeOnuPvid($login, $vlan);
-                        show_success($onu_cfg);
+                        $onu_cfg = $onuconfig->ChangeOnuPvid($login, $cur_vlan);                     
                     }
                 }
             }
