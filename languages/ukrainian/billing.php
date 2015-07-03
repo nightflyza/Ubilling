@@ -1990,5 +1990,6 @@ $lang['def']['indebtedness']='заборгованість';
 $lang['def']['according to the tariff']='згідно тарифу';
 $lang['def']['ONU signal history']='Історія сигналу ONU';
 $lang['def']['Wrong date format']='Невірний формат дати';
+$lang['def']['ONU assign']='Чіпляння ONU';
 
 ?>

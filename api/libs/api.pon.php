@@ -417,7 +417,7 @@ class PONizer {
         $onuid = vf($onuid, 3);
         if (isset($this->allOnu[$onuid])) {
             simple_update_field('pononu', 'login', $login, "WHERE `id`='" . $onuid . "'");
-            log_register('PON ASSIGN ONU [' . $onuid . '] WITH `' . $login . '`');
+            log_register('PON ASSIGN ONU [' . $onuid . '] WITH (' . $login . ')');
         } else {
             log_register('PON ASSIGN ONU [' . $onuid . '] FAILED');
         }

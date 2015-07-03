@@ -33,11 +33,11 @@ if ($altCfg['PON_ENABLED']) {
             $pon->onuDelete($_GET['deleteonu']);
             rcms_redirect('?module=ponizer');
         }
-        
+
         //assigning ONU with some user
-        if (wf_CheckPost(array('assignonulogin','assignonuid'))) {
+        if (wf_CheckPost(array('assignonulogin', 'assignonuid'))) {
             $pon->onuAssign($_POST['assignonuid'], $_POST['assignonulogin']);
-            rcms_redirect('?module=ponizer&editonu='.$_POST['assignonuid']);
+            rcms_redirect('?module=ponizer&editonu=' . $_POST['assignonuid']);
         }
 
 
@@ -52,7 +52,7 @@ if ($altCfg['PON_ENABLED']) {
                     rcms_redirect('?module=ponizer&editonu=' . $userOnuId);
                 } else {
                     //rendering assign form
-                    show_window(__('ONU assign'),$pon->onuAssignForm($login));
+                    show_window(__('ONU assign'), $pon->onuAssignForm($login));
                 }
             } else {
                 //rendering availavle onu LIST
