@@ -14,9 +14,9 @@ if ($altCfg['PON_ENABLED']) {
 
         //creating new ONU device
         if (wf_CheckPost(array('createnewonu', 'newoltid', 'newmac'))) {
-            $onuCreateResult=$pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
+            $onuCreateResult = $pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
             if ($onuCreateResult) {
-            rcms_redirect('?module=ponizer');
+                rcms_redirect('?module=ponizer');
             } else {
                 show_error(__('This MAC have wrong format'));
             }
@@ -33,11 +33,31 @@ if ($altCfg['PON_ENABLED']) {
             $pon->onuDelete($_GET['deleteonu']);
             rcms_redirect('?module=ponizer');
         }
+        
+        //assigning ONU with some user
+        if (wf_CheckPost(array('assignonulogin','assignonuid'))) {
+            $pon->onuAssign($_POST['assignonuid'], $_POST['assignonulogin']);
+            rcms_redirect('?module=ponizer&editonu='.$_POST['assignonuid']);
+        }
 
 
-        //rendering availavle onu LIST
+
         if (!wf_CheckGet(array('editonu'))) {
-            show_window(__('ONU directory'), $pon->controls() . $pon->renderOnuList());
+            if (wf_CheckGet(array('username'))) {
+                //try to detect ONU id by user login
+                $login = $_GET['username'];
+                $userOnuId = $pon->getOnuIdByUser($login);
+                //redirecting to assigned ONU
+                if ($userOnuId) {
+                    rcms_redirect('?module=ponizer&editonu=' . $userOnuId);
+                } else {
+                    //rendering assign form
+                    show_window(__('ONU assign'),$pon->onuAssignForm($login));
+                }
+            } else {
+                //rendering availavle onu LIST
+                show_window(__('ONU directory'), $pon->controls() . $pon->renderOnuList());
+            }
         } else {
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));

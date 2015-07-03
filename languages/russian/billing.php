@@ -1976,11 +1976,8 @@ $lang['def']['indebtedness']='задолженность';
 $lang['def']['according to the tariff']='согласно тарифа';
 $lang['def']['ONU signal history']='История сигнала ONU';
 $lang['def']['Wrong date format']='Неверный формат даты';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['ONU assign']='Привязка ONU';
+
 
 
 

@@ -108,6 +108,25 @@ class PONizer {
     }
 
     /**
+     * Try to detect ONU id by assigned users login
+     * 
+     * @param string $login
+     * @return int/bool
+     */
+    public function getOnuIdByUser($login) {
+        $result = 0;
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['login'] == $login) {
+                    $result = $each['id'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      * 
      * @param int   $oltid
@@ -387,6 +406,24 @@ class PONizer {
     }
 
     /**
+     * Assigns exinsting ONU with some login
+     * 
+     * @param int $onuid
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function onuAssign($onuid, $login) {
+        $onuid = vf($onuid, 3);
+        if (isset($this->allOnu[$onuid])) {
+            simple_update_field('pononu', 'login', $login, "WHERE `id`='" . $onuid . "'");
+            log_register('PON ASSIGN ONU [' . $onuid . '] WITH `' . $login . '`');
+        } else {
+            log_register('PON ASSIGN ONU [' . $onuid . '] FAILED');
+        }
+    }
+
+    /**
      * Deletes onu from database by its ID
      * 
      * @param int $onuId
@@ -442,6 +479,51 @@ class PONizer {
     }
 
     /**
+     * Renders ONU assigning form
+     * 
+     * @param string $login
+     * @return string
+     */
+    public function onuAssignForm($login) {
+        $result = '';
+        $params = array();
+
+        $allRealnames = zb_UserGetAllRealnames();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        @$userAddress = $allAddress[$login];
+        @$userRealname = $allRealnames[$login];
+
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if (empty($each['login'])) {
+                    $onuLabel = (empty($each['ip'])) ? $each['mac'] : $each['mac'] . ' - ' . $each['ip'];
+                    $params[$each['id']] = $onuLabel;
+                }
+            }
+        }
+
+        //user data
+        $cells = wf_TableCell(__('Real Name'), '30%', 'row2');
+        $cells.= wf_TableCell($userRealname);
+        $rows = wf_TableRow($cells, 'row3');
+        $cells = wf_TableCell(__('Full address'), '30%', 'row2');
+        $cells.= wf_TableCell($userAddress);
+        $rows.= wf_TableRow($cells, 'row3');
+        $result.= wf_TableBody($rows, '100%', 0, '');
+        $result.= wf_delimiter();
+
+        $inputs = wf_HiddenInput('assignonulogin', $login);
+        $inputs.= wf_Selector('assignonuid', $params, __('ONU'), '', false);
+        $inputs.= wf_Submit(__('Save'));
+        $result.= wf_Form('', 'POST', $inputs, 'glamour');
+
+        $result.= wf_CleanDiv();
+        $result.= wf_delimiter();
+        $result.= web_UserControls($login);
+        return ($result);
+    }
+
+    /**
      * Returns ONU edit form
      * 
      * @param int $onuId
@@ -476,6 +558,9 @@ class PONizer {
             $result.= wf_delimiter();
 
             $result.= wf_Link('?module=ponizer', __('Back'), false, 'ubButton');
+            if (!empty($this->allOnu[$onuId]['login'])) {
+                $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], __('User profile'), false, 'ubButton');
+            }
             $result.= wf_JSAlertStyled('?module=ponizer&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);

@@ -346,6 +346,7 @@ class OpenPayz {
 
                 @$user_address = $this->allAddress[$user_login];
                 $user_address = str_replace('"', '', $user_address);
+                $user_address =  addslashes($user_address);
                 $user_address = trim($user_address);
 
 
