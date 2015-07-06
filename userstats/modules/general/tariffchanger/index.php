@@ -176,6 +176,7 @@ function zbs_TariffGetShowPrices($tc_tariffsallowed, $us_currency, $user_tariff,
  * @return string
  */
 function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_pricedown, $tc_pricesimilar, $us_currency) {
+    global $us_config;
     $user_tariff = zbs_UserGetTariff($login);
     $alltariffs = zbs_TariffGetAllPrices();
     $form = '
@@ -192,7 +193,19 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
     $inputs = __('New tariff') . ' ' . zbs_TariffSelector($tc_tariffsallowed, $user_tariff) . la_delimiter();
     $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
     $inputs.= la_delimiter();
-    $inputs.= la_Submit(__('I want this tariff next month'));
+    
+    $nmChangeFlag=true;
+    if (isset($us_config['TC_RIGHTNOW'])) {
+        if ($us_config['TC_RIGHTNOW']) {
+            $nmChangeFlag=false;
+        }
+    }
+    
+    $sumbitLabel= ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
+    
+    $inputs.= la_Submit($sumbitLabel);
+    
+    
     $form.= la_Form('', 'POST', $inputs, '');
 
     return ($form);

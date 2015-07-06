@@ -262,4 +262,7 @@ $lang['def']['billions']='миллиардов';
 $lang['def']['trillion']='триллион';
 $lang['def']['trillionx']='триллиона';
 $lang['def']['trillions']='триллионов';
+
+$lang['def']['I want this tariff right now']='Я желаю перейти на выбранный мной тариф прямо сейчас';
+
 ?>

@@ -264,5 +264,6 @@ $lang['def']['trillion']='трильйон';
 $lang['def']['trillionx']='трильйона';
 $lang['def']['trillions']='трильйонів';
 
+$lang['def']['I want this tariff right now']='Я бажаю перейти на вибраний тариф цієї ж миті';
 
 ?>
