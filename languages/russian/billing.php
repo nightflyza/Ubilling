@@ -1978,6 +1978,13 @@ $lang['def']['ONU signal history']='История сигнала ONU';
 $lang['def']['Wrong date format']='Неверный формат даты';
 $lang['def']['ONU assign']='Привязка ONU';
 
+//rev 4583 
+$lang['def']['Free']='Свободно';
+$lang['def']['IP usage stats']='Статистика использования IP';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 
 
 

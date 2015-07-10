@@ -2503,7 +2503,7 @@ function web_TariffShowMoveCharts() {
     $rows = '';
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Tariff'), '400px', '400px'));
+        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px'));
     }
 
     if (!empty($fromData)) {
@@ -2539,7 +2539,7 @@ function web_TariffShowTariffCharts() {
     }
 
     if (!empty($chartData)) {
-        $result.= wf_gcharts3DPie($chartData, __('Users'), '500px', '500px');
+        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px');
     }
 
     return ($result);
