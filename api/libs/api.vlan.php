@@ -11,7 +11,6 @@ class OnuConfigurator {
         $this->LoadAllOlt();
         $this->loadOltModels();
         $this->snmp = new SNMPHelper();
-        $this->SwitchConf = new AutoConfigurator();
     }
 
     /**
@@ -149,14 +148,12 @@ class OnuConfigurator {
      * @return type bool
      */
     protected function CheckOltVlan($vlan, $oltIp, $oltCommunity, $oid) {
-        $tmp = $this->snmp->walk($oltIp, $oltCommunity, $oid . "." . $vlan);
-        $tmp = explode("=", $tmp);
-        $tmp = explode(":", $tmp[1]);
-        $tmp = trim($tmp[1]);
+        $tmp = snmp2_get($oltIp, $oltCommunity, $oid . "." . $vlan);
+        $tmp = trim($tmp);
         if ($tmp == '1') {
-            $res = 'false';
+            $res = false;
         } else {
-            $res = 'true';
+            $res = true;
         }
         return ($res);
     }
@@ -186,14 +183,14 @@ class OnuConfigurator {
         $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
         $data = array();
         if ($VlanCheck) {
-//create vlan on OLT
+            //create vlan on OLT
             $data[] = array(
                 'oid' => $vlanCreateOid . "." . $vlan,
                 'type' => 'i',
                 'value' => '4'
             );
         }
-//Change pvid on onu port by defolt port 1
+        //Change pvid on onu port by defolt port 1
         $data[] = array(
             'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
             'type' => 'i',
@@ -203,11 +200,9 @@ class OnuConfigurator {
             'oid' => $SaveConfigOid,
             'type' => 'i',
             'value' => '1'
-        );
-        $uplinkid = $this->SwitchConf->GetSwUplinkID($oltId);
-        $swconf = $this->SwitchConf->TerminatorSnmpControl($uplinkid, $vlan);
+        );        
         $result = $this->snmp->set($oltIp, $oltCommunity, $data);
-        return ($swconf);
+        return ($result);
     }
 
 }
@@ -477,22 +472,21 @@ class AutoConfigurator {
      * @param type $vlan
      */
     public function TerminatorSnmpControl($UplinkId, $vlan) {
-
         while (!empty($UplinkId)) {
-            $upip = $this->GetSwUplinkIP($UplinkId);                        
+            $upip = $this->GetSwUplinkIP($UplinkId);
             $TermData = $this->CheckTermIP($upip);
             if ($TermData) {
                 break;
-            }            
-            $upModelId = $this->GetModelidByIP($upip);            
-            $upSwid = $upModelId[1];            
+            }
+            $upModelId = $this->GetModelidByIP($upip);
+            $upSwid = $upModelId[1];
             $upModelParam = $this->GetSwModelParam($upSwid);
             $modelname = $upModelParam[1];
             $upConn = $this->GetConnParam($upSwid);
             $upCommunity = $upConn[0];
             $upSwLogin = $upConn[1];
             $upPassword = $upConn[2];
-            if (file_exists('config/autoconfig/' . $modelname)) {                
+            if (file_exists('config/autoconfig/' . $modelname)) {
                 $IniData = rcms_parse_ini_file('config/autoconfig/' . $modelname, true);
                 if ($IniData['define']['TYPE'] == 'huawei') {
                     $VlanCreateOid = $IniData['oid']['VLANCREATE'] . $vlan;
@@ -511,12 +505,11 @@ class AutoConfigurator {
                         'value' => '1'
                     );
                     $upset = $this->SnmpHelper->set($upip, $upCommunity, $upData);
-                    $UplinkId = $this->GetSwUplinkID($UplinkId);
-                } elseif ($IniData['define']['TYPE'] == 'dlink') {                   
+                } elseif ($IniData['define']['TYPE'] == 'dlink') {
                     $data = array();
                     $VlanCreateOid = $IniData['oid']['VLANCREATE'] . "." . $vlan;
                     $TypeCreate = "i";
-                    $CreateValue=$IniData['oid']['CREATEVALUE'];
+                    $CreateValue = $IniData['oid']['CREATEVALUE'];
                     $data[] = array(
                         'oid' => $VlanCreateOid,
                         'type' => $TypeCreate,
@@ -557,10 +550,11 @@ class AutoConfigurator {
                         'type' => $TypeSave,
                         'value' => $SaveValue
                     );
-                    $UplinkId = $this->GetSwUplinkID($UplinkId);
-                    $upset = $this->SnmpHelper->set($upip, $upCommunity, $data);
+                    //$upset = $this->SnmpHelper->set($upip, $upCommunity, $data);
+                    return($data);
                 }
-            } else {           
+                $UplinkId = $this->GetSwUplinkID($UplinkId);
+            } else {
                 show_error("file for uplink not set (id $UplinkId)");
                 break;
             }

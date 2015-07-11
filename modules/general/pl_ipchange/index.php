@@ -85,21 +85,21 @@ if (cfr('PLIPCHANGE')) {
 
             $cells = wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Network/CIDR'));
-            $cells.= wf_TableCell(__('Total').' '.__('IP'));
-            $cells.= wf_TableCell(__('Used').' '.__('IP'));
-            $cells.= wf_TableCell(__('Free').' '.__('IP'));
+            $cells.= wf_TableCell(__('Total') . ' ' . __('IP'));
+            $cells.= wf_TableCell(__('Used') . ' ' . __('IP'));
+            $cells.= wf_TableCell(__('Free') . ' ' . __('IP'));
             $cells.= wf_TableCell(__('Service'));
             $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($data)) {
                 foreach ($data as $io => $each) {
-                    $free=$each['total']-$each['used'];
-                    $fontColor=($free<=5) ? '#a90000' : '';
+                    $free = $each['total'] - $each['used'];
+                    $fontColor = ($free <= 5) ? '#a90000' : '';
                     $cells = wf_TableCell($io);
                     $cells.= wf_TableCell($each['desc']);
                     $cells.= wf_TableCell($each['total']);
                     $cells.= wf_TableCell($each['used']);
-                    $cells.= wf_TableCell(wf_tag('font', false, '', 'color="'.$fontColor.'"').$free.  wf_tag('font',false));
+                    $cells.= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
                     $cells.= wf_TableCell($each['service']);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
@@ -108,7 +108,6 @@ if (cfr('PLIPCHANGE')) {
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
             return ($result);
         }
-        
 
         /**
          * Flushes all old user`s networking data and applies new one
@@ -163,7 +162,7 @@ if (cfr('PLIPCHANGE')) {
         } else {
             show_window(__('Current user IP'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $current_ip . wf_tag('h2', true) . '<br clear="both" />');
             show_window(__('Change user IP'), web_IPChangeFormService());
-            show_window(__('IP usage stats'),web_FreeIpStats());
+            show_window(__('IP usage stats'), web_FreeIpStats());
         }
 
         show_window('', web_UserControls($login));

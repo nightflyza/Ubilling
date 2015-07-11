@@ -49,7 +49,6 @@ function la_Form($action,$method,$inputs,$class='',$legend='') {
     return ($form);
 }
 /**
- *
  * Return text input Web From element 
  *
  * @param   $name name of element
@@ -79,6 +78,39 @@ function la_TextInput($name,$label='',$value='',$br=false,$size='') {
     $result.=' <label for="'.$inputid.'">'.__($label).'</label>'."\n";;
     }
     $result.=$newline."\n";
+    return ($result);
+}
+
+/**
+ * Return password input Web From element 
+ *
+ * @param  string $name name of element
+ * @param  string $label text label for input
+ * @param  string $value current value
+ * @param  bool   $br append new line
+ * @param  string $size input size
+ * @return string
+ *
+ */
+function la_PasswordInput($name, $label = '', $value = '', $br = false, $size = '') {
+    $inputid = la_InputId();
+    //set size
+    if ($size != '') {
+        $input_size = 'size="' . $size . '"';
+    } else {
+        $input_size = '';
+    }
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    $result = '<input type="password" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    if ($label != '') {
+        $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
+        ;
+    }
+    $result.=$newline . "\n";
     return ($result);
 }
 
@@ -536,8 +568,7 @@ function la_img($url,$title='') {
      return ($result);
  }
  
-  /*
- * 
+ /**
  * Returns some html styled tag
  * 
  * @param $tag HTML tag entity
