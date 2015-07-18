@@ -72,6 +72,7 @@ include('api/libs/api.pon.php');
 include('api/libs/api.cudiscounts.php');
 include('api/libs/api.cap.php');
 include('api/libs/api.opayz.php');
+include('api/libs/api.salary.php');
 
 /*
  * Initial class creation

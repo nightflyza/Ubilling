@@ -1430,3 +1430,37 @@ CREATE TABLE IF NOT EXISTS `cudiscounts` (
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 ALTER TABLE `ukv_banksta` ADD `payid` INT NULL ; 
+
+-- 0.6.9 update
+
+CREATE TABLE IF NOT EXISTS `salary_jobs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `taskid` int(11) DEFAULT NULL,
+  `employeeid` int(11) NOT NULL,
+  `jobtypeid` int(11) NOT NULL,
+  `factor` double DEFAULT NULL,
+  `overprice` double DEFAULT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `salary_jobprices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `jobtypeid` int(11) NOT NULL,
+  `price` double NOT NULL,
+  `unit` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `salary_wages` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `employeeid` int(11) NOT NULL,
+  `wage` double NOT NULL,
+  `bounty` double NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
