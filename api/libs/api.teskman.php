@@ -1407,6 +1407,13 @@ function ts_TaskChangeForm($taskid) {
         $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
+        
+          //Salary accounting
+            if ($altercfg['SALARY_ENABLED']) {
+                $salary=new Salary();
+                show_window(__('Additional jobs done'),$salary->taskJobCreateForm($_GET['edittask']));
+            }
+            
 
         //if task undone
         if ($taskdata['status'] == 0) {

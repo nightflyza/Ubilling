@@ -1995,5 +1995,24 @@ $lang['def']['ONU assign']='Чіпляння ONU';
 //rev 4583 
 $lang['def']['Free']='Вільно';
 $lang['def']['IP usage stats']='Статистика використання IP';
+$lang['def']['Units']='Одиниці виміру';
+$lang['def']['quantity']='кількість';
+$lang['def']['meter']='метр';
+$lang['def']['kilometer']='кілометр';
+$lang['def']['money']='гроші';
+$lang['def']['time']='час';
+$lang['def']['litre']='літр';
+$lang['def']['Job types pricing']='Розцінки на типи робіт';
+$lang['def']['Available job types pricing']='Існуючі розцінки на типи робіт';
+$lang['def']['No available job types for pricing']='Немає існуючих типів робіт, для встановлення розцінок';
+$lang['def']['Factor']='Коефіцієнт';
+$lang['def']['Price override']='Інша ціна';
+$lang['def']['Additional jobs done']='Додатково проведено роботи';
+$lang['def']['Employee wages']='Зарплати працівників';
+$lang['def']['Available employee wages']='Існуючі зарплати працівників';
+$lang['def']['Wage']='Зарплата';
+$lang['def']['Bounty']='Премія';
+$lang['def']['No available workers for wage creation']='Нема існуючих працівників, для встановлення зарплат';
+$lang['def']['Salary accounting']='Облік зарплат';
 
 ?>

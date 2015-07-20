@@ -45,7 +45,7 @@ DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 EASY_CREDIT=VARCHAR|Days interval to set one-click credit
-VLAN_IN_PROFILE=TRIGER|Show vlan on profile if vlan was assigned
+VLAN_IN_PROFILE=TRIGGER|Show vlan on profile if vlan was assigned
 
 CHAPTER_SEARCHOPTS=Search
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search
@@ -152,8 +152,10 @@ PHOTOSTORAGE_ENABLED=TRIGGER|System photostorage enabled
 CONDET_ENABLED=TRIGGER|Connection details module enabled
 CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
 UBCACHE_STORAGE=VARCHAR|System cache storage
-ONUAUTO_CONFIG=TRIGER|Set pvid on onu copper port
-PER_CITY_ACTION=TRIGER|Make per city action (user search, payments search, debtors search)
+SALARY_ENABLED=TRIGGER|Salary accounting
+ONUAUTO_CONFIG=TRIGGER|Set pvid on onu copper port
+PER_CITY_ACTION=TRIGGER|Make per city action (user search, payments search, debtors search)
+
 
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options

@@ -1,0 +1,1 @@
+<?php $this->registerModule($module, 'main', 'Salary accounting', 'nightfly', array('SALARY' => __('right to manage salary accounting'))); ?>
