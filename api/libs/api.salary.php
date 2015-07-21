@@ -4,6 +4,7 @@ class Salary {
 
     protected $allEmployee = array();
     protected $allJobtypes = array();
+    protected $allJobTimes = array();
     protected $allJobPrices = array();
     protected $allJobUnits = array();
     protected $allWages = array();
@@ -63,6 +64,7 @@ class Salary {
             foreach ($all as $io => $each) {
                 $this->allJobPrices[$each['jobtypeid']] = $each['price'];
                 $this->allJobUnits[$each['jobtypeid']] = $each['unit'];
+                $this->allJobTimes[$each['jobtypeid']] = $each['time'];
             }
         }
     }
@@ -92,8 +94,9 @@ class Salary {
         $result = '';
         if (!empty($this->allJobtypes)) {
             $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', false) . ' ';
-            $inputs.=wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', false) . ' ';
+            $inputs.= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', false) . ' ';
             $inputs.= wf_TextInput('newjobtypeprice', __('Price'), '', false, 5) . ' ';
+            $inputs.= wf_TextInput('newjobtypepricetime', __('Hours'), '', false, 2) . ' ';
             $inputs.= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result.= wf_CleanDiv();
@@ -114,6 +117,7 @@ class Salary {
             $inputs = wf_HiddenInput('editjobtypepriceid', $jobtypeid);
             $inputs.= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
             $inputs.= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
+            $inputs.= wf_TextInput('editjobtypepricetime', __('Hours'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -126,18 +130,20 @@ class Salary {
      * @param int $jobtypeid
      * @param float $price
      * @param string $unit
+     * @param int $time
      * 
      * @return void
      */
-    public function jobPriceCreate($jobtypeid, $price, $unit) {
+    public function jobPriceCreate($jobtypeid, $price, $unit, $time) {
         $jobtypeid = vf($jobtypeid, 3);
         $price = str_replace(',', '.', $price);
+        $time = vf($time);
         if (!isset($this->allJobPrices[$jobtypeid])) {
             $priceF = mysql_real_escape_string($price);
             $unit = mysql_real_escape_string($unit);
-            $query = "INSERT INTO `salary_jobprices` (`id`, `jobtypeid`, `price`, `unit`) VALUES (NULL, '" . $jobtypeid . "', '" . $priceF . "', '" . $unit . "');";
+            $query = "INSERT INTO `salary_jobprices` (`id`, `jobtypeid`, `price`, `unit`,`time`) VALUES (NULL ,'" . $jobtypeid . "', '" . $priceF . "', '" . $unit . "', '" . $time . "');";
             nr_query($query);
-            log_register('SALARY CREATE JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $price . '`');
+            log_register('SALARY CREATE JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $price . '` TIME `' . $time . '`');
         } else {
             log_register('SALARY CREATE JOBPRICE FAILED EXIST JOBID [' . $jobtypeid . ']');
         }
@@ -154,6 +160,7 @@ class Salary {
         $cells = wf_TableCell(__('Job type'));
         $cells.= wf_TableCell(__('Units'));
         $cells.= wf_TableCell(__('Price'));
+        $cells.= wf_TableCell(__('Hours'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
@@ -162,6 +169,7 @@ class Salary {
                 $cells = wf_TableCell(@$this->allJobtypes[$jobtypeid]);
                 $cells.= wf_TableCell(__($this->allJobUnits[$jobtypeid]));
                 $cells.= wf_TableCell($eachprice);
+                $cells.= wf_TableCell($this->allJobTimes[$jobtypeid]);
                 $actLinks = wf_JSAlert('?module=salary&deletejobprice=' . $jobtypeid, web_delete_icon(), $messages->getDeleteAlert());
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->jobPricesEditForm($jobtypeid));
                 $cells.= wf_TableCell($actLinks);
@@ -196,10 +204,12 @@ class Salary {
     public function jobPriceEdit($jobtypeid) {
         $jobtypeid = vf($jobtypeid, 3);
         $price = str_replace(',', '.', $_POST['editjobtypeprice']);
+        $time = vf($_POST['editjobtypepricetime'], 3);
         $where = " WHERE `jobtypeid`='" . $jobtypeid . "';";
         simple_update_field('salary_jobprices', 'price', $price, $where);
         simple_update_field('salary_jobprices', 'unit', $_POST['editjobtypepriceunit'], $where);
-        log_register('SALARY EDIT JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $_POST['editjobtypeprice'] . '` UNIT `' . $_POST['editjobtypepriceunit'] . '`');
+        simple_update_field('salary_jobprices', 'time', $time, $where);
+        log_register('SALARY EDIT JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $_POST['editjobtypeprice'] . '` UNIT `' . $_POST['editjobtypepriceunit'] . '` TIME `' . $time . '`');
     }
 
     /**
@@ -286,8 +296,9 @@ class Salary {
         $notes = mysql_real_escape_string($notes);
         $overprice = mysql_real_escape_string($overprice);
         $date = curdatetime();
-        $query = "INSERT INTO `salary_jobs` (`id`, `date`, `taskid`, `employeeid`, `jobtypeid`, `factor`, `overprice`, `note`)"
-                . " VALUES (NULL, '" . $date . "', '" . $taskid . "', '" . $employeeid . "', '" . $jobtypeid . "', '" . $factor . "', '" . $overprice . "', '" . $notes . "');";
+        $state = 0;
+        $query = "INSERT INTO `salary_jobs` (`id`, `date`, `state` ,`taskid`, `employeeid`, `jobtypeid`, `factor`, `overprice`, `note`)"
+                . " VALUES (NULL, '" . $date . "', '" . $state . "' ,'" . $taskid . "', '" . $employeeid . "', '" . $jobtypeid . "', '" . $factor . "', '" . $overprice . "', '" . $notes . "');";
 
         nr_query($query);
         $newId = simple_get_lastid('salary_jobs');
@@ -399,6 +410,7 @@ class Salary {
         $all = $this->filterTaskJobs($taskid);
 
         $cells = wf_TableCell(__('Date'));
+        $cells.= wf_TableCell(__('Status'));
         $cells.= wf_TableCell(__('Worker'));
         $cells.= wf_TableCell(__('Job type'));
         $cells.= wf_TableCell(__('Factor'));
@@ -416,6 +428,7 @@ class Salary {
                     $unit = __('No');
                 }
                 $cells = wf_TableCell($each['date']);
+                $cells.= wf_TableCell(web_bool_led($this->allJobs[$each['id']]['state']));
                 $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
                 $cells.= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
                 $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
@@ -431,6 +444,7 @@ class Salary {
             }
 
             $cells = wf_TableCell(__('Total'));
+            $cells.= wf_TableCell('');
             $cells.= wf_TableCell('');
             $cells.= wf_TableCell('');
             $cells.= wf_TableCell('');

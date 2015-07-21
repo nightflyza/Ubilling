@@ -1436,6 +1436,7 @@ ALTER TABLE `ukv_banksta` ADD `payid` INT NULL ;
 CREATE TABLE IF NOT EXISTS `salary_jobs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` datetime NOT NULL,
+  `state` tinyint(1) NOT NULL DEFAULT '0',
   `taskid` int(11) DEFAULT NULL,
   `employeeid` int(11) NOT NULL,
   `jobtypeid` int(11) NOT NULL,
@@ -1451,6 +1452,7 @@ CREATE TABLE IF NOT EXISTS `salary_jobprices` (
   `jobtypeid` int(11) NOT NULL,
   `price` double NOT NULL,
   `unit` varchar(255) NOT NULL,
+  `time` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 

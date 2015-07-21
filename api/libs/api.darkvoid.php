@@ -122,6 +122,13 @@ class DarkVoid {
             }
         }
 
+        if ($this->altCfg['TB_TASKMANNOTIFY']) {
+            $undoneTasksCount = ts_GetUndoneCounters();
+            if ($undoneTasksCount > 0) {
+                $this->alerts.=wf_Link("?module=taskman&show=undone", wf_img("skins/jobnotify.png", $undoneTasksCount . ' ' . __('Undone tasks')), false, '');
+            }
+        }
+
         //switchmon at notify area
         if ($this->altCfg['TB_SWITCHMON']) {
             $dead_raw = zb_StorageGet('SWDEAD');

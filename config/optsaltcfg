@@ -7,6 +7,7 @@ CONTRACT_SAME_AS_LOGIN=TRIGGER|Set contract same as login after user register
 
 CHAPTER_TB=Taskbar features
 TB_NEWTICKETNOTIFY=TRIGGER|Taskbar notify for new tickets
+TB_TASKMANNOTIFY=TRIGGER|Undone tasks notification
 TB_SWITCHMON=TRIGGER|Taskbar notify for dead switches
 TB_LABELED=TRIGGER|Taskbar display labels under icons
 TB_ICONCUSTOMSIZE=TRIGGER|Administrators can set the size of icons on their own

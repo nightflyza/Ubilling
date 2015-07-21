@@ -1106,7 +1106,6 @@ function ts_FlushSMSData($taskid) {
     log_register('TASKMAN FLUSH SMS [' . $taskid . ']');
 }
 
-
 /**
  * Creates new task in database
  * 
@@ -1150,16 +1149,18 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             if (!empty($smsDataRaw)) {
                 $smsData = serialize($smsDataRaw);
                 $smsData = "'" . base64_encode($smsData) . "'";
-                //flushing darkvoid
-                $darkVoid = new DarkVoid();
-                $darkVoid->flushCache();
             }
         }
     }
-    
+
     $query = "INSERT INTO `taskman` (`id` , `date` , `address` , `login` , `jobtype` , `jobnote` , `phone` , `employee` , `employeedone` ,`donenote` , `startdate` ,`starttime`, `enddate` , `admin` , `status`,`smsdata`)
               VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "','NULL', NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
     nr_query($query);
+
+    //flushing darkvoid
+    $darkVoid = new DarkVoid();
+    $darkVoid->flushCache();
+
     log_register("TASKMAN CREATE `" . $address . "`");
 }
 
@@ -1407,13 +1408,15 @@ function ts_TaskChangeForm($taskid) {
         $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
         // show task preview
         show_window(__('View task') . ' ' . $modform, $result);
-        
-          //Salary accounting
-            if ($altercfg['SALARY_ENABLED']) {
-                $salary=new Salary();
-                show_window(__('Additional jobs done'),$salary->taskJobCreateForm($_GET['edittask']));
+
+        //Salary accounting
+        if ($altercfg['SALARY_ENABLED']) {
+            if (cfr('SALARYTASKS')) {
+                $salary = new Salary();
+                show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
             }
-            
+        }
+
 
         //if task undone
         if ($taskdata['status'] == 0) {
@@ -1700,6 +1703,29 @@ function ts_GetEmployeeByLogin($login) {
         $result = $raw['id'];
     } else {
         $result = false;
+    }
+    return ($result);
+}
+
+/**
+ * Returns count of undone tasks - used by DarkVoid
+ * 
+ * @return int
+ */
+function ts_GetUndoneCounters() {
+    $result = 0;
+    $curmonth = date("m");
+    $curyear = date("Y");
+
+    if (($curmonth != 1) AND ( $curmonth != 12)) {
+        $query = "SELECT `id` from `taskman` WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%'  ORDER BY `date` ASC";
+    } else {
+        $query = "SELECT `id` from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
+    }
+
+    $allundone = simple_queryall($query);
+    if (!empty($allundone)) {
+        $result = sizeof($allundone);
     }
     return ($result);
 }

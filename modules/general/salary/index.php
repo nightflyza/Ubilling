@@ -15,7 +15,7 @@ if (cfr('SALARY')) {
 // jobtype pricing creation
             if (wf_CheckPost(array('newjobtypepriceid', 'newjobtypepriceunit'))) {
                 if (method_exists($salary, $beggar['M']['JPADD'])) {
-                    $salary->$beggar['M']['JPADD']($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit']);
+                    $salary->$beggar['M']['JPADD']($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit'],$_POST['newjobtypepricetime']);
                 }
                 if (isset($beggar['U']['JPL'])) {
                     rcms_redirect($beggar['U']['JPL']);

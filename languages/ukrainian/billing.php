@@ -2014,5 +2014,8 @@ $lang['def']['Wage']='Зарплата';
 $lang['def']['Bounty']='Премія';
 $lang['def']['No available workers for wage creation']='Нема існуючих працівників, для встановлення зарплат';
 $lang['def']['Salary accounting']='Облік зарплат';
+$lang['def']['right to manage salary in taskmanager']='Право курувати зарплатами з планувальника задач';
+$lang['def']['right to manage salary accounting']='Право керувати обліком зарплат';
+$lang['def']['Undone tasks notification']='Сповіщення про пропущені задачі';
 
 ?>

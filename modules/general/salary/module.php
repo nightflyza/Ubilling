@@ -1,1 +1,1 @@
-<?php $this->registerModule($module, 'main', 'Salary accounting', 'nightfly', array('SALARY' => __('right to manage salary accounting'))); ?>
+<?php $this->registerModule($module, 'main', 'Salary accounting', 'nightfly', array('SALARY' => __('right to manage salary accounting'),'SALARYTASKS' => __('right to manage salary in taskmanager'))); ?>
