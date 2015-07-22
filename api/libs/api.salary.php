@@ -2,13 +2,60 @@
 
 class Salary {
 
+    /**
+     * Available active employee as employeeid=>name
+     *
+     * @var array
+     */
     protected $allEmployee = array();
+
+    /**
+     * Available jobtypes as jobtypeid=>name
+     *
+     * @var array
+     */
     protected $allJobtypes = array();
+
+    /**
+     * Typical jobtypes required time in hours as jobtypeid=>time
+     *
+     * @var array
+     */
     protected $allJobTimes = array();
+
+    /**
+     * Default jobtype pricing as jobtypeid=>price
+     *
+     * @var array
+     */
     protected $allJobPrices = array();
+
+    /**
+     * Available jobtype units as  jobtypeid=>unit
+     *
+     * @var string
+     */
     protected $allJobUnits = array();
+
+    /**
+     * Available employee wages, bounty and work day length
+     *
+     * @var string
+     */
     protected $allWages = array();
+
+    /**
+     * Available unit types as unittype=>localized name
+     *
+     * @var array
+     */
     protected $unitTypes = array();
+
+    /**
+     * All available salary jobs
+     *
+     * @var array
+     */
     protected $allJobs = array();
 
     const URL_ME = '?module=salary';
@@ -16,6 +63,8 @@ class Salary {
     const URL_JOBPRICES = 'jobprices=true';
     const URL_WAGES = 'employeewages=true';
     const URL_PAYROLL = 'payroll=true';
+    const URL_FACONTROL = 'factorcontrol=true';
+    const URL_TWJ = 'twjreport=true';
 
     public function __construct() {
         $this->setUnitTypes();
@@ -221,9 +270,12 @@ class Salary {
      */
     public function renderControls() {
         $result = '';
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/report.png') . ' ' . __('Payroll'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/report.png') . ' ' . __('Payroll'), false, 'ubButton');
+        
         return ($result);
     }
 
@@ -649,8 +701,6 @@ class Salary {
     public function payrollRenderSearchForm() {
         $result = '';
         $empParams = array('' => __('Any'));
-        //debug - remove later
-        $empParams = array();
         if (!empty($this->allEmployee)) {
             foreach ($this->allEmployee as $io => $each) {
                 $empParams[$io] = $each;
@@ -679,11 +729,11 @@ class Salary {
 
         $chartData = array();
         $chartDataCash = array();
-        
+
         $result = '';
         $totalSum = 0;
         $payedSum = 0;
-        $jobCount=0;
+        $jobCount = 0;
 
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "';";
         $all = simple_queryall($query);
@@ -703,14 +753,14 @@ class Salary {
             foreach ($all as $io => $each) {
                 $jobName = @$this->allJobtypes[$each['jobtypeid']];
                 $jobPrice = $this->getJobPrice($each['id']);
-                
+
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
                         $chartData[$jobName] ++;
-                        $chartDataCash[$jobName]=$chartDataCash[$jobName]+$jobPrice;
+                        $chartDataCash[$jobName] = $chartDataCash[$jobName] + $jobPrice;
                     } else {
                         $chartData[$jobName] = 1;
-                        $chartDataCash[$jobName]=$jobPrice;
+                        $chartDataCash[$jobName] = $jobPrice;
                     }
                 }
 
@@ -728,7 +778,7 @@ class Salary {
                 $cells.= wf_TableCell($each['overprice']);
                 $cells.= wf_TableCell($each['note']);
                 $cells.= wf_TableCell(web_bool_led($each['state']));
-                
+
                 $cells.= wf_TableCell($jobPrice);
                 if (!$each['state']) {
                     $actControls = wf_CheckInput('_prstatecheck[' . $each['id'] . ']', '', true, false);
@@ -744,15 +794,13 @@ class Salary {
                 } else {
                     $payedSum = $payedSum + $jobPrice;
                 }
-                
-             
             }
         }
 
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_HiddenInput('prstateprocessing', 'true');
-        if ($jobCount>0) {
-        $result.= wf_Submit(__('Processing')) . wf_delimiter();
+        if ($jobCount > 0) {
+            $result.= wf_Submit(__('Processing')) . wf_delimiter();
         }
 
         $result = wf_Form('', 'POST', $result, '');
@@ -762,12 +810,124 @@ class Salary {
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
-            
-            $chartCells=  wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px'));
+
+            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px'));
             $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px'));
-            $chartRows= wf_TableRow($chartCells);
-            $result.= wf_TableBody($chartRows, '100%', 0,'');
+            $chartRows = wf_TableRow($chartCells);
+            $result.= wf_TableBody($chartRows, '100%', 0, '');
         }
+        return ($result);
+    }
+
+    /**
+     * Renders payroll report search results for all employee
+     * 
+     * @param string $datefrom
+     * @param string $dateto
+     * @return string
+     */
+    public function payrollRenderSearchDate($datefrom, $dateto) {
+        $datefrom = mysql_real_escape_string($datefrom);
+        $dateto = mysql_real_escape_string($dateto);
+
+        $result = '';
+        $totalSum = 0;
+        $totalPayedSum = 0;
+        $totalWage = 0;
+        $totalBounty = 0;
+        $totalWorkTime = 0;
+        $jobCount = 0;
+        $jobsTmp = array();
+        $employeeCharts = array();
+        $employeeChartsMoney=array();
+
+        $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
+        $all = simple_queryall($query);
+
+
+
+        //jobs preprocessing
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $jobPrice = $this->getJobPrice($each['id']);
+                $jobTime = (isset($this->allJobTimes[$each['jobtypeid']])) ? $this->allJobTimes[$each['jobtypeid']] * $each['factor'] : 0;
+                if (!isset($jobsTmp[$each['employeeid']])) {
+                    $payedSum = ($each['state']) ? $jobPrice : 0;
+                    $jobsTmp[$each['employeeid']]['count'] = 1;
+                    $jobsTmp[$each['employeeid']]['sum'] = $jobPrice;
+                    $jobsTmp[$each['employeeid']]['payed'] = $payedSum;
+                    $jobsTmp[$each['employeeid']]['time'] = $jobTime;
+                } else {
+                    $payedSum = ($each['state']) ? $jobPrice : 0;
+                    $jobsTmp[$each['employeeid']]['count'] ++;
+                    $jobsTmp[$each['employeeid']]['sum']+=$jobPrice;
+                    $jobsTmp[$each['employeeid']]['payed']+=$payedSum;
+                    $jobsTmp[$each['employeeid']]['time']+=$jobTime;
+                }
+                $totalPayedSum+=$payedSum;
+                $totalSum+=$jobPrice;
+            }
+        }
+
+        $cells = wf_TableCell(__('Worker'));
+        $cells.= wf_TableCell(__('Wage'));
+        $cells.= wf_TableCell(__('Bounty'));
+        $cells.= wf_TableCell(__('Work hours'));
+        $cells.= wf_TableCell(__('Jobs'));
+        $cells.= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
+        $cells.= wf_TableCell(__('Earned money'));
+        $cells.= wf_TableCell(__('Paid'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($this->allEmployee)) {
+            foreach ($this->allEmployee as $io => $each) {
+                $cells = wf_TableCell($each);
+                $wage = (isset($this->allWages[$io]['wage'])) ? $this->allWages[$io]['wage'] : __('No');
+                $bounty = (isset($this->allWages[$io]['bounty'])) ? $this->allWages[$io]['bounty'] : __('No');
+                $worktime = (isset($this->allWages[$io]['worktime'])) ? $this->allWages[$io]['worktime'] : __('No');
+                $workerJobsData = (isset($jobsTmp[$io])) ? $jobsTmp[$io] : array('count' => 0, 'sum' => 0, 'payed' => 0, 'time' => 0);
+
+                $cells.= wf_TableCell($wage);
+                $cells.= wf_TableCell($bounty);
+                $cells.= wf_TableCell($worktime);
+                $cells.= wf_TableCell($workerJobsData['count']);
+                $cells.= wf_TableCell($workerJobsData['time']);
+                $cells.= wf_TableCell($workerJobsData['sum']);
+                $cells.= wf_TableCell($workerJobsData['payed']);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $totalWage+=$wage;
+                $totalBounty+=$bounty;
+                $totalWorkTime+=$workerJobsData['time'];
+                $jobCount+=$workerJobsData['count'];
+                $employeeCharts[$each] = $workerJobsData['count'];
+                $employeeChartsMoney[$each]=$workerJobsData['sum'];
+            }
+        }
+
+        $cells = wf_TableCell(__('Total'));
+        $cells.= wf_TableCell($totalWage);
+        $cells.= wf_TableCell($totalBounty);
+        $cells.= wf_TableCell('');
+        $cells.= wf_TableCell($jobCount);
+        $cells.= wf_TableCell($totalWorkTime);
+        $cells.= wf_TableCell($totalSum);
+        $cells.= wf_TableCell($totalPayedSum);
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $result = wf_TableBody($rows, '100%', 0, '');
+        $result.= wf_delimiter();
+        //charts
+        $sumCharts = array(__('Earned money') => $totalSum-$totalPayedSum, __('Paid') => $totalPayedSum);
+
+        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px'));
+        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money').' / '.__('Worker'), '400px', '400px'));
+        $rows = wf_TableRow($cells);
+        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px'));
+        $cells.= wf_TableCell('');
+        $rows.= wf_TableRow($cells);
+        $result.= wf_TableBody($rows, '100%', 0, '');
+
         return ($result);
     }
 
@@ -804,7 +964,7 @@ class Salary {
                 $cells = wf_TableCell($jobData['date']);
                 $cells.= wf_TableCell($jobData['taskid']);
                 $cells.= wf_TableCell($jobData['jobtypeid']);
-                $cells.= wf_TableCell($jobData['factor'].' / '.$unit);
+                $cells.= wf_TableCell($jobData['factor'] . ' / ' . $unit);
                 $cells.= wf_TableCell($jobData['overprice']);
                 $cells.= wf_TableCell($jobData['note']);
                 $jobPrice = $this->getJobPrice($jobData['id']);
@@ -845,12 +1005,12 @@ class Salary {
                 $result.= $this->renderJobList($tmpArr);
                 $result.= wf_delimiter();
                 $result.= wf_Submit(__('Payment confirmation'));
-                $result= wf_Form('', 'POST', $result, '');
+                $result = wf_Form('', 'POST', $result, '');
             }
         }
-        
+
         $result.= wf_delimiter();
-        $result.= wf_Link(self::URL_ME.'&'.self::URL_PAYROLL, __('Back'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, __('Back'), false, 'ubButton');
 
         return ($result);
     }
@@ -861,23 +1021,191 @@ class Salary {
      * @return void
      */
     public function payrollStateProcessing() {
-     $jobCount=0;
-     if (wf_CheckPost(array('_prstatecheck'))) {
-         $checksRaw=$_POST['_prstatecheck'];
-         if (!empty($checksRaw)) {
-             foreach ($checksRaw as $io => $each) {
-                 $jobId=vf($io,3);
-                 simple_update_field('salary_jobs', 'state', '1', " WHERE `id`='".$jobId."';");
-                 $jobCount++;
-             }
-             
-             show_success(__('Job payment processing finished'));
-             show_window('', wf_Link(self::URL_ME.'&'.self::URL_PAYROLL, __('Back'), false, 'ubButton'));
-             log_register('SALARY JOBS PROCESSED `'.$jobCount.'`');
-         } else {
-             log_register('SALARY JOBS PROCESSING FAIL EMPTY_JOBIDS');
-         }
-     }   
+        $jobCount = 0;
+        if (wf_CheckPost(array('_prstatecheck'))) {
+            $checksRaw = $_POST['_prstatecheck'];
+            if (!empty($checksRaw)) {
+                foreach ($checksRaw as $io => $each) {
+                    $jobId = vf($io, 3);
+                    simple_update_field('salary_jobs', 'state', '1', " WHERE `id`='" . $jobId . "';");
+                    $jobCount++;
+                }
+
+                show_success(__('Job payment processing finished'));
+                show_window('', wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, __('Back'), false, 'ubButton'));
+                log_register('SALARY JOBS PROCESSED `' . $jobCount . '`');
+            } else {
+                log_register('SALARY JOBS PROCESSING FAIL EMPTY_JOBIDS');
+            }
+        }
+    }
+
+    /**
+     * Returns existing employee name
+     * 
+     * @param int $employeeid
+     * @return string
+     */
+    public function getEmployeeName($employeeid) {
+        $result = '';
+        if (isset($this->allEmployee[$employeeid])) {
+            $result = $this->allEmployee[$employeeid];
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders factor control search form :P
+     * 
+     * @return string
+     */
+    public function facontrolRenderSearchForm() {
+        $result = '';
+        if (!empty($this->allJobtypes)) {
+            $inputs = wf_Selector('facontroljobtypeid', $this->allJobtypes, __('Job type'), '', false);
+            $inputs.= wf_TextInput('facontrolmaxfactor', '> ' . __('Factor'), '', false, '4');
+            $inputs.= wf_Submit(__('Show'));
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders factor control report search results
+     * 
+     * @param int $jobtypeid
+     * @param float $factor
+     * 
+     * @return string
+     */
+    public function facontrolRenderSearch($jobtypeid, $factor) {
+        $result = '';
+        $jobtypeid = vf($jobtypeid, 3);
+
+        $tmpArr = array();
+        $allTasks = ts_GetAllTasks();
+
+        if (!empty($this->allJobs)) {
+            foreach ($this->allJobs as $io => $each) {
+                if ($jobtypeid == $each['jobtypeid']) {
+                    if (isset($tmpArr[$each['taskid']])) {
+                        $tmpArr[$each['taskid']]+=$each['factor'];
+                    } else {
+                        $tmpArr[$each['taskid']] = $each['factor'];
+                    }
+                }
+            }
+        }
+
+        if (!empty($tmpArr)) {
+            if (isset($this->allJobUnits[$jobtypeid])) {
+                $unit = $this->unitTypes[$this->allJobUnits[$jobtypeid]];
+            } else {
+                $unit = __('No');
+            }
+            $cells = wf_TableCell(__('Task'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Target date'));
+            $cells.= wf_TableCell(__('Job type'));
+            $cells.= wf_TableCell(__('Who should do'));
+            $cells.= wf_TableCell(__('Factor') . ' (' . $unit . ')');
+            $rows = wf_TableRow($cells, 'row1');
+
+
+            foreach ($tmpArr as $taskid => $factorOverflow) {
+                if ($factorOverflow > $factor) {
+                    $cells = wf_TableCell(wf_Link(self::URL_TS . $taskid, $taskid));
+                    $cells.= wf_TableCell(@$allTasks[$taskid]['address']);
+                    $cells.= wf_TableCell(@$allTasks[$taskid]['startdate']);
+                    $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeid]);
+                    $cells.= wf_TableCell(@$this->allEmployee[$allTasks[$taskid]['employee']]);
+                    $cells.= wf_TableCell($factorOverflow);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+            }
+
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+        }
+
+
+
+        return ($result);
+    }
+
+    /**
+     * Renders tasks without jobs report search form
+     * 
+     * @return string
+     */
+    public function twjReportSearchForm() {
+        $result = '';
+        $curdate = curdate();
+        $inputs = wf_DatePickerPreset('twfdatefrom', $curdate, true);
+        $inputs.= wf_DatePickerPreset('twfdateto', $curdate, true);
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders tasks without jobs report
+     * 
+     * @param string $datefrom
+     * @param string $dateto
+     * 
+     * @return string
+     */
+    public function twjReportSearch($datefrom, $dateto) {
+        $datefrom = mysql_real_escape_string($datefrom);
+        $dateto = mysql_real_escape_string($dateto);
+        $result = '';
+        $tmpArr = array();
+        $query = "SELECT * from `taskman` WHERE CAST(`startdate` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
+
+        $allTasks = simple_queryall($query);
+        if (!empty($allTasks)) {
+            foreach ($allTasks as $io => $eachTask) {
+                $taskJobs = $this->filterTaskJobs($eachTask['id']);
+                if (empty($taskJobs)) {
+                    $tmpArr[$eachTask['id']] = $eachTask;
+                }
+            }
+
+            if (!empty($tmpArr)) {
+
+                $cells = wf_TableCell(__('Task'));
+                $cells.= wf_TableCell(__('Address'));
+                $cells.= wf_TableCell(__('Target date'));
+                $cells.= wf_TableCell(__('Job type'));
+                $cells.= wf_TableCell(__('Who should do'));
+                $cells.= wf_TableCell(__('Done'));
+
+                $rows = wf_TableRow($cells, 'row1');
+
+
+                foreach ($tmpArr as $io => $eachTask) {
+                    $taskid = $eachTask['id'];
+                    $cells = wf_TableCell(wf_Link(self::URL_TS . $taskid, $taskid));
+                    $cells.= wf_TableCell(@$eachTask['address']);
+                    $cells.= wf_TableCell(@$eachTask['startdate']);
+                    $cells.= wf_TableCell(@$this->allJobtypes[$eachTask['jobtype']]);
+                    $cells.= wf_TableCell(@$this->allEmployee[$eachTask['employee']]);
+                    $cells.= wf_TableCell(web_bool_led($eachTask['status']));
+
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+            }
+        } else {
+            $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+        }
+
+        return ($result);
     }
 
 }

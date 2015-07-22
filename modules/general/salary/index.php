@@ -100,7 +100,7 @@ if (cfr('SALARY')) {
                 if (wf_CheckPost(array('prstateprocessing'))) {
                     show_window(__('Confirmation'), $salary->payrollStateProcessingForm());
                 }
-                
+
                 if (wf_CheckPost(array('prstateprocessingconfirmed'))) {
                     $salary->payrollStateProcessing();
                 }
@@ -108,13 +108,36 @@ if (cfr('SALARY')) {
 
                 if (wf_CheckPost(array('prdatefrom', 'prdateto'))) {
                     if (wf_CheckPost(array('premployeeid'))) {
-                        deb($salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid']));
+                        //single employee report
+                        $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_POST['premployeeid']) . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
+                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid']));
                     } else {
                         //multiple employee report
-                        deb('TO DO');
+                        $reportTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee') . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
+                        show_window($reportTitle, $salary->payrollRenderSearchDate($_POST['prdatefrom'], $_POST['prdateto']));
                     }
                 }
+                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
             }
+
+//rendering factor control report 
+            if (wf_CheckGet(array('factorcontrol'))) {
+                show_window(__('Search'), $salary->facontrolRenderSearchForm());
+                if (wf_CheckPost(array('facontroljobtypeid', 'facontrolmaxfactor'))) {
+                    show_window(__('Factor control'), $salary->facontrolRenderSearch($_POST['facontroljobtypeid'], $_POST['facontrolmaxfactor']));
+                }
+                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+            }
+            
+            
+// tasks without assinged jobs report
+if (wf_CheckGet(array('twjreport'))) {
+    show_window(__('Search'),$salary->twjReportSearchForm());
+    if (wf_CheckPost(array('twfdatefrom','twfdateto'))) {
+        show_window(__('Tasks without jobs'), $salary->twjReportSearch($_POST['twfdatefrom'], $_POST['twfdateto']));
+    }
+    show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+}            
         } else {
             show_error(__('No license key available'));
         }

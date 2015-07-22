@@ -1723,4 +1723,23 @@ function ts_GetUndoneCounters() {
     return ($result);
 }
 
+/**
+ * Returns all of available tasks as id=>data
+ * 
+ * @return array
+ */
+function ts_GetAllTasks() {
+    $result = array();
+    $query = "SELECT * from `taskman`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+         $result[$each['id']]=$each;
+        }
+    }
+    return ($result);
+}
+
+
+
 ?>
