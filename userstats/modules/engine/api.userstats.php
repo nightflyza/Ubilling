@@ -1083,17 +1083,17 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell(__('Tariff price'), '', 'row1');
     $profile.= la_TableCell(@zbs_UserGetTariffPrice($userdata['Tariff']) . ' ' . $us_currency);
     $profile.= la_tag('tr', true);
-    
+
     $profile.= $tariffSpeeds;
-    
+
     $profile.= la_tag('tr');
     $profile.= la_TableCell(__('Tariff change'), '', 'row1');
-    $profile.= la_TableCell(__($userdata['TariffChange']) );
+    $profile.= la_TableCell(__($userdata['TariffChange']));
     $profile.= la_tag('tr', true);
-    
+
     $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Account state') , '', 'row1');
-    $profile.= la_TableCell($passive_state . $down_state );
+    $profile.= la_TableCell(__('Account state'), '', 'row1');
+    $profile.= la_TableCell($passive_state . $down_state);
     $profile.= la_tag('tr', true);
 
     $profile.=la_tag('table', true);
@@ -1108,6 +1108,12 @@ function zbs_UserShowProfile($login) {
     return($profile);
 }
 
+/**
+ * Returns payments array for some user
+ * 
+ * @param string $login
+ * @return array
+ */
 function zbs_CashGetUserPayments($login) {
     $login = vf($login);
     $query = "SELECT * from `payments` WHERE `login`='" . $login . "' ORDER BY `id` DESC";
@@ -1115,6 +1121,12 @@ function zbs_CashGetUserPayments($login) {
     return($allpayments);
 }
 
+/**
+ * Renders user traffic stats report
+ * 
+ * @param string $login
+ * @return string
+ */
 function zbs_UserTraffStats($login) {
     $login = vf($login);
     $alldirs = zbs_DirectionsGetAll();
@@ -1123,44 +1135,46 @@ function zbs_UserTraffStats($login) {
     /*
      * Current month traffic stats
      */
-    $result = '<h3>' . __('Current month traffic stats') . '</h3>
-           <table width="100%" border="0" class="sortable">';
-    $result.='<tr class="row1">
-                        <td>' . __('Traffic classes') . '</td>
-                        <td>' . __('Downloaded') . '</td>
-                        <td>' . __('Uploaded') . '</td>
-                        <td>' . __('Total') . '</td>
-                        </tr>';
+    $result = la_tag('h3') . __('Current month traffic stats') . la_tag('h3', true);
+
+    $cells = la_TableCell(__('Traffic classes'));
+    $cells.= la_TableCell(__('Downloaded'));
+    $cells.= la_TableCell(__('Uploaded'));
+    $cells.= la_TableCell(__('Total'));
+    $rows = la_TableRow($cells, 'row1');
+
+
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
             $query_downup = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "` from `users` WHERE `login`='" . $login . "'";
             $downup = simple_query($query_downup);
-            $result.='
-                        <tr class="row3">
-                        <td>' . $eachdir['rulename'] . '</td>
-                        <td>' . zbs_convert_size($downup['D' . $eachdir['rulenumber']]) . '</td>
-                        <td>' . zbs_convert_size($downup['U' . $eachdir['rulenumber']]) . '</td>
-                        <td>' . zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])) . '</td>
-                        </tr>';
+            $cells = la_TableCell($eachdir['rulename']);
+            $cells.= la_TableCell(zbs_convert_size($downup['D' . $eachdir['rulenumber']]));
+            $cells.= la_TableCell(zbs_convert_size($downup['U' . $eachdir['rulenumber']]));
+            $cells.= la_TableCell(zbs_convert_size(($downup['U' . $eachdir['rulenumber']] + $downup['D' . $eachdir['rulenumber']])));
+            $rows.= la_TableRow($cells, 'row3');
         }
     }
-    $result.='</table> <br><br>';
+
+    $result.= la_TableBody($rows, '100%', 0, '');
+    $result.= la_delimiter();
+
 
     /*
      * traffic stats by previous months
      */
-    $result.='<h3>' . __('Previous month traffic stats') . '</h3>
-           <table width="100%" border="0" class="sortable">';
-    $result.='
-                        <tr class="row1">
-                        <td>' . __('Year') . '</td>
-                        <td>' . __('Month') . '</td>
-                        <td>' . __('Traffic classes') . '</td>
-                        <td>' . __('Downloaded') . '</td>
-                        <td>' . __('Uploaded') . '</td>
-                        <td>' . __('Total') . '</td>
-                        <td>' . __('Cash') . '</td>
-                        </tr>';
+    $result.=la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
+
+
+    $cells = la_TableCell(__('Year'));
+    $cells.= la_TableCell(__('Month'));
+    $cells.= la_TableCell(__('Traffic classes'));
+    $cells.= la_TableCell(__('Downloaded'));
+    $cells.= la_TableCell(__('Uploaded'));
+    $cells.= la_TableCell(__('Total'));
+    $cells.= la_TableCell(__('Cash'));
+    $rows = la_TableRow($cells, 'row1');
+
 
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
@@ -1168,33 +1182,40 @@ function zbs_UserTraffStats($login) {
             $allprevmonth = simple_queryall($query_prev);
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
-
-                    $result.='
-                        <tr class="row3">
-                        <td>' . $eachprevmonth['year'] . '</td>
-                        <td>' . __($monthnames[$eachprevmonth['month']]) . '</td>
-                        <td>' . $eachdir['rulename'] . '</td>
-                        <td>' . zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]) . '</td>
-                        <td>' . zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]) . '</td>
-                        <td>' . zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])) . '</td>
-                        <td>' . round($eachprevmonth['cash'], 2) . '</td>
-                        </tr>';
+                    $cells = la_TableCell($eachprevmonth['year']);
+                    $cells.= la_TableCell(__($monthnames[$eachprevmonth['month']]));
+                    $cells.= la_TableCell($eachdir['rulename']);
+                    $cells.= la_TableCell(zbs_convert_size($eachprevmonth['D' . $eachdir['rulenumber']]));
+                    $cells.= la_TableCell(zbs_convert_size($eachprevmonth['U' . $eachdir['rulenumber']]));
+                    $cells.= la_TableCell(zbs_convert_size(($eachprevmonth['U' . $eachdir['rulenumber']] + $eachprevmonth['D' . $eachdir['rulenumber']])));
+                    $cells.= la_TableCell(round($eachprevmonth['cash'], 2));
+                    $rows.= la_TableRow($cells, 'row3');
                 }
             }
         }
     }
-    $result.='</table>';
-
+    $result.=la_TableBody($rows, '100%', 0, '');
 
     return($result);
 }
 
+/**
+ * Returns array of available traffic directions aka classes
+ * 
+ * @return array
+ */
 function zbs_DirectionsGetAll() {
     $query = "SELECT * from `directions`";
     $allrules = simple_queryall($query);
     return ($allrules);
 }
 
+/**
+ * Converts bytes values into readable traffic counters
+ * 
+ * @param int $fs
+ * @return string
+ */
 function zbs_convert_size($fs) {
     if ($fs >= 1073741824)
         $fs = round($fs / 1073741824 * 100) / 100 . " Gb";
@@ -1207,6 +1228,12 @@ function zbs_convert_size($fs) {
     return ($fs);
 }
 
+/**
+ * Renders navigation menu bar
+ * 
+ * @param bool $icons
+ * @return string
+ */
 function zbs_ModulesMenuShow($icons = false) {
     $globconf = zbs_LoadConfig();
     $maxnoicon = $globconf['MENUNOICONMAX'];
@@ -1232,7 +1259,7 @@ function zbs_ModulesMenuShow($icons = false) {
                     $mod_name = __($mod_data['NAME']);
                     $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
                     if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                        $result.='<li><a href="?module=' . $eachmodule . '">' . $iconlink . '' . $mod_name . '</a></li>';
+                        $result.='<li><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . $mod_name . '</a></li>';
                         $count++;
                     }
                 }
@@ -1241,7 +1268,7 @@ function zbs_ModulesMenuShow($icons = false) {
                 $mod_name = __($mod_data['NAME']);
                 $mod_need = isset($mod_data['NEED']) ? $mod_data['NEED'] : '';
                 if ((@$globconf[$mod_need]) OR ( empty($mod_need))) {
-                    $result.='<li class="menublock"><a href="?module=' . $eachmodule . '">' . $iconlink . '' . __($mod_name) . '</a></li>';
+                    $result.='<li class="menublock"><a  href="?module=' . $eachmodule . '">' . $iconlink . '' . __($mod_name) . '</a></li>';
                     $count++;
                 }
             }
@@ -1250,6 +1277,11 @@ function zbs_ModulesMenuShow($icons = false) {
     return($result);
 }
 
+/**
+ * Renders copyright data
+ * 
+ * @return string
+ */
 function zbs_CopyrightsShow() {
     $usConf = zbs_LoadConfig();
     $baseFooter = 'Powered by <a href="http://ubilling.net.ua">Ubilling</a>';
@@ -1272,30 +1304,33 @@ function zbs_CopyrightsShow() {
     return ($result);
 }
 
+/**
+ * Pushes payment log data for finance report/cash flows
+ * 
+ * @param string $login
+ * @param float $summ
+ * @param int $cashtypeid
+ * @param string $note
+ */
 function zbs_PaymentLog($login, $summ, $cashtypeid, $note) {
     $cashtypeid = vf($cashtypeid);
     $ctime = curdatetime();
     $userdata = zbs_UserGetStargazerData($login);
     $balance = $userdata['Cash'];
     $note = mysql_real_escape_string($note);
-    $query = "
-        INSERT INTO `payments` (
-        `id` ,
-        `login` ,
-        `date` ,
-        `admin` ,
-        `balance` ,
-        `summ` ,
-        `cashtypeid` ,
-        `note`
-        )
-        VALUES (
-        NULL , '" . $login . "', '" . $ctime . "', 'external', '" . $balance . "', '" . $summ . "', '" . $cashtypeid . "', '" . $note . "'
-        );
-        ";
+    $query = "INSERT INTO `payments` (`id` , `login` , `date` , `admin` , `balance` , `summ` , `cashtypeid` , `note` )
+        VALUES (NULL , '" . $login . "', '" . $ctime . "', 'external', '" . $balance . "', '" . $summ . "', '" . $cashtypeid . "', '" . $note . "'); ";
     nr_query($query);
 }
 
+/**
+ * Runs sgconfig in system shell
+ * 
+ * @param string $command
+ * @param bool $debug
+ * 
+ * @return void
+ */
 function executor($command, $debug = false) {
     $globconf = zbs_LoadConfig();
     $SGCONF = $globconf['SGCONF'];
@@ -1312,39 +1347,106 @@ function executor($command, $debug = false) {
     }
 }
 
+/**
+ * Adds some funds to user account
+ * 
+ * @param string $login
+ * @param float $cash
+ * 
+ * @return void
+ */
 function billing_addcash($login, $cash) {
     executor('-u' . $login . ' -c ' . $cash);
 }
 
+/**
+ * Sets user credit
+ * 
+ * @param string $login
+ * @param float $credit
+ * 
+ * @return void
+ */
 function billing_setcredit($login, $credit) {
     executor('-u' . $login . ' -r ' . $credit);
 }
 
+/**
+ * Sets credit expire date
+ * 
+ * @param string $login
+ * @param string $creditexpire
+ * 
+ * @return void
+ */
 function billing_setcreditexpire($login, $creditexpire) {
     executor('-u' . $login . ' -E ' . $creditexpire);
 }
 
+/**
+ * Sets user account balance for some concrete value
+ * 
+ * @param string $login
+ * @param float $cash
+ * 
+ * @return void
+ */
 function billing_setcash($login, $cash) {
     executor('-u' . $login . ' -v ' . $cash);
 }
 
+/**
+ * Changes user current tariff
+ * 
+ * @param string $login
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function billing_settariff($login, $tariff) {
     executor('-u' . $login . ' -t ' . $tariff);
 }
 
+/**
+ * Sets user tariff change from next month
+ * 
+ * @param string $login
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function billing_settariffnm($login, $tariff) {
     executor('-u' . $login . ' -t ' . $tariff . ':delayed');
 }
 
+/**
+ * Freezes user by its login
+ * 
+ * @param string $login
+ * 
+ * @return void
+ */
 function billing_freeze($login) {
     executor('-u' . $login . ' -i 1');
 }
 
+/**
+ * Dummy replacement for external logging purposes
+ * 
+ * @return string
+ */
 function whoami() {
     $mylogin = 'external';
     return($mylogin);
 }
 
+/**
+ * Writes some data into system event log
+ * 
+ * @param string $event
+ * 
+ * @return void
+ */
 function log_register($event) {
     $admin_login = whoami();
     $ip = $_SERVER['REMOTE_ADDR'];
@@ -1354,6 +1456,12 @@ function log_register($event) {
     nr_query($query);
 }
 
+/**
+ * Returns user account balance
+ * 
+ * @param string $login
+ * @return float
+ */
 function zbs_CashGetUserBalance($login) {
     $login = vf($login);
     $query = "SELECT `Cash` from `users` WHERE `login`='" . $login . "'";
@@ -1361,6 +1469,12 @@ function zbs_CashGetUserBalance($login) {
     return($cash['Cash']);
 }
 
+/**
+ * Returns user account credit limit
+ * 
+ * @param string $login
+ * @return float
+ */
 function zbs_CashGetUserCredit($login) {
     $login = vf($login);
     $query = "SELECT `Credit` from `users` WHERE `login`='" . $login . "'";
@@ -1368,6 +1482,12 @@ function zbs_CashGetUserCredit($login) {
     return($cash['Credit']);
 }
 
+/**
+ * Returns user credit limit expire date as timestamp
+ * 
+ * @param string $login
+ * @return int
+ */
 function zbs_CashGetUserCreditExpire($login) {
     $login = vf($login);
     $query = "SELECT `CreditExpire` from `users` WHERE `login`='" . $login . "'";
@@ -1375,6 +1495,12 @@ function zbs_CashGetUserCreditExpire($login) {
     return($cash['CreditExpire']);
 }
 
+/**
+ * Returns user current tariff
+ * 
+ * @param string $login
+ * @return string
+ */
 function zbs_UserGetTariff($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT `Tariff` from `users` WHERE `login`='" . $login . "'";
@@ -1382,6 +1508,12 @@ function zbs_UserGetTariff($login) {
     return($res['Tariff']);
 }
 
+/**
+ * Returns user current tariff price
+ * 
+ * @param string $login
+ * @return float
+ */
 function zbs_UserGetTariffPrice($tariff) {
     $login = mysql_real_escape_string($tariff);
     $query = "SELECT `Fee` from `tariffs` WHERE `name`='" . $tariff . "'";
@@ -1389,6 +1521,12 @@ function zbs_UserGetTariffPrice($tariff) {
     return($res['Fee']);
 }
 
+/**
+ * Returns user current tariff data array
+ * 
+ * @param string $login
+ * @return array
+ */
 function zbs_UserGetTariffData($tariff) {
     $login = mysql_real_escape_string($tariff);
     $query = "SELECT * from `tariffs` WHERE `name`='" . $tariff . "'";
@@ -1396,6 +1534,15 @@ function zbs_UserGetTariffData($tariff) {
     return($res);
 }
 
+/**
+ * Adds some money to user account
+ * 
+ * @param string $login
+ * @param float $cash
+ * @param string $note
+ * 
+ * @return void
+ */
 function zbs_CashAdd($login, $cash, $note) {
     $login = vf($login);
     $cash = mysql_real_escape_string($cash);
@@ -1404,24 +1551,18 @@ function zbs_CashAdd($login, $cash, $note) {
     $date = curdatetime();
     $balance = zb_CashGetUserBalance($login);
     billing_addcash($login, $cash);
-    $query = "INSERT INTO `payments` (
-                `id` ,
-                `login` ,
-                `date` ,
-                `balance` ,
-                `summ` ,
-                `cashtypeid` ,
-                `note`
-                )
-                VALUES (
-                NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . "'
-                );";
+    $query = "INSERT INTO `payments` ( `id` , `login` , `date` , `balance` , `summ` , `cashtypeid` , `note` )
+                VALUES (NULL , '" . $login . "', '" . $date . "', '" . $balance . "', '" . $cash . "', '" . $cashtype . "', '" . $note . ");";
 
     nr_query($query);
-    log_register("BALANCECHANGE " . $login . ' ON ' . $cash);
+    log_register("BALANCECHANGE (" . $login . ') ON ' . $cash);
 }
 
-//retunt all months with names in two digit notation
+/**
+ * Retuns all months with names in two digit notation
+ * 
+ * @return array
+ */
 function zbs_months_array() {
     $months = array(
         '01' => 'January',
@@ -1439,7 +1580,11 @@ function zbs_months_array() {
     return($months);
 }
 
-//retunt all months with names without begin zeros
+/**
+ * Retuns all months with names without leading zeros
+ * 
+ * @return array
+ */
 function zbs_months_array_wz() {
     $months = array(
         '1' => 'January',
@@ -1457,6 +1602,12 @@ function zbs_months_array_wz() {
     return($months);
 }
 
+/**
+ * Extracts value by key from UBstorage
+ * 
+ * @param string $key
+ * @return string
+ */
 function zbs_StorageGet($key) {
     $key = mysql_real_escape_string($key);
     $query = "SELECT `value` from `ubstorage` WHERE `key`='" . $key . "'";
@@ -1469,6 +1620,11 @@ function zbs_StorageGet($key) {
     return ($result);
 }
 
+/**
+ * Returns array of all users with blocked userstats access
+ * 
+ * @return array
+ */
 function zbs_GetUserStatsDeniedAll() {
     $access_raw = zbs_StorageGet('ZBS_DENIED');
     $result = array();
@@ -1480,6 +1636,11 @@ function zbs_GetUserStatsDeniedAll() {
     return ($result);
 }
 
+/**
+ * Returns array of all users with blocked helpdesk access
+ * 
+ * @return array
+ */
 function zbs_GetHelpdeskDeniedAll() {
     $access_raw = zbs_StorageGet('ZBS_HELP_DENIED');
     $result = array();
@@ -1491,14 +1652,14 @@ function zbs_GetHelpdeskDeniedAll() {
     return ($result);
 }
 
-/*
+/**
  * Rounds $value to $precision digits
  * 
  * @param $value digit to round
  * @param $precision amount of digits after point
+ * 
  * @return string
  */
-
 function web_roundValue($value, $precision = 0) {
     if ($precision < 0)
         $precision = 0;
@@ -1508,6 +1669,11 @@ function web_roundValue($value, $precision = 0) {
     return ($value >= 0 ? ceil($value * $multiplier) : floor($value * $multiplier)) / $multiplier;
 }
 
+/**
+ * Returns array of all available tariff prices
+ * 
+ * @return array
+ */
 function zbs_TariffGetAllPrices() {
     $query = "SELECT `name`,`Fee` from `tariffs`";
     $alltariffs = simple_queryall($query);
@@ -1520,6 +1686,11 @@ function zbs_TariffGetAllPrices() {
     return ($result);
 }
 
+/**
+ * Returns ISP logo image code
+ * 
+ * @return string
+ */
 function zbs_IspLogoShow() {
     $usConf = zbs_LoadConfig();
     $result = '';
@@ -1537,6 +1708,11 @@ function zbs_IspLogoShow() {
     return ($result);
 }
 
+/**
+ * Returns custom style background code
+ * 
+ * @return string
+ */
 function zbs_CustomBackground() {
     $usConf = zbs_LoadConfig();
     $tilesPath = 'tiles/';
@@ -1562,6 +1738,11 @@ function zbs_CustomBackground() {
     return ($result);
 }
 
+/**
+ * Checks is some new/unread announcements available?
+ * 
+ * @return bool
+ */
 function zbs_AnnouncementsAvailable() {
     $query = "SELECT `id` from `zbsannouncements` WHERE `public`='1';";
     $data = simple_queryall($query);
@@ -1579,6 +1760,11 @@ function zbs_AnnouncementsAvailable() {
     return ($result);
 }
 
+/**
+ * Renders new/unread announcements notification
+ * 
+ * @return void
+ */
 function zbs_AnnouncementsNotice() {
     $result = '';
     if (zbs_AnnouncementsAvailable()) {

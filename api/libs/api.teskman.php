@@ -1411,7 +1411,7 @@ function ts_TaskChangeForm($taskid) {
 
         //Salary accounting
         if ($altercfg['SALARY_ENABLED']) {
-            if (cfr('SALARYTASKS')) {
+            if (cfr('SALARYTASKSVIEW')) {
                 $salary = new Salary();
                 show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
             }
@@ -1451,9 +1451,9 @@ function ts_TaskChangeForm($taskid) {
             $donerows.=wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
-            $doneresult.=wf_JSAlert('?module=taskman&deletetask=' . $taskid, web_delete_icon(__('Remove this task - it is an mistake')), __('Removing this may lead to irreparable results'));
+            $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon().' '.__('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'),'ubButton');
             $doneresult.='&nbsp;';
-            $doneresult.=wf_JSAlert('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif', __('No work was done')), __('Are you serious'));
+            $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif').' '. __('No work was done'), __('Are you serious'),'ubButton');
 
             show_window(__('Task is done'), $doneresult);
         }
@@ -1714,15 +1714,8 @@ function ts_GetEmployeeByLogin($login) {
  */
 function ts_GetUndoneCounters() {
     $result = 0;
-    $curmonth = date("m");
-    $curyear = date("Y");
-
-    if (($curmonth != 1) AND ( $curmonth != 12)) {
-        $query = "SELECT `id` from `taskman` WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%'  ORDER BY `date` ASC";
-    } else {
-        $query = "SELECT `id` from `taskman` WHERE `status`='0' ORDER BY `date` ASC";
-    }
-
+    $curdate=  curdate();
+    $query = "SELECT `id` from `taskman` WHERE `status` = '0' AND `startdate` <= '".$curdate."'";
     $allundone = simple_queryall($query);
     if (!empty($allundone)) {
         $result = sizeof($allundone);

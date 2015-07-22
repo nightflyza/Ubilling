@@ -2003,11 +2003,18 @@ $lang['def']['Salary accounting']='Учет зарплат';
 $lang['def']['right to manage salary in taskmanager']='Право управлять зарплатами из планировщика задач';
 $lang['def']['right to manage salary accounting']='Право управлять учетом зарплат';
 $lang['def']['Undone tasks notification']='Уведомление о невыполненных задачах';
+$lang['def']['right to view salary in taskmanager']='Право просмотра зарплат в планировщике задач';
+$lang['def']['Create new job']='Создать новую работу';
+$lang['def']['Work hours']='Рабочих часов';
+$lang['def']['Payroll']='Зарплатная ведомость';
+$lang['def']['Payment confirmation']='Подтверждение выплат';
+$lang['def']['Job payment processing finished']='Обработка выплат по работам завершена';
+$lang['def']['Task']='Задача';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-$lang['def']['']='';
+
 
 
 

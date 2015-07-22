@@ -2017,5 +2017,7 @@ $lang['def']['Salary accounting']='Облік зарплат';
 $lang['def']['right to manage salary in taskmanager']='Право курувати зарплатами з планувальника задач';
 $lang['def']['right to manage salary accounting']='Право керувати обліком зарплат';
 $lang['def']['Undone tasks notification']='Сповіщення про пропущені задачі';
+$lang['def']['right to view salary in taskmanager']='Право перегляду зарплат в планувальнику задач';
+$lang['def']['Create new job']='Створити нову роботу';
 
 ?>

@@ -15,7 +15,7 @@ if (cfr('SALARY')) {
 // jobtype pricing creation
             if (wf_CheckPost(array('newjobtypepriceid', 'newjobtypepriceunit'))) {
                 if (method_exists($salary, $beggar['M']['JPADD'])) {
-                    $salary->$beggar['M']['JPADD']($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit'],$_POST['newjobtypepricetime']);
+                    $salary->$beggar['M']['JPADD']($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit'], $_POST['newjobtypepricetime']);
                 }
                 if (isset($beggar['U']['JPL'])) {
                     rcms_redirect($beggar['U']['JPL']);
@@ -63,16 +63,15 @@ if (cfr('SALARY')) {
               We're gonna fight 'til the battle's won
               On the raging sea
              */
-            
             //creation new employee wage
             if (wf_CheckPost(array('newemployeewageemployeeid', 'newemployeewage'))) {
-                $salary->employeeWageCreate($_POST['newemployeewageemployeeid'], $_POST['newemployeewage'], $_POST['newemployeewagebounty']);
+                $salary->employeeWageCreate($_POST['newemployeewageemployeeid'], $_POST['newemployeewage'], $_POST['newemployeewagebounty'], $_POST['newemployeewageworktime']);
                 rcms_redirect($salary::URL_ME . '&' . $salary::URL_WAGES);
             }
 
             //editing existing employee
-            if (wf_CheckPost(array('editemployeewageemployeeid','editemployeewage'))) {
-                $salary->employeeWageEdit($_POST['editemployeewageemployeeid'], $_POST['editemployeewage'], $_POST['editemployeewagebounty']);
+            if (wf_CheckPost(array('editemployeewageemployeeid', 'editemployeewage'))) {
+                $salary->employeeWageEdit($_POST['editemployeewageemployeeid'], $_POST['editemployeewage'], $_POST['editemployeewagebounty'], $_POST['editemployeewageworktime']);
                 rcms_redirect($salary::URL_ME . '&' . $salary::URL_WAGES);
             }
 
@@ -93,6 +92,28 @@ if (cfr('SALARY')) {
                 }
                 show_window(__('Available employee wages'), $salary->employeeWagesRender());
                 show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+            }
+//rendering payroll report
+            if (wf_CheckGet(array('payroll'))) {
+                show_window(__('Search'), $salary->payrollRenderSearchForm());
+                //job state processing confirmation
+                if (wf_CheckPost(array('prstateprocessing'))) {
+                    show_window(__('Confirmation'), $salary->payrollStateProcessingForm());
+                }
+                
+                if (wf_CheckPost(array('prstateprocessingconfirmed'))) {
+                    $salary->payrollStateProcessing();
+                }
+
+
+                if (wf_CheckPost(array('prdatefrom', 'prdateto'))) {
+                    if (wf_CheckPost(array('premployeeid'))) {
+                        deb($salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid']));
+                    } else {
+                        //multiple employee report
+                        deb('TO DO');
+                    }
+                }
             }
         } else {
             show_error(__('No license key available'));

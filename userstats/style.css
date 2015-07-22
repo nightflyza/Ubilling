@@ -198,6 +198,13 @@ hr {
 	margin-bottom: 40px;
 }
 
+
+#sidebar #sbox1 a
+{
+        display: block;
+}
+
+
 #sidebar #sbox2
 {
 	overflow: hidden;
@@ -342,6 +349,7 @@ ul.style3 li
 ul.style3 li:hover {
     background-color: #eeeeee;
 }
+
 
 ul.style3 a
 {

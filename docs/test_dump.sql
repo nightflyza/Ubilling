@@ -1462,6 +1462,7 @@ CREATE TABLE IF NOT EXISTS `salary_wages` (
   `employeeid` int(11) NOT NULL,
   `wage` double NOT NULL,
   `bounty` double NOT NULL,
+  `worktime` int(11) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
