@@ -2019,5 +2019,16 @@ $lang['def']['right to manage salary accounting']='Право керувати �
 $lang['def']['Undone tasks notification']='Сповіщення про пропущені задачі';
 $lang['def']['right to view salary in taskmanager']='Право перегляду зарплат в планувальнику задач';
 $lang['def']['Create new job']='Створити нову роботу';
+$lang['def']['Work hours']='Робочих годин';
+$lang['def']['Payroll']='Зарплатна відомість';
+$lang['def']['Payment confirmation']='Підтвердження виплат';
+$lang['def']['Job payment processing finished']='Обробку виплат по роботах завершено';
+$lang['def']['Task']='Задача';
+$lang['def']['Earned money']='Зароблено грошей';
+$lang['def']['Spent time']='Потрачено часу';
+$lang['def']['hours']='годин';
+$lang['def']['Paid']='Виплачено';
+$lang['def']['Factor control']='Контроль коеффіцієнтів';
+$lang['def']['Tasks without jobs']='Задачі без робіт';
 
 ?>

@@ -1715,7 +1715,8 @@ function ts_GetEmployeeByLogin($login) {
 function ts_GetUndoneCounters() {
     $result = 0;
     $curdate=  curdate();
-    $query = "SELECT `id` from `taskman` WHERE `status` = '0' AND `startdate` <= '".$curdate."'";
+    $curyear= curyear();
+    $query = "SELECT `id` from `taskman` WHERE `status` = '0' AND `startdate` <= '".$curdate."' AND `date` LIKE '".$curyear."-%';";
     $allundone = simple_queryall($query);
     if (!empty($allundone)) {
         $result = sizeof($allundone);
