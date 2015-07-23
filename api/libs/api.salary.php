@@ -144,10 +144,10 @@ class Salary {
     public function jobPricesCreateForm() {
         $result = '';
         if (!empty($this->allJobtypes)) {
-            $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', false) . ' ';
-            $inputs.= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', false) . ' ';
-            $inputs.= wf_TextInput('newjobtypeprice', __('Price'), '', false, 5) . ' ';
-            $inputs.= wf_TextInput('newjobtypepricetime', __('Hours'), '', false, 2) . ' ';
+            $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', true) . ' ';
+            $inputs.= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', true) . ' ';
+            $inputs.= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5) . ' ';
+            $inputs.= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('hours') . ')', '', true, 5) . ' ';
             $inputs.= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result.= wf_CleanDiv();
@@ -275,7 +275,7 @@ class Salary {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
-        
+
         return ($result);
     }
 
@@ -478,7 +478,7 @@ class Salary {
         $all = $this->filterTaskJobs($taskid);
 
         $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Status'));
+        $cells.= wf_TableCell(__('Paid'));
         $cells.= wf_TableCell(__('Worker'));
         $cells.= wf_TableCell(__('Job type'));
         $cells.= wf_TableCell(__('Factor'));
@@ -744,7 +744,7 @@ class Salary {
         $cells.= wf_TableCell(__('Factor'));
         $cells.= wf_TableCell(__('Price override'));
         $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Status'));
+        $cells.= wf_TableCell(__('Paid'));
         $cells.= wf_TableCell(__('Money'));
         $cells.= wf_TableCell(__(''));
         $rows = wf_TableRow($cells, 'row1');
@@ -839,7 +839,7 @@ class Salary {
         $jobCount = 0;
         $jobsTmp = array();
         $employeeCharts = array();
-        $employeeChartsMoney=array();
+        $employeeChartsMoney = array();
 
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
         $all = simple_queryall($query);
@@ -901,7 +901,7 @@ class Salary {
                 $totalWorkTime+=$workerJobsData['time'];
                 $jobCount+=$workerJobsData['count'];
                 $employeeCharts[$each] = $workerJobsData['count'];
-                $employeeChartsMoney[$each]=$workerJobsData['sum'];
+                $employeeChartsMoney[$each] = $workerJobsData['sum'];
             }
         }
 
@@ -918,10 +918,10 @@ class Salary {
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
         //charts
-        $sumCharts = array(__('Earned money') => $totalSum-$totalPayedSum, __('Paid') => $totalPayedSum);
+        $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
         $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px'));
-        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money').' / '.__('Worker'), '400px', '400px'));
+        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px'));
         $rows = wf_TableRow($cells);
         $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px'));
         $cells.= wf_TableCell('');
@@ -949,7 +949,7 @@ class Salary {
         $cells.= wf_TableCell(__('Factor'));
         $cells.= wf_TableCell(__('Price override'));
         $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Status'));
+        $cells.= wf_TableCell(__('Paid'));
         $cells.= wf_TableCell(__('Money'));
         $rows = wf_TableRow($cells, 'row1');
 
@@ -963,7 +963,7 @@ class Salary {
                 }
                 $cells = wf_TableCell($jobData['date']);
                 $cells.= wf_TableCell($jobData['taskid']);
-                $cells.= wf_TableCell($jobData['jobtypeid']);
+                $cells.= wf_TableCell(@$this->allJobtypes[$jobData['jobtypeid']]);
                 $cells.= wf_TableCell($jobData['factor'] . ' / ' . $unit);
                 $cells.= wf_TableCell($jobData['overprice']);
                 $cells.= wf_TableCell($jobData['note']);
@@ -1008,9 +1008,6 @@ class Salary {
                 $result = wf_Form('', 'POST', $result, '');
             }
         }
-
-        $result.= wf_delimiter();
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, __('Back'), false, 'ubButton');
 
         return ($result);
     }
