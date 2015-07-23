@@ -58,6 +58,13 @@ class Salary {
      */
     protected $allJobs = array();
 
+    /**
+     * Alredy paid jobs as array jobid=>paid data
+     *
+     * @var array
+     */
+    protected $allPaid = array();
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -73,6 +80,7 @@ class Salary {
         $this->loadJobprices();
         $this->loadWages();
         $this->loadSalaryJobs();
+        $this->loadPaid();
     }
 
     /**
@@ -132,6 +140,21 @@ class Salary {
                 $this->allWages[$each['employeeid']]['wage'] = $each['wage'];
                 $this->allWages[$each['employeeid']]['bounty'] = $each['bounty'];
                 $this->allWages[$each['employeeid']]['worktime'] = $each['worktime'];
+            }
+        }
+    }
+
+    /**
+     * Loads paid jobs log from database into private property
+     * 
+     * @return void
+     */
+    protected function loadPaid() {
+        $query = "SELECT * from `salary_paid`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allPaid[$each['jobid']] = $each;
             }
         }
     }
@@ -496,7 +519,7 @@ class Salary {
                     $unit = __('No');
                 }
                 $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell(web_bool_led($this->allJobs[$each['id']]['state']));
+                $cells.= wf_TableCell($this->renderPaidDataLed($each['id']));
                 $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
                 $cells.= wf_TableCell(@$this->allJobtypes[$each['jobtypeid']]);
                 $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
@@ -777,7 +800,7 @@ class Salary {
                 $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
                 $cells.= wf_TableCell($each['overprice']);
                 $cells.= wf_TableCell($each['note']);
-                $cells.= wf_TableCell(web_bool_led($each['state']));
+                $cells.= wf_TableCell($this->renderPaidDataLed($each['id']));
 
                 $cells.= wf_TableCell($jobPrice);
                 if (!$each['state']) {
@@ -1025,11 +1048,11 @@ class Salary {
                 foreach ($checksRaw as $io => $each) {
                     $jobId = vf($io, 3);
                     simple_update_field('salary_jobs', 'state', '1', " WHERE `id`='" . $jobId . "';");
+                    $this->pushPaid($jobId);
                     $jobCount++;
                 }
 
                 show_success(__('Job payment processing finished'));
-                show_window('', wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, __('Back'), false, 'ubButton'));
                 log_register('SALARY JOBS PROCESSED `' . $jobCount . '`');
             } else {
                 log_register('SALARY JOBS PROCESSING FAIL EMPTY_JOBIDS');
@@ -1200,6 +1223,78 @@ class Salary {
             }
         } else {
             $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+        }
+
+        return ($result);
+    }
+
+    /**
+      Far across the distance
+      And spaces between us
+      You have come to show you go on
+     */
+
+    /**
+     * Pushes payment action for some processed salary job
+     * 
+     * @param int $jobid
+     * 
+     * @return void
+     */
+    protected function pushPaid($jobid) {
+        $jobid = vf($jobid, 3);
+        $date = curdatetime();
+        if (isset($this->allJobs[$jobid])) {
+            $jobData = $this->allJobs[$jobid];
+            if ($jobData['state'] == 0) {
+                $cash = $this->getJobPrice($jobid);
+                $employeeid = $jobData['employeeid'];
+                $query = "INSERT INTO `salary_paid` (`id`, `jobid`, `employeeid`, `paid`, `date`) VALUES (NULL, '" . $jobid . "', '" . $employeeid . "', '" . $cash . "', '" . $date . "');";
+                nr_query($query);
+            } else {
+                log_register('SALARY JOB PROCESSING FAIL [' . $jobid . '] DUPLICATE');
+            }
+        } else {
+            log_register('SALARY JOB PROCESSING FAIL [' . $jobid . '] NOT_EXIST');
+        }
+    }
+
+    /**
+     * Returns paid Data for some paid job
+     * 
+     * @param int $jobid
+     * 
+     * @return array
+     */
+    protected function getPaidData($jobid) {
+        $result = array();
+        if (isset($this->allPaid[$jobid])) {
+            $result = $this->allPaid[$jobid];
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns some human-readable paid indication
+     * 
+     * @param int $jobid
+     * 
+     * @return string
+     */
+    protected function renderPaidDataLed($jobid) {
+        $result = '';
+        if (isset($this->allJobs[$jobid])) {
+            if ($this->allJobs[$jobid]['state']) {
+                $paidData = $this->getPaidData($jobid);
+                if (!empty($paidData)) {
+                    $title = $paidData['paid'] . ' ' . __('money') . ' - ' . @$this->allEmployee[$paidData['employeeid']] . ', ' . $paidData['date'];
+                    $result = wf_tag('abbr', false, '', 'title="' . $title . '"') . web_bool_led($this->allJobs[$jobid]['state']) . wf_tag('abbr', true);
+                } else {
+                    $result = wf_img('skins/yellow_led.png');
+                }
+            } else {
+                $result = web_bool_led(0);
+            }
         }
 
         return ($result);

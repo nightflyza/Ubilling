@@ -2031,5 +2031,7 @@ $lang['def']['Paid']='Виплачено';
 $lang['def']['Factor control']='Контроль коеффіцієнтів';
 $lang['def']['Tasks without jobs']='Задачі без робіт';
 $lang['def']['Typical execution time']='Типовий час виконання';
+$lang['def']['Done']='Зроблено';
+
 
 ?>
