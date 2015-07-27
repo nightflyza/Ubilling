@@ -70,6 +70,13 @@ if (cfr('REPORTSIGNUP')) {
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
+        //cemetery hide processing
+        $ignoreUsers = array();
+        if ($altercfg['CEMETERY_ENABLED']) {
+            $cemetery = new Cemetery();
+            $ignoreUsers = $cemetery->getAllTagged();
+        }
+
         $tablecells = wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('Date'));
         $tablecells.=wf_TableCell(__('Administrator'));
@@ -84,7 +91,6 @@ if (cfr('REPORTSIGNUP')) {
 
         if (!empty($signups)) {
             foreach ($signups as $io => $eachsignup) {
-
                 $tablecells = wf_TableCell($eachsignup['id']);
                 $tablecells.=wf_TableCell($eachsignup['date']);
                 $tablecells.=wf_TableCell($eachsignup['admin']);
@@ -101,11 +107,14 @@ if (cfr('REPORTSIGNUP')) {
                 } else {
                     $rowClass = 'row3';
                 }
+                //cemetary user
+                if (isset($ignoreUsers[$eachsignup['login']])) {
+                    $rowClass = 'sigcemeteryuser';
+                }
                 //ugly check - is user removed?
                 if (empty($sigTariff)) {
                     $rowClass = 'sigdeleteduser';
                 }
-
                 $tablerows.=wf_TableRow($tablecells, $rowClass);
             }
         }
@@ -121,6 +130,15 @@ if (cfr('REPORTSIGNUP')) {
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
+
+        //cemetery hide processing
+        $ignoreUsers = array();
+        if ($altercfg['CEMETERY_ENABLED']) {
+            $cemetery = new Cemetery();
+            $ignoreUsers = $cemetery->getAllTagged();
+        }
+
+
         $tablecells = wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('Date'));
         $tablecells.=wf_TableCell(__('Administrator'));
@@ -135,7 +153,6 @@ if (cfr('REPORTSIGNUP')) {
 
         if (!empty($signups)) {
             foreach ($signups as $io => $eachsignup) {
-
                 $tablecells = wf_TableCell($eachsignup['id']);
                 $tablecells.=wf_TableCell($eachsignup['date']);
                 $tablecells.=wf_TableCell($eachsignup['admin']);
@@ -151,6 +168,10 @@ if (cfr('REPORTSIGNUP')) {
                     $rowClass = 'todaysig';
                 } else {
                     $rowClass = 'row3';
+                }
+                //cemetary user
+                if (isset($ignoreUsers[$eachsignup['login']])) {
+                    $rowClass = 'sigcemeteryuser';
                 }
                 //ugly check - is user removed?
                 if (empty($sigTariff)) {
@@ -232,6 +253,10 @@ if (cfr('REPORTSIGNUP')) {
     web_SignupsShowToday();
     web_SignupsGraphYear($year);
     web_SignupGraph();
+    if ($altercfg['CEMETERY_ENABLED']) {
+        $cemetery=new Cemetery();
+        show_window('',$cemetery->renderChart());
+    }
 
     if (!wf_CheckGet(array('month'))) {
         web_SignupsShowCurrentMonth();

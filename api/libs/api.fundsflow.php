@@ -314,6 +314,12 @@ class FundsFlow {
         $rawData['balance'] = 0;
         $rawData['used'] = 0;
 
+        //cemetery dead-hide processing
+        $ignoreArr = array();
+        if ($this->alterConf['CEMETERY_ENABLED']) {
+            $cemetery = new Cemetery();
+            $ignoreArr = $cemetery->getAllTagged();
+        }
 
 
         if (!empty($fundsFlows)) {
@@ -333,28 +339,30 @@ class FundsFlow {
 
 
             $rawData['login'] = $eachop['login'];
-            @$rawData['contract'] = array_search($eachop['login'], $allUserContracts);
-            @$rawData['corpid'] = $corpUsers[$eachop['login']];
-            @$rawData['corpname'] = $corpsData[$rawData['corpid']]['corpname'];
-            $rawData['balance'] = $allUsersCash[$eachop['login']];
-            $rawData['used'] = $rawData['fees'];
+            if (!isset($ignoreArr[$rawData['login']])) {
+                @$rawData['contract'] = array_search($eachop['login'], $allUserContracts);
+                @$rawData['corpid'] = $corpUsers[$eachop['login']];
+                @$rawData['corpname'] = $corpsData[$rawData['corpid']]['corpname'];
+                $rawData['balance'] = $allUsersCash[$eachop['login']];
+                $rawData['used'] = $rawData['fees'];
 
-            //forming result
-            $cells = wf_TableCell($num);
-            $corpLink = wf_Link('?module=corps&show=corps&editid=' . $rawData['corpid'], $rawData['corpname'], false, '');
-            $cells.=wf_TableCell($corpLink);
-            if ($rawData['contract']) {
-                $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['contract'], false, '');
-            } else {
-                $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
+                //forming result
+                $cells = wf_TableCell($num);
+                $corpLink = wf_Link('?module=corps&show=corps&editid=' . $rawData['corpid'], $rawData['corpname'], false, '');
+                $cells.=wf_TableCell($corpLink);
+                if ($rawData['contract']) {
+                    $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['contract'], false, '');
+                } else {
+                    $loginLink = wf_Link('?module=userprofile&username=' . $rawData['login'], $rawData['login'], false, '');
+                }
+                $cells.=wf_TableCell($loginLink);
+                $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
+                $cells.=wf_TableCell(round($rawData['payments'], 2));
+                $cells.=wf_TableCell(round($rawData['paymentscorr'], 2));
+                $cells.=wf_TableCell(round($rawData['balance'], 2));
+                $cells.=wf_TableCell(round($rawData['used'], 2));
+                $result.=wf_TableRow($cells, 'row3');
             }
-            $cells.=wf_TableCell($loginLink);
-            $cells.=wf_TableCell(@$allTariffPrices[$allUserTariffs[$rawData['login']]]);
-            $cells.=wf_TableCell(round($rawData['payments'], 2));
-            $cells.=wf_TableCell(round($rawData['paymentscorr'], 2));
-            $cells.=wf_TableCell(round($rawData['balance'], 2));
-            $cells.=wf_TableCell(round($rawData['used'], 2));
-            $result.=wf_TableRow($cells, 'row3');
         }
         return ($result);
     }
@@ -496,21 +504,20 @@ class FundsFlow {
                             }
                         }
                     }
-                    $daysLabel=$daysOnLine;
-                    $dateLabel= date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
+                    $daysLabel = $daysOnLine;
+                    $dateLabel = date("d.m.Y", time() + ($daysOnLine * 24 * 60 * 60));
                 } else {
-                    $daysLabel='&infin;';
-                    $dateLabel='&infin;';
+                    $daysLabel = '&infin;';
+                    $dateLabel = '&infin;';
                 }
 
 
                 $balanceExpire = wf_tag('span', false, 'alert_info');
                 $balanceExpire.=__('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true) . ', ' . __('which should be enough for another');
                 $balanceExpire.=' ' . $daysLabel . ' ' . __('days') . ' ' . __('of service usage') . ' ';
-                $balanceExpire.= __('or enought till the') . ' ' .$dateLabel. ' ';
+                $balanceExpire.= __('or enought till the') . ' ' . $dateLabel . ' ';
                 $balanceExpire.= __('according to the tariff') . ' ' . $userTariff . ' (' . $tariffFee . ' / ' . __($tariffPeriod) . ')';
                 $balanceExpire.= wf_tag('span', true);
-                
             } else {
                 $balanceExpire = wf_tag('span', false, 'alert_warning') . __('Current Cash state') . ': ' . wf_tag('b') . $userBalanceRaw . wf_tag('b', true);
                 $balanceExpire.=', ' . __('indebtedness') . '!' . ' ' . wf_tag('span', true);

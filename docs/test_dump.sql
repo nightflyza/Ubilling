@@ -1477,4 +1477,14 @@ CREATE TABLE IF NOT EXISTS `salary_paid` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
+CREATE TABLE IF NOT EXISTS `cemetery` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `state` tinyint(1) NOT NULL DEFAULT '0',
+  `date` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+
 

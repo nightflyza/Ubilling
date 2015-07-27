@@ -44,6 +44,7 @@ COLORIZE_PROFILE_CASH=TRIGGER|Colorize cash in user profile
 PROFILE_LAT=TRIGGER|Show LAT column in user profile
 DEAD_HIDE=TRIGGER|See no dead people
 DEAD_TAGID=VARCHAR|Dead people mark tag id
+CEMETERY_ENABLED=TRIGGER|Funeral service enabled
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 EASY_CREDIT=VARCHAR|Days interval to set one-click credit
 VLAN_IN_PROFILE=TRIGGER|Show vlan on profile if vlan was assigned

@@ -876,6 +876,40 @@ class UserProfile {
         return ($result);
     }
 
+    /**
+     * Cemetery controls 
+     * 
+     * @return string
+     */
+    protected function getCemeteryControls() {
+        $result = '';
+        if (isset($this->alterCfg['CEMETERY_ENABLED'])) {
+            if ($this->alterCfg['CEMETERY_ENABLED']) {
+                $cemetery = new Cemetery();
+                //integrated controller
+                if (wf_CheckPost(array('cemeterysetasundead'))) {
+                    $cemetery->setUndead($_POST['cemeterysetasundead']);
+                    rcms_redirect('?module=userprofile&username='.$this->login);
+                }
+
+                if (wf_CheckPost(array('cemeterysetasdead'))) {
+                    $cemetery->setDead($_POST['cemeterysetasdead']);
+                    rcms_redirect('?module=userprofile&username='.$this->login);
+                }
+
+                //activity view
+                if ($cemetery->isUserDead($this->login)) {
+                    $log = wf_modalAuto(wf_img_sized('skins/dead_icon.png', '', '12', '12'), __('User lifestory'), $cemetery->renderCemeteryLog($this->login));
+                    $result = ' / ' . __('Subscriber is not connected') . ' ' . $log;
+                } else {
+                    $log = wf_modalAuto(wf_img_sized('skins/pigeon_icon.png', '', '12', '12'), __('User lifestory'), $cemetery->renderCemeteryLog($this->login));
+                    $result = ' / ' . __('Subscriber is connected') . ' ' . $log;
+                }
+            }
+        }
+        return ($result);
+    }
+
     /* Брат, братан, братишка Когда меня отпустит? */
 
     /**
@@ -956,7 +990,7 @@ class UserProfile {
         //Prepayed traffic
         $profile.= $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
         //finance activity row
-        $profile.=$this->addRow(__('Active'), $activity);
+        $profile.=$this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
         //DN online detection row
         $profile.= $this->getUserOnlineDN();
         //Always online flag row
@@ -970,7 +1004,7 @@ class UserProfile {
         //Connection details  row
         $profile.= $this->getUserConnectionDetails();
         //User notes row
-        $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login).$this->getAdcommentsIndicator());
+        $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
 
 
         $profile.= wf_tag('tbody', true);

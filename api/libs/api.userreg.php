@@ -666,6 +666,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
             zb_UserChangeContract($login, $newUserContract);
         }
     }
+    
+    //cemetery processing
+    if (isset($alterconf['CEMETERY_ENABLED'])) {
+        if ($alterconf['CEMETERY_ENABLED']) {
+            $cemetery= new Cemetery(false);
+            $cemetery->setDead($login);
+        }
+    }
 
     ///////////////////////////////////
     if ($goprofile) {

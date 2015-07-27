@@ -394,6 +394,11 @@ div.dhtml_menu div.vert_menu a.active:hover
     color: #FFFFFF;
 }
 
+.sigcemeteryuser {
+    background-color: #444444;
+    color: #FFFFFF;
+}
+
 /* Alerts */
 
 .alert_info {

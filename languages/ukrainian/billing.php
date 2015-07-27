@@ -2032,6 +2032,12 @@ $lang['def']['Factor control']='Контроль коеффіцієнтів';
 $lang['def']['Tasks without jobs']='Задачі без робіт';
 $lang['def']['Typical execution time']='Типовий час виконання';
 $lang['def']['Done']='Зроблено';
+$lang['def']['Subscriber is not connected']='Користувач відключений';
+$lang['def']['Set user connected']='Підключити користувача';
+$lang['def']['Subscriber is connected']='Користувач підключений';
+$lang['def']['Set user disconnected']='Відключити користувача';
+$lang['def']['This tag type is protected by cemetery']='Цей тип тегів захищено кладовищем';
+$lang['def']['Funeral service enabled']='Ритуальні послуги увімкнені';
 
 
 ?>

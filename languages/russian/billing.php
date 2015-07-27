@@ -2017,11 +2017,16 @@ $lang['def']['Paid']='Выплачено';
 $lang['def']['Factor control']='Контроль коэфициентов';
 $lang['def']['Tasks without jobs']='Задачи без работ';
 $lang['def']['Typical execution time']='Типичное время выполнения';
+$lang['def']['Subscriber is not connected']='Пользователь не подключен';
+$lang['def']['Set user connected']='Подключить пользователя';
+$lang['def']['Subscriber is connected']='Пользователь подключен';
+$lang['def']['Set user disconnected']='Отключить пользователя';
+$lang['def']['This tag type is protected by cemetery']='Этот тип тегов защищен кладбищем';
+$lang['def']['Funeral service enabled']='Ритуальные услуги включены';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
 
 
 

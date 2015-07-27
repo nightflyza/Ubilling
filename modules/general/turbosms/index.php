@@ -515,9 +515,22 @@ if (cfr('TURBOSMS')) {
        
        function web_TsmsMassendConfirm($userarray) {
            global $td_users,$td_mobiles,$td_realnames,$td_realnamestrans,$td_tariffprices,$td_alladdress;
+           global $ubillingConfig;
+           $altCfg=$ubillingConfig->getAlter();
+           
            $template=  tsms_GetTemplate();
            $excludeUsers=  tsms_GetExcludeUsers();
            $excludeArr=array();
+           //ignoring DEAD_TAGID users
+           if ($altCfg['CEMETERY_ENABLED']) {
+               $cemetery=new Cemetery();
+               $excludeCemetery=$cemetery->getAllTagged();
+              if (!empty($excludeCemetery)) {
+                  foreach ($excludeCemetery as $eecl => $eecld) {
+                      $excludeUsers[$eecl]='NOP';
+                  }
+              }
+           }
            
            $cells=   wf_TableCell(__('Login'));
            $cells.=  wf_TableCell(__('Address'));

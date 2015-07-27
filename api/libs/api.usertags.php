@@ -230,6 +230,22 @@ function stg_del_user_tag($tagid) {
 }
 
 /**
+ * Deletes user tag by tagid
+ *  
+ * @param string $login
+ * @param int $tagid
+ * 
+ * @return void
+ */
+function stg_del_user_tagid($login,$tagid) {
+    $login=  mysql_real_escape_string($login);
+    $tagid = vf($tagid, 3);
+    $query = "DELETE from `tags` WHERE `login`='".$login."' AND`tagid`='" . $tagid . "'";
+    nr_query($query);
+    stg_putlogevent('TAGDEL LOGIN ('.$login.') TAGID [' . $tagid . ']');
+}
+
+/**
  * Returns tag html preprocessed body
  * 
  * @param int $id
@@ -245,6 +261,20 @@ function stg_get_tag_body($id) {
     $result.= wf_tag('font', true);
     $result.='&nbsp;';
     return($result);
+}
+
+/**
+ * Returns tag data by its ID
+ * 
+ * @param int $tagid
+ * 
+ * @return array
+ */
+function stg_get_tag_data($tagid) {
+    $tagid=vf($tagid,3);
+    $query="SELECT * from `tags` where `id`='".$tagid."';";
+    $result=  simple_query($query);
+    return ($result);
 }
 
 /**
