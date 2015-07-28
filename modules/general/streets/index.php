@@ -4,6 +4,7 @@ if (cfr('STREETS')) {
 
     if (isset($_POST['newstreetname'])) {
         $newstreetname=trim($_POST['newstreetname']);
+        $newstreetname=  zb_AddressFilterStreet($newstreetname);
         $newstreetcityid=$_POST['citysel'];
         if (isset($_POST['newstreetalias'])) {
         $newstreetalias=trim($_POST['newstreetalias']);
@@ -45,7 +46,6 @@ if (cfr('STREETS')) {
         }
         if ($_GET['action']=='edit') {
             if (isset ($_POST['editstreetname'])) {
-                //$newstreetcityid=$_POST['citysel'];
                 if (!empty($_POST['editstreetname'])) {
                     zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
                 }

@@ -174,6 +174,7 @@ function zb_AddressDeleteStreet($streetid) {
  */
 function zb_AddressChangeStreetName($streetid, $streetname) {
     $streetid = vf($streetid, 3);
+    $streetname=  zb_AddressFilterStreet($streetname);
     $streetname = mysql_real_escape_string($streetname);
     $query = "UPDATE `street` SET `streetname` = '" . $streetname . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
@@ -1206,6 +1207,19 @@ function zb_AddressGetFullCityaddresslist() {
     }
 
     return($result);
+}
+
+/**
+ * Filters street name for special chars
+ * 
+ * @param string $name
+ * 
+ * @return string
+ */
+function zb_AddressFilterStreet($name) {
+    $name=  str_replace('"', '``', $name);
+    $name=  str_replace('\'', '`', $name);
+    return ($name);
 }
 
 /*

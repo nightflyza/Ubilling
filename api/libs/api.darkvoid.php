@@ -123,9 +123,31 @@ class DarkVoid {
         }
 
         if ($this->altCfg['TB_TASKMANNOTIFY']) {
-            $undoneTasksCount = ts_GetUndoneCounters();
-            if ($undoneTasksCount > 0) {
-                $this->alerts.=wf_Link("?module=taskman&show=undone", wf_img("skins/jobnotify.png", $undoneTasksCount . ' ' . __('Undone tasks')), false, '');
+            //only "for me" tasks notification
+            if ($this->altCfg['TB_TASKMANNOTIFY'] == 1) {
+                $undoneTasksCount = ts_GetUndoneCountersMy();
+                if ($undoneTasksCount > 0) {
+                    $undoneAlert=$undoneTasksCount . ' ' . __('Undone tasks').' '.__('for me');
+                    $this->alerts.=wf_Link("?module=taskman&show=undone", wf_img("skins/jobnotify.png", $undoneAlert), false, '');
+                }
+            }
+            //total undone tasks count notification
+            if ($this->altCfg['TB_TASKMANNOTIFY'] == 2) {
+                $undoneTasksCount = ts_GetUndoneCountersAll();
+                if ($undoneTasksCount > 0) {
+                    $undoneAlert=$undoneTasksCount . ' ' . __('Undone tasks').' '.__('for all');
+                    $this->alerts.=wf_Link("?module=taskman&show=undone", wf_img("skins/jobnotify.png", $undoneAlert), false, '');
+                }
+            }
+            
+            //total+my undone tasks count notification
+            if ($this->altCfg['TB_TASKMANNOTIFY'] == 3) {
+                $undoneTasksCount = ts_GetUndoneCountersAll();
+                if ($undoneTasksCount > 0) {
+                    $undoneTasksCountMy=  ts_GetUndoneCountersMy();
+                    $undoneAlert=$undoneTasksCount . ' ' . __('Undone tasks').': '.__('for all').' '.($undoneTasksCount-$undoneTasksCountMy).' / '.__('for me').' '.$undoneTasksCountMy;
+                    $this->alerts.=wf_Link("?module=taskman&show=undone", wf_img("skins/jobnotify.png", $undoneAlert), false, '');
+                }
             }
         }
 

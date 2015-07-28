@@ -2023,8 +2023,8 @@ $lang['def']['Subscriber is connected']='Пользователь подключ
 $lang['def']['Set user disconnected']='Отключить пользователя';
 $lang['def']['This tag type is protected by cemetery']='Этот тип тегов защищен кладбищем';
 $lang['def']['Funeral service enabled']='Ритуальные услуги включены';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['for me']='для меня';
+$lang['def']['for all']='для всех';
 $lang['def']['']='';
 $lang['def']['']='';
 

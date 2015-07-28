@@ -52,7 +52,7 @@ function em_EmployeeShowForm() {
     $addForm = wf_Form("", 'POST', $inputs, '');
     $rows.=$addForm;
 
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $result = wf_TableBody($rows, '100%', '0', '');
 
     show_window(__('Employee'), $result);
 }
@@ -1451,9 +1451,9 @@ function ts_TaskChangeForm($taskid) {
             $donerows.=wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
-            $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon().' '.__('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'),'ubButton');
+            $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'), 'ubButton');
             $doneresult.='&nbsp;';
-            $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif').' '. __('No work was done'), __('Are you serious'),'ubButton');
+            $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), __('Are you serious'), 'ubButton');
 
             show_window(__('Task is done'), $doneresult);
         }
@@ -1712,14 +1712,37 @@ function ts_GetEmployeeByLogin($login) {
  * 
  * @return int
  */
-function ts_GetUndoneCounters() {
+function ts_GetUndoneCountersAll() {
     $result = 0;
-    $curdate=  curdate();
-    $curyear= curyear();
-    $query = "SELECT `id` from `taskman` WHERE `status` = '0' AND `startdate` <= '".$curdate."' AND `date` LIKE '".$curyear."-%';";
+    $curdate = curdate();
+    $curyear = curyear();
+    $query = "SELECT `id` from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' AND `date` LIKE '" . $curyear . "-%';";
     $allundone = simple_queryall($query);
     if (!empty($allundone)) {
         $result = sizeof($allundone);
+    }
+    return ($result);
+}
+
+/**
+ * Returns count of undone tasks only for current admin login - used by DarkVoid
+ * 
+ * @return int
+ */
+function ts_GetUndoneCountersMy() {
+    $result = 0;
+    $curdate = curdate();
+    $curyear = curyear();
+    $mylogin = whoami();
+    $adminQuery = "SELECT `id` from `employee` WHERE `admlogin`='" . $mylogin . "'";
+    $adminId = simple_query($adminQuery);
+    if (!empty($adminId)) {
+        $adminId = $adminId['id'];
+        $query = "SELECT `id` from `taskman` WHERE `employee`='" . $adminId . "' AND `status` = '0' AND `startdate` <= '" . $curdate . "' AND `date` LIKE '" . $curyear . "-%';";
+        $allundone = simple_queryall($query);
+        if (!empty($allundone)) {
+            $result = sizeof($allundone);
+        }
     }
     return ($result);
 }
@@ -1735,12 +1758,10 @@ function ts_GetAllTasks() {
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
-         $result[$each['id']]=$each;
+            $result[$each['id']] = $each;
         }
     }
     return ($result);
 }
-
-
 
 ?>

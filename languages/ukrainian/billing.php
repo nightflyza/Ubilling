@@ -2038,6 +2038,8 @@ $lang['def']['Subscriber is connected']='Користувач підключен
 $lang['def']['Set user disconnected']='Відключити користувача';
 $lang['def']['This tag type is protected by cemetery']='Цей тип тегів захищено кладовищем';
 $lang['def']['Funeral service enabled']='Ритуальні послуги увімкнені';
+$lang['def']['for me']='для мене';
+$lang['def']['for all']='для всіх';
 
 
 ?>
