@@ -488,12 +488,6 @@ if ($system->checkForRight('ONLINE')) {
                     $onlineFlag = '';
                 }
 
-                if ($ucount < $totalusers) {
-                    $ending = ',';
-                } else {
-                    $ending = '';
-                }
-
                 @$clearuseraddress = $detect_address[$eachuser['login']];
                 $clearuseraddress = trim($clearuseraddress);
                 $clearuseraddress = str_replace("'", '`', $clearuseraddress);
@@ -519,8 +513,7 @@ if ($system->checkForRight('ONLINE')) {
          "' . zb_TraffToGb($tinet) . '",
          "' . round($eachuser['Cash'], 2) . '",
          "' . round($eachuser['Credit'], 2) . '"
-         ]' . $ending . '
-        ';
+         ],';
                 } else {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $result.='
@@ -535,13 +528,13 @@ if ($system->checkForRight('ONLINE')) {
                      "' . zb_TraffToGb($tinet) . '",
                      "' . round($eachuser['Cash'], 2) . '",
                      "' . round($eachuser['Credit'], 2) . '"
-                     ]' . $ending . '
-                    ';
+                     ],';
                     }
                 }
             }
         }
 
+        $result = substr($result, 0, -1);
 
 
         $result.='
