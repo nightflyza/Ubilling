@@ -2040,6 +2040,7 @@ $lang['def']['This tag type is protected by cemetery']='Цей тип тегів
 $lang['def']['Funeral service enabled']='Ритуальні послуги увімкнені';
 $lang['def']['for me']='для мене';
 $lang['def']['for all']='для всіх';
+$lang['def']['pieces']='штук';
 
 
 ?>

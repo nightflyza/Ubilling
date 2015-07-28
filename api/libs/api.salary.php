@@ -108,6 +108,7 @@ class Salary {
         $this->unitTypes['money'] = __('money');
         $this->unitTypes['time'] = __('time');
         $this->unitTypes['litre'] = __('litre');
+        $this->unitTypes['pieces'] = __('pieces');
     }
 
     /**
@@ -170,7 +171,7 @@ class Salary {
             $inputs = wf_Selector('newjobtypepriceid', $this->allJobtypes, __('Job type'), '', true) . ' ';
             $inputs.= wf_Selector('newjobtypepriceunit', $this->unitTypes, __('Units'), '', true) . ' ';
             $inputs.= wf_TextInput('newjobtypeprice', __('Price'), '', true, 5) . ' ';
-            $inputs.= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('hours') . ')', '', true, 5) . ' ';
+            $inputs.= wf_TextInput('newjobtypepricetime', __('Typical execution time') . ' (' . __('minutes') . ')', '', true, 5) . ' ';
             $inputs.= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result.= wf_CleanDiv();
@@ -191,7 +192,7 @@ class Salary {
             $inputs = wf_HiddenInput('editjobtypepriceid', $jobtypeid);
             $inputs.= wf_Selector('editjobtypepriceunit', $this->unitTypes, __('Units'), $this->allJobUnits[$jobtypeid], true);
             $inputs.= wf_TextInput('editjobtypeprice', __('Price'), $this->allJobPrices[$jobtypeid], true, 5);
-            $inputs.= wf_TextInput('editjobtypepricetime', __('Hours'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
+            $inputs.= wf_TextInput('editjobtypepricetime', __('Minutes'), $this->allJobTimes[$jobtypeid], true, 2) . ' ';
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         }
@@ -234,7 +235,7 @@ class Salary {
         $cells = wf_TableCell(__('Job type'));
         $cells.= wf_TableCell(__('Units'));
         $cells.= wf_TableCell(__('Price'));
-        $cells.= wf_TableCell(__('Hours'));
+        $cells.= wf_TableCell(__('Minutes'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
@@ -914,7 +915,7 @@ class Salary {
                 $cells.= wf_TableCell($bounty);
                 $cells.= wf_TableCell($worktime);
                 $cells.= wf_TableCell($workerJobsData['count']);
-                $cells.= wf_TableCell($workerJobsData['time']);
+                $cells.= wf_TableCell(round(($workerJobsData['time']/60),2));
                 $cells.= wf_TableCell($workerJobsData['sum']);
                 $cells.= wf_TableCell($workerJobsData['payed']);
                 $rows.= wf_TableRow($cells, 'row3');

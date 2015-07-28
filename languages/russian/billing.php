@@ -2025,6 +2025,10 @@ $lang['def']['This tag type is protected by cemetery']='Этот тип тего
 $lang['def']['Funeral service enabled']='Ритуальные услуги включены';
 $lang['def']['for me']='для меня';
 $lang['def']['for all']='для всех';
+$lang['def']['pieces']='штук';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 
