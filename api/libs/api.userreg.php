@@ -670,8 +670,10 @@ function zb_UserRegister($user_data, $goprofile = true) {
     //cemetery processing
     if (isset($alterconf['CEMETERY_ENABLED'])) {
         if ($alterconf['CEMETERY_ENABLED']) {
+            if ($alterconf['CEMETERY_ENABLED']==2) {
             $cemetery= new Cemetery(false);
             $cemetery->setDead($login);
+            }
         }
     }
 
