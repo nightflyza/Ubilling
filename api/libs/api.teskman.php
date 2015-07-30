@@ -1372,9 +1372,13 @@ function ts_TaskChangeForm($taskid) {
             }
         }
 
-        $tablecells = wf_TableCell(__('Task creation date') . ' / ' . __('Administrator'), '30%');
-        $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $taskdata['admin']);
+        $tablecells = wf_TableCell(__('ID'), '30%');
+        $tablecells.= wf_TableCell($taskdata['id']);
         $tablerows = wf_TableRow($tablecells, 'row3');
+        
+        $tablecells = wf_TableCell(__('Task creation date') . ' / ' . __('Administrator'));
+        $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $taskdata['admin']);
+        $tablerows.= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Target date'));
         $tablecells.= wf_TableCell(wf_tag('strong') . $taskdata['startdate'] . ' ' . $taskdata['starttime'] . wf_tag('strong', true));
