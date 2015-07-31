@@ -839,8 +839,9 @@ class Salary {
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
 
-            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px'));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px'));
+            $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px',$chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px',$chartOpts));
             $chartRows = wf_TableRow($chartCells);
             $result.= wf_TableBody($chartRows, '100%', 0, '');
         }
@@ -946,12 +947,13 @@ class Salary {
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
         //charts
+        $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},";;
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
-        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px'));
-        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px'));
+        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px',$chartOpts));
+        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px',$chartOpts));
         $rows = wf_TableRow($cells);
-        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px'));
+        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px',$chartOpts));
         $cells.= wf_TableCell('');
         $rows.= wf_TableRow($cells);
         $result.= wf_TableBody($rows, '100%', 0, '');

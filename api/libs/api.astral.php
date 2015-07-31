@@ -1845,11 +1845,18 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
  * 
  * @param array $params data in format like string=>count
  * @param string $title chart title
- * @param type $width chart width in px or %, 500px default
- * @param type $height chart height in px or %, 500px default
+ * @param string $width chart width in px or %, 500px default
+ * @param string $height chart height in px or %, 500px default
+ * @param string $options google charts options, useful examples see below<br>
+ * pieSliceText: percentage/value/label/none OR  pieSliceText: 'value-and-percentage'<br>
+ * is3D: true/false <br>
+ * backgroundColor: '#666', <br>
+ * legend : {position: 'bottom', textStyle: {color: 'red', fontSize: 12 }}, <br>
+ * chartArea: {  width: '90%', height: '90%' }, <br>
+ * 
  * @return string
  */
-function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
+function wf_gcharts3DPie($params, $title = '', $width = '', $height = '',$options='') {
     global $ubillingConfig;
     $altCfg=$ubillingConfig->getAlter();
    
@@ -1877,13 +1884,15 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
         $chartData = substr($chartData, 0, -1);
     }
 
-
+//legend.scrollArrows.activeColor
     $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.google.com/jsapi"') . wf_tag('script', true);
     $result.= wf_tag('script', false, '', 'type="text/javascript"');
     $result.='
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
+      
       function drawChart() {
+
         var data = google.visualization.arrayToDataTable([
           [\'X\', \'Y\'],
            ' . $chartData . '
@@ -1892,6 +1901,7 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '') {
         var options = {
           title: \'' . $title . '\',
           is3D: true,
+          '.$options.'
           \'tooltip\' : {
              trigger: \'none\'
             }
