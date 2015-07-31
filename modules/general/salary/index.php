@@ -95,6 +95,13 @@ if (cfr('SALARY')) {
             }
 //rendering payroll report
             if (wf_CheckGet(array('payroll'))) {
+                //printable per-employee report
+                if (wf_CheckGet(array('print', 'e', 'df', 'dt'))) {
+                    $reportPrintTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_GET['e']) . ' ' . __('from') . ' ' . $_GET['df'] . ' ' . __('to') . ' ' . $_GET['dt'];
+                    $salary->reportPrintable($reportPrintTitle, $salary->payrollRenderSearch($_GET['df'], $_GET['dt'], $_GET['e']));
+                }
+
+
                 show_window(__('Search'), $salary->payrollRenderSearchForm());
                 //job state processing confirmation
                 if (wf_CheckPost(array('prstateprocessing'))) {
@@ -109,7 +116,12 @@ if (cfr('SALARY')) {
                 if (wf_CheckPost(array('prdatefrom', 'prdateto'))) {
                     if (wf_CheckPost(array('premployeeid'))) {
                         //single employee report
-                        $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_POST['premployeeid']) . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
+                        $reportTitle = __('Payroll') . ': ' . $salary->getEmployeeName($_POST['premployeeid']) . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'] . ' ';
+
+                        $printLink = wf_tag('a', false, '', 'href="' . $salary::URL_ME . '&' . salary::URL_PAYROLL . '&print=true&e=' . $_POST['premployeeid'] . '&df=' . $_POST['prdatefrom'] . '&dt=' . $_POST['prdateto'] . '" TARGET="_BLANK"');
+                        $printLink.= web_icon_print();
+                        $printLink.= wf_tag('a', true);
+                        $reportTitle.=$printLink;
                         show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid']));
                     } else {
                         //multiple employee report
@@ -128,16 +140,16 @@ if (cfr('SALARY')) {
                 }
                 show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
             }
-            
-            
+
+
 // tasks without assinged jobs report
-if (wf_CheckGet(array('twjreport'))) {
-    show_window(__('Search'),$salary->twjReportSearchForm());
-    if (wf_CheckPost(array('twfdatefrom','twfdateto'))) {
-        show_window(__('Tasks without jobs'), $salary->twjReportSearch($_POST['twfdatefrom'], $_POST['twfdateto']));
-    }
-    show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
-}            
+            if (wf_CheckGet(array('twjreport'))) {
+                show_window(__('Search'), $salary->twjReportSearchForm());
+                if (wf_CheckPost(array('twfdatefrom', 'twfdateto'))) {
+                    show_window(__('Tasks without jobs'), $salary->twjReportSearch($_POST['twfdatefrom'], $_POST['twfdateto']));
+                }
+                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+            }
         } else {
             show_error(__('No license key available'));
         }

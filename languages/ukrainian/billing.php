@@ -2041,6 +2041,7 @@ $lang['def']['Funeral service enabled']='Ритуальні послуги ув�
 $lang['def']['for me']='для мене';
 $lang['def']['for all']='для всіх';
 $lang['def']['pieces']='штук';
+$lang['def']['Not paid']='Не виплачено';
 
 
 ?>

@@ -211,6 +211,17 @@ function web_icon_search($title = 'Search') {
     return $icon;
 }
 
+/**
+ * Returns default printing icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_print($title = 'Print') {
+    $icon = wf_img('skins/icon_print.png', __($title));
+    return $icon;
+}
+
 
 /**
  * Returns FreeRADIUS icon:

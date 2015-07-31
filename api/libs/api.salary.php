@@ -297,8 +297,11 @@ class Salary {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/report.png') . ' ' . __('Payroll'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
+
+        $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
+        $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
+        $result.= wf_modalAuto(web_icon_extended(), __('Directories'), $directoriesControls, 'ubButton');
+
 
         return ($result);
     }
@@ -750,6 +753,7 @@ class Salary {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
         $employeeid = vf($employeeid, 3);
+        $allTasks = ts_GetAllTasks();
 
         $chartData = array();
         $chartDataCash = array();
@@ -796,7 +800,7 @@ class Salary {
 
 
                 $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell(wf_Link(self::URL_TS . $each['taskid'], $each['taskid']));
+                $cells.= wf_TableCell(wf_Link(self::URL_TS . $each['taskid'], $each['taskid']) . ' ' . @$allTasks[$each['taskid']]['address']);
                 $cells.= wf_TableCell($jobName);
                 $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
                 $cells.= wf_TableCell($each['overprice']);
@@ -915,7 +919,7 @@ class Salary {
                 $cells.= wf_TableCell($bounty);
                 $cells.= wf_TableCell($worktime);
                 $cells.= wf_TableCell($workerJobsData['count']);
-                $cells.= wf_TableCell(round(($workerJobsData['time']/60),2));
+                $cells.= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
                 $cells.= wf_TableCell($workerJobsData['sum']);
                 $cells.= wf_TableCell($workerJobsData['payed']);
                 $rows.= wf_TableRow($cells, 'row3');
@@ -934,7 +938,7 @@ class Salary {
         $cells.= wf_TableCell($totalBounty);
         $cells.= wf_TableCell('');
         $cells.= wf_TableCell($jobCount);
-        $cells.= wf_TableCell($totalWorkTime);
+        $cells.= wf_TableCell(round(($totalWorkTime / 60), 2));
         $cells.= wf_TableCell($totalSum);
         $cells.= wf_TableCell($totalPayedSum);
         $rows.= wf_TableRow($cells, 'row2');
@@ -1299,6 +1303,46 @@ class Salary {
         }
 
         return ($result);
+    }
+
+    /**
+     * shows printable report content
+     * 
+     * @param $title report title
+     * @param $data  report data to printable transform
+     * 
+     * @return void
+     */
+    public function reportPrintable($title, $data) {
+
+        $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
+
+        $header = wf_tag('!DOCTYPE', false, '', 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"');
+        $header.= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
+        $header.= wf_tag('head', false);
+        $header.= wf_tag('title') . $title . wf_tag('title', true);
+        $header.= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+        $header.= wf_tag('style', false, '', 'type="text/css"');
+        $header.= $style;
+        $header.=wf_tag('style', true);
+        $header.= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+        $header.=wf_tag('head', true);
+        $header.= wf_tag('body', false);
+
+        $footer = wf_tag('body', true);
+        $footer.= wf_tag('html', true);
+
+        $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
+        $data = $header . $title . $data . $footer;
+        $payedIconMask = web_bool_led(1);
+        $unpayedIconMask = web_bool_led(0);
+        $submitInputMask = wf_Submit(__('Processing'));
+
+        $data = str_replace($payedIconMask, __('Paid'), $data);
+        $data = str_replace($unpayedIconMask, __('Not paid'), $data);
+        $data = str_replace($submitInputMask, '', $data);
+
+        die($data);
     }
 
 }
