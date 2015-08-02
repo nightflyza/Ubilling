@@ -2501,13 +2501,15 @@ function web_TariffShowMoveCharts() {
 
     $cells = '';
     $rows = '';
+    
+     $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px'));
+        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px',$chartOpts));
     }
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px'));
+        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px',$chartOpts));
     }
     $rows.= wf_TableRow($cells);
     $result.=wf_TableBody($rows, '100%', 0);
@@ -2539,7 +2541,8 @@ function web_TariffShowTariffCharts() {
     }
 
     if (!empty($chartData)) {
-        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px');
+        $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px',$chartOpts);
     }
 
     return ($result);

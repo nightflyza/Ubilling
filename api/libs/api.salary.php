@@ -64,7 +64,14 @@ class Salary {
      * @var array
      */
     protected $allPaid = array();
-
+    
+    /**
+     * All available timesheets as array date=>timesheets
+     *
+     * @var array
+     */
+    protected $allTimesheets=array();
+    
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -72,6 +79,7 @@ class Salary {
     const URL_PAYROLL = 'payroll=true';
     const URL_FACONTROL = 'factorcontrol=true';
     const URL_TWJ = 'twjreport=true';
+    const URL_TSHEETS = 'timesheets=true';
 
     public function __construct() {
         $this->setUnitTypes();
@@ -81,6 +89,7 @@ class Salary {
         $this->loadWages();
         $this->loadSalaryJobs();
         $this->loadPaid();
+        $this->loadTimesheets();
     }
 
     /**
@@ -156,6 +165,21 @@ class Salary {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allPaid[$each['jobid']] = $each;
+            }
+        }
+    }
+    
+    /**
+     * Loads all existing timesheets from database into protected property
+     * 
+     * @return void
+     */
+    protected function loadTimesheets() {
+        $query="SELECT * from `salary_timesheets`";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTimesheets[$each['id']]=$each;
             }
         }
     }
@@ -295,6 +319,7 @@ class Salary {
     public function renderControls() {
         $result = '';
         $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/report.png') . ' ' . __('Payroll'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
 
@@ -839,9 +864,9 @@ class Salary {
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
 
-            $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px',$chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px',$chartOpts));
+            $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px', $chartOpts));
             $chartRows = wf_TableRow($chartCells);
             $result.= wf_TableBody($chartRows, '100%', 0, '');
         }
@@ -947,13 +972,14 @@ class Salary {
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_delimiter();
         //charts
-        $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},";;
+        $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},";
+        ;
         $sumCharts = array(__('Earned money') => $totalSum - $totalPayedSum, __('Paid') => $totalPayedSum);
 
-        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px',$chartOpts));
-        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px',$chartOpts));
+        $cells = wf_TableCell(wf_gcharts3DPie($sumCharts, __('Money'), '400px', '400px', $chartOpts));
+        $cells.= wf_TableCell(wf_gcharts3DPie($employeeChartsMoney, __('Money') . ' / ' . __('Worker'), '400px', '400px', $chartOpts));
         $rows = wf_TableRow($cells);
-        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px',$chartOpts));
+        $cells = wf_TableCell(wf_gcharts3DPie($employeeCharts, __('Jobs'), '400px', '400px', $chartOpts));
         $cells.= wf_TableCell('');
         $rows.= wf_TableRow($cells);
         $result.= wf_TableBody($rows, '100%', 0, '');
@@ -1345,6 +1371,54 @@ class Salary {
         $data = str_replace($submitInputMask, '', $data);
 
         die($data);
+    }
+    
+    
+    /**
+     * Renders timesheet create form
+     * 
+     * @return string
+     */
+    public function timesheetCreateForm() {
+        $result = '';
+        if (!empty($this->allEmployee)) {
+            $result.= wf_HiddenInput('newtimesheet', 'true');;
+            $result.= wf_DatePickerPreset('newtimesheetdate', curdate(), false);
+            
+            $headers=  wf_TableCell(__('Worker'));
+            $headers.= wf_TableCell(__('Hours'));
+            $headers.= wf_TableCell(__('Hospitalized'));
+            $headers.= wf_TableCell(__('Holidays'));
+            $rows= wf_TableRow($headers, 'row1');
+            
+            foreach ($this->allEmployee as $employeeid => $employeename) {
+                $defaultWorkTime= (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
+                $cells=  wf_TableCell($employeename);
+                $cells.= wf_TableCell(wf_TextInput('_employeehours['.$employeeid.']', '', $defaultWorkTime, false, '2'));
+                $cells.= wf_TableCell(wf_CheckInput('_hospital['.$employeeid.']', '', false, false));
+                $cells.= wf_TableCell(wf_CheckInput('_holidays['.$employeeid.']', '', false, false));
+                $rows.= wf_TableRow($cells,'row3');
+                
+            }
+            
+            $result.= wf_TableBody($rows,'100%','0','');
+            $result.= wf_tag('br',false);
+            $result.= wf_Submit(__('Create'));
+            $result = wf_Form('', 'POST', $result, '');
+        }
+        return ($result);
+    }
+    
+    
+    /**
+     * Creates new timesheet if date is unique
+     * 
+     * @return void
+     */
+    public function timesheetCreate() {
+        if (wf_CheckPost(array('newtimesheet','newtimesheetdate','_employeehours'))) {
+            
+        }
     }
 
 }

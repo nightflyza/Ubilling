@@ -150,6 +150,22 @@ if (cfr('SALARY')) {
                 }
                 show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
             }
+//timesheets reports
+            if (wf_CheckGet(array('timesheets'))) {
+                //creating of new timesheet
+                if (wf_CheckPost(array('newtimesheet','newtimesheetdate','_employeehours'))) {
+                    debarr($_POST);
+                }
+                
+                $tsCf=$salary->timesheetCreateForm();
+                if ($tsCf) {
+                    $timesheetsControls=$tsCf; //must be in modal create
+                    show_window('',$timesheetsControls);
+                } else {
+                   show_warning(__('No available workers for timesheets'));
+                }
+            }
+            
         } else {
             show_error(__('No license key available'));
         }

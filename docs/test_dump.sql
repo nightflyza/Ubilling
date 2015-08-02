@@ -1477,7 +1477,7 @@ CREATE TABLE IF NOT EXISTS `salary_paid` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
-CREATE TABLE IF NOT EXISTS `salary_timecard` (
+CREATE TABLE IF NOT EXISTS `salary_timesheets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `date` date  NOT NULL,
   `employeeid` int(11) NOT NULL,

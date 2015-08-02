@@ -233,15 +233,16 @@ class OpenPayz {
                 }
             }
         }
-
+        $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+        
         if (!empty($gcAllData)) {
-            $gcAllPie=wf_gcharts3DPie($gcAllData, __('All time'), '500px', '300px');
+            $gcAllPie=wf_gcharts3DPie($gcAllData, __('All time'), '400px', '400px',$chartOpts);
         } else {
             $gcAllPie='';
         }
         
         if (!empty($gcMonthData)) {
-            $gcMonthPie=wf_gcharts3DPie($gcMonthData, __('Current month'), '500px', '300px');
+            $gcMonthPie=wf_gcharts3DPie($gcMonthData, __('Current month'), '400px', '400px',$chartOpts);
         } else {
             $gcMonthPie='';
         }

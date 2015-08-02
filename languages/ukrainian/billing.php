@@ -2042,6 +2042,11 @@ $lang['def']['for me']='для мене';
 $lang['def']['for all']='для всіх';
 $lang['def']['pieces']='штук';
 $lang['def']['Not paid']='Не виплачено';
+$lang['def']['Timesheet']='Табель';
+$lang['def']['Timesheets']='Табель обліку робочого часу';
+$lang['def']['No available workers for timesheets']='Немає існуючих працівників для табелю обліку робочого часу';
+$lang['def']['Hospitalized']='Лікарняний';
+$lang['def']['Holidays']='Відпустка';
 
 
 ?>
