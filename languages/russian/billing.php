@@ -980,7 +980,7 @@ $lang['def']['Signup request']='Заявка на подключение';
 $lang['def']['signup requests expected processing']='Заявок на подключение ожидают обработки';
 $lang['def']['right to manage signup requests']='Право просматривать заявки на подключения';
 $lang['def']['right to use Mikrotik signal monitor']='Право использовать мониторинг сигнала Mikrotik';
-$lang['def']['Mikrokik signal monitor enabled']='Мониторинг сигнала Mikrokik';
+$lang['def']['MikroTik signal monitor enabled']='Мониторинг сигнала MikroTik';
 $lang['def']['Signup requests service enabled']='Сервис приема заявок на подключение';
 
 //rev 1712
