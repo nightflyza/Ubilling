@@ -64,14 +64,21 @@ class Salary {
      * @var array
      */
     protected $allPaid = array();
-    
+
     /**
      * All available timesheets as array date=>timesheets
      *
      * @var array
      */
-    protected $allTimesheets=array();
-    
+    protected $allTimesheets = array();
+
+    /**
+     * Timesheets dates
+     *
+     * @var array
+     */
+    protected $allTimesheetDates = array();
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -168,18 +175,23 @@ class Salary {
             }
         }
     }
-    
+
     /**
      * Loads all existing timesheets from database into protected property
      * 
      * @return void
      */
     protected function loadTimesheets() {
-        $query="SELECT * from `salary_timesheets`";
-        $all=  simple_queryall($query);
+        $query = "SELECT * from `salary_timesheets`";
+        $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
-                $this->allTimesheets[$each['id']]=$each;
+                $this->allTimesheets[$each['id']] = $each;
+                if (isset($this->allTimesheetDates[$each['date']])) {
+                    $this->allTimesheetDates[$each['date']] ++;
+                } else {
+                    $this->allTimesheetDates[$each['date']] = 1;
+                }
             }
         }
     }
@@ -244,7 +256,7 @@ class Salary {
             nr_query($query);
             log_register('SALARY CREATE JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $price . '` TIME `' . $time . '`');
         } else {
-            log_register('SALARY CREATE JOBPRICE FAILED EXIST JOBID [' . $jobtypeid . ']');
+            log_register('SALARY CREATE JOBPRICE FAIL EXIST JOBID [' . $jobtypeid . ']');
         }
     }
 
@@ -1372,8 +1384,7 @@ class Salary {
 
         die($data);
     }
-    
-    
+
     /**
      * Renders timesheet create form
      * 
@@ -1382,43 +1393,151 @@ class Salary {
     public function timesheetCreateForm() {
         $result = '';
         if (!empty($this->allEmployee)) {
-            $result.= wf_HiddenInput('newtimesheet', 'true');;
+            $result.= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
+            $result.= wf_HiddenInput('newtimesheet', 'true');
             $result.= wf_DatePickerPreset('newtimesheetdate', curdate(), false);
-            
-            $headers=  wf_TableCell(__('Worker'));
+
+            $headers = wf_TableCell(__('Worker'));
             $headers.= wf_TableCell(__('Hours'));
             $headers.= wf_TableCell(__('Hospitalized'));
             $headers.= wf_TableCell(__('Holidays'));
-            $rows= wf_TableRow($headers, 'row1');
-            
+            $rows = wf_TableRow($headers, 'row1');
+
             foreach ($this->allEmployee as $employeeid => $employeename) {
-                $defaultWorkTime= (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
-                $cells=  wf_TableCell($employeename);
-                $cells.= wf_TableCell(wf_TextInput('_employeehours['.$employeeid.']', '', $defaultWorkTime, false, '2'));
-                $cells.= wf_TableCell(wf_CheckInput('_hospital['.$employeeid.']', '', false, false));
-                $cells.= wf_TableCell(wf_CheckInput('_holidays['.$employeeid.']', '', false, false));
-                $rows.= wf_TableRow($cells,'row3');
-                
+                $defaultWorkTime = (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
+                $cells = wf_TableCell($employeename);
+                $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
+                $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
+                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                $rows.= wf_TableRow($cells, 'row3');
             }
-            
-            $result.= wf_TableBody($rows,'100%','0','');
-            $result.= wf_tag('br',false);
+
+            $result.= wf_TableBody($rows, '100%', '0', '');
+            $result.= wf_tag('br', false);
             $result.= wf_Submit(__('Create'));
             $result = wf_Form('', 'POST', $result, '');
         }
         return ($result);
     }
-    
-    
+
+    /**
+     * Checks is timesheet protected?
+     * 
+     * @param string $date
+     * @return bool
+     */
+    protected function timesheetProtected($date) {
+        if (isset($this->allTimesheetDates[$date])) {
+            $result = true;
+        } else {
+            $result = false;
+        }
+        return ($result);
+    }
+
     /**
      * Creates new timesheet if date is unique
      * 
-     * @return void
+     * @return int
      */
     public function timesheetCreate() {
-        if (wf_CheckPost(array('newtimesheet','newtimesheetdate','_employeehours'))) {
-            
+        $result = 0;
+        if (wf_CheckPost(array('newtimesheet', 'newtimesheetdate', '_employeehours'))) {
+            $date = $_POST['newtimesheetdate'];
+            $dateF = mysql_real_escape_string($_POST['newtimesheetdate']);
+            if (!$this->timesheetProtected($date)) {
+                $counter = 0;
+                $employeeHours = $_POST['_employeehours'];
+                $hospitalArr = (isset($_POST['_hospital'])) ? $_POST['_hospital'] : array();
+                $holidaysArr = (isset($_POST['_holidays'])) ? $_POST['_holidays'] : array();
+                if (!empty($employeeHours)) {
+                    foreach ($employeeHours as $employeeId => $hours) {
+                        $hospitalFlag = (isset($hospitalArr[$employeeId])) ? 1 : 0;
+                        $holidaysFlag = (isset($holidaysArr[$employeeId])) ? 1 : 0;
+                        $query = "INSERT INTO `salary_timesheets` (`id`,`date`,`employeeid`,`hours`,`holiday`,`hospital`) VALUES "
+                                . "(NULL, '" . $dateF . "','" . $employeeId . "','" . $hours . "','" . $holidaysFlag . "','" . $hospitalFlag . "');";
+                        nr_query($query);
+                    }
+                }
+                log_register('SALARY CREATE TIMESHEET EMPLOYEECOUUNT `' . $counter . '`');
+            } else {
+                $result = 1;
+                log_register('SALARY CREATE TIMESHEET FAIL EXISTING DATE `' . $date . '`');
+            }
         }
+        return ($result);
+    }
+
+    /**
+     * Renders list of timesheets
+     * 
+     * @return string
+     */
+    public function timesheetsListRender() {
+        $result = '';
+        if (!empty($this->allTimesheetDates)) {
+            $cells = wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Rows'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allTimesheetDates as $date => $count) {
+                $cells = wf_TableCell(wf_Link(self::URL_ME.'&'.self::URL_TSHEETS.'&showdate='.$date, $date));
+                $cells.= wf_TableCell($count);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            
+            $result=  wf_TableBody($rows,'100%','0','sortable');
+        }
+        return ($result);
+    }
+    
+    /**
+     * Returns array of timesheet records filtered by date
+     * 
+     * @param string $date
+     * 
+     * @return array
+     */
+    protected function timesheetFilterDate($date) {
+        $result=array();
+        if (!empty($this->allTimesheets)) {
+            foreach ($this->allTimesheets as $io => $each) {
+                if ($each['date']==$date) {
+                    $result[$each['id']]=$each;
+                }
+            }
+        }
+        return ($result);
+    }
+    
+    public function timesheetEditForm($timesheetDate) {
+        $result='';
+        $timesheetData=  $this->timesheetFilterDate($timesheetDate);
+            if (!empty($timesheetData)) {
+
+            $headers = wf_TableCell(__('Worker'));
+            $headers.= wf_TableCell(__('Hours'));
+            $headers.= wf_TableCell(__('Hospitalized'));
+            $headers.= wf_TableCell(__('Holidays'));
+            $headers.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($headers, 'row1');
+
+            foreach ($timesheetData as $io => $each) {
+                
+                $cells = wf_TableCell($this->allEmployee[$each['employeeid']]);
+                $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
+                $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
+                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result.= wf_TableBody($rows, '100%', '0', '');
+            $result.= wf_tag('br', false);
+            $result.= wf_Submit(__('Create'));
+            $result = wf_Form('', 'POST', $result, '');
+        }
+        return ($result);
     }
 
 }

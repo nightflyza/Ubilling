@@ -2047,6 +2047,7 @@ $lang['def']['Timesheets']='Табель обліку робочого часу'
 $lang['def']['No available workers for timesheets']='Немає існуючих працівників для табелю обліку робочого часу';
 $lang['def']['Hospitalized']='Лікарняний';
 $lang['def']['Holidays']='Відпустка';
+$lang['def']['Timesheets with that date already exist']='Табель обліку робочого часу, з такою датою вже існує';
 
 
 ?>

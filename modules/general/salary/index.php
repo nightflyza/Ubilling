@@ -153,19 +153,37 @@ if (cfr('SALARY')) {
 //timesheets reports
             if (wf_CheckGet(array('timesheets'))) {
                 //creating of new timesheet
-                if (wf_CheckPost(array('newtimesheet','newtimesheetdate','_employeehours'))) {
-                    debarr($_POST);
+                if (wf_CheckPost(array('newtimesheet', 'newtimesheetdate', '_employeehours'))) {
+                    $tsSheetCreateResult = $salary->timesheetCreate();
+                    if ($tsSheetCreateResult == 0) {
+                        //succeful creation
+                        rcms_redirect($salary::URL_ME . '&' . $salary::URL_TSHEETS);
+                    } else {
+                        if ($tsSheetCreateResult == 1) {
+                            //date duplicate
+                            show_error(__('Timesheets with that date already exist'));
+                        }
+                    }
                 }
-                
-                $tsCf=$salary->timesheetCreateForm();
+
+                $tsCf = $salary->timesheetCreateForm();
                 if ($tsCf) {
-                    $timesheetsControls=$tsCf; //must be in modal create
-                    show_window('',$timesheetsControls);
+                    $timesheetsControls = wf_modal(web_add_icon().' '.__('Create'), __('Create').' '.__('Timesheet'), $tsCf, 'ubButton', '800', '600'); //must be in modal create
+                    show_window('', $timesheetsControls);
+                    if (!wf_CheckGet(array('showdate'))) {
+                        //render available timesheets
+                        show_window(__('Timesheets'), $salary->timesheetsListRender());
+                        show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                    } else {
+                        show_window(__('Timesheet').' '.$_GET['showdate'], $salary->timesheetEditForm($_GET['showdate']));
+                        show_window('', wf_Link($salary::URL_ME.'&'.$salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
+                    }
+                    
+                    
                 } else {
-                   show_warning(__('No available workers for timesheets'));
+                    show_warning(__('No available workers for timesheets'));
                 }
             }
-            
         } else {
             show_error(__('No license key available'));
         }

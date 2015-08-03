@@ -248,10 +248,10 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
         $clusterer = ';';
     }
 
-    $js = '
-              <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"></script>
-
-    <script type="text/javascript">
+    $js = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
+    $js.= wf_tag('script', true);
+    $js.= wf_tag('script', false, '', 'type="text/javascript"');
+    $js.= '
         ymaps.ready(init);
     function init () {
             var myMap = new ymaps.Map(\'swmap\', {
@@ -270,11 +270,8 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
          ' . $placemarks . '    
          ' . $editor . '
              
-    }
-        
-
-    </script>
-             ';
+    }';
+    $js.=wf_tag('script', true);
 
     show_window('', $js);
 }
@@ -312,10 +309,10 @@ function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', 
         $clusterer = ';';
     }
 
-    $js = '
-              <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"></script>
-
-    <script type="text/javascript">
+    $js = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
+    $js.= wf_tag('script', true);
+    $js.= wf_tag('script', false, '', 'type="text/javascript"');
+    $js.= '
         ymaps.ready(init);
     function init () {
             var myMap = new ymaps.Map(\'swmap\', {
@@ -334,11 +331,8 @@ function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', 
          ' . $placemarks . '    
          ' . $editor . '
              
-    }
-        
-
-    </script>
-             ';
+    }';
+    $js.= wf_tag('script', true);
 
     return ($js);
 }
@@ -376,10 +370,11 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
         $clusterer = ';';
     }
 
+    
+    $js = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
+    $js.= wf_tag('script', true);
+    $js.= wf_tag('script', false, '', 'type="text/javascript"');
     $js = '
-              <script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"></script>
-
-    <script type="text/javascript">
         ymaps.ready(init);
     function init () {
             var myMap = new ymaps.Map(\'swmap\', {
@@ -397,11 +392,9 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
          ' . $placemarks . '    
          ' . $editor . '
              
-    }
-        
-
-    </script>
-             ';
+    }';
+    $js.= wf_tag('script', true);
+    
 
     return($js);
 }
@@ -863,7 +856,7 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
                     if ($allswitches[$each['parentid']]['geo'] != '') {
                         $coord1 = $each['geo'];
                         $coord2 = $allswitches[$each['parentid']]['geo'];
-                        $hint = $each['location'].' '.$each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'].' '.$allswitches[$each['parentid']]['ip'];
+                        $hint = $each['location'] . ' ' . $each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'] . ' ' . $allswitches[$each['parentid']]['ip'];
 
                         if ((!isset($deadarr[$each['ip']])) AND ( !isset($deadarr[$allswitches[$each['parentid']]['ip']]))) {
                             $color = '#00FF00';

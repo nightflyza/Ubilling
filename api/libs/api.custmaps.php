@@ -906,7 +906,7 @@ class CustomMaps {
 
         $result = $this->mapControls();
         $result.= $this->mapContainer();
-        $result.= wf_tag('script', false, '', 'src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
+        $result.= wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->ymapsCfg['LANG'] . '"  type="text/javascript"');
         $result.=wf_tag('script', true);
         $result.=wf_tag('script', false, '', 'type="text/javascript"');
         $result.= '
