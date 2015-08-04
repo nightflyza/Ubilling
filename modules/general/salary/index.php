@@ -168,18 +168,33 @@ if (cfr('SALARY')) {
 
                 $tsCf = $salary->timesheetCreateForm();
                 if ($tsCf) {
-                    $timesheetsControls = wf_modal(web_add_icon().' '.__('Create'), __('Create').' '.__('Timesheet'), $tsCf, 'ubButton', '800', '600'); //must be in modal create
+                    $timesheetsControls = wf_modal(web_add_icon() . ' ' . __('Create'), __('Create') . ' ' . __('Timesheet'), $tsCf, 'ubButton', '800', '600');
+                    $timesheetsControls.= wf_Link($salary::URL_ME.'&'.$salary::URL_TSHEETS.'&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton');
                     show_window('', $timesheetsControls);
                     if (!wf_CheckGet(array('showdate'))) {
-                        //render available timesheets
+                        if (wf_CheckGet(array('print'))) {
+                            //printing soubrutine
+                            show_window('', $salary->timesheetRenderPrintableForm());
+                            if (wf_CheckPost(array('tsheetprintyear','tsheetprintmonth'))) {
+                                die($salary->timesheetRenderPrintable($_POST['tsheetprintyear'], $_POST['tsheetprintmonth']));
+                            }
+                            
+                            show_window('', wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
+                        } else {
+                         //render available timesheets list by date
                         show_window(__('Timesheets'), $salary->timesheetsListRender());
                         show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                        }
                     } else {
-                        show_window(__('Timesheet').' '.$_GET['showdate'], $salary->timesheetEditForm($_GET['showdate']));
-                        show_window('', wf_Link($salary::URL_ME.'&'.$salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
+                        //saving changes for single timesheet row
+                        if (wf_CheckPost(array('edittimesheetid'))) {
+                            $salary->timesheetSaveChanges();
+                            rcms_redirect($salary::URL_ME . '&' . $salary::URL_TSHEETS . '&showdate=' . $_GET['showdate']);
+                        }
+                        //render timesheet by date (edit form)
+                        show_window(__('Timesheet') . ' ' . $_GET['showdate'], $salary->timesheetEditForm($_GET['showdate']));
+                        show_window('', wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
                     }
-                    
-                    
                 } else {
                     show_warning(__('No available workers for timesheets'));
                 }

@@ -79,6 +79,13 @@ class Salary {
      */
     protected $allTimesheetDates = array();
 
+    /**
+     * Contains all employee appointments as employeeid=>appointment
+     *
+     * @var string
+     */
+    protected $allAppointments = array();
+
     const URL_ME = '?module=salary';
     const URL_TS = '?module=taskman&edittask=';
     const URL_JOBPRICES = 'jobprices=true';
@@ -182,7 +189,7 @@ class Salary {
      * @return void
      */
     protected function loadTimesheets() {
-        $query = "SELECT * from `salary_timesheets`";
+        $query = "SELECT * from `salary_timesheets` ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -192,6 +199,21 @@ class Salary {
                 } else {
                     $this->allTimesheetDates[$each['date']] = 1;
                 }
+            }
+        }
+    }
+
+    /**
+     * Loads all employee appointments from database
+     * 
+     * @return void
+     */
+    protected function loadAppointments() {
+        $query = "SELECT `id`,`appointment` FROM `employee`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allAppointments[$each['id']] = $each['appointment'];
             }
         }
     }
@@ -871,7 +893,7 @@ class Salary {
         $result = wf_Form('', 'POST', $result, '');
 
         $result.= __('Total') . ' ' . __('money') . ': ' . $totalSum . wf_tag('br');
-        $result.= __('Processed') . ' ' . __('money') . ': ' . $payedSum;
+        $result.= __('Paid') . ' ' . __('money') . ': ' . $payedSum;
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
@@ -1481,16 +1503,16 @@ class Salary {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allTimesheetDates as $date => $count) {
-                $cells = wf_TableCell(wf_Link(self::URL_ME.'&'.self::URL_TSHEETS.'&showdate='.$date, $date));
+                $cells = wf_TableCell(wf_Link(self::URL_ME . '&' . self::URL_TSHEETS . '&showdate=' . $date, $date));
                 $cells.= wf_TableCell($count);
                 $rows.= wf_TableRow($cells, 'row3');
             }
-            
-            $result=  wf_TableBody($rows,'100%','0','sortable');
+
+            $result = wf_TableBody($rows, '100%', '0', 'sortable');
         }
         return ($result);
     }
-    
+
     /**
      * Returns array of timesheet records filtered by date
      * 
@@ -1499,21 +1521,47 @@ class Salary {
      * @return array
      */
     protected function timesheetFilterDate($date) {
-        $result=array();
+        $result = array();
         if (!empty($this->allTimesheets)) {
             foreach ($this->allTimesheets as $io => $each) {
-                if ($each['date']==$date) {
-                    $result[$each['id']]=$each;
+                if ($each['date'] == $date) {
+                    $result[$each['id']] = $each;
                 }
             }
         }
         return ($result);
     }
-    
+
+    /**
+     * Returns array of timesheet records filtered by Year/month in MySQL date format Y-m
+     * 
+     * @param string $yearMonth
+     * 
+     * @return array
+     */
+    protected function timesheetFilterMonth($yearMonth) {
+        $result = array();
+        if (!empty($this->allTimesheets)) {
+            foreach ($this->allTimesheets as $io => $each) {
+                if (ispos($each['date'], $yearMonth)) {
+                    $result[$each['id']] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders timesheet editing form
+     * 
+     * @param string $timesheetDate
+     * 
+     * @return string
+     */
     public function timesheetEditForm($timesheetDate) {
-        $result='';
-        $timesheetData=  $this->timesheetFilterDate($timesheetDate);
-            if (!empty($timesheetData)) {
+        $result = '';
+        $timesheetData = $this->timesheetFilterDate($timesheetDate);
+        if (!empty($timesheetData)) {
 
             $headers = wf_TableCell(__('Worker'));
             $headers.= wf_TableCell(__('Hours'));
@@ -1523,20 +1571,137 @@ class Salary {
             $rows = wf_TableRow($headers, 'row1');
 
             foreach ($timesheetData as $io => $each) {
-                
+                $hospitalFlag = ($each['hospital']) ? true : false;
+                $holidayFlag = ($each['holiday']) ? true : false;
                 $cells = wf_TableCell($this->allEmployee[$each['employeeid']]);
-                $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
-                $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
-                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
-                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                $cells.= wf_TableCell(wf_TextInput('editemployeehours', '', $each['hours'], false, '2'));
+                $cells.= wf_TableCell(wf_CheckInput('edithospital', '', false, $hospitalFlag));
+                $cells.= wf_TableCell(wf_CheckInput('editholiday', '', false, $holidayFlag));
+                $cells.= wf_TableCell(wf_HiddenInput('edittimesheetid', $each['id']) . wf_Submit(__('Save')));
+                $cells = wf_Form('', 'POST', $cells, '');
                 $rows.= wf_TableRow($cells, 'row3');
             }
 
             $result.= wf_TableBody($rows, '100%', '0', '');
             $result.= wf_tag('br', false);
-            $result.= wf_Submit(__('Create'));
-            $result = wf_Form('', 'POST', $result, '');
         }
+        return ($result);
+    }
+
+    /**
+     * Saves timesheet editing results into database
+     * 
+     * @return void
+     */
+    public function timesheetSaveChanges() {
+        if (wf_CheckPost(array('edittimesheetid'))) {
+            $id = vf($_POST['edittimesheetid'], 3);
+            if (isset($this->allTimesheets[$id])) {
+                $timesheetData = $this->allTimesheets[$id];
+                $timesheetDate = $timesheetData['date'];
+                $employee = $timesheetData['employeeid'];
+                $hours = vf($_POST['editemployeehours'], 3);
+                $hospitalFlag = (wf_CheckPost(array('edithospital'))) ? 1 : 0;
+                $holidayFlag = (wf_CheckPost(array('editholiday'))) ? 1 : 0;
+                $where = " WHERE `id`='" . $id . "';";
+
+                if ($timesheetData['hours'] != $hours) {
+                    simple_update_field('salary_timesheets', 'hours', $hours, $where);
+                }
+
+                if ($timesheetData['holiday'] != $holidayFlag) {
+                    simple_update_field('salary_timesheets', 'holiday', $holidayFlag, $where);
+                }
+
+                if ($timesheetData['hospital'] != $hospitalFlag) {
+                    simple_update_field('salary_timesheets', 'hospital', $hospitalFlag, $where);
+                }
+
+                log_register('SALARY EDIT TIMESHEET [' . $id . '] `' . $timesheetDate . '` EMPLOYEE  [' . $employee . '] HOURS `' . $hours . '` HOSPITAL `' . $hospitalFlag . '` HOLIDAY `' . $holidayFlag . '`');
+            } else {
+                log_register('SALARY EDIT FAIL TIMESHEET [' . $id . '] NOT_EXISTING_ID');
+            }
+        }
+    }
+
+    /**
+     * Returns 
+     * 
+     * @return string
+     */
+    public function timesheetRenderPrintableForm() {
+        $result = '';
+        $inputs = wf_YearSelector('tsheetprintyear', __('Year') . ' ', false);
+        $inputs.= wf_MonthSelector('tsheetprintmonth', __('Month') . ' ', date('m'), false);
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders printable timesheets by some month
+     * 
+     * @param int $year
+     * @param string $month
+     * 
+     * @return string
+     */
+    public function timesheetRenderPrintable($year, $month) {
+        $result = '';
+        $dateOffset = $year . '-' . $month;
+        $allTimesheets = $this->timesheetFilterMonth($dateOffset);
+        $this->loadAppointments();
+        $tmpArr = array();
+        
+        
+        $cells = wf_TableCell(__('Worker'));
+        $cells.= wf_TableCell(__('Appointment'));
+        for ($i = 1; $i <= 31; $i++) {
+            $cells.=wf_TableCell($i, '2%');
+        }
+        $cells.= wf_TableCell(__('Total') . ' ' . __('days'));
+        $cells.= wf_TableCell(__('Holidays'));
+        $cells.= wf_TableCell(__('Total') . ' ' . __('hours'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($allTimesheets)) {
+            foreach ($allTimesheets as $io => $each) {
+                $timestamp=  strtotime($each['date']);
+                $dayNum=date('j',$timestamp);
+                if (!isset($tmpArr[$each['employeeid']])) {
+                    $tmpArr[$each['employeeid']]['totalhours'] = $each['hours'];
+                    $tmpArr[$each['employeeid']]['holidays'] = $each['holiday'];
+                    $tmpArr[$each['employeeid']]['hospital'] = $each['hospital'];
+                    $tmpArr[$each['employeeid']]['totaldays'] = 1;
+                    $tmpArr[$each['employeeid']]['day_'.$dayNum] = $each['hours'];
+                } else {
+                    $tmpArr[$each['employeeid']]['totalhours']+=$each['hours'];
+                    $tmpArr[$each['employeeid']]['holidays']+=$each['holiday'];
+                    $tmpArr[$each['employeeid']]['hospital']+=$each['hospital'];
+                    $tmpArr[$each['employeeid']]['totaldays']++;
+                    $tmpArr[$each['employeeid']]['day_'.$dayNum]= $each['hours'];
+                }
+            }
+        }
+       // print_r($tmpArr);
+        if (!empty($tmpArr)) {
+            foreach ($tmpArr as $employeeid => $each) {
+                $cells = wf_TableCell(@$this->allEmployee[$employeeid]);
+                $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
+                for ($i = 1; $i <= 31; $i++) {
+                    $dayCell=(isset($each['day_'.$i])) ? $each['day_'.$i] : 0 ;
+                    $cells.=wf_TableCell($dayCell);
+                }
+                $cells.= wf_TableCell($each['totaldays']);
+                $cells.= wf_TableCell($each['holidays']);
+                $cells.= wf_TableCell($each['totalhours']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+
+
+        $result.= wf_TableBody($rows, '100%', 0, '');
+        $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
         return ($result);
     }
 

@@ -506,7 +506,7 @@ function wf_YearSelector($name, $label = '', $br = false) {
     } else {
         $newline = '';
     }
-    $selector = '<select name="' . $name . '">';
+    $selector = '<select name="' . $name . '" id="'.$inputid.'">';
     for ($i = 0; $i < $count; $i++) {
         $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
     }
