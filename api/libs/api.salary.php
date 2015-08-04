@@ -479,6 +479,24 @@ class Salary {
     }
 
     /**
+     * Filters available jobs by date
+     * 
+     * @param string $date
+     * @return array
+     */
+    protected function jobsFilterDate($date) {
+        $result = array();
+        if (!empty($this->allJobs)) {
+            foreach ($this->allJobs as $io => $each) {
+                if (ispos($each['date'], $date)) {
+                    $result[$each['id']] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns job salary by its factor/overprice
      * 
      * @param int $jobid
@@ -906,6 +924,30 @@ class Salary {
         }
         return ($result);
     }
+    
+    
+    /**
+     * Filters available timesheets by date range
+     * 
+     * @param string $datefrom
+     * @param string $dateto
+     * 
+     * @return array
+     */
+    protected function timesheetFilterDateRange($datefrom, $dateto) {
+        $result=array();
+        $datefrom=  strtotime($datefrom);
+        $dateto=  strtotime($dateto);
+        if (!empty($this->allTimesheets)) {
+            foreach ($this->allTimesheets as $io => $each) {
+                $timesheetDate=strtotime($each['date']);
+                if (($timesheetDate>=$datefrom) AND ($timesheetDate<=$dateto)) {
+                    $result[$each['id']]=$each;
+                }
+            }
+        }
+        return ($result);    
+    }
 
     /**
      * Renders payroll report search results for all employee
@@ -917,7 +959,7 @@ class Salary {
     public function payrollRenderSearchDate($datefrom, $dateto) {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
-
+        
         $result = '';
         $totalSum = 0;
         $totalPayedSum = 0;
@@ -928,6 +970,20 @@ class Salary {
         $jobsTmp = array();
         $employeeCharts = array();
         $employeeChartsMoney = array();
+        $perEmployeeTimesheets=array();
+        
+        $rangeTimesheets=$this->timesheetFilterDateRange($datefrom, $dateto);
+        
+        if (!empty($rangeTimesheets)) {
+            foreach ($rangeTimesheets as $io => $each) {
+                if (isset($perEmployeeTimesheets[$each['employeeid']])) {
+                    $perEmployeeTimesheets[$each['employeeid']]+=$each['hours'];
+                } else {
+                    $perEmployeeTimesheets[$each['employeeid']]=$each['hours'];
+                }
+            }
+        }
+     
 
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
         $all = simple_queryall($query);
@@ -977,7 +1033,7 @@ class Salary {
 
                 $cells.= wf_TableCell($wage);
                 $cells.= wf_TableCell($bounty);
-                $cells.= wf_TableCell($worktime);
+                $cells.= wf_TableCell(@$perEmployeeTimesheets[$io]);
                 $cells.= wf_TableCell($workerJobsData['count']);
                 $cells.= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
                 $cells.= wf_TableCell($workerJobsData['sum']);
@@ -1168,6 +1224,7 @@ class Salary {
     public function facontrolRenderSearch($jobtypeid, $factor) {
         $result = '';
         $jobtypeid = vf($jobtypeid, 3);
+        $messages = new UbillingMessageHelper();
 
         $tmpArr = array();
         $allTasks = ts_GetAllTasks();
@@ -1213,7 +1270,7 @@ class Salary {
 
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+            $result = $messages->getStyledMessage(__('Nothing found'), 'info');
         }
 
 
@@ -1249,6 +1306,7 @@ class Salary {
         $dateto = mysql_real_escape_string($dateto);
         $result = '';
         $tmpArr = array();
+        $messages = new UbillingMessageHelper();
         $query = "SELECT * from `taskman` WHERE CAST(`startdate` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
 
         $allTasks = simple_queryall($query);
@@ -1286,10 +1344,10 @@ class Salary {
 
                 $result.=wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+                $result = $messages->getStyledMessage(__('Nothing found'), 'info');
             }
         } else {
-            $result = wf_tag('span', false, 'alert_info') . __('Nothing found') . wf_tag('span', true);
+            $result = $messages->getStyledMessage(__('Nothing found'), 'info');
         }
 
         return ($result);
@@ -1652,12 +1710,13 @@ class Salary {
         $allTimesheets = $this->timesheetFilterMonth($dateOffset);
         $this->loadAppointments();
         $tmpArr = array();
-        
-        
+
+
         $cells = wf_TableCell(__('Worker'));
         $cells.= wf_TableCell(__('Appointment'));
         for ($i = 1; $i <= 31; $i++) {
-            $cells.=wf_TableCell($i, '2%');
+            $dayCellHeader = ($i < 10) ? '0' . $i : $i;
+            $cells.=wf_TableCell($dayCellHeader);
         }
         $cells.= wf_TableCell(__('Total') . ' ' . __('days'));
         $cells.= wf_TableCell(__('Holidays'));
@@ -1666,30 +1725,30 @@ class Salary {
 
         if (!empty($allTimesheets)) {
             foreach ($allTimesheets as $io => $each) {
-                $timestamp=  strtotime($each['date']);
-                $dayNum=date('j',$timestamp);
+                $timestamp = strtotime($each['date']);
+                $dayNum = date('j', $timestamp);
                 if (!isset($tmpArr[$each['employeeid']])) {
                     $tmpArr[$each['employeeid']]['totalhours'] = $each['hours'];
                     $tmpArr[$each['employeeid']]['holidays'] = $each['holiday'];
                     $tmpArr[$each['employeeid']]['hospital'] = $each['hospital'];
                     $tmpArr[$each['employeeid']]['totaldays'] = 1;
-                    $tmpArr[$each['employeeid']]['day_'.$dayNum] = $each['hours'];
+                    $tmpArr[$each['employeeid']]['day_' . $dayNum] = $each['hours'];
                 } else {
                     $tmpArr[$each['employeeid']]['totalhours']+=$each['hours'];
                     $tmpArr[$each['employeeid']]['holidays']+=$each['holiday'];
                     $tmpArr[$each['employeeid']]['hospital']+=$each['hospital'];
-                    $tmpArr[$each['employeeid']]['totaldays']++;
-                    $tmpArr[$each['employeeid']]['day_'.$dayNum]= $each['hours'];
+                    $tmpArr[$each['employeeid']]['totaldays'] ++;
+                    $tmpArr[$each['employeeid']]['day_' . $dayNum] = $each['hours'];
                 }
             }
         }
-       // print_r($tmpArr);
+        // print_r($tmpArr);
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
                 $cells = wf_TableCell(@$this->allEmployee[$employeeid]);
                 $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
                 for ($i = 1; $i <= 31; $i++) {
-                    $dayCell=(isset($each['day_'.$i])) ? $each['day_'.$i] : 0 ;
+                    $dayCell = (isset($each['day_' . $i])) ? $each['day_' . $i] : 0;
                     $cells.=wf_TableCell($dayCell);
                 }
                 $cells.= wf_TableCell($each['totaldays']);
@@ -1700,9 +1759,71 @@ class Salary {
         }
 
 
-        $result.= wf_TableBody($rows, '100%', 0, '');
+        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
         $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
         return ($result);
+    }
+
+    /**
+     * Shows salary summary report
+     * 
+     * @return void
+     */
+    public function summaryReport() {
+        $result = '';
+        if ($_SERVER['QUERY_STRING'] == 'module=salary') {
+            $messages = new UbillingMessageHelper();
+            if (empty($this->allEmployee)) {
+                $result.= $messages->getStyledMessage(__('No available workers for wage creation'), 'error');
+            } else {
+                $result.= $messages->getStyledMessage(__('Total existing employees') . ': ' . sizeof($this->allEmployee), 'info');
+            }
+
+            if (empty($this->allJobtypes)) {
+                $result.=$messages->getStyledMessage(__('No available job types for pricing'), 'error');
+            } else {
+                $result.= $messages->getStyledMessage(__('Total existing job types') . ': ' . sizeof($this->allJobtypes), 'info');
+            }
+
+            if (empty($this->allJobPrices)) {
+                $result.=$messages->getStyledMessage(__('There is no set prices for job types'), 'warning');
+            } else {
+                $result.=$messages->getStyledMessage(__('Total paid types of work') . ': ' . sizeof($this->allJobPrices), 'info');
+            }
+
+            if (empty($this->allWages)) {
+                $result.=$messages->getStyledMessage(__('There is no set wages for workers'), 'warning');
+            }
+
+            if (empty($this->allJobs)) {
+                $result.=$messages->getStyledMessage(__('Not done yet any paid work'), 'warning');
+            } else {
+                $todayJobs = $this->jobsFilterDate(curdate());
+                $todayJobsCount=  sizeof($todayJobs);
+                $monthJobs=  $this->jobsFilterDate(curmonth());
+                $monthJobsCount=sizeof($monthJobs);
+                $result.= $messages->getStyledMessage(__('Today performed paid work') . ': ' . $todayJobsCount, 'success');
+                $result.= $messages->getStyledMessage(__('Month performed paid work') . ': ' . $monthJobsCount, 'success');
+                $result.= $messages->getStyledMessage(__('Total performed paid work') . ': ' . sizeof($this->allJobs), 'success');
+            }
+            
+            if (empty($this->allTimesheetDates)) {
+                $result.=$messages->getStyledMessage(__('No filled timesheets'), 'warning');
+            } else {
+                if (!isset($this->allTimesheetDates[curdate()])) {
+                    $result.=$messages->getStyledMessage(__('For today is not filled timesheets'), 'warning');
+                } else {
+                    $result.=$messages->getStyledMessage(__('For today timesheets is filled'), 'success');
+                }
+                
+                $result.=$messages->getStyledMessage(__('Filled timesheets for') . ' ' . sizeof($this->allTimesheetDates) . ' ' . __('days'), 'success');
+            }
+
+
+            if (!empty($result)) {
+                show_window(__('Stats'), $result);
+            }
+        }
     }
 
 }

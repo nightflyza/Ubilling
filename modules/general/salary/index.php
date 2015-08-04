@@ -199,6 +199,9 @@ if (cfr('SALARY')) {
                     show_warning(__('No available workers for timesheets'));
                 }
             }
+            
+          $salary->summaryReport();
+            
         } else {
             show_error(__('No license key available'));
         }

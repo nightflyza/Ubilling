@@ -142,6 +142,20 @@ class UbillingMessageHelper {
         return ($this->editAlert);
     }
 
+    /**
+     * Returns styled message
+     * 
+     * @param string $data text message for styling
+     * @param string $style error, warning, info, success
+     * 
+     * @return string
+     */
+    public function getStyledMessage($data, $style) {
+        $class = 'alert_' . $style;
+        $result = wf_tag('span', false, $class) . $data . wf_tag('span', true);
+        return ($result);
+    }
+
 }
 
 ?>

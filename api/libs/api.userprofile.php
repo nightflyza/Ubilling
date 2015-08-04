@@ -889,12 +889,12 @@ class UserProfile {
                 //integrated controller
                 if (wf_CheckPost(array('cemeterysetasundead'))) {
                     $cemetery->setUndead($_POST['cemeterysetasundead']);
-                    rcms_redirect('?module=userprofile&username='.$this->login);
+                    rcms_redirect('?module=userprofile&username=' . $this->login);
                 }
 
                 if (wf_CheckPost(array('cemeterysetasdead'))) {
                     $cemetery->setDead($_POST['cemeterysetasdead']);
-                    rcms_redirect('?module=userprofile&username='.$this->login);
+                    rcms_redirect('?module=userprofile&username=' . $this->login);
                 }
 
                 //activity view
@@ -905,6 +905,25 @@ class UserProfile {
                     $log = wf_modalAuto(wf_img_sized('skins/pigeon_icon.png', '', '12', '12'), __('User lifestory'), $cemetery->renderCemeteryLog($this->login));
                     $result = ' / ' . __('Subscriber is connected') . ' ' . $log;
                 }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns tariff info ajax controls
+     * 
+     * @param string $tariffName
+     * @return string
+     */
+    protected function getTariffInfoControls($tariffName) {
+        $result = '';
+        if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
+            if (!empty($tariffName)) {
+                $containerId = wf_InputId();
+                $result.=wf_AjaxLoader();
+                $result.=wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/macven.gif', __('Tariff info')), $containerId, false, '');
+                $result.=wf_tag('span', false, '', 'id="' . $containerId . '"') . wf_tag('span');
             }
         }
         return ($result);
@@ -972,9 +991,9 @@ class UserProfile {
         //MAC address row
         $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl(), $this->mac);
         //User tariff row
-        $profile.= $this->addRow(__('Tariff'), $this->userdata['Tariff'], true);
+        $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'], true);
         //Tariff change row
-        $profile.=$this->addRow(__('Planned tariff change'), $this->userdata['TariffChange']);
+        $profile.=$this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
         //old CaTv backlink if needed
         $profile.= $this->getCatvBacklinks();
         //Speed override row

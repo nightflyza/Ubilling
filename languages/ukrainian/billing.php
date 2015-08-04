@@ -2048,6 +2048,21 @@ $lang['def']['No available workers for timesheets']='Немає існуючих
 $lang['def']['Hospitalized']='Лікарняний';
 $lang['def']['Holidays']='Відпустка';
 $lang['def']['Timesheets with that date already exist']='Табель обліку робочого часу, з такою датою вже існує';
-
+$lang['def']['There is no set prices for job types']='Немає встановлених цін на типи робіт';
+$lang['def']['Total existing employees']='Всього існуючих працівників';
+$lang['def']['There is no set wages for workers']='Немає встановлених зарплат для працівників';
+$lang['def']['Not done yet any paid work']='Ще не виконано, жодної оплачуваної роботи';
+$lang['def']['Total existing job types']='Всього існуючих типів робіт';
+$lang['def']['Total paid types of work']='Всього оплачуваних типів робіт';
+$lang['def']['Total performed paid work']='Всього виконано оплачуваних робіт';
+$lang['def']['No filled timesheets']='Немає заповнених табелів обліку робочого часу';
+$lang['def']['Filled timesheets for']='Заповнено табелів обліку робочого часу за';
+$lang['def']['Today performed paid work']='Сьогодні виконано платних робіт';
+$lang['def']['Month performed paid work']='За місяць виконано платних робіт';
+$lang['def']['For today is not filled timesheets']='За сьогодні не заповнено табель обліку робочого часу';
+$lang['def']['For today timesheets is filled']='Сьогодняшній табель обліку робочого часу заповнено';
+$lang['def']['Tariff info']='Інформація про тариф';
+$lang['def']['Display tariff info in user profile']='Відображати інформацію про тариф в профілі користувача';
+$lang['def']['No tariff']='Нема тарифу';
 
 ?>

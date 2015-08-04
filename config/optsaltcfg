@@ -39,6 +39,7 @@ CREATETASK_IN_PROFILE=TRIGGER|Create tasks in user profile
 PASSPDATA_IN_PROFILE=TRIGGER|Show passport data in user profile
 SWITCHPORT_IN_PROFILE=TRIGGER|Switch port assign in user profile
 CONTRACTDATE_IN_PROFILE=TRIGGER|Contract date in user profile
+TARIFFINFO_IN_PROFILE=TRIGGER|Display tariff info in user profile
 ROUND_PROFILE_CASH=TRIGGER|Round cash in user profile
 COLORIZE_PROFILE_CASH=TRIGGER|Colorize cash in user profile
 PROFILE_LAT=TRIGGER|Show LAT column in user profile
