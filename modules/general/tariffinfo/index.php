@@ -39,6 +39,7 @@ if (cfr('USERPROFILE')) {
         
             $tariffInfo=  wf_TableBody($rows, '100%', 0, '');
         }
+
         $result=  wf_modalOpened(__('Tariff info'), $tariffInfo, '300', '200');
     } else {
         $result=__('Strange exeption');

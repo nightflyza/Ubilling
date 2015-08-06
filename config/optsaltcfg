@@ -49,6 +49,7 @@ CEMETERY_ENABLED=TRIGGER|Funeral service enabled
 GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 EASY_CREDIT=VARCHAR|Days interval to set one-click credit
 VLAN_IN_PROFILE=TRIGGER|Show vlan on profile if vlan was assigned
+PHONEBOOK_ENABLED=TRIGGER|Phonebook enabled
 
 CHAPTER_SEARCHOPTS=Search
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search

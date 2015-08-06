@@ -2065,4 +2065,11 @@ $lang['def']['Tariff info']='Інформація про тариф';
 $lang['def']['Display tariff info in user profile']='Відображати інформацію про тариф в профілі користувача';
 $lang['def']['No tariff']='Нема тарифу';
 
+//rev 4652
+$lang['def']['right to access phonebook']='Право користуватись телефонним довідником';
+$lang['def']['right to edit phonebook']='Право редагувати телефонний довідник';
+$lang['def']['Phonebook']='Телефонний довідник';
+$lang['def']['Create new contact']='Створити новий контакт';
+$lang['def']['Phonebook enabled']='Телефонний довідник увімкнено';
+
 ?>

@@ -1242,7 +1242,7 @@ class BuildPassport {
         $this->loadConfig();
     }
 
-    /*
+    /**
      * loads all existing builds passport data into private prop
      * 
      * @return void
@@ -1258,7 +1258,7 @@ class BuildPassport {
         }
     }
 
-    /*
+    /**
      * load build passport data options
      * 
      * @return void
@@ -1300,7 +1300,7 @@ class BuildPassport {
         }
     }
 
-    /*
+    /**
      * returns some build passport edit form
      * 
      * @praram $buildid existing build id
@@ -1338,7 +1338,7 @@ class BuildPassport {
         return ($result);
     }
 
-    /*
+    /**
      * saves new passport data for some build
      * 
      * @return void
