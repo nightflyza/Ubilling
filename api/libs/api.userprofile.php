@@ -923,7 +923,7 @@ class UserProfile {
                 $containerId = wf_InputId();
                 $result.=wf_AjaxLoader();
                 $result.=wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
-                $result.=wf_tag('span', false, '', 'id="' . $containerId . '" style="display:none;"') . wf_tag('span');
+                $result.=wf_tag('div', false, '', 'id="' . $containerId . '" style="display:none;"') . wf_tag('div');
             }
         }
         return ($result);

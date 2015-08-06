@@ -1360,7 +1360,7 @@ $(function() {
 			width: ' . $width . ',
                         height: ' . $height . ',
 			modal: true,
-			show: "drop",
+                        show: "drop",
 			hide: "fold"
 		});
 
