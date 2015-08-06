@@ -924,8 +924,7 @@ class Salary {
         }
         return ($result);
     }
-    
-    
+
     /**
      * Filters available timesheets by date range
      * 
@@ -935,18 +934,18 @@ class Salary {
      * @return array
      */
     protected function timesheetFilterDateRange($datefrom, $dateto) {
-        $result=array();
-        $datefrom=  strtotime($datefrom);
-        $dateto=  strtotime($dateto);
+        $result = array();
+        $datefrom = strtotime($datefrom);
+        $dateto = strtotime($dateto);
         if (!empty($this->allTimesheets)) {
             foreach ($this->allTimesheets as $io => $each) {
-                $timesheetDate=strtotime($each['date']);
-                if (($timesheetDate>=$datefrom) AND ($timesheetDate<=$dateto)) {
-                    $result[$each['id']]=$each;
+                $timesheetDate = strtotime($each['date']);
+                if (($timesheetDate >= $datefrom) AND ( $timesheetDate <= $dateto)) {
+                    $result[$each['id']] = $each;
                 }
             }
         }
-        return ($result);    
+        return ($result);
     }
 
     /**
@@ -959,7 +958,7 @@ class Salary {
     public function payrollRenderSearchDate($datefrom, $dateto) {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
-        
+
         $result = '';
         $totalSum = 0;
         $totalPayedSum = 0;
@@ -970,20 +969,20 @@ class Salary {
         $jobsTmp = array();
         $employeeCharts = array();
         $employeeChartsMoney = array();
-        $perEmployeeTimesheets=array();
-        
-        $rangeTimesheets=$this->timesheetFilterDateRange($datefrom, $dateto);
-        
+        $perEmployeeTimesheets = array();
+
+        $rangeTimesheets = $this->timesheetFilterDateRange($datefrom, $dateto);
+
         if (!empty($rangeTimesheets)) {
             foreach ($rangeTimesheets as $io => $each) {
                 if (isset($perEmployeeTimesheets[$each['employeeid']])) {
                     $perEmployeeTimesheets[$each['employeeid']]+=$each['hours'];
                 } else {
-                    $perEmployeeTimesheets[$each['employeeid']]=$each['hours'];
+                    $perEmployeeTimesheets[$each['employeeid']] = $each['hours'];
                 }
             }
         }
-     
+
 
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
         $all = simple_queryall($query);
@@ -1731,25 +1730,58 @@ class Salary {
                     $tmpArr[$each['employeeid']]['totalhours'] = $each['hours'];
                     $tmpArr[$each['employeeid']]['holidays'] = $each['holiday'];
                     $tmpArr[$each['employeeid']]['hospital'] = $each['hospital'];
-                    $tmpArr[$each['employeeid']]['totaldays'] = 1;
+                    if ($each['hours'] != 0) {
+                        $tmpArr[$each['employeeid']]['totaldays'] = 1;
+                    } else {
+                        $tmpArr[$each['employeeid']]['totaldays'] = 0;
+                    }
                     $tmpArr[$each['employeeid']]['day_' . $dayNum] = $each['hours'];
+                    if ($each['hospital']) {
+                        $tmpArr[$each['employeeid']]['dayhospital_' . $dayNum] = 1;
+                    } else {
+                        $tmpArr[$each['employeeid']]['dayhospital_' . $dayNum] = 0;
+                    }
+                    if ($each['holiday']) {
+                        $tmpArr[$each['employeeid']]['dayholiday_' . $dayNum] = 1;
+                    } else {
+                        $tmpArr[$each['employeeid']]['dayholiday_' . $dayNum] = 0;
+                    }
                 } else {
                     $tmpArr[$each['employeeid']]['totalhours']+=$each['hours'];
                     $tmpArr[$each['employeeid']]['holidays']+=$each['holiday'];
                     $tmpArr[$each['employeeid']]['hospital']+=$each['hospital'];
-                    $tmpArr[$each['employeeid']]['totaldays'] ++;
+                    if ($each['hours'] != 0) {
+                        $tmpArr[$each['employeeid']]['totaldays'] ++;
+                    }
                     $tmpArr[$each['employeeid']]['day_' . $dayNum] = $each['hours'];
+                    if ($each['hospital']) {
+                        $tmpArr[$each['employeeid']]['dayhospital_' . $dayNum] = 1;
+                    } else {
+                        $tmpArr[$each['employeeid']]['dayhospital_' . $dayNum] = 0;
+                    }
+                    if ($each['holiday']) {
+                        $tmpArr[$each['employeeid']]['dayholiday_' . $dayNum] = 1;
+                    } else {
+                        $tmpArr[$each['employeeid']]['dayholiday_' . $dayNum] = 0;
+                    }
                 }
             }
         }
-        // print_r($tmpArr);
+      //  print_r($tmpArr);
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
                 $cells = wf_TableCell(@$this->allEmployee[$employeeid]);
                 $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
                 for ($i = 1; $i <= 31; $i++) {
                     $dayCell = (isset($each['day_' . $i])) ? $each['day_' . $i] : 0;
-                    $cells.=wf_TableCell($dayCell);
+                    $dayCellSuffix='';
+                    if (@$each['dayholiday_'.$i]) {
+                        $dayCellSuffix.=wf_tag('sup').'v'.wf_tag('sup',true);
+                    }
+                    if (@$each['dayhospital_'.$i]) {
+                        $dayCellSuffix.=wf_tag('sup').'h'.wf_tag('sup',true);
+                    }
+                    $cells.=wf_TableCell($dayCell.$dayCellSuffix);
                 }
                 $cells.= wf_TableCell($each['totaldays']);
                 $cells.= wf_TableCell($each['holidays']);
@@ -1760,6 +1792,8 @@ class Salary {
 
 
         $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.= 'v - '.__('Holidays').wf_tag('br');
+        $result.= 'h - '.__('Hospitalized');
         $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
         return ($result);
     }
@@ -1799,14 +1833,14 @@ class Salary {
                 $result.=$messages->getStyledMessage(__('Not done yet any paid work'), 'warning');
             } else {
                 $todayJobs = $this->jobsFilterDate(curdate());
-                $todayJobsCount=  sizeof($todayJobs);
-                $monthJobs=  $this->jobsFilterDate(curmonth());
-                $monthJobsCount=sizeof($monthJobs);
+                $todayJobsCount = sizeof($todayJobs);
+                $monthJobs = $this->jobsFilterDate(curmonth());
+                $monthJobsCount = sizeof($monthJobs);
                 $result.= $messages->getStyledMessage(__('Today performed paid work') . ': ' . $todayJobsCount, 'success');
                 $result.= $messages->getStyledMessage(__('Month performed paid work') . ': ' . $monthJobsCount, 'success');
                 $result.= $messages->getStyledMessage(__('Total performed paid work') . ': ' . sizeof($this->allJobs), 'success');
             }
-            
+
             if (empty($this->allTimesheetDates)) {
                 $result.=$messages->getStyledMessage(__('No filled timesheets'), 'warning');
             } else {
@@ -1815,7 +1849,7 @@ class Salary {
                 } else {
                     $result.=$messages->getStyledMessage(__('For today timesheets is filled'), 'success');
                 }
-                
+
                 $result.=$messages->getStyledMessage(__('Filled timesheets for') . ' ' . sizeof($this->allTimesheetDates) . ' ' . __('days'), 'success');
             }
 

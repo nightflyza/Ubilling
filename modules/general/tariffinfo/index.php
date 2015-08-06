@@ -3,12 +3,13 @@ $result='';
 if (cfr('USERPROFILE')) {
     if (wf_CheckGet(array('tariff'))) {
         $tariffName=  mysql_real_escape_string($_GET['tariff']);
+        $tariffNameRaw= $_GET['tariff'];
         $tariffInfo='';
         if ($tariffName=='*_NO_TARIFF_*') {
             $messages=new UbillingMessageHelper();
             $tariffInfo=$messages->getStyledMessage(__('No tariff'), 'warning');
         } else {
-            $tariffPrice= zb_TariffGetPrice($tariffName);
+            $tariffPrice= zb_TariffGetPrice($tariffNameRaw);
             $tariffPeriods=  zb_TariffGetPeriodsAll();
             $tariffSpeeds=  zb_TariffGetAllSpeeds();
             $speedDown= (isset($tariffSpeeds[$tariffName])) ? $tariffSpeeds[$tariffName]['speeddown'] : __('No');
@@ -19,6 +20,10 @@ if (cfr('USERPROFILE')) {
             $cells=  wf_TableCell(__('Tariff'),'','row2');
             $cells.= wf_TableCell($tariffName);
             $rows= wf_TableRow($cells, 'row3');
+            
+            $cells=  wf_TableCell(__('Fee'),'','row2');
+            $cells.= wf_TableCell($tariffPrice);
+            $rows.= wf_TableRow($cells, 'row3');
             
             $cells=  wf_TableCell(__('Download speed'),'','row2');
             $cells.= wf_TableCell($speedDown);
