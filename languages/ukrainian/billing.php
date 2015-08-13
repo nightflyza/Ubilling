@@ -2077,6 +2077,8 @@ $lang['def']['right to use task search']='Право використовува�
 $lang['def']['Implementation took more days']='Виконання задачі зайняло більше днів';
 $lang['def']['Duplicate address']='Дублікати адрес';
 $lang['def']['Tasks search']='Пошук задач';
+$lang['def']['ICMP ping']='ICMP пінг';
+$lang['def']['Go to switch']='Перейти до комутатора';
 
 
 ?>

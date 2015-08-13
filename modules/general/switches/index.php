@@ -25,6 +25,24 @@ if (isset($_GET['cronping'])) {
 
 if (cfr('SWITCHES')) {
     $altCfg = $ubillingConfig->getAlter();
+    
+    //icmp ping handling
+    if (wf_CheckGet(array('backgroundicmpping'))) {
+        $billingConf=$ubillingConfig->getBilling();
+        $command=$billingConf['SUDO'].' '.$billingConf['PING'].' -i 0.01 -c 10  '.$_GET['backgroundicmpping'];
+        $icmpPingResult=shell_exec($command);
+        die(wf_tag('pre').$icmpPingResult.  wf_tag('pre',true));
+    }
+    
+    //switch by IP detecting
+    if (wf_CheckGet(array('gotoswitchbyip'))) {
+        $detectSwitchId=  zb_SwitchGetIdbyIP($_GET['gotoswitchbyip']);
+        if ($detectSwitchId) {
+            rcms_redirect('?module=switches&edit='.$detectSwitchId);
+        } else {
+            show_warning(__('Strange exeption').': NO_SUCH_IP');
+        }
+    }
 
 //switch adding
     if (isset($_POST['newswitchmodel'])) {

@@ -199,8 +199,10 @@ class DarkVoid {
                         } else {
                             $deathClock = '';
                         }
+                        //switch location link
+                        $switchLocator=  wf_Link('?module=switches&gotoswitchbyip='.$ip, web_edit_icon(__('Go to switch')));
                         //add switch as dead
-                        $content.=$devicefind . '&nbsp;' . $deathClock . $ip . ' - ' . $switch . '<br>';
+                        $content.=$devicefind.' '.$switchLocator . ' ' . $deathClock . $ip . ' - ' . $switch . '<br>';
                     }
 
                     //ajax container end

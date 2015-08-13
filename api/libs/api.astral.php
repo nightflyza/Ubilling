@@ -506,7 +506,7 @@ function wf_YearSelector($name, $label = '', $br = false) {
     } else {
         $newline = '';
     }
-    $selector = '<select name="' . $name . '" id="'.$inputid.'">';
+    $selector = '<select name="' . $name . '" id="' . $inputid . '">';
     for ($i = 0; $i < $count; $i++) {
         $selector.='<option value="' . ($curyear - $i) . '">' . ($curyear - $i) . '</option>';
     }
@@ -1329,6 +1329,20 @@ function wf_AjaxLoader() {
 }
 
 /**
+ * Returns default ajax container
+ * 
+ * @param string $containerName container name aka ID
+ * @param string $options misc options like size/display if required
+ * @param srring $content default container content
+ * 
+ * @return string
+ */
+function wf_AjaxContainer($containerName, $options = '', $content = '') {
+    $result = wf_tag('div', false, '', 'id="' . $containerName . '" ' . $options . ' ') . $content . wf_tag('div', true);
+    return ($result);
+}
+
+/**
  * Returns new opened modal window with some content
  * 
  * @param string $title modal window title
@@ -1856,38 +1870,38 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
  * 
  * @return string
  */
-function wf_gcharts3DPie($params, $title = '', $width = '', $height = '',$options='') {
+function wf_gcharts3DPie($params, $title = '', $width = '', $height = '', $options = '') {
     global $ubillingConfig;
-    $altCfg=$ubillingConfig->getAlter();
-   
+    $altCfg = $ubillingConfig->getAlter();
+
     $containerId = wf_InputId();
     $width = ($width) ? $width : '500px';
     $height = ($height) ? $height : '500px';
     $result = '';
     $chartData = '';
-    $enableFlag=true;
- if (!isset($altCfg['GCHARTS_ENABLED'])) {
-     $enableFlag=true;
- } else {
-     if ($altCfg['GCHARTS_ENABLED']) {
-         $enableFlag=true;
-     } else {
-         $enableFlag=false;
-     }
- }
- 
- if ($enableFlag) {
-    if (!empty($params)) {
-        foreach ($params as $io => $each) {
-            $chartData.= '[\'' . $io . '\',' . $each . '],';
+    $enableFlag = true;
+    if (!isset($altCfg['GCHARTS_ENABLED'])) {
+        $enableFlag = true;
+    } else {
+        if ($altCfg['GCHARTS_ENABLED']) {
+            $enableFlag = true;
+        } else {
+            $enableFlag = false;
         }
-        $chartData = substr($chartData, 0, -1);
     }
 
+    if ($enableFlag) {
+        if (!empty($params)) {
+            foreach ($params as $io => $each) {
+                $chartData.= '[\'' . $io . '\',' . $each . '],';
+            }
+            $chartData = substr($chartData, 0, -1);
+        }
+
 //legend.scrollArrows.activeColor
-    $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.google.com/jsapi"') . wf_tag('script', true);
-    $result.= wf_tag('script', false, '', 'type="text/javascript"');
-    $result.='
+        $result = wf_tag('script', false, '', 'type="text/javascript" src="https://www.google.com/jsapi"') . wf_tag('script', true);
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.='
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       
@@ -1901,7 +1915,7 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '',$option
         var options = {
           title: \'' . $title . '\',
           is3D: true,
-          '.$options.'
+          ' . $options . '
           \'tooltip\' : {
              trigger: \'none\'
             }
@@ -1912,11 +1926,10 @@ function wf_gcharts3DPie($params, $title = '', $width = '', $height = '',$option
       }
 ';
 
-    $result.=wf_tag('script', true);
-    $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
- }
+        $result.=wf_tag('script', true);
+        $result.= wf_tag('div', false, '', 'id="' . $containerId . '" style="width: ' . $width . '; height: ' . $height . ';"') . wf_tag('div', true);
+    }
     return ($result);
-    
 }
 
 ?>

@@ -363,6 +363,10 @@ function web_SwitchEditForm($switchid) {
             $result.=wf_Link('?module=switchpoller&switchid=' . $switchid, wf_img('skins/snmp.png') . ' ' . __('SNMP query'), false, 'ubButton');
         }
     }
+    
+    if (!empty($switchdata['ip'])) {
+        $result.=wf_AjaxLink('?module=switches&backgroundicmpping='.$switchdata['ip'], wf_img('skins/ping_icon.png').' '.__('ICMP ping'), 'icmppingcontainer', false, 'ubButton');
+    }
 
 
     if (cfr('SWITCHEDIT')) {
@@ -373,6 +377,11 @@ function web_SwitchEditForm($switchid) {
 
     if (cfr('SWITCHESEDIT')) {
         $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
+    }
+    
+    if (!empty($switchdata['ip'])) {
+        $result.=wf_AjaxLoader();
+        $result.=wf_AjaxContainer('icmppingcontainer');
     }
 
 
@@ -659,8 +668,12 @@ function web_SwitchesShow() {
                         } else {
                             $deathClock = '';
                         }
+                        
+                        //switch location link
+                        $switchLocator=  wf_Link('?module=switches&gotoswitchbyip='.$ip, web_edit_icon(__('Go to switch')));
+                                                
                         //add switch as dead
-                        $ajaxResult.=$devicefind . '&nbsp;' . $deathClock . $ip . ' - ' . $switch . '<br>';
+                        $ajaxResult.=$devicefind.' '.$switchLocator . ' ' . $deathClock . $ip . ' - ' . $switch . '<br>';
                     }
                 } else {
                     $ajaxResult = __('Switches are okay, everything is fine - I guarantee');
@@ -1104,6 +1117,23 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
     } else {
         show_error(__('Strange exeption') . ': FROM_SWITCH_EMPTY_DATA');
     }
+}
+
+/**
+ * Trys to detect switch ID by its IP
+ * 
+ * @param string $ip
+ * @return int
+ */
+function zb_SwitchGetIdbyIP($ip) {
+    $result='';
+    $ip=  mysql_real_escape_string($ip);
+    $query="SELECT `id`,`ip` from `switches` WHERE `ip`='".$ip."' LIMIT 1;";
+    $raw=  simple_query($query);
+    if (!empty($raw)) {
+        $result=$raw['id'];
+    }
+    return ($result);
 }
 
 ?>
