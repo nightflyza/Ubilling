@@ -1038,7 +1038,10 @@ function ts_ShowPanel() {
     $result.=wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
     $result.=wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
     $result.=wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('List all tasks'), false, 'ubButton');
-    $result.=wf_Link('?module=taskman&lateshow=true', wf_img('skins/time_machine.png') . ' ' . __('Show late'), false, 'ubButton');
+    if (cfr('TASKMANSEARCH')) {
+    $result.=wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
+    }
+    //$result.=wf_Link('?module=taskman&lateshow=true', wf_img('skins/time_machine.png') . ' ' . __('Show late'), false, 'ubButton');
     $result.=wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
     //show type selector
@@ -1196,7 +1199,11 @@ function ts_TaskModifyForm($taskid) {
     if (!empty($taskdata)) {
         $inputs = wf_HiddenInput('modifytask', $taskid);
         $inputs.='<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
-        $inputs.=wf_DatePickerPreset('modifystartdate', $taskdata['startdate']);
+        if (cfr('TASKMANDATE')) {
+            $inputs.=wf_DatePickerPreset('modifystartdate', $taskdata['startdate']);
+        } else {
+            $inputs.=wf_HiddenInput('modifystartdate', $taskdata['startdate']);
+        }
         $inputs.=wf_TimePickerPreset('modifystarttime', $taskdata['starttime'], '', false);
         $inputs.=wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
         $inputs.=wf_delimiter();
@@ -1375,7 +1382,7 @@ function ts_TaskChangeForm($taskid) {
         $tablecells = wf_TableCell(__('ID'), '30%');
         $tablecells.= wf_TableCell($taskdata['id']);
         $tablerows = wf_TableRow($tablecells, 'row3');
-        
+
         $tablecells = wf_TableCell(__('Task creation date') . ' / ' . __('Administrator'));
         $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $taskdata['admin']);
         $tablerows.= wf_TableRow($tablecells, 'row3');
@@ -1439,8 +1446,11 @@ function ts_TaskChangeForm($taskid) {
 
             $form = wf_Form("", 'POST', $inputs, 'glamour');
 
+
             //show editing form
-            show_window(__('If task is done'), $form);
+            if (cfr('TASKMANDONE')) {
+                show_window(__('If task is done'), $form);
+            }
         } else {
             $donecells = wf_TableCell(__('Finish date'), '30%');
             $donecells.=wf_TableCell($taskdata['enddate']);
@@ -1455,10 +1465,11 @@ function ts_TaskChangeForm($taskid) {
             $donerows.=wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
-            $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'), 'ubButton');
-            $doneresult.='&nbsp;';
-            $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), __('Are you serious'), 'ubButton');
-
+            if (cfr('TASKMANDONE')) {
+                $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'), 'ubButton');
+                $doneresult.='&nbsp;';
+                $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), __('Are you serious'), 'ubButton');
+            }
             show_window(__('Task is done'), $doneresult);
         }
     }
