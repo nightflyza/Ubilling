@@ -1660,7 +1660,7 @@ function ts_PrintTasks($datefrom, $dateto) {
 }
 
 /**
- * Returns list of expired undeone tasks
+ * Returns list of expired undone tasks
  * 
  * @return string
  */

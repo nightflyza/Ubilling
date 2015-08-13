@@ -2073,5 +2073,10 @@ $lang['def']['Create new contact']='Створити новий контакт';
 $lang['def']['Phonebook enabled']='Телефонний довідник увімкнено';
 $lang['def']['right to change tasks date']='Право змінювати дату планування задач';
 $lang['def']['right to mark tasks as done']='Право відмічати задачи як виконані';
+$lang['def']['right to use task search']='Право використовувати пошук задач';
+$lang['def']['Implementation took more days']='Виконання задачі зайняло більше днів';
+$lang['def']['Duplicate address']='Дублікати адрес';
+$lang['def']['Tasks search']='Пошук задач';
+
 
 ?>
