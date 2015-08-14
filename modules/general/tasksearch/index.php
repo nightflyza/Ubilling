@@ -88,7 +88,10 @@ if (cfr('TASKMANSEARCH')) {
          */
         public function renderSearchForm() {
             $result = '';
-            $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', curdate(), true) . ' ' . __('From') . ' ' . wf_DatePickerPreset('dateto', curdate(), true) . ' ' . __('To');
+            $datefromDefault=(wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : curdate();
+            $datetoDefault=(wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
+            
+            $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', $datefromDefault, true) . ' ' . __('From') . ' ' . wf_DatePickerPreset('dateto', $datetoDefault, true) . ' ' . __('To');
             $inputs.= wf_tag('br');
             $inputs.= wf_CheckInput('cb_id', '', false, false);
             $inputs.= wf_TextInput('taskid', __('ID'), '', true, 4);
@@ -234,6 +237,7 @@ if (cfr('TASKMANSEARCH')) {
          */
         public function renderTasks($tasksArray) {
             $result = '';
+            $totalCount=0;
             if (!empty($tasksArray)) {
                 $cells = wf_TableCell(__('ID'));
                 $cells.= wf_TableCell(__('Address'));
@@ -256,13 +260,15 @@ if (cfr('TASKMANSEARCH')) {
                     $cells.= wf_TableCell(@$this->allEmployee[$each['employeedone']]);
                     $cells.= wf_TableCell($each['startdate'].' '.$each['starttime']);
                     $cells.= wf_TableCell($each['enddate']);
-                    $cells.= wf_TableCell(web_bool_led($each['status']));
+                    $cells.= wf_TableCell(web_bool_led($each['status']),'','','sorttable_customkey="'.$each['status'].'"');
                     $actLinks=  wf_Link(self::URL_TASKVIEW.$each['id'], web_edit_icon(), false);
                     $cells.= wf_TableCell($actLinks);
                     $rows.= wf_TableRow($cells, 'row3');
+                    $totalCount++;
                 }
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                $result.=__('Total').': '.$totalCount;
             } else {
                 $messages = new UbillingMessageHelper();
                 $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
