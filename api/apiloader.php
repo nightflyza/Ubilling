@@ -74,6 +74,7 @@ include('api/libs/api.cap.php');
 include('api/libs/api.opayz.php');
 include('api/libs/api.salary.php');
 include('api/libs/api.cemetery.php');
+include('api/libs/api.warehouse.php');
 
 /*
  * Initial class creation
