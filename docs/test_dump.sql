@@ -1510,3 +1510,13 @@ CREATE TABLE IF NOT EXISTS `wh_categories` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `wh_itemtypes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `categoryid` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `unit` varchar(40) NOT NULL,
+  `reserve` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `categoryid` (`categoryid`,`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

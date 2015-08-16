@@ -29,7 +29,7 @@ class Warehouse {
      * @var array
      */
     protected $allCategories = array();
-    
+
     /**
      * List of all available item types as id=>data
      *
@@ -38,17 +38,29 @@ class Warehouse {
     protected $allItemTypes = array();
 
     /**
+     * Available unit types as unittype=>localized name
+     *
+     * @var array
+     */
+    protected $unitTypes = array();
+
+    /**
      * System messages object
      *
      * @var object
      */
     protected $messages = '';
 
+    /**
+     * Default routing desc
+     */
     const URL_ME = '?module=warehouse';
     const URL_CATEGORIES = 'categories=true';
+    const URL_ITEMTYPES = 'itemtypes=true';
 
     public function __construct() {
         $this->loadAltCfg();
+        $this->setUnitTypes();
         $this->loadMessages();
         $this->loadAllEmployee();
         $this->loadActiveEmployee();
@@ -95,6 +107,21 @@ class Warehouse {
     }
 
     /**
+     * Sets default unit types
+     * 
+     * @return void
+     */
+    protected function setUnitTypes() {
+        $this->unitTypes['quantity'] = __('quantity');
+        $this->unitTypes['meter'] = __('meter');
+        $this->unitTypes['kilometer'] = __('kilometer');
+        $this->unitTypes['money'] = __('money');
+        $this->unitTypes['time'] = __('time');
+        $this->unitTypes['litre'] = __('litre');
+        $this->unitTypes['pieces'] = __('pieces');
+    }
+
+    /**
      * Loads existing warehouse categories from DB
      * 
      * @return void
@@ -105,6 +132,21 @@ class Warehouse {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allCategories[$each['id']] = $each['name'];
+            }
+        }
+    }
+
+    /**
+     * Loads all existing warehouse item types
+     * 
+     * @return void
+     */
+    protected function loadItemTypes() {
+        $query = "SELECT* from `wh_itemtypes`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allItemTypes[$each['id']] = $each;
             }
         }
     }
@@ -121,10 +163,9 @@ class Warehouse {
         $result = wf_Form(self::URL_ME . '&' . self::URL_CATEGORIES, 'POST', $inputs, 'glamour');
         return ($result);
     }
-    
-    
+
     /**
-     * Returns cetegory creation form
+     * Returns cetegory edit form
      * 
      * @param int $categoryId
      * 
@@ -132,7 +173,8 @@ class Warehouse {
      */
     protected function categoriesEditForm($categoryId) {
         $result = '';
-        $inputs = wf_TextInput('editcategory', __('Name'), $this->allCategories[$categoryId], false, 20);
+        $inputs = wf_TextInput('editcategoryname', __('Name'), $this->allCategories[$categoryId], false, 20);
+        $inputs.= wf_HiddenInput('editcategoryid', $categoryId);
         $inputs.= wf_Submit(__('Save'));
         $result = wf_Form(self::URL_ME . '&' . self::URL_CATEGORIES, 'POST', $inputs, 'glamour');
         return ($result);
@@ -155,7 +197,7 @@ class Warehouse {
             foreach ($this->allCategories as $id => $name) {
                 $cells = wf_TableCell($id);
                 $cells.= wf_TableCell($name);
-                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_CATEGORIES . '&deletecategory=' . $id, web_delete_icon(), $this->messages->getDeleteAlert()).' ';
+                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_CATEGORIES . '&deletecategory=' . $id, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->categoriesEditForm($id));
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
@@ -225,8 +267,88 @@ class Warehouse {
         }
         return ($result);
     }
+
+    /**
+     * Saves category changes in database by data recieved from form
+     * 
+     * @return void
+     */
+    public function categoriesSave() {
+        if (wf_CheckPost(array('editcategoryname', 'editcategoryid'))) {
+            $categoryId = vf($_POST['editcategoryid']);
+            if (isset($this->allCategories[$categoryId])) {
+                simple_update_field('wh_categories', 'name', $_POST['editcategoryname'], "WHERE `id`='" . $categoryId . "'");
+                log_register('WAREHOUSE CATEGORY EDIT [' . $categoryId . '] `' . $_POST['editcategoryname'] . '`');
+            } else {
+                log_register('WAREHOUSE CATEGORY EDIT FAIL [' . $categoryId . '] NO_EXISTING');
+            }
+        }
+    }
+
+    /**
+     * Renders control panel for whole module
+     * 
+     * @return string
+     */
+    public function renderPanel() {
+        $result = '';
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
+        return ($result);
+    }
+
+    /**
+     * Returns item types creation form
+     * 
+     * @return string
+     */
+    public function itemtypesCreateForm() {
+        $result = '';
+        if (!empty($this->allCategories)) {
+            $inputs = wf_Selector('newitemtypecetegoryid', $this->allCategories, __('Category'), '', true);
+            $inputs.= wf_TextInput('newitemtypename', __('Name'), '', true, '20');
+            $inputs.= wf_Selector('newitemtypeunit', $this->unitTypes, __('Units'), '', true);
+            $inputs.= wf_TextInput($result, __('Desired reserve'), '', true, 5);
+            $inputs.= wf_Submit(__('Create'));
+
+            $result = wf_Form(self::URL_ME . '&' . self::URL_ITEMTYPES, 'POST', $inputs, 'glamour');
+        } else {
+            $result = $this->messages->getStyledMessage(__('No existing categories'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders of available warehouse item types
+     * 
+     * @return string
+     */
+    public function itemtypesRenderList() {
+        $result = '';
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('Category'));
+        $cells.= wf_TableCell(__('Name'));
+        $cells.= wf_TableCell(__('Units'));
+        $cells.= wf_TableCell(__('Reserve'));
+        $rows = wf_TableRow($cells, 'row1');
+
+        if (!empty($this->allItemTypes)) {
+            foreach ($this->allItemTypes as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell(@$this->allCategories[$each['categoryid']]);
+                $cells.= wf_TableCell($each['name']);
+                $cells.= wf_TableCell(@$this->unitTypes[$each['unit']]);
+                $cells.= wf_TableCell($each['reserve']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+        
+        $result=  wf_TableBody($rows, '100%', 0, 'sortable');
+        
+        return ($result);
+    }
     
-       
+        
 
 }
 

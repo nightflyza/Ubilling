@@ -124,6 +124,11 @@ class Salary {
         $this->allJobtypes = ts_GetAllJobtypes();
     }
 
+    /**
+     * Sets default unit types
+     * 
+     * @return void
+     */
     protected function setUnitTypes() {
         $this->unitTypes['quantity'] = __('quantity');
         $this->unitTypes['meter'] = __('meter');
