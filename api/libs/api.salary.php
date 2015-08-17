@@ -364,7 +364,7 @@ class Salary {
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
-        $result.= wf_modalAuto(web_icon_extended(), __('Directories'), $directoriesControls, 'ubButton');
+        $result.= wf_modalAuto(web_icon_extended().' '.__('Directories'), __('Directories'), $directoriesControls, 'ubButton');
 
 
         return ($result);

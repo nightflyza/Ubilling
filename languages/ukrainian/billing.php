@@ -2079,6 +2079,19 @@ $lang['def']['Duplicate address']='Дублікати адрес';
 $lang['def']['Tasks search']='Пошук задач';
 $lang['def']['ICMP ping']='ICMP пінг';
 $lang['def']['Go to switch']='Перейти до комутатора';
-
+$lang['def']['Categories']='Категорії';
+$lang['def']['Available categories']='Існуючі категорії';
+$lang['def']['You cant do this']='Ви не можете цього зробити';
+$lang['def']['Warehouse item types']='Типи ТМЦ';
+$lang['def']['Warehouse categories']='Категорії ТМЦ';
+$lang['def']['No existing categories']='Немає існуючих категорій';
+$lang['def']['Desired reserve']='Бажаний резерв на складі';
+$lang['def']['Available item types']='Існуючі типи ТМЦ';
+$lang['def']['Reserve']='Резерв';
+$lang['def']['Warehouse storages']='Складські приміщення';
+$lang['def']['Warehouse storage']='Складське приміщення';
+$lang['def']['Available warehouse storages']='Існуючі складські приміщення';
+$lang['def']['Contractors']='Постачальники';
+$lang['def']['Available contractors']='Існуючі постачальники';
 
 ?>

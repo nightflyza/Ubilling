@@ -1516,7 +1516,36 @@ CREATE TABLE IF NOT EXISTS `wh_itemtypes` (
   `categoryid` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `unit` varchar(40) NOT NULL,
-  `reserve` int(11) DEFAULT NULL,
+  `reserve` double DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `categoryid` (`categoryid`,`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `wh_storages` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `wh_contractors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `wh_in` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL,
+  `itemtypeid` int(11) NOT NULL,
+  `contractorid` int(11) NOT NULL,
+  `count` double NOT NULL,
+  `barcode` varchar(255) DEFAULT NULL,
+  `price` double DEFAULT NULL,
+  `storageid` int(11) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`,`itemtypeid`,`contractorid`,`storageid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
