@@ -168,6 +168,9 @@ class PhotoStorage {
         if ($this->scope == 'CUSTMAPSITEMS') {
             $result = wf_Link('?module=custmaps&edititem=' . $this->itemId, __('Back'), false, 'ubButton');
         }
+        if ($this->scope == 'WAREHOUSEITEMTYPE') {
+            $result = wf_Link('?module=warehouse&itemtypes=true', __('Back'), false, 'ubButton');
+        }
         return ($result);
     }
 

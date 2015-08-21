@@ -66,6 +66,13 @@ class Warehouse {
     protected $allIncoming = array();
 
     /**
+     * All available outcoming operations
+     *
+     * @var type 
+     */
+    protected $allOutcoming = array();
+
+    /**
      * Available unit types as unittype=>localized name
      *
      * @var array
@@ -95,6 +102,7 @@ class Warehouse {
     const URL_STORAGES = 'storages=true';
     const URL_CONTRACTORS = 'contractors=true';
     const URL_IN = 'in=true';
+    const URL_OUT = 'out=true';
     const URL_AJITSELECTOR = 'ajits=';
 
     public function __construct() {
@@ -385,6 +393,21 @@ class Warehouse {
     }
 
     /**
+     * Renders default back control
+     * 
+     * @param string $url Optional URL
+     * 
+     * @return void
+     */
+    public function backControl($url = '') {
+        if (empty($url)) {
+            show_window('', wf_Link(self::URL_ME, __('Back'), false, 'ubButton'));
+        } else {
+            show_window('', wf_Link($url, __('Back'), false, 'ubButton'));
+        }
+    }
+
+    /**
      * Renders control panel for whole module
      * 
      * @return string
@@ -392,6 +415,7 @@ class Warehouse {
     public function renderPanel() {
         $result = '';
         $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
         $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
@@ -508,6 +532,7 @@ class Warehouse {
         $cells.= wf_TableCell(__('Reserve'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
+        $photoStorageEnabled = ($this->altCfg['PHOTOSTORAGE_ENABLED']) ? true : false;
 
         if (!empty($this->allItemTypes)) {
             foreach ($this->allItemTypes as $io => $each) {
@@ -518,6 +543,14 @@ class Warehouse {
                 $cells.= wf_TableCell($each['reserve']);
                 $actLinks = wf_JSAlertStyled(self::URL_ME . '&' . self::URL_ITEMTYPES . '&deleteitemtype=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->itemtypesEditForm($each['id']), '');
+                if ($photoStorageEnabled) {
+                    $photostorageUrl = '?module=photostorage&scope=WAREHOUSEITEMTYPE&itemid=' . $each['id'] . '&mode=list';
+                    $photostorageControl = ' ' . wf_Link($photostorageUrl, wf_img_sized('skins/photostorage.png', __('Upload images'), '16', '16'), false);
+                } else {
+                    $photostorageControl = '';
+                }
+                $actLinks.=$photostorageControl;
+
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -614,6 +647,21 @@ class Warehouse {
                     break;
                 }
             }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns storage name by its ID
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function storageGetName($storageId) {
+        $storageId = vf($storageId, 3);
+        $result = '';
+        if (isset($this->allStorages[$storageId])) {
+            $result = $this->allStorages[$storageId];
         }
         return ($result);
     }
@@ -837,6 +885,7 @@ class Warehouse {
             foreach ($this->allContractors as $id => $name) {
                 $cells = wf_TableCell($id);
                 $cells.= wf_TableCell($name);
+
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_CONTRACTORS . '&deletecontractor=' . $id, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->contractorsEditForm($id));
                 $cells.= wf_TableCell($actLinks);
@@ -953,6 +1002,125 @@ class Warehouse {
         nr_query($query);
         $newId = simple_get_lastid('wh_in');
         log_register('WAREHOUSE INCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+    }
+
+    /**
+     * Returns outcoming operation creation form
+     * 
+     * @return string
+     */
+    public function outcomingStoragesList() {
+        $result = '';
+        if (!empty($this->allStorages)) {
+
+            $cells = wf_TableCell(__('Warehouse storage'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allStorages as $io => $each) {
+                $conrolLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $io, $each, false, '');
+                $cells = wf_TableCell($conrolLink);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $this->messages->getStyledMessage(__('You did not fill all the necessary directories'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of items remains on some storage
+     * 
+     * TODO: update this method after finishing outcoming operations
+     * 
+     * @param int $storageId
+     * 
+     * @return array 
+     */
+    protected function remainsOnStorage($storageId) {
+        $storageId = vf($storageId, 3);
+        $result = array();
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+                if ($each['storageid'] == $storageId) {
+                    if (isset($result[$each['itemtypeid']])) {
+                        $result[$each['itemtypeid']]+=$each['count'];
+                    } else {
+                        $result[$each['itemtypeid']] = $each['count'];
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns 
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function outcomingRemainsAjaxReply($storageId) {
+        $storageId = vf($storageId, 3);
+        $remainItems = $this->remainsOnStorage($storageId);
+        $result = '{ 
+                  "aaData": [ ';
+        if (!empty($remainItems)) {
+            foreach ($remainItems as $itemtypeid => $count) {
+                $actLink=  wf_tag('a', false, '', 'href='.self::URL_ME.'&'.self::URL_OUT.'&storageid='.$storageId.'&outitemid='.$itemtypeid). wf_img_sized('skins/whoutcoming_icon.png','','10','10').  wf_tag('a',true);
+                $actLink= wf_Link(self::URL_ME.'&'.self::URL_OUT.'&storageid='.$storageId.'&outitemid='.$itemtypeid,wf_img_sized('skins/whoutcoming_icon.png','','10','10').' '.__('Outcoming'));
+                $actLink=  str_replace('"', '', $actLink);
+                $actLink=trim($actLink);
+                $result.='
+                    [
+                    "' . @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']] . '",
+                    "' . @$this->allItemTypeNames[$itemtypeid] . '",
+                    "' . $count . '",
+                    "' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']] . '",
+                    "' . $actLink . '"
+                    ],';
+            }
+        }
+
+        $result=  zb_CutEnd($result);
+        $result.='] 
+        }';
+        die($result);
+    }
+
+    /**
+     * Returns items list available at storage for further outcoming operation
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function outcomingItemsList($storageId) {
+        $storageId = vf($storageId, 3);
+        $result = '';
+        if (!empty($this->allIncoming)) {
+            $columns = array('Category','Warehouse item types', 'Count', 'Units', 'Actions');
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&ajaxremains=true', true, 'payments', 100);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+
+        return ($result);
+    }
+    
+    /**
+     * Returns outcoming operation creation form
+     * 
+     * @param int $storageid
+     * @param int $itemtypeid
+     * 
+     * @return string
+     */
+    public function outcomingCreateForm($storageid,$itemtypeid) {
+        $result='zzzz';
+        
+        return ($result);
     }
 
 }

@@ -2501,15 +2501,15 @@ function web_TariffShowMoveCharts() {
 
     $cells = '';
     $rows = '';
-    
-     $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+
+    $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px',$chartOpts));
+        $cells.= wf_TableCell(wf_gcharts3DPie($fromData, __('Current tariff'), '400px', '400px', $chartOpts));
     }
 
     if (!empty($fromData)) {
-        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px',$chartOpts));
+        $cells.= wf_TableCell(wf_gcharts3DPie($toData, __('Next month'), '400px', '400px', $chartOpts));
     }
     $rows.= wf_TableRow($cells);
     $result.=wf_TableBody($rows, '100%', 0);
@@ -2541,8 +2541,8 @@ function web_TariffShowTariffCharts() {
     }
 
     if (!empty($chartData)) {
-        $chartOpts="chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px',$chartOpts);
+        $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+        $result.= wf_gcharts3DPie($chartData, __('Users'), '400px', '400px', $chartOpts);
     }
 
     return ($result);
@@ -4229,6 +4229,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
         
 //Initializations
     $xml_array = array();
@@ -4379,10 +4380,21 @@ function zb_CheckPHPExtensions() {
  * @return bool
  */
 function zb_checkDate($date) {
-    $explode=  explode('-', $date);
+    $explode = explode('-', $date);
     @$year = $explode[0];
     @$month = $explode[1];
     @$day = $explode[2];
     $result = checkdate($month, $day, $year);
     return ($result);
+}
+
+/**
+ * Cuts last char of string
+ * 
+ * @param string $string
+ * @return string
+ */
+function zb_CutEnd($string) {
+    $string = substr($string, 0, -1);
+    return ($string);
 }
