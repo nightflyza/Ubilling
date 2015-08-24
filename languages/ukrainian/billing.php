@@ -2093,5 +2093,23 @@ $lang['def']['Warehouse storage']='Складське приміщення';
 $lang['def']['Available warehouse storages']='Існуючі складські приміщення';
 $lang['def']['Contractors']='Постачальники';
 $lang['def']['Available contractors']='Існуючі постачальники';
+$lang['def']['Incoming operations']='Прихідні операції';
+$lang['def']['You did not fill all the necessary directories']='Ви не заповнили усі необхідні довідники';
+$lang['def']['Create new incoming operation']='Створити нову прихідну операцію';
+$lang['def']['Contractor']='Постачальник';
+$lang['def']['Barcode']='Штрих-код';
+$lang['def']['Outcoming operations']='Розхідні операції';
+$lang['def']['The remains in the warehouse storage']='Залишки в складському приміщенні';
+$lang['def']['Outcoming']='Розхід';
+$lang['def']['New outcoming operation']='Нова розхідна операція';
+$lang['def']['Cancellation']='Списання';
+$lang['def']['Mistake']='Помилка';
+$lang['def']['Destination']='Призначення';
+$lang['def']['Something went wrong']='Щось пішло не так';
+$lang['def']['The balance of goods and materials in stock is less than the amount']='Залишок ТМЦ на складі, менший за вказану кількість';
+$lang['def']['Available incoming operations']='Існуючі прихідні операції';
+$lang['def']['Available outcoming operations']='Існуючі розхідні операції';
+$lang['def']['Price per unit']='Ціна за одиницю';
+$lang['def']['Sale']='Продаж';
 
 ?>

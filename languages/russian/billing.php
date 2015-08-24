@@ -2087,12 +2087,18 @@ $lang['def']['Outcoming operations']='Расходные операции';
 $lang['def']['The remains in the warehouse storage']='Остатки на складском помещении';
 $lang['def']['Outcoming']='Расход';
 $lang['def']['New outcoming operation']='Новая расходная операция';
+$lang['def']['Cancellation']='Списание';
+$lang['def']['Mistake']='Ошибка';
+$lang['def']['Destination']='Назначение';
+$lang['def']['Something went wrong']='Что-то пошло не так';
+$lang['def']['The balance of goods and materials in stock is less than the amount']='Остаток ТМЦ на складе меньше указанного количества';
+$lang['def']['Available incoming operations']='Существующие приходные операции';
+$lang['def']['Available outcoming operations']='Существующие расходные операции';
+$lang['def']['Price per unit']='Цена за единицу';
+$lang['def']['Sale']='Продажа';
 $lang['def']['']='';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+
 
 
 ?>

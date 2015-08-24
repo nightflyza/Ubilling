@@ -80,6 +80,13 @@ class Warehouse {
     protected $unitTypes = array();
 
     /**
+     * Available outcoming destinations as destination=>localized name
+     *
+     * @var array
+     */
+    protected $outDests = array();
+
+    /**
      * System messages object
      *
      * @var object
@@ -103,11 +110,16 @@ class Warehouse {
     const URL_CONTRACTORS = 'contractors=true';
     const URL_IN = 'in=true';
     const URL_OUT = 'out=true';
+    const URL_OUTAJREMAINS = 'ajaxremains=true';
     const URL_AJITSELECTOR = 'ajits=';
+    const URL_AJODSELECTOR = 'ajods=';
+    const URL_INAJLIST = 'ajaxinlist=true';
+    const URL_OUTAJLIST = 'ajaxoutlist=true';
 
     public function __construct() {
         $this->loadAltCfg();
         $this->setUnitTypes();
+        $this->setOutDests();
         $this->setSup();
         $this->loadMessages();
         $this->loadAllEmployee();
@@ -117,6 +129,7 @@ class Warehouse {
         $this->loadStorages();
         $this->loadContractors();
         $this->loadInOperations();
+        $this->loadOutOperations();
     }
 
     /**
@@ -171,6 +184,22 @@ class Warehouse {
         $this->unitTypes['time'] = __('time');
         $this->unitTypes['litre'] = __('litre');
         $this->unitTypes['pieces'] = __('pieces');
+    }
+
+    /**
+     * Sets default unit types
+     * 
+     * @return void
+     */
+    protected function setOutDests() {
+        $this->outDests['task'] = __('Task');
+        $this->outDests['contractor'] = __('Contractor');
+        $this->outDests['employee'] = __('Employee');
+        $this->outDests['storage'] = __('Warehouse storage');
+        $this->outDests['user'] = __('User');
+        $this->outDests['sale'] = __('Sale');
+        $this->outDests['cancellation'] = __('Cancellation');
+        $this->outDests['mistake'] = __('Mistake');
     }
 
     /**
@@ -254,6 +283,21 @@ class Warehouse {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allIncoming[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing outcoming operations from database
+     * 
+     * @return void
+     */
+    protected function loadOutOperations() {
+        $query = "SELECT * from `wh_out`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allOutcoming[$each['id']] = $each;
             }
         }
     }
@@ -598,6 +642,21 @@ class Warehouse {
             $result = true;
         } else {
             $result = false;
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns itemtype name by its ID
+     * 
+     * @param int $itemtypeId
+     * @return string
+     */
+    public function itemtypeGetName($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        if (isset($this->allItemTypeNames[$itemtypeId])) {
+            $result = $this->allItemTypeNames[$itemtypeId];
         }
         return ($result);
     }
@@ -1005,6 +1064,60 @@ class Warehouse {
     }
 
     /**
+     * Returns income operations list available at storages
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function incomingOperationsList() {
+        $result = '';
+        if (!empty($this->allIncoming)) {
+            $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Contractor', 'Warehouse storage');
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_IN . '&' . self::URL_INAJLIST, true, 'Incoming operations', 50);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns JQuery datatables reply for incoming operations list
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function incomingListAjaxReply() {
+        $result = '{ 
+                  "aaData": [ ';
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+//                $actLink = wf_tag('a', false, '', 'href=' . self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid) . wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . wf_tag('a', true);
+//                $actLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+//                $actLink = str_replace('"', '', $actLink);
+//                $actLink = trim($actLink);
+                $result.='
+                    [
+                    "' . $each['id'] . '",
+                    "' . $each['date'] . '",
+                    "' . @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']] . '",
+                    "' . $this->allItemTypeNames[$each['itemtypeid']] . '",
+                    "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
+                    "' . $each['price'] . '",    
+                    "' . ($each['price'] * $each['count']) . '",
+                    "' . @$this->allContractors[$each['contractorid']] . '",
+                    "' . @$this->allStorages[$each['storageid']] . '"
+                    ],';
+            }
+        }
+
+        $result = zb_CutEnd($result);
+        $result.='] 
+        }';
+        die($result);
+    }
+
+    /**
      * Returns outcoming operation creation form
      * 
      * @return string
@@ -1032,8 +1145,6 @@ class Warehouse {
     /**
      * Returns array of items remains on some storage
      * 
-     * TODO: update this method after finishing outcoming operations
-     * 
      * @param int $storageId
      * 
      * @return array 
@@ -1041,6 +1152,7 @@ class Warehouse {
     protected function remainsOnStorage($storageId) {
         $storageId = vf($storageId, 3);
         $result = array();
+        //counting income operations
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
                 if ($each['storageid'] == $storageId) {
@@ -1053,11 +1165,22 @@ class Warehouse {
             }
         }
 
+        //counting outcome operations
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                if ($each['storageid'] == $storageId) {
+                    if (isset($result[$each['itemtypeid']])) {
+                        $result[$each['itemtypeid']]-=$each['count'];
+                    }
+                }
+            }
+        }
+
         return ($result);
     }
 
     /**
-     * Returns 
+     * Returns JQuery datatables reply for storage remains itemtypes
      * 
      * @param int $storageId
      * @return string
@@ -1069,22 +1192,23 @@ class Warehouse {
                   "aaData": [ ';
         if (!empty($remainItems)) {
             foreach ($remainItems as $itemtypeid => $count) {
-                $actLink=  wf_tag('a', false, '', 'href='.self::URL_ME.'&'.self::URL_OUT.'&storageid='.$storageId.'&outitemid='.$itemtypeid). wf_img_sized('skins/whoutcoming_icon.png','','10','10').  wf_tag('a',true);
-                $actLink= wf_Link(self::URL_ME.'&'.self::URL_OUT.'&storageid='.$storageId.'&outitemid='.$itemtypeid,wf_img_sized('skins/whoutcoming_icon.png','','10','10').' '.__('Outcoming'));
-                $actLink=  str_replace('"', '', $actLink);
-                $actLink=trim($actLink);
+                if ($count>0) {
+                $actLink = wf_tag('a', false, '', 'href=' . self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid) . wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . wf_tag('a', true);
+                $actLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                $actLink = str_replace('"', '', $actLink);
+                $actLink = trim($actLink);
                 $result.='
                     [
                     "' . @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']] . '",
                     "' . @$this->allItemTypeNames[$itemtypeid] . '",
-                    "' . $count . '",
-                    "' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']] . '",
+                    "' . $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']] . '",
                     "' . $actLink . '"
                     ],';
+                }
             }
         }
 
-        $result=  zb_CutEnd($result);
+        $result = zb_CutEnd($result);
         $result.='] 
         }';
         die($result);
@@ -1100,15 +1224,166 @@ class Warehouse {
         $storageId = vf($storageId, 3);
         $result = '';
         if (!empty($this->allIncoming)) {
-            $columns = array('Category','Warehouse item types', 'Count', 'Units', 'Actions');
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&ajaxremains=true', true, 'payments', 100);
+            $columns = array('Category', 'Warehouse item types', 'Count', 'Actions');
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&' . self::URL_OUTAJREMAINS, true, 'Warehouse item types', 50);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
 
         return ($result);
     }
-    
+
+    /**
+     * Returns outcoming operations list
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function outcomingOperationsList() {
+        $result = '';
+        if (!empty($this->allIncoming)) {
+            $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum');
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST, true, 'Outcoming operations', 50);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns outcoming operation destination link
+     * 
+     * @param string $desttype
+     * @param string $destparam
+     * 
+     * @return string
+     */
+    protected function outDestControl($desttype, $destparam) {
+        $result = '';
+
+        switch ($desttype) {
+            case 'task':
+                $result = ' : '.wf_Link('?module=taskman&edittask=' . $destparam, $destparam);
+                break;
+            case 'contractor':
+                $result = ' : '.$this->allContractors[$destparam];
+                break;
+            case 'employee':
+                $result = ' : '.wf_Link('?module=employee', $this->allEmployee[$destparam]);
+                break;
+            case 'storage':
+                $result = ' : '.$this->allStorages[$destparam];
+                break;
+            case 'user':
+                $result = ' : '.wf_Link('?module=userprofile&username=' . $destparam, $destparam);
+                break;
+            case 'sale':
+                $result = '';
+                break;
+            case 'cancellation':
+                $result = '';
+                break;
+            case 'mistake':
+                $result = '';
+                break;
+        }
+        $result = str_replace('"', '', $result);
+        $result = trim($result);
+        return ($result);
+    }
+
+    /**
+     * Returns JQuery datatables reply for incoming operations list
+     * 
+     * @param int $storageId
+     * @return string
+     */
+    public function outcomingListAjaxReply() {
+        $result = '{ 
+                  "aaData": [ ';
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                $result.='
+                    [
+                    "' . $each['id'] . '",
+                    "' . $each['date'] . '",
+                    "' . $this->outDests[$each['desttype']] . $this->outDestControl($each['desttype'], $each['destparam']) . '",
+                    "' . @$this->allStorages[$each['storageid']] . '",
+                    "' . @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']] . '",
+                    "' . $this->allItemTypeNames[$each['itemtypeid']] . '",
+                    "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
+                    "' . $each['price'] . '",
+                    "' . ($each['price'] * $each['count']) . '"
+                    ],';
+            }
+        }
+
+        $result = zb_CutEnd($result);
+        $result.='] 
+        }';
+        die($result);
+    }
+
+    /**
+     * Returns ajax selector reply for outcoming operation creation form
+     * 
+     * @param string $destMark
+     * @return string
+     */
+    public function outcomindAjaxDestSelector($destMark) {
+        $result = '';
+        $destMark = vf($destMark);
+        $result.=wf_HiddenInput('newoutdesttype', $destMark);
+        switch ($destMark) {
+            case 'task':
+                $tasksTmp = array();
+                $allJobTypes = ts_GetAllJobtypes();
+                $allUndoneTasks = ts_GetUndoneTasksArray();
+                if (!empty($allUndoneTasks)) {
+                    foreach ($allUndoneTasks as $io => $each) {
+                        $tasksTmp[$io] = $each['address'] . ' - ' . $allJobTypes[$each['jobtype']];
+                    }
+                }
+                $result.= wf_Selector('newoutdestparam', $tasksTmp, __('Undone tasks'), '', false);
+                break;
+
+            case 'contractor':
+                $result.=wf_Selector('newoutdestparam', $this->allContractors, __('Contractor'), '', false);
+                break;
+
+            case 'employee':
+                $result.=wf_Selector('newoutdestparam', $this->activeEmployee, __('Worker'), '', false);
+                break;
+
+            case 'storage':
+                $result.=wf_Selector('newoutdestparam', $this->allStorages, __('Warehouse storage'), '', false);
+                break;
+
+            case 'user':
+                $allUsers = zb_UserGetAllIPs();
+                if (!empty($allUsers)) {
+                    $allUsers = array_flip($allUsers);
+                }
+                $result.=wf_AutocompleteTextInput('newoutdestparam', $allUsers, __('Login'), '', false);
+                break;
+            case 'sale':
+                $result.=wf_HiddenInput('newoutdestparam', 'true');
+                break;
+            case 'cancellation':
+                $result.=wf_HiddenInput('newoutdestparam', 'true');
+                break;
+            case 'mistake':
+                $result.=wf_HiddenInput('newoutdestparam', 'true');
+                break;
+
+            default :
+                $result = __('Strange exeption');
+                break;
+        }
+        return ($result);
+    }
+
     /**
      * Returns outcoming operation creation form
      * 
@@ -1117,9 +1392,83 @@ class Warehouse {
      * 
      * @return string
      */
-    public function outcomingCreateForm($storageid,$itemtypeid) {
-        $result='zzzz';
-        
+    public function outcomingCreateForm($storageid, $itemtypeid) {
+        $result = '';
+        $storageid = vf($storageid, 3);
+        $itemtypeid = vf($itemtypeid, 3);
+        $tmpDests = array();
+        if ((isset($this->allStorages[$storageid])) AND ( isset($this->allItemTypes[$itemtypeid]))) {
+            $itemData = $this->allItemTypes[$itemtypeid];
+            foreach ($this->outDests as $destMark => $destName) {
+                $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
+            }
+
+            $inputs = wf_AjaxLoader();
+            $inputs.= wf_HiddenInput('newoutdate', curdate());
+            $inputs.= wf_AjaxSelectorAC('ajoutdestselcontainer', $tmpDests, __('Destination'), '', false);
+            $inputs.= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));
+            $inputs.= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
+            $inputs.= wf_HiddenInput('newoutstorageid', $storageid);
+            $inputs.= wf_TextInput('newoutcount', $this->unitTypes[$itemData['unit']], '', true, '4');
+            $inputs.= wf_TextInput('newoutprice', __('Price'), '', true, '4');
+            $inputs.= wf_TextInput('newoutnotes', __('Notes'), '', true, 25);
+            $inputs.= wf_tag('br');
+            $inputs.=wf_Submit(__('Create'));
+
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Strange exeption'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new outcoming operation record in database
+     * 
+     * @param string $date
+     * @param string $desttype
+     * @param string $destparam
+     * @param int $storageid
+     * @param int $itemtypeid
+     * @param float $count
+     * @param float $price
+     * @param string $notes
+     * 
+     * @return string not emplty if something went wrong
+     */
+    public function outcomingCreate($date, $desttype, $destparam, $storageid, $itemtypeid, $count, $price = '', $notes = '') {
+        $result = '';
+        $date = mysql_real_escape_string($date);
+        $desttype = mysql_real_escape_string($desttype);
+        $destparam = mysql_real_escape_string($destparam);
+        $storageid = vf($storageid, 3);
+        $itemtypeid = vf($itemtypeid, 3);
+        $countF = mysql_real_escape_string($count);
+        $countF = str_replace(',', '.', $countF);
+        $priceF = mysql_real_escape_string($price);
+        $priceF = str_replace(',', '.', $priceF);
+        $notes = mysql_real_escape_string($notes);
+
+        if (isset($this->allStorages[$storageid])) {
+            if (isset($this->allItemTypes[$itemtypeid])) {
+                $allItemRemains = $this->remainsOnStorage($storageid);
+                @$itemRemains = $allItemRemains[$itemtypeid];
+                if ($countF <= $itemRemains) {
+                    $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`) VALUES "
+                            . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $count . "','" . $price . "','" . $notes . "')";
+                    nr_query($query);
+                    $newId = simple_get_lastid('wh_out');
+                    log_register('WAREHOUSE OUTCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
+                } else {
+                    $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemRemains . ')', 'error');
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('Strange exeption') . ' EX_WRONG_ITEMTYPE_ID', 'error');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Strange exeption') . ' EX_WRONG_STORAGE_ID', 'error');
+        }
+
         return ($result);
     }
 

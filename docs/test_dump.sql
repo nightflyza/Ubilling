@@ -1549,3 +1549,18 @@ CREATE TABLE IF NOT EXISTS `wh_in` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`itemtypeid`,`contractorid`,`storageid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `wh_out` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL,
+  `desttype` varchar(40) NOT NULL,
+  `destparam` varchar(255) NOT NULL,
+  `storageid` int(11) NOT NULL,
+  `itemtypeid` int(11) NOT NULL,
+  `count` double NOT NULL,
+  `price` double DEFAULT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`,`storageid`,`itemtypeid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

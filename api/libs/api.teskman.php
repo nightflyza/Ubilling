@@ -1740,6 +1740,25 @@ function ts_GetUndoneCountersAll() {
 }
 
 /**
+ * Returns count of undone tasks - used by DarkVoid
+ * 
+ * @return array
+ */
+function ts_GetUndoneTasksArray($year='') {
+    $result = array();
+    $curdate = curdate();
+    $curyear= (!empty($year)) ? $year : curyear();
+    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' AND `date` LIKE '" . $curyear . "-%';";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['id']]=$each;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns count of undone tasks only for current admin login - used by DarkVoid
  * 
  * @return int
