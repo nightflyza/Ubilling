@@ -115,6 +115,7 @@ class Warehouse {
     const URL_AJODSELECTOR = 'ajods=';
     const URL_INAJLIST = 'ajaxinlist=true';
     const URL_OUTAJLIST = 'ajaxoutlist=true';
+    const URL_VIEWERS='viewers=true';
 
     public function __construct() {
         $this->loadAltCfg();
@@ -1072,7 +1073,7 @@ class Warehouse {
     public function incomingOperationsList() {
         $result = '';
         if (!empty($this->allIncoming)) {
-            $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Contractor', 'Warehouse storage');
+            $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Warehouse storage','Actions');
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_IN . '&' . self::URL_INAJLIST, true, 'Incoming operations', 50);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -1092,10 +1093,10 @@ class Warehouse {
                   "aaData": [ ';
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
-//                $actLink = wf_tag('a', false, '', 'href=' . self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid) . wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . wf_tag('a', true);
-//                $actLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
-//                $actLink = str_replace('"', '', $actLink);
-//                $actLink = trim($actLink);
+
+                $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $each['id'], wf_img_sized('skins/whincoming_icon.png', '', '10', '10') . ' ' . __('Show'));
+                $actLink = str_replace('"', '', $actLink);
+                $actLink = trim($actLink);
                 $result.='
                     [
                     "' . $each['id'] . '",
@@ -1105,8 +1106,8 @@ class Warehouse {
                     "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
                     "' . $each['price'] . '",    
                     "' . ($each['price'] * $each['count']) . '",
-                    "' . @$this->allContractors[$each['contractorid']] . '",
-                    "' . @$this->allStorages[$each['storageid']] . '"
+                    "' . @$this->allStorages[$each['storageid']] . '",
+                    "'.$actLink.'"
                     ],';
             }
         }
@@ -1115,6 +1116,24 @@ class Warehouse {
         $result.='] 
         }';
         die($result);
+    }
+    
+    /**
+     * Renders incoming operation view interface
+     * 
+     * @param int $id
+     * @return string
+     */
+    public function incomingView($id) {
+        $id=vf($id,3);
+        $result='';
+        if (isset($this->allIncoming[$id])) {
+            
+        } else {
+            $result=  $this->messages->getStyledMessage(__('Strange exeption').' NO_EXISTING_INCOME_ID', 'error');
+        }
+        
+        return ($result);
     }
 
     /**
@@ -1193,7 +1212,6 @@ class Warehouse {
         if (!empty($remainItems)) {
             foreach ($remainItems as $itemtypeid => $count) {
                 if ($count>0) {
-                $actLink = wf_tag('a', false, '', 'href=' . self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid) . wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . wf_tag('a', true);
                 $actLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
                 $actLink = str_replace('"', '', $actLink);
                 $actLink = trim($actLink);

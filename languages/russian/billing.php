@@ -2096,6 +2096,14 @@ $lang['def']['Available incoming operations']='Существующие прих
 $lang['def']['Available outcoming operations']='Существующие расходные операции';
 $lang['def']['Price per unit']='Цена за единицу';
 $lang['def']['Sale']='Продажа';
+$lang['def']['Incoming operation']='Приходная операция';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 

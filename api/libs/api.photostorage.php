@@ -214,6 +214,35 @@ class PhotoStorage {
     }
 
     /**
+     * Returns list of available images for current scope/item
+     * 
+     * @return string
+     */
+    public function renderImagesRaw() {
+        $result = '';
+        if (empty($this->allimages)) {
+            $this->loadAllImages();
+        }
+        if (!empty($this->allimages)) {
+            foreach ($this->allimages as $io => $eachimage) {
+                if (($eachimage['scope'] == $this->scope) AND ( $eachimage['item'] == $this->itemId)) {
+                    $imgPreview = wf_img_sized(self::STORAGE_PATH . $eachimage['filename'], __('Show'), $this->photoCfg['IMGLIST_PREV_W'], $this->photoCfg['IMGLIST_PREV_H']);
+                    $imgFull = wf_img(self::STORAGE_PATH . $eachimage['filename']);
+
+                    $dimensions = 'width:' . ($this->photoCfg['IMGLIST_PREV_W'] + 10) . 'px;';
+                    $dimensions.='height:' . ($this->photoCfg['IMGLIST_PREV_H'] + 10) . 'px;';
+
+                    $result.=wf_modalAuto($imgPreview, __('Image') . ' ' . $eachimage['id'], $imgFull, '');
+                }
+            }
+        }
+
+
+        $result.= wf_CleanDiv();
+        return ($result);
+    }
+
+    /**
      * Downloads image file by its id
      * 
      * @param int $id database image ID
