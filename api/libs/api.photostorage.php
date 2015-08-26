@@ -16,6 +16,14 @@ class PhotoStorage {
     const EX_NOSCOPE = 'NO_OBJECT_SCOPE_SET';
     const EX_WRONG_EXT = 'WRONG_FILE_EXTENSION';
 
+    /**
+     * Initializes photostorage engine for some scope/item id
+     * 
+     * @param string $scope
+     * @param string $itemid
+     * 
+     * @return void
+     */
     public function __construct($scope = '', $itemid = '') {
         $this->loadConfig();
         $this->loadAlter();
