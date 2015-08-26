@@ -2112,4 +2112,17 @@ $lang['def']['Available outcoming operations']='Існуючі розхідні 
 $lang['def']['Price per unit']='Ціна за одиницю';
 $lang['def']['Sale']='Продаж';
 
+$lang['def']['Incoming operation']='Прихідна операція';
+$lang['def']['Warehouse item type']='Тип ТМЦ';
+$lang['def']['Outcoming operation']='Розхідна операція';
+$lang['def']['The remains in all storages']='Залишки на складах';
+$lang['def']['No existing warehouse item types']='Немає визначених типів ТМЦ';
+$lang['def']['No existing warehouse storages']='Не визначено жодні складські приміщення';
+$lang['def']['No existing contractors']='Не визначено жодних постачальників';
+$lang['def']['No incoming operations yet']='Ще не проведено жодної прихідної операції';
+$lang['def']['No outcoming operations yet']='Ще не проведено жодної розхідної операції';
+$lang['def']['Total incoming operations']='Всього прихідних операцій проведено';
+$lang['def']['Total outcoming operations']='Всього розхідних операцій проведено';
+$lang['def']['In warehouses remains less than']='На складах залишилось менше ніж';
+
 ?>

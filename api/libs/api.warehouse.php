@@ -114,8 +114,10 @@ class Warehouse {
     const URL_AJITSELECTOR = 'ajits=';
     const URL_AJODSELECTOR = 'ajods=';
     const URL_INAJLIST = 'ajaxinlist=true';
+    const URL_REAJTREM = 'ajaxtremains=true';
     const URL_OUTAJLIST = 'ajaxoutlist=true';
     const URL_VIEWERS = 'viewers=true';
+    const URL_REPORTS = 'reports=true';
 
     public function __construct() {
         $this->loadAltCfg();
@@ -461,6 +463,7 @@ class Warehouse {
         $result = '';
         $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&' . 'totalremains=true', wf_img_sized('skins/whstorage_icon.png') . ' ' . __('The remains in all storages'), false, 'ubButton');
         $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
@@ -551,6 +554,7 @@ class Warehouse {
             $nameF = mysql_real_escape_string($name);
             $unit = mysql_real_escape_string($unit);
             $reserve = str_replace(',', '.', $reserve);
+            $reserve = str_replace('-', '', $reserve);
             $reserve = mysql_real_escape_string($reserve);
 
             $query = "INSERT INTO `wh_itemtypes` (`id`,`categoryid`,`name`,`unit`,`reserve`) VALUES "
@@ -1052,13 +1056,14 @@ class Warehouse {
         $contractorid = vf($contractorid, 3);
         $storageid = vf($storageid);
         $countF = str_replace(',', '.', $count);
+        $countF = str_replace('-', '', $countF);
         $countF = mysql_real_escape_string($countF);
         $priceF = str_replace(',', '.', $price);
         $priceF = mysql_real_escape_string($priceF);
         $notes = mysql_real_escape_string($notes);
         $barcode = mysql_real_escape_string($barcode);
         $query = "INSERT INTO `wh_in` (`id`, `date`, `itemtypeid`, `contractorid`, `count`, `barcode`, `price`, `storageid`, `notes`) "
-                . "VALUES (NULL, '" . $dateF . "', '" . $itemtypeid . "', '" . $contractorid . "', '" . $count . "', '" . $barcode . "', '" . $price . "', '" . $storageid . "', '" . $notes . "');";
+                . "VALUES (NULL, '" . $dateF . "', '" . $itemtypeid . "', '" . $contractorid . "', '" . $countF . "', '" . $barcode . "', '" . $priceF . "', '" . $storageid . "', '" . $notes . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_in');
         log_register('WAREHOUSE INCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
@@ -1067,7 +1072,6 @@ class Warehouse {
     /**
      * Returns income operations list available at storages
      * 
-     * @param int $storageId
      * @return string
      */
     public function incomingOperationsList() {
@@ -1085,7 +1089,6 @@ class Warehouse {
     /**
      * Returns JQuery datatables reply for incoming operations list
      * 
-     * @param int $storageId
      * @return string
      */
     public function incomingListAjaxReply() {
@@ -1138,10 +1141,10 @@ class Warehouse {
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Contractor'), '30%', 'row2');
             //storage movement
-            if ($operationData['contractorid']==0) {
-                $contractorName=$operationData['notes'];
+            if ($operationData['contractorid'] == 0) {
+                $contractorName = $operationData['notes'];
             } else {
-                $contractorName=@$this->allContractors[$operationData['contractorid']];
+                $contractorName = @$this->allContractors[$operationData['contractorid']];
             }
             $cells.= wf_TableCell($contractorName);
             $rows.= wf_TableRow($cells, 'row3');
@@ -1175,6 +1178,13 @@ class Warehouse {
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Strange exeption') . ' NO_EXISTING_INCOME_ID', 'error');
+        }
+
+        //ADcomments support
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('WAREHOUSEINCOME');
+            $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+            $result.=$adcomments->renderComments($id);
         }
 
         return ($result);
@@ -1243,6 +1253,30 @@ class Warehouse {
     }
 
     /**
+     * Returns array of all itemtypes available on all storages
+     * 
+     * @return array
+     */
+    public function remainsAll() {
+        $result = array();
+        if (!empty($this->allStorages)) {
+            foreach ($this->allStorages as $storageId => $storageName) {
+                $tmpArr = $this->remainsOnStorage($storageId);
+                if (!empty($tmpArr)) {
+                    foreach ($tmpArr as $itemtypeId => $itemtypeCount) {
+                        if (isset($result[$itemtypeId])) {
+                            $result[$itemtypeId]+=$itemtypeCount;
+                        } else {
+                            $result[$itemtypeId] = $itemtypeCount;
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns JQuery datatables reply for storage remains itemtypes
      * 
      * @param int $storageId
@@ -1298,13 +1332,12 @@ class Warehouse {
     /**
      * Returns outcoming operations list
      * 
-     * @param int $storageId
      * @return string
      */
     public function outcomingOperationsList() {
         $result = '';
-        if (!empty($this->allIncoming)) {
-            $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum','Actions');
+        if (!empty($this->allOutcoming)) {
+            $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Actions');
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST, true, 'Outcoming operations', 50);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -1380,7 +1413,7 @@ class Warehouse {
                     "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
                     "' . $each['price'] . '",
                     "' . ($each['price'] * $each['count']) . '",
-                    "'.$actLink.'"
+                    "' . $actLink . '"
                     ],';
             }
         }
@@ -1487,8 +1520,8 @@ class Warehouse {
         }
         return ($result);
     }
-    
-     /**
+
+    /**
      * Renders outcoming operation view interface
      * 
      * @param int $id
@@ -1507,7 +1540,7 @@ class Warehouse {
             $cells.= wf_TableCell($operationData['date']);
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Destination'), '30%', 'row2');
-            $cells.= wf_TableCell($this->outDests[$operationData['desttype']].$this->outDestControl($operationData['desttype'], $operationData['destparam']));
+            $cells.= wf_TableCell($this->outDests[$operationData['desttype']] . $this->outDestControl($operationData['desttype'], $operationData['destparam']));
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Warehouse item type'), '30%', 'row2');
             $cells.= wf_TableCell(@$this->allItemTypeNames[$operationData['itemtypeid']]);
@@ -1538,6 +1571,13 @@ class Warehouse {
             $result = $this->messages->getStyledMessage(__('Strange exeption') . ' NO_EXISTING_OUTCOME_ID', 'error');
         }
 
+        //ADcomments support
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('WAREHOUSEOUTCOME');
+            $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+            $result.=$adcomments->renderComments($id);
+        }
+
         return ($result);
     }
 
@@ -1563,6 +1603,7 @@ class Warehouse {
         $storageid = vf($storageid, 3);
         $itemtypeid = vf($itemtypeid, 3);
         $countF = mysql_real_escape_string($count);
+        $countF = str_replace('-', '', $countF);
         $countF = str_replace(',', '.', $countF);
         $priceF = mysql_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
@@ -1578,8 +1619,8 @@ class Warehouse {
                     nr_query($query);
                     $newId = simple_get_lastid('wh_out');
                     log_register('WAREHOUSE OUTCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
-                    if ($desttype=='storage') {
-                        $this->incomingCreate($date,$itemtypeid,0,$destparam,$count,$price,'',__('from').' '.__('Warehouse storage').' `'.$this->allStorages[$storageid].'`');
+                    if ($desttype == 'storage') {
+                        $this->incomingCreate($date, $itemtypeid, 0, $destparam, $count, $price, '', __('from') . ' ' . __('Warehouse storage') . ' `' . $this->allStorages[$storageid] . '`');
                     }
                 } else {
                     $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemRemains . ')', 'error');
@@ -1592,6 +1633,182 @@ class Warehouse {
         }
 
         return ($result);
+    }
+
+    /**
+     * Returns income operations list available at storages
+     * 
+     * @return string
+     */
+    public function reportAllStoragesRemains() {
+        $result = '';
+        if (!empty($this->allIncoming)) {
+            $columns = array('Category', 'Warehouse item types', 'Count', 'Actions');
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_REPORTS . '&' . self::URL_REAJTREM, true, 'Warehouse item types', 50);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns JQuery datatables reply for total remains report
+     * 
+     * @return string
+     */
+    public function reportAllStoragesRemainsAjaxReply() {
+        $all = $this->remainsAll();
+        $result = '{ 
+                  "aaData": [ ';
+        if (!empty($all)) {
+            foreach ($all as $itemtypeId => $count) {
+                $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
+                $actLink = str_replace('"', '', $actLink);
+                $actLink = trim($actLink);
+                $result.='
+                    [
+                    "' . $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']] . '",
+                    "' . $this->allItemTypeNames[$itemtypeId] . '",
+                    "' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . '",
+                    "' . $actLink . '"
+                    ],';
+            }
+        }
+
+        $result = zb_CutEnd($result);
+        $result.='] 
+        }';
+        die($result);
+    }
+
+    /**
+     * Renders itemtype storage availability view
+     * 
+     * @param int $itemtypeId
+     * @return string
+     */
+    public function reportAllStoragesRemainsView($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        $tmpArr = array();
+        if (isset($this->allItemTypes[$itemtypeId])) {
+            $itemtypeData = $this->allItemTypes[$itemtypeId];
+            $itemtypeUnit = $this->unitTypes[$itemtypeData['unit']];
+            $itemtypeName = $this->allItemTypeNames[$itemtypeId];
+
+            $cells = wf_TableCell(__('Warehouse item types'));
+            $cells.= wf_TableCell(__('Warehouse storage'));
+            $cells.= wf_TableCell(__('Count'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            if (!empty($this->allStorages)) {
+                foreach ($this->allStorages as $storageId => $StorageName) {
+                    $tmpArr = $this->remainsOnStorage($storageId);
+                    if (!empty($tmpArr)) {
+                        foreach ($tmpArr as $io => $count) {
+                            if ($io == $itemtypeId) {
+                                $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                                $cells = wf_TableCell($itemtypeName);
+                                $cells.= wf_TableCell($StorageName);
+                                $cells.= wf_TableCell($count . ' ' . $itemtypeUnit);
+                                $cells.= wf_TableCell($actLinks);
+                                $rows.= wf_TableRow($cells, 'row3');
+                            }
+                        }
+                    }
+                }
+            }
+
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $itemtypeId);
+                $result.=$photoStorage->renderImagesRaw();
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong') . ' EX_WRONG_ITEMTYPE_ID', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns low reserve alert
+     * 
+     * @return string
+     */
+    protected function reserveAlert() {
+        $result = '';
+        if ((!empty($this->allItemTypes)) AND ( !empty($this->allStorages)) AND ( !empty($this->allIncoming))) {
+            $allRemains = $this->remainsAll();
+
+            foreach ($this->allItemTypes as $itemtypeId => $itemData) {
+                $itemReserve = $itemData['reserve'];
+                $itemName = $this->allItemTypeNames[$itemtypeId];
+                $itemUnit = $this->unitTypes[$itemData['unit']];
+                if ($itemReserve > 0) {
+                    if ((!isset($allRemains[$itemtypeId])) OR ( $allRemains[$itemtypeId] < $itemReserve)) {
+                        $result.=$this->messages->getStyledMessage(__('In warehouses remains less than') . ' ' . $itemReserve . ' ' . $itemUnit . ' ' . $itemName, 'warning');
+                    }
+                }
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Shows warehouse summary report
+     * 
+     * @return void
+     */
+    public function summaryReport() {
+        $result = '';
+        if ($_SERVER['QUERY_STRING'] == 'module=warehouse') {
+            $result.=$this->reserveAlert();
+
+            if (empty($this->allCategories)) {
+                $result.=$this->messages->getStyledMessage(__('No existing categories'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Available categories') . ': ' . sizeof($this->allCategories), 'info');
+            }
+
+            if (empty($this->allItemTypes)) {
+                $result.=$this->messages->getStyledMessage(__('No existing warehouse item types'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Available item types') . ': ' . sizeof($this->allItemTypes), 'info');
+            }
+
+            if (empty($this->allStorages)) {
+                $result.=$this->messages->getStyledMessage(__('No existing warehouse storages'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Available warehouse storages') . ': ' . sizeof($this->allStorages), 'info');
+            }
+
+            if (empty($this->allContractors)) {
+                $result.=$this->messages->getStyledMessage(__('No existing contractors'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Available contractors') . ': ' . sizeof($this->allContractors), 'info');
+            }
+
+            if (empty($this->allIncoming)) {
+                $result.=$this->messages->getStyledMessage(__('No incoming operations yet'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Total incoming operations') . ': ' . sizeof($this->allIncoming), 'success');
+            }
+
+            if (empty($this->allOutcoming)) {
+                $result.=$this->messages->getStyledMessage(__('No outcoming operations yet'), 'warning');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Total outcoming operations') . ': ' . sizeof($this->allOutcoming), 'success');
+            }
+
+
+            if (!empty($result)) {
+                show_window(__('Stats'), $result);
+            }
+        }
     }
 
 }

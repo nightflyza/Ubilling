@@ -2099,14 +2099,20 @@ $lang['def']['Sale']='Продажа';
 $lang['def']['Incoming operation']='Приходная операция';
 $lang['def']['Warehouse item type']='Тип ТМЦ';
 $lang['def']['Outcoming operation']='Расходная операция';
+$lang['def']['The remains in all storages']='Остатки на складах';
+$lang['def']['No existing warehouse item types']='Нету определенных типов ТМЦ';
+$lang['def']['No existing warehouse storages']='Не определены складские помещения';
+$lang['def']['No existing contractors']='Не определены поставщики';
+$lang['def']['No incoming operations yet']='Еще не произведено ни одной приходной операции';
+$lang['def']['No outcoming operations yet']='Еще не произведено ни одной расходной операции';
+$lang['def']['Total incoming operations']='Всего проведено приходных операций';
+$lang['def']['Total outcoming operations']='Всего проведено расходных операций';
+$lang['def']['In warehouses remains less than']='На складах осталось меньше чем';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
-
 
 
 ?>
