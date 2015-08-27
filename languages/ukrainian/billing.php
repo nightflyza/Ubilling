@@ -2128,5 +2128,6 @@ $lang['def']['right to control warehouse income operations']='Право кер�
 $lang['def']['right to control warehouse outcome operations']='Право керувати розхідними операціями складу';
 $lang['def']['right to control warehouse directories']='Право керувати довідниками складу';
 $lang['def']['Warehouse']='Склад';
+$lang['def']['Operations in the context of time']='Операції в розрізі часу';
 
 ?>

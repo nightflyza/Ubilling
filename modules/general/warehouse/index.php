@@ -190,8 +190,14 @@ if (cfr('WAREHOUSE')) {
                 if (wf_CheckGet(array('ajaxtremains'))) {
                     $warehouse->$avidity['A']['SEENOEVIL']();
                 }
+                
+                if (wf_CheckGet(array('calendarops'))) {
+                    show_window(__('Operations in the context of time'), $warehouse->reportCalendarOps());
+                    $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
+                }
                 if (wf_CheckGet(array('totalremains'))) {
-                    show_window(__('The remains in all storages'), $warehouse->reportAllStoragesRemains());
+                    $calendarLink=  wf_Link($warehouse::URL_ME.'&'.$warehouse::URL_REPORTS.'&calendarops=true', wf_img('skins/icon_calendar.gif',__('Operations in the context of time')), false, '');
+                    show_window(__('The remains in all storages').' '.$calendarLink, $warehouse->reportAllStoragesRemains());
                     $warehouse->$avidity['M']['FALL']();
                 }
             }

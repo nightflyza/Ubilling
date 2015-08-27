@@ -997,7 +997,7 @@ class Warehouse {
         $categoryItemtypes = $this->itemtypesFilterCategory($categoryId);
         $result = wf_Selector($name, $categoryItemtypes, __('Warehouse item types'), '', false);
         if (cfr('WAREHOUSEDIR')) {
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png', '', '10', '10'), false);
+            $result.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png', '', '10', '10'), false);
         }
         return ($result);
     }
@@ -1020,18 +1020,18 @@ class Warehouse {
             $inputs.= wf_tag('br');
             $inputs.= wf_AjaxSelectorAC('ajItemtypesContainer', $tmpCat, __('Warehouse categories'), '', false);
             if (cfr('WAREHOUSEDIR')) {
-            $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png', '', '10', '10'), false);
+                $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png', '', '10', '10'), false);
             }
             $inputs.= wf_tag('br');
             $inputs.= wf_AjaxContainer('ajItemtypesContainer', '', $this->itemtypesCategorySelector('newinitemtypeid', $firstCateKey));
             $inputs.= wf_Selector('newincontractorid', $this->allContractors, __('Contractor'), '', false);
             if (cfr('WAREHOUSEDIR')) {
-            $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png', '', '10', '10'), false);
+                $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png', '', '10', '10'), false);
             }
             $inputs.= wf_tag('br');
             $inputs.= wf_Selector('newinstorageid', $this->allStorages, __('Warehouse storage'), '', false);
             if (cfr('WAREHOUSEDIR')) {
-            $inputs.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png', '', '10', '10'), false);
+                $inputs.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png', '', '10', '10'), false);
             }
             $inputs.= wf_tag('br');
             $inputs.= wf_TextInput('newincount', __('Count'), '', false, 5);
@@ -1142,13 +1142,13 @@ class Warehouse {
      * @param int $id
      * @return string
      */
-    protected  function qrControl($type,$id) {
-        $result='';
-        $qrUrl=self::URL_ME.'&'.self::URL_VIEWERS.'&qrcode='.$type.'&renderid='.$id;
-        $result=  wf_modalAuto(wf_img_sized('skins/qrcode.png', __('QR code'),'16','16'), __('QR code'), wf_img($qrUrl), '');
-        return ($result);    
+    protected function qrControl($type, $id) {
+        $result = '';
+        $qrUrl = self::URL_ME . '&' . self::URL_VIEWERS . '&qrcode=' . $type . '&renderid=' . $id;
+        $result = wf_modalAuto(wf_img_sized('skins/qrcode.png', __('QR code'), '16', '16'), __('QR code'), wf_img($qrUrl), '');
+        return ($result);
     }
-    
+
     /**
      * Renders incoming operation view interface
      * 
@@ -1161,7 +1161,7 @@ class Warehouse {
         if (isset($this->allIncoming[$id])) {
             $operationData = $this->allIncoming[$id];
 
-            $cells = wf_TableCell(__('ID').' '.$this->qrControl('in', $id), '30%', 'row2');
+            $cells = wf_TableCell(__('ID') . ' ' . $this->qrControl('in', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Date'), '30%', 'row2');
@@ -1561,7 +1561,7 @@ class Warehouse {
         if (isset($this->allOutcoming[$id])) {
             $operationData = $this->allOutcoming[$id];
 
-            $cells = wf_TableCell(__('ID').' '.$this->qrControl('out', $id), '30%', 'row2');
+            $cells = wf_TableCell(__('ID') . ' ' . $this->qrControl('out', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Date'), '30%', 'row2');
@@ -1691,16 +1691,18 @@ class Warehouse {
                   "aaData": [ ';
         if (!empty($all)) {
             foreach ($all as $itemtypeId => $count) {
-                $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
-                $actLink = str_replace('"', '', $actLink);
-                $actLink = trim($actLink);
-                $result.='
+                if ($count > 0) {
+                    $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
+                    $actLink = str_replace('"', '', $actLink);
+                    $actLink = trim($actLink);
+                    $result.='
                     [
                     "' . $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']] . '",
                     "' . $this->allItemTypeNames[$itemtypeId] . '",
                     "' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . '",
                     "' . $actLink . '"
                     ],';
+                }
             }
         }
 
@@ -1842,49 +1844,101 @@ class Warehouse {
             }
         }
     }
-    
-    
+
     /**
      * Renders QR code label of some type
      * 
      * @param string $type
      * @param int $id
      */
-    public function qrCodeDraw($type,$id) {
-        $type=vf($type);
-        $id=vf($id,3);
+    public function qrCodeDraw($type, $id) {
+        $type = vf($type);
+        $id = vf($id, 3);
         $qr = new BarcodeQR();
         switch ($type) {
             case 'in':
                 if (isset($this->allIncoming[$id])) {
-                    $itemName=  $this->allItemTypeNames[$this->allIncoming[$id]['itemtypeid']];
-                    $qr->text($itemName.' '.__('Incoming operation').'# '.$id);
+                    $itemName = $this->allItemTypeNames[$this->allIncoming[$id]['itemtypeid']];
+                    $qr->text($itemName . ' ' . __('Incoming operation') . '# ' . $id);
                 } else {
                     $qr->text('Wrong ID');
                 }
                 break;
-                
+
             case 'out':if (isset($this->allOutcoming[$id])) {
-                    $itemName=  $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
-                    $qr->text($itemName.' '.__('Outcoming operation').'# '.$id);
+                    $itemName = $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
+                    $qr->text($itemName . ' ' . __('Outcoming operation') . '# ' . $id);
                 } else {
                     $qr->text('Wrong ID');
                 }
-                
+
             case 'itemtype':
                 if (isset($this->allItemTypeNames[$id])) {
                     $qr->text($this->allItemTypeNames[$id]);
                 } else {
-                   $qr->text('Wrong ID');
+                    $qr->text('Wrong ID');
                 }
                 break;
-            
+
             default :
                 $qr->text('Wrong type');
                 break;
         }
-        
-	$qr->draw();
+
+        $qr->draw();
+    }
+
+    /**
+     * Renders available operations in calendar widget
+     * 
+     * @return string
+     */
+    public function reportCalendarOps() {
+        $calendarData = '';
+
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+                $timestamp = strtotime($each['date']);
+                $date = date("Y, n-1, j", $timestamp);
+                $itemName = @$this->allItemTypeNames[$each['itemtypeid']];
+                $itemCount = @$each['count'];
+                $itemUnit = @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $calendarData.="
+                      {
+                        title: '" . $itemName . " - " . $itemCount . ' ' . $itemUnit . "',
+                        url: '" . self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $each['id'] . "',
+                        start: new Date(" . $date . "),
+                        end: new Date(" . $date . "),
+                   },
+                    ";
+            }
+        }
+
+
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                $timestamp = strtotime($each['date']);
+                $date = date("Y, n-1, j", $timestamp);
+                $itemName = @$this->allItemTypeNames[$each['itemtypeid']];
+                $itemCount = @$each['count'];
+                $itemUnit = @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $calendarData.="
+                      {
+                        title: '" . $itemName . " - " . $itemCount . ' ' . $itemUnit . "',
+                        url: '" . self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'] . "',
+                        start: new Date(" . $date . "),
+                        end: new Date(" . $date . "),
+                        className : 'undone',
+                   },
+                    ";
+            }
+        }
+
+
+
+
+        $result = wf_FullCalendar($calendarData);
+        return ($result);
     }
 
 }
