@@ -461,14 +461,20 @@ class Warehouse {
      */
     public function renderPanel() {
         $result = '';
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORTS . '&' . 'totalremains=true', wf_img_sized('skins/whstorage_icon.png') . ' ' . __('The remains in all storages'), false, 'ubButton');
+        if (cfr('WAREHOUSEIN')) {
+            $result.= wf_Link(self::URL_ME . '&' . self::URL_IN, wf_img_sized('skins/whincoming_icon.png') . ' ' . __('Incoming operations'), false, 'ubButton');
+        }
+        if (cfr('WAREHOUSEOUT')) {
+            $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
+        }
         $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png') . ' ' . __('Contractors'), false, 'ubButton');
-        $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $dirControls, 'ubButton');
+        if (cfr('WAREHOUSEDIR')) {
+            $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $dirControls, 'ubButton');
+        }
         return ($result);
     }
 
@@ -1709,7 +1715,11 @@ class Warehouse {
                     if (!empty($tmpArr)) {
                         foreach ($tmpArr as $io => $count) {
                             if ($io == $itemtypeId) {
-                                $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                                if (cfr('WAREHOUSEOUT')) {
+                                    $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                                } else {
+                                    $actLinks = '';
+                                }
                                 $cells = wf_TableCell($itemtypeName);
                                 $cells.= wf_TableCell($StorageName);
                                 $cells.= wf_TableCell($count . ' ' . $itemtypeUnit);

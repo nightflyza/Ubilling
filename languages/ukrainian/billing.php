@@ -2111,7 +2111,6 @@ $lang['def']['Available incoming operations']='Існуючі прихідні �
 $lang['def']['Available outcoming operations']='Існуючі розхідні операції';
 $lang['def']['Price per unit']='Ціна за одиницю';
 $lang['def']['Sale']='Продаж';
-
 $lang['def']['Incoming operation']='Прихідна операція';
 $lang['def']['Warehouse item type']='Тип ТМЦ';
 $lang['def']['Outcoming operation']='Розхідна операція';
@@ -2124,5 +2123,10 @@ $lang['def']['No outcoming operations yet']='Ще не проведено жод
 $lang['def']['Total incoming operations']='Всього прихідних операцій проведено';
 $lang['def']['Total outcoming operations']='Всього розхідних операцій проведено';
 $lang['def']['In warehouses remains less than']='На складах залишилось менше ніж';
+$lang['def']['right to control warehouse']='Право використовувати складський облік';
+$lang['def']['right to control warehouse income operations']='Право керувати прихідними операціями складу';
+$lang['def']['right to control warehouse outcome operations']='Право керувати розхідними операціями складу';
+$lang['def']['right to control warehouse directories']='Право керувати довідниками складу';
+$lang['def']['Warehouse']='Склад';
 
 ?>
