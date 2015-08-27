@@ -996,7 +996,9 @@ class Warehouse {
         $result = '';
         $categoryItemtypes = $this->itemtypesFilterCategory($categoryId);
         $result = wf_Selector($name, $categoryItemtypes, __('Warehouse item types'), '', false);
+        if (cfr('WAREHOUSEDIR')) {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png', '', '10', '10'), false);
+        }
         return ($result);
     }
 
@@ -1017,14 +1019,20 @@ class Warehouse {
             $inputs = wf_DatePickerPreset('newindate', curdate());
             $inputs.= wf_tag('br');
             $inputs.= wf_AjaxSelectorAC('ajItemtypesContainer', $tmpCat, __('Warehouse categories'), '', false);
+            if (cfr('WAREHOUSEDIR')) {
             $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png', '', '10', '10'), false);
+            }
             $inputs.= wf_tag('br');
             $inputs.= wf_AjaxContainer('ajItemtypesContainer', '', $this->itemtypesCategorySelector('newinitemtypeid', $firstCateKey));
             $inputs.= wf_Selector('newincontractorid', $this->allContractors, __('Contractor'), '', false);
+            if (cfr('WAREHOUSEDIR')) {
             $inputs.= wf_Link(self::URL_ME . '&' . self::URL_CONTRACTORS, wf_img_sized('skins/whcontractor_icon.png', '', '10', '10'), false);
+            }
             $inputs.= wf_tag('br');
             $inputs.= wf_Selector('newinstorageid', $this->allStorages, __('Warehouse storage'), '', false);
+            if (cfr('WAREHOUSEDIR')) {
             $inputs.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png', '', '10', '10'), false);
+            }
             $inputs.= wf_tag('br');
             $inputs.= wf_TextInput('newincount', __('Count'), '', false, 5);
             $inputs.= wf_tag('br');
@@ -1128,6 +1136,20 @@ class Warehouse {
     }
 
     /**
+     * Returns default contol for QR code view interface
+     * 
+     * @param string $type
+     * @param int $id
+     * @return string
+     */
+    protected  function qrControl($type,$id) {
+        $result='';
+        $qrUrl=self::URL_ME.'&'.self::URL_VIEWERS.'&qrcode='.$type.'&renderid='.$id;
+        $result=  wf_modalAuto(wf_img_sized('skins/qrcode.png', __('QR code'),'16','16'), __('QR code'), wf_img($qrUrl), '');
+        return ($result);    
+    }
+    
+    /**
      * Renders incoming operation view interface
      * 
      * @param int $id
@@ -1139,7 +1161,7 @@ class Warehouse {
         if (isset($this->allIncoming[$id])) {
             $operationData = $this->allIncoming[$id];
 
-            $cells = wf_TableCell(__('ID'), '30%', 'row2');
+            $cells = wf_TableCell(__('ID').' '.$this->qrControl('in', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Date'), '30%', 'row2');
@@ -1176,7 +1198,7 @@ class Warehouse {
             $cells.= wf_TableCell($operationData['notes']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result.=wf_TableBody($rows, '100%', 0, 'wh_viewer');
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $operationData['itemtypeid']);
@@ -1539,7 +1561,7 @@ class Warehouse {
         if (isset($this->allOutcoming[$id])) {
             $operationData = $this->allOutcoming[$id];
 
-            $cells = wf_TableCell(__('ID'), '30%', 'row2');
+            $cells = wf_TableCell(__('ID').' '.$this->qrControl('out', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Date'), '30%', 'row2');
@@ -1567,7 +1589,7 @@ class Warehouse {
             $cells.= wf_TableCell($operationData['notes']);
             $rows.= wf_TableRow($cells, 'row3');
 
-            $result.=wf_TableBody($rows, '100%', 0, '');
+            $result.=wf_TableBody($rows, '100%', 0, 'wh_viewer');
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $operationData['itemtypeid']);
@@ -1819,6 +1841,50 @@ class Warehouse {
                 show_window(__('Stats'), $result);
             }
         }
+    }
+    
+    
+    /**
+     * Renders QR code label of some type
+     * 
+     * @param string $type
+     * @param int $id
+     */
+    public function qrCodeDraw($type,$id) {
+        $type=vf($type);
+        $id=vf($id,3);
+        $qr = new BarcodeQR();
+        switch ($type) {
+            case 'in':
+                if (isset($this->allIncoming[$id])) {
+                    $itemName=  $this->allItemTypeNames[$this->allIncoming[$id]['itemtypeid']];
+                    $qr->text($itemName.' '.__('Incoming operation').'# '.$id);
+                } else {
+                    $qr->text('Wrong ID');
+                }
+                break;
+                
+            case 'out':if (isset($this->allOutcoming[$id])) {
+                    $itemName=  $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
+                    $qr->text($itemName.' '.__('Outcoming operation').'# '.$id);
+                } else {
+                    $qr->text('Wrong ID');
+                }
+                
+            case 'itemtype':
+                if (isset($this->allItemTypeNames[$id])) {
+                    $qr->text($this->allItemTypeNames[$id]);
+                } else {
+                   $qr->text('Wrong ID');
+                }
+                break;
+            
+            default :
+                $qr->text('Wrong type');
+                break;
+        }
+        
+	$qr->draw();
     }
 
 }

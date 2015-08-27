@@ -898,3 +898,7 @@ margin-top: -130px;
 .ubimcontact:link {
     color: #777777;
 }        
+
+.wh_viewer td {
+    padding: 4px;
+}
