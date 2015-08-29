@@ -8,6 +8,15 @@ class Salary {
      * @var array
      */
     protected $allEmployee = array();
+    
+    /**
+     * Available active and inactive employee
+     * 
+     * @var array
+     */
+    protected $allEmployeeRaw=array();
+
+
 
     /**
      * Available jobtypes as jobtypeid=>name
@@ -98,6 +107,7 @@ class Salary {
     public function __construct() {
         $this->setUnitTypes();
         $this->loadEmployee();
+        $this->loadEmployeeRaw();
         $this->loadJobtypes();
         $this->loadJobprices();
         $this->loadWages();
@@ -113,6 +123,15 @@ class Salary {
      */
     protected function loadEmployee() {
         $this->allEmployee = ts_GetActiveEmployee();
+    }
+    
+     /**
+     * Loads all of employees from database
+     * 
+     * @return void
+     */
+    protected function loadEmployeeRaw() {
+        $this->allEmployeeRaw = ts_GetAllEmployee();
     }
 
     /**
@@ -787,14 +806,15 @@ class Salary {
 
         if (!empty($this->allWages)) {
             foreach ($this->allWages as $io => $each) {
-                $cells = wf_TableCell(@$this->allEmployee[$io]);
+                $rowClass= (isset($this->allEmployee[$io])) ? 'row3' : 'sigdeleteduser'  ;
+                $cells = wf_TableCell(@$this->allEmployeeRaw[$io]);
                 $cells.= wf_TableCell($this->allWages[$io]['wage']);
                 $cells.= wf_TableCell($this->allWages[$io]['bounty']);
                 $cells.= wf_TableCell($this->allWages[$io]['worktime']);
                 $actlinks = wf_JSAlertStyled('?module=salary&employeewages=true&deletewage=' . $io, web_delete_icon(), $messages->getDeleteAlert());
                 $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->employeeWageEditForm($io));
                 $cells.= wf_TableCell($actlinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, $rowClass);
             }
         }
 
@@ -1266,7 +1286,7 @@ class Salary {
                     $cells.= wf_TableCell(@$allTasks[$taskid]['address']);
                     $cells.= wf_TableCell(@$allTasks[$taskid]['startdate']);
                     $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeid]);
-                    $cells.= wf_TableCell(@$this->allEmployee[$allTasks[$taskid]['employee']]);
+                    $cells.= wf_TableCell(@$this->allEmployeeRaw[$allTasks[$taskid]['employee']]);
                     $cells.= wf_TableCell($factorOverflow);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
@@ -1340,7 +1360,7 @@ class Salary {
                     $cells.= wf_TableCell(@$eachTask['address']);
                     $cells.= wf_TableCell(@$eachTask['startdate']);
                     $cells.= wf_TableCell(@$this->allJobtypes[$eachTask['jobtype']]);
-                    $cells.= wf_TableCell(@$this->allEmployee[$eachTask['employee']]);
+                    $cells.= wf_TableCell(@$this->allEmployeeRaw[$eachTask['employee']]);
                     $cells.= wf_TableCell(web_bool_led($eachTask['status']));
 
                     $rows.= wf_TableRow($cells, 'row3');
@@ -1635,7 +1655,7 @@ class Salary {
             foreach ($timesheetData as $io => $each) {
                 $hospitalFlag = ($each['hospital']) ? true : false;
                 $holidayFlag = ($each['holiday']) ? true : false;
-                $cells = wf_TableCell($this->allEmployee[$each['employeeid']]);
+                $cells = wf_TableCell($this->allEmployeeRaw[$each['employeeid']]);
                 $cells.= wf_TableCell(wf_TextInput('editemployeehours', '', $each['hours'], false, '2'));
                 $cells.= wf_TableCell(wf_CheckInput('edithospital', '', false, $hospitalFlag));
                 $cells.= wf_TableCell(wf_CheckInput('editholiday', '', false, $holidayFlag));
