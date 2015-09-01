@@ -1564,3 +1564,5 @@ CREATE TABLE IF NOT EXISTS `wh_out` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`storageid`,`itemtypeid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `taskman` CHANGE `employeedone` `employeedone` INT(11) NULL; 

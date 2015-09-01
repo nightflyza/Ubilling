@@ -185,10 +185,21 @@ function web_SwitchModelSelector($selectname = 'switchmodelid') {
  * @param string $snmptemplate
  */
 function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
-    $ports = vf($ports);
+    $ports = vf($ports,3);
     $nameClean = mysql_real_escape_string($name);
     $snmptemplate = mysql_real_escape_string($snmptemplate);
-    $query = 'INSERT INTO `switchmodels` (`id` ,`modelname` ,`ports`,`snmptemplate`) VALUES (NULL , "' . $nameClean . '", "' . $ports . '","' . $snmptemplate . '");';
+    if (empty($ports)) {
+        $ports='NULL';
+    } else {
+        $ports="'".$ports."'";
+    }
+    
+    if (empty($snmptemplate)) {
+        $snmptemplate='NULL';
+    } else {
+        $snmptemplate="'".$snmptemplate."'";
+    }
+    $query = "INSERT INTO `switchmodels` (`id` ,`modelname` ,`ports`,`snmptemplate`) VALUES (NULL , '" . $nameClean . "', ". $ports . "," . $snmptemplate . ");";
     nr_query($query);
     log_register('SWITCHMODEL ADD `' . $name . '`');
 }
@@ -197,9 +208,11 @@ function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
  * Deletes switch model from database by its ID
  * 
  * @param integer $modelid
+ * 
+ * @return void
  */
 function ub_SwitchModelDelete($modelid) {
-    $modelid = vf($modelid);
+    $modelid = vf($modelid,3);
     $query = 'DELETE FROM `switchmodels` WHERE `id` = "' . $modelid . '"';
     nr_query($query);
     log_register('SWITCHMODEL DELETE  [' . $modelid . ']');

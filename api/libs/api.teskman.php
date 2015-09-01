@@ -1157,7 +1157,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     }
 
     $query = "INSERT INTO `taskman` (`id` , `date` , `address` , `login` , `jobtype` , `jobnote` , `phone` , `employee` , `employeedone` ,`donenote` , `startdate` ,`starttime`, `enddate` , `admin` , `status`,`smsdata`)
-              VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "','NULL', NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
+              VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "',NULL, NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
     nr_query($query);
 
     //flushing darkvoid
