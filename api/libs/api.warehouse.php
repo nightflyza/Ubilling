@@ -1739,16 +1739,18 @@ class Warehouse {
                     if (!empty($tmpArr)) {
                         foreach ($tmpArr as $io => $count) {
                             if ($io == $itemtypeId) {
-                                if (cfr('WAREHOUSEOUT')) {
-                                    $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
-                                } else {
-                                    $actLinks = '';
+                                if ($count > 0) {
+                                    if (cfr('WAREHOUSEOUT')) {
+                                        $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                                    } else {
+                                        $actLinks = '';
+                                    }
+                                    $cells = wf_TableCell($itemtypeName);
+                                    $cells.= wf_TableCell($StorageName);
+                                    $cells.= wf_TableCell($count . ' ' . $itemtypeUnit);
+                                    $cells.= wf_TableCell($actLinks);
+                                    $rows.= wf_TableRow($cells, 'row3');
                                 }
-                                $cells = wf_TableCell($itemtypeName);
-                                $cells.= wf_TableCell($StorageName);
-                                $cells.= wf_TableCell($count . ' ' . $itemtypeUnit);
-                                $cells.= wf_TableCell($actLinks);
-                                $rows.= wf_TableRow($cells, 'row3');
                             }
                         }
                     }
