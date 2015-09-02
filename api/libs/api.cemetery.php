@@ -216,15 +216,15 @@ class Cemetery {
      * @return string
      */
     public function renderChart() {
-        $data = __('Month') . ',' . __('Subscriber is connected') . ',' . __('Subscriber is not connected')."\n";
+        $data = __('Month') . ',' . __('Subscriber is connected') . ',' . __('Subscriber is not connected') . "\n";
         $tmpArr = array();
-        $totalCount=0;
+        $totalCount = 0;
 
         if (!empty($this->allDead)) {
             foreach ($this->allDead as $io => $each) {
                 $time = strtotime($each['date']);
                 $month = date("Y-m-d", $time);
-     
+
                 if (isset($tmpArr[$month])) {
                     if ($each['state']) {
                         $tmpArr[$month]['inactive'] ++;
@@ -247,12 +247,35 @@ class Cemetery {
 
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $ia => $each) {
-                $data.= $ia . ',' . ($totalCount-$each['active']) . ',' . ($totalCount-$each['inactive']). "\n";
+                $data.= $ia . ',' . ($totalCount - $each['active']) . ',' . ($totalCount - $each['inactive']) . "\n";
             }
         }
-        
+
         $result = wf_tag('div', false, '', '');
         $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+        return ($result);
+    }
+
+    /**
+     * Returns count of dead users by some date with non strict search
+     * 
+     * @param string $date
+     * 
+     * @return int
+     */
+    public function getDeadDateCount($date) {
+        $result = 0;
+        if (!empty($this->allDead)) {
+            foreach ($this->allDead as $io => $each) {
+                if (ispos($each['date'], $date)) {
+                    if ($each['state']) {
+                        $result++;
+                    } else {
+                        $result--;
+                    }
+                }
+            }
+        }
         return ($result);
     }
 
