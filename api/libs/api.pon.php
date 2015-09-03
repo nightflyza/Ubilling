@@ -2,14 +2,59 @@
 
 class PONizer {
 
+    /**
+     * All available ONU devices
+     *
+     * @var array
+     */
     protected $allOnu = array();
+    /**
+     * OLT models data as id=>model data array
+     *
+     * @var array
+     */
     protected $allModelsData = array();
+    /**
+     * All available OLT devices
+     *
+     * @var array
+     */
     protected $allOltDevices = array();
+    /**
+     * OLT devices snmp data as id=>snmp data array
+     *
+     * @var array
+     */
     protected $allOltSnmp = array();
+    /**
+     * Available OLT models as id=>modelname + snmptemplate
+     *
+     * @var array
+     */
     protected $allOltModels = array();
+    /**
+     * Contains available SNMP templates for OLT modelids
+     *
+     * @var array
+     */
     protected $snmpTemplates = array();
+    /**
+     * Contains current ONU signal cache data as mac=>signal
+     *
+     * @var array
+     */
     protected $signalCache = array();
+    /**
+     * System alter.ini config stored as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+    /**
+     * SNMPHelper object instance
+     *
+     * @var array
+     */
     protected $snmp = '';
     protected $sup = '';
 
@@ -624,7 +669,7 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Serial number', 'Login', 'Actions');
+        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU');
         return ($result);
     }
@@ -653,6 +698,9 @@ class PONizer {
      * @return string
      */
     public function ajaxOnuData() {
+        $allRealnames=  zb_UserGetAllRealnames();
+        $allAddress=  zb_AddressGetFulladdresslistCached();
+        
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
             $adc = true;
@@ -668,11 +716,15 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (!empty($each['login'])) {
-                    $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
+                    $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
                     $userLink = str_replace('"', '', $userLink);
                     $userLink = trim($userLink);
+                    @$userRealName=$allRealnames[$each['login']];
+                    $userRealName=str_replace('"', '', $userRealName);
+                    $userRealName = trim($userRealName);
                 } else {
                     $userLink = '';
+                    $userRealName='';
                 }
                 //checking adcomments availability
                 if ($adc) {
@@ -702,8 +754,8 @@ class PONizer {
                     "' . $each['ip'] . '",
                     "' . $each['mac'] . '",
                     "' . $signal . '",
-                    "' . $each['serial'] . '",
                     "' . $userLink . '",
+                    "' . $userRealName . '",
                     "' . $actLinks . '"
                     ],';
             }
