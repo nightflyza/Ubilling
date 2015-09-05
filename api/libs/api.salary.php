@@ -1655,7 +1655,7 @@ class Salary {
             foreach ($timesheetData as $io => $each) {
                 $hospitalFlag = ($each['hospital']) ? true : false;
                 $holidayFlag = ($each['holiday']) ? true : false;
-                $cells = wf_TableCell($this->allEmployeeRaw[$each['employeeid']]);
+                $cells = wf_TableCell(@$this->allEmployeeRaw[$each['employeeid']]);
                 $cells.= wf_TableCell(wf_TextInput('editemployeehours', '', $each['hours'], false, '2'));
                 $cells.= wf_TableCell(wf_CheckInput('edithospital', '', false, $hospitalFlag));
                 $cells.= wf_TableCell(wf_CheckInput('editholiday', '', false, $holidayFlag));
