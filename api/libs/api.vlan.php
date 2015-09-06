@@ -148,7 +148,7 @@ class OnuConfigurator {
      * @return type bool
      */
     protected function CheckOltVlan($vlan, $oltIp, $oltCommunity, $oid) {
-        $tmp = snmp2_get($oltIp, $oltCommunity, $oid . "." . $vlan);
+        @$tmp = snmp2_get($oltIp, $oltCommunity, $oid . "." . $vlan);
         $tmp = trim($tmp);
         if ($tmp == '1') {
             $res = false;
@@ -373,7 +373,7 @@ class AutoConfigurator {
     }
 
     /**
-     * 
+     *
      * get switch ip by id
      * @param type $swid
      * @return type string `ip`
