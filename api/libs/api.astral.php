@@ -421,7 +421,7 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
     } else {
         $newline = '';
     }
-    $result = '<select name="' . $inputid . '" id="' . $inputid . '" >';
+    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();">';
     if (!empty($params)) {
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';
@@ -430,7 +430,7 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
                     $sel_flag = 'SELECTED';
                 }
             }
-            $result.='<option value="' . $value . '" ' . $sel_flag . ' onClick="goajax(\'' . $value . '\',\'' . $container . '\');">' . $eachparam . '</option>' . "\n";
+            $result.='<option value="' . $value . '" ' . $sel_flag . ' onclick="goajax(\'' . $value . '\',\'' . $container . '\');">' . $eachparam . '</option>' . "\n";
         }
     }
 

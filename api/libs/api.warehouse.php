@@ -235,7 +235,7 @@ class Warehouse {
      * @return void
      */
     protected function loadItemTypes() {
-        $query = "SELECT* from `wh_itemtypes`";
+        $query = "SELECT* from `wh_itemtypes` ORDER BY `name` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
