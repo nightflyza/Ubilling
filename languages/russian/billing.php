@@ -2115,7 +2115,9 @@ $lang['def']['right to control warehouse directories']='Право управл�
 $lang['def']['Warehouse']='Склад';
 $lang['def']['Operations in the context of time']='Операции в разрезе времени';
 $lang['def']['Dead souls']='Мертвые души';
-$lang['def']['']='';
+
+//rev 4727
+$lang['def']['right to manage salary timesheets']='Право управлять табелями учета рабочего времени';
 $lang['def']['']='';
 $lang['def']['']='';
 

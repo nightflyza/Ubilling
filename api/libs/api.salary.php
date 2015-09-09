@@ -1575,17 +1575,20 @@ class Salary {
     /**
      * Renders list of timesheets
      * 
+     * @param string $baseUrl alternative link destination for viewing timesheet
+     * 
      * @return string
      */
-    public function timesheetsListRender() {
+    public function timesheetsListRender($baseUrl='') {
         $result = '';
+        $linkBase = (empty($baseUrl)) ? self::URL_ME . '&' . self::URL_TSHEETS : $baseUrl;
         if (!empty($this->allTimesheetDates)) {
             $cells = wf_TableCell(__('Date'));
             $cells.= wf_TableCell(__('Rows'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->allTimesheetDates as $date => $count) {
-                $cells = wf_TableCell(wf_Link(self::URL_ME . '&' . self::URL_TSHEETS . '&showdate=' . $date, $date));
+                $cells = wf_TableCell(wf_Link($linkBase . '&showdate=' . $date, $date));
                 $cells.= wf_TableCell($count);
                 $rows.= wf_TableRow($cells, 'row3');
             }

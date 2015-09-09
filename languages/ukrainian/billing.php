@@ -2131,4 +2131,7 @@ $lang['def']['Warehouse']='Склад';
 $lang['def']['Operations in the context of time']='Операції в розрізі часу';
 $lang['def']['Dead souls']='Мертві душі';
 
+//rev 4727
+$lang['def']['right to manage salary timesheets']='Право керувати табелями обліку робочого часу';
+
 ?>
