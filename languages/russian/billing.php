@@ -2118,6 +2118,10 @@ $lang['def']['Dead souls']='Мертвые души';
 
 //rev 4727
 $lang['def']['right to manage salary timesheets']='Право управлять табелями учета рабочего времени';
+$lang['def']['Reservation']='Бронирование';
+$lang['def']['At storage']='На складе';
+$lang['def']['remains']='осталось';
+$lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
 

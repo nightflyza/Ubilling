@@ -1566,3 +1566,15 @@ CREATE TABLE IF NOT EXISTS `wh_out` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 ALTER TABLE `taskman` CHANGE `employeedone` `employeedone` INT(11) NULL; 
+
+-- 0.7.1 update
+
+CREATE TABLE IF NOT EXISTS `wh_reserve` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `storageid` int(11) NOT NULL,
+  `itemtypeid` int(11) NOT NULL,
+  `count` double NOT NULL,
+  `employeeid`  int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`itemtypeid`,`storageid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

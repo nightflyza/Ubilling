@@ -71,6 +71,13 @@ class Warehouse {
      * @var type 
      */
     protected $allOutcoming = array();
+    
+    /**
+     * Preloaded reserve entries
+     *
+     * @var array
+     */
+    protected $allReserve=array();
 
     /**
      * Available unit types as unittype=>localized name
@@ -118,6 +125,7 @@ class Warehouse {
     const URL_OUTAJLIST = 'ajaxoutlist=true';
     const URL_VIEWERS = 'viewers=true';
     const URL_REPORTS = 'reports=true';
+    const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
 
     public function __construct() {
         $this->loadAltCfg();
@@ -133,6 +141,7 @@ class Warehouse {
         $this->loadContractors();
         $this->loadInOperations();
         $this->loadOutOperations();
+        $this->loadReserve();
     }
 
     /**
@@ -303,6 +312,36 @@ class Warehouse {
                 $this->allOutcoming[$each['id']] = $each;
             }
         }
+    }
+    
+    /**
+     * Loads available reserved items from database
+     * 
+     * @return void
+     */
+    protected function loadReserve() {
+        $query="SELECT * from `wh_reserve`";
+        $all=  simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allReserve[$each['id']]=$each;
+            }
+        }
+    }
+    
+    
+    /**
+     * Returns count of itemtypes reserved on storage if available
+     * 
+     * @param int $storageId
+     * @param int $itemtypeId
+     * 
+     * @return float
+     */
+    protected function reserveGet($storageId,$itemtypeId) {
+        $result=0;
+        // TODO: finish it tonight
+        return ($result);
     }
 
     /**
@@ -1201,7 +1240,7 @@ class Warehouse {
             $result.=wf_TableBody($rows, '100%', 0, 'wh_viewer');
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
-                $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $operationData['itemtypeid']);
+                $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $operationData['itemtypeid']);
                 $result.=$photoStorage->renderImagesRaw();
             }
         } else {
@@ -1526,23 +1565,72 @@ class Warehouse {
         $tmpDests = array();
         if ((isset($this->allStorages[$storageid])) AND ( isset($this->allItemTypes[$itemtypeid]))) {
             $itemData = $this->allItemTypes[$itemtypeid];
+            $itemUnit = $this->unitTypes[$itemData['unit']];
             foreach ($this->outDests as $destMark => $destName) {
                 $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
             }
 
+
+
+            //form construct
             $inputs = wf_AjaxLoader();
             $inputs.= wf_HiddenInput('newoutdate', curdate());
             $inputs.= wf_AjaxSelectorAC('ajoutdestselcontainer', $tmpDests, __('Destination'), '', false);
             $inputs.= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));
             $inputs.= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
             $inputs.= wf_HiddenInput('newoutstorageid', $storageid);
-            $inputs.= wf_TextInput('newoutcount', $this->unitTypes[$itemData['unit']], '', true, '4');
+            $inputs.= wf_TextInput('newoutcount', $itemUnit, '', true, '4');
             $inputs.= wf_TextInput('newoutprice', __('Price'), '', true, '4');
             $inputs.= wf_TextInput('newoutnotes', __('Notes'), '', true, 25);
             $inputs.= wf_tag('br');
             $inputs.=wf_Submit(__('Create'));
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-            $result = wf_Form('', 'POST', $inputs, 'glamour');
+            //notifications 
+            $storageRemains = $this->remainsOnStorage($storageid);
+            $allRemains= $this->remainsAll();
+            
+            if (isset($storageRemains[$itemtypeid])) {
+                $itemRemainsStorage = $storageRemains[$itemtypeid];
+            } else {
+                $itemRemainsStorage = 0;
+            }
+            
+            if (isset($allRemains[$itemtypeid])) {
+                $itemRemainsTotal=$allRemains[$itemtypeid];
+            } else {
+                $itemRemainsTotal=0;
+            }
+
+            if ($itemRemainsTotal< $itemData['reserve']) {
+                $remainsAlert = __('The balance of goods and materials in stock is less than the amount') . ' ' . $itemData['reserve'] . ' ' . $itemUnit;
+            } else {
+                $remainsAlert='';
+            }
+
+            $remainsNotification = __('At storage') . ' ' . @$this->allStorages[$storageid] . ' ' . __('remains') . ' ' . $itemRemainsStorage . ' ' . $itemUnit . ' ' . $itemData['name'];
+            $notifications = $this->messages->getStyledMessage($remainsNotification, 'success');
+            
+            $notifications.= $this->messages->getStyledMessage('RESERVATION_INFO', 'info');
+
+            if ($remainsAlert) {
+                $notifications.= $this->messages->getStyledMessage($remainsAlert, 'warning');
+            }
+
+            
+
+            $cells = wf_TableCell($form, '40%');
+            $cells.= wf_TableCell($notifications, '', '', 'valign="top"');
+            $rows = wf_TableRow($cells);
+            $result = wf_TableBody($rows, '100%', 0, '');
+            
+            //photostorage integration
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photostorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $itemtypeid);
+                $result.=$photostorage->renderImagesRaw();
+            }
+            
+            
         } else {
             $result = $this->messages->getStyledMessage(__('Strange exeption'), 'error');
         }
@@ -1592,7 +1680,7 @@ class Warehouse {
             $result.=wf_TableBody($rows, '100%', 0, 'wh_viewer');
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
-                $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $operationData['itemtypeid']);
+                $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $operationData['itemtypeid']);
                 $result.=$photoStorage->renderImagesRaw();
             }
         } else {
@@ -1760,7 +1848,7 @@ class Warehouse {
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
 
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
-                $photoStorage = new PhotoStorage('WAREHOUSEITEMTYPE', $itemtypeId);
+                $photoStorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $itemtypeId);
                 $result.=$photoStorage->renderImagesRaw();
             }
         } else {
