@@ -1,15 +1,30 @@
 <?php
 
-$user_ip=zbs_UserDetectIp('debug');
-$user_login=zbs_UserGetLoginByIp($user_ip);
-$us_config=zbs_LoadConfig();
+$user_ip = zbs_UserDetectIp('debug');
+$user_login = zbs_UserGetLoginByIp($user_ip);
+$us_config = zbs_LoadConfig();
+
+function zbs_VServicesGetPrice($login) {
+    $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
+    $alltags = simple_queryall($tag_query);
+    $VS_query = "SELECT * FROM `vservices`";
+    $allVS = simple_queryall($VS_query);
+
+    foreach ($alltags as $io => $eachtag) {
+        foreach ($allVS as $each => $ia) {
+            if ($eachtag['tagid'] == $ia['tagid']) {
+                $price[] = $ia['price'];
+            }
+        }
+    }
+    return($price);
+}
 
 /**
  * returns main self-credit module form
  * 
  * @return string
  */
-
 function zbs_ShowCreditForm() {
     $inputs = la_tag('center');
     $inputs.= la_HiddenInput('setcredit', 'true');
@@ -29,7 +44,6 @@ function zbs_ShowCreditForm() {
  * 
  * @return void
  */
-
 function zbs_CreditLogPush($login) {
     $login = mysql_real_escape_string($login);
     $date = curdatetime();
@@ -44,7 +58,6 @@ function zbs_CreditLogPush($login) {
  * 
  * @return bool
  */
-
 function zbs_CreditLogCheckMonth($login) {
     $login = mysql_real_escape_string($login);
     $pattern = date("Y-m");
@@ -64,13 +77,13 @@ function zbs_CreditLogCheckMonth($login) {
  * @param string $usertariff
  * @return bool
  */
-function zbs_CreditCheckAllowed($sc_allowed,$usertariff) {
-    $result=true;
+function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
+    $result = true;
     if (!empty($sc_allowed)) {
         if (isset($sc_allowed[$usertariff])) {
-            $result=true;
+            $result = true;
         } else {
-            $result=false;
+            $result = false;
         }
     }
     return ($result);
@@ -87,7 +100,7 @@ function zbs_CreditCheckAllowed($sc_allowed,$usertariff) {
  * 
  *  @return void
  */
-function zbs_CreditDoTheCredit($user_login,$tariffprice,$sc_price,$scend,$sc_cashtypeid) {
+function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid) {
     zbs_CreditLogPush($user_login);
     billing_setcredit($user_login, $tariffprice + $sc_price);
     billing_setcreditexpire($user_login, $scend);
@@ -99,104 +112,111 @@ function zbs_CreditDoTheCredit($user_login,$tariffprice,$sc_price,$scend,$sc_cas
 
 // if SC enabled
 if ($us_config['SC_ENABLED']) {
-    
+
 // let needed params
-$current_credit=zbs_CashGetUserCredit($user_login);
-$current_cash=zbs_CashGetUserBalance($user_login);
-$current_credit_expire=zbs_CashGetUserCreditExpire($user_login);
-$us_currency=$us_config['currency'];
-$sc_minday=$us_config['SC_MINDAY'];
-$sc_maxday=$us_config['SC_MAXDAY'];
-$sc_term=$us_config['SC_TERM'];
-$sc_price=$us_config['SC_PRICE'];
-$sc_cashtypeid=$us_config['SC_CASHTYPEID'];
-$sc_monthcontrol=$us_config['SC_MONTHCONTROL'];
-$sc_allowed=array();
+    $current_credit = zbs_CashGetUserCredit($user_login);
+    $current_cash = zbs_CashGetUserBalance($user_login);
+    $current_credit_expire = zbs_CashGetUserCreditExpire($user_login);
+    $us_currency = $us_config['currency'];
+    $sc_minday = $us_config['SC_MINDAY'];
+    $sc_maxday = $us_config['SC_MAXDAY'];
+    $sc_term = $us_config['SC_TERM'];
+    $sc_price = $us_config['SC_PRICE'];
+    $sc_cashtypeid = $us_config['SC_CASHTYPEID'];
+    $sc_monthcontrol = $us_config['SC_MONTHCONTROL'];
+    $sc_allowed = array();
+    $vs_price = zbs_VServicesGetPrice($user_login);
 //allowed tariffs option
-if (isset($us_config['SC_TARIFFSALLOWED'])) {
-    if (!empty($us_config['SC_TARIFFSALLOWED'])) {
-    $sc_allowed= explode(',', $us_config['SC_TARIFFSALLOWED']);
-    $sc_allowed= array_flip($sc_allowed);
+    if (isset($us_config['SC_TARIFFSALLOWED'])) {
+        if (!empty($us_config['SC_TARIFFSALLOWED'])) {
+            $sc_allowed = explode(',', $us_config['SC_TARIFFSALLOWED']);
+            $sc_allowed = array_flip($sc_allowed);
+        }
     }
-}
-$tariff=zbs_UserGetTariff($user_login);
-$tariffprice=zbs_UserGetTariffPrice($tariff);
-$cday=date("d");
+    $tariff = zbs_UserGetTariff($user_login);
+    $tariffprice = zbs_UserGetTariffPrice($tariff);
+    $cday = date("d");
 
 //welcome message
-$wmess=__('If you wait too long to pay for the service, here you can get credit for').' '.$sc_term.' '.__('days. The price of this service is').': '.$sc_price.' '.$us_currency.'. ';
-$wmess.= __('Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
-show_window(__('Credits'),$wmess);
- 
-//if day is something like that needed
-if (($cday<=$sc_maxday) AND ($cday>=$sc_minday)) {
-    if (($current_credit<=0) AND ($current_credit_expire==0)) {
-        //ok, no credit now
-       // allow user to set it
-        if (!isset ($_POST['setcredit'])) {
-            show_window('',zbs_ShowCreditForm());
-        } else {
-            // set credit routine
-            if (isset($_POST['agree'])) {
-            //calculate credit expire date
-            $nowTimestamp=time();
-            $creditSeconds=($sc_term*86400); //days*secs
-            $creditOffset=$nowTimestamp+$creditSeconds;
-            $scend=date("Y-m-d",$creditOffset);
+    $wmess = __('If you wait too long to pay for the service, here you can get credit for') . ' ' . $sc_term . ' ' . __('days. The price of this service is') . ': ' . $sc_price . ' ' . $us_currency . '. ';
+    $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
+    show_window(__('Credits'), $wmess);
 
-            if (abs($current_cash)<=$tariffprice) {
-            if ($current_cash<0) {
-                
-                
-            if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {    
-            //additional month contol enabled
-            if ($sc_monthcontrol) {
-                                if (zbs_CreditLogCheckMonth($user_login)) {
-                                    //check for allow option
-                                    zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+//if day is something like that needed
+    if (($cday <= $sc_maxday) AND ( $cday >= $sc_minday)) {
+        if (($current_credit <= 0) AND ( $current_credit_expire == 0)) {
+            //ok, no credit now
+            // allow user to set it
+            if (!isset($_POST['setcredit'])) {
+                show_window('', zbs_ShowCreditForm());
+            } else {
+                // set credit routine
+                if (isset($_POST['agree'])) {
+                    //calculate credit expire date
+                    $nowTimestamp = time();
+                    $creditSeconds = ($sc_term * 86400); //days*secs
+                    $creditOffset = $nowTimestamp + $creditSeconds;
+                    $scend = date("Y-m-d", $creditOffset);
+
+                    if (abs($current_cash) <= $tariffprice) {
+                        if ($current_cash < 0) {
+
+
+                            if (zbs_CreditCheckAllowed($sc_allowed, $tariff)) {
+                                //additional month contol enabled
+                                if ($sc_monthcontrol) {
+                                    if (zbs_CreditLogCheckMonth($user_login)) {
+                                        //check for allow option
+                                        if ($us_config['SC_VSCREDIT']) {
+                                            foreach ($vs_price as $each) {
+                                                $tariffprice = $tariffprice + $each;
+                                            }
+                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                        } else {
+                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                        }
+                                    } else {
+                                        show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                    }
                                 } else {
-                                    show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
+                                    if ($us_config['SC_VSCREDIT']) {
+                                        foreach ($vs_price as $each) {
+                                            $tariffprice = $tariffprice + $each;
+                                        }
+                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                    } else {
+                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                    }
                                 }
+                                //end of self credit main code
                             } else {
-                                   zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
+                                show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
                             }
-                            //end of self credit main code
-            } else {
-                     show_window(__('Sorry'), __('This feature is not allowed on your tariff'));
-            } 
-            
-            } else {
-                //to many money
-                show_window(__('Sorry'),__('Sorry, sum of money in the account is enought to use service without credit'));
+                        } else {
+                            //to many money
+                            show_window(__('Sorry'), __('Sorry, sum of money in the account is enought to use service without credit'));
+                        }
+                    } else {
+                        //no use self credit
+                        show_window(__('Sorry'), __('Sorry, your debt does not allow to continue working in the credit'));
+                    }
+                } else {
+                    // agreement check
+                    show_window(__('Sorry'), __('You must accept our policy'));
+                }
             }
-            } else {
-                //no use self credit
-                show_window(__('Sorry'),__('Sorry, your debt does not allow to continue working in the credit'));
-            }
-          
-            } else {
-                // agreement check
-                show_window(__('Sorry'),__('You must accept our policy'));
-            }
+        } else {
+            //you alredy have it 
+            show_window(__('Sorry'), __('You already have a credit'));
         }
-        
     } else {
-       //you alredy have it 
-        show_window(__('Sorry'),__('You already have a credit'));
+        show_window(__('Sorry'), __('You can take a credit only between') . ' ' . $sc_minday . __(' and ') . $sc_maxday . ' ' . __('days of the month'));
     }
-  
- 
-    
-} else {
-    show_window(__('Sorry'),__('You can take a credit only between').' '.$sc_minday.__(' and ').$sc_maxday.' '.__('days of the month'));
-}
-    
-    
-    
+
+
+
 //and if disabled :(
 } else {
-    show_window(__('Sorry'),__('Unfortunately self credits is disabled'));
+    show_window(__('Sorry'), __('Unfortunately self credits is disabled'));
 }
-
-
 ?>
