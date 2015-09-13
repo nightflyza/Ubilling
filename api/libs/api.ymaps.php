@@ -374,7 +374,7 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
     $js = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
     $js.= wf_tag('script', true);
     $js.= wf_tag('script', false, '', 'type="text/javascript"');
-    $js = '
+    $js.= '
         ymaps.ready(init);
     function init () {
             var myMap = new ymaps.Map(\'swmap\', {

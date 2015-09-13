@@ -8,11 +8,20 @@ if ($altCfg['WATCHDOG_ENABLED']) {
         class TSMSQueue {
 
             protected $queue = array();
-
-            const SMS_PATH = 'content/tsms/';
+            protected $smsObj = '';
 
             public function __construct() {
+                $this->initSmsObj();
                 $this->loadQueue();
+            }
+
+            /**
+             * Creates protected instance of UbillingSMS class for internal usage
+             * 
+             * @return void
+             */
+            protected function initSmsObj() {
+                $this->smsObj = new UbillingSMS();
             }
 
             /**
@@ -21,18 +30,7 @@ if ($altCfg['WATCHDOG_ENABLED']) {
              * @return void
              */
             protected function loadQueue() {
-                $all = rcms_scandir(self::SMS_PATH);
-                if (!empty($all)) {
-                    foreach ($all as $io => $eachsmsfile) {
-                        $smsDate = date("Y-m-d H:i:s", filectime(self::SMS_PATH . $eachsmsfile));
-                        $smsData = rcms_parse_ini_file(self::SMS_PATH . $eachsmsfile);
-                        $this->queue[$io]['filename'] = $eachsmsfile;
-                        $this->queue[$io]['date'] = $smsDate;
-
-                        $this->queue[$io]['number'] = $smsData['NUMBER'];
-                        $this->queue[$io]['message'] = $smsData['MESSAGE'];
-                    }
-                }
+                $this->queue = $this->smsObj->getQueueData();
             }
 
             /**
@@ -95,25 +93,18 @@ if ($altCfg['WATCHDOG_ENABLED']) {
              * @return int 0 - ok
              */
             public function deleteSms($filename) {
-                if (file_exists(self::SMS_PATH . $filename)) {
-                    rcms_delete_files(self::SMS_PATH . $filename);
-                    $result = 0;
-                    if (file_exists(self::SMS_PATH . $filename)) {
-                        $result = 1;
-                    }
-                } else {
-                    $result = 2;
-                }
+                $result=  $this->smsObj->deleteSms($filename);
                 return ($result);
             }
 
         }
 
         $tsmsQueue = new TSMSQueue();
+
         if (wf_CheckGet(array('deletesms'))) {
             $deletionResult = $tsmsQueue->deleteSms($_GET['deletesms']);
             if ($deletionResult == 0) {
-                $darkVoid=new DarkVoid();
+                $darkVoid = new DarkVoid();
                 $darkVoid->flushCache();
                 rcms_redirect('?module=tsmsqueue');
             } else {

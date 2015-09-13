@@ -22,6 +22,7 @@ include('api/libs/api.networking.php');
 include('api/libs/api.userreg.php');
 include('api/libs/api.workicons.php');
 include('api/libs/api.workaround.php');
+include('api/libs/api.usms.php');
 include('api/libs/api.payments.php');
 include('api/libs/api.usertags.php');
 include('api/libs/api.cess.php');
