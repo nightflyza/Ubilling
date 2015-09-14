@@ -163,6 +163,36 @@ if (cfr('WAREHOUSE')) {
                 }
             }
 
+//reservation
+            if (wf_CheckGet(array('reserve'))) {
+                if (wf_CheckGet(array('itemtypeid', 'storageid'))) {
+                    if (wf_CheckPost(array('newreserveitemtypeid', 'newreservestorageid', 'newreserveemployeeid', 'newreservecount'))) {
+                        $creationResult = $warehouse->reserveCreate($_POST['newreservestorageid'], $_POST['newreserveitemtypeid'], $_POST['newreservecount'], $_POST['newreserveemployeeid']);
+                        //succefull
+                        if (!$creationResult) {
+                            rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&storageid=' . $_POST['newreservestorageid'] . '&outitemid=' . $_POST['newreserveitemtypeid']);
+                        } else {
+                            show_window('', $creationResult);
+                        }
+                    }
+                    $reservationTitle = __('Reservation') . ' ' . $warehouse->itemtypeGetName($_GET['itemtypeid']) . ' ' . __('from') . ' ' . $warehouse->storageGetName($_GET['storageid']);
+                    show_window($reservationTitle, $warehouse->reserveCreateForm($_GET['storageid'], $_GET['itemtypeid']));
+                    $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&storageid=' . $_GET['storageid'] . '&outitemid=' . $_GET['itemtypeid']);
+                } else {
+                    if (wf_CheckGet(array('deletereserve'))) {
+                        $warehouse->reserveDelete($_GET['deletereserve']);
+                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
+                    }
+                    
+                    if (wf_CheckPost(array('editreserveid'))) {
+                        $warehouse->reserveSave();
+                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);   
+                    }
+                    show_window(__('Reserved'), $warehouse->reserveRenderList());
+                    $warehouse->$avidity['M']['FALL']($warehouse::URL_ME);
+                }
+            }
+
 //viewers
             if (wf_CheckGet(array('viewers'))) {
                 if (wf_CheckGet(array('showinid'))) {
@@ -179,8 +209,8 @@ if (cfr('WAREHOUSE')) {
                     show_window(__('The remains in the warehouse storage'), $warehouse->reportAllStoragesRemainsView($_GET['showremains']));
                     $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&totalremains=true');
                 }
-                
-                if (wf_CheckGet(array('qrcode','renderid'))) {
+
+                if (wf_CheckGet(array('qrcode', 'renderid'))) {
                     $warehouse->qrCodeDraw($_GET['qrcode'], $_GET['renderid']);
                 }
             }
@@ -190,14 +220,14 @@ if (cfr('WAREHOUSE')) {
                 if (wf_CheckGet(array('ajaxtremains'))) {
                     $warehouse->$avidity['A']['SEENOEVIL']();
                 }
-                
+
                 if (wf_CheckGet(array('calendarops'))) {
                     show_window(__('Operations in the context of time'), $warehouse->reportCalendarOps());
                     $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 }
                 if (wf_CheckGet(array('totalremains'))) {
-                    $calendarLink=  wf_Link($warehouse::URL_ME.'&'.$warehouse::URL_REPORTS.'&calendarops=true', wf_img('skins/icon_calendar.gif',__('Operations in the context of time')), false, '');
-                    show_window(__('The remains in all storages').' '.$calendarLink, $warehouse->reportAllStoragesRemains());
+                    $calendarLink = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&calendarops=true', wf_img('skins/icon_calendar.gif', __('Operations in the context of time')), false, '');
+                    show_window(__('The remains in all storages') . ' ' . $calendarLink, $warehouse->reportAllStoragesRemains());
                     $warehouse->$avidity['M']['FALL']();
                 }
             }
@@ -213,6 +243,4 @@ if (cfr('WAREHOUSE')) {
 } else {
     show_error(__('Permission denied'));
 }
-
-
 ?>

@@ -1574,7 +1574,8 @@ CREATE TABLE IF NOT EXISTS `wh_reserve` (
   `storageid` int(11) NOT NULL,
   `itemtypeid` int(11) NOT NULL,
   `count` double NOT NULL,
-  `employeeid`  int(11) NOT NULL,
+  `employeeid` int(11) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `date` (`itemtypeid`,`storageid`)
+  KEY `storageid` (`storageid`),
+  KEY `itemtypeid` (`itemtypeid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

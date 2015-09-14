@@ -71,13 +71,13 @@ class Warehouse {
      * @var type 
      */
     protected $allOutcoming = array();
-    
+
     /**
      * Preloaded reserve entries
      *
      * @var array
      */
-    protected $allReserve=array();
+    protected $allReserve = array();
 
     /**
      * Available unit types as unittype=>localized name
@@ -125,6 +125,7 @@ class Warehouse {
     const URL_OUTAJLIST = 'ajaxoutlist=true';
     const URL_VIEWERS = 'viewers=true';
     const URL_REPORTS = 'reports=true';
+    const URL_RESERVE = 'reserve=true';
     const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
 
     public function __construct() {
@@ -313,23 +314,22 @@ class Warehouse {
             }
         }
     }
-    
+
     /**
      * Loads available reserved items from database
      * 
      * @return void
      */
     protected function loadReserve() {
-        $query="SELECT * from `wh_reserve`";
-        $all=  simple_queryall($query);
+        $query = "SELECT * from `wh_reserve`";
+        $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
-                $this->allReserve[$each['id']]=$each;
+                $this->allReserve[$each['id']] = $each;
             }
         }
     }
-    
-    
+
     /**
      * Returns count of itemtypes reserved on storage if available
      * 
@@ -338,9 +338,230 @@ class Warehouse {
      * 
      * @return float
      */
-    protected function reserveGet($storageId,$itemtypeId) {
-        $result=0;
-        // TODO: finish it tonight
+    protected function reserveGet($storageId, $itemtypeId) {
+        $result = 0;
+        $storageId = vf($storageId, 3);
+        $itemtypeId = vf($itemtypeId, 3);
+        if (!empty($this->allReserve)) {
+            foreach ($this->allReserve as $io => $each) {
+                if (($each['storageid'] == $storageId) AND ( $each['itemtypeid'] == $itemtypeId)) {
+                    $result+=$each['count'];
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new reserve record in database
+     * 
+     * @param int $storageId
+     * @param int $itemtypeId
+     * @param float $count
+     * @param int $employeeId
+     * 
+     * @return void/string  if succefull or error message
+     */
+    public function reserveCreate($storageId, $itemtypeId, $count, $employeeId) {
+        $storageId = vf($storageId, 3);
+        $itemtypeId = vf($itemtypeId, 3);
+        $countF = mysql_real_escape_string($count);
+        $countF = str_replace(',', '.', $countF);
+        $employeeId = vf($employeeId, 3);
+        $storageRemains = $this->remainsOnStorage($storageId);
+        @$itemtypeRemains = $storageRemains[$itemtypeId];
+        if (empty($itemtypeRemains)) {
+            $itemtypeRemains = 0;
+        }
+        $alreadyReserved = $this->reserveGet($storageId, $itemtypeId);
+        $realRemains = $itemtypeRemains - $alreadyReserved;
+
+        $result = '';
+        if (isset($this->allStorages[$storageId])) {
+            if (isset($this->allItemTypes[$itemtypeId])) {
+                if (isset($this->allEmployee[$employeeId])) {
+                    if ($realRemains >= $countF) {
+                        $query = "INSERT INTO `wh_reserve` (`id`,`storageid`,`itemtypeid`,`count`,`employeeid`) VALUES "
+                                . "(NULL,'" . $storageId . "','" . $itemtypeId . "','" . $countF . "','" . $employeeId . "')";
+                        nr_query($query);
+                        $newId = simple_get_lastid('wh_reserve');
+                        log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                    } else {
+                        $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
+                    }
+                } else {
+                    $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No available workers for reserve creation'), 'error');
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No existing warehouse item types'), 'error');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No existing warehouse storages'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns itemtype reservation interface
+     * 
+     * @param int $storageId
+     * @param int $itemtypeId
+     * 
+     * @return string
+     */
+    public function reserveCreateForm($storageId, $itemtypeId) {
+        $storageId = vf($storageId, 3);
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        if (isset($this->allStorages[$storageId])) {
+            if (isset($this->allItemTypes[$itemtypeId])) {
+                if (!empty($this->activeEmployee)) {
+                    $storageRemains = $this->remainsOnStorage($storageId);
+                    if (isset($storageRemains[$itemtypeId])) {
+                        $itemRemainsStorage = $storageRemains[$itemtypeId];
+                    } else {
+                        $itemRemainsStorage = 0;
+                    }
+                    $alreadyReserved = $this->reserveGet($storageId, $itemtypeId);
+                    $itemtypeData = $this->allItemTypes[$itemtypeId];
+                    $itemtypeName = $this->allItemTypeNames[$itemtypeId];
+                    $itemtypeUnit = $this->unitTypes[$itemtypeData['unit']];
+
+                    $inputs = wf_HiddenInput('newreserveitemtypeid', $itemtypeId);
+                    $inputs.= wf_HiddenInput('newreservestorageid', $storageId);
+                    $inputs.= wf_Selector('newreserveemployeeid', $this->activeEmployee, __('Worker'), '', true);
+                    $inputs.= wf_TextInput('newreservecount', $itemtypeUnit . ' (' . ($itemRemainsStorage - $alreadyReserved) . ' ' . __('maximum') . ')', '', true, 5);
+                    $inputs.= wf_Submit(__('Create'));
+
+                    $form = wf_Form('', 'POST', $inputs, 'glamour');
+                    $remainsText = __('At storage') . ' ' . $this->allStorages[$storageId] . ' ' . __('remains') . ' ' . $itemRemainsStorage . ' ' . $itemtypeUnit . ' ' . $itemtypeName;
+                    $remainsInfo = $this->messages->getStyledMessage($remainsText, 'success');
+
+                    if ($alreadyReserved) {
+                        $remainsInfo.=$this->messages->getStyledMessage(__('minus') . ' ' . $alreadyReserved . ' ' . __('already reserved'), 'info');
+                    }
+
+                    $cells = wf_TableCell($form, '40%');
+                    $cells.= wf_TableCell($remainsInfo, '', '', 'valign="top"');
+                    $rows = wf_TableRow($cells, '');
+                    $result = wf_TableBody($rows, '100%', 0, '');
+                } else {
+                    $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No available workers for reserve creation'), 'error');
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No existing warehouse item types'), 'error');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('No existing warehouse storages'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes existing reservation record from database
+     * 
+     * @param int $id
+     * 
+     * @return void
+     */
+    public function reserveDelete($id) {
+        $id = vf($id, 3);
+        if (isset($this->allReserve[$id])) {
+            $query = "DELETE from `wh_reserve` WHERE `id`='" . $id . "';";
+            nr_query($query);
+            log_register('WAREHOUSE RESERVE DELETE [' . $id . ']');
+        }
+    }
+
+    /**
+     * Returns reserve record editing form
+     * 
+     * @param int $id
+     * 
+     * @return string
+     */
+    public function reserveEditForm($id) {
+        $id = vf($id, 3);
+        $result = '';
+        if (isset($this->allReserve[$id])) {
+            $reserveData = $this->allReserve[$id];
+            $reserveStorage = $reserveData['storageid'];
+            @$itemName = $this->allItemTypeNames[$reserveData['itemtypeid']];
+            @$itemData = $this->allItemTypes[$reserveData['itemtypeid']];
+            @$itemUnit = $this->unitTypes[$itemData['unit']];
+
+            $inputs = wf_Selector('editreserveemployeeid', $this->activeEmployee, __('Worker'), $reserveData['employeeid'], true);
+            $inputs.= wf_TextInput('editreservecount', $itemUnit . ' ' . $itemName, $reserveData['count'], true, 5);
+            $inputs.= wf_HiddenInput('editreserveid', $id);
+            $inputs.= wf_Submit(__('Save'));
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves reserve changes into database
+     * 
+     * @return void
+     */
+    public function reserveSave() {
+        if (wf_CheckPost(array('editreserveid', 'editreserveemployeeid', 'editreservecount'))) {
+            $id = vf($_POST['editreserveid'], 3);
+            if (isset($this->allReserve[$id])) {
+                $reserveData = $this->allReserve[$id];
+                $reserveStorage = $reserveData['storageid'];
+                $count = $_POST['editreservecount'];
+                $countF = mysql_real_escape_string($count);
+                $countF = str_replace(',', '.', $countF);
+                $employeeId = vf($_POST['editreserveemployeeid'], 3);
+                $where = " WHERE `id`='" . $id . "';";
+                $storageRemains = $this->remainsOnStorage($reserveStorage);
+                @$itemtypeRemains = $storageRemains[$reserveData['itemtypeid']];
+                if (empty($itemtypeRemains)) {
+                    $itemtypeRemains = 0;
+                }
+                $alreadyReserved = $this->reserveGet($reserveStorage, $reserveData['itemtypeid']);
+                $realRemains = $itemtypeRemains - $alreadyReserved;
+                if ($realRemains >= $countF) {
+                    simple_update_field('wh_reserve', 'employeeid', $employeeId, $where);
+                    simple_update_field('wh_reserve', 'count', $countF, $where);
+                    log_register('WAREHOUSE RESERVE EDIT [' . $id . ']  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders list of available reserved items sorted by Employee with some controls
+     * 
+     * @return string
+     */
+    public function reserveRenderList() {
+        $result = '';
+        if (!empty($this->allReserve)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.=wf_TableCell(__('Warehouse storage'));
+            $cells.= wf_TableCell(__('Warehouse item type'));
+            $cells.= wf_TableCell(__('Count'));
+            $cells.= wf_TableCell(__('Worker'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allReserve as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.=wf_TableCell(@$this->allStorages[$each['storageid']]);
+                $cells.= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
+                $cells.= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
+                $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
+                $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
+                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '');
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
         return ($result);
     }
 
@@ -506,7 +727,9 @@ class Warehouse {
         }
         if (cfr('WAREHOUSEOUT')) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
+            $result.=wf_Link(self::URL_ME . '&' . self::URL_RESERVE, wf_img('skins/whreservation.png') . ' ' . __('Reserved'), false, 'ubButton');
         }
+
         $dirControls = wf_Link(self::URL_ME . '&' . self::URL_CATEGORIES, wf_img_sized('skins/categories_icon.png') . ' ' . __('Warehouse categories'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_ITEMTYPES, wf_img_sized('skins/folder_icon.png') . ' ' . __('Warehouse item types'), false, 'ubButton');
         $dirControls.= wf_Link(self::URL_ME . '&' . self::URL_STORAGES, wf_img_sized('skins/whstorage_icon.png') . ' ' . __('Warehouse storages'), false, 'ubButton');
@@ -1566,11 +1789,28 @@ class Warehouse {
         if ((isset($this->allStorages[$storageid])) AND ( isset($this->allItemTypes[$itemtypeid]))) {
             $itemData = $this->allItemTypes[$itemtypeid];
             $itemUnit = $this->unitTypes[$itemData['unit']];
-            foreach ($this->outDests as $destMark => $destName) {
-                $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
+
+            $storageRemains = $this->remainsOnStorage($storageid);
+            $allRemains = $this->remainsAll();
+
+            if (isset($storageRemains[$itemtypeid])) {
+                $itemRemainsStorage = $storageRemains[$itemtypeid];
+            } else {
+                $itemRemainsStorage = 0;
+            }
+
+            if (isset($allRemains[$itemtypeid])) {
+                $itemRemainsTotal = $allRemains[$itemtypeid];
+            } else {
+                $itemRemainsTotal = 0;
             }
 
 
+            $isReserved = $this->reserveGet($storageid, $itemtypeid);
+
+            foreach ($this->outDests as $destMark => $destName) {
+                $tmpDests[self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_AJODSELECTOR . $destMark] = $destName;
+            }
 
             //form construct
             $inputs = wf_AjaxLoader();
@@ -1579,7 +1819,7 @@ class Warehouse {
             $inputs.= wf_AjaxContainer('ajoutdestselcontainer', '', $this->outcomindAjaxDestSelector('task'));
             $inputs.= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
             $inputs.= wf_HiddenInput('newoutstorageid', $storageid);
-            $inputs.= wf_TextInput('newoutcount', $itemUnit, '', true, '4');
+            $inputs.= wf_TextInput('newoutcount', $itemUnit . ' (' . ($itemRemainsStorage - $isReserved) . ' ' . __('maximum') . ')', '', true, '4');
             $inputs.= wf_TextInput('newoutprice', __('Price'), '', true, '4');
             $inputs.= wf_TextInput('newoutnotes', __('Notes'), '', true, 25);
             $inputs.= wf_tag('br');
@@ -1587,50 +1827,41 @@ class Warehouse {
             $form = wf_Form('', 'POST', $inputs, 'glamour');
 
             //notifications 
-            $storageRemains = $this->remainsOnStorage($storageid);
-            $allRemains= $this->remainsAll();
-            
-            if (isset($storageRemains[$itemtypeid])) {
-                $itemRemainsStorage = $storageRemains[$itemtypeid];
-            } else {
-                $itemRemainsStorage = 0;
-            }
-            
-            if (isset($allRemains[$itemtypeid])) {
-                $itemRemainsTotal=$allRemains[$itemtypeid];
-            } else {
-                $itemRemainsTotal=0;
-            }
-
-            if ($itemRemainsTotal< $itemData['reserve']) {
+            if ($itemRemainsTotal < $itemData['reserve']) {
                 $remainsAlert = __('The balance of goods and materials in stock is less than the amount') . ' ' . $itemData['reserve'] . ' ' . $itemUnit;
             } else {
-                $remainsAlert='';
+                $remainsAlert = '';
             }
 
             $remainsNotification = __('At storage') . ' ' . @$this->allStorages[$storageid] . ' ' . __('remains') . ' ' . $itemRemainsStorage . ' ' . $itemUnit . ' ' . $itemData['name'];
             $notifications = $this->messages->getStyledMessage($remainsNotification, 'success');
-            
-            $notifications.= $this->messages->getStyledMessage('RESERVATION_INFO', 'info');
+
+            if ($isReserved) {
+                $notifications.= $this->messages->getStyledMessage(__('Reserved') . ' ' . $isReserved . ' ' . $itemUnit, 'info');
+            }
 
             if ($remainsAlert) {
                 $notifications.= $this->messages->getStyledMessage($remainsAlert, 'warning');
             }
 
-            
+
+            $notifications.=wf_CleanDiv();
+            $reserveLink = self::URL_ME . '&' . self::URL_RESERVE . '&itemtypeid=' . $itemtypeid . '&storageid=' . $storageid;
+            $notifications.=wf_tag('div', false, '', 'style="margin: 20px 3% 0 3%;"') . wf_Link($reserveLink, wf_img('skins/whreservation.png') . ' ' . __('Reservation'), false, 'ubButton') . wf_tag('div', true);
+            $notifications.=wf_CleanDiv();
+
+
 
             $cells = wf_TableCell($form, '40%');
             $cells.= wf_TableCell($notifications, '', '', 'valign="top"');
             $rows = wf_TableRow($cells);
             $result = wf_TableBody($rows, '100%', 0, '');
-            
+
             //photostorage integration
             if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
                 $photostorage = new PhotoStorage(self::PHOTOSTORAGE_SCOPE, $itemtypeid);
                 $result.=$photostorage->renderImagesRaw();
             }
-            
-            
         } else {
             $result = $this->messages->getStyledMessage(__('Strange exeption'), 'error');
         }
@@ -1729,7 +1960,9 @@ class Warehouse {
             if (isset($this->allItemTypes[$itemtypeid])) {
                 $allItemRemains = $this->remainsOnStorage($storageid);
                 @$itemRemains = $allItemRemains[$itemtypeid];
-                if ($countF <= $itemRemains) {
+                $itemsReserved = $this->reserveGet($storageid, $itemtypeid);
+                $realRemains = $itemRemains - $itemsReserved;
+                if ($countF <= $realRemains) {
                     $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`) VALUES "
                             . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $countF . "','" . $priceF . "','" . $notes . "')";
                     nr_query($query);
@@ -1739,7 +1972,7 @@ class Warehouse {
                         $this->incomingCreate($date, $itemtypeid, 0, $destparam, $count, $price, '', __('from') . ' ' . __('Warehouse storage') . ' `' . $this->allStorages[$storageid] . '`');
                     }
                 } else {
-                    $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemRemains . ')', 'error');
+                    $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemRemains . '-' . $itemsReserved . ')', 'error');
                 }
             } else {
                 $result = $this->messages->getStyledMessage(__('Strange exeption') . ' EX_WRONG_ITEMTYPE_ID', 'error');

@@ -5,15 +5,23 @@ $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 
 function zbs_VServicesGetPrice($login) {
-    $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
-    $alltags = simple_queryall($tag_query);
-    $VS_query = "SELECT * FROM `vservices`";
-    $allVS = simple_queryall($VS_query);
+    $us_config = zbs_LoadConfig();
+    $price = 0;
+    if (isset($us_configp['SC_VSCREDIT'])) {
+        if ($us_config['SC_VSCREDIT']) {
+            $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
+            $alltags = simple_queryall($tag_query);
+            $VS_query = "SELECT * FROM `vservices`";
+            $allVS = simple_queryall($VS_query);            
 
-    foreach ($alltags as $io => $eachtag) {
-        foreach ($allVS as $each => $ia) {
-            if ($eachtag['tagid'] == $ia['tagid']) {
-                $price[] = $ia['price'];
+            if (!empty($alltags)) {
+                foreach ($alltags as $io => $eachtag) {
+                    foreach ($allVS as $each => $ia) {
+                        if ($eachtag['tagid'] == $ia['tagid']) {
+                            $price += $ia['price'];
+                        }
+                    }
+                }
             }
         }
     }
@@ -135,6 +143,7 @@ if ($us_config['SC_ENABLED']) {
     }
     $tariff = zbs_UserGetTariff($user_login);
     $tariffprice = zbs_UserGetTariffPrice($tariff);
+    $tariffprice+=$vs_price;
     $cday = date("d");
 
 //welcome message
@@ -167,26 +176,12 @@ if ($us_config['SC_ENABLED']) {
                                 if ($sc_monthcontrol) {
                                     if (zbs_CreditLogCheckMonth($user_login)) {
                                         //check for allow option
-                                        if ($us_config['SC_VSCREDIT']) {
-                                            foreach ($vs_price as $each) {
-                                                $tariffprice = $tariffprice + $each;
-                                            }
-                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                        } else {
-                                            zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                        }
+                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
                                     } else {
                                         show_window(__('Sorry'), __('You already used credit feature in current month. Only one usage per month is allowed.'));
                                     }
                                 } else {
-                                    if ($us_config['SC_VSCREDIT']) {
-                                        foreach ($vs_price as $each) {
-                                            $tariffprice = $tariffprice + $each;
-                                        }
-                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                    } else {
-                                        zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
-                                    }
+                                    zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid);
                                 }
                                 //end of self credit main code
                             } else {

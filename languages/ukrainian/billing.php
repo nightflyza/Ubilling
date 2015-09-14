@@ -2134,5 +2134,12 @@ $lang['def']['Dead souls']='Мертві душі';
 //rev 4727
 $lang['def']['right to manage salary timesheets']='Право керувати табелями обліку робочого часу';
 $lang['def']['Reservation']='Бронювання';
+$lang['def']['At storage']='На складі';
+$lang['def']['remains']='залишилось';
+$lang['def']['Reserved']='Заброньовано';
+$lang['def']['No available workers for reserve creation']='Немає існуючих працівників для бронювання ТМЦ';
+$lang['def']['minus']='мінус';
+$lang['def']['already reserved']='вже заброньованих';
+$lang['def']['maximum']='максимум';
 
 ?>

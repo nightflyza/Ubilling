@@ -2121,9 +2121,15 @@ $lang['def']['right to manage salary timesheets']='Право управлять
 $lang['def']['Reservation']='Бронирование';
 $lang['def']['At storage']='На складе';
 $lang['def']['remains']='осталось';
+$lang['def']['Reserved']='Забронировано';
+$lang['def']['No available workers for reserve creation']='Нету существующих работников для бронирования ТМЦ';
+$lang['def']['minus']='минус';
+$lang['def']['already reserved']='уже забронированных';
+$lang['def']['maximum']='максимум';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-
+$lang['def']['']='';
+$lang['def']['']='';
 
 ?>
