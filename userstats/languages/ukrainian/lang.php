@@ -265,5 +265,13 @@ $lang['def']['trillionx']='трильйона';
 $lang['def']['trillions']='трильйонів';
 
 $lang['def']['I want this tariff right now']='Я бажаю перейти на вибраний тариф цієї ж миті';
+$lang['def']['Reminder'] = 'Нагадування';
+$lang['def']['You can enable payments sms reminder'] ='Вы можете ввімкнути sms нагадування про оплату послуги';
+$lang['def']['It costs'] = 'Це коштує';
+$lang['def']['per month'] = 'в місяць';
+$lang['def']['Remind me please'] = 'Повідомляти мене';
+$lang['def']['You already enabled payments sms reminder'] = 'Вы вже ввімкнули смс нагадування про оплату послуги';
+$lang['def']['Disable payments sms reminder'] = 'Ввимкнути смс повідомлення';
+$lang['def']['Don\'t remind me'] = 'Не нагадувати мені';
 
 ?>

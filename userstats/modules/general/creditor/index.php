@@ -4,6 +4,13 @@ $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
 
+/**
+ * 
+ * needs SC_VSCREDIT=1 in userstats.ini
+ * @param type $login user's login
+ * @return price for all virtual services if such exists for user
+ */
+
 function zbs_VServicesGetPrice($login) {
     $us_config = zbs_LoadConfig();
     $price = 0;
