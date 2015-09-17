@@ -273,5 +273,10 @@ $lang['def']['Remind me please'] = 'Повідомляти мене';
 $lang['def']['You already enabled payments sms reminder'] = 'Вы вже ввімкнули смс нагадування про оплату послуги';
 $lang['def']['Disable payments sms reminder'] = 'Ввимкнути смс повідомлення';
 $lang['def']['Don\'t remind me'] = 'Не нагадувати мені';
+$lang['def']['Your current mobile number is'] = 'Номер вашего стільникового';
+$lang['def']['Your have empty mobile'] = 'У вас немає стільникового';
+$lang['def']['Please enter it below'] = 'Будь ласка введіть номер вашого телефону у форму нижче';
+$lang['def']['Change mobile'] = 'Змінити номер телефону';
+$lang['def']['You can\'t enable payments sms reminder'] = 'Ви не можете використовувати смс нагадування про оплату';
 
 ?>

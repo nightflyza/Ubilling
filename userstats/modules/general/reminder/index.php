@@ -1,5 +1,7 @@
 <?php
 
+//functions and variables
+
 $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
@@ -16,8 +18,28 @@ if ($us_config['REMINDER_ENABLED']) {
     } else {
         die('REMINDER TAGID not set');
     }
+    if (isset($us_config['REMINDER_NUMBER_LENGTH'])) {
+        $length_number = $us_config['REMINDER_NUMBER_LENGTH'];
+    } else {
+        die('REMINDER:NUMBER_LENGTH not set');
+    }
+    if (isset($us_config['REMINDER_DAYS'])) {
+        $days = $us_config['REMINDER_DAYS'];
+    } else {
+        die('REMINDER:DAYS not set');
+    }    
+    if (isset($us_config['REMINDER_PREFIX'])) {
+        $prefix = $us_config['REMINDER_PREFIX'];
+    }
+
     $us_currency = $us_config['currency'];
 
+    /**
+     * Check if user already has tag
+     * @param type $login string
+     * @param type $tagid int
+     * @return type boolean
+     */
     function stg_check_user_tag($login, $tagid) {
         $login = mysql_real_escape_string($login);
         $tagid = vf($tagid, 3);
@@ -28,6 +50,18 @@ if ($us_config['REMINDER_ENABLED']) {
         } else {
             return(false);
         }
+    }
+
+    /**
+     * Change user mobile
+     * @param type $login string
+     * @param type $mobile int
+     */
+    function zbs_UserChangeMobile($login, $mobile) {
+        $login = vf($login);
+        $query = "UPDATE `phones` SET `mobile` = '" . $mobile . "' WHERE `login`= '" . $login . "' ;";
+        nr_query($query);
+        log_register('CHANGE UserMobile (' . $login . ') `' . $mobile . '`');
     }
 
     /**
@@ -44,6 +78,11 @@ if ($us_config['REMINDER_ENABLED']) {
         log_register('TAGADD (' . $login . ') TAGID [' . $tagid . ']');
     }
 
+    /**
+     * delete sms tag
+     * @param type $login
+     * @param type $tagid
+     */
     function stg_del_user_tagid($login, $tagid) {
         $login = mysql_real_escape_string($login);
         $tagid = vf($tagid, 3);
@@ -53,8 +92,8 @@ if ($us_config['REMINDER_ENABLED']) {
     }
 
     /**
-     * 
-     * @return string main form of Reminder
+     * Adding user tag form
+     * @return main form for tag add
      */
     function zbs_ShowEnableReminderForm() {
         $inputs = la_tag('center');
@@ -68,6 +107,10 @@ if ($us_config['REMINDER_ENABLED']) {
         return($form);
     }
 
+    /**
+     * Deleting user tag form
+     * @return type for for tag delete
+     */
     function zbs_ShowDisableReminderForm() {
         $inputs = la_tag('center');
         $inputs.= la_HiddenInput('deleteremind', 'true');
@@ -80,18 +123,59 @@ if ($us_config['REMINDER_ENABLED']) {
         return($form);
     }
 
+    /**
+     * 
+     * @return type form for changin mobile
+     */
+    function zbs_ShowChangeMobileForm() {
+        $inputs = la_tag('center');
+        $inputs.= la_HiddenInput('changemobile', 'true');
+        $inputs.= la_TextInput('mobile');
+        $inputs.= la_delimiter();
+        $inputs.= la_Submit(__('Change mobile'));
+        $inputs.= la_tag('center', true);
+        $form = la_Form("", 'POST', $inputs, '');
+
+        return($form);
+    }
+
+    //main part of module
+
     $check = stg_check_user_tag($user_login, $tagid);
+    $mobile = zbs_UserGetMobile($user_login);
+
+    if (!empty($mobile)) {
+        $m_text = __("Your current mobile number is") . ":" . " " . $mobile;
+    } else {
+        $m_text = __("Your have empty mobile") . "." . " ";
+        if ($us_config['REMINDER_CHANGE_NUMBER']) {
+            $m_text.=__("Please enter it below") . ":";
+        }
+    }
+
+    show_window(__("Mobile"), $m_text);
+    if ($us_config['REMINDER_CHANGE_NUMBER']) {
+        show_window('', zbs_ShowChangeMobileForm());
+    }
     if ($check) {
         $license_text = __("You already enabled payments sms reminder") . ". ";
         $license_text.= __("Disable payments sms reminder") . "?";
         show_window(__("Reminder"), $license_text);
         show_window("", zbs_ShowDisableReminderForm());
     } else {
-        $license_text = __("You can enable payments sms reminder") . '. ';
-        $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . ".";
-        show_window(__("Reminder"), $license_text);
-        show_window('', zbs_ShowEnableReminderForm());
+        if (!empty($mobile)) {
+            $license_text = __("You can enable payments sms reminder") . '. ';
+            $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . ".";
+            show_window(__("Reminder"), $license_text);
+            show_window('', zbs_ShowEnableReminderForm());
+        } else {
+            $license_text = __("You can't enable payments sms reminder") . "." . " " . __("Your have empty mobile") . ".";
+            show_window(__("Reminder"), $license_text);
+        }
     }
+    
+    //catch POST's parametrs
+    
     if (isset($_POST['setremind'])) {
         stg_add_user_tag($user_login, $tagid);
         rcms_redirect("?module=reminder");
@@ -99,6 +183,24 @@ if ($us_config['REMINDER_ENABLED']) {
     if (isset($_POST['deleteremind'])) {
         stg_del_user_tagid($user_login, $tagid);
         rcms_redirect("?module=reminder");
+    }
+    if (isset($_POST['changemobile'])) {
+        if (isset($_POST['mobile'])) {
+            $set_mobile = $_POST['mobile'];
+            if (!empty($_POST['mobile'])) {
+                $set_mobile = preg_replace('/\0/s', '', $set_mobile);
+                $set_mobile = strip_tags($set_mobile);
+                $set_mobile = str_replace($prefix, '', $set_mobile);
+                $set_mobile = mysql_real_escape_string($set_mobile);
+                $set_mobile = vf($set_mobile, 3);
+                if (length($set_mobile) > $length_number) {
+                    $set_mobile = '';
+                }
+            }
+
+            zbs_UserChangeMobile($user_login, $set_mobile);
+            rcms_redirect("?module=reminder");
+        }
     }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));

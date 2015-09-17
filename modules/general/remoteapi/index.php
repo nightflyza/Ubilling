@@ -536,6 +536,13 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         $globalSearch->ajaxCallback(true);
                         die('OK:REBUILDGLSCACHE');
                     }
+                    
+                    /*
+                     * send sms queue to remind users about payments
+                     */
+                    if ($_GET['action'] == 'reminder') {
+                        
+                    }
                     ////
                     //// End of actions
                     ////
