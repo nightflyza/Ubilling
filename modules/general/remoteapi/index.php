@@ -522,7 +522,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             $mapDimensions[1] = '800';
                         }
                         $switchesCoverage = sm_MapDrawSwitchesCoverage();
-                        $coverageSwMap= wf_tag('div', false, '', 'id="swmap" style="width: ' . $mapDimensions[0] . 'px; height:' . $mapDimensions[1] . 'px;"');
+                        $coverageSwMap = wf_tag('div', false, '', 'id="swmap" style="width: ' . $mapDimensions[0] . 'px; height:' . $mapDimensions[1] . 'px;"');
                         $coverageSwMap.=wf_tag('div', true);
                         $coverageSwMap.= sm_MapInitBasic($ym_center, $ym_zoom, $ym_type, $area . $switchesCoverage, '', $ym_lang);
                         die($coverageSwMap);
@@ -536,14 +536,18 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         $globalSearch->ajaxCallback(true);
                         die('OK:REBUILDGLSCACHE');
                     }
-                    
+
                     /*
                      * send sms queue to remind users about payments
                      */
                     if ($_GET['action'] == 'reminder') {
-                        $sms = new Reminder();
-                        $sms->RemindUser();
-                        die('OK:SEND REMIND SMS');
+                        if ($alterconf['REMINDER_ENABLED']) {
+                            $sms = new Reminder();
+                            $sms->RemindUser();
+                            die('OK:SEND REMIND SMS');
+                        } else {
+                            die('ERROR:REMINDER DISABLED');
+                        }
                     }
                     ////
                     //// End of actions

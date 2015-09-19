@@ -23,8 +23,8 @@ if ($us_config['REMINDER_ENABLED']) {
     } else {
         die('REMINDER:NUMBER_LENGTH not set');
     }
-    if (isset($us_config['REMINDER_DAYS'])) {
-        $days = $us_config['REMINDER_DAYS'];
+    if (isset($us_config['REMINDER_DAYS_THRESHOLD'])) {
+        $days = $us_config['REMINDER_DAYS_THRESHOLD'];
     } else {
         die('REMINDER:DAYS not set');
     }    
@@ -128,8 +128,10 @@ if ($us_config['REMINDER_ENABLED']) {
      * @return type form for changin mobile
      */
     function zbs_ShowChangeMobileForm() {
+        global $us_config;
         $inputs = la_tag('center');
         $inputs.= la_HiddenInput('changemobile', 'true');
+        $inputs.= @$us_config['REMINDER_PREFIX'].' ';
         $inputs.= la_TextInput('mobile');
         $inputs.= la_delimiter();
         $inputs.= la_Submit(__('Change mobile'));
@@ -145,7 +147,7 @@ if ($us_config['REMINDER_ENABLED']) {
     $mobile = zbs_UserGetMobile($user_login);
 
     if (!empty($mobile)) {
-        $m_text = __("Your current mobile number is") . ":" . " " . $mobile;
+        $m_text = __("Your current mobile number is") . ": " . $prefix. $mobile;
     } else {
         $m_text = __("Your have empty mobile") . "." . " ";
         if ($us_config['REMINDER_CHANGE_NUMBER']) {
@@ -158,7 +160,7 @@ if ($us_config['REMINDER_ENABLED']) {
         show_window('', zbs_ShowChangeMobileForm());
     }
     if ($check) {
-        $license_text = __("You already enabled payments sms reminder") . ". " . __("You will be reminded within" . " " . $days . "days. ");
+        $license_text = __("You already enabled payments sms reminder") . ". " . __('You will be reminded within') . ' '  . $days.' ' . __('days').' '.__('until the expiration of the service').'. ';
         $license_text.= __("Disable payments sms reminder") . "?";
         show_window(__("Reminder"), $license_text);
         show_window("", zbs_ShowDisableReminderForm());
@@ -193,13 +195,15 @@ if ($us_config['REMINDER_ENABLED']) {
                 $set_mobile = str_replace($prefix, '', $set_mobile);
                 $set_mobile = mysql_real_escape_string($set_mobile);
                 $set_mobile = vf($set_mobile, 3);
-                if (length($set_mobile) > $length_number) {
-                    $set_mobile = '';
+                if (strlen($set_mobile) == $length_number) {
+                    zbs_UserChangeMobile($user_login, $set_mobile);
+                    rcms_redirect("?module=reminder");
+                } else {
+                    show_window(__('Sorry'), __('Wrong mobile format'));
                 }
             }
 
-            zbs_UserChangeMobile($user_login, $set_mobile);
-            rcms_redirect("?module=reminder");
+            
         }
     }
 } else {

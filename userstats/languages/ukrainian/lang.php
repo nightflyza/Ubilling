@@ -266,12 +266,12 @@ $lang['def']['trillions']='трильйонів';
 
 $lang['def']['I want this tariff right now']='Я бажаю перейти на вибраний тариф цієї ж миті';
 $lang['def']['Reminder'] = 'Нагадування';
-$lang['def']['You can enable payments sms reminder'] ='Вы можете ввімкнути sms нагадування про оплату послуги';
+$lang['def']['You can enable payments sms reminder'] ='Ви можете ввімкнути sms нагадування про оплату послуги';
 $lang['def']['It costs'] = 'Це коштує';
-$lang['def']['per month'] = 'в місяць';
+$lang['def']['per month'] = 'на місяць';
 $lang['def']['Remind me please'] = 'Повідомляти мене';
-$lang['def']['You already enabled payments sms reminder'] = 'Вы вже ввімкнули смс нагадування про оплату послуги';
-$lang['def']['Disable payments sms reminder'] = 'Ввимкнути смс повідомлення';
+$lang['def']['You already enabled payments sms reminder'] = 'Ви вже ввімкнули смс нагадування про оплату послуги';
+$lang['def']['Disable payments sms reminder'] = 'Вимкнути смс повідомлення';
 $lang['def']['Don\'t remind me'] = 'Не нагадувати мені';
 $lang['def']['Your current mobile number is'] = 'Номер вашего стільникового';
 $lang['def']['Your have empty mobile'] = 'У вас немає стільникового';
@@ -279,5 +279,8 @@ $lang['def']['Please enter it below'] = 'Будь ласка введіть но
 $lang['def']['Change mobile'] = 'Змінити номер телефону';
 $lang['def']['You can\'t enable payments sms reminder'] = 'Ви не можете використовувати смс нагадування про оплату';
 $lang['def']['You will be reminded within'] = 'Нагадування буде за';
+$lang['def']['until the expiration of the service'] = 'до закінчення строку надання послуги';
+$lang['def']['Wrong mobile format'] = 'Невірний формат стільникового номеру';
+
 
 ?>
