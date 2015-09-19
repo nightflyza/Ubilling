@@ -9,3 +9,4 @@ CANVAS_RENDER=TRIGGER|Use fast canvas renderer
 FINDING_ZOOM=VARCHAR|Device finder zoom
 FINDING_CIRCLE=TRIGGER|Hightlight area with circle when device found
 CANVAS_RENDER_IGNORE_LABELED=TRIGGER|Ignore canvas renderer for labeled placemarks
+CHAPTEREND_YM=true

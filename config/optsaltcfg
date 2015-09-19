@@ -4,6 +4,7 @@ LOGIN_GENERATION=VARCHAR|Login generation mode
 PASSWORD_GENERATION_LENGHT=VARCHAR|Password generation lenght
 PASSWORD_TYPE=TRIGGER|Password security type
 CONTRACT_SAME_AS_LOGIN=TRIGGER|Set contract same as login after user register
+CHAPTEREND_USERREG=true
 
 CHAPTER_TB=Taskbar features
 TB_NEWTICKETNOTIFY=TRIGGER|Taskbar notify for new tickets
@@ -14,6 +15,7 @@ TB_ICONCUSTOMSIZE=TRIGGER|Administrators can set the size of icons on their own
 TB_UBIM=TRIGGER|Taskbar check for unread messages
 TB_UBIM_REFRESH=VARCHAR|Taskbar unread messages check interval
 STICKY_NOTES_ENABLED=TRIGGER|Taskbar personal sticky notes
+CHAPTEREND_TB=true
 
 CHAPTER_LOOK=Look&Feel
 NMREP_INMACCHG=TRIGGER|New MAC report in MAC edit dialogue
@@ -50,6 +52,7 @@ GRAVATAR_DEFAULT=VARCHAR|Default avatar from gravatar for unknown users
 EASY_CREDIT=VARCHAR|Days interval to set one-click credit
 VLAN_IN_PROFILE=TRIGGER|Show vlan on profile if vlan was assigned
 PHONEBOOK_ENABLED=TRIGGER|Phonebook enabled
+CHAPTEREND_LOOK=true
 
 CHAPTER_SEARCHOPTS=Search
 SEARCHADDR_AUTOCOMPLETE=TRIGGER|Autocomplete in partial address search
@@ -58,6 +61,7 @@ SEARCH_STRICT=VARCHAR|Strict search options
 GLOBALSEARCH_ENABLED=TRIGGER|GlobalSearch enabled
 GLOBALSEARCH_FIELDS=VARCHAR|GlobalSearch fields
 GLOBALSEARCH_CACHE=VARCHAR|GlobalSearch caching timeout in minutes
+CHAPTEREND_SEARCHOPTS=true
 
 CHAPTER_PAYEX=Payments export
 EXPORT_ENABLED=TRIGGER|Payments export
@@ -72,6 +76,7 @@ EXPORT_TEMPLATE_HEAD=VARCHAR|Template head
 EXPORT_TEMPLATE_END=VARCHAR|Template end
 EXPORT_ENCODING=VARCHAR|Export encoding
 IMPORT_ENCODING=VARCHAR|Import encoding
+CHAPTEREND_PAYEX=true
 
 CHAPTER_BS=Bank statements
 BS_ENABLED=TRIGGER|Bank statements support
@@ -79,6 +84,98 @@ BS_INCHARSET=VARCHAR|Import encoding
 BS_OUTCHARSET=VARCHAR|Export encoding
 BS_OPTIONS=VARCHAR|Bank statements options
 BS_CASHTYPE=VARCHAR|Cash type
+CHAPTEREND_BS=true
+
+CHAPTER_SNMP=SNMP options
+SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
+SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
+SNMPSET_PATH=VARCHAR|Path to snmpset binary path
+SNMP_MODE=VARCHAR|SNMP operation mode
+SNMPWALK_BACKGROUND=TRIGGER|SNMP walk background mode
+CHAPTEREND_SNMP=true
+
+CHAPTER_OPAYZ=OpenPayz
+OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
+OPENPAYZ_MANUAL=TRIGGER|OpenPayz manual mode
+OPENPAYZ_CASHTYPEID=VARCHAR|OpenPayz cash type ID
+OPENPAYZ_REALID=TRIGGER|Fetch every paymentID from database
+CHAPTEREND_OPAYZ=true
+
+CHAPTER_CATV=CaTV
+CATV_ENABLED=TRIGGER|CaTV accounting support
+CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
+CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
+UKV_ENABLED=TRIGGER|UKV functionality enabled
+UKV_BS_PAYID=VARCHAR|UKV bank statements cash type OschadBank
+UKV_BSPB_PAYID=VARCHAR|UKV bank statements cash type PrivatBank
+UKV_MONTH_DEBTLIMIT=VARCHAR|UKV month debt limit
+CHAPTEREND_CATV=true
+
+
+CHAPTER_LINKING=User linking
+USER_LINKING_ENABLED=TRIGGER|User linking enabled
+USER_LINKING_FIELD=VARCHAR|User linking field
+USER_LINKING_CFID=VARCHAR|User linking custom profile field ID
+USER_LINKING_TARIFF=TRIGGER|Merge linked users tariff
+USER_LINKING_CASH=TRIGGER|Merge linked users cash
+USER_LINKING_CREDIT=TRIGGER|Merge linked users credit
+CHAPTEREND_LINKING=true
+
+
+CHAPTER_ARP=Arp features
+ARPING=VARCHAR|arping path
+ARPING_IFACE=VARCHAR|arping interface
+ARPING_EXTRA_OPTIONS=VARCHAR|arping extra options
+ARPDIAG_ENABLED=TRIGGER|Enabled arpdiag module
+ARPDIAG_LOG=VARCHAR|arpdiag log file
+MACVEN_ENABLED=TRIGGER|Vendor detection by MAC
+CHAPTEREND_ARP=true
+
+CHAPTER_NDS=NDS accounting
+NDS_ENABLED=TRIGGER|NDS processing support enabled
+NDS_TAGID=VARCHAR|NDS tag ID
+NDS_TAX_PERCENT=VARCHAR|NDS tax rate
+CHAPTEREND_NDS=true
+
+
+CHAPTER_DISCOUNT=Discounts support
+DISCOUNTS_ENABLED=TRIGGER|Discount support is enabled
+DISCOUNT_PERCENT_CFID=VARCHAR|Discount rate custom profile field ID
+DISCOUNT_OPERATION=VARCHAR|Discount operation type
+DISCOUNT_CASHTYPEID=VARCHAR|Discount cash type
+CUD_ENABLED=TRIGGER|Is Cumulative discounts enabled
+CUD_PULLDAYS=VARCHAR|Cumulative discounts period
+CUD_PERCENT=VARCHAR|Cumulative discounts percent per alive period
+CUD_PERCENTLIMIT=VARCHAR|Cumulative discounts percent upper limit 
+CUD_PAYID=VARCHAR|Cumulative discounts payment type ID
+CUD_CFID=VARCHAR|Cumulative discounts custom profile field ID
+CHAPTEREND_DISCOUNT=true
+
+CHAPTER_DOSTOEVSKY=Dostoevsky
+CAP_ENABLED=TRIGGER|Crime and punishment enabled
+CAP_DAYLIMIT=VARCHAR|Days limit to push penalty
+CAP_PENALTY=VARCHAR|Penalty cash summ
+CAP_PAYID=VARCHAR|Payment type
+CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
+CHAPTEREND_DOSTOEVSKY=true
+
+
+CHAPTER_DOCSIS=DOCSIS
+DOCSIS_SUPPORT=TRIGGER|Enable DOCSIS support
+DOCSIS_MODEM_NETID=VARCHAR|DOCSIS modems network ID
+docsis_cm_source=VARCHAR|DOCSIS modems config source path
+docsis_cm_bin=VARCHAR|DOCIS modems config binary path
+CHAPTEREND_DOCSIS=true
+
+CHAPTER_TURBOSMS=TurboSMS support
+TSMS_ENABLED=TRIGGER|TurboSMS support is enabled
+TSMS_GATEWAY=VARCHAR|TurboSMS gateway address
+TSMS_DB="VARCHAR|Working database name
+TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
+TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
+TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
+CHAPTEREND_TURBOSMS=true
+
 
 CHAPTER_BEH=Behavior
 TARIFFCHGRESET=TRIGGER|User reset after tariff change
@@ -160,89 +257,8 @@ SALARY_ENABLED=TRIGGER|Salary accounting
 ONUAUTO_CONFIG=TRIGGER|Set pvid on onu copper port
 PER_CITY_ACTION=TRIGGER|Make per city action (user search, payments search, debtors search)
 REMINDER_ENABLED=TRIGGER|SMS reminder enabled?
-REMINDER_TAGID=INTEGER|TAGID of Virtual service for sms reminder
-REMINDER_DAYS_THRESHOLD=INTEGER|Days to remind before end of service
+REMINDER_TAGID=VARCHAR|TAGID of Virtual service for sms reminder
+REMINDER_DAYS_THRESHOLD=VARCHAR|Days to remind before end of service
 REMINDER_PREFIX=VARCHAR|Prefix for mobile phones
 REMINDER_TEMPLATE=VARCHAR|Text for sms reminder
-
-CHAPTER_SNMP=SNMP options
-SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options
-SNMPCACHE_TIME=VARCHAR|Time to store SNMP raw data cache
-SNMPSET_PATH=VARCHAR|Path to snmpset binary path
-SNMP_MODE=VARCHAR|SNMP operation mode
-SNMPWALK_BACKGROUND=TRIGGER|SNMP walk background mode
-
-CHAPTER_OPAYZ=OpenPayz
-OPENPAYZ_SUPPORT=TRIGGER|OpenPayz support
-OPENPAYZ_MANUAL=TRIGGER|OpenPayz manual mode
-OPENPAYZ_CASHTYPEID=VARCHAR|OpenPayz cash type ID
-OPENPAYZ_REALID=TRIGGER|Fetch every paymentID from database
-
-
-CHAPTER_CATV=CaTV
-CATV_ENABLED=TRIGGER|CaTV accounting support
-CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
-CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
-UKV_ENABLED=TRIGGER|UKV functionality enabled
-UKV_BS_PAYID=VARCHAR|UKV bank statements cash type OschadBank
-UKV_BSPB_PAYID=VARCHAR|UKV bank statements cash type PrivatBank
-UKV_MONTH_DEBTLIMIT=VARCHAR|UKV month debt limit
-
-
-CHAPTER_LINKING=User linking
-USER_LINKING_ENABLED=TRIGGER|User linking enabled
-USER_LINKING_FIELD=VARCHAR|User linking field
-USER_LINKING_CFID=VARCHAR|User linking custom profile field ID
-USER_LINKING_TARIFF=TRIGGER|Merge linked users tariff
-USER_LINKING_CASH=TRIGGER|Merge linked users cash
-USER_LINKING_CREDIT=TRIGGER|Merge linked users credit
-
-
-CHAPTER_ARP=Arp features
-ARPING=VARCHAR|arping path
-ARPING_IFACE=VARCHAR|arping interface
-ARPING_EXTRA_OPTIONS=VARCHAR|arping extra options
-ARPDIAG_ENABLED=TRIGGER|Enabled arpdiag module
-ARPDIAG_LOG=VARCHAR|arpdiag log file
-MACVEN_ENABLED=TRIGGER|Vendor detection by MAC
-
-CHAPTER_NDS=NDS accounting
-NDS_ENABLED=TRIGGER|NDS processing support enabled
-NDS_TAGID=VARCHAR|NDS tag ID
-NDS_TAX_PERCENT=VARCHAR|NDS tax rate
-
-
-CHAPTER_DISCOUNT=Discounts support
-DISCOUNTS_ENABLED=TRIGGER|Discount support is enabled
-DISCOUNT_PERCENT_CFID=VARCHAR|Discount rate custom profile field ID
-DISCOUNT_OPERATION=VARCHAR|Discount operation type
-DISCOUNT_CASHTYPEID=VARCHAR|Discount cash type
-CUD_ENABLED=TRIGGER|Is Cumulative discounts enabled
-CUD_PULLDAYS=VARCHAR|Cumulative discounts period
-CUD_PERCENT=VARCHAR|Cumulative discounts percent per alive period
-CUD_PERCENTLIMIT=VARCHAR|Cumulative discounts percent upper limit 
-CUD_PAYID=VARCHAR|Cumulative discounts payment type ID
-CUD_CFID=VARCHAR|Cumulative discounts custom profile field ID
-
-CHAPTER_DOSTOEVSKY=Dostoevsky
-CAP_ENABLED=TRIGGER|Crime and punishment enabled
-CAP_DAYLIMIT=VARCHAR|Days limit to push penalty
-CAP_PENALTY=VARCHAR|Penalty cash summ
-CAP_PAYID=VARCHAR|Payment type
-CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
-
-
-CHAPTER_DOCSIS=DOCSIS
-DOCSIS_SUPPORT=TRIGGER|Enable DOCSIS support
-DOCSIS_MODEM_NETID=VARCHAR|DOCSIS modems network ID
-docsis_cm_source=VARCHAR|DOCSIS modems config source path
-docsis_cm_bin=VARCHAR|DOCIS modems config binary path
-
-CHAPTER_TURBOSMS=TurboSMS support
-TSMS_ENABLED=TRIGGER|TurboSMS support is enabled
-TSMS_GATEWAY=VARCHAR|TurboSMS gateway address
-TSMS_DB="VARCHAR|Working database name
-TSMS_LOGIN=VARCHAR|User login to access TurboSMS gateway
-TSMS_PASSWORD=VARCHAR|User password for access TurboSMS gateway|PASSWD
-TSMS_PHONEPREFIX=VARCHAR|Mobile phone additional prefix
-
+CHAPTEREND_BEH=true

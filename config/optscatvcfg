@@ -11,3 +11,4 @@ BS_INCHARSET=VARCHAR|Bank statement input charset
 BS_OUTCHARSET=VARCHAR|Bank statement output charset
 BS_OPTIONS=VARCHAR|Bank statement import options
 ZERO_TOLERANCE=TRIGGER|Use zero apartment number as private house
+CHAPTEREND_CATVINI=true

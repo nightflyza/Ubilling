@@ -10,6 +10,7 @@ STG_PASSWD=VARCHAR|Stargazer admin password|PASSWD
 STGPID=VARCHAR|stargazer PID path
 STGNASHUP=TRIGGER|reload stargazer configuration on NAS operations
 RESET_AO=TRIGGER|Use AlwaysOnline instead Down flag to reset users
+CHAPTEREND_STG=true
 
 CHAPTER_PATHS=External programs
 SUDO=VARCHAR|sudo path
@@ -22,10 +23,12 @@ PING=VARCHAR|ping path
 TAIL=VARCHAR|tail path
 KILL=VARCHAR|kill path
 PHPSYSINFO=VARCHAR|PHPSysInfo path
+CHAPTEREND_PATHS=true
 
+CHAPTER_OTHER=Misc options
 LANG =VARCHAR|Default language
 TASKBAR_ICON_SIZE =VARCHAR|Taskbar module icon size
-
 REGRANDOM_MAC=TRIGGER|Register new users with random MAC
 REGALWONLINE=TRIGGER|Register new users with AlwaysOnline flag
 REGDISABLEDSTAT=TRIGGER|Register users with disabled detailed stats
+CHAPTEREND_OTHER=true

@@ -9,3 +9,4 @@ WEBCAM_AVA_CROP=VARCHAR|avatar crop
 WEBCAM_FORCE_FLASH=VARCHAR|force flash fallback
 IMGLIST_PREV_W=VARCHAR|images list preview width
 IMGLIST_PREV_H=VARCHAR|images list preview height
+CHAPTEREND_PHOTOSTORAGE=true

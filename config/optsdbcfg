@@ -6,3 +6,4 @@ password = VARCHAR|MySQL user password|PASSWD
 db = VARCHAR|MySQL database name
 character = VARCHAR|MySQL encoding
 prefix = VARCHAR|Prefix
+CHAPTEREND_MYSQL=true

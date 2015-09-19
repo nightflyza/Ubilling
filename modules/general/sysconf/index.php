@@ -32,14 +32,32 @@ $catvcell=web_ConfigEditorShow('catvini', $catvconf, $catvopts);
 $ymcells=  web_ConfigEditorShow('ymaps', $ymconf, $ymopts);
 $photocells= web_ConfigEditorShow('photostorage', $photoconf, $photoopts);
 
-$header_ub=wf_tag('h2',false).__('Ubilling setup').  wf_tag('h2',true);
-$cells=  wf_TableCell($header_ub.$dbcell.$billcell.$catvcell.$ymcells.$photocells,'','','valign="top"');
-$header_alter=wf_tag('h2',false).__('Custom features').  wf_tag('h2',true);
-$cells.=wf_TableCell($header_alter.$altercell,'','','valign="top"');
-$rows=  wf_TableRow($cells);
+$grid=  wf_tag('script');
+$grid.='$(function() {
+    $( "#tabs" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
+    $( "#tabs li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+  });';
+$grid.=wf_tag('script',true);
+$grid.=wf_tag('style');
+$grid.='
+  .ui-tabs-vertical { width: auto;}
+  .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; }
+  .ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
+  .ui-tabs-vertical .ui-tabs-nav li a { display:block; }
+  .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; }
+  .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: left; width: 40em;}
+  ';
 
-$grid= wf_TableBody($rows, '100%', 0, '');
+$grid.=wf_tag('style',true);
 
+
+$grid.=wf_tag('div', false, '', 'id="tabs"');
+$grid.=wf_tag('ul');
+$grid.=web_ConfigGetTabsControls($dbopts). web_ConfigGetTabsControls($billopts).web_ConfigGetTabsControls($alteropts);
+$grid.=web_ConfigGetTabsControls($catvopts).web_ConfigGetTabsControls($ymopts). web_ConfigGetTabsControls($photoopts);
+$grid.=wf_tag('ul',true);
+$grid.=  $dbcell.$billcell.$catvcell.$ymcells.$photocells.$altercell;
+$grid.=wf_tag('div',true).  wf_CleanDiv();
    
 
 show_window(__('System settings'),$grid);  

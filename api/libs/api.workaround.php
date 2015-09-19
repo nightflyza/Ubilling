@@ -3052,58 +3052,85 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
     if ((!empty($configdata)) AND ( !empty($optsdata))) {
         foreach ($optsdata as $option => $handlers) {
 
-            if (isset($configdata[$option])) {
-                $currentdata = $configdata[$option];
-                $handlers = explode('|', $handlers);
-                $type = $handlers[0];
+            if ((isset($configdata[$option])) OR ( ispos($option, 'CHAPTER'))) {
+                if (!ispos($option, 'CHAPTER')) {
+                    $currentdata = $configdata[$option];
+                    $handlers = explode('|', $handlers);
+                    $type = $handlers[0];
 
-                //option description
-                if (!empty($handlers[1])) {
-                    $description = trim($handlers[1]);
-                    $description = __($description);
-                } else {
-                    $description = $option;
-                }
+                    //option description
+                    if (!empty($handlers[1])) {
+                        $description = trim($handlers[1]);
+                        $description = __($description);
+                    } else {
+                        $description = $option;
+                    }
 
-                //option controls
-                if ($type == 'TRIGGER') {
-                    $control = web_bool_led($configdata[$option]);
-                }
+                    //option controls
+                    if ($type == 'TRIGGER') {
+                        $control = web_bool_led($configdata[$option]);
+                    }
 
-                if ($type == 'VARCHAR') {
-                    if ($hide_passwords) {
-                        if (isset($handlers[2])) {
-                            if ($handlers[2] == 'PASSWD') {
-                                $datavalue = __('Hidden');
+                    if ($type == 'VARCHAR') {
+                        if ($hide_passwords) {
+                            if (isset($handlers[2])) {
+                                if ($handlers[2] == 'PASSWD') {
+                                    $datavalue = __('Hidden');
+                                } else {
+                                    $datavalue = $configdata[$option];
+                                }
                             } else {
                                 $datavalue = $configdata[$option];
                             }
                         } else {
                             $datavalue = $configdata[$option];
                         }
-                    } else {
-                        $datavalue = $configdata[$option];
+                        $control = wf_tag('input', false, '', 'type="text" name="' . $prefix . '_' . $option . '" size="25" value="' . $datavalue . '" readonly') . "\n";
                     }
-                    $control = wf_tag('input', false, '', 'type="text" name="' . $prefix . '_' . $option . '" size="25" value="' . $datavalue . '" readonly') . "\n";
-                }
 
 
-                $result.=$control . ' ' . $description . '<br>';
-            } else {
-                if (ispos($option, 'CHAPTER')) {
-                    $result.=wf_tag('h3', false);
-                    $result.=__($handlers);
-                    $result.=wf_tag('h3', true);
+                    $result.=$control . ' ' . $description . wf_tag('br');
                 } else {
-                    $result.=wf_tag('font', false, '', 'color="#FF0000"');
-                    $result.=__('You missed an important option') . ': ' . $option . '';
-                    $result.=wf_tag('font', true);
-                    $result.=wf_tag('br');
+                    if (ispos($option, 'CHAPTER_')) {
+                        $result.=wf_tag('div', false, '', 'id="tabs-' . $option . '"');
+                        $result.=wf_tag('h2', false);
+                        $result.=__($handlers);
+                        $result.=wf_tag('h2', true);
+                    }
+
+                    if (ispos($option, 'CHAPTEREND_')) {
+                        $result.=wf_tag('div', true) . "\n";
+                    }
                 }
+            } else {
+                $result.=wf_tag('font', false, '', 'color="#FF0000"');
+                $result.=__('You missed an important option') . ': ' . $option . '';
+                $result.=wf_tag('font', true);
+                $result.=wf_tag('br');
             }
         }
     }
 
+    return ($result);
+}
+
+/**
+ * Returns tabs list to display in sysconf module
+ * 
+ * @param array $optsdata
+ * @return string
+ */
+function web_ConfigGetTabsControls($optsdata) {
+    $result = '';
+    if (!empty($optsdata)) {
+        foreach ($optsdata as $io => $each) {
+            if (!empty($io)) {
+                if (ispos($io, 'CHAPTER_')) {
+                    $result.=wf_tag('li') . wf_tag('a', false, '', 'href="#tabs-' . $io . '"') . __($each) . wf_tag('a', true) . wf_tag('li', true);
+                }
+            }
+        }
+    }
     return ($result);
 }
 
@@ -4223,6 +4250,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
 
 
 
