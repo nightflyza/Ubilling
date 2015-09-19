@@ -118,9 +118,10 @@ class Reminder {
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                     $number = $this->AllPhones[$eachLogin]['mobile'];
                     if (!empty($number)) {
-                        $number = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
-                        $number = $this->AltCfg['REMINDER_PREFIX'] . $number;
                         $number = trim($number);
+                        $number = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
+                        $number = vf($number, 3);
+                        $number = $this->AltCfg['REMINDER_PREFIX'] . $number;
                         $template = $this->AltCfg['REMINDER_TEMPLATE'];
                         if (!empty($template)) {
                             $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);

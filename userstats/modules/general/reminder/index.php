@@ -147,7 +147,7 @@ if ($us_config['REMINDER_ENABLED']) {
     $mobile = zbs_UserGetMobile($user_login);
 
     if (!empty($mobile)) {
-        $m_text = __("Your current mobile number is") . ": " . $prefix. $mobile;
+        $m_text = __("Your current mobile number is") . ": " . $mobile;
     } else {
         $m_text = __("Your have empty mobile") . "." . " ";
         if ($us_config['REMINDER_CHANGE_NUMBER']) {
@@ -195,7 +195,9 @@ if ($us_config['REMINDER_ENABLED']) {
                 $set_mobile = str_replace($prefix, '', $set_mobile);
                 $set_mobile = mysql_real_escape_string($set_mobile);
                 $set_mobile = vf($set_mobile, 3);
+                $set_mobile=trim($set_mobile);
                 if (strlen($set_mobile) == $length_number) {
+                    $set_mobile=$prefix.$set_mobile;
                     zbs_UserChangeMobile($user_login, $set_mobile);
                     rcms_redirect("?module=reminder");
                 } else {
