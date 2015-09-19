@@ -2141,5 +2141,7 @@ $lang['def']['No available workers for reserve creation']='Немає існую
 $lang['def']['minus']='мінус';
 $lang['def']['already reserved']='вже заброньованих';
 $lang['def']['maximum']='максимум';
+$lang['def']['Deprecated']='Застаріло';
+$lang['def']['Miscellaneous']='Різне';
 
 ?>

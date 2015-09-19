@@ -101,15 +101,12 @@ OPENPAYZ_CASHTYPEID=VARCHAR|OpenPayz cash type ID
 OPENPAYZ_REALID=TRIGGER|Fetch every paymentID from database
 CHAPTEREND_OPAYZ=true
 
-CHAPTER_CATV=CaTV
-CATV_ENABLED=TRIGGER|CaTV accounting support
-CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
-CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
+CHAPTER_CATV=UKV
 UKV_ENABLED=TRIGGER|UKV functionality enabled
 UKV_BS_PAYID=VARCHAR|UKV bank statements cash type OschadBank
 UKV_BSPB_PAYID=VARCHAR|UKV bank statements cash type PrivatBank
 UKV_MONTH_DEBTLIMIT=VARCHAR|UKV month debt limit
-CHAPTEREND_CATV=true
+CHAPTEREND_UKV=true
 
 
 CHAPTER_LINKING=User linking
@@ -262,3 +259,9 @@ REMINDER_DAYS_THRESHOLD=VARCHAR|Days to remind before end of service
 REMINDER_PREFIX=VARCHAR|Prefix for mobile phones
 REMINDER_TEMPLATE=VARCHAR|Text for sms reminder
 CHAPTEREND_BEH=true
+
+CHAPTER_OTHС=Miscellaneous
+CATV_ENABLED=TRIGGER|CaTV accounting support
+CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
+CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
+CHAPTEREND_OTHС=true

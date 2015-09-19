@@ -3103,9 +3103,11 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                     }
                 }
             } else {
-                $result.=wf_tag('font', false, '', 'color="#FF0000"');
+                $result.=wf_tag('div',false,'','style="vertical-align: top; margin:5px; padding:5px; "');
+                $result.=wf_tag('font', false, '', 'style="color: #FF0000;  font-size:100%"');
                 $result.=__('You missed an important option') . ': ' . $option . '';
                 $result.=wf_tag('font', true);
+                $result.=wf_tag('div',true);
                 $result.=wf_tag('br');
             }
         }
