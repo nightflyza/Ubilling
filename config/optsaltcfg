@@ -159,7 +159,11 @@ UBCACHE_STORAGE=VARCHAR|System cache storage
 SALARY_ENABLED=TRIGGER|Salary accounting
 ONUAUTO_CONFIG=TRIGGER|Set pvid on onu copper port
 PER_CITY_ACTION=TRIGGER|Make per city action (user search, payments search, debtors search)
-
+REMINDER_ENABLED=TRIGGER|SMS reminder enabled?
+REMINDER_TAGID=INTEGER|TAGID of Virtual service for sms reminder
+REMINDER_DAYS_THRESHOLD=INTEGER|Days to remind before end of service
+REMINDER_PREFIX=VARCHAR|Prefix for mobile phones
+REMINDER_TEMPLATE=VARCHAR|Text for sms reminder
 
 CHAPTER_SNMP=SNMP options
 SNMPWALK_PATH=VARCHAR|Path to snmpwalk with needed options

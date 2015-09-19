@@ -277,5 +277,6 @@ $lang['def']['Your have empty mobile'] = 'У вас не заполнен ном
 $lang['def']['Please enter it below'] = 'Пожалуйста введите номер телефона в форму ниже';
 $lang['def']['Change mobile'] = 'Изменить номер мобильного';
 $lang['def']['You can\'t enable payments sms reminder'] = 'Вы не можете использовать смс напоминания об оплате';
+$lang['def']['You will be reminded within'] = 'Напоминание будет за';
 
 ?>

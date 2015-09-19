@@ -541,7 +541,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      * send sms queue to remind users about payments
                      */
                     if ($_GET['action'] == 'reminder') {
-                        
+                        $sms = new Reminder();
+                        $sms->RemindUser();
+                        die('OK:SEND REMIND SMS');
                     }
                     ////
                     //// End of actions

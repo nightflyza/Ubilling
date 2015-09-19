@@ -5,6 +5,9 @@ class Reminder {
     protected $AllLogin = array();
     protected $AltCfg = array();
     protected $AllPhones = array();
+    protected $sms = '';
+    protected $money = '';  
+    protected $AllTemplates = array();
 
     /*
      * it's a magic
@@ -12,6 +15,7 @@ class Reminder {
 
     public function __construct() {
         $this->loadAlter();
+        $this->LoadAllTemplates();
         $this->LoadRemindLogin();
         $this->LoadPhones();
         $this->sms = new UbillingSMS();
@@ -43,12 +47,21 @@ class Reminder {
     /*
      * load alter.ini config     
      */
-
     protected function loadAlter() {
         global $ubillingConfig;
         $this->AltCfg = $ubillingConfig->getAlter();
+    }   
+    
+    /**
+     * Load all users templates
+     */
+    protected function LoadAllTemplates() {        
+        $this->AllTemplates=zb_TemplateGetAllUserData();
     }
 
+    /**
+     * Make queue for sms send
+     */
     public function RemindUser() {
         $LiveDays = $this->AltCfg['REMINDER_DAYS_THRESHOLD'];
         $LiveTime = $LiveDays * 24 * 60 * 60;
@@ -58,7 +71,8 @@ class Reminder {
             if ($this->money->getOnlineLeftCount($EachLogin, true) <= $LiveDays) {
                 if (!file_exists('exports/REMINDER.' . $EachLogin)) {
                     $number = $this->AllPhones[$EachLogin]['mobile'];
-                    $message = 'Shanovnij abonent, bud` laska popovnit` raxunok dlya podal`shogo vykorystannya poslugy internet';
+                    $template = $this->AltCfg['REMINDER_TEMPLATE'];
+                    $message=zb_TemplateReplace($EachLogin, $template, $this->AllTemplates);
                     $this->sms->sendSMS($number, $message, false);
                     file_put_contents('exports/REMINDER.' . $EachLogin, '');
                 }

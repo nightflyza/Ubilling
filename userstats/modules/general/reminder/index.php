@@ -158,7 +158,7 @@ if ($us_config['REMINDER_ENABLED']) {
         show_window('', zbs_ShowChangeMobileForm());
     }
     if ($check) {
-        $license_text = __("You already enabled payments sms reminder") . ". ";
+        $license_text = __("You already enabled payments sms reminder") . ". " . __("You will be reminded within" . " " . $days . "days. ");
         $license_text.= __("Disable payments sms reminder") . "?";
         show_window(__("Reminder"), $license_text);
         show_window("", zbs_ShowDisableReminderForm());
