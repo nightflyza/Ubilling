@@ -868,6 +868,10 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $penalty = explode(':', $paynote);
         $paynote = __('Penalty') . ' ' . $penalty[1] . ' ' . __('days');
     }
+    
+    if (ispos($paynote, 'REMINDER')) {
+        $paynote = __('SMS reminder activation');
+    }
 
     return ($paynote);
 }

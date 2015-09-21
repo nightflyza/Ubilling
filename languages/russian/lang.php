@@ -613,15 +613,6 @@ $lang['def']['*.pem certificate'] = 'Сертификат в <i>*.pem</i> фор
 $lang['def']['Next fields were filled in incorrectly:'] = 'Следующие поля были заполнены неправильно:';
 $lang['def']['Error while moving file from tmp-directory'] = 'Ошибка при перемещении файла из временной папки';
 $lang['def']['Error while loading file to server. Code:'] = 'Ошибка при загрузке файла на сервер. Код:';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 ?>

@@ -2128,7 +2128,12 @@ $lang['def']['already reserved']='уже забронированных';
 $lang['def']['maximum']='максимум';
 $lang['def']['Deprecated']='Устарело';
 $lang['def']['Miscellaneous']='Разное';
-$lang['def']['']='';
+$lang['def']['SMS reminder activation']='Включение SMS информирования';
+$lang['def']['SMS reminder enabled'] = 'СМС напоминания включены?';
+$lang['def']['TAGID of Virtual service for sms reminder'] = 'TAGID виртуального сервиса для СМС напоминаний';
+$lang['def']['Days to remind before end of service'] = 'За сколько дней до отключения услуги напомнить';
+$lang['def']['Prefix for mobile phones'] = 'Префикс для мобильных телефонов';
+$lang['def']['Text for sms reminder'] = 'Текст для СМС напоминаний';
 $lang['def']['']='';
 $lang['def']['']='';
 

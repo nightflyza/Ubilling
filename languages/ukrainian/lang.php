@@ -601,4 +601,7 @@ $lang['def']['Very Good'] = 'Дуже добре';
 $lang['def']['Average'] = 'Посередньо';
 $lang['def']['Fair'] = 'Не дуже';
 $lang['def']['Poor'] = 'Дурня';
+
+
+
 ?>

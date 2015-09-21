@@ -2143,5 +2143,11 @@ $lang['def']['already reserved']='вже заброньованих';
 $lang['def']['maximum']='максимум';
 $lang['def']['Deprecated']='Застаріло';
 $lang['def']['Miscellaneous']='Різне';
+$lang['def']['SMS reminder activation']='Ввімкнення SMS інформування';
+$lang['def']['SMS reminder enabled'] = 'СМС нагадування ввімкнені?';
+$lang['def']['TAGID of Virtual service for sms reminder'] = 'TAGID віртуального сервісу для СМС нагадуваннь';
+$lang['def']['Days to remind before end of service'] = 'За скільки днів до відключення послуги нагадувати';
+$lang['def']['Prefix for mobile phones'] = 'Префікс для стільникового';
+$lang['def']['Text for sms reminder'] = 'Текст для СМС нагадуваннь';
 
 ?>

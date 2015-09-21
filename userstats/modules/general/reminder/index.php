@@ -11,25 +11,49 @@ if ($us_config['REMINDER_ENABLED']) {
     if (isset($us_config['REMINDER_PRICE'])) {
         $rr_price = $us_config['REMINDER_PRICE'];
     } else {
-        die('REMINDER_PRICE not set');
+        die('REMINDER:PRICE not set');
     }
+
     if (isset($us_config['REMINDER_TAGID'])) {
         $tagid = $us_config['REMINDER_TAGID'];
     } else {
-        die('REMINDER TAGID not set');
+        die('REMINDER:TAGID not set');
     }
+
     if (isset($us_config['REMINDER_NUMBER_LENGTH'])) {
         $length_number = $us_config['REMINDER_NUMBER_LENGTH'];
     } else {
         die('REMINDER:NUMBER_LENGTH not set');
     }
+
     if (isset($us_config['REMINDER_DAYS_THRESHOLD'])) {
         $days = $us_config['REMINDER_DAYS_THRESHOLD'];
     } else {
         die('REMINDER:DAYS not set');
-    }    
+    }
+
     if (isset($us_config['REMINDER_PREFIX'])) {
         $prefix = $us_config['REMINDER_PREFIX'];
+    } else {
+        die('REMINDER:PREFIX not set');
+    }
+
+    if (isset($us_config['REMINDER_FEE'])) {
+        $forceFee = $us_config['REMINDER_FEE'];
+    } else {
+        die('REMINDER:FEE not set');
+    }
+    if (isset($us_config['REMINDER_CASHTYPEID'])) {
+        $rr_cashtypeid = $us_config['REMINDER_CASHTYPEID'];
+    } else {
+        die('REMINDER:CASHTYPEID not set');
+    }
+
+
+    if (isset($us_config['REMINDER_TURNOFF'])) {
+        $turnOffable = $us_config['REMINDER_TURNOFF'];
+    } else {
+        die('REMINDER:TURNOFF not set');
     }
 
     $us_currency = $us_config['currency'];
@@ -131,7 +155,7 @@ if ($us_config['REMINDER_ENABLED']) {
         global $us_config;
         $inputs = la_tag('center');
         $inputs.= la_HiddenInput('changemobile', 'true');
-        $inputs.= @$us_config['REMINDER_PREFIX'].' ';
+        $inputs.= @$us_config['REMINDER_PREFIX'] . ' ';
         $inputs.= la_TextInput('mobile');
         $inputs.= la_delimiter();
         $inputs.= la_Submit(__('Change mobile'));
@@ -160,10 +184,14 @@ if ($us_config['REMINDER_ENABLED']) {
         show_window('', zbs_ShowChangeMobileForm());
     }
     if ($check) {
-        $license_text = __("You already enabled payments sms reminder") . ". " . __('You will be reminded within') . ' '  . $days.' ' . __('days').' '.__('until the expiration of the service').'. ';
-        $license_text.= __("Disable payments sms reminder") . "?";
+        $license_text = __("You already enabled payments sms reminder") . ". " . __('You will be reminded within') . ' ' . $days . ' ' . __('days') . ' ' . __('until the expiration of the service') . '. ';
+        if ($turnOffable) {
+            $license_text.= __("Disable payments sms reminder") . "?";
+        }
         show_window(__("Reminder"), $license_text);
-        show_window("", zbs_ShowDisableReminderForm());
+        if ($turnOffable) {
+            show_window("", zbs_ShowDisableReminderForm());
+        }
     } else {
         if (!empty($mobile)) {
             $license_text = __("You can enable payments sms reminder") . '. ';
@@ -175,16 +203,22 @@ if ($us_config['REMINDER_ENABLED']) {
             show_window(__("Reminder"), $license_text);
         }
     }
-    
+
     //catch POST's parametrs
-    
+
     if (isset($_POST['setremind'])) {
         stg_add_user_tag($user_login, $tagid);
+        if ($forceFee) {
+            zbs_PaymentLog($user_login, '-' . $rr_price, $rr_cashtypeid, "REMINDER");
+            billing_addcash($user_login, '-' . $rr_price);
+        }
         rcms_redirect("?module=reminder");
     }
     if (isset($_POST['deleteremind'])) {
-        stg_del_user_tagid($user_login, $tagid);
-        rcms_redirect("?module=reminder");
+        if ($turnOffable) {
+            stg_del_user_tagid($user_login, $tagid);
+            rcms_redirect("?module=reminder");
+        }
     }
     if (isset($_POST['changemobile'])) {
         if (isset($_POST['mobile'])) {
@@ -195,17 +229,15 @@ if ($us_config['REMINDER_ENABLED']) {
                 $set_mobile = str_replace($prefix, '', $set_mobile);
                 $set_mobile = mysql_real_escape_string($set_mobile);
                 $set_mobile = vf($set_mobile, 3);
-                $set_mobile=trim($set_mobile);
+                $set_mobile = trim($set_mobile);
                 if (strlen($set_mobile) == $length_number) {
-                    $set_mobile=$prefix.$set_mobile;
+                    $set_mobile = $prefix . $set_mobile;
                     zbs_UserChangeMobile($user_login, $set_mobile);
                     rcms_redirect("?module=reminder");
                 } else {
                     show_window(__('Sorry'), __('Wrong mobile format'));
                 }
             }
-
-            
         }
     }
 } else {
