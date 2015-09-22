@@ -170,7 +170,7 @@ if (cfr('TASKMANSEARCH')) {
                 //address duplicate search
                 if (wf_CheckPost(array('cb_duplicateaddress'))) {
                    // $appendQuery.=" AND `address` IN (SELECT `address` FROM `taskman` WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' GROUP BY `address` HAVING COUNT(*) > 1) ";
-                    $baseQuery="SELECT st1.*, st2.`address` FROM `taskman`  st1  INNER JOIN taskman st2 ON (st1.address = st2.address)  GROUP BY st1.id HAVING COUNT(*) > 1 AND `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "'";
+                    $baseQuery="SELECT st1.*, st2.`address` FROM `taskman`  st1  INNER JOIN taskman st2 ON (st2.`startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' AND st1.address = st2.address)  GROUP BY st1.id HAVING COUNT(*) > 1 AND `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
                 }
 
                 //late jobs

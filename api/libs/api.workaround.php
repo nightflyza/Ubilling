@@ -4432,3 +4432,43 @@ function zb_CutEnd($string) {
     $string = substr($string, 0, -1);
     return ($string);
 }
+
+/**
+ * Returns memcached usage stats
+ * 
+ * @global object $ubillingConfig
+ * @return string
+ */
+function web_MemCachedRenderStats() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $result = '';
+    $memcachedHost = 'localhost';
+    $memcachedPort = 11211;
+    if (isset($altCfg['MEMCACHED_SERVER'])) {
+        $memcachedHost = $altCfg['MEMCACHED_SERVER'];
+    }
+    if (isset($altCfg['MEMCACHED_PORT'])) {
+        $memcachedPort = $altCfg['MEMCACHED_PORT'];
+    }
+    $memcached = new Memcached();
+    $memcached->addServer($memcachedHost, $memcachedPort);
+    $rawStats = $memcached->getStats();
+
+    $cells = wf_TableCell(__('Parameter'));
+    $cells.= wf_TableCell(__('Value'));
+    $rows = wf_TableRow($cells, 'row1');
+    
+    if (!empty($rawStats)) {
+        if (isset($rawStats[$memcachedHost.':'.$memcachedPort])) {
+        foreach ($rawStats[$memcachedHost.':'.$memcachedPort] as $io => $each) {
+            $cells = wf_TableCell($io);
+            $cells.= wf_TableCell($each);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+        }
+    }
+
+    $result = wf_TableBody($rows, '100%', 0, '');
+    return ($result);
+}
