@@ -56,6 +56,7 @@ class Reminder {
         $this->LoadPhones();
         $this->sms = new UbillingSMS();
         $this->money = new FundsFlow();
+        $this->money->runDataLoders();
     }
 
     /**
@@ -114,7 +115,7 @@ class Reminder {
 
         foreach ($this->AllLogin as $userLoginData) {
             $eachLogin = $userLoginData['login'];
-            if ($this->money->getOnlineLeftCount($eachLogin, true) <= $LiveDays) {
+            if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays) {
                 if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                     $number = $this->AllPhones[$eachLogin]['mobile'];
                     if (!empty($number)) {

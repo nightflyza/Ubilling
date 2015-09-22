@@ -4,6 +4,8 @@ class FundsFlow {
 
     protected $alterConf = array();
     protected $billingConf = array();
+    protected $allUserData = array();
+    protected $allTariffsData = array();
 
     public function __construct() {
         $this->loadConfigs();
@@ -21,9 +23,35 @@ class FundsFlow {
     }
 
     /**
+     * Loads all of available users data as login=>array
+     * 
+     * @return void
+     */
+    protected function loadAllUserData() {
+        $query = "SELECT * from `users`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUserData[$each['login']] = $each;
+            }
+        }
+    }
+
+    protected function loadAllTariffsData() {
+        $query = "SELECT * from `tariffs`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTariffsData[$each['name']] = $each;
+            }
+        }
+    }
+
+    /**
      * Returns array of fees by some login with parsing it from stargazer log
      * 
      * @param string $login existing user login
+     * 
      * @return array
      */
     public function getFees($login) {
@@ -74,6 +102,7 @@ class FundsFlow {
      * Returns array of all payments by some user 
      * 
      * @param string $login existing user login
+     * 
      * @return array
      */
     public function getPayments($login) {
@@ -275,6 +304,7 @@ class FundsFlow {
      * 
      * @param array  $fundsflow standard fundsflow array
      * @param string $date
+     * 
      * @return array
      */
     public function filterByDate($fundsflow, $date) {
@@ -298,6 +328,7 @@ class FundsFlow {
      * @param array $corpUsers
      * @param array $allUserTariffs
      * @param array $allUserContracts
+     * 
      * @return string
      */
     public function renderCorpsFlows($num, $fundsFlows, $corpsData, $corpUsers, $allUserContracts, $allUsersCash, $allUserTariffs, $allTariffPrices) {
@@ -372,6 +403,7 @@ class FundsFlow {
      * 
      * @param string $year
      * @param string $month
+     * 
      * @return string
      */
     public function renderCorpsFlowsHeaders($year, $month) {
@@ -439,9 +471,8 @@ class FundsFlow {
      * Returns user online left days
      * 
      * @param string $login existing users login
-     * @param double $userBalance current users balance
-     * @param string $userTariff users tariff
      * @param bool   $rawdays show only days count
+     * 
      * @return string
      */
     public function getOnlineLeftCount($login, $rawDays = false) {
@@ -527,6 +558,94 @@ class FundsFlow {
                 $balanceExpire = $daysOnLine;
             }
         }
+        return ($balanceExpire);
+    }
+
+    /**
+     * Loads all user and tariffs data
+     * 
+     * @return void
+     */
+    public function runDataLoders() {
+        $this->loadAllUserData();
+        $this->loadAllTariffsData();
+    }
+
+    /**
+     * Returns user online left days without additional DB queries
+     * runDataLoaders() must be run once, before usage
+     * 
+     * @param string $login existing users login
+     * 
+     * @return int
+     */
+    public function getOnlineLeftCountFast($login) {
+        if (isset($this->allUserData[$login])) {
+            $userData = $this->allUserData[$login];
+        }
+
+        $daysOnLine = 0;
+        $balanceExpire = '';
+        if (!empty($userData)) {
+            $userTariff = $userData['Tariff'];
+            $userBalanceRaw = $userData['Cash'];
+            $userBalance = $userData['Cash'];
+            if (isset($this->allTariffsData[$userTariff])) {
+                $tariffData = $this->allTariffsData[$userTariff];
+                $tariffFee = $tariffData['Fee'];
+                $tariffPeriod = isset($tariffData['period']) ? $tariffData['period'] : 'month';
+
+                if (isset($this->alterConf['SPREAD_FEE'])) {
+                    if ($this->alterConf['SPREAD_FEE']) {
+                        $spreadFee = true;
+                    } else {
+                        $spreadFee = false;
+                    }
+                } else {
+                    $spreadFee = false;
+                }
+
+
+                if ($userBalance >= 0) {
+                    if ($tariffFee > 0) {
+                        //spread fee
+                        if ($spreadFee) {
+                            if ($tariffPeriod == 'month') {
+                                //monthly period
+                                while ($userBalance >= 0) {
+                                    $daysOnLine++;
+                                    $dayFee = $tariffFee / date('t', time() + ($daysOnLine * 24 * 60 * 60));
+                                    $userBalance = $userBalance - $dayFee;
+                                }
+                            } else {
+                                //daily period
+                                while ($userBalance >= 0) {
+                                    $daysOnLine++;
+                                    $userBalance = $userBalance - $tariffFee;
+                                }
+                            }
+                        } else {
+                            //non spread fee
+                            if ($tariffPeriod == 'month') {
+                                //monthly non spread fee
+                                while ($userBalance >= 0) {
+                                    $daysOnLine = $daysOnLine + date('t', time() + ($daysOnLine * 24 * 60 * 60)) - date('d', time() + ($daysOnLine * 24 * 60 * 60)) + 1;
+                                    $userBalance = $userBalance - $tariffFee;
+                                }
+                            } else {
+                                //daily non spread fee
+                                while ($userBalance >= 0) {
+                                    $daysOnLine++;
+                                    $userBalance = $userBalance - $tariffFee;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $balanceExpire = $daysOnLine;
         return ($balanceExpire);
     }
 

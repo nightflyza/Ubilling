@@ -1579,3 +1579,7 @@ CREATE TABLE IF NOT EXISTS `wh_reserve` (
   KEY `storageid` (`storageid`),
   KEY `itemtypeid` (`itemtypeid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `taskman` ADD INDEX(`address`); 
+
+ALTER TABLE `taskman` ADD INDEX(`startdate`); 

@@ -182,17 +182,41 @@ class GlobalSearch {
             if (isset($this->fields['mac'])) {
                 $this->rawData = $this->rawData + $this->transformArray(zb_UserGetAllIpMACs(), __('MAC address'), 'mac');
             }
-            
-            
+
+
             if (isset($this->fields['login'])) {
-                $allLogins= zb_UserGetAllStargazerLogins();
-                $this->rawData = $this->rawData+ $this->transformArray($allLogins, __('Login'), 'login');
+                $allLogins = zb_UserGetAllStargazerLogins();
+                $this->rawData = $this->rawData + $this->transformArray($allLogins, __('Login'), 'login');
             }
-            
+
             if (isset($this->fields['seal'])) {
-                $conDet=new ConnectionDetails();
-                $allSeals=$conDet->getAllSeals();
-                $this->rawData=  $this->rawData+$this->transformArray($allSeals, __('Cable seal'), 'seal');
+                $conDet = new ConnectionDetails();
+                $allSeals = $conDet->getAllSeals();
+                $this->rawData = $this->rawData + $this->transformArray($allSeals, __('Cable seal'), 'seal');
+            }
+
+            if (isset($this->fields['paymentid'])) {
+                if ($this->alterConf['OPENPAYZ_REALID']) {
+                    $allPayIds_q = "SELECT * from `op_customers`";
+                    $allPayIds = simple_queryall($allPayIds_q);
+                    $tmpArrPayids = array();
+                    if (!empty($allPayIds)) {
+                        foreach ($allPayIds as $io => $each) {
+                            $tmpArrPayids[$each['realid']] = $each['virtualid'];
+                        }
+                    }
+                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
+                } else {
+                    $allPayIds_q = "SELECT `login`,`IP` from `users`";
+                    $allPayIds = simple_queryall($allPayIds_q);
+                    $tmpArrPayids = array();
+                    if (!empty($allPayIds)) {
+                        foreach ($allPayIds as $io => $each) {
+                            $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                        }
+                    }
+                    $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');
+                }
             }
 
 
@@ -223,7 +247,7 @@ class GlobalSearch {
                 }
             }
         }
-        
+
         if (!$forceCache) {
             //output not needed 
             die(json_encode($data));
