@@ -2149,5 +2149,11 @@ $lang['def']['TAGID of Virtual service for sms reminder'] = 'TAGID віртуа�
 $lang['def']['Days to remind before end of service'] = 'За скільки днів до відключення послуги нагадувати';
 $lang['def']['Prefix for mobile phones'] = 'Префікс для стільникового';
 $lang['def']['Text for sms reminder'] = 'Текст для СМС нагадуваннь';
+$lang['def']['Friendship']='Друзі';
+$lang['def']['Available friends']='Наявні друзі';
+$lang['def']['right to control friendship relations']='Право керувати дружніми відносинами';
+$lang['def']['Is friendship subsystem enabled']='Роботу з дружніми користувачами увімкнено';
+$lang['def']['Percent accured on the balance by friendly user payments']='Відсоток, що нараховується за платежі друзів';
+$lang['def']['Payment type ID for friendship payments']='Тип оплат для дружніх оплат';
 
 ?>

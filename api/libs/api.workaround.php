@@ -868,9 +868,14 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $penalty = explode(':', $paynote);
         $paynote = __('Penalty') . ' ' . $penalty[1] . ' ' . __('days');
     }
-    
+
     if (ispos($paynote, 'REMINDER')) {
         $paynote = __('SMS reminder activation');
+    }
+    
+    if (ispos($paynote, 'FRIENDSHIP')) {
+        $friendship = explode(':', $paynote);
+        $paynote = __('Friendship') . ' ' . $friendship[1];
     }
 
     return ($paynote);
@@ -3107,11 +3112,11 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                     }
                 }
             } else {
-                $result.=wf_tag('div',false,'','style="vertical-align: top; margin:5px; padding:5px; "');
+                $result.=wf_tag('div', false, '', 'style="vertical-align: top; margin:5px; padding:5px; "');
                 $result.=wf_tag('font', false, '', 'style="color: #FF0000;  font-size:100%"');
                 $result.=__('You missed an important option') . ': ' . $option . '';
                 $result.=wf_tag('font', true);
-                $result.=wf_tag('div',true);
+                $result.=wf_tag('div', true);
                 $result.=wf_tag('br');
             }
         }
@@ -4264,6 +4269,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
         
 //Initializations
     $xml_array = array();
@@ -4458,17 +4464,31 @@ function web_MemCachedRenderStats() {
     $cells = wf_TableCell(__('Parameter'));
     $cells.= wf_TableCell(__('Value'));
     $rows = wf_TableRow($cells, 'row1');
-    
+
     if (!empty($rawStats)) {
-        if (isset($rawStats[$memcachedHost.':'.$memcachedPort])) {
-        foreach ($rawStats[$memcachedHost.':'.$memcachedPort] as $io => $each) {
-            $cells = wf_TableCell($io);
-            $cells.= wf_TableCell($each);
-            $rows.= wf_TableRow($cells, 'row3');
-        }
+        if (isset($rawStats[$memcachedHost . ':' . $memcachedPort])) {
+            foreach ($rawStats[$memcachedHost . ':' . $memcachedPort] as $io => $each) {
+                $cells = wf_TableCell($io);
+                $cells.= wf_TableCell($each);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
         }
     }
 
     $result = wf_TableBody($rows, '100%', 0, '');
+    return ($result);
+}
+
+/**
+ * Calculates 
+ * 
+ * @param float $sum
+ * @param float $percent
+ * 
+ * @return float
+ */
+function zb_Percent($sum, $percent) {
+    // и не надо ржать, я реально не могу запомнить чего куда делить и умножать
+    $result = $percent / 100 * $sum;
     return ($result);
 }

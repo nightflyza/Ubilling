@@ -1580,6 +1580,14 @@ CREATE TABLE IF NOT EXISTS `wh_reserve` (
   KEY `itemtypeid` (`itemtypeid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+CREATE TABLE IF NOT EXISTS `friendship` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `friend` varchar(255) NOT NULL,
+  `parent` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `friend` (`friend`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
 ALTER TABLE `taskman` ADD INDEX(`address`); 
 
 ALTER TABLE `taskman` ADD INDEX(`startdate`); 

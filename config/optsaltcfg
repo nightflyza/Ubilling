@@ -258,10 +258,14 @@ REMINDER_TAGID=VARCHAR|TAGID of Virtual service for sms reminder
 REMINDER_DAYS_THRESHOLD=VARCHAR|Days to remind before end of service
 REMINDER_PREFIX=VARCHAR|Prefix for mobile phones
 REMINDER_TEMPLATE=VARCHAR|Text for sms reminder
+FRIENDSHIP_ENABLED=TRIGGER|Is friendship subsystem enabled
+FRIENDSHIP_PERCENT=VARCHAR|Percent accured on the balance by friendly user payments
+FRIENDSHIP_CASHTYPEID=VARCHAR|Payment type ID for friendship payments
 CHAPTEREND_BEH=true
 
-CHAPTER_OTHС=Miscellaneous
+
+CHAPTER_OTHD=Miscellaneous
 CATV_ENABLED=TRIGGER|CaTV accounting support
 CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
 CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
-CHAPTEREND_OTHС=true
+CHAPTEREND_OTHD=true
