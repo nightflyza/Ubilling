@@ -182,6 +182,7 @@ if (cfr('TASKMAN')) {
                     rcms_redirect($salary::URL_TS . $_GET['edittask']);
                 }
             }
+                      
 
 
             //display task change form

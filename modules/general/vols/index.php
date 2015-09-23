@@ -114,7 +114,7 @@
             
             // Init code:
             $this->html .= '
-<script src="http://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->config['LANG'] . '"  type="text/javascript"></script>
+<script src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $this->config['LANG'] . '"  type="text/javascript"></script>
 <script type="text/javascript">
     ymaps.ready(init);
     function init () {

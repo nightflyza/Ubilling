@@ -2140,6 +2140,8 @@ $lang['def']['right to control friendship relations']='Право управля
 $lang['def']['Is friendship subsystem enabled']='Работа с дружественными пользователями включена';
 $lang['def']['Percent accured on the balance by friendly user payments']='Процент начисляемый с платежей дружественных пользователей';
 $lang['def']['Payment type ID for friendship payments']='Тип платежей для дружественных платежей';
+$lang['def']['Additionally spent materials']='Дополнительно использованы материалы';
+
 
 
 ?>

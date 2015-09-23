@@ -2264,6 +2264,68 @@ class Warehouse {
         return ($result);
     }
 
+    /**
+     * Returns additionally spent materials list for some task
+     * 
+     * @param int $taskid
+     * 
+     * @return string
+     */
+    public function taskMaterialsReport($taskid) {
+        $taskid = vf($taskid, 3);
+        $result = '';
+        $tmpArr = array();
+        $sum = 0;
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
+                    $tmpArr[$each['id']] = $each;
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $cells = wf_TableCell(__('Date'));
+                $cells.= wf_TableCell(__('Warehouse storage'));
+                $cells.= wf_TableCell(__('Warehouse item type'));
+                $cells.= wf_TableCell(__('Count'));
+                $cells.= wf_TableCell(__('Price'));
+                $cells.= wf_TableCell(__('Sum'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($tmpArr as $io => $each) {
+                    @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                    $cells = wf_TableCell($each['date']);
+                    $cells.= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                    $cells.= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
+                    $cells.= wf_TableCell($each['count'] . ' ' . $itemUnit);
+                    $cells.= wf_TableCell($each['price']);
+                    $cells.= wf_TableCell($each['price'] * $each['count']);
+                    if (cfr('WAREHOUSEOUT')) {
+                        $actLinks = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'], wf_img_sized('skins/whoutcoming_icon.png', '', '12') . ' ' . __('Show'));
+                    } else {
+                        $actLinks = '';
+                    }
+                    $cells.= wf_TableCell($actLinks);
+                    $rows.= wf_TableRow($cells, 'row3');
+                    $sum = $sum + ($each['price'] * $each['count']);
+                }
+                $cells = wf_TableCell(__('Total'));
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell($sum);
+                $cells.= wf_TableCell('');
+                $rows.= wf_TableRow($cells, 'row2');
+
+                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+            }
+        }
+        return ($result);
+    }
+
 }
 
 ?>

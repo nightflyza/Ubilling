@@ -2155,5 +2155,6 @@ $lang['def']['right to control friendship relations']='Право керуват
 $lang['def']['Is friendship subsystem enabled']='Роботу з дружніми користувачами увімкнено';
 $lang['def']['Percent accured on the balance by friendly user payments']='Відсоток, що нараховується за платежі друзів';
 $lang['def']['Payment type ID for friendship payments']='Тип оплат для дружніх оплат';
+$lang['def']['Additionally spent materials']='Додатково використані матеріали';
 
 ?>

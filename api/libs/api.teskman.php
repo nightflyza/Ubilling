@@ -1427,6 +1427,15 @@ function ts_TaskChangeForm($taskid) {
                 show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
             }
         }
+        
+        //warehouse integration
+        if ($altercfg['WAREHOUSE_ENABLED']) {
+            if (cfr('WAREHOUSE')) {
+                $warehouse=new Warehouse();
+                show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($_GET['edittask']));
+            }
+            
+        }
 
 
         //if task undone
