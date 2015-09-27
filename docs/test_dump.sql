@@ -1591,3 +1591,6 @@ CREATE TABLE IF NOT EXISTS `friendship` (
 ALTER TABLE `taskman` ADD INDEX(`address`); 
 
 ALTER TABLE `taskman` ADD INDEX(`startdate`); 
+
+-- 0.7.2 update
+ALTER TABLE `switch_login` CHANGE `snmptemplate` `snmptemplate` VARCHAR(32) DEFAULT NULL;

@@ -103,6 +103,11 @@ if (cfr('SWITCHES')) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
 
+        if($altCfg['SWITCH_AUTOCONFIG']) {
+            if(cfr(SwitchLogin::MODULE)) {
+                $swlinks.=wf_Link(SwitchLogin::MODULE_URL, wf_img('skins/sw_login.png') . ' ' . __('Switch login'), false, 'ubButton');
+            }
+        }
         //parental switch deletion alternate controls
         if (isset($_GET['switchdelete'])) {
             $swlinks = '';

@@ -24,4 +24,11 @@ $lang['def']['right to use action per city module'] = 'Право викорис
 $lang['def']['right to watch payments per city'] = 'Право дивитися платежі по місту';
 $lang['def']['right to search users per city'] = 'Право шукати користувачів по місту';
 $lang['def']['right to watch debtors report per city'] = 'Право дивитися боржників по місту';
+$lang['def']['Switches login data'] = 'Дані для керування свічами';
+$lang['def']['Method'] = 'Спосію';
+$lang['def']['enable function'] = 'Функція enable';
+$lang['def']['Available switches login data'] = 'Доступні дані для керування свічами';
+$lang['def']['Connection method'] = 'Спосіб з\'єднання';
+$lang['def']['enable propmpt for cisco,bdcom,etc (should be same as password)'] = 'Рядок enable для свічів Cisco, BDCOM, etc (повинен бути таким самим як пароль)';
+$lang['def']['Vlan pool'] = 'Пул vlan-ів';
 ?>

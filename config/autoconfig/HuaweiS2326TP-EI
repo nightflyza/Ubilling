@@ -1,0 +1,19 @@
+[define]
+TYPE = "simple"
+DEVICE = "Huawei s2326tp"
+CHECK = ".1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.11"
+
+[CREATE]
+OID = ".1.3.6.1.4.1.2011.5.25.42.3.1.1.1.1.12.VLAN"
+TYPE = "i"
+VALUE = "4"
+
+[CHANGE]
+OID = ".1.3.6.1.2.1.17.7.1.4.5.1.1.PORT"
+TYPE = "u"
+VALUE = "VLAN"
+
+[SAVE]
+OID = ".1.3.6.1.4.1.2011.6.10.1.3.6.0"
+TYPE = "i"
+VALUE = "1"

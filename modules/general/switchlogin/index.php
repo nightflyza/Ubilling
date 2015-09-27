@@ -1,80 +1,67 @@
 <?php
-$altcfg=  rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
-if ($altcfg['SWITCH_AUTOCONFIG']) { 
-    if(cfr('SWITCHLOGIN')) {
-	if (wf_CheckGet(array('ajax'))) {
-            if ($_GET['ajax']=='snmp') {
-                $cell = wf_HiddenInput('add', 'true');
-		$cell.= wf_HiddenInput('swmethod', 'SNMP');
-		$cell.= sw_selector() . ' ' . __('SwitchID') . ' ' . wf_tag('br');
-		$cell.= wf_TextInput('rwcommunity', __('SNMP community'));
-		$cell.= wf_Tag('br');
-		$cell.= wf_Submit(__('Save'));
-		$Row = wf_TableRow($cell, 'row1');
-		$form=  wf_Form("", 'POST', $Row, 'glamour');
-		$result=$form;
-		die($result);
+
+$altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+if ($altcfg['SWITCH_AUTOCONFIG']) {
+    $swLogin = new SwitchLogin();
+    if (cfr(SwitchLogin::MODULE)) {
+        if (wf_CheckGet(array('ajax'))) {
+            if ($_GET['ajax'] == 'snmp') {
+                $swLogin->SwLoginAddSnmpForm();
             }
-            if ($_GET['ajax']=='connect') {
-		$conn = array ('SSH'=>__('SSH'), 'TELNET'=>__('TELNET'));
-		$enable = array ( 'no'=>__('no'), 'yes'=> __('yes'));
-		$cell = wf_HiddenInput('add', 'true');
-		$cell.= sw_selector() . ' ' . __('SwitchID') . ' ' . wf_tag('br');
-		$cell.= wf_Selector('swmethod',$conn,__('Connection method'),'SSH',true);
-		$cell.= wf_Tag('br');
-		$cell.= wf_TextInput('swlogin', __('Login'));
-		$cell.= wf_TextInput('swpassword', __('Password'));
-		$cell.= wf_Tag('br');
-		$cell.= wf_Selector('enable', $enable, __('enable propmpt for cisco,bdcom,etc (should be same as password)'), '',true);
-		$cell.= wf_Submit(__('Save'));
-		$cell.= wf_delimiter();
-		$Row = wf_TableRow($cell, 'row1');
-		$form=  wf_Form("", 'POST', $cell, 'glamour');
-		$result=$form;
-		die($result);
+            if ($_GET['ajax'] == 'connect') {
+                $swLogin->SwLoginAddConnForm();
             }
-	}
-	if(!isset($_GET['edit'])) {
-            $megaForm=  wf_AjaxLoader();
-            $megaForm.= wf_AjaxLink('?module=switchlogin&ajax=snmp', 'SNMP', 'megaContainer1', false, 'ubButton');
-            $megaForm.= wf_AjaxLink('?module=switchlogin&ajax=connect', 'Connect', 'megaContainer1', false, 'ubButton');
-            $megaForm.= wf_tag('div', false, '', 'id="megaContainer1"').  wf_tag('div',true);
-            show_window('Switches',$megaForm);
-	}
-        $new = new AutoConfigurator;
-        $show = $new->ShowSwAllLogin();
-	if(isset($_POST['add'])) {
-            if(isset($_POST['swmodel'])) { $model=$_POST['swmodel']; } else { show_error('No switch selected'); }
-            if(isset($_POST['swlogin'])) { $login=trim(vf($_POST['swlogin'])); } else { $login=''; }
-            if(isset($_POST['swpassword'])) { $pass=trim(vf($_POST['swpassword'])); } else { $pass=''; }
-            if(isset($_POST['swmethod'])) { $method=$_POST['swmethod']; } else { show_error('No method selected'); }
-            if(isset($_POST['rwcommunity'])) { $community=trim(vf($_POST['rwcommunity'])); } else { $community=''; }
-            if(isset($_POST['enable'])) { $enable=$_POST['enable']; } else { $enable=''; }
-            swlogin_add($model,$login,$pass,$method,$community,$enable);
-            rcms_redirect("?module=switchlogin");
-	}
-	if(isset($_GET['delete'])) {
-            swlogin_delete($_GET['delete']);
-            rcms_redirect("?module=switchlogin");
-	}
-	if(isset($_GET['edit'])) {
-            swlogin_edit_form($_GET['edit']);
-	}
-	if(isset($_POST['edit'])) {
-            $id=$_GET['edit'];
-            simple_update_field('switch_login', 'swid', $_POST['swmodel'], "WHERE `id`='".$id."'");
-            simple_update_field('switch_login', 'swlogin', trim(vf($_POST['editswlogin'])), "WHERE `id`='".$id."'");
-            simple_update_field('switch_login', 'swpass', trim(vf($_POST['editswpassword'])), "WHERE `id`='".$id."'");
-            simple_update_field('switch_login', 'method', $_POST['editconn'], "WHERE `id`='".$id."'");
-            simple_update_field('switch_login', 'community', trim(vf($_POST['editrwcommunity'])), "WHERE `id`='".$id."'");
-            simple_update_field('switch_login', 'enable', $_POST['editenable'], "WHERE `id`='".$id."'");
-            log_register('MODIFY Vlan Terminator ['.$id.']');
-            rcms_redirect("?module=switchlogin");
-	}
+            if ($_GET['ajax'] == 'snmp_edit') {
+                $swLogin->SwLoginEditSnmpForm($_GET['edit']);
+            }
+            if ($_GET['ajax'] == 'connect_edit') {
+                $swLogin->SwLoginEditConnForm($_GET['edit']);
+            }
+        }
+        if (!isset($_GET['edit'])) {
+            $megaForm = wf_AjaxLoader();
+            $megaForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=snmp', 'SNMP', 'megaContainer1', false, 'ubButton');
+            $megaForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&ajax=connect', 'Connect', 'megaContainer1', false, 'ubButton');
+            $megaForm.= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
+            show_window(__("Switches login data"), $megaForm);
+            $swLogin->ShowSwAllLogin();
+        } else {
+            $megaEditForm = wf_AjaxLoader();
+            $megaEditForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=snmp_edit', 'SNMP', 'megaContainer1', false, 'ubButton');
+            $megaEditForm.= wf_AjaxLink(SwitchLogin::MODULE_URL . '&edit=' . $_GET['edit'] . '&ajax=connect_edit', 'Connect', 'megaContainer1', false, 'ubButton');
+            $megaEditForm.= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
+            show_warning(__("Are you sure that you want to change switch login data") . "?");            
+            show_window(__("Switches login data"), $megaEditForm);
+            $back = wf_Link(SwitchLogin::MODULE_URL, __('Back'), false, 'ubButton');
+            show_window('', $back);
+        }
+        
+        if (isset($_POST['add'])) {
+            $params = array('swmodel', 'SwMethod');
+            if (wf_CheckPost($params)) {
+                $model = $_POST['swmodel'];
+                $snmpTemplate = $_POST['snmptemplate'];
+                $login = $_POST['SwLogin'];
+                $pass = $_POST['SwPass'];
+                $method = $_POST['SwMethod'];
+                $community = $_POST['RwCommunity'];
+                $enable = $_POST['Enable'];
+                $swLogin->SwLoginAdd($model, $login, $pass, $method, $community, $enable, $snmpTemplate);
+                rcms_redirect(SwitchLogin::MODULE_URL);
+            }
+        }
+        if (isset($_GET['delete'])) {
+            $swLogin->SwLoginDelete($_GET['delete']);
+            rcms_redirect(SwitchLogin::MODULE_URL);
+        }
+        if (isset($_POST['edit'])) {
+            $swLogin->SwLoginEditQuery($_POST['swmodel'], $_POST['EditSwLogin'], $_POST['EditSwPass'], $_POST['EditConn'], $_POST['EditRwCommunity'], $_POST['EditEnable'], $_POST['snmptemplate'], $_GET['edit']);
+            rcms_redirect(SwitchLogin::MODULE_URL);
+        }
     } else {
-	show_error('You cant control this module');
+        show_error('You cant control this module');
     }
 } else {
-show_error("SWITCH_AUTOCONFIG is disabled");
+    show_error("SWITCH_AUTOCONFIG is disabled");
 }
 ?>

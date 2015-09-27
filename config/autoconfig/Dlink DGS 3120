@@ -1,0 +1,14 @@
+[define]
+TYPE = "simple"
+DEVICE = "Dlink DGS 3120"
+CHECK = ".1.3.6.1.4.1.171.12.16.1.1.1.7"
+
+[CREATE]
+OID = ".1.3.6.1.4.1.171.12.16.1.1.1.7.VLAN"
+TYPE = "i"
+VALUE = "4"
+
+[SAVE]
+OID = ".1.3.6.1.4.1.171.12.1.2.6.0"
+TYPE = "i"
+VALUE = "5"
