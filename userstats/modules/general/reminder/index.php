@@ -195,7 +195,10 @@ if ($us_config['REMINDER_ENABLED']) {
     } else {
         if (!empty($mobile)) {
             $license_text = __("You can enable payments sms reminder") . '. ';
-            $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . ".";
+            $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . "." . la_tag('br');
+            if ($forceFee) {
+                $license_text.= __("Attention") . "," . " " . __("activation cost is") . " " . $rr_price . " " . $us_currency . " " . __("at once") . ".";
+            }
             show_window(__("Reminder"), $license_text);
             show_window('', zbs_ShowEnableReminderForm());
         } else {
@@ -207,10 +210,12 @@ if ($us_config['REMINDER_ENABLED']) {
     //catch POST's parametrs
 
     if (isset($_POST['setremind'])) {
-        stg_add_user_tag($user_login, $tagid);
-        if ($forceFee) {
-            zbs_PaymentLog($user_login, '-' . $rr_price, $rr_cashtypeid, "REMINDER");
-            billing_addcash($user_login, '-' . $rr_price);
+        if (isset($_POST['agree'])) {
+            stg_add_user_tag($user_login, $tagid);
+            if ($forceFee) {
+                zbs_PaymentLog($user_login, '-' . $rr_price, $rr_cashtypeid, "REMINDER");
+                billing_addcash($user_login, '-' . $rr_price);
+            }
         }
         rcms_redirect("?module=reminder");
     }

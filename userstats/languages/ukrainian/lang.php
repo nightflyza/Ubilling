@@ -281,6 +281,9 @@ $lang['def']['You can\'t enable payments sms reminder'] = 'Ви не может�
 $lang['def']['You will be reminded within'] = 'Нагадування буде за';
 $lang['def']['until the expiration of the service'] = 'до закінчення строку надання послуги';
 $lang['def']['Wrong mobile format'] = 'Невірний формат стільникового номеру';
+$lang['def']['Attention'] = 'Увага';
+$lang['def']['activation cost is'] = 'активація коштує';
+$lang['def']['at once'] = 'одразу';
 
 
 ?>
