@@ -8,48 +8,56 @@ class PONizer {
      * @var array
      */
     protected $allOnu = array();
+
     /**
      * OLT models data as id=>model data array
      *
      * @var array
      */
     protected $allModelsData = array();
+
     /**
      * All available OLT devices
      *
      * @var array
      */
     protected $allOltDevices = array();
+
     /**
      * OLT devices snmp data as id=>snmp data array
      *
      * @var array
      */
     protected $allOltSnmp = array();
+
     /**
      * Available OLT models as id=>modelname + snmptemplate
      *
      * @var array
      */
     protected $allOltModels = array();
+
     /**
      * Contains available SNMP templates for OLT modelids
      *
      * @var array
      */
     protected $snmpTemplates = array();
+
     /**
      * Contains current ONU signal cache data as mac=>signal
      *
      * @var array
      */
     protected $signalCache = array();
+
     /**
      * System alter.ini config stored as key=>value
      *
      * @var array
      */
     protected $altCfg = array();
+
     /**
      * SNMPHelper object instance
      *
@@ -698,9 +706,9 @@ class PONizer {
      * @return string
      */
     public function ajaxOnuData() {
-        $allRealnames=  zb_UserGetAllRealnames();
-        $allAddress=  zb_AddressGetFulladdresslistCached();
-        
+        $allRealnames = zb_UserGetAllRealnames();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
             $adc = true;
@@ -719,12 +727,12 @@ class PONizer {
                     $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
                     $userLink = str_replace('"', '', $userLink);
                     $userLink = trim($userLink);
-                    @$userRealName=$allRealnames[$each['login']];
-                    $userRealName=str_replace('"', '', $userRealName);
+                    @$userRealName = $allRealnames[$each['login']];
+                    $userRealName = str_replace('"', '', $userRealName);
                     $userRealName = trim($userRealName);
                 } else {
                     $userLink = '';
-                    $userRealName='';
+                    $userRealName = '';
                 }
                 //checking adcomments availability
                 if ($adc) {
@@ -740,11 +748,21 @@ class PONizer {
                 $actLinks = trim($actLinks);
                 $actLinks.= ' ' . $indicatorIcon;
 
+
+                //coloring signal
                 if (isset($this->signalCache[$each['mac']])) {
                     $signal = $this->signalCache[$each['mac']];
+                    if (($signal > 0) OR ( $signal < -25)) {
+                        $sigColor = '#ab0000';
+                    } else {
+                        $sigColor = '#005502';
+                    }
                 } else {
                     $signal = __('No');
+                    $sigColor = '#000000';
                 }
+
+
 
                 $result.='
                     [
@@ -753,7 +771,7 @@ class PONizer {
                     "' . @$this->allOltDevices[$each['oltid']] . '",
                     "' . $each['ip'] . '",
                     "' . $each['mac'] . '",
-                    "' . $signal . '",
+                    "<font color=' . $sigColor . '>' . $signal . '</font>",
                     "' . $userLink . '",
                     "' . $userRealName . '",
                     "' . $actLinks . '"
