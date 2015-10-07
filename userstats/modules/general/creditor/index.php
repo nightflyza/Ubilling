@@ -14,7 +14,7 @@ $us_config = zbs_LoadConfig();
 function zbs_VServicesGetPrice($login) {
     $us_config = zbs_LoadConfig();
     $price = 0;
-    if (isset($us_configp['SC_VSCREDIT'])) {
+    if (isset($us_config['SC_VSCREDIT'])) {
         if ($us_config['SC_VSCREDIT']) {
             $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
             $alltags = simple_queryall($tag_query);

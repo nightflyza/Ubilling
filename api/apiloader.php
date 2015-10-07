@@ -80,6 +80,7 @@ include('api/libs/api.warehouse.php');
 include('api/libs/api.reminder.php');
 include('api/libs/api.friendship.php');
 include('api/libs/api.migration.php');
+include('api/libs/api.percity.php');
 
 /*
  * Initial class creation

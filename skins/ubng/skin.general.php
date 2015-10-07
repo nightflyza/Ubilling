@@ -14,6 +14,7 @@
         <script src="modules/jsc/glmenuCollapser.js" type='text/javascript'></script> 
 	<script src="modules/jsc/hideshow.js" type="text/javascript"></script>
         <script src="modules/jsc/winman.js" type="text/javascript"></script>
+        <script src="modules/jsc/visualEffects.js" type="text/javascript"></script>
 </head>
 
 

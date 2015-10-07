@@ -1718,3 +1718,9 @@ function web_ProfileVlanControlForm($login) {
         }
     }
 }
+
+function vlan_delete_host($login) {
+        $query = "DELETE FROM `vlanhosts` WHERE `login`='" . $login . "'";
+        nr_query($query);
+        log_register("DELETE VLanHost (" . $login . ")");
+    }
