@@ -20,7 +20,7 @@ function web_PaymentsCityShow($query) {
 
     $total = 0;
     $totalPaycount = 0;
-    
+
     $cells = wf_TableCell(__('IDENC'));
     $cells.= wf_TableCell(__('Date'));
     $cells.= wf_TableCell(__('Cash'));
@@ -46,7 +46,7 @@ function web_PaymentsCityShow($query) {
             if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
                 $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
-            
+
             $cells = wf_TableCell(zb_NumEncode($eachpayment['id']));
             $cells.= wf_TableCell($eachpayment['date']);
             $cells.= wf_TableCell($eachpayment['summ']);
@@ -93,7 +93,7 @@ function web_PerCityShow($query) {
     $allonu = GetAllOnu();
     $total = 0;
     $totalPaycount = 0;
-    
+
     $cells = wf_TableCell(__('Full address'));
     $cells.= wf_TableCell(__('Real Name'));
     $cells.= wf_TableCell(__('Cash'));
@@ -106,11 +106,11 @@ function web_PerCityShow($query) {
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($alldebtors)) {
-        foreach ($alldebtors as $eachdebtor) {            
+        foreach ($alldebtors as $eachdebtor) {
             if (!empty($alladrs[$eachdebtor['login']])) {
-                $cell= wf_TableCell($alladrs[$eachdebtor['login']]);
+                $cell = wf_TableCell($alladrs[$eachdebtor['login']]);
             } else {
-                $cell=wf_TableCell('');
+                $cell = wf_TableCell('');
             }
             if (!empty($allrealnames[$eachdebtor['login']])) {
                 if (!empty($allphonedata[$eachdebtor['login']])) {
@@ -222,7 +222,10 @@ function web_UserPaymentsCityForm() {
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
         $cells.= wf_HiddenInput("city_payments", "true");
-        $cells.= wf_TableCell(web_CitySelector());        
+        if (isset($_GET['monthsel'])) {
+            $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
+        }
+        $cells.= wf_TableCell(web_CitySelector());
         $cells.= wf_TableCell(wf_Submit(__("Find")));
         $form.= wf_TableRow($cells, 'row3');
     } else {
@@ -232,7 +235,10 @@ function web_UserPaymentsCityForm() {
 
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("city_payments", "true");        
+        $cells.= wf_HiddenInput("city_payments", "true");
+        if (isset($_GET['monthsel'])) {
+            $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
+        }
         $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
         $cells.= wf_TableCell(wf_Submit(__('Find')));
         $form.= wf_TableRow($cells, 'row1');
@@ -383,7 +389,13 @@ function web_MonthSelector($value = '') {
     $mcells = '';
     $allmonth = months_array_localized();
     foreach ($allmonth as $io => $each) {
-        $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=$io", $each, false, 'ubButton'));
+        if (isset($_GET['citysel'])) {
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
+        } elseif (isset($_GET['citysearch'])) {
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
+        } else {
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io, $each, false, 'ubButton'));
+        }
     }
     return ($mcells);
 }
@@ -476,4 +488,3 @@ function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, 
     print($report_name . $result);
     die();
 }
-

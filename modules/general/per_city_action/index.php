@@ -9,7 +9,7 @@ if (cfr('CITYACTION')) {
     if (cfr('REPORTCITYDEBTORS')) {
         if (isset($_GET['debtors'])) {
             if ($_GET['debtors']) {
-                show_window(__('Payments'), DebtorsCitySelector());                
+                show_window(__('Payments'), DebtorsCitySelector());
 
                 if (isset($_GET['citysearch'])) {
                     $cityQuery = $_GET['citysearch'];
@@ -60,14 +60,14 @@ if (cfr('CITYACTION')) {
         if (isset($_GET['city_payments'])) {
             if ($_GET['city_payments']) {
                 $month_name = date("n") - 1;
-                show_window(__('Change month'), web_MonthSelector());                
+                show_window(__('Change month'), web_MonthSelector());
                 show_window(__('Payments'), web_UserPaymentsCityForm());
                 if (isset($_GET['citysearch'])) {
                     if (!isset($_GET['monthsel'])) {
                         $cur_month = date("m");
                         rcms_redirect("?module=per_city_action&city_payments=true&citysearch=" . $_GET['citysearch'] . "&monthsel=" . $cur_month);
                     } else {
-                        $cur_month = $_GET['monthsel'];                        
+                        $cur_month = $_GET['monthsel'];
                     }
                     $year = date("o");
                     $cur_date = $year . '-' . $cur_month;
