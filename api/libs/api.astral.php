@@ -289,6 +289,13 @@ function wf_Submit($value) {
     return ($result);
 }
 
+function wf_SubmitClassed($value, $class='', $name='', $caption='') {
+    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '">';
+    $result.= $caption;
+    $result.= '</button>';
+    return ($result);
+}
+
 /**
  * Return Trigger select web form input
  *
@@ -344,6 +351,45 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false) {
         $newline = '';
     }
     $result = '<select name="' . $name . '" id="' . $inputid . '">';
+    if (!empty($params)) {
+        foreach ($params as $value => $eachparam) {
+            $sel_flag = '';
+            if ($selected != '') {
+                if ($selected == $value) {
+                    $sel_flag = 'SELECTED';
+                }
+            }
+            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+        }
+    }
+
+    $result.='</select>' . "\n";
+    if ($label != '') {
+        $result.='<label for="' . $inputid . '">' . __($label) . '</label>';
+    }
+    $result.=$newline . "\n";
+    return ($result);
+}
+
+/**
+ * Return select Web From element 
+ * 
+ * @param string $name
+ * @param string $params
+ * @param string $label
+ * @param string $selected
+ * @param bool $br
+ * @param string $class
+ * @return string
+ */
+function wf_SelectorClassed($name, $params, $label, $selected = '', $br = false, $class='') {
+    $inputid = wf_InputId();
+    if ($br) {
+        $newline = '<br>';
+    } else {
+        $newline = '';
+    }
+    $result = '<select name="' . $name . '" id="' . $inputid . '" class="' . $class . '">';
     if (!empty($params)) {
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';

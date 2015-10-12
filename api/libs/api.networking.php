@@ -526,51 +526,49 @@ function handle_dhcp_rebuild_option82($netid,$confname) {
 
 
 function handle_dhcp_rebuild_option82_vpu($netid,$confname) {
-	$query="SELECT * from `nethosts` WHERE `netid`='".$netid."'";
-	if (!empty($confname)) {
-		$confpath='multinet/'.$confname;
-		$allhosts=simple_queryall($query);
-		$result='';
-		if (!empty ($allhosts)) {
-			foreach ($allhosts as $io=>$eachhost) {
-				$login=UserGetLoginByIP($eachhost['ip']);
-				$netid=GetNetidByIp($eachhost['ip']);
-				$remote=GetTermRemoteByNetid($netid);
-				$vlan=UserGetVlan($login);
-				$dhcphostname='m'.  str_replace('.', 'x', $eachhost['ip']);
-				$customTemplate=  file_get_contents(CONFIG_PATH."dhcp/option82_vpu.template");
-					if(!empty ($vlan)) {
-						if (empty($customTemplate)) {
-							$customTemplate='
+    $query="SELECT * from `nethosts` WHERE `netid`='".$netid."'";
+    if (!empty($confname)) {
+	$confpath='multinet/'.$confname;
+	$allhosts=simple_queryall($query);
+	$result='';
+	if (!empty ($allhosts)) {
+            foreach ($allhosts as $io=>$eachhost) {
+		$login=UserGetLoginByIP($eachhost['ip']);
+		$netid=GetNetidByIp($eachhost['ip']);
+		$remote=GetTermRemoteByNetid($netid);
+		$vlan=UserGetVlan($login);
+		$dhcphostname='m'.  str_replace('.', 'x', $eachhost['ip']);
+		$customTemplate=  file_get_contents(CONFIG_PATH."dhcp/option82_vpu.template");
+		if(!empty ($vlan)) {
+                    if (empty($customTemplate)) {
+			$customTemplate='
 class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
-
 pool {
 range {IP};
 allow members of "{HOSTNAME}";
 }
-
 host {HOSTNAME} {
 fixed-address {IP};
 }
 '."\n";
-						}
-						if (isset($vlan)) {
-							$parseTemplate=$customTemplate;
-							$parseTemplate=str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
-							$parseTemplate=str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
-							$parseTemplate=str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-							$parseTemplate=str_ireplace('{REMOTEID}', $remote, $parseTemplate);
-							$result.=$parseTemplate;
-						}
-					}
-				}
-				file_put_contents($confpath, $result);
-				//deb('REWRITED NOT EMPTY:'.$confpath);
-			} else {
-				file_put_contents($confpath, $result);
-				 //deb('REWRITED EMPTY:'.$confpath);
+                    }
+                    if (isset($vlan)) {
+			$parseTemplate=$customTemplate;
+			$parseTemplate=str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+			$parseTemplate=str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
+			$parseTemplate=str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+                        $parseTemplate=str_ireplace('{REMOTEID}', $remote, $parseTemplate);
+			$result.=$parseTemplate;
+                    }
 		}
-	}
+            }
+            file_put_contents($confpath, $result);
+				//deb('REWRITED NOT EMPTY:'.$confpath);
+        } else {
+                file_put_contents($confpath, $result);
+				 //deb('REWRITED EMPTY:'.$confpath);
+        }
+    }
 }
 
 function handle_ppp_rebuild_static($netid) {

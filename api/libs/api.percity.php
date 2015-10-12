@@ -66,10 +66,9 @@ function web_PaymentsCityShow($query) {
             $cells.= wf_TableCell($eachpayment['admin']);
             $rows.= wf_TableRow($cells, 'row4');
 
-            if ($eachpayment['summ'] > 0) {
-                $total = $total + $eachpayment['summ'];
-                $totalPaycount++;
-            }
+
+            $total = $total + $eachpayment['summ'];
+            $totalPaycount++;
         }
     }
 
@@ -194,9 +193,8 @@ function DebtorsCitySelector() {
     if (!isset($_GET['citysel'])) {
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("debtors", "true");
-        $cells.= wf_TableCell(web_CitySelector());
-        $cells.= wf_TableCell(wf_Submit(__("Find")));
+        $cells.= wf_HiddenInput("action", "debtors");
+        $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
         // if city selected
@@ -204,7 +202,7 @@ function DebtorsCitySelector() {
         $cityname = $cityname['cityname'];
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("debtors", "true");
+        $cells.= wf_HiddenInput("action", "debtors");
         $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
         $cells.= wf_TableCell(wf_Submit(__('Find')));
         $form.= wf_TableRow($cells, 'row1');
@@ -221,12 +219,11 @@ function web_UserPaymentsCityForm() {
     if (!isset($_GET['citysel'])) {
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("city_payments", "true");
+        $cells.= wf_HiddenInput("action","city_payments");
         if (isset($_GET['monthsel'])) {
             $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
         }
-        $cells.= wf_TableCell(web_CitySelector());
-        $cells.= wf_TableCell(wf_Submit(__("Find")));
+        $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
         // if city selected
@@ -235,7 +232,7 @@ function web_UserPaymentsCityForm() {
 
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("city_payments", "true");
+        $cells.= wf_HiddenInput("action","city_payments");
         if (isset($_GET['monthsel'])) {
             $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
         }
@@ -255,9 +252,8 @@ function web_UserSearchCityForm() {
     if (!isset($_GET['citysel'])) {
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("usersearch", "true");
-        $cells.= wf_TableCell(web_CitySelector());
-        $cells.= wf_TableCell(wf_Submit(__("Find")));
+        $cells.= wf_HiddenInput("action", "usersearch");
+        $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
         // if city selected
@@ -265,7 +261,7 @@ function web_UserSearchCityForm() {
         $cityname = $cityname['cityname'];
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("usersearch", "true");
+        $cells.= wf_HiddenInput("action", "usersearch");
         $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
         $cells.= wf_TableCell(wf_Submit(__('Find')));
         $form.= wf_TableRow($cells, 'row3');
@@ -296,92 +292,121 @@ function Search_City($query, $searchtype) {
 
 function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-    $report_name = '<h2>' . __("Debtors by city") . '</h2>';
+    $report_name = wf_tag('h2') . __("Debtors by city") . wf_tag('h2', true);
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslist();
     if ($alter_conf['FINREP_TARIFF']) {
         $alltariffs = zb_TariffsGetAllUsers();
     }
     $allphonedata = zb_UserGetAllPhoneData();
-    $allmacs = zb_UserGetAllMACs();
     $allnotes = GetAllNotes();
     $allcomments = GetAllComments();
     $allonu = GetAllOnu();
 
     $i = 0;
-    $result = '
-            <style type="text/css">
-        table.printrm {
-        border-width: 1px;
-        border-spacing: 2px;
-        border-style: outset;
-        border-color: gray;
-        border-collapse: separate;
-        background-color: white;
-        }
-        table.printrm th {
-        border-width: 1px;
-        padding: 1px;
-        border-style: dashed;
-        border-color: gray;
-        background-color: white;
-        -moz-border-radius: ;
-        }
-        table.printrm td {
-        border-width: 1px;
-        padding: 1px;
-        border-style: dashed;
-        border-color: gray;
-        background-color: white;
-        -moz-border-radius: ;
-        }
-        </style>
-
-
-         <table width="100%"  class="printrm">';
-    $result.='<tr>';
-    foreach ($titles as $eachtitle) {
-        $result.='<td>' . __($eachtitle) . '</td>';
-    }
+    $style = '
+        <script src="modules/jsc/sorttable.js" language="javascript"></script>
+        <style type="text/css">
+            table.printrm tbody {
+                counter-reset: sortabletablescope;
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+            table.printrm thead tr::before {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+                text-align: center;
+                vertical-align: middle;
+                content: "ID";
+                display: table-cell;
+            }
+            table.printrm tbody tr::before {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+                text-align: center;
+                vertical-align: middle;
+                content: counter(sortabletablescope);
+                counter-increment: sortabletablescope;
+                display: table-cell;
+            }
+            table.printrm {
+                border-width: 1px;
+                border-spacing: 2px;
+                border-style: outset;
+                border-color: gray;
+                border-collapse: separate;
+                background-color: white;
+            }
+            table.printrm th {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+            table.printrm td {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+        </style>';
+    $cells = '';
     if ($address) {
-        $result.='<td>' . __('Full address') . '</td>';
+        $cells.= wf_TableCell(__('Full address'));
     }
     if ($realnames) {
-        $result.='<td>' . __('Real Name') . '</td>';
+        $cells.= wf_TableCell(__('Real Name'));
+    }
+    foreach ($titles as $eachtitle) {
+        $cells.= wf_TableCell(__($eachtitle));
     }
 
-    $result.='</tr>';
+    $rows = wf_TableRow($cells);
     if (!empty($alldata)) {
         foreach ($alldata as $io => $eachdata) {
             $i++;
-            $result.='<tr>';
-            foreach ($keys as $eachkey) {
-                if (array_key_exists($eachkey, $eachdata)) {
-                    $result.='<td>' . $eachdata[$eachkey] . '</td>';
-                }
-            }
-            if ($alter_conf['FINREP_TARIFF']) {
-                $result.= '<td>' . @$alltariffs[$eachdata['login']] . '</td>';
-            }
-            $result.= '<td>' . @$allphonedata[$eachdata['login']]['mobile'] . '</td>';
-            $result.= '<td>' . $allmacs[$eachdata['login']] . '</td>';
-            $result.='<td>' . @$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']] . '</td>';
-            $result.='<td>' . @$allonu[$eachdata['login']] . '</td>';
-
+            $cells = '';
             if ($address) {
-                $result.='<td>' . @$alladdress[$eachdata['login']] . '</td>';
+                $cells.= wf_TableCell(@$alladdress[$eachdata['login']]);
             }
             if ($realnames) {
-                $result.='<td>' . @$allrealnames[$eachdata['login']] . '</td>';
+                $cells.= wf_TableCell(@$allrealnames[$eachdata['login']] . "&nbsp" . @$allphonedata[$eachdata['login']]['mobile']);
             }
-            $result.='</tr>';
+            if ($alter_conf['FINREP_TARIFF']) {
+                $cells.= wf_TableCell(@$alltariffs[$eachdata['login']]);
+            }
+            $cells.= wf_TableCell(@$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']]);
+            $cells.= wf_TableCell(@$allonu[$eachdata['login']]);
+            foreach ($keys as $eachkey) {
+                if (array_key_exists($eachkey, $eachdata)) {
+                    $cells.= wf_TableCell($eachdata[$eachkey]);
+                }
+            }
+            $rows.=wf_TableRow($cells);
         }
     }
-    $result.='</table>';
+
+    $result = wf_TableBody($rows, '100%', '0', 'sortable printrm');
     if ($rowcount) {
-        $result.='<strong>' . __('Total') . ': ' . $i . '</strong>';
+        $result.=wf_tag('strong') . __('Total') . ': ' . $i . wf_tag('strong', true);
     }
-    print($report_name . $result);
+    print($style . $report_name . $result);
     die();
 }
 
@@ -390,11 +415,11 @@ function web_MonthSelector($value = '') {
     $allmonth = months_array_localized();
     foreach ($allmonth as $io => $each) {
         if (isset($_GET['citysel'])) {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
         } elseif (isset($_GET['citysearch'])) {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
         } else {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&city_payments=true&monthsel=" . $io, $each, false, 'ubButton'));
+            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io, $each, false, 'ubButton'));
         }
     }
     return ($mcells);
@@ -402,89 +427,118 @@ function web_MonthSelector($value = '') {
 
 function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-    $report_name = '<h2>' . __("Debtors by city") . '</h2>';
+    $report_name = wf_tag('h2') . __("Debtors by city") . wf_tag('h2', true);
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslist();
     if ($alter_conf['FINREP_TARIFF']) {
         $alltariffs = zb_TariffsGetAllUsers();
     }
     $allphonedata = zb_UserGetAllPhoneData();
-    $allmacs = zb_UserGetAllMACs();
     $allnotes = GetAllNotes();
     $allcomments = GetAllComments();
     $allonu = GetAllOnu();
     $i = 0;
-    $result = '
-            <style type="text/css">
-        table.printrm {
-        border-width: 1px;
-        border-spacing: 2px;
-        border-style: outset;
-        border-color: gray;
-        border-collapse: separate;
-        background-color: white;
-        }
-        table.printrm th {
-        border-width: 1px;
-        padding: 1px;
-        border-style: dashed;
-        border-color: gray;
-        background-color: white;
-        -moz-border-radius: ;
-        }
-        table.printrm td {
-        border-width: 1px;
-        padding: 1px;
-        border-style: dashed;
-        border-color: gray;
-        background-color: white;
-        -moz-border-radius: ;
-        }
-        </style>
-
-
-         <table width="100%"  class="printrm">';
-    $result.='<tr>';
-    foreach ($titles as $eachtitle) {
-        $result.='<td>' . __($eachtitle) . '</td>';
-    }
+    $style = '
+        <script src="modules/jsc/sorttable.js" language="javascript"></script>
+        <style type="text/css">
+            table.printrm tbody {
+                counter-reset: sortabletablescope;
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+            table.printrm thead tr::before {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+                text-align: center;
+                vertical-align: middle;
+                content: "ID";
+                display: table-cell;
+            }
+            table.printrm tbody tr::before {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+                text-align: center;
+                vertical-align: middle;
+                content: counter(sortabletablescope);
+                counter-increment: sortabletablescope;
+                display: table-cell;
+            }
+            table.printrm {
+                border-width: 1px;
+                border-spacing: 2px;
+                border-style: outset;
+                border-color: gray;
+                border-collapse: separate;
+                background-color: white;
+            }
+            table.printrm th {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+            table.printrm td {
+                border-width: 1px;
+                padding: 1px;
+                border-style: dashed;
+                border-color: gray;
+                background-color: white;
+                -moz-border-radius: ;
+            }
+        </style>';
+    $cells = '';
     if ($address) {
-        $result.='<td>' . __('Full address') . '</td>';
+        $cells.=wf_TableCell(__('Full address'));
     }
     if ($realnames) {
-        $result.='<td>' . __('Real Name') . '</td>';
+        $cells.=wf_TableCell(__('Real Name'));
     }
+    foreach ($titles as $eachtitle) {
+        $cells.= wf_TableCell(__($eachtitle));
+    }
+    $rows = wf_TableRow($cells);
 
-    $result.='</tr>';
     if (!empty($alldata)) {
         foreach ($alldata as $io => $eachdata) {
             $i++;
-            $result.='<tr>';
-            foreach ($keys as $eachkey) {
-                if (array_key_exists($eachkey, $eachdata)) {
-                    $result.='<td>' . $eachdata[$eachkey] . '</td>';
-                }
-            }
-            if ($alter_conf['FINREP_TARIFF']) {
-                $result.= '<td>' . @$alltariffs[$eachdata['login']] . '</td>';
-            }
-            $result.= '<td>' . @$allphonedata[$eachdata['login']]['mobile'] . '</td>';
-            $result.= '<td>' . @$allmacs[$eachdata['login']] . '</td>';
-            $result.='<td>' . @$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']] . '</td>';
-            $result.='<td>' . @$allonu[$eachdata['login']] . '</td>';
+            $cells = '';
             if ($address) {
-                $result.='<td>' . @$alladdress[$eachdata['login']] . '</td>';
+                $cells.=wf_TableCell(@$alladdress[$eachdata['login']]);
             }
             if ($realnames) {
-                $result.='<td>' . @$allrealnames[$eachdata['login']] . '</td>';
+                $cells.=wf_TableCell(@$allrealnames[$eachdata['login']] . "&nbsp " . @$allphonedata[$eachdata['login']]['mobile']);
             }
-            $result.='</tr>';
+            if ($alter_conf['FINREP_TARIFF']) {
+                $cells.=wf_TableCell(@$alltariffs[$eachdata['login']]);
+            }
+            $cells.= wf_TableCell(@$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']]);
+            $cells.= wf_TableCell(@$allonu[$eachdata['login']]);
+            foreach ($keys as $eachkey) {
+                if (array_key_exists($eachkey, $eachdata)) {
+                    $cells.=wf_TableCell($eachdata[$eachkey]);
+                }
+            }
+            $rows.=wf_TableRow($cells);
         }
     }
-    $result.='</table>';
+    $result = wf_TableBody($rows, '100%', '0', 'sortable printrm');
     if ($rowcount) {
         $result.='<strong>' . __('Total') . ': ' . $i . '</strong>';
     }
-    print($report_name . $result);
+    print($style . $report_name . $result);
     die();
 }

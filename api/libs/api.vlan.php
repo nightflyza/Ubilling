@@ -30,6 +30,13 @@ class VlanGen {
      */
     protected $AllTerminators = array();
 
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $AltCfg = array();
+
     const MODULE = 'VlanGen';
     const MODULE_URL = '?module=pl_vlangen';
     const DB_TABLE = 'vlanhosts';
@@ -43,6 +50,7 @@ class VlanGen {
         $this->LoadVlanHosts();
         $this->LoadVlanPoolsSelector();
         $this->LoadTerminators();
+        $this->loadAlter();
     }
 
     protected function LoadTerminators() {
@@ -74,6 +82,16 @@ class VlanGen {
                 $this->VlanPoolsSelector[$each['id']] = $each['desc'];
             }
         }
+    }
+
+    /**
+     * load alter.ini config     
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->AltCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -364,16 +382,48 @@ class VlanGen {
         log_register('DELETE VlanPool [' . $VlanPoolID . ']');
     }
 
+    public function ChangeOnOnuForm() {
+        $Inputs = wf_SubmitClassed('true', 'vlanButton', 'ChangeOnuPvid', __('Change pvid on onu port'));
+        $Form = wf_Form("", 'POST', $Inputs);
+        return($Form);
+    }
+
+    /**
+     * For for changing pvid on switch port
+     * 
+     * @return form
+     */
+    public function ChangeOnPortForm() {        
+        $inputs = wf_SubmitClassed('true', 'vlanButton', 'ChangeVlanOnPort', __('Change vlan on switch port'));
+        $form = wf_Form("", 'POST', $inputs);
+        return($form);
+    }
+
     /**
      * Returns form for change\apply vlan on user
      * 
      * @return object
      */
     public function ChangeForm() {
-        $inputs = wf_Selector('VlanPoolSelected', $this->VlanPoolsSelector, __('Vlan Pool ID'), '', false);
+        $inputs = wf_tag('label', false, 'vlanLabel');
+        $inputs.= wf_SelectorClassed('VlanPoolSelected', $this->VlanPoolsSelector, '', '', false, 'vlanSelector');
+        $inputs.= wf_tag('label', true);
         $inputs.= wf_delimiter();
-        $inputs.= wf_Submit(__('Save'));
-        $result = wf_Form("", 'POST', $inputs, 'floatpanels');
+        $inputs.= wf_SubmitClassed('true', 'vlanButton', 'AddVlanHost', __('Change user Vlan'));
+        $inputs.= wf_delimiter(2);
+        $result = wf_Form("", 'POST', $inputs);
+        return($result);
+    }
+
+    /**
+     * Returns form for delete users vlan
+     * 
+     * @return object
+     */
+    public function DeleteForm() {
+        $inputs = wf_SubmitClassed('true', 'vlanButton', 'DeleteVlanHost', __('Delete user Vlan'));
+        $inputs.= wf_delimiter(2);
+        $result = wf_form("", 'POST', $inputs);
         return($result);
     }
 
@@ -403,18 +453,6 @@ class VlanGen {
         simple_update_field(self::POOL_DB_TABLE, 'qinq', $qinq, "WHERE `id`='" . $id . "'");
         simple_update_field(self::POOL_DB_TABLE, 'svlan', $svlan, "WHERE `id`='" . $id . "'");
         log_register('MODIFY VlanPool [' . $id . ']');
-    }
-
-    /**
-     * Returns form for delete users vlan
-     * 
-     * @return object
-     */
-    public function DeleteForm() {
-        $inputs = wf_HiddenInput('DeleteVlanHost', true);
-        $inputs.= wf_Submit(__('Delete'));
-        $result = wf_form("", 'POST', $inputs, 'floatpanels');
-        return($result);
     }
 
     /**
@@ -870,7 +908,7 @@ class SwitchLogin {
         $cell.= wf_Submit(__('Save'));
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $Row, 'glamour');
-        $form.= wf_delimiter();        
+        $form.= wf_delimiter();
         die($form);
     }
 
@@ -925,7 +963,7 @@ class SwitchLogin {
         $Row = wf_TableRow($cell, 'row1');
         $form = wf_Form("", 'POST', $cell, 'glamour');
         $result = $form;
-        $result.=wf_delimiter();       
+        $result.=wf_delimiter();
         die($result);
     }
 
@@ -1420,12 +1458,14 @@ class OnuConfigurator {
      * @var array
      */
     protected $allOnu = array();
+
     /**
      * Contains all OLT's data
      * 
      * @var array
      */
     protected $allOlt = array();
+
     /**
      * Contains all olt models and snmptemplates
      * 
@@ -1720,7 +1760,7 @@ function web_ProfileVlanControlForm($login) {
 }
 
 function vlan_delete_host($login) {
-        $query = "DELETE FROM `vlanhosts` WHERE `login`='" . $login . "'";
-        nr_query($query);
-        log_register("DELETE VLanHost (" . $login . ")");
-    }
+    $query = "DELETE FROM `vlanhosts` WHERE `login`='" . $login . "'";
+    nr_query($query);
+    log_register("DELETE VLanHost (" . $login . ")");
+}
