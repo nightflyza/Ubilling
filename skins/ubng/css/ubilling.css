@@ -122,6 +122,7 @@ table.sortable.id tbody tr::before {
     font-size: 15px;
     padding: 10px 20px 10px 20px;
     text-decoration: none;
+    width: 40%;
 }
 
 .vlanButton:hover {

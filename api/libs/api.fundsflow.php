@@ -649,6 +649,18 @@ class FundsFlow {
         return ($balanceExpire);
     }
 
+    public function makeFreezeMonthFee() {
+        $cost = $this->alterConf['FREEZEMONTH_COST'];
+        $cashType = $this->alterConf['FREEZEMONTH_CASHTYPE'];
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $eachUser) {
+                if ($eachUser['Passive'] == 1) {
+                    zb_CashAdd($eachUser['login'], -1 * $cost, 'add', $cashType, 'FROZEN:' . $cost);
+                }
+            }           
+        }
+    }
+
 }
 
 ?>

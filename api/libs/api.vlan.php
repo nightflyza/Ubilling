@@ -1254,17 +1254,19 @@ class AutoConfigurator {
      */
     protected function CheckTermIP($ip) {
         $data = $this->AllTerminators;
+        $result = '';
         if (!empty($data)) {
             foreach ($data as $each) {
                 if ($each['ip'] == $ip) {
-                    return (true);
+                    $result = true;
                 } else {
-                    return (false);
+                    $result = false;
                 }
             }
         } else {
-            return(false);
+            $result = false;
         }
+        return($result);
     }
 
     /**
@@ -1396,11 +1398,18 @@ class AutoConfigurator {
      * @param integer $vlan
      * @return void
      */
-    protected function CreateVlanLooped($SwitchId, $vlan) {
+    public function CreateVlanLooped($SwitchId, $vlan, $parent = true) {
+        if(!$parent) {
+            if ($this->GetSwitchesData($SwitchId)) {
+                $SwitchesDataParent = $this->GetSwitchesData($SwitchId);                                
+                $ParentIdtmp = $SwitchesDataParent['parentid'];
+                $SwitchId = $ParentIdtmp;
+            }
+        }       
         while (!empty($SwitchId)) {
             $SwitchIp = $this->GetSwUplinkIP($SwitchId);
-            if ($this->CheckTermIP($SwitchIp)) {
-                break;
+            if ($this->CheckTermIP($SwitchIp)) {                
+                break;                
             }
             if ($this->GetSwitchLoginData($SwitchId)) {
                 $SwitchLoginData = $this->GetSwitchLoginData($SwitchId);
@@ -1473,11 +1482,14 @@ class OnuConfigurator {
      */
     protected $allOltModels = array();
 
+    protected $AutoConfig = array();
+    
     public function __construct() {
         $this->loadOnu();
         $this->LoadAllOlt();
         $this->loadOltModels();
         $this->snmp = new SNMPHelper();
+        $this->AutoConfig = new AutoConfigurator;
     }
 
     /**
@@ -1675,6 +1687,7 @@ class OnuConfigurator {
             'value' => '1'
         );
         $result = $this->snmp->set($oltIp, $oltCommunity, $data);
+        $result.= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
         return ($result);
     }
 

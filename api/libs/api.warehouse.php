@@ -321,7 +321,7 @@ class Warehouse {
      * @return void
      */
     protected function loadReserve() {
-        $query = "SELECT * from `wh_reserve`";
+        $query = "SELECT * from `wh_reserve` ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {

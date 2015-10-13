@@ -1,5 +1,4 @@
 <?php
-
 $altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
 if ($altcfg['VLANGEN_SUPPORT']) {
     if (cfr('PLVLANGEN')) {
@@ -8,7 +7,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
             $login = $_GET['username'];
             $cur_vlan = $VlanGen->GetVlan($login);
 
-            if (isset($_POST['DeleteVlanHost'])) {
+            if (isset($_GET['DeleteVlanHost'])) {
                 $VlanGen->DeleteVlanHost($login);
                 $VlanGen->DeleteVlanHostQinQ($login);
                 rcms_redirect(VlanGen::MODULE_URL . "&username=" . $login);
@@ -20,11 +19,14 @@ if ($altcfg['VLANGEN_SUPPORT']) {
             } else {
                 show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
                 show_window('', $VlanGen->ChangeForm());
-                show_window('', $VlanGen->DeleteForm());
-                show_window('', $VlanGen->ChangeOnPortForm());
-                show_window('', $VlanGen->ChangeOnOnuForm());
+                show_window('', wf_JSAlert(VlanGen::MODULE_URL . "&username=" . $login . "&DeleteVlanHost=true", $VlanGen->DeleteForm(), __('Removing this may lead to irreparable results')));
+                if ($altcfg['SWITCH_AUTOCONFIG']) {
+                    show_window('', $VlanGen->ChangeOnPortForm());
+                }
+                if ($altcfg['ONUAUTO_CONFIG']) {
+                    show_window('', $VlanGen->ChangeOnOnuForm());
+                }
 
-//switch configuration start		                                    
                 if (isset($_POST['ChangeVlanOnPort'])) {
                     $obj = new AutoConfigurator;
                     $set = $obj->sw_snmp_control2($cur_vlan, $login);
@@ -32,7 +34,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                         show_success($set);
                     }
                 }
-            
+
                 if (isset($_POST['ChangeOnuPvid'])) {
                     $onuconfig = new OnuConfigurator();
                     $onu_cfg = $onuconfig->ChangeOnuPvid($login, $cur_vlan);

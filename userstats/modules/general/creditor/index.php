@@ -10,7 +10,6 @@ $us_config = zbs_LoadConfig();
  * @param type $login user's login
  * @return price for all virtual services if such exists for user
  */
-
 function zbs_VServicesGetPrice($login) {
     $us_config = zbs_LoadConfig();
     $price = 0;
@@ -19,7 +18,7 @@ function zbs_VServicesGetPrice($login) {
             $tag_query = "SELECT * FROM `tags` WHERE `login` =  '" . $login . "' ";
             $alltags = simple_queryall($tag_query);
             $VS_query = "SELECT * FROM `vservices`";
-            $allVS = simple_queryall($VS_query);            
+            $allVS = simple_queryall($VS_query);
 
             if (!empty($alltags)) {
                 foreach ($alltags as $io => $eachtag) {
@@ -155,7 +154,11 @@ if ($us_config['SC_ENABLED']) {
 
 //welcome message
     $wmess = __('If you wait too long to pay for the service, here you can get credit for') . ' ' . $sc_term . ' ' . __('days. The price of this service is') . ': ' . $sc_price . ' ' . $us_currency . '. ';
-    $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.');
+    if (isset($us_config['SC_VSCREDIT'])) {
+        $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
+    } else {
+        $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . "." . __('Additional services are not subject to credit') . ".";
+    }
     show_window(__('Credits'), $wmess);
 
 //if day is something like that needed

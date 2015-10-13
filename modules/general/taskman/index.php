@@ -182,12 +182,20 @@ if (cfr('TASKMAN')) {
                     rcms_redirect($salary::URL_TS . $_GET['edittask']);
                 }
             }
-                      
+
 
 
             //display task change form
             ts_TaskChangeForm($_GET['edittask']);
 
+            //photostorage integration
+            if ($altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photoStorage = new PhotoStorage('TASKMAN', $_GET['edittask']);
+                $photostorageControl = wf_Link('?module=photostorage&scope=TASKMAN&mode=list&itemid=' . $_GET['edittask'], wf_img('skins/photostorage.png') . ' ' . __('Upload images'), false, 'ubButton');
+                $photostorageControl.=wf_delimiter();
+                $photosList = $photoStorage->renderImagesRaw();
+                show_window(__('Photostorage'), $photostorageControl . $photosList);
+            }
 
             //additional comments 
             if ($altCfg['ADCOMMENTS_ENABLED']) {

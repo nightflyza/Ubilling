@@ -270,28 +270,27 @@ class PONizer {
         //signal index preprocessing
         if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
             foreach ($sigIndex as $devIndex => $eachsig) {
-                    $signalRaw = $eachsig; // signal level
-                    
-                    if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
-                        $signalRaw = 'Offline';
-                    } else {
-                        if ($snmpTemplate['OFFSETMODE'] == 'div') {
-                            if ($snmpTemplate['OFFSET']) {
-                                $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
-                            }
+                $signalRaw = $eachsig; // signal level
+
+                if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
+                    $signalRaw = 'Offline';
+                } else {
+                    if ($snmpTemplate['OFFSETMODE'] == 'div') {
+                        if ($snmpTemplate['OFFSET']) {
+                            $signalRaw = $signalRaw / $snmpTemplate['OFFSET'];
                         }
                     }
-                    $signalRaw=  str_replace('"', '', $signalRaw);
-                    $sigTmp[$devIndex] = $signalRaw;
-                
+                }
+                $signalRaw = str_replace('"', '', $signalRaw);
+                $sigTmp[$devIndex] = $signalRaw;
             }
 
             //mac index preprocessing
             foreach ($macIndex as $devIndex => $eachmac) {
-                    $macRaw = $eachmac; //mac address
-                    $macRaw = str_replace(' ', ':', $macRaw);
-                    $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
+                $macRaw = $eachmac; //mac address
+                $macRaw = str_replace(' ', ':', $macRaw);
+                $macRaw = strtolower($macRaw);
+                $macTmp[$devIndex] = $macRaw;
             }
 
             //storing results
@@ -305,11 +304,11 @@ class PONizer {
                         if ($signal == 'Offline') {
                             $signal = -9000; //over 9000 offline signal level :P
                         }
-                        
+
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
                 }
-                
+
                 $result = serialize($result);
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
             }
@@ -367,7 +366,7 @@ class PONizer {
                                     }
                                 }
                             }
-                            
+
 
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndexTmp = array();
@@ -380,8 +379,8 @@ class PONizer {
                                     $explodeSig = explode('=', $sigIndex);
                                     $naturalIndex = trim($explodeSig[0]);
                                     if (isset($explodeSig[1])) {
-                                    $naturalSig = trim($explodeSig[1]);
-                                    $sigIndexTmp[$naturalIndex] = $naturalSig;
+                                        $naturalSig = trim($explodeSig[1]);
+                                        $sigIndexTmp[$naturalIndex] = $naturalSig;
                                     }
                                 }
                             }
@@ -718,7 +717,7 @@ class PONizer {
 
             $result.= wf_Link('?module=ponizer', __('Back'), false, 'ubButton');
             if (!empty($this->allOnu[$onuId]['login'])) {
-                $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], __('User profile'), false, 'ubButton');
+                $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
             }
             $result.= wf_JSAlertStyled('?module=ponizer&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
@@ -756,8 +755,50 @@ class PONizer {
                     $rawData = file_get_contents($historyKey);
                     $result.=wf_delimiter();
                     $result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
+
+                    //current day signal levels
+                    $todaySignal = '';
+                    $curdate = curdate();
+                    if (!empty($rawData)) {
+                        $todayTmp = explodeRows($rawData);
+                        if (!empty($todayTmp)) {
+                            foreach ($todayTmp as $io => $each) {
+                                if (ispos($each, $curdate)) {
+                                    $todaySignal.=$each . "\n";
+                                }
+                            }
+                        }
+                    }
+                    $result.= __('Today');
                     $result.= wf_tag('div', false, '', '');
-                    $result.= wf_Graph($rawData, '800', '300', false) . wf_tag('div', true);
+                    $result.= wf_Graph($todaySignal, '800', '300', false);
+                    $result.= wf_tag('div', true);
+                    $result.= wf_tag('br');
+
+                    //current month signal levels
+                    $monthSignal = '';
+                    $curmonth = curmonth();
+                    if (!empty($rawData)) {
+                        $monthTmp = explodeRows($rawData);
+                        if (!empty($monthTmp)) {
+                            foreach ($monthTmp as $io => $each) {
+                                if (ispos($each, $curmonth)) {
+                                    $monthSignal.=$each . "\n";
+                                }
+                            }
+                        }
+                    }
+                    $result.= __('Month');
+                    $result.= wf_tag('div', false, '', '');
+                    $result.= wf_Graph($monthSignal, '800', '300', false);
+                    $result.= wf_tag('div', true);
+                    $result.= wf_tag('br');
+
+                    //all time signal history
+                    $result.= __('All time');
+                    $result.= wf_tag('div', false, '', '');
+                    $result.= wf_Graph($rawData, '800', '300', false);
+                    $result.= wf_tag('div', true);
                 }
             }
         }

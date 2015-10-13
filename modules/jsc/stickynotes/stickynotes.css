@@ -1,41 +1,41 @@
 
 .stickynote  { 
-	display: block;
-	padding:20px 20px 35px;
-	margin:30px 35px 20px 20px;
-	width:200px;
-	height:200px;   
-	font:14px sans-serif, cursive; 
-	line-height:1.5;
-	border:0;
-	border-radius:3px;
-	background: -webkit-linear-gradient(#F9EFAF, #F7E98D);
-	background: -moz-linear-gradient(#F9EFAF, #F7E98D);
-	background: -o-linear-gradient(#F9EFAF, #F7E98D);
-	background: -ms-linear-gradient(#F9EFAF, #F7E98D);
-	background: linear-gradient(#F9EFAF, #F7E98D);
-	box-shadow:0 8px 8px rgba(0,0,0,0.1);
-	overflow:hidden;
-	transition:box-shadow 0.5s ease;
-	font-smoothing:subpixel-antialiased;
+    display: block;
+    padding:20px 20px 35px;
+    margin:30px 35px 20px 20px;
+    width:200px;
+    height:200px;   
+    font:14px sans-serif; 
+    line-height:1.5;
+    border:0;
+    border-radius:3px;
+    background: -webkit-linear-gradient(#F9EFAF, #F7E98D);
+    background: -moz-linear-gradient(#F9EFAF, #F7E98D);
+    background: -o-linear-gradient(#F9EFAF, #F7E98D);
+    background: -ms-linear-gradient(#F9EFAF, #F7E98D);
+    background: linear-gradient(#F9EFAF, #F7E98D);
+    box-shadow:0 8px 8px rgba(0,0,0,0.1);
+    overflow:hidden;
+    transition:box-shadow 0.5s ease;
+    font-smoothing:subpixel-antialiased;
 
-        
-        position: absolute;
-        top  : 0;
-        right: 0;
-        float: right;
-        z-index: 9900;
+
+    position: absolute;
+    top  : 0;
+    right: 0;
+    float: right;
+    z-index: 9900;
 }
 
 
 .stickynote:hover {
-  -webkit-box-shadow: 0 35px 20px #777;
-  -moz-box-shadow: 0 35px 20px #777;
-   box-shadow: 0 35px 20px #777;
-  -webkit-transform: rotate(8deg);
-  -moz-transform: rotate(8deg);
-  -o-transform: rotate(8deg);
-  -ms-transform: rotate(8deg);
-  transform: rotate(8deg);
-  z-index: 9999;
+    -webkit-transform: rotate(8deg);
+    -moz-transform: rotate(8deg);
+    -o-transform: rotate(8deg);
+    -ms-transform: rotate(8deg);
+    transform: rotate(8deg);
+    -webkit-box-shadow: 0 20px 20px #777;
+    -moz-box-shadow: 0 20px 20px #777;
+    box-shadow: 0 20px 20px #777;
+    z-index: 9999;
 }

@@ -549,8 +549,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:REMINDER DISABLED');
                         }
                     }
-                    
-                     /*
+
+                    /*
                      * friendship processing
                      */
                     if ($_GET['action'] == 'friendshipdaily') {
@@ -561,6 +561,12 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         } else {
                             die('ERROR:FRIENDSHIP DISABLED');
                         }
+                    }
+                    if ($_GET['action'] == 'freezemonth') {
+                        $money = new FundsFlow();
+                        $money->runDataLoders();
+                        $money->makeFreezeMonthFee();
+                        die('OK:FREEZEMONTH');
                     }
                     ////
                     //// End of actions

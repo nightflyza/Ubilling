@@ -174,7 +174,8 @@ $lang['def']['Previous documents'] = 'Предыдущие документы';
 $lang['def']['No such document'] = 'Нету такого документа';
 $lang['def']['Not existing template'] = 'Нету такого шаблона';
  
-$lang['def']['Also you promise to pay for the current month, in accordance with your service plan. Additional services are not subject to credit.']='Также вы обязываетесь оплатить услуги за текущий месяц в соответствии с вашим тарифным планом. Дополнительные услуги не подлежат кредитованию.';
+$lang['def']['Also you promise to pay for the current month, in accordance with your service plan']='Также вы обязываетесь оплатить услуги за текущий месяц в соответствии с вашим тарифным планом';
+$lang['def']['Additional services are not subject to credit'] = 'Дополнительные услуги не подлежат кредитованию';
 
 $lang['def']['You already used credit feature in current month. Only one usage per month is allowed.']='Вы уже использовали функцию кредитования в текущем месяце. Использование кредита доступно только раз в месяц.';
 $lang['def']['Announcements'] = 'Объявления';
