@@ -2142,6 +2142,9 @@ $lang['def']['Percent accured on the balance by friendly user payments']='Про
 $lang['def']['Payment type ID for friendship payments']='Тип платежей для дружественных платежей';
 $lang['def']['Additionally spent materials']='Дополнительно использованы материалы';
 
+//rev 4799 
+$lang['def']['ct.']='г.';
+
 
 
 ?>

@@ -23,10 +23,18 @@ class UserSideApi {
      */
     protected $allTariffPeriods = array();
 
+    /**
+     * Contains available cities as cityid=>data
+     *
+     * @var array
+     */
+    protected $allCities = array();
+
     public function __construct() {
         $this->loadTariffs();
         $this->loadTariffSpeeds();
         $this->loadTariffPeriods();
+        $this->loadCities();
     }
 
     /**
@@ -69,6 +77,21 @@ class UserSideApi {
     }
 
     /**
+     * Loads existing cities from database
+     * 
+     * @return void
+     */
+    protected function loadCities() {
+        $query = "SELECT * from `city`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allCities[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
      * Returns array of all of existing tariffs data
      * 
      * @return array
@@ -81,13 +104,30 @@ class UserSideApi {
                 $result[$tariffName]['name'] = $tariffName;
                 $result[$tariffName]['payment'] = $tariffData['Fee'];
                 $result[$tariffName]['payment_interval'] = ($this->allTariffPeriods[$tariffName] == 'month') ? 30 : 1;
-                $downspeed = (isset($this->allTariffSpeeds[$tariffName]['speedown'])) ? $this->allTariffSpeeds[$tariffName]['speedown'] : 0;
+                $downspeed = (isset($this->allTariffSpeeds[$tariffName]['speeddown'])) ? $this->allTariffSpeeds[$tariffName]['speeddown'] : 0;
                 $upspeed = (isset($this->allTariffSpeeds[$tariffName]['speedup'])) ? $this->allTariffSpeeds[$tariffName]['speedup'] : 0;
                 $result[$tariffName]['speed'] = array(
                     'up' => $upspeed,
                     'down' => $downspeed,
                 );
                 $result[$tariffName]['traffic'] = ($tariffData['Free']) ? $tariffData['Free'] : -1;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns city data array
+     * 
+     * @return array
+     */
+    protected function getCitiesData() {
+        $result = array();
+        if (!empty($this->allCities)) {
+            foreach ($this->allCities as $cityId => $cityData) {
+                $result[$cityId]['id'] = $cityId;
+                $result[$cityId]['name'] = $cityData['cityname'];
+                $result[$cityId]['type_name'] = __('ct.');
             }
         }
         return ($result);
@@ -119,6 +159,9 @@ class UserSideApi {
             switch ($request) {
                 case 'get_tariff_list':
                     $this->renderReply($this->getTariffsData());
+                    break;
+                case 'get_city_list':
+                    $this->renderReply($this->getCitiesData());
                     break;
                 default :
                     $this->renderReply(array('unknown_request'));
