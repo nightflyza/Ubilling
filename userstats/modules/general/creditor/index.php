@@ -155,9 +155,11 @@ if ($us_config['SC_ENABLED']) {
 //welcome message
     $wmess = __('If you wait too long to pay for the service, here you can get credit for') . ' ' . $sc_term . ' ' . __('days. The price of this service is') . ': ' . $sc_price . ' ' . $us_currency . '. ';
     if (isset($us_config['SC_VSCREDIT'])) {
-        $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
-    } else {
-        $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . "." . __('Additional services are not subject to credit') . ".";
+        if ($us_config['SC_VSCREDIT']) {
+            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
+        } else {
+            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . "." . __('Additional services are not subject to credit') . ".";
+        }
     }
     show_window(__('Credits'), $wmess);
 
