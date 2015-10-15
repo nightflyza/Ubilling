@@ -87,7 +87,7 @@ class UserSideApi {
                     'up' => $upspeed,
                     'down' => $downspeed,
                 );
-                $result[$tariffName]['traffic'] = $tariffData['Free'];
+                $result[$tariffName]['traffic'] = ($tariffData['Free']) ? $tariffData['Free'] : -1;
             }
         }
         return ($result);
@@ -108,12 +108,20 @@ class UserSideApi {
         die($result);
     }
 
+    /**
+     * Listens API requests and renders replies for it
+     * 
+     * @return void
+     */
     public function catchRequest() {
         if (wf_CheckGet(array('request'))) {
             $request = $_GET['request'];
             switch ($request) {
                 case 'get_tariff_list':
                     $this->renderReply($this->getTariffsData());
+                    break;
+                default :
+                    $this->renderReply(array('unknown_request'));
                     break;
             }
         }

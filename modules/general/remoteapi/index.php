@@ -562,12 +562,25 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:FRIENDSHIP DISABLED');
                         }
                     }
+                    
+                    /*
+                     * Per month freezing fees
+                     */
                     if ($_GET['action'] == 'freezemonth') {
                         $money = new FundsFlow();
                         $money->runDataLoders();
                         $money->makeFreezeMonthFee();
                         die('OK:FREEZEMONTH');
                     }
+                    
+                    /**
+                     * UserSide get API handling
+                     */
+                    if ($_GET['action']=='userside') {
+                        $usersideapi=new UserSideApi();
+                        $usersideapi->catchRequest();
+                    }
+                    
                     ////
                     //// End of actions
                     ////
