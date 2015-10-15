@@ -81,6 +81,7 @@ include('api/libs/api.reminder.php');
 include('api/libs/api.friendship.php');
 include('api/libs/api.migration.php');
 include('api/libs/api.percity.php');
+include('api/libs/api.userside.php');
 
 /*
  * Initial class creation
