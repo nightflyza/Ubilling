@@ -2159,5 +2159,6 @@ $lang['def']['Additionally spent materials']='Додатково викорис�
 
 //rev 4799 
 $lang['def']['ct.']='м.';
+$lang['def']['st.']='вул.';
 
 ?>

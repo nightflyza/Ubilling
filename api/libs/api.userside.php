@@ -3,6 +3,13 @@
 class UserSideApi {
 
     /**
+     * Stores system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all of available tariffs data as tariffname=>data
      *
      * @var array
@@ -30,11 +37,80 @@ class UserSideApi {
      */
     protected $allCities = array();
 
+    /**
+     * Contains available streets array as streetid=>data
+     *
+     * @var array
+     */
+    protected $allStreets = array();
+
+    /**
+     * Contains all available builds array as buildid=>builddata
+     *
+     * @var array
+     */
+    protected $allBuilds = array();
+
+    /**
+     * Contains available custom fields types as id=>name
+     *
+     * @var array
+     */
+    protected $allCfTypes = array();
+
+    /**
+     * Contains available custom fields data as login+cftypeid=>data
+     *
+     * @var array
+     */
+    protected $allCfData = array();
+
+    /**
+     * Default streets type. May be configurable in future
+     *
+     * @var string
+     */
+    protected $defaultStreetType = '';
+
+    /**
+     * Default city type. May be configurable in future
+     *
+     * @var string
+     */
+    protected $defaultCityType = '';
+
     public function __construct() {
+        $this->loadAlter();
+        $this->setOptions();
         $this->loadTariffs();
         $this->loadTariffSpeeds();
         $this->loadTariffPeriods();
         $this->loadCities();
+        $this->loadStreets();
+        $this->loadBuilds();
+        $this->loadCF();
+    }
+
+    /**
+     * Loads system alter config into private property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets object default properties
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        $this->defaultStreetType = __('st.');
+        $this->defaultCityType = __('ct.');
     }
 
     /**
@@ -92,6 +168,61 @@ class UserSideApi {
     }
 
     /**
+     * Loads existing builds from database
+     * 
+     * @return void
+     */
+    protected function loadBuilds() {
+        $query = "SELECT * from `build`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allBuilds[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing streets from database
+     * 
+     * @return void
+     */
+    protected function loadStreets() {
+        $query = "SELECT * from `street`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allStreets[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing custom fields data from database
+     * 
+     * @return void
+     */
+    protected function loadCF() {
+        //getting CF types
+        $query = "SELECT * from `cftypes`";
+        $allCfTypes = simple_queryall($query);
+        if (!empty($allCfTypes)) {
+            foreach ($allCfTypes as $io => $eachTypeData) {
+                $this->allCfTypes[$eachTypeData['id']] = $eachTypeData['name'];
+            }
+
+            //getting users assigned CF content
+            $query = "SELECT * from `cfitems`";
+            $allCfData = simple_queryall($query);
+            if (!empty($allCfData)) {
+                foreach ($allCfData as $io => $each) {
+                    $this->allCfData[$each['login']][$each['typeid']] = $each['content'];
+                }
+            }
+        }
+    }
+
+    /**
      * Returns array of all of existing tariffs data
      * 
      * @return array
@@ -127,7 +258,67 @@ class UserSideApi {
             foreach ($this->allCities as $cityId => $cityData) {
                 $result[$cityId]['id'] = $cityId;
                 $result[$cityId]['name'] = $cityData['cityname'];
-                $result[$cityId]['type_name'] = __('ct.');
+                $result[$cityId]['type_name'] = $this->defaultCityType;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns streets data array
+     * 
+     * @return array
+     */
+    protected function getStreetsData() {
+        $result = array();
+        if (!empty($this->allStreets)) {
+            foreach ($this->allStreets as $streetId => $streetData) {
+                $result[$streetId]['id'] = $streetId;
+                $result[$streetId]['city_id'] = $streetData['cityid'];
+                $result[$streetId]['name'] = $streetData['streetname'];
+                $result[$streetId]['type_name'] = $this->defaultStreetType;
+                $result[$streetId]['full_name'] = $this->defaultStreetType . ' ' . $streetData['streetname'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns streets data array
+     * 
+     * @return array
+     */
+    protected function getBuildsData() {
+        $result = array();
+        if (!empty($this->allBuilds)) {
+            foreach ($this->allBuilds as $buildId => $buildData) {
+                $result[$buildId]['id'] = $buildId;
+                $streetId = $buildData['streetid'];
+                $streetName = @$this->allStreets[$streetId]['streetname'];
+                $cityId = @$this->allStreets[$streetId]['cityid'];
+                $result[$buildId]['city_id'] = $cityId;
+                $result[$buildId]['city_district_id'] = '';
+                $result[$buildId]['street_id'] = $buildData['streetid'];
+                $result[$buildId]['full_name'] = $streetName . ' ' . $buildData['buildnum'];
+                $result[$buildId]['postcode'] = '';
+                $result[$buildId]['number'] = $buildData['buildnum'];
+                $result[$buildId]['block'] = '';
+            }
+        }
+        return ($result);
+    }
+
+     /**
+     * Returns customfield types data
+     * 
+     * @return array
+     */
+    protected function getCFTypesData() {
+        $result=array();
+        if (!empty($this->allCfTypes)) {
+            foreach ($this->allCfTypes as $cftypeId => $eachCftypeName) {
+                $result[$cftypeId]['id']=$cftypeId;
+                $result[$cftypeId]['name']=$eachCftypeName;
             }
         }
         return ($result);
@@ -162,6 +353,15 @@ class UserSideApi {
                     break;
                 case 'get_city_list':
                     $this->renderReply($this->getCitiesData());
+                    break;
+                case 'get_street_list':
+                    $this->renderReply($this->getStreetsData());
+                    break;
+                case 'get_house_list':
+                    $this->renderReply($this->getBuildsData());
+                    break;
+                case 'get_user_additional_data_type_list':
+                    $this->renderReply($this->getCFTypesData());
                     break;
                 default :
                     $this->renderReply(array('unknown_request'));

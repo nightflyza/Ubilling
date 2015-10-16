@@ -2144,7 +2144,7 @@ $lang['def']['Additionally spent materials']='Дополнительно исп�
 
 //rev 4799 
 $lang['def']['ct.']='г.';
-
+$lang['def']['st.']='ул.';
 
 
 ?>
