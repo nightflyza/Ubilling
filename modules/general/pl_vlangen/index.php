@@ -7,7 +7,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
             $login = $_GET['username'];
             $cur_vlan = $VlanGen->GetVlan($login);
 
-            if (isset($_GET['DeleteVlanHost'])) {
+            if (isset($_POST['DeleteVlanHost'])) {
                 $VlanGen->DeleteVlanHost($login);
                 $VlanGen->DeleteVlanHostQinQ($login);
                 rcms_redirect(VlanGen::MODULE_URL . "&username=" . $login);

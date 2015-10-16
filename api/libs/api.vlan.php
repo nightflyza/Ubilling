@@ -1620,7 +1620,7 @@ class OnuConfigurator {
         $OltInt = $this->snmp->walk($oltIp, $oltCommunity, $interface);
         $tmp = explode("=", $OltInt);
         $tmp = explode(":", $tmp[1]);
-        $tmp = trim($tmp[1]);
+        @$tmp = trim($tmp[1]);
         return($tmp);
     }
 

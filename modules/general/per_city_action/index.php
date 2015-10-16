@@ -15,7 +15,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                     if (isset($_GET['citysearch'])) {
                         $cityQuery = $_GET['citysearch'];
                         $report_name = 'Debtors by city';
-                        $report_name = __($report_name) . wf_Link("?module=per_city_action&debtors=true&citysel=$cityQuery&printable=true", wf_img("skins/printer_small.gif"));
+                        $report_name = __($report_name) . wf_Link("?module=per_city_action&action=debtors&citysel=$cityQuery&printable=true", wf_img("skins/printer_small.gif"));
                         $sQuery = "SELECT * FROM `users` WHERE `cash` < 0 AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityQuery . "'))))";
                         show_window(__($report_name), web_PerCityShow($sQuery));
                     }
@@ -48,7 +48,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                         $cityQuery = $_GET['citysearch'];
                         $sQuery = "SELECT * FROM `users` WHERE `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityQuery . "'))))";
                         $report_name = 'Search results';
-                        $report_name = __($report_name) . wf_link("?module=per_city_action&usersearch=true&printable=true&citysel=$cityQuery", wf_img("skins/printer_small.gif"));
+                        $report_name = __($report_name) . wf_link("?module=per_city_action&action=usersearch&printable=true&citysel=$cityQuery", wf_img("skins/printer_small.gif"));
                         show_window(__($report_name), web_PerCityShow($sQuery));
                     }
                 }
