@@ -66,6 +66,20 @@ class UserSideApi {
     protected $allCfData = array();
 
     /**
+     * Contains data of all available Internet users as login=>data
+     *
+     * @var array
+     */
+    protected $allUserData = array();
+
+    /**
+     * Contains supported methods list
+     *
+     * @var array
+     */
+    protected $supportedMethods = array();
+
+    /**
      * Default streets type. May be configurable in future
      *
      * @var string
@@ -89,6 +103,7 @@ class UserSideApi {
         $this->loadStreets();
         $this->loadBuilds();
         $this->loadCF();
+        $this->loadUsers();
     }
 
     /**
@@ -111,6 +126,28 @@ class UserSideApi {
     protected function setOptions() {
         $this->defaultStreetType = __('st.');
         $this->defaultCityType = __('ct.');
+        $this->supportedMethods = array(
+            'get_tariff_list' => 'ok',
+            'get_city_list' => 'ok',
+            'get_street_list' => 'ok',
+            'get_house_list' => 'ok',
+            'get_user_additional_data_type_list' => 'ok',
+            'get_user_state_list' => 'ok'
+        );
+    }
+
+    /**
+     * Loads all existing Internet users from database
+     * 
+     * @return void
+     */
+    protected function loadUsers() {
+        $all = zb_UserGetAllStargazerData();
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUserData[$each['login']] = $each;
+            }
+        }
     }
 
     /**
@@ -223,6 +260,21 @@ class UserSideApi {
     }
 
     /**
+     * Renders API reply as JSON string
+     * 
+     * @param array $data
+     * 
+     * @rerutn void
+     */
+    protected function renderReply($data) {
+        $result = 'undefined';
+        if (!empty($data)) {
+            $result = json_encode($data);
+        }
+        die($result);
+    }
+
+    /**
      * Returns array of all of existing tariffs data
      * 
      * @return array
@@ -308,35 +360,50 @@ class UserSideApi {
         return ($result);
     }
 
-     /**
+    /**
      * Returns customfield types data
      * 
      * @return array
      */
     protected function getCFTypesData() {
-        $result=array();
+        $result = array();
         if (!empty($this->allCfTypes)) {
             foreach ($this->allCfTypes as $cftypeId => $eachCftypeName) {
-                $result[$cftypeId]['id']=$cftypeId;
-                $result[$cftypeId]['name']=$eachCftypeName;
+                $result[$cftypeId]['id'] = $cftypeId;
+                $result[$cftypeId]['name'] = $eachCftypeName;
             }
         }
         return ($result);
     }
 
     /**
-     * Renders API reply as JSON string
+     * Returns users states data
      * 
-     * @param array $data
-     * 
-     * @rerutn void
+     * @return array
      */
-    protected function renderReply($data) {
-        $result = 'undefined';
-        if (!empty($data)) {
-            $result = json_encode($data);
+    protected function getUsersStateList() {
+        $result = array();
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $io => $each) {
+                $userState = 'work';
+                if ($each['Cash'] < '-' . $each['Credit']) {
+                    $userState = 'nomoney';
+                }
+                if ($each['Passive'] == '1') {
+                    $userState = 'pause';
+                }
+                if ($each['Tariff'] == '*_NO_TARIFF_*') {
+                    $userState = 'new';
+                }
+                if ($each['Down'] == '1') {
+                    $userState = 'disable';
+                }
+                $result[$each['login']]['id'] = $each['login'];
+                $result[$each['login']]['name'] = $each['login']; // TODO: need to ask Userside - what is this
+                $result[$each['login']]['functional'] = $userState;
+            }
         }
-        die($result);
+        return ($result);
     }
 
     /**
@@ -347,25 +414,29 @@ class UserSideApi {
     public function catchRequest() {
         if (wf_CheckGet(array('request'))) {
             $request = $_GET['request'];
-            switch ($request) {
-                case 'get_tariff_list':
-                    $this->renderReply($this->getTariffsData());
-                    break;
-                case 'get_city_list':
-                    $this->renderReply($this->getCitiesData());
-                    break;
-                case 'get_street_list':
-                    $this->renderReply($this->getStreetsData());
-                    break;
-                case 'get_house_list':
-                    $this->renderReply($this->getBuildsData());
-                    break;
-                case 'get_user_additional_data_type_list':
-                    $this->renderReply($this->getCFTypesData());
-                    break;
-                default :
-                    $this->renderReply(array('unknown_request'));
-                    break;
+            if (isset($this->supportedMethods[$request])) {
+                switch ($request) {
+                    case 'get_tariff_list':
+                        $this->renderReply($this->getTariffsData());
+                        break;
+                    case 'get_city_list':
+                        $this->renderReply($this->getCitiesData());
+                        break;
+                    case 'get_street_list':
+                        $this->renderReply($this->getStreetsData());
+                        break;
+                    case 'get_house_list':
+                        $this->renderReply($this->getBuildsData());
+                        break;
+                    case 'get_user_additional_data_type_list':
+                        $this->renderReply($this->getCFTypesData());
+                        break;
+                    case 'get_user_state_list':
+                        $this->renderReply($this->getUsersStateList());
+                        break;
+                }
+            } else {
+                $this->renderReply(array('unsupported_method'));
             }
         }
     }
