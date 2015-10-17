@@ -629,6 +629,24 @@ function wf_TableRow($cells, $class = '') {
 }
 
 /**
+ * Construct HTML table row element with style inside
+ * 
+ * @param string $cells table row cells
+ * @param string $class table row class
+ * @return string
+ *  
+ */
+function wf_TableRowStyled($cells, $class = '',$style='') {
+    if ($class != '') {
+        $rowclass = 'class="' . $class . '"';
+    } else {
+        $rowclass = '';
+    }
+    $result = '<tr style="' . $style . '" ' . $rowclass . '>' . $cells . '</tr>' . "\n";
+    return ($result);
+}
+
+/**
  * Construct HTML table cell element
  * 
  * @param string $data table cell data

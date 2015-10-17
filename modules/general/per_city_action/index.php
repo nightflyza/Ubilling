@@ -1,5 +1,4 @@
 <?php
-
 $altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
 if ($altcfg['PER_CITY_ACTION']) {
     if (cfr('CITYACTION')) {
@@ -23,7 +22,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                         if ($_GET['printable']) {
                             $query = "SELECT `address`.`login`,`users`.`cash` FROM `address` INNER JOIN users USING (login) WHERE `address`.`aptid` IN ( SELECT `id` FROM `apt` WHERE `buildid` IN ( SELECT `id` FROM `build` WHERE `streetid` IN ( SELECT `id` FROM `street` WHERE `cityid`='" . $_GET['citysel'] . "'))) and `users`.`cash`<0";
                             $keys = array('cash', 'login');
-                            $titles = array('tariff', 'comment', 'mac_onu', 'Cash', 'login');
+                            $titles = array('tariff', "Comment", 'Mac ONU', "Credited", "Cash", 'Login');
                             $alldata = simple_queryall($query);
                             web_ReportDebtorsShowPrintable($titles, $keys, $alldata, '1', '1', '1');
                         }
@@ -54,8 +53,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                 }
             }
             if ($_GET['action'] == 'city_payments') {
-                if (cfr('CITYPAYMENTS')) {
-                    $month_name = date("n") - 1;
+                if (cfr('CITYPAYMENTS')) {                    
                     show_window(__('Change month'), web_MonthSelector());
                     show_window(__('Payments'), web_UserPaymentsCityForm());
                     if (isset($_GET['citysearch'])) {

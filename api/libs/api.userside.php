@@ -127,12 +127,13 @@ class UserSideApi {
         $this->defaultStreetType = __('st.');
         $this->defaultCityType = __('ct.');
         $this->supportedMethods = array(
-            'get_tariff_list' => 'ok',
-            'get_city_list' => 'ok',
-            'get_street_list' => 'ok',
-            'get_house_list' => 'ok',
-            'get_user_additional_data_type_list' => 'ok',
-            'get_user_state_list' => 'ok'
+            'get_supported_method_list'=>__('Returns supported methods list'),
+            'get_tariff_list' => __('Returns available tariffs'),
+            'get_city_list' => __('Returns available cities data'),
+            'get_street_list' => __('Returns available streets data'),
+            'get_house_list' => __('Returns available builds data'),
+            'get_user_additional_data_type_list' => __('Returns user profile custom fields data'),
+            'get_user_state_list' => __('Returns users state data'),
         );
     }
 
@@ -405,6 +406,21 @@ class UserSideApi {
         }
         return ($result);
     }
+    
+    /**
+     * Returns available methods array
+     * 
+     * @return array
+     */
+    protected function getMethodsList() {
+        $result=array();
+        if (!empty($this->supportedMethods)) {
+            foreach ($this->supportedMethods as $io => $each) {
+             $result[$io]['comment']=$each;
+            }
+        }
+        return ($result);
+    }
 
     /**
      * Listens API requests and renders replies for it
@@ -433,6 +449,9 @@ class UserSideApi {
                         break;
                     case 'get_user_state_list':
                         $this->renderReply($this->getUsersStateList());
+                        break;
+                    case 'get_supported_method_list':
+                        $this->renderReply($this->getMethodsList());
                         break;
                 }
             } else {

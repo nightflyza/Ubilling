@@ -1,5 +1,73 @@
 <?php
 
+Class ColorTagging {
+
+    protected $allTags = array();
+    protected $allTagTypes = array();
+    protected $altCfg = array();
+
+    public function __construct() {
+        $this->LoadAllTags();
+        $this->LoadAllTagTypes();
+        $this->loadAlter();
+    }
+
+    protected function LoadAllTags() {
+        $query = "SELECT * FROM `tags`";
+        $allData = simple_queryall($query);
+        if (!empty($allData)) {
+            foreach ($allData as $eachData) {
+                $this->allTags[$eachData['login']] = $eachData['tagid'];
+            }
+        }
+    }
+
+    protected function LoadAllTagTypes() {
+        $query = "SELECT * FROM `tagtypes`";
+        $allData = simple_queryall($query);
+        if (!empty($allData)) {
+            foreach ($allData as $eachData) {
+                $this->allTagTypes[$eachData['id']] = $eachData;
+            }
+        }
+    }
+
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    public function GetUsersColor($login) {
+        $color = '';
+        $allowed = '';
+        $eq = true;
+        if (isset($this->allTags[$login])) {
+            if (isset($this->altCfg['ALLOWED_COLORS'])) {
+                if (is_numeric($this->altCfg['ALLOWED_COLORS'])) {
+                    $allowed = $this->altCfg['ALLOWED_COLORS'];
+                    if ($this->allTagTypes[$this->allTags[$login]]['id'] == $allowed) {
+                        $eq = false;
+                    }
+                } else {
+                    $allowed = explode(",", $this->altCfg['ALLOWED_COLORS']);
+                    foreach ($allowed as $each) {
+                        if ($this->allTagTypes[$this->allTags[$login]]['id'] == $each) {
+                            $eq = false;
+                        }
+                    }
+                }
+                if (!$eq) {
+                    $color = $this->allTagTypes[$this->allTags[$login]]['tagcolor'];
+                }
+            } else {
+                $color = $this->allTagTypes[$this->allTags[$login]]['tagcolor'];
+            }
+        }
+        return($color);
+    }
+
+}
+
 function web_PaymentsCityShow($query) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $alladrs = zb_AddressGetFulladdresslist();
@@ -7,31 +75,25 @@ function web_PaymentsCityShow($query) {
     $alltypes = zb_CashGetAllCashTypes();
     $allapayments = simple_queryall($query);
     $allservicenames = zb_VservicesGetAllNamesLabeled();
-    //getting full contract list
+    $total = 0;
+    $totalPaycount = 0;
     if ($alter_conf['FINREP_CONTRACT']) {
         $allcontracts = zb_UserGetAllContracts();
         $allcontracts = array_flip($allcontracts);
     }
-
-    //getting all users tariffs
     if ($alter_conf['FINREP_TARIFF']) {
         $alltariffs = zb_TariffsGetAllUsers();
     }
 
-    $total = 0;
-    $totalPaycount = 0;
-
     $cells = wf_TableCell(__('IDENC'));
     $cells.= wf_TableCell(__('Date'));
     $cells.= wf_TableCell(__('Cash'));
-    //optional contract display
     if ($alter_conf['FINREP_CONTRACT']) {
         $cells.= wf_TableCell(__('Contract'));
     }
     $cells.= wf_TableCell(__('Login'));
     $cells.= wf_TableCell(__('Full address'));
     $cells.= wf_TableCell(__('Real Name'));
-    //optional tariff display
     if ($alter_conf['FINREP_TARIFF']) {
         $cells.=wf_TableCell(__('Tariff'));
     }
@@ -39,25 +101,20 @@ function web_PaymentsCityShow($query) {
     $cells.= wf_TableCell(__('Notes'));
     $cells.= wf_TableCell(__('Admin'));
     $rows = wf_TableRow($cells, 'row1');
-
     if (!empty($allapayments)) {
         foreach ($allapayments as $io => $eachpayment) {
-
             if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
                 $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
-
             $cells = wf_TableCell(zb_NumEncode($eachpayment['id']));
             $cells.= wf_TableCell($eachpayment['date']);
             $cells.= wf_TableCell($eachpayment['summ']);
-            //optional contract display
             if ($alter_conf['FINREP_CONTRACT']) {
                 $cells.= wf_TableCell(@$allcontracts[$eachpayment['login']]);
             }
             $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachpayment['login'], (web_profile_icon() . ' ' . $eachpayment['login']), false, ''));
             $cells.= wf_TableCell(@$alladrs[$eachpayment['login']]);
             $cells.= wf_TableCell(@$allrealnames[$eachpayment['login']]);
-            //optional tariff display
             if ($alter_conf['FINREP_TARIFF']) {
                 $cells.= wf_TableCell(@$alltariffs[$eachpayment['login']]);
             }
@@ -65,13 +122,10 @@ function web_PaymentsCityShow($query) {
             $cells.= wf_TableCell($eachpayment['note']);
             $cells.= wf_TableCell($eachpayment['admin']);
             $rows.= wf_TableRow($cells, 'row4');
-
-
             $total = $total + $eachpayment['summ'];
             $totalPaycount++;
         }
     }
-
     $result = wf_TableBody($rows, '100%', '0', 'sortable id');
     $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
     $result.=wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
@@ -92,6 +146,7 @@ function web_PerCityShow($query) {
     $allonu = GetAllOnu();
     $total = 0;
     $totalPaycount = 0;
+    $colors = new ColorTagging();
 
     $cells = wf_TableCell(__('Full address'));
     $cells.= wf_TableCell(__('Real Name'));
@@ -103,48 +158,28 @@ function web_PerCityShow($query) {
     $cells.= wf_TableCell(__('MAC ONU/ONT'));
     $cells.= wf_TableCell(__('Login'));
     $rows = wf_TableRow($cells, 'row1');
-
     if (!empty($alldebtors)) {
         foreach ($alldebtors as $eachdebtor) {
-            if (!empty($alladrs[$eachdebtor['login']])) {
-                $cell = wf_TableCell($alladrs[$eachdebtor['login']]);
-            } else {
-                $cell = wf_TableCell('');
-            }
-            if (!empty($allrealnames[$eachdebtor['login']])) {
-                if (!empty($allphonedata[$eachdebtor['login']])) {
-                    $cell.= wf_TableCell($allrealnames[$eachdebtor['login']] . "&nbsp&nbsp" . $allphonedata[$eachdebtor['login']]['mobile']);
-                } else {
-                    $cell.= wf_TableCell($allrealnames[$eachdebtor['login']]);
-                }
-            } else {
-                $cell.=wf_TableCell('');
-            }
+            $userColor = $colors->GetUsersColor($eachdebtor['login']);
+            $cell = wf_TableCell(@$alladrs[$eachdebtor['login']]);
+            $cell.= wf_TableCell(@$allrealnames[$eachdebtor['login']] . "&nbsp&nbsp" . @$allphonedata[$eachdebtor['login']]['mobile']);
             $cell.= wf_TableCell($eachdebtor['Cash']);
             if ($alter_conf['FINREP_TARIFF']) {
                 $cell.= wf_TableCell($alltariffs[$eachdebtor['login']]);
             }
-            if (!empty($allnotes[$eachdebtor['login']])) {
-                if (!empty($allcomments[$eachdebtor['login']])) {
-                    $cell.= wf_TableCell($allnotes[$eachdebtor['login']] . "&nbsp&nbsp" . $allcomments[$eachdebtor['login']]);
-                } else {
-                    $cell.= wf_TableCell($allnotes[$eachdebtor['login']]);
-                }
-            } else {
-                $cell.= wf_TableCell('');
-            }
-            if (!empty($allonu[$eachdebtor['login']])) {
-                $cell.= wf_TableCell($allonu[$eachdebtor['login']]);
-            } else {
-                $cell.=wf_TableCell('');
-            }
+            $cell.= wf_TableCell(@$allnotes[$eachdebtor['login']] . "&nbsp&nbsp" . @$allcomments[$eachdebtor['login']]);
+            $cell.= wf_TableCell(@$allonu[$eachdebtor['login']]);
             $cell.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachdebtor['login'], (web_profile_icon() . ' ' . $eachdebtor['login']), false, ''));
-            $rows.= wf_TableRow($cell, 'row4');
+            if (!empty($userColor)) {
+                $style = "background-color:$userColor";
+                $rows.= wf_TableRowStyled($cell, 'row4', $style);
+            } else {
+                $rows.= wf_TableRow($cell, 'row4');
+            }
             $total = $total + $eachdebtor['Cash'];
             $totalPaycount++;
         }
     }
-
     $result = wf_TableBody($rows, '100%', '0', 'sortable id');
     $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
     $result.=wf_tag('strong') . __('Count') . ': ' . $totalPaycount . wf_tag('strong', true);
@@ -197,7 +232,6 @@ function DebtorsCitySelector() {
         $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
-        // if city selected
         $cityname = zb_AddressGetCityData($_GET['citysel']);
         $cityname = $cityname['cityname'];
         $cells = wf_TableCell(__('City'), '40%');
@@ -209,7 +243,6 @@ function DebtorsCitySelector() {
     }
     $form.= wf_tag('table', true);
     $form.= wf_tag('form', true);
-
     return($form);
 }
 
@@ -219,20 +252,18 @@ function web_UserPaymentsCityForm() {
     if (!isset($_GET['citysel'])) {
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("action","city_payments");
+        $cells.= wf_HiddenInput("action", "city_payments");
         if (isset($_GET['monthsel'])) {
             $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
         }
         $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
-        // if city selected
         $cityname = zb_AddressGetCityData($_GET['citysel']);
         $cityname = $cityname['cityname'];
-
         $cells = wf_TableCell(__('City'), '40%');
         $cells.= wf_HiddenInput("module", "per_city_action");
-        $cells.= wf_HiddenInput("action","city_payments");
+        $cells.= wf_HiddenInput("action", "city_payments");
         if (isset($_GET['monthsel'])) {
             $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
         }
@@ -242,7 +273,6 @@ function web_UserPaymentsCityForm() {
     }
     $form.= wf_tag('table', true);
     $form.= wf_tag('form', true);
-
     return($form);
 }
 
@@ -256,7 +286,6 @@ function web_UserSearchCityForm() {
         $cells.= wf_TableCell(web_CitySelectorAc());
         $form.= wf_TableRow($cells, 'row3');
     } else {
-        // if city selected
         $cityname = zb_AddressGetCityData($_GET['citysel']);
         $cityname = $cityname['cityname'];
         $cells = wf_TableCell(__('City'), '40%');
@@ -266,28 +295,23 @@ function web_UserSearchCityForm() {
         $cells.= wf_TableCell(wf_Submit(__('Find')));
         $form.= wf_TableRow($cells, 'row3');
     }
-
     $form.=wf_tag('table', true);
     $form.=wf_tag('form', true);
-
     return($form);
 }
 
-function Search_City($query, $searchtype) {
-    global $ubillingConfig;
-    $query = mysql_real_escape_string(trim($query));
-    $cityQuery = $query;
-    $searchtype = vf($searchtype);
-    $altercfg = $ubillingConfig->getAlter();
-
-    //construct query                 
-    if ($searchtype == 'city') {
-        $query = "SELECT * FROM `users` WHERE `login` IN(SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`=$query))))";
+function GetAllCreditedUsers() {
+    $date = date("Y-m");
+    $query = "SELECT * FROM `zbssclog` WHERE `date` LIKE '" . $date . "%';";
+    $allCredited = simple_queryall($query);
+    if (!empty($allCredited)) {
+        foreach ($allCredited as $eachCredited) {
+            $creditedUsers[$eachCredited['login']] = $eachCredited['date'];
+        }
+        return($creditedUsers);
+    } else {
+        return(false);
     }
-
-    $report_name = 'usersearch';
-    $report_name = __($report_name) . wf_Link("?module=per_city_action&debtors=true&citysel=$cityQuery&printable=true", wf_img("skins/printer_small.gif"));
-    show_window(__($report_name), web_PerCityShow($query));
 }
 
 function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
@@ -410,7 +434,7 @@ function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $re
     die();
 }
 
-function web_MonthSelector($value = '') {
+function web_MonthSelector() {
     $mcells = '';
     $allmonth = months_array_localized();
     foreach ($allmonth as $io => $each) {
@@ -437,6 +461,7 @@ function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, 
     $allnotes = GetAllNotes();
     $allcomments = GetAllComments();
     $allonu = GetAllOnu();
+    $allCredited = GetAllCreditedUsers();
     $i = 0;
     $style = '
         <script src="modules/jsc/sorttable.js" language="javascript"></script>
@@ -527,6 +552,7 @@ function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, 
             }
             $cells.= wf_TableCell(@$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']]);
             $cells.= wf_TableCell(@$allonu[$eachdata['login']]);
+            $cells.= wf_TableCell(@$allCredited[$eachdata['login']]);
             foreach ($keys as $eachkey) {
                 if (array_key_exists($eachkey, $eachdata)) {
                     $cells.=wf_TableCell($eachdata[$eachkey]);
