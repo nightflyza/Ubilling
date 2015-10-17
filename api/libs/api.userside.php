@@ -2,6 +2,9 @@
 
 class UserSideApi {
 
+    const API_VER = '1.1';
+    const API_DATE = '17.10.2015';
+
     /**
      * Stores system alter config as key=>value
      *
@@ -127,7 +130,8 @@ class UserSideApi {
         $this->defaultStreetType = __('st.');
         $this->defaultCityType = __('ct.');
         $this->supportedMethods = array(
-            'get_supported_method_list'=>__('Returns supported methods list'),
+            'get_supported_method_list' => __('Returns supported methods list'),
+            'get_api_information' => __('Returns UserSide API version'),
             'get_tariff_list' => __('Returns available tariffs'),
             'get_city_list' => __('Returns available cities data'),
             'get_street_list' => __('Returns available streets data'),
@@ -387,11 +391,14 @@ class UserSideApi {
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $io => $each) {
                 $userState = 'work';
+                $stateName = __('Active');
                 if ($each['Cash'] < '-' . $each['Credit']) {
                     $userState = 'nomoney';
+                    $stateName = __('Active');
                 }
                 if ($each['Passive'] == '1') {
                     $userState = 'pause';
+                    $stateName = __('Debt');
                 }
                 if ($each['Tariff'] == '*_NO_TARIFF_*') {
                     $userState = 'new';
@@ -406,19 +413,31 @@ class UserSideApi {
         }
         return ($result);
     }
-    
+
     /**
      * Returns available methods array
      * 
      * @return array
      */
     protected function getMethodsList() {
-        $result=array();
+        $result = array();
         if (!empty($this->supportedMethods)) {
             foreach ($this->supportedMethods as $io => $each) {
-             $result[$io]['comment']=$each;
+                $result[$io]['comment'] = $each;
             }
         }
+        return ($result);
+    }
+    
+    /**
+     * Returns Userside API information
+     * 
+     * @return array
+     */
+    protected function getApiInformation() {
+        $result=array();
+        $result['version']=self::API_VER;
+        $result['date']=self::API_DATE;
         return ($result);
     }
 
@@ -453,9 +472,13 @@ class UserSideApi {
                     case 'get_supported_method_list':
                         $this->renderReply($this->getMethodsList());
                         break;
+                    case 'get_api_information':
+                        $this->renderReply($this->getApiInformation());
+                        break;
                 }
             } else {
-                $this->renderReply(array('unsupported_method'));
+                header('The goggles, they do nawtink!', false, 403);
+                die();
             }
         }
     }
