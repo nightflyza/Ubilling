@@ -76,6 +76,13 @@ class UserSideApi {
     protected $allUserData = array();
 
     /**
+     * Contains available tag types as id=>name
+     *
+     * @var array
+     */
+    protected $allTagTypes = array();
+
+    /**
      * Contains supported methods list
      *
      * @var array
@@ -107,6 +114,7 @@ class UserSideApi {
         $this->loadBuilds();
         $this->loadCF();
         $this->loadUsers();
+        $this->loadTagTypes();
     }
 
     /**
@@ -138,6 +146,7 @@ class UserSideApi {
             'get_house_list' => __('Returns available builds data'),
             'get_user_additional_data_type_list' => __('Returns user profile custom fields data'),
             'get_user_state_list' => __('Returns users state data'),
+            'get_user_group_list' => __('Returns user tags list')
         );
     }
 
@@ -265,6 +274,21 @@ class UserSideApi {
     }
 
     /**
+     * Loads existing tag types from database
+     * 
+     * @return void
+     */
+    protected function loadTagTypes() {
+        $query = "SELECT * from `tagtypes`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTagTypes[$each['id']] = $each['tagname'];
+            }
+        }
+    }
+
+    /**
      * Renders API reply as JSON string
      * 
      * @param array $data
@@ -352,8 +376,6 @@ class UserSideApi {
                 $result[$buildId]['id'] = $buildId;
                 $streetId = $buildData['streetid'];
                 $streetName = @$this->allStreets[$streetId]['streetname'];
-                $cityId = @$this->allStreets[$streetId]['cityid'];
-                $result[$buildId]['city_id'] = $cityId;
                 $result[$buildId]['city_district_id'] = '';
                 $result[$buildId]['street_id'] = $buildData['streetid'];
                 $result[$buildId]['full_name'] = $streetName . ' ' . $buildData['buildnum'];
@@ -388,27 +410,41 @@ class UserSideApi {
      */
     protected function getUsersStateList() {
         $result = array();
-        if (!empty($this->allUserData)) {
-            foreach ($this->allUserData as $io => $each) {
-                $userState = 'work';
-                $stateName = __('Active');
-                if ($each['Cash'] < '-' . $each['Credit']) {
-                    $userState = 'nomoney';
-                    $stateName = __('Active');
-                }
-                if ($each['Passive'] == '1') {
-                    $userState = 'pause';
-                    $stateName = __('Debt');
-                }
-                if ($each['Tariff'] == '*_NO_TARIFF_*') {
-                    $userState = 'new';
-                }
-                if ($each['Down'] == '1') {
-                    $userState = 'disable';
-                }
-                $result[$each['login']]['id'] = $each['login'];
-                $result[$each['login']]['name'] = $each['login']; // TODO: need to ask Userside - what is this
-                $result[$each['login']]['functional'] = $userState;
+
+        $result['0']['id'] = 0;
+        $result['0']['name'] = __('Active');
+        $result['0']['functional'] = 'work';
+
+        $result['1']['id'] = 1;
+        $result['1']['name'] = __('Debt');
+        $result['1']['functional'] = 'nomoney';
+
+        $result['2']['id'] = 2;
+        $result['2']['name'] = __('User passive');
+        $result['2']['functional'] = 'pause';
+
+        $result['3']['id'] = 3;
+        $result['3']['name'] = __('User down');
+        $result['3']['functional'] = 'disable';
+
+        $result['4']['id'] = 4;
+        $result['4']['name'] = __('No tariff');
+        $result['4']['functional'] = 'new';
+
+        return ($result);
+    }
+    
+    /**
+     * Returns available tag types data
+     * 
+     * @return array
+     */
+    protected function getTagTypesList() {
+        $result=array();
+        if (!empty($this->allTagTypes)) {
+            foreach ($this->allTagTypes as $tagId => $eachTagName) {
+                $result[$tagId]['id']=$tagId;
+                $result[$tagId]['name']=$eachTagName;
             }
         }
         return ($result);
@@ -428,16 +464,16 @@ class UserSideApi {
         }
         return ($result);
     }
-    
+
     /**
      * Returns Userside API information
      * 
      * @return array
      */
     protected function getApiInformation() {
-        $result=array();
-        $result['version']=self::API_VER;
-        $result['date']=self::API_DATE;
+        $result = array();
+        $result['version'] = self::API_VER;
+        $result['date'] = self::API_DATE;
         return ($result);
     }
 
@@ -475,10 +511,13 @@ class UserSideApi {
                     case 'get_api_information':
                         $this->renderReply($this->getApiInformation());
                         break;
+                       case 'get_user_group_list':
+                        $this->renderReply($this->getTagTypesList());
+                        break;
                 }
             } else {
-                header('The goggles, they do nawtink!', false, 403);
-                die();
+                header('HTTP/1.1 400 Unknown Action"', true, 400);
+                die('Unknown Action');
             }
         }
     }
