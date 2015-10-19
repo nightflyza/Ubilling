@@ -146,7 +146,8 @@ class UserSideApi {
             'get_house_list' => __('Returns available builds data'),
             'get_user_additional_data_type_list' => __('Returns user profile custom fields data'),
             'get_user_state_list' => __('Returns users state data'),
-            'get_user_group_list' => __('Returns user tags list')
+            'get_user_group_list' => __('Returns user tags list'),
+            'get_system_information' => __('Returns system information')
         );
     }
 
@@ -433,18 +434,18 @@ class UserSideApi {
 
         return ($result);
     }
-    
+
     /**
      * Returns available tag types data
      * 
      * @return array
      */
     protected function getTagTypesList() {
-        $result=array();
+        $result = array();
         if (!empty($this->allTagTypes)) {
             foreach ($this->allTagTypes as $tagId => $eachTagName) {
-                $result[$tagId]['id']=$tagId;
-                $result[$tagId]['name']=$eachTagName;
+                $result[$tagId]['id'] = $tagId;
+                $result[$tagId]['name'] = $eachTagName;
             }
         }
         return ($result);
@@ -474,6 +475,24 @@ class UserSideApi {
         $result = array();
         $result['version'] = self::API_VER;
         $result['date'] = self::API_DATE;
+        return ($result);
+    }
+
+    /**
+     * Returns server system information
+     * 
+     * @return array
+     */
+    protected function getSystemInformation() {
+        $result=array();
+        $curdate=  curdate();
+        $operatingSystem=shell_exec('uname');
+        $billingVersion=  file_get_contents('RELEASE');
+        
+        $result['date']=$curdate;
+        $result['os']=trim($operatingSystem);
+        $result['billing']['name']='Ubilling';
+        $result['billing']['version']=trim($billingVersion);
         return ($result);
     }
 
@@ -511,8 +530,11 @@ class UserSideApi {
                     case 'get_api_information':
                         $this->renderReply($this->getApiInformation());
                         break;
-                       case 'get_user_group_list':
+                    case 'get_user_group_list':
                         $this->renderReply($this->getTagTypesList());
+                        break;
+                    case 'get_system_information':
+                        $this->renderReply($this->getSystemInformation());
                         break;
                 }
             } else {
