@@ -102,6 +102,7 @@ class UserSideApi {
      * @var string
      */
     protected $defaultCityType = '';
+    protected $debugMode = false;
 
     public function __construct() {
         $this->loadAlter();
@@ -267,9 +268,12 @@ class UserSideApi {
             //getting users assigned CF content
             $query = "SELECT * from `cfitems`";
             $allCfData = simple_queryall($query);
+            $i = 0;
             if (!empty($allCfData)) {
                 foreach ($allCfData as $io => $each) {
-                    $this->allCfData[$each['login']][$each['typeid']] = $each['content'];
+                    $this->allCfData[$each['login']][$i]['id'] = $each['typeid'];
+                    $this->allCfData[$each['login']][$i]['value'] = $each['content'];
+                    $i++;
                 }
             }
         }
@@ -299,10 +303,14 @@ class UserSideApi {
      */
     protected function renderReply($data) {
         $result = 'undefined';
-        if (!empty($data)) {
-            $result = json_encode($data);
+        if (!$this->debugMode) {
+            if (!empty($data)) {
+                $result = json_encode($data);
+            }
+            die($result);
+        } else {
+            debarr($data);
         }
-        die($result);
     }
 
     /**
@@ -575,6 +583,40 @@ class UserSideApi {
     }
 
     /**
+     * Returns array of all nethosts data as ip=>data
+     * 
+     * @return array
+     */
+    protected function getNethostsData() {
+        $result = array();
+        $query = "SELECT * from `nethosts`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['ip']] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns data of available multinet networks as netid=>data
+     * 
+     * @return array
+     */
+    protected function getNetworksData() {
+        $result = array();
+        $query = "SELECT * from `networks`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['id']] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns existing users full info
      * 
      * @return array
@@ -590,7 +632,8 @@ class UserSideApi {
         $allAptData = $this->getAllAptList();
         $allPhones = zb_UserGetAllPhoneData();
         $allEmails = zb_UserGetAllEmails();
-        
+        $allNethosts = $this->getNethostsData();
+        $allNetworks = $this->getNetworksData();
 
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
@@ -612,7 +655,9 @@ class UserSideApi {
                     $firstDayNextMonth = '';
                 }
                 $result[$userLogin]['tariff']['current'][0]['id'] = $userData['Tariff'];
-                $result[$userLogin]['tariff']['current'][0]['date_finish'] = $firstDayNextMonth;
+                if ($firstDayNextMonth) {
+                    $result[$userLogin]['tariff']['current'][0]['date_finish'] = $firstDayNextMonth;
+                }
 
                 if ($userData['TariffChange']) {
                     $result[$userLogin]['tariff']['new'][0]['id'] = $userData['TariffChange'];
@@ -631,7 +676,10 @@ class UserSideApi {
                     }
                 }
 
-                $result[$userLogin]['comment'] = @$allUserNotes[$userLogin];
+                $userNotes = @$allUserNotes[$userLogin];
+                if ($userNotes) {
+                    $result[$userLogin]['comment'] = $userNotes;
+                }
                 $result[$userLogin]['balance'] = $userData['Cash'];
                 $result[$userLogin]['credit'] = $userData['Credit'];
 
@@ -662,27 +710,48 @@ class UserSideApi {
                     $result[$userLogin]['address'][0]['house_id'] = $aptData['buildid'];
                     $result[$userLogin]['address'][0]['apartment']['id'] = $userApartmentId;
                     $result[$userLogin]['address'][0]['apartment']['full_name'] = $aptData['apt'];
-                    $result[$userLogin]['address'][0]['apartment']['number'] = $aptData['apt'];
-                    $result[$userLogin]['address'][0]['apartment']['block'] = '';
-                    $result[$userLogin]['address'][0]['apartment']['entrance'] = $aptData['entrance'];
-                    $result[$userLogin]['address'][0]['apartment']['floor'] = $aptData['floor'];
+                    $result[$userLogin]['address'][0]['apartment']['number'] = vf($aptData['apt'], 3);
+                    if ($aptData['entrance']) {
+                        $result[$userLogin]['address'][0]['apartment']['entrance'] = $aptData['entrance'];
+                    }
+                    if ($aptData['floor']) {
+                        $result[$userLogin]['address'][0]['apartment']['floor'] = $aptData['floor'];
+                    }
                 }
 
 
                 $userPhoneData = @$allPhones[$userLogin];
-                $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
-                $result[$userLogin]['phone'][0]['flag_main'] = 1;
-                $result[$userLogin]['phone'][0]['comment'] = __('Phone');
-
-                $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
-                $result[$userLogin]['phone'][1]['flag_main'] = 0;
-                $result[$userLogin]['phone'][1]['comment'] = __('Mobile');
-
+                if (!empty($userPhoneData)) {
+                    if (isset($userPhoneData['phone'])) {
+                        $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
+                        $result[$userLogin]['phone'][0]['flag_main'] = 1;
+                        $result[$userLogin]['phone'][0]['comment'] = __('Phone');
+                    }
+                    if (isset($userPhoneData['mobile'])) {
+                        $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
+                        $result[$userLogin]['phone'][1]['flag_main'] = 1;
+                        $result[$userLogin]['phone'][1]['comment'] = __('Mobile');
+                    }
+                }
                 $result[$userLogin]['email'][0]['address'] = @$allEmails[$userLogin];
                 $result[$userLogin]['email'][0]['flag_main'] = 1;
-                $result[$userLogin]['email'][0]['comment'] = '';
 
-             //   die('<pre>' . print_r($result, true) . '</pre>'); //debug here
+
+                $result[$userLogin]['ip_mac'][0]['ip'] = $userData['IP'];
+                $nethostsData = @$allNethosts[$userData['IP']];
+                if (!empty($nethostsData)) {
+                    $subnetId = $nethostsData['netid'];
+                    $userMac = $nethostsData['mac'];
+                    $result[$userLogin]['ip_mac'][0]['mac'] = $userMac;
+                    $result[$userLogin]['ip_mac'][0]['ip_net'] = @$allNetworks[$subnetId]['desc'];
+                }
+
+                if (isset($this->allCfData[$userLogin])) {
+                    $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
+                }
+
+
+                //  die('<pre>' . print_r($result, true) . '</pre>'); //debug here
             }
         }
 
