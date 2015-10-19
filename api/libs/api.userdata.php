@@ -395,19 +395,18 @@ function zb_UserGetAllStargazerData() {
     return($userdata);
 }
 
-
 /**
  * Returns array of all available stargazer user logins
  * 
  * @return array
  */
 function zb_UserGetAllStargazerLogins() {
-    $result=array();
+    $result = array();
     $query = "SELECT `login` from `users`";
     $all = simple_queryall($query);
     if (!empty($all)) {
-        foreach ($all as $io=>$each) {
-            $result[]=$each['login'];
+        foreach ($all as $io => $each) {
+            $result[] = $each['login'];
         }
     }
     return ($result);
@@ -582,7 +581,6 @@ function zb_CreditGetAllUsers() {
     return ($result);
 }
 
-
 /**
  * Returns price of tariff by its name
  * 
@@ -625,6 +623,23 @@ function zb_TariffGetPricesAll() {
         }
     }
 
+    return ($result);
+}
+
+/**
+ * Returns array of all available user notes as login=>note
+ * 
+ * @return array
+ */
+function zb_UserGetAllNotes() {
+    $result = array();
+    $query = "SELECT * from `notes`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['login']] = $each['note'];
+        }
+    }
     return ($result);
 }
 

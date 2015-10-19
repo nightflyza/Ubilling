@@ -3,7 +3,7 @@
 class UserSideApi {
 
     const API_VER = '1.1';
-    const API_DATE = '17.10.2015';
+    const API_DATE = '19.10.2015';
 
     /**
      * Stores system alter config as key=>value
@@ -147,7 +147,8 @@ class UserSideApi {
             'get_user_additional_data_type_list' => __('Returns user profile custom fields data'),
             'get_user_state_list' => __('Returns users state data'),
             'get_user_group_list' => __('Returns user tags list'),
-            'get_system_information' => __('Returns system information')
+            'get_system_information' => __('Returns system information'),
+            'get_user_list' => __('Returns available users data')
         );
     }
 
@@ -484,15 +485,207 @@ class UserSideApi {
      * @return array
      */
     protected function getSystemInformation() {
-        $result=array();
-        $curdate=  curdate();
-        $operatingSystem=shell_exec('uname');
-        $billingVersion=  file_get_contents('RELEASE');
+        $result = array();
+        $curdate = curdate();
+        $operatingSystem = shell_exec('uname');
+        $billingVersion = file_get_contents('RELEASE');
+
+        $result['date'] = $curdate;
+        $result['os'] = trim($operatingSystem);
+        $result['billing']['name'] = 'Ubilling';
+        $result['billing']['version'] = trim($billingVersion);
+        return ($result);
+    }
+
+    /**
+     * Returns array of all tagtypes set to users
+     * 
+     * @return array
+     */
+    protected function getAllUsersTags() {
+        $result = array();
+        $query = "SELECT * from `tags`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['login']][] = $each['tagid'];
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Returns array of all available PaymentIDs
+     * 
+     * @return array
+     */
+    protected function getAllUserPaymentIds() {
+        $result = array();
+        if ($this->altCfg['OPENPAYZ_REALID']) {
+            $query = "SELECT * from `op_customers`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $result[$each['realid']] = $each['virtualid'];
+                }
+            }
+        } else {
+            if (!empty($this->allUserData)) {
+                foreach (@$this->allUserData as $io => $each) {
+                    $result[$each['login']] = ip2int($each['IP']);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of all available login=>apt bindings
+     * 
+     * @return array
+     */
+    protected function getAllAddressList() {
+        $result = array();
+        $query = "SELECT * from `address`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['login']] = $each['aptid'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of all available apartments data as id=>data
+     * 
+     * @return array
+     */
+    protected function getAllAptList() {
+        $result = array();
+        $query = "SELECT * from `apt`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['id']] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns existing users full info
+     * 
+     * @return array
+     */
+    protected function getUsersList() {
+        $result = array();
+        $allRealNames = zb_UserGetAllRealnames();
+        $allContracts = zb_UserGetAllContracts();
+        $allUserTags = $this->getAllUsersTags();
+        $allUserNotes = zb_UserGetAllNotes();
+        $allPaymentIds = $this->getAllUserPaymentIds();
+        $allAddresBindings = $this->getAllAddressList();
+        $allAptData = $this->getAllAptList();
+        $allPhones = zb_UserGetAllPhoneData();
+        $allEmails = zb_UserGetAllEmails();
         
-        $result['date']=$curdate;
-        $result['os']=trim($operatingSystem);
-        $result['billing']['name']='Ubilling';
-        $result['billing']['version']=trim($billingVersion);
+
+        if (!empty($allContracts)) {
+            $allContracts = array_flip($allContracts);
+        }
+        $allContractDates = zb_UserContractDatesGetAll();
+
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $userLogin => $userData) {
+                $result[$userLogin]['id'] = $userLogin;
+                $result[$userLogin]['full_name'] = @$allRealNames[$userLogin];
+                $result[$userLogin]['flag_corporate'] = 0;
+
+                if ($userData['TariffChange']) {
+                    $curMonth = date('n');
+                    $curYear = date('Y');
+                    $firstDayNextMonth = ($curMonth == 12) ? mktime(0, 0, 0, 0, 0, $curYear + 1) : mktime(0, 0, 0, $curMonth + 1, 1);
+                    $firstDayNextMonth = date("Y-m-d", $firstDayNextMonth);
+                } else {
+                    $firstDayNextMonth = '';
+                }
+                $result[$userLogin]['tariff']['current'][0]['id'] = $userData['Tariff'];
+                $result[$userLogin]['tariff']['current'][0]['date_finish'] = $firstDayNextMonth;
+
+                if ($userData['TariffChange']) {
+                    $result[$userLogin]['tariff']['new'][0]['id'] = $userData['TariffChange'];
+                    $result[$userLogin]['tariff']['new'][0]['date_start'] = $firstDayNextMonth;
+                }
+
+                $userContract = @$allContracts[$userLogin];
+                $result[$userLogin]['agreement'][0]['number'] = $userContract;
+                $result[$userLogin]['agreement'][0]['date'] = @$allContractDates[$userContract];
+
+                $result[$userLogin]['account_number'] = @$allPaymentIds[$userLogin]; // yep, this is something like Payment ID
+
+                if (isset($allUserTags[$userLogin])) {
+                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                        $result[$userLogin]['group'][$tagIo] = $eachTagid;
+                    }
+                }
+
+                $result[$userLogin]['comment'] = @$allUserNotes[$userLogin];
+                $result[$userLogin]['balance'] = $userData['Cash'];
+                $result[$userLogin]['credit'] = $userData['Credit'];
+
+                $userState = 0; // work
+                if ($userData['Cash'] < '-' . $userData['Credit']) {
+                    $userState = 1; //nomoney
+                }
+                if ($userData['Passive'] == 1) {
+                    $userState = 2; // pause
+                }
+                if ($userData['Down'] == 1) {
+                    $userState = 3; // disable
+                }
+                if ($userData['Tariff'] == '*_NO_TARIFF_*') {
+                    $userState = 4; // new
+                }
+                $result[$userLogin]['state_id'] = $userState;
+
+                $result[$userLogin]['traffic']['month']['up'] = $userData['U0'];
+                $result[$userLogin]['traffic']['month']['down'] = $userData['D0'];
+                $result[$userLogin]['discount'] = 0; // TODO: to many discount models at this time
+
+
+                $userApartmentId = @$allAddresBindings[$userLogin];
+                if ($userApartmentId) {
+                    $aptData = $allAptData[$userApartmentId];
+                    $result[$userLogin]['address'][0]['type'] = 'connect';
+                    $result[$userLogin]['address'][0]['house_id'] = $aptData['buildid'];
+                    $result[$userLogin]['address'][0]['apartment']['id'] = $userApartmentId;
+                    $result[$userLogin]['address'][0]['apartment']['full_name'] = $aptData['apt'];
+                    $result[$userLogin]['address'][0]['apartment']['number'] = $aptData['apt'];
+                    $result[$userLogin]['address'][0]['apartment']['block'] = '';
+                    $result[$userLogin]['address'][0]['apartment']['entrance'] = $aptData['entrance'];
+                    $result[$userLogin]['address'][0]['apartment']['floor'] = $aptData['floor'];
+                }
+
+
+                $userPhoneData = @$allPhones[$userLogin];
+                $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
+                $result[$userLogin]['phone'][0]['flag_main'] = 1;
+                $result[$userLogin]['phone'][0]['comment'] = __('Phone');
+
+                $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
+                $result[$userLogin]['phone'][1]['flag_main'] = 0;
+                $result[$userLogin]['phone'][1]['comment'] = __('Mobile');
+
+                $result[$userLogin]['email'][0]['address'] = @$allEmails[$userLogin];
+                $result[$userLogin]['email'][0]['flag_main'] = 1;
+                $result[$userLogin]['email'][0]['comment'] = '';
+
+             //   die('<pre>' . print_r($result, true) . '</pre>'); //debug here
+            }
+        }
+
         return ($result);
     }
 
@@ -535,6 +728,9 @@ class UserSideApi {
                         break;
                     case 'get_system_information':
                         $this->renderReply($this->getSystemInformation());
+                        break;
+                    case 'get_user_list':
+                        $this->renderReply($this->getUsersList());
                         break;
                 }
             } else {
