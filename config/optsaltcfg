@@ -261,7 +261,7 @@ REMINDER_TEMPLATE=VARCHAR|Text for sms reminder
 FRIENDSHIP_ENABLED=TRIGGER|Is friendship subsystem enabled
 FRIENDSHIP_PERCENT=VARCHAR|Percent accured on the balance by friendly user payments
 FRIENDSHIP_CASHTYPEID=VARCHAR|Payment type ID for friendship payments
-MIKMIGR=TRIGGER|Mikbill migration
+USERSIDE_API=TRIGGER|UserSide API requests enabled
 CHAPTEREND_BEH=true
 
 

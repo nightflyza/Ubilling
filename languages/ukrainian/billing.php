@@ -2160,5 +2160,17 @@ $lang['def']['Additionally spent materials']='Додатково викорис�
 //rev 4799 
 $lang['def']['ct.']='м.';
 $lang['def']['st.']='вул.';
+$lang['def']['UserSide API requests enabled']='Запити API UserSide увімкнено';
+$lang['def']['Returns supported methods list']='Повертає список методів, що підтримуються';
+$lang['def']['Returns UserSide API version']='Повертає дані про версію API UserSide';
+$lang['def']['Returns available tariffs']='Повертає дані про існуючі тарифи';
+$lang['def']['Returns available cities data']='Повертає дані про існуючі міста';
+$lang['def']['Returns available streets data']='Поветає дані про існуючі вулиці';
+$lang['def']['Returns available builds data']='Повертає дані про існуючі будинки';
+$lang['def']['Returns user profile custom fields data']='Повертає дані про додаткові поля профілю';
+$lang['def']['Returns users state data']='Повертає список можливих станів користувачів';
+$lang['def']['Returns user tags list']='Повертає список тегів користувачів';
+$lang['def']['Returns system information']='Повертає системну інформацію про сервер';
+$lang['def']['Returns available users data']='Повертає дані про існуючих користувачів';
 
 ?>

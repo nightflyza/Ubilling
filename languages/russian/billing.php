@@ -2145,6 +2145,21 @@ $lang['def']['Additionally spent materials']='Дополнительно исп�
 //rev 4799 
 $lang['def']['ct.']='г.';
 $lang['def']['st.']='ул.';
-
+$lang['def']['UserSide API requests enabled']='Запросы API UserSide включены';
+$lang['def']['Returns supported methods list']='Возвращает список поддерживаемых методов';
+$lang['def']['Returns UserSide API version']='Возвращает данные о версии API UserSide';
+$lang['def']['Returns available tariffs']='Возвращает список существующих тарифов';
+$lang['def']['Returns available cities data']='Возвращает данные о существующих городах';
+$lang['def']['Returns available streets data']='Возвращает данные о существующих улицах';
+$lang['def']['Returns available builds data']='Возвращает данные о существующих домах';
+$lang['def']['Returns user profile custom fields data']='Возвращает данные о дополнительных полях профиля';
+$lang['def']['Returns users state data']='Возвращает список возможных состояний пользователей';
+$lang['def']['Returns user tags list']='Возвращает список тегов пользователей';
+$lang['def']['Returns system information']='Возвращает системную информацию о сервере';
+$lang['def']['Returns available users data']='Возвращает данные о существующих пользователях';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
 
 ?>

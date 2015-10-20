@@ -154,7 +154,8 @@ if (cfr('WAREHOUSE')) {
 
                     if (!wf_CheckGet(array('outitemid'))) {
                         $storageId = $_GET['storageid'];
-                        show_window(__('The remains in the warehouse storage') . ': ' . $warehouse->storageGetName($storageId), $warehouse->outcomingItemsList($storageId));
+                        $remainsPrintControls = ' ' . wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_VIEWERS . '&printremainsstorage=' . $storageId, wf_img('skins/icon_print.png', __('Print')));
+                        show_window(__('The remains in the warehouse storage') . ': ' . $warehouse->storageGetName($storageId) . $remainsPrintControls, $warehouse->outcomingItemsList($storageId));
                         $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     } else {
                         show_window(__('New outcoming operation') . ' ' . $warehouse->itemtypeGetName($_GET['outitemid']), $warehouse->outcomingCreateForm($_GET['storageid'], $_GET['outitemid']));
@@ -183,10 +184,10 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveDelete($_GET['deletereserve']);
                         rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
-                    
+
                     if (wf_CheckPost(array('editreserveid'))) {
                         $warehouse->reserveSave();
-                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);   
+                        rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
                     show_window(__('Reserved'), $warehouse->reserveRenderList());
                     $warehouse->$avidity['M']['FALL']($warehouse::URL_ME);
@@ -212,6 +213,10 @@ if (cfr('WAREHOUSE')) {
 
                 if (wf_CheckGet(array('qrcode', 'renderid'))) {
                     $warehouse->qrCodeDraw($_GET['qrcode'], $_GET['renderid']);
+                }
+
+                if (wf_CheckGet(array('printremainsstorage'))) {
+                    $warehouse->reportStorageRemainsPrintable($_GET['printremainsstorage']);
                 }
             }
 

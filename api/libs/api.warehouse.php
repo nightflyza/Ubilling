@@ -2326,6 +2326,75 @@ class Warehouse {
         return ($result);
     }
 
+    /**
+     * shows printable report content
+     * 
+     * @param $title report title
+     * @param $data  report data to printable transform
+     * 
+     * @return void
+     */
+    public function reportPrintable($title, $data) {
+
+        $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
+
+        $header = wf_tag('!DOCTYPE', false, '', 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"');
+        $header.= wf_tag('html', false, '', 'xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru"');
+        $header.= wf_tag('head', false);
+        $header.= wf_tag('title') . $title . wf_tag('title', true);
+        $header.= wf_tag('meta', false, '', 'http-equiv="Content-Type" content="text/html; charset=UTF-8" /');
+        $header.= wf_tag('style', false, '', 'type="text/css"');
+        $header.= $style;
+        $header.=wf_tag('style', true);
+        $header.= wf_tag('script', false, '', 'src="modules/jsc/sorttable.js" language="javascript"') . wf_tag('script', true);
+        $header.=wf_tag('head', true);
+        $header.= wf_tag('body', false);
+
+        $footer = wf_tag('body', true);
+        $footer.= wf_tag('html', true);
+
+        $title = (!empty($title)) ? wf_tag('h2') . $title . wf_tag('h2', true) : '';
+        $data = $header . $title . $data . $footer;
+        die($data);
+    }
+
+    /**
+     * Renders storage remains printable report
+     * 
+     * @param int $storageid
+     * 
+     * @return void
+     */
+    public function reportStorageRemainsPrintable($storageId) {
+        $storageId = vf($storageId, 3);
+        $result = '';
+        if (isset($this->allStorages[$storageId])) {
+            $storageName = $this->allStorages[$storageId];
+            $allRemains = $this->remainsOnStorage($storageId);
+
+            $cells = wf_TableCell(__('Category'));
+            $cells.= wf_TableCell(__('Warehouse item types'));
+            $cells.= wf_TableCell(__('Count'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            if (!empty($allRemains)) {
+                foreach ($allRemains as $itemtypeId => $count) {
+                    $cells = wf_TableCell(@$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']]);
+                    $cells.= wf_TableCell(@$this->allItemTypeNames[$itemtypeId]);
+                    $itemUnit = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+                    $cells.= wf_TableCell($count . ' ' . $itemUnit);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+            }
+
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            $this->reportPrintable(__('The remains in the warehouse storage') . ': ' . $storageName, $result);
+        } else {
+            show_error(__('Something went wrong') . ': EX_WRONG_STORAGE_ID');
+            show_window('', $this->backControl(self::URL_ME . '&' . self::URL_OUT));
+        }
+    }
+
 }
 
 ?>
