@@ -271,8 +271,10 @@ class UserSideApi {
             $i = 0;
             if (!empty($allCfData)) {
                 foreach ($allCfData as $io => $each) {
-                    $this->allCfData[$each['login']][$i]['id'] = $each['typeid'];
-                    $this->allCfData[$each['login']][$i]['value'] = $each['content'];
+                    if (!empty($each['content'])) {
+                        $this->allCfData[$each['login']][$i]['id'] = $each['typeid'];
+                        $this->allCfData[$each['login']][$i]['value'] = $each['content'];
+                    }
                     $i++;
                 }
             }
@@ -304,6 +306,7 @@ class UserSideApi {
     protected function renderReply($data) {
         $result = 'undefined';
         if (!$this->debugMode) {
+            header('Content-Type: application/json');
             if (!empty($data)) {
                 $result = json_encode($data);
             }
@@ -665,8 +668,13 @@ class UserSideApi {
                 }
 
                 $userContract = @$allContracts[$userLogin];
-                $result[$userLogin]['agreement'][0]['number'] = $userContract;
-                $result[$userLogin]['agreement'][0]['date'] = @$allContractDates[$userContract];
+                if ($userContract) {
+                    $result[$userLogin]['agreement'][0]['number'] = $userContract;
+                    $contractDate = @$allContractDates[$userContract];
+                    if ($contractDate) {
+                        $result[$userLogin]['agreement'][0]['date'] = $contractDate;
+                    }
+                }
 
                 $result[$userLogin]['account_number'] = @$allPaymentIds[$userLogin]; // yep, this is something like Payment ID
 
@@ -724,18 +732,19 @@ class UserSideApi {
                 if (!empty($userPhoneData)) {
                     if (isset($userPhoneData['phone'])) {
                         $result[$userLogin]['phone'][0]['number'] = $userPhoneData['phone'];
-                        $result[$userLogin]['phone'][0]['flag_main'] = 1;
-                        $result[$userLogin]['phone'][0]['comment'] = __('Phone');
+                        $result[$userLogin]['phone'][0]['flag_main'] = 0;
                     }
                     if (isset($userPhoneData['mobile'])) {
                         $result[$userLogin]['phone'][1]['number'] = $userPhoneData['mobile'];
                         $result[$userLogin]['phone'][1]['flag_main'] = 1;
-                        $result[$userLogin]['phone'][1]['comment'] = __('Mobile');
                     }
                 }
-                $result[$userLogin]['email'][0]['address'] = @$allEmails[$userLogin];
-                $result[$userLogin]['email'][0]['flag_main'] = 1;
 
+                $userEmail = @$allEmails[$userLogin];
+                if ($userEmail) {
+                    $result[$userLogin]['email'][0]['address'] = $userEmail;
+                    $result[$userLogin]['email'][0]['flag_main'] = 1;
+                }
 
                 $result[$userLogin]['ip_mac'][0]['ip'] = $userData['IP'];
                 $nethostsData = @$allNethosts[$userData['IP']];
