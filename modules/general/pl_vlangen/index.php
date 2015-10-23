@@ -29,7 +29,7 @@ if ($altcfg['VLANGEN_SUPPORT']) {
 
                 if (isset($_POST['ChangeVlanOnPort'])) {
                     $obj = new AutoConfigurator;
-                    $set = $obj->sw_snmp_control2($cur_vlan, $login);
+                    $set = $obj->ChangePvid($login, $cur_vlan);
                     if (isset($set)) {
                         show_success($set);
                     }

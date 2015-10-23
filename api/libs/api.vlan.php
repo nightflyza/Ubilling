@@ -393,7 +393,7 @@ class VlanGen {
      * 
      * @return form
      */
-    public function ChangeOnPortForm() {        
+    public function ChangeOnPortForm() {
         $inputs = wf_SubmitClassed('true', 'vlanButton', 'ChangeVlanOnPort', __('Change vlan on switch port'));
         $form = wf_Form("", 'POST', $inputs);
         return($form);
@@ -1343,9 +1343,56 @@ class AutoConfigurator {
 
             if (file_exists(self::AUTOCONFIG . $snmpTemplate)) {
                 $SNMPData = rcms_parse_ini_file(self::AUTOCONFIG . $snmpTemplate, true);
-
-                $pattern = array('/PORT/', '/VLAN/');
-                $replace = array($port, $vlan);
+                if (isset($SNMPData['define']['HEX'])) {
+                    $group = 0;
+                    if ($port > 4) {
+                        $portPlace = $port % 4;
+                        if ($portPlace == 0) {
+                            $portPlace = 4;
+                        }
+                        $counter = $port;
+                        while ($counter > 0) {
+                            $group++;
+                            $counter -= 4;
+                        }
+                    } else {
+                        $group = 1;
+                        $portPlace = $port;
+                    }
+                    switch ($portPlace) {
+                        case 1:
+                            $portPlaceHex = 8;
+                            break;
+                        case 2:
+                            $portPlaceHex = 4;
+                            break;
+                        case 3:
+                            $portPlaceHex = 2;
+                            break;
+                        case 4:
+                            $portPlaceHex = 1;
+                            break;
+                    }
+                    $hexString = $SNMPData['define']['HEX'];
+                    $hexString = str_replace(' ', '', $hexString);
+                    $hexString[$group - 1] = $portPlaceHex;
+                    $split = str_split($hexString);
+                    $hexString = '';
+                    $stringCounter = 1;
+                    foreach ($split as $each) {
+                        if (($stringCounter % 2) == 0) {
+                            $hexString.= $each . " ";
+                        } else {
+                            $hexString.= $each;
+                        }
+                        $stringCounter++;
+                    }
+                    $pattern = array('/PORT/', '/VLAN/', '/HEX/');
+                    $replace = array($port, $vlan, $hexString);
+                } else {
+                    $pattern = array('/PORT/', '/VLAN/');
+                    $replace = array($port, $vlan);
+                }
 
                 if ($SNMPData['define']['TYPE'] == 'simple') {
                     foreach ($SNMPData as $section => $eachpoll) {
@@ -1377,7 +1424,7 @@ class AutoConfigurator {
                                 } else {
                                     show_warning(__("Switch has no uplink"));
                                 }
-                                log_register(__("Change PVID to") . " " . $vlan . __("on port") . " " . $port . " " . __("switch") . " " . $ip . __("for") . " " . $login);
+                                log_register(__("Change PVID to") . " " . $vlan . " vlan " . __("on port") . " " . $port . " " . __("switch") . " " . $ip . " " . __("for") . " " . $login);
                                 show_success($result);
                             } else {
                                 show_error(__("Something goes wrong, vlan wasnt applied on port"));
@@ -1399,17 +1446,17 @@ class AutoConfigurator {
      * @return void
      */
     public function CreateVlanLooped($SwitchId, $vlan, $parent = true) {
-        if(!$parent) {
+        if (!$parent) {
             if ($this->GetSwitchesData($SwitchId)) {
-                $SwitchesDataParent = $this->GetSwitchesData($SwitchId);                                
+                $SwitchesDataParent = $this->GetSwitchesData($SwitchId);
                 $ParentIdtmp = $SwitchesDataParent['parentid'];
                 $SwitchId = $ParentIdtmp;
             }
-        }       
+        }
         while (!empty($SwitchId)) {
             $SwitchIp = $this->GetSwUplinkIP($SwitchId);
-            if ($this->CheckTermIP($SwitchIp)) {                
-                break;                
+            if ($this->CheckTermIP($SwitchIp)) {
+                break;
             }
             if ($this->GetSwitchLoginData($SwitchId)) {
                 $SwitchLoginData = $this->GetSwitchLoginData($SwitchId);
@@ -1433,9 +1480,9 @@ class AutoConfigurator {
                 $replace = $vlan;
 
                 if ($SNMPData['define']['TYPE'] == 'simple') {
-                    foreach ($SNMPData as $section => $eachpoll) {
-                        if ($section != 'define') {
-                            if ($section != 'CHANGE') {
+                    if ($this->CheckVlan($ip, $community, $CheckOid)) {
+                        foreach ($SNMPData as $section => $eachpoll) {
+                            if ($section == 'save') {
                                 $data[] = array(
                                     'oid' => preg_replace($pattern, $replace, $eachpoll['OID']),
                                     'type' => $eachpoll['TYPE'],
@@ -1443,11 +1490,26 @@ class AutoConfigurator {
                                 );
                             }
                         }
+                    } else {
+                        foreach ($SNMPData as $section => $eachpoll) {
+                            if ($section != 'define') {
+                                if ($section != 'change') {
+                                    $data[] = array(
+                                        'oid' => preg_replace($pattern, $replace, $eachpoll['OID']),
+                                        'type' => $eachpoll['TYPE'],
+                                        'value' => preg_replace($pattern, $replace, $eachpoll['VALUE'])
+                                    );
+                                }
+                            }
+                        }
                     }
-                    $result = $this->SnmpHelper->set($ip, $community, $data);
                     $CheckOid = preg_replace($pattern, $replace, $SNMPData['create']['OID']);
-                    if ($this->CheckVlan($ip, $community, $oid)) {
-                        log_register(__("Created vlan") . " " . $vlan . __("on switch") . " " . $ip);
+
+                    log_register(__("VLAN") . " " . $vlan . " " . __("already created") . " " . __("on switch") . " " . $ip);
+
+                    $result = $this->SnmpHelper->set($ip, $community, $data);
+                    if ($this->CheckVlan($ip, $community, $CheckOid)) {
+                        log_register(__("Created vlan") . " " . $vlan . " " . __("on switch") . " " . $ip);
                     }
                 }
                 $SwitchId = $ParentId;
@@ -1481,9 +1543,8 @@ class OnuConfigurator {
      * @var array 
      */
     protected $allOltModels = array();
-
     protected $AutoConfig = array();
-    
+
     public function __construct() {
         $this->loadOnu();
         $this->LoadAllOlt();
@@ -1668,14 +1729,14 @@ class OnuConfigurator {
         $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
         $data = array();
         if ($VlanCheck) {
-            //create vlan on OLT
+//create vlan on OLT
             $data[] = array(
                 'oid' => $vlanCreateOid . "." . $vlan,
                 'type' => 'i',
                 'value' => '4'
             );
         }
-        //Change pvid on onu port by defolt port 1
+//Change pvid on onu port by defolt port 1
         $data[] = array(
             'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
             'type' => 'i',
