@@ -562,7 +562,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:FRIENDSHIP DISABLED');
                         }
                     }
-                    
+
                     /*
                      * Per month freezing fees
                      */
@@ -572,19 +572,24 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         $money->makeFreezeMonthFee();
                         die('OK:FREEZEMONTH');
                     }
-                    
+
                     /**
                      * UserSide get API handling
                      */
-                    if ($_GET['action']=='userside') {
+                    if ($_GET['action'] == 'userside') {
                         if ($alterconf['USERSIDE_API']) {
-                        $usersideapi=new UserSideApi();
-                        $usersideapi->catchRequest();
+                            $usersideapi = new UserSideApi();
+                            if (wf_CheckGet(array('request'))) {
+                                $usersideapi->catchRequest();
+                            } else {
+                                header('HTTP/1.1 400 Undefined request', true, 400);
+                                die('Undefined request');
+                            }
                         } else {
                             die('ERROR:NO_USERSIDE_API_ENABLED');
                         }
                     }
-                    
+
                     ////
                     //// End of actions
                     ////
