@@ -812,6 +812,9 @@ class UserSideApi {
                 header('HTTP/1.1 400 Unknown Action"', true, 400);
                 die('Unknown Action');
             }
+        } else {
+            header('HTTP/1.1 400 Undefined request', true, 400);
+            die('Undefined request');
         }
     }
 

@@ -579,12 +579,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     if ($_GET['action'] == 'userside') {
                         if ($alterconf['USERSIDE_API']) {
                             $usersideapi = new UserSideApi();
-                            if (wf_CheckGet(array('request'))) {
-                                $usersideapi->catchRequest();
-                            } else {
-                                header('HTTP/1.1 400 Undefined request', true, 400);
-                                die('Undefined request');
-                            }
+                            $usersideapi->catchRequest();
                         } else {
                             die('ERROR:NO_USERSIDE_API_ENABLED');
                         }
