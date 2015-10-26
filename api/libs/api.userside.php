@@ -393,8 +393,10 @@ class UserSideApi {
                 $result[$buildId]['street_id'] = $buildData['streetid'];
                 $result[$buildId]['full_name'] = $streetName . ' ' . $buildData['buildnum'];
                 $result[$buildId]['postcode'] = '';
-                $result[$buildId]['number'] = $buildData['buildnum'];
-                $result[$buildId]['block'] = '';
+                $result[$buildId]['number'] = vf($buildData['buildnum'], 3);
+                $blockLetter = preg_replace('/\P{L}+/u', '', $buildData['buildnum']);
+                $blockLetter = trim($blockLetter);
+                $result[$buildId]['block'] = $blockLetter;
             }
         }
         return ($result);
@@ -424,25 +426,25 @@ class UserSideApi {
     protected function getUsersStateList() {
         $result = array();
 
-        $result['0']['id'] = 0;
-        $result['0']['name'] = __('Active');
-        $result['0']['functional'] = 'work';
+        $result[5]['id'] = 5;
+        $result[5]['name'] = __('Active');
+        $result[5]['functional'] = 'work';
 
-        $result['1']['id'] = 1;
-        $result['1']['name'] = __('Debt');
-        $result['1']['functional'] = 'nomoney';
+        $result[1]['id'] = 1;
+        $result[1]['name'] = __('Debt');
+        $result[1]['functional'] = 'nomoney';
 
-        $result['2']['id'] = 2;
-        $result['2']['name'] = __('User passive');
-        $result['2']['functional'] = 'pause';
+        $result[2]['id'] = 2;
+        $result[2]['name'] = __('User passive');
+        $result[2]['functional'] = 'pause';
 
-        $result['3']['id'] = 3;
-        $result['3']['name'] = __('User down');
-        $result['3']['functional'] = 'disable';
+        $result[3]['id'] = 3;
+        $result[3]['name'] = __('User down');
+        $result[3]['functional'] = 'disable';
 
-        $result['4']['id'] = 4;
-        $result['4']['name'] = __('No tariff');
-        $result['4']['functional'] = 'new';
+        $result[4]['id'] = 4;
+        $result[4]['name'] = __('No tariff');
+        $result[4]['functional'] = 'new';
 
         return ($result);
     }
@@ -454,6 +456,7 @@ class UserSideApi {
      */
     protected function getTagTypesList() {
         $result = array();
+        /* Правда твоя - теплый асфальт */
         if (!empty($this->allTagTypes)) {
             foreach ($this->allTagTypes as $tagId => $eachTagName) {
                 $result[$tagId]['id'] = $tagId;
@@ -691,7 +694,7 @@ class UserSideApi {
                 $result[$userLogin]['balance'] = $userData['Cash'];
                 $result[$userLogin]['credit'] = $userData['Credit'];
 
-                $userState = 0; // work
+                $userState = 5; // work
                 if ($userData['Cash'] < '-' . $userData['Credit']) {
                     $userState = 1; //nomoney
                 }
@@ -720,10 +723,10 @@ class UserSideApi {
                     $result[$userLogin]['address'][0]['apartment']['full_name'] = $aptData['apt'];
                     $result[$userLogin]['address'][0]['apartment']['number'] = vf($aptData['apt'], 3);
                     if ($aptData['entrance']) {
-                        $result[$userLogin]['address'][0]['apartment']['entrance'] = $aptData['entrance'];
+                        $result[$userLogin]['address'][0]['entrance'] = $aptData['entrance'];
                     }
                     if ($aptData['floor']) {
-                        $result[$userLogin]['address'][0]['apartment']['floor'] = $aptData['floor'];
+                        $result[$userLogin]['address'][0]['floor'] = $aptData['floor'];
                     }
                 }
 
@@ -746,11 +749,15 @@ class UserSideApi {
                     $result[$userLogin]['email'][0]['flag_main'] = 1;
                 }
 
-                $result[$userLogin]['ip_mac'][0]['ip'] = $userData['IP'];
+                $userIp = $userData['IP'];
+                $userIp = ip2int($userIp);
+                $result[$userLogin]['ip_mac'][0]['ip'] = $userIp;
                 $nethostsData = @$allNethosts[$userData['IP']];
                 if (!empty($nethostsData)) {
                     $subnetId = $nethostsData['netid'];
                     $userMac = $nethostsData['mac'];
+                    $userMac = str_replace(':', '', $userMac);
+                    $userMac = strtolower($userMac); // mac lowercased withot delimiters
                     $result[$userLogin]['ip_mac'][0]['mac'] = $userMac;
                     $result[$userLogin]['ip_mac'][0]['ip_net'] = @$allNetworks[$subnetId]['desc'];
                 }
@@ -758,6 +765,7 @@ class UserSideApi {
                 if (isset($this->allCfData[$userLogin])) {
                     $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
                 }
+                //   die(print_r($result, true));
             }
         }
 
