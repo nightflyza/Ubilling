@@ -282,6 +282,23 @@ class UserSideApi {
     }
 
     /**
+     * Returns  all users registration dates as login=>date
+     * 
+     * @return array
+     */
+    protected function getUserRegData() {
+        $result = array();
+        $query = "SELECT * from `userreg`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['login']] = $each['date'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Loads existing tag types from database
      * 
      * @return void
@@ -640,6 +657,7 @@ class UserSideApi {
         $allEmails = zb_UserGetAllEmails();
         $allNethosts = $this->getNethostsData();
         $allNetworks = $this->getNetworksData();
+        $allRegData = $this->getUserRegData();
 
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
@@ -708,6 +726,12 @@ class UserSideApi {
                     $userState = 4; // new
                 }
                 $result[$userLogin]['state_id'] = $userState;
+
+                if (isset($allRegData[$userLogin])) {
+                    $result[$userLogin]['date_create'] = $allRegData[$userLogin];
+                    $result[$userLogin]['date_connect'] = $allRegData[$userLogin];
+                }
+                $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
 
                 $result[$userLogin]['traffic']['month']['up'] = $userData['U0'];
                 $result[$userLogin]['traffic']['month']['down'] = $userData['D0'];
