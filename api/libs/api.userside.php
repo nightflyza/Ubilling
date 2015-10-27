@@ -2,8 +2,8 @@
 
 class UserSideApi {
 
-    const API_VER = '1.1';
-    const API_DATE = '19.10.2015';
+    const API_VER = '1.2';
+    const API_DATE = '26.10.2015';
 
     /**
      * Stores system alter config as key=>value
@@ -667,6 +667,7 @@ class UserSideApi {
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $userLogin => $userData) {
                 $result[$userLogin]['id'] = $userLogin;
+                $result[$userLogin]['login'] = $userLogin;
                 $result[$userLogin]['full_name'] = @$allRealNames[$userLogin];
                 $result[$userLogin]['flag_corporate'] = 0;
 
@@ -730,6 +731,9 @@ class UserSideApi {
                 if (isset($allRegData[$userLogin])) {
                     $result[$userLogin]['date_create'] = $allRegData[$userLogin];
                     $result[$userLogin]['date_connect'] = $allRegData[$userLogin];
+                } else {
+                    $result[$userLogin]['date_create'] = '';
+                    $result[$userLogin]['date_connect'] = '';
                 }
                 $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
 
