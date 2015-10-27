@@ -1,18 +1,25 @@
 <?php
 
-/**
- * Class usage example :
- * 
- * $morph=new UBMorph();
- * deb($morph->sum2str('10,21')); // десять гривень 21 копійка
- * $morph->setType('RUR'); // and russian locale selected by admin...
- * deb($morph->sum2str('300')); //триста рублей 00 копеек
-
- */
-
 class UBMorph {
 
-    protected $currencyType = 'UAH';
+    protected $currencyType = '';
+    protected $altCfg = array();
+
+    public function __construct() {
+        $this->loadAlter();
+        $this->initType();
+    }
+
+    /**
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
 
     /**
      * Returns current currency
@@ -21,6 +28,19 @@ class UBMorph {
      */
     public function getType() {
         return ($this->currencyType);
+    }
+
+    /**
+     * Inits default currency type at startup, handles TEMPLATE_CURRENCY option
+     * 
+     * @return void
+     */
+    protected function initType() {
+        if (isset($this->altCfg['TEMPLATE_CURRENCY'])) {
+            $this->currencyType = $this->altCfg['TEMPLATE_CURRENCY'];
+        } else {
+            $this->currencyType = 'UAH';
+        }
     }
 
     /**

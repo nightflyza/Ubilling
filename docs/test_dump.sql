@@ -1594,3 +1594,11 @@ ALTER TABLE `taskman` ADD INDEX(`startdate`);
 
 -- 0.7.2 update
 ALTER TABLE `switch_login` ADD `snmptemplate` VARCHAR(32) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS `taskmantrack` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `taskid` int(11) NOT NULL,
+  `admin` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `taskid` (`taskid`,`admin`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

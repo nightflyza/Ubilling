@@ -752,7 +752,7 @@ function ts_JGetAllTasks() {
     if ($displaytype == 'onlyme') {
         $whoami = whoami();
         $curempid = ts_GetEmployeeByLogin($whoami);
-        $appendQuery = " WHERE `employee`='" . $curempid . "'";
+        $appendQuery = " AND `employee`='" . $curempid . "'";
     } else {
         $appendQuery = '';
     }
@@ -760,6 +760,9 @@ function ts_JGetAllTasks() {
     if (($curmonth != 1) AND ( $curmonth != 12)) {
         $query = "SELECT * from `taskman` WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
+        if ($appendQuery) {
+            $appendQuery = str_replace('AND', 'WHERE', $appendQuery);
+        }
         $query = "SELECT * from `taskman` " . $appendQuery . " ORDER BY `date` ASC";
     }
 
@@ -1037,11 +1040,14 @@ function ts_ShowPanel() {
     $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
     $result.=wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
     $result.=wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
-    $result.=wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('List all tasks'), false, 'ubButton');
+    $result.=wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('All tasks'), false, 'ubButton');
     if (cfr('TASKMANSEARCH')) {
-    $result.=wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
+        $result.=wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
     }
-    //$result.=wf_Link('?module=taskman&lateshow=true', wf_img('skins/time_machine.png') . ' ' . __('Show late'), false, 'ubButton');
+
+    if (cfr('TASKMANTRACK')) {
+        $result.=wf_Link('?module=taskmantrack', wf_img('skins/track_icon.png') . ' ' . __('Tracking'), false, 'ubButton');
+    }
     $result.=wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
 
     //show type selector
@@ -1327,7 +1333,11 @@ function ts_TaskChangeForm($taskid) {
         }
 
         //modify form handlers
-        $modform = wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
+        $modform = '';
+        if (cfr('TASKMANTRACK')) {
+            $modform.= wf_Link('?module=taskmantrack&trackid=' . $taskid, wf_img('skins/track_icon.png', __('Track this task')));
+        }
+        $modform.= wf_modal(web_edit_icon(), __('Edit'), ts_TaskModifyForm($taskid), '', '450', '550');
         //modform end
         //extracting sms data
         if (!empty($taskdata['smsdata'])) {
@@ -1427,14 +1437,13 @@ function ts_TaskChangeForm($taskid) {
                 show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
             }
         }
-        
+
         //warehouse integration
         if ($altercfg['WAREHOUSE_ENABLED']) {
             if (cfr('WAREHOUSE')) {
-                $warehouse=new Warehouse();
+                $warehouse = new Warehouse();
                 show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($_GET['edittask']));
             }
-            
         }
 
 
@@ -1753,15 +1762,15 @@ function ts_GetUndoneCountersAll() {
  * 
  * @return array
  */
-function ts_GetUndoneTasksArray($year='') {
+function ts_GetUndoneTasksArray($year = '') {
     $result = array();
     $curdate = curdate();
-    $curyear= (!empty($year)) ? $year : curyear();
+    $curyear = (!empty($year)) ? $year : curyear();
     $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' AND `date` LIKE '" . $curyear . "-%';";
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
-            $result[$each['id']]=$each;
+            $result[$each['id']] = $each;
         }
     }
     return ($result);

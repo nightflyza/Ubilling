@@ -924,3 +924,8 @@ div.dhtml_menu div.vert_menu a.active:hover
 .wh_viewer td {
     padding: 4px;
 }
+
+.donetask {
+    background-color: #3366cc;
+    color: #ffffff;
+}

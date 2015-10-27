@@ -2157,9 +2157,16 @@ $lang['def']['Returns users state data']='Возвращает список во
 $lang['def']['Returns user tags list']='Возвращает список тегов пользователей';
 $lang['def']['Returns system information']='Возвращает системную информацию о сервере';
 $lang['def']['Returns available users data']='Возвращает данные о существующих пользователях';
+$lang['def']['Track this task']='Отслеживать выполнение этой задачи';
+$lang['def']['You are currently not tracking any tasks']='Сейчас вы не отслеживаете никаких задач';
+$lang['def']['Tasks tracking']='Отслеживание задач';
+$lang['def']['Stop tracking this task']='Перестать отслеживать эту задачу';
+$lang['def']['All tasks']='Все задачи';
+$lang['def']['Tracking']='Отслеживание';
+$lang['def']['right to use tasks tracking']='Право отслеживать задачи планировщика';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
-$lang['def']['']='';
+
 
 ?>

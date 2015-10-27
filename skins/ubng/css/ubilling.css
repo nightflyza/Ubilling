@@ -410,6 +410,11 @@ div.dhtml_menu div.vert_menu a.active:hover
     color: #000000;           
 }
 
+.donetask {
+    background-color: #3366cc;
+    color: #ffffff;
+}
+
 .dashboard{
     width:100%;
 }
