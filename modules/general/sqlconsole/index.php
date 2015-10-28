@@ -95,7 +95,10 @@ $sqlinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
 $sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
 if (cfr('ROOT')) {
 $sqlinputs.=wf_Link("?module=migration", __('Migration'), false, 'ubButton');
-$sqlinputs.=wf_Link("?module=migration2", __('Migration').' 2', true, 'ubButton');
+$sqlinputs.=wf_Link("?module=migration2", __('Migration').' 2', false, 'ubButton');
+if (cfr('MIKMIGR')) {
+    $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') .' mikbill', true, 'ubButton');
+}
 }
 if (wf_CheckPost(array('sqlq'))) {
     if ($alterconf['DEVCON_SQL_KEEP']) {
@@ -116,7 +119,10 @@ $phpinputs=wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
 $phpinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
 if (cfr('ROOT')) {
 $phpinputs.=wf_Link("?module=migration", 'Migration', false, 'ubButton');
-$phpinputs.=wf_Link("?module=migration2", __('Migration').' 2', true, 'ubButton');
+$phpinputs.=wf_Link("?module=migration2", __('Migration').' 2', false, 'ubButton');
+}
+if (cfr('MIKMIGR')) {
+    $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') .' mikbill', true, 'ubButton');
 }
 //is template run or clear area?
 if (wf_CheckGet(array('runtpl'))) {

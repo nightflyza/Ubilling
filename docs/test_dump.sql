@@ -1602,3 +1602,12 @@ CREATE TABLE IF NOT EXISTS `taskmantrack` (
   PRIMARY KEY (`id`),
   KEY `taskid` (`taskid`,`admin`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `vlan_mac_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(45) DEFAULT NULL,
+  `vlan` int(4) DEFAULT NULL,
+  `mac` varchar(45) DEFAULT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

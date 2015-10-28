@@ -31,4 +31,11 @@ $lang['def']['Available switches login data'] = 'Доступні дані дл�
 $lang['def']['Connection method'] = 'Спосіб з\'єднання';
 $lang['def']['enable propmpt for cisco,bdcom,etc (should be same as password)'] = 'Рядок enable для свічів Cisco, BDCOM, etc (повинен бути таким самим як пароль)';
 $lang['def']['Vlan pool'] = 'Пул vlan-ів';
+$lang['def']['View users MAC and VLAN history'] = 'Дивитися історію зміни MAC-ів та VLAN-ів користувача';
+$lang['def']['Right to view users MAC and VLAN history'] = 'Право дивитися історію зміни MAC-ів та VLAN-ів користувача';
+$lang['def']['Users MAC and VLAN history'] = 'Історія зміни користувачем MAC-ів та VLAN-ів';
+$lang['def']['VLAN and MAC history enabled'] = 'Історія зміни користувачем MAC-ів та VLAN-ів ввімкнена';
+$lang['def']['History'] = 'Історія';
+$lang['def']['Detect online'] = 'Визначити онлайн';
+$lang['def']['Detect online in profile enabled'] = 'Визначення користувацького онлайну у профілі ввімкнено';
 ?>

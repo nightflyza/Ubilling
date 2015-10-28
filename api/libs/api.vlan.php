@@ -1,5 +1,262 @@
 <?php
 
+class VlanMacHistory {
+
+    const MODULE = "vlan_mac_history";
+    const MODULE_URL = "?module=vlan_mac_history";
+    const DB_NAME = "vlan_mac_history";
+    const FLAGPREFIX = 'exports/ONLINEVLANS';
+
+    /**
+     * Contains all available switches data
+     * 
+     * @var array
+     */
+    protected $AllSwitches = array();
+
+    /**
+     * Contains all available switch models data
+     * 
+     * @var array
+     */
+    protected $AllSwitchModels = array();
+
+    /**
+     * Contains all vlan terminators data
+     * 
+     * @var array
+     */
+    protected $allTerminators = array();
+
+    /**
+     * Contains all vlan hosts data
+     * 
+     * @var array
+     */
+    protected $allVlanHosts = array();
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Contains all vlan and mac history
+     * 
+     * @var array
+     */
+    public $allHistory = array();
+
+    public function __construct() {
+        $this->LoadTerminators();
+        $this->LoadAlter();
+        $this->LoadVlanHosts();
+        $this->LoadAllSwitches();
+        $this->LoadAllSwitchModels();
+        $this->LoadVlanMacHistory();
+    }
+
+    protected function LoadTerminators() {
+        $query = "SELECT * FROM " . VlanTerminator::DB_TABLE;
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->allTerminators[$each['vlanpoolid']] = $each;
+            }
+        }
+    }
+
+    /**
+     * load alter.ini config     
+     * 
+     * @return void
+     */
+    protected function LoadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * load all data from vlanhosts to $allVlanHosts
+     * 
+     * @return void
+     */
+    protected function LoadVlanHosts() {
+        $query = "SELECT * FROM " . VlanGen::DB_TABLE;
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->allVlanHosts[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Function for getting all switches and place them to $AllSwitches
+     * 
+     * @return void
+     */
+    protected function LoadAllSwitches() {
+        $data = zb_SwitchesGetAll();
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->AllSwitches[$each['ip']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Function for getting all switch models and place them to $AllSwitchModels
+     * 
+     * @return void
+     */
+    protected function LoadAllSwitchModels() {
+        $query = "SELECT * FROM `switchmodels`";
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->AllSwitchModels[$each['id']] = $each['snmptemplate'];
+            }
+        }
+    }
+
+    protected function LoadVlanMacHistory() {
+        $query = "SELECT * FROM " . self::DB_NAME;
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->allHistory[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Find vlan terminators snmp template
+     * 
+     * @param string $login
+     * @return string
+     */
+    protected function GetTerminatorSnmpTemplate($login) {
+        $data = $this->AllSwitchModels[$this->AllSwitches[$this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip']]['modelid']];
+        return $data;
+    }
+
+    /**
+     * Read online detect oid from snmp template 
+     * 
+     * @param string $login
+     * @param int $vlan
+     * @return string
+     */
+    protected function GetOnlineDetectOid($login, $vlan = false) {
+        $template = $this->GetTerminatorSnmpTemplate($login);
+        $snmpData = rcms_parse_ini_file(CONFIG_PATH . "/snmptemplates/" . $template, true);
+        if ($vlan) {
+            $oid = $snmpData['define']['ONLINEVLAN'] . "." . $vlan;
+        } else {
+            $oid = $snmpData['define']['ONLINEVLAN'];
+        }
+        return ($oid);
+    }
+
+    /**
+     * Check weather user online
+     * 
+     * @param string $login
+     * @param int $vlan
+     * @return string
+     */
+    public function GetUserVlanOnline($login, $vlan) {
+        snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+        @$data = snmp2_real_walk($this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip'], $this->AllSwitches[$this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip']]['snmp'], $this->GetOnlineDetectOid($login, $vlan));        
+        if (empty($data)) {            
+            return "Offline" . " " .  wf_img_sized('skins/icon_inactive.gif', '', '', '12');
+        } else {
+            return "Online" . " " . wf_img_sized('skins/icon_active.gif', '', '', '12');
+        }
+    }
+
+    /**
+     * 
+     * @return type
+     */
+    public function WriteVlanMacData() {        
+        $count = 0;
+        if (!empty($this->allTerminators) AND ! empty($this->allVlanHosts)) {
+            foreach ($this->allTerminators as $eachTerminator) {
+                $ip = $eachTerminator["ip"];
+                $vlanPoolId = $eachTerminator['vlanpoolid'];
+                $data = snmp2_real_walk($ip, 'Magistral', '.1.3.6.1.4.1.9.9.380.1.4.1.1.3');
+                foreach ($data as $each => $value) {
+                    $decmac = str_replace('.1.3.6.1.4.1.9.9.380.1.4.1.1.3.', '', $each);
+                    $vlanPlusMac = explode(".", $decmac, 2);
+                    $vlan = $vlanPlusMac[0];
+                    $mac = $this->dec2mac($vlanPlusMac[1]);
+                    foreach ($this->allVlanHosts as $eachHost) {
+                        if ($eachHost['vlanpoolid'] == $vlanPoolId AND $eachHost['vlan'] == $vlan) {
+                            $login = $eachHost['login'];
+                        }
+                    }
+                    if (!empty($this->allHistory)) {
+                        if ($this->allHistory[$login]['mac'] != $mac) {
+                            $this->WriteHistory($login, $vlan, $mac);
+                        }
+                    } else {
+                        $this->WriteHistory($login, $vlan, $mac);
+                    }
+                    $count++;
+                }
+            }
+        }
+        file_put_contents(self::FLAGPREFIX, $count);        
+    }
+
+    protected function WriteHistory($login, $vlan, $mac) {
+        $query = "INSERT INTO " . self::DB_NAME . " (`id`, `login`, `vlan`, `mac`, `date`) VALUES (NULL,'" . $login . "','" . $vlan . "','" . $mac . "', NULL);";
+        nr_query($query);
+    }
+
+    /**
+     * Converts decimal (delimiter is dot) MAC to heximal (delimiter is semicolon)
+     * 
+     * @param string $mac
+     * @return string
+     */
+    protected function dec2mac($mac) {
+        $res = array();
+        $args = explode(".", $mac);
+        foreach ($args as $each) {
+            $each = dechex($each);
+            strlen($each) < 2 ? $res[] = "0$each" : $res[] = $each;
+        }
+        $string = implode(":", $res);
+        return ($string);
+    }
+
+    public function RenderHistory($login) {
+        $history = $this->allHistory;
+        $tablecells = wf_TableCell(__('ID'));
+        $tablecells.= wf_TableCell(__('Login'));
+        $tablecells.= wf_TableCell(__('VLAN'));
+        $tablecells.= wf_TableCell(__('MAC'));
+        $tablecells.= wf_TableCell(__('Date'));
+        $tablerows = wf_TableRow($tablecells, 'row1');
+        if (!empty($history)) {           
+                $tablecells = wf_TableCell($history[$login]['id']);
+                $tablecells .= wf_TableCell($history[$login]['login']);
+                $tablecells .= wf_TableCell($history[$login]['vlan']);
+                $tablecells .= wf_TableCell($history[$login]['mac']);
+                $tablecells .= wf_TableCell($history[$login]['date']);
+                $tablerows .= wf_TableRow($tablecells, 'row3');            
+        }
+        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+        show_window(__('History'), $result);
+    }
+
+}
+
 class VlanGen {
 
     /**
@@ -53,8 +310,13 @@ class VlanGen {
         $this->loadAlter();
     }
 
+    /**
+     * select all data from vlan_terminators and load to $AllTerminators
+     * 
+     * @return void
+     */
     protected function LoadTerminators() {
-        $query = "SELECT * FROM `vlan_terminators`";
+        $query = "SELECT * FROM " . VlanTerminator::DB_TABLE;
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {
@@ -63,6 +325,11 @@ class VlanGen {
         }
     }
 
+    /**
+     * select all data from vlanhosts and load it to $allVlanHosts
+     * 
+     * @return void
+     */
     protected function LoadVlanHosts() {
         $query = "SELECT * FROM " . self::DB_TABLE;
         $data = simple_queryall($query);
@@ -73,6 +340,11 @@ class VlanGen {
         }
     }
 
+    /**
+     * select data from vlan_pools and load data to $AllVlanPools and loading data for vlan pool selector
+     * 
+     * @return void
+     */
     protected function LoadVlanPoolsSelector() {
         $query = "SELECT * FROM " . self::POOL_DB_TABLE;
         $data = simple_queryall($query);
@@ -583,7 +855,7 @@ class VlanTerminator {
     }
 
     protected function LoadTerminators() {
-        $query = "SELECT * FROM `vlan_terminators`";
+        $query = "SELECT * FROM " . self::DB_TABLE;
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {
@@ -1144,7 +1416,7 @@ class AutoConfigurator {
      * Function for getting all switch login data and place it to $AllSwitchLogin
      */
     protected function LoadAllSwitchLogin() {
-        $query = "SELECT * FROM `switch_login`";
+        $query = "SELECT * FROM " . SwitchLogin::TABLE_NAME;
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {
@@ -1157,7 +1429,7 @@ class AutoConfigurator {
      * Get all available vlan terminators data and place it to $AllTerminators
      */
     protected function LoadTerminators() {
-        $query = "SELECT * FROM `vlan_terminators";
+        $query = "SELECT * FROM " . VlanTerminator::DB_TABLE;
         $data = simple_queryall($query);
         if (!empty($data)) {
             foreach ($data as $each) {

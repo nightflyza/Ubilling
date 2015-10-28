@@ -746,12 +746,38 @@ class UserProfile {
         return ($result);
     }
 
+    /**
+     * Returns user Vlan assign controls
+     * 
+     * @return string
+     */
     protected function getVlanAssignControls() {
-        //switchport section
         if ($this->alterCfg['VLAN_IN_PROFILE']) {
             $result = web_ProfileVlanControlForm($this->login);
         } else {
             $result = '';
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns Vlan online detection form
+     * 
+     * @return string
+     */
+    protected function getVlanOnline() {
+        $result = '';
+        if ($this->alterCfg['VLAN_ONLINE_IN_PROFILE']) {
+            $vlanGen = new VlanGen();
+            $vlan = $vlanGen->GetVlan($this->login);
+            if (!empty($vlan)) {
+                $history = new VlanMacHistory;
+                $cells = wf_TableCell(__('Detect online'), '30%', 'row2');
+                $cells.= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($vlan)));
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', '0');
+                return($result);
+            }
         }
         return ($result);
     }
@@ -1043,6 +1069,8 @@ class UserProfile {
         $profile.=$this->getSwitchAssignControls();
         //profile vlan controls
         $profile.=$this->getVlanAssignControls();
+        //profile vlan online
+        $profile.=$this->getVlanOnline();
 
         //Custom filelds display
         $profile.=cf_FieldShower($this->login);

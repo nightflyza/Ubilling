@@ -1,11 +1,14 @@
 <?php
+
 $altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
 if ($altcfg['VLANGEN_SUPPORT']) {
     if (cfr('PLVLANGEN')) {
         if (isset($_GET['username'])) {
             $VlanGen = new VlanGen;
-            $login = $_GET['username'];
+            $login = $_GET['username'];            
             $cur_vlan = $VlanGen->GetVlan($login);
+            $form = wf_Link("?module=vlan_mac_history&username=" . $login . "&vlan=" . $cur_vlan, __('Users MAC and VLAN history'), false, 'ubButton');
+            show_window(__('Actions'), $form);
 
             if (isset($_POST['DeleteVlanHost'])) {
                 $VlanGen->DeleteVlanHost($login);
