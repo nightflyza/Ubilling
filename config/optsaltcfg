@@ -264,6 +264,7 @@ FRIENDSHIP_CASHTYPEID=VARCHAR|Payment type ID for friendship payments
 USERSIDE_API=TRIGGER|UserSide API requests enabled
 VLANMACHISTORY=TRIGGER|VLAN and MAC history enabled
 VLAN_ONLINE_IN_PROFILE=TRIGGER|Detect online in profile enabled
+SIGNAL_IN_PROFILE=TRIGGER|Show ONU signal in profile
 CHAPTEREND_BEH=true
 
 

@@ -391,7 +391,7 @@ class UserProfile {
      */
     protected function loadPlugins() {
         if ($this->alterCfg['PROFILE_PLUGINS']) {
-            // $this->plugins = web_ProfilePluginsShow($this->login);
+// $this->plugins = web_ProfilePluginsShow($this->login);
             if (!empty($this->login)) {
                 $rawPlugins = $this->loadPluginsRaw('plugins.ini');
                 if (!empty($rawPlugins)) {
@@ -544,7 +544,7 @@ class UserProfile {
             }
         }
 
-        //check is user corporate parent?
+//check is user corporate parent?
         if ($this->alterCfg['USER_LINKING_ENABLED']) {
             $allparentusers = cu_GetAllParentUsers();
             if (isset($allparentusers[$this->login])) {
@@ -562,7 +562,7 @@ class UserProfile {
      * @return string
      */
     protected function getTaskCreateControl() {
-        //profile task creation icon
+//profile task creation icon
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             $fulladdresslist = zb_AddressGetFulladdresslistCached();
             @$shortAddress = $fulladdresslist[$this->login];
@@ -581,7 +581,7 @@ class UserProfile {
     protected function getBuildControls() {
         $buildLocator = '';
         if ($this->alterCfg['SWYMAP_ENABLED']) {
-            //getting build locator
+//getting build locator
             if (isset($this->aptdata['buildid'])) {
                 $thisUserBuildData = zb_AddressGetBuildData($this->aptdata['buildid']);
                 $thisUserBuildGeo = $thisUserBuildData['geo'];
@@ -589,7 +589,7 @@ class UserProfile {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
                 }
-                //and neighbors state cache
+//and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
                     if (file_exists('exports/' . $this->aptdata['buildid'] . '.inbuildusers')) {
                         $inbuildNeigbors_raw = file_get_contents('exports/' . $this->aptdata['buildid'] . '.inbuildusers');
@@ -630,14 +630,14 @@ class UserProfile {
      * @return string
      */
     protected function getUserCash() {
-        //rounding cash if needed
+//rounding cash if needed
         if ($this->alterCfg['ROUND_PROFILE_CASH']) {
             $Cash = web_roundValue($this->userdata['Cash'], 2);
         } else {
             $Cash = $this->userdata['Cash'];
         }
 
-        //optional cash colorizing
+//optional cash colorizing
         if (isset($this->alterCfg['COLORIZE_PROFILE_CASH'])) {
             if ($this->alterCfg['COLORIZE_PROFILE_CASH']) {
                 if ($this->userdata['Cash'] >= 0) {
@@ -657,7 +657,7 @@ class UserProfile {
      * @retun string
      */
     protected function getUserCreditExpire() {
-        //user credit expiration date
+//user credit expiration date
         if ($this->userdata['CreditExpire'] != 0) {
             $result = date("Y-m-d", $this->userdata['CreditExpire']);
         } else {
@@ -737,7 +737,7 @@ class UserProfile {
      * @return string
      */
     protected function getSwitchAssignControls() {
-        //switchport section
+//switchport section
         if ($this->alterCfg['SWITCHPORT_IN_PROFILE']) {
             $result = web_ProfileSwitchControlForm($this->login);
         } else {
@@ -776,10 +776,43 @@ class UserProfile {
                 $cells.= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($vlan)));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
-                return($result);
             }
         }
         return ($result);
+    }
+
+    protected function getPonSignalControl() {
+        $result = '';
+        $searched = __('No');
+        $sigColor = '#000000';
+        if ($this->alterCfg['SIGNAL_IN_PROFILE']) {
+            $query = "SELECT `mac`,`oltid` FROM `pononu` WHERE `login`='" . $this->login . "'";
+            $onu_data = simple_query($query);
+            if (!empty($onu_data)) {
+                $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, $onu_data['oltid'] . "_" . PONizer::SIGCACHE_EXT);
+                if (!empty($availCacheData)) {
+                    foreach ($availCacheData as $io => $each) {
+                        $raw = file_get_contents(PONizer::SIGCACHE_PATH . $each);
+                        $raw = unserialize($raw);
+                        foreach ($raw as $mac => $signal) {
+                            if ($mac == $onu_data['mac']) {
+                                if (($signal > 0) OR ( $signal < -25)) {
+                                    $sigColor = '#ab0000';
+                                } else {
+                                    $sigColor = '#005502';
+                                }
+                                $searched = $signal;
+                            }
+                        }
+                    }
+                }
+                $cells = wf_TableCell(__("ONU Signal"), '30%', 'row2');
+                $cells.= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $searched . wf_tag('font', true) . wf_tag('strong', true));
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', '0');
+            }
+        }
+        return($result);
     }
 
     /**
@@ -877,7 +910,7 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['NETWORKS_EXT']) {
             $extNets = new ExtNets();
-            //pool linking controller
+//pool linking controller
             if (wf_CheckPost(array('extnetspoollinkid', 'extnetspoollinklogin'))) {
                 $extNets->poolLinkLogin($_POST['extnetspoollinkid'], $_POST['extnetspoollinklogin']);
                 rcms_redirect('?module=userprofile&username=' . $_POST['extnetspoollinklogin']);
@@ -912,7 +945,7 @@ class UserProfile {
         if (isset($this->alterCfg['CEMETERY_ENABLED'])) {
             if ($this->alterCfg['CEMETERY_ENABLED']) {
                 $cemetery = new Cemetery();
-                //integrated controller
+//integrated controller
                 if (wf_CheckPost(array('cemeterysetasundead'))) {
                     $cemetery->setUndead($_POST['cemeterysetasundead']);
                     rcms_redirect('?module=userprofile&username=' . $this->login);
@@ -923,7 +956,7 @@ class UserProfile {
                     rcms_redirect('?module=userprofile&username=' . $this->login);
                 }
 
-                //activity view
+//activity view
                 if ($cemetery->isUserDead($this->login)) {
                     $log = wf_modalAuto(wf_img_sized('skins/dead_icon.png', '', '12', '12'), __('User lifestory'), $cemetery->renderCemeteryLog($this->login));
                     $result = ' / ' . __('Subscriber is not connected') . ' ' . $log;
@@ -963,15 +996,15 @@ class UserProfile {
      * @return string
      */
     public function render() {
-        //all configurable features must be received via getters
+//all configurable features must be received via getters
         $profile = '';
 
-        //activity and other flags
+//activity and other flags
         $passiveicon = ($this->userdata['Passive']) ? wf_img_sized('skins/icon_passive.gif', '', '', '12') . ' ' : '';
         $downicon = ($this->userdata['Down']) ? wf_img_sized('skins/icon_down.gif', '', '', '12') . ' ' : '';
         $activity = ($this->userdata['Cash'] < '-' . $this->userdata['Credit']) ? wf_img_sized('skins/icon_inactive.gif', '', '', '12') . ' ' . __('No') : wf_img_sized('skins/icon_active.gif', '', '', '12') . ' ' . __('Yes');
 
-        // user linking controller
+// user linking controller
         $profile.=$this->getUserLinking();
 
         $profile.= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //external profile container
@@ -984,71 +1017,71 @@ class UserProfile {
         $profile.= wf_tag('tbody', false);
 
 
-        //address row and controls
+//address row and controls
         $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $this->useraddress . $this->getBuildControls());
-        //apt data like floor and entrance row
+//apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
-        //realname row
+//realname row
         $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
-        //contract row
+//contract row
         $profile.= $this->addRow(__('Contract'), $this->contract, false);
-        //contract date row
+//contract date row
         $profile.= $this->getContractDate();
-        //assigned agents row
+//assigned agents row
         $profile.= $this->getAgentsControls();
-        //old corporate users aka userlinking
+//old corporate users aka userlinking
         $profile.= $this->getCorporateControls();
-        //phone     
+//phone     
         $profile.= $this->addRow(__('Phone'), $this->phone);
-        //and mobile data rows
+//and mobile data rows
         $profile.= $this->addRow(__('Mobile'), $this->mobile);
-        //Email data row
+//Email data row
         $profile.= $this->addRow(__('Email'), $this->mail);
-        //payment ID data
+//payment ID data
         $profile.= $this->addRow(__('Payment ID'), $this->paymentid, true);
-        //LAT data row
+//LAT data row
         $profile.= $this->getUserLat();
-        //login row
+//login row
         $profile.= $this->addRow(__('Login'), $this->userdata['login'], true);
-        //password row
+//password row
         $profile.= $this->addRow(__('Password'), $this->getUserPassword(), true);
-        //User IP data and extended networks controls if available
+//User IP data and extended networks controls if available
         $profile.= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
-        //MAC address row
+//MAC address row
         $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl(), $this->mac);
-        //User tariff row
+//User tariff row
         $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'], true);
-        //Tariff change row
+//Tariff change row
         $profile.=$this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
-        //old CaTv backlink if needed
+//old CaTv backlink if needed
         $profile.= $this->getCatvBacklinks();
-        //Speed override row
+//Speed override row
         $profile.= $this->addRow(__('Speed override'), $this->speedoverride);
-        // signup pricing row
+// signup pricing row
         $profile.= $this->getSignupPricing();
-        //User current cash row
+//User current cash row
         $profile.= $this->addRow(__('Balance'), $this->getUserCash(), true);
-        //User credit row & easycredit control if needed
+//User credit row & easycredit control if needed
         $profile.= $this->addRow(__('Credit') . ' ' . $this->getEasyCreditController(), $this->userdata['Credit'], true);
-        //credit expire row
+//credit expire row
         $profile.= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
-        //Prepayed traffic
+//Prepayed traffic
         $profile.= $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
-        //finance activity row
+//finance activity row
         $profile.=$this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
-        //DN online detection row
+//DN online detection row
         $profile.= $this->getUserOnlineDN();
-        //Always online flag row
+//Always online flag row
         $profile.= $this->addRow(__('Always Online'), web_trigger($this->userdata['AlwaysOnline']));
-        //Detail stats flag row
+//Detail stats flag row
         $profile.=$this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
-        //Frozen aka passive flag row
+//Frozen aka passive flag row
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
-        //Disable aka Down flag row
+//Disable aka Down flag row
         $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
-        //Connection details  row
+//Connection details  row
         $profile.= $this->getUserConnectionDetails();
-        //User notes row
+//User notes row
         $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
 
 
@@ -1065,25 +1098,27 @@ class UserProfile {
 
         $profile.= wf_tag('tbody', true);
         $profile.= wf_tag('table', true); //end of all profile container
-        //profile switch port controls
+//profile switch port controls
         $profile.=$this->getSwitchAssignControls();
-        //profile vlan controls
+//profile onu signal controls
+        $profile.=$this->getPonSignalControl();
+//profile vlan controls
         $profile.=$this->getVlanAssignControls();
-        //profile vlan online
+//profile vlan online
         $profile.=$this->getVlanOnline();
 
-        //Custom filelds display
+//Custom filelds display
         $profile.=cf_FieldShower($this->login);
-        //Tags add control and exiting tags listing
+//Tags add control and exiting tags listing
         if (cfr('TAGS')) {
             $profile.= wf_Link('?module=usertags&username=' . $this->login, web_add_icon(__('Tags')), false);
         }
         $profile.=stg_show_user_tags($this->login);
 
-        //main profile controls here
+//main profile controls here
         $profile.=$this->getMainControls();
 
-        //Profile ending anchor for addcash links scroll
+//Profile ending anchor for addcash links scroll
         $profile.= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
 
 

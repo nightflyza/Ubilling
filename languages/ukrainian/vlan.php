@@ -38,4 +38,6 @@ $lang['def']['VLAN and MAC history enabled'] = 'Історія зміни кор
 $lang['def']['History'] = 'Історія';
 $lang['def']['Detect online'] = 'Визначити онлайн';
 $lang['def']['Detect online in profile enabled'] = 'Визначення користувацького онлайну у профілі ввімкнено';
+$lang['def']['Show ONU signal in profile'] = 'Показувати сигнал ОНУ в профілі користувача';
+$lang['def']['ONU Signal'] = 'Сигнал ОНУ';
 ?>
