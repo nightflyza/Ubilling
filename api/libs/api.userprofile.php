@@ -975,6 +975,20 @@ class UserProfile {
     }
 
     /**
+     * Returns tariff info container for data display
+     * 
+     * @return string
+     */
+    protected function getTariffInfoContrainer() {
+        $result = '';
+        if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
+            $containerId = 'TARIFFINFO_CONTAINER';
+            $result = wf_tag('div', false, '', 'id="' . $containerId . '" style="display:block;"') . wf_tag('div');
+        }
+        return ($result);
+    }
+
+    /**
      * Returns tariff info ajax controls
      * 
      * @param string $tariffName
@@ -983,11 +997,10 @@ class UserProfile {
     protected function getTariffInfoControls($tariffName) {
         $result = '';
         if (@$this->alterCfg['TARIFFINFO_IN_PROFILE']) {
+            $containerId = 'TARIFFINFO_CONTAINER';
             if (!empty($tariffName)) {
-                $containerId = wf_InputId();
                 $result.=wf_AjaxLoader();
                 $result.=wf_AjaxLink('?module=tariffinfo&tariff=' . $tariffName, wf_img('skins/tariffinfo.gif', __('Tariff info')), $containerId, false, '');
-                $result.=wf_tag('div', false, '', 'id="' . $containerId . '" style="display:none;"') . wf_tag('div');
             }
         }
         return ($result);
@@ -1055,7 +1068,7 @@ class UserProfile {
 //MAC address row
         $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl(), $this->mac);
 //User tariff row
-        $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'], true);
+        $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
 //Tariff change row
         $profile.=$this->addRow(__('Planned tariff change') . $this->getTariffInfoControls($this->userdata['TariffChange']), $this->userdata['TariffChange']);
 //old CaTv backlink if needed

@@ -797,7 +797,7 @@ class PONizer {
                     //all time signal history
                     $result.= __('All time');
                     $result.= wf_tag('div', false, '', '');
-                    $result.= wf_Graph($rawData, '800', '300', false);
+                    $result.= wf_GraphCSV($historyKey, '800', '300', false);
                     $result.= wf_tag('div', true);
                 }
             }

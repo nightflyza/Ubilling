@@ -1502,6 +1502,40 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
 }
 
 /**
+ * Returns Chart source by data loaded from the file - acceptable for huge data sets
+ * 
+ * @param string $datafile  - existing CSV file path
+ * @param string $widht     - graph width in pixels
+ * @param string $height    - graph height in pixels
+ * @param bool   $errorbars - display error bars around data series
+ * 
+ * @return string
+ */
+function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false) {
+    $randomId = wf_InputId();
+    $objectId = 'graph_' . $randomId;
+  
+    if ($errorbars) {
+        $errorbars = 'true';
+    } else {
+        $errorbars = 'false';
+    }
+    
+    $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
+    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+    $result.= $objectId . ' = new Dygraph(';
+    $result.= 'document.getElementById("' . $randomId . '"), "'. $datafile .'" '. "\n";
+    
+
+    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+
+    $result.=');';
+    $result.= wf_tag('script', true);
+
+    return ($result);
+}
+
+/**
  * Returns color picker dialog
  * 
  * @param string $name   input name
