@@ -781,6 +781,11 @@ class UserProfile {
         return ($result);
     }
 
+    /**
+     * Renders PON signal from cache
+     * 
+     * @return string
+     */
     protected function getPonSignalControl() {
         $result = '';
         $searched = __('No');

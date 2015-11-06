@@ -2,9 +2,32 @@
 
 class FundsFlow {
 
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $alterConf = array();
+
+    /**
+     * Contains main billing config as key=>value
+     *
+     * @var array
+     */
     protected $billingConf = array();
+
+    /**
+     * Contains all of available user data as login=>userdata
+     *
+     * @var array
+     */
     protected $allUserData = array();
+
+    /**
+     * Contains available tariffs data as tariffname=>data
+     *
+     * @var array
+     */
     protected $allTariffsData = array();
 
     public function __construct() {
@@ -577,7 +600,7 @@ class FundsFlow {
      * 
      * @param string $login existing users login
      * 
-     * @return int
+     * @return int >=0: days left, -1: debt, -2: zero tariff price
      */
     public function getOnlineLeftCountFast($login) {
         if (isset($this->allUserData[$login])) {
@@ -585,7 +608,7 @@ class FundsFlow {
         }
 
         $daysOnLine = 0;
-        $balanceExpire = '';
+
         if (!empty($userData)) {
             $userTariff = $userData['Tariff'];
             $userBalanceRaw = $userData['Cash'];
@@ -640,13 +663,16 @@ class FundsFlow {
                                 }
                             }
                         }
+                    } else {
+                        $daysOnLine = '-2';
                     }
+                } else {
+                    $daysOnLine = '-1';
                 }
             }
         }
 
-        $balanceExpire = $daysOnLine;
-        return ($balanceExpire);
+        return ($daysOnLine);
     }
 
     public function makeFreezeMonthFee() {
@@ -657,7 +683,7 @@ class FundsFlow {
                 if ($eachUser['Passive'] == 1) {
                     zb_CashAdd($eachUser['login'], -1 * $cost, 'add', $cashType, 'FROZEN:' . $cost);
                 }
-            }           
+            }
         }
     }
 
