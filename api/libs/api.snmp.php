@@ -206,7 +206,7 @@ class SNMPHelper {
         } else {
             //no cached file exists
             snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-            @$raw = snmpwalkoid($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
+            @$raw = snmprealwalk($ip, $community, $oid, $this->timeoutNative, $this->retriesNative);
 
             if (!empty($raw)) {
                 foreach ($raw as $oid => $value) {
