@@ -65,7 +65,6 @@ function pltz_CheckTransaction($hash) {
  * @return int
  */
 function pltz_GetFreeId() {
-    $tablename = mysql_real_escape_string($tablename);
     $query = "SELECT `id` from `op_transactions` ORDER BY `id` DESC LIMIT 1";
     $result = simple_query($query);
     if (!empty($result)) {
