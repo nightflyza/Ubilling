@@ -138,7 +138,7 @@ function pltz_Check($login, $password, $payElementID, $transactionID, $account) 
     //Здесь записываем в базу поступивший запрос, для того что бы потом разобраться какие запросы к Вам приходили. Уникальный индификатор запроса - $transactionID
 
     if (pltz_AuthLogin($login, $password)) { //Проверяем $login, $password, что бы отсекать чужие запросы
-        if ($payElementID == $serviceId) {//Ищем сервис для оплаты (по $payElementID) в Вашей БД
+        if ($payElementID == $serviceId) { //Ищем сервис для оплаты (по $payElementID) в Вашей БД
             $allcustomers = op_CustomersGetAll();
             if (isset($allcustomers[$account])) { //Проверяем в БД абонента (по $account)
                 //Здесь нужно сохранить платеж в базу, со статусом не оплачен
