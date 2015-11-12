@@ -2181,4 +2181,22 @@ $lang['def']['All tasks']='Всі задачі';
 $lang['def']['Tracking']='Слідкування';
 $lang['def']['right to use tasks tracking']='Право відслідковувати задачі планувальника';
 
+//rev 4870
+$lang['def']['credit']='кредит';
+$lang['def']['Freeze user']='Заморозити користувача';
+$lang['def']['Unfreeze user']='Розморозити користувача';
+$lang['def']['User reset']='Ресет користувача';
+$lang['def']['Change speed override']='Змінити перепризначення швидкості';
+$lang['def']['Set user down']='Вимкнути користувача';
+$lang['def']['Enable AlwaysOnline']='Увімкнути ЗавждиОнлайн';
+$lang['def']['Disable AlwaysOnline']='Вимкнути ЗавждиОнлайн';
+$lang['def']['Please select action']='Пожалуйста, выберите действие';
+$lang['def']['Enable user']='Увімкнути користувача';
+$lang['def']['Held jobs for this user']='Відкладені завдання для цього користувача';
+$lang['def']['Deal with it']='Живи з цим';
+$lang['def']['Delayed per-user actions management enabled']='Відкладені завдання для користувачів увімкнено';
+$lang['def']['right to control user actions scheduler']='Право керувати відкладеними задачами для користувачів';
+$lang['def']['right to use mikbill migration']='Право використовувати міграцію з MikBill';
+$lang['def']['Available Held jobs for all users']='Відкладені завдання для усіх користувачів';
+
 ?>

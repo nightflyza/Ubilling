@@ -265,6 +265,7 @@ USERSIDE_API=TRIGGER|UserSide API requests enabled
 VLANMACHISTORY=TRIGGER|VLAN and MAC history enabled
 VLAN_ONLINE_IN_PROFILE=TRIGGER|Detect online in profile enabled
 SIGNAL_IN_PROFILE=TRIGGER|Show ONU signal in profile
+DEALWITHIT_ENABLED=TRIGGER|Delayed per-user actions management enabled
 CHAPTEREND_BEH=true
 
 

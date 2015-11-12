@@ -585,8 +585,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-                    if($_GET['action'] == 'writevlanmachistory') {
-                        if($alterconf['VLANMACHISTORY']) {
+                    if ($_GET['action'] == 'writevlanmachistory') {
+                        if ($alterconf['VLANMACHISTORY']) {
                             $history = new VlanMacHistory;
                             $history->WriteVlanMacData();
                             die('OK:WRITING NEW MACS');
@@ -594,7 +594,18 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:NO_VLAN_MAC_HISTORY ENABLED');
                         }
                     }
-                    
+
+                    //deal with it delayed tasks processing
+                    if ($_GET['action'] == 'dealwithit') {
+                        if ($alterconf['DEALWITHIT_ENABLED']) {
+                            $dealWithIt=new DealWithIt();
+                            $dealWithIt->tasksProcessing();
+                            die('OK:DEALWITHIT');
+                        } else {
+                            die('ERROR:DEALWITHIT ENABLED');
+                        }
+                    }
+
                     ////
                     //// End of actions
                     ////

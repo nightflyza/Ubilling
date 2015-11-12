@@ -2164,7 +2164,24 @@ $lang['def']['Stop tracking this task']='Перестать отслеживат
 $lang['def']['All tasks']='Все задачи';
 $lang['def']['Tracking']='Отслеживание';
 $lang['def']['right to use tasks tracking']='Право отслеживать задачи планировщика';
-$lang['def']['']='';
+
+//rev 4870
+$lang['def']['credit']='кредит';
+$lang['def']['Freeze user']='Заморозить пользователя';
+$lang['def']['Unfreeze user']='Разморозить пользователя';
+$lang['def']['User reset']='Ресет пользователя';
+$lang['def']['Change speed override']='Изменить переназначение скорости';
+$lang['def']['Set user down']='Отключить пользователя';
+$lang['def']['Enable AlwaysOnline']='Включить ВсегдаОнлайн';
+$lang['def']['Disable AlwaysOnline']='Отключить ВсегдаОнлайн';
+$lang['def']['Please select action']='Пожалуйста, выберите действие';
+$lang['def']['Enable user']='Включить пользователя';
+$lang['def']['Held jobs for this user']='Отложенные задания для этого пользователя';
+$lang['def']['Deal with it']='Живи с этим';
+$lang['def']['Delayed per-user actions management enabled']='Отложенные задачи для пользователей включены';
+$lang['def']['right to control user actions scheduler']='Право управлять отложенными заданиями для пользователей';
+$lang['def']['right to use mikbill migration']='Право использовать миграцию из MikBill';
+$lang['def']['Available Held jobs for all users']='Отложенные задания для всех пользователей';
 $lang['def']['']='';
 $lang['def']['']='';
 
