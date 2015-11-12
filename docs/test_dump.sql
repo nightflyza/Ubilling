@@ -1611,3 +1611,15 @@ CREATE TABLE IF NOT EXISTS `vlan_mac_history` (
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.7.3 update
+
+CREATE TABLE IF NOT EXISTS `dealwithit` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `date` date NOT NULL,
+ `login` varchar(45) NOT NULL,
+ `action` varchar(45) NOT NULL,
+ `param` varchar(45) DEFAULT NULL,
+ `note` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
