@@ -269,68 +269,80 @@ class DealWithIt {
             $param = $_POST['newschedparam'];
             $note = $_POST['newschednote'];
             $login = $_POST['newschedlogin'];
-            switch ($action) {
-                //this action types requires non empty parameter
-                case 'addcash':
-                    if ($param) {
+            if (zb_checkDate($date)) {
+                switch ($action) {
+                    //this action types requires non empty parameter
+                    case 'addcash':
+                        if ($param) {
+                            if (zb_checkMoney($param)) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            } else {
+                                $result = __('Wrong format of a sum of money to pay');
+                            }
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'credit':
+                        if ($param >= 0) {
+                            if (zb_checkMoney($param)) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            } else {
+                                $result = __('Wrong format of a sum of money to pay');
+                            }
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'creditexpire':
+                        if ($param) {
+                            $this->createTask($date, $login, $action, $param, $note);
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'tariffchange':
+                        if ($param) {
+                            $this->createTask($date, $login, $action, $param, $note);
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'tagadd':
+                        if ($param) {
+                            $this->createTask($date, $login, $action, $param, $note);
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    //for this task types parameter may be empty
+                    case 'freeze':
                         $this->createTask($date, $login, $action, $param, $note);
-                    } else {
-                        $result = __('No all of required fields is filled');
-                    }
-                    break;
-                case 'credit':
-                    if ($param) {
+                        break;
+                    case 'unfreeze':
                         $this->createTask($date, $login, $action, $param, $note);
-                    } else {
-                        $result = __('No all of required fields is filled');
-                    }
-                    break;
-                case 'creditexpire':
-                    if ($param) {
+                        break;
+                    case 'reset':
                         $this->createTask($date, $login, $action, $param, $note);
-                    } else {
-                        $result = __('No all of required fields is filled');
-                    }
-                    break;
-                case 'tariffchange':
-                    if ($param) {
+                        break;
+                    case 'setspeed':
                         $this->createTask($date, $login, $action, $param, $note);
-                    } else {
-                        $result = __('No all of required fields is filled');
-                    }
-                    break;
-                case 'tagadd':
-                    if ($param) {
+                        break;
+                    case 'down':
                         $this->createTask($date, $login, $action, $param, $note);
-                    } else {
-                        $result = __('No all of required fields is filled');
-                    }
-                    break;
-                //for this task types parameter may be empty
-                case 'freeze':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'unfreeze':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'reset':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'setspeed':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'down':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'undown':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'ao':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
-                case 'unao':
-                    $this->createTask($date, $login, $action, $param, $note);
-                    break;
+                        break;
+                    case 'undown':
+                        $this->createTask($date, $login, $action, $param, $note);
+                        break;
+                    case 'ao':
+                        $this->createTask($date, $login, $action, $param, $note);
+                        break;
+                    case 'unao':
+                        $this->createTask($date, $login, $action, $param, $note);
+                        break;
+                }
+            } else {
+                $result = __('Wrong date format');
             }
         } else {
             $result = __('Something went wrong');

@@ -877,6 +877,10 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
         $friendship = explode(':', $paynote);
         $paynote = __('Friendship') . ' ' . $friendship[1];
     }
+    
+    if (ispos($paynote, 'SCHEDULED')) {
+        $paynote=__('Scheduled');
+    }
 
     return ($paynote);
 }

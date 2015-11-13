@@ -2198,5 +2198,6 @@ $lang['def']['Delayed per-user actions management enabled']='Відкладен�
 $lang['def']['right to control user actions scheduler']='Право керувати відкладеними задачами для користувачів';
 $lang['def']['right to use mikbill migration']='Право використовувати міграцію з MikBill';
 $lang['def']['Available Held jobs for all users']='Відкладені завдання для усіх користувачів';
+$lang['def']['Scheduled']='Заплановане';
 
 ?>
