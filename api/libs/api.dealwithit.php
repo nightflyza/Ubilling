@@ -296,7 +296,11 @@ class DealWithIt {
                         break;
                     case 'creditexpire':
                         if ($param) {
-                            $this->createTask($date, $login, $action, $param, $note);
+                            if (zb_checkDate($param)) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            } else {
+                                $result = __('Wrong date format');
+                            }
                         } else {
                             $result = __('No all of required fields is filled');
                         }
