@@ -146,7 +146,7 @@ class Reminder {
         foreach ($this->AllLogin as $userLoginData) {
             $eachLogin = $userLoginData['login'];
             if (!$this->FilterPassive($eachLogin)) {
-                if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays) {
+                if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= -1 AND $this->money->getOnlineLeftCountFast($eachLogin) != -2) {
                     if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                         $number = $this->AllPhones[$eachLogin]['mobile'];
                         if (!empty($number)) {
@@ -164,6 +164,8 @@ class Reminder {
                             }
                         }
                     }
+                } elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
+                    log_register(__('SMS will not sent. Tariff is free.' . ' ' . 'Login' . ': ' . $eachLogin));                
                 } else {
                     if (file_exists(self::FLAGPREFIX . $eachLogin)) {
                         if (filemtime(self::FLAGPREFIX . $eachLogin) > $CacheTime) {

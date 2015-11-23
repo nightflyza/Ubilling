@@ -1,0 +1,14 @@
+[define]
+TYPE = "simple"
+DEVICE = "ZTE C320"
+CHECK = ".1.3.6.1.4.1.3902.1015.20.2.1.4"
+
+[CREATE]
+OID = ".1.3.6.1.4.1.3902.1015.20.2.1.4.VLAN"
+TYPE = "i"
+VALUE = "4"
+
+[SAVE]
+OID = ".1.3.6.1.4.1.3902.1015.1.1.4.1.0"
+TYPE = "i"
+VALUE = "1"

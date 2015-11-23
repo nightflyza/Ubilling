@@ -773,7 +773,7 @@ class UserProfile {
             if (!empty($vlan)) {
                 $history = new VlanMacHistory;
                 $cells = wf_TableCell(__('Detect online'), '30%', 'row2');
-                $cells.= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($vlan)));
+                $cells.= wf_TableCell($history->GetUserVlanOnline($this->login, $vlanGen->GetVlan($this->login)));
                 $rows = wf_TableRow($cells, 'row3');
                 $result = wf_TableBody($rows, '100%', '0');
             }

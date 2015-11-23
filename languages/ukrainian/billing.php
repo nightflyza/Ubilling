@@ -2199,5 +2199,6 @@ $lang['def']['right to control user actions scheduler']='Право керува
 $lang['def']['right to use mikbill migration']='Право використовувати міграцію з MikBill';
 $lang['def']['Available Held jobs for all users']='Відкладені завдання для усіх користувачів';
 $lang['def']['Scheduled']='Заплановане';
+$lang['def']['SMS will not sent. Tariff is free.']='СМС не буде відправлена. Тариф бескоштовний.';
 
 ?>
