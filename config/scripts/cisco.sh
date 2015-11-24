@@ -12,10 +12,9 @@ expect {
 	"(yes/no)?*" {
 		send "yes\r"
 		}
-	"Password:*" {
-		send "$password\r"
-	}
 }
+expect "Password:*"
+send "$password\r"
 expect {
 	"*>" {
 		send "enable\r"
@@ -50,4 +49,3 @@ expect "*#"
 send "write\r"
 expect "*#"
 send "exit\r"
-expect eof

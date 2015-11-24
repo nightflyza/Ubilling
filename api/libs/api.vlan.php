@@ -813,8 +813,7 @@ class VlanGen {
             if (empty($newVlan)) {
                 $alert = wf_JSAlert(self::MODULE_URL_ADDVLAN, __("Error"), __("No free Vlan available in selected pool"));
                 print($alert);
-                rcms_redirect(self::MODULE_URL_ADDVLAN);
-                die();
+                rcms_redirect(self::MODULE_URL_ADDVLAN);                
             }
             $this->AddVlanHost($newVlanPoolID, $newVlan, $login);
         } else {
@@ -2018,19 +2017,18 @@ class OnuConfigurator {
      * @return string
      */
     public function ChangeOnuPvid($login, $vlan, $onu_port = '1') {
-        if (!empty($this->GetOnuMac($login))) {
-            $OnuData = $this->GetOnuMac($login);
+        $OnuData = $this->GetOnuMac($login);
+        if (!empty($OnuData)) {            
             $OnuMac = $OnuData[0];
             $oltId = $OnuData[1];
 
-            if (!empty($this->GetOltData($oltId))) {
-                $oltData = $this->GetOltData($oltId);
+            $oltData = $this->GetOltData($oltId);
+            if (!empty($oltData)) {                
                 $oltIp = $oltData[0];
                 $oltCommunity = $oltData[1];
 
-                if (!empty($this->GetOltModelTemplate($oltData[2]))) {
-                    $template = $this->GetOltModelTemplate($oltData[2]);
-
+                $template = $this->GetOltModelTemplate($oltData[2]);
+                if (!empty($template)) {                    
                     if (file_exists('config/snmptemplates/' . $template)) {
                         $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template, true);
 

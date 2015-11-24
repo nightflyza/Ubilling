@@ -82,6 +82,7 @@ class DealWithIt {
             'creditexpire' => __('Change') . ' ' . __('credit expire date'),
             'tariffchange' => __('Change') . ' ' . __('tariff'),
             'tagadd' => __('Add tag'),
+            'tagdel' => __('Delete tag'),
             'freeze' => __('Freeze user'),
             'unfreeze' => __('Unfreeze user'),
             'reset' => __('User reset'),
@@ -106,6 +107,7 @@ class DealWithIt {
             self::URL_ME . '&ajinput=creditexpire' => $this->actionNames['creditexpire'],
             self::URL_ME . '&ajinput=tariffchange' => $this->actionNames['tariffchange'],
             self::URL_ME . '&ajinput=tagadd' => $this->actionNames['tagadd'],
+            self::URL_ME . '&ajinput=tagdel' => $this->actionNames['tagdel'],
             self::URL_ME . '&ajinput=freeze' => $this->actionNames['freeze'],
             self::URL_ME . '&ajinput=unfreeze' => $this->actionNames['unfreeze'],
             self::URL_ME . '&ajinput=reset' => $this->actionNames['reset'],
@@ -203,6 +205,17 @@ class DealWithIt {
                     break;
                 case 'tagadd':
                     $result.= wf_HiddenInput('newschedaction', 'tagadd');
+                    $allTags = array();
+                    $allTagsRaw = simple_queryall("SELECT * from `tagtypes`");
+                    if (!empty($allTagsRaw)) {
+                        foreach ($allTagsRaw as $io => $each) {
+                            $allTags[$each['id']] = $each['tagname'];
+                        }
+                    }
+                    $result.= wf_Selector('newschedparam', $allTags, __('Tag'), '', true);
+                    break;
+                case 'tagdel':
+                    $result.= wf_HiddenInput('newschedaction', 'tagdel');
                     $allTags = array();
                     $allTagsRaw = simple_queryall("SELECT * from `tagtypes`");
                     if (!empty($allTagsRaw)) {
@@ -313,6 +326,13 @@ class DealWithIt {
                         }
                         break;
                     case 'tagadd':
+                        if ($param) {
+                            $this->createTask($date, $login, $action, $param, $note);
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'tagdel':
                         if ($param) {
                             $this->createTask($date, $login, $action, $param, $note);
                         } else {
@@ -469,6 +489,9 @@ class DealWithIt {
                                 break;
                             case 'tagadd':
                                 stg_add_user_tag($login, $param);
+                                break;
+                            case 'tagdel':
+                                stg_del_user_tagid($login, $param);
                                 break;
                             case 'freeze':
                                 $billing->setpassive($login, 1);
