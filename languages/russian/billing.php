@@ -2184,9 +2184,16 @@ $lang['def']['right to use mikbill migration']='Право использова�
 $lang['def']['Available Held jobs for all users']='Отложенные задания для всех пользователей';
 $lang['def']['Scheduled']='Запланированное';
 $lang['def']['SMS will not sent. Tariff is free.']='СМС не будет отправлена. Тариф бесплатный';
+$lang['def']['Service ID']='ID Услуги';
+$lang['def']['Primary']='Основной';
+$lang['def']['Free period']='Бесплатный период';
+$lang['def']['Subscriptions']='Подписки';
 $lang['def']['']='';
 $lang['def']['']='';
 $lang['def']['']='';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 
 ?>
