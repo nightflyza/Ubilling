@@ -1,5 +1,5 @@
 
-        REPORT_NAME =Очет по должникам
+        REPORT_NAME =Отчет по должникам
         REPORT_QUERY=SELECT * from `users` WHERE `Cash`<'0'
         REPORT_KEYS=login,Tariff,Credit,Cash
         REPORT_FIELD_NAMES=Login,Tariff,Credit,Cash

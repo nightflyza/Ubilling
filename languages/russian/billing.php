@@ -1904,7 +1904,7 @@ $lang['def']['Cable length']='Длина кабеля';
 $lang['def']['Connection details']='Детали подключения';
 $lang['def']['Cable']='Кабель';
 $lang['def']['m']='м';
-$lang['def']['Connection details report']='Очет по деталям подключений';
+$lang['def']['Connection details report']='Отчет по деталям подключений';
 $lang['def']['right to add login prompts for switches']='Право управлять авторизационными данными свичей';
 
 //rev 4376
