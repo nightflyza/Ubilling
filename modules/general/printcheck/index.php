@@ -7,7 +7,7 @@ if ( cfr('PRINTCHECK') ) {
         if ( !empty($alter['DOCX_SUPPORT']) && !empty($alter['DOCX_CHECK']) ) {
             $morph=new UBMorph();
             @$payment = zb_PaymentGetData($paymentid); // id, date, summ...
-            @$payment['idenc'] = zb_NumEncode($payment['id']);
+           @$payment['idenc'] = zb_NumEncode($payment['id']);
             @$payment['summ_lit'] = $morph->sum2str($payment['summ']);
             @$payment['summ_exp'] = explode('.', $payment['summ']);
             @$payment['summ_cels'] = ( !empty($payment['summ_exp'][0]) ) ? $payment['summ_exp'][0] : '0';
@@ -38,6 +38,7 @@ if ( cfr('PRINTCHECK') ) {
             $template['PAYSUMM_CELS']   = ( !empty($payment['summ_cels']) ) ? $payment['summ_cels'] : '';  // rev. 3179 +
             $template['PAYSUMM_COPS']   = ( !empty($payment['summ_cops']) ) ? $payment['summ_cops'] : '';  // rev. 3179 +
             $template['PAYSUMM_LIT']    = ( !empty($payment['summ_lit']) )  ? $payment['summ_lit']  : '';
+            $template['PAYNOTE']    = ( !empty($payment['note']) )  ? $payment['note']  : '';
             $template['LOGIN']      = ( !empty($user['login']) )    ? $user['login']    : ''; // rev. 3179 +
             $template['REALNAME']   = ( !empty($user['realname']) ) ? $user['realname'] : '';
             $template['ADDRESS']    = ( !empty($user['address']) )  ? $user['address']  : '';
