@@ -6,6 +6,7 @@
  	include('modules/engine/api.lightastral.php');
 	include('modules/engine/api.userstats.php');
         include('modules/engine/api.agents.php');
+        include('modules/engine/api.megogo.php');
 
 	$db = new MySQLDB();
 

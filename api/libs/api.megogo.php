@@ -153,14 +153,31 @@ class MegogoInterface {
      */
     protected $allTariffs = array();
 
+    /**
+     * Contains available and active megogo service subscriptions as id=>data
+     *
+     * @var array
+     */
+    protected $allSubscribers = array();
+
+    /**
+     * Contains all subscribtions history by all of users id=>data
+     *
+     * @var array
+     */
+    protected $allHistory = array();
+
     const URL_ME = '?module=testing';
     const URL_TARIFFS = 'tariffs=true';
     const URL_SUBS = 'subscriptions=true';
+    const URL_AJSUBS = 'ajsubs=true';
 
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
         $this->loadTariffs();
+        $this->loadSubscribers();
+        $this->loadHistory();
     }
 
     /**
@@ -193,6 +210,36 @@ class MegogoInterface {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allTariffs[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing subscribers data
+     * 
+     * @return void
+     */
+    protected function loadSubscribers() {
+        $query = "SELECT * from `mg_subscribers`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allSubscribers[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing subscribers data
+     * 
+     * @return void
+     */
+    protected function loadHistory() {
+        $query = "SELECT * from `mg_history`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allHistory[$each['id']] = $each;
             }
         }
     }
@@ -314,6 +361,57 @@ class MegogoInterface {
             $result = $this->messages->getStyledMessage(__('Not existing item'), 'error');
         }
         return ($result);
+    }
+
+    /**
+     * Returns data container for active subscriptions
+     * 
+     * @return string
+     */
+    public function renderSubscribtions() {
+        $result = '';
+        $columns = array(__('ID'), __('User'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'));
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
+        return ($result);
+    }
+
+    /**
+     * Renders ajax data subscriptions
+     * 
+     * @return void
+     */
+    public function subscribtionsListAjax() {
+        $result = '{ 
+                  "aaData": [ ';
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                $userLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login'], false);
+                $userLink=trim($userLink);
+                $userLink= str_replace('"', '', $userLink);
+                $actFlag = web_bool_led(web_bool_led($each['active'], false));
+                $actFlag = str_replace('"', '', $actFlag);
+                $primFlag = web_bool_led(web_bool_led($each['primary'], false));
+                $primFlag = str_replace('"', '', $primFlag);
+                $freeperiodFlag = web_bool_led(web_bool_led($each['freeperiod'], false));
+                $freeperiodFlag = str_replace('"', '', $freeperiodFlag);
+
+                $result.='
+                    [
+                    "' . $each['id'] . '",
+                    "' . $userLink . '",
+                    "' . @$this->allTariffs[$each['tariffid']]['name'] . '",
+                    "' . $each['actdate'] . '",
+                    "' . $actFlag . '",
+                    "' . $primFlag . '",
+                    "' . $freeperiodFlag . '"
+                    ],';
+            }
+        }
+
+        $result = zb_CutEnd($result);
+        $result.='] 
+        }';
+        die($result);
     }
 
 }
