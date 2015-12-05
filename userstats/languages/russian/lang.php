@@ -284,7 +284,16 @@ $lang['def']['Wrong mobile format'] = 'Неверный формат мобил�
 $lang['def']['Attention'] = 'Внимание';
 $lang['def']['activation cost is'] = 'активация стоит';
 $lang['def']['at once'] = 'сразу';
+$lang['def']['Fee'] = 'Абонплата';
+$lang['def']['Free period'] = 'Бесплатный период';
+$lang['def']['Available'] = 'Доступен';
+$lang['def']['Unavailable'] = 'Не доступен';
+$lang['def']['Subscribe'] = 'Подписаться';
+$lang['def']['Unsubscribe'] = 'Отписаться';
+$lang['def']['Available subscribtions'] = 'Доступные подписки';
+$lang['def']['Start view'] = 'Смотерть';
 $lang['def'][''] = '';
+
 
 
 ?>

@@ -284,6 +284,13 @@ $lang['def']['Wrong mobile format'] = 'Невірний формат стіль�
 $lang['def']['Attention'] = 'Увага';
 $lang['def']['activation cost is'] = 'активація коштує';
 $lang['def']['at once'] = 'одразу';
-
+$lang['def']['Fee'] = 'Абонплата';
+$lang['def']['Free period'] = 'Безкоштовний період';
+$lang['def']['Available'] = 'Доступний';
+$lang['def']['Unavailable'] = 'Не доступний';
+$lang['def']['Subscribe'] = 'Підписатись';
+$lang['def']['Unsubscribe'] = 'Відписатись';
+$lang['def']['Available subscribtions'] = 'Наявні підписки';
+$lang['def']['Start view'] = 'Дивитись';
 
 ?>

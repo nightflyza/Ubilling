@@ -245,6 +245,79 @@ class MegogoInterface {
     }
 
     /**
+     * Returns tariffs Megogo service ID
+     * 
+     * @param int $tariffid
+     * 
+     * @return string
+     */
+    public function getTariffServiceId($tariffid) {
+        $tariffid = vf($tariffid, 3);
+        $result = '';
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['id'] == $tariffid) {
+                    $result = $each['serviceid'];
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Create subscription
+     * 
+     * @param string $login
+     * @param int $tariffid
+     * 
+     * @return void
+     */
+    public function createSubscribtion($login, $tariffid) {
+        $curdatetime = curdatetime();
+        $loginF = mysql_real_escape_string($login);
+        $tariffid = vf($tariffid, 3);
+        $activeFlag = 1;
+        if (isset($this->allTariffs[$tariffid])) {
+            $tariffData = $this->allTariffs[$tariffid];
+            $query = "INSERT INTO `mg_subscribers` (`id`,`login`,`tariffid`,`actdate`,`active`,`primary`,`freeperiod`) VALUES";
+            $query.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "','" . $activeFlag . "','" . $tariffData['primary'] . "','" . $tariffData['freeperiod'] . "');";
+            nr_query($query);
+            log_register('MEGOGO SUBSCRIBE (' . $login . ') TARIFF [' . $tariffid . ']');
+            $mgApi = new MegogoApi();
+            $mgApi->subscribe($login, $tariffData['serviceid']);
+            log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
+
+            $queryHistory = "INSERT INTO `mg_history` (`id`,`login`,`tariffid`,`actdate`,`freeperiod`) VALUES";
+            $queryHistory.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "'," . $tariffData['freeperiod'] . ")";
+            nr_query($queryHistory);
+        }
+    }
+
+    /**
+     * Deletes existing subscription
+     * 
+     * @param string $login
+     * @param int $tariffid
+     * 
+     * @return void
+     */
+    public function deleteSubscribtion($login, $tariffid) {
+        $curdatetime = curdatetime();
+        $loginF = mysql_real_escape_string($login);
+        $tariffid = vf($tariffid, 3);
+        $activeFlag = 1;
+        if (isset($this->allTariffs[$tariffid])) {
+            $tariffData = $this->allTariffs[$tariffid];
+            $query = "DELETE from `mg_subscribers` WHERE `login`='" . $loginF . "' AND `tariffid`='" . $tariffid . "';";
+            nr_query($query);
+            log_register('MEGOGO UNSUBSCRIBE (' . $login . ') TARIFF [' . $tariffid . ']');
+            $mgApi = new MegogoApi();
+            $mgApi->unsubscribe($login, $tariffData['serviceid']);
+            log_register('MEGOGO DEACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
+        }
+    }
+
+    /**
      * Returns primary controls panel
      * 
      * @return string
@@ -385,9 +458,9 @@ class MegogoInterface {
                   "aaData": [ ';
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $each) {
-                $userLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login'], false);
-                $userLink=trim($userLink);
-                $userLink= str_replace('"', '', $userLink);
+                $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
+                $userLink = trim($userLink);
+                $userLink = str_replace('"', '', $userLink);
                 $actFlag = web_bool_led(web_bool_led($each['active'], false));
                 $actFlag = str_replace('"', '', $actFlag);
                 $primFlag = web_bool_led(web_bool_led($each['primary'], false));

@@ -598,11 +598,41 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     //deal with it delayed tasks processing
                     if ($_GET['action'] == 'dealwithit') {
                         if ($alterconf['DEALWITHIT_ENABLED']) {
-                            $dealWithIt=new DealWithIt();
+                            $dealWithIt = new DealWithIt();
                             $dealWithIt->tasksProcessing();
                             die('OK:DEALWITHIT');
                         } else {
-                            die('ERROR:DEALWITHIT ENABLED');
+                            die('ERROR:DEALWITHIT DISABLED');
+                        }
+                    }
+
+                    //Megogo userstats control options
+                    if ($_GET['action'] == 'mgcontrol') {
+                        if ($alterconf['MG_ENABLED']) {
+                            if (wf_CheckGet(array('param', 'tariffid', 'userlogin'))) {
+
+                                if ($_GET['param'] == 'subscribe') {
+                                    $mgIface = new MegogoInterface();
+                                    $mgIface->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
+                                    die('');
+                                }
+
+                                if ($_GET['param'] == 'unsubscribe') {
+                                    $mgIface = new MegogoInterface();
+                                    $mgIface->deleteSubscribtion($_GET['userlogin'], $_GET['tariffid']);
+                                    die('');
+                                }
+                            }
+
+                            if (wf_CheckGet(array('param','userlogin'))) {
+                                if ($_GET['param'] == 'auth') {
+                                    $mgApi = new MegogoApi();
+                                    $authUrlData = $mgApi->authCode($_GET['userlogin']);
+                                    die($authUrlData);
+                                }
+                            }
+                        } else {
+                            die('ERROR: MEGOGO DISABLEDs');
                         }
                     }
 
