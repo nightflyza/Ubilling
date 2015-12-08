@@ -24,6 +24,13 @@ class MegogoFrontend {
     protected $allHistory = array();
 
     /**
+     * Contains all of internet users data as login=>data
+     *
+     * @var array
+     */
+    protected $allUsers = array();
+
+    /**
      * Contains system config as key=>value
      *
      * @var array
@@ -54,6 +61,7 @@ class MegogoFrontend {
     public function __construct() {
         $this->loadUsConfig();
         $this->setOptions();
+        $this->loadUsers();
         $this->loadTariffs();
         $this->loadSubscribers();
         $this->loadHistory();
@@ -93,7 +101,7 @@ class MegogoFrontend {
      * @return void
      */
     protected function loadTariffs() {
-        $query = "SELECT * from `mg_tariffs` ORDER BY `primary` DESC";
+        $query = "SELECT * from `mg_tariffs` ORDER BY `primary` DESC, `fee` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -133,6 +141,21 @@ class MegogoFrontend {
     }
 
     /**
+     * Loads available users from database
+     * 
+     * @return void
+     */
+    protected function loadUsers() {
+        $query = "SELECT * from `users`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUsers[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
      * Checks is user subscribed for some tariff or not?
      * 
      * @param string $login
@@ -163,7 +186,7 @@ class MegogoFrontend {
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
-                $freePeriodLabel = ($each['primary']) ? __('Available') : __('Unavailable');
+                $freePeriodLabel = ($each['freeperiod']) ? la_img('iconz/ok_small.png', __('Available')) : la_img('iconz/unavail_small.png', __('Unavailable'));
                 $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($each['fee'] . ' ' . $this->usConfig['currency']);
@@ -173,13 +196,18 @@ class MegogoFrontend {
                 $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
                 $tariffInfo.=la_delimiter();
-                if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
-                    $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
+                if ($this->checkBalance()) {
+                    if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
+                        $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
+                    } else {
+                        $subscribeControl = la_Link('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                    }
+
+                    $tariffInfo.=$subscribeControl;
                 } else {
-                    $subscribeControl = la_Link('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                    $tariffInfo.=__('The amount of money in your account is not sufficient to process subscription');
                 }
 
-                $tariffInfo.=$subscribeControl;
                 $result.=la_tag('div', false, 'mgcontainer') . $tariffInfo . la_tag('div', true);
             }
         }
@@ -207,17 +235,87 @@ class MegogoFrontend {
         @$result = file_get_contents($action);
         return ($result);
     }
-    
-    
+
     /**
+     * Checks have  current user any subscribtions?
      * 
+     * @return bool
+     */
+    public function haveSubscribtions() {
+        $result = false;
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['login'] == $this->userLogin) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Gets auth URL via remote API
      * 
      * @return string
      */
     public function getAuthButtonURL() {
-        $result='';
+        $result = '';
         $action = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=mgcontrol&param=auth&userlogin=' . $this->userLogin;
-        $result=  file_get_contents($action);
+        $result = file_get_contents($action);
+        return ($result);
+    }
+
+    /**
+     * Check user balance for subscribtion availability
+     * 
+     * @return bool
+     */
+    protected function checkBalance() {
+        $result = false;
+        if (!empty($this->userLogin)) {
+            if (isset($this->allUsers[$this->userLogin])) {
+                $userData = $this->allUsers[$this->userLogin];
+                $userBalance = $this->allUsers[$this->userLogin]['Cash'];
+                if ($userBalance >= 0) {
+                    $result = true;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of available subscribtions
+     * 
+     * @return string
+     */
+    public function renderSubscribtions() {
+        $result = '';
+        if (!empty($this->allSubscribers)) {
+            $cells = la_TableCell(__('Date'));
+            $cells.= la_TableCell(__('Tariff'));
+            $cells.= la_TableCell(__('Active'));
+            $cells.= la_TableCell(__('Primary'));
+            $cells.= la_TableCell(__('Free period'));
+            $rows = la_TableRow($cells, 'row1');
+
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['login'] == $this->userLogin) {
+                    $freePeriodFlag = ($each['freeperiod']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
+                    $primaryFlag = ($each['primary']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
+                    $activeFlag = ($each['active']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
+                    $cells = la_TableCell($each['actdate']);
+                    $cells.= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
+                    $cells.= la_TableCell($activeFlag);
+                    $cells.= la_TableCell($primaryFlag);
+                    $cells.= la_TableCell($freePeriodFlag);
+                    $rows.= la_TableRow($cells, 'row2');
+                }
+            }
+
+            $result = la_TableBody($rows, '100%', 0);
+        }
         return ($result);
     }
 

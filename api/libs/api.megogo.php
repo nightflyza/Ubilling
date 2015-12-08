@@ -167,6 +167,20 @@ class MegogoInterface {
      */
     protected $allHistory = array();
 
+    /**
+     * Contains all of available scheduled actions queue as id => queue data
+     *
+     * @var array
+     */
+    protected $allQueue = array();
+
+    /**
+     * Contains all of internet users data as login=>data
+     *
+     * @var array
+     */
+    protected $allUsers = array();
+
     const URL_ME = '?module=testing';
     const URL_TARIFFS = 'tariffs=true';
     const URL_SUBS = 'subscriptions=true';
@@ -175,9 +189,11 @@ class MegogoInterface {
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
+        $this->loadUsers();
         $this->loadTariffs();
         $this->loadSubscribers();
         $this->loadHistory();
+        $this->loadQueue();
     }
 
     /**
@@ -245,6 +261,35 @@ class MegogoInterface {
     }
 
     /**
+     * Loads scheduled queue from database
+     * 
+     * @return void
+     */
+    protected function loadQueue() {
+        $query = "SELECT * from `mg_queue`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allQueue[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads available users from database
+     * 
+     * @return void
+     */
+    protected function loadUsers() {
+        $all = zb_UserGetAllStargazerData();
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUsers[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
      * Returns tariffs Megogo service ID
      * 
      * @param int $tariffid
@@ -258,6 +303,88 @@ class MegogoInterface {
             foreach ($this->allTariffs as $io => $each) {
                 if ($each['id'] == $tariffid) {
                     $result = $each['serviceid'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns tariffs price
+     * 
+     * @param int $tariffid
+     * 
+     * @return float
+     */
+    public function getTariffFee($tariffid) {
+        $tariffid = vf($tariffid, 3);
+        $result = 0;
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                if ($each['id'] == $tariffid) {
+                    $result = $each['fee'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks free period availability for user
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
+    protected function checkFreePeriodAvail($login) {
+        $query = "SELECT * from `mg_history` WHERE `login`='" . $login . "' AND `freeperiod`='1';";
+        $raw = simple_query($query);
+        $result = (empty($raw)) ? true : false;
+        return ($result);
+    }
+
+    /**
+     * Check user tariff subscribtion possibility
+     * 
+     * @param string $login
+     * @param int $tariffid
+     * 
+     * @return bool
+     */
+    protected function checkTariffAvail($login, $tariffid) {
+        $result = true;
+        $tariffid = vf($tariffid, 3);
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if (($each['login'] == $login) AND ( $each['tariffid'] == $tariffid)) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks user for only one primary subscription
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
+    protected function checkTariffPrimary($login, $tariffid) {
+        $result = true;
+        $tariffData = $this->allTariffs[$tariffid];
+        $tariffPrimary = $tariffData['primary'];
+        if ($tariffPrimary) {
+            if (!empty($this->allSubscribers)) {
+                foreach ($this->allSubscribers as $io => $each) {
+                    if ($each['primary'] == 1) {
+                        $result = false;
+                        break;
+                    }
                 }
             }
         }
@@ -270,27 +397,54 @@ class MegogoInterface {
      * @param string $login
      * @param int $tariffid
      * 
-     * @return void
+     * @return void/strin on error
      */
     public function createSubscribtion($login, $tariffid) {
         $curdatetime = curdatetime();
         $loginF = mysql_real_escape_string($login);
         $tariffid = vf($tariffid, 3);
         $activeFlag = 1;
-        if (isset($this->allTariffs[$tariffid])) {
-            $tariffData = $this->allTariffs[$tariffid];
-            $query = "INSERT INTO `mg_subscribers` (`id`,`login`,`tariffid`,`actdate`,`active`,`primary`,`freeperiod`) VALUES";
-            $query.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "','" . $activeFlag . "','" . $tariffData['primary'] . "','" . $tariffData['freeperiod'] . "');";
-            nr_query($query);
-            log_register('MEGOGO SUBSCRIBE (' . $login . ') TARIFF [' . $tariffid . ']');
-            $mgApi = new MegogoApi();
-            $mgApi->subscribe($login, $tariffData['serviceid']);
-            log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
+        $freePeriodFlag = 0;
+        $result = '';
+        if (isset($this->allUsers[$login])) {
+            if (isset($this->allTariffs[$tariffid])) {
+                if ($this->checkTariffAvail($login, $tariffid)) {
+                    if ($this->checkTariffPrimary($login, $tariffid)) {
+                        $tariffData = $this->allTariffs[$tariffid];
+                        if ($tariffData['freeperiod']) {
+                            $freePeriodFlag = ($this->checkFreePeriodAvail($login)) ? 1 : 0;
+                        }
+                        $query = "INSERT INTO `mg_subscribers` (`id`,`login`,`tariffid`,`actdate`,`active`,`primary`,`freeperiod`) VALUES";
+                        $query.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "','" . $activeFlag . "','" . $tariffData['primary'] . "','" . $freePeriodFlag . "');";
+                        nr_query($query);
+                        log_register('MEGOGO SUBSCRIBE (' . $login . ') TARIFF [' . $tariffid . ']');
+                        $mgApi = new MegogoApi();
+                        $mgApi->subscribe($login, $tariffData['serviceid']);
+                        log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
 
-            $queryHistory = "INSERT INTO `mg_history` (`id`,`login`,`tariffid`,`actdate`,`freeperiod`) VALUES";
-            $queryHistory.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "'," . $tariffData['freeperiod'] . ")";
-            nr_query($queryHistory);
+//force fee
+                        if (!$freePeriodFlag) {
+                            $tariffFee = $this->getTariffFee($tariffid);
+                            zb_CashAdd($login, '-' . $tariffFee, 'add', 1, 'MEGOGO:' . $tariffid);
+                            log_register('MEGOGO FEE (' . $login . ') -' . $tariffFee);
+                        }
+
+                        $queryHistory = "INSERT INTO `mg_history` (`id`,`login`,`tariffid`,`actdate`,`freeperiod`) VALUES";
+                        $queryHistory.="(NULL,'" . $loginF . "','" . $tariffid . "','" . $curdatetime . "','" . $freePeriodFlag . "');";
+                        nr_query($queryHistory);
+                    } else {
+                        $result = 'Only one primary tariff allowed';
+                    }
+                } else {
+                    $result = 'Already subscribed';
+                }
+            } else {
+                $result = 'Wrong tariff';
+            }
+        } else {
+            $result = 'Non existent user';
         }
+        return ($result);
     }
 
     /**
@@ -426,7 +580,7 @@ class MegogoInterface {
         $tariffId = vf($tariffId, 3);
         $result = '';
         if (isset($this->allTariffs[$tariffId])) {
-            //TODO: need tariff assigned by some users protector method
+//TODO: need tariff assigned by some users protector method
             $query = "DELETE from `mg_tariffs` WHERE `id`='" . $tariffId . "';";
             nr_query($query);
             log_register('MEGOGO TARIFF DELETE [' . $tariffId . ']');
@@ -461,11 +615,11 @@ class MegogoInterface {
                 $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
                 $userLink = trim($userLink);
                 $userLink = str_replace('"', '', $userLink);
-                $actFlag = web_bool_led(web_bool_led($each['active'], false));
+                $actFlag = web_bool_led($each['active'], false);
                 $actFlag = str_replace('"', '', $actFlag);
-                $primFlag = web_bool_led(web_bool_led($each['primary'], false));
+                $primFlag = web_bool_led($each['primary'], false);
                 $primFlag = str_replace('"', '', $primFlag);
-                $freeperiodFlag = web_bool_led(web_bool_led($each['freeperiod'], false));
+                $freeperiodFlag = web_bool_led($each['freeperiod'], false);
                 $freeperiodFlag = str_replace('"', '', $freeperiodFlag);
 
                 $result.='
@@ -485,6 +639,133 @@ class MegogoInterface {
         $result.='] 
         }';
         die($result);
+    }
+
+    /**
+     * Returns some user balance
+     * 
+     * @return float
+     */
+    protected function getUserBalance($login) {
+        $result = 0;
+        if (isset($this->allUsers[$login])) {
+            $result = $this->allUsers[$login]['Cash'];
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates scheduler task in database
+     * 
+     * @param string $login
+     * @param string $action
+     * @param int $tariffid
+     * 
+     * @return void
+     */
+    protected function createQueue($login, $action, $tariffid) {
+        $loginF = mysql_real_escape_string($login);
+        $actionF = mysql_real_escape_string($action);
+        $tariffid = vf($tariffid, 3);
+        $curdate = curdatetime();
+        $query = "INSERT INTO `mg_queue` (`id`,`login`,`date`,`action`,`tariffid`) VALUES";
+        $query.= "(NULL,'" . $loginF . "','" . $curdate . "','" . $actionF . "','" . $tariffid . "')";
+        nr_query($query);
+        log_register('MEGOGO QUEUE CREATE (' . $login . ') TARIFF [' . $tariffid . '] ACTION `' . $action . '`');
+    }
+
+    /**
+     * Checks is queue for this login/tariff clean?
+     * 
+     * @param string $login
+     * @param int $tariffid
+     * 
+     * @return bool
+     */
+    protected function checkSchedule($login, $tariffid) {
+        $result = true;
+        if (!empty($this->allQueue)) {
+            foreach ($this->allQueue as $io => $each) {
+                if (($each['login'] == $login) AND ( $each['tariffid'] == $tariffid)) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Schedules tariff unsubscribe from next month
+     * 
+     * @param string $login
+     * @param int $tariffid
+     * 
+     * @return string
+     */
+    public function scheduleUnsubscribe($login, $tariffid) {
+        if ($this->checkSchedule($login, $tariffid)) {
+            $this->createQueue($login, 'unsub', $tariffid);
+            $result = 'The service will be disabled on the first day of the following month';
+        } else {
+            $result = 'Already scheduled';
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs scheduler queue actions
+     * 
+     * @return string
+     */
+    public function scheduleProcessing() {
+        $result = '';
+        if (!empty($this->allQueue)) {
+            foreach ($this->allQueue as $io => $each) {
+                //unsubscription management
+                if ($each['action'] == 'unsub') {
+                    $query = "DELETE from `mg_queue` WHERE `id`='" . $each['id'] . "';";
+                    nr_query($query);
+                    $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                    $result.=$each['login'] . ' SCHEDULE UNSUB [' . $each['tariffid'] . ']' . "\n";
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs available active subscriptions fee processing
+     * 
+     * @return string
+     */
+    public function subscriptionFeeProcessing() {
+        $result = '';
+        $megogoApi = new MegogoApi();
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if (!$each['freeperiod']) {
+//active subscription - normal fee
+                    $tariffFee = $this->getTariffFee($each['tariffid']);
+                    if ($each['active']) {
+                        $userBalance = $this->getUserBalance($each['login']);
+                        if ($userBalance >= 0) {
+                            zb_CashAdd($each['login'], '-' . $tariffFee, 'add', 1, 'MEGOGO:' . $each['tariffid']);
+                            log_register('MEGOGO FEE (' . $each['login'] . ') -' . $tariffFee);
+                            $result.=$each['login'] . ' FEE ' . $tariffFee . "\n";
+                        } else {
+                            $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                            $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . ']' . "\n";
+                        }
+                    }
+                } else {
+                    $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                    log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
+                    $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+                }
+            }
+        }
+        return ($result);
     }
 
 }

@@ -613,18 +613,18 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                 if ($_GET['param'] == 'subscribe') {
                                     $mgIface = new MegogoInterface();
-                                    $mgIface->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
-                                    die('');
+                                    $mgSubResult = $mgIface->createSubscribtion($_GET['userlogin'], $_GET['tariffid']);
+                                    die($mgSubResult);
                                 }
 
                                 if ($_GET['param'] == 'unsubscribe') {
                                     $mgIface = new MegogoInterface();
-                                    $mgIface->deleteSubscribtion($_GET['userlogin'], $_GET['tariffid']);
-                                    die('');
+                                    $mgUnsubResult = $mgIface->scheduleUnsubscribe($_GET['userlogin'], $_GET['tariffid']);
+                                    die($mgUnsubResult);
                                 }
                             }
 
-                            if (wf_CheckGet(array('param','userlogin'))) {
+                            if (wf_CheckGet(array('param', 'userlogin'))) {
                                 if ($_GET['param'] == 'auth') {
                                     $mgApi = new MegogoApi();
                                     $authUrlData = $mgApi->authCode($_GET['userlogin']);
@@ -632,7 +632,30 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 }
                             }
                         } else {
-                            die('ERROR: MEGOGO DISABLEDs');
+                            die('ERROR: MEGOGO DISABLED');
+                        }
+                    }
+
+
+                    //Megogo schedule processing
+                    if ($_GET['action'] == 'mgqueue') {
+                        if ($alterconf['MG_ENABLED']) {
+                            $mgIface = new MegogoInterface();
+                            $mgQueueProcessingResult = $mgIface->scheduleProcessing();
+                            die($mgQueueProcessingResult);
+                        } else {
+                            die('ERROR: MEGOGO DISABLED');
+                        }
+                    }
+
+                    //Megogo fee processing
+                    if ($_GET['action'] == 'mgprocessing') {
+                        if ($alterconf['MG_ENABLED']) {
+                            $mgIface = new MegogoInterface();
+                            $mgFeeProcessingResult = $mgIface->subscriptionFeeProcessing();
+                            die($mgFeeProcessingResult);
+                        } else {
+                            die('ERROR: MEGOGO DISABLED');
                         }
                     }
 

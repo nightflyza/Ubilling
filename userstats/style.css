@@ -666,11 +666,11 @@ ul.style3 .first
 } 
 
 .mgcontainer {
-    height:256px; 
+    height:200px; 
     width:256px; 
     border:1px #aaa solid; 
     float:left; 
-    margin:10px;
+    margin:5px;
     background-color: #fbf6f6;
 }
 
@@ -708,6 +708,7 @@ ul.style3 .first
     font-size: 20px;
     padding: 10px 20px 10px 20px;
     text-decoration: none;
+    margin: 20%;
 }
 
 .mgsubcontrol:hover {
@@ -718,6 +719,7 @@ ul.style3 .first
     background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
     background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
     text-decoration: none;
+
 }
 
 
@@ -736,6 +738,7 @@ ul.style3 .first
     font-size: 20px;
     padding: 10px 20px 10px 20px;
     text-decoration: none;
+    margin: 20%;
 }
 
 .mgunsubcontrol:hover {
@@ -765,6 +768,7 @@ ul.style3 .first
     font-size: 20px;
     padding: 10px 20px 10px 20px;
     text-decoration: none;
+    margin-left: 30%;
 }
 
 .mgviewcontrol:hover {

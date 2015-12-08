@@ -292,5 +292,13 @@ $lang['def']['Subscribe'] = 'Підписатись';
 $lang['def']['Unsubscribe'] = 'Відписатись';
 $lang['def']['Available subscribtions'] = 'Наявні підписки';
 $lang['def']['Start view'] = 'Дивитись';
+$lang['def']['Wrong tariff'] = 'Невірний тариф';
+$lang['def']['Non existent user'] = 'Неіснуючий користувач';
+$lang['def']['Already subscribed'] = 'Вже підписані';
+$lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'Сума коштів на вашому рахунку не достатня, для оформлення підписки';
+$lang['def']['Your subscriptions'] = 'Ваші підписки';
+$lang['def']['Active'] = 'Активний';
+$lang['def']['Primary'] = 'Основний';
+$lang['def']['Only one primary tariff allowed'] = 'Дозволено тільки одну основну підписку';
 
 ?>

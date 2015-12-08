@@ -15,7 +15,7 @@ if (@$us_config['MG_ENABLED']) {
         if (!$subscribeResult) {
             rcms_redirect('?module=megogo');
         } else {
-            show_window(__('Sorry'), $subscribeResult);
+            show_window(__('Sorry'), __($subscribeResult));
         }
     }
 //  try unsubscribe service 
@@ -24,13 +24,17 @@ if (@$us_config['MG_ENABLED']) {
         if (!$unsubscribeResult) {
             rcms_redirect('?module=megogo');
         } else {
-            show_window(__('Sorry'), $unsubscribeResult);
+            show_window(__('Sorry'), __($unsubscribeResult));
         }
     }
 
+    //default sub/unsub form
     show_window(__('Available subscribtions'), $megogo->renderSubscribeForm());
-    show_window('', la_Link($megogo->getAuthButtonURL(), __('Start view'), true, 'mgviewcontrol'));
-    
+    //view button if is some subscriptions here
+    if ($megogo->haveSubscribtions()) {
+        show_window(__('Your subscriptions'), $megogo->renderSubscribtions());
+        show_window('', la_Link($megogo->getAuthButtonURL(), __('Start view'), true, 'mgviewcontrol'));
+    }
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }
