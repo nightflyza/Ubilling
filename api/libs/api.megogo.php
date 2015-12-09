@@ -856,7 +856,7 @@ class MegogoInterface {
                 $cells.= wf_TableCell('');
                 $cells.= wf_TableCell('');
                 $cells.= wf_TableCell('');
-                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell($totalSumm);
                 $cells.= wf_TableCell(zb_Percent($totalSumm, $this->altCfg['MG_PERCENT']));
                 $rows.= wf_TableRow($cells, 'row2');
 

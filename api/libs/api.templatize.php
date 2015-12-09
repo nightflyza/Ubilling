@@ -262,6 +262,8 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         $result = str_ireplace('{TARIFF}', $alluserdata[$login]['tariff'], $result);
         $result = str_ireplace('{TARIFFPRICE}', $alluserdata[$login]['tariffprice'], $result);
         $result = str_ireplace('{CASH}', $alluserdata[$login]['cash'], $result);
+        $result = str_ireplace('{ROUNDCASH}', round($alluserdata[$login]['cash'], 2), $result);
+        $result = str_ireplace('{CURDATE}', curdate(), $result);
         $result = str_ireplace('{CREDIT}', $alluserdata[$login]['credit'], $result);
         $result = str_ireplace('{DOWN}', $alluserdata[$login]['down'], $result);
         $result = str_ireplace('{PASSIVE}', $alluserdata[$login]['passive'], $result);

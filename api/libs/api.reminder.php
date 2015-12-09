@@ -111,6 +111,11 @@ class Reminder {
         $this->AllTemplates = zb_TemplateGetAllUserData();
     }
 
+    /**
+     * Loads all of passive aka frozen users from database
+     *
+     * @return void
+     */
     protected function LoadPassive() {
         $query = "SELECT `login` FROM `users` WHERE `Passive`=1";
         $data = simple_queryall($query);
@@ -121,6 +126,13 @@ class Reminder {
         }
     }
 
+    /**
+     * Check is user frozen or not?
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
     protected function FilterPassive($login) {
         if (!empty($this->AllPassive)) {
             foreach ($this->AllPassive as $each) {
@@ -165,7 +177,7 @@ class Reminder {
                         }
                     }
                 } elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
-                    log_register(__('SMS will not sent. Tariff is free.' . ' ' . 'Login' . ': ' . $eachLogin));                
+                    log_register(__('SMS will not sent. Tariff is free.' . ' ' . 'Login' . ': ' . $eachLogin));
                 } else {
                     if (file_exists(self::FLAGPREFIX . $eachLogin)) {
                         if (filemtime(self::FLAGPREFIX . $eachLogin) > $CacheTime) {

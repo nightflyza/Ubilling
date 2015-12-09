@@ -43,7 +43,7 @@ function zbs_UserDetectIp($debug = false) {
         }
     }
     if ($debug) {
-        $ip='172.30.0.55'; 
+        //$ip='172.30.0.2'; 
     }
 
     return($ip);
