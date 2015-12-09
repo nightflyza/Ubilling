@@ -274,3 +274,13 @@ CATV_ENABLED=TRIGGER|CaTV accounting support
 CATV_HP_MODE=TRIGGER|High perfomance mode for CaTV user list
 CATV_BACK_FEE=TRIGGER|CaTV charge fee for previous month
 CHAPTEREND_OTHD=true
+
+
+CHAPTER_MEGOGO=Megogo
+MG_ENABLED=TRIGGER|Is Megogo service enabled
+MG_PARTNERID=VARCHAR|Megogo partner ID
+MG_PREFIX=VARCHAR|Megogo users prefix
+MG_SALT=VARCHAR|Megogo auth salt
+MG_SPREAD=VARCHAR|Megogo accounting type
+MG_PERCENT=VARCHAR|Megogo partner profit percent
+CHAPTEREND_MEGOGO=true

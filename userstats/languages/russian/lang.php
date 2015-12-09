@@ -305,7 +305,7 @@ $lang['def']['Already scheduled'] = 'Уже запланировано';
 $lang['def']['MEGOGO Movies & TV'] = 'MEGOGO Кино и ТВ';
 $lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для просмотра купленной подписки зарегистрируйтесь либо авторизуйтесь на Megogo.net, нажав кнопку ниже';
 $lang['def']['Go to MEGOGO'] = 'Перейти на MEGOGO';
-$lang['def'][''] = '';
+$lang['def']['You can not use this service'] = 'Вы не можете воспользоваться данной услугой';
 
 
 ?>

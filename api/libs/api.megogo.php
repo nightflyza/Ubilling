@@ -384,8 +384,10 @@ class MegogoInterface {
             if (!empty($this->allSubscribers)) {
                 foreach ($this->allSubscribers as $io => $each) {
                     if ($each['primary'] == 1) {
-                        $result = false;
-                        break;
+                        if ($each['login'] == $login) {
+                            $result = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -547,6 +549,7 @@ class MegogoInterface {
                 $cells.= wf_TableCell(web_bool_led($each['primary']));
                 $cells.= wf_TableCell(web_bool_led($each['freeperiod']));
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_TARIFFS . '&deletetariffid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit tariff'), $this->tariffEditForm($each['id']));
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -565,7 +568,7 @@ class MegogoInterface {
     public function tariffCreateForm() {
         $result = '';
 
-        $inputs = wf_TextInput('newtariffname', __('Tariff name'), '', true, '10');
+        $inputs = wf_TextInput('newtariffname', __('Tariff name'), '', true, '20');
         $inputs.= wf_TextInput('newtarifffee', __('Fee'), '', true, '5');
         $inputs.= wf_TextInput('newtariffserviceid', __('Service ID'), '', true, '10');
         $inputs.= wf_CheckInput('newtariffprimary', __('Primary'), true, false);
@@ -574,6 +577,55 @@ class MegogoInterface {
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
 
+        return ($result);
+    }
+
+    /**
+     * Returns tariff editing form
+     * 
+     * @param int $tariffId
+     * 
+     * @return string
+     */
+    protected function tariffEditForm($tariffId) {
+        $result = '';
+        $inputs = wf_HiddenInput('edittariffid', $tariffId);
+        $inputs.= wf_TextInput('edittariffname', __('Tariff name'), $this->allTariffs[$tariffId]['name'], true, '20');
+        $inputs.= wf_TextInput('edittarifffee', __('Fee'), $this->allTariffs[$tariffId]['fee'], true, '5');
+        $inputs.= wf_TextInput('edittariffserviceid', __('Service ID'), $this->allTariffs[$tariffId]['serviceid'], true, '10');
+        $primaryFlag = ($this->allTariffs[$tariffId]['primary']) ? true : false;
+        $inputs.= wf_CheckInput('edittariffprimary', __('Primary'), true, $primaryFlag);
+        $freePeriodFlag = ($this->allTariffs[$tariffId]['freeperiod']) ? true : false;
+        $inputs.= wf_CheckInput('edittarifffreeperiod', __('Free period'), true, $freePeriodFlag);
+        $inputs.= wf_Submit(__('Save'));
+
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Catches tariff editing form data
+     * 
+     * @return void/string on error
+     */
+    public function tariffSave() {
+        $result = '';
+        if (wf_CheckPost(array('edittariffid', 'edittariffname', 'edittarifffee', 'edittariffserviceid'))) {
+            $tariffId = vf($_POST['edittariffid'], 3);
+            if (isset($this->allTariffs[$tariffId])) {
+                $where = " WHERE `id`='" . $tariffId . "';";
+                $primaryFlag = (wf_CheckPost(array('edittariffprimary'))) ? 1 : 0;
+                $freeperiodFlag = (wf_CheckPost(array('edittarifffreeperiod'))) ? 1 : 0;
+                simple_update_field('mg_tariffs', 'name', $_POST['edittariffname'], $where);
+                simple_update_field('mg_tariffs', 'fee', $_POST['edittarifffee'], $where);
+                simple_update_field('mg_tariffs', 'serviceid', $_POST['edittariffserviceid'], $where);
+                simple_update_field('mg_tariffs', 'primary', $primaryFlag, $where);
+                simple_update_field('mg_tariffs', 'freeperiod', $freeperiodFlag, $where);
+                log_register('MEGOGO TARIFF EDIT [' . $tariffId . '] `' . $_POST['edittariffname'] . '` FEE `' . $_POST['edittarifffee'] . '`');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('No all of required fields is filled'), 'error');
+        }
         return ($result);
     }
 
@@ -718,7 +770,7 @@ class MegogoInterface {
                 $rows.= wf_TableRow($cells, 'row3');
             }
 
-            $cells = wf_TableCell('');
+            $cells = wf_TableCell(wf_tag('b') . __('Total') . wf_tag('b', true));
             $cells.= wf_TableCell('');
             $cells.= wf_TableCell($totalUsers);
             $cells.= wf_TableCell($totalFree);
@@ -727,6 +779,89 @@ class MegogoInterface {
             $rows.= wf_TableRow($cells, 'row2');
 
             $result.=wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+
+
+        return ($result);
+    }
+
+    /**
+     * Renders default subscriptions report
+     * 
+     * @return string
+     */
+    public function renderSubscribtionsReportDaily() {
+        $result = '';
+        $defaultDateTo = strtotime(curdate()) + 86400;
+        $defaultDateTo = date("Y-m-d", $defaultDateTo);
+        $inputs = wf_DatePickerPreset('datefrom', date("Y-m") . '-01', true);
+        $inputs.= wf_DatePickerPreset('dateto', $defaultDateTo, true);
+        $inputs.= wf_Submit(__('Show'));
+        $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        $dateFrom = (wf_CheckPost(array('datefrom'))) ? mysql_real_escape_string($_POST['datefrom']) : date("Y-m") . '-01';
+        $dateTo = (wf_CheckPost(array('dateto'))) ? mysql_real_escape_string($_POST['dateto']) : $defaultDateTo;
+
+        $query = "SELECT * from `payments` WHERE `date` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' AND  `note` LIKE 'MEGOGO:%';";
+        $raw = simple_queryall($query);
+        $totalSumm = 0;
+        $tmpArr = array();
+
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                $tariffId = explode(':', $each['note']);
+                $tariffId = $tariffId[1];
+                if (isset($tmpArr[$tariffId])) {
+                    $tmpArr[$tariffId]['summ'] = $tmpArr[$tariffId]['summ'] + abs($each['summ']);
+                    $tmpArr[$tariffId]['count'] ++;
+                    //try&buy user
+                    if ($each['summ'] == 0) {
+                        $tmpArr[$tariffId]['freeperiod'] ++;
+                    }
+                } else {
+                    $tmpArr[$tariffId]['summ'] = abs($each['summ']);
+                    $tmpArr[$tariffId]['count'] = 1;
+                    //try&buy user
+                    if ($each['summ'] == 0) {
+                        $tmpArr[$tariffId]['freeperiod'] = 1;
+                    } else {
+                        $tmpArr[$tariffId]['freeperiod'] = 0;
+                    }
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $cells = wf_TableCell(__('Tariff'));
+                $cells.= wf_TableCell(__('Fee') . ' / ' . __('month'));
+                $cells.= wf_TableCell(__('days'));
+                $cells.= wf_TableCell(__('Free period'));
+                $cells.= wf_TableCell(__('Total payments'));
+                $cells.= wf_TableCell(__('Profit'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($tmpArr as $io => $each) {
+
+                    $cells = wf_TableCell(@$this->allTariffs[$io]['name']);
+                    $cells.= wf_TableCell(@$this->allTariffs[$io]['fee']);
+                    $cells.= wf_TableCell($each['count']);
+                    $cells.= wf_TableCell($each['freeperiod']);
+                    $cells.= wf_TableCell($each['summ']);
+                    $cells.= wf_TableCell(zb_Percent($each['summ'], $this->altCfg['MG_PERCENT']));
+                    $rows.= wf_TableRow($cells, 'row3');
+                    $totalSumm = $totalSumm + $each['summ'];
+                }
+
+                $cells = wf_TableCell(wf_tag('b') . __('Total') . wf_tag('b', true));
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
+                $cells.= wf_TableCell(zb_Percent($totalSumm, $this->altCfg['MG_PERCENT']));
+                $rows.= wf_TableRow($cells, 'row2');
+
+                $result.=wf_TableBody($rows, '100%', 0, '');
+            }
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
@@ -788,6 +923,105 @@ class MegogoInterface {
         $result.='] 
         }';
         die($result);
+    }
+
+    /**
+     * Renders subscribtion management form
+     * 
+     * @param int $subId
+     * 
+     * @return string
+     */
+    public function renderSubManagerForm($subId) {
+        $subId = vf($subId, 3);
+        $result = '';
+        if (isset($this->allSubscribers[$subId])) {
+            $baseUrl = self::URL_ME . '&' . self::URL_SUBVIEW . '&subid=' . $subId;
+            $subData = $this->allSubscribers[$subId];
+
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('User'));
+            $cells.= wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Active'));
+            $cells.= wf_TableCell(__('Primary'));
+            $cells.= wf_TableCell(__('Free period'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            $cells = wf_TableCell($subData['id']);
+            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $subData['login'], web_profile_icon() . ' ' . $subData['login']));
+            $cells.= wf_TableCell($this->allTariffs[$subData['tariffid']]['name']);
+            $cells.= wf_TableCell($subData['actdate']);
+            $cells.= wf_TableCell(web_bool_led($subData['active']));
+            $cells.= wf_TableCell(web_bool_led($subData['primary']));
+            $cells.= wf_TableCell(web_bool_led($subData['freeperiod']));
+            $rows.= wf_TableRow($cells, 'row3');
+            $result = wf_TableBody($rows, '100%', 0, '');
+            $result.=wf_delimiter();
+
+            if (cfr('ROOT')) {
+                $controls = wf_Link($baseUrl . '&maction=subscribe', web_bool_star(1) . ' ' . __('Subscribe with Megogo API'), true, 'ubButton') . wf_tag('br');
+                $controls.= wf_Link($baseUrl . '&maction=unsubscribe', web_bool_star(0) . ' ' . __('Unubscribe with Megogo API'), true, 'ubButton') . wf_tag('br');
+                $controls.= wf_Link($baseUrl . '&maction=activate', web_bool_led(1) . ' ' . __('Activate subscription'), true, 'ubButton') . wf_tag('br');
+                $controls.= wf_Link($baseUrl . '&maction=deactivate', web_bool_led(0) . ' ' . __('Deactivate subscription'), true, 'ubButton') . wf_tag('br');
+                $controls.= wf_JSAlertStyled($baseUrl . '&maction=delete', web_delete_icon() . ' ' . __('Delete subscription'), $this->messages->getDeleteAlert(), 'ubButton');
+                $result.=$controls;
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong') . ' EX_ID_NOEXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Catches and do some manual actions
+     * 
+     * @return void/string
+     */
+    public function catchManualAction() {
+        $result = '';
+        if (wf_CheckGet(array('subid', 'maction'))) {
+            $action = vf($_GET['maction']);
+            $subId = vf($_GET['subid'], 3);
+            if (isset($this->allSubscribers[$subId])) {
+                $subData = $this->allSubscribers[$subId];
+                switch ($action) {
+                    case 'subscribe':
+                        $mgApi = new MegogoApi();
+                        $serviceId = $this->allTariffs[$subData['tariffid']]['serviceid'];
+                        $resubResult = $mgApi->subscribe($subData['login'], $serviceId);
+                        log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        if (!$resubResult) {
+                            $result = $this->messages->getStyledMessage('EX_API_SUBSCRIPTION_FAIL', 'error');
+                        }
+                        break;
+                    case 'unsubscribe':
+                        $mgApi = new MegogoApi();
+                        $serviceId = $this->allTariffs[$subData['tariffid']]['serviceid'];
+                        $unsubResult = $mgApi->unsubscribe($subData['login'], $serviceId);
+                        log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        if (!$unsubResult) {
+                            $result = $this->messages->getStyledMessage('EX_API_UNSUBSCRIPTION_FAIL', 'error');
+                        }
+                        break;
+                    case 'activate':
+                        simple_update_field('mg_subscribers', 'active', 1, "WHERE `id`='" . $subId . "';");
+                        log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        break;
+                    case 'deactivate':
+                        simple_update_field('mg_subscribers', 'active', 0, "WHERE `id`='" . $subId . "';");
+                        log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        break;
+                    case 'delete':
+                        nr_query("DELETE FROM `mg_subscribers` WHERE `id`='" . $subId . "';");
+                        log_register('MEGOGO MANUAL ACTION `' . $action . '` (' . $subData['login'] . ')');
+                        break;
+                }
+            } else {
+                $result = $this->messages->getStyledMessage('EX_ID_NOEXISTS', 'error');
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -912,11 +1146,21 @@ class MegogoInterface {
                         }
                     }
                 } else {
-                    
-                    //TODO: fix daily processing
-                    $this->deleteSubscribtion($each['login'], $each['tariffid']);
-                    log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
-                    $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+
+                    if ($this->altCfg['MG_SPREAD']) {
+                        $freePeriodStart = strtotime($each['date']);
+                        //delete subscribtion if 30 days past
+                        if (time() > ($freePeriodStart + 86400 * 30)) {
+                            $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                            log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
+                            $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+                        }
+                    } else {
+                        //finish free period at the start of new month
+                        $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                        log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
+                        $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
+                    }
                 }
             }
         }
