@@ -291,7 +291,7 @@ $lang['def']['Unavailable'] = 'Не доступен';
 $lang['def']['Subscribe'] = 'Подписаться';
 $lang['def']['Unsubscribe'] = 'Отписаться';
 $lang['def']['Available subscribtions'] = 'Доступные подписки';
-$lang['def']['Start view'] = 'Смотерть';
+$lang['def']['Start view'] = 'Смотреть';
 $lang['def']['Wrong tariff'] = 'Неверный тариф';
 $lang['def']['Non existent user'] = 'Несуществующий пользователь';
 $lang['def']['Already subscribed'] = 'Уже подписаны';
@@ -302,9 +302,9 @@ $lang['def']['Primary'] = 'Основной';
 $lang['def']['Only one primary tariff allowed'] = 'Разрешена только одна основная подписка';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'Услуга будет отключена с первого числа следующего месяца';
 $lang['def']['Already scheduled'] = 'Уже запланировано';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['MEGOGO Movies & TV'] = 'MEGOGO Кино и ТВ';
+$lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для просмотра купленной подписки зарегистрируйтесь либо авторизуйтесь на Megogo.net, нажав кнопку ниже';
+$lang['def']['Go to MEGOGO'] = 'Перейти на MEGOGO';
 $lang['def'][''] = '';
 
 

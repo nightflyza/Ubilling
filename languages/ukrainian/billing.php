@@ -2200,5 +2200,12 @@ $lang['def']['right to use mikbill migration']='Право використов�
 $lang['def']['Available Held jobs for all users']='Відкладені завдання для усіх користувачів';
 $lang['def']['Scheduled']='Заплановане';
 $lang['def']['SMS will not sent. Tariff is free.']='СМС не буде відправлена. Тариф бескоштовний.';
+$lang['def']['Service ID']='ID Послуги';
+$lang['def']['Primary']='Основний';
+$lang['def']['Free period']='Безкоштовний період';
+$lang['def']['Subscriptions']='Підписки';
+$lang['def']['Megogo subscribers']='Підписки Megogo';
+$lang['def']['right to manage Megogo subscriptions']='Право керувати підписками Megogo';
+$lang['def']['Subscriptions report']='Звіт по підписках';
 
 ?>

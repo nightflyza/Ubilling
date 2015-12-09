@@ -2188,9 +2188,9 @@ $lang['def']['Service ID']='ID Услуги';
 $lang['def']['Primary']='Основной';
 $lang['def']['Free period']='Бесплатный период';
 $lang['def']['Subscriptions']='Подписки';
-$lang['def']['']='';
-$lang['def']['']='';
-$lang['def']['']='';
+$lang['def']['Megogo subscribers']='Подписки Megogo';
+$lang['def']['right to manage Megogo subscriptions']='Право управлять подписками Megogo';
+$lang['def']['Subscriptions report']='Отчет по подпискам';
 $lang['def']['']='';
 $lang['def']['']='';
 

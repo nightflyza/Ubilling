@@ -187,6 +187,7 @@ class MegogoFrontend {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
                 $freePeriodLabel = ($each['freeperiod']) ? la_img('iconz/ok_small.png', __('Available')) : la_img('iconz/unavail_small.png', __('Unavailable'));
+                $primaryLabel = ($each['primary']) ? la_img('iconz/ok_small.png') : la_img('iconz/unavail_small.png');
                 $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($each['fee'] . ' ' . $this->usConfig['currency']);
@@ -194,8 +195,13 @@ class MegogoFrontend {
                 $cells = la_TableCell(la_tag('b') . __('Free period') . la_tag('b', true));
                 $cells.= la_TableCell($freePeriodLabel);
                 $rows.= la_TableRow($cells);
+                $cells = la_TableCell(la_tag('b') . __('Primary') . la_tag('b', true));
+                $cells.= la_TableCell($primaryLabel);
+                $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
                 $tariffInfo.=la_delimiter();
+                
+                
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
                         $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
@@ -315,6 +321,8 @@ class MegogoFrontend {
             }
 
             $result = la_TableBody($rows, '100%', 0);
+            $result.= la_tag('br');
+            $result.= __('To view the purchased subscription register or log in to Megogo.net, by clicking the button below');
         }
         return ($result);
     }

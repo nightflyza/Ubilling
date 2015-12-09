@@ -648,7 +648,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-                    //Megogo fee processing
+                    //Megogo fee processing (monthly)
                     if ($_GET['action'] == 'mgprocessing') {
                         if ($alterconf['MG_ENABLED']) {
                             $mgIface = new MegogoInterface();
@@ -658,6 +658,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR: MEGOGO DISABLED');
                         }
                     }
+
+
 
                     ////
                     //// End of actions

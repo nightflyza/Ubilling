@@ -28,13 +28,15 @@ if (@$us_config['MG_ENABLED']) {
         }
     }
 
-    //default sub/unsub form
-    show_window(__('Available subscribtions'), $megogo->renderSubscribeForm());
     //view button if is some subscriptions here
     if ($megogo->haveSubscribtions()) {
         show_window(__('Your subscriptions'), $megogo->renderSubscribtions());
-        show_window('', la_Link($megogo->getAuthButtonURL(), __('Start view'), true, 'mgviewcontrol'));
+        show_window('', la_Link($megogo->getAuthButtonURL(), __('Go to MEGOGO'), true, 'mgviewcontrol'));
+        show_window('', la_tag('br'));
     }
+
+    //default sub/unsub form
+    show_window(__('Available subscribtions'), $megogo->renderSubscribeForm());
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }

@@ -300,5 +300,10 @@ $lang['def']['Your subscriptions'] = 'Ваші підписки';
 $lang['def']['Active'] = 'Активний';
 $lang['def']['Primary'] = 'Основний';
 $lang['def']['Only one primary tariff allowed'] = 'Дозволено тільки одну основну підписку';
+$lang['def']['The service will be disabled on the first day of the following month'] = 'Послугу буде відключено з першого числа наступного місяця';
+$lang['def']['Already scheduled'] = 'Вже заплановано';
+$lang['def']['MEGOGO Movies & TV'] = 'MEGOGO Кіно та ТБ';
+$lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для перегляду придбаної підписки зареєструйтесь або авторизуйтесь на Megogo.net, натиснувши кнопку нижче';
+$lang['def']['Go to MEGOGO'] = 'Перейти на MEGOGO';
 
 ?>

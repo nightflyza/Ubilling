@@ -181,10 +181,12 @@ class MegogoInterface {
      */
     protected $allUsers = array();
 
-    const URL_ME = '?module=testing';
+    const URL_ME = '?module=megogo';
     const URL_TARIFFS = 'tariffs=true';
     const URL_SUBS = 'subscriptions=true';
     const URL_AJSUBS = 'ajsubs=true';
+    const URL_SUBVIEW = 'subview=true';
+    const URL_REPORTS = 'reports=true';
 
     public function __construct() {
         $this->loadAlter();
@@ -392,6 +394,19 @@ class MegogoInterface {
     }
 
     /**
+     * Returns valid dayly fee for some tariff/month
+     * 
+     * @param float $tariffFee
+     * 
+     * @return float
+     */
+    protected function getDaylyFee($tariffFee) {
+        $monthDays = date("t");
+        $result = round(($tariffFee / $monthDays), 2);
+        return ($result);
+    }
+
+    /**
      * Create subscription
      * 
      * @param string $login
@@ -422,11 +437,32 @@ class MegogoInterface {
                         $mgApi->subscribe($login, $tariffData['serviceid']);
                         log_register('MEGOGO ACTIVATED (' . $login . ') SERVICE [' . $tariffData['serviceid'] . ']');
 
-//force fee
+                        //force fee
                         if (!$freePeriodFlag) {
-                            $tariffFee = $this->getTariffFee($tariffid);
+                            if ($this->altCfg['MG_SPREAD']) {
+                                //charge fee only for current day
+                                if ($this->altCfg['MG_SPREAD'] == 1) {
+                                    $tariffFee = $this->getTariffFee($tariffid);
+                                    $tariffFee = $this->getDaylyFee($tariffFee);
+                                }
+                                //charge fee to the end of month
+                                if ($this->altCfg['MG_SPREAD'] == 2) {
+                                    $tariffFee = $this->getTariffFee($tariffid);
+                                    $currentDayOfMonth = date("d");
+                                    $currentMonthDayCount = date("t");
+                                    $tariffFeeDaily = $this->getDaylyFee($tariffFee);
+                                    $tariffFee = ($currentMonthDayCount - $currentDayOfMonth) * $tariffFeeDaily;
+                                }
+                            } else {
+                                //charge full monthly fee
+                                $tariffFee = $this->getTariffFee($tariffid);
+                            }
                             zb_CashAdd($login, '-' . $tariffFee, 'add', 1, 'MEGOGO:' . $tariffid);
                             log_register('MEGOGO FEE (' . $login . ') -' . $tariffFee);
+                        } else {
+                            //free period mark for reports
+                            zb_CashAdd($login, '-0', 'add', 1, 'MEGOGO:' . $tariffid);
+                            log_register('MEGOGO FEE (' . $login . ') -0');
                         }
 
                         $queryHistory = "INSERT INTO `mg_history` (`id`,`login`,`tariffid`,`actdate`,`freeperiod`) VALUES";
@@ -480,6 +516,7 @@ class MegogoInterface {
         $result = '';
         $result.=wf_Link(self::URL_ME . '&' . self::URL_SUBS, wf_img('skins/ukv/users.png') . ' ' . __('Subscriptions'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&' . self::URL_TARIFFS, wf_img('skins/ukv/dollar.png') . ' ' . __('Tariffs'), false, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&' . self::URL_REPORTS, wf_img('skins/ukv/report.png') . ' ' . __('Reports'), false, 'ubButton') . ' ';
         return ($result);
     }
 
@@ -570,6 +607,26 @@ class MegogoInterface {
     }
 
     /**
+     * Checks is tariff used by some users
+     * 
+     * @param int $tariffid
+     * 
+     * @return bool
+     */
+    protected function tariffProtected($tariffid) {
+        $result = false;
+        if (!empty($this->allSubscribers)) {
+            foreach ($this->allSubscribers as $io => $each) {
+                if ($each['tariffid'] == $tariffid) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Deletes existing tariff from database
      * 
      * @param int $tariffId
@@ -580,13 +637,101 @@ class MegogoInterface {
         $tariffId = vf($tariffId, 3);
         $result = '';
         if (isset($this->allTariffs[$tariffId])) {
-//TODO: need tariff assigned by some users protector method
-            $query = "DELETE from `mg_tariffs` WHERE `id`='" . $tariffId . "';";
-            nr_query($query);
-            log_register('MEGOGO TARIFF DELETE [' . $tariffId . ']');
+            if (!$this->tariffProtected($tariffId)) {
+                $query = "DELETE from `mg_tariffs` WHERE `id`='" . $tariffId . "';";
+                nr_query($query);
+                log_register('MEGOGO TARIFF DELETE [' . $tariffId . ']');
+            } else {
+                $result = $this->messages->getStyledMessage(__('Tariff is used by some users'), 'error');
+            }
         } else {
             $result = $this->messages->getStyledMessage(__('Not existing item'), 'error');
         }
+        return ($result);
+    }
+
+    /**
+     * Renders default subscriptions report
+     * 
+     * @return string
+     */
+    public function renderSubscribtionsReportMonthly() {
+        $result = '';
+        $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
+        $inputs.= wf_MonthSelector('monthsel', __('Month'), date("m"), false) . ' ';
+        $inputs.= wf_Submit(__('Show'));
+        $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        $curYear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : curyear();
+        $curMonth = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
+
+        $query = "SELECT * from `payments` WHERE `date` LIKE '" . $curYear . "-" . $curMonth . "%' AND `note` LIKE 'MEGOGO:%';";
+        $raw = simple_queryall($query);
+        $tmpArr = array();
+
+        if (!empty($raw)) {
+            foreach ($raw as $io => $each) {
+                $tariffId = explode(':', $each['note']);
+                $tariffId = $tariffId[1];
+                if (isset($tmpArr[$tariffId])) {
+                    $tmpArr[$tariffId]['summ'] = $tmpArr[$tariffId]['summ'] + abs($each['summ']);
+                    $tmpArr[$tariffId]['count'] ++;
+                    //try&buy user
+                    if ($each['summ'] == 0) {
+                        $tmpArr[$tariffId]['freeperiod'] ++;
+                    }
+                } else {
+                    $tmpArr[$tariffId]['summ'] = abs($each['summ']);
+                    $tmpArr[$tariffId]['count'] = 1;
+                    //try&buy user
+                    if ($each['summ'] == 0) {
+                        $tmpArr[$tariffId]['freeperiod'] = 1;
+                    } else {
+                        $tmpArr[$tariffId]['freeperiod'] = 0;
+                    }
+                }
+            }
+        }
+
+        if (!empty($tmpArr)) {
+            $cells = wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Fee'));
+            $cells.= wf_TableCell(__('Users'));
+            $cells.= wf_TableCell(__('Free period'));
+            $cells.= wf_TableCell(__('Total payments'));
+            $cells.= wf_TableCell(__('Profit'));
+            $rows = wf_TableRow($cells, 'row1');
+            $totalUsers = 0;
+            $totalFree = 0;
+            $totalSumm = 0;
+
+            foreach ($tmpArr as $io => $each) {
+                $totalUsers = $totalUsers + $each['count'];
+                $totalFree = $totalFree + $each['freeperiod'];
+                $totalSumm = $totalSumm + $each['summ'];
+
+                $cells = wf_TableCell(@$this->allTariffs[$io]['name']);
+                $cells.= wf_TableCell(@$this->allTariffs[$io]['fee']);
+                $cells.= wf_TableCell($each['count']);
+                $cells.= wf_TableCell($each['freeperiod']);
+                $cells.= wf_TableCell($each['summ']);
+                $cells.= wf_TableCell(zb_Percent($each['summ'], $this->altCfg['MG_PERCENT']));
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $cells = wf_TableCell('');
+            $cells.= wf_TableCell('');
+            $cells.= wf_TableCell($totalUsers);
+            $cells.= wf_TableCell($totalFree);
+            $cells.= wf_TableCell($totalSumm);
+            $cells.= wf_TableCell(zb_Percent($totalSumm, $this->altCfg['MG_PERCENT']));
+            $rows.= wf_TableRow($cells, 'row2');
+
+            $result.=wf_TableBody($rows, '100%', 0, '');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+
+
         return ($result);
     }
 
@@ -597,7 +742,7 @@ class MegogoInterface {
      */
     public function renderSubscribtions() {
         $result = '';
-        $columns = array(__('ID'), __('User'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'));
+        $columns = array(__('ID'), __('User'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'), __('Actions'));
         $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
         return ($result);
     }
@@ -621,6 +766,9 @@ class MegogoInterface {
                 $primFlag = str_replace('"', '', $primFlag);
                 $freeperiodFlag = web_bool_led($each['freeperiod'], false);
                 $freeperiodFlag = str_replace('"', '', $freeperiodFlag);
+                $actLinks = wf_Link(self::URL_ME . '&' . self::URL_SUBVIEW . '&subid=' . $each['id'], wf_img('skins/icon_edit.gif'));
+                $actLinks = str_replace('"', '', $actLinks);
+                $actLinks = trim($actLinks);
 
                 $result.='
                     [
@@ -630,7 +778,8 @@ class MegogoInterface {
                     "' . $each['actdate'] . '",
                     "' . $actFlag . '",
                     "' . $primFlag . '",
-                    "' . $freeperiodFlag . '"
+                    "' . $freeperiodFlag . '",
+                    "' . $actLinks . '"
                     ],';
             }
         }
@@ -745,8 +894,12 @@ class MegogoInterface {
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $each) {
                 if (!$each['freeperiod']) {
-//active subscription - normal fee
+                    //active subscription - normal fee
                     $tariffFee = $this->getTariffFee($each['tariffid']);
+                    if ($this->altCfg['MG_SPREAD']) {
+                        //possible spread fee charge
+                        $tariffFee = $this->getDaylyFee($tariffFee);
+                    }
                     if ($each['active']) {
                         $userBalance = $this->getUserBalance($each['login']);
                         if ($userBalance >= 0) {
@@ -759,6 +912,8 @@ class MegogoInterface {
                         }
                     }
                 } else {
+                    
+                    //TODO: fix daily processing
                     $this->deleteSubscribtion($each['login'], $each['tariffid']);
                     log_register('MEGOGO (' . $each['login'] . ') FREE PERIOD EXPIRED');
                     $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . '] FREE' . "\n";
