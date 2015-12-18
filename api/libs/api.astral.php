@@ -946,6 +946,7 @@ function wf_DatePicker($field, $extControls = false) {
     if ($extControls) {
         $extControls = ',
                         changeMonth: true,
+                        yearRange: "-100:+100",
                         changeYear: true';
     } else {
         $extControls = '';
@@ -1042,6 +1043,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false) {
     if ($extControls) {
         $extControls = ',
                         changeMonth: true,
+                        yearRange: "-100:+100",
                         changeYear: true';
     } else {
         $extControls = '';
