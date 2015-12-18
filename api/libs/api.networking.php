@@ -862,6 +862,11 @@ function zb_TraffToGb($fs) {
     return ($fs);
 }
 
+/**
+ * Returns array of available tariff speeds as tariffname=>array(speeddown/speedup)
+ * 
+ * @return array
+ */
 function zb_TariffGetAllSpeeds() {
         $query="SELECT * from `speeds`";
         $allspeeds=simple_queryall($query);

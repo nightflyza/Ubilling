@@ -2219,4 +2219,7 @@ $lang['def']['Activate subscription'] = 'Активувати підписку';
 $lang['def']['Deactivate subscription'] = 'Деактивувати підписку';
 $lang['def']['Delete subscription'] = 'Видалити підписку';
 
+//rev 4914 
+$lang['def']['Speed is not set'] = 'Швидкість не встановлено';
+
 ?>

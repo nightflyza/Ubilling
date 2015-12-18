@@ -2203,7 +2203,9 @@ $lang['def']['Unubscribe with Megogo API'] = 'Отписать при помощ
 $lang['def']['Activate subscription'] = 'Активировать подписку';
 $lang['def']['Deactivate subscription'] = 'Деактивировать подписку';
 $lang['def']['Delete subscription'] = 'Удалить подписку';
-$lang['def'][''] = '';
+
+//rev 4914 
+$lang['def']['Speed is not set'] = 'Скорость не установлена';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 ?>
