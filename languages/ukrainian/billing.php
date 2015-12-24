@@ -2221,5 +2221,6 @@ $lang['def']['Delete subscription'] = 'Видалити підписку';
 
 //rev 4914 
 $lang['def']['Speed is not set'] = 'Швидкість не встановлено';
+$lang['def']['Date remains'] = 'Залишки по датах';
 
 ?>

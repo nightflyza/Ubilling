@@ -232,7 +232,12 @@ if (cfr('WAREHOUSE')) {
                 }
                 if (wf_CheckGet(array('totalremains'))) {
                     $calendarLink = wf_Link($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&calendarops=true', wf_img('skins/icon_calendar.gif', __('Operations in the context of time')), false, '');
-                    show_window(__('The remains in all storages') . ' ' . $calendarLink, $warehouse->reportAllStoragesRemains());
+                    $dateRemainsLink=wf_Link($warehouse::URL_ME.'&'.$warehouse::URL_REPORTS.'&dateremains=true', wf_img('skins/ukv/report.png',__('Date remains')));
+                    show_window(__('The remains in all storages') . ' ' . $calendarLink.' '.$dateRemainsLink, $warehouse->reportAllStoragesRemains());
+                    $warehouse->$avidity['M']['FALL']();
+                }
+                if (wf_CheckGet(array('dateremains'))) {
+                    deb($warehouse->reportDateRemains());
                     $warehouse->$avidity['M']['FALL']();
                 }
             }

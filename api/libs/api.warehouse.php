@@ -2395,6 +2395,60 @@ class Warehouse {
         }
     }
 
+    /**
+     * Renders date remains report
+     * 
+     * @return string
+     */
+    public function reportDateRemains() {
+        $result = '';
+        $curyear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : date("Y");
+        $curmonth = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
+
+        $inputs = wf_YearSelector('yearsel', __('Year')) . ' ';
+        $inputs.= wf_MonthSelector('monthsel', __('Month'), $curmonth) . ' ';
+        $inputs.= wf_Submit(__('Show'));
+        $searchForm = wf_Form('', 'POST', $inputs, 'glamour');
+        $searchForm.= wf_CleanDiv();
+        $result.=$searchForm;
+
+        $lowerOffset = strtotime($curyear . '-' . $curmonth . '-01');
+        $upperOffset = strtotime($curyear . '-' . $curmonth . '-01');
+        $upperOffset = date("t", $upperOffset);
+        $upperOffset = strtotime($curyear . '-' . $curmonth . '-' . $upperOffset);
+
+        
+        $incomingLower=array();
+        $outcomingLower=array();
+        
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+                $incomingDate=  strtotime($each['date']);
+                if ($incomingDate<$lowerOffset) {
+                    $incomingLower[$each['id']]=$each;
+                }
+            }
+        }
+        
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                $outcomingDate=  strtotime($each['date']);
+                if ($outcomingDate<$lowerOffset) {
+                    $outcomingLower[$each['id']]=$each;
+                }
+            }
+        }
+        
+        $lowerRemains=array();
+        
+        if (!empty($incomingLower)) {
+            
+        }
+        
+
+        return ($result);
+    }
+
 }
 
 ?>
