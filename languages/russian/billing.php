@@ -2207,5 +2207,15 @@ $lang['def']['Delete subscription'] = 'Удалить подписку';
 //rev 4914 
 $lang['def']['Speed is not set'] = 'Скорость не установлена';
 $lang['def']['Date remains'] = 'Остатки по датам';
+$lang['def']['Remains at the beginning of the month'] = 'Остаток на начало месяца';
+$lang['def']['Remains at end of the month'] = 'Остаток на конец месяца';
+$lang['def']['Incoming'] = 'Приход';
+$lang['def']['packing'] = 'упаковка';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
 ?>

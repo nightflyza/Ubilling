@@ -197,6 +197,7 @@ class Warehouse {
         $this->unitTypes['time'] = __('time');
         $this->unitTypes['litre'] = __('litre');
         $this->unitTypes['pieces'] = __('pieces');
+        $this->unitTypes['packing'] = __('packing');
     }
 
     /**
@@ -541,6 +542,7 @@ class Warehouse {
         if (!empty($this->allReserve)) {
             $cells = wf_TableCell(__('ID'));
             $cells.=wf_TableCell(__('Warehouse storage'));
+            $cells.=wf_TableCell(__('Category'));
             $cells.= wf_TableCell(__('Warehouse item type'));
             $cells.= wf_TableCell(__('Count'));
             $cells.= wf_TableCell(__('Worker'));
@@ -550,6 +552,7 @@ class Warehouse {
             foreach ($this->allReserve as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.=wf_TableCell(@$this->allStorages[$each['storageid']]);
+                $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
                 $cells.= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
                 $cells.= wf_TableCell($each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']]);
                 $cells.= wf_TableCell(@$this->allEmployee[$each['employeeid']]);
@@ -1298,7 +1301,7 @@ class Warehouse {
             $inputs.= wf_tag('br');
             $inputs.= wf_TextInput('newincount', __('Count'), '', false, 5);
             $inputs.= wf_tag('br');
-            $inputs.= wf_TextInput('newinprice', __('Price'), '', false, 5);
+            $inputs.= wf_TextInput('newinprice', __('Price per unit'), '', false, 5);
             $inputs.= wf_tag('br');
             $inputs.= wf_TextInput('newinbarcode', __('Barcode'), '', false, 15);
             $inputs.= wf_tag('br');
@@ -1437,6 +1440,9 @@ class Warehouse {
                 $contractorName = @$this->allContractors[$operationData['contractorid']];
             }
             $cells.= wf_TableCell($contractorName);
+            $rows.= wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Category'), '30%', 'row2');
+            $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$operationData['itemtypeid']]['categoryid']]);
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Warehouse item type'), '30%', 'row2');
             $cells.= wf_TableCell(@$this->allItemTypeNames[$operationData['itemtypeid']]);
@@ -1889,6 +1895,9 @@ class Warehouse {
             $cells = wf_TableCell(__('Destination'), '30%', 'row2');
             $cells.= wf_TableCell($this->outDests[$operationData['desttype']] . $this->outDestControl($operationData['desttype'], $operationData['destparam']));
             $rows.= wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Category'), '30%', 'row2');
+            $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$operationData['itemtypeid']]['categoryid']]);
+            $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Warehouse item type'), '30%', 'row2');
             $cells.= wf_TableCell(@$this->allItemTypeNames[$operationData['itemtypeid']]);
             $rows.= wf_TableRow($cells, 'row3');
@@ -2286,6 +2295,7 @@ class Warehouse {
             if (!empty($tmpArr)) {
                 $cells = wf_TableCell(__('Date'));
                 $cells.= wf_TableCell(__('Warehouse storage'));
+                $cells.= wf_TableCell(__('Category'));
                 $cells.= wf_TableCell(__('Warehouse item type'));
                 $cells.= wf_TableCell(__('Count'));
                 $cells.= wf_TableCell(__('Price'));
@@ -2296,6 +2306,7 @@ class Warehouse {
                     @$itemUnit = $this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                     $cells = wf_TableCell($each['date']);
                     $cells.= wf_TableCell(@$this->allStorages[$each['storageid']]);
+                    $cells.= wf_TableCell(@$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']]);
                     $cells.= wf_TableCell(@$this->allItemTypeNames[$each['itemtypeid']]);
                     $cells.= wf_TableCell($each['count'] . ' ' . $itemUnit);
                     $cells.= wf_TableCell($each['price']);
@@ -2314,11 +2325,12 @@ class Warehouse {
                 $cells.= wf_TableCell('');
                 $cells.= wf_TableCell('');
                 $cells.= wf_TableCell('');
+                $cells.= wf_TableCell('');
                 $cells.= wf_TableCell($sum);
                 $cells.= wf_TableCell('');
                 $rows.= wf_TableRow($cells, 'row2');
 
-                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                $result = wf_TableBody($rows, '100%', 0, '');
             } else {
                 $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }
@@ -2396,6 +2408,80 @@ class Warehouse {
     }
 
     /**
+     * Returns date remains report header
+     * 
+     * @param int    $year selected year
+     * @param string $monthNumber selected month with leading zero
+     * 
+     * @return string
+     */
+    protected function reportDateRemainsHeader($year, $monthNumber) {
+        $monthArr = months_array();
+        $monthName = rcms_date_localise($monthArr[$monthNumber]);
+
+        $result = '';
+        $result.= wf_tag('table', false, '', 'border="0" cellspacing="2" width="100%"');
+        $result.= wf_tag('colgroup', false, '', 'span="4" width="80"');
+        $result.=wf_tag('colgroup', true);
+        $result.= wf_tag('colgroup', false, '', 'width="79"');
+        $result.=wf_tag('colgroup', true);
+        $result.= wf_tag('colgroup', false, '', 'span="6" width="80"');
+        $result.=wf_tag('colgroup', true);
+        $result.= wf_tag('tbody', false);
+        $result.= wf_tag('tr', false, 'row2');
+        $result.= wf_tag('td', false, '', 'colspan="3" rowspan="3" align="center" valign="bottom"');
+        $result.= __('Warehouse item types');
+        $result.= wf_tag('td', true);
+        $result.= wf_tag('td', false, '', 'colspan="2" rowspan="2" align="center" valign="bottom"');
+        $result.= __('Remains at the beginning of the month');
+        $result.= wf_tag('td', true);
+        $result.= wf_tag('td', false, '', 'colspan="4" align="center" valign="bottom"') . $monthName . ' ' . $year . wf_tag('td', true);
+        $result.= wf_tag('td', false, '', 'colspan="2" rowspan="2" align="center" valign="bottom"');
+        $result.= __('Remains at end of the month');
+        $result.= wf_tag('td', true);
+        $result.=wf_tag('tr', true);
+        $result.=wf_tag('tr', false, 'row2');
+        $result.= wf_tag('td', false, '', 'colspan="2" align="center" valign="bottom"') . __('Incoming') . wf_tag('td', true);
+        $result.= wf_tag('td', false, '', 'colspan="2" align="center" valign="bottom"') . __('Outcoming') . wf_tag('td', true);
+        $result.= wf_tag('tr', true);
+        $result.= wf_tag('tr', false, 'row2');
+        $result.= wf_TableCell(__('Count'));
+        $result.= wf_TableCell(__('Sum'));
+        $result.= wf_TableCell(__('Count'));
+        $result.= wf_TableCell(__('Sum'));
+        $result.= wf_TableCell(__('Count'));
+        $result.= wf_TableCell(__('Sum'));
+        $result.= wf_TableCell(__('Count'));
+        $result.= wf_TableCell(__('Sum'));
+        $result.=wf_tag('tr', true);
+        $result.=wf_tag('tr', false);
+        return ($result);
+    }
+
+    /**
+     * Returns valid formatted table row form date remains report
+     * 
+     * @param int $itemtypeId
+     * @param array $data
+     * 
+     * @return string
+     */
+    protected function reportDateRemainsAddRow($itemtypeId, $data) {
+        $cells = wf_TableCell($this->allItemTypeNames[$itemtypeId] . ' (' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')', '', '', 'colspan="3" align="center"');
+        $cells.= wf_TableCell($data[0]);
+        $cells.= wf_TableCell($data[1]);
+        $cells.= wf_TableCell($data[2]);
+        $cells.= wf_TableCell($data[3]);
+        $cells.= wf_TableCell($data[4]);
+        $cells.= wf_TableCell($data[5]);
+        $cells.= wf_TableCell($data[6]);
+        $cells.= wf_TableCell($data[7]);
+        $result = wf_TableRow($cells, 'row3');
+
+        return ($result);
+    }
+
+    /**
      * Renders date remains report
      * 
      * @return string
@@ -2416,35 +2502,144 @@ class Warehouse {
         $upperOffset = strtotime($curyear . '-' . $curmonth . '-01');
         $upperOffset = date("t", $upperOffset);
         $upperOffset = strtotime($curyear . '-' . $curmonth . '-' . $upperOffset);
+        $incomingLower = array();
+        $outcomingLower = array();
 
-        
-        $incomingLower=array();
-        $outcomingLower=array();
-        
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
-                $incomingDate=  strtotime($each['date']);
-                if ($incomingDate<$lowerOffset) {
-                    $incomingLower[$each['id']]=$each;
+                $incomingDate = strtotime($each['date']);
+                if ($incomingDate < $lowerOffset) {
+                    $incomingLower[$each['id']] = $each;
                 }
             }
         }
-        
+
+
         if (!empty($this->allOutcoming)) {
             foreach ($this->allOutcoming as $io => $each) {
-                $outcomingDate=  strtotime($each['date']);
-                if ($outcomingDate<$lowerOffset) {
-                    $outcomingLower[$each['id']]=$each;
+                $outcomingDate = strtotime($each['date']);
+                if ($outcomingDate < $lowerOffset) {
+                    $outcomingLower[$each['id']] = $each;
                 }
             }
         }
-        
-        $lowerRemains=array();
-        
+
+        $lowerIncome = array();
         if (!empty($incomingLower)) {
-            
+            foreach ($incomingLower as $io => $each) {
+                if (isset($lowerIncome[$each['itemtypeid']])) {
+                    $lowerIncome[$each['itemtypeid']]['count'] = $lowerIncome[$each['itemtypeid']]['count'] + $each['count'];
+                    $lowerIncome[$each['itemtypeid']]['price'] = $lowerIncome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                } else {
+                    $lowerIncome[$each['itemtypeid']]['count'] = $each['count'];
+                    $lowerIncome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                }
+            }
         }
-        
+
+        $lowerOutcome = array();
+        if (!empty($outcomingLower)) {
+            foreach ($outcomingLower as $io => $each) {
+                if (isset($lowerOutcome[$each['itemtypeid']])) {
+                    $lowerOutcome[$each['itemtypeid']]['count'] = $lowerOutcome[$each['itemtypeid']]['count'] + $each['count'];
+                    $lowerOutcome[$each['itemtypeid']]['price'] = $lowerOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                } else {
+                    $lowerOutcome[$each['itemtypeid']]['count'] = $each['count'];
+                    $lowerOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                }
+            }
+        }
+
+
+
+
+        //first report column here
+        $lowerRemains = array();
+        if (!empty($incomingLower)) {
+            foreach ($incomingLower as $io => $each) {
+                $outcomeCount = (isset($lowerOutcome[$each['itemtypeid']])) ? $lowerOutcome[$each['itemtypeid']]['count'] : 0;
+                $outcomePrice = (isset($lowerOutcome[$each['itemtypeid']])) ? $lowerOutcome[$each['itemtypeid']]['price'] : 0;
+                $lowerRemains[$each['itemtypeid']]['count'] = $lowerIncome[$each['itemtypeid']]['count'] - $outcomeCount;
+                $lowerRemains[$each['itemtypeid']]['price'] = $lowerIncome[$each['itemtypeid']]['price'] - $outcomePrice;
+            }
+        }
+
+
+
+
+        //second column
+        $upperIncome = array();
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+                $incomeDate = strtotime($each['date']);
+                if (($incomeDate > $lowerOffset ) AND ( $incomeDate) < $upperOffset) {
+                    if (isset($upperIncome[$each['itemtypeid']])) {
+                        $upperIncome[$each['itemtypeid']]['count'] = $upperIncome[$each['itemtypeid']]['count'] + $each['count'];
+                        $upperIncome[$each['itemtypeid']]['price'] = $upperIncome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                    } else {
+                        $upperIncome[$each['itemtypeid']]['count'] = $each['count'];
+                        $upperIncome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                    }
+                }
+            }
+        }
+
+        //third column
+        $upperOutcome = array();
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                $outcomeDate = strtotime($each['date']);
+                if (($outcomeDate > $lowerOffset ) AND ( $outcomeDate) < $upperOffset) {
+                    if (isset($upperOutcome[$each['itemtypeid']])) {
+                        $upperOutcome[$each['itemtypeid']]['count'] = $upperOutcome[$each['itemtypeid']]['count'] + $each['count'];
+                        $upperOutcome[$each['itemtypeid']]['price'] = $upperOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                    } else {
+                        $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
+                        $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                    }
+                }
+            }
+        }
+
+
+        //mixing earlier non exists items into lower remains array
+        if (!empty($upperIncome)) {
+            foreach ($upperIncome as $io => $each) {
+                if (!isset($lowerRemains[$io])) {
+                    $lowerRemains[$io]['count'] = 0;
+                    $lowerRemains[$io]['price'] = 0;
+                }
+            }
+        }
+
+
+
+        $result.=$this->reportDateRemainsHeader($curyear, $curmonth);
+        if (!empty($lowerRemains)) {
+            foreach ($lowerRemains as $io => $each) {
+                $itemtypeId = $io;
+
+                $secondColumnCount = (isset($upperIncome[$itemtypeId])) ? $upperIncome[$itemtypeId]['count'] : 0;
+                $secondColumnPrice = (isset($upperIncome[$itemtypeId])) ? $upperIncome[$itemtypeId]['price'] : 0;
+                $thirdColumnCount = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['count'] : 0;
+                $thirdColumnPrice = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['price'] : 0;
+
+                $fourthColumnCount = $lowerRemains[$itemtypeId]['count'] + $secondColumnCount - $thirdColumnCount;
+                $fourthColumnPrice = $lowerRemains[$itemtypeId]['price'] + $secondColumnPrice - $thirdColumnPrice;
+
+                $result.=$this->reportDateRemainsAddRow($itemtypeId, array($lowerRemains[$itemtypeId]['count'], $lowerRemains[$itemtypeId]['price'],
+                    $secondColumnCount,
+                    $secondColumnPrice,
+                    $thirdColumnCount,
+                    $thirdColumnPrice,
+                    $fourthColumnCount,
+                    $fourthColumnPrice));
+            }
+        }
+
+
+        $result.= wf_tag('tbody', true);
+        $result.= wf_tag('table', true);
 
         return ($result);
     }

@@ -2222,5 +2222,10 @@ $lang['def']['Delete subscription'] = 'Видалити підписку';
 //rev 4914 
 $lang['def']['Speed is not set'] = 'Швидкість не встановлено';
 $lang['def']['Date remains'] = 'Залишки по датах';
+$lang['def']['Remains at the beginning of the month'] = 'Залишок на початок місяця';
+$lang['def']['Remains at end of the month'] = 'Залишок на кінець місяця';
+$lang['def']['Incoming'] = 'Прихід';
+$lang['def']['packing'] = 'пакунок';
+
 
 ?>
