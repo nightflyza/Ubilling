@@ -2494,13 +2494,15 @@ class Warehouse {
      * @return float
      */
     protected function getIncomeMiddlePrice($itemtypeId) {
-        $itemsCount=0;
+        $itemsCount = 0;
         $totalSumm = 0;
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
                 if ($each['price'] != 0) {
-                    $totalSumm+=$each['price'];
-                    $itemsCount+=$each['count'];
+                    if ($each['contractorid'] != 0) { //ignoring move ops
+                        $totalSumm+=$each['price'];
+                        $itemsCount+=$each['count'];
+                    }
                 }
             }
         }
@@ -2541,7 +2543,9 @@ class Warehouse {
             foreach ($this->allIncoming as $io => $each) {
                 $incomingDate = strtotime($each['date']);
                 if ($incomingDate < $lowerOffset) {
-                    $incomingLower[$each['id']] = $each;
+                    if ($each['contractorid'] != 0) { //ignoring move ops
+                        $incomingLower[$each['id']] = $each;
+                    }
                 }
             }
         }
@@ -2551,7 +2555,9 @@ class Warehouse {
             foreach ($this->allOutcoming as $io => $each) {
                 $outcomingDate = strtotime($each['date']);
                 if ($outcomingDate < $lowerOffset) {
-                    $outcomingLower[$each['id']] = $each;
+                    if ($each['desttype'] != 'storage') { // ignoring move ops
+                        $outcomingLower[$each['id']] = $each;
+                    }
                 }
             }
         }
@@ -2609,12 +2615,14 @@ class Warehouse {
             foreach ($this->allIncoming as $io => $each) {
                 $incomeDate = strtotime($each['date']);
                 if (($incomeDate > $lowerOffset ) AND ( $incomeDate) < $upperOffset) {
-                    if (isset($upperIncome[$each['itemtypeid']])) {
-                        $upperIncome[$each['itemtypeid']]['count'] = $upperIncome[$each['itemtypeid']]['count'] + $each['count'];
-                        $upperIncome[$each['itemtypeid']]['price'] = $upperIncome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
-                    } else {
-                        $upperIncome[$each['itemtypeid']]['count'] = $each['count'];
-                        $upperIncome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                    if ($each['contractorid'] != 0) { //ignoring move ops
+                        if (isset($upperIncome[$each['itemtypeid']])) {
+                            $upperIncome[$each['itemtypeid']]['count'] = $upperIncome[$each['itemtypeid']]['count'] + $each['count'];
+                            $upperIncome[$each['itemtypeid']]['price'] = $upperIncome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                        } else {
+                            $upperIncome[$each['itemtypeid']]['count'] = $each['count'];
+                            $upperIncome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                        }
                     }
                 }
             }
@@ -2626,15 +2634,17 @@ class Warehouse {
             foreach ($this->allOutcoming as $io => $each) {
                 $outcomeDate = strtotime($each['date']);
                 if (($outcomeDate > $lowerOffset ) AND ( $outcomeDate) < $upperOffset) {
-                    if ($each['price'] == 0) {
-                        $each['price'] = $this->getIncomeMiddlePrice($each['itemtypeid']);
-                    }
-                    if (isset($upperOutcome[$each['itemtypeid']])) {
-                        $upperOutcome[$each['itemtypeid']]['count'] = $upperOutcome[$each['itemtypeid']]['count'] + $each['count'];
-                        $upperOutcome[$each['itemtypeid']]['price'] = $upperOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
-                    } else {
-                        $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
-                        $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                    if ($each['desttype'] != 'storage') { //ignoring move ops
+                        if ($each['price'] == 0) {
+                            $each['price'] = $this->getIncomeMiddlePrice($each['itemtypeid']);
+                        }
+                        if (isset($upperOutcome[$each['itemtypeid']])) {
+                            $upperOutcome[$each['itemtypeid']]['count'] = $upperOutcome[$each['itemtypeid']]['count'] + $each['count'];
+                            $upperOutcome[$each['itemtypeid']]['price'] = $upperOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
+                        } else {
+                            $upperOutcome[$each['itemtypeid']]['count'] = $each['count'];
+                            $upperOutcome[$each['itemtypeid']]['price'] = $each['count'] * $each['price'];
+                        }
                     }
                 }
             }
@@ -2660,7 +2670,7 @@ class Warehouse {
             $secondColumnTotal = 0;
             $thirdColumnTotal = 0;
             $fourthColumnTotal = 0;
-            
+
             foreach ($lowerRemains as $io => $each) {
                 $itemtypeId = $io;
                 $firstColumnCount = (isset($lowerRemains[$itemtypeId])) ? $lowerRemains[$itemtypeId]['count'] : 0;
