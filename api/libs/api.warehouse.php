@@ -2467,7 +2467,12 @@ class Warehouse {
      * @return string
      */
     protected function reportDateRemainsAddRow($itemtypeId, $data) {
-        $cells = wf_TableCell($this->allItemTypeNames[$itemtypeId] . ' (' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')', '', '', 'colspan="3" align="center"');
+        if ($itemtypeId != '') {
+            $itemData = $this->allItemTypeNames[$itemtypeId] . ' (' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . ')';
+        } else {
+            $itemData = '';
+        }
+        $cells = wf_TableCell($itemData, '', '', 'colspan="3" align="center"');
         $cells.= wf_TableCell($data[0]);
         $cells.= wf_TableCell($data[1]);
         $cells.= wf_TableCell($data[2]);
@@ -2478,6 +2483,33 @@ class Warehouse {
         $cells.= wf_TableCell($data[7]);
         $result = wf_TableRow($cells, 'row3');
 
+        return ($result);
+    }
+
+    /**
+     * Returns middle price for some itemtype based of all incoming operations
+     * 
+     * @param int $itemtypeId
+     * 
+     * @return float
+     */
+    protected function getIncomeMiddlePrice($itemtypeId) {
+        $count = 0;
+        $totalSumm = 0;
+        if (!empty($this->allIncoming)) {
+            foreach ($this->allIncoming as $io => $each) {
+                if ($each['price'] != 0) {
+                    $totalSumm+=$each['price'];
+                    $count++;
+                }
+            }
+        }
+
+        if ($count != 0) {
+            $result = round($totalSumm / $count, 2);
+        } else {
+            $result = $totalSumm;
+        }
         return ($result);
     }
 
@@ -2540,6 +2572,10 @@ class Warehouse {
         $lowerOutcome = array();
         if (!empty($outcomingLower)) {
             foreach ($outcomingLower as $io => $each) {
+                if ($each['price'] == 0) {
+                    $each['price'] = $this->getIncomeMiddlePrice($each['itemtypeid']);
+                }
+
                 if (isset($lowerOutcome[$each['itemtypeid']])) {
                     $lowerOutcome[$each['itemtypeid']]['count'] = $lowerOutcome[$each['itemtypeid']]['count'] + $each['count'];
                     $lowerOutcome[$each['itemtypeid']]['price'] = $lowerOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
@@ -2590,6 +2626,9 @@ class Warehouse {
             foreach ($this->allOutcoming as $io => $each) {
                 $outcomeDate = strtotime($each['date']);
                 if (($outcomeDate > $lowerOffset ) AND ( $outcomeDate) < $upperOffset) {
+                    if ($each['price'] == 0) {
+                        $each['price'] = $this->getIncomeMiddlePrice($each['itemtypeid']);
+                    }
                     if (isset($upperOutcome[$each['itemtypeid']])) {
                         $upperOutcome[$each['itemtypeid']]['count'] = $upperOutcome[$each['itemtypeid']]['count'] + $each['count'];
                         $upperOutcome[$each['itemtypeid']]['price'] = $upperOutcome[$each['itemtypeid']]['price'] + ($each['count'] * $each['price']);
@@ -2615,10 +2654,17 @@ class Warehouse {
 
 
         $result.=$this->reportDateRemainsHeader($curyear, $curmonth);
+
         if (!empty($lowerRemains)) {
+            $firstColumnTotal = 0;
+            $secondColumnTotal = 0;
+            $thirdColumnTotal = 0;
+            $fourthColumnTotal = 0;
+            
             foreach ($lowerRemains as $io => $each) {
                 $itemtypeId = $io;
-
+                $firstColumnCount = (isset($lowerRemains[$itemtypeId])) ? $lowerRemains[$itemtypeId]['count'] : 0;
+                $firstColumnPrice = (isset($lowerRemains[$itemtypeId])) ? $lowerRemains[$itemtypeId]['price'] : 0;
                 $secondColumnCount = (isset($upperIncome[$itemtypeId])) ? $upperIncome[$itemtypeId]['count'] : 0;
                 $secondColumnPrice = (isset($upperIncome[$itemtypeId])) ? $upperIncome[$itemtypeId]['price'] : 0;
                 $thirdColumnCount = (isset($upperOutcome[$itemtypeId])) ? $upperOutcome[$itemtypeId]['count'] : 0;
@@ -2627,14 +2673,21 @@ class Warehouse {
                 $fourthColumnCount = $lowerRemains[$itemtypeId]['count'] + $secondColumnCount - $thirdColumnCount;
                 $fourthColumnPrice = $lowerRemains[$itemtypeId]['price'] + $secondColumnPrice - $thirdColumnPrice;
 
-                $result.=$this->reportDateRemainsAddRow($itemtypeId, array($lowerRemains[$itemtypeId]['count'], $lowerRemains[$itemtypeId]['price'],
+                $result.=$this->reportDateRemainsAddRow($itemtypeId, array($firstColumnCount, $firstColumnPrice,
                     $secondColumnCount,
                     $secondColumnPrice,
                     $thirdColumnCount,
                     $thirdColumnPrice,
                     $fourthColumnCount,
                     $fourthColumnPrice));
+
+                $firstColumnTotal+=$firstColumnPrice;
+                $secondColumnTotal+=$secondColumnPrice;
+                $thirdColumnTotal+=$thirdColumnPrice;
+                $fourthColumnTotal+=$firstColumnPrice;
             }
+
+            $result.=$this->reportDateRemainsAddRow('', array('', $firstColumnTotal, '', $secondColumnTotal, '', $thirdColumnTotal, '', $fourthColumnTotal));
         }
 
 
