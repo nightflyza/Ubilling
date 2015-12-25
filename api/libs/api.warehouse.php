@@ -2494,20 +2494,18 @@ class Warehouse {
      * @return float
      */
     protected function getIncomeMiddlePrice($itemtypeId) {
-        $count = 0;
         $itemsCount=0;
         $totalSumm = 0;
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
                 if ($each['price'] != 0) {
                     $totalSumm+=$each['price'];
-                    $count++;
                     $itemsCount+=$each['count'];
                 }
             }
         }
 
-        if ($count != 0) {
+        if ($itemsCount != 0) {
             $result = round($totalSumm / $itemsCount, 2);
         } else {
             $result = $totalSumm;
