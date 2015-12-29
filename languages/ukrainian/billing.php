@@ -2226,6 +2226,7 @@ $lang['def']['Remains at the beginning of the month'] = 'Залишок на п�
 $lang['def']['Remains at end of the month'] = 'Залишок на кінець місяця';
 $lang['def']['Incoming'] = 'Прихід';
 $lang['def']['packing'] = 'пакунок';
+$lang['def']['You can use the * character as a symbol of lax compliance line.'] = 'Ви можете використовувати символ * для позначення несуворої відповідності рядку.';
 
 
 ?>
