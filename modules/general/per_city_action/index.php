@@ -4,17 +4,21 @@ $altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
 if ($altcfg['PER_CITY_ACTION']) {
     if (cfr('CITYACTION')) {
         $admin = whoami();
-        $form = wf_Link(PerCityAction::MODULE_NAME . "&action=debtors", __('Debtors'), false, 'ubButton');
+        $form = wf_Link(PerCityAction::MODULE_NAME, __('Clear'), true, 'ubButton');
+        $form.= wf_tag('br');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=debtors", __('Debtors'), false, 'ubButton');
         $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=city_payments", __('Payments per city'), false, 'ubButton');
         $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=usersearch", __('User search'), false, 'ubButton');
-        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=permission", __('Permission'), true, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=permission", __('Permission'), false, 'ubButton');
+        $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=analytics", __('Analytics'), true, 'ubButton');
         show_window(__('Actions'), $form);
 
         if (isset($_GET['action'])) {
+            $action = $_GET['action'];
             $perCityAction = new PerCityAction();
-            if ($_GET['action'] == 'debtors') {
+            if ($action == 'debtors') {
                 if (cfr('REPORTCITYDEBTORS')) {
-                    show_window(__('Payments'), $perCityAction->CitySelector($admin, $_GET['action']));
+                    show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
                     if (isset($_GET['citysearch'])) {
                         $cityId = $_GET['citysearch'];
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
@@ -37,9 +41,9 @@ if ($altcfg['PER_CITY_ACTION']) {
                 }
             }
 
-            if ($_GET['action'] == 'usersearch') {
+            if ($action == 'usersearch') {
                 if (cfr('CITYUSERSEARCH')) {
-                    show_window(__('User search'), $perCityAction->CitySelector($admin, $_GET['action']));
+                    show_window(__('User search'), $perCityAction->CitySelector($admin, $action));
                     if (isset($_GET['citysearch'])) {
                         $cityId = $_GET['citysearch'];
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
@@ -61,10 +65,10 @@ if ($altcfg['PER_CITY_ACTION']) {
                 }
             }
 
-            if ($_GET['action'] == 'city_payments') {
+            if ($action == 'city_payments') {
                 if (cfr('CITYPAYMENTS')) {
                     show_window(__('Change month'), web_MonthSelector());
-                    show_window(__('Payments'), $perCityAction->CitySelector($admin, $_GET['action']));
+                    show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
                     if (isset($_GET['citysearch'])) {
                         $cityId = $_GET['citysearch'];
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
@@ -85,7 +89,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                     }
                 }
             }
-            if ($_GET['action'] == 'permission') {
+            if ($action == 'permission') {
                 if (cfr('CITYPERMISSION')) {
                     if (isset($_GET['edit'])) {
                         show_window(__('Cities'), $perCityAction->CityChecker($_GET['edit']));
@@ -120,6 +124,17 @@ if ($altcfg['PER_CITY_ACTION']) {
                     }
                 } else {
                     show_error(__('You cant control this module'));
+                }
+            }
+            if ($action == 'analytics') {
+                show_window(__('Data'), $perCityAction->CitySelector($admin, $action));
+                show_window('', $perCityAction->ChooseDateForm($action));
+                if (isset($_GET['from_date']) && isset($_GET['to_date']) && isset($_GET['citysearch'])) {
+                    $perCityAction->LoadAllData('', $_GET['citysearch'], 'analytics', $_GET['from_date'], $_GET['to_date']);
+                    show_window(__('Analytics'), $perCityAction->AnalyticsShow());
+                } elseif (isset($_GET['by_day']) && isset($_GET['citysearch'])) {
+                    $perCityAction->LoadAllData('', $_GET['citysearch'], 'analytics', '', '', $_GET['by_day']);
+                    show_window(__('Analytics'), $perCityAction->AnalyticsShow());
                 }
             }
         }

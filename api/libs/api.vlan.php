@@ -813,7 +813,7 @@ class VlanGen {
             if (empty($newVlan)) {
                 $alert = wf_JSAlert(self::MODULE_URL_ADDVLAN, __("Error"), __("No free Vlan available in selected pool"));
                 print($alert);
-                rcms_redirect(self::MODULE_URL_ADDVLAN);                
+                rcms_redirect(self::MODULE_URL_ADDVLAN);
             }
             $this->AddVlanHost($newVlanPoolID, $newVlan, $login);
         } else {
@@ -1574,7 +1574,7 @@ class AutoConfigurator {
             if (!empty($tmp[1])) {
                 return(true);
             } else {
-                return (fasle);
+                return (false);
             }
         } else {
             return(false);
@@ -1753,6 +1753,8 @@ class AutoConfigurator {
             }
         }
 
+        $result = '';
+
         while (!empty($SwitchId)) {
             $SwitchIp = $this->GetSwUplinkIP($SwitchId);
             if ($this->CheckTermIP($SwitchIp)) {
@@ -1768,7 +1770,6 @@ class AutoConfigurator {
 
                     if ($this->GetSwitchesData($SwitchId)) {
                         $SwitchesData = $this->GetSwitchesData($SwitchId);
-                        $ModelId = $SwitchesData['modelid'];
                         $ip = $SwitchesData['ip'];
                         $ParentId = $SwitchesData['parentid'];
 
@@ -1789,6 +1790,7 @@ class AutoConfigurator {
                                             );
                                         }
                                     }
+                                    log_register(__("VLAN") . " " . $vlan . " " . __("already created") . " " . __("on switch") . " " . $ip);
                                 } else {
                                     foreach ($SNMPData as $section => $eachpoll) {
                                         if ($section != 'define') {
@@ -1803,9 +1805,7 @@ class AutoConfigurator {
                                     }
                                 }
 
-                                log_register(__("VLAN") . " " . $vlan . " " . __("already created") . " " . __("on switch") . " " . $ip);
-
-                                $result = $this->SnmpHelper->set($ip, $community, $data);
+                                $result.= $this->SnmpHelper->set($ip, $community, $data);
                                 if ($this->CheckVlan($ip, $community, $CheckOid)) {
                                     log_register(__("Created vlan") . " " . $vlan . " " . __("on switch") . " " . $ip);
                                 }
@@ -1822,6 +1822,7 @@ class AutoConfigurator {
                 show_error(__('No switch login data found for switchid' . ' ' . $SwitchId));
             }
         }
+        return ($result);
     }
 
 }
@@ -1980,14 +1981,17 @@ class OnuConfigurator {
      * @param string $oltCommunity 
      * @return int
      */
-    protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $oid) {
-        $macOnu = $this->MacHexToDec($macOnu);
-        $interface = ($oid . "." . $macOnu);
-        $OltInt = $this->snmp->walk($oltIp, $oltCommunity, $interface);
-        $tmp = explode("=", $OltInt);
-        $tmp = explode(":", $tmp[1]);
-        @$tmp = trim($tmp[1]);
-        return($tmp);
+    protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $ifindex) {       
+        $macOnuRew = $this->MacHexToDec($macOnu);
+        $interface = ($ifindex . "." . $macOnuRew);         
+        $OltInt = snmp2_get($oltIp, $oltCommunity, $interface);                                
+        $index = explode(":", $OltInt);
+        if (isset($index[1])) {
+            $tmp = trim($index[1]);            
+            return($tmp);
+        } else {
+            return (false);
+        }
     }
 
     /**
@@ -2018,17 +2022,17 @@ class OnuConfigurator {
      */
     public function ChangeOnuPvid($login, $vlan, $onu_port = '1') {
         $OnuData = $this->GetOnuMac($login);
-        if (!empty($OnuData)) {            
+        if (!empty($OnuData)) {
             $OnuMac = $OnuData[0];
             $oltId = $OnuData[1];
 
             $oltData = $this->GetOltData($oltId);
-            if (!empty($oltData)) {                
+            if (!empty($oltData)) {
                 $oltIp = $oltData[0];
                 $oltCommunity = $oltData[1];
 
                 $template = $this->GetOltModelTemplate($oltData[2]);
-                if (!empty($template)) {                    
+                if (!empty($template)) {
                     if (file_exists('config/snmptemplates/' . $template)) {
                         $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template, true);
 
@@ -2039,30 +2043,34 @@ class OnuConfigurator {
                             $CheckVlanOid = $iniData['vlan']['CHECK'];
                             $IfIndexOid = $iniData['vlan']['IFINDEX'];
                             $IfIndex = $this->GetClientIface($OnuMac, $oltIp, $oltCommunity, $IfIndexOid);
-                            $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
-                            $data = array();
-                            if ($VlanCheck) {
-                                //create vlan on OLT
+                            if ($IfIndex) {
+                                $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
+                                $data = array();
+                                if ($VlanCheck) {
+                                    //create vlan on OLT
+                                    $data[] = array(
+                                        'oid' => $vlanCreateOid . "." . $vlan,
+                                        'type' => 'i',
+                                        'value' => '4'
+                                    );
+                                }
+                                //Change pvid on onu port by defolt port 1
                                 $data[] = array(
-                                    'oid' => $vlanCreateOid . "." . $vlan,
+                                    'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
                                     'type' => 'i',
-                                    'value' => '4'
+                                    'value' => "$vlan"
                                 );
+                                $data[] = array(
+                                    'oid' => $SaveConfigOid,
+                                    'type' => 'i',
+                                    'value' => '1'
+                                );
+                                $result = $this->snmp->set($oltIp, $oltCommunity, $data);
+                                $result.= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
+                                return ($result);
+                            } else {
+                                show_error('cant find onu');
                             }
-                            //Change pvid on onu port by defolt port 1
-                            $data[] = array(
-                                'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
-                                'type' => 'i',
-                                'value' => "$vlan"
-                            );
-                            $data[] = array(
-                                'oid' => $SaveConfigOid,
-                                'type' => 'i',
-                                'value' => '1'
-                            );
-                            $result = $this->snmp->set($oltIp, $oltCommunity, $data);
-                            $result.= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
-                            return ($result);
                         }
                     } else {
                         show_error(__('SNMP template for OTL file not exists for modelid' . ' ' . $oltData[2]));

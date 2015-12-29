@@ -306,5 +306,19 @@ $lang['def']['MEGOGO Movies & TV'] = 'MEGOGO Кіно та ТБ';
 $lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для перегляду придбаної підписки зареєструйтесь або авторизуйтесь на Megogo.net, натиснувши кнопку нижче';
 $lang['def']['Go to MEGOGO'] = 'Перейти на MEGOGO';
 $lang['def']['You can not use this service'] = 'Ви не можете скористатись даною послугою';
+$lang['def']['Aditional services'] = 'Додаткові сервіси';
+$lang['def']['Cost'] = 'Ціна';
+$lang['def']['Aditional service name'] = 'Назва додаткового сервісу';
+$lang['def']['Service name'] = 'Назва сервісу';
+$lang['def']['Sheduled'] = 'Заплановано';
+$lang['def']['Active'] = 'Підключено';
+$lang['def']['Success'] = 'Успіх';
+$lang['def']['Your order was sheduled'] = 'Ваше замовлення прийнято';
+$lang['def']['Please wait for'] = 'Будь ласка очікуйте';
+$lang['def']['Aditional services cost'] = 'Ціна додаткового сервісу';
+$lang['def']['Order aditional service'] = 'Замовити додатковий сервіс';
+$lang['def']['Activated services'] = 'Підключені сервіси';
+$lang['def']['You can order aditional services. Available services - listed below.'] = 'Ви можете замовити додаткові сервіси. Сервіси доступні для замовлення знаходятся нижче.';
+$lang['def']['Order'] = 'Замовити';
 
 ?>

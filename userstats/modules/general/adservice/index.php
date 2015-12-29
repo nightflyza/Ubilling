@@ -1,0 +1,232 @@
+<?php
+
+$user_ip = zbs_UserDetectIp('debug');
+$user_login = zbs_UserGetLoginByIp($user_ip);
+$us_config = zbs_LoadConfig();
+
+if ($us_config['ADSERVICE_ENABLED']) {
+
+    $applyDateType = $us_config['ADSERVICE_DATE'];
+    $serviceNameData = $us_config['ADSERVICE_NAMES'];
+    $availableServices = explode(",", $serviceNameData);
+    $serviceCostData = $us_config['ADSERVICE_COST'];
+    $serviceCost = explode(",", $serviceCostData);
+
+    /**
+     * Find in DB matches with login, note, action and param and returns it if some services is sheduled to activate
+     * 
+     * @param array $availableServices
+     * @param string $login
+     * @return array
+     */
+    function GetAllSheduled($availableServices, $login) {
+        $type = 'tagadd';
+        $note = 'Order from userstats';
+        $query = "SELECT `param` FROM `dealwithit` WHERE ";
+        foreach ($availableServices as $eachService) {
+            $eachData = explode(":", $eachService);
+            $serviceTagID[] = $eachData[1];
+        }
+        foreach ($serviceTagID as $eachTagID) {
+            reset($serviceTagID);
+            if (current($serviceTagID) === $eachTagID) {
+                $query.= "(`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+            } else {
+                $query.= " OR (`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+            }
+        }
+        $query.= ';';
+        $result = simple_queryall($query);
+        return ($result);
+    }
+
+    /**
+     * Find in DB matches with login, note, action and param and returns it if some services is activated
+     * 
+     * @param array $availableServices
+     * @param string $login
+     * @return array
+     */
+    function GetAllActivated($availableServices, $login) {
+        $query = "SELECT `tagid` FROM `tags` WHERE ";
+        foreach ($availableServices as $eachService) {
+            $eachData = explode(":", $eachService);
+            $serviceTagID[] = $eachData[1];
+        }
+        foreach ($serviceTagID as $eachTagID) {
+            reset($serviceTagID);
+            if (current($serviceTagID) === $eachTagID) {
+                $query.= "(`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
+            } else {
+                $query.= " OR (`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
+            }
+        }
+        $query.= ';';
+        $result = simple_queryall($query);
+        return($result);
+    }
+
+    if ($applyDateType == 'nextday') {
+        $waitDays = '1 ' . __('day');
+    } else {
+        $allDays = date('t');
+        $daysLeft = $allDays - date('d');
+        if ($daysLeft > 1) {
+            $waitDays = $daysLeft . ' ' . __('days') . ".";
+        } else {
+            $waitDays = '1 ' . __('day') . ".";
+        }
+    }
+
+    /**
+     * Check what type of apply date set in config and create suitable date string
+     * 
+     * @param string $applyDateType
+     * @return string
+     */
+    function GetFullApplyDate() {
+        $us_config = zbs_LoadConfig();
+        $applyDateType = $us_config['ADSERVICE_DATE'];
+        if ($applyDateType == 'nextday') {
+            $applyDate = date('Y-m-d', strtotime("+1 day", time()));
+        } else {
+            $alldays = date('t');
+            $curday = date('d');
+            $leftdays = ($alldays - $curday) + 1;
+            $applyDate = date('Y-m-d', strtotime("+" . $leftdays . " day", time()));
+        }
+        return ($applyDate);
+    }
+
+    /**
+     * Forms and returns selector with available services
+     * 
+     * @param array $availableServices
+     * @param string $login
+     * @return string
+     */
+    function AdServicesSelector($availableServices, $login) {
+        $selectData['-'] = '-';
+        $allSheduled = GetAllSheduled($availableServices, $login);
+        $allActivated = GetAllActivated($availableServices, $login);        
+        foreach ($availableServices as $eachService) {
+            $eq = true;
+            $eachData = explode(":", $eachService);
+            $serviceName = $eachData[0];
+            $serviceTagID = $eachData[1];
+            foreach ($allSheduled as $eachShedule) {
+                if ($eachShedule['param'] === $serviceTagID) {
+                    $eq = false;                    
+                }
+            }
+            foreach ($allActivated as $eachActivated) {
+                if ($eachActivated['tagid'] === $serviceTagID) {
+                    $eq = false;                    
+                }
+            }
+            if ($eq) {                
+                $selectData[$serviceTagID] = $serviceName;
+            }
+        }
+        $selector = la_Selector('tagid', $selectData, '', '', false);
+        $selector.= la_delimiter();
+        $selector.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
+        $selector.= la_delimiter();
+        $selector.= la_Submit(__('Order'));
+        $form = la_Form('', 'POST', $selector);
+        return($form);
+    }
+
+    /**
+     * Forms table service name -> service cost + currency
+     * 
+     * @param array $serviceCost
+     * @param string $currency
+     * @return string
+     */
+    function AdServicesList($serviceCost, $currency) {
+        $cell = la_TableCell(__('Aditional service name'));
+        $cell.= la_TableCell(__('Cost'));
+        $rows = la_TableRow($cell, 'row1');
+        foreach ($serviceCost as $allCost) {
+            $data = explode(":", $allCost);
+            $name = trim($data[0]);
+            $cost = trim($data[1]);
+            $cell = la_TableCell($name);
+            $cell.= la_TableCell($cost . " " . $currency);
+            $rows.= la_TableRow($cell, 'row3');
+        }
+        $result = la_TableBody($rows, '100%', 0, '');
+        return($result);
+    }
+
+    /**
+     * Write to DB sheduled task and log that
+     * 
+     * @param string $date
+     * @param string $login
+     * @param string $action
+     * @param string $param
+     * @param string $note
+     */
+    function createTask($date, $login, $action, $param, $note) {
+        $dateF = mysql_real_escape_string($date);
+        $loginF = mysql_real_escape_string($login);
+        $actionF = mysql_real_escape_string($action);
+        $paramF = mysql_real_escape_string($param);
+        $noteF = mysql_real_escape_string($note);
+        $query = "INSERT INTO `dealwithit` (`id`,`date`,`login`,`action`,`param`,`note`) VALUES";
+        $query.="(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
+        nr_query($query);
+        $newId = simple_get_lastid('dealwithit');
+        log_register('SCHEDULER CREATE ID [' . $newId . '] (' . $login . ')  DATE `' . $date . ' `ACTION `' . $action . '` NOTE `' . $note . '`');
+    }
+
+    function ShowAllOrderedServices($availableServices, $login) {
+        $allSheduled = GetAllSheduled($availableServices, $login);
+        $allActivated = GetAllActivated($availableServices, $login);
+        $cells = la_TableCell(__('Service name'));
+        $cells.= la_TableCell(__('Status'));
+        $rows = la_TableRow($cells, 'row1');
+        foreach ($availableServices as $eachService) {
+            $each = explode(":", $eachService);
+            $name = $each[0];
+            $tagid = $each[1];
+            foreach ($allSheduled as $eachSheduled) {
+                if ($eachSheduled['param'] == $tagid) {
+                    $cells = la_TableCell($name);
+                    $cells.= la_TableCell(__('Sheduled'));
+                    $rows.= la_TableRow($cells, 'row3');
+                }
+            }
+            foreach ($allActivated as $eachActivated) {
+                if ($eachActivated['tagid'] == $tagid) {
+                    $cells = la_TableCell($name);
+                    $cells.= la_TableCell(__('Active'));
+                    $rows.=la_TableRow($cells, 'row3');
+                }
+            }
+        }
+
+        $table = la_TableBody($rows, '100%', 0, '');
+        return($table);
+    }
+
+    if (isset($_POST['tagid']) AND isset($_POST['agree'])) {
+        if ($_POST['tagid'] != '-') {
+            $date = GetFullApplyDate();
+            $action = 'tagadd';
+            $param = vf($_POST['tagid'], 3);
+            $note = 'Order from userstats';
+            createTask($date, $user_login, $action, $param, $note);
+            show_window(__('Success'), __('Your order was sheduled') . '. ' . __('Please wait for') . ' ' . $waitDays);
+        }
+    }
+
+    show_window(__('Aditional services'), __('You can order aditional services. Available services - listed below.'));
+    show_window(__('Aditional services cost'), AdServicesList($serviceCost, $us_config['currency']));
+    show_window(__('Order aditional service'), AdServicesSelector($availableServices, $user_login));
+    show_window(__('Activated services'), ShowAllOrderedServices($availableServices, $user_login));        
+} else {
+    show_window(__('Sorry'), __('This module is disabled'));
+}

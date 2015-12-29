@@ -40,23 +40,23 @@ Class ColorTagging {
     public function GetUsersColor($login) {
         $color = '';
         $allowed = '';
-        $eq = true;
+        $equal = false;
         if (isset($this->allTags[$login])) {
             if (isset($this->altCfg['ALLOWED_COLORS'])) {
                 if (is_numeric($this->altCfg['ALLOWED_COLORS'])) {
                     $allowed = $this->altCfg['ALLOWED_COLORS'];
                     if ($this->allTagTypes[$this->allTags[$login]]['id'] == $allowed) {
-                        $eq = false;
+                        $equal = true;
                     }
                 } else {
                     $allowed = explode(",", $this->altCfg['ALLOWED_COLORS']);
                     foreach ($allowed as $each) {
                         if ($this->allTagTypes[$this->allTags[$login]]['id'] == $each) {
-                            $eq = false;
+                            $equal = true;
                         }
                     }
                 }
-                if (!$eq) {
+                if ($equal) {
                     $color = $this->allTagTypes[$this->allTags[$login]]['tagcolor'];
                 }
             } else {
@@ -187,7 +187,7 @@ class PerCityAction {
         $this->allCashTypes = zb_CashGetAllCashTypes();
     }
 
-    public function LoadAllData($currentDate, $cityId, $opt) {
+    public function LoadAllData($currentDate, $cityId, $opt, $from = '', $to = '', $by_day = '') {
         switch ($opt) {
             case "payments":
                 $query = "SELECT * FROM `payments` WHERE `date` LIKE '" . $currentDate . "%'  AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityId . "'))))";
@@ -207,6 +207,17 @@ class PerCityAction {
                 break;
             case "debtors":
                 $query = "SELECT * FROM `users` WHERE `cash` < 0 AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityId . "'))))";
+                $data = simple_queryall($query);
+                if (!empty($data)) {
+                    $this->allData = $data;
+                }
+                break;
+            case "analytics":
+                if (empty($by_day)) {
+                    $query = "SELECT * FROM `payments` WHERE `date` BETWEEN CAST('" . $from . "' AS DATE) AND CAST('" . $to . "' AS DATE) AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityId . "'))))";
+                } else {
+                    $query = "SELECT * FROM `payments` WHERE `date` LIKE '" . $by_day . "%'  AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityId . "'))))";
+                }
                 $data = simple_queryall($query);
                 if (!empty($data)) {
                     $this->allData = $data;
@@ -415,23 +426,119 @@ class PerCityAction {
         return($result);
     }
 
-     public function CitySelector($admin, $action) {
+    public function AnalyticsShow() {
+        $total = 0;
+        $totalPayCount = 0;
+        $cardPays = 0;
+        $paySystems = array();
+        $adminPays = array();
+        if (!empty($this->allData)) {
+            foreach ($this->allData as $io => $eachPayment) {
+                if ($eachPayment['admin'] != 'external' && $eachPayment['admin'] != 'openpayz' && $eachPayment['admin'] != 'guest') {
+                    if (!isset($adminPays[$eachPayment['admin']])) {
+                        $adminPays[$eachPayment['admin']] = $eachPayment['summ'];
+                    } else {
+                        if ($eachPayment['summ'] > 0) {
+                            $adminPays[$eachPayment['admin']] += $eachPayment['summ'];
+                        }
+                    }
+                }
+                $findPaySystems = explode(':', $eachPayment['note']);
+                if ($findPaySystems[0] == 'OP') {
+                    if (!isset($paySystems[$findPaySystems[1]])) {
+                        $paySystems[$findPaySystems[1]] = $eachPayment['summ'];
+                    } else {
+                        $paySystems[$findPaySystems[1]] += $eachPayment['summ'];
+                    }
+                } elseif ($findPaySystems[0] == 'CARD') {
+                    $cardPays += $eachPayment['summ'];
+                }
+                if ($eachPayment['summ'] > 0) {
+                    $total += $eachPayment['summ'];
+                }
+
+                $totalPayCount++;
+            }
+        }
+
+        $cells = __('Admin');
+        $cells.= wf_TableCell(__('Type'), '50%');
+        $cells.= wf_TableCell(__('Cash'));
+        $rows = wf_TableRow($cells, 'row1');
+        foreach ($adminPays as $eachAdmin => $summ) {
+            $cells = wf_TableCell($eachAdmin);
+            $cells.= wf_TableCell($summ);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+        $form = wf_TableBody($rows, '100%', '0', 'sortable');
+
+
+        $cells = __('Internet');
+        $cells.= wf_TableCell(__('Type'), '50%');
+        $cells.= wf_TableCell(__('Cash'));
+        $rows = wf_TableRow($cells, 'row1');
+        foreach ($paySystems as $eachPaySystem => $summ) {
+            $cells = wf_TableCell($eachPaySystem);
+            $cells.= wf_TableCell($summ);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+        $form.= wf_tag('br');
+        $form.= wf_TableBody($rows, '100%', '0', 'sortable');
+
+        $cells = __('Cards');
+        $cells.= wf_TableCell(__('Type'), '50%');
+        $cells.= wf_TableCell(__('Cash'));
+        $rows = wf_TableRow($cells, 'row1');
+        $cells = wf_TableCell(__("Cards"));
+        $cells.= wf_TableCell($cardPays);
+        $rows.= wf_TableRow($cells, 'row3');
+
+
+        $form.= wf_tag('br');
+        $form.= wf_TableBody($rows, '100%', '0', 'sortable');
+        $form.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
+        $form.=wf_tag('strong') . __('Count') . ': ' . $totalPayCount . wf_tag('strong', true);
+        return($form);
+    }
+
+    public function CitySelector($admin, $action) {
         $form = wf_tag('form', false, '', 'action="" method="GET"');
         $form.= wf_tag('table', false, '', 'width="100%" border="0"');
         if (!isset($_GET['citysel'])) {
             $cells = wf_TableCell(__('City'), '40%');
             $cells.= wf_HiddenInput("module", "per_city_action");
             $cells.= wf_HiddenInput("action", $action);
+            if (isset($_GET['monthsel'])) {
+                $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
+            }
+            if (isset($_GET['from_date'])) {
+                $cells.= wf_HiddenInput("from_date", $_GET['from_date']);
+            }
+            if (isset($_GET['to_date'])) {
+                $cells.= wf_HiddenInput("to_date", $_GET['to_date']);
+            }
+            if (isset($_GET['by_day'])) {
+                $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
+            }
             $cells.= wf_TableCell($this->CitySelectorPermissioned($admin));
             $form.= wf_TableRow($cells, 'row3');
         } else {
             $cityname = zb_AddressGetCityData($_GET['citysel']);
-            $cityname = $cityname['cityname'];            
+            $cityname = $cityname['cityname'];
             $cells = wf_TableCell(__('City'), '40%');
             $cells.= wf_HiddenInput("module", "per_city_action");
-            $cells.= wf_HiddenInput("action", $action);            
+            $cells.= wf_HiddenInput("action", $action);
             if (isset($_GET['monthsel'])) {
                 $cells.= wf_HiddenInput('monthsel', $_GET['monthsel']);
+            }
+            if (isset($_GET['from_date'])) {
+                $cells.= wf_HiddenInput("from_date", $_GET['from_date']);
+            }
+            if (isset($_GET['to_date'])) {
+                $cells.= wf_HiddenInput("to_date", $_GET['to_date']);
+            }
+            if (isset($_GET['by_day'])) {
+                $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
             }
             $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
             $cells.= wf_TableCell(wf_Submit(__('Find')));
@@ -440,7 +547,7 @@ class PerCityAction {
         $form.=wf_tag('table', true);
         $form.=wf_tag('form', true);
         return($form);
-    }   
+    }
 
     /**
      * Returns auto-clicking city selector
@@ -588,7 +695,44 @@ class PerCityAction {
             return true;
         }
         return ($result);
-    }   
+    }
+
+    public function ChooseDateForm($action) {
+        $inputs = wf_HiddenInput("module", "per_city_action");
+        $inputs.= wf_HiddenInput("action", $action);
+        if (isset($_GET['citysearch'])) {
+            $inputs.= wf_HiddenInput("citysearch", $_GET['citysearch']);
+        }
+        if (isset($_GET['citysel'])) {
+            $inputs.= wf_HiddenInput("citysel", $_GET['citysel']);
+        }
+        $inputs.= wf_DatePicker('from_date', true);
+        $inputs.= __('From');
+        $inputs.= wf_tag('br');
+        $inputs.= wf_DatePicker('to_date', true);
+        $inputs.= __('To');
+        $inputs.= wf_delimiter();
+        $inputs.= wf_Submit(__('Send'));
+        $formBetween = wf_Form('', 'GET', $inputs);
+        $cells = wf_TableCell($formBetween);
+        $inputs = wf_HiddenInput("module", "per_city_action");
+        $inputs.= wf_HiddenInput("action", $action);
+        if (isset($_GET['citysearch'])) {
+            $inputs.= wf_HiddenInput("citysearch", $_GET['citysearch']);
+        }
+        if (isset($_GET['citysel'])) {
+            $inputs.= wf_HiddenInput("citysel", $_GET['citysel']);
+        }
+        $inputs.= wf_DatePicker('by_day', true);
+        $inputs.= __('By day');
+        $inputs.= wf_delimiter();
+        $inputs.= wf_Submit(__('Send'));
+        $formByDate = wf_Form('', 'GET', $inputs);
+        $cells.= wf_TableCell($formByDate);
+        $rows = wf_TableRow($cells);
+        $result = wf_TableBody($rows, "100%", '0', '');
+        return($result);
+    }
 
 }
 
