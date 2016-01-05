@@ -1798,7 +1798,7 @@ class Salary {
       //  print_r($tmpArr);
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
-                $cells = wf_TableCell(@$this->allEmployee[$employeeid]);
+                $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeid]);
                 $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
                 for ($i = 1; $i <= 31; $i++) {
                     $dayCell = (isset($each['day_' . $i])) ? $each['day_' . $i] : 0;

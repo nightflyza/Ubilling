@@ -1766,7 +1766,7 @@ function ts_GetUndoneTasksArray($year = '') {
     $result = array();
     $curdate = curdate();
     $curyear = (!empty($year)) ? $year : curyear();
-    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' AND `date` LIKE '" . $curyear . "-%';";
+    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "'";
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
