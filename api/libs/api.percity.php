@@ -520,6 +520,9 @@ class PerCityAction {
             if (isset($_GET['by_day'])) {
                 $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
             }
+            if(isset($_GET['year'])) {
+                $cells.= wf_HiddenInput("year", $_GET['year']);
+            }
             $cells.= wf_TableCell($this->CitySelectorPermissioned($admin));
             $form.= wf_TableRow($cells, 'row3');
         } else {
@@ -539,6 +542,9 @@ class PerCityAction {
             }
             if (isset($_GET['by_day'])) {
                 $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
+            }
+            if(isset($_GET['year'])) {
+                $cells.= wf_HiddenInput("year", $_GET['year']);
             }
             $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
             $cells.= wf_TableCell(wf_Submit(__('Find')));
@@ -877,14 +883,53 @@ function web_MonthSelector() {
     $allmonth = months_array_localized();
     foreach ($allmonth as $io => $each) {
         if (isset($_GET['citysel'])) {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
+            if (isset($_GET['year'])) {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'] . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
+            } else {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysel=" . $_GET['citysel'], $each, false, 'ubButton'));
+            }
         } elseif (isset($_GET['citysearch'])) {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
+            if (isset($_GET['year'])) {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'] . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
+            } else {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&citysearch=" . $_GET['citysearch'], $each, false, 'ubButton'));
+            }
         } else {
-            $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io, $each, false, 'ubButton'));
+            if (isset($_GET['year'])) {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io . "&year=" . $_GET['year'], $each, false, 'ubButton'));
+            } else {
+                $mcells.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $io, $each, false, 'ubButton'));
+            }
         }
     }
     return ($mcells);
+}
+
+function web_YearSelector() {
+    $currentYear = date('Y');
+    $years = '';
+    for ($year = 2010; $year <= $currentYear; $year++) {
+        if (isset($_GET['citysel'])) {
+            if (isset($_GET['monthsel'])) {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&citysel=" . $_GET['citysel'] . "&year=" . $year, $year, false, 'ubButton'));
+            } else {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments" . "&citysel=" . $_GET['citysel'] . "&year=" . $year, $year, false, 'ubButton'));
+            }
+        } elseif (isset($_GET['citysearch'])) {
+            if (isset($_GET['monthsel'])) {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&year=" . $year . "&citysearch=" . $_GET['citysearch'], $year, false, 'ubButton'));
+            } else {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments" . "&year=" . $year . "&citysearch=" . $_GET['citysearch'], $year, false, 'ubButton'));
+            }
+        } else {
+            if (isset($_GET['monthsel'])) {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&monthsel=" . $_GET['monthsel'] . "&year=" . $year, $year, false, 'ubButton'));
+            } else {
+                $years.= wf_TableCell(wf_Link("?module=per_city_action&action=city_payments&year=" . $year, $year, false, 'ubButton'));
+            }
+        }
+    }
+    return ($years);
 }
 
 function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {

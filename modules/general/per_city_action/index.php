@@ -68,6 +68,7 @@ if ($altcfg['PER_CITY_ACTION']) {
             if ($action == 'city_payments') {
                 if (cfr('CITYPAYMENTS')) {
                     show_window(__('Change month'), web_MonthSelector());
+                    show_window(__('Change year'), web_YearSelector());
                     show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
                     if (isset($_GET['citysearch'])) {
                         $cityId = $_GET['citysearch'];
@@ -78,7 +79,11 @@ if ($altcfg['PER_CITY_ACTION']) {
                             } else {
                                 $cur_month = $_GET['monthsel'];
                             }
-                            $year = $perCityAction->GetCurrentDate(false, true);
+                            if (isset($_GET['year'])) {
+                                $year = $_GET['year'];
+                            } else {
+                                $year = $perCityAction->GetCurrentDate(false, true);
+                            }
                             $currentDate = $year . '-' . $cur_month;
                             $perCityAction->LoadAllCredited($currentDate);
                             $perCityAction->LoadAllData($currentDate, $cityId, 'payments');

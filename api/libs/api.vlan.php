@@ -1383,6 +1383,13 @@ class AutoConfigurator {
      */
     protected $SnmpHelper = '';
 
+    /**
+     * Containt config of alter.ini
+     * 
+     * @var object
+     */
+    protected $AltCfg = '';
+
     const AUTOCONFIG = 'config/autoconfig/';
 
     public function __construct() {
@@ -1442,6 +1449,16 @@ class AutoConfigurator {
                 $this->AllTerminators[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * load alter.ini config     
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->AltCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -1722,6 +1739,50 @@ class AutoConfigurator {
                                     show_error(__('Nothing happend'));
                                 }
                             }
+                            if ($SNMPData['define']['TYPE'] == 'alcatel') {
+                                $data = '';
+                                foreach ($SNMPData as $section => $eachpoll) {
+                                    if ($section != 'define') {
+                                        if ($this->CheckVlan($ip, $community, $SNMPData['define']['CHECK'] . "." . $vlan)) {
+                                            if ($section != 'create') {
+                                                $oid = preg_replace($pattern, $replace, $eachpoll['OID']);
+                                                $type = $eachpoll['TYPE'];
+                                                $value = preg_replace($pattern, $replace, $eachpoll['VALUE']);
+                                                $data.= $oid . ' ' . $type . ' ' . $value . ' ';
+                                            }
+                                        } else {
+                                            $oid = preg_replace($pattern, $replace, $eachpoll['OID']);
+                                            $type = $eachpoll['TYPE'];
+                                            $value = preg_replace($pattern, $replace, $eachpoll['VALUE']);
+                                            $data.= $oid . ' ' . $type . ' ' . $value . ' ';
+                                        }
+                                    }
+                                }
+                                $this->loadAlter();
+                                if ($this->AltCfg['SNMP_MODE'] != 'system') {
+                                    $snmpSet = $this->AltCfg['SNMPSET_PATH'];
+                                    $snmpSet.= ' -c ' . $community . ' ' . $ip . ' ' . $data;
+                                    $result = shell_exec($snmpSet);
+                                } else {
+                                    $result = $this->SnmpHelper->set($ip, $community, $data);
+                                }
+                                if (isset($result)) {
+                                    $CheckOid = preg_replace($pattern, $replace, $SNMPData['change']['OID']);
+                                    if ($this->CheckPvid($ip, $community, $CheckOid, $vlan)) {
+                                        if (!empty($ParentId)) {
+                                            $this->CreateVlanLooped($ParentId, $vlan);
+                                        } else {
+                                            show_warning(__("Switch has no uplink"));
+                                        }
+                                        log_register(__("Change PVID to") . " " . $vlan . " vlan " . __("on port") . " " . $port . " " . __("switch") . " " . $ip . " " . __("for") . " " . $login);
+                                        show_success($result);
+                                    } else {
+                                        show_error(__("Something goes wrong, vlan wasnt applied on port"));
+                                    }
+                                } else {
+                                    show_error(__('Nothing happend'));
+                                }
+                            }
                         } else {
                             show_error(__("No suitable SNMP template found"));
                         }
@@ -1981,13 +2042,13 @@ class OnuConfigurator {
      * @param string $oltCommunity 
      * @return int
      */
-    protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $ifindex) {       
+    protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $ifindex) {
         $macOnuRew = $this->MacHexToDec($macOnu);
-        $interface = ($ifindex . "." . $macOnuRew);         
-        $OltInt = snmp2_get($oltIp, $oltCommunity, $interface);                                
+        $interface = ($ifindex . "." . $macOnuRew);
+        $OltInt = snmp2_get($oltIp, $oltCommunity, $interface);
         $index = explode(":", $OltInt);
         if (isset($index[1])) {
-            $tmp = trim($index[1]);            
+            $tmp = trim($index[1]);
             return($tmp);
         } else {
             return (false);
