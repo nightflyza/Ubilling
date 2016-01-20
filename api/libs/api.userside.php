@@ -410,9 +410,17 @@ class UserSideApi {
                 $result[$buildId]['street_id'] = $buildData['streetid'];
                 $result[$buildId]['full_name'] = $streetName . ' ' . $buildData['buildnum'];
                 $result[$buildId]['postcode'] = '';
-                $result[$buildId]['number'] = vf($buildData['buildnum'], 3);
-                $blockLetter = preg_replace('/\P{L}+/u', '', $buildData['buildnum']);
-                $blockLetter = trim($blockLetter);
+                if (ispos($buildData['buildnum'], '/')) {
+                    $buildExpl = explode('/', $buildData['buildnum']);
+                    @$buildNumber = vf($buildExpl[0], 3);
+                    @$blockLetter = $buildExpl[1];
+                } else {
+                    $buildNumber = vf($buildData['buildnum'], 3);
+                    $blockLetter = preg_replace('/\P{L}+/u', '', $buildData['buildnum']);
+                    $blockLetter = trim($blockLetter);
+                }
+
+                $result[$buildId]['number'] = $buildNumber;
                 $result[$buildId]['block'] = $blockLetter;
             }
         }
