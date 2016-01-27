@@ -2498,10 +2498,12 @@ class Warehouse {
         $totalSumm = 0;
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
-                if ($each['price'] != 0) {
-                    if ($each['contractorid'] != 0) { //ignoring move ops
-                        $totalSumm+=$each['price'];
-                        $itemsCount+=$each['count'];
+                if ($each['itemtypeid'] == $itemtypeId) {
+                    if ($each['price'] != 0) {
+                        if ($each['contractorid'] != 0) { //ignoring move ops
+                            $totalSumm+=$each['price'];
+                            $itemsCount+=$each['count'];
+                        }
                     }
                 }
             }
