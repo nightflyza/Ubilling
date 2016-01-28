@@ -2501,7 +2501,7 @@ class Warehouse {
                 if ($each['itemtypeid'] == $itemtypeId) {
                     if ($each['price'] != 0) {
                         if ($each['contractorid'] != 0) { //ignoring move ops
-                            $totalSumm+=$each['price'];
+                            $totalSumm+=($each['price'] * $each['count']);
                             $itemsCount+=$each['count'];
                         }
                     }
@@ -2514,6 +2514,8 @@ class Warehouse {
         } else {
             $result = $totalSumm;
         }
+
+
         return ($result);
     }
 
@@ -2580,6 +2582,7 @@ class Warehouse {
         $lowerOutcome = array();
         if (!empty($outcomingLower)) {
             foreach ($outcomingLower as $io => $each) {
+
                 if ($each['price'] == 0) {
                     $each['price'] = $this->getIncomeMiddlePrice($each['itemtypeid']);
                 }
