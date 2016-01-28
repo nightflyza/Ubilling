@@ -2688,13 +2688,15 @@ class Warehouse {
                 $fourthColumnCount = $lowerRemains[$itemtypeId]['count'] + $secondColumnCount - $thirdColumnCount;
                 $fourthColumnPrice = $lowerRemains[$itemtypeId]['price'] + $secondColumnPrice - $thirdColumnPrice;
 
-                $result.=$this->reportDateRemainsAddRow($itemtypeId, array($firstColumnCount, $firstColumnPrice,
+                $result.=$this->reportDateRemainsAddRow($itemtypeId, array(
+                    $firstColumnCount,
+                    round($firstColumnPrice,2),
                     $secondColumnCount,
-                    $secondColumnPrice,
+                    round($secondColumnPrice,2),
                     $thirdColumnCount,
-                    $thirdColumnPrice,
+                    round($thirdColumnPrice,2),
                     $fourthColumnCount,
-                    $fourthColumnPrice));
+                    round($fourthColumnPrice,2)));
 
                 $firstColumnTotal+=$firstColumnPrice;
                 $secondColumnTotal+=$secondColumnPrice;

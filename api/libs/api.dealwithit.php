@@ -78,6 +78,8 @@ class DealWithIt {
         $this->actionNames = array(
             'noaction' => '-',
             'addcash' => __('Add cash'),
+            'corrcash' => __('Correct saldo'),
+            'setcash' => __('Set cash'),
             'credit' => __('Change') . ' ' . __('credit'),
             'creditexpire' => __('Change') . ' ' . __('credit expire date'),
             'tariffchange' => __('Change') . ' ' . __('tariff'),
@@ -103,6 +105,8 @@ class DealWithIt {
         $this->actions = array(
             self::URL_ME . '&ajinput=noaction' => $this->actionNames['noaction'],
             self::URL_ME . '&ajinput=addcash' => $this->actionNames['addcash'],
+            self::URL_ME . '&ajinput=corrcash' => $this->actionNames['corrcash'],
+            self::URL_ME . '&ajinput=setcash' => $this->actionNames['setcash'],
             self::URL_ME . '&ajinput=credit' => $this->actionNames['credit'],
             self::URL_ME . '&ajinput=creditexpire' => $this->actionNames['creditexpire'],
             self::URL_ME . '&ajinput=tariffchange' => $this->actionNames['tariffchange'],
@@ -189,6 +193,14 @@ class DealWithIt {
             switch ($request) {
                 case 'addcash':
                     $result.= wf_HiddenInput('newschedaction', 'addcash');
+                    $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    break;
+                case 'corrcash':
+                    $result.= wf_HiddenInput('newschedaction', 'corrcash');
+                    $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    break;
+                case 'setcash':
+                    $result.= wf_HiddenInput('newschedaction', 'setcash');
                     $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
                     break;
                 case 'credit':
@@ -286,6 +298,28 @@ class DealWithIt {
                 switch ($action) {
                     //this action types requires non empty parameter
                     case 'addcash':
+                        if ($param) {
+                            if (zb_checkMoney($param)) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            } else {
+                                $result = __('Wrong format of a sum of money to pay');
+                            }
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'corrcash':
+                        if ($param) {
+                            if (zb_checkMoney($param)) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            } else {
+                                $result = __('Wrong format of a sum of money to pay');
+                            }
+                        } else {
+                            $result = __('No all of required fields is filled');
+                        }
+                        break;
+                    case 'setcash':
                         if ($param) {
                             if (zb_checkMoney($param)) {
                                 $this->createTask($date, $login, $action, $param, $note);
@@ -469,6 +503,12 @@ class DealWithIt {
                         switch ($each['action']) {
                             case 'addcash':
                                 zb_CashAdd($login, $param, 'add', 1, 'SCHEDULED');
+                                break;
+                            case 'corrcash':
+                                zb_CashAdd($login, $param, 'correct', 1, 'SCHEDULED');
+                                break;
+                            case 'setcash':
+                                zb_CashAdd($login, $param, 'set', 1, 'SCHEDULED');
                                 break;
                             case 'credit':
                                 $billing->setcredit($login, $param);

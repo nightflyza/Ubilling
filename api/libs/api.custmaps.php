@@ -356,7 +356,7 @@ class CustomMaps {
         if (!empty($data)) {
             foreach ($data as $io => $each) {
                 if (isset($each['Point'])) {
-                    $result[$i]['name'] = trim($each['name']);
+                    @$result[$i]['name'] = trim($each['name']);
                     $coordsRaw = trim($each['Point']['coordinates']);
                     $coordsRaw = explode(',', $coordsRaw);
                     $result[$i]['geo'] = $coordsRaw[1] . ', ' . $coordsRaw[0];

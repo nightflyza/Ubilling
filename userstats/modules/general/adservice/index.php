@@ -8,9 +8,17 @@ if ($us_config['ADSERVICE_ENABLED']) {
 
     $applyDateType = $us_config['ADSERVICE_DATE'];
     $serviceNameData = $us_config['ADSERVICE_NAMES'];
-    $availableServices = explode(",", $serviceNameData);
+    if (strpos($serviceNameData, ',') === false) {
+        $availableServices = $serviceNameData;
+    } else {
+        $availableServices = explode(",", $serviceNameData);
+    }
     $serviceCostData = $us_config['ADSERVICE_COST'];
-    $serviceCost = explode(",", $serviceCostData);
+    if (strpos($serviceCostData, ',') === false) {
+        $serviceCost = $serviceCostData;
+    } else {
+        $serviceCost = explode(",", $serviceCostData);
+    }
 
     /**
      * Find in DB matches with login, note, action and param and returns it if some services is sheduled to activate
@@ -23,21 +31,27 @@ if ($us_config['ADSERVICE_ENABLED']) {
         $type = 'tagadd';
         $note = 'Order from userstats';
         $query = "SELECT `param` FROM `dealwithit` WHERE ";
-        foreach ($availableServices as $eachService) {
-            $eachData = explode(":", $eachService);
-            $serviceTagID[] = $eachData[1];
-        }
-        foreach ($serviceTagID as $eachTagID) {
-            reset($serviceTagID);
-            if (current($serviceTagID) === $eachTagID) {
-                $query.= "(`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
-            } else {
-                $query.= " OR (`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+        if (!empty($availableServices)) {
+            foreach ($availableServices as $eachService) {
+                $eachData = explode(":", $eachService);
+                $serviceTagID[] = $eachData[1];
             }
+
+
+            foreach ($serviceTagID as $eachTagID) {
+                reset($serviceTagID);
+                if (current($serviceTagID) === $eachTagID) {
+                    $query.= "(`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+                } else {
+                    $query.= " OR (`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+                }
+            }
+            $query.= ';';
+            $result = simple_queryall($query);
+            return ($result);
+        } else {
+            return ('');
         }
-        $query.= ';';
-        $result = simple_queryall($query);
-        return ($result);
     }
 
     /**
@@ -49,21 +63,25 @@ if ($us_config['ADSERVICE_ENABLED']) {
      */
     function GetAllActivated($availableServices, $login) {
         $query = "SELECT `tagid` FROM `tags` WHERE ";
-        foreach ($availableServices as $eachService) {
-            $eachData = explode(":", $eachService);
-            $serviceTagID[] = $eachData[1];
-        }
-        foreach ($serviceTagID as $eachTagID) {
-            reset($serviceTagID);
-            if (current($serviceTagID) === $eachTagID) {
-                $query.= "(`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
-            } else {
-                $query.= " OR (`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
+        if (!empty($availableServices)) {
+            foreach ($availableServices as $eachService) {
+                $eachData = explode(":", $eachService);
+                $serviceTagID[] = $eachData[1];
             }
+            foreach ($serviceTagID as $eachTagID) {
+                reset($serviceTagID);
+                if (current($serviceTagID) === $eachTagID) {
+                    $query.= "(`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
+                } else {
+                    $query.= " OR (`login`='" . $login . "' AND `tagid`='" . $eachTagID . "')";
+                }
+            }
+            $query.= ';';
+            $result = simple_queryall($query);
+            return($result);
+        } else {
+            return ('');
         }
-        $query.= ';';
-        $result = simple_queryall($query);
-        return($result);
     }
 
     if ($applyDateType == 'nextday') {
@@ -107,25 +125,31 @@ if ($us_config['ADSERVICE_ENABLED']) {
      */
     function AdServicesSelector($availableServices, $login) {
         $selectData['-'] = '-';
-        $allSheduled = GetAllSheduled($availableServices, $login);
-        $allActivated = GetAllActivated($availableServices, $login);        
-        foreach ($availableServices as $eachService) {
-            $eq = true;
-            $eachData = explode(":", $eachService);
-            $serviceName = $eachData[0];
-            $serviceTagID = $eachData[1];
-            foreach ($allSheduled as $eachShedule) {
-                if ($eachShedule['param'] === $serviceTagID) {
-                    $eq = false;                    
+        if (!empty($availableServices)) {
+            $allSheduled = GetAllSheduled($availableServices, $login);
+            $allActivated = GetAllActivated($availableServices, $login);
+            foreach ($availableServices as $eachService) {
+                $eq = false;
+                $eachData = explode(":", $eachService);
+                $serviceName = $eachData[0];
+                $serviceTagID = $eachData[1];
+                if (!empty($allSheduledl)) {
+                    foreach ($allSheduled as $eachShedule) {
+                        if ($eachShedule['param'] === $serviceTagID) {
+                            $eq = true;
+                        }
+                    }
                 }
-            }
-            foreach ($allActivated as $eachActivated) {
-                if ($eachActivated['tagid'] === $serviceTagID) {
-                    $eq = false;                    
+                if (!empty($allActivated)) {
+                    foreach ($allActivated as $eachActivated) {
+                        if ($eachActivated['tagid'] === $serviceTagID) {
+                            $eq = true;
+                        }
+                    }
                 }
-            }
-            if ($eq) {                
-                $selectData[$serviceTagID] = $serviceName;
+                if (!$eq) {
+                    $selectData[$serviceTagID] = $serviceName;
+                }
             }
         }
         $selector = la_Selector('tagid', $selectData, '', '', false);
@@ -148,13 +172,15 @@ if ($us_config['ADSERVICE_ENABLED']) {
         $cell = la_TableCell(__('Aditional service name'));
         $cell.= la_TableCell(__('Cost'));
         $rows = la_TableRow($cell, 'row1');
-        foreach ($serviceCost as $allCost) {
-            $data = explode(":", $allCost);
-            $name = trim($data[0]);
-            $cost = trim($data[1]);
-            $cell = la_TableCell($name);
-            $cell.= la_TableCell($cost . " " . $currency);
-            $rows.= la_TableRow($cell, 'row3');
+        if (!empty($serviceCost)) {
+            foreach ($serviceCost as $allCost) {
+                $data = explode(":", $allCost);
+                $name = trim($data[0]);
+                $cost = trim($data[1]);
+                $cell = la_TableCell($name);
+                $cell.= la_TableCell($cost . " " . $currency);
+                $rows.= la_TableRow($cell, 'row3');
+            }
         }
         $result = la_TableBody($rows, '100%', 0, '');
         return($result);
@@ -188,22 +214,30 @@ if ($us_config['ADSERVICE_ENABLED']) {
         $cells = la_TableCell(__('Service name'));
         $cells.= la_TableCell(__('Status'));
         $rows = la_TableRow($cells, 'row1');
-        foreach ($availableServices as $eachService) {
-            $each = explode(":", $eachService);
-            $name = $each[0];
-            $tagid = $each[1];
-            foreach ($allSheduled as $eachSheduled) {
-                if ($eachSheduled['param'] == $tagid) {
-                    $cells = la_TableCell($name);
-                    $cells.= la_TableCell(__('Sheduled'));
-                    $rows.= la_TableRow($cells, 'row3');
+        if (!empty($availableServices)) {
+            foreach ($availableServices as $eachService) {
+                $each = explode(":", $eachService);
+                $name = $each[0];
+                $tagid = $each[1];
+                if (!empty($allSheduled)) {
+                    foreach ($allSheduled as $eachSheduled) {
+                        if ($eachSheduled['param'] == $tagid) {
+                            $cells = la_TableCell($name);
+                            $cells.= la_TableCell(__('Sheduled'));
+                            $rows.= la_TableRow($cells, 'row3');
+                        }
+                    }
                 }
             }
-            foreach ($allActivated as $eachActivated) {
-                if ($eachActivated['tagid'] == $tagid) {
-                    $cells = la_TableCell($name);
-                    $cells.= la_TableCell(__('Active'));
-                    $rows.=la_TableRow($cells, 'row3');
+            if (!empty($allActivated)) {
+                if (!empty($allActivated)) {
+                    foreach ($allActivated as $eachActivated) {
+                        if ($eachActivated['tagid'] == $tagid) {
+                            $cells = la_TableCell($name);
+                            $cells.= la_TableCell(__('Active'));
+                            $rows.=la_TableRow($cells, 'row3');
+                        }
+                    }
                 }
             }
         }
@@ -226,7 +260,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
     show_window(__('Aditional services'), __('You can order aditional services. Available services - listed below.'));
     show_window(__('Aditional services cost'), AdServicesList($serviceCost, $us_config['currency']));
     show_window(__('Order aditional service'), AdServicesSelector($availableServices, $user_login));
-    show_window(__('Activated services'), ShowAllOrderedServices($availableServices, $user_login));        
+    show_window(__('Activated services'), ShowAllOrderedServices($availableServices, $user_login));
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
-}
+}    
