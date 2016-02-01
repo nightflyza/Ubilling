@@ -9,13 +9,13 @@ if ($us_config['ADSERVICE_ENABLED']) {
     $applyDateType = $us_config['ADSERVICE_DATE'];
     $serviceNameData = $us_config['ADSERVICE_NAMES'];
     if (strpos($serviceNameData, ',') === false) {
-        $availableServices = $serviceNameData;
+        $availableServices[] = $serviceNameData;
     } else {
         $availableServices = explode(",", $serviceNameData);
     }
     $serviceCostData = $us_config['ADSERVICE_COST'];
     if (strpos($serviceCostData, ',') === false) {
-        $serviceCost = $serviceCostData;
+        $serviceCost[] = $serviceCostData;
     } else {
         $serviceCost = explode(",", $serviceCostData);
     }
@@ -36,7 +36,6 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 $eachData = explode(":", $eachService);
                 $serviceTagID[] = $eachData[1];
             }
-
 
             foreach ($serviceTagID as $eachTagID) {
                 reset($serviceTagID);

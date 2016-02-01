@@ -158,7 +158,7 @@ class Reminder {
         foreach ($this->AllLogin as $userLoginData) {
             $eachLogin = $userLoginData['login'];
             if (!$this->FilterPassive($eachLogin)) {
-                if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= -1 AND $this->money->getOnlineLeftCountFast($eachLogin) != -2) {
+                if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
                     if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
                         $number = $this->AllPhones[$eachLogin]['mobile'];
                         if (!empty($number)) {
