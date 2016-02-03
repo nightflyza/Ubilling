@@ -84,7 +84,7 @@ class DynamicShaper {
         if (!empty($allrules)) {
             foreach ($allrules as $io => $eachrule) {
                 $rowClass = (isset($allTariffs[$eachrule['tariff']])) ? 'row3' : 'sigdeleteduser';
-                $tariffControl = (cfr('TARIFFSPEED')) ? wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'], false) : $eachrule['tariff'];
+                $tariffControl = (cfr('TARIFFSPEED')) ? wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'].' ', false) : $eachrule['tariff'];
 
                 $cells = wf_TableCell($eachrule['id']);
                 $cells.= wf_TableCell($tariffControl);

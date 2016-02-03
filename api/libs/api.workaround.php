@@ -796,7 +796,7 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $cells.= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
     $rows = wf_TableRow($cells);
 
-    $cells = wf_TableCell($field1, '', 'row2');
+    $cells = wf_TableCell($field2, '', 'row2');
     $cells.= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
     $rows.= wf_TableRow($cells);
 

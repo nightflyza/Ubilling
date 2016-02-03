@@ -241,7 +241,7 @@ class DarkVoid {
         $allCache = rcms_scandir(self::CACHE_PATH, self::CACHE_PREFIX . '*', 'file');
         if (!empty($allCache)) {
             foreach ($allCache as $io => $each) {
-                unlink(self::CACHE_PATH . $each);
+                @unlink(self::CACHE_PATH . $each);
             }
         }
     }
