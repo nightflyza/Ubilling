@@ -320,5 +320,17 @@ $lang['def']['Order aditional service'] = 'Заказать дополнител
 $lang['def']['Activated services'] = 'Подключеные сервисы';
 $lang['def']['You can order aditional services. Available services - listed below.'] = 'Вы можете заказать дополнительные сервисы. Доступные для подключения перечислены ниже.';
 $lang['def']['Order'] = 'Заказать';
+$lang['def']['Are you sure'] = 'Вы уверенны';
+$lang['def']['You realy want to abort service activation'] = 'Вы действительно хотите отменить подключение сервиса';
+$lang['def']['You realy want to deactivate service'] = 'Вы действительно хотите отказатся от сервиса';
+$lang['def']['activated'] = 'подключение';
+$lang['def']['deactivated'] = 'отключение';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 ?>

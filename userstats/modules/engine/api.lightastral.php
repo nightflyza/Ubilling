@@ -753,6 +753,18 @@ $(function() {
     return($dialog);
 }
 
-
+/**
+ * Returns JS confirmation url 
+ * 
+ * @param string $url URL if confirmed
+ * @param string $title link title
+ * @param string $alerttext alert text
+ * @return string
+ *  
+ */
+function la_JSAlert($url, $title, $alerttext) {
+    $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+    return ($result);
+}
 
 ?>

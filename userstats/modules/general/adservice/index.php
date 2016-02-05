@@ -28,29 +28,25 @@ if ($us_config['ADSERVICE_ENABLED']) {
      * @return array
      */
     function GetAllSheduled($availableServices, $login) {
-        $type = 'tagadd';
-        $note = 'Order from userstats';
-        $query = "SELECT `param` FROM `dealwithit` WHERE ";
-        if (!empty($availableServices)) {
-            foreach ($availableServices as $eachService) {
-                $eachData = explode(":", $eachService);
-                $serviceTagID[] = $eachData[1];
-            }
-
-            foreach ($serviceTagID as $eachTagID) {
-                reset($serviceTagID);
-                if (current($serviceTagID) === $eachTagID) {
-                    $query.= "(`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
-                } else {
-                    $query.= " OR (`login`='" . $login . "' AND `action`='" . $type . "' AND `note`='" . $note . "'  AND `param`='" . $eachTagID . "')";
+        $query = "SELECT * FROM `dealwithit` WHERE login='" . $login . "'";
+        $result = array();
+        $sheduledData = simple_queryall($query);
+        if (!empty($sheduledData)) {
+            if (!empty($availableServices)) {
+                foreach ($availableServices as $eachService) {
+                    $eachData = explode(":", $eachService);
+                    $serviceTagID[] = $eachData[1];
+                }
+                foreach ($serviceTagID as $eachTagID) {
+                    foreach ($sheduledData as $eachData => $eachValue) {
+                        if($eachTagID == $eachValue['param']) {
+                            $result[] = $eachValue;
+                        }
+                    }
                 }
             }
-            $query.= ';';
-            $result = simple_queryall($query);
-            return ($result);
-        } else {
-            return ('');
         }
+        return($result);
     }
 
     /**
@@ -207,6 +203,24 @@ if ($us_config['ADSERVICE_ENABLED']) {
         log_register('SCHEDULER CREATE ID [' . $newId . '] (' . $login . ')  DATE `' . $date . ' `ACTION `' . $action . '` NOTE `' . $note . '`');
     }
 
+    /**
+     * Deleting task from DB by users will
+     * 
+     * @param type $login
+     * @param type $param
+     */
+    function deleteTask($login, $param) {
+        $query = "DELETE FROM `dealwithit` WHERE login='" . $login . "' and param='" . $param . "' AND action='tagadd'";
+        nr_query($query);
+        log_register('SCHEDULER deleted (' . $login . ') tagid: ' . $param);
+    }
+
+    /**
+     * 
+     * @param type $availableServices
+     * @param type $login
+     * @return type
+     */
     function ShowAllOrderedServices($availableServices, $login) {
         $allSheduled = GetAllSheduled($availableServices, $login);
         $allActivated = GetAllActivated($availableServices, $login);
@@ -222,7 +236,14 @@ if ($us_config['ADSERVICE_ENABLED']) {
                     foreach ($allSheduled as $eachSheduled) {
                         if ($eachSheduled['param'] == $tagid) {
                             $cells = la_TableCell($name);
-                            $cells.= la_TableCell(__('Sheduled'));
+                            $action = '';
+                            if($eachSheduled['action'] == 'tagadd') {
+                                $action = __('activated');
+                            }
+                            if($eachSheduled['action'] == 'tagdel') {
+                                $action = __('deactivated');
+                            }
+                            $cells.= la_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . la_JSAlert('?module=adservice&delete_shedule=' . $eachSheduled['param'], la_img('images/delete.gif'), __('You realy want to abort service activation') . '?'));
                             $rows.= la_TableRow($cells, 'row3');
                         }
                     }
@@ -233,7 +254,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                     foreach ($allActivated as $eachActivated) {
                         if ($eachActivated['tagid'] == $tagid) {
                             $cells = la_TableCell($name);
-                            $cells.= la_TableCell(__('Active'));
+                            $cells.= la_TableCell(__('Active') . la_JSAlert('?module=adservice&delete_service=' . $eachActivated['tagid'], la_img('images/delete.gif'), __('You realy want to deactivate service') . '?'));
                             $rows.=la_TableRow($cells, 'row3');
                         }
                     }
@@ -250,7 +271,35 @@ if ($us_config['ADSERVICE_ENABLED']) {
             $date = GetFullApplyDate();
             $action = 'tagadd';
             $param = vf($_POST['tagid'], 3);
+            $param = preg_replace('/\0/s', '', $param);
+            $param = strip_tags($param);
+            $param = mysql_real_escape_string($param);
             $note = 'Order from userstats';
+            createTask($date, $user_login, $action, $param, $note);
+            show_window(__('Success'), __('Your order was sheduled') . '. ' . __('Please wait for') . ' ' . $waitDays);
+        }
+    }
+
+    if (isset($_GET['delete_shedule'])) {
+        if (!empty($_GET['delete_shedule'])) {
+            $tag = preg_replace('/\0/s', '', $_GET['delete_shedule']);
+            $tag = strip_tags($tag);
+            $tag = mysql_real_escape_string($tag);
+            $tag = vf($tag, 3);
+            deleteTask($user_login, $tag);
+            rcms_redirect('?module=adservice');
+        }
+    }
+
+    if (isset($_GET['delete_service'])) {
+        if (!empty($_GET['delete_service'])) {
+            $date = GetFullApplyDate();
+            $action = 'tagdel';
+            $param = vf($_POST['tagid'], 3);
+            $param = preg_replace('/\0/s', '', $param);
+            $param = strip_tags($param);
+            $param = mysql_real_escape_string($param);
+            $note = 'Deactivate from userstats';
             createTask($date, $user_login, $action, $param, $note);
             show_window(__('Success'), __('Your order was sheduled') . '. ' . __('Please wait for') . ' ' . $waitDays);
         }
