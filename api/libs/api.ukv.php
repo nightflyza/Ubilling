@@ -1985,6 +1985,8 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportSignup', 'signupreport.jpg', __('Signup report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'streetsreport.png', __('Current debtors for delivery by streets'));
         $reports.=wf_CleanDiv();
         show_window(__('Reports'), $reports);
     }
@@ -2027,6 +2029,58 @@ class UkvSystem {
         $data = str_replace($disconnectedMask, wf_tag('b') . __('Disconnected') . wf_tag('b', true), $data);
 
         die($data);
+    }
+
+    /**
+     * Renders debtors notifications by address selection
+     * 
+     * 
+     * @return void
+     */
+    public function reportDebtAddr() {
+        if (wf_CheckGet(array('aj_rdabuildsel'))) {
+            if (!empty($_GET['aj_rdabuildsel'])) {
+                $streetId = base64_decode($_GET['aj_rdabuildsel']);
+                if ($streetId != '-') {
+                    $buildParams = array();
+                    if (!empty($this->users)) {
+                        foreach ($this->users as $io => $each) {
+                            if ($each['street'] == $streetId) {
+                                $buildParams[$each['build']] = $each['build'];
+                            }
+                        }
+                        natsort($buildParams);
+                    }
+                    $buildInputs = wf_Selector('buildsel', $buildParams, __('Build'), '', true);
+                    $buildInputs.= wf_HiddenInput('streetsel', $streetId);
+                    $buildInputs.= wf_Submit(__('Print'));
+                    die($buildInputs);
+                } else {
+                    die('');
+                }
+            }
+        }
+
+        if (!wf_CheckPost(array('buildsel','streetsel'))) {
+            $streetData = array();
+            if (!empty($this->streets)) {
+                foreach ($this->streets as $streetId => $eachStreetName) {
+                    $streetId = base64_encode($eachStreetName);
+                    $streetData[self::URL_REPORTS_MGMT . 'reportDebtAddr' . '&aj_rdabuildsel=' . $streetId] = $eachStreetName;
+                }
+            }
+
+            $inputs = wf_AjaxLoader();
+            $inputs.= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
+            $inputs.= wf_AjaxContainer('aj_buildcontainer');
+
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
+            show_window(__('Current debtors for delivery by address'),$form);
+        } else {
+            //TODO: finish something like this:
+            //$query="SELECT * from `catv_users` WHERE `cash`<0 AND `street`='".$street."' AND `build`='".$build."' ORDER BY `street` ";
+            //$print_template=  file_get_contents(CONFIG_PATH."catv_debtors.tpl");
+        }
     }
 
     /**

@@ -303,14 +303,25 @@ class UserProfile {
      */
     protected function getCatvBacklinks() {
         $result = '';
-        if ($this->alterCfg['CATV_ENABLED']) {
-            $catv_backlogin_q = "SELECT * from `catv_users` WHERE `inetlink`='" . $this->login . "'";
+        if ($this->alterCfg['UKV_ENABLED']) {
+            $catv_backlogin_q = "SELECT * from `ukv_users` WHERE `inetlogin`='" . $this->login . "'";
             $catv_backlogin = simple_query($catv_backlogin_q);
             if (!empty($catv_backlogin)) {
-                $catv_backlink = wf_Link("?module=catv_profile&userid=" . $catv_backlogin['id'], web_profile_icon() . ' ' . $catv_backlogin['street'] . ' ' . $catv_backlogin['build'] . '/' . $catv_backlogin['apt'], false);
-                $result = $this->addRow(__('CaTV'), $catv_backlink);
+                $catv_backlink = wf_Link("?module=ukv&users=true&showuser=" . $catv_backlogin['id'], web_profile_icon() . ' ' . $catv_backlogin['street'] . ' ' . $catv_backlogin['build'] . '/' . $catv_backlogin['apt'], false);
+                $result = $this->addRow(__('UKV'), $catv_backlink);
             } else {
-                $result = $this->addRow(__('CaTV'), __('No'));
+                $result = $this->addRow(__('UKV'), __('No'));
+            }
+        } else {
+            if ($this->alterCfg['CATV_ENABLED']) {
+                $catv_backlogin_q = "SELECT * from `catv_users` WHERE `inetlink`='" . $this->login . "'";
+                $catv_backlogin = simple_query($catv_backlogin_q);
+                if (!empty($catv_backlogin)) {
+                    $catv_backlink = wf_Link("?module=catv_profile&userid=" . $catv_backlogin['id'], web_profile_icon() . ' ' . $catv_backlogin['street'] . ' ' . $catv_backlogin['build'] . '/' . $catv_backlogin['apt'], false);
+                    $result = $this->addRow(__('CaTV'), $catv_backlink);
+                } else {
+                    $result = $this->addRow(__('CaTV'), __('No'));
+                }
             }
         }
         return ($result);

@@ -453,7 +453,7 @@ function wf_SelectorAC($name, $params, $label, $selected = '', $br = false) {
  * Return select Web From element with auto click option into ajax container
  *
  * @param string  $container name of container element
- * @param array   $params array of elements $value=>$option
+ * @param array   $params array of elements $url=>$option
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
