@@ -183,6 +183,8 @@ class MegogoFrontend {
      */
     public function renderSubscribeForm() {
         $result = '';
+        $result.=la_tag('b').__('Attention!').la_tag('b',true).' ';
+        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.').  la_delimiter();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
@@ -200,14 +202,19 @@ class MegogoFrontend {
                 $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
                 $tariffInfo.=la_delimiter();
-                
-                
+
+
                 if ($this->checkBalance()) {
                     if ($this->isUserSubscribed($this->userLogin, $each['id'])) {
                         $subscribeControl = la_Link('?module=megogo&unsubscribe=' . $each['id'], __('Unsubscribe'), false, 'mgunsubcontrol');
                     } else {
-                        $subscribeControl = la_Link('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                        if ($this->checkUserProtection($each['id'])) {
+                            $subscribeControl = la_Link('?module=megogo&subscribe=' . $each['id'], __('Subscribe'), false, 'mgsubcontrol');
+                        } else {
+                            $subscribeControl = __('The amount of money in your account is not sufficient to process subscription');
+                        }
                     }
+
 
                     $tariffInfo.=$subscribeControl;
                 } else {
@@ -285,6 +292,64 @@ class MegogoFrontend {
                 $userBalance = $this->allUsers[$this->userLogin]['Cash'];
                 if ($userBalance >= 0) {
                     $result = true;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks free period availability for user
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
+    protected function checkFreePeriodAvail($login) {
+        $result = true;
+        if (!empty($this->allHistory)) {
+            foreach ($this->allHistory as $io => $each) {
+                if (($each['login'] == $login) AND ( $each['freeperiod'] == 1)) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks is user protected from his own stupidity?
+     * 
+     * @param int $tariffId
+     * @return bool
+     */
+    protected function checkUserProtection($tariffId) {
+        $tariffId = vf($tariffId, 3);
+        $result = true;
+        if (isset($this->usConfig['MG_PROTECTION'])) {
+            if ($this->usConfig['MG_PROTECTION']) {
+                if (isset($this->allTariffs[$tariffId])) {
+                    $tariffFee = $this->allTariffs[$tariffId]['fee'];
+                    $tariffData = $this->allTariffs[$tariffId];
+                    $userData = $this->allUsers[$this->userLogin];
+                    $userBalance = $userData['Cash'];
+
+                    if ($tariffData['freeperiod']) {
+                        if ($this->checkFreePeriodAvail($this->userLogin)) {
+                            $result = true;
+                        } else {
+                            if ($userBalance < $tariffFee) {
+                                $result = false;
+                            }
+                        }
+                    } else {
+                        if ($userBalance < $tariffFee) {
+                            $result = false;
+                        }
+                    }
+                } else {
+                    $result = false;
                 }
             }
         }

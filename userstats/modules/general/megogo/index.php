@@ -37,8 +37,16 @@ if (@$us_config['MG_ENABLED']) {
             show_window('', la_tag('br'));
         }
 
+
         //default sub/unsub form
         show_window(__('Available subscribtions'), $megogo->renderSubscribeForm());
+
+        //user guide link
+        if (isset($us_config['MG_GUIDE_URL'])) {
+            if (!empty($us_config['MG_GUIDE_URL'])) {
+                show_window('', la_Link($us_config['MG_GUIDE_URL'], __('Instructions for subscription'), false, 'mgguidecontrol'));
+            }
+        }
     } else {
         show_window(__('Sorry'), __('You can not use this service'));
     }

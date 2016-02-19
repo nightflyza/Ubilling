@@ -1137,9 +1137,14 @@ class MegogoInterface {
                     if ($each['active']) {
                         $userBalance = $this->getUserBalance($each['login']);
                         if ($userBalance >= 0) {
-                            zb_CashAdd($each['login'], '-' . $tariffFee, 'add', 1, 'MEGOGO:' . $each['tariffid']);
-                            log_register('MEGOGO FEE (' . $each['login'] . ') -' . $tariffFee);
-                            $result.=$each['login'] . ' FEE ' . $tariffFee . "\n";
+                            if ($userBalance - $tariffFee >= 0) {
+                                zb_CashAdd($each['login'], '-' . $tariffFee, 'add', 1, 'MEGOGO:' . $each['tariffid']);
+                                log_register('MEGOGO FEE (' . $each['login'] . ') -' . $tariffFee);
+                                $result.=$each['login'] . ' FEE ' . $tariffFee . "\n";
+                            } else {
+                                $this->deleteSubscribtion($each['login'], $each['tariffid']);
+                                $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . ']' . "\n";
+                            }
                         } else {
                             $this->deleteSubscribtion($each['login'], $each['tariffid']);
                             $result.=$each['login'] . ' UNSUB [' . $each['tariffid'] . ']' . "\n";

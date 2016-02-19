@@ -325,12 +325,9 @@ $lang['def']['You realy want to abort service activation'] = 'Вы действ�
 $lang['def']['You realy want to deactivate service'] = 'Вы действительно хотите отказатся от сервиса';
 $lang['def']['activated'] = 'подключение';
 $lang['def']['deactivated'] = 'отключение';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Attention!'] = 'Внимание!';
+$lang['def']['When activated subscription account will be charged fee the equivalent value of the subscription.'] = 'При активации подписки со счета будет взыскана сумма эквивалентная стоимости подписки.';
+$lang['def']['Instructions for subscription'] = 'Инструкция по оформлению подписки';
 
 
 ?>

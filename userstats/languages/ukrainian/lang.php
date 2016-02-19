@@ -290,20 +290,20 @@ $lang['def']['Available'] = 'Доступний';
 $lang['def']['Unavailable'] = 'Не доступний';
 $lang['def']['Subscribe'] = 'Підписатись';
 $lang['def']['Unsubscribe'] = 'Відписатись';
-$lang['def']['Available subscribtions'] = 'Наявні підписки';
+$lang['def']['Available subscribtions'] = 'Наявні передплати';
 $lang['def']['Start view'] = 'Дивитись';
 $lang['def']['Wrong tariff'] = 'Невірний тариф';
 $lang['def']['Non existent user'] = 'Неіснуючий користувач';
 $lang['def']['Already subscribed'] = 'Вже підписані';
-$lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'Сума коштів на вашому рахунку не достатня, для оформлення підписки';
-$lang['def']['Your subscriptions'] = 'Ваші підписки';
+$lang['def']['The amount of money in your account is not sufficient to process subscription'] = 'Сума коштів на вашому рахунку не достатня, для оформлення передплати';
+$lang['def']['Your subscriptions'] = 'Ваші передплати';
 $lang['def']['Active'] = 'Активний';
 $lang['def']['Primary'] = 'Основний';
-$lang['def']['Only one primary tariff allowed'] = 'Дозволено тільки одну основну підписку';
+$lang['def']['Only one primary tariff allowed'] = 'Дозволено тільки одну основну передплату';
 $lang['def']['The service will be disabled on the first day of the following month'] = 'Послугу буде відключено з першого числа наступного місяця';
 $lang['def']['Already scheduled'] = 'Вже заплановано';
 $lang['def']['MEGOGO Movies & TV'] = 'MEGOGO Кіно та ТБ';
-$lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для перегляду придбаної підписки зареєструйтесь або авторизуйтесь на Megogo.net, натиснувши кнопку нижче';
+$lang['def']['To view the purchased subscription register or log in to Megogo.net, by clicking the button below'] = 'Для перегляду придбаної передплати зареєструйтесь або авторизуйтесь на Megogo.net, натиснувши кнопку нижче';
 $lang['def']['Go to MEGOGO'] = 'Перейти на MEGOGO';
 $lang['def']['You can not use this service'] = 'Ви не можете скористатись даною послугою';
 $lang['def']['Aditional services'] = 'Додаткові сервіси';
@@ -325,5 +325,9 @@ $lang['def']['You realy want to abort service activation'] = 'Ви дійсно 
 $lang['def']['You realy want to deactivate service'] = 'Ви дійсно бажаєте відключити сервіс';
 $lang['def']['activated'] = 'підключення';
 $lang['def']['deactivated'] = 'відключення';
+$lang['def']['Attention!'] = 'Увага!';
+$lang['def']['When activated subscription account will be charged fee the equivalent value of the subscription.'] = 'При активації передплати з рахунку буде стягнуто суму еквівалентну вартості передплати.';
+$lang['def']['Instructions for subscription'] = 'Інструкція щодо оформлення передплати';
+
 
 ?>
