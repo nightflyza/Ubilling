@@ -1,0 +1,55 @@
+[define]
+TYPE = "alcatel"
+DEVICE = "Alcatel6224ls"
+CHECK = ".1.3.6.1.2.1.17.7.1.4.3.1.5"
+HEX = "00 00 00 00"
+ 
+[NAME]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.1.VLAN"
+TYPE = "s"
+VALUE = "\"VLAN\""
+ 
+[EGRESS]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.2.VLAN"
+TYPE = "x"
+VALUE = "\"HEX\""
+ 
+[FORBIDDEN]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.3.VLAN"
+TYPE = "x"
+VALUE = "\"00 00 00 00\""
+ 
+[UNTUGGED]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.4.VLAN"
+TYPE = "x"
+VALUE = "\"HEX\""
+ 
+[CHANGE]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.4.VLAN"
+TYPE = "x"
+VALUE = "\"HEX\""
+ 
+[CREATE]
+OID = ".1.3.6.1.2.1.17.7.1.4.3.1.5.VLAN"
+TYPE = "i"
+VALUE = "4"
+ 
+[SAVE1]
+OID = ".1.3.6.1.4.1.89.87.2.1.7.111"
+TYPE = "i"
+VALUE = "2"
+ 
+[SAVE2]
+OID = ".1.3.6.1.4.1.89.87.2.1.8.111"
+TYPE = "i"
+VALUE = "1"
+ 
+[SAVE3]
+OID = ".1.3.6.1.4.1.89.87.2.1.12.111"
+TYPE = "i"
+VALUE = "3"
+ 
+[SAVE4]
+OID = ".1.3.6.1.4.1.89.87.2.1.17.111"
+TYPE = "i"
+VALUE = "4"

@@ -1461,6 +1461,16 @@ class AutoConfigurator {
         $this->AltCfg = $ubillingConfig->getAlter();
     }
 
+    protected function LoadAllSwitchModels() {
+        $query = "SELECT * FROM `switchmodels`";
+        $data = simple_queryall($query);
+        if (!empty($data)) {
+            foreach ($data as $each) {
+                $this->AllSwitchModels[$each['id']] = $each['modelname'];
+            }
+        }
+    }
+
     /**
      * Function for getting switchport data by login
      * 
@@ -1789,6 +1799,17 @@ class AutoConfigurator {
                     } else {
                         show_error(__('Swich has no ip or parent for switchid' . ' ' . $SwitchId));
                     }
+                } else {
+                    $swlogin = $SwitchLoginData['swlogin'];
+                    $swpass = $SwitchLoginData['swpass'];
+                    if ($this->GetSwitchesData($SwitchId)) {
+                        $SwitchesData = $this->GetSwitchesData($SwitchId);
+                        $ip = $SwitchesData['ip'];
+                        $this->LoadAllSwitchModels();
+                        $swmodel = $this->AllSwitchModels[$SwitchId];
+                        shell_exec(CONFIG_PATH . "scripts/$swmodel $swlogin $swpass $ip $vlan $port");
+                        show_success(__("Success"));
+                    }
                 }
             } else {
                 show_error(__('No switch login data found for switchid' . ' ' . $SwitchId));
@@ -2108,14 +2129,14 @@ class OnuConfigurator {
                                 $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
                                 $data = array();
                                 if ($VlanCheck) {
-                                    //create vlan on OLT
+//create vlan on OLT
                                     $data[] = array(
                                         'oid' => $vlanCreateOid . "." . $vlan,
                                         'type' => 'i',
                                         'value' => '4'
                                     );
                                 }
-                                //Change pvid on onu port by defolt port 1
+//Change pvid on onu port by defolt port 1
                                 $data[] = array(
                                     'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
                                     'type' => 'i',
