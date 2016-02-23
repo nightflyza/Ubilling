@@ -788,6 +788,19 @@ class MegogoInterface {
     }
 
     /**
+     * Performs basic data filtering
+     * 
+     * @param string $data
+     * 
+     * @return string
+     */
+    protected function jqDtFilter($data) {
+        $result = trim($data);
+        $result = str_replace('"', '', $result);
+        return ($result);
+    }
+
+    /**
      * Renders default subscriptions report
      * 
      * @return string
@@ -877,7 +890,7 @@ class MegogoInterface {
      */
     public function renderSubscribtions() {
         $result = '';
-        $columns = array(__('ID'), __('User'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'), __('Actions'));
+        $columns = array(__('ID'), __('Full address'), __('Real Name'), __('Cash'), __('Current tariff'), __('Date'), __('Active'), __('Primary'), __('Free period'), __('Actions'));
         $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_SUBS . '&' . self::URL_AJSUBS, true, __('Subscriptions'), '100');
         return ($result);
     }
@@ -888,27 +901,28 @@ class MegogoInterface {
      * @return void
      */
     public function subscribtionsListAjax() {
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        $allRealNames = zb_UserGetAllRealnames();
+        $allBalance = zb_UserGetAllBalance();
         $result = '{ 
                   "aaData": [ ';
         if (!empty($this->allSubscribers)) {
             foreach ($this->allSubscribers as $io => $each) {
-                $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
-                $userLink = trim($userLink);
-                $userLink = str_replace('"', '', $userLink);
-                $actFlag = web_bool_led($each['active'], false);
-                $actFlag = str_replace('"', '', $actFlag);
-                $primFlag = web_bool_led($each['primary'], false);
-                $primFlag = str_replace('"', '', $primFlag);
-                $freeperiodFlag = web_bool_led($each['freeperiod'], false);
-                $freeperiodFlag = str_replace('"', '', $freeperiodFlag);
+                $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
+                $userLink = $this->jqDtFilter($userLink);
+                @$userRealName = $this->jqDtFilter($allRealNames[$each['login']]);
+                $actFlag = $this->jqDtFilter(web_bool_led($each['active'], false));
+                $primFlag = $this->jqDtFilter(web_bool_led($each['primary'], false));
+                $freeperiodFlag = $this->jqDtFilter(web_bool_led($each['freeperiod'], false));
                 $actLinks = wf_Link(self::URL_ME . '&' . self::URL_SUBVIEW . '&subid=' . $each['id'], wf_img('skins/icon_edit.gif'));
-                $actLinks = str_replace('"', '', $actLinks);
-                $actLinks = trim($actLinks);
-
+                $actLinks = $this->jqDtFilter($actLinks);
+                @$userCash = $this->jqDtFilter($allBalance[$each['login']]);
                 $result.='
                     [
                     "' . $each['id'] . '",
                     "' . $userLink . '",
+                    "' . $userRealName . '",
+                    "' . $userCash . '",
                     "' . @$this->allTariffs[$each['tariffid']]['name'] . '",
                     "' . $each['actdate'] . '",
                     "' . $actFlag . '",
