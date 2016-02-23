@@ -743,7 +743,19 @@ class UserSideApi {
                     $result[$userLogin]['date_create'] = '';
                     $result[$userLogin]['date_connect'] = '';
                 }
-                $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
+
+                if ($this->altCfg['DN_FULLHOSTSCAN']) {
+                    $dnFilePath = DATA_PATH . 'dn/' . $userLogin;
+                    if (file_exists($dnFilePath)) {
+                        $actTimestamp = filemtime($dnFilePath);
+                        $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $actTimestamp);
+                    } else {
+                        $result[$userLogin]['date_activity'] = '';
+                    }
+                } else {
+                    $result[$userLogin]['date_activity'] = date("Y-m-d H:i:s", $userData['LastActivityTime']);
+                }
+
 
                 $result[$userLogin]['traffic']['month']['up'] = $userData['U0'];
                 $result[$userLogin]['traffic']['month']['down'] = $userData['D0'];
