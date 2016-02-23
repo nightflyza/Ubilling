@@ -493,7 +493,7 @@ if (!empty($xmlRequest)) {
 
         // Main search
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
-            if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'billIdentifier') {
+            if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'bill_identifier') {
                 if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
                     if ($xmlParse['Transfer_attr']['action'] == 'Search') {
                         $customerid = vf($xmlParse['Transfer']['Data']['Unit_attr']['value'], 3);

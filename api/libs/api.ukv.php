@@ -2129,6 +2129,7 @@ class UkvSystem {
                     }
                     $buildInputs = wf_Selector('buildsel', $buildParams, __('Build'), '', true);
                     $buildInputs.= wf_HiddenInput('streetsel', $streetId);
+                    $buildInputs.= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
                     $buildInputs.= wf_Submit(__('Print'));
                     die($buildInputs);
                 } else {
@@ -2155,7 +2156,8 @@ class UkvSystem {
         } else {
             $searchBuild = mysql_real_escape_string($_POST['buildsel']);
             $searchStreet = mysql_real_escape_string($_POST['streetsel']);
-            $query = "SELECT * from `ukv_users` WHERE `cash`<0 AND `street`='" . $searchStreet . "' AND `build`='" . $searchBuild . "' ORDER BY `street`";
+            $debtCash = (wf_CheckPost(array('debtcash'))) ? ('-' . vf($_POST['debtcash'], 3)) : 0;
+            $query = "SELECT * from `ukv_users` WHERE `cash`<'" . $debtCash . "' AND `street`='" . $searchStreet . "' AND `build`='" . $searchBuild . "' AND `active`='1' ORDER BY `street`";
             $allDebtors = simple_queryall($query);
             $rawTemplate = file_get_contents(CONFIG_PATH . "catv_debtors.tpl");
             $printableTemplate = '';
@@ -2190,6 +2192,7 @@ class UkvSystem {
             if (!empty($_GET['aj_rdabuildsel'])) {
                 $streetId = base64_decode($_GET['aj_rdabuildsel']);
                 $buildInputs = wf_HiddenInput('streetsel', $streetId);
+                $buildInputs.= wf_TextInput('debtcash', __('The threshold at which the money considered user debtor'), '0', true, 4);
                 $buildInputs.= wf_Submit(__('Print'));
                 die($buildInputs);
             } else {
@@ -2215,7 +2218,8 @@ class UkvSystem {
             show_window(__('Current debtors for delivery by streets'), $form);
         } else {
             $searchStreet = mysql_real_escape_string($_POST['streetsel']);
-            $query = "SELECT * from `ukv_users` WHERE `cash`<0 AND `street`='" . $searchStreet . "'  ORDER BY `build`";
+            $debtCash = (wf_CheckPost(array('debtcash'))) ? ('-' . vf($_POST['debtcash'], 3)) : 0;
+            $query = "SELECT * from `ukv_users` WHERE `cash`<'" . $debtCash . "' AND `street`='" . $searchStreet . "'  AND `active`='1' ORDER BY `build`";
             $allDebtors = simple_queryall($query);
             $rawTemplate = file_get_contents(CONFIG_PATH . "catv_debtors.tpl");
             $printableTemplate = '';

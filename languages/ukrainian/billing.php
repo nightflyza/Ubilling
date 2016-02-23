@@ -2227,6 +2227,6 @@ $lang['def']['Remains at end of the month'] = 'Залишок на кінець 
 $lang['def']['Incoming'] = 'Прихід';
 $lang['def']['packing'] = 'пакунок';
 $lang['def']['You can use the * character as a symbol of lax compliance line.'] = 'Ви можете використовувати символ * для позначення несуворої відповідності рядку.';
-
+$lang['def']['The threshold at which the money considered user debtor'] = 'Поріг грошей при якому вважати користувача боржником';
 
 ?>
