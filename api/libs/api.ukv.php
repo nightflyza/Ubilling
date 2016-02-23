@@ -6,16 +6,82 @@
 
 class UkvSystem {
 
+    /**
+     * Available tariffs as id=>data
+     *
+     * @var array
+     */
     protected $tariffs = array();
+
+    /**
+     * Available users and therir data as id=>data
+     *
+     * @var array
+     */
     protected $users = array();
+
+    /**
+     * Available cities from directory
+     *
+     * @var array
+     */
     protected $cities = array('' => '-');
+
+    /**
+     * Available streets from directory
+     *
+     * @var array
+     */
     protected $streets = array('' => '-');
+
+    /**
+     * Available system cashtypes
+     *
+     * @var array
+     */
     protected $cashtypes = array();
+
+    /**
+     * Default month array with localized names
+     * 
+     * @var array
+     */
     protected $month = array();
+
+    /**
+     * Currently assigned users contracts as contract=>userid
+     *
+     * @var array
+     */
     protected $contracts = array();
+
+    /**
+     * Preprocessed banksta records
+     *
+     * @var array
+     */
     protected $bankstarecords = array();
+
+    /**
+     * Some magic goes here
+     *
+     * @var array
+     */
     protected $bankstafoundusers = array();
+
+    /**
+     * System alter.ini config represented as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
 
     //static routing URLs
 
@@ -89,6 +155,7 @@ class UkvSystem {
         $this->loadStreets();
         $this->loadMonth();
         $this->loadDebtLimit();
+        $this->initMessages();
     }
 
     /**
@@ -183,10 +250,19 @@ class UkvSystem {
      * 
      * @return void
      */
-    function loadDebtLimit() {
+    protected function loadDebtLimit() {
         global $ubillingConfig;
         $altCfg = $ubillingConfig->getAlter();
         $this->debtLimit = $altCfg['UKV_MONTH_DEBTLIMIT'];
+    }
+
+    /**
+     * Inits message helper object for further usage
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -1986,7 +2062,7 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportFees', 'feesreport.png', __('Money fees'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
-        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'streetsreport.png', __('Current debtors for delivery by streets'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'debtstreets.png', __('Current debtors for delivery by streets'));
         $reports.=wf_CleanDiv();
         show_window(__('Reports'), $reports);
     }
@@ -2061,7 +2137,7 @@ class UkvSystem {
             }
         }
 
-        if (!wf_CheckPost(array('buildsel','streetsel'))) {
+        if (!wf_CheckPost(array('buildsel', 'streetsel'))) {
             $streetData = array();
             if (!empty($this->streets)) {
                 foreach ($this->streets as $streetId => $eachStreetName) {
@@ -2075,11 +2151,91 @@ class UkvSystem {
             $inputs.= wf_AjaxContainer('aj_buildcontainer');
 
             $form = wf_Form('', 'POST', $inputs, 'glamour');
-            show_window(__('Current debtors for delivery by address'),$form);
+            show_window(__('Current debtors for delivery by address'), $form);
         } else {
-            //TODO: finish something like this:
-            //$query="SELECT * from `catv_users` WHERE `cash`<0 AND `street`='".$street."' AND `build`='".$build."' ORDER BY `street` ";
-            //$print_template=  file_get_contents(CONFIG_PATH."catv_debtors.tpl");
+            $searchBuild = mysql_real_escape_string($_POST['buildsel']);
+            $searchStreet = mysql_real_escape_string($_POST['streetsel']);
+            $query = "SELECT * from `ukv_users` WHERE `cash`<0 AND `street`='" . $searchStreet . "' AND `build`='" . $searchBuild . "' ORDER BY `street`";
+            $allDebtors = simple_queryall($query);
+            $rawTemplate = file_get_contents(CONFIG_PATH . "catv_debtors.tpl");
+            $printableTemplate = '';
+            if (!empty($allDebtors)) {
+                foreach ($allDebtors as $io => $each) {
+                    $rowtemplate = $rawTemplate;
+                    $rowtemplate = str_ireplace('{REALNAME}', $each['realname'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{STREET}', $each['street'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{BUILD}', $each['build'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{APT}', $each['apt'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{DEBT}', $each['cash'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{CURDATE}', curdate(), $rowtemplate);
+                    $rowtemplate = str_ireplace('{PAYDAY}', (date("Y-m-") . '01'), $rowtemplate);
+                    $printableTemplate.=$rowtemplate;
+                }
+                $printableTemplate = wf_TableBody($printableTemplate, '100%', 0, 'sortable');
+                $printableTemplate = $this->reportPrintable(__('Current debtors for delivery by address'), $printableTemplate);
+            } else {
+                show_window('', $this->messages->getStyledMessage(__('Nothing found'), 'info'));
+            }
+        }
+    }
+
+    /**
+     * Renders debtors notifications by address selection
+     * 
+     * 
+     * @return void
+     */
+    public function reportDebtStreets() {
+        if (wf_CheckGet(array('aj_rdabuildsel'))) {
+            if (!empty($_GET['aj_rdabuildsel'])) {
+                $streetId = base64_decode($_GET['aj_rdabuildsel']);
+                $buildInputs = wf_HiddenInput('streetsel', $streetId);
+                $buildInputs.= wf_Submit(__('Print'));
+                die($buildInputs);
+            } else {
+                die('');
+            }
+        }
+
+
+        if (!wf_CheckPost(array('streetsel'))) {
+            $streetData = array();
+            if (!empty($this->streets)) {
+                foreach ($this->streets as $streetId => $eachStreetName) {
+                    $streetId = base64_encode($eachStreetName);
+                    $streetData[self::URL_REPORTS_MGMT . 'reportDebtStreets' . '&aj_rdabuildsel=' . $streetId] = $eachStreetName;
+                }
+            }
+
+            $inputs = wf_AjaxLoader();
+            $inputs.= wf_AjaxSelectorAC('aj_buildcontainer', $streetData, __('Street'), '', false);
+            $inputs.= wf_AjaxContainer('aj_buildcontainer');
+
+            $form = wf_Form('', 'POST', $inputs, 'glamour');
+            show_window(__('Current debtors for delivery by streets'), $form);
+        } else {
+            $searchStreet = mysql_real_escape_string($_POST['streetsel']);
+            $query = "SELECT * from `ukv_users` WHERE `cash`<0 AND `street`='" . $searchStreet . "'  ORDER BY `build`";
+            $allDebtors = simple_queryall($query);
+            $rawTemplate = file_get_contents(CONFIG_PATH . "catv_debtors.tpl");
+            $printableTemplate = '';
+            if (!empty($allDebtors)) {
+                foreach ($allDebtors as $io => $each) {
+                    $rowtemplate = $rawTemplate;
+                    $rowtemplate = str_ireplace('{REALNAME}', $each['realname'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{STREET}', $each['street'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{BUILD}', $each['build'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{APT}', $each['apt'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{DEBT}', $each['cash'], $rowtemplate);
+                    $rowtemplate = str_ireplace('{CURDATE}', curdate(), $rowtemplate);
+                    $rowtemplate = str_ireplace('{PAYDAY}', (date("Y-m-") . '01'), $rowtemplate);
+                    $printableTemplate.=$rowtemplate;
+                }
+                $printableTemplate = wf_TableBody($printableTemplate, '100%', 0, 'sortable');
+                $printableTemplate = $this->reportPrintable(__('Current debtors for delivery by streets'), $printableTemplate);
+            } else {
+                show_window('', $this->messages->getStyledMessage(__('Nothing found'), 'info'));
+            }
         }
     }
 
