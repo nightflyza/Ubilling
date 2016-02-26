@@ -729,7 +729,7 @@ class PerCityAction {
         if (isset($_GET['citysel'])) {
             $inputs.= wf_HiddenInput("citysel", $_GET['citysel']);
         }
-        $inputs.= wf_DatePicker('by_day', true);
+        $inputs.= wf_DatePicker(__("by day"), true);
         $inputs.= __('By day');
         $inputs.= wf_delimiter();
         $inputs.= wf_Submit(__('Send'));

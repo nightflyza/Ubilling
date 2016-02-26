@@ -793,6 +793,9 @@ class VlanGen {
             if ($term_type == 'Cisco') {
                 $res = shell_exec(self::SCRIPT_PATH . "cisco.sh $term_user $term_pass $vlan $term_int $relay $term_ip");
             }
+            if($term_type == 'Cisco_static') {
+                $res = shell_exec(self::SCRIPT_PATH . "cisco_static.sh $term_user $term_pass $vlan $term_int $relay $term_ip");
+            }
         }
     }
 
@@ -997,7 +1000,7 @@ class VlanTerminator {
      * @return object
      */
     public function AddForm() {
-        $type = array('FreeBSD' => __('FreeBSD'), 'Linux' => __('Linux'), 'Cisco' => __('Cisco'));
+        $type = array('FreeBSD' => 'FreeBSD', 'Linux' => 'Linux', 'Cisco' => 'Cisco', 'Cisco_static' => 'Cisco_static');
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = wf_HiddenInput('AddTerminator', 'true');
         $inputs.= wf_Selector('NetworkSelected', $this->NetworkSelector, __('Network'), '', true);
@@ -1023,7 +1026,7 @@ class VlanTerminator {
      */
     public function EditForm($id) {
         $TermData = $this->AllTerminators[$id];
-        $type = array('FreeBSD' => __('FreeBSD'), 'Linux' => __('Linux'), 'Cisco' => __('Cisco'));
+        $type = array('FreeBSD' => 'FreeBSD', 'Linux' => 'Linux', 'Cisco' => 'Cisco', 'Cisco_static' => 'Cisco_static');
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $inputs = wf_HiddenInput('TerminatorEdit', 'true');
         $inputs.= wf_Selector('NetworkSelected', $this->NetworkSelector, __('Network'), $TermData['netid'], true);
@@ -1644,6 +1647,7 @@ class AutoConfigurator {
             $SwitchPortData = $this->GetSwitchPortData($login);
             $port = $SwitchPortData['port'];
             $SwitchId = $SwitchPortData['switchid'];
+            $ModelId = $this->AllSwitches[$SwitchId]['modelid'];
 
             if ($this->GetSwitchLoginData($SwitchId)) {
                 $SwitchLoginData = $this->GetSwitchLoginData($SwitchId);
@@ -1806,7 +1810,7 @@ class AutoConfigurator {
                         $SwitchesData = $this->GetSwitchesData($SwitchId);
                         $ip = $SwitchesData['ip'];
                         $this->LoadAllSwitchModels();
-                        $swmodel = $this->AllSwitchModels[$SwitchId];
+                        $swmodel = $this->AllSwitchModels[$ModelId];
                         shell_exec(CONFIG_PATH . "scripts/$swmodel $swlogin $swpass $ip $vlan $port");
                         show_success(__("Success"));
                     }

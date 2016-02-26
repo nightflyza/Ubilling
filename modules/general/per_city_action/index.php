@@ -132,7 +132,7 @@ if ($altcfg['PER_CITY_ACTION']) {
                 }
             }
             if ($action == 'analytics') {
-                show_window(__('Data'), $perCityAction->CitySelector($admin, $action));
+                show_window(__('By date'), $perCityAction->CitySelector($admin, $action));
                 show_window('', $perCityAction->ChooseDateForm($action));
                 if (isset($_GET['from_date']) && isset($_GET['to_date']) && isset($_GET['citysearch'])) {
                     $perCityAction->LoadAllData('', $_GET['citysearch'], 'analytics', $_GET['from_date'], $_GET['to_date']);
