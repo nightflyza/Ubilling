@@ -872,14 +872,14 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
     if (ispos($paynote, 'REMINDER')) {
         $paynote = __('SMS reminder activation');
     }
-    
+
     if (ispos($paynote, 'FRIENDSHIP')) {
         $friendship = explode(':', $paynote);
         $paynote = __('Friendship') . ' ' . $friendship[1];
     }
-    
+
     if (ispos($paynote, 'SCHEDULED')) {
-        $paynote=__('Scheduled');
+        $paynote = __('Scheduled');
     }
 
     return ($paynote);
@@ -2781,7 +2781,7 @@ function zb_BillingCheckUpdates() {
  */
 function zb_BillingStats($quiet = false) {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
-
+    $statsflag = 'exports/NOTRACK';
     //detect host id
     $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
     $hostid = simple_query($hostid_q);
@@ -2796,22 +2796,16 @@ function zb_BillingStats($quiet = false) {
     }
 
     //detect stats collection feature
-    $statscollect_q = "SELECT * from `ubstats` WHERE `key`='ubtrack'";
-    $statscollect = simple_query($statscollect_q);
-    if (empty($statscollect)) {
-        $newstatscollect_q = "INSERT INTO `ubstats` (`id` ,`key` ,`value`) VALUES (NULL , 'ubtrack', '1');";
-        nr_query($newstatscollect_q);
-        $thiscollect = 1;
-    } else {
-        $thiscollect = $statscollect['value'];
-    }
+    $thiscollect = (file_exists($statsflag)) ? 0 : 1;
 
     //disabling collect subroutine
     if (isset($_POST['editcollect'])) {
         if (!isset($_POST['collectflag'])) {
-            simple_update_field('ubstats', 'value', '0', "WHERE `key`='ubtrack'");
+            file_put_contents($statsflag, 'Im greedy gay');
         } else {
-            simple_update_field('ubstats', 'value', '1', "WHERE `key`='ubtrack'");
+            if (file_exists($statsflag)) {
+                unlink($statsflag);
+            }
         }
         rcms_redirect("?module=report_sysload");
     }
@@ -4265,6 +4259,11 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
+
+
+
+
 
 
 
