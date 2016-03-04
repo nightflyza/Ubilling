@@ -154,4 +154,6 @@ $lang['def']['days'] = 'дн.';
 $lang['def']['enought till the'] = 'хопіць до';
 $lang['def']['indebtedness!'] = 'запазычанасць!';
 
+$lang['def']['The test may not be accurate and is dependent on the type and configuration of client software. The results of tests can influence the type of browser settings firewall, flash player, active anti-virus scanning of HTTP traffic function, active downloads, etc'] = 'Тэст можа быць не дакладным і залежым ад тыпу і налад кліенцкага праграмнага забеспячэння. На вынікі тэставання могуць уплываць тып браўзэра, налады фаервол, версія флэш-плэера, актыўныя антывірусы з функцыяй сканавання HTTP трафіку, актыўныя загрузкі і г.д .';
+
 ?>
