@@ -4,7 +4,26 @@
 
 include ("../../libs/api.openpayz.php");
 
+//Пытаемся поймать JSON прямым POST-ом 
 $rawRequest = file_get_contents("php://input");
+
+/**
+ * Check is transaction unique?
+ * 
+ * @param $hash - transaction hash
+ * 
+ * @return bool
+ */
+function opl_CheckTransaction($hash) {
+    $hash = mysql_real_escape_string($hash);
+    $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
+    $data = simple_query($query);
+    if (!empty($data)) {
+        return (false);
+    } else {
+        return (true);
+    }
+}
 
 if (!empty($rawRequest)) {
     $requestData = json_decode($rawRequest);
@@ -24,10 +43,17 @@ if (!empty($rawRequest)) {
                             $paysys = 'OPLATA';
                             $hash = 'OPLT_' . $requestData->payment_id;
                             $summ = $requestData->amount / 100; // деньги то в копейках
-                            //регистрируем новую транзакцию
-                            op_TransactionAdd($hash, $summ, $customerId, $paysys, 'NOPE');
-                            //вызываем обработчики необработанных транзакций
-                            op_ProcessHandlers();
+                            //а нету ли уже такой транзакции?
+                            if (opl_CheckTransaction($hash)) {
+                                //регистрируем новую транзакцию
+                                op_TransactionAdd($hash, $summ, $customerId, $paysys, 'NOPE');
+                                //вызываем обработчики необработанных транзакций
+                                op_ProcessHandlers();
+                            } else {
+                                //здесь по логике должен быть ответ о том, что это дубль
+                            }
+                        } else {
+                            // тут должен быть вопль о том, что невалидный пользователь aka merchantData->value
                         }
                     }
                 }
