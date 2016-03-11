@@ -940,6 +940,7 @@ function ts_TaskCreateForm() {
 
 /**
  * Returns task creation form for userprofile usage
+ * DEPRECATED: use ts_TaskCreateFormUnified instead this
  * 
  * @param string $address
  * @param string $mobile
@@ -986,7 +987,58 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 }
 
 /**
+ * Returns task creation form unified (use this shit in your further code!)
+ * 
+ * @param string $address
+ * @param string $mobile
+ * @param string $phone
+ * @param string $login
+ * @return  string
+ */
+function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
+    global $ubillingConfig;
+    $altercfg = $ubillingConfig->getAlter();
+    $alljobtypes = ts_GetAllJobtypes();
+    $allemployee = ts_GetActiveEmployee();
+
+    //construct sms sending inputs
+    if ($altercfg['WATCHDOG_ENABLED']) {
+        $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+    } else {
+        $smsInputs = '';
+    }
+    
+    $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+
+    $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
+    $inputs.= wf_tag('input',false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+    $inputs.=wf_HiddenInput('createtask', 'true');
+    $inputs.=wf_DatePicker('newstartdate');
+    $inputs.=wf_TimePickerPreset('newstarttime', '', '', false);
+    $inputs.=wf_tag('label') . __('Target date') . $sup. wf_tag('label', true);
+    $inputs.=wf_delimiter();
+    $inputs.=wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
+    $inputs.=wf_HiddenInput('newtasklogin', $login);
+    $inputs.=wf_tag('br');
+    $inputs.=wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
+    $inputs.=wf_tag('br');
+    $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
+    $inputs.=wf_tag('br');
+    $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true);
+    $inputs.=wf_tag('br');
+    $inputs.=wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
+    $inputs.=ts_TaskTypicalNotesSelector();
+    $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
+    $inputs.=$smsInputs;
+    $inputs.=wf_Submit(__('Create new task'));
+    $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
+    $result.=__('All fields marked with an asterisk are mandatory');
+    return ($result);
+}
+
+/**
  * Returns task creation form for sigreq usage
+ * DEPRECATED: use ts_TaskCreateFormUnified instead this
  * 
  * @param string $address
  * @param string $phone

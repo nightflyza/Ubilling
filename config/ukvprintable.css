@@ -29,3 +29,29 @@ table.sortable td {
     background-color: #000000;
     color: #FFFFFF;
 }
+
+table.printable {
+    border-width: 1px;
+    border-spacing: 2px;
+    border-style: outset;
+    border-color: gray;
+    border-collapse: separate;
+    background-color: white;
+}
+
+table.printable th {
+    border-width: 1px;
+    padding: 1px;
+    border-style: dashed;
+    border-color: gray;
+    background-color: white;
+    -moz-border-radius: ;
+}
+
+table.printable td {
+    border-width: 1px;
+    padding: 1px;
+    border-style: dotted;
+    border-color: gray;
+    -moz-border-radius: ;
+}

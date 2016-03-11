@@ -98,6 +98,7 @@ class UkvSystem {
     const URL_BANKSTA_DETAILED = '?module=ukv&banksta=true&showdetailed='; //detailed banksta row display url
     const URL_REPORTS_LIST = '?module=ukv&reports=true&showreport=reportList'; //reports listing link
     const URL_REPORTS_MGMT = '?module=ukv&reports=true&showreport='; //reports listing link
+    const URL_PHOTOSTORAGE = '?module=photostorage&scope=UKVUSERPROFILE&mode=list&itemid='; //photostorage link
     //registration options
     const REG_ACT = 1;
     const REG_CASH = 0;
@@ -886,7 +887,10 @@ class UkvSystem {
 
             $inputs = wf_TableBody($inputs, '800', 0, '');
 
+
             $result = wf_Form('', 'POST', $inputs, 'ukvusereditform');
+
+
 
             return ($result);
         }
@@ -1126,27 +1130,45 @@ class UkvSystem {
      * @return string
      */
     public function userProfile($userid) {
-        global $ubillingConfig;
-        $altcfg = $ubillingConfig->getAlter();
         $userid = vf($userid, 3);
         if (isset($this->users[$userid])) {
             $userData = $this->users[$userid];
             $rows = '';
 
             //zero apt numbers as private builds
-            if ($altcfg['ZERO_TOLERANCE']) {
+            if ($this->altCfg['ZERO_TOLERANCE']) {
                 $apt = ($userData['apt'] == '0') ? '' : '/' . $userData['apt'];
             } else {
                 $apt = '/' . $userData['apt'];
             }
 
+            //photostorage integration
+            if ($this->altCfg['PHOTOSTORAGE_ENABLED']) {
+                $photoControl = wf_Link(self::URL_PHOTOSTORAGE . $userid, wf_img_sized('skins/photostorage.png', __('Upload images'), '10'), false);
+            } else {
+                $photoControl = '';
+            }
 
-            $cells = wf_TableCell(__('Full address'), '20%', 'row2');
+            //additional user comments
+            if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('UKVUSERPROFILE');
+            }
+
+            //task creation control
+            if ($this->altCfg['CREATETASK_IN_PROFILE']) {
+                $shortAddress = $userData['street'] . ' ' . $userData['build'] . $apt;
+                $taskForm = ts_TaskCreateFormUnified($shortAddress, $userData['mobile'], $userData['phone'], '');
+                $taskControl = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $taskForm,'', '420','500');
+            } else {
+                $taskControl = '';
+            }
+
+            $cells = wf_TableCell(__('Full address') . ' ' . $taskControl, '20%', 'row2');
             $cells.= wf_TableCell($userData['city'] . ' ' . $userData['street'] . ' ' . $userData['build'] . $apt);
             $rows.= wf_TableRow($cells, 'row3');
 
 
-            $cells = wf_TableCell(__('Real Name'), '20%', 'row2');
+            $cells = wf_TableCell(__('Real Name') . ' ' . $photoControl, '20%', 'row2');
             $cells.= wf_TableCell($userData['realname']);
             $rows.= wf_TableRow($cells, 'row3');
 
@@ -1220,6 +1242,13 @@ class UkvSystem {
 
             $result = wf_TableBody($profilerows, '100%', '0');
             $result.= $this->userPaymentsRender($userid);
+
+
+            //additional user comments
+            if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+                $result.=$adcomments->renderComments($userid);
+            }
 
             return ($result);
         } else {

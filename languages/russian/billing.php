@@ -2213,6 +2213,12 @@ $lang['def']['Incoming'] = 'Приход';
 $lang['def']['packing'] = 'упаковка';
 $lang['def']['You can use the * character as a symbol of lax compliance line.'] = 'Вы можете использовать символ * как обозначение нестрогого соответствия строке.';
 $lang['def']['The threshold at which the money considered user debtor'] = 'Порог денег при котором считать пользователя должником';
+
+//rev 4986 
+$lang['def']['right to delete photostorage images'] = 'Право удалять изображения из хранилища';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';

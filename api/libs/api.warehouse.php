@@ -2420,7 +2420,7 @@ class Warehouse {
         $monthName = rcms_date_localise($monthArr[$monthNumber]);
 
         $result = '';
-        $result.= wf_tag('table', false, '', 'border="0" cellspacing="2" width="100%"');
+        $result.= wf_tag('table', false, '', 'border="0" cellspacing="2" width="100%" class="printable"');
         $result.= wf_tag('colgroup', false, '', 'span="4" width="80"');
         $result.=wf_tag('colgroup', true);
         $result.= wf_tag('colgroup', false, '', 'width="79"');
@@ -2526,15 +2526,22 @@ class Warehouse {
      */
     public function reportDateRemains() {
         $result = '';
+
         $curyear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : date("Y");
         $curmonth = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
 
         $inputs = wf_YearSelector('yearsel', __('Year')) . ' ';
         $inputs.= wf_MonthSelector('monthsel', __('Month'), $curmonth) . ' ';
+        $inputs.= wf_CheckInput('printmode', __('Print'), false, false);
         $inputs.= wf_Submit(__('Show'));
         $searchForm = wf_Form('', 'POST', $inputs, 'glamour');
         $searchForm.= wf_CleanDiv();
-        $result.=$searchForm;
+
+        //append form to result
+        if (!wf_CheckPost(array('printmode'))) {
+            $result.=$searchForm;
+        }
+
 
         $lowerOffset = strtotime($curyear . '-' . $curmonth . '-01');
         $upperOffset = strtotime($curyear . '-' . $curmonth . '-01');
@@ -2690,13 +2697,13 @@ class Warehouse {
 
                 $result.=$this->reportDateRemainsAddRow($itemtypeId, array(
                     $firstColumnCount,
-                    round($firstColumnPrice,2),
+                    round($firstColumnPrice, 2),
                     $secondColumnCount,
-                    round($secondColumnPrice,2),
+                    round($secondColumnPrice, 2),
                     $thirdColumnCount,
-                    round($thirdColumnPrice,2),
+                    round($thirdColumnPrice, 2),
                     $fourthColumnCount,
-                    round($fourthColumnPrice,2)));
+                    round($fourthColumnPrice, 2)));
 
                 $firstColumnTotal+=$firstColumnPrice;
                 $secondColumnTotal+=$secondColumnPrice;
@@ -2710,6 +2717,10 @@ class Warehouse {
 
         $result.= wf_tag('tbody', true);
         $result.= wf_tag('table', true);
+        
+        if (wf_CheckPost(array('printmode'))) {
+            die($this->reportPrintable(__('Date remains'), $result));
+        }
 
         return ($result);
     }
