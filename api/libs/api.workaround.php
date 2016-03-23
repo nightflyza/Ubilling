@@ -2801,7 +2801,7 @@ function zb_BillingStats($quiet = false) {
     //disabling collect subroutine
     if (isset($_POST['editcollect'])) {
         if (!isset($_POST['collectflag'])) {
-            file_put_contents($statsflag, 'Im greedy gay');
+            file_put_contents($statsflag, 'Im greedy bastard');
         } else {
             if (file_exists($statsflag)) {
                 unlink($statsflag);
@@ -2844,23 +2844,20 @@ function zb_BillingStats($quiet = false) {
     $ubversion = vf($ubversion[0], 3);
 
     $releasebox = wf_tag('span', false, '', 'id="lastrelease"');
-    $releasebox.=wf_tag('span', true) . '<br>';
-    $updatechecker = '<a href="#checkupdates"  onclick="goajax(\'?module=report_sysload&checkupdates=true\',\'lastrelease\');" title="' . __('Check updates') . '">' . $releaseinfo . ' (' . __('Check updates') . '?)</a>';
-
+    $releasebox.=wf_tag('span', true) . wf_tag('br');
+    $updatechecker= wf_AjaxLink('?module=report_sysload&checkupdates=true', $releaseinfo . ' (' . __('Check updates') . '?)', 'lastrelease', false, '');
     $ubstatsinputs = zb_AjaxLoader();
-
-    $ubstatsinputs.=wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . '<br>';
-    $ubstatsinputs.=wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . '<br>';
+    $ubstatsinputs.=wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
+    $ubstatsinputs.=wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
     $ubstatsinputs.=wf_tag('b') . __('Ubilling version') . ': ' . wf_tag('b', true) . $updatechecker . wf_tag('br');
     $ubstatsinputs.=$releasebox;
     $ubstatsinputs.=wf_HiddenInput('editcollect', 'true');
     $ubstatsinputs.=wf_CheckInput('collectflag', 'I want to help make Ubilling better', false, $thiscollect);
     $ubstatsinputs.=' ' . wf_Submit('Save');
     $ubstatsform = wf_Form("", 'POST', $ubstatsinputs, 'glamour');
-
+    $ubstatsform.= wf_CleanDiv();
     $statsurl = $ubstatsurl . '?u=' . $thisubid . 'x' . $usercount . 'x' . $tariffcount . 'x' . $nascount . 'x' . $paycount . 'x' . $eventcount . 'x' . $ubversion;
-    $tracking_code = '<div style="display:none;"><iframe src="' . $statsurl . '" width="1" height="1" frameborder="0"></iframe></div>';
-
+    $tracking_code = wf_tag('div', false, '', 'style="display:none;"').wf_tag('iframe',false,'','src="' . $statsurl . '" width="1" height="1" frameborder="0"').wf_tag('iframe',true).wf_tag('div',true);
     if ($quiet == false) {
         show_window(__('Billing info'), $ubstatsform);
     }
@@ -4483,7 +4480,7 @@ function web_MemCachedRenderStats() {
 }
 
 /**
- * Calculates 
+ * Calculates percent value
  * 
  * @param float $sum
  * @param float $percent
