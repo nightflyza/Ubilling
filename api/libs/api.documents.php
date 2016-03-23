@@ -9,11 +9,11 @@ class ProfileDocuments {
     protected $templates = array();
     protected $userLogin = '';
     protected $userData = array();
-    protected $userAgentData=array();
+    protected $userAgentData = array();
     protected $customFields = array();
     protected $altcfg = array();
     protected $userDocuments = array();
-    protected $allUserDocuments=array();
+    protected $allUserDocuments = array();
 
     const TEMPLATES_PATH = 'content/documents/pl_docx/';
     const DOCUMENTS_PATH = 'content/documents/pl_cache/';
@@ -28,7 +28,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     protected function loadTemplates() {
         $query = "SELECT * from `docxtemplates`";
         $all = simple_queryall($query);
@@ -45,7 +44,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function setLogin($login) {
         $login = mysql_real_escape_string($login);
         $this->userLogin = $login;
@@ -56,7 +54,6 @@ class ProfileDocuments {
      * 
      * @return string
      */
-
     public function getLogin() {
         return ($this->userLogin);
     }
@@ -66,7 +63,6 @@ class ProfileDocuments {
      * 
      * @return array
      */
-
     public function getUserData() {
         if (!empty($this->userLogin)) {
             if (isset($this->userData[$this->userLogin])) {
@@ -79,8 +75,7 @@ class ProfileDocuments {
             throw new Exception('NO_USER_LOGIN_SET');
         }
     }
-    
-    
+
     /**
      * Loads current user assigned agent data into private property
      * 
@@ -88,21 +83,20 @@ class ProfileDocuments {
      */
     protected function loadUserAgentData() {
         if (!empty($this->userLogin)) {
-        $rawData=zb_AgentAssignedGetDataFast($this->userLogin, $this->userData[$this->userLogin]['ADDRESS']);
-           @$this->userAgentData['AGENTEDRPO']=$rawData['edrpo'];
-           @$this->userAgentData['AGENTNAME']=$rawData['contrname'];
-           @$this->userAgentData['AGENTID']=$rawData['id'];
-           @$this->userAgentData['AGENTBANKACC']=$rawData['bankacc'];
-           @$this->userAgentData['AGENTBANKNAME']=$rawData['bankname'];
-           @$this->userAgentData['AGENTBANKCODE']=$rawData['bankcode'];
-           @$this->userAgentData['AGENTIPN']=$rawData['ipn'];
-           @$this->userAgentData['AGENTLICENSE']=$rawData['licensenum'];
-           @$this->userAgentData['AGENTJURADDR']=$rawData['juraddr'];
-           @$this->userAgentData['AGENTPHISADDR']=$rawData['phisaddr'];
-           @$this->userAgentData['AGENTPHONE']=$rawData['phone'];
+            $rawData = zb_AgentAssignedGetDataFast($this->userLogin, $this->userData[$this->userLogin]['ADDRESS']);
+            @$this->userAgentData['AGENTEDRPO'] = $rawData['edrpo'];
+            @$this->userAgentData['AGENTNAME'] = $rawData['contrname'];
+            @$this->userAgentData['AGENTID'] = $rawData['id'];
+            @$this->userAgentData['AGENTBANKACC'] = $rawData['bankacc'];
+            @$this->userAgentData['AGENTBANKNAME'] = $rawData['bankname'];
+            @$this->userAgentData['AGENTBANKCODE'] = $rawData['bankcode'];
+            @$this->userAgentData['AGENTIPN'] = $rawData['ipn'];
+            @$this->userAgentData['AGENTLICENSE'] = $rawData['licensenum'];
+            @$this->userAgentData['AGENTJURADDR'] = $rawData['juraddr'];
+            @$this->userAgentData['AGENTPHISADDR'] = $rawData['phisaddr'];
+            @$this->userAgentData['AGENTPHONE'] = $rawData['phone'];
         }
     }
-
 
     /**
      * Returns current user assigned agent data
@@ -114,25 +108,56 @@ class ProfileDocuments {
             $this->loadUserAgentData();
             return ($this->userAgentData);
         } else {
-          throw new Exception('NO_USER_LOGIN_SET'); 
+            throw new Exception('NO_USER_LOGIN_SET');
         }
     }
-    
-    
+
     /**
      * returns last generated ID from documents registry
      * 
      * @return int
      */
     protected function getDocumentLastId() {
-        $query="SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
-        $data=  simple_query($query);
+        $query = "SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
+        $data = simple_query($query);
         if (!empty($data)) {
-            $result=$data['id'];
+            $result = $data['id'];
         } else {
-            $result=0;
+            $result = 0;
         }
         return ($result);
+    }
+
+    /**
+     * Returns contract dates data
+     * 
+     * @return array
+     */
+    protected function getContractDatesAll() {
+        $query = "SELECT `login`,`contract` from `contracts`";
+        $allcontracts = simple_queryall($query);
+        $queryDates = "SELECT `contract`,`date` from `contractdates`";
+        $alldates = simple_queryall($queryDates);
+        $result = array();
+        $dates = array();
+        if (!empty($alldates)) {
+            foreach ($alldates as $ia => $eachdate) {
+                $dates[$eachdate['contract']] = $eachdate['date'];
+            }
+        }
+
+        if (!empty($allcontracts)) {
+            foreach ($allcontracts as $io => $eachcontract) {
+                $result[$eachcontract['login']]['contractnum'] = $eachcontract['contract'];
+                if (isset($dates[$eachcontract['contract']])) {
+                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']];
+                } else {
+                    $result[$eachcontract['login']]['contractdate'] = '1970-01-01';
+                }
+            }
+        }
+
+        return($result);
     }
 
     /**
@@ -140,19 +165,16 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function loadAllUserData() {
-
-
         $userdata = array();
         $alluserdata = zb_UserGetAllStargazerData();
         $tariffspeeds = zb_TariffGetAllSpeeds();
         $tariffprices = zb_TariffGetPricesAll();
         $multinetdata = zb_MultinetGetAllData();
         $allcontracts = zb_UserGetAllContracts();
-        $allphonedata = zb_UserGetAllPhoneData();
-		
         $allcontracts = array_flip($allcontracts);
+        $contractDates = $this->getContractDatesAll();
+        $allphonedata = zb_UserGetAllPhoneData();
         $allrealnames = zb_UserGetAllRealnames();
         $alladdress = zb_AddressGetFulladdresslist();
         $allemails = zb_UserGetAllEmails();
@@ -160,8 +182,8 @@ class ProfileDocuments {
         $allcfdata = cf_FieldsGetAll();
         $allpdata = zb_UserPassportDataGetAll();
         $curdate = curdate();
-        $lastDocId=$this->getDocumentLastId();
-        $newDocId=$lastDocId+1;
+        $lastDocId = $this->getDocumentLastId();
+        $newDocId = $lastDocId + 1;
 
 
         if ($this->altcfg['OPENPAYZ_REALID']) {
@@ -181,12 +203,13 @@ class ProfileDocuments {
                 $userdata[$eachuser['login']]['PASSIVE'] = $eachuser['Passive'];
                 $userdata[$eachuser['login']]['AO'] = $eachuser['AlwaysOnline'];
                 @$userdata[$eachuser['login']]['CONTRACT'] = $allcontracts[$eachuser['login']];
+                @$userdata[$eachuser['login']]['CONTRACTDATE'] = $contractDates[$eachuser['login']]['contractdate'];
                 @$userdata[$eachuser['login']]['REALNAME'] = $allrealnames[$eachuser['login']];
                 @$userdata[$eachuser['login']]['ADDRESS'] = $alladdress[$eachuser['login']];
                 @$userdata[$eachuser['login']]['EMAIL'] = $allemails[$eachuser['login']];
                 @$userdata[$eachuser['login']]['PHONE'] = $allphonedata[$eachuser['login']]['phone'];
                 @$userdata[$eachuser['login']]['MOBILE'] = $allphonedata[$eachuser['login']]['mobile'];
-			
+
                 //openpayz payment ID
                 if ($this->altcfg['OPENPAYZ_REALID']) {
                     @$userdata[$eachuser['login']]['PAYID'] = $allopcustomers[$eachuser['login']];
@@ -244,7 +267,6 @@ class ProfileDocuments {
      * 
      * @return array
      */
-
     public function getTemplates() {
         return ($this->templates);
     }
@@ -254,7 +276,6 @@ class ProfileDocuments {
      * 
      * @return string
      */
-
     public function renderTemplatesList() {
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Date'));
@@ -275,9 +296,9 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['path']);
                 $actlinks = wf_JSAlert('?module=pl_documents&deletetemplate=' . $each['id'] . '&username=' . $this->userLogin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
                 $actlinks.= wf_Link('?module=pl_documents&download=' . $each['path'] . '&username=' . $this->userLogin, wf_img('skins/icon_download.png', __('Download'))) . ' ';
-                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png').' '.__('Print'),false,'ubButton');
-              //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print_options.png', __('Custom options')));
-              //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&username=' . $this->userLogin, wf_img('skins/icon_print.png', __('Print')));
+                $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png') . ' ' . __('Print'), false, 'ubButton');
+                //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print_options.png', __('Custom options')));
+                //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&username=' . $this->userLogin, wf_img('skins/icon_print.png', __('Print')));
                 $cells.= wf_TableCell($actlinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -291,7 +312,6 @@ class ProfileDocuments {
      * 
      * @return string
      */
-
     public function uploadForm() {
         $uploadinputs = wf_HiddenInput('uploadtemplate', 'true');
         $uploadinputs.= wf_TextInput('templatedisplayname', __('Template display name'), '', true, '15');
@@ -313,7 +333,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     protected function registerTemplateDB($path, $displayname, $public) {
         $path = mysql_real_escape_string($path);
         $displayname = mysql_real_escape_string($displayname);
@@ -333,7 +352,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     protected function unregisterTemplateDB($id) {
         $id = vf($id, 3);
         $query = "DELETE from `docxtemplates` WHERE `id`='" . $id . "';";
@@ -348,7 +366,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function deleteTemplate($id) {
         $id = vf($id, 3);
         $this->unregisterTemplateDB($id);
@@ -359,7 +376,6 @@ class ProfileDocuments {
      * 
      * @return boolean
      */
-
     public function doUpload() {
         $uploaddir = self::TEMPLATES_PATH;
         $allowedExtensions = array("docx");
@@ -404,7 +420,6 @@ class ProfileDocuments {
      * 
      * @return string
      */
-
     public function customDocumentFieldsForm() {
         $rawServices = $this->altcfg['DOCX_SERVICES'];
         $availServices = array();
@@ -426,14 +441,14 @@ class ProfileDocuments {
         $inputs.= wf_TextInput('customnotes', __('Notes'), '', true, '20');
         $inputs.= wf_TextInput('customsum', __('Sum'), @$this->userData[$this->userLogin]['TARIFFPRICE'], true, '10');
         if ($this->altcfg['CORPS_ENABLED']) {
-            $inputs.=wf_tag('br').wf_tag('span', false, 'row3').' '.__('Corporate users').' '.wf_tag('span',true).  wf_tag('br');
-            $greed=new Avarice();
-            $corpsRuntime=$greed->runtime('CORPS');
+            $inputs.=wf_tag('br') . wf_tag('span', false, 'row3') . ' ' . __('Corporate users') . ' ' . wf_tag('span', true) . wf_tag('br');
+            $greed = new Avarice();
+            $corpsRuntime = $greed->runtime('CORPS');
             if (!empty($corpsRuntime)) {
-                $corps=new Corps();
+                $corps = new Corps();
                 if ($corps->userIsCorporate($this->userLogin)) {
                     //this is realy corp user
-                    $corpData=$corps->corpGetDataByLogin($this->userLogin);
+                    $corpData = $corps->corpGetDataByLogin($this->userLogin);
 
                     $inputs.=wf_TextInput('corpname', __('Corp name'), @$corpData['corpname'], true, '30');
                     $inputs.=wf_TextInput('corpaddress', __('Address'), @$corpData['address'], true, '30');
@@ -448,14 +463,12 @@ class ProfileDocuments {
                     $inputs.=wf_TextInput('corpinncode', __('INN code'), @$corpData['inncode'], true, '30');
                     $inputs.=wf_TextInput('corptaxtype', __('Tax type'), @$corpData['taxtype'], true, '30');
                     $inputs.=wf_TextInput('corpnotes', __('Notes'), @$corpData['notes'], true, '30');
-                    
                 } else {
                     $inputs.=__('Private user');
                 }
             } else {
                 $inputs.=__('No license key available');
             }
-            
         }
         $inputs.= wf_HiddenInput('customfields', 'true');
         $inputs.= wf_tag('br');
@@ -469,12 +482,11 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function setCustomFields() {
         //ugly debug code
         $pdvPercent = $this->altcfg['DOCX_NDS'];
         if (wf_CheckPost(array('customfields'))) {
-            $morph=new UBMorph();
+            $morph = new UBMorph();
             @$this->customFields['CUSTDATE'] = $_POST['customdate'];
             @$this->customFields['CUSTREALNAME'] = $_POST['customrealname'];
             @$this->customFields['CUSTPHONE'] = $_POST['customphone'];
@@ -486,8 +498,8 @@ class ProfileDocuments {
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
             @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
-            @$this->customFields['CUSTSUMLIT']= $morph->sum2str($this->customFields['CUSTSUM']);
-            
+            @$this->customFields['CUSTSUMLIT'] = $morph->sum2str($this->customFields['CUSTSUM']);
+
             if ($this->altcfg['CORPS_ENABLED']) {
                 //corporate user fields
                 @$this->customFields['CORPNAME'] = $_POST['corpname'];
@@ -503,13 +515,13 @@ class ProfileDocuments {
                 @$this->customFields['CORPINNCODE'] = $_POST['corpinncode'];
                 @$this->customFields['CORPTAXTYPE'] = $_POST['corptaxtype'];
                 @$this->customFields['CORPNOTES'] = $_POST['corpnotes'];
-           }
-           
-           if ($this->altcfg['NETWORKS_EXT']) {
-               //extended network pools management
-               $extNets=new ExtNets();
-               @$this->customFields['NETWORKS_EXT'] = $extNets->poolTemplateData($this->userLogin);
-           }
+            }
+
+            if ($this->altcfg['NETWORKS_EXT']) {
+                //extended network pools management
+                $extNets = new ExtNets();
+                @$this->customFields['NETWORKS_EXT'] = $extNets->poolTemplateData($this->userLogin);
+            }
         }
     }
 
@@ -518,7 +530,6 @@ class ProfileDocuments {
      * 
      * @return array
      */
-
     public function getCustomFields() {
         return ($this->customFields);
     }
@@ -532,7 +543,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function registerDocument($login, $templateid, $path) {
         $login = mysql_real_escape_string($login);
         $templateid = vf($templateid, 3);
@@ -554,19 +564,18 @@ class ProfileDocuments {
             ";
         nr_query($query);
     }
-    
-     /**
+
+    /**
      * kills document in database
      * 
      * @param $documentid - existing document ID
      * 
      * @return void
      */
-
     public function unregisterDocument($documentid) {
-        $documentid=vf($documentid,3);
+        $documentid = vf($documentid, 3);
 
-        $query = "DELETE FROM `docxdocuments` WHERE `id`='".$documentid."'";
+        $query = "DELETE FROM `docxdocuments` WHERE `id`='" . $documentid . "'";
         nr_query($query);
         log_register("PLDOCS DEL DOCUMENT [" . $documentid . "]");
     }
@@ -578,7 +587,6 @@ class ProfileDocuments {
      * 
      * @return void
      */
-
     public function loadUserDocuments($login) {
         $query = "SELECT * from `docxdocuments` WHERE `login`='" . $this->userLogin . "' ORDER BY `id` DESC";
         $all = simple_queryall($query);
@@ -588,18 +596,17 @@ class ProfileDocuments {
             }
         }
     }
-    
-     /**
+
+    /**
      * loads all user generated documents from database
      * 
      * @return void
      */
-
-    public function loadAllUsersDocuments($date='') {
-        $date=trim($date);
-        $date = (!empty($date))  ? $date : curdate();
-        $where = "WHERE `date` LIKE '".$date."%'";
-        $query = "SELECT * from `docxdocuments` ".$where." ORDER BY `id` DESC;";
+    public function loadAllUsersDocuments($date = '') {
+        $date = trim($date);
+        $date = (!empty($date)) ? $date : curdate();
+        $where = "WHERE `date` LIKE '" . $date . "%'";
+        $query = "SELECT * from `docxdocuments` " . $where . " ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -607,17 +614,16 @@ class ProfileDocuments {
             }
         }
     }
-    
+
     /**
      * gets all user generated documents from database by this year
      * 
      * @return array
      */
-
     public function getAllUsersDocumentsThisYear() {
-        $result=array();
-        $where = "WHERE `date` LIKE '".date("Y-")."%'";
-        $query = "SELECT * from `docxdocuments` ".$where." ORDER BY `id` DESC;";
+        $result = array();
+        $where = "WHERE `date` LIKE '" . date("Y-") . "%'";
+        $query = "SELECT * from `docxdocuments` " . $where . " ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -632,7 +638,6 @@ class ProfileDocuments {
      * 
      * @return string
      */
-
     public function renderUserDocuments() {
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Date'));
@@ -648,10 +653,10 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="'.$each['templateid'].'"').$templateName. wf_tag('abbr', true));
-                $downloadLink = wf_Link('?module=pl_documents&username='.$this->userLogin.'&documentdownload='.$each['path'], $each['path'], false, '');
+                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
+                $downloadLink = wf_Link('?module=pl_documents&username=' . $this->userLogin . '&documentdownload=' . $each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
-                $actionLinks=  wf_JSAlert('?module=pl_documents&username='.$this->userLogin.'&deletedocument='.$each['id'], web_delete_icon(), __('Are you serious'));
+                $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious'));
                 $cells.= wf_TableCell($actionLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -660,17 +665,16 @@ class ProfileDocuments {
         $result = wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
-    
-     /**
+
+    /**
      * Renders previously generated all users documents 
      * 
      * @return string
      */
-
     public function renderAllUserDocuments() {
-        $allAddress=  zb_AddressGetFulladdresslistCached();
-        $allRealnames= zb_UserGetAllRealnames();
-        
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        $allRealnames = zb_UserGetAllRealnames();
+
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Date'));
         $cells.= wf_TableCell(__('Public'));
@@ -688,14 +692,14 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 @$templateName = $this->templates[$each['templateid']]['name'];
-                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="'.$each['templateid'].'"').$templateName. wf_tag('abbr', true));
-                $downloadLink = wf_Link('?module=report_documents&documentdownload='.$each['path'], $each['path'], false, '');
+                $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
+                $downloadLink = wf_Link('?module=report_documents&documentdownload=' . $each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
-                $profileLink=  wf_Link('?module=userprofile&username='.$each['login'], web_profile_icon().' '.$each['login']);
+                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login']);
                 $cells.= wf_TableCell($profileLink);
                 $cells.= wf_TableCell(@$allAddress[$each['login']]);
                 $cells.= wf_TableCell(@$allRealnames[$each['login']]);
-                $actionLinks=  wf_JSAlert('?module=report_documents&deletedocument='.$each['id'], web_delete_icon(), __('Are you serious'));
+                $actionLinks = wf_JSAlert('?module=report_documents&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious'));
                 $cells.= wf_TableCell($actionLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -704,29 +708,28 @@ class ProfileDocuments {
         $result = wf_TableBody($rows, '100%', '0', '');
         return ($result);
     }
-    
+
     /**
      * Renders previously generated all users as fullcalendar widget 
      * 
      * @return string
      */
-
     public function renderAllUserDocumentsCalendar() {
-        $allAddress=  zb_AddressGetFulladdresslistCached();
-          
-        $calendarData='';
-        $yearDocuments=$this->getAllUsersDocumentsThisYear();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+
+        $calendarData = '';
+        $yearDocuments = $this->getAllUsersDocumentsThisYear();
         if (!empty($yearDocuments)) {
             foreach ($yearDocuments as $io => $each) {
-                $timestamp=strtotime($each['date']);
-                $date=date("Y, n-1, j",$timestamp);
-                $rawTime=date("H:i:s",$timestamp);
+                $timestamp = strtotime($each['date']);
+                $date = date("Y, n-1, j", $timestamp);
+                $rawTime = date("H:i:s", $timestamp);
                 $calendarData.="
                       {
-                        title: '".$rawTime.' '.@$allAddress[$each['login']]."',
-                        url: '?module=userprofile&username=".$each['login']."',
-                        start: new Date(".$date."),
-                        end: new Date(".$date."),
+                        title: '" . $rawTime . ' ' . @$allAddress[$each['login']] . "',
+                        url: '?module=userprofile&username=" . $each['login'] . "',
+                        start: new Date(" . $date . "),
+                        end: new Date(" . $date . "),
                    },
                     ";
             }
@@ -735,7 +738,7 @@ class ProfileDocuments {
         $result = wf_FullCalendar($calendarData);
         return ($result);
     }
-    
+
     /**
      * show calendar contol form
      * 
@@ -743,18 +746,17 @@ class ProfileDocuments {
      */
     public function dateControl() {
         if (wf_CheckPost(array('showdate'))) {
-            $curdate= $_POST['showdate'];
+            $curdate = $_POST['showdate'];
         } else {
-            $curdate= curdate();
+            $curdate = curdate();
         }
-        
-        $inputs=  wf_DatePickerPreset('showdate', $curdate);
+
+        $inputs = wf_DatePickerPreset('showdate', $curdate);
         $inputs.= wf_Submit(__('Show'));
-        $result=  wf_Form('', 'POST', $inputs, 'glamour');
-        
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+
         return ($result);
     }
-    
 
 }
 

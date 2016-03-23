@@ -9,7 +9,7 @@ class UsProfileDocuments {
     protected $templates = array();
     protected $userLogin = '';
     protected $userData = array();
-    protected $userAgentData=array();
+    protected $userAgentData = array();
     protected $customFields = array();
     protected $altcfg = array();
     protected $userDocuments = array();
@@ -79,30 +79,29 @@ class UsProfileDocuments {
             throw new Exception('NO_USER_LOGIN_SET');
         }
     }
-    
-     /**
+
+    /**
      * Loads current user assigned agent data into private property
      * 
      * @return void
      */
     protected function loadUserAgentData() {
         if (!empty($this->userLogin)) {
-        $rawData=zbs_AgentAssignedGetDataFast($this->userLogin, $this->userData[$this->userLogin]['ADDRESS']);
-           @$this->userAgentData['AGENTEDRPO']=$rawData['edrpo'];
-           @$this->userAgentData['AGENTNAME']=$rawData['contrname'];
-           @$this->userAgentData['AGENTID']=$rawData['id'];
-           @$this->userAgentData['AGENTBANKACC']=$rawData['bankacc'];
-           @$this->userAgentData['AGENTBANKNAME']=$rawData['bankname'];
-           @$this->userAgentData['AGENTBANKCODE']=$rawData['bankcode'];
-           @$this->userAgentData['AGENTIPN']=$rawData['ipn'];
-           @$this->userAgentData['AGENTLICENSE']=$rawData['licensenum'];
-           @$this->userAgentData['AGENTJURADDR']=$rawData['juraddr'];
-           @$this->userAgentData['AGENTPHISADDR']=$rawData['phisaddr'];
-           @$this->userAgentData['AGENTPHONE']=$rawData['phone'];
+            $rawData = zbs_AgentAssignedGetDataFast($this->userLogin, $this->userData[$this->userLogin]['ADDRESS']);
+            @$this->userAgentData['AGENTEDRPO'] = $rawData['edrpo'];
+            @$this->userAgentData['AGENTNAME'] = $rawData['contrname'];
+            @$this->userAgentData['AGENTID'] = $rawData['id'];
+            @$this->userAgentData['AGENTBANKACC'] = $rawData['bankacc'];
+            @$this->userAgentData['AGENTBANKNAME'] = $rawData['bankname'];
+            @$this->userAgentData['AGENTBANKCODE'] = $rawData['bankcode'];
+            @$this->userAgentData['AGENTIPN'] = $rawData['ipn'];
+            @$this->userAgentData['AGENTLICENSE'] = $rawData['licensenum'];
+            @$this->userAgentData['AGENTJURADDR'] = $rawData['juraddr'];
+            @$this->userAgentData['AGENTPHISADDR'] = $rawData['phisaddr'];
+            @$this->userAgentData['AGENTPHONE'] = $rawData['phone'];
         }
     }
-    
-    
+
     /**
      * Returns current user assigned agent data
      * 
@@ -113,25 +112,57 @@ class UsProfileDocuments {
             $this->loadUserAgentData();
             return ($this->userAgentData);
         } else {
-          throw new Exception('NO_USER_LOGIN_SET'); 
+            throw new Exception('NO_USER_LOGIN_SET');
         }
     }
-    
-    
-     /*
+
+    /*
      * returns last generated ID from documents registry
      * 
      * @return int
      */
+
     protected function getDocumentLastId() {
-        $query="SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
-        $data=  simple_query($query);
+        $query = "SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
+        $data = simple_query($query);
         if (!empty($data)) {
-            $result=$data['id'];
+            $result = $data['id'];
         } else {
-            $result=0;
+            $result = 0;
         }
         return ($result);
+    }
+
+    /**
+     * Returns contract dates data
+     * 
+     * @return array
+     */
+    protected function getContractDatesAll() {
+        $query = "SELECT `login`,`contract` from `contracts`";
+        $allcontracts = simple_queryall($query);
+        $queryDates = "SELECT `contract`,`date` from `contractdates`";
+        $alldates = simple_queryall($queryDates);
+        $result = array();
+        $dates = array();
+        if (!empty($alldates)) {
+            foreach ($alldates as $ia => $eachdate) {
+                $dates[$eachdate['contract']] = $eachdate['date'];
+            }
+        }
+
+        if (!empty($allcontracts)) {
+            foreach ($allcontracts as $io => $eachcontract) {
+                $result[$eachcontract['login']]['contractnum'] = $eachcontract['contract'];
+                if (isset($dates[$eachcontract['contract']])) {
+                    $result[$eachcontract['login']]['contractdate'] = $dates[$eachcontract['contract']];
+                } else {
+                    $result[$eachcontract['login']]['contractdate'] = '1970-01-01';
+                }
+            }
+        }
+
+        return($result);
     }
 
     /*
@@ -147,11 +178,12 @@ class UsProfileDocuments {
         $tariffspeeds = zbs_TariffGetSpeed($alluserdata['Tariff']);
         $tariffprices = zbs_TariffGetAllPrices();
         $allcontract = zbs_UserGetContract($this->userLogin);
+        $contractDates = $this->getContractDatesAll();
         $allrealnames = zbs_UserGetAllRealnames();
         $alladdress = zbs_AddressGetFulladdresslist();
         $allemail = zbs_UserGetEmail($this->userLogin);
-        $lastDocId=$this->getDocumentLastId();
-        $newDocId=$lastDocId+1;
+        $lastDocId = $this->getDocumentLastId();
+        $newDocId = $lastDocId + 1;
 
         $curdate = date("Y-m-d");
 
@@ -172,6 +204,7 @@ class UsProfileDocuments {
             $userdata[$alluserdata['login']]['PASSIVE'] = $alluserdata['Passive'];
             $userdata[$alluserdata['login']]['AO'] = $alluserdata['AlwaysOnline'];
             @$userdata[$alluserdata['login']]['CONTRACT'] = $allcontract;
+            @$userdata[$alluserdata['login']]['CONTRACTDATE'] = $contractDates[$this->userLogin]['contractdate'];
             @$userdata[$alluserdata['login']]['REALNAME'] = $allrealnames[$alluserdata['login']];
             @$userdata[$alluserdata['login']]['ADDRESS'] = $alladdress[$alluserdata['login']];
             @$userdata[$alluserdata['login']]['EMAIL'] = $allemail;
@@ -351,7 +384,7 @@ class UsProfileDocuments {
     public function setCustomFields() {
         $pdvPercent = $this->altcfg['DOCX_NDS'];
         if (la_CheckPost(array('customfields'))) {
-            $morph= new UBMorph();
+            $morph = new UBMorph();
             @$this->customFields['CUSTDATE'] = $_POST['customdate'];
             @$this->customFields['CUSTREALNAME'] = $_POST['customrealname'];
             @$this->customFields['CUSTPHONE'] = $_POST['customphone'];
@@ -363,7 +396,7 @@ class UsProfileDocuments {
             @$pdv = ($this->customFields['CUSTSUM'] / 100) * $pdvPercent;
             @$this->customFields['PDV'] = $pdv;
             @$this->customFields['CUSTSUMPDV'] = $this->customFields['CUSTSUM'] + $pdv;
-            @$this->customFields['CUSTSUMLIT']=  $morph->sum2str($this->customFields['CUSTSUM']);
+            @$this->customFields['CUSTSUMLIT'] = $morph->sum2str($this->customFields['CUSTSUM']);
             @$this->customFields['CUSTSUMPDVLIT'] = $morph->sum2str($this->customFields['CUSTSUMPDV']);
         }
     }
@@ -392,7 +425,7 @@ class UsProfileDocuments {
             if (isset($this->userDocuments[$documentid])) {
                 $documentFileName = $this->userDocuments[$documentid]['path'];
                 $fullPath = $this->dOCUMENTS_PATH . $documentFileName;
-                zbs_DownloadFile($fullPath,'docx');
+                zbs_DownloadFile($fullPath, 'docx');
             } else {
                 show_window(__('Sorry'), __('No such document'));
             }
