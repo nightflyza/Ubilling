@@ -4,8 +4,10 @@
 
 include ("../../libs/api.openpayz.php");
 
+
 //Пытаемся поймать JSON прямым POST-ом 
 $rawRequest = file_get_contents("php://input");
+
 
 /**
  * Check is transaction unique?
@@ -43,12 +45,16 @@ if (!empty($rawRequest)) {
                             $paysys = 'OPLATA';
                             $hash = 'OPLT_' . $requestData->payment_id;
                             $summ = $requestData->amount / 100; // деньги то в копейках
+                            $orderStatus = $requestData->order_status;
                             //а нету ли уже такой транзакции?
                             if (opl_CheckTransaction($hash)) {
-                                //регистрируем новую транзакцию
-                                op_TransactionAdd($hash, $summ, $customerId, $paysys, 'NOPE');
-                                //вызываем обработчики необработанных транзакций
-                                op_ProcessHandlers();
+                                //проверяем состояние платежа
+                                if ($orderStatus == 'approved') {
+                                    //регистрируем новую транзакцию
+                                    op_TransactionAdd($hash, $summ, $customerId, $paysys, 'NOPE');
+                                    //вызываем обработчики необработанных транзакций
+                                    op_ProcessHandlers();
+                                }
                             } else {
                                 //здесь по логике должен быть ответ о том, что это дубль
                             }
