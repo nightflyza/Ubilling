@@ -29,9 +29,11 @@ class FundsFlow {
      * @var array
      */
     protected $allTariffsData = array();
+    protected $fundsTmp = array();
 
     public function __construct() {
         $this->loadConfigs();
+        $this->initTmp();
     }
 
     /**
@@ -43,6 +45,18 @@ class FundsFlow {
         global $ubillingConfig;
         $this->alterConf = $ubillingConfig->getAlter();
         $this->billingConf = $ubillingConfig->getBilling();
+    }
+
+    /**
+     * Inits tmp data with empty values
+     * 
+     * @return void
+     */
+    protected function initTmp() {
+        $this->fundsTmp['col1'] = 0;
+        $this->fundsTmp['col2'] = 0;
+        $this->fundsTmp['col3'] = 0;
+        $this->fundsTmp['col4'] = 0;
     }
 
     /**
@@ -416,7 +430,34 @@ class FundsFlow {
                 $cells.=wf_TableCell(round($rawData['balance'], 2));
                 $cells.=wf_TableCell(round($rawData['used'], 2));
                 $result.=wf_TableRow($cells, 'row3');
+
+                //fill summary data
+                $this->fundsTmp['col1']+= $rawData['payments'];
+                $this->fundsTmp['col2']+= $rawData['paymentscorr'];
+                $this->fundsTmp['col3']+= $rawData['balance'];
+                $this->fundsTmp['col4']+= $rawData['used'];
             }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns totals data from previous renderCorpsFlows runs
+     * 
+     * @return string
+     */
+    public function renderCorpsFlowsTotal() {
+        $result = '';
+        if (!empty($this->fundsTmp)) {
+            $cells = wf_TableCell('');
+            $cells.=wf_TableCell(__('Total'));
+            $cells.=wf_TableCell('');
+            $cells.=wf_TableCell('');
+            $cells.=wf_TableCell(round($this->fundsTmp['col1'], 2));
+            $cells.=wf_TableCell(round($this->fundsTmp['col2'], 2));
+            $cells.=wf_TableCell(round($this->fundsTmp['col3'], 2));
+            $cells.=wf_TableCell(round($this->fundsTmp['col4'], 2));
+            $result.=wf_TableRow($cells, 'row2');
         }
         return ($result);
     }

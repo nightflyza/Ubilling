@@ -56,6 +56,7 @@ if (cfr('CORPS')) {
                     $paymentscorr = $funds->getPaymentsCorr($eachlogin);
                     $fundsflow = $fees + $payments + $paymentscorr;
                     $dateFunds = $funds->filterByDate($fundsflow, $date);
+                    
                     if (!$agentFilter) { 
                     $rows.=$funds->renderCorpsFlows($count, $dateFunds, $corpsData, $corpUsers, $allUserContracts, $allUsersCash,$allUserTariffs,$allTariffPrices);
                     } else {
@@ -66,7 +67,7 @@ if (cfr('CORPS')) {
                         }
                     }
                 }
-
+                $rows.=$funds->renderCorpsFlowsTotal();
                 $report = wf_TableBody($rows, '100%', 0, '');
                 show_window(__('Report'), $report);
             } else {
