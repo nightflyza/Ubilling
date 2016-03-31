@@ -39,7 +39,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 }
                 foreach ($serviceTagID as $eachTagID) {
                     foreach ($sheduledData as $eachData => $eachValue) {
-                        if($eachTagID == $eachValue['param']) {
+                        if ($eachTagID == $eachValue['param']) {
                             $result[] = $eachValue;
                         }
                     }
@@ -237,10 +237,10 @@ if ($us_config['ADSERVICE_ENABLED']) {
                         if ($eachSheduled['param'] == $tagid) {
                             $cells = la_TableCell($name);
                             $action = '';
-                            if($eachSheduled['action'] == 'tagadd') {
+                            if ($eachSheduled['action'] == 'tagadd') {
                                 $action = __('activated');
                             }
-                            if($eachSheduled['action'] == 'tagdel') {
+                            if ($eachSheduled['action'] == 'tagdel') {
                                 $action = __('deactivated');
                             }
                             $cells.= la_TableCell(__('Sheduled') . ' ' . __($action) . ' ' . la_JSAlert('?module=adservice&delete_shedule=' . $eachSheduled['param'], la_img('images/delete.gif'), __('You realy want to abort service activation') . '?'));
@@ -248,8 +248,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                         }
                     }
                 }
-            }
-            if (!empty($allActivated)) {
+
                 if (!empty($allActivated)) {
                     foreach ($allActivated as $eachActivated) {
                         if ($eachActivated['tagid'] == $tagid) {

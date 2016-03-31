@@ -13,9 +13,9 @@ if ($altcfg['PER_CITY_ACTION']) {
         $form.= wf_Link(PerCityAction::MODULE_NAME . "&action=analytics", __('Analytics'), true, 'ubButton');
         show_window(__('Actions'), $form);
 
+        $perCityAction = new PerCityAction();
         if (isset($_GET['action'])) {
             $action = $_GET['action'];
-            $perCityAction = new PerCityAction();
             if ($action == 'debtors') {
                 if (cfr('REPORTCITYDEBTORS')) {
                     show_window(__('Payments'), $perCityAction->CitySelector($admin, $action));
@@ -23,6 +23,9 @@ if ($altcfg['PER_CITY_ACTION']) {
                         $cityId = $_GET['citysearch'];
                         if ($perCityAction->CheckRigts($cityId, $admin)) {
                             $perCityAction->LoadAllData('', $cityId, 'debtors');
+                            if (isset($_GET['ajax'])) {
+                                die($perCityAction->ajaxData());
+                            }
                             $report_name = __('Debtors by city') . wf_Link(PerCityAction::MODULE_NAME . "&action=debtors&citysel=$cityId&printable=true", wf_img("skins/printer_small.gif"));
                             show_window(__($report_name), $perCityAction->PerCityDataShow());
                         } else {

@@ -1,9 +1,29 @@
 <?php
 
+/**
+ * Class for coloring users by tag color
+ */
 Class ColorTagging {
 
+    /**
+     * Contains all tags
+     * 
+     * @var array Tags
+     */
     protected $allTags = array();
+
+    /**
+     * Contains all tag types
+     * 
+     * @var array Types
+     */
     protected $allTagTypes = array();
+
+    /**
+     * Contains alter.ini contents
+     * 
+     * @var array Alter.ini contents
+     */
     protected $altCfg = array();
 
     public function __construct() {
@@ -12,6 +32,12 @@ Class ColorTagging {
         $this->loadAlter();
     }
 
+    /**
+     * Select from DB all data from table `tags` and place it to $this->allTags
+     * in format $this->allTags[$eachLogin] = $eachTagID;
+     * 
+     * @return void
+     */
     protected function LoadAllTags() {
         $query = "SELECT * FROM `tags`";
         $allData = simple_queryall($query);
@@ -22,6 +48,12 @@ Class ColorTagging {
         }
     }
 
+    /**
+     * $Select from DB all data from table `tagtypes` and place it to $this->allTagTypes
+     * in format $this->allTagTypes[$eachID] = $eachData;
+     * 
+     * @return void
+     */
     protected function LoadAllTagTypes() {
         $query = "SELECT * FROM `tagtypes`";
         $allData = simple_queryall($query);
@@ -32,11 +64,25 @@ Class ColorTagging {
         }
     }
 
+    /**
+     * Loads all alter.ini contents into $this->altCfg
+     * 
+     * @global array $ubillingConfig
+     * 
+     * @return void
+     */
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
+    /**
+     * Find's user's tag and it color if it exsists
+     * 
+     * @param string $login User's login
+     * 
+     * @return string Color in hex format (#000000)
+     */
     public function GetUsersColor($login) {
         $color = '';
         $allowed = '';
@@ -68,6 +114,9 @@ Class ColorTagging {
 
 }
 
+/**
+ * Class for making some reports in range on one city
+ */
 class PerCityAction {
 
     const MODULE_NAME = "?module=per_city_action";
@@ -169,26 +218,193 @@ class PerCityAction {
      */
     protected $altCfg = array();
 
+    /**
+     * All active logins in selected data.
+     * Need for sorting data
+     * 
+     * @var array
+     */
+    protected $activeLogin = array();
+
+    /**
+     * Storing ONU signal cache
+     * 
+     * @var array
+     */
+    protected $signalCache = array();
+
     public function __construct() {
         $this->LoadAddresses();
         $this->LoadRealNames();
         $this->loadAlter();
     }
 
+    /**
+     * Get full address list of all users and load it into $this->allAddress
+     * 
+     * @return void
+     */
     protected function LoadAddresses() {
         $this->allAddresses = zb_AddressGetFulladdresslist();
     }
 
+    /**
+     * Get all realnames of all users and load it into $this->allRealNames
+     * 
+     * @return void
+     */
     protected function LoadRealNames() {
         $this->allRealNames = zb_UserGetAllRealnames();
     }
 
+    /**
+     * Get all cash types and load it into $this->allCashTypes
+     * 
+     * @return void
+     */
     protected function LoadCashTypes() {
         $this->allCashTypes = zb_CashGetAllCashTypes();
     }
 
-    public function LoadAllData($currentDate, $cityId, $opt, $from = '', $to = '', $by_day = '') {
-        switch ($opt) {
+    /**
+     * Get all service names and load it to $this->allServiceNames
+     * 
+     * @return void
+     */
+    protected function LoadAllServiceNames() {
+        $this->allServiceNames = zb_VservicesGetAllNamesLabeled();
+    }
+
+    /**
+     * Get all data by date about self credited users and load it to $this->allCredited
+     * 
+     * @param string $date
+     * 
+     * @return void
+     */
+    public function LoadAllCredited($date = '') {
+        if (empty($date)) {
+            $date = $this->GetCurrentDate();
+        }
+        $query = "SELECT * FROM `zbssclog` WHERE `date` LIKE '" . $date . "%';";
+        $allCredited = simple_queryall($query);
+        if (!empty($allCredited)) {
+            foreach ($allCredited as $eachCredited) {
+                $this->allCredited[$eachCredited['login']] = $eachCredited['date'];
+            }
+        }
+    }
+
+    /**
+     * Get all users contracts and load it into $this->allContracts
+     * 
+     * @return void
+     */
+    protected function LoadAllContracts() {
+        $this->allContracts = array_flip(zb_UserGetAllContracts());
+    }
+
+    /**
+     * Get all users tariffs
+     * 
+     * @return void
+     */
+    protected function LoadAllTariffs() {
+        $this->allTariffs = zb_TariffsGetAllUsers();
+    }
+
+    /**
+     * Get all users pon Data (mac onu, oltid) and load into $this->allOnu
+     * 
+     * @return void
+     */
+    protected function LoadAllOnu() {
+        $query = "SELECT * FROM `pononu`";
+        $allonu = simple_queryall($query);
+        $onu = array();
+        if (!empty($allonu)) {
+            foreach ($allonu as $io => $each) {
+                $this->allOnu[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Get all data from tables `notes` and `adcomments` and place it into $this->allNotes
+     * 
+     * @return void
+     */
+    protected function LoadAllNotes() {
+        $query = "SELECT * FROM `notes`";
+        $allNotes = simple_queryall($query);
+        if (!empty($allNotes)) {
+            foreach ($allNotes as $ia => $eachnote) {
+                $this->allNotes[$eachnote['login']] = $eachnote['note'];
+            }
+        }
+        $query = "SELECT * FROM `adcomments`";
+        $allComments = simple_queryall($query);
+        if (!empty($allComments)) {
+            foreach ($allComments as $ia => $eachcomment) {
+                if (isset($this->allNotes[$eachcomment['item']])) {
+                    $this->allNotes[$eachcomment['item']].= "  " . $eachcomment['text'];
+                } else {
+                    $this->allNotes[$eachcomment['item']] = $eachcomment['text'];
+                }
+            }
+        }
+    }
+
+    /**
+     * Get all users phones data info $this->allPhoneData
+     * 
+     * @return void
+     */
+    protected function LoadAllPhoneData() {
+        $this->allPhoneData = zb_UserGetAllPhoneData();
+    }
+
+    /**
+     * Load alter.ini config file info $this->altCfg
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        $this->altCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    }
+
+    /**
+     * Loads all onu signals from cache into $this->signalCache
+     * 
+     * @return void
+     */
+    protected function loadSignalsCache() {
+        $availCacheData = rcms_scandir(PONizer::SIGCACHE_PATH, '*_' . PONizer::SIGCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(PONizer::SIGCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $signal) {
+                    $this->signalCache[$mac] = $signal;
+                }
+            }
+        }
+    }
+
+    /**
+     * Loading data depended from user choice in reports to $this->allData
+     * 
+     * @param string $currentDate
+     * @param int $cityId
+     * @param string $type Type of report
+     * @param string $from From date
+     * @param string $to To date
+     * @param string $by_day By one day
+     * 
+     * @return void
+     */
+    public function LoadAllData($currentDate, $cityId, $type, $from = '', $to = '', $by_day = '') {
+        switch ($type) {
             case "payments":
                 $query = "SELECT * FROM `payments` WHERE `date` LIKE '" . $currentDate . "%'  AND `login` IN (SELECT `login` FROM `address` WHERE `aptid` IN (SELECT `id` FROM `apt` WHERE `buildid` IN (SELECT `id` FROM `build` WHERE `streetid` IN (SELECT `id` FROM `street` WHERE `cityid`='" . $cityId . "'))))";
                 $data = simple_queryall($query);
@@ -226,88 +442,6 @@ class PerCityAction {
         }
     }
 
-    protected function LoadAllServiceNames() {
-        $this->allServiceNames = zb_VservicesGetAllNamesLabeled();
-    }
-
-    public function LoadAllCredited($date = '') {
-        if (empty($date)) {
-            $date = $this->GetCurrentDate();
-        }
-        $query = "SELECT * FROM `zbssclog` WHERE `date` LIKE '" . $date . "%';";
-        $allCredited = simple_queryall($query);
-        if (!empty($allCredited)) {
-            foreach ($allCredited as $eachCredited) {
-                $this->allCredited[$eachCredited['login']] = $eachCredited['date'];
-            }
-        }
-    }
-
-    protected function LoadAllContracts() {
-        $this->allContracts = array_flip(zb_UserGetAllContracts());
-    }
-
-    protected function LoadAllTariffs() {
-        $this->allTariffs = zb_TariffsGetAllUsers();
-    }
-
-    protected function LoadAllOnu() {
-        $query = "SELECT * FROM `pononu`";
-        $allonu = simple_queryall($query);
-        $onu = array();
-        if (!empty($allonu)) {
-            foreach ($allonu as $io => $each) {
-                $this->allOnu[$each['login']] = $each['mac'];
-            }
-        }
-    }
-
-    protected function LoadAllNotes() {
-        $query = "SELECT * FROM `notes`";
-        $allNotes = simple_queryall($query);
-        if (!empty($allNotes)) {
-            foreach ($allNotes as $ia => $eachnote) {
-                $this->allNotes[$eachnote['login']] = $eachnote['note'];
-            }
-        }
-    }
-
-    protected function LoadAllComments() {
-        $query = "SELECT * FROM `adcomments`";
-        $allComments = simple_queryall($query);
-        if (!empty($allComments)) {
-            foreach ($allComments as $ia => $eachcomment) {
-                $this->allComments[$eachcomment['item']] = $eachcomment['text'];
-            }
-        }
-    }
-
-    protected function LoadAllPhoneData() {
-        $this->allPhoneData = zb_UserGetAllPhoneData();
-    }
-
-    protected function loadAlter() {
-        $this->altCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-    }
-
-    /**
-     * By default getting current date in YYYY-MM format
-     * or in case of some parameters returns only YYYY or MM
-     * 
-     * @param bool $onlyMonth
-     * @param bool $onlyYear
-     * @return string
-     */
-    public function GetCurrentDate($onlyMonth = false, $onlyYear = false) {
-        if ($onlyMonth) {
-            return (date("m"));
-        } elseif ($onlyYear) {
-            return (date("o"));
-        } else {
-            return (date("Y-m"));
-        }
-    }
-
     /**
      * Returns form for payments by city within some month (by default - current month)
      * 
@@ -335,7 +469,7 @@ class PerCityAction {
             $this->LoadAllTariffs();
         }
         $cells.= wf_TableCell(__('Cash type'));
-        $cells.= wf_TableCell(__('Credited'));
+        $cells.= wf_TableCell(__('Was credited'));
         $cells.= wf_TableCell(__('Notes'));
         $cells.= wf_TableCell(__('Admin'));
         $rows = wf_TableRow($cells, 'row1');
@@ -377,38 +511,141 @@ class PerCityAction {
      * @return string
      */
     public function PerCityDataShow() {
-        $total = 0;
-        $totalPayCount = 0;
-        $colors = new ColorTagging();
         $this->LoadAllOnu();
-        $this->LoadAllComments();
         $this->LoadAllNotes();
         $this->LoadAllPhoneData();
         $this->LoadAllCredited();
-        $cells = wf_TableCell(__('Full address'));
-        $cells.= wf_TableCell(__('Real Name'));
-        $cells.= wf_TableCell(__('Credited'));
-        $cells.= wf_TableCell(__('Cash'));
+        $this->loadSignalsCache();
+        $addr_sort = 'address_down';
+        $realname_sort = 'realname_down';
+        $credited_sort = 'credited_down';
+        $cash_sort = 'cash_down';
+        $tariff_sort = 'tariff_down';
+        $comment_sort = 'comment_down';
+        $signal_sort = 'signal_down';
+        $mac_onu_sort = 'mac_onu_down';
+
+        if (isset($_GET['sort'])) {
+            switch ($_GET['sort']) {
+                case 'address_up':
+                    $this->sort_additional($this->allAddresses, SORT_ASC);
+                    break;
+                case 'address_down':
+                    $this->sort_additional($this->allAddresses, SORT_DESC);
+                    break;
+                case 'realname_up':
+                    $this->sort_additional($this->allRealNames, SORT_ASC);
+                    break;
+                case 'realname_down':
+                    $this->sort_additional($this->allRealNames, SORT_DESC);
+                    break;
+                case 'credited_up':
+                    $this->sort_additional($this->allCredited, SORT_ASC);
+                    break;
+                case 'credited_down':
+                    $this->sort_additional($this->allCredited, SORT_DESC);
+                    break;
+                case 'cash_up':
+                    $this->sort_standart('Cash', SORT_ASC);
+                    break;
+                case 'cash_down':
+                    $this->sort_standart('Cash', SORT_DESC);
+                    break;
+                case 'tariff_up':
+                    $this->sort_standart('Tariff', SORT_ASC);
+                    break;
+                case 'tariff_down':
+                    $this->sort_standart('Tariff', SORT_DESC);
+                    break;
+                case 'comment_up':
+                    $this->sort_additional($this->allNotes, SORT_ASC);
+                    break;
+                case 'comment_down':
+                    $this->sort_additional($this->allNotes, SORT_DESC);
+                    break;
+                case 'signal_up':
+                    $this->sort_signal($this->allOnu, $this->signalCache, SORT_ASC);
+                    break;
+                case 'signal_down':
+                    $this->sort_signal($this->allOnu, $this->signalCache, SORT_DESC);
+                    break;
+                case 'mac_onu_up':
+                    $this->sort_additional($this->allOnu, SORT_ASC);
+                    break;
+                case 'mac_onu_down':
+                    $this->sort_additional($this->allOnu, SORT_DESC);
+                    break;
+            }
+            if ($_GET['sort'] == 'address_down') {
+                $addr_sort = 'address_up';
+            }
+            if ($_GET['sort'] == 'realname_down') {
+                $realname_sort = 'realname_up';
+            }
+            if ($_GET['sort'] == 'credited_down') {
+                $credited_sort = 'credited_up';
+            }
+            if ($_GET['sort'] == 'cash_down') {
+                $cash_sort = 'cash_up';
+            }
+            if ($_GET['sort'] == 'tariff_down') {
+                $tariff_sort = 'tariff_up';
+            }
+            if ($_GET['sort'] == 'comment_down') {
+                $comment_sort = 'comment_up';
+            }
+            if ($_GET['sort'] == 'signal_down') {
+                $signal_sort = 'signal_up';
+            }
+            if ($_GET['sort'] == 'mac_onu_down') {
+                $mac_onu_sort = 'mac_onu_up';
+            }
+        }
+
+        $total = 0;
+        $totalPayCount = 0;
+        $colors = new ColorTagging();
+        $cells = wf_TableCell(wf_tag('h2', false) . __('ID') . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $addr_sort, __('Full address')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $realname_sort, __('Real Name')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $credited_sort, __('Was credited')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $cash_sort, __('Cash')) . wf_tag('h2', true));
         if ($this->altCfg['FINREP_TARIFF']) {
-            $cells.=wf_TableCell(__('Tariff'));
+            $cells.=wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $tariff_sort, __('Tariff')) . wf_tag('h2', true));
             $this->LoadAllTariffs();
         }
-        $cells.= wf_TableCell(__('Comment'));
-        $cells.= wf_TableCell(__('MAC ONU/ONT'));
-        $cells.= wf_TableCell(__('Login'));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $comment_sort, __('Comment')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $signal_sort, __('Signal')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . wf_Link($this->SaveGetParams('sort') . 'sort=' . $mac_onu_sort, __('MAC ONU/ONT')) . wf_tag('h2', true));
+        $cells.= wf_TableCell(wf_tag('h2', false) . __('Login') . wf_tag('h2', true));
         $rows = wf_TableRow($cells, 'row1');
         if (!empty($this->allData)) {
             foreach ($this->allData as $eachdebtor) {
+                $total = $total + $eachdebtor['Cash'];
+                $totalPayCount++;
+                $signal = @$this->signalCache[$this->allOnu[$eachdebtor['login']]['mac']];
+                $sigColor = '#000000';
+                if (!empty($signal)) {
+                    if (($signal > 0) OR ( $signal < -25)) {
+                        $sigColor = '#ab0000';
+                    } else {
+                        $sigColor = '#005502';
+                    }
+                } else {
+                    $signal = __("No");
+                }
                 $userColor = $colors->GetUsersColor($eachdebtor['login']);
-                $cell = wf_TableCell(@$this->allAddresses[$eachdebtor['login']]);
+                $cell = wf_TableCell($totalPayCount);
+                $cell.= wf_TableCell(@$this->allAddresses[$eachdebtor['login']]);
                 $cell.= wf_TableCell(@$this->allRealNames[$eachdebtor['login']] . "&nbsp&nbsp" . @$this->allPhoneData[$eachdebtor['login']]['mobile']);
                 $cell.= wf_TableCell(@$this->allCredited[$eachdebtor['login']]);
                 $cell.= wf_TableCell($eachdebtor['Cash']);
                 if ($this->altCfg['FINREP_TARIFF']) {
                     $cell.= wf_TableCell($this->allTariffs[$eachdebtor['login']]);
                 }
-                $cell.= wf_TableCell(@$this->allNotes[$eachdebtor['login']] . "&nbsp&nbsp" . @$this->allComments[$eachdebtor['login']]);
-                $cell.= wf_TableCell(@$this->allOnu[$eachdebtor['login']]);
+                $cell.= wf_TableCell(@$this->allNotes[$eachdebtor['login']]);
+                $cell.= wf_TableCell(wf_tag('strong') . wf_tag('font color=' . $sigColor, false) . $signal . wf_tag('font', true) . wf_tag('strong', true));
+                $cell.= wf_TableCell(@$this->allOnu[$eachdebtor['login']]['mac']);
                 $cell.= wf_TableCell(wf_Link('?module=userprofile&username=' . $eachdebtor['login'], (web_profile_icon() . ' ' . $eachdebtor['login']), false, ''));
                 if (!empty($userColor)) {
                     $style = "background-color:$userColor";
@@ -416,16 +653,20 @@ class PerCityAction {
                 } else {
                     $rows.= wf_TableRow($cell, 'row4');
                 }
-                $total = $total + $eachdebtor['Cash'];
-                $totalPayCount++;
             }
         }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable id');
+        $result = wf_tag('strong') . __('Count') . ': ' . $totalPayCount . wf_tag('strong', true) . wf_tag('br');
         $result.=wf_tag('strong') . __('Cash') . ': ' . $total . wf_tag('strong', true) . wf_tag('br');
-        $result.=wf_tag('strong') . __('Count') . ': ' . $totalPayCount . wf_tag('strong', true);
+        $result.= wf_TableBody($rows, '100%', '0', '');
+
         return($result);
     }
 
+    /**
+     * Shows analytics form by city and date
+     * 
+     * @return string
+     */
     public function AnalyticsShow() {
         $total = 0;
         $totalPayCount = 0;
@@ -501,6 +742,14 @@ class PerCityAction {
         return($form);
     }
 
+    /**
+     * City selector with check rights
+     * 
+     * @param string $admin
+     * @param string $action
+     * 
+     * @return string
+     */
     public function CitySelector($admin, $action) {
         $form = wf_tag('form', false, '', 'action="" method="GET"');
         $form.= wf_tag('table', false, '', 'width="100%" border="0"');
@@ -520,7 +769,7 @@ class PerCityAction {
             if (isset($_GET['by_day'])) {
                 $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
             }
-            if(isset($_GET['year'])) {
+            if (isset($_GET['year'])) {
                 $cells.= wf_HiddenInput("year", $_GET['year']);
             }
             $cells.= wf_TableCell($this->CitySelectorPermissioned($admin));
@@ -543,7 +792,7 @@ class PerCityAction {
             if (isset($_GET['by_day'])) {
                 $cells.= wf_HiddenInput("by_day", $_GET['by_day']);
             }
-            if(isset($_GET['year'])) {
+            if (isset($_GET['year'])) {
                 $cells.= wf_HiddenInput("year", $_GET['year']);
             }
             $cells.= wf_TableCell(web_ok_icon() . ' ' . $cityname . wf_HiddenInput('citysearch', $_GET['citysel']));
@@ -658,8 +907,8 @@ class PerCityAction {
      * @param string  $label text label for input
      * @param bool    $br append new line
      * @param bool    $checked is checked?
-     * @return  string
-     *
+     * 
+     * @return  string     
      */
     protected function CheckInput($name, $label = '', $value = '', $br = false, $checked = false) {
         $inputid = wf_InputId();
@@ -687,6 +936,14 @@ class PerCityAction {
         return ($result);
     }
 
+    /**
+     * Check weather admin have enough rights to see reports by city
+     * 
+     * @param int $cityID
+     * @param string $admin
+     * 
+     * @return boolean
+     */
     public function CheckRigts($cityID, $admin) {
         $result = false;
         if (file_exists(self::PERMISSION_PATH . $admin)) {
@@ -703,6 +960,13 @@ class PerCityAction {
         return ($result);
     }
 
+    /**
+     * Return web form for date picking
+     * 
+     * @param string $action
+     * 
+     * @return string
+     */
     public function ChooseDateForm($action) {
         $inputs = wf_HiddenInput("module", "per_city_action");
         $inputs.= wf_HiddenInput("action", $action);
@@ -738,6 +1002,155 @@ class PerCityAction {
         $rows = wf_TableRow($cells);
         $result = wf_TableBody($rows, "100%", '0', '');
         return($result);
+    }
+
+    /**
+     * By default getting current date in YYYY-MM format
+     * or in case of some parameters returns only YYYY or MM
+     * 
+     * @param bool $onlyMonth
+     * @param bool $onlyYear
+     * @return string
+     */
+    public function GetCurrentDate($onlyMonth = false, $onlyYear = false) {
+        if ($onlyMonth) {
+            return (date("m"));
+        } elseif ($onlyYear) {
+            return (date("o"));
+        } else {
+            return (date("Y-m"));
+        }
+    }
+
+    /**
+     * Load all logins from $this->allData to $this->activeLogin.
+     * Need for sorting
+     * 
+     * @return void
+     */
+    protected function getCurrentLogins() {
+        foreach ($this->allData as $eachData => $eachValue) {
+            $this->activeLogin[$eachValue['login']] = $eachValue;
+        }
+    }
+
+    /**
+     * Reads all current get parameters and make string from all of them except $except
+     * 
+     * @param string $except
+     * 
+     * @return string
+     */
+    protected function SaveGetParams($except) {
+        $url = '?';
+        foreach ($_GET as $key => $value) {
+            if ($key != $except) {
+                $url.= $key . '=' . $value . '&';
+            }
+        }
+        return ($url);
+    }
+
+    /**
+     * Function for sorting data in $this->allData.
+     * Used for sorting cash and tariffs.
+     * 
+     * @param array $sortingData
+     * @param string $type
+     * 
+     * @return void
+     */
+    protected function sort_standart($sortingData, $type) {
+        foreach ($this->allData as $eachKey => $eachValue) {
+            $sorted[][$sortingData] = $eachValue[$sortingData];
+        }
+        array_multisort($sorted, $type, $this->allData);
+    }
+
+    /**
+     * Function for sorting data in $this->allData.
+     * Used for sorting all data except onu singals, cash and tariffs.
+     * 
+     * @param array $sortingData
+     * @param string $type
+     * 
+     * @return void
+     */
+    protected function sort_additional($sortingData, $type) {
+        $this->getCurrentLogins();
+        foreach ($sortingData as $eachKey => $eachValue) {
+            if (isset($this->activeLogin[$eachKey])) {
+                $sorted[]['login'] = $eachValue . ';' . $eachKey;
+            }
+        }
+
+        array_multisort($sorted, $type);
+        $fullData = $this->allData;
+        $this->allData = array();
+        foreach ($sorted as $sortedKey => $sortedValue) {
+            $tmp = explode(";", $sortedValue['login']);
+            foreach ($fullData as $dataKey => $dataValue) {
+                if ($dataValue['login'] == $tmp[1]) {
+                    $this->allData[] = $dataValue;
+                    break;
+                }
+            }
+        }
+        foreach ($fullData as $eachKey => $eachValue) {
+            $eq = false;
+            foreach ($this->allData as $dataKey => $dataValue) {
+                if ($dataValue['login'] == $eachValue['login']) {
+                    $eq = true;
+                }
+            }
+            if (!$eq) {
+                $this->allData[] = $eachValue;
+            }
+        }
+    }
+
+    /**
+     * Function for sorting data in $this->allData.
+     * User onlu for sorting by onu signals.
+     * 
+     * @param array $allOnu
+     * @param array $signalCache
+     * @param string $type
+     * 
+     * @return void
+     */
+    protected function sort_signal($allOnu, $signalCache, $type) {
+        $this->getCurrentLogins();
+        foreach ($this->activeLogin as $eachKey => $eachValue) {
+            if (isset($allOnu[$eachKey])) {
+                if (isset($signalCache[$allOnu[$eachKey]['mac']])) {
+                    $sorted[]['login'] = $signalCache[$allOnu[$eachKey]['mac']] . ';' . $eachKey;
+                }
+            }
+        }
+        array_multisort($sorted, $type);
+        $fullData = $this->allData;
+        $this->allData = array();
+        foreach ($sorted as $sortedKey => $sortedValue) {
+            $tmp = explode(";", $sortedValue['login']);
+            foreach ($fullData as $dataKey => $dataValue) {
+                if ($dataValue['login'] == $tmp[1]) {
+                    $this->allData[] = $dataValue;
+                    break;
+                }
+            }
+        }
+        foreach ($fullData as $eachKey => $eachValue) {
+            $eq = false;
+            foreach ($this->allData as $dataKey => $dataValue) {
+                if ($dataValue['login'] == $eachValue['login']) {
+                    $eq = true;
+                }
+            }
+            if (!$eq) {
+                $this->allData[] = $eachValue;
+            }
+        }
     }
 
 }
