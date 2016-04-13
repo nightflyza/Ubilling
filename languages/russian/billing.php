@@ -2216,10 +2216,10 @@ $lang['def']['The threshold at which the money considered user debtor'] = 'По�
 
 //rev 4986 
 $lang['def']['right to delete photostorage images'] = 'Право удалять изображения из хранилища';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['full'] = 'полный';
+$lang['def']['short'] = 'короткий';
+$lang['def']['Go to the web interface'] = 'Перейти в веб-интерфейс';
+$lang['def']['right to delete tasks'] = 'Право удалять задания';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

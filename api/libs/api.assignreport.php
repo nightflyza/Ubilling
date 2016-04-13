@@ -463,6 +463,56 @@ class agentAssignReport {
     }
 
     /**
+     * extracts data from agentPring cache for future export in CSV
+     * 
+     * @param int $agentid Existing agent ID in database
+     * 
+     * @return void
+     */
+    public function exportCSV2($agentid) {
+        $tmpArr = array();
+        $result = '';
+        $shortAddres = zb_AddressGetFulladdresslistCached();
+
+        if (!empty($this->altcfg)) {
+            $altercfg = $this->altcfg;
+        } else {
+            global $ubillingConfig;
+            $this->altcfg = $ubillingConfig->getAlter();
+            $altercfg = $this->altcfg;
+        }
+
+
+        if (file_exists(self::EXPORT_PATH . 'report_agentfinance.prindataraw')) {
+            $rawData = file_get_contents(self::EXPORT_PATH . 'report_agentfinance.prindataraw');
+            $tmpArr = unserialize($rawData);
+            $allservicenames = zb_VservicesGetAllNamesLabeled();
+            $this->loadUserRealnames();
+            $this->loadCashTypes();
+            if (!empty($tmpArr)) {
+                if (isset($tmpArr[$agentid])) {
+                    if (!empty($tmpArr[$agentid])) {
+                        //CSV header
+                        $result.= __('Date') . ';' . __('Cash') . ';' . __('Full address') . ';' . __('Real Name') . ';' . __('Notes') . "\n";
+                        //CSV data
+                        foreach ($tmpArr[$agentid] as $io => $each) {
+                            $summ = str_replace('.', ',', $each['summ']); //need for normal summ in excel
+                            $timeStamp = strtotime($each['date']);
+                            $newDate = date("Y-m-d", $timeStamp);
+                            $result.=$newDate . ';' . $summ . ';' . @$shortAddres[$each['login']] . ';' . @$this->userRealnames[$each['login']] . ';' . zb_TranslatePaymentNote($each['note'], $allservicenames) . "\n";
+                        }
+                    }
+                }
+            }
+        }
+        $saveCsvName = self::EXPORT_PATH . 'report_agentfinance_' . $agentid . '_' . zb_rand_string(8) . '.csv';
+        $result = iconv('utf-8', 'windows-1251', $result);
+        file_put_contents($saveCsvName, $result);
+        zb_DownloadFile($saveCsvName, 'csv');
+        die();
+    }
+
+    /**
      * do the payments search via some data interval
      * 
      * @return string
@@ -559,7 +609,8 @@ class agentAssignReport {
             $agRows = wf_TableRow($agCells, 'row1');
 
             foreach ($this->agentsumm as $eachAgentId => $eachAgentStat) {
-                $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export')), false, '');
+                $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('full')), false, '').' ';
+                $exportControls.= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '').' ';
                 $exportControls.= wf_Link("?module=report_agentfinance&exporthtmlagentid=" . $eachAgentId, wf_img('skins/icon_print.png', __('Print')), false, '');
                 $agCells = wf_TableCell($this->agentsNamed[$eachAgentId]);
                 $agCells.= wf_TableCell($eachAgentStat['count']);

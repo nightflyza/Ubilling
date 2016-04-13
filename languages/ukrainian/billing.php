@@ -2232,7 +2232,9 @@ $lang['def']['The threshold at which the money considered user debtor'] = 'По�
 
 //rev 4986 
 $lang['def']['right to delete photostorage images'] = 'Право видаляти зображення зі сховища';
-
-
+$lang['def']['full'] = 'повний';
+$lang['def']['short'] = 'короткий';
+$lang['def']['Go to the web interface'] = 'Перейти до веб-інтерфейсу';
+$lang['def']['right to delete tasks'] = 'Право видаляти завдання';
 
 ?>

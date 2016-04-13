@@ -1007,15 +1007,15 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     } else {
         $smsInputs = '';
     }
-    
-    $sup=  wf_tag('sup').'*'.wf_tag('sup',true);
+
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
-    $inputs.= wf_tag('input',false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
+    $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
     $inputs.=wf_HiddenInput('createtask', 'true');
     $inputs.=wf_DatePicker('newstartdate');
     $inputs.=wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs.=wf_tag('label') . __('Target date') . $sup. wf_tag('label', true);
+    $inputs.=wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
     $inputs.=wf_delimiter();
     $inputs.=wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
     $inputs.=wf_HiddenInput('newtasklogin', $login);
@@ -1353,6 +1353,7 @@ function ts_TaskChangeForm($taskid) {
     $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    $messages = new UbillingMessageHelper();
     $smsData = '';
 
     if (!empty($taskdata)) {
@@ -1515,12 +1516,17 @@ function ts_TaskChangeForm($taskid) {
 
 
             $form = wf_Form("", 'POST', $inputs, 'glamour');
-
-
+            
+            if (cfr('TASKMANDELETE')) {
+                show_window('', wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton'));
+            }
+            
+         
             //show editing form
             if (cfr('TASKMANDONE')) {
                 show_window(__('If task is done'), $form);
             }
+            
         } else {
             $donecells = wf_TableCell(__('Finish date'), '30%');
             $donecells.=wf_TableCell($taskdata['enddate']);
@@ -1535,11 +1541,17 @@ function ts_TaskChangeForm($taskid) {
             $donerows.=wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
-            if (cfr('TASKMANDONE')) {
-                $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), __('Removing this may lead to irreparable results'), 'ubButton');
-                $doneresult.='&nbsp;';
-                $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), __('Are you serious'), 'ubButton');
+
+            if (cfr('TASKMANDELETE')) {
+                $doneresult.=wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton');
             }
+
+            if (cfr('TASKMANDONE')) {
+                $doneresult.='&nbsp;';
+                $doneresult.=wf_JSAlertStyled('?module=taskman&setundone=' . $taskid, wf_img('skins/icon_key.gif') . ' ' . __('No work was done'), $messages->getEditAlert(), 'ubButton');
+            }
+
+
             show_window(__('Task is done'), $doneresult);
         }
     }

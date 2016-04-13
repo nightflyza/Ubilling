@@ -343,6 +343,7 @@ class OpenPayz {
                 @$user_login = $this->allCustomers[$eachtransaction['customerid']];
                 @$user_realname = $this->allRealnames[$user_login];
                 $user_realname = str_replace('"', '', $user_realname);
+                $user_realname = str_replace('\\', '', $user_realname);
                 $user_realname = trim($user_realname);
 
                 @$user_address = $this->allAddress[$user_login];

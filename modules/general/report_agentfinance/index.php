@@ -15,6 +15,12 @@ if ($altcfg['AGENTS_ASSIGN']==2) {
      $assignReport->exportCSV($_GET['exportcsvagentid']);
     }
     
+     //CSV data export short printable
+    if (wf_CheckGet(array('exportcsvagentidshort'))) {
+     $assignReport->exportCSV2($_GET['exportcsvagentidshort']);
+    }
+    
+    
     //show search form
     show_window(__('Payment search'),$assignReport->paymentSearchForm());
     show_window('',  wf_Link('?module=report_finance', __('Back'), true, 'ubButton'));
