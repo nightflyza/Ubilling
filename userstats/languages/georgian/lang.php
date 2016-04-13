@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $lang['def']['Home'] = 'მთავარი';
 $lang['def']['User stats'] = 'მომხმარებლის კაბინეტი';
 $lang['def']['Payments'] = 'გადახდები';
