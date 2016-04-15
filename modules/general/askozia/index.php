@@ -166,24 +166,33 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $sessionTimeStats.=$startTime;
                     $sessionTimeStats.=wf_tag('abbr', true);
                     $callDirection = '';
+                    if ($each[16]=='outbound') {
+                        $toNumber=$each[2];
+                        $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
+                    } else {
+                        $toNumber=$each[18];
+                        $callDirection = wf_img('skins/calls/incoming.png') . ' ';
+                    }
 
                     //detectiong direction icon
-                    if (!empty($customCfg)) {
-                        if ((isset($customCfg[0])) AND ( $customCfg[1])) {
-                            if (zb_AskoziaCheckPrefix($customCfg[0], $each[1])) {
-                                $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
-                            }
-
-                            if (zb_AskoziaCheckPrefix($customCfg[1], $each[1])) {
-                                $callDirection = wf_img('skins/calls/incoming.png') . ' ';
-                            }
-                        }
-                    }
+//                    if (!empty($customCfg)) {
+//                        if ((isset($customCfg[0])) AND ( $customCfg[1])) {
+//                            if (zb_AskoziaCheckPrefix($customCfg[0], $each[1])) {
+//                                $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
+//                            }
+//
+//                            if (zb_AskoziaCheckPrefix($customCfg[1], $each[1])) {
+//                                $callDirection = wf_img('skins/calls/incoming.png') . ' ';
+//                            }
+//                        }
+//                    }
+                    
+                    
 
                     $cells = wf_TableCell(wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600'), '', '', 'sorttable_customkey="' . $callsCounter . '"');
                     $cells.= wf_TableCell($callDirection . $sessionTimeStats, '', '', 'sorttable_customkey="' . strtotime($each[9]) . '"');
                     $cells.= wf_TableCell(zb_AskoziaGetNumAlias($each[1]));
-                    $cells.= wf_TableCell(zb_AskoziaGetNumAlias($each[2]));
+                    $cells.= wf_TableCell(zb_AskoziaGetNumAlias($toNumber));
                     $receiveCid = '';
                     if (!empty($each[6])) {
                         $tmpRcid = explode('-', $each[6]);
