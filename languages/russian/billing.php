@@ -2220,6 +2220,7 @@ $lang['def']['full'] = 'полный';
 $lang['def']['short'] = 'короткий';
 $lang['def']['Go to the web interface'] = 'Перейти в веб-интерфейс';
 $lang['def']['right to delete tasks'] = 'Право удалять задания';
+$lang['def']['Wrong format of money sum'] = 'Неверный формат денежной суммы. За вами уже выехал отряд карателей.';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

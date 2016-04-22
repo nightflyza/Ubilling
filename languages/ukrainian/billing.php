@@ -2236,5 +2236,6 @@ $lang['def']['full'] = 'повний';
 $lang['def']['short'] = 'короткий';
 $lang['def']['Go to the web interface'] = 'Перейти до веб-інтерфейсу';
 $lang['def']['right to delete tasks'] = 'Право видаляти завдання';
+$lang['def']['Wrong format of money sum'] = 'Невірний формат грошової суми. По вас вже виїхав загін карателів.';
 
 ?>
