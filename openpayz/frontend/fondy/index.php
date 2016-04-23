@@ -1,5 +1,8 @@
 <?php
 
+// Фронтенд для приема платежей fondy.eu
+// https://www.fondy.eu/en/info/api
+
 // подключаем API OpenPayz
 
 include ("../../libs/api.openpayz.php");
@@ -42,8 +45,8 @@ if (!empty($rawRequest)) {
                         $customerId = $merchantData->value;
                         $allcustomers = op_CustomersGetAll();
                         if (isset($allcustomers[$customerId])) {
-                            $paysys = 'OPLATA';
-                            $hash = 'OPLT_' . $requestData->payment_id;
+                            $paysys = 'FONDY';
+                            $hash = 'OPL_' . $requestData->payment_id;
                             $summ = $requestData->amount / 100; // деньги то в копейках
                             $orderStatus = $requestData->order_status;
                             //а нету ли уже такой транзакции?
