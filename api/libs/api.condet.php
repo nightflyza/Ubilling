@@ -184,9 +184,21 @@ class ConnectionDetails {
     }
 
     /**
-     * Returns JSON reply for jquery datatables with full list of available connection details
+     * Returns display container of available connection details
      * 
      * @return string
+     */
+    public function renderReportBodyUkv() {
+        $columns = array('Address', 'Real Name', 'Tariff', 'Connected', 'Cash', 'Seal');
+        $result = wf_JqDtLoader($columns, '?module=report_condet&ajaxukv=true', true, 'users');
+
+        return ($result);
+    }
+
+    /**
+     * Returns JSON reply for jquery datatables with full list of available connection details
+     * 
+     * @return void
      */
     public function ajaxGetData() {
         $query = "SELECT * from `condet`;";
@@ -224,11 +236,15 @@ class ConnectionDetails {
                 @$cash = $userData[$each['login']]['Cash'];
                 @$credit = $userData[$each['login']]['Credit'];
 
-                $act = '<img src=skins/icon_active.gif>' . __('Yes');
+                $act = wf_img('skins/icon_active.gif') . __('Yes');
                 //finance check
                 if ($cash < '-' . $credit) {
-                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
+                    $act = wf_img('skins/icon_inactive.gif') . __('No');
                 }
+
+
+                $act = str_replace('"', '', $act);
+                $act = trim($act);
 
                 $result.='
                     [
@@ -252,7 +268,69 @@ class ConnectionDetails {
         $result.='] 
         }';
 
-        return ($result);
+        die($result);
+    }
+
+    /**
+     * Returns JSON reply for jquery datatables with full list of available connection details
+     * 
+     * @return void
+     */
+    public function ajaxGetDataUkv() {
+        $ukv = new UkvSystem();
+
+        $query = "SELECT * from `ukv_users` WHERE `cableseal` != '' ;";
+        $all = simple_queryall($query);
+
+        $result = '{ 
+                  "aaData": [ ';
+
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $profileLink = wf_Link('?module=ukv&users=true&showuser=' . $each['id'], web_profile_icon() . ' ', false);
+                $profileLink = str_replace('"', '', $profileLink);
+                $profileLink = str_replace("'", '', $profileLink);
+                $profileLink = trim($profileLink);
+
+                $userAddress = @$ukv->userGetFullAddress($each['id']);
+                $userAddress = str_replace("'", '`', $userAddress);
+                $userAddress = str_replace('"', '``', $userAddress);
+                $userAddress = trim($userAddress);
+
+                $userRealname = $each['realname'];
+                $userRealname = str_replace("'", '`', $userRealname);
+                $userRealname = str_replace('"', '``', $userRealname);
+                $userRealname = trim($userRealname);
+
+
+
+                $act = wf_img('skins/icon_active.gif') . __('Yes');
+                //finance check
+                if (!$each['active']) {
+                    $act = wf_img('skins/icon_inactive.gif') . __('No');
+                }
+
+                $act = str_replace('"', '', $act);
+                $act = trim($act);
+
+                $result.='
+                    [
+                    "' . $profileLink . $userAddress . '",
+                    "' . $userRealname . '",
+                    "' . $ukv->tariffGetName($each['tariffid']) . '",
+                    "' . $act . '",
+                    "' . $each['cash'] . '",
+                    "' . $each['cableseal'] . '"
+                    ],';
+            }
+        }
+
+        $result = substr($result, 0, -1);
+
+        $result.='] 
+        }';
+
+        die($result);
     }
 
 }

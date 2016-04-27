@@ -633,7 +633,7 @@ class UkvSystem {
      * 
      * @return string
      */
-    protected function userGetFullAddress($userid) {
+    public function userGetFullAddress($userid) {
         if (isset($this->users[$userid])) {
             global $ubillingConfig;
             $altcfg = $ubillingConfig->getAlter();
@@ -650,6 +650,22 @@ class UkvSystem {
                 $city = '';
             }
             $result = $city . $this->users[$userid]['street'] . ' ' . $this->users[$userid]['build'] . $apt;
+        } else {
+            $result = '';
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns existing tariff name by tariffid
+     * 
+     * @param int  $tariffid
+     * 
+     * @return string
+     */
+    public function tariffGetName($tariffid) {
+        if ($this->tariffs[$tariffid]['tariffname']) {
+            $result = $this->tariffs[$tariffid]['tariffname'];
         } else {
             $result = '';
         }
@@ -1158,7 +1174,7 @@ class UkvSystem {
             if ($this->altCfg['CREATETASK_IN_PROFILE']) {
                 $shortAddress = $userData['street'] . ' ' . $userData['build'] . $apt;
                 $taskForm = ts_TaskCreateFormUnified($shortAddress, $userData['mobile'], $userData['phone'], '');
-                $taskControl = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $taskForm,'', '420','500');
+                $taskControl = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $taskForm, '', '420', '500');
             } else {
                 $taskControl = '';
             }

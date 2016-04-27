@@ -353,8 +353,9 @@
                     case 'OnConnect':
                     case 'OnDisconnect':
                         // Load template:
-                        $template         = parse_ini_file( NASPATH . 'tpls/queue_tree.ini' );
-                        $template['list'] = $this->database->get_user_tariff();
+                        $template            = parse_ini_file( NASPATH . 'tpls/queue_tree.ini' );
+                        $template['list']    = $this->database->get_user_tariff();
+						$template['comment'] = LOGIN . ':QT';
                     case 'OnChange':
                     case 'OnUserDel':
                         // Find entry on NAS:
@@ -373,7 +374,7 @@
                         // b. If entry is absent:
                         } else {
                             if ( in_array( ENVIRONMENT, array('OnConnect', 'OnDisconnect') ) ) {
-                                $reply = $this->command('/ip/arp/add', $template);
+                                $reply = $this->command('/ip/firewall/address-list/add', $template);
                             } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
                         }
                         break;
