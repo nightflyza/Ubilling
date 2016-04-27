@@ -80,7 +80,7 @@
                     unset($selects);
                     // Block 3: Setting On* scripts behavior for this NAS
                     $this->form->addmessage(__('Setting On* scripts behavior for this NAS'));
-                    $checkboxes = array('firewall', 'arp', 'queue', 'dhcp', 'ppp');
+                    $checkboxes = array('firewall', 'arp', 'queue', 'queue_tree', 'dhcp', 'ppp');
                     foreach ( $checkboxes as $checkbox ) {
                         $opt = 'manage_' . $checkbox;
                         $name = self::FORM_NAME . '[' . $opt . ']';

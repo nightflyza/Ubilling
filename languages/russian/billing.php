@@ -1366,11 +1366,12 @@ $lang['def']['Graph interface'] = 'Интерфейс графика';
 $lang['def']['Users interface'] = 'Интерфейс пользователей';
 // Block 3: Setting On* scripts behavior for this NAS
 $lang['def']['Setting On* scripts behavior for this NAS'] = 'Устанока поведения скриптов On* для NAS';
-$lang['def']['Manage firewall'] = 'Управлять фаерволом';
-$lang['def']['Manage arp'] = 'Управлять ARP-таблицей';
-$lang['def']['Manage queue'] = 'Управлять очередями';
-$lang['def']['Manage dhcp'] = 'Управлять DHCP';
-$lang['def']['Manage ppp'] = 'Управлять PPP';
+$lang['def']['Manage firewall']   = 'Управлять фаерволом';
+$lang['def']['Manage arp']        = 'Управлять ARP-таблицей';
+$lang['def']['Manage queue']      = 'Управлять очередями';
+$lang['def']['Manage queue_tree'] = 'Управлять деревом очередей';
+$lang['def']['Manage dhcp']       = 'Управлять DHCP';
+$lang['def']['Manage ppp']        = 'Управлять PPP';
 // Block 4: MikroTik General Information
 $lang['def']['MikroTik General Information'] = 'Общая инфорация о состоянии MikroTik`a';
 $lang['def']['uptime'] = 'Аптайм';
@@ -2223,6 +2224,5 @@ $lang['def']['right to delete tasks'] = 'Право удалять задани�
 $lang['def']['Wrong format of money sum'] = 'Неверный формат денежной суммы. За вами уже выехал отряд карателей.';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
 
 ?>

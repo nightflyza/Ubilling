@@ -36,6 +36,7 @@
                 if ( $this->connect() ) {
                     $this->firewall();
                     $this->queue();
+					$this->queue_tree();
                     $this->dhcp();
                     $this->arp();
                     $this->ppp();
@@ -343,6 +344,43 @@
                 $this->logReply($reply, __FUNCTION__);
             } else $this->log->message(__CLASS__, "MikroTik queue managing isn't enabled", 'debug');
         }
+		
+		private function queue_tree() {
+			if ( !empty($this->options['manage_queue_tree']) ) {
+                $reply    = null;
+                $template = null;
+                switch ( ENVIRONMENT ) {
+                    case 'OnConnect':
+                    case 'OnDisconnect':
+                        // Load template:
+                        $template         = parse_ini_file( NASPATH . 'tpls/queue_tree.ini' );
+                        $template['list'] = $this->database->get_user_tariff();
+                    case 'OnChange':
+                    case 'OnUserDel':
+                        // Find entry on NAS:
+                        $entries = $this->command('/ip/firewall/address-list/print', array(
+                            '.proplist' => '.id',
+                            '?comment'  => LOGIN . ':QT'
+                        ));
+                        // a. If entry is present:
+                        if ( !empty($entries) ) {
+                            foreach ($entries as $entry) {
+                                // Update entry:
+                                $template['.id'] = $entry['.id'];
+                                $action = ( ENVIRONMENT != 'OnChange' && ENVIRONMENT != 'OnUserDel') ? 'set' : 'remove';
+                                $reply = $this->command('/ip/firewall/address-list/' . $action, $template);
+                            }
+                        // b. If entry is absent:
+                        } else {
+                            if ( in_array( ENVIRONMENT, array('OnConnect', 'OnDisconnect') ) ) {
+                                $reply = $this->command('/ip/arp/add', $template);
+                            } else $this->log->message(__CLASS__, __FUNCTION__ . ": can't remove entry, it's already absent!", 'error');
+                        }
+                        break;
+                }
+                $this->logReply($reply, __FUNCTION__);
+            } else $this->log->message(__CLASS__, "MikroTik QT is not enabled", 'debug');
+		}
 
         private function dhcp() {
             if ( !empty($this->options['manage_dhcp']) ) {

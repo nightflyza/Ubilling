@@ -106,7 +106,7 @@
             return $return;
         }
 
-        private function get_user_tariff() {
+        public function get_user_tariff() {
             $return = NULL;
             $result = $this->select('Tariff', 'users', array('login' => LOGIN));
             foreach ( $result as $data ) {
