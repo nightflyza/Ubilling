@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Mpay</title>
+<link href="style.css" rel="stylesheet" type="text/css" media="screen" />
+</head>
+<body>
+<div id="wrapper">
+	<div id="header" class="container">
+		<div id="logo">
+			<h1>Mpay</h1>
+			<p><?=$serviceName; ?></p>
+		</div>
+		<div id="menu">
+			<ul>
+				<li><a href="<?=$ispUrl; ?>"><?=$ispName; ?></a></li>
+			</ul>
+		</div>
+	</div>
+	<!-- end #header -->
+	<div id="page" class="container">
+		<div id="content">
+			<div class="post">
+				<h2 class="title"><?= $selectLabel; ?></h2>
+				<div class="entry">
+	             <?=$payment_form; ?>
+				</div>
+			</div>
+			
+			<div style="clear: both;">&nbsp;</div>
+		</div>
+		<!-- end #content -->
+		<div id="sidebar">
+			<ul>
+				<li>
+                                    <img src="<?= $ispLogo; ?>">	
+				</li>
+				
+			</ul>
+		</div>
+		<!-- end #sidebar -->
+		<div style="clear: both;">&nbsp;</div>
+	</div>
+	<!-- end #page -->
+</div>
+<div id="footer-content" class="container">
+	<div id="footer-bg">
+		<div id="column1">
+          Powered by <a href="http://ubilling.net.ua">OpenPayz</a>
+		</div>
+		<div id="column2">
+		</div>
+		<div id="column3">
+		</div>
+	</div>
+</div>
+<div id="footer">
+</div>
+<!-- end #footer -->
+</body>
+</html>
