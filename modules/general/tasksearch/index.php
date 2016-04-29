@@ -31,9 +31,8 @@ if (cfr('TASKMANSEARCH')) {
          * @var array
          */
         protected $allJobtypes = array();
-        
-        const URL_TASKVIEW='?module=taskman&edittask=';
 
+        const URL_TASKVIEW = '?module=taskman&edittask=';
 
         public function __construct() {
             $this->loadAllEmployee();
@@ -88,9 +87,9 @@ if (cfr('TASKMANSEARCH')) {
          */
         public function renderSearchForm() {
             $result = '';
-            $datefromDefault=(wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : curdate();
-            $datetoDefault=(wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
-            
+            $datefromDefault = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : curdate();
+            $datetoDefault = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
+
             $inputs = __('Date') . ' ' . wf_DatePickerPreset('datefrom', $datefromDefault, true) . ' ' . __('From') . ' ' . wf_DatePickerPreset('dateto', $datetoDefault, true) . ' ' . __('To');
             $inputs.= wf_tag('br');
             $inputs.= wf_CheckInput('cb_id', '', false, false);
@@ -101,6 +100,8 @@ if (cfr('TASKMANSEARCH')) {
             $inputs.= wf_TextInput('taskaddress', __('Task address'), '', true, 20);
             $inputs.= wf_CheckInput('cb_taskphone', '', false, false);
             $inputs.= wf_TextInput('taskphone', __('Phone'), '', true, 20);
+            $inputs.= wf_CheckInput('cb_taskjobtype', '', false, false);
+            $inputs.= wf_Selector('taskjobtype', $this->allJobtypes, __('Job type'), '', true);
             $inputs.= wf_CheckInput('cb_employee', '', false, false);
             $inputs.= wf_Selector('employee', $this->activeEmployee, __('Who should do'), '', true);
             $inputs.= wf_CheckInput('cb_employeedone', '', false, false);
@@ -155,6 +156,12 @@ if (cfr('TASKMANSEARCH')) {
                     $appendQuery.=" AND `phone` LIKE '%" . $taskphone . "%' ";
                 }
 
+                //task job type
+                if (wf_CheckPost(array('cb_taskjobtype', 'taskjobtype'))) {
+                    $taskjobtypeid = vf($_POST['taskjobtype'], 3);
+                    $appendQuery.=" AND `jobtype` LIKE '" . $taskjobtypeid . "' ";
+                }
+
                 //original task employee
                 if (wf_CheckPost(array('cb_employee', 'employee'))) {
                     $employee = mysql_real_escape_string($_POST['employee']);
@@ -169,8 +176,8 @@ if (cfr('TASKMANSEARCH')) {
 
                 //address duplicate search
                 if (wf_CheckPost(array('cb_duplicateaddress'))) {
-                   // $appendQuery.=" AND `address` IN (SELECT `address` FROM `taskman` WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' GROUP BY `address` HAVING COUNT(*) > 1) ";
-                    $baseQuery="SELECT st1.*, st2.`address` FROM `taskman`  st1  INNER JOIN taskman st2 ON (st2.`startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' AND st1.address = st2.address)  GROUP BY st1.id HAVING COUNT(*) > 1 AND `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
+                    // $appendQuery.=" AND `address` IN (SELECT `address` FROM `taskman` WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' GROUP BY `address` HAVING COUNT(*) > 1) ";
+                    $baseQuery = "SELECT st1.*, st2.`address` FROM `taskman`  st1  INNER JOIN taskman st2 ON (st2.`startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' AND st1.address = st2.address)  GROUP BY st1.id HAVING COUNT(*) > 1 AND `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
                 }
 
                 //late jobs
@@ -190,7 +197,7 @@ if (cfr('TASKMANSEARCH')) {
                 }
 
                 $query = $baseQuery . $appendQuery;
-              // deb($query);
+                // deb($query);
                 $raw = simple_queryall($query);
                 if (!empty($raw)) {
                     foreach ($raw as $io => $each) {
@@ -209,7 +216,7 @@ if (cfr('TASKMANSEARCH')) {
                         if (!empty($salaryJobsRaw)) {
                             foreach ($salaryJobsRaw as $io => $each) {
                                 if (!empty($each['taskid'])) {
-                                $salaryTasks[$each['taskid']] = $each['id'];
+                                    $salaryTasks[$each['taskid']] = $each['id'];
                                 }
                             }
                         }
@@ -238,7 +245,7 @@ if (cfr('TASKMANSEARCH')) {
          */
         public function renderTasks($tasksArray) {
             $result = '';
-            $totalCount=0;
+            $totalCount = 0;
             if (!empty($tasksArray)) {
                 $cells = wf_TableCell(__('ID'));
                 $cells.= wf_TableCell(__('Address'));
@@ -259,17 +266,17 @@ if (cfr('TASKMANSEARCH')) {
                     $cells.= wf_TableCell($each['phone']);
                     $cells.= wf_TableCell(@$this->allEmployee[$each['employee']]);
                     $cells.= wf_TableCell(@$this->allEmployee[$each['employeedone']]);
-                    $cells.= wf_TableCell($each['startdate'].' '.$each['starttime']);
+                    $cells.= wf_TableCell($each['startdate'] . ' ' . $each['starttime']);
                     $cells.= wf_TableCell($each['enddate']);
-                    $cells.= wf_TableCell(web_bool_led($each['status']),'','','sorttable_customkey="'.$each['status'].'"');
-                    $actLinks=  wf_Link(self::URL_TASKVIEW.$each['id'], web_edit_icon(), false);
+                    $cells.= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
+                    $actLinks = wf_Link(self::URL_TASKVIEW . $each['id'], web_edit_icon(), false);
                     $cells.= wf_TableCell($actLinks);
                     $rows.= wf_TableRow($cells, 'row3');
                     $totalCount++;
                 }
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                $result.=__('Total').': '.$totalCount;
+                $result.=__('Total') . ': ' . $totalCount;
             } else {
                 $messages = new UbillingMessageHelper();
                 $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
