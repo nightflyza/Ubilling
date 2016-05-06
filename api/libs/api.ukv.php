@@ -2476,9 +2476,10 @@ class UkvSystem {
                     $result.=wf_tag('h2') . __('Tariff') . ': ' . $tariffArr[$tariffSearch] . wf_tag('h2', true);
                     $cells = wf_TableCell(__('Contract'), '10%');
                     $cells.= wf_TableCell(__('Full address'), '31%');
-                    $cells.= wf_TableCell(__('Real Name'), '30%');
+                    $cells.= wf_TableCell(__('Real Name'), '25%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
+                    $cells.= wf_TableCell(__('Seal'),'5%');
                     $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
 
@@ -2490,6 +2491,7 @@ class UkvSystem {
                         $cells.= wf_TableCell($eachUser['realname']);
                         $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
                         $cells.= wf_TableCell($eachUser['cash']);
+                        $cells.= wf_tablecell($eachUser['cableseal']);
                         $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
                         $rows.= wf_TableRow($cells, 'row3');
                     }
@@ -3044,9 +3046,10 @@ class UkvSystem {
 
                 $cells = wf_TableCell(__('Contract'), '10%');
                 $cells.= wf_TableCell(__('Full address'), '31%');
-                $cells.= wf_TableCell(__('Real Name'), '30%');
+                $cells.= wf_TableCell(__('Real Name'), '25%');
                 $cells.= wf_TableCell(__('Tariff'), '15%');
                 $cells.= wf_TableCell(__('Cash'), '7%');
+                $cells.= wf_TableCell(__('Seal'), '5%');
                 $cells.= wf_TableCell(__('Status'), '7%');
                 $rows = wf_TableRow($cells, 'row1');
 
@@ -3059,6 +3062,7 @@ class UkvSystem {
                         $cells.= wf_TableCell($eachUser['realname']);
                         $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
                         $cells.= wf_TableCell($eachUser['cash']);
+                        $cells.= wf_TableCell($eachUser['cableseal']);
                         $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
                         $rows.= wf_TableRow($cells, 'row3');
                         $counter++;
