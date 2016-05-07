@@ -328,7 +328,7 @@ $lang['def']['deactivated'] = 'відключення';
 $lang['def']['Attention!'] = 'Увага!';
 $lang['def']['When activated subscription account will be charged fee the equivalent value of the subscription.'] = 'При активації передплати з рахунку буде стягнуто суму еквівалентну вартості передплати.';
 $lang['def']['Instructions for subscription'] = 'Інструкція щодо оформлення передплати';
-$lang['def']['You must accept license agreement'] = 'Ви повинні прйняти умови ліцензії';
+$lang['def']['You must accept license agreement'] = 'Ви повинні ознайомитися з умовами договору';
 $lang['def']['I have read text above and agree with terms of use'] = 'Я прочитав текст та згоден з умовами користування';
 
 
