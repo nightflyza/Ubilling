@@ -24,7 +24,7 @@ if (cfr('TASKMAN')) {
                 show_error(__('Wrong date format'));
             }
         } else {
-            show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
+            show_error(__('All fields marked with an asterisk are mandatory'));
         }
     }
 
@@ -40,7 +40,7 @@ if (cfr('TASKMAN')) {
                 show_error(__('Wrong date format'));
             }
         } else {
-            show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
+            show_error(__('All fields marked with an asterisk are mandatory'));
         }
     }
 
@@ -70,7 +70,7 @@ if (cfr('TASKMAN')) {
                 show_error(__('Wrong date format'));
             }
         } else {
-            show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
+            show_error(__('All fields marked with an asterisk are mandatory'));
         }
     }
 
