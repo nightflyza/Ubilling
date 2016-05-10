@@ -933,7 +933,7 @@ class PONizer {
     public function controls() {
         $result = '';
 
-        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->onuCreateForm(), 'ubButton');
+        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create').' '.__('ONU'), $this->onuCreateForm(), 'ubButton');
         $result.=wf_delimiter();
         return ($result);
     }
@@ -945,7 +945,7 @@ class PONizer {
      */
     public function renderOnuList() {
         $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
-        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU');
+        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', true, 'ONU');
         return ($result);
     }
 

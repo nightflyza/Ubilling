@@ -9,10 +9,37 @@
  * deb($morph->sum2str('300')); //триста рублей 00 копеек
 
  */
-
 class UBMorph {
 
     protected $currencyType = 'UAH';
+    protected $usCfg = array();
+
+    public function __construct() {
+        $this->loadCfg();
+        $this->initType();
+    }
+
+    /**
+     * Loads userstats.ini into protected property for further usage
+     * 
+     * @return void
+     */
+    protected function loadCfg() {
+        $this->usCfg = zbs_LoadConfig();
+    }
+
+    /**
+     * Inits default currency type at startup, handles TEMPLATE_CURRENCY option
+     * 
+     * @return void
+     */
+    protected function initType() {
+        if (isset($this->usCfg['TEMPLATE_CURRENCY'])) {
+            $this->currencyType = $this->usCfg['TEMPLATE_CURRENCY'];
+        } else {
+            $this->currencyType = 'UAH';
+        }
+    }
 
     /**
      * Returns current currency

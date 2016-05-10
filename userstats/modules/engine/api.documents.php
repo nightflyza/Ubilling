@@ -23,12 +23,11 @@ class UsProfileDocuments {
         $this->dOCUMENTS_PATH = $this->altcfg['DOCX_STORAGE'] . 'pl_cache/';
     }
 
-    /*
+    /**
      * load templates into private prop
      * 
      * @return void
      */
-
     protected function loadTemplates() {
         $query = "SELECT * from `docxtemplates` WHERE `public`='1';";
         $all = simple_queryall($query);
@@ -39,34 +38,31 @@ class UsProfileDocuments {
         }
     }
 
-    /*
+    /**
      * Sets user login
      * @param $login existing users login
      * 
      * @return void
      */
-
     public function setLogin($login) {
         $login = mysql_real_escape_string($login);
         $this->userLogin = $login;
     }
 
-    /*
+    /**
      * gets current user login
      * 
      * @return string
      */
-
     public function getLogin() {
         return ($this->userLogin);
     }
 
-    /*
+    /**
      * gets user data by previously setted login
      * 
      * @return array
      */
-
     public function getUserData() {
         if (!empty($this->userLogin)) {
             if (isset($this->userData[$this->userLogin])) {
@@ -116,12 +112,11 @@ class UsProfileDocuments {
         }
     }
 
-    /*
+    /**
      * returns last generated ID from documents registry
      * 
      * @return int
      */
-
     protected function getDocumentLastId() {
         $query = "SELECT `id` from `docxdocuments` ORDER BY `id` DESC LIMIT 1";
         $data = simple_query($query);
@@ -165,12 +160,11 @@ class UsProfileDocuments {
         return($result);
     }
 
-    /*
+    /**
      * loads user data for template processing 
      * 
      * @return void
      */
-
     public function loadAllUserData() {
         $userdata = array();
 
@@ -233,22 +227,20 @@ class UsProfileDocuments {
         $this->userData = $userdata;
     }
 
-    /*
+    /**
      * Returns available document templates prop
      * 
      * @return array
      */
-
     public function getTemplates() {
         return ($this->templates);
     }
 
-    /*
+    /**
      * returns available templates list
      * 
      * @return string
      */
-
     public function renderTemplatesList() {
         $cells = '';
         $cells.= la_TableCell(__('Names'));
@@ -266,7 +258,7 @@ class UsProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * register generated document in database
      * 
      * @param $login - current user login
@@ -275,7 +267,6 @@ class UsProfileDocuments {
      * 
      * @return void
      */
-
     public function registerDocument($login, $templateid, $path) {
         $login = mysql_real_escape_string($login);
         $templateid = vf($templateid, 3);
@@ -298,14 +289,13 @@ class UsProfileDocuments {
         nr_query($query);
     }
 
-    /*
+    /**
      * loads user documents from database
      * 
      * @param $login user login to search public docs
      * 
      * @return void
      */
-
     public function loadUserDocuments($login) {
         $query = "SELECT * from `docxdocuments` WHERE `login`='" . $this->userLogin . "' AND `public`='1' ORDER BY `id` DESC";
         $all = simple_queryall($query);
@@ -316,12 +306,11 @@ class UsProfileDocuments {
         }
     }
 
-    /*
+    /**
      * Renders previously generated user documents 
      * 
      * @return string
      */
-
     public function renderUserDocuments() {
         $cells = la_TableCell(__('ID'));
         $cells.= la_TableCell(__('Date'));
@@ -343,12 +332,11 @@ class UsProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * returns custom documents form fields
      * 
      * @return string
      */
-
     public function customDocumentFieldsForm() {
         $rawServices = $this->altcfg['DOCX_SERVICES'];
         $availServices = array();
@@ -375,12 +363,11 @@ class UsProfileDocuments {
         return ($result);
     }
 
-    /*
+    /**
      * sets some custom template fields from post request
      * 
      * @return void
      */
-
     public function setCustomFields() {
         $pdvPercent = $this->altcfg['DOCX_NDS'];
         if (la_CheckPost(array('customfields'))) {
@@ -401,24 +388,22 @@ class UsProfileDocuments {
         }
     }
 
-    /*
+    /**
      * receives custom fields from object
      * 
      * @return array
      */
-
     public function getCustomFields() {
         return ($this->customFields);
     }
 
-    /*
+    /**
      * downloads previous users document and check it validity
      * 
      * @param $documentid id of existing document
      * 
      * @return void
      */
-
     public function downloadUserDocument($documentid) {
         $documentid = vf($documentid, 3);
         if (!empty($documentid)) {

@@ -293,6 +293,9 @@ function zbs_DownloadFile($filePath, $contentType = '') {
             header('Content-Type: application/octet-stream');
             header("Content-Transfer-Encoding: Binary");
             header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\"");
+            header("Content-Description: File Transfer");
+            header("Content-Length: " . filesize($filePath));
+            
             die($fileContent);
         } else {
             throw new Exception('DOWNLOAD_FILEPATH_NOT_EXISTS');
