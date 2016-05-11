@@ -1366,12 +1366,12 @@ $lang['def']['Graph interface'] = 'Интерфейс графика';
 $lang['def']['Users interface'] = 'Интерфейс пользователей';
 // Block 3: Setting On* scripts behavior for this NAS
 $lang['def']['Setting On* scripts behavior for this NAS'] = 'Устанока поведения скриптов On* для NAS';
-$lang['def']['Manage firewall']   = 'Управлять фаерволом';
-$lang['def']['Manage arp']        = 'Управлять ARP-таблицей';
-$lang['def']['Manage queue']      = 'Управлять очередями';
+$lang['def']['Manage firewall'] = 'Управлять фаерволом';
+$lang['def']['Manage arp'] = 'Управлять ARP-таблицей';
+$lang['def']['Manage queue'] = 'Управлять очередями';
 $lang['def']['Manage queue_tree'] = 'Управлять деревом очередей';
-$lang['def']['Manage dhcp']       = 'Управлять DHCP';
-$lang['def']['Manage ppp']        = 'Управлять PPP';
+$lang['def']['Manage dhcp'] = 'Управлять DHCP';
+$lang['def']['Manage ppp'] = 'Управлять PPP';
 // Block 4: MikroTik General Information
 $lang['def']['MikroTik General Information'] = 'Общая инфорация о состоянии MikroTik`a';
 $lang['def']['uptime'] = 'Аптайм';
@@ -2225,6 +2225,12 @@ $lang['def']['Wrong format of money sum'] = 'Неверный формат де�
 $lang['def']['No available services'] = 'Нету существующих услуг';
 $lang['def']['No free IP available in selected pool. Please fix it in networks and services module.'] = 'Нету свободных IP в выбраном пуле. Пожалуйста разберитесь с этим, при помощи модуля "Сети и ислуги"';
 $lang['def']['Select User new service'] = 'Выберите новую услугу пользователя';
+$lang['def']['first free for this service'] = 'Первая свободная для этой услуги';
+$lang['def']['Unexistent service'] = 'Несуществующая услуга';
+$lang['def']['No existing nethost for current IP'] = 'Нет существующего нетхоста для текущей IP';
+$lang['def']['empty current IP'] = 'пустая текущая IP';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

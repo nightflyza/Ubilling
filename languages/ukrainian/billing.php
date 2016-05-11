@@ -2237,5 +2237,12 @@ $lang['def']['short'] = 'короткий';
 $lang['def']['Go to the web interface'] = 'Перейти до веб-інтерфейсу';
 $lang['def']['right to delete tasks'] = 'Право видаляти завдання';
 $lang['def']['Wrong format of money sum'] = 'Невірний формат грошової суми. По вас вже виїхав загін карателів.';
+$lang['def']['No available services'] = 'Немає існуючих послуг';
+$lang['def']['No free IP available in selected pool. Please fix it in networks and services module.'] = 'Немає вільних IP в обраному пулі. Будь ласка, розберіться з цим за допомогою модулю "Мережі та послуги"';
+$lang['def']['Select User new service'] = 'Оберіть нову послугу користувача';
+$lang['def']['first free for this service'] = 'Перша вільна IP для цієї послуги';
+$lang['def']['Unexistent service'] = 'Неіснуюча послуга';
+$lang['def']['No existing nethost for current IP'] = 'Ой леле, немає існуючого нетхоста для поточної IP';
+$lang['def']['empty current IP'] = 'порожня поточна IP';
 
 ?>
