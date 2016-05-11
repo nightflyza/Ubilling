@@ -1,13 +1,149 @@
 <?php
 
 if (cfr('PLIPCHANGE')) {
+    
+    deb('Этот модуль ущербен и переписывается с нуля');
 
+    class IpChange {
 
-    if (isset($_GET['username'])) {
+        protected $login = '';
+        protected $currentIp = '';
+        protected $currentMac = '';
+        protected $billingCfg = array();
+        protected $altCfg = array();
+        protected $allServices = array();
+        protected $customFlag = false;
+
+        const URL_ME = '?module=pl_ipchange';
+
+        public function __construct() {
+            $this->loadConfigs();
+            $this->loadServices();
+        }
+
+        protected function loadConfigs() {
+            global $ubillingConfig;
+            $this->billingCfg = $ubillingConfig->getBilling();
+            $this->altCfg = $ubillingConfig->getAlter();
+            if (isset($this->altCfg['IP_CUSTOM_SELECT'])) {
+                if ($this->altCfg['IP_CUSTOM_SELECT']) {
+                    $this->customFlag = true;
+                }
+            }
+        }
+
+        protected function loadServices() {
+            $rawServices = multinet_get_services();
+            if (!empty($rawServices)) {
+                foreach ($rawServices as $io => $each) {
+                    $this->allServices[$each['id']] = $each['desc'];
+                }
+            }
+        }
+
+        public function setLogin($login) {
+            $this->login = mysql_real_escape_string($login);
+        }
+
+        public function initUserParams() {
+            if (!empty($this->login)) {
+                $this->currentIp = zb_UserGetIP($this->login);
+                $this->currentMac = zb_MultinetGetMAC($this->currentIp);
+            }
+        }
+
+        public function renderMainForm() {
+            $result = '';
+            $servSelector = array();
+            if (!empty($this->allServices)) {
+
+                foreach ($this->allServices as $serviceId => $serviceName) {
+                    $servSelector[self::URL_ME . '&ajserviceid=' . $serviceId] = $serviceName;
+                }
+                //getting firs service ID
+                reset($this->allServices);
+                $defaultService = key($this->allServices);
+
+                $result = wf_AjaxLoader();
+                $inputs = wf_AjaxSelectorAC('ajcontainer', $servSelector, __('Select User new service'), '', false);
+                $inputs.= wf_tag('br').wf_tag('br');
+                $inputs.= wf_AjaxContainer('ajcontainer', '', $this->ajIpSelector($defaultService));
+                $inputs.= wf_delimiter();
+                $inputs.= wf_Submit(__('Save'));
+                $result.= wf_Form("", 'POST', $inputs, 'floatpanels');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result = $messages->getStyledMessage(__('No available services'), 'error');
+            }
+            return ($result);
+        }
+
+        public function ajIpSelector($serviceId) {
+            $serviceId = vf($serviceId, 3);
+            $result = '';
+            if (isset($this->allServices[$serviceId])) {
+                $networkId = multinet_get_service_networkid($serviceId);
+                //default IP selection - first free
+                if (!$this->customFlag) {
+                    @$nextFreeIp = multinet_get_next_freeip('nethosts', 'ip', $networkId);
+                    if (!empty($nextFreeIp)) {
+                        $result = wf_HiddenInput('ipselector', $nextFreeIp) . ' ' . $nextFreeIp;
+                        $result.= wf_HiddenInput('serviceselector', $serviceId);
+                    } else {
+                        $result = __('No free IP available in selected pool. Please fix it in networks and services module.');
+                    }
+                } else {
+                    //custom IP selection box
+                    $allFreeIpsRaw = multinet_get_all_free_ip('nethosts', 'ip', $networkId);
+                    if (!empty($allFreeIpsRaw)) {
+                        $allFreeIpsSelector = array();
+                        foreach ($allFreeIpsRaw as $io => $each) {
+                            $allFreeIpsSelector[$each] = $each;
+                        }
+                        $result = wf_Selector('ipselector', $allFreeIpsSelector, '', '', true);
+                        $result.= wf_HiddenInput('serviceselector', $serviceId);
+                    } else {
+                        $result = __('No free IP available in selected pool. Please fix it in networks and services module.');
+                    }
+                }
+            }
+            return ($result);
+        }
+
+        public function renderCurrentIp() {
+            $result = wf_tag('h2', false, 'floatpanels', '') . ' ' . $this->currentIp . wf_tag('h2', true);
+            $result.= wf_CleanDiv();
+            return ($result);
+        }
+
+    }
+
+    $ipChange = new IpChange();
+
+    if (wf_CheckGet(array('username'))) {
+        //user is here
+        $ipChange->setLogin($_GET['username']);
+        $ipChange->initUserParams();
+
+        //rendering interface
+        show_window(__('Current user IP'), $ipChange->renderCurrentIp());
+        show_window(__('Change user IP'), $ipChange->renderMainForm());
+    } else {
+        show_error(__('Something went wrong'));
+    }
+
+    if (wf_CheckGet(array('ajserviceid'))) {
+        die($ipChange->ajIpSelector($_GET['ajserviceid']));
+    }
+
+    //old creepy staff here 
+
+    if (wf_CheckGet(array('username'))) {
         $login = mysql_real_escape_string($_GET['username']);
         $current_ip = zb_UserGetIP($login); // getting IP by login
         $current_mac = zb_MultinetGetMAC($current_ip); //extracting current user MAC
         $billingConf = $ubillingConfig->getBilling(); //getting billing.ini config
+        $alterConnf = $ubillingConfig->getAlter(); //getting alter.ini config
 
         /**
          * Returns new user service select form
@@ -15,11 +151,32 @@ if (cfr('PLIPCHANGE')) {
          * @return string
          */
         function web_IPChangeFormService() {
-            global $current_ip;
-            $inputs = multinet_service_selector() . ' ' . __('New IP service');
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
-            $result = wf_Form("", 'POST', $inputs, 'floatpanels');
+            $allServices = array();
+            $servSelector = array();
+            $rawServices = multinet_get_services();
+
+            if (!empty($rawServices)) {
+                foreach ($rawServices as $io => $each) {
+                    $allServices[$each['id']] = $each['desc'];
+                }
+
+
+                if (!empty($allServices)) {
+                    foreach ($allServices as $serviceId => $serviceName) {
+                        $servSelector['?module=pl_ipchange&ajipselector=' . $serviceId] = $serviceName;
+                    }
+                }
+
+                $result = wf_AjaxLoader();
+                $inputs = wf_AjaxSelectorAC('ajcontainer', $servSelector, __('New IP service'), '', false);
+                $inputs.= wf_AjaxContainer('ajcontainer', '', 'contenthere');
+                $inputs.= wf_delimiter();
+                $inputs.= wf_Submit(__('Save'));
+                $result.= wf_Form("", 'POST', $inputs, 'floatpanels');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result = $messages->getStyledMessage(__('No available services'), 'error');
+            }
             return($result);
         }
 
@@ -160,12 +317,15 @@ if (cfr('PLIPCHANGE')) {
             log_register("CHANGE MultiNetIP (" . $login . ") FROM " . $current_ip . " ON " . $new_free_ip . "");
             rcms_redirect("?module=pl_ipchange&username=" . $login);
         } else {
-            show_window(__('Current user IP'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $current_ip . wf_tag('h2', true) . '<br clear="both" />');
-            show_window(__('Change user IP'), web_IPChangeFormService());
-            show_window(__('IP usage stats'), web_FreeIpStats());
+            //commented due develop
+//            show_window(__('Current user IP'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $current_ip . wf_tag('h2', true) . '<br clear="both" />');
+//            show_window(__('Change user IP'), web_IPChangeFormService());
+//            show_window(__('IP usage stats'), web_FreeIpStats());
         }
 
         show_window('', web_UserControls($login));
+    } else {
+        show_error(__('Something went wrong'));
     }
 } else {
     show_error(__('You cant control this module'));

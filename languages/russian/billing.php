@@ -2222,7 +2222,9 @@ $lang['def']['short'] = 'короткий';
 $lang['def']['Go to the web interface'] = 'Перейти в веб-интерфейс';
 $lang['def']['right to delete tasks'] = 'Право удалять задания';
 $lang['def']['Wrong format of money sum'] = 'Неверный формат денежной суммы. За вами уже выехал отряд карателей.';
-$lang['def'][''] = '';
+$lang['def']['No available services'] = 'Нету существующих услуг';
+$lang['def']['No free IP available in selected pool. Please fix it in networks and services module.'] = 'Нету свободных IP в выбраном пуле. Пожалуйста разберитесь с этим, при помощи модуля "Сети и ислуги"';
+$lang['def']['Select User new service'] = 'Выберите новую услугу пользователя';
 $lang['def'][''] = '';
 
 ?>
