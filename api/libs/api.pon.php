@@ -613,6 +613,7 @@ class PONizer {
         $mac = mysql_real_escape_string($mac);
         $serial = mysql_real_escape_string($serial);
         $login = mysql_real_escape_string($login);
+        $login=trim($login);
         $result = 0;
         if (!empty($mac)) {
             if (check_mac_format($mac)) {
@@ -655,6 +656,7 @@ class PONizer {
         $mac = mysql_real_escape_string($mac);
         $serial = mysql_real_escape_string($serial);
         $login = mysql_real_escape_string($login);
+        $login=trim($login);
         $where = " WHERE `id`='" . $onuId . "';";
         simple_update_field('pononu', 'onumodelid', $onumodelid, $where);
         simple_update_field('pononu', 'oltid', $oltid, $where);
@@ -991,10 +993,11 @@ class PONizer {
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (!empty($each['login'])) {
-                    $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
+                    $userLogin=trim($each['login']);
+                    $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
                     $userLink = str_replace('"', '', $userLink);
                     $userLink = trim($userLink);
-                    @$userRealName = $allRealnames[$each['login']];
+                    @$userRealName = $allRealnames[$userLogin];
                     $userRealName = str_replace('"', '', $userRealName);
                     $userRealName = trim($userRealName);
                 } else {
