@@ -157,7 +157,7 @@ $lang['def']['indebtedness!'] = 'заборгованість!';
 $lang['def']['Payment ID is used to make online payments using a variety of payment systems as well as the funding of accounts using the terminals'] = 'Платіжний ID використовується, для здійснення онлайн-платежів в з допомогою різноманітних платіжних систем, а також для для поповнення рахунку з допомогою терміналів.';
 $lang['def']['Public offer'] = 'Договір публічної оферти';
 
-$lang['def']['Sorry sum of money in the account is enought to use service without credit']='Сума коштів на вашому рахунку достатня, для того, щоб продовжити користування послугою без кредиту';
+$lang['def']['Sorry, sum of money in the account is enought to use service without credit']='Сума коштів на вашому рахунку достатня, для того, щоб продовжити користування послугою без кредиту';
 
 
 $lang['def']['Documents'] = 'Документи';
@@ -330,6 +330,6 @@ $lang['def']['When activated subscription account will be charged fee the equiva
 $lang['def']['Instructions for subscription'] = 'Інструкція щодо оформлення передплати';
 $lang['def']['You must accept license agreement'] = 'Ви повинні ознайомитися з умовами договору';
 $lang['def']['I have read text above and agree with terms of use'] = 'Я прочитав текст та згоден з умовами користування';
-
+$lang['def']['Discount'] = 'Знижка';
 
 ?>

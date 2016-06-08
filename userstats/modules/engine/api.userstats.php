@@ -43,7 +43,7 @@ function zbs_UserDetectIp($debug = false) {
         }
     }
     if ($debug) {
-         //$ip='172.30.0.2'; 
+        //$ip='172.30.0.2'; 
     }
 
     return($ip);
@@ -893,6 +893,32 @@ function zbs_vservicesShow($login, $currency) {
 }
 
 /**
+ * Renders custom discount percent if CUD_SHOW option enabled
+ * 
+ * @param string $login
+ * @param array $us_config
+ * 
+ * @return string
+ */
+function zbs_CUDShow($login, $us_config) {
+    $result = '';
+    $login = mysql_real_escape_string($login);
+    if (isset($us_config['CUD_SHOW'])) {
+        if ($us_config['CUD_SHOW']) {
+            $query = "SELECT * from `cudiscounts` WHERE `login`='" . $login . "';";
+            $data = simple_query($query);
+            if (!empty($data)) {
+                $discount = $data['discount'];
+                $cells = la_TableCell(__('Discount'), '', 'row1');
+                $cells.= la_TableCell($discount . '%');
+                $result = la_TableRow($cells);
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Renders user profile
  * 
  * @param string $login
@@ -1095,6 +1121,8 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell(__('Account state'), '', 'row1');
     $profile.= la_TableCell($passive_state . $down_state);
     $profile.= la_tag('tr', true);
+
+    $profile.=zbs_CUDShow($login, $us_config);
 
     $profile.=la_tag('table', true);
 

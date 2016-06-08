@@ -330,6 +330,7 @@ $lang['def']['When activated subscription account will be charged fee the equiva
 $lang['def']['Instructions for subscription'] = 'Инструкция по оформлению подписки';
 $lang['def']['You must accept license agreement'] = 'Вы должны ознакомиться с условиями договора';
 $lang['def']['I have read text above and agree with terms of use'] = 'Я прочитал текст выше и согласен с условиями использования';
+$lang['def']['Discount'] = 'Скидка';
 
 
 ?>

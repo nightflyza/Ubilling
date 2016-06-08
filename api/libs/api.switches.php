@@ -383,7 +383,7 @@ function web_SwitchEditForm($switchid) {
 
     if (isset($altCfg['SW_WEBNAV'])) {
         if ($altCfg['SW_WEBNAV']) {
-            $result.=' ' . wf_tag('a', false, 'ubButton', 'href="http://' . $switchdata['ip'] . '" target="_BLANK"') . wf_img('skins/ymaps/globe.png') .' '.__('Go to the web interface') . wf_tag('a', true).' ';
+            $result.=' ' . wf_tag('a', false, 'ubButton', 'href="http://' . $switchdata['ip'] . '" target="_BLANK"') . wf_img('skins/ymaps/globe.png') . ' ' . __('Go to the web interface') . wf_tag('a', true) . ' ';
         }
     }
 
@@ -948,6 +948,63 @@ function ub_JGetSwitchDeadLog() {
             $i++;
         }
     }
+    return ($result);
+}
+
+/**
+ * Renders dead switches top
+ * 
+ * @return string
+ */
+function web_DeadSwitchesTop() {
+    $topThreshold=10;
+    $result = '';
+    $cyear = curyear();
+    $query = "SELECT `id`,`date`,`timestamp`,`swdead` from `switchdeadlog` WHERE `date` LIKE '" . $cyear . "-%' ORDER BY `id` ASC";
+    $rawData = simple_queryall($query);
+    $topTmp = array();
+    $totalCount = 0;
+
+    if (!empty($rawData)) {
+        foreach ($rawData as $io => $each) {
+            if (!empty($each['swdead'])) {
+                $deadData = unserialize($each['swdead']);
+                if (!empty($deadData)) {
+                    foreach ($deadData as $eachDeadIp => $eachDeadName) {
+                        if (isset($topTmp[$eachDeadIp])) {
+                            $topTmp[$eachDeadIp]['count'] ++;
+                        } else {
+                            $topTmp[$eachDeadIp]['count'] = 1;
+                            $topTmp[$eachDeadIp]['name'] = $eachDeadName;
+                        }
+                        $totalCount++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!empty($topTmp)) {
+        $cells = wf_TableCell(__('IP'));
+        $cells.= wf_TableCell(__('Location'));
+        $cells.= wf_TableCell(__('Count'));
+        $cells.= wf_TableCell(__('Visual'));
+        $rows = wf_TableRow($cells, 'row1');
+
+
+        foreach ($topTmp as $io => $each) {
+            if ($each['count']>$topThreshold) {
+            $cells = wf_TableCell($io);
+            $cells.= wf_TableCell($each['name']);
+            $cells.= wf_TableCell($each['count']);
+            $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
+            $rows.= wf_TableRow($cells, 'row3');
+            }
+        }
+
+        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    }
+
     return ($result);
 }
 

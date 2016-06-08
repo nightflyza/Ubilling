@@ -2244,5 +2244,6 @@ $lang['def']['first free for this service'] = 'Перша вільна IP для
 $lang['def']['Unexistent service'] = 'Неіснуюча послуга';
 $lang['def']['No existing nethost for current IP'] = 'Ой леле, немає існуючого нетхоста для поточної IP';
 $lang['def']['empty current IP'] = 'порожня поточна IP';
+$lang['def']['Dead switches top'] = 'Топ покійних світчів';
 
 ?>
