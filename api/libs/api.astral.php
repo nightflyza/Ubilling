@@ -467,7 +467,7 @@ function wf_AjaxSelectorAC($container, $params, $label, $selected = '', $br = fa
     } else {
         $newline = '';
     }
-    $result = '<select name="' . $inputid . '" id="' . $inputid . '" onChange="this.options[this.selectedIndex].onclick();">';
+    $result = '<select name="' . $inputid . '" id="' . $inputid . '">';
     if (!empty($params)) {
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';
