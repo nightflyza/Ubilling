@@ -666,16 +666,46 @@ function zb_UserRegister($user_data, $goprofile = true) {
             zb_UserChangeContract($login, $newUserContract);
         }
     }
-    
+
     //cemetery processing
     if (isset($alterconf['CEMETERY_ENABLED'])) {
         if ($alterconf['CEMETERY_ENABLED']) {
-            if ($alterconf['CEMETERY_ENABLED']==2) {
-            $cemetery= new Cemetery(false);
-            $cemetery->setDead($login);
+            if ($alterconf['CEMETERY_ENABLED'] == 2) {
+                $cemetery = new Cemetery(false);
+                $cemetery->setDead($login);
             }
         }
     }
+
+    //contract autogeneration
+    if (isset($alterconf['CONTRACT_AUTOGEN'])) {
+        if ($alterconf['CONTRACT_AUTOGEN']) {
+            $contract_proposal = '';
+            $allcontracts = zb_UserGetAllContracts();
+            $top_offset = 100000;
+            //contract generation mode default
+            if ($alterconf['CONTRACT_GENERATION_DEFAULT']) {
+                for ($i = 1; $i < $top_offset; $i++) {
+                    if (!isset($allcontracts[$i])) {
+                        $contract_proposal = $i;
+                        break;
+                    }
+                }
+            } else {
+                //alternate generation method
+                $max_contract = max(array_keys($allcontracts));
+                $contract_proposal = $max_contract + 1;
+            }
+
+            //setting generated contract to new user
+            if (!isset($allcontracts[$contract_proposal])) {
+                $contractDate = date("Y-m-d");
+                zb_UserChangeContract($login, $contract_proposal);
+                zb_UserContractDateCreate($contract_proposal, $contractDate);
+            }
+        }
+    }
+
 
     ///////////////////////////////////
     if ($goprofile) {
