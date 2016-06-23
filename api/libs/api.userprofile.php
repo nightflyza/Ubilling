@@ -577,7 +577,8 @@ class UserProfile {
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
             $fulladdresslist = zb_AddressGetFulladdresslistCached();
             @$shortAddress = $fulladdresslist[$this->login];
-            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login), '', '420', '500');
+            $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login);
+            $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $createForm, '', '450', '540');
         } else {
             $result = '';
         }

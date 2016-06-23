@@ -960,17 +960,19 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $smsInputs = '';
     }
 
+    $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
+
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
     $inputs.=wf_HiddenInput('createtask', 'true');
     $inputs.=wf_DatePicker('newstartdate');
     $inputs.=wf_TimePickerPreset('newstarttime', '', '', false);
-    $inputs.=wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
+    $inputs.=wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
     $inputs.=wf_delimiter();
-    $inputs.=wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', $address, true, '30');
+    $inputs.=wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
     //hidden for new task login input
     $inputs.=wf_HiddenInput('newtasklogin', $login);
     $inputs.=wf_tag('br');
-    $inputs.=wf_TextInput('newtaskphone', __('Phone') . '<sup>*</sup>', $mobile . ' ' . $phone, true, '30');
+    $inputs.=wf_TextInput('newtaskphone', __('Phone') . $sup, $mobile . ' ' . $phone, true, '30');
     $inputs.=wf_tag('br');
     $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
     $inputs.=wf_tag('br');
@@ -981,8 +983,44 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
     $inputs.=$smsInputs;
     $inputs.=wf_Submit(__('Create new task'));
+    if (!empty($login)) {
+        $inputs.=wf_AjaxLoader();
+        $inputs.=' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
+        $inputs.=wf_tag('br');
+        $inputs.=wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
+    }
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
     $result.=__('All fields marked with an asterisk are mandatory');
+    return ($result);
+}
+
+/**
+ * Renders list of all previous user tasks by current year
+ * 
+ * @param string $login
+ * 
+ * @return string
+ */
+function ts_PreviousUserTasksRender($login) {
+    $result = '';
+    if (!empty($login)) {
+        $alljobtypes = ts_GetAllJobtypes();
+        $allemployee = ts_GetActiveEmployee();
+        $dateMask=date("Y-m-").'%';
+        
+        $query = "SELECT * from `taskman` WHERE `login`='" . $login . "' AND `date` LIKE '".$dateMask."' ORDER BY `id` DESC;";
+        $allTasks = simple_queryall($query);
+        if (!empty($allTasks)) {
+            $result.=wf_tag('hr');
+            foreach ($allTasks as $io => $each) {
+                $taskColor=($each['status']) ? 'donetask' : 'undone';
+                $result.=wf_tag('div', false, $taskColor, 'style="width:400px;"');
+                $taskdata=$each['startdate'].' - '.@$alljobtypes[$each['jobtype']].', '.@$allemployee[$each['employee']];
+                $result.= wf_link('?module=taskman&edittask='.$each['id'],  wf_img('skins/icon_edit.gif')).' '.$taskdata;
+                $result.= wf_tag('div', true);
+            }
+        }
+    }
     return ($result);
 }
 
@@ -1516,17 +1554,16 @@ function ts_TaskChangeForm($taskid) {
 
 
             $form = wf_Form("", 'POST', $inputs, 'glamour');
-            
+
             if (cfr('TASKMANDELETE')) {
                 show_window('', wf_JSAlertStyled('?module=taskman&deletetask=' . $taskid, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $messages->getDeleteAlert(), 'ubButton'));
             }
-            
-         
+
+
             //show editing form
             if (cfr('TASKMANDONE')) {
                 show_window(__('If task is done'), $form);
             }
-            
         } else {
             $donecells = wf_TableCell(__('Finish date'), '30%');
             $donecells.=wf_TableCell($taskdata['enddate']);

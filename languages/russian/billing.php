@@ -2230,7 +2230,7 @@ $lang['def']['Unexistent service'] = 'Несуществующая услуга'
 $lang['def']['No existing nethost for current IP'] = 'Нет существующего нетхоста для текущей IP';
 $lang['def']['empty current IP'] = 'пустая текущая IP';
 $lang['def']['Dead switches top'] = 'Топ уопкаивающихся свитчей';
-$lang['def'][''] = '';
+$lang['def']['Previous user tasks'] = 'Предыдущие задачи по пользователю';
 $lang['def'][''] = '';
 
 ?>
