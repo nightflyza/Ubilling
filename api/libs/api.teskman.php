@@ -1006,7 +1006,7 @@ function ts_PreviousUserTasksRender($login) {
     if (!empty($login)) {
         $alljobtypes = ts_GetAllJobtypes();
         $allemployee = ts_GetActiveEmployee();
-        $dateMask=date("Y-m-").'%';
+        $dateMask=date("Y").'-%';
         
         $query = "SELECT * from `taskman` WHERE `login`='" . $login . "' AND `date` LIKE '".$dateMask."' ORDER BY `id` DESC;";
         $allTasks = simple_queryall($query);
