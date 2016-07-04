@@ -151,9 +151,9 @@ class MySQLDB {
                 print($warning) or print($warning);
             } else {
                 print('An error occured. Please, try again later. Thank You !');
-                $message.=mysql_errno() . ':' . mysql_error() . "\r\n";
+                @$message.=mysql_errno() . ':' . mysql_error() . "\r\n";
                 $message.=(empty($query) ? '' : "In query: \r\n" . $query . "\r\n");
-                rcms_log_put('MySQL error', $system->user['username'], $message);
+                die('MySQL error '.$message);
             }
         }
     }

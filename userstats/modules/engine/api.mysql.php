@@ -95,7 +95,6 @@ class MySQLDB {
         return $result;
     }
 
-    // ����� ������ �������� �� ������ mysqlcommand (MySQL Connector 4 .NET):)
     /**
      * Executes query and makes abstract data read available
      *
@@ -157,7 +156,7 @@ class MySQLDB {
                 print('An error occured. Please, try again later. Thank You !');
                 $message.=mysql_errno() . ':' . mysql_error() . "\r\n";
                 $message.=(empty($query) ? '' : "In query: \r\n" . $query . "\r\n");
-                rcms_log_put('MySQL error', $system->user['username'], $message);
+                die('MySQL error ' . $message);
             }
         }
     }

@@ -167,10 +167,10 @@ class UbillingWhois {
             $cells.= wf_TableCell($this->ispData->ip);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('RIPE name'), '', 'row2');
-            $cells.= wf_TableCell($this->ispData->name_ripe);
+            $cells.= wf_TableCell(@$this->ispData->name_ripe);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('ISP name'), '', 'row2');
-            $cells.= wf_TableCell($this->ispData->name_rus);
+            $cells.= wf_TableCell(@$this->ispData->name_rus);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('ISP site'), '', 'row2');
             $cells.= wf_TableCell($siteLink);
