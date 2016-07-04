@@ -179,10 +179,16 @@ class UbillingWhois {
             $cells.= wf_TableCell($asLink);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Prefix'), '', 'row2');
-            $cells.= wf_TableCell($this->ispData->route . '/' . $this->ispData->mask);
+            $prefix = (!empty($this->ispData->route)) ? $this->ispData->route . '/' . $this->ispData->mask : '';
+            $cells.= wf_TableCell($prefix);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('IP range'), '', 'row2');
-            $cells.= wf_TableCell(int2ip($this->ispData->ip_range_start) . ' - ' . int2ip($this->ispData->ip_range_end));
+            if ((!empty($this->ispData->ip_range_start)) AND ( !empty($this->ispData->ip_range_end))) {
+                $ipRange = int2ip($this->ispData->ip_range_start) . ' - ' . int2ip($this->ispData->ip_range_end);
+            } else {
+                $ipRange = '';
+            }
+            $cells.= wf_TableCell($ipRange);
             $rows.=wf_TableRow($cells, 'row3');
         }
 
