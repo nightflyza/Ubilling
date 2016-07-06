@@ -289,8 +289,8 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             $finalResult = '';
             $tempArray = array();
             $alterCfg = $ubillingConfig->getAlter();
-            $snmp=new SNMPHelper();
-            
+            $snmp = new SNMPHelper();
+
             //selecting FDB processing mode
             if (isset($currentTemplate['define']['FDB_MODE'])) {
                 $deviceFdbMode = $currentTemplate['define']['FDB_MODE'];
@@ -344,10 +344,10 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 if ($deviceFdb == 'true') {
                 $portData = array();
                 $snmp->setBackground(false); // need to process data with system + background
-                
+
                 if ($deviceFdbMode == 'default') {
                     //default zyxel & cisco port table
-                    
+
                     $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.4.3.1.2', true);
                 } else {
                     if ($deviceFdbMode == 'dlp') {
@@ -499,25 +499,25 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw) {
         if (sizeof($nameExplode) == 2) {
             $switchIp = $nameExplode[0];
             if (file_exists('exports/' . $each_raw)) {
-            $eachfdb_raw = file_get_contents('exports/' . $each_raw);
-            $eachfdb = unserialize($eachfdb_raw);
-            if (!empty($eachfdb_raw)) {
-                foreach ($eachfdb as $mac => $port) {
-                    //detecting user login by his mac
-                    if (isset($allusermacs[$mac])) {
-                        $userlogin = $allusermacs[$mac];
-                    } else {
-                        $userlogin = false;
-                    }
+                $eachfdb_raw = file_get_contents('exports/' . $each_raw);
+                $eachfdb = unserialize($eachfdb_raw);
+                if (!empty($eachfdb_raw)) {
+                    foreach ($eachfdb as $mac => $port) {
+                        //detecting user login by his mac
+                        if (isset($allusermacs[$mac])) {
+                            $userlogin = $allusermacs[$mac];
+                        } else {
+                            $userlogin = false;
+                        }
 
-                    if ($userlogin) {
-                        $userlink = '<a href=?module=userprofile&username=' . $userlogin . '><img src=skins/icon_user.gif> ' . @$alladdress[$userlogin] . '</a>';
-                    } else {
-                        $userlink = '';
-                    }
+                        if ($userlogin) {
+                            $userlink = '<a href=?module=userprofile&username=' . $userlogin . '><img src=skins/icon_user.gif> ' . @$alladdress[$userlogin] . '</a>';
+                        } else {
+                            $userlink = '';
+                        }
 
-                    if (sn_FDBFilterCheckMac($mac, $allfilters)) {
-                        $result.='
+                        if (sn_FDBFilterCheckMac($mac, $allfilters)) {
+                            $result.='
                     [
                     "' . $switchIp . '",
                     "' . $port . '",
@@ -525,11 +525,11 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw) {
                     "' . $mac . '",
                     "' . $userlink . '"
                     ],';
-                        $filteredCounter++;
+                            $filteredCounter++;
+                        }
                     }
                 }
             }
-         }
         }
     }
     //show some data if filters failed
