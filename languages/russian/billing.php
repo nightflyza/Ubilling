@@ -2231,6 +2231,12 @@ $lang['def']['No existing nethost for current IP'] = 'Нет существую�
 $lang['def']['empty current IP'] = 'пустая текущая IP';
 $lang['def']['Dead switches top'] = 'Топ уопкаивающихся свитчей';
 $lang['def']['Previous user tasks'] = 'Предыдущие задачи по пользователю';
+$lang['def']['last events'] = 'последних событий';
+$lang['def']['Download full log'] = 'Загрузить лог полностью';
+$lang['def']['Swpoll log'] = 'Лог опроса оборудования';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

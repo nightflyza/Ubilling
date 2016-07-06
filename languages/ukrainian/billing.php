@@ -2246,5 +2246,8 @@ $lang['def']['No existing nethost for current IP'] = 'Ой леле, немає 
 $lang['def']['empty current IP'] = 'порожня поточна IP';
 $lang['def']['Dead switches top'] = 'Топ покійних світчів';
 $lang['def']['Previous user tasks'] = 'Попередні задачі по користувачу';
+$lang['def']['last events'] = 'останніх подій';
+$lang['def']['Download full log'] = 'Завантажити лог повністю';
+$lang['def']['Swpoll log'] = 'Лог опиту обладнання';
 
 ?>

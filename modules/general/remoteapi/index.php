@@ -177,21 +177,37 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         $allusermacs = zb_UserGetAllMACs();
                         $alladdress = zb_AddressGetFullCityaddresslist();
                         $alldeadswitches = zb_SwitchesGetAllDead();
-
+                        $swpollLogData = '';
                         if (!empty($allDevices)) {
+
                             foreach ($allDevices as $io => $eachDevice) {
+                                $swpollLogData = '';
                                 if (!empty($allTemplatesAssoc)) {
                                     if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
                                         //dont poll dead devices
                                         if (!isset($alldeadswitches[$eachDevice['ip']])) {
-                                            $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
-                                            sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, true);
-                                            print(date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . "\n");
+                                            //dont poll NP devices
+                                            if (!ispos($eachDevice['desc'], 'NP')) {
+                                                $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
+                                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, true);
+                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . "\n";
+                                                print($swpollLogData);
+                                            } else {
+                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH NP' . "\n";
+                                                print($swpollLogData);
+                                            }
                                         } else {
-                                            print(date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL]' . "\n");
+                                            $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH DEAD' . "\n";
+                                            print($swpollLogData);
                                         }
+                                    } else {
+                                        $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] NO TEMPLATE' . "\n";
+                                        print($swpollLogData);
                                     }
                                 }
+
+                                //put some log data about polling
+                                file_put_contents('exports/swpolldata.log', $swpollLogData, FILE_APPEND);
                             }
                             die('OK:SWPOLL');
                         } else {

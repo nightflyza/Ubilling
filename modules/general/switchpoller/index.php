@@ -27,6 +27,61 @@ if (cfr('SWITCHPOLL')) {
     }
 
     /**
+     * Renders swpoll logs control
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return string
+     */
+    function web_FDBTableLogControl() {
+        global $ubillingConfig;
+        $messages = new UbillingMessageHelper();
+        $result = '';
+        $logPath = 'exports/swpolldata.log';
+        $logData = array();
+        $renderData = '';
+        $rows = '';
+        $recordsLimit = 200;
+
+        if (file_exists($logPath)) {
+            $billCfg = $ubillingConfig->getBilling();
+            $tailCmd = $billCfg['TAIL'];
+            $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . $logPath;
+            $rawResult = shell_exec($runCmd);
+            $renderData.= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
+            $renderData.= wf_Link('?module=switchpoller&dlswpolllog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+
+            if (!empty($rawResult)) {
+                $logData = explodeRows($rawResult);
+                if (!empty($logData)) {
+                    $logData = array_reverse($logData);
+                    foreach ($logData as $io => $each) {
+                        if (!empty($each)) {
+                            $cells = wf_TableCell($each);
+                            $rows.=wf_TableRow($cells, 'row3');
+                        }
+                    }
+                    $renderData.= wf_TableBody($rows, '100%', 0, '');
+                }
+            } else {
+                $renderData.= $messages->getStyledMessage(__('Nothing found'), 'warning');
+            }
+
+            $result = wf_modal(wf_img('skins/log_icon_small.png', __('Swpoll log')), __('Swpoll log'), $renderData, '', '800', '600');
+        }
+        return ($result);
+    }
+
+    function zb_FDBTableLogDownload() {
+        $logPath = 'exports/swpolldata.log';
+        if (file_exists($logPath)) {
+            zb_DownloadFile($logPath);
+        } else {
+            show_error(__('Something went wrong') . ': EX_FILE_NOT_FOUND ' . $logPath);
+        }
+    }
+
+    /**
      * Shows current FDB cache list container
      * 
      * @param string $fdbSwitchFilter
@@ -34,11 +89,12 @@ if (cfr('SWITCHPOLL')) {
     function web_FDBTableShowDataTable($fdbSwitchFilter = '') {
         $filter = (!empty($fdbSwitchFilter)) ? '&swfilter=' . $fdbSwitchFilter : '';
         $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
+        $logControls = web_FDBTableLogControl();
 
         $columns = array('Switch IP', 'Port', 'Location', 'MAC', 'User');
         $result = wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter, true, 'Objects', 100);
 
-        show_window(__('Current FDB cache') . ' ' . $filtersForm, $result);
+        show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
     }
 
     $allDevices = sp_SnmpGetAllDevices();
@@ -104,6 +160,10 @@ if (cfr('SWITCHPOLL')) {
                 }
             }
 
+            //log download
+            if (wf_CheckGet(array('dlswpolllog'))) {
+                zb_FDBTableLogDownload();
+            }
 
             //push ajax data
             if (wf_CheckGet(array('ajax'))) {

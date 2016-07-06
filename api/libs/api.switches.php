@@ -957,7 +957,7 @@ function ub_JGetSwitchDeadLog() {
  * @return string
  */
 function web_DeadSwitchesTop() {
-    $topThreshold=10;
+    $topThreshold = 10;
     $result = '';
     $cyear = curyear();
     $query = "SELECT `id`,`date`,`timestamp`,`swdead` from `switchdeadlog` WHERE `date` LIKE '" . $cyear . "-%' ORDER BY `id` ASC";
@@ -993,12 +993,12 @@ function web_DeadSwitchesTop() {
 
 
         foreach ($topTmp as $io => $each) {
-            if ($each['count']>$topThreshold) {
-            $cells = wf_TableCell($io);
-            $cells.= wf_TableCell($each['name']);
-            $cells.= wf_TableCell($each['count']);
-            $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
-            $rows.= wf_TableRow($cells, 'row3');
+            if ($each['count'] > $topThreshold) {
+                $cells = wf_TableCell($io);
+                $cells.= wf_TableCell($each['name']);
+                $cells.= wf_TableCell($each['count']);
+                $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
+                $rows.= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -1216,5 +1216,6 @@ function zb_SwitchGetIdbyIP($ip) {
     }
     return ($result);
 }
+
 
 ?>
