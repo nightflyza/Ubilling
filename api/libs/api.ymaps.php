@@ -133,19 +133,25 @@ function um_MapLocationBuildForm() {
     $allNoGeoBuilds = simple_queryall($query);
     $buildData = array();
     $streetData = array();
+    $cityData = array();
     $result = '';
 
     if (!empty($allNoGeoBuilds)) {
+        $allCities = zb_AddressGetFullCityNames();
         $allStreets = zb_AddressGetStreetAllData();
         if (!empty($allStreets)) {
             foreach ($allStreets as $ia => $eachstreet) {
                 $streetData[$eachstreet['id']] = $eachstreet['streetname'];
+                if (isset($allCities[$eachstreet['cityid']])) {
+                    $cityData[$eachstreet['id']] = $allCities[$eachstreet['cityid']];
+                }
             }
         }
 
         foreach ($allNoGeoBuilds as $io => $each) {
             @$streetname = $streetData[$each['streetid']];
-            $buildData[$each['id']] = $streetname . ' - ' . $each['buildnum'];
+            $streetcity = (isset($cityData[$each['streetid']])) ? $cityData[$each['streetid']] . ' ' : '';
+            $buildData[$each['id']] = $streetcity.$streetname . ' - ' . $each['buildnum'];
         }
         //form construct
         if (cfr('BUILDS')) {
@@ -370,7 +376,7 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
         $clusterer = ';';
     }
 
-    
+
     $js = wf_tag('script', false, '', 'src="https://api-maps.yandex.ru/2.0/?load=package.full&lang=' . $lang . '"  type="text/javascript"');
     $js.= wf_tag('script', true);
     $js.= wf_tag('script', false, '', 'type="text/javascript"');
@@ -394,7 +400,7 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
              
     }';
     $js.= wf_tag('script', true);
-    
+
 
     return($js);
 }

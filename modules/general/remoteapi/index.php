@@ -178,8 +178,10 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         $alladdress = zb_AddressGetFullCityaddresslist();
                         $alldeadswitches = zb_SwitchesGetAllDead();
                         $swpollLogData = '';
+                        $swpollLogPath = 'exports/swpolldata.log';
                         if (!empty($allDevices)) {
-
+                            //start new polling
+                            file_put_contents($swpollLogPath, date("Y-m-d H:i:s") . ' [SWPOLLSTART]' . "\n", FILE_APPEND);
                             foreach ($allDevices as $io => $eachDevice) {
                                 $swpollLogData = '';
                                 if (!empty($allTemplatesAssoc)) {
@@ -207,7 +209,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 }
 
                                 //put some log data about polling
-                                file_put_contents('exports/swpolldata.log', $swpollLogData, FILE_APPEND);
+                                file_put_contents($swpollLogPath, $swpollLogData, FILE_APPEND);
                             }
                             die('OK:SWPOLL');
                         } else {

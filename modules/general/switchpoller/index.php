@@ -42,6 +42,9 @@ if (cfr('SWITCHPOLL')) {
         $renderData = '';
         $rows = '';
         $recordsLimit = 200;
+        $prevTime = '';
+        $curTimeTime = '';
+        $diffTime = '';
 
         if (file_exists($logPath)) {
             $billCfg = $ubillingConfig->getBilling();
@@ -54,14 +57,40 @@ if (cfr('SWITCHPOLL')) {
             if (!empty($rawResult)) {
                 $logData = explodeRows($rawResult);
                 if (!empty($logData)) {
-                    $logData = array_reverse($logData);
+
+                    $cells = wf_TableCell(__('Time') . ' (' . __('seconds') . ')');
+                    $cells.= wf_TableCell(__('Date'));
+                    $cells.= wf_TableCell(__('IP'));
+                    $cells.= wf_TableCell(__('Event'));
+                    $rows.=wf_TableRow($cells, 'row1');
+
+                    //  $logData = array_reverse($logData);
                     foreach ($logData as $io => $each) {
                         if (!empty($each)) {
-                            $cells = wf_TableCell($each);
-                            $rows.=wf_TableRow($cells, 'row3');
+                            if (!ispos($each, 'SWPOLLSTART')) {
+                                $eachEntry = explode(' ', $each);
+                                $curTime = $eachEntry[0] . ' ' . $eachEntry[1];
+                                $curTime = strtotime($curTime);
+                                if (!empty($prevTime)) {
+                                    $diffTime = $curTime - $prevTime;
+                                } else {
+                                    $diffTime = 0;
+                                }
+                                $prevTime = $eachEntry[0] . ' ' . $eachEntry[1];
+                                $prevTime = strtotime($prevTime);
+
+                                $cells = wf_TableCell($diffTime);
+                                $cells.= wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
+                                $cells.= wf_TableCell($eachEntry[2]);
+                                $cells.= wf_TableCell($eachEntry[3] . ' ' . @$eachEntry[4] . ' ' . @$eachEntry[5]);
+                                $rows.=wf_TableRow($cells, 'row3');
+                            } else {
+                                $eachEntry = explode(' ', $each);
+                                $prevTime=  strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
+                            }
                         }
                     }
-                    $renderData.= wf_TableBody($rows, '100%', 0, '');
+                    $renderData.= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
             } else {
                 $renderData.= $messages->getStyledMessage(__('Nothing found'), 'warning');
