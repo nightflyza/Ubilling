@@ -32,10 +32,10 @@ class DragonFly extends BSDCommon
     public function __construct()
     {
         parent::__construct();
-        $this->setCPURegExp1("^cpu(.*)\, (.*) MHz");
-        $this->setCPURegExp2("^(.*) at scsibus.*: <(.*)> .*");
-        $this->setSCSIRegExp2("^(da[0-9]): (.*)MB ");
-        $this->setPCIRegExp1("/(.*): <(.*)>(.*) (pci|legacypci)[0-9]$/");
+        $this->setCPURegExp1("/^cpu(.*)\, (.*) MHz/");
+        $this->setCPURegExp2("/^(.*) at scsibus.*: <(.*)> .*/");
+        $this->setSCSIRegExp2("/^(da[0-9]+): (.*)MB /");
+        $this->setPCIRegExp1("/(.*): <(.*)>(.*) (pci|legacypci)[0-9]+$/");
         $this->setPCIRegExp2("/(.*): <(.*)>.* at [0-9\.]+$/");
     }
 
@@ -66,7 +66,7 @@ class DragonFly extends BSDCommon
         for ($i = 0, $max = sizeof($lines_b); $i < $max; $i++) {
             $ar_buf_b = preg_split("/\s+/", $lines_b[$i]);
             $ar_buf_n = preg_split("/\s+/", $lines_n[$i]);
-            if (! empty($ar_buf_b[0]) && ! empty($ar_buf_n[3])) {
+            if (!empty($ar_buf_b[0]) && (!empty($ar_buf_n[5]) || ($ar_buf_n[5] === "0"))) {
                 $dev = new NetDevice();
                 $dev->setName($ar_buf_b[0]);
                 $dev->setTxBytes($ar_buf_b[8]);
@@ -86,10 +86,10 @@ class DragonFly extends BSDCommon
     protected function ide()
     {
         foreach ($this->readdmesg() as $line) {
-            if (preg_match('/^(.*): (.*) <(.*)> at (ata[0-9]\-(.*)) (.*)/', $line, $ar_buf)) {
+            if (preg_match('/^(.*): (.*) <(.*)> at (ata[0-9]+\-(.*)) (.*)/', $line, $ar_buf)) {
                 $dev = new HWDevice();
                 $dev->setName($ar_buf[1]);
-                if (!preg_match("/^acd[0-9](.*)/", $ar_buf[1])) {
+                if (!preg_match("/^acd[0-9]+(.*)/", $ar_buf[1])) {
                     $dev->setCapacity($ar_buf[2] * 1024);
                 }
                 $this->sys->setIdeDevices($dev);
@@ -108,6 +108,34 @@ class DragonFly extends BSDCommon
     }
 
     /**
+     * Processes
+     *
+     * @return void
+     */
+    protected function _processes()
+    {
+        if (CommonFunctions::executeProgram('ps', 'aux', $bufr, PSI_DEBUG)) {
+            $lines = preg_split("/\n/", $bufr, -1, PREG_SPLIT_NO_EMPTY);
+            $processes['*'] = 0;
+            foreach ($lines as $line) {
+                if (preg_match("/^\S+\s+\d+\s+\S+\s+\S+\s+\d+\s+\d+\s+\S+\s+(\w)/", $line, $ar_buf)) {
+                    $processes['*']++;
+                    $state = $ar_buf[1];
+                    if ($state == 'I') $state = 'S'; //linux format
+                    if (isset($processes[$state])) {
+                        $processes[$state]++;
+                    } else {
+                        $processes[$state] = 1;
+                    }
+                }
+            }
+            if ($processes['*'] > 0) {
+                $this->sys->setProcesses($processes);
+            }
+        }
+    }
+
+    /**
      * get the information
      *
      * @see BSDCommon::build()
@@ -120,5 +148,6 @@ class DragonFly extends BSDCommon
         $this->_distroicon();
         $this->_network();
         $this->_uptime();
+        $this->_processes();
     }
 }

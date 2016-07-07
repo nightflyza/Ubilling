@@ -188,16 +188,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     if (isset($allTemplatesAssoc[$eachDevice['modelid']])) {
                                         //dont poll dead devices
                                         if (!isset($alldeadswitches[$eachDevice['ip']])) {
-                                            //dont poll NP devices
-                                            if (!ispos($eachDevice['desc'], 'NP')) {
+                                            //dont poll NP devices - commented due testing
+                                            // if (!ispos($eachDevice['desc'], 'NP')) {
                                                 $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
                                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, true);
                                                 $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . "\n";
                                                 print($swpollLogData);
-                                            } else {
-                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH NP' . "\n";
-                                                print($swpollLogData);
-                                            }
+//                                            } else {
+//                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH NP' . "\n";
+//                                                print($swpollLogData);
+//                                            }
                                         } else {
                                             $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH DEAD' . "\n";
                                             print($swpollLogData);

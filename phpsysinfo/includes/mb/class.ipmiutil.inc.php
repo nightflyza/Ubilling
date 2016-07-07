@@ -33,23 +33,23 @@ class IPMIutil extends Sensors
     private $_lines = array();
 
     /**
-     * fill the private content var through tcp or file access
+     * fill the private content var through command or data access
      */
     public function __construct()
     {
         parent::__construct();
-        switch (strtolower(PSI_SENSOR_ACCESS)) {
+        switch (defined('PSI_SENSOR_IPMIUTIL_ACCESS')?strtolower(PSI_SENSOR_IPMIUTIL_ACCESS):'command') {
         case 'command':
             CommonFunctions::executeProgram('ipmiutil', 'sensor -stw', $lines);
             $this->_lines = preg_split("/\r?\n/", $lines, -1, PREG_SPLIT_NO_EMPTY);
             break;
-        case 'file':
+        case 'data':
             if (CommonFunctions::rfts(APP_ROOT.'/data/ipmiutil.txt', $lines)) {
                 $this->_lines = preg_split("/\r?\n/", $lines, -1, PREG_SPLIT_NO_EMPTY);
             }
             break;
         default:
-            $this->error->addConfigError('__construct()', 'PSI_SENSOR_ACCESS');
+            $this->error->addConfigError('__construct()', 'PSI_SENSOR_IPMIUTIL_ACCESS');
             break;
         }
     }
@@ -63,15 +63,15 @@ class IPMIutil extends Sensors
     {
         foreach ($this->_lines as $line) {
             $buffer = preg_split("/\s*\|\s*/", $line);
-            if (isset($buffer[2]) && $buffer[2] == "Temperature" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sC$/",$buffer[6], $value)) {
+            if (isset($buffer[2]) && $buffer[2] == "Temperature" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sC$/", $buffer[6], $value)) {
                 $dev = new SensorDevice();
                 $dev->setName($buffer[4]);
                 $dev->setValue($value[1]);
                 if (isset($buffer[7]) && $buffer[7] == "Thresholds") {
-                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMax($limits[1]);
                     }
                 }
@@ -90,21 +90,21 @@ class IPMIutil extends Sensors
     {
         foreach ($this->_lines as $line) {
             $buffer = preg_split("/\s*\|\s*/", $line);
-            if (isset($buffer[2]) && $buffer[2] == "Voltage" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sV$/",$buffer[6], $value)) {
+            if (isset($buffer[2]) && $buffer[2] == "Voltage" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sV$/", $buffer[6], $value)) {
                 $dev = new SensorDevice();
                 $dev->setName($buffer[4]);
                 $dev->setValue($value[1]);
                 if (isset($buffer[7]) && $buffer[7] == "Thresholds") {
-                    if ((isset($buffer[8]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMin($limits[1]);
                     }
-                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMax($limits[1]);
                     }
                 }
@@ -123,20 +123,20 @@ class IPMIutil extends Sensors
     {
         foreach ($this->_lines as $line) {
             $buffer = preg_split("/\s*\|\s*/", $line);
-            if (isset($buffer[2]) && $buffer[2] == "Fan" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sRPM$/",$buffer[6], $value)) {
+            if (isset($buffer[2]) && $buffer[2] == "Fan" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sRPM$/", $buffer[6], $value)) {
                 $dev = new SensorDevice();
                 $dev->setName($buffer[4]);
                 $dev->setValue($value[1]);
                 if (isset($buffer[7]) && $buffer[7] == "Thresholds") {
-                    if ((isset($buffer[8]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^lo-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^lo-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMin($limits[1]);
-                    } elseif ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    } elseif ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         if ($limits[1]<$value[1]) {//max instead min issue
                             $dev->setMin($limits[1]);
                         }
@@ -157,15 +157,15 @@ class IPMIutil extends Sensors
     {
         foreach ($this->_lines as $line) {
             $buffer = preg_split("/\s*\|\s*/", $line);
-            if (isset($buffer[2]) && $buffer[2] == "Current" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sW$/",$buffer[6], $value)) {
+            if (isset($buffer[2]) && $buffer[2] == "Current" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sW$/", $buffer[6], $value)) {
                 $dev = new SensorDevice();
                 $dev->setName($buffer[4]);
                 $dev->setValue($value[1]);
                 if (isset($buffer[7]) && $buffer[7] == "Thresholds") {
-                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMax($limits[1]);
                     }
                 }
@@ -184,15 +184,15 @@ class IPMIutil extends Sensors
     {
         foreach ($this->_lines as $line) {
             $buffer = preg_split("/\s*\|\s*/", $line);
-            if (isset($buffer[2]) && $buffer[2] == "Current" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sA$/",$buffer[6], $value)) {
+            if (isset($buffer[2]) && $buffer[2] == "Current" && $buffer[1] == "Full" && isset($buffer[6]) && preg_match("/^(\S+)\sA$/", $buffer[6], $value)) {
                 $dev = new SensorDevice();
                 $dev->setName($buffer[4]);
                 $dev->setValue($value[1]);
                 if (isset($buffer[7]) && $buffer[7] == "Thresholds") {
-                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[8], $limits))
-                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[9], $limits))
-                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[10], $limits))
-                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/",$buffer[11], $limits))) {
+                    if ((isset($buffer[8]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[8], $limits))
+                        ||(isset($buffer[9]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[9], $limits))
+                        ||(isset($buffer[10]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[10], $limits))
+                        ||(isset($buffer[11]) && preg_match("/^hi-crit\s(\S+)\s*$/", $buffer[11], $limits))) {
                         $dev->setMax($limits[1]);
                     }
                 }

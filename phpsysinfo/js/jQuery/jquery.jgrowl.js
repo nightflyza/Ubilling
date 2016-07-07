@@ -1,5 +1,5 @@
 /**
- * jGrowl 1.2.6
+ * jGrowl 1.2.6+jquery1.9fix+jquery3fix
  *
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
@@ -110,7 +110,7 @@
 	/** jGrowl Wrapper - Establish a base jGrowl Container for compatibility with older releases. **/
 	$.jGrowl = function( m , o ) {
 		// To maintain compatibility with older version that only supported one instance we'll create the base container.
-		if ( $('#jGrowl').size() == 0 ) 
+		if ( $('#jGrowl').length == 0 ) 
 			$('<div id="jGrowl"></div>').addClass( (o && o.position) ? o.position : $.jGrowl.defaults.position ).appendTo('body');
 
 		// Create a notification on the container.
@@ -238,7 +238,7 @@
 					
 					$(this).animate(o.animateOpen, o.openDuration, o.easing, function() {
 						// Fixes some anti-aliasing issues with IE filters.
-						if ($.browser.msie && (parseInt($(this).css('opacity'), 10) === 1 || parseInt($(this).css('opacity'), 10) === 0))
+						if ((navigator.userAgent.match(/MSIE ([1-9])/) !== null) && (parseInt($(this).css('opacity'), 10) === 1 || parseInt($(this).css('opacity'), 10) === 0))
 							this.style.removeAttribute('filter');
 
 						if ( $(this).data("jGrowl") != null ) // Happens when a notification is closing before it's open.
@@ -269,8 +269,8 @@
 			if ( o.corners != '' && $.fn.corner != undefined ) $(notification).corner( o.corners );
 
 			/** Add a Global Closer if more than one notification exists **/
-			if ( $('div.jGrowl-notification:parent', self.element).size() > 1 && 
-				 $('div.jGrowl-closer', self.element).size() == 0 && this.defaults.closer != false ) {
+			if ( $('div.jGrowl-notification:parent', self.element).length > 1 && 
+				 $('div.jGrowl-closer', self.element).length == 0 && this.defaults.closer != false ) {
 				$(this.defaults.closerTemplate).addClass('jGrowl-closer ' + this.defaults.themeState + ' ui-corner-all').addClass(this.defaults.theme)
 					.appendTo(self.element).animate(this.defaults.animateOpen, this.defaults.speed, this.defaults.easing)
 					.bind("click.jGrowl", function() {
@@ -297,10 +297,10 @@
 			});
 
 			if ( this.notifications.length > 0 && 
-				 (this.defaults.pool == 0 || $(this.element).find('div.jGrowl-notification:parent').size() < this.defaults.pool) )
+				 (this.defaults.pool == 0 || $(this.element).find('div.jGrowl-notification:parent').length < this.defaults.pool) )
 				this.render( this.notifications.shift() );
 
-			if ( $(this.element).find('div.jGrowl-notification:parent').size() < 2 ) {
+			if ( $(this.element).find('div.jGrowl-notification:parent').length < 2 ) {
 				$(this.element).find('div.jGrowl-closer').animate(this.defaults.animateClose, this.defaults.speed, this.defaults.easing, function() {
 					$(this).remove();
 				});
@@ -314,7 +314,7 @@
 				$(e).data('jGrowl.instance').update(); 
 			}, parseInt(this.defaults.check));
 			
-			if ($.browser.msie && parseInt($.browser.version) < 7 && !window["XMLHttpRequest"]) {
+			if ((navigator.userAgent.match(/MSIE ([2-6]\.)/) !== null) && !window["XMLHttpRequest"]) {
 				$(this.element).addClass('ie6');
 			}
 		},

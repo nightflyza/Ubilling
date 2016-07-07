@@ -33,22 +33,15 @@ class HWSensors extends Sensors
     private $_lines = array();
 
     /**
-     * fill the private content var through tcp or file access
+     * fill the private content var through command
      */
     public function __construct()
     {
         parent::__construct();
-        switch (strtolower(PSI_SENSOR_ACCESS)) {
-        case 'command':
-            $lines = "";
-//            CommonFunctions::executeProgram('sysctl', '-w hw.sensors', $lines);
-            CommonFunctions::executeProgram('sysctl', 'hw.sensors', $lines);
-            $this->_lines = preg_split("/\n/", $lines, -1, PREG_SPLIT_NO_EMPTY);
-            break;
-        default:
-            $this->error->addConfigError('__construct()', 'PSI_SENSOR_ACCESS');
-            break;
-        }
+        $lines = "";
+//        CommonFunctions::executeProgram('sysctl', '-w hw.sensors', $lines);
+        CommonFunctions::executeProgram('sysctl', 'hw.sensors', $lines);
+        $this->_lines = preg_split("/\n/", $lines, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     /**

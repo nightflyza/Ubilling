@@ -49,13 +49,13 @@ class QNX extends OS
     protected function _cpuinfo()
     {
         if (CommonFunctions::executeProgram('pidin', 'info', $buf)
-           && preg_match('/^Processor\d+: (.*)/m' ,$buf)) {
+           && preg_match('/^Processor\d+: (.*)/m', $buf)) {
             $lines = preg_split("/\n/", $buf, -1, PREG_SPLIT_NO_EMPTY);
             foreach ($lines as $line) {
-                if (preg_match('/^Processor\d+: (.+)/' ,$line, $proc)) {
+                if (preg_match('/^Processor\d+: (.+)/', $line, $proc)) {
                     $dev = new CpuDevice();
                     $dev->SetModel(trim($proc[1]));
-                    if (preg_match('/(\d+)MHz/' ,$proc[1], $mhz)) {
+                    if (preg_match('/(\d+)MHz/', $proc[1], $mhz)) {
                         $dev->setCpuSpeed($mhz[1]);
                     }
                     $this->sys->setCpus($dev);
@@ -101,7 +101,7 @@ class QNX extends OS
     {
 
         if (CommonFunctions::executeProgram('pidin', 'info', $buf)
-           && preg_match('/^.* BootTime:(.*)/' ,$buf, $bstart)
+           && preg_match('/^.* BootTime:(.*)/', $buf, $bstart)
            && CommonFunctions::executeProgram('date', '', $bstop)) {
             /* default error handler */
             if (function_exists('errorHandlerPsi')) {
@@ -128,7 +128,7 @@ class QNX extends OS
      *
      * @return void
      */
-    private function _users()
+    protected function _users()
     {
         $this->sys->setUsers(1);
     }
@@ -153,24 +153,6 @@ class QNX extends OS
     }
 
     /**
-     * IP of the Virtual Host Name
-     *
-     *  @return void
-     */
-    private function _ip()
-    {
-        if (PSI_USE_VHOST === true) {
-            $this->sys->setIp(gethostbyname($this->sys->getHostname()));
-        } else {
-            if (!($result = getenv('SERVER_ADDR'))) {
-                $this->sys->setIp(gethostbyname($this->sys->getHostname()));
-            } else {
-                $this->sys->setIp($result);
-            }
-        }
-    }
-
-    /**
      *  Physical memory information and Swap Space information
      *
      *  @return void
@@ -178,7 +160,7 @@ class QNX extends OS
     private function _memory()
     {
         if (CommonFunctions::executeProgram('pidin', 'info', $buf)
-           && preg_match('/^.* FreeMem:(\S+)Mb\/(\S+)Mb/' ,$buf, $memm)) {
+           && preg_match('/^.* FreeMem:(\S+)Mb\/(\S+)Mb/', $buf, $memm)) {
             $this->sys->setMemTotal(1024*1024*$memm[2]);
             $this->sys->setMemFree(1024*1024*$memm[1]);
             $this->sys->setMemUsed(1024*1024*($memm[2]-$memm[1]));
@@ -207,20 +189,20 @@ class QNX extends OS
     {
         if (CommonFunctions::executeProgram('ifconfig', '', $bufr, PSI_DEBUG)) {
             $lines = preg_split("/\n/", $bufr, -1, PREG_SPLIT_NO_EMPTY);
-            $notwas = true;
+            $was = false;
             foreach ($lines as $line) {
                 if (preg_match("/^([^\s:]+)/", $line, $ar_buf)) {
-                    if (!$notwas) {
+                    if ($was) {
                         $this->sys->setNetDevices($dev);
                     }
                     $dev = new NetDevice();
                     $dev->setName($ar_buf[1]);
-                    $notwas = false;
+                    $was = true;
                 } else {
-                    if (!$notwas) {
+                    if ($was) {
                         if (defined('PSI_SHOW_NETWORK_INFOS') && (PSI_SHOW_NETWORK_INFOS)) {
                             if (preg_match('/^\s+address:\s*(\S+)/i', $line, $ar_buf2)) {
-                                    $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').$ar_buf2[1]);
+                                    $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').preg_replace('/:/', '-', strtoupper($ar_buf2[1])));
                             } elseif (preg_match('/^\s+inet\s+(\S+)\s+netmask/i', $line, $ar_buf2))
                                 $dev->setInfo(($dev->getInfo()?$dev->getInfo().';':'').$ar_buf2[1]);
 
@@ -228,7 +210,7 @@ class QNX extends OS
                     }
                 }
             }
-            if (!$notwas) {
+            if ($was) {
                 $this->sys->setNetDevices($dev);
             }
         }
@@ -242,9 +224,8 @@ class QNX extends OS
     public function build()
     {
         $this->error->addError("WARN", "The QNX version of phpSysInfo is a work in progress, some things currently don't work");
-        $this->_hostname();
-        $this->_ip();
         $this->_distro();
+        $this->_hostname();
         $this->_kernel();
         $this->_uptime();
         $this->_users();

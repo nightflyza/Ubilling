@@ -3,6 +3,116 @@ Changelog of phpSysInfo
 
 http://phpsysinfo.sourceforge.net/
 
+phpSysInfo 3.2.5
+----------------
+ - [UPD] jQuery 2.2.0 and jQuery 1.12.0
+
+ - [ADD] Show network interfaces infos for NetBSD and OpenBSD
+ - [ADD] SHOW_NETWORK_INFOS_EXPANDED option
+ - [ADD] SHOW_MEMORY_INFOS_EXPANDED option
+ - [ADD] QTS, OpenMamba and HipServ to detected distros
+ - [ADD] SNMPups - monitoring UPS via SNMP
+
+ - [NEW] reloading plugins also for frontend "bootstrap"
+ - [NEW] Network speed info on WinNT, Linux, Android, Darwin, NetBSD, OpenBSD and FreeBSD
+ - [NEW] Coretemp monitoring also on Linux
+ - [NEW] QTSsnmp - SNMP sensors monitoring for QTS Linux
+ - [NEW] Hwmon - sensors monitoring for Linux
+ - [NEW] SpeedFan - sensors monitoring for WinNT
+ - [NEW] Separate configuration sections for motherboard monitoring sensors programs
+ - [NEW] List of IP addresses of clients authorized to run
+
+phpSysInfo 3.2.4
+----------------
+ - [ADD] Solus to detected distros
+ - [ADD] Uprecords plugin - MAX_ENTRIES option - maximum number of entries to show
+
+ - [UPD] Refreshing status of all plugins for dynamic mode
+ - [UPD] bootstrap 3.3.6
+
+ - [NEW] language and template selection also for frontend "bootstrap"
+
+ - [FIX] PHP 7 class Error issues
+
+phpSysInfo 3.2.3
+----------------
+ - [UPD] jQuery 2.1.4 and jQuery 1.11.3
+ - [UPD] bootstrap 3.3.5
+
+ - [NEW] I2C devices list on Android and Linux
+
+ - [ADD] blue template
+
+phpSysInfo 3.2.2
+----------------
+ - [UPD] bootstrap 3.3.4
+
+ - [NEW] Thunderbolt (TB) devices list on Darwin
+
+ - [ADD] cleansyn template
+ - [ADD] PS plugin - support for Android
+ - [ADD] PS plugin - SHOW_KTHREADD_EXPANDED option
+ - [ADD] Qubes and HandyLinux to detected distros
+
+ - [FIX] PS plugin - fixed display of the processes tree
+
+phpSysInfo 3.2.1
+----------------
+ - [UPD] bootstrap 3.3.2
+
+ - [NEW] REFRESH parameter also for frontend "bootstrap"
+
+ - [ADD] pfSense to detected distros
+
+ - [FIX] Percentage memory usage
+
+phpSysInfo 3.2.0
+----------------
+ - [UPD] jQuery 2.1.3 and jQuery 1.11.2
+
+ - [NEW] Frontend "bootstrap" with Bootstrap3 and Transparency (JSON)
+
+ - [ADD] Catalan Translation ca.xml
+ - [ADD] Mer (core of Sailfish OS) and Tizen to detected distros
+ - [ADD] ThermalZone sensor support for Linux and Android
+ - [ADD] Temperature, voltage and current sensor for Banana Pi
+
+ - [UPD] German Translation de.xml
+
+phpSysInfo 3.1.17
+----------------
+
+ - [UPD] BAT plugin - capacity unit, cycle count, FreeBSD support
+ - [UPD] Brazilian Portuguese Translation pt-br.xml
+
+ - [ADD] Show the number of processes on Haiku
+ - [ADD] ThermalZone sensor support for WinNT
+ - [ADD] Tanglu to detected distros
+ - [ADD] Android and OS X version name
+
+ - [FIX] Fixed display of treetables
+
+phpSysInfo 3.1.16
+----------------
+
+ - [ADD] Show the number of processes
+ - [ADD] Lunar and 4MLinux to detected distros
+
+phpSysInfo 3.1.15
+----------------
+
+ - [ADD] CoreOS and Pisi Linux to detected distros
+ - [ADD] pmset - UPS support on Darwin (thanks to pelletierr)
+ - [ADD] lspci support on Darwin
+ - [ADD] SHOW_CPULIST_EXPANDED option
+ - [ADD] lxc/docker detection on Linux
+ - [ADD] ability to hide all disks and all network interfaces
+
+ - [FIX] Small CSS fix
+
+ - [UPD] Memory informations on Darwin systems
+ - [UPD] BAT plugin - Darwin support
+
 phpSysInfo 3.1.14
 ----------------
 
@@ -22,7 +132,6 @@ phpSysInfo 3.1.13
 
  - [ADD] SHOW_CPUINFO_EXPANDED option
  - [ADD] Machine detection on WINNT, Linux, Android and Darwin systems
-
 
 phpSysInfo 3.1.12
 ----------------

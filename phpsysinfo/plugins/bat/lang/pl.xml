@@ -42,4 +42,10 @@
   <expression id="plugin_bat_012" name="bat_battery_condition">
     <exp>Kondycja ogniw</exp>
   </expression>
+  <expression id="plugin_bat_013" name="bat_cycle_count">
+    <exp>Cykli ładowania</exp>
+  </expression>
+  <expression id="plugin_bat_014" name="bat_full_capacity">
+    <exp>Pojemność pełna</exp>
+  </expression>
 </tns:translationPlugin>

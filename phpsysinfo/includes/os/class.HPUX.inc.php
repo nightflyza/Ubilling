@@ -43,24 +43,6 @@ class HPUX extends OS
     }
 
     /**
-     * IP of the Virtual Host Name
-     *
-     *  @return void
-     */
-    private function _ip()
-    {
-        if (PSI_USE_VHOST === true) {
-            $this->sys->setIp(gethostbyname($this->sys->getHostname()));
-        } else {
-            if (!($result = getenv('SERVER_ADDR'))) {
-                $this->sys->setIp(gethostbyname($this->sys->getHostname()));
-            } else {
-                $this->sys->setIp($result);
-            }
-        }
-    }
-
-    /**
      * HP-UX Version
      *
      * @return void
@@ -87,19 +69,6 @@ class HPUX extends OS
                 $days = $ar_buf[1];
                 $this->sys->setUptime($days * 86400 + $hours * 3600 + $min * 60);
             }
-        }
-    }
-
-    /**
-     * Number of Users
-     *
-     * @return void
-     */
-    private function _users()
-    {
-        if (CommonFunctions::executeProgram('who', '-q', $ret)) {
-            $who = preg_split('/=/', $ret, -1, PREG_SPLIT_NO_EMPTY);
-            $this->sys->setUsers($who[1]);
         }
     }
 
@@ -174,17 +143,22 @@ class HPUX extends OS
         if (CommonFunctions::rfts('/proc/pci', $bufr)) {
             $bufe = preg_split("/\n/", $bufr, -1, PREG_SPLIT_NO_EMPTY);
             foreach ($bufe as $buf) {
-                if (preg_match('/Bus/', $buf)) {
+                if (preg_match('/^\s*Bus\s/', $buf)) {
                     $device = true;
                     continue;
                 }
                 if ($device) {
+                    $dev = new HWDevice();
+                    $dev->setName(preg_replace('/\([^\)]+\)\.$/', '', trim($buf)));
+                    $this->sys->setPciDevices($dev);
+/*
                     list($key, $value) = preg_split('/: /', $buf, 2);
                     if (!preg_match('/bridge/i', $key) && !preg_match('/USB/i', $key)) {
                         $dev = new HWDevice();
                         $dev->setName(preg_replace('/\([^\)]+\)\.$/', '', trim($value)));
                         $this->sys->setPciDevices($dev);
                     }
+*/
                     $device = false;
                 }
             }
@@ -387,7 +361,6 @@ class HPUX extends OS
     {
         $this->_distro();
         $this->_hostname();
-        $this->_ip();
         $this->_kernel();
         $this->_uptime();
         $this->_users();

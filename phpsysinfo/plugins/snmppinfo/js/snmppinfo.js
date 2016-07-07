@@ -72,11 +72,11 @@ function snmppinfo_buildTable(xml) {
         }
 
         if (device!=lastdev) {
-            html += "    <tr><td><strong>" + device + " (" + name + ") </strong></td></tr>\n";
+            html += "    <tr><td><span class=\"treespanbold\">" + device + " (" + name + ") </span></td></tr>\n";
             index = tree.push(0);
             lastdev = device;
         }
-        html += "    <tr><td>" + desc + "</td><td>" + createBar(percent) +"</td><td>" + units +"</td></tr>\n";
+        html += "    <tr><td><span class=\"treespan\">" + desc + "</span></td><td>" + createBar(percent) +"</td><td>" + units +"</td></tr>\n";
 
         tree.push(index);
         snmppinfo_show = true;
@@ -109,6 +109,7 @@ function snmppinfo_buildTable(xml) {
  * load the xml via ajax
  */
 function snmppinfo_request() {
+    $("#Reload_SNMPPInfoTable").attr("title", "reload");
     $.ajax({
         url: "xml.php?plugin=SNMPPInfo",
         dataType: "xml",
@@ -134,6 +135,6 @@ $(document).ready(function snmppinfo_buildpage() {
 
     $("#Reload_SNMPPInfoTable").click(function snmppinfo_reload(id) {
         snmppinfo_request();
-        $("#Reload_SNMPPInfoTable").attr("title",datetime());
+        $(this).attr("title", datetime());
     });
 });

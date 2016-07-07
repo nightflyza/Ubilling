@@ -57,7 +57,7 @@ class Android extends Linux
      *
      * @return void
      */
-    private function _users()
+    protected function _users()
     {
         $this->sys->setUsers(1);
     }
@@ -141,17 +141,22 @@ class Android extends Linux
      *
      * @return void
      */
-    private function _distro()
+    protected function _distro()
     {
         $buf = "";
         if (CommonFunctions::rfts('/system/build.prop', $lines, 0, 4096, false)
             && preg_match('/^ro\.build\.version\.release=([^\n]+)/m', $lines, $ar_buf)) {
-                $buf = $ar_buf[1];
+                $buf = trim($ar_buf[1]);
         }
-        if ( is_null($buf) || (trim($buf) == "")) {
+        if (is_null($buf) || ($buf == "")) {
             $this->sys->setDistribution('Android');
         } else {
-            $this->sys->setDistribution('Android '.trim($buf));
+            if (preg_match('/^(\d+\.\d+)/', $buf, $ver)
+                && ($list = @parse_ini_file(APP_ROOT."/data/osnames.ini", true))
+                && isset($list['Android'][$ver[1]])) {
+                    $buf.=' '.$list['Android'][$ver[1]];
+            }
+            $this->sys->setDistribution('Android '.$buf);
         }
         $this->sys->setDistributionIcon('Android.png');
     }
@@ -166,13 +171,13 @@ class Android extends Linux
         if (CommonFunctions::rfts('/system/build.prop', $lines, 0, 4096, false)) {
             $buf = "";
             if (preg_match('/^ro\.product\.manufacturer=([^\n]+)/m', $lines, $ar_buf)) {
-                $buf .= ' '.$ar_buf[1];
+                $buf .= ' '.trim($ar_buf[1]);
             }
-            if (preg_match('/^ro\.product\.model=([^\n]+)/m', $lines, $ar_buf)) {
-                $buf .= ' '.$ar_buf[1];
+            if (preg_match('/^ro\.product\.model=([^\n]+)/m', $lines, $ar_buf) && (trim($buf) !== trim($ar_buf[1]))) {
+                $buf .= ' '.trim($ar_buf[1]);
             }
             if (preg_match('/^ro\.semc\.product\.name=([^\n]+)/m', $lines, $ar_buf)) {
-                $buf .= ' '.$ar_buf[1];
+                $buf .= ' '.trim($ar_buf[1]);
             }
             if (trim($buf) != "") {
                 $this->sys->setMachine(trim($buf));
@@ -193,7 +198,7 @@ class Android extends Linux
                 $device = preg_split("/ /", $buf, 4);
                 if (isset($device[3]) && trim($device[3]) != "") {
                     $dev = new HWDevice();
-                    $dev->setName(trim($device[3]));
+                    $dev->setName('Class '.trim($device[2]).' Device '.trim($device[3]));
                     $this->sys->setPciDevices($dev);
                 }
             }
@@ -207,7 +212,7 @@ class Android extends Linux
      */
     private function _usb()
     {
-        if (CommonFunctions::executeProgram('lsusb', '', $bufr, false)) {
+        if (file_exists('/dev/bus/usb') && CommonFunctions::executeProgram('lsusb', '', $bufr, false)) {
             $bufe = preg_split("/\n/", $bufr, -1, PREG_SPLIT_NO_EMPTY);
             foreach ($bufe as $buf) {
                 $device = preg_split("/ /", $buf, 6);
@@ -229,10 +234,8 @@ class Android extends Linux
      */
     public function build()
     {
-        $this->error->addError("WARN", "The Android version of phpSysInfo is a work in progress, some things currently don't work");
         $this->_distro();
         $this->_hostname();
-        $this->_ip();
         $this->_kernel();
         $this->_machine();
         $this->_uptime();
@@ -240,9 +243,11 @@ class Android extends Linux
         $this->_cpuinfo();
         $this->_pci();
         $this->_usb();
+        $this->_i2c();
         $this->_network();
         $this->_memory();
         $this->_filesystems();
         $this->_loadavg();
+        $this->_processes();
     }
 }

@@ -10,6 +10,7 @@ $filemaskarray=array("/etc/*-release",
                      "/etc/eisfair-system",
                      "/usr/share/doc/tc/release.txt",
                      "/etc/synoinfo.conf",
+                     "/etc/config/uLinux.conf",
                      "/etc/salix-update-notifier.conf",
                      "/etc/solydxk/info",
                      "/etc/vortexbox/vortexbox-version",
@@ -28,7 +29,7 @@ if (is_resource($fp)) {
         echo $contents;
     }
     if ((strlen($contents)>0)&&(substr($contents, -1)!="\n")) {
-        echo "<-----no new line at end\n";
+        echo "\n";
     }
     pclose($fp);
 }
@@ -38,8 +39,7 @@ foreach ($filemaskarray as $filemask) {
         echo "----------".$filename."----------\n";
         echo $contents=file_get_contents($filename);
         if ((strlen($contents)>0)&&(substr($contents, -1)!="\n")) {
-            echo "<-----no new line at end\n";
+            echo "\n";
         }
-        //readfile($filename);
     }
 }

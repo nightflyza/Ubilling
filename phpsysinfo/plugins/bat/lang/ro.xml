@@ -42,4 +42,10 @@
   <expression id="plugin_bat_012" name="bat_battery_condition">
     <exp>Condiții Baterie</exp>
   </expression>
+  <expression id="plugin_bat_013" name="bat_cycle_count">
+    <exp>Cycle Count</exp>
+  </expression>
+  <expression id="plugin_bat_014" name="bat_full_capacity">
+    <exp>Capacitate maximă</exp>
+  </expression>
 </tns:translationPlugin>

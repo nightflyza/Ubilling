@@ -33,7 +33,7 @@ class PowerSoftPlus extends UPS
     private $_output = array();
 
     /**
-     * get all information from all configured ups in config.php and store output in internal array
+     * get all information from all configured ups in phpsysinfo.ini and store output in internal array
      */
     public function __construct()
     {
@@ -73,7 +73,7 @@ class PowerSoftPlus extends UPS
                $load = trim($data[1]);
             }
             //wrong Output load issue
-            if (($load == 0) && ( $maxpwr != 0 ) && preg_match('/^Effective power\s*:\s*(.*)\s\[W\]$/m', $ups, $data)) {
+            if (($load == 0) && ($maxpwr != 0) && preg_match('/^Effective power\s*:\s*(.*)\s\[W\]$/m', $ups, $data)) {
                 $load = 100.0*trim($data[1])/$maxpwr;
             }
             if ($load != null) {

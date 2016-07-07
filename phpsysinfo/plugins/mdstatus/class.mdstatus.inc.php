@@ -17,7 +17,7 @@
  * a simple view which shows supported types and RAID-Devices which are determined by
  * parsing the "/proc/mdstat" file, another way is to provide
  * a file with the output of the /proc/mdstat file, so there is no need to run a execute by the
- * webserver, the format of the command is written down in the mdstat.config.php file, where also
+ * webserver, the format of the command is written down in the phpsysinfo.ini file, where also
  * the method of getting the information is configured
  *
  * @category  PHP
@@ -78,7 +78,7 @@ class MDStatus extends PSI_Plugin
      */
     public function execute()
     {
-        if ( empty($this->_filecontent)) {
+        if (empty($this->_filecontent)) {
             return;
         }
         // get the supported types
@@ -119,7 +119,7 @@ class MDStatus extends PSI_Plugin
                             $replace = array("", "");
                             $this->_result['devices'][$dev]['partitions'][$partition[1]]['status'] = str_replace($search, $replace, trim($partition[5]));
                         } else {
-                            $this->_result['devices'][$dev]['partitions'][$partition[1]]['status'] = " ";
+                            $this->_result['devices'][$dev]['partitions'][$partition[1]]['status'] = "ok";
                         }
                     }
                 }
@@ -185,11 +185,11 @@ class MDStatus extends PSI_Plugin
      */
     public function xml()
     {
-        if ( empty($this->_result)) {
+        if (empty($this->_result)) {
             return $this->xml->getSimpleXmlElement();
         }
         $hideRaids = array();
-        if ( defined('PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES') && is_string(PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES) ) {
+        if (defined('PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES') && is_string(PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES)) {
             if (preg_match(ARRAY_EXP, PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES)) {
                 $hideRaids = eval(PSI_PLUGIN_MDSTATUS_HIDE_RAID_DEVICES);
             } else {
@@ -201,7 +201,7 @@ class MDStatus extends PSI_Plugin
             $typ = $sup->addChild("Type");
             $typ->addAttribute("Name", $type);
         }
-        foreach ($this->_result['devices'] as $key=>$device) {
+        if (isset($this->_result['devices'])) foreach ($this->_result['devices'] as $key=>$device) {
             if (!in_array($key, $hideRaids, true)) {
                 $dev = $this->xml->addChild("Raid");
                 $dev->addAttribute("Device_Name", $key);

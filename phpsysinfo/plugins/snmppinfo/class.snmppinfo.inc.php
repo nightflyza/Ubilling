@@ -47,33 +47,37 @@ class SNMPPInfo extends PSI_Plugin
         parent::__construct(__CLASS__, $enc);
         switch (strtolower(PSI_PLUGIN_SNMPPINFO_ACCESS)) {
         case 'command':
-                if ( defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES) ) {
+                if (defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                     if (preg_match(ARRAY_EXP, PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                         $printers = eval(PSI_PLUGIN_SNMPPINFO_DEVICES);
                     } else {
                         $printers = array(PSI_PLUGIN_SNMPPINFO_DEVICES);
                     }
                     foreach ($printers as $printer) {
-                        CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 ".$printer." .1.3.6.1.2.1.1.5", $buffer, PSI_DEBUG);
-                        if (strlen(trim($buffer)) > 0) {
+                        CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 -r 1 ".$printer." .1.3.6.1.2.1.1.5", $buffer, PSI_DEBUG);
+                        if (strlen($buffer) > 0) {
                             $this->_filecontent[$printer] = $buffer;
 
-                            CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 ".$printer." .1.3.6.1.2.1.43.11.1.1", $buffer2, PSI_DEBUG);
-                            if (strlen(trim($buffer2)) > 0) {
-                               $this->_filecontent[$printer] = $this->_filecontent[$printer]."\n".$buffer2;
+                            CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 -r 1 ".$printer." .1.3.6.1.2.1.43.11.1.1", $buffer2, PSI_DEBUG);
+                            if (strlen($buffer2) > 0) {
+                               $this->_filecontent[$printer] .= "\n".$buffer2;
                             }
-                            CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 ".$printer." .1.3.6.1.2.1.43.18.1.1", $buffer3, PSI_DEBUG);
-                            if (strlen(trim($buffer3)) > 0) {
-                               $this->_filecontent[$printer] =  $this->_filecontent[$printer]."\n".$buffer3;
+                            CommonFunctions::executeProgram("snmpwalk", "-Ona -c public -v 1 -r 1 ".$printer." .1.3.6.1.2.1.43.18.1.1", $buffer3, PSI_DEBUG);
+                            if (strlen($buffer3) > 0) {
+                               $this->_filecontent[$printer] .= "\n".$buffer3;
                             }
                         }
                     }
                 }
-            break;
+                break;
         case 'php-snmp':
+                if (!extension_loaded("snmp")) {
+                    $this->global_error->addError("Requirements error", "SNMPPInfo plugin requires the snmp extension to php in order to work properly");
+                    break;
+                }
                 snmp_set_valueretrieval(SNMP_VALUE_LIBRARY);
                 snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
-                if ( defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES) ) {
+                if (defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                     if (preg_match(ARRAY_EXP, PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                         $printers = eval(PSI_PLUGIN_SNMPPINFO_DEVICES);
                     } else {
@@ -93,7 +97,7 @@ class SNMPPInfo extends PSI_Plugin
                         if (! empty($bufferarr)) {
                             $buffer="";
                             foreach ($bufferarr as $id=>$string) {
-                                $buffer=$buffer.$id." = ".$string."\n";
+                                $buffer .= $id." = ".$string."\n";
                             }
 
                             if (! PSI_DEBUG) {
@@ -108,7 +112,7 @@ class SNMPPInfo extends PSI_Plugin
                             }
                             if (! empty($bufferarr2)) {
                                 foreach ($bufferarr2 as $id=>$string) {
-                                    $buffer=$buffer.$id." = ".$string."\n";
+                                    $buffer .= $id." = ".$string."\n";
                                 }
                             }
 
@@ -124,7 +128,7 @@ class SNMPPInfo extends PSI_Plugin
                             }
                             if (! empty($bufferarr3)) {
                                 foreach ($bufferarr3 as $id=>$string) {
-                                    $buffer=$buffer.$id." = ".$string."\n";
+                                    $buffer .= $id." = ".$string."\n";
                                 }
                             }
 
@@ -134,9 +138,9 @@ class SNMPPInfo extends PSI_Plugin
                         }
                     }
                 }
-            break;
+                break;
         case 'data':
-                if ( defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES) ) {
+                if (defined('PSI_PLUGIN_SNMPPINFO_DEVICES') && is_string(PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                     if (preg_match(ARRAY_EXP, PSI_PLUGIN_SNMPPINFO_DEVICES)) {
                         $printers = eval(PSI_PLUGIN_SNMPPINFO_DEVICES);
                     } else {
@@ -153,7 +157,7 @@ class SNMPPInfo extends PSI_Plugin
                 }
                 break;
             default:
-                $this->global_error->addError("switch(PSI_PLUGIN_SNMPPINFO_ACCESS)", "Bad SNMPPInfo configuration in SNMPPInfo.config.php");
+                $this->global_error->addError("switch(PSI_PLUGIN_SNMPPINFO_ACCESS)", "Bad SNMPPInfo configuration in phpsysinfo.ini");
                 break;
         }
     }
@@ -166,31 +170,25 @@ class SNMPPInfo extends PSI_Plugin
      */
     public function execute()
     {
-        if ( empty($this->_filecontent)) {
+        if (empty($this->_filecontent)) {
             return;
         }
         foreach ($this->_filecontent as $printer=>$result) {
-            $lines = preg_split('/\n/', $result);
+            $lines = preg_split('/\r?\n/', $result);
             foreach ($lines as $line) {
                 if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.6\.1\.(.*) = STRING:\s(.*)/', $line, $data)) {
-                    $this->_result[$printer][$data[1]]['prtMarkerSuppliesDescription']=trim($data[2],"\"");
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.7\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
+                    $this->_result[$printer][$data[1]]['prtMarkerSuppliesDescription']=trim($data[2], "\"");
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.7\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
                     $this->_result[$printer][$data[1]]['prtMarkerSuppliesSupplyUnit']=$data[2];
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.8\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.8\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
                     $this->_result[$printer][$data[1]]['prtMarkerSuppliesMaxCapacity']=$data[2];
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.9\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.11\.1\.1\.9\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
                     $this->_result[$printer][$data[1]]['prtMarkerSuppliesLevel']=$data[2];
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.1\.5\.0 = STRING:\s(.*)/', $line, $data)) {
-                    $this->_result[$printer][0]['prtMarkerSuppliesDescription']=trim($data[1],"\"");;
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.18\.1\.1\.8\.1\.(.*) = STRING:\s(.*)/', $line, $data)) {
-                    $this->_result[$printer][99][$data[1]]["message"]=trim($data[2],"\"");
-                }
-                if (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.18\.1\.1\.2\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.1\.5\.0 = STRING:\s(.*)/', $line, $data)) {
+                    $this->_result[$printer][0]['prtMarkerSuppliesDescription']=trim($data[1], "\"");;
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.18\.1\.1\.8\.1\.(.*) = STRING:\s(.*)/', $line, $data)) {
+                    $this->_result[$printer][99][$data[1]]["message"]=trim($data[2], "\"");
+                } elseif (preg_match('/^\.1\.3\.6\.1\.2\.1\.43\.18\.1\.1\.2\.1\.(.*) = INTEGER:\s(.*)/', $line, $data)) {
                     $this->_result[$printer][99][$data[1]]["severity"]=$data[2];
                 }
             }
@@ -215,22 +213,18 @@ class SNMPPInfo extends PSI_Plugin
                     foreach ($snmppinfo_item as $item=>$iarr) {
                         if (isset($iarr["message"]) && $iarr["message"] != "") {
                             $xmlsnmppinfo_errors = $xmlsnmppinfo_printer->addChild("PrinterMessage");
-                            $xmlsnmppinfo_errors->addAttribute("Message",$iarr["message"]);
-                            $xmlsnmppinfo_errors->addAttribute("Severity",$iarr["severity"]);
+                            $xmlsnmppinfo_errors->addAttribute("Message", $iarr["message"]);
+                            $xmlsnmppinfo_errors->addAttribute("Severity", $iarr["severity"]);
                         }
                     }
-               } else {
+                } else {
                     $xmlsnmppinfo = $xmlsnmppinfo_printer->addChild("MarkerSupplies");
 
-                    if (isset($snmppinfo_item['prtMarkerSuppliesDescription']))
-                        $xmlsnmppinfo->addAttribute("Description", $snmppinfo_item['prtMarkerSuppliesDescription']);
-                    else
-                        $xmlsnmppinfo->addAttribute("Description",""); /* empty on some devices */
-
-                    $xmlsnmppinfo->addAttribute("SupplyUnit", $snmppinfo_item['prtMarkerSuppliesSupplyUnit']);
-                    $xmlsnmppinfo->addAttribute("MaxCapacity", $snmppinfo_item['prtMarkerSuppliesMaxCapacity']);
-                    $xmlsnmppinfo->addAttribute("Level", $snmppinfo_item['prtMarkerSuppliesLevel']);
-               }
+                    $xmlsnmppinfo->addAttribute("Description", isset($snmppinfo_item['prtMarkerSuppliesDescription']) ? $snmppinfo_item['prtMarkerSuppliesDescription'] : "");
+                    $xmlsnmppinfo->addAttribute("SupplyUnit", isset($snmppinfo_item['prtMarkerSuppliesSupplyUnit']) ? $snmppinfo_item['prtMarkerSuppliesSupplyUnit'] : "");
+                    $xmlsnmppinfo->addAttribute("MaxCapacity", isset($snmppinfo_item['prtMarkerSuppliesMaxCapacity']) ? $snmppinfo_item['prtMarkerSuppliesMaxCapacity'] : "");
+                    $xmlsnmppinfo->addAttribute("Level", isset($snmppinfo_item['prtMarkerSuppliesLevel']) ? $snmppinfo_item['prtMarkerSuppliesLevel'] : "");
+                }
             }
         }
 

@@ -41,11 +41,11 @@ function psstatus_populate(xml) {
     $("Plugins Plugin_PSStatus Process", xml).each(function psstatus_getprocess(idp) {
         name = $(this).attr("Name");
         status = parseInt($(this).attr("Status"), 10);
-        if (status === 1 && !isNaN(status)) {
-            state = "<span style=\"display:none;\">" + status.toString() + "</span><img src=\"./plugins/psstatus/gfx/online.png\" alt=\"online\" />";
+        if (!isNaN(status) && (status === 1)) {
+            state = "<span style=\"display:none;\">" + status.toString() + "</span><img src=\"./plugins/psstatus/gfx/online.gif\" alt=\"online\" title=\"\" style=\"width:18px;\" />";
         }
         else {
-            state = "<span style=\"display:none;\">" + status.toString() + "</span><img src=\"./plugins/psstatus/gfx/offline.png\" alt=\"offline\" />";
+            state = "<span style=\"display:none;\">" + status.toString() + "</span><img src=\"./plugins/psstatus/gfx/offline.gif\" alt=\"offline\" title=\"\" style=\"width:18px;\" />";
         }
         psstatus_table.fnAddData(["<span style=\"display:none;\">" + name + "</span>" + name, state]);
         psstatus_show = true;
@@ -92,6 +92,7 @@ function psstatus_buildTable() {
  * load the xml via ajax
  */
 function psstatus_request() {
+    $("#Reload_PSStatusTable").attr("title", "reload");
     $.ajax({
         url: "xml.php?plugin=PSStatus",
         dataType: "xml",
@@ -119,6 +120,6 @@ $(document).ready(function psstatus_buildpage() {
 
     $("#Reload_PSStatusTable").click(function psstatus_reload(id) {
         psstatus_request();
-        $("#Reload_PSStatusTable").attr("title",datetime());
+        $(this).attr("title", datetime());
     });
 });
