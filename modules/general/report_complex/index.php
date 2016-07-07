@@ -9,6 +9,8 @@ if (cfr('REPORTCOMPLEX')) {
         protected $cfields = array();
         protected $contracts = array();
         protected $actives = array();
+        protected $altCfg = array();
+        protected $ukvCableSeals = array();
 
         const CPL_SETTINGS_EX = 'NO_SETTINGS_DEFINED';
         const CPL_EMPTY_EX = 'EMPTY_SETTINGS_RECEIVED';
@@ -28,8 +30,10 @@ if (cfr('REPORTCOMPLEX')) {
          */
 
         private function loadConfig() {
-            $altercfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-            if ((isset($altercfg['COMPLEX_MASKS'])) AND (isset($altercfg['COMPLEX_CFIDS']))) {
+            global $ubillingConfig;
+            $altercfg = $ubillingConfig->getAlter();
+            $this->altCfg = $altercfg;
+            if ((isset($altercfg['COMPLEX_MASKS'])) AND ( isset($altercfg['COMPLEX_CFIDS']))) {
                 //loads tariff masks
                 if (!empty($altercfg['COMPLEX_MASKS'])) {
                     $masksRaw = explode(",", $altercfg['COMPLEX_MASKS']);
@@ -94,6 +98,17 @@ if (cfr('REPORTCOMPLEX')) {
                     $this->actives[$eachActive['login']] = $eachActive['content'];
                 }
             }
+
+            //extracting ukv cable seals if required
+            if ($this->altCfg['UKV_ENABLED']) {
+                $sealQuery = "SELECT `cableseal`,`inetlogin` from `ukv_users`";
+                $rawSeals = simple_queryall($sealQuery);
+                if (!empty($rawSeals)) {
+                    foreach ($rawSeals as $io => $each) {
+                        $this->ukvCableSeals[$each['inetlogin']] = $each['cableseal'];
+                    }
+                }
+            }
         }
 
         /*
@@ -108,9 +123,9 @@ if (cfr('REPORTCOMPLEX')) {
         }
 
         public function printable($data) {
-        $style = file_get_contents(CONFIG_PATH."ukvprintable.css");
+            $style = file_get_contents(CONFIG_PATH . "ukvprintable.css");
 
-        $header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            $header = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
         <head>                                                        
         <title></title>
@@ -123,9 +138,9 @@ if (cfr('REPORTCOMPLEX')) {
         <body>
         ';
 
-        $footer = '</body> </html>';
-        
-        $result=$header.$data.$footer;
+            $footer = '</body> </html>';
+
+            $result = $header . $data . $footer;
             return ($result);
         }
 
@@ -148,7 +163,12 @@ if (cfr('REPORTCOMPLEX')) {
             }
             $cells.= wf_TableCell(__('Address'));
             $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('IP'));
+            if ($this->altCfg['UKV_ENABLED']) {
+                $cells.= wf_TableCell(__('Cable seal'));
+            } else {
+                $cells.= wf_TableCell(__('IP'));
+            }
+
             $cells.= wf_TableCell(__('Tariff'));
             $cells.= wf_TableCell(__('Cash'));
             $cells.= wf_TableCell(__('Credit'));
@@ -165,7 +185,11 @@ if (cfr('REPORTCOMPLEX')) {
                     }
                     $cells.= wf_TableCell(@$alladdress[$each['login']]);
                     $cells.= wf_TableCell(@$allrealnames[$each['login']]);
-                    $cells.= wf_TableCell($each['IP']);
+                    if ($this->altCfg['UKV_ENABLED']) {
+                        $cells.=wf_TableCell(@$this->ukvCableSeals[$each['login']]);
+                    } else {
+                        $cells.= wf_TableCell($each['IP']);
+                    }
                     $cells.= wf_TableCell($each['Tariff']);
                     $cells.= wf_TableCell($each['Cash']);
                     $cells.= wf_TableCell($each['Credit']);
@@ -204,7 +228,12 @@ if (cfr('REPORTCOMPLEX')) {
             }
             $cells.= wf_TableCell(__('Address'));
             $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('IP'));
+            if ($this->altCfg['UKV_ENABLED']) {
+                $cells.= wf_TableCell(__('Cable seal'));
+            } else {
+                $cells.= wf_TableCell(__('IP'));
+            }
+
             $cells.= wf_TableCell(__('Tariff'));
             $cells.= wf_TableCell(__('Cash'));
             $cells.= wf_TableCell(__('Credit'));
@@ -214,7 +243,7 @@ if (cfr('REPORTCOMPLEX')) {
 
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
-                    if ( (($each['Cash'] < ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] == 1)) OR (($each['Passive']=='1') AND (@$this->actives[$each['login']] == 1))) {
+                    if ((($each['Cash'] < ('-' . $each['Credit'])) AND ( @$this->actives[$each['login']] == 1)) OR ( ($each['Passive'] == '1') AND ( @$this->actives[$each['login']] == 1))) {
                         $cells = '';
                         if (!$cutdata) {
                             $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
@@ -222,7 +251,12 @@ if (cfr('REPORTCOMPLEX')) {
                         }
                         $cells.= wf_TableCell(@$alladdress[$each['login']]);
                         $cells.= wf_TableCell(@$allrealnames[$each['login']]);
-                        $cells.= wf_TableCell($each['IP']);
+                        if ($this->altCfg['UKV_ENABLED']) {
+                            $cells.= wf_TableCell(@$this->ukvCableSeals[$each['login']]);
+                        } else {
+                            $cells.= wf_TableCell($each['IP']);
+                        }
+
                         $cells.= wf_TableCell($each['Tariff']);
                         $cells.= wf_TableCell($each['Cash']);
                         $cells.= wf_TableCell($each['Credit']);
@@ -262,7 +296,11 @@ if (cfr('REPORTCOMPLEX')) {
             }
             $cells.= wf_TableCell(__('Address'));
             $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('IP'));
+            if ($this->altCfg['UKV_ENABLED']) {
+                $cells.=wf_TableCell(__('Cable seal'));
+            } else {
+                $cells.= wf_TableCell(__('IP'));
+            }
             $cells.= wf_TableCell(__('Tariff'));
             $cells.= wf_TableCell(__('Cash'));
             $cells.= wf_TableCell(__('Credit'));
@@ -272,7 +310,7 @@ if (cfr('REPORTCOMPLEX')) {
 
             if (!empty($this->data)) {
                 foreach ($this->data as $io => $each) {
-                    if (($each['Cash'] >= ('-' . $each['Credit'])) AND (@$this->actives[$each['login']] != 1) AND ($each['Passive']!=1)) {
+                    if (($each['Cash'] >= ('-' . $each['Credit'])) AND ( @$this->actives[$each['login']] != 1) AND ( $each['Passive'] != 1)) {
                         $cells = '';
                         if (!$cutdata) {
                             $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
@@ -280,7 +318,11 @@ if (cfr('REPORTCOMPLEX')) {
                         }
                         $cells.= wf_TableCell(@$alladdress[$each['login']]);
                         $cells.= wf_TableCell(@$allrealnames[$each['login']]);
-                        $cells.= wf_TableCell($each['IP']);
+                        if ($this->altCfg['UKV_ENABLED']) {
+                            $cells.=wf_TableCell(@$this->ukvCableSeals[$each['login']]);
+                        } else {
+                            $cells.= wf_TableCell($each['IP']);
+                        }
                         $cells.= wf_TableCell($each['Tariff']);
                         $cells.= wf_TableCell($each['Cash']);
                         $cells.= wf_TableCell($each['Credit']);
@@ -300,24 +342,23 @@ if (cfr('REPORTCOMPLEX')) {
             $result.= __('Total') . ': ' . $userCounter;
             return ($result);
         }
-        
-                
+
         /*
          * Shows navigation panel for reports
          * 
          */
+
         public function panel() {
-           $controls=  wf_Link('?module=report_complex', __('All users'), false, 'ubButton');
-           $controls.= wf_Link('?module=report_complex&show=debtors', __('Debtors'), false, 'ubButton');
-           $controls.= wf_Link('?module=report_complex&show=antidebtors', __('AntiDebtors'), false, 'ubButton');
-           $controls.= wf_Link('?module=report_complex&show=nmcomplex', __('Complex service next month'), false, 'ubButton');
-           return ($controls);
-        }
-        
+            $controls = wf_Link('?module=report_complex', __('All users'), false, 'ubButton');
+            $controls.= wf_Link('?module=report_complex&show=debtors', __('Debtors'), false, 'ubButton');
+            $controls.= wf_Link('?module=report_complex&show=antidebtors', __('AntiDebtors'), false, 'ubButton');
+            $controls.= wf_Link('?module=report_complex&show=nmcomplex', __('Complex service next month'), false, 'ubButton');
+            return ($controls);
         }
 
-        
-     class ReportComplexNM extends ReportComplex {
+    }
+
+    class ReportComplexNM extends ReportComplex {
         /*
          * get all users with  with complex services from the next month
          * 
@@ -352,9 +393,8 @@ if (cfr('REPORTCOMPLEX')) {
                 }
             }
         }
-        
-        
-         /*
+
+        /*
          * renders all users report by existing private data props
          * 
          * @param $cutdata - bool cutting profile links and leds, for printing
@@ -412,100 +452,88 @@ if (cfr('REPORTCOMPLEX')) {
             return ($result);
         }
 
-        
-        
-         
-     }   
-     
-    /*
+    }
+
+    /**
      * controller and view section
      */
 
-    $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     if (isset($altercfg['COMPLEX_ENABLED'])) {
         if ($altercfg['COMPLEX_ENABLED']) {
             $complexReport = new ReportComplex();
             //showing navigation
-            show_window(__('Users with complex services'),$complexReport->panel());
-            
+            show_window(__('Users with complex services'), $complexReport->panel());
+
             if (!wf_CheckGet(array('show'))) {
                 //show all users by default
-                $reportHeader=__('All users with complex services');
-                 if (!wf_CheckGet(array('printable'))) {
-                    $reportHeader.=' '.wf_Link('?module=report_complex&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
-                    show_window($reportHeader,$complexReport->renderAll());
-                 }  else {
-                      $reportData= wf_tag('h2').$reportHeader.wf_tag('h2',true);
-                      $reportData.= $complexReport->renderAll(true);
-                      $reportData=$complexReport->printable($reportData);
-                      die($reportData);
-                 }
+                $reportHeader = __('All users with complex services');
+                if (!wf_CheckGet(array('printable'))) {
+                    $reportHeader.=' ' . wf_Link('?module=report_complex&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
+                    show_window($reportHeader, $complexReport->renderAll());
+                } else {
+                    $reportData = wf_tag('h2') . $reportHeader . wf_tag('h2', true);
+                    $reportData.= $complexReport->renderAll(true);
+                    $reportData = $complexReport->printable($reportData);
+                    die($reportData);
+                }
             } else {
-                $action=trim($_GET['show']);
-                
-                if ($action=='debtors') {
-                    $reportHeader=__('Debtors who need disabling additional service');
+                $action = trim($_GET['show']);
+
+                if ($action == 'debtors') {
+                    $reportHeader = __('Debtors who need disabling additional service');
                     if (!wf_CheckGet(array('printable'))) {
                         //normal render
-                        $reportHeader.=' '.wf_Link('?module=report_complex&show=debtors&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
-                        $reportData=$complexReport->renderDebtors();
-                        show_window($reportHeader,$reportData);
+                        $reportHeader.=' ' . wf_Link('?module=report_complex&show=debtors&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
+                        $reportData = $complexReport->renderDebtors();
+                        show_window($reportHeader, $reportData);
                     } else {
                         //printable mode
-                        $reportData=  wf_tag('h2').$reportHeader.wf_tag('h2',true);
+                        $reportData = wf_tag('h2') . $reportHeader . wf_tag('h2', true);
                         $reportData.= $complexReport->renderDebtors(true);
-                        $reportData=$complexReport->printable($reportData);
+                        $reportData = $complexReport->printable($reportData);
                         die($reportData);
                     }
                 }
-                
-                if ($action=='antidebtors') {
-                    $reportHeader=__('AntiDebtors who need enabling additional service');
+
+                if ($action == 'antidebtors') {
+                    $reportHeader = __('AntiDebtors who need enabling additional service');
                     if (!wf_CheckGet(array('printable'))) {
                         //normal render
-                        $reportHeader.=' '.wf_Link('?module=report_complex&show=antidebtors&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
-                        $reportData=$complexReport->renderAntiDebtors();
-                        show_window($reportHeader,$reportData);
+                        $reportHeader.=' ' . wf_Link('?module=report_complex&show=antidebtors&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
+                        $reportData = $complexReport->renderAntiDebtors();
+                        show_window($reportHeader, $reportData);
                     } else {
                         //printable mode
-                        $reportData=  wf_tag('h2').$reportHeader.wf_tag('h2',true);
+                        $reportData = wf_tag('h2') . $reportHeader . wf_tag('h2', true);
                         $reportData.= $complexReport->renderAntiDebtors(true);
-                        $reportData=$complexReport->printable($reportData);
+                        $reportData = $complexReport->printable($reportData);
                         die($reportData);
                     }
                 }
-                
-                if ($action=='nmcomplex') {
-                    $nmComplexReport=new ReportComplexNM();
-                    $reportHeader=__('Complex service next month');
-                    
+
+                if ($action == 'nmcomplex') {
+                    $nmComplexReport = new ReportComplexNM();
+                    $reportHeader = __('Complex service next month');
+
                     if (!wf_CheckGet(array('printable'))) {
                         //normal render
-                        $reportHeader.=' '.wf_Link('?module=report_complex&show=nmcomplex&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
-                        $reportData=$nmComplexReport->renderAll();
-                        show_window($reportHeader,$reportData);
+                        $reportHeader.=' ' . wf_Link('?module=report_complex&show=nmcomplex&printable=true', wf_img('skins/printer_small.gif', __('Print')), false, '');
+                        $reportData = $nmComplexReport->renderAll();
+                        show_window($reportHeader, $reportData);
                     } else {
                         //printable mode
-                        $reportData=  wf_tag('h2').$reportHeader.wf_tag('h2',true);
+                        $reportData = wf_tag('h2') . $reportHeader . wf_tag('h2', true);
                         $reportData.= $nmComplexReport->renderAll(true);
-                        $reportData=$nmComplexReport->printable($reportData);
+                        $reportData = $nmComplexReport->printable($reportData);
                         die($reportData);
                     }
-                    
                 }
-                
-                
             }
-            
-            
         } else {
-            show_error( __('This module is disabled'));
+            show_error(__('This module is disabled'));
         }
     }
-    
-    
-    
-    
 } else {
     show_error(__('You cant control this module'));
 }
