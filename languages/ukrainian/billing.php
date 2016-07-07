@@ -2249,5 +2249,8 @@ $lang['def']['Previous user tasks'] = 'Попередні задачі по ко
 $lang['def']['last events'] = 'останніх подій';
 $lang['def']['Download full log'] = 'Завантажити лог повністю';
 $lang['def']['Swpoll log'] = 'Лог опиту обладнання';
+$lang['def']['Assign'] = 'Присвоїти';
+$lang['def']['Assign UKV users to complex profiles'] = 'Присвоєння користувачам УКВ комплексних профілів';
+
 
 ?>

@@ -398,6 +398,23 @@ function zb_UserGetAllStargazerData() {
 }
 
 /**
+ * Returns array of all available stargazer users data as login=>data array
+ * 
+ * @return array
+ */
+function zb_UserGetAllStargazerDataAssoc() {
+    $query = "SELECT * from `users`";
+    $userdata = simple_queryall($query);
+    $result = array();
+    if (!empty($userdata)) {
+        foreach ($userdata as $io => $each) {
+            $result[$each['login']] = $each;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns array of all available stargazer user logins
  * 
  * @return array

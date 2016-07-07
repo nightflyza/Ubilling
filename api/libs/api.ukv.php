@@ -2108,6 +2108,9 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'debtstreets.png', __('Current debtors for delivery by streets'));
+        if ($this->altCfg['COMPLEX_ENABLED']) {
+            $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportComplexAssign', 'reportcomplexassign.png', __('Users with complex services'));
+        }
         $reports.=wf_CleanDiv();
         show_window(__('Reports'), $reports);
     }
@@ -2479,7 +2482,7 @@ class UkvSystem {
                     $cells.= wf_TableCell(__('Real Name'), '25%');
                     $cells.= wf_TableCell(__('Tariff'), '15%');
                     $cells.= wf_TableCell(__('Cash'), '7%');
-                    $cells.= wf_TableCell(__('Seal'),'5%');
+                    $cells.= wf_TableCell(__('Seal'), '5%');
                     $cells.= wf_TableCell(__('Status'), '7%');
                     $rows = wf_TableRow($cells, 'row1');
 
@@ -3080,6 +3083,121 @@ class UkvSystem {
             } else {
                 show_window(__('Result'), __('Any users found'));
             }
+        }
+    }
+
+    /**
+     * Returns user ID by his contract number... i hope.
+     * 
+     * @param int $contract
+     * 
+     * @return int/void
+     */
+    protected function getUserIdByContract($contract) {
+        $result = '';
+        if (!empty($this->users)) {
+            foreach ($this->users as $io => $each) {
+                if (!empty($each['contract'])) {
+                    if ($each['contract'] == $contract) {
+                        $result = $each['id'];
+                        break;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders complex users assign forms or something like that.
+     * 
+     * @return void
+     */
+    public function reportComplexAssign() {
+        $nologinUsers = array();
+        $inetContracts = array();
+        $contractCfId = '';
+
+        //updating inet login if required
+        if (wf_CheckPost(array('assignComplexLogin', 'assignComplexUkvId'))) {
+            $updateUserId = vf($_POST['assignComplexUkvId'], 3);
+            $updateInetLogin = $_POST['assignComplexLogin'];
+            if ($this->users[$updateUserId]['inetlogin'] != $updateInetLogin) {
+                simple_update_field('ukv_users', 'inetlogin', $updateInetLogin, "WHERE `id`='" . $updateUserId . "';");
+                log_register('UKV USER ((' . $updateUserId . ')) ASSIGN INETLOGIN `' . $updateInetLogin . '`');
+                rcms_redirect(self::URL_REPORTS_MGMT . 'reportComplexAssign');
+            }
+        }
+
+        $allInetUsers = zb_UserGetAllStargazerDataAssoc();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        $allRealNames = zb_UserGetAllRealnames();
+
+        //preparing ukv users
+        if (!empty($this->users)) {
+            foreach ($this->users as $io => $each) {
+                if (empty($each['inetlogin'])) {
+                    $nologinUsers[$each['id']] = $each;
+                }
+            }
+        }
+        //getting complex contract CF id
+        if (!empty($this->altCfg['COMPLEX_CFIDS'])) {
+            $cfDataRaw = $this->altCfg['COMPLEX_CFIDS'];
+            $cfData = explode(',', $cfDataRaw);
+            $contractCfId = (isset($cfData[0])) ? vf($cfData[0], 3) : '';
+        }
+
+        //prepare cf logins=>contract pairs
+        if (!empty($contractCfId)) {
+            $query = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $contractCfId . "' AND `content` IS NOT NULL;";
+            $rawCfs = simple_queryall($query);
+            if (!empty($rawCfs)) {
+                foreach ($rawCfs as $io => $each) {
+                    $inetContracts[$each['login']] = $each['content'];
+                }
+            }
+        }
+
+        //rendering main form
+        if (!empty($inetContracts)) {
+            $cells = wf_TableCell(__('Full address'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Contract'));
+            $cells.= wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Full address'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($inetContracts as $login => $contract) {
+                if (isset($allInetUsers[$login])) {
+                    $ukvUserId = $this->getUserIdByContract($contract);
+                    if (!empty($ukvUserId)) {
+                        if (isset($nologinUsers[$ukvUserId])) {
+                            $catvLink = wf_link(self::URL_USERS_PROFILE . $ukvUserId, web_profile_icon() . ' ' . $this->userGetFullAddress($ukvUserId));
+                            $cells = wf_TableCell($catvLink);
+                            $cells.= wf_TableCell(@$this->users[$ukvUserId]['realname']);
+                            $cells.= wf_TableCell(@$this->tariffs[$this->users[$ukvUserId]['tariffid']]['tariffname']);
+                            $cells.= wf_TableCell($contract);
+                            $profileLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false);
+                            $cells.= wf_TableCell($profileLink);
+                            $cells.= wf_TableCell(@$allAddress[$login]);
+                            $cells.= wf_TableCell(@$allRealNames[$login]);
+                            $assignInputs = wf_HiddenInput('assignComplexLogin', $login);
+                            $assignInputs.= wf_HiddenInput('assignComplexUkvId', $ukvUserId);
+                            $assignInputs.= wf_Submit(__('Assign'));
+                            $assignContols = wf_Form('', 'POST', $assignInputs, '');
+                            $cells.= wf_TableCell($assignContols);
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                    }
+                }
+            }
+
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            show_window(__('Assign UKV users to complex profiles'), $result);
         }
     }
 
