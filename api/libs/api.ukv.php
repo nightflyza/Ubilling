@@ -3157,21 +3157,45 @@ class UkvSystem {
                         @$ukvUserId = $ukvContracts[$contract];
                         if (!empty($ukvUserId)) {
                             if (isset($nologinUsers[$ukvUserId])) {
-                                $catvLink = wf_link(self::URL_USERS_PROFILE . $ukvUserId, web_profile_icon() . ' ' . $this->userGetFullAddress($ukvUserId));
+                                $ukvRealname = @$this->users[$ukvUserId]['realname'];
+                                $inetRealname = @$allRealNames[$login];
+                                $ukvAddress = $this->userGetFullAddress($ukvUserId);
+                                $inetAddress = @$allAddress[$login];
+
+                                $catvLink = wf_link(self::URL_USERS_PROFILE . $ukvUserId, web_profile_icon() . ' ' . $ukvAddress);
                                 $cells = wf_TableCell($catvLink);
-                                $cells.= wf_TableCell(@$this->users[$ukvUserId]['realname']);
+                                $cells.= wf_TableCell($ukvRealname);
                                 $cells.= wf_TableCell(@$this->tariffs[$this->users[$ukvUserId]['tariffid']]['tariffname']);
                                 $cells.= wf_TableCell($contract);
                                 $profileLink = wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . $login, false);
                                 $cells.= wf_TableCell($profileLink);
-                                $cells.= wf_TableCell(@$allAddress[$login]);
-                                $cells.= wf_TableCell(@$allRealNames[$login]);
+                                $cells.= wf_TableCell($inetAddress);
+                                $cells.= wf_TableCell($inetRealname);
                                 $assignInputs = wf_HiddenInput('assignComplexLogin', $login);
                                 $assignInputs.= wf_HiddenInput('assignComplexUkvId', $ukvUserId);
                                 $assignInputs.= wf_Submit(__('Assign'));
                                 $assignContols = wf_Form('', 'POST', $assignInputs, '');
                                 $cells.= wf_TableCell($assignContols);
-                                $rows.= wf_TableRow($cells, 'row3');
+
+                                $rowclass = 'row3';
+                                //coloring results
+                                if ((!empty($ukvRealname)) AND ( !empty($inetRealname))) {
+                                    $ukvNameTmp = explode(' ', $ukvRealname);
+                                    $inetNameTmp = explode(' ', $inetRealname);
+
+                                    if (@$ukvNameTmp[0] == @$inetNameTmp[0]) {
+                                        $rowclass = 'ukvassignnamerow';
+                                    }
+                                    
+                                    if ((!empty($inetAddress)) AND (!empty($ukvAddress))) {
+                                       if (($inetAddress==$ukvAddress) AND (@$ukvNameTmp[0] == @$inetNameTmp[0])) {
+                                           $rowclass = 'ukvassignaddrrow';
+                                       }
+                                    }
+                                }
+                                
+                                
+                                $rows.= wf_TableRow($cells, $rowclass);
                             }
                         }
                     }

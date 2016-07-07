@@ -125,7 +125,7 @@ height: 35px;
 line-height: 35px;
 text-indent: 25px;
 text-shadow: 0 1px 0 #fff;
-background: url(../images/icn_user.png) no-repeat center left;
+/* background: url(../images/icn_user.png) no-repeat center left; */
 margin-left: 6%;
 }
 
@@ -143,7 +143,7 @@ display: block;
 width: 16px;
 height: 35px;
 text-indent: -5000px;
-background: url(../images/icn_logout.png) center no-repeat;
+background: url(../images/poweroff.png) center no-repeat;
 }
 
 .user a.menu_toggle {

@@ -759,3 +759,11 @@ div.dhtml_menu div.vert_menu a.active:hover
 .wh_viewer td {
     padding: 4px;
 }
+
+.ukvassignnamerow {
+    background-color: #fdeb70;
+}
+
+.ukvassignaddrrow {
+    background-color: #b5fdb8;
+}
