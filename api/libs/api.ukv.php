@@ -3087,34 +3087,13 @@ class UkvSystem {
     }
 
     /**
-     * Returns user ID by his contract number... i hope.
-     * 
-     * @param int $contract
-     * 
-     * @return int/void
-     */
-    protected function getUserIdByContract($contract) {
-        $result = '';
-        if (!empty($this->users)) {
-            foreach ($this->users as $io => $each) {
-                if (!empty($each['contract'])) {
-                    if ($each['contract'] == $contract) {
-                        $result = $each['id'];
-                        break;
-                    }
-                }
-            }
-        }
-        return ($result);
-    }
-
-    /**
      * Renders complex users assign forms or something like that.
      * 
      * @return void
      */
     public function reportComplexAssign() {
         $nologinUsers = array();
+        $ukvContracts = array();
         $inetContracts = array();
         $contractCfId = '';
 
@@ -3138,6 +3117,7 @@ class UkvSystem {
             foreach ($this->users as $io => $each) {
                 if (empty($each['inetlogin'])) {
                     $nologinUsers[$each['id']] = $each;
+                    $ukvContracts[$each['contract']] = $each['id'];
                 }
             }
         }
@@ -3173,7 +3153,7 @@ class UkvSystem {
 
             foreach ($inetContracts as $login => $contract) {
                 if (isset($allInetUsers[$login])) {
-                    $ukvUserId = $this->getUserIdByContract($contract);
+                    @$ukvUserId = $ukvContracts[$contract];
                     if (!empty($ukvUserId)) {
                         if (isset($nologinUsers[$ukvUserId])) {
                             $catvLink = wf_link(self::URL_USERS_PROFILE . $ukvUserId, web_profile_icon() . ' ' . $this->userGetFullAddress($ukvUserId));
