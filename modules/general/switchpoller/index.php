@@ -86,7 +86,7 @@ if (cfr('SWITCHPOLL')) {
                                 $rows.=wf_TableRow($cells, 'row3');
                             } else {
                                 $eachEntry = explode(' ', $each);
-                                $prevTime=  strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
+                                $prevTime = strtotime($eachEntry[0] . ' ' . $eachEntry[1]);
                             }
                         }
                     }
@@ -115,13 +115,16 @@ if (cfr('SWITCHPOLL')) {
      * 
      * @param string $fdbSwitchFilter
      */
-    function web_FDBTableShowDataTable($fdbSwitchFilter = '') {
+    function web_FDBTableShowDataTable($fdbSwitchFilter = '', $fdbMacFilter = '') {
+        $filter = '';
+        $macfilter = '';
         $filter = (!empty($fdbSwitchFilter)) ? '&swfilter=' . $fdbSwitchFilter : '';
+        $macfilter = (!empty($fdbMacFilter)) ? '&macfilter=' . $fdbMacFilter : '';
         $filtersForm = wf_modalAuto(web_icon_search('MAC filters setup'), __('MAC filters setup'), web_FDBTableFiltersForm(), '');
         $logControls = web_FDBTableLogControl();
 
         $columns = array('Switch IP', 'Port', 'Location', 'MAC', 'User');
-        $result = wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter, true, 'Objects', 100);
+        $result = wf_JqDtLoader($columns, '?module=switchpoller&ajax=true' . $filter . $macfilter, true, 'Objects', 100);
 
         show_window(__('Current FDB cache') . ' ' . $filtersForm . ' ' . $logControls, $result);
     }
@@ -156,8 +159,8 @@ if (cfr('SWITCHPOLL')) {
                                 }
                                 $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
                                 $modActions = wf_Link('?module=switches', __('Back'), false, 'ubButton');
-                                $modActions.= wf_Link('?module=switches&&edit=' . $switchId, web_edit_icon().' '.__('Edit') . ' ' . __('Switch'), false, 'ubButton');
-                                $modActions.= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif').' '.__('Force query'), false, 'ubButton');
+                                $modActions.= wf_Link('?module=switches&&edit=' . $switchId, web_edit_icon() . ' ' . __('Edit') . ' ' . __('Switch'), false, 'ubButton');
+                                $modActions.= wf_Link('?module=switchpoller&switchid=' . $eachDevice['id'] . '&forcecache=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
                                 show_window($eachDevice['ip'] . ' - ' . $eachDevice['location'], $modActions);
                                 sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, false);
                             } else {
@@ -199,14 +202,25 @@ if (cfr('SWITCHPOLL')) {
                 if (wf_CheckGet(array('swfilter'))) {
                     $fdbData_raw = array($_GET['swfilter'] . '_fdb');
                 }
-                die(sn_SnmpParseFdbCacheJson($fdbData_raw));
+                if (wf_CheckGet(array('macfilter'))) {
+                    $macFilter=$_GET['macfilter'];
+                } else {
+                    $macFilter='';
+                }
+                die(sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter));
             } else {
                 if (wf_CheckGet(array('fdbfor'))) {
                     $fdbSwitchFilter = $_GET['fdbfor'];
                 } else {
                     $fdbSwitchFilter = '';
                 }
-                web_FDBTableShowDataTable($fdbSwitchFilter);
+                if (wf_CheckGet(array('macfilter'))) {
+                    $fdbMacFilter = $_GET['macfilter'];
+                } else {
+                    $fdbMacFilter = '';
+                }
+
+                web_FDBTableShowDataTable($fdbSwitchFilter, $fdbMacFilter);
             }
         } else {
             show_warning(__('Nothing found'));

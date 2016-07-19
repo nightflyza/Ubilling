@@ -297,6 +297,22 @@ class UserProfile {
     }
 
     /**
+     * Returns FDB cache search control if FDB_SEARCH_IN_PROFILE option enabled
+     * 
+     * @return string
+     */
+    protected function getProfileFdbSearchControl() {
+        $result = '';
+        if (isset($this->alterCfg['FDB_SEARCH_IN_PROFILE'])) {
+            if ($this->alterCfg['FDB_SEARCH_IN_PROFILE']) {
+                $result = wf_Link('?module=switchpoller&macfilter=' . $this->mac, wf_img('skins/fdbmacsearch.png', __('Current FDB cache')), false);
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
      * returns catv backlinks if enabled 
      * 
      * @return string
@@ -1078,7 +1094,7 @@ class UserProfile {
 //User IP data and extended networks controls if available
         $profile.= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
 //MAC address row
-        $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl(), $this->mac);
+        $profile.= $this->addRow(__('MAC') . ' ' . $this->getSearchmacControl() . ' ' . $this->getProfileFdbSearchControl(), $this->mac);
 //User tariff row
         $profile.= $this->addRow(__('Tariff') . $this->getTariffInfoControls($this->userdata['Tariff']), $this->userdata['Tariff'] . $this->getTariffInfoContrainer(), true);
 //Tariff change row

@@ -463,7 +463,7 @@ function sn_FDBFilterCheckMac($mac, $allfilters) {
  * 
  * @return string
  */
-function sn_SnmpParseFdbCacheJson($fdbData_raw) {
+function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     $allusermacs = zb_UserGetAllMACs();
     $allusermacs = array_flip($allusermacs);
     $alladdress = zb_AddressGetFulladdresslist();
@@ -488,6 +488,11 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw) {
                 $allfilters[trim($eachMacFilter)] = $rawfindex;
             }
         }
+    }
+
+    //single mac filter processing
+    if (!empty($macFilter)) {
+        $allfilters[trim($macFilter)] = '42'; // The Ultimate Question of Life, the Universe, and Everything
     }
 
 
