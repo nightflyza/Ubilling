@@ -10,10 +10,15 @@ if (cfr('REPORTFINANCE')) {
         protected $config = '';
         protected $lines = array();
         protected $totalsum = 0;
+        protected $year = '';
+        protected $month = '';
 
         public function __construct() {
             //loads module config
             $this->loadConfig();
+
+            //sets required year/month filters
+            $this->setDateFilters();
 
             //get all login=>tariffs pairs
             $this->loadUserTariffs();
@@ -23,13 +28,31 @@ if (cfr('REPORTFINANCE')) {
         }
 
         /**
+         * Sets required year/month filter properties
+         * 
+         * @return void
+         */
+        protected function setDateFilters() {
+            if (wf_CheckPost(array('yearsel'))) {
+                $this->year = vf($_POST['yearsel']);
+            } else {
+                $this->year = date("Y");
+            }
+
+            if (wf_CheckPost(array('monthsel'))) {
+                $this->month = vf($_POST['monthsel']);
+            } else {
+                $this->month = date("m");
+            }
+        }
+
+        /**
          * gets all user payments by current month and stores it into payments prop
          * 
          * @return void
          */
         protected function loadPayments() {
-            $curmonth = curmonth();
-            $query = "SELECT * from `payments` WHERE `date` LIKE '" . $curmonth . "-%' AND `summ`>0;";
+            $query = "SELECT * from `payments` WHERE `date` LIKE '" . $this->year . '-' . $this->month . "-%' AND `summ`>0;";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 $this->payments = $all;
@@ -80,7 +103,7 @@ if (cfr('REPORTFINANCE')) {
                         foreach ($this->payments as $ia => $eachpayment) {
                             $userTariff = @$this->userTariffs[$eachpayment['login']];
                             if (ispos($eachline, '*')) {
-                                $searchLine=  str_replace('*', '', $eachline);
+                                $searchLine = str_replace('*', '', $eachline);
                                 if (ispos($userTariff, $searchLine)) {
                                     $this->data[$eachline]['summ'] = $this->data[$eachline]['summ'] + $eachpayment['summ'];
                                     $this->data[$eachline]['count'] ++;
@@ -109,7 +132,7 @@ if (cfr('REPORTFINANCE')) {
          * @return string
          */
         protected function configForm() {
-            $inputs = wf_TextInput('newtarifflines', __('Tariff lines masks, comma separated').'. '.__('You can use the * character as a symbol of lax compliance line.'), $this->config, true, '40');
+            $inputs = wf_TextInput('newtarifflines', __('Tariff lines masks, comma separated') . '. ' . __('You can use the * character as a symbol of lax compliance line.'), $this->config, true, '40');
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form("", 'POST', $inputs, 'glamour');
             return ($result);
@@ -134,7 +157,16 @@ if (cfr('REPORTFINANCE')) {
          */
         protected function panel() {
             $result = wf_Link('?module=report_finance', __('Back'), false, 'ubButton');
-            $result.= wf_modal(__('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
+            $result.= wf_modal(web_icon_settings() . ' ' . __('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
+            $result.=wf_delimiter();
+            $monthArr = months_array_localized();
+            $inputs = wf_YearSelector('yearsel', __('Year'), false);
+            $inputs.= wf_Selector('monthsel', $monthArr, __('Month'), $this->month, false);
+            $inputs.= wf_Submit(__('Show'));
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=wf_CleanDiv();
+
+
             return ($result);
         }
 
