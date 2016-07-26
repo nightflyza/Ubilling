@@ -9,10 +9,9 @@
 include ("../../libs/api.openpayz.php");
 
 /**
- *
  * Check for GET have needed variables
  *
- * @param   $params array of GET variables to check
+ * @param  array $params array of GET variables to check
  * @return  bool
  *
  */
@@ -32,14 +31,13 @@ function ibox_CheckGet($params) {
     return ($result);
 }
 
-/*
+/**
  * Check is transaction unique?
  * 
- * @param $hash string hash to check
+ * @param string $hash string hash to check
  * 
  * @return bool
  */
-
 function ibox_CheckTransaction($hash) {
     $hash = mysql_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
@@ -52,33 +50,30 @@ function ibox_CheckTransaction($hash) {
 }
 
 /**
- *
  * Get transaction id by its hash
  *
- * @param   $tablename name of the table to extract last id
+ * @param  string $tablename name of the table to extract last id
  * @return  string
  *
  */
-function  ibox_getIdByHash($hash) {
-    $hash=mysql_real_escape_string($hash);
-    $query="SELECT `id` from `op_transactions` WHERE `hash`='".$hash."'";
-    $result=simple_query($query);
+function ibox_getIdByHash($hash) {
+    $hash = mysql_real_escape_string($hash);
+    $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
+    $result = simple_query($query);
     return ($result['id']);
 }
 
-
 /**
- *
  * Get transaction datetime by its hash
  *
- * @param   $tablename name of the table to extract last id
+ * @param  string $tablename name of the table to extract last id
  * @return  string
  *
  */
-function  ibox_getDateByHash($hash) {
-    $hash=mysql_real_escape_string($hash);
-    $query="SELECT `date` from `op_transactions` WHERE `hash`='".$hash."'";
-    $result=simple_query($query);
+function ibox_getDateByHash($hash) {
+    $hash = mysql_real_escape_string($hash);
+    $query = "SELECT `date` from `op_transactions` WHERE `hash`='" . $hash . "'";
+    $result = simple_query($query);
     return ($result['date']);
 }
 
@@ -91,104 +86,102 @@ if (ibox_CheckGet($required)) {
     if ($_GET['command'] == 'check') {
         $allcustomers = op_CustomersGetAll();
 
-        $hashClean=trim($_GET['txn_id']);
+        $hashClean = trim($_GET['txn_id']);
         $customerid = trim($_GET['account']);
 
         //нашелся братиша!
         if (isset($allcustomers[$customerid])) {
 
-            $good_reply ='
+            $good_reply = '
                     <?xml version="1.0"?>
                     <response>
-                       <ibox_txn_id>'. $hashClean.'</ibox_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                        <result>0</result>
                     </response>
                     ';
-            $good_reply=trim($good_reply);
+            $good_reply = trim($good_reply);
             die($good_reply);
-            
         } else {
 
-            $bad_reply='
+            $bad_reply = '
                   <?xml version="1.0"?>
                     <response>
-                       <ibox_txn_id>'.$hashClean.'</ibox_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                        <result>5</result>
                   </response>
                 ';
-            $bad_reply=trim($bad_reply);
+            $bad_reply = trim($bad_reply);
             die($bad_reply);
         }
     }
-    
+
     //Запрос на внесение платежа 
     if ($_GET['command'] == 'pay') {
-        
-        $hash = 'IBOX_'.trim($_GET['txn_id']);
-        $hashClean=trim($_GET['txn_id']);
+
+        $hash = 'IBOX_' . trim($_GET['txn_id']);
+        $hashClean = trim($_GET['txn_id']);
         $summ = $_GET['sum'];
         $customerid = trim($_GET['account']);
         $paysys = 'IBOX';
         $note = 'some debug info';
-        
+
         $allcustomers = op_CustomersGetAll();
         //опять ожидаем подляны и все-таки проверим хотя бы валидность кастомера
         if (isset($allcustomers[$customerid])) {
-         
-        //а также уникальность транзакции
-        if (ibox_CheckTransaction($hash)) {     
-        //регистрируем новую транзакцию
-        op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
-        //вызываем обработчики необработанных транзакций
-        op_ProcessHandlers();
-        
-        $newTransactionId=  ibox_getIdByHash($hash);
-        $newTransactionDate= ibox_getDateByHash($hash);
-        
-        $good_reply='
+
+            //а также уникальность транзакции
+            if (ibox_CheckTransaction($hash)) {
+                //регистрируем новую транзакцию
+                op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
+                //вызываем обработчики необработанных транзакций
+                op_ProcessHandlers();
+
+                $newTransactionId = ibox_getIdByHash($hash);
+                $newTransactionDate = ibox_getDateByHash($hash);
+
+                $good_reply = '
             <?xml version="1.0" encoding="UTF-8"?>
             <response>
-            <ibox_txn_id>'.$hashClean.'</ibox_txn_id>
-            <prv_txn>'.$newTransactionId.'</prv_txn>
-            <prv_txn_date>'.$newTransactionDate.'</prv_txn_date>
-            <sum>'.$summ.'</sum>
+            <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
+            <prv_txn>' . $newTransactionId . '</prv_txn>
+            <prv_txn_date>' . $newTransactionDate . '</prv_txn_date>
+            <sum>' . $summ . '</sum>
             <result>0</result>
             <comment>OK</comment>
             </response>
             ';
-            $good_reply=trim($good_reply);
-            die($good_reply); 
+                $good_reply = trim($good_reply);
+                die($good_reply);
             } else {
                 //Если транзакция уже зарегистрирована
-                $newTransactionId=  ibox_getIdByHash($hash);
-                $newTransactionDate= ibox_getDateByHash($hash);
-                $transactionDoneReply='
+                $newTransactionId = ibox_getIdByHash($hash);
+                $newTransactionDate = ibox_getDateByHash($hash);
+                $transactionDoneReply = '
                     <?xml version="1.0" encoding="UTF-8"?>
                     <response>
-                    <ibox_txn_id>'.$hashClean.'</ibox_txn_id>
-                    <prv_txn>'.$newTransactionId.'</prv_txn>
-                    <prv_txn_date>'.$newTransactionDate.'</prv_txn_date>
-                    <sum>'.$summ.'</sum>
+                    <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
+                    <prv_txn>' . $newTransactionId . '</prv_txn>
+                    <prv_txn_date>' . $newTransactionDate . '</prv_txn_date>
+                    <sum>' . $summ . '</sum>
                     <result>0</result>
                     <comment>OK</comment>
                     </response>
                     ';
-                
-                $transactionDoneReply=trim($transactionDoneReply);
+
+                $transactionDoneReply = trim($transactionDoneReply);
                 die($transactionDoneReply);
             }
         } else {
-              $bad_reply='
+            $bad_reply = '
                   <?xml version="1.0"?>
                     <response>
-                       <ibox_txn_id>'.$hashClean.'</ibox_txn_id>
+                       <ibox_txn_id>' . $hashClean . '</ibox_txn_id>
                        <result>5</result>
                   </response>
                 ';
-            $bad_reply=trim($bad_reply);
+            $bad_reply = trim($bad_reply);
             die($bad_reply);
         }
-        
     }
 }
 ?>

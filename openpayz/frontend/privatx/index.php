@@ -19,10 +19,9 @@ define('PBX_REQUEST_MODE', 'raw');
 define('PBX_DEBUG_MODE', 0);
 
 //Текст уведомлений и екзепшнов
-define('ISP_NAME', 'НашПровайдер'); //Информация о поставщике услуг
 define('ISP_CODE', '1'); // Id в ПС
 define('ISP_SERVICE_NAME', 'Интернет'); // Наименование услуги
-define('ISP_SERVICE_CODE', '101'); //Код услуги
+define('ISP_SERVICE_CODE', '1'); //Код услуги
 //Исключения
 define('PBX_EX_NOT_FOUND', 'Абонент не найден');
 define('PBX_EX_DUPLICATE', 'Дублирование платежа');
@@ -323,7 +322,6 @@ function pbx_ReplySearch($customerid) {
                      <DebtService  serviceCode="' . ISP_SERVICE_CODE . '" >
                         <CompanyInfo>
                          <CompanyCode>' . ISP_CODE . '</CompanyCode>
-                         <CompanyName>' . ISP_NAME . '</CompanyName>
                         </CompanyInfo>
                         <DebtInfo>
                          <Balance>' . $userBalance . '</Balance>
