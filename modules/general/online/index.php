@@ -1,234 +1,33 @@
 <?php
 
 if ($system->checkForRight('ONLINE')) {
-// HP mode
     $alter_conf = $ubillingConfig->getAlter();
     $hp_mode = $alter_conf['ONLINE_HP_MODE'];
 
-    function stg_show_fulluserlistOld() {
+    /**
+     * Renders user list JQuery DataTables container
+     * 
+     * @global array $alter_conf
+     * 
+     * @return string
+     */
+    function renderUserListContainer() {
         global $alter_conf;
-        $allusers = zb_UserGetAllStargazerData();
-        $allrealnames = zb_UserGetAllRealnames();
-        $alladdress = zb_AddressGetFulladdresslist();
-
-        if ($alter_conf['USER_LINKING_ENABLED']) {
-            $alllinkedusers = cu_GetAllLinkedUsers();
-            $allparentusers = cu_GetAllParentUsers();
-        }
-
-        $totaltraff_i = 0;
-        $totaltraff_m = 0;
-        $totaltraff = 0;
-        $ucount = 0;
-        $trueonline = 0;
-        $inacacount = 0;
-        $tcredit = 0;
-        $tcash = 0;
-
-        // LAT column
-        if ($alter_conf['ONLINE_LAT']) {
-            $lat_col_head = wf_TableCell(__('LAT'));
-            $act_offset = 1;
-        } else {
-            $lat_col_head = '';
-            $act_offset = 0;
-        }
-        //online stars
-        if ($alter_conf['DN_ONLINE_DETECT']) {
-            $true_online_header = wf_TableCell(__('Users online'));
-            $true_online_selector = ' col_' . (5 + $act_offset) . ': "select",';
-        } else {
-            $true_online_header = '';
-            $true_online_selector = '';
-        }
-        //extended filters
-        if ($alter_conf['ONLINE_FILTERS_EXT']) {
-            $extfilters = wf_Link('javascript:showfilter();', __('Extended filters'), false);
-        } else {
-            $extfilters = '';
-        }
-        //additional finance links
-        if ($alter_conf['FAST_CASH_LINK']) {
-            $fastcash = true;
-        } else {
-            $fastcash = false;
-        }
-
-
-
-        $result = $extfilters;
-        $result.= wf_tag('table', false, 'sortable', 'width="100%" id="onlineusers"');
-
-        $headerCells = wf_TableCell(__('Full address'));
-        $headerCells.= wf_TableCell(__('Real Name'));
-        $headerCells.= wf_TableCell(__('IP'));
-        $headerCells.= wf_TableCell(__('Tariff'));
-        $headerCells.= $lat_col_head;
-        $headerCells.= wf_TableCell(__('Active'));
-        $headerCells.=$true_online_header;
-        $headerCells.= wf_TableCell(__('Traffic'));
-        $headerCells.= wf_TableCell(__('Balance'));
-        $headerCells.= wf_TableCell(__('Credit'));
-        $headerRow = wf_TableRow($headerCells, 'row1');
-        $result.=$headerRow;
-
-        if (!empty($allusers)) {
-            foreach ($allusers as $io => $eachuser) {
-                $tinet = 0;
-                $ucount++;
-                $cash = $eachuser['Cash'];
-                $credit = $eachuser['Credit'];
-                for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
-                    $dc = 'D' . $classcounter . '';
-                    $uc = 'U' . $classcounter . '';
-                    $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
-                }
-                $totaltraff = $totaltraff + $tinet;
-                $tcredit = $tcredit + $credit;
-                $tcash = $tcash + $cash;
-
-                $act = web_green_led() . ' ' . __('Yes');
-                //finance check
-                if ($cash < '-' . $credit) {
-                    $act = web_red_led() . ' ' . __('No');
-                    $inacacount++;
-                }
-
-                if ($alter_conf['ONLINE_LAT']) {
-                    $user_lat = wf_TableCell(date("Y-m-d H:i:s", $eachuser['LastActivityTime']));
-                } else {
-                    $user_lat = '';
-                }
-
-                //online check
-                if ($alter_conf['DN_ONLINE_DETECT']) {
-                    if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
-                        $online_flag = 1;
-                        $trueonline++;
-                    } else {
-                        $online_flag = 0;
-                    }
-                    $online_cell = wf_TableCell(web_bool_star($online_flag, true), '', '', 'sorttable_customkey="' . $online_flag . '"');
-                } else {
-                    $online_cell = '';
-                    $online_flag = 0;
-                }
-
-                if ($alter_conf['ONLINE_LIGHTER']) {
-                    $lighter = 'onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
-                } else {
-                    $lighter = '';
-                }
-
-                //user linking indicator 
-                if ($alter_conf['USER_LINKING_ENABLED']) {
-
-                    //is user child? 
-                    if (isset($alllinkedusers[$eachuser['login']])) {
-                        $corporate = wf_Link('?module=corporate&userlink=' . $alllinkedusers[$eachuser['login']], web_corporate_icon(), false);
-                    } else {
-                        $corporate = '';
-                    }
-
-                    //is  user parent?
-                    if (isset($allparentusers[$eachuser['login']])) {
-                        $corporate = wf_Link('?module=corporate&userlink=' . $allparentusers[$eachuser['login']], web_corporate_icon('Corporate parent'), false);
-                    }
-                } else {
-                    $corporate = '';
-                }
-
-                //fast cash link
-                if ($fastcash) {
-                    $financelink = wf_Link('?module=addcash&username=' . $eachuser['login'] . '#profileending', wf_img('skins/icon_dollar.gif', __('Finance operations')), false);
-                } else {
-                    $financelink = '';
-                }
-
-
-                $result.= wf_tag('tr', false, 'row3', $lighter);
-                $result.= wf_tag('td', false);
-                $result.= wf_Link('?module=traffstats&username=' . $eachuser['login'], web_stats_icon(), false);
-                $result.= $financelink;
-                $result.= wf_Link('?module=userprofile&username=' . $eachuser['login'], web_profile_icon(), false);
-                $result.= $corporate;
-                $result.= @$alladdress[$eachuser['login']];
-                $result.= wf_tag('td', true);
-                $result.= wf_TableCell(@$allrealnames[$eachuser['login']]);
-                $result.= wf_TableCell($eachuser['IP'], '', '', 'sorttable_customkey="' . ip2int($eachuser['IP']) . '"');
-                $result.= wf_TableCell($eachuser['Tariff']);
-                $result.= $user_lat;
-                $result.= wf_TableCell($act);
-                $result.= $online_cell;
-                $result.= wf_TableCell(stg_convert_size($tinet), '', '', 'sorttable_customkey="' . $tinet . '"');
-                $result.= wf_TableCell(round($eachuser['Cash'], 2));
-                $result.= wf_TableCell(round($eachuser['Credit'], 2));
-                $result.= wf_tag('tr', true);
-            }
-        }
-
-
-        if ($alter_conf['DN_ONLINE_DETECT']) {
-            $true_online_counter = wf_TableCell(__('Users online') . ' ' . $trueonline);
-        } else {
-            $true_online_counter = null;
-        }
-
-        $result.= wf_tag('table', true);
-
-
-
-        $footerCells = wf_TableCell(__('Total') . ': ' . $ucount);
-        $footerCells.= wf_TableCell(__('Active users') . ' ' . ($ucount - $inacacount) . ' / ' . __('Inactive users') . ' ' . $inacacount);
-        $footerCells.= $true_online_counter;
-        $footerCells.= wf_TableCell(__('Traffic') . ': ' . stg_convert_size($totaltraff));
-        $footerCells.= wf_TableCell(__('Total') . ': ' . round($tcash, 2));
-        $footerCells.= wf_TableCell(__('Credit total') . ': ' . $tcredit);
-        $footerRows = wf_TableRow($footerCells, 'row1');
-
-        $result.= wf_TableBody($footerRows, '100%', '0');
-        //extended filters again
-        if ($alter_conf['ONLINE_FILTERS_EXT']) {
-            $filtercode = wf_tag('script', false, '', 'language="javascript" type="text/javascript"');
-            $filtercode.= '
-            //<![CDATA[
-            function showfilter() {
-            var onlinefilters = {
-		btn: false,
-          	col_' . (4 + $act_offset) . ': "select",
-               ' . $true_online_selector . '
-		btn_text: ">"
-               }
-                setFilterGrid("onlineusers",0,onlinefilters);
-             }
-            //]]>';
-            $filtercode.=wf_tag('script', true);
-        } else {
-            $filtercode = '';
-        }
-
-        $result.=$filtercode;
-        return ($result);
-    }
-
-// hp mode 
-    function stg_show_fulluserlist_hp() {
-        global $alter_conf;
-        $saveState='false';
+        $saveState = 'false';
         if (isset($alter_conf['ONLINE_SAVE_STATE'])) {
             if ($alter_conf['ONLINE_SAVE_STATE']) {
-                $saveState='true';
+                $saveState = 'true';
             }
         }
-        
+
         //alternate center styling
-        $alternateStyle='';
+        $alternateStyle = '';
         if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
             if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
-            $alternateStyle=wf_tag('style',false).'#onlineusershp  td { text-align:center !important; }'.wf_tag('style', true);
+                $alternateStyle = wf_tag('style', false) . '#onlineusershp  td { text-align:center !important; }' . wf_tag('style', true);
             }
         }
-        
+
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
              null,
@@ -351,10 +150,10 @@ if ($system->checkForRight('ONLINE')) {
                         "sSearch":       "' . __('Search') . '",
                         "sProcessing":   "' . __('Processing') . '...",
                         "oPaginate": {
-                        "sFirst": "'.__('First').'",
-                        "sPrevious": "'.__('Previous').'",
-                        "sNext": "'.__('Next').'",
-                        "sLast": "'.__('Last').'"
+                        "sFirst": "' . __('First') . '",
+                        "sPrevious": "' . __('Previous') . '",
+                        "sNext": "' . __('Next') . '",
+                        "sLast": "' . __('Last') . '"
                     },
 		},
             "aoColumns": [
@@ -374,7 +173,7 @@ if ($system->checkForRight('ONLINE')) {
 	"bDeferRender": true,
         "bJQueryUI": true,
         "pagingType": "full_numbers",
-        "bStateSave": '.$saveState.'
+        "bStateSave": ' . $saveState . '
 
                 } );
 		} );
@@ -390,9 +189,9 @@ if ($system->checkForRight('ONLINE')) {
         } else {
             $onlineCells = '';
         }
-   
-        $result.= wf_tag('thead',false);
-        $result.= wf_tag('tr',false,'row2');
+
+        $result.= wf_tag('thead', false);
+        $result.= wf_tag('tr', false, 'row2');
         $result.= wf_TableCell(__('Full address'));
         $result.= wf_TableCell(__('Real Name'));
         $result.= wf_TableCell(__('IP'));
@@ -402,37 +201,39 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_TableCell(__('Traffic'));
         $result.= wf_TableCell(__('Balance'));
         $result.= wf_TableCell(__('Credit'));
-        $result.= wf_tag('tr',true);
-        $result.= wf_tag('thead',true);
-        $result.= wf_tag('table',true);
-        
+        $result.= wf_tag('tr', true);
+        $result.= wf_tag('thead', true);
+        $result.= wf_tag('table', true);
+
         $result.= $alternateStyle;
 
         return ($result);
     }
 
-    function zb_AjaxOnlineDataSource() {
-        // Speed debug
-//          $mtime = microtime();
-//          $mtime = explode(" ",$mtime);
-//          $mtime = $mtime[1] + $mtime[0];
-//          $starttime = $mtime;
-      
+    /**
+     * Renders json data for large databases. Not using json_encode & manual json assembly to minimaze execution time.
+     * 
+     * @global array $alter_conf
+     * 
+     * @return string
+     */
+    function zb_AjaxOnlineDataSourceFast() {
         global $alter_conf;
+
         $query = "SELECT * from `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
         $fioz = zb_UserGetAllRealnames();
-        $detect_address = zb_AddressGetFulladdresslist();
+        $detect_address = zb_AddressGetFulladdresslistCached();
         $ucount = 0;
         $deadUsers = array();
-        
+
         //alternate view of online module
-        $addrDelimiter='';
+        $addrDelimiter = '';
         if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
             if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
-                $addrDelimiter=  wf_tag('br');
+                $addrDelimiter = wf_tag('br');
             }
         }
 
@@ -503,7 +304,7 @@ if ($system->checkForRight('ONLINE')) {
                 if (!$alter_conf['DEAD_HIDE']) {
                     $result.='
      [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink .$addrDelimiter. $clearuseraddress . '",
+     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress . '",
      
          "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
          "' . $eachuser['IP'] . '",
@@ -542,34 +343,148 @@ if ($system->checkForRight('ONLINE')) {
     ]
     }
         ';
+        return($result);
+    }
 
+    /**
+     * Renders json data for user list
+     * 
+     * @global array $alter_conf
+     * 
+     * @return string
+     */
+    function zb_AjaxOnlineDataSourceSafe() {
 
+        global $alter_conf;
+        $query = "SELECT * from `users`";
+        $query_fio = "SELECT * from `realname`";
+        $allusers = simple_queryall($query);
+        $allfioz = simple_queryall($query_fio);
+        $fioz = zb_UserGetAllRealnames();
+        $detect_address = zb_AddressGetFulladdresslist();
+        $ucount = 0;
+        $deadUsers = array();
 
-        print($result);
-        
-//          $mtime = microtime();
-//          $mtime = explode(" ",$mtime);
-//          $mtime = $mtime[1] + $mtime[0];
-//          $endtime = $mtime;
-//          $totaltime = ($endtime - $starttime);
-//          echo "This result generated in ".$totaltime." seconds";
-        
+        //alternate view of online module
+        $addrDelimiter = '';
+        if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
+            if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
+                $addrDelimiter = wf_tag('br');
+            }
+        }
+        //hide dead users array
+        if ($alter_conf['DEAD_HIDE']) {
+            if (!empty($alter_conf['DEAD_TAGID'])) {
+                $tagDead = vf($alter_conf['DEAD_TAGID'], 3);
+                $query_dead = "SELECT `login`,`tagid` from `tags` WHERE `tagid`='" . $tagDead . "'";
+                $alldead = simple_queryall($query_dead);
+                if (!empty($alldead)) {
+                    foreach ($alldead as $idead => $eachDead) {
+                        $deadUsers[$eachDead['login']] = $eachDead['tagid'];
+                    }
+                }
+            }
+        }
+        $jsonAAData = array();
 
-        die();
+        if (!empty($allusers)) {
+            $totalusers = sizeof($allusers);
+            foreach ($allusers as $io => $eachuser) {
+                $tinet = 0;
+                $ucount++;
+                $cash = $eachuser['Cash'];
+                $credit = $eachuser['Credit'];
+                for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
+                    $dc = 'D' . $classcounter . '';
+                    $uc = 'U' . $classcounter . '';
+                    $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
+                }
+                $act = '<img src=skins/icon_active.gif>' . __('Yes');
+                //finance check
+                if ($cash < '-' . $credit) {
+                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
+                }
+                //online activity check
+                if ($alter_conf['DN_ONLINE_DETECT']) {
+                    $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
+                    if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
+                        $onlineFlag = '"<img src=skins/icon_star.gif> ' . __('Yes') . '",';
+                    }
+                } else {
+                    $onlineFlag = '';
+                }
+                @$clearuseraddress = $detect_address[$eachuser['login']];
+
+                //additional finance links
+                if ($alter_conf['FAST_CASH_LINK']) {
+                    $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#profileending><img src=skins/icon_dollar.gif border=0></a> ';
+                } else {
+                    $fastcashlink = '';
+                }
+
+                if (!$alter_conf['DEAD_HIDE']) {
+                    $jsonItem = array();
+                    $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
+                    $jsonItem[] = $fioz[$eachuser['login']];
+                    $jsonItem[] = $eachuser['IP'];
+                    $jsonItem[] = $eachuser['Tariff'];
+                    $jsonItem[] = $act;
+                    if (!empty($onlineFlag)) {
+                        $jsonItem[] = $onlineFlag;
+                    }
+                    $jsonItem[] = zb_TraffToGb($tinet);
+                    $jsonItem[] = "" . round($eachuser['Cash'], 2);
+                    $jsonItem[] = "" . round($eachuser['Credit'], 2);
+                    $jsonAAData[] = $jsonItem;
+                } else {
+                    if (!isset($deadUsers[$eachuser['login']])) {
+                        $jsonItem = array();
+                        $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
+                        $jsonItem[] = $fioz[$eachuser['login']];
+                        $jsonItem[] = $eachuser['IP'];
+                        $jsonItem[] = $eachuser['Tariff'];
+                        $jsonItem[] = $act;
+                        if (!empty($onlineFlag)) {
+                            $jsonItem[] = $onlineFlag;
+                        }
+                        $jsonItem[] = zb_TraffToGb($tinet);
+                        $jsonItem[] = "" . round($eachuser['Cash'], 2);
+                        $jsonItem[] = "" . round($eachuser['Credit'], 2);
+                        $jsonAAData[] = $jsonItem;
+                    }
+                }
+            }
+        }
+        $result = array("aaData" => $jsonAAData);
+        return(json_encode($result));
     }
 
 // Ajax data source display
     if (isset($_GET['ajax'])) {
         if ($hp_mode) {
-            zb_AjaxOnlineDataSource();
+            //default rendering
+            if ($hp_mode == 1) {
+                die(zb_AjaxOnlineDataSourceSafe());
+            }
+
+            //fast with caching, for huge databases.
+            if ($hp_mode == 2) {
+                $defaultJsonCacheTime = 600;
+                $onlineJsonCache = new UbillingCache();
+                $fastJsonReply = $onlineJsonCache->getCallback('HPONLINEJSON', function () {
+                    return (zb_AjaxOnlineDataSourceFast());
+                }, $defaultJsonCacheTime);
+                die($fastJsonReply);
+            }
         }
     }
 
 
     if (!$hp_mode) {
-        show_window(__('Users online'), stg_show_fulluserlistOld());
+        show_warning(__('ONLINE_HP_MODE=0 no more supported. Use 1 - safe or 2 - fast for large databases modes.'));
     } else {
-        show_window(__('Users online'), stg_show_fulluserlist_hp());
+        show_window(__('Users online'), renderUserListContainer());
     }
-} else show_error(__('Access denied'));
+} else
+    show_error(__('Access denied'));
 ?>
