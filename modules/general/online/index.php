@@ -451,12 +451,8 @@ if ($system->checkForRight('ONLINE')) {
         }
 
 
-
-
-        $result = '{';
-        $result.='
-       "aaData": [
-  ';
+	$jsonAAData = array();
+	
         if (!empty($allusers)) {
             $totalusers = sizeof($allusers);
             foreach ($allusers as $io => $eachuser) {
@@ -499,53 +495,46 @@ if ($system->checkForRight('ONLINE')) {
                 } else {
                     $fastcashlink = '';
                 }
-
+		
                 if (!$alter_conf['DEAD_HIDE']) {
-                    $result.='
-     [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink .$addrDelimiter. $clearuseraddress . '",
-     
-         "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
-         "' . $eachuser['IP'] . '",
-         "' . $eachuser['Tariff'] . '",
-         "' . $act . '",
-         ' . $onlineFlag . '    
-         "' . zb_TraffToGb($tinet) . '",
-         "' . round($eachuser['Cash'], 2) . '",
-         "' . round($eachuser['Credit'], 2) . '"
-         ],';
+
+               	$jsonItem = array();
+		array_push($jsonItem, '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink .$addrDelimiter. $clearuseraddress . '');
+		array_push($jsonItem, mysql_real_escape_string(trim($fioz[$eachuser['login']])));
+		array_push($jsonItem, $eachuser['IP']);
+		array_push($jsonItem, $eachuser['Tariff']);
+                array_push($jsonItem, $act);
+
+		if( !empty($onlineFlag) ){
+			array_push($jsonItem, $onlineFlag);
+		}
+		array_push($jsonItem, zb_TraffToGb($tinet));
+		array_push($jsonItem, "".round($eachuser['Cash'], 2)."");
+		array_push($jsonItem, "".round($eachuser['Credit'], 2)."");
+		array_push($jsonAAData, $jsonItem);
                 } else {
                     if (!isset($deadUsers[$eachuser['login']])) {
-                        $result.='
-                 [
-                 "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
+			$jsonItem = array();
+		        array_push($jsonItem, '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '');
+			array_push($jsonItem, mysql_real_escape_string(trim($fioz[$eachuser['login']])));
+			array_push($jsonItem, $eachuser['IP']);
+			array_push($jsonItem, $eachuser['Tariff']);
+                        array_push($jsonItem, $act);
 
-                     "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
-                     "' . $eachuser['IP'] . '",
-                     "' . $eachuser['Tariff'] . '",
-                     "' . $act . '",
-                     ' . $onlineFlag . '   
-                     "' . zb_TraffToGb($tinet) . '",
-                     "' . round($eachuser['Cash'], 2) . '",
-                     "' . round($eachuser['Credit'], 2) . '"
-                     ],';
+			if( !empty($onlineFlag) ){
+				array_push($jsonItem, $onlineFlag);
+                        }
+			array_push($jsonItem, zb_TraffToGb($tinet));
+			array_push($jsonItem, "".round($eachuser['Cash'], 2)."");
+			array_push($jsonItem, "".round($eachuser['Credit'], 2)."");
+	 		array_push($jsonAAData, $jsonItem);
                     }
                 }
             }
         }
 
-        $result = substr($result, 0, -1);
-
-
-        $result.='
-    
-    ]
-    }
-        ';
-
-
-
-        print($result);
+	$result = array("aaData" => $jsonAAData);
+        print(json_encode($result));
         
 //          $mtime = microtime();
 //          $mtime = explode(" ",$mtime);
