@@ -406,9 +406,9 @@ if ($system->checkForRight('ONLINE')) {
                 }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
-                    $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
+                    $onlineFlag = '<img src=skins/icon_nostar.gif> ' . __('No');
                     if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
-                        $onlineFlag = '"<img src=skins/icon_star.gif> ' . __('Yes') . '",';
+                        $onlineFlag = '<img src=skins/icon_star.gif> ' . __('Yes');
                     }
                 } else {
                     $onlineFlag = '';
