@@ -237,12 +237,12 @@ function stg_del_user_tag($tagid) {
  * 
  * @return void
  */
-function stg_del_user_tagid($login,$tagid) {
-    $login=  mysql_real_escape_string($login);
+function stg_del_user_tagid($login, $tagid) {
+    $login = mysql_real_escape_string($login);
     $tagid = vf($tagid, 3);
-    $query = "DELETE from `tags` WHERE `login`='".$login."' AND`tagid`='" . $tagid . "'";
+    $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
     nr_query($query);
-    stg_putlogevent('TAGDEL LOGIN ('.$login.') TAGID [' . $tagid . ']');
+    stg_putlogevent('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
 }
 
 /**
@@ -271,9 +271,9 @@ function stg_get_tag_body($id) {
  * @return array
  */
 function stg_get_tag_data($tagid) {
-    $tagid=vf($tagid,3);
-    $query="SELECT * from `tags` where `id`='".$tagid."';";
-    $result=  simple_query($query);
+    $tagid = vf($tagid, 3);
+    $query = "SELECT * from `tags` where `id`='" . $tagid . "';";
+    $result = simple_query($query);
     return ($result);
 }
 
@@ -401,7 +401,7 @@ function web_VserviceAddForm() {
     $serviceFeeTypes = array('stargazer' => __('stargazer user cash'), 'virtual' => __('virtual services cash'));
     $inputs = stg_tagid_selector() . wf_tag('br');
     $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
-    $inputs.= web_priority_selector() . ' ' . __('Priority') . wf_tag('br');
+    $inputs.= web_priority_selector() . wf_tag('br');
     $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
     $inputs.= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
