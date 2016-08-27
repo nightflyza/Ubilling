@@ -417,23 +417,27 @@ class UserProfile {
      * @return void
      */
     protected function loadPlugins() {
-        if ($this->alterCfg['PROFILE_PLUGINS']) {
-// $this->plugins = web_ProfilePluginsShow($this->login);
-            if (!empty($this->login)) {
-                $rawPlugins = $this->loadPluginsRaw('plugins.ini');
-                if (!empty($rawPlugins)) {
-                    foreach ($rawPlugins as $modulename => $eachplugin) {
-                        if (isset($eachplugin['overlay'])) {
-                            $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
-                            $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
-                        } else {
-                            $this->plugins.=wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
-                        }
+        if (!empty($this->login)) {
+            $rawPlugins = $this->loadPluginsRaw('plugins.ini');
+            if (!empty($rawPlugins)) {
+                foreach ($rawPlugins as $modulename => $eachplugin) {
+                    if (isset($eachplugin['overlay'])) {
+                        $overlaydata = $this->loadPluginsOverlay($eachplugin['overlaydata']) . wf_delimiter();
+                        $this->plugins.=wf_modal(wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), __($eachplugin['name']), $overlaydata, '', 850, 650);
+                    } else {
+                        $this->plugins.=wf_Link('?module=' . $modulename . '&username=' . $this->login, wf_img_sized('skins/' . $eachplugin['icon'], __($eachplugin['name']), '', self::MAIN_PLUGINS_SIZE), false, '') . wf_delimiter();
                     }
                 }
             }
         }
     }
+
+    /**
+      Give a little try, give a little more try
+      Never fall in line for a fleeting moment
+      Be and end all, I am aiming high
+      Climb a little higher
+     */
 
     /**
      * calculates PaymentID or extract from database as is
@@ -1034,7 +1038,9 @@ class UserProfile {
         return ($result);
     }
 
-    /* Брат, братан, братишка Когда меня отпустит? */
+    /**
+      Брат, братан, братишка Когда меня отпустит?
+     */
 
     /**
      * Renders user profile with all loaded data

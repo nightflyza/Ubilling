@@ -21,7 +21,6 @@ CHAPTER_LOOK=Look&Feel
 NMREP_INMACCHG=TRIGGER|New MAC report in MAC edit dialogue
 SIMPLENEWMACSELECTOR=TRIGGER|Simple selector in MAC change dialogue
 MACCHANGERANDOMDEFAULT=TRIGGER|Substitute the random MAC in the change dialog
-PROFILE_PLUGINS=TRIGGER|Profile plugins loader
 CITY_DISPLAY=TRIGGER|Display city name in address fields
 ZERO_TOLERANCE=TRIGGER|Use zero apartment number as private house
 TRAFFSIZE=VARCHAR|Traffic size display
