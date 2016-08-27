@@ -185,19 +185,20 @@ class Cemetery {
                 }
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        }
 
-            if (cfr('USERREG')) {
-                if ($this->isUserDead($login)) {
-                    $inputs = wf_HiddenInput('cemeterysetasundead', $login);
-                    $inputs.= wf_Submit(__('Set user connected'));
-                    $result.= wf_Form('', 'POST', $inputs, 'glamour');
-                } else {
-                    $inputs = wf_HiddenInput('cemeterysetasdead', $login);
-                    $inputs.= wf_Submit(__('Set user disconnected'));
-                    $result.= wf_Form('', 'POST', $inputs, 'glamour');
-                }
+        if (cfr('USERREG')) {
+            if ($this->isUserDead($login)) {
+                $inputs = wf_HiddenInput('cemeterysetasundead', $login);
+                $inputs.= wf_Submit(__('Set user connected'));
+                $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $inputs = wf_HiddenInput('cemeterysetasdead', $login);
+                $inputs.= wf_Submit(__('Set user disconnected'));
+                $result.= wf_Form('', 'POST', $inputs, 'glamour');
             }
         }
+
         return ($result);
     }
 
