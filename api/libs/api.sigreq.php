@@ -87,6 +87,7 @@ class SignupRequests {
 
         $tablecells = wf_TableCell(__('ID'));
         $tablecells.= wf_TableCell(__('Date'));
+        $tablecells.= wf_TableCell(__('IP'));
         $tablecells.= wf_TableCell(__('Full address'));
         $tablecells.= wf_TableCell(__('Real Name'));
         $tablecells.= wf_TableCell(__('Processed'));
@@ -98,6 +99,7 @@ class SignupRequests {
 
                 $tablecells = wf_TableCell($eachreq['id']);
                 $tablecells.= wf_TableCell($eachreq['date']);
+                $tablecells.= wf_TableCell(wf_Link(self::URL_WHOIS.$eachreq['ip'], $eachreq['ip']));
                 if (empty($eachreq['apt'])) {
                     $apt = 0;
                 } else {
