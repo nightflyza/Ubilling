@@ -730,6 +730,9 @@ class Warehouse {
         }
         if (cfr('WAREHOUSEOUT')) {
             $result.= wf_Link(self::URL_ME . '&' . self::URL_OUT, wf_img_sized('skins/whoutcoming_icon.png') . ' ' . __('Outcoming operations'), false, 'ubButton');
+        }
+
+        if (cfr('WAREHOUSERESERVE')) {
             $result.=wf_Link(self::URL_ME . '&' . self::URL_RESERVE, wf_img('skins/whreservation.png') . ' ' . __('Reserved'), false, 'ubButton');
         }
 
@@ -1573,6 +1576,13 @@ class Warehouse {
     }
 
     /**
+     * Жизнь дерьмо,
+      Возненавидь любя.
+      Всем смертям назло
+      Убей себя сам.
+     */
+
+    /**
      * Returns JQuery datatables reply for storage remains itemtypes
      * 
      * @param int $storageId
@@ -1586,8 +1596,17 @@ class Warehouse {
         if (!empty($remainItems)) {
             foreach ($remainItems as $itemtypeid => $count) {
                 if ($count > 0) {
-                    $actLink = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
+                    $actLink = '';
+                    if (cfr('WAREHOUSEOUT')) {
+                        $actLink.= wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeid, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming')) . ' ';
+                    }
+
+                    if (cfr('WAREHOUSERESERVE')) {
+                        $actLink.= wf_Link(self::URL_ME . '&' . self::URL_RESERVE . '&storageid=' . $storageId . '&itemtypeid=' . $itemtypeid, wf_img_sized('skins/whreservation.png', '', '10', '10') . ' ' . __('Reservation'));
+                    }
+
                     $actLink = str_replace('"', '', $actLink);
+                    $actLink = str_replace("\n", '', $actLink);
                     $actLink = trim($actLink);
                     $result.='
                     [
@@ -1852,10 +1871,11 @@ class Warehouse {
 
 
             $notifications.=wf_CleanDiv();
-            $reserveLink = self::URL_ME . '&' . self::URL_RESERVE . '&itemtypeid=' . $itemtypeid . '&storageid=' . $storageid;
-            $notifications.=wf_tag('div', false, '', 'style="margin: 20px 3% 0 3%;"') . wf_Link($reserveLink, wf_img('skins/whreservation.png') . ' ' . __('Reservation'), false, 'ubButton') . wf_tag('div', true);
-            $notifications.=wf_CleanDiv();
-
+            if (cfr('WAREHOUSERESERVE')) {
+                $reserveLink = self::URL_ME . '&' . self::URL_RESERVE . '&itemtypeid=' . $itemtypeid . '&storageid=' . $storageid;
+                $notifications.=wf_tag('div', false, '', 'style="margin: 20px 3% 0 3%;"') . wf_Link($reserveLink, wf_img('skins/whreservation.png') . ' ' . __('Reservation'), false, 'ubButton') . wf_tag('div', true);
+                $notifications.=wf_CleanDiv();
+            }
 
 
             $cells = wf_TableCell($form, '40%');
@@ -2070,11 +2090,15 @@ class Warehouse {
                         foreach ($tmpArr as $io => $count) {
                             if ($io == $itemtypeId) {
                                 if ($count > 0) {
+                                    $actLinks = '';
                                     if (cfr('WAREHOUSEOUT')) {
-                                        $actLinks = wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming'));
-                                    } else {
-                                        $actLinks = '';
+                                        $actLinks.= wf_Link(self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $storageId . '&outitemid=' . $itemtypeId, wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Outcoming')) . ' ';
                                     }
+
+                                    if (cfr('WAREHOUSERESERVE')) {
+                                        $actLinks.= wf_Link(self::URL_ME . '&' . self::URL_RESERVE . '&storageid=' . $storageId . '&itemtypeid=' . $itemtypeId, wf_img_sized('skins/whreservation.png', '', '10', '10') . ' ' . __('Reservation'));
+                                    }
+
                                     $cells = wf_TableCell($itemtypeName);
                                     $cells.= wf_TableCell($StorageName);
                                     $cells.= wf_TableCell($count . ' ' . $itemtypeUnit);
@@ -2717,7 +2741,7 @@ class Warehouse {
 
         $result.= wf_tag('tbody', true);
         $result.= wf_tag('table', true);
-        
+
         if (wf_CheckPost(array('printmode'))) {
             die($this->reportPrintable(__('Date remains'), $result));
         }

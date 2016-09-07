@@ -347,6 +347,11 @@ if ($system->checkForRight('ONLINE')) {
     }
 
     /**
+     * Мир тебя не полюбил и не полюбит никогда
+     * И что бы ты не делал, ведь будет так всегда
+     */
+
+    /**
      * Renders json data for user list
      * 
      * @global array $alter_conf
@@ -425,7 +430,7 @@ if ($system->checkForRight('ONLINE')) {
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
-                    $jsonItem[] = $fioz[$eachuser['login']];
+                    $jsonItem[] = @$fioz[$eachuser['login']];
                     $jsonItem[] = $eachuser['IP'];
                     $jsonItem[] = $eachuser['Tariff'];
                     $jsonItem[] = $act;
@@ -440,7 +445,7 @@ if ($system->checkForRight('ONLINE')) {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $jsonItem = array();
                         $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
-                        $jsonItem[] = $fioz[$eachuser['login']];
+                        $jsonItem[] = @$fioz[$eachuser['login']];
                         $jsonItem[] = $eachuser['IP'];
                         $jsonItem[] = $eachuser['Tariff'];
                         $jsonItem[] = $act;

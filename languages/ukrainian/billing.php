@@ -2252,5 +2252,7 @@ $lang['def']['Swpoll log'] = 'Лог опиту обладнання';
 $lang['def']['Assign'] = 'Присвоїти';
 $lang['def']['Assign UKV users to complex profiles'] = 'Присвоєння користувачам УКВ комплексних профілів';
 
+//rev 5084
+$lang['def']['right to control warehouse reservation operations'] = 'Право керувати операціями бронювання складу';
 
 ?>
