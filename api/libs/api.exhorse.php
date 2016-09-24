@@ -531,9 +531,10 @@ class ExistentialHorse {
                 curl_setopt($ch, CURLOPT_USERPWD, $this->askoziaLogin . ":" . $this->askoziaPassword);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-                $rawResult = file_get_contents('exports/exhorseasktemp.dat');
                 //uncomment following  - DEBUG
-                // $rawResult = curl_exec($ch);
+                $rawResult = curl_exec($ch);
+                //$rawResult = file_get_contents('exports/exhorseasktemp.dat');
+
                 curl_close($ch);
 
 
