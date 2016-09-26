@@ -793,8 +793,13 @@ class ExistentialHorse {
         $yearForm.=wf_CleanDiv();
         $result.=$yearForm;
 
+        //charts presets
+        $usersChartData = __('Month') . ',' . __('Total') . ',' . __('Active') . ',' . __('Inactive') . ',' . __('Frozen') . ',' . "\n";
+        $financeChartsData = __('Month') . ',' . __('Money') . ',' . __('Payments count') . ',' . __('ARPU') . ',' . __('ARPAU') . ',' . "\n";
+
         if (!empty($yearData)) {
             //internet users
+
             $result.=wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Total'));
@@ -814,10 +819,13 @@ class ExistentialHorse {
                     $sigDataTmp = base64_decode($each['u_citysignups']);
                     $sigDataTmp = unserialize($sigDataTmp);
                     $citySigs = '';
+                    $cityRows = '';
                     if (!empty($sigDataTmp)) {
                         foreach ($sigDataTmp as $sigCity => $cityCount) {
-                            $citySigs.=$sigCity . ' - ' . $cityCount . wf_tag('br');
+                            $cityCells = wf_TableCell($sigCity . ' - ' . $cityCount);
+                            $cityRows.=wf_TableRow($cityCells, 'row3');
                         }
+                        $citySigs.=wf_TableBody($cityRows, '100%', 0, '');
                     }
                     $signupData.=wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
                 } else {
@@ -826,8 +834,11 @@ class ExistentialHorse {
 
                 $cells.= wf_TableCell($signupData);
                 $rows.= wf_TableRow($cells, 'row3');
+                $usersChartData.= $this->showYear . '-' . $monthNum . '-01' . ',' . $each['u_totalusers'] . ',' . $each['u_activeusers'] . ',' . $each['u_inactiveusers'] . ',' . $each['u_frozenusers'] . ',' . "\n";
             }
+
             $result.=wf_TableBody($rows, '100%', 0, '');
+
 
             //complex data
             if ($this->complexFlag) {
@@ -863,6 +874,7 @@ class ExistentialHorse {
                 $cells.= wf_TableCell($each['f_arpu']);
                 $cells.= wf_TableCell($each['f_arpau']);
                 $rows.= wf_TableRow($cells, 'row3');
+                $financeChartsData.= $this->showYear . '-' . $monthNum . '-01' . ',' . $each['f_totalmoney'] . ',' . $each['f_paymentscount'] . ',' . $each['f_arpu'] . ',' . $each['f_arpau'] . ',' . "\n";
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
 
@@ -968,6 +980,10 @@ class ExistentialHorse {
                 $rows.= wf_TableRow($cells, 'row3');
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
+
+            //Charts here
+            $result.=wf_Graph($usersChartData, '600', '300', false);
+            $result.=wf_Graph($financeChartsData, '600', '300', false);
         } else {
             $result.= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
