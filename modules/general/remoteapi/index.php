@@ -190,10 +190,10 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                         if (!isset($alldeadswitches[$eachDevice['ip']])) {
                                             //dont poll NP devices - commented due testing
                                             // if (!ispos($eachDevice['desc'], 'NP')) {
-                                                $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
-                                                sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, true);
-                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . "\n";
-                                                print($swpollLogData);
+                                            $deviceTemplate = $allTemplatesAssoc[$eachDevice['modelid']];
+                                            sp_SnmpPollDevice($eachDevice['ip'], $eachDevice['snmp'], $allTemplates, $deviceTemplate, $allusermacs, $alladdress, true);
+                                            $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [OK]' . "\n";
+                                            print($swpollLogData);
 //                                            } else {
 //                                                $swpollLogData = date("Y-m-d H:i:s") . ' ' . $eachDevice['ip'] . ' [FAIL] SWITCH NP' . "\n";
 //                                                print($swpollLogData);
@@ -674,6 +674,19 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die($mgFeeProcessingResult);
                         } else {
                             die('ERROR: MEGOGO DISABLED');
+                        }
+                    }
+
+                    //existential horse
+                    if ($_GET['action'] == 'exhorse') {
+                        if ($alterconf['EXHORSE_ENABLED']) {
+                            if (date("d")==date("t")) {
+                                $exhorse = new ExistentialHorse();
+                                $exhorse->runHorse();
+                            }
+                            die('OK: EXHORSE');
+                        } else {
+                            die('ERROR: EXHORSE DISABLED');
                         }
                     }
 

@@ -122,11 +122,30 @@ class ExistentialHorse {
     protected $askoziaPassword = '';
 
     /**
+     * PON enabled flag
+     *
+     * @var bool
+     */
+    protected $ponFlag = false;
+
+    /**
+     * Docsis enabled flag
+     *
+     * @var bool
+     */
+    protected $docsisFlag = false;
+
+    /**
      * System messages helper object placeholder
      *
      * @var object
      */
     protected $messages = '';
+
+    /**
+     * Just debug flag
+     */
+    const DEBUG = false;
 
     public function __construct() {
         $this->loadConfig();
@@ -188,6 +207,16 @@ class ExistentialHorse {
             $this->askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
         }
+
+        //PONizer enabled?
+        if ($this->altCfg['PON_ENABLED']) {
+            $this->ponFlag = true;
+        }
+
+        //is DOCSIS support enabled?
+        if ($this->altCfg['DOCSIS_SUPPORT']) {
+            $this->docsisFlag = true;
+        }
     }
 
     /**
@@ -225,6 +254,9 @@ class ExistentialHorse {
         $this->storeTmp['a_totalanswered'] = 0;
         $this->storeTmp['a_totalcallsduration'] = 0;
         $this->storeTmp['a_averagecallduration'] = 0;
+        $this->storeTmp['e_switches'] = 0;
+        $this->storeTmp['e_pononu'] = 0;
+        $this->storeTmp['e_docsis'] = 0;
     }
 
     /**
@@ -506,6 +538,32 @@ class ExistentialHorse {
     }
 
     /**
+     * Collects and stores equipment data
+     * 
+     * @return void
+     */
+    protected function preprocessEquipmentData() {
+        //collecting switches
+        $qeurySwitches = "SELECT COUNT(`id`) AS `count` from `switches` WHERE `desc` NOT LIKE '%NP%'";
+        $switchesCount = simple_query($qeurySwitches);
+        $this->storeTmp['e_switches'] = $switchesCount['count'];
+
+        //collecting PON
+        if ($this->ponFlag) {
+            $queryOnu = "SELECT COUNT(`id`) AS `count` from `pononu`";
+            $onuCount = simple_query($queryOnu);
+            $this->storeTmp['e_pononu'] = $onuCount['count'];
+        }
+
+        //collecting docsis modems count
+        if ($this->docsisFlag) {
+            $queryModems = "SELECT COUNT(`id`) AS `count` from `modems`";
+            $modemsCount = simple_query($queryModems);
+            $this->storeTmp['e_docsis'] = $modemsCount['count'];
+        }
+    }
+
+    /**
      * Askozia PBX data fetching and processing
      * 
      * @return void
@@ -531,9 +589,7 @@ class ExistentialHorse {
                 curl_setopt($ch, CURLOPT_USERPWD, $this->askoziaLogin . ":" . $this->askoziaPassword);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-                //uncomment following  - DEBUG
                 $rawResult = curl_exec($ch);
-                //$rawResult = file_get_contents('exports/exhorseasktemp.dat');
 
                 curl_close($ch);
 
@@ -575,6 +631,52 @@ class ExistentialHorse {
     }
 
     /**
+     * Saves current storeTmp into database
+     * 
+     * @return void
+     */
+    protected function saveHorseData() {
+        $curTime = curdatetime();
+        $query = "INSERT INTO `exhorse` (`id`, `date`, `u_totalusers`, `u_activeusers`, `u_inactiveusers`, `u_frozenusers`, `u_complextotal`, `u_complexactive`, `u_complexinactive`, `u_signups`, `u_citysignups`, `f_totalmoney`, `f_paymentscount`, `f_arpu`, `f_arpau`, `c_totalusers`, `c_activeusers`, `c_inactiveusers`, `c_illegal`, `c_complex`, `c_social`, `c_totalmoney`, `c_paymentscount`, `c_arpu`, `c_arpau`, `c_totaldebt`, `c_signups`, `a_totalcalls`, `a_totalanswered`, `a_totalcallsduration`, `a_averagecallduration`, `e_switches`, `e_pononu`, `e_docsis`) "
+                . "VALUES (
+             NULL,
+              '" . $curTime . "',
+               '" . $this->storeTmp['u_totalusers'] . "',
+               '" . $this->storeTmp['u_activeusers'] . "',
+               '" . $this->storeTmp['u_inactiveusers'] . "',
+               '" . $this->storeTmp['u_frozenusers'] . "',
+               '" . $this->storeTmp['u_complextotal'] . "',
+               '" . $this->storeTmp['u_complexactive'] . "',
+               '" . $this->storeTmp['u_complexinactive'] . "',
+               '" . $this->storeTmp['u_signups'] . "',
+               '" . $this->storeTmp['u_citysignups'] . "',
+               '" . $this->storeTmp['f_totalmoney'] . "',
+               '" . $this->storeTmp['f_paymentscount'] . "',
+               '" . $this->storeTmp['f_arpu'] . "',
+               '" . $this->storeTmp['f_arpau'] . "',
+               '" . $this->storeTmp['c_totalusers'] . "',
+               '" . $this->storeTmp['c_activeusers'] . "',
+               '" . $this->storeTmp['c_inactiveusers'] . "',
+               '" . $this->storeTmp['c_illegal'] . "',
+               '" . $this->storeTmp['c_complex'] . "',
+               '" . $this->storeTmp['c_social'] . "',
+               '" . $this->storeTmp['c_totalmoney'] . "',
+               '" . $this->storeTmp['c_paymentscount'] . "',
+               '" . $this->storeTmp['c_arpu'] . "',
+               '" . $this->storeTmp['c_arpau'] . "',
+               '" . $this->storeTmp['c_totaldebt'] . "',
+               '" . $this->storeTmp['c_signups'] . "',
+               '" . $this->storeTmp['a_totalcalls'] . "',
+               '" . $this->storeTmp['a_totalanswered'] . "',
+               '" . $this->storeTmp['a_totalcallsduration'] . "',
+               '" . $this->storeTmp['a_averagecallduration'] . "',
+               '" . $this->storeTmp['e_switches'] . "',
+               '" . $this->storeTmp['e_pononu'] . "',
+               '" . $this->storeTmp['e_docsis'] . "');";
+        nr_query($query);
+    }
+
+    /**
      * Do all data preprocessing and store results into database
      * 
      * @return void
@@ -583,8 +685,13 @@ class ExistentialHorse {
         $this->preprocessUserData();
         $this->preprocessFinanceData();
         $this->preprocessUkvData();
+        $this->preprocessEquipmentData();
         $this->preprocessAskoziaData();
-        debarr($this->storeTmp);
+        $this->saveHorseData();
+
+        if (self::DEBUG) {
+            debarr($this->storeTmp);
+        }
     }
 
 }

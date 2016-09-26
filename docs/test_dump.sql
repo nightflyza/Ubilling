@@ -1664,3 +1664,43 @@ CREATE TABLE IF NOT EXISTS `mg_queue` (
  `tariffid` int(11)  NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.7.8
+
+CREATE TABLE IF NOT EXISTS `exhorse` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `u_totalusers` int(11) DEFAULT NULL,
+  `u_activeusers` int(11) DEFAULT NULL,
+  `u_inactiveusers` int(11) DEFAULT NULL,
+  `u_frozenusers` int(11) DEFAULT NULL,
+  `u_complextotal` int(11) DEFAULT NULL,
+  `u_complexactive` int(11) DEFAULT NULL,
+  `u_complexinactive` int(11) DEFAULT NULL,
+  `u_signups` int(11) DEFAULT NULL,
+  `u_citysignups` text,
+  `f_totalmoney` double DEFAULT NULL,
+  `f_paymentscount` int(11) DEFAULT NULL,
+  `f_arpu` double DEFAULT NULL,
+  `f_arpau` double DEFAULT NULL,
+  `c_totalusers` int(11) DEFAULT NULL,
+  `c_activeusers` int(11) DEFAULT NULL,
+  `c_inactiveusers` int(11) DEFAULT NULL,
+  `c_illegal` int(11) DEFAULT NULL,
+  `c_complex` int(11) DEFAULT NULL,
+  `c_social` int(11) DEFAULT NULL,
+  `c_totalmoney` double DEFAULT NULL,
+  `c_paymentscount` int(11) DEFAULT NULL,
+  `c_arpu` double DEFAULT NULL,
+  `c_arpau` double DEFAULT NULL,
+  `c_totaldebt` double DEFAULT NULL,
+  `c_signups` int(11) DEFAULT NULL,
+  `a_totalcalls` int(11) DEFAULT NULL,
+  `a_totalanswered` int(11) DEFAULT NULL,
+  `a_totalcallsduration` int(11) DEFAULT NULL,
+  `a_averagecallduration` int(11) DEFAULT NULL,
+  `e_switches` int(11) DEFAULT NULL,
+  `e_pononu` int(11) DEFAULT NULL,
+  `e_docsis` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

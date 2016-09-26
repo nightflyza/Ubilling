@@ -2239,6 +2239,10 @@ $lang['def']['Assign UKV users to complex profiles'] = 'Присвоение п�
 
 //rev 5084
 $lang['def']['right to control warehouse reservation operations'] = 'Право управлять операциями бронирования склада';
+$lang['def']['Existential horse'] = 'Экзистенциальный конь';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 ?>
