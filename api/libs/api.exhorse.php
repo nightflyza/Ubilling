@@ -322,10 +322,13 @@ class ExistentialHorse {
      */
     protected function isActive($userData) {
         $result = '';
-        if (($userData['Cash'] >= '-'.$userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
+        if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
             $result = 1;
         }
-        if (($userData['Cash'] <= '-'.$userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
+        if (($userData['Cash'] < '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+            $result = 0;
+        }
+        if (($userData['Cash'] < '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 1)) {
             $result = 0;
         }
         if ($userData['Passive'] == 1) {
@@ -500,7 +503,7 @@ class ExistentialHorse {
                     if (isset($ukvTariffPrices[$eachUser['tariffid']])) {
                         $tariffPrice = $ukvTariffPrices[$eachUser['tariffid']];
                         $debtLimit = $this->ukvDebtLimit * $tariffPrice;
-                        if (($eachUser['cash'] > $debtLimit) AND ( $eachUser['active'] == 1)) {
+                        if (($eachUser['cash'] >= '-'.$debtLimit) AND ( $eachUser['active'] == 1)) {
                             $this->storeTmp['c_activeusers'] ++;
                         }
                     }
