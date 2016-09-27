@@ -321,6 +321,13 @@ class ExistentialHorse {
      * @return int 1 - active, 0 - inactive, -1 - frozen
      */
     protected function isActive($userData) {
+        /**
+         * Ой, чий то кінь стоїть,
+         * Що сива гривонька.
+         * Сподобалась мені,
+         * Сподобалась мені
+         * Тая дівчинонька.
+         */
         $result = '';
         if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
             $result = 1;
@@ -503,7 +510,7 @@ class ExistentialHorse {
                     if (isset($ukvTariffPrices[$eachUser['tariffid']])) {
                         $tariffPrice = $ukvTariffPrices[$eachUser['tariffid']];
                         $debtLimit = $this->ukvDebtLimit * $tariffPrice;
-                        if (($eachUser['cash'] >= '-'.$debtLimit) AND ( $eachUser['active'] == 1)) {
+                        if (($eachUser['cash'] >= '-' . $debtLimit) AND ( $eachUser['active'] == 1)) {
                             $this->storeTmp['c_activeusers'] ++;
                         }
                     }
