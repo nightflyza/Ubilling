@@ -150,6 +150,11 @@ class ExistentialHorse {
     protected $messages = '';
 
     /**
+     * Base module URL
+     */
+    const URL_ME = '?module=exhorse';
+
+    /**
      * Just debug flag
      */
     const DEBUG = false;
@@ -787,20 +792,41 @@ class ExistentialHorse {
         $result = '';
         $months = months_array_localized();
         $yearData = $this->loadStoredData();
-        $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
+        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->showYear) . ' ';
+        $chartsFlag = (wf_CheckPost(array('showcharts'))) ? true : false;
+        $inputs.= wf_CheckInput('showcharts', __('Graphs'), false, $chartsFlag) . ' ';
         $inputs.= wf_Submit(__('Show'));
         $yearForm = wf_Form('', 'POST', $inputs, 'glamour');
         $yearForm.=wf_CleanDiv();
         $result.=$yearForm;
 
         //charts presets
-        $usersChartData = __('Month') . ',' . __('Total') . ',' . __('Active') . ',' . __('Inactive') . ',' . __('Frozen') . ',' . "\n";
-        $financeChartsData = __('Month') . ',' . __('Money') . ',' . __('Payments count') . ',' . __('ARPU') . ',' . __('ARPAU') . ',' . "\n";
+        $chartsOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+        $usersChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Frozen'), __('Signups'),));
+        $complexChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive')));
+        $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU')));
+        $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
+        $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU'), __('Debt')));
+        $askoziaChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
+        $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
+
 
         if (!empty($yearData)) {
             //internet users
-
-            $result.=wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Total'));
             $cells.= wf_TableCell(__('Active'));
@@ -821,8 +847,12 @@ class ExistentialHorse {
                     $citySigs = '';
                     $cityRows = '';
                     if (!empty($sigDataTmp)) {
+                        $cityCells = wf_TableCell(__('City'));
+                        $cityCells.= wf_TableCell(__('Signups'));
+                        $cityRows.=wf_TableRow($cityCells, 'row1');
                         foreach ($sigDataTmp as $sigCity => $cityCount) {
-                            $cityCells = wf_TableCell($sigCity . ' - ' . $cityCount);
+                            $cityCells = wf_TableCell($sigCity);
+                            $cityCells.= wf_TableCell($cityCount);
                             $cityRows.=wf_TableRow($cityCells, 'row3');
                         }
                         $citySigs.=wf_TableBody($cityRows, '100%', 0, '');
@@ -834,10 +864,17 @@ class ExistentialHorse {
 
                 $cells.= wf_TableCell($signupData);
                 $rows.= wf_TableRow($cells, 'row3');
-                $usersChartData.= $this->showYear . '-' . $monthNum . '-01' . ',' . $each['u_totalusers'] . ',' . $each['u_activeusers'] . ',' . $each['u_inactiveusers'] . ',' . $each['u_frozenusers'] . ',' . "\n";
+                //chart data
+                $usersChartData[] = array($months[$monthNum], $each['u_totalusers'], $each['u_activeusers'], $each['u_inactiveusers'], $each['u_frozenusers'], $each['u_signups']);
             }
 
+
+            $result.=wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $result.=wf_TableBody($rows, '100%', 0, '');
+            if ($chartsFlag) {
+                $result.=wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
+            }
+
 
 
             //complex data
@@ -854,8 +891,13 @@ class ExistentialHorse {
                     $cells.= wf_TableCell($each['u_complexactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexactive']) . '%)');
                     $cells.= wf_TableCell($each['u_complexinactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexinactive']) . '%)');
                     $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $complexChartData[] = array($months[$monthNum], $each['u_complextotal'], $each['u_complexactive'], $each['u_complexinactive']);
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
+                if ($chartsFlag) {
+                    $result.=wf_gchartsLine($complexChartData, __('Complex services'), '100%', '300px', $chartsOptions);
+                }
             }
 
 
@@ -874,9 +916,13 @@ class ExistentialHorse {
                 $cells.= wf_TableCell($each['f_arpu']);
                 $cells.= wf_TableCell($each['f_arpau']);
                 $rows.= wf_TableRow($cells, 'row3');
-                $financeChartsData.= $this->showYear . '-' . $monthNum . '-01' . ',' . $each['f_totalmoney'] . ',' . $each['f_paymentscount'] . ',' . $each['f_arpu'] . ',' . $each['f_arpau'] . ',' . "\n";
+                //chart data
+                $financeChartsData[] = array($months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount'], $each['f_arpu'], $each['f_arpau']);
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
+            if ($chartsFlag) {
+                $result.=wf_gchartsLine($financeChartsData, __('Financial highlights'), '100%', '300px', $chartsOptions);
+            }
 
             // UKV cable users
             if ($this->ukvFlag) {
@@ -907,8 +953,13 @@ class ExistentialHorse {
                     $cells.= wf_TableCell($each['c_signups']);
 
                     $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $ukvChartData[] = array($months[$monthNum], $each['c_totalusers'], $each['c_activeusers'], $each['c_inactiveusers'], $each['c_illegal'], $each['c_complex'], $each['c_social'], $each['c_signups']);
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
+                if ($chartsFlag) {
+                    $result.=wf_gchartsLine($ukvChartData, __('UKV users'), '100%', '300px', $chartsOptions);
+                }
 
                 //UKV financial data
                 $result.=wf_tag('h2') . __('UKV finance') . wf_tag('h2', true);
@@ -928,8 +979,13 @@ class ExistentialHorse {
                     $cells.= wf_TableCell($each['c_arpau']);
                     $cells.= wf_TableCell($each['c_totaldebt']);
                     $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $ukvfChartData[] = array($months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_arpu'], $each['c_arpau'], $each['c_totaldebt']);
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
+                if ($chartsFlag) {
+                    $result.=wf_gchartsLine($ukvfChartData, __('UKV users'), '100%', '300px', $chartsOptions);
+                }
             }
 
             //Askozia PBX
@@ -938,6 +994,7 @@ class ExistentialHorse {
                 $cells = wf_TableCell(__('Month'));
                 $cells.= wf_TableCell(__('Total calls'));
                 $cells.= wf_TableCell(__('Total answered'));
+                $cells.= wf_TableCell(__('No answer'));
                 $cells.= wf_TableCell(__('Total duration'));
                 $cells.= wf_TableCell(__('Average duration'));
                 $cells.= wf_TableCell(__('Answers percent'));
@@ -947,12 +1004,18 @@ class ExistentialHorse {
                     $cells = wf_TableCell($months[$monthNum]);
                     $cells.= wf_TableCell($each['a_totalcalls']);
                     $cells.= wf_TableCell($each['a_totalanswered']);
+                    $cells.= wf_TableCell($each['a_totalcalls'] - $each['a_totalanswered']);
                     $cells.= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
                     $cells.= wf_TableCell($this->formatTime($each['a_averagecallduration']));
                     $cells.= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
                     $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $askoziaChartData[] = array($months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
+                if ($chartsFlag) {
+                    $result.=wf_gchartsLine($askoziaChartData, __('Askozia'), '100%', '300px', $chartsOptions);
+                }
             }
 
             //Equipment
@@ -978,12 +1041,13 @@ class ExistentialHorse {
                 }
 
                 $rows.= wf_TableRow($cells, 'row3');
+                //chart data
+                $equipChartData[] = array($months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
-
-            //Charts here
-            $result.=wf_Graph($usersChartData, '600', '300', false);
-            $result.=wf_Graph($financeChartsData, '600', '300', false);
+            if ($chartsFlag) {
+                $result.=wf_gchartsLine($equipChartData, __('Equipment'), '100%', '300px', $chartsOptions);
+            }
         } else {
             $result.= $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
