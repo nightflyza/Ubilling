@@ -2254,7 +2254,7 @@ $lang['def']['Total duration'] = 'Общая длительность';
 $lang['def']['Average duration'] = 'Средняя длительность';
 $lang['def']['Answers percent'] = 'Процент ответов';
 $lang['def']['DOCSIS Modems'] = 'DOCSIS модемы';
-$lang['def'][''] = '';
+$lang['def']['right to use existential horse'] = 'Право использовать экзистенциального коня';
 $lang['def'][''] = '';
 
 

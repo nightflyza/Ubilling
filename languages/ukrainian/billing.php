@@ -2254,5 +2254,21 @@ $lang['def']['Assign UKV users to complex profiles'] = 'Присвоєння к�
 
 //rev 5084
 $lang['def']['right to control warehouse reservation operations'] = 'Право керувати операціями бронювання складу';
+$lang['def']['Existential horse'] = 'Екзистенціальний кінь';
+$lang['def']['Internets users'] = 'Користувачі інтернетів';
+$lang['def']['Frozen'] = 'Заморожені';
+$lang['def']['Inactive'] = 'Неактивний';
+$lang['def']['Financial highlights'] = 'Фінансові показники';
+$lang['def']['UKV users'] = 'Користувачі УКВ';
+$lang['def']['Illegal'] = 'Нелегали';
+$lang['def']['Complex'] = 'Комплексні';
+$lang['def']['Social'] = 'Соціальний';
+$lang['def']['UKV finance'] = 'УКВ фінанси';
+$lang['def']['Total answered'] = 'Всього відповіли';
+$lang['def']['Total duration'] = 'Загальна тривалість';
+$lang['def']['Average duration'] = 'Середня тривалість';
+$lang['def']['Answers percent'] = 'Відсоток відповідей';
+$lang['def']['DOCSIS Modems'] = 'DOCSIS модеми';
+$lang['def']['right to use existential horse'] = 'Право використовувати екзистенціального коня';
 
 ?>

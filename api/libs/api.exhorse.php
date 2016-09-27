@@ -322,10 +322,10 @@ class ExistentialHorse {
      */
     protected function isActive($userData) {
         $result = '';
-        if (($userData['Cash'] >= $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
+        if (($userData['Cash'] >= '-'.$userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
             $result = 1;
         }
-        if (($userData['Cash'] <= $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
+        if (($userData['Cash'] <= '-'.$userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0)) {
             $result = 0;
         }
         if ($userData['Passive'] == 1) {
