@@ -2271,5 +2271,9 @@ $lang['def']['Answers percent'] = 'Відсоток відповідей';
 $lang['def']['DOCSIS Modems'] = 'DOCSIS модеми';
 $lang['def']['right to use existential horse'] = 'Право використовувати екзистенціального коня';
 $lang['def']['Incoming calls'] = 'Вхідних дзвінків';
+$lang['def']['Is exestential horse enabled'] = 'Екзистенціального коня ввімкнено';
+$lang['def']['UKV illegal users tariff id'] = 'Тариф нелегальних користувачів УКВ';
+$lang['def']['UKV complex users tariff id'] = 'Тариф комплексних користувачів УКВ';
+$lang['def']['UKV socail service tariff id'] = 'Тариф соціальних користувачів УКВ';
 
 ?>

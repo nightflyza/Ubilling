@@ -207,7 +207,7 @@ class ExistentialHorse {
         if ($this->altCfg['UKV_ENABLED']) {
             $this->ukvFlag = true;
             $this->ukvComplex = $this->altCfg['UKV_COMPLEX_TARIFFID'];
-            $this->ukvIllegal = $this->altCfg['UKV_ILLEGEL_TARIFFID'];
+            $this->ukvIllegal = $this->altCfg['UKV_ILLEGAL_TARIFFID'];
             $this->ukvSocial = $this->altCfg['UKV_SOCIAL_TARIFFID'];
             $this->ukvDebtLimit = $this->altCfg['UKV_MONTH_DEBTLIMIT'];
         }
