@@ -2270,5 +2270,6 @@ $lang['def']['Average duration'] = 'Середня тривалість';
 $lang['def']['Answers percent'] = 'Відсоток відповідей';
 $lang['def']['DOCSIS Modems'] = 'DOCSIS модеми';
 $lang['def']['right to use existential horse'] = 'Право використовувати екзистенціального коня';
+$lang['def']['Incoming calls'] = 'Вхідних дзвінків';
 
 ?>

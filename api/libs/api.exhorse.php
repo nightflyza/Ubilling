@@ -564,7 +564,12 @@ class ExistentialHorse {
                 }
 
                 if ($this->storeTmp['c_activeusers'] != 0) {
-                    $this->storeTmp['c_arpau'] = round($this->storeTmp['c_totalmoney'] / $this->storeTmp['c_activeusers'], 2);
+                    if (($this->complexFlag) AND ( $this->complexMasks)) {
+                        $this->storeTmp['c_arpau'] = round($this->storeTmp['c_totalmoney'] / ($this->storeTmp['c_activeusers'] - $this->storeTmp['c_complex']), 2);
+                    } else {
+                        //no complex services enabled
+                        $this->storeTmp['c_arpau'] = round($this->storeTmp['c_totalmoney'] / $this->storeTmp['c_activeusers'], 2);
+                    }
                 }
             }
         }
@@ -608,7 +613,7 @@ class ExistentialHorse {
                 $normalCalls = array();
                 $fields = array(
                     'extension_number' => 'all',
-                    'cdr_filter' => 'incoming',
+                    'cdr_filter' => 'incomingoutgoing',
                     'period_from' => $this->curmonth . '-01',
                     'period_to' => curdate(),
                     'date_format' => 'Y-m-d',
@@ -643,20 +648,19 @@ class ExistentialHorse {
 
                     if (!empty($normalCalls)) {
                         unset($normalCalls[0]);
-                        $this->storeTmp['a_totalcalls'] = sizeof($normalCalls);
                         foreach ($normalCalls as $io => $each) {
-                            if (ispos($each[14], 'ANSWERED')) {
-                                $this->storeTmp['a_totalanswered'] ++;
+                            if ($each[16] != 'outbound') {
+                                if (ispos($each[14], 'ANSWERED')) {
+                                    $this->storeTmp['a_totalanswered'] ++;
+                                }
+                                $this->storeTmp['a_totalcalls'] ++;
+                                //call duration in seconds increment
+                                $this->storeTmp['a_totalcallsduration']+=$each[13];
                             }
-
-                            //call duration in seconds increment
-                            $this->storeTmp['a_totalcallsduration']+=$each[13];
                         }
 
                         //average calls duration
                         $this->storeTmp['a_averagecallduration'] = $this->storeTmp['a_totalcallsduration'] / $this->storeTmp['a_totalanswered'];
-
-                        // debarr($normalCalls);
                     }
                 }
             }
@@ -1002,7 +1006,7 @@ class ExistentialHorse {
             if ($this->askoziaFlag) {
                 $result.=wf_tag('h2') . __('AskoziaPBX integration') . wf_tag('h2', true);
                 $cells = wf_TableCell(__('Month'));
-                $cells.= wf_TableCell(__('Total calls'));
+                $cells.= wf_TableCell(__('Incoming calls'));
                 $cells.= wf_TableCell(__('Total answered'));
                 $cells.= wf_TableCell(__('No answer'));
                 $cells.= wf_TableCell(__('Total duration'));
