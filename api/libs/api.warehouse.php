@@ -510,23 +510,30 @@ class Warehouse {
             $id = vf($_POST['editreserveid'], 3);
             if (isset($this->allReserve[$id])) {
                 $reserveData = $this->allReserve[$id];
-                $reserveStorage = $reserveData['storageid'];
-                $count = $_POST['editreservecount'];
-                $countF = mysql_real_escape_string($count);
-                $countF = str_replace(',', '.', $countF);
-                $employeeId = vf($_POST['editreserveemployeeid'], 3);
-                $where = " WHERE `id`='" . $id . "';";
-                $storageRemains = $this->remainsOnStorage($reserveStorage);
-                @$itemtypeRemains = $storageRemains[$reserveData['itemtypeid']];
-                if (empty($itemtypeRemains)) {
-                    $itemtypeRemains = 0;
-                }
-                $alreadyReserved = $this->reserveGet($reserveStorage, $reserveData['itemtypeid']);
-                $realRemains = $itemtypeRemains - $alreadyReserved;
-                if ($realRemains >= $countF) {
-                    simple_update_field('wh_reserve', 'employeeid', $employeeId, $where);
-                    simple_update_field('wh_reserve', 'count', $countF, $where);
-                    log_register('WAREHOUSE RESERVE EDIT [' . $id . ']  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                if (!empty($reserveData)) {
+                    $reserveStorage = $reserveData['storageid'];
+                    $count = $_POST['editreservecount'];
+                    $countF = mysql_real_escape_string($count);
+                    $countF = str_replace(',', '.', $countF);
+                    $employeeId = vf($_POST['editreserveemployeeid'], 3);
+                    $where = " WHERE `id`='" . $id . "';";
+                    $storageRemains = $this->remainsOnStorage($reserveStorage);
+                    @$itemtypeRemains = $storageRemains[$reserveData['itemtypeid']];
+                    if (empty($itemtypeRemains)) {
+                        $itemtypeRemains = 0;
+                    }
+                    $alreadyReserved = $this->reserveGet($reserveStorage, $reserveData['itemtypeid']);
+                    $realRemains = $itemtypeRemains - $alreadyReserved;
+                    $controlRemains = $realRemains + $reserveData['count'];
+                    if ($controlRemains >= $countF) {
+                        simple_update_field('wh_reserve', 'employeeid', $employeeId, $where);
+                        simple_update_field('wh_reserve', 'count', $countF, $where);
+                        log_register('WAREHOUSE RESERVE EDIT [' . $id . ']  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                    } else {
+                        log_register('WAREHOUSE RESERVE FAIL [' . $id . ']  TO MANY  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                    }
+                } else {
+                    log_register('WAREHOUSE RESERVE FAIL [' . $id . ']  EMPTY DATA');
                 }
             }
         }
