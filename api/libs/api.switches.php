@@ -248,10 +248,15 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '') {
  * @return string
  */
 function web_SwitchFormAdd() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $addinputs = wf_TextInput('newip', 'IP', '', true, 20);
     $addinputs.=wf_TextInput('newlocation', 'Location', '', true, 30);
     $addinputs.=wf_TextInput('newdesc', 'Description', '', true, 30);
     $addinputs.=wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
+    if ($altCfg['SWITCHES_EXTENDED']) {
+        $addinputs.=wf_TextInput('newswid', 'Switch ID', '', true, 20);
+    }
     $addinputs.=wf_TextInput('newgeo', 'Geo location', '', true, 20);
     $addinputs.=web_SwitchModelSelector('newswitchmodel');
     $addinputs.= wf_tag('br');
@@ -355,6 +360,9 @@ function web_SwitchEditForm($switchid) {
     $editinputs.=wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
     $editinputs.=wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
     $editinputs.=wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
+    if ($altCfg['SWITCHES_EXTENDED']) {
+        $editinputs.=wf_TextInput('editswid', 'Switch ID', $switchdata['swid'], true, 20);
+    }
     $editinputs.=wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20);
     $editinputs.=web_SwitchUplinkSelector('editparentid', __('Uplink switch'), $switchdata['parentid']);
     $editinputs.= wf_tag('br');
@@ -841,23 +849,25 @@ function web_SwitchesShow() {
  * @param string $desc
  * @param string $location
  * @param string $snmp
+ * @param string $swid
  * @param string $geo
  * @param int    $parentid
  */
-function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $geo, $parentid = '') {
+function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '') {
     $modelid = vf($modelid, 3);
     $ip = mysql_real_escape_string($ip);
     $desc = mysql_real_escape_string($desc);
     $location = mysql_real_escape_string($location);
     $snmp = mysql_real_escape_string($snmp);
+    $swid=  mysql_real_escape_string($swid);
     $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
         $parentid = "'" . $parentid . "'";
     } else {
         $parentid = 'NULL';
     }
-    $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`geo`,`parentid`) "
-            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "','" . $geo . "', " . $parentid . " );";
+    $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`) "
+            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . " );";
     nr_query($query);
     $lastid = simple_get_lastid('switches');
     log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');
@@ -1216,6 +1226,5 @@ function zb_SwitchGetIdbyIP($ip) {
     }
     return ($result);
 }
-
 
 ?>

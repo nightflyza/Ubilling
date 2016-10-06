@@ -25,22 +25,22 @@ if (isset($_GET['cronping'])) {
 
 if (cfr('SWITCHES')) {
     $altCfg = $ubillingConfig->getAlter();
-    
+
     //icmp ping handling
     if (wf_CheckGet(array('backgroundicmpping'))) {
-        $billingConf=$ubillingConfig->getBilling();
-        $command=$billingConf['SUDO'].' '.$billingConf['PING'].' -i 0.01 -c 10  '.$_GET['backgroundicmpping'];
-        $icmpPingResult=shell_exec($command);
-        die(wf_tag('pre').$icmpPingResult.  wf_tag('pre',true));
+        $billingConf = $ubillingConfig->getBilling();
+        $command = $billingConf['SUDO'] . ' ' . $billingConf['PING'] . ' -i 0.01 -c 10  ' . $_GET['backgroundicmpping'];
+        $icmpPingResult = shell_exec($command);
+        die(wf_tag('pre') . $icmpPingResult . wf_tag('pre', true));
     }
-    
+
     //switch by IP detecting
     if (wf_CheckGet(array('gotoswitchbyip'))) {
-        $detectSwitchId=  zb_SwitchGetIdbyIP($_GET['gotoswitchbyip']);
+        $detectSwitchId = zb_SwitchGetIdbyIP($_GET['gotoswitchbyip']);
         if ($detectSwitchId) {
-            rcms_redirect('?module=switches&edit='.$detectSwitchId);
+            rcms_redirect('?module=switches&edit=' . $detectSwitchId);
         } else {
-            show_warning(__('Strange exeption').': NO_SUCH_IP');
+            show_warning(__('Strange exeption') . ': NO_SUCH_IP');
         }
     }
 
@@ -52,9 +52,10 @@ if (cfr('SWITCHES')) {
             $desc = $_POST['newdesc'];
             $location = $_POST['newlocation'];
             $snmp = $_POST['newsnmp'];
+            $swid = ($altCfg['SWITCHES_EXTENDED']) ? $_POST['newswid'] : '';
             $geo = $_POST['newgeo'];
             $parentid = $_POST['newparentid'];
-            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $geo, $parentid);
+            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid);
             rcms_redirect("?module=switches");
         } else {
             show_window(__('Error'), __('Access denied'));
@@ -67,13 +68,12 @@ if (cfr('SWITCHES')) {
                 if (ub_SwitchIsParent($_GET['switchdelete'])) {
                     if (wf_CheckGet(array('forcedel'))) {
                         //forced parent switch deletion, childs flush
-                          ub_SwitchFlushChilds($_GET['switchdelete']);
-                          ub_SwitchDelete($_GET['switchdelete']);
-                          rcms_redirect("?module=switches");
+                        ub_SwitchFlushChilds($_GET['switchdelete']);
+                        ub_SwitchDelete($_GET['switchdelete']);
+                        rcms_redirect("?module=switches");
                     } else {
                         show_warning(__('This switch is the parent for other switches'));
                     }
-                    
                 } else {
                     ub_SwitchDelete($_GET['switchdelete']);
                     rcms_redirect("?module=switches");
@@ -96,6 +96,9 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
+        if ($altCfg['SWITCHES_EXTENDED']) {
+            $swlinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+        }
         $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
 
 
@@ -103,8 +106,8 @@ if (cfr('SWITCHES')) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
         }
 
-        if($altCfg['SWITCH_AUTOCONFIG']) {
-            if(cfr(SwitchLogin::MODULE)) {
+        if ($altCfg['SWITCH_AUTOCONFIG']) {
+            if (cfr(SwitchLogin::MODULE)) {
                 $swlinks.=wf_Link(SwitchLogin::MODULE_URL, wf_img('skins/sw_login.png') . ' ' . __('Switch login'), false, 'ubButton');
             }
         }
@@ -112,7 +115,7 @@ if (cfr('SWITCHES')) {
         if (isset($_GET['switchdelete'])) {
             $swlinks = '';
             $swlinks.= wf_Link('?module=switches&edit=' . $_GET['switchdelete'], web_edit_icon() . ' ' . __('Edit'), false, 'ubButton') . ' ';
-            $swlinks.= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'].'&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
+            $swlinks.= wf_JSAlertStyled('?module=switches&switchdelete=' . $_GET['switchdelete'] . '&forcedel=true', web_delete_icon() . ' ' . __('Force deletion'), __('Removing this may lead to irreparable results'), 'ubButton');
         }
         show_window('', $swlinks);
 
@@ -141,10 +144,9 @@ if (cfr('SWITCHES')) {
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
-                
+
                 show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);
-                show_window(__('Dead switches top'),web_DeadSwitchesTop());
-                
+                show_window(__('Dead switches top'), web_DeadSwitchesTop());
             } else {
                 //showing dead switches snapshot
                 ub_SwitchesTimeMachineShowSnapshot($_GET['snapshot']);
@@ -164,6 +166,9 @@ if (cfr('SWITCHES')) {
                 simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
+                if ($altCfg['SWITCHES_EXTENDED']) {
+                    simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
+                }
                 simple_update_field('switches', 'geo', $_POST['editgeo'], "WHERE `id`='" . $switchid . "'");
                 if ($_POST['editparentid'] != $switchid) {
                     simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");

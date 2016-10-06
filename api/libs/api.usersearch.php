@@ -6,6 +6,8 @@
  * @return string
  */
 function web_UserSearchFieldsForm() {
+    global $ubillingConfig;
+    $altCf = $ubillingConfig->getAlter();
     $fieldinputs = wf_TextInput('searchquery', 'Search by', '', true, '40');
     $fieldinputs.=wf_RadioInput('searchtype', 'Real Name', 'realname', true, true);
     $fieldinputs.=wf_RadioInput('searchtype', 'Login', 'login', true);
@@ -17,6 +19,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs.=wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'MAC', 'mac', true);
+    if ($altCf['SWITCHES_EXTENDED']) {
+        $fieldinputs.=wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
+    }
     $fieldinputs.=wf_tag('br');
     $fieldinputs.=wf_Submit('Search');
     $form = wf_Form('', 'POST', $fieldinputs);
@@ -81,9 +86,13 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `IP` LIKE '" . $mask . $query . $mask . "'";
     }
-    if ($searchtype=='seal') {
+    if ($searchtype == 'seal') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `condet` WHERE `seal` LIKE '" . $mask . $query . $mask . "'";
+    }
+    if ($searchtype == 'swid') {
+        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+        $query = "SELECT `login` from `users` WHERE `ip` IN (SELECT `ip` FROM `nethosts` WHERE `option` LIKE '" . $mask . $query . $mask . "')";
     }
     //mac-address search
     if ($searchtype == 'mac') {
@@ -408,13 +417,16 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
         case 'seal':
             $result .= __('Cable seal');
             break;
+        case 'swid':
+            $result .= __('Switch ID');
+            break;
         default:
             $result .= '';
             break;
     }
 
     if (!empty($query)) {
-        $result.=' "'.$query.'"';
+        $result.=' "' . $query . '"';
     }
 
     return ($result);
