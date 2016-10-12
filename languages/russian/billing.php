@@ -2260,6 +2260,11 @@ $lang['def']['Is exestential horse enabled'] = 'Экзистенциальный
 $lang['def']['UKV illegal users tariff id'] = 'Тариф нелегальных пользователей УКВ';
 $lang['def']['UKV complex users tariff id'] = 'Тариф комплексных пользователей УКВ';
 $lang['def']['UKV socail service tariff id'] = 'Тариф социальных пользователей УКВ';
+
+// rev 5120
+$lang['def']['Returns available users tags'] = 'Возвращает данные о тегах пользователей';
+$lang['def']['Returns available user services'] = 'Возвращает данные о услугах пользователей';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
+
 ?>

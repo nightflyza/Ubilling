@@ -2,8 +2,8 @@
 
 class UserSideApi {
 
-    const API_VER = '1.2';
-    const API_DATE = '26.10.2015';
+    const API_VER = '1.3';
+    const API_DATE = '12.10.2016';
 
     /**
      * Stores system alter config as key=>value
@@ -102,6 +102,33 @@ class UserSideApi {
      * @var string
      */
     protected $defaultCityType = '';
+
+    /**
+     * Contains build passports data as buildid=>data
+     *
+     * @var array
+     */
+    protected $buildPassports = array();
+
+    /**
+     * Contains list of available virtual services as id=>data
+     *
+     * @var array
+     */
+    protected $vServices = array();
+
+    /**
+     * Contains virtual services to user tags mappings as tagid=>serviceid
+     *
+     * @var array
+     */
+    protected $serviceTagMappings = array();
+
+    /**
+     * Debug mode flag
+     *
+     * @var bool
+     */
     protected $debugMode = false;
 
     public function __construct() {
@@ -116,6 +143,8 @@ class UserSideApi {
         $this->loadCF();
         $this->loadUsers();
         $this->loadTagTypes();
+        $this->loadBuildPassports();
+        $this->loadVservices();
     }
 
     /**
@@ -149,7 +178,9 @@ class UserSideApi {
             'get_user_state_list' => __('Returns users state data'),
             'get_user_group_list' => __('Returns user tags list'),
             'get_system_information' => __('Returns system information'),
-            'get_user_list' => __('Returns available users data')
+            'get_user_list' => __('Returns available users data'),
+            'get_user_tags' => __('Returns available users tags'),
+            'get_services_list' => __('Returns available user services')
         );
     }
 
@@ -314,6 +345,39 @@ class UserSideApi {
     }
 
     /**
+     * Preloads available build passports for further usage
+     * 
+     * @return void
+     */
+    protected function loadBuildPassports() {
+        if ($this->altCfg['BUILD_EXTENDED']) {
+            $query = "SELECT * from `buildpassport`";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->buildPassports[$each['buildid']] = $each;
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads array of available virtual services
+     * 
+     * @return void
+     */
+    protected function loadVservices() {
+        $query = "SELECT * from `vservices`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->vServices[$each['id']] = $each;
+                $this->serviceTagMappings[$each['tagid']] = $each['id'];
+            }
+        }
+    }
+
+    /**
      * Renders API reply as JSON string
      * 
      * @param array $data
@@ -353,6 +417,7 @@ class UserSideApi {
                     'down' => $downspeed,
                 );
                 $result[$tariffName]['traffic'] = ($tariffData['Free']) ? $tariffData['Free'] : -1;
+                $result[$tariffName]['service_type'] = 0;
             }
         }
         return ($result);
@@ -410,6 +475,15 @@ class UserSideApi {
                 $result[$buildId]['street_id'] = $buildData['streetid'];
                 $result[$buildId]['full_name'] = $streetName . ' ' . $buildData['buildnum'];
                 $result[$buildId]['postcode'] = '';
+
+                if (isset($this->buildPassports[$buildId])) {
+                    $result[$buildId]['floor'] = $this->buildPassports[$buildId]['floors'];
+                    $result[$buildId]['entrance'] = $this->buildPassports[$buildId]['entrances'];
+                } else {
+                    $result[$buildId]['floor'] = '';
+                    $result[$buildId]['entrance'] = '';
+                }
+
                 if (ispos($buildData['buildnum'], '/')) {
                     $buildExpl = explode('/', $buildData['buildnum']);
                     @$buildNumber = vf($buildExpl[0], 3);
@@ -422,6 +496,7 @@ class UserSideApi {
 
                 $result[$buildId]['number'] = $buildNumber;
                 $result[$buildId]['block'] = $blockLetter;
+                $result[$buildId]['coordinates'] = $buildData['geo'];
             }
         }
         return ($result);
@@ -810,13 +885,64 @@ class UserSideApi {
                     $result[$userLogin]['ip_mac'][0]['ip_net'] = @$allNetworks[$subnetId]['desc'];
                 }
 
+                if (isset($allUserTags[$userLogin])) {
+                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                        $result[$userLogin]['tag'][$eachTagid]['id'] = $eachTagid;
+                        $result[$userLogin]['tag'][$eachTagid]['date_add'] = '';
+                    }
+                }
+
+                if (isset($allUserTags[$userLogin])) {
+                    foreach ($allUserTags[$userLogin] as $tagIo => $eachTagid) {
+                        if (isset($this->serviceTagMappings[$eachTagid])) {
+                            $serviceId = $this->serviceTagMappings[$eachTagid];
+                            $result[$userLogin]['service'][$serviceId]['cost'] = $this->vServices[$serviceId]['price'];
+                            $result[$userLogin]['service'][$serviceId]['date_add'] = '';
+                            $result[$userLogin]['service'][$serviceId]['comment'] = '';
+                        }
+                    }
+                }
+
                 if (isset($this->allCfData[$userLogin])) {
                     $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
                 }
-                //   die(print_r($result, true));
+                //die(print_r($result, true));
             }
         }
 
+        return ($result);
+    }
+
+    /**
+     * Returns array of available tags
+     * 
+     * @return array
+     */
+    protected function getUserTags() {
+        $result = array();
+        if (!empty($this->allTagTypes)) {
+            foreach ($this->allTagTypes as $tagId => $tagName) {
+                $result[$tagId]['id'] = $tagId;
+                $result[$tagId]['name'] = $tagName;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of available services
+     * 
+     * @return array
+     */
+    protected function getServicesList() {
+        $result = array();
+        if (!empty($this->vServices)) {
+            foreach ($this->vServices as $serviceId => $serviceData) {
+                $result[$serviceId]['id'] = $serviceId;
+                $result[$serviceId]['name'] = $this->allTagTypes[$serviceData['tagid']];
+                $result[$serviceId]['cost'] = $serviceData['price'];
+            }
+        }
         return ($result);
     }
 
@@ -862,6 +988,12 @@ class UserSideApi {
                         break;
                     case 'get_user_list':
                         $this->renderReply($this->getUsersList());
+                        break;
+                    case 'get_user_tags':
+                        $this->renderReply($this->getUserTags());
+                        break;
+                    case 'get_services_list':
+                        $this->renderReply($this->getServicesList());
                         break;
                 }
             } else {
