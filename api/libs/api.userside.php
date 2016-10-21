@@ -906,6 +906,9 @@ class UserSideApi {
                 if (isset($this->allCfData[$userLogin])) {
                     $result[$userLogin]['additional_data'] = $this->allCfData[$userLogin];
                 }
+
+                $result[$userLogin]['password'] = $userData['Password'];
+
                 //die(print_r($result, true));
             }
         }
