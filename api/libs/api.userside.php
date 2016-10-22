@@ -180,7 +180,8 @@ class UserSideApi {
             'get_system_information' => __('Returns system information'),
             'get_user_list' => __('Returns available users data'),
             'get_user_tags' => __('Returns available users tags'),
-            'get_services_list' => __('Returns available user services')
+            'get_services_list' => __('Returns available user services'),
+            'change_user_data' => __('Do some changes with user data')
         );
     }
 
@@ -725,9 +726,11 @@ class UserSideApi {
     /**
      * Returns existing users full info
      * 
+     * @param string $customerId
+     * 
      * @return array
      */
-    protected function getUsersList() {
+    protected function getUsersList($customerId = '') {
         $result = array();
         $allRealNames = zb_UserGetAllRealnames();
         $allContracts = zb_UserGetAllContracts();
@@ -741,14 +744,26 @@ class UserSideApi {
         $allNethosts = $this->getNethostsData();
         $allNetworks = $this->getNetworksData();
         $allRegData = $this->getUserRegData();
+        $scanData = array();
 
         if (!empty($allContracts)) {
             $allContracts = array_flip($allContracts);
         }
         $allContractDates = zb_UserContractDatesGetAll();
 
-        if (!empty($this->allUserData)) {
-            foreach ($this->allUserData as $userLogin => $userData) {
+        //just one user
+        if (!empty($customerId)) {
+            if (isset($this->allUserData[$customerId])) {
+                $scanData[$customerId] = $this->allUserData[$customerId];
+            } else {
+                $scanData = array();
+            }
+        } else {
+            $scanData = $this->allUserData;
+        }
+
+        if (!empty($scanData)) {
+            foreach ($scanData as $userLogin => $userData) {
                 $result[$userLogin]['id'] = $userLogin;
                 $result[$userLogin]['login'] = $userLogin;
                 $result[$userLogin]['full_name'] = @$allRealNames[$userLogin];
@@ -908,8 +923,6 @@ class UserSideApi {
                 }
 
                 $result[$userLogin]['password'] = $userData['Password'];
-
-                //die(print_r($result, true));
             }
         }
 
@@ -957,6 +970,7 @@ class UserSideApi {
     public function catchRequest() {
         if (wf_CheckGet(array('request'))) {
             $request = $_GET['request'];
+            $customerId = (wf_CheckGet(array('customer_id'))) ? mysql_real_escape_string($_GET['customer_id']) : '';
             if (isset($this->supportedMethods[$request])) {
                 switch ($request) {
                     case 'get_tariff_list':
@@ -990,7 +1004,11 @@ class UserSideApi {
                         $this->renderReply($this->getSystemInformation());
                         break;
                     case 'get_user_list':
-                        $this->renderReply($this->getUsersList());
+                        if (empty($customerId)) {
+                            $this->renderReply($this->getUsersList());
+                        } else {
+                            $this->renderReply($this->getUsersList($customerId));
+                        }
                         break;
                     case 'get_user_tags':
                         $this->renderReply($this->getUserTags());
@@ -998,6 +1016,8 @@ class UserSideApi {
                     case 'get_services_list':
                         $this->renderReply($this->getServicesList());
                         break;
+                    case 'change_user_data':
+                        $this->renderReply(array(''));
                 }
             } else {
                 header('HTTP/1.1 400 Unknown Action"', true, 400);

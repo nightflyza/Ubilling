@@ -2264,7 +2264,7 @@ $lang['def']['UKV socail service tariff id'] = 'Тариф социальных 
 // rev 5120
 $lang['def']['Returns available users tags'] = 'Возвращает данные о тегах пользователей';
 $lang['def']['Returns available user services'] = 'Возвращает данные о услугах пользователей';
-$lang['def'][''] = '';
+$lang['def']['Do some changes with user data'] = 'Производит изменения пользовательских данных';
 $lang['def'][''] = '';
 
 ?>
