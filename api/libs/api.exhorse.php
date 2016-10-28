@@ -739,7 +739,7 @@ class ExistentialHorse {
     protected function loadStoredData() {
         $result = array();
         if (!empty($this->showYear)) {
-            $query = "SELECT * from `exhorse` WHERE `date` LIKE '" . $this->showYear . "-%';";
+            $query = "SELECT * from `exhorse` WHERE `date` LIKE '" . $this->showYear . "-%' ORDER BY `id` ASC;";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
