@@ -74,7 +74,7 @@ class OpenPayz {
      * @return void
      */
     protected function loadTransactions() {
-        $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
+        $query = "SELECT * from `op_transactions` ORDER by `id` ASC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -114,9 +114,16 @@ class OpenPayz {
      * @return string
      */
     public function renderSearchForm() {
-        $inputs = wf_YearSelector('searchyear', __('Year'), false) . ' ';
-        $inputs.= wf_MonthSelector('searchmonth', __('Month'), '', false) . ' ';
-        $inputs.= wf_Selector('searchpaysys', $this->allPaySys, __('Payment system'), '', false) . ' ';
+        $curYear = (wf_CheckPost(array('searchyear'))) ? vf($_POST['searchyear'], 3) : '';
+        $curMonth = (wf_CheckPost(array('searchmonth'))) ? vf($_POST['searchmonth'], 3) : '';
+        $curPaysys = (wf_CheckPost(array('searchpaysys'))) ? vf($_POST['searchpaysys']) : '';
+        /**
+         * No lights, no sights, every fright, every night
+         * Alone, hurt and cold, she‘s shackled to the pipes
+         */
+        $inputs = wf_YearSelectorPreset('searchyear', __('Year'), false, $curYear) . ' ';
+        $inputs.= wf_MonthSelector('searchmonth', __('Month'), $curMonth, false) . ' ';
+        $inputs.= wf_Selector('searchpaysys', $this->allPaySys, __('Payment system'), $curPaysys, false) . ' ';
         $inputs.= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
@@ -201,13 +208,30 @@ class OpenPayz {
         $psysdata = array();
         $gcAllData = array();
         $gcMonthData = array();
+        $gchartsData = array();
+
+        $chartsOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
 
         $result = wf_Link('?module=openpayz', __('Back'), true, 'ubButton');
         if (!empty($this->allTransactions)) {
             foreach ($this->allTransactions as $io => $each) {
                 $timestamp = strtotime($each['date']);
                 $curMonth = curmonth();
-                $date = date("Y-m-01", $timestamp);
+                $date = date("Y-m", $timestamp);
                 if (isset($psysdata[$each['paysys']][$date]['count'])) {
                     $psysdata[$each['paysys']][$date]['count'] ++;
                     $psysdata[$each['paysys']][$date]['summ'] = $psysdata[$each['paysys']][$date]['summ'] + $each['summ'];
@@ -224,7 +248,7 @@ class OpenPayz {
                 }
 
                 //current month stats
-                if (ispos($date, $curMonth . '-')) {
+                if (ispos($date, $curMonth)) {
                     if (isset($gcMonthData[$each['paysys']])) {
                         $gcMonthData[$each['paysys']] ++;
                     } else {
@@ -255,15 +279,13 @@ class OpenPayz {
 
         if (!empty($psysdata)) {
             foreach ($psysdata as $psys => $opdate) {
-                $gdata = __('Date') . ',' . __('Count') . ',' . __('Cash') . "\n";
+                $gchartsData[] = array(__('Date'), __('Count'), __('Cash'));
                 foreach ($opdate as $datestamp => $optrans) {
-                    $gdata.=$datestamp . ',' . $optrans['count'] . ',' . $optrans['summ'] . "\n";
+                    $gchartsData[] = array($datestamp, $optrans['count'], $optrans['summ']);
                 }
 
-                $result.=wf_tag('div', false, '', '');
-                $result.=wf_tag('h2') . $psys . wf_tag('h2', true) . wf_delimiter();
-                $result.= wf_Graph($gdata, '800', '200', false);
-                $result.=wf_tag('div', true);
+                $result.=wf_gchartsLine($gchartsData, $psys, '100%', '300px;', $chartsOptions);
+                $gchartsData = array();
             }
         }
         return ($result);
