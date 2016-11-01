@@ -90,6 +90,20 @@ class UserSideApi {
     protected $supportedMethods = array();
 
     /**
+     * Contains supported methods for change_user_data request
+     *
+     * @var array
+     */
+    protected $supportedChangeMethods = array();
+
+    /**
+     * Contains localised error notices
+     *
+     * @var array
+     */
+    protected $errorNotices = array();
+
+    /**
      * Default streets type. May be configurable in future
      *
      * @var string
@@ -181,7 +195,20 @@ class UserSideApi {
             'get_user_list' => __('Returns available users data'),
             'get_user_tags' => __('Returns available users tags'),
             'get_services_list' => __('Returns available user services'),
-            'change_user_data' => __('Do some changes with user data')
+            'change_user_data' => __('Do some changes with user data'),
+            'get_supported_change_user_data_list' => __('Returns list of supported change user data methods')
+        );
+
+        $this->supportedChangeMethods = array(
+            'balance_operation' => __('User balance operations'),
+            'name' => __('User name operations'),
+            'comment' => __('User notes operations')
+        );
+
+        $this->errorNotices = array(
+            'EX_NO_PARAMS' => __('No request parameters set'),
+            'EX_USER_NOT_EXISTS' => __('No such user available'),
+            'EX_PARAM_MISSED' => __('Important parameter missed')
         );
     }
 
@@ -583,6 +610,21 @@ class UserSideApi {
     }
 
     /**
+     * Returns available change methods list
+     * 
+     * @return array
+     */
+    protected function getChangeMethodsList() {
+        $result = array();
+        if (!empty($this->supportedChangeMethods)) {
+            foreach ($this->supportedChangeMethods as $io => $each) {
+                $result[$io]['comment'] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns Userside API information
      * 
      * @return array
@@ -963,6 +1005,28 @@ class UserSideApi {
     }
 
     /**
+     * Catches and preprocess change_user_data request params
+     * 
+     * @return array
+     */
+    protected function catchChangeParams() {
+        $result = array();
+        if (wf_CheckGet(array('customer_id'))) {
+            $result['customerid'] = mysql_real_escape_string($_GET['customer_id']);
+        }
+        if (wf_CheckGet(array('type'))) {
+            $result['type'] = vf($_GET['customer_id']);
+        }
+        if (wf_CheckGet(array('value'))) {
+            $result['value'] = mysql_real_escape_string($_GET['value']);
+        }
+        if (wf_CheckGet(array('comment'))) {
+            $result['comment'] = mysql_real_escape_string($_GET['comment']);
+        }
+        return ($result);
+    }
+
+    /**
      * Listens API requests and renders replies for it
      * 
      * @return void
@@ -1016,8 +1080,20 @@ class UserSideApi {
                     case 'get_services_list':
                         $this->renderReply($this->getServicesList());
                         break;
+                    case 'get_supported_change_user_data_list':
+                        $this->renderReply($this->getChangeMethodsList());
+                        break;
                     case 'change_user_data':
-                        $this->renderReply(array(''));
+                        $changeParams = $this->catchChangeParams();
+                        if (!empty($changeParams)) {
+                            if (isset($changeParams['type'])) {
+                                //finish it later
+                            } else {
+                                $this->renderReply(array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': type'));
+                            }
+                        } else {
+                            $this->renderReply(array('result' => 'error', 'error' => $this->errorNotices['EX_NO_PARAMS']));
+                        }
                 }
             } else {
                 header('HTTP/1.1 400 Unknown Action"', true, 400);

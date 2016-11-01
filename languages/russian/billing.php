@@ -2265,6 +2265,13 @@ $lang['def']['UKV socail service tariff id'] = 'Тариф социальных 
 $lang['def']['Returns available users tags'] = 'Возвращает данные о тегах пользователей';
 $lang['def']['Returns available user services'] = 'Возвращает данные о услугах пользователей';
 $lang['def']['Do some changes with user data'] = 'Производит изменения пользовательских данных';
+$lang['def']['Returns list of supported change user data methods'] = 'Возвращает список поддерживаемых методов изменения пользовательских данных';
+$lang['def']['User balance operations'] = 'Операции с балансом пользователя';
+$lang['def']['User name operations'] = 'Операции с именем пользователя';
+$lang['def']['User notes operations'] = 'Операции с примечаниями пользователя';
+$lang['def']['No request parameters set'] = 'Не установлены параметры запроса';
+$lang['def']['No such user available'] = 'Нету такого пользователя';
+$lang['def']['Important parameter missed'] = 'Пропущен важный параметр';
 $lang['def'][''] = '';
-
+$lang['def'][''] = '';
 ?>
