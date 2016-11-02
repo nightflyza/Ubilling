@@ -2273,5 +2273,8 @@ $lang['def']['No request parameters set'] = 'Не установлены пар�
 $lang['def']['No such user available'] = 'Нету такого пользователя';
 $lang['def']['Important parameter missed'] = 'Пропущен важный параметр';
 $lang['def']['Method not supported'] = 'Метод не поддерживается';
+$lang['def']['Cash payments'] = 'Оплаты наличкой';
+$lang['def']['Cash payments count'] = 'Количество оплат наличкой';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 ?>

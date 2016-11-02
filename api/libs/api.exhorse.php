@@ -248,6 +248,8 @@ class ExistentialHorse {
         $this->storeTmp['u_citysignups'] = '';
         $this->storeTmp['f_totalmoney'] = 0;
         $this->storeTmp['f_paymentscount'] = 0;
+        $this->storeTmp['f_cashmoney'] = 0;
+        $this->storeTmp['f_cashcount'] = 0;
         $this->storeTmp['f_arpu'] = 0;
         $this->storeTmp['f_arpau'] = 0;
         $this->storeTmp['c_totalusers'] = 0;
@@ -445,6 +447,12 @@ class ExistentialHorse {
                 $this->storeTmp['f_totalmoney']+=round($each['summ'], 2);
                 //total payments count increment
                 $this->storeTmp['f_paymentscount'] ++;
+
+                //cash money processing
+                if (($each['summ'] >= 0) AND ( $each['cashtypeid'] == 1)) {
+                    $this->storeTmp['f_cashmoney']+=round($each['summ'], 2);
+                    $this->storeTmp['f_cashcount'] ++;
+                }
             }
 
             //omg omg division by zero :)
@@ -674,7 +682,7 @@ class ExistentialHorse {
      */
     protected function saveHorseData() {
         $curTime = curdatetime();
-        $query = "INSERT INTO `exhorse` (`id`, `date`, `u_totalusers`, `u_activeusers`, `u_inactiveusers`, `u_frozenusers`, `u_complextotal`, `u_complexactive`, `u_complexinactive`, `u_signups`, `u_citysignups`, `f_totalmoney`, `f_paymentscount`, `f_arpu`, `f_arpau`, `c_totalusers`, `c_activeusers`, `c_inactiveusers`, `c_illegal`, `c_complex`, `c_social`, `c_totalmoney`, `c_paymentscount`, `c_arpu`, `c_arpau`, `c_totaldebt`, `c_signups`, `a_totalcalls`, `a_totalanswered`, `a_totalcallsduration`, `a_averagecallduration`, `e_switches`, `e_pononu`, `e_docsis`) "
+        $query = "INSERT INTO `exhorse` (`id`, `date`, `u_totalusers`, `u_activeusers`, `u_inactiveusers`, `u_frozenusers`, `u_complextotal`, `u_complexactive`, `u_complexinactive`, `u_signups`, `u_citysignups`, `f_totalmoney`, `f_paymentscount`, `f_cashmoney`, `f_cashcount`, `f_arpu`, `f_arpau`, `c_totalusers`, `c_activeusers`, `c_inactiveusers`, `c_illegal`, `c_complex`, `c_social`, `c_totalmoney`, `c_paymentscount`, `c_arpu`, `c_arpau`, `c_totaldebt`, `c_signups`, `a_totalcalls`, `a_totalanswered`, `a_totalcallsduration`, `a_averagecallduration`, `e_switches`, `e_pononu`, `e_docsis`) "
                 . "VALUES (
              NULL,
               '" . $curTime . "',
@@ -689,6 +697,8 @@ class ExistentialHorse {
                '" . $this->storeTmp['u_citysignups'] . "',
                '" . $this->storeTmp['f_totalmoney'] . "',
                '" . $this->storeTmp['f_paymentscount'] . "',
+               '" . $this->storeTmp['f_cashmoney'] . "',
+               '" . $this->storeTmp['f_cashcount'] . "',
                '" . $this->storeTmp['f_arpu'] . "',
                '" . $this->storeTmp['f_arpau'] . "',
                '" . $this->storeTmp['c_totalusers'] . "',
@@ -830,6 +840,7 @@ class ExistentialHorse {
                         'crosshair': {
                         trigger: 'none'
                     },";
+
         $usersChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Frozen'), __('Signups'),));
         $complexChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive')));
         $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU')));
@@ -920,6 +931,8 @@ class ExistentialHorse {
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Money'));
             $cells.= wf_TableCell(__('Payments count'));
+            $cells.= wf_TableCell(__('Cash payments'));
+            $cells.= wf_TableCell(__('Cash payments count'));
             $cells.= wf_TableCell(__('ARPU'));
             $cells.= wf_TableCell(__('ARPAU'));
             $rows = wf_TableRow($cells, 'row1');
@@ -927,6 +940,8 @@ class ExistentialHorse {
                 $cells = wf_TableCell($months[$monthNum]);
                 $cells.= wf_TableCell($each['f_totalmoney']);
                 $cells.= wf_TableCell($each['f_paymentscount']);
+                $cells.= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
+                $cells.= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
                 $cells.= wf_TableCell($each['f_arpu']);
                 $cells.= wf_TableCell($each['f_arpau']);
                 $rows.= wf_TableRow($cells, 'row3');

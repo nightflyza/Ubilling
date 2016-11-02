@@ -2276,4 +2276,19 @@ $lang['def']['UKV illegal users tariff id'] = 'Тариф нелегальних
 $lang['def']['UKV complex users tariff id'] = 'Тариф комплексних користувачів УКВ';
 $lang['def']['UKV socail service tariff id'] = 'Тариф соціальних користувачів УКВ';
 
+// rev 5120
+$lang['def']['Returns available users tags'] = 'Повертає дані про теги користувачів';
+$lang['def']['Returns available user services'] = 'Повертає дані про послуги користувачів';
+$lang['def']['Do some changes with user data'] = 'Виконує зміни користувацьких даних';
+$lang['def']['Returns list of supported change user data methods'] = 'Повертає список методів зміни користувацьких даних, що підтримуються';
+$lang['def']['User balance operations'] = 'Операції з балансом користувача';
+$lang['def']['User name operations'] = 'Операції з іменем користувача';
+$lang['def']['User notes operations'] = 'Операції з примітками користувача';
+$lang['def']['No request parameters set'] = 'Не встановлено параметрів запиту';
+$lang['def']['No such user available'] = 'Немає такого користувача';
+$lang['def']['Important parameter missed'] = 'Пропущено важливий параметр';
+$lang['def']['Method not supported'] = 'Метод не підтримується';
+$lang['def']['Cash payments'] = 'Оплати готівкою';
+$lang['def']['Cash payments count'] = 'Кількість готівкових оплат';
+
 ?>

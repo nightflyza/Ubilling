@@ -1708,3 +1708,5 @@ CREATE TABLE IF NOT EXISTS `exhorse` (
 -- 0.7.9
 
 ALTER TABLE `switches` ADD `swid` VARCHAR(32) DEFAULT NULL;
+
+ALTER TABLE `exhorse` ADD `f_cashmoney` DOUBLE NULL DEFAULT NULL AFTER `f_paymentscount`, ADD `f_cashcount` INT NULL DEFAULT NULL AFTER `f_cashmoney`;
