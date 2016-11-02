@@ -1,4 +1,4 @@
-<?
+<?php
 
 class Salary {
 
@@ -8,15 +8,13 @@ class Salary {
      * @var array
      */
     protected $allEmployee = array();
-    
+
     /**
      * Available active and inactive employee
      * 
      * @var array
      */
-    protected $allEmployeeRaw=array();
-
-
+    protected $allEmployeeRaw = array();
 
     /**
      * Available jobtypes as jobtypeid=>name
@@ -124,8 +122,8 @@ class Salary {
     protected function loadEmployee() {
         $this->allEmployee = ts_GetActiveEmployee();
     }
-    
-     /**
+
+    /**
      * Loads all of employees from database
      * 
      * @return void
@@ -383,7 +381,7 @@ class Salary {
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
-        $result.= wf_modalAuto(web_icon_extended().' '.__('Directories'), __('Directories'), $directoriesControls, 'ubButton');
+        $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $directoriesControls, 'ubButton');
 
 
         return ($result);
@@ -806,7 +804,7 @@ class Salary {
 
         if (!empty($this->allWages)) {
             foreach ($this->allWages as $io => $each) {
-                $rowClass= (isset($this->allEmployee[$io])) ? 'row3' : 'sigdeleteduser'  ;
+                $rowClass = (isset($this->allEmployee[$io])) ? 'row3' : 'sigdeleteduser';
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$io]);
                 $cells.= wf_TableCell($this->allWages[$io]['wage']);
                 $cells.= wf_TableCell($this->allWages[$io]['bounty']);
@@ -935,8 +933,9 @@ class Salary {
 
         $result = wf_Form('', 'POST', $result, '');
 
-        $result.= __('Total') . ' ' . __('money') . ': ' . $totalSum . wf_tag('br');
-        $result.= __('Paid') . ' ' . __('money') . ': ' . $payedSum;
+        $result.= __('Not paid money') . ': ' . $totalSum . wf_tag('br');
+        $result.= __('Paid money') . ': ' . $payedSum . wf_tag('br');
+        $result.= __('Total money') . ': ' . ($payedSum + $totalSum);
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
@@ -1579,7 +1578,7 @@ class Salary {
      * 
      * @return string
      */
-    public function timesheetsListRender($baseUrl='') {
+    public function timesheetsListRender($baseUrl = '') {
         $result = '';
         $linkBase = (empty($baseUrl)) ? self::URL_ME . '&' . self::URL_TSHEETS : $baseUrl;
         if (!empty($this->allTimesheetDates)) {
@@ -1795,21 +1794,21 @@ class Salary {
                 }
             }
         }
-      //  print_r($tmpArr);
+        //  print_r($tmpArr);
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $employeeid => $each) {
                 $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeid]);
                 $cells.= wf_TableCell(@$this->allAppointments[$employeeid]);
                 for ($i = 1; $i <= 31; $i++) {
                     $dayCell = (isset($each['day_' . $i])) ? $each['day_' . $i] : 0;
-                    $dayCellSuffix='';
-                    if (@$each['dayholiday_'.$i]) {
-                        $dayCellSuffix.=wf_tag('sup').'v'.wf_tag('sup',true);
+                    $dayCellSuffix = '';
+                    if (@$each['dayholiday_' . $i]) {
+                        $dayCellSuffix.=wf_tag('sup') . 'v' . wf_tag('sup', true);
                     }
-                    if (@$each['dayhospital_'.$i]) {
-                        $dayCellSuffix.=wf_tag('sup').'h'.wf_tag('sup',true);
+                    if (@$each['dayhospital_' . $i]) {
+                        $dayCellSuffix.=wf_tag('sup') . 'h' . wf_tag('sup', true);
                     }
-                    $cells.=wf_TableCell($dayCell.$dayCellSuffix);
+                    $cells.=wf_TableCell($dayCell . $dayCellSuffix);
                 }
                 $cells.= wf_TableCell($each['totaldays']);
                 $cells.= wf_TableCell($each['holidays']);
@@ -1820,8 +1819,8 @@ class Salary {
 
 
         $result.= wf_TableBody($rows, '100%', 0, 'sortable');
-        $result.= 'v - '.__('Holidays').wf_tag('br');
-        $result.= 'h - '.__('Hospitalized');
+        $result.= 'v - ' . __('Holidays') . wf_tag('br');
+        $result.= 'h - ' . __('Hospitalized');
         $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
         return ($result);
     }

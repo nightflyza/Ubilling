@@ -2277,7 +2277,8 @@ $lang['def']['Cash payments'] = 'Оплаты наличкой';
 $lang['def']['Cash payments count'] = 'Количество оплат наличкой';
 $lang['def']['Working hours'] = 'Рабочее время';
 $lang['def']['Not working hours'] = 'Внерабочее время';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Not paid money'] = 'Не выплачено денег';
+$lang['def']['Paid money'] = 'Выплачено денег';
+$lang['def']['Total money'] = 'Всего денег';
 $lang['def'][''] = '';
 ?>

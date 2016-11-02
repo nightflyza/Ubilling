@@ -2292,5 +2292,7 @@ $lang['def']['Cash payments'] = 'Оплати готівкою';
 $lang['def']['Cash payments count'] = 'Кількість готівкових оплат';
 $lang['def']['Working hours'] = 'Робочий час';
 $lang['def']['Not working hours'] = 'Позаробочий час';
-
+$lang['def']['Not paid money'] = 'Не виплачено грошей';
+$lang['def']['Paid money'] = 'Виплачено грошей';
+$lang['def']['Total money'] = 'Всього грошей';
 ?>
