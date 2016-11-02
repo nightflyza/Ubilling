@@ -2272,6 +2272,6 @@ $lang['def']['User notes operations'] = 'Операции с примечани�
 $lang['def']['No request parameters set'] = 'Не установлены параметры запроса';
 $lang['def']['No such user available'] = 'Нету такого пользователя';
 $lang['def']['Important parameter missed'] = 'Пропущен важный параметр';
-$lang['def'][''] = '';
+$lang['def']['Method not supported'] = 'Метод не поддерживается';
 $lang['def'][''] = '';
 ?>

@@ -208,7 +208,9 @@ class UserSideApi {
         $this->errorNotices = array(
             'EX_NO_PARAMS' => __('No request parameters set'),
             'EX_USER_NOT_EXISTS' => __('No such user available'),
-            'EX_PARAM_MISSED' => __('Important parameter missed')
+            'EX_PARAM_MISSED' => __('Important parameter missed'),
+            'EX_METHOD_NOT_SUPPORTED' => __('Method not supported'),
+            'EX_BAD_MONEY_FORMAT' => __('Wrong format of money sum')
         );
     }
 
@@ -1011,17 +1013,107 @@ class UserSideApi {
      */
     protected function catchChangeParams() {
         $result = array();
+        /**
+         * There is a house in New Orleans
+         * They call the Rising Sun
+         * And it's been the ruin of many a poor boy
+         * And God, I know I'm one
+         */
         if (wf_CheckGet(array('customer_id'))) {
-            $result['customerid'] = mysql_real_escape_string($_GET['customer_id']);
+            $result['customerid'] = $_GET['customer_id'];
         }
         if (wf_CheckGet(array('type'))) {
-            $result['type'] = vf($_GET['customer_id']);
+            $result['type'] = vf($_GET['type']);
         }
         if (wf_CheckGet(array('value'))) {
-            $result['value'] = mysql_real_escape_string($_GET['value']);
+            $result['value'] = $_GET['value'];
         }
         if (wf_CheckGet(array('comment'))) {
-            $result['comment'] = mysql_real_escape_string($_GET['comment']);
+            $result['comment'] = $_GET['comment'];
+        }
+        return ($result);
+    }
+
+    /**
+     * Do some user finance data changes
+     * 
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserFinance($changeParams) {
+        $result = array();
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    if (zb_checkMoney($changeParams['value'])) {
+                        $paymentNotes = (isset($changeParams['comment'])) ? $changeParams['comment'] : '';
+                        zb_CashAdd($changeParams['customerid'], $changeParams['value'], 'add', 1, $paymentNotes);
+                        $result = array('result' => 'ok');
+                    } else {
+                        $result = array('result' => 'error', 'error' => $this->errorNotices['EX_BAD_MONEY_FORMAT'] . ': ' . $changeParams['value']);
+                    }
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
+        }
+        return ($result);
+    }
+
+    /**
+     * Changes user RealName
+     * 
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserRealName($changeParams) {
+        $result = array();
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    zb_UserChangeRealName($changeParams['customerid'], $changeParams['value']);
+                    $result = array('result' => 'ok');
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
+        }
+        return ($result);
+    }
+
+    /**
+     * Changes user notes
+     * 
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserNotes($changeParams) {
+        $result = array();
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    zb_UserDeleteNotes($changeParams['customerid']);
+                    zb_UserCreateNotes($changeParams['customerid'], $changeParams['value']);
+                    $result = array('result' => 'ok');
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
         }
         return ($result);
     }
@@ -1087,7 +1179,22 @@ class UserSideApi {
                         $changeParams = $this->catchChangeParams();
                         if (!empty($changeParams)) {
                             if (isset($changeParams['type'])) {
-                                //finish it later
+                                $changeOperationType = $changeParams['type'];
+                                if (isset($this->supportedChangeMethods[$changeOperationType])) {
+                                    switch ($changeOperationType) {
+                                        case 'balance_operation':
+                                            $this->renderReply($this->changeUserFinance($changeParams));
+                                            break;
+                                        case 'name':
+                                            $this->renderReply($this->changeUserRealName($changeParams));
+                                            break;
+                                        case 'comment':
+                                            $this->renderReply($this->changeUserNotes($changeParams));
+                                            break;
+                                    }
+                                } else {
+                                    $this->renderReply(array('result' => 'error', 'error' => $this->errorNotices['EX_METHOD_NOT_SUPPORTED'] . ': ' . $changeOperationType));
+                                }
                             } else {
                                 $this->renderReply(array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': type'));
                             }
