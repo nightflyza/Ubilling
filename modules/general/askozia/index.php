@@ -1,10 +1,14 @@
 <?php
 
-$altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+$altcfg = $ubillingConfig->getAlter();
 if ($altcfg['ASKOZIA_ENABLED']) {
 
 
-
+    /**
+     * Returns number aliases
+     * 
+     * @return array
+     */
     function zb_AskoziaGetNumAliases() {
         $result = array();
         $rawAliases = zb_StorageGet('ASKOZIAPBX_NUMALIAS');
@@ -20,6 +24,11 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Returns or setups current Askozia configuration options
+     * 
+     * @return array
+     */
     function zb_AskoziaGetConf() {
         $result = array();
         $emptyArray = array();
@@ -55,6 +64,29 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Counts percentage between two values
+     * 
+     * @param float $valueTotal
+     * @param float $value
+     * 
+     * @return float
+     */
+    function zb_AskoziaPercentValue($valueTotal, $value) {
+        $result = 0;
+        if ($valueTotal != 0) {
+            $result = round((($value * 100) / $valueTotal), 2);
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders time duration in seconds into formatted human-readable view
+     *      
+     * @param int $seconds
+     * 
+     * @return string
+     */
     function zb_AskoziaFormatTime($seconds) {
         $init = $seconds;
         $hours = floor($seconds / 3600);
@@ -77,6 +109,14 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Returns number alias
+     * 
+     * @global array $numAliases
+     * @param string $number
+     * 
+     * @return string
+     */
     function zb_AskoziaGetNumAlias($number) {
         global $numAliases;
 
@@ -91,6 +131,14 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Checks is callerid contains prefix
+     * 
+     * @param string $prefix
+     * @param string $callerid
+     * 
+     * @return bool
+     */
     function zb_AskoziaCheckPrefix($prefix, $callerid) {
         if (substr($callerid, 0, 1) == $prefix) {
             return (true);
@@ -99,8 +147,29 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Renders parsed calls data
+     * 
+     * @global array $altcfg
+     * @param string $data
+     * 
+     * @return void
+     */
     function zb_AskoziaParseCallHistory($data) {
         global $altcfg;
+        $debugFlag = false;
+        if (isset($altcfg['ASKOZIA_DEBUG'])) {
+            if ($altcfg['ASKOZIA_DEBUG']) {
+                $debugFlag = true;
+            }
+        }
+
+        //working time setup
+        $rawWorkTime = $altcfg['WORKING_HOURS'];
+        $rawWorkTime = explode('-', $rawWorkTime);
+        $workStartTime = $rawWorkTime[0];
+        $workEndTime = $rawWorkTime[1];
+
         $normalData = array();
         $callersData = array();
         $data = explodeRows($data);
@@ -133,6 +202,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $callsCounter = 0;
             $answerCounter = 0;
             $noAnswerCounter = 0;
+            $WorkHoursAnswerCounter = 0;
+            $WorkHoursNoAnswerCounter = 0;
+
             $chartData = array();
 
             $cells = wf_TableCell('#');
@@ -156,6 +228,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     @$startDate = $startTime[0];
                     @$startTime = $startTime[1];
                     @$startHour = date("H:00:00", strtotime($startTime));
+
                     $endTime = explode(' ', $each[11]);
                     @$endTime = $endTime[1];
                     $answerTime = explode(' ', $each[10]);
@@ -174,7 +247,12 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         $callDirection = wf_img('skins/calls/incoming.png') . ' ';
                     }
 
-                    $cells = wf_TableCell(wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600'), '', '', 'sorttable_customkey="' . $callsCounter . '"');
+                    if ($debugFlag) {
+                        $callIdData = wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600');
+                    } else {
+                        $callIdData = $callsCounter;
+                    }
+                    $cells = wf_TableCell($callIdData, '', '', 'sorttable_customkey="' . $callsCounter . '"');
                     $cells.= wf_TableCell($callDirection . $sessionTimeStats, '', '', 'sorttable_customkey="' . strtotime($each[9]) . '"');
                     $cells.= wf_TableCell(zb_AskoziaGetNumAlias($each[1]));
                     $cells.= wf_TableCell(zb_AskoziaGetNumAlias($toNumber));
@@ -200,22 +278,31 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $callStatus = $each[14];
                     $statusIcon = '';
 
-                    if (ispos($each[14], 'ANSWERED')) {
+                    if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
                         $callStatus = __('Answered');
                         $statusIcon = wf_img('skins/calls/phone_green.png');
                         $answerCounter++;
+                        //work time controls
+                        if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
+                            $WorkHoursAnswerCounter++;
+                        }
+
                         if (isset($chartData[$startDate . ' ' . $startHour]['answered'])) {
                             $chartData[$startDate . ' ' . $startHour]['answered'] ++;
                         } else {
                             $chartData[$startDate . ' ' . $startHour]['answered'] = 1;
                         }
                     }
-                    if (ispos($each[14], 'NO ANSWER')) {
+
+                    if ((ispos($each[14], 'NO ANSWER')) OR ( ispos($each[7], 'VoiceMail'))) {
                         $callStatus = __('No answer');
                         $statusIcon = wf_img('skins/calls/phone_red.png');
                         //only incoming calls is unanswered
                         if ($each[16] != 'outbound') {
                             $noAnswerCounter++;
+                            if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
+                                $WorkHoursNoAnswerCounter++;
+                            }
                         }
                         if (isset($chartData[$startDate . ' ' . $startHour]['noanswer'])) {
                             $chartData[$startDate . ' ' . $startHour]['noanswer'] ++;
@@ -314,7 +401,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
             $result.=__('Time spent on calls') . ': ' . zb_AskoziaFormatTime($totalTime) . wf_tag('br');
-            $result.=__('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . wf_tag('br');
+            $result.=__('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_AskoziaPercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
+            $result.=wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_AskoziaPercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
+            $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_AskoziaPercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
 
             if (!empty($customCfg)) {
@@ -328,6 +417,18 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Fetches calls history from Askozia URL
+     * 
+     * @global string $askoziaUrl
+     * @global string $askoziaLogin
+     * @global string $askoziaPassword
+     * @global int $askoziaCacheTime
+     * @param string $from
+     * @param string $to
+     * 
+     * @return void
+     */
     function zb_AskoziaGetCallHistory($from, $to) {
         global $askoziaUrl, $askoziaLogin, $askoziaPassword, $askoziaCacheTime;
 
@@ -382,6 +483,11 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Renders date selection form
+     * 
+     * @return string
+     */
     function web_AskoziaDateForm() {
         $inputs = wf_Link("?module=askozia&config=true", wf_img('skins/settings.png', __('Settings'))) . ' ';
         $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
@@ -391,6 +497,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Renders askozia configuration form
+     * 
+     * @global string $askoziaUrl
+     * @global string $askoziaLogin
+     * @global string $askoziaPassword
+     * @global int $askoziaCacheTime
+     * 
+     * @return string 
+     */
     function web_AskoziaConfigForm() {
         global $askoziaUrl, $askoziaLogin, $askoziaPassword, $askoziaCacheTime;
         $result = wf_Link('?module=askozia', __('Back'), true, 'ubButton') . wf_delimiter();
@@ -403,6 +519,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Renders askozia aliases assigning form
+     * 
+     * @global array $numAliases
+     * 
+     * @return string
+     */
     function web_AskoziaAliasesForm() {
         global $numAliases;
         $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
@@ -426,6 +549,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Parses askozia system status data
+     * 
+     * @param string $rawData
+     * 
+     * @return string
+     */
     function zb_AskoziaParseStatus($rawData) {
         $exploded = explodeRows($rawData);
         $data = array(
@@ -485,6 +615,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
+    /**
+     * Fetches askozia system status from URL
+     * 
+     * @global string $askoziaUrl
+     * @global string $askoziaLogin
+     * @global string $askoziaPassword
+     * @global int $askoziaCacheTime
+     * 
+     * @return void
+     */
     function zb_AskoziaGetCurrentStatus() {
         global $askoziaUrl, $askoziaLogin, $askoziaPassword, $askoziaCacheTime;
 

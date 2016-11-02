@@ -716,6 +716,11 @@ class FundsFlow {
         return ($daysOnLine);
     }
 
+    /**
+     * Charges month freezing fee (i dont know why this is here)
+     * 
+     * @return void
+     */
     public function makeFreezeMonthFee() {
         $cost = $this->alterConf['FREEZEMONTH_COST'];
         $cashType = $this->alterConf['FREEZEMONTH_CASHTYPE'];

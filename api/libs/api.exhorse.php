@@ -619,6 +619,12 @@ class ExistentialHorse {
             if ((!empty($this->askoziaUrl)) AND ( !empty($this->askoziaLogin)) AND ( !empty($this->askoziaPassword))) {
                 $callsTmp = array();
                 $normalCalls = array();
+                //working time setup
+                $rawWorkTime = $this->altCfg['WORKING_HOURS'];
+                $rawWorkTime = explode('-', $rawWorkTime);
+                $workStartTime = $rawWorkTime[0];
+                $workEndTime = $rawWorkTime[1];
+
                 $fields = array(
                     'extension_number' => 'all',
                     'cdr_filter' => 'incomingoutgoing',
@@ -639,10 +645,6 @@ class ExistentialHorse {
 
                 curl_close($ch);
 
-
-
-
-
                 if (!empty($rawResult)) {
                     $callsTmp = explodeRows($rawResult);
                     if (!empty($callsTmp)) {
@@ -658,12 +660,17 @@ class ExistentialHorse {
                         unset($normalCalls[0]);
                         foreach ($normalCalls as $io => $each) {
                             if ($each[16] != 'outbound') {
-                                if (ispos($each[14], 'ANSWERED')) {
-                                    $this->storeTmp['a_totalanswered'] ++;
+                                $startTime = explode(' ', $each[9]);
+                                @$startTime = $startTime[1];
+                                //only working time
+                                if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
+                                    if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
+                                        $this->storeTmp['a_totalanswered'] ++;
+                                    }
+                                    $this->storeTmp['a_totalcalls'] ++;
+                                    //call duration in seconds increment
+                                    $this->storeTmp['a_totalcallsduration']+=$each[13];
                                 }
-                                $this->storeTmp['a_totalcalls'] ++;
-                                //call duration in seconds increment
-                                $this->storeTmp['a_totalcallsduration']+=$each[13];
                             }
                         }
 

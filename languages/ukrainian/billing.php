@@ -2290,5 +2290,7 @@ $lang['def']['Important parameter missed'] = 'Пропущено важливи�
 $lang['def']['Method not supported'] = 'Метод не підтримується';
 $lang['def']['Cash payments'] = 'Оплати готівкою';
 $lang['def']['Cash payments count'] = 'Кількість готівкових оплат';
+$lang['def']['Working hours'] = 'Робочий час';
+$lang['def']['Not working hours'] = 'Позаробочий час';
 
 ?>

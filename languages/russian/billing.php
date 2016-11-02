@@ -2275,6 +2275,9 @@ $lang['def']['Important parameter missed'] = 'Пропущен важный па
 $lang['def']['Method not supported'] = 'Метод не поддерживается';
 $lang['def']['Cash payments'] = 'Оплаты наличкой';
 $lang['def']['Cash payments count'] = 'Количество оплат наличкой';
+$lang['def']['Working hours'] = 'Рабочее время';
+$lang['def']['Not working hours'] = 'Внерабочее время';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 ?>

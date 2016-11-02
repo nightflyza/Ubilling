@@ -2845,7 +2845,7 @@ function zb_BillingStats($quiet = false) {
 
     $releasebox = wf_tag('span', false, '', 'id="lastrelease"');
     $releasebox.=wf_tag('span', true) . wf_tag('br');
-    $updatechecker= wf_AjaxLink('?module=report_sysload&checkupdates=true', $releaseinfo . ' (' . __('Check updates') . '?)', 'lastrelease', false, '');
+    $updatechecker = wf_AjaxLink('?module=report_sysload&checkupdates=true', $releaseinfo . ' (' . __('Check updates') . '?)', 'lastrelease', false, '');
     $ubstatsinputs = zb_AjaxLoader();
     $ubstatsinputs.=wf_tag('b') . __('Serial key') . ': ' . wf_tag('b', true) . $thisubid . wf_tag('br');
     $ubstatsinputs.=wf_tag('b') . __('Use this to request technical support') . ': ' . wf_tag('b', true) . wf_tag('font', false, '', 'color="#076800"') . substr($thisubid, -4) . wf_tag('font', true) . wf_tag('br');
@@ -2857,7 +2857,7 @@ function zb_BillingStats($quiet = false) {
     $ubstatsform = wf_Form("", 'POST', $ubstatsinputs, 'glamour');
     $ubstatsform.= wf_CleanDiv();
     $statsurl = $ubstatsurl . '?u=' . $thisubid . 'x' . $usercount . 'x' . $tariffcount . 'x' . $nascount . 'x' . $paycount . 'x' . $eventcount . 'x' . $ubversion;
-    $tracking_code = wf_tag('div', false, '', 'style="display:none;"').wf_tag('iframe',false,'','src="' . $statsurl . '" width="1" height="1" frameborder="0"').wf_tag('iframe',true).wf_tag('div',true);
+    $tracking_code = wf_tag('div', false, '', 'style="display:none;"') . wf_tag('iframe', false, '', 'src="' . $statsurl . '" width="1" height="1" frameborder="0"') . wf_tag('iframe', true) . wf_tag('div', true);
     if ($quiet == false) {
         show_window(__('Billing info'), $ubstatsform);
     }
@@ -4259,17 +4259,6 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
         
 //Initializations
     $xml_array = array();
@@ -4491,4 +4480,25 @@ function zb_Percent($sum, $percent) {
     // и не надо ржать, я реально не могу запомнить чего куда делить и умножать
     $result = $percent / 100 * $sum;
     return ($result);
+}
+
+/**
+ * Checks is time between some other time ranges?
+ * 
+ * @param string $fromTime start time (format hh:mm)
+ * @param string $toTime end time
+ * @param string $checkTime time to check
+ * 
+ * @return bool
+ */
+function zb_isTimeBetween($fromTime, $toTime, $checkTime) {
+    $checkTime=  strtotime($checkTime);
+    $checkTime=date("H:i",$checkTime);
+    $f = DateTime::createFromFormat('!H:i', $fromTime);
+    $t = DateTime::createFromFormat('!H:i', $toTime);
+    $i = DateTime::createFromFormat('!H:i', $checkTime);
+    if ($f > $t) {
+        $t->modify('+1 day');
+    }
+    return ($f <= $i && $i <= $t) || ($f <= $i->modify('+1 day') && $i <= $t);
 }
