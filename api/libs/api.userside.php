@@ -195,6 +195,7 @@ class UserSideApi {
             'get_user_list' => __('Returns available users data'),
             'get_user_tags' => __('Returns available users tags'),
             'get_services_list' => __('Returns available user services'),
+            'get_user_history' => __('Returns user financial operations history'),
             'change_user_data' => __('Do some changes with user data'),
             'get_supported_change_user_data_list' => __('Returns list of supported change user data methods')
         );
@@ -645,7 +646,7 @@ class UserSideApi {
      */
     protected function getSystemInformation() {
         $result = array();
-        $curdate = curdate();
+        $curdate = curdatetime();
         $operatingSystem = shell_exec('uname');
         $billingVersion = file_get_contents('RELEASE');
 
@@ -1007,6 +1008,46 @@ class UserSideApi {
     }
 
     /**
+     * Returns users finance operations history
+     * 
+     * @param string $customerId
+     * 
+     * @return array
+     */
+    protected function getUserFinanceHistory($customerId) {
+        $result = array();
+        if (isset($this->allUserData[$customerId])) {
+            $allServices = zb_VservicesGetAllNamesLabeled();
+            $fundsFlow = new FundsFlow();
+            $allfees = $fundsFlow->getFees($customerId);
+            $allpayments = $fundsFlow->getPayments($customerId);
+            $allcorrectings = $fundsFlow->getPaymentsCorr($customerId);
+
+            $allOps = $allfees + $allpayments + $allcorrectings;
+            $allOps = $fundsFlow->transformArray($allOps);
+            $i = 0;
+            
+            if (!empty($allOps)) {
+                foreach ($allOps as $io => $each) {
+                   // print_r($each);
+                    $result[] = array(
+                        'id' => $i,
+                        'date' => $each['date'],
+                        'type' => 'financial',
+                        'name' => __($each['operation']),
+                        'data'=>'', // need to check format with userside
+                        'comment' => zb_TranslatePaymentNote($each['note'], $allServices)
+                    );
+                    $i++;
+                }
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $customerId);
+        }
+        return ($result);
+    }
+
+    /**
      * Catches and preprocess change_user_data request params
      * 
      * @return array
@@ -1164,6 +1205,11 @@ class UserSideApi {
                             $this->renderReply($this->getUsersList());
                         } else {
                             $this->renderReply($this->getUsersList($customerId));
+                        }
+                        break;
+                    case 'get_user_history':
+                        if (!empty($customerId)) {
+                            $this->renderReply($this->getUserFinanceHistory($customerId));
                         }
                         break;
                     case 'get_user_tags':

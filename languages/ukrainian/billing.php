@@ -2295,4 +2295,6 @@ $lang['def']['Not working hours'] = 'Позаробочий час';
 $lang['def']['Not paid money'] = 'Не виплачено грошей';
 $lang['def']['Paid money'] = 'Виплачено грошей';
 $lang['def']['Total money'] = 'Всього грошей';
+$lang['def']['Returns user financial operations history'] = 'Повертає історію фінансових операцій користувача';
+
 ?>
