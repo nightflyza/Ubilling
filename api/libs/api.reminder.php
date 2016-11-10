@@ -177,7 +177,7 @@ class Reminder {
                         }
                     }
                 } elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
-                    log_register(__('SMS will not sent. Tariff is free.' . ' ' . 'Login' . ': ' . $eachLogin));
+                    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');
                 } else {
                     if (file_exists(self::FLAGPREFIX . $eachLogin)) {
                         if (filemtime(self::FLAGPREFIX . $eachLogin) > $CacheTime) {

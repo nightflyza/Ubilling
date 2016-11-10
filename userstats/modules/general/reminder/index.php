@@ -180,6 +180,7 @@ if ($us_config['REMINDER_ENABLED']) {
     }
 
     show_window(__("Mobile"), $m_text);
+
     if ($us_config['REMINDER_CHANGE_NUMBER']) {
         show_window('', zbs_ShowChangeMobileForm());
     }
@@ -188,19 +189,33 @@ if ($us_config['REMINDER_ENABLED']) {
         if ($turnOffable) {
             $license_text.= __("Disable payments sms reminder") . "?";
         }
+
         show_window(__("Reminder"), $license_text);
+
         if ($turnOffable) {
             show_window("", zbs_ShowDisableReminderForm());
         }
     } else {
         if (!empty($mobile)) {
-            $license_text = __("You can enable payments sms reminder") . '. ';
-            $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . "." . la_tag('br');
-            if ($forceFee) {
-                $license_text.= __("Attention") . "," . " " . __("activation cost is") . " " . $rr_price . " " . $us_currency . " " . __("at once") . ".";
+
+            $checkNumber = trim($mobile);
+            $checkNumber = str_replace($prefix, '', $checkNumber);
+            $checkNumber = vf($checkNumber, 3);
+            $checkNumber = $prefix . $checkNumber;
+            $prefixSize = strlen($prefix);
+            $checkSize = $prefixSize + $length_number;
+            if (strlen($checkNumber) == $checkSize) {
+                $license_text = __("You can enable payments sms reminder") . '. ';
+                $license_text.= __("It costs") . " " . $rr_price . ' ' . $us_currency . " " . __("per month") . "." . la_tag('br');
+                if ($forceFee) {
+                    $license_text.= __("Attention") . "," . " " . __("activation cost is") . " " . $rr_price . " " . $us_currency . " " . __("at once") . ".";
+                }
+                show_window(__("Reminder"), $license_text);
+                show_window('', zbs_ShowEnableReminderForm());
+            } else {
+                $license_text = __('Wrong mobile format');
+                show_window(__("Reminder"), $license_text);
             }
-            show_window(__("Reminder"), $license_text);
-            show_window('', zbs_ShowEnableReminderForm());
         } else {
             $license_text = __("You can't enable payments sms reminder") . "." . " " . __("Your have empty mobile") . ".";
             show_window(__("Reminder"), $license_text);
@@ -216,15 +231,22 @@ if ($us_config['REMINDER_ENABLED']) {
                 zbs_PaymentLog($user_login, '-' . $rr_price, $rr_cashtypeid, "REMINDER");
                 billing_addcash($user_login, '-' . $rr_price);
             }
+            rcms_redirect("?module=reminder");
+        } else {
+            show_window(__('Sorry'), __('You must accept our policy'));
         }
-        rcms_redirect("?module=reminder");
     }
     if (isset($_POST['deleteremind'])) {
         if ($turnOffable) {
-            stg_del_user_tagid($user_login, $tagid);
-            rcms_redirect("?module=reminder");
+            if (isset($_POST['agree'])) {
+                stg_del_user_tagid($user_login, $tagid);
+                rcms_redirect("?module=reminder");
+            } else {
+                show_window(__('Sorry'), __('You must accept our policy'));
+            }
         }
     }
+
     if (isset($_POST['changemobile'])) {
         if (isset($_POST['mobile'])) {
             $set_mobile = $_POST['mobile'];

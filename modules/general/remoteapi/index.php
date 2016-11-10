@@ -560,9 +560,13 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      */
                     if ($_GET['action'] == 'reminder') {
                         if ($alterconf['REMINDER_ENABLED']) {
-                            $sms = new Reminder();
-                            $sms->RemindUser();
-                            die('OK:SEND REMIND SMS');
+                            if ($alterconf['WATCHDOG_ENABLED']) {
+                                $sms = new Reminder();
+                                $sms->RemindUser();
+                                die('OK:SEND REMIND SMS');
+                            } else {
+                                die('ERROR:WATCHDOG REQUIRED');
+                            }
                         } else {
                             die('ERROR:REMINDER DISABLED');
                         }
@@ -680,7 +684,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     //existential horse
                     if ($_GET['action'] == 'exhorse') {
                         if ($alterconf['EXHORSE_ENABLED']) {
-                            if (date("d")==date("t")) {
+                            if (date("d") == date("t")) {
                                 $exhorse = new ExistentialHorse();
                                 $exhorse->runHorse();
                             }
