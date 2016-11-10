@@ -1026,16 +1026,21 @@ class UserSideApi {
             $allOps = $allfees + $allpayments + $allcorrectings;
             $allOps = $fundsFlow->transformArray($allOps);
             $i = 0;
-            
+
             if (!empty($allOps)) {
                 foreach ($allOps as $io => $each) {
-                   // print_r($each);
+                    // print_r($each);
                     $result[] = array(
                         'id' => $i,
                         'date' => $each['date'],
                         'type' => 'financial',
                         'name' => __($each['operation']),
-                        'data'=>'', // need to check format with userside
+                        'data' => json_encode(array(
+                            'amount' => $each['summ'],
+                            'from' => $each['from'],
+                            'to' => $each['to'],
+                            'operator_name' => $each['admin']
+                        )),
                         'comment' => zb_TranslatePaymentNote($each['note'], $allServices)
                     );
                     $i++;
@@ -1210,6 +1215,8 @@ class UserSideApi {
                     case 'get_user_history':
                         if (!empty($customerId)) {
                             $this->renderReply($this->getUserFinanceHistory($customerId));
+                        } else {
+                            $this->renderReply(array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id'));
                         }
                         break;
                     case 'get_user_tags':
