@@ -562,7 +562,17 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['REMINDER_ENABLED']) {
                             if ($alterconf['WATCHDOG_ENABLED']) {
                                 $sms = new Reminder();
-                                $sms->RemindUser();
+                                if (wf_CheckGet(array('param'))) {
+                                    if ($_GET['param'] == 'force') {
+                                        $sms->forceRemind();
+                                    } else {
+                                        die('ERROR:WRONG PARAM');
+                                    }
+                                } else {
+                                    $sms->RemindUser();
+                                }
+
+
                                 die('OK:SEND REMIND SMS');
                             } else {
                                 die('ERROR:WATCHDOG REQUIRED');

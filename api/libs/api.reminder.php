@@ -174,6 +174,8 @@ class Reminder {
                                     file_put_contents(self::FLAGPREFIX . $eachLogin, '');
                                 }
                             }
+                        } else {
+                            log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
                         }
                     }
                 } elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
@@ -184,6 +186,38 @@ class Reminder {
                             unlink(self::FLAGPREFIX . $eachLogin);
                         }
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Make queue for sms send for all users with remind tag
+     * 
+     * @return void
+     */
+    public function forceRemind() {
+
+        foreach ($this->AllLogin as $userLoginData) {
+            $eachLogin = $userLoginData['login'];
+            if (!$this->FilterPassive($eachLogin)) {
+
+                $number = $this->AllPhones[$eachLogin]['mobile'];
+                if (!empty($number)) {
+                    $number = trim($number);
+                    $number = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
+                    $number = vf($number, 3);
+                    $number = $this->AltCfg['REMINDER_PREFIX'] . $number;
+                    $template = $this->AltCfg['REMINDER_TEMPLATE'];
+                    if (!empty($template)) {
+                        $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
+                        if (!empty($message)) {
+                            $this->sms->sendSMS($number, $message, true);
+                            log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
+                        }
+                    }
+                } else {
+                    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
                 }
             }
         }
