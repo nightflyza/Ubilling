@@ -24,6 +24,11 @@ if (cfr('ARPDIAG')) {
                             $rowclass = 'ukvbankstadup';
                         }
 
+                        if (ispos($eachrow, 'moved from')) {
+                            $rowclass = 'undone';
+                        }
+
+
                         if (ispos($eachrow, 'ETHERTYPE')) {
                             $rowclass = 'sigcemeteryuser';
                         }
