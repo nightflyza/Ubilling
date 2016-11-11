@@ -75,60 +75,7 @@ class UHW {
      */
     public function renderUsageList() {
         $result = '';
-
-        $jq_dt = '
-          <script type="text/javascript" charset="utf-8">
-                
-		$(document).ready(function() {
-		$(\'#uhwlisthp\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __('users') . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __('users') . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
-                        "sSearch":       "' . __('Search') . '",
-                        "sProcessing":   "' . __('Processing') . '...",
-                        "oPaginate": {
-                        "sFirst": "' . __('First') . '",
-                        "sPrevious": "' . __('Previous') . '",
-                        "sNext": "' . __('Next') . '",
-                        "sLast": "' . __('Last') . '"
-                    },
-		},
-           
-                "aoColumns": [
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            ],      
-         
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": true,
-        "iDisplayLength": 50,
-        "sAjaxSource": \'?module=uhw&ajax=true\',
-	"bDeferRender": true,
-        "bJQueryUI": true
-
-                } );
-		} );
-		</script>
-          ';
-
-        $result = $jq_dt;
+        
         $result.= wf_tag('table', false, 'display compact', 'id="uhwlisthp"');
         $result.= wf_tag('thead', false);
 
@@ -148,7 +95,7 @@ class UHW {
         $result.= wf_tag('table', true);
         
         $columns= array('ID','Date','Password','Login','Address','Real name','IP','NHID','Old MAC','New MAC');
-        $result=  wf_JqDtLoader($columns, '?module=uhw&ajax=true', true, 'users', 50);
+        $result=  wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100);
         return ($result);
     }
 

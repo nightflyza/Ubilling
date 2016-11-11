@@ -4,7 +4,7 @@ if (cfr('ARPDIAG')) {
 
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['ARPDIAG_ENABLED']) {
-
+        $messages = new UbillingMessageHelper();
 
         $config = $ubillingConfig->getBilling();
         $log_path = $alterconf['ARPDIAG_LOG'];
@@ -18,12 +18,24 @@ if (cfr('ARPDIAG')) {
             $splitdata = explodeRows($rawdata);
             if (!empty($splitdata)) {
                 foreach ($splitdata as $eachrow) {
+                    $rowclass = 'row3';
                     if (!empty($eachrow)) {
                         if (ispos($eachrow, 'attemp')) {
-                            $rowclass = 'row2';
-                        } else {
-                            $rowclass = 'row3';
+                            $rowclass = 'ukvbankstadup';
                         }
+
+                        if (ispos($eachrow, 'ETHERTYPE')) {
+                            $rowclass = 'sigcemeteryuser';
+                        }
+
+                        if (ispos($eachrow, 'hardware')) {
+                            $rowclass = 'donetask';
+                        }
+
+                        if (ispos($eachrow, 'flip flop')) {
+                            $rowclass = 'undone';
+                        }
+
                         $tablecells = wf_TableCell($eachrow);
                         $tablerows.=wf_TableRow($tablecells, $rowclass);
                     }
@@ -32,7 +44,7 @@ if (cfr('ARPDIAG')) {
 
             $result = wf_TableBody($tablerows, '100%', '0', '');
         } else {
-            $result = __('It seems there is nothing unusual');
+            $result = $messages->getStyledMessage(__('It seems there is nothing unusual'), 'info');
         }
 
         show_window(__('Diagnosing problems with the ARP'), $result);

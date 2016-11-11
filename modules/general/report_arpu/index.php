@@ -160,7 +160,7 @@ if (cfr('REPORTFINANCE')) {
             $result.= wf_modal(web_icon_settings() . ' ' . __('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
             $result.=wf_delimiter();
             $monthArr = months_array_localized();
-            $inputs = wf_YearSelector('yearsel', __('Year'), false);
+            $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->year);
             $inputs.= wf_Selector('monthsel', $monthArr, __('Month'), $this->month, false);
             $inputs.= wf_Submit(__('Show'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
