@@ -2349,13 +2349,20 @@ function web_barTariffs($alive, $dead) {
  * @return string
  */
 function web_TariffShowReport() {
+    $dbSchema = zb_CheckDbSchema();
     $tariffcount = zb_TariffGetLiveCount();
+    $tariffSpeeds = zb_TariffGetAllSpeeds();
     $maxArr = array();
     $totalusers = 0;
     $liveusersCounter = 0;
     $deadusersCounter = 0;
 
     $cells = wf_TableCell(__('Tariff'));
+    $cells.= wf_TableCell(__('Fee'));
+    if ($dbSchema > 0) {
+        $cells.= wf_TableCell(__('Period'));
+    }
+    $cells.= wf_TableCell(__('Speed'));
     $cells.= wf_TableCell(__('Total'));
     $cells.= wf_TableCell(__('Visual'));
     $cells.= wf_TableCell(__('Active'));
@@ -2372,12 +2379,23 @@ function web_TariffShowReport() {
             $totalusers = $totalusers + $eachtariffcount['alive'] + $eachtariffcount['dead'];
             $deadusersCounter = $deadusersCounter + $eachtariffcount['dead'];
             $liveusersCounter = $liveusersCounter + $eachtariffcount['alive'];
+            $tarif_data = zb_TariffGetData($eachtariffname);
 
             $cells = wf_TableCell($eachtariffname);
+            $cells.= wf_TableCell($tarif_data['Fee']);
+            if ($dbSchema > 0) {
+                $cells.= wf_TableCell(__($tarif_data['period']));
+            }
+            if (isset($tariffSpeeds[$eachtariffname])) {
+                $speedData = $tariffSpeeds[$eachtariffname]['speeddown'] . ' / ' . $tariffSpeeds[$eachtariffname]['speedup'];
+            } else {
+                $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
+            }
+            $cells.= wf_TableCell($speedData);
             $cells.= wf_TableCell($eachtariffcount['alive'] + $eachtariffcount['dead']);
             $cells.= wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
             $cells.= wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row5');
         }
     }
 
@@ -3648,7 +3666,8 @@ function zb_AnalyticsTicketingGetCountYear($year) {
     $result = array();
     $tmpArr = array();
 
-    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%'";
+    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%' AND `from` != 'NULL';";
+    
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
@@ -3713,6 +3732,22 @@ function web_AnalyticsArpuMonthGraph($year) {
     $year = vf($year, 3);
     $months = months_array();
     $tmpArr = array();
+    $chartData = array(0 => array(__('Month'), __('ARPU')));
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
 
     $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
     $allPayments = simple_queryall($query);
@@ -3731,8 +3766,6 @@ function web_AnalyticsArpuMonthGraph($year) {
         }
     }
 
-    $data = __('Month') . ',' . __('ARPU') . "\n";
-
     foreach ($months as $eachmonth => $monthname) {
         $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
         $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
@@ -3741,13 +3774,11 @@ function web_AnalyticsArpuMonthGraph($year) {
         } else {
             $arpu = 0;
         }
-        $data.=$year . '-' . $eachmonth . '-01,' . $arpu . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $arpu);
     }
 
+    $result = wf_gchartsLine($chartData, __('Dynamics of changes in ARPU for the year'), '100%', '400px', $chartOptions) . wf_delimiter();
 
-
-    $result = wf_tag('div', false, '', '') . __('Dynamics of changes in ARPU for the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
     return ($result);
 }
 
@@ -3761,7 +3792,24 @@ function web_AnalyticsPaymentsMonthGraph($year) {
     $year = vf($year, 3);
     $months = months_array();
     $tmpArr = array();
-    $data = __('Month') . ',' . __('Payments count') . ',' . __('Cash') . "\n";
+    $chartData = array(0 => array(__('Month'), __('Payments count'), __('Cash')));
+
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
 
     $query = "SELECT * from `payments` WHERE `date` LIKE '" . $year . "-%' AND `summ` > 0;";
     $allPayments = simple_queryall($query);
@@ -3783,12 +3831,10 @@ function web_AnalyticsPaymentsMonthGraph($year) {
     foreach ($months as $eachmonth => $monthname) {
         $month_summ = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['summ'] : 0;
         $paycount = isset($tmpArr[$eachmonth]) ? $tmpArr[$eachmonth]['count'] : 0;
-
-        $data.=$year . '-' . $eachmonth . '-01,' . $paycount . ',' . $month_summ . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $paycount, $month_summ);
     }
 
-    $result = wf_tag('div', false, '', '') . __('Dynamics of cash flow for the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+    $result = wf_gchartsLine($chartData, __('Dynamics of cash flow for the year'), '100%', '400px', $chartOptions) . wf_delimiter();
     return ($result);
 }
 
@@ -3801,14 +3847,29 @@ function web_AnalyticsPaymentsMonthGraph($year) {
 function web_AnalyticsSignupsMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsSignupsGetCountYear($year);
-    $data = __('Month') . ',' . __('Signups') . "\n";
+    $chartData = array(0 => array(__('Month'), __('Signups')));
+
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $count);
     }
 
-    $result = wf_tag('div', false, '', '') . __('Dynamics of change signups of the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+    $result = wf_gchartsLine($chartData, __('Dynamics of change signups of the year'), '100%', '400px', $chartOptions) . wf_delimiter();
     return ($result);
 }
 
@@ -3821,14 +3882,31 @@ function web_AnalyticsSignupsMonthGraph($year) {
 function web_AnalyticsSigReqMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsSigReqGetCountYear($year);
-    $data = __('Month') . ',' . __('Signup request') . "\n";
+
+    $chartData = array(0 => array(__('Month'), __('Signup requests')));
+
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $count);
     }
 
-    $result = wf_tag('div', false, '', '') . __('Signup requests received during the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+    $result = wf_gchartsLine($chartData, __('Signup requests received during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
     return ($result);
 }
 
@@ -3841,14 +3919,30 @@ function web_AnalyticsSigReqMonthGraph($year) {
 function web_AnalyticsTicketingMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsTicketingGetCountYear($year);
-    $data = __('Month') . ',' . __('Ticket') . "\n";
+    $chartData = array(0 => array(__('Month'), __('Ticket')));
+
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $count);
     }
 
-    $result = wf_tag('div', false, '', '') . __('Ticketing activity during the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+    $result = wf_gchartsLine($chartData, __('Ticketing activity during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
     return ($result);
 }
 
@@ -3861,14 +3955,30 @@ function web_AnalyticsTicketingMonthGraph($year) {
 function web_AnalyticsTaskmanMonthGraph($year) {
     $allmonths = months_array();
     $yearcount = zb_AnalyticsTaskmanGetCountYear($year);
-    $data = __('Month') . ',' . __('Jobs') . "\n";
+    $chartData = array(0 => array(__('Month'), __('Jobs')));
+    $chartOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
 
     foreach ($yearcount as $eachmonth => $count) {
-        $data.=$year . '-' . $eachmonth . '-' . '-01,' . $count . "\n";
+        $chartData[] = array($year . '-' . $eachmonth, $count);
     }
 
-    $result = wf_tag('div', false, '', '') . __('Task manager activity during the year');
-    $result.= wf_Graph($data, '800', '300', false) . wf_tag('div', true);
+
+    $result = wf_gchartsLine($chartData, __('Task manager activity during the year'), '100%', '400px', $chartOptions) . wf_delimiter();
     return ($result);
 }
 
@@ -4259,6 +4369,26 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
 //Initializations
     $xml_array = array();
@@ -4492,8 +4622,8 @@ function zb_Percent($sum, $percent) {
  * @return bool
  */
 function zb_isTimeBetween($fromTime, $toTime, $checkTime) {
-    $checkTime=  strtotime($checkTime);
-    $checkTime=date("H:i",$checkTime);
+    $checkTime = strtotime($checkTime);
+    $checkTime = date("H:i", $checkTime);
     $f = DateTime::createFromFormat('!H:i', $fromTime);
     $t = DateTime::createFromFormat('!H:i', $toTime);
     $i = DateTime::createFromFormat('!H:i', $checkTime);

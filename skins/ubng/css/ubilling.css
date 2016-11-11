@@ -24,6 +24,15 @@
     font-size: 13px;
 }
 
+.row5 {
+    background-color: #ECECEC;
+    padding: 1px 1px 1px 1px;
+}
+
+.row5:hover {
+    background-color: #e1e1e1;
+}
+
 .ChosenOne {
     background-color: #CDB38B;
 }

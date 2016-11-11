@@ -28,6 +28,7 @@ if (cfr('REPORTTARIFFS')) {
         $tariffCharts = $chartsCache->getCallback('REPORT_TARIFFS_TARIFFHCHART', function () {
             return ( web_TariffShowTariffCharts());
         }, $cachingTime);
+        
      
         //rendering charts
         show_window(__('Graphs'), $tariffCharts.  wf_delimiter().$moveCharts);

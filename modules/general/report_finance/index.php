@@ -70,20 +70,16 @@ if (cfr('REPORTFINANCE')) {
         }
     } else {
         //show finance analytics info
-
-
-
         if (wf_CheckPost(array('anyearsel'))) {
             $currentYear = $_POST['anyearsel'];
         } else {
             $currentYear = date("Y");
         }
 
-
-        $yearinputs = wf_YearSelector('anyearsel');
+        $yearinputs = wf_YearSelectorPreset('anyearsel', __('Year'), false, $currentYear).' ';
         $yearinputs.=wf_Submit(__('Show'));
         $yearform = wf_Form("", 'POST', $yearinputs, 'glamour');
-        show_window(__('Year'), $yearform);
+        show_window(__('Analytics'), $yearform);
 
         $graphs = wf_Link("?module=report_finance", __('Back'), true, 'ubButton');
 
