@@ -627,6 +627,23 @@ function zb_TariffGetData($tariff) {
 }
 
 /**
+ * Returns full data of all tariffs as name=>data
+ * 
+ * @return array
+ */
+function zb_TariffGetAllData() {
+    $result = array();
+    $query = "SELECT * from `tariffs`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            $result[$each['name']] = $each;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns list of all available tariffs with its prices as array tariff=>fee
  * 
  * @return array

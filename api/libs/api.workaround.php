@@ -2349,20 +2349,37 @@ function web_barTariffs($alive, $dead) {
  * @return string
  */
 function web_TariffShowReport() {
-    $dbSchema = zb_CheckDbSchema();
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $fullFlag = false;
     $tariffcount = zb_TariffGetLiveCount();
-    $tariffSpeeds = zb_TariffGetAllSpeeds();
+    $allTariffData = zb_TariffGetAllData();
+    if (isset($altCfg['TARIFF_REPORT_FULL'])) {
+        if ($altCfg['TARIFF_REPORT_FULL']) {
+            $fullFlag = true;
+        }
+    }
+
+    if ($fullFlag) {
+        $dbSchema = zb_CheckDbSchema();
+        $tariffSpeeds = zb_TariffGetAllSpeeds();
+    }
+
     $maxArr = array();
     $totalusers = 0;
     $liveusersCounter = 0;
     $deadusersCounter = 0;
 
+
     $cells = wf_TableCell(__('Tariff'));
-    $cells.= wf_TableCell(__('Fee'));
-    if ($dbSchema > 0) {
-        $cells.= wf_TableCell(__('Period'));
+    if ($fullFlag) {
+        $cells.= wf_TableCell(__('Fee'));
+
+        if ($dbSchema > 0) {
+            $cells.= wf_TableCell(__('Period'));
+        }
+        $cells.= wf_TableCell(__('Speed'));
     }
-    $cells.= wf_TableCell(__('Speed'));
     $cells.= wf_TableCell(__('Total'));
     $cells.= wf_TableCell(__('Visual'));
     $cells.= wf_TableCell(__('Active'));
@@ -2379,19 +2396,21 @@ function web_TariffShowReport() {
             $totalusers = $totalusers + $eachtariffcount['alive'] + $eachtariffcount['dead'];
             $deadusersCounter = $deadusersCounter + $eachtariffcount['dead'];
             $liveusersCounter = $liveusersCounter + $eachtariffcount['alive'];
-            $tarif_data = zb_TariffGetData($eachtariffname);
+            $tarif_data = $allTariffData[$eachtariffname];
 
             $cells = wf_TableCell($eachtariffname);
-            $cells.= wf_TableCell($tarif_data['Fee']);
-            if ($dbSchema > 0) {
-                $cells.= wf_TableCell(__($tarif_data['period']));
+            if ($fullFlag) {
+                $cells.= wf_TableCell($tarif_data['Fee']);
+                if ($dbSchema > 0) {
+                    $cells.= wf_TableCell(__($tarif_data['period']));
+                }
+                if (isset($tariffSpeeds[$eachtariffname])) {
+                    $speedData = $tariffSpeeds[$eachtariffname]['speeddown'] . ' / ' . $tariffSpeeds[$eachtariffname]['speedup'];
+                } else {
+                    $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
+                }
+                $cells.= wf_TableCell($speedData);
             }
-            if (isset($tariffSpeeds[$eachtariffname])) {
-                $speedData = $tariffSpeeds[$eachtariffname]['speeddown'] . ' / ' . $tariffSpeeds[$eachtariffname]['speedup'];
-            } else {
-                $speedData = wf_tag('font', false, '', 'color="#bc0000"') . __('Speed is not set') . wf_tag('font', true);
-            }
-            $cells.= wf_TableCell($speedData);
             $cells.= wf_TableCell($eachtariffcount['alive'] + $eachtariffcount['dead']);
             $cells.= wf_TableCell(web_bar($eachtariffcount['alive'], $maxusers), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
             $cells.= wf_TableCell(web_barTariffs($eachtariffcount['alive'], $eachtariffcount['dead']), '', '', 'sorttable_customkey="' . $eachtariffcount['alive'] . '"');
@@ -3667,7 +3686,7 @@ function zb_AnalyticsTicketingGetCountYear($year) {
     $tmpArr = array();
 
     $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%' AND `from` != 'NULL';";
-    
+
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
@@ -4366,6 +4385,13 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
+
+
+
+
+
+
 
 
 
