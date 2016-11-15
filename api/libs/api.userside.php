@@ -2,7 +2,7 @@
 
 class UserSideApi {
 
-    const API_VER = '1.3';
+    const API_VER = '1.4';
     const API_DATE = '12.10.2016';
 
     /**
@@ -145,6 +145,9 @@ class UserSideApi {
      */
     protected $debugMode = false;
 
+    /**
+     * Creates new instance of basic UserSide API
+     */
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
@@ -203,7 +206,9 @@ class UserSideApi {
         $this->supportedChangeMethods = array(
             'balance_operation' => __('User balance operations'),
             'name' => __('User name operations'),
-            'comment' => __('User notes operations')
+            'comment' => __('User notes operations'),
+            'tariff' => __('User tariff operations'),
+            'state' => __('User state operations'),
         );
 
         $this->errorNotices = array(
@@ -211,7 +216,8 @@ class UserSideApi {
             'EX_USER_NOT_EXISTS' => __('No such user available'),
             'EX_PARAM_MISSED' => __('Important parameter missed'),
             'EX_METHOD_NOT_SUPPORTED' => __('Method not supported'),
-            'EX_BAD_MONEY_FORMAT' => __('Wrong format of money sum')
+            'EX_BAD_MONEY_FORMAT' => __('Wrong format of money sum'),
+            'EX_WRONG_TARIFF' => __('Wrong tariff name')
         );
     }
 
@@ -1165,6 +1171,43 @@ class UserSideApi {
     }
 
     /**
+     * Changes user tariff
+     * 
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserTariff($changeParams) {
+        $result = array();
+        global $billing;
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    if (isset($this->allTariffs[$changeParams['value']])) {
+                        $newTariff = $changeParams['value'];
+                        $billing->settariff($changeParams['customerid'], $newTariff);
+                        log_register('CHANGE Tariff (' . $changeParams['customerid'] . ') ON `' . $newTariff . '`');
+                        if ($this->altCfg['TARIFFCHGRESET']) {
+                            $billing->resetuser($changeParams['customerid']);
+                            log_register('RESET User (' . $changeParams['customerid'] . ')');
+                        }
+                        $result = array('result' => 'ok');
+                    } else {
+                        $result = array('result' => 'error', 'error' => $this->errorNotices['EX_WRONG_TARIFF'] . ': ' . $changeParams['value']);
+                    }
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
+        }
+        return ($result);
+    }
+
+    /**
      * Listens API requests and renders replies for it
      * 
      * @return void
@@ -1243,6 +1286,9 @@ class UserSideApi {
                                             break;
                                         case 'comment':
                                             $this->renderReply($this->changeUserNotes($changeParams));
+                                            break;
+                                        case 'tariff':
+                                            $this->renderReply($this->changeUserTariff($changeParams));
                                             break;
                                     }
                                 } else {

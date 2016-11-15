@@ -2296,5 +2296,10 @@ $lang['def']['Not paid money'] = 'Не виплачено грошей';
 $lang['def']['Paid money'] = 'Виплачено грошей';
 $lang['def']['Total money'] = 'Всього грошей';
 $lang['def']['Returns user financial operations history'] = 'Повертає історію фінансових операцій користувача';
+$lang['def']['RemoteID management for switches is enabled'] = 'Керування RemoteID комутаторів увімкнено';
+$lang['def']['Tech support working hours'] = 'Робочий час служби техпдідтримки';
+$lang['def']['Wrong tariff name'] = 'Невірне і`мя тарифу';
+$lang['def']['User tariff operations'] = 'Операції з тарифом користувача';
+$lang['def']['User state operations'] = 'Операції зі станом користувача';
 
 ?>

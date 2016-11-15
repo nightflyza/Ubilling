@@ -267,6 +267,8 @@ EXHORSE_ENABLED=TRIGGER|Is exestential horse enabled
 UKV_ILLEGAL_TARIFFID=VARCHAR|UKV illegal users tariff id
 UKV_COMPLEX_TARIFFID=VARCHAR|UKV complex users tariff id
 UKV_SOCIAL_TARIFFID=VARCHAR|UKV socail service tariff id
+SWITCHES_EXTENDED=TRIGGER|RemoteID management for switches is enabled
+WORKING_HOURS=VARCHAR|Tech support working hours
 CHAPTEREND_BEH=true
 
 
