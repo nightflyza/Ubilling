@@ -1719,7 +1719,6 @@ $lang['def']['Show tariff column in finance report'] = 'Відображати �
 $lang['def']['bytes'] = 'байт';
 $lang['def']['Attention generated login longer than'] = 'Увага, згенерований логін довший за';
 $lang['def']['This can lead to the inability to manage this user on remote NAS running rscriptd'] = 'Це може призвести, до неможливості керувати віддаленими NAS під управлінням rscriptd';
-$lang['def']['Warning'] = 'Попередження';
 $lang['def']['Perhaps you need to shorten the alias, or use a different model for the generation of logins'] = 'Можливо вам варто скоротити аліаси або ж використовувати іншу модель генерації логінів';
 $lang['def']['Extended networks and pools management'] = 'Розширене керування мережами та пулами адрес';
 $lang['def']['Neighbours'] = 'Сусіди';
@@ -2301,5 +2300,19 @@ $lang['def']['Tech support working hours'] = 'Робочий час служби
 $lang['def']['Wrong tariff name'] = 'Невірне і`мя тарифу';
 $lang['def']['User tariff operations'] = 'Операції з тарифом користувача';
 $lang['def']['User state operations'] = 'Операції зі станом користувача';
+$lang['def']['220V Power states'] = 'Живлення 220V';
+$lang['def']['12V Power states'] = 'Живлення 12V';
+$lang['def']['Battery charge'] = 'Рівень заряду АКБ';
+$lang['def']['Normal'] = 'В нормі';
+$lang['def']['Warning'] = 'Попередження';
+$lang['def']['Critical'] = 'Критично';
+$lang['def']['Shutdown'] = 'Вимкнено';
+$lang['def']['notPresent'] = 'Не встановлено';
+$lang['def']['notFunctioning'] = 'Нема живлення';
+$lang['def']['Restore'] = 'Заряд АКБ';
+$lang['def']['Battery recharge'] = 'Заряд АКБ';
+$lang['def']['Battery discharge'] = 'Розряд АКБ';
+$lang['def']['Battery low'] = 'Низький заряд АКБ';
+
 
 ?>

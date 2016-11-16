@@ -28,6 +28,10 @@ if (cfr('ARPDIAG')) {
                             $rowclass = 'undone';
                         }
 
+                        if (ispos($eachrow, 'new station')) {
+                            $rowclass = 'todaysig';
+                        }
+
 
                         if (ispos($eachrow, 'ETHERTYPE')) {
                             $rowclass = 'sigcemeteryuser';

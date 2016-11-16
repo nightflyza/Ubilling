@@ -148,6 +148,68 @@ function sp_parse_ciscocpu($data) {
 }
 
 /**
+ * Eltex AC Power States
+ * 
+ * @param string $data
+ * 
+ * @return string
+ */
+function sp_parse_eltex_acpower($data) {
+    if (!empty($data)) {
+        $data = explode(':', $data);
+        $out = trim($data[1]);
+        $state = ":Normal:Warning:Critical:Shutdown:notPresent:notFunctioning:Restore";
+        $power = explode(':', $state);
+        $result = $power[$out];
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
+ * Eltex DC Power States
+ * 
+ * @param string $data
+ * 
+ * @return string
+ */
+function sp_parse_eltex_dcpower($data) {
+    if (!empty($data)) {
+        $data = explode(':', $data);
+        $out = trim($data[1]);
+        $state = ":Battery recharge:Battery discharge:Battery low:Shutdown:notPresent:notFunctioning:Restore";
+        $power = explode(':', $state);
+        $result = $power[$out];
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
+ * Eltex Battery charge state
+ * 
+ * @param string $data
+ * 
+ * @return string
+ */
+function sp_parse_eltex_battery($data) {
+    if (!empty($data)) {
+        $data = explode(':', $data);
+        $result = vf($data[1]);
+        $result = trim($result);
+        $result = $result . '%';
+        if ($data[1] == 255) {
+            $result = __('No');
+        }
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
  * Gets associated list of SNMP templates and switch models
  * 
  * @return array
