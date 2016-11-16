@@ -2313,6 +2313,9 @@ $lang['def']['Restore'] = 'Заряд АКБ';
 $lang['def']['Battery recharge'] = 'Заряд АКБ';
 $lang['def']['Battery discharge'] = 'Розряд АКБ';
 $lang['def']['Battery low'] = 'Низький заряд АКБ';
+$lang['def']['No available DHCP networks found'] = 'Немає існуючих мереж DHCP';
+$lang['def']['No available DHCP configs found'] = 'Немає згенерованих конфігів DHCP';
+$lang['def']['File not found'] = 'Файл не знайдено';
 
 
 ?>

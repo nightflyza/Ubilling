@@ -19,6 +19,7 @@ include('api/libs/api.address.php');
 include('api/libs/api.telepathy.php');
 include('api/libs/api.teskman.php');
 include('api/libs/api.networking.php');
+include('api/libs/api.dhcp.php');
 include('api/libs/api.userreg.php');
 include('api/libs/api.workicons.php');
 include('api/libs/api.workaround.php');
