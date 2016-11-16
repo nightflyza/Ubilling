@@ -20,7 +20,7 @@
                 $this->_ip = zb_NasGetIpById($this->_id);
                 
                 /* Load APIs: */
-                $this->api = new RouterOS();
+                $this->api = new RouterosAPI();
                 $this->form = new InputForm();
                 
                 /* Get NAS current options: */
@@ -44,7 +44,7 @@
             
             private function get_ifaces() {
                 if ( $this->api->connected ) {
-                    $result = $this->api->command('/interface/getall', array('.proplist' => 'name'));
+                    $result = $this->api->comm('/interface/getall', array('.proplist' => 'name'));
                     foreach ($result as $value) {
                         $name = $value['name'];
                         $this->_if[$name] = $name;
@@ -91,7 +91,7 @@
                     unset($checkboxes);
                     // Block 4: MikroTik General Information
                     $this->form->addmessage(__('MikroTik General Information'));
-                    $status = $this->api->command('/system/resource/print');
+                    $status = $this->api->comm('/system/resource/print');
                         foreach ($status[0] as $key => $value) {
                             switch ( $key ) {
                                 case 'uptime':
