@@ -71,7 +71,7 @@
                     socket_set_timeout($this->socket, $this->config['timeout']);
                     $this->write('/login');
                     $RESPONSE = $this->read(FALSE);
-                    if ( $RESPONSE[0] == '!done' ) {
+                    if ( isset($RESPONSE[0]) && $RESPONSE[0] == '!done' ) {
                         if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
                             if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
                                 $this->write('/login', FALSE);
@@ -147,6 +147,8 @@
                         }
                     }
                 } else $LENGTH = $BYTE;
+
+                $_ = '';
 
                 if ( $LENGTH > 0 ) {
                     $_ = '';
