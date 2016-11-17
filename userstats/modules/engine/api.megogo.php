@@ -183,13 +183,14 @@ class MegogoFrontend {
      */
     public function renderSubscribeForm() {
         $result = '';
-        $result.=la_tag('b').__('Attention!').la_tag('b',true).' ';
-        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.').  la_delimiter();
+        $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
+        $result.=la_tag('b') . __('Attention!') . la_tag('b', true) . ' ';
+        $result.=__('When activated subscription account will be charged fee the equivalent value of the subscription.') . la_delimiter();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
-                $freePeriodLabel = ($each['freeperiod']) ? la_img('iconz/ok_small.png', __('Available')) : la_img('iconz/unavail_small.png', __('Unavailable'));
-                $primaryLabel = ($each['primary']) ? la_img('iconz/ok_small.png') : la_img('iconz/unavail_small.png');
+                $freePeriodLabel = ($each['freeperiod']) ? la_img($iconsPath . 'ok_small.png', __('Available')) : la_img($iconsPath . 'unavail_small.png', __('Unavailable'));
+                $primaryLabel = ($each['primary']) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
                 $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
                 $cells.= la_TableCell($each['fee'] . ' ' . $this->usConfig['currency']);
@@ -363,6 +364,7 @@ class MegogoFrontend {
      */
     public function renderSubscribtions() {
         $result = '';
+        $iconsPath = zbs_GetCurrentSkinPath($this->usConfig) . 'iconz/';
         if (!empty($this->allSubscribers)) {
             $cells = la_TableCell(__('Date'));
             $cells.= la_TableCell(__('Tariff'));
@@ -373,9 +375,9 @@ class MegogoFrontend {
 
             foreach ($this->allSubscribers as $io => $each) {
                 if ($each['login'] == $this->userLogin) {
-                    $freePeriodFlag = ($each['freeperiod']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
-                    $primaryFlag = ($each['primary']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
-                    $activeFlag = ($each['active']) ? la_img('iconz/anread.gif') : la_img('iconz/anunread.gif');
+                    $freePeriodFlag = ($each['freeperiod']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
+                    $primaryFlag = ($each['primary']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
+                    $activeFlag = ($each['active']) ? la_img($iconsPath . 'anread.gif') : la_img($iconsPath . 'anunread.gif');
                     $cells = la_TableCell($each['actdate']);
                     $cells.= la_TableCell(@$this->allTariffs[$each['tariffid']]['name']);
                     $cells.= la_TableCell($activeFlag);

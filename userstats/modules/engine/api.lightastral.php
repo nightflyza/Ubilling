@@ -1,13 +1,13 @@
 <?php
 
-/*
+/**
  *  Return web form element id
+ * 
  *  @return  string
  */
-
 function la_InputId() {
     // I know it looks really funny. 
-    // You can also get a truly random values ​​by throwing dice ;)
+    // You can also get a truly random values by throwing dice ;)
     $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
     $result = "";
     for ($p = 0; $p < 8; $p++) {
@@ -17,16 +17,15 @@ function la_InputId() {
 }
 
 /**
- *
  * Return web form body
  *
- * @param   $action action URL
- * @param   $method method: POST or GET
- * @param   $inputs inputs string to include
- * @param   $class  class for form
- * @param   $legend form legend
+ * @param string $action action URL
+ * @param string $method method: POST or GET
+ * @param string $inputs inputs string to include
+ * @param string $class  class for form
+ * @param string $legend form legend
+ * 
  * @return  string
- *
  */
 function la_Form($action, $method, $inputs, $class = '', $legend = '') {
     if ($class != '') {
@@ -53,13 +52,13 @@ function la_Form($action, $method, $inputs, $class = '', $legend = '') {
 /**
  * Return text input Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value current value
- * @param   $br append new line - bool
- * @param   $size input size
+ * @param string   $name name of element
+ * @param string   $label text label for input
+ * @param string   $value current value
+ * @param bool $br append new line - bool
+ * @param int  $size input size
+ * 
  * @return  string
- *
  */
 function la_TextInput($name, $label = '', $value = '', $br = false, $size = '') {
     $inputid = la_InputId();
@@ -91,8 +90,8 @@ function la_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
+ * 
  * @return string
- *
  */
 function la_PasswordInput($name, $label = '', $value = '', $br = false, $size = '') {
     $inputid = la_InputId();
@@ -117,15 +116,14 @@ function la_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
 }
 
 /**
- *
  * Return link form element
  *
- * @param   $url needed URL
- * @param   $title text title of URL
- * @param   $br append new line - bool
- * @param   $class class for link
+ * @param string $url needed URL
+ * @param string $title text title of URL
+ * @param bool  $br append new line - bool
+ * @param string $class class for link
+ * 
  * @return  string
- *
  */
 function la_Link($url, $title, $br = false, $class = '') {
     if ($class != '') {
@@ -144,16 +142,15 @@ function la_Link($url, $title, $br = false, $class = '') {
 }
 
 /**
- *
  * Return Radio  box Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value current value
- * @param   $br append new line - bool
- * @param   $checked is checked? - bool
+ * @param string   $name name of element
+ * @param string   $label text label for input
+ * @param string   $value current value
+ * @param bool   $br append new line - bool
+ * @param bool  $checked is checked? - bool
+ * 
  * @return  string
- *
  */
 function la_RadioInput($name, $label = '', $value = '', $br = false, $checked = false) {
     $inputid = la_InputId();
@@ -179,10 +176,10 @@ function la_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
 /**
  * Return check box Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $br append new line - bool
- * @param   $checked is checked? - bool
+ * @param string   $name name of element
+ * @param string   $label text label for input
+ * @param bool  $br append new line - bool
+ * @param bool  $checked is checked? - bool
  * 
  * @return  string
  */
@@ -208,16 +205,15 @@ function la_CheckInput($name, $label = '', $br = false, $checked = false) {
 }
 
 /**
- *
  * Return textarea Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $value value for element
- * @param   $br append new line - bool
- * @param   $size size in format "10x20"
+ * @param string $name name of element
+ * @param string $label text label for input
+ * @param string $value value for element
+ * @param bool $br append new line - bool
+ * @param string $size size in format "10x20"
+ * 
  * @return  string
- *
  */
 function la_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
     $inputid = la_InputId();
@@ -243,13 +239,12 @@ function la_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
 }
 
 /**
- *
  * Return hidden input web form element
  *
- * @param   $name name of element
- * @param   $value value for input
+ * @param string $name name of element
+ * @param string s$value value for input
+ * 
  * @return  string
- *
  */
 function la_HiddenInput($name, $value = '') {
     $result = '<input type="hidden" name="' . $name . '" value="' . $value . '">';
@@ -257,12 +252,11 @@ function la_HiddenInput($name, $value = '') {
 }
 
 /**
- *
  * Return submit web form element
  *
- * @param   $value text label for button
+ * @param string $value text label for button
+ * 
  * @return  string
- *
  */
 function la_Submit($value) {
     $result = '<input type="submit" value="' . __($value) . '">';
@@ -270,16 +264,15 @@ function la_Submit($value) {
 }
 
 /**
- *
  * Return select Web From element 
  *
- * @param   $name name of element
- * @param   $params array of elements $value=>$option
- * @param   $label text label for input
- * @param   $selected selected $value for selector
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param array  $params array of elements $value=>$option
+ * @param string  $label text label for input
+ * @param string  $selected selected $value for selector
+ * @param string  $br append new line - bool
+ * 
  * @return  string
- *
  */
 function la_Selector($name, $params, $label, $selected = '', $br = false) {
     $inputid = la_InputId();
@@ -310,13 +303,13 @@ function la_Selector($name, $params, $label, $selected = '', $br = false) {
 }
 
 /**
- *
  * Return Month select Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $selected selected $value for selector
- * @param   $br append new line - bool
+ * @param  string  $name name of element
+ * @param  string  $label text label for input
+ * @param  string  $selected selected $value for selector
+ * @param  string  $br append new line - bool
+ * 
  * @return  string
  *
  */
@@ -357,12 +350,11 @@ function la_MonthSelector($name, $label, $selected = '', $br = false) {
 }
 
 /**
- *
  * Return Year select Web From element 
  *
- * @param   $name name of element
- * @param   $label text label for input
- * @param   $br append new line - bool
+ * @param string  $name name of element
+ * @param string  $label text label for input
+ * @param string  $br append new line - bool
  * @return  string
  *
  */
@@ -388,10 +380,9 @@ function la_YearSelector($name, $label = '', $br = false) {
 }
 
 /**
- *
  * Check for POST have needed variables
  *
- * @param   $params array of POST variables to check
+ * @param string $params array of POST variables to check
  * @return  bool
  *
  */
@@ -412,10 +403,10 @@ function la_CheckPost($params) {
 }
 
 /**
- *
  * Check for GET have needed variables
  *
- * @param   $params array of GET variables to check
+ * @param array $params array of GET variables to check
+ * 
  * @return  bool
  *
  */
@@ -435,16 +426,15 @@ function la_CheckGet($params) {
     return ($result);
 }
 
-/*
- * 
+/**
  * Construct HTML table row element
  * 
- * @param $cells table row cells
- * @param $class table row class
+ * @param string $cells table row cells
+ * @param string $class table row class
+ * 
  * @return string
  *  
  */
-
 function la_TableRow($cells, $class = '') {
     if ($class != '') {
         $rowclass = 'class="' . $class . '"';
@@ -458,10 +448,11 @@ function la_TableRow($cells, $class = '') {
 /**
  * Construct HTML table cell element
  * 
- * @param $data table cell data
- * @param $width width of cell element
- * @param $class table cell class
- * @param $customkey table cell custom param
+ * @param string $data table cell data
+ * @param string $width width of cell element
+ * @param string $class table cell class
+ * @param string $customkey table cell custom param
+ * 
  * @return string
  *  
  */
@@ -488,10 +479,11 @@ function la_TableCell($data, $width = '', $class = '', $customkey = '') {
 /**
  * Construct HTML table body
  * 
- * @param $rows table rows data
- * @param $width width of cell element
- * @param $border table border width
- * @param $class table cell class
+ * @param string $rows table rows data
+ * @param string $width width of cell element
+ * @param string $border table border width
+ * @param string $class table cell class
+ * 
  * @return string
  *  
  */
@@ -521,15 +513,13 @@ function la_TableBody($rows, $width = '', $border = '0', $class = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns image body
  * 
- * @param $url image url
+ * @param string $url image url
+ * 
  * @return string
- *  
  */
-
 function la_img($url, $title = '') {
     if ($title != '') {
         $imgtitle = 'title="' . $title . '"';
@@ -540,15 +530,13 @@ function la_img($url, $title = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns some count of delimiters
  * 
- * @param $count count of delimited rows
+ * @param int $count count of delimited rows
+ * 
  * @return string
- *  
  */
-
 function la_delimiter($count = 1) {
     $result = '';
     for ($i = 0; $i <= $count; $i++) {
@@ -560,10 +548,10 @@ function la_delimiter($count = 1) {
 /**
  * Returns some html styled tag
  * 
- * @param $tag HTML tag entity
- * @param $closed tag is closing?
- * @param $class tag styling class
- * @param $options tag extra options
+ * @param string $tag HTML tag entity
+ * @param string $closed tag is closing?
+ * @param string $class tag styling class
+ * @param string $options tag extra options
  * @return string
  *  
  */
@@ -590,25 +578,25 @@ function la_tag($tag, $closed = false, $class = '', $options = '') {
     return ($result);
 }
 
-/*
- * 
+/**
  * Returns calendar widget with preset date
  * 
- * @param $field field name to insert calendar
+ * @param string $field field name to insert calendar
+ * 
  * @return string
  *  
  */
-
 function la_DatePickerPreset($field, $date) {
     $inputid = la_InputId();
     $us_config = zbs_LoadConfig();
     $curlang = $us_config['lang'];
-
+    $skinPath = zbs_GetCurrentSkinPath($us_config);
+    $iconsPath = $skinPath . 'iconz/';
     $result = '<script>
 	$(function() {
 		$( "#' . $inputid . '" ).datepicker({
 			showOn: "both",
-                        buttonImage: "iconz/icon_calendar.gif",
+                        buttonImage: "' . $iconsPath . 'icon_calendar.gif",
 			buttonImageOnly: true,
                         dateFormat:  "yy-mm-dd",
                         showAnim: "slideDown"
@@ -683,12 +671,20 @@ function la_DatePickerPreset($field, $date) {
     return($result);
 }
 
+/**
+ * Returns modal window JS code
+ * 
+ * @param string $link
+ * @param string $title
+ * @param string $content
+ * @param string $linkclass
+ * @param string $width
+ * @param string $height
+ * 
+ * @return string
+ */
 function la_modal($link, $title, $content, $linkclass = '', $width = '', $height = '') {
-
     $wid = la_inputid();
-//    $content=  str_replace("'", '', $content);
-//    $content=  str_replace('"', '', $content);    
-//    $content=  str_replace('’', '', $content);   
 //setting link class
     if ($linkclass != '') {
         $link_class = 'class="' . $linkclass . '"';

@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title><?=__('User stats') ?></title>
+        <link href="<?=zbs_GetCurrentSkinPath(); ?>style.css" rel="stylesheet" type="text/css" media="all" />
+        <link type="text/css" href="modules/jsc/jui/css/smoothness/jquery-ui-1.8.23.custom.css" rel="stylesheet" />
+        <script type="text/javascript" language="javascript" src="modules/jsc/dt/js/jquery.js"></script>
+        <script type="text/javascript" language="javascript" src="modules/jsc/jui/js/jquery-ui-1.8.23.custom.min.js"></script>
+        <!--[if IE 6]>
+        <link href="default_ie6.css" rel="stylesheet" type="text/css" />
+        <![endif]-->
+        <?=zbs_CustomBackground(); ?>
+    </head>
+    <body>
+        <div id="header" class="container">
+            <div id="logo">
+
+                <table border="0" cellspacing="10">
+                    <tr>
+                        <td><?=zbs_IspLogoShow();?></td>
+                        <td><h1><a href="index.php" ><?=__('User stats') ?></a></h1></td>
+                    </tr>    
+                </table>
+
+
+            </div>
+
+        </div>
+        <div id="page" class="container">
+            <div id="content">
+                <div id="onecolumn">
+                    <?=$ContentContainer ?>
+                </div>
+
+            </div>
+            <div id="sidebar">
+                <div id="sbox1">
+
+                    <ul class="style3">
+                        <li><a href="index.php"> <img src=" <?=zbs_GetCurrentSkinPath(); ?>iconz/home.gif"> <?=__('Home') ?></a></li>
+                        <?=zbs_ModulesMenuShow (true); ?> 
+                    </ul>
+
+                </div>
+
+            </div>
+        </div>
+        <div id="footer" class="container">
+            <div id="fbox1">
+                <?=zbs_LangSelector();?>
+            </div>
+            <div id="fbox2">
+
+                <ul class="style1">
+
+                </ul>
+            </div>
+            <div id="fbox3">
+
+            </div>
+        </div>
+        <div id="copyright" class="container">
+            <p><?=zbs_CopyrightsShow();?></p>
+        </div>
+    </body>
+</html>

@@ -116,13 +116,33 @@ function __($str) {
 }
 
 /**
+ * Returns current skin path
+ * 
+ * @param array $usConfig preloaded usrstats config as array
+ * 
+ * @return string
+ */
+function zbs_GetCurrentSkinPath($usConfig = array()) {
+    if (empty($usConfig)) {
+        $usConfig = zbs_LoadConfig();
+    }
+    $basePath = 'skins/';
+    $skinName = 'default';
+    if (isset($usConfig['SKIN'])) {
+        $skinName = $usConfig['SKIN'];
+    }
+    $result = $basePath . $skinName . '/';
+    return ($result);
+}
+
+/**
  * Renders default userstats template
  * 
  * @global string $ContentContainer
  */
 function zbs_ShowTemplate() {
     global $ContentContainer;
-    include ('template.html');
+    include (zbs_GetCurrentSkinPath() . 'template.html');
 }
 
 /**
@@ -295,7 +315,7 @@ function zbs_DownloadFile($filePath, $contentType = '') {
             header("Content-disposition: attachment; filename=\"" . basename($filePath) . "\"");
             header("Content-Description: File Transfer");
             header("Content-Length: " . filesize($filePath));
-            
+
             die($fileContent);
         } else {
             throw new Exception('DOWNLOAD_FILEPATH_NOT_EXISTS');

@@ -936,6 +936,8 @@ function zbs_UserShowProfile($login) {
     $phone = zbs_UserGetPhone($login);
     $passive = $userdata['Passive'];
     $down = $userdata['Down'];
+    $skinPath = zbs_GetCurrentSkinPath($us_config);
+    $iconsPath = $skinPath . 'iconz/';
 
     //public offer mode
     if (isset($us_config['PUBLIC_OFFER'])) {
@@ -994,7 +996,7 @@ function zbs_UserShowProfile($login) {
     $paymentidqr = '';
     if (isset($us_config['PAYMENTID_QR'])) {
         if ($us_config['PAYMENTID_QR']) {
-            $paymentidqr = la_modal(la_img('iconz/qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
+            $paymentidqr = la_modal(la_img($iconsPath . 'qrcode.png', 'QR-code'), __('Payment ID'), la_tag('center') . la_img('qrgen.php?data=' . $paymentid) . la_tag('center', true), '', '300', '250');
         }
     }
 
@@ -1267,14 +1269,17 @@ function zbs_ModulesMenuShow($icons = false) {
     $maxnoicon = $globconf['MENUNOICONMAX'];
 
     $mod_path = "config/modules.d/";
+    $skinPath = zbs_GetCurrentSkinPath($globconf);
+    $iconsPath = $skinPath . 'iconz/';
     $all_modules = rcms_scandir($mod_path);
+
     $count = 1;
     $result = '';
     if (!empty($all_modules)) {
         foreach ($all_modules as $eachmodule) {
             if ($icons == true) {
-                if (file_exists("iconz/" . $eachmodule . ".gif")) {
-                    $iconlink = ' <img src="iconz/' . $eachmodule . '.gif" class="menuicon"> ';
+                if (file_exists($iconsPath . $eachmodule . ".gif")) {
+                    $iconlink = ' <img src="' . $iconsPath . $eachmodule . '.gif" class="menuicon"> ';
                 } else {
                     $iconlink = '';
                 }
@@ -1743,7 +1748,8 @@ function zbs_IspLogoShow() {
  */
 function zbs_CustomBackground() {
     $usConf = zbs_LoadConfig();
-    $tilesPath = 'tiles/';
+    $skinPath = zbs_GetCurrentSkinPath($usConf);
+    $tilesPath = $skinPath . 'tiles/';
     $result = '';
     if (isset($usConf['BACKGROUND'])) {
         if (($usConf['BACKGROUND'] != 'DEFAULT') AND ( !empty($usConf['BACKGROUND']))) {
@@ -1756,7 +1762,7 @@ function zbs_CustomBackground() {
             }
 
             if (isset($availTiles[$customBackground])) {
-                $result = '<style> body { background: #080808 url(' . $tilesPath . '/' . $customBackground . ') repeat; } </style> ';
+                $result = '<style> body { background: #080808 url(' . $tilesPath . $customBackground . ') repeat; } </style> ';
             } else {
                 $result = '<!-- Custom background tile file not found -->';
             }
@@ -1795,8 +1801,10 @@ function zbs_AnnouncementsAvailable() {
  */
 function zbs_AnnouncementsNotice() {
     $result = '';
+    $skinPath = zbs_GetCurrentSkinPath();
+    $iconsPath = $skinPath . 'iconz/';
     if (zbs_AnnouncementsAvailable()) {
-        $cells = la_TableCell(la_Link('?module=announcements', la_img('iconz/alert.gif'), true, ''));
+        $cells = la_TableCell(la_Link('?module=announcements', la_img($iconsPath . 'alert.gif'), true, ''));
         $cells.= la_TableCell(la_Link('?module=announcements', __('Some announcements are available'), true, ''));
         $rows = la_TableRow($cells);
         $result.=la_TableBody($rows, '70%', 0, '');

@@ -135,6 +135,8 @@ if ($us_config['TICKETING_ENABLED']) {
      */
     function zbs_TicketsShowMy() {
         global $user_login;
+        $skinPath = zbs_GetCurrentSkinPath();
+        $iconsPath = $skinPath . 'iconz/';
         $allmytickets = zbs_TicketsGetAllMy($user_login);
 
         $cells = la_TableCell(__('ID'));
@@ -146,9 +148,9 @@ if ($us_config['TICKETING_ENABLED']) {
         if (!empty($allmytickets)) {
             foreach ($allmytickets as $io => $eachticket) {
                 if ($eachticket['status']) {
-                    $ticketstatus = la_img('iconz/anread.gif') . ' ' . __('Closed');
+                    $ticketstatus = la_img($iconsPath . 'anread.gif') . ' ' . __('Closed');
                 } else {
-                    $ticketstatus = la_img('iconz/anunread.gif') . ' ' . __('Open');
+                    $ticketstatus = la_img($iconsPath . 'anunread.gif') . ' ' . __('Open');
                 }
                 $cells = la_TableCell($eachticket['id']);
                 $cells.= la_TableCell($eachticket['date']);
