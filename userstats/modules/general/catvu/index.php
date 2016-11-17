@@ -116,16 +116,16 @@ class UserstatsUkv {
                 $apt = '';
             }
 
-            $cells = la_TableCell(__('Contract'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['contract']);
+            $cells = la_TableCell(__('Address'), '', 'row1');
+            $cells.=la_TableCell($this->users[$userid]['city'] . ' ' . $this->users[$userid]['street'] . ' ' . $this->users[$userid]['build'] . $apt);
             $rows = la_TableRow($cells, 'row3');
 
             $cells = la_TableCell(__('Real name'), '', 'row1');
             $cells.=la_TableCell($this->users[$userid]['realname']);
             $rows.= la_TableRow($cells, 'row3');
 
-            $cells = la_TableCell(__('Address'), '', 'row1');
-            $cells.=la_TableCell($this->users[$userid]['city'] . ' ' . $this->users[$userid]['street'] . ' ' . $this->users[$userid]['build'] . $apt);
+            $cells = la_TableCell(__('Contract'), '', 'row1');
+            $cells.=la_TableCell($this->users[$userid]['contract']);
             $rows.= la_TableRow($cells, 'row3');
 
             $cells = la_TableCell(__('Phone'), '', 'row1');
@@ -168,15 +168,13 @@ class UserstatsUkv {
         $query = "SELECT * from `ukv_payments` WHERE `visible`='1' AND `userid`='" . $userid . "' ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
-            $cells = la_TableCell(__('ID'));
-            $cells.= la_TableCell(__('Date'));
+            $cells = la_TableCell(__('Date'));
             $cells.= la_TableCell(__('Payment'));
             $cells.= la_TableCell(__('Balance'));
             $rows = la_TableRow($cells, 'row1');
 
             foreach ($all as $io => $each) {
-                $cells = la_TableCell($each['id']);
-                $cells.= la_TableCell($each['date']);
+                $cells = la_TableCell($each['date']);
                 $cells.= la_TableCell($each['summ']);
                 $cells.= la_TableCell($each['balance']);
                 $rows.= la_TableRow($cells, 'row3');

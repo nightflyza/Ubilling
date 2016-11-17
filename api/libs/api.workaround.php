@@ -2449,7 +2449,7 @@ function web_TariffShowMoveReport() {
 
     $query = "SELECT `login`,`Tariff`,`TariffChange` from `users` WHERE `TariffChange` !=''";
     $allmoves = simple_queryall($query);
-    $alladdrz = zb_AddressGetFulladdresslist();
+    $alladdrz = zb_AddressGetFulladdresslistCached();
     $allrealnames = zb_UserGetAllRealnames();
     $alltariffprices = zb_TariffGetPricesAll();
     $totaldiff = 0;
