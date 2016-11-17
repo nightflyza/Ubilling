@@ -299,6 +299,12 @@ class UbillingDHCP {
     protected function networkSelector() {
         $tmpArr = array();
         $result = '';
+        /**
+         * V čůráckým vobdobí, kdy mě serou fronty,
+         * sem na pokraji sil, už nepomáhaj jointy.
+         * Rodinu nemám, večeřim sám, žeru šproty,
+         * Vánoce zmrdem na Štědrej den do rachoty.
+         */
         if (!empty($this->allMultinetNets)) {
             foreach ($this->allMultinetNets as $io => $each) {
                 if ($this->isNetUnused($each['id'])) {
