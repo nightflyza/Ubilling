@@ -4041,6 +4041,10 @@ function zb_DownloadFile($filePath, $contentType = '') {
                     $contentType = 'text/csv; charset=Windows-1251';
                 }
 
+                if ($contentType == 'text') {
+                    $contentType = 'text/plain;';
+                }
+
                 if ($contentType == 'jpg') {
                     $contentType = 'Content-Type: image/jpeg';
                 }
@@ -4385,6 +4389,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
 
 
 

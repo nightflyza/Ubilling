@@ -5,16 +5,23 @@ if (cfr('DHCP')) {
     //creating object
     $dhcp = new UbillingDHCP();
 
-    //if someone adds new dhcp network
+    //main controls panel
+    show_window('', $dhcp->renderPanel());
+
+    //new network creation
     if (isset($_POST['adddhcp'])) {
         $netid = $_POST['networkselect'];
         $dhcpconfname = $_POST['dhcpconfname'];
         if (!empty($dhcpconfname)) {
-            $dhcp->createNetwork($netid, $dhcpconfname);
-            multinet_rebuild_all_handlers();
-            rcms_redirect('?module=dhcp');
+            if ($dhcp->isConfigNameFree($dhcpconfname)) {
+                $dhcp->createNetwork($netid, $dhcpconfname);
+                $dhcp->restartDhcpServer();
+                rcms_redirect('?module=dhcp');
+            } else {
+                show_error(__('Config name is already used'));
+            }
         } else {
-            
+            show_error(__('Config name is required'));
         }
     }
 
@@ -25,28 +32,47 @@ if (cfr('DHCP')) {
         if (isset($_POST['editdhcpconfname'])) {
             @$editdhcpconfig = $_POST['editdhcpconfig'];
             $dhcpconfname = $_POST['editdhcpconfname'];
-            $dhcpid = $_GET['edit'];
-            dhcp_update_data($dhcpid, $dhcpconfname, $editdhcpconfig);
-            multinet_rebuild_all_handlers();
-            rcms_redirect("?module=dhcp");
+            if (!empty($dhcpconfname)) {
+                $dhcpid = $_GET['edit'];
+                $dhcp->updateNetwork($dhcpid, $dhcpconfname, $editdhcpconfig);
+                $dhcp->restartDhcpServer();
+                rcms_redirect("?module=dhcp");
+            } else {
+                show_error(__('Config name is required'));
+            }
         }
         // show editing form
-        dhcp_show_edit_form($_GET['edit']);
+        show_window(__('Edit custom subnet template'), $dhcp->editForm($_GET['edit']));
     }
 
-    //if someone deleting net
+    //deleting network
     if (isset($_GET['delete'])) {
-        dhcp_delete_net($_GET['delete']);
-        multinet_rebuild_all_handlers();
+        $dhcp->deleteNetwork($_GET['delete']);
+        $dhcp->restartDhcpServer();
         rcms_redirect("?module=dhcp");
     }
 
+    //downloading config
+    if (wf_CheckGet(array('downloadconfig'))) {
+        $dhcp->downloadConfig($_GET['downloadconfig']);
+    }
 
+    //downloading template
+    if (wf_CheckGet(array('downloadtemplate'))) {
+        $dhcp->downloadTemplate($_GET['downloadtemplate']);
+    }
 
+    //manual server restart
+    if (wf_CheckGet(array('restartserver'))) {
+        $dhcp->restartDhcpServer();
+        rcms_redirect("?module=dhcp");
+    }
+
+    //rendering some interface
     show_window(__('Available DHCP networks'), $dhcp->renderNetsList());
-    show_window(__('Add DHCP network'), $dhcp->addForm());
-    show_window(__('Global templates'), $dhcp->renderConfigTemplates());
+
     show_window(__('Generated configs preview'), $dhcp->renderConfigPreviews());
+    show_window(__('Global templates'), $dhcp->renderConfigTemplates());
 } else {
     show_error(__('Access denied'));
 }

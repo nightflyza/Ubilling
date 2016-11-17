@@ -2316,6 +2316,10 @@ $lang['def']['Battery low'] = 'Низький заряд АКБ';
 $lang['def']['No available DHCP networks found'] = 'Немає існуючих мереж DHCP';
 $lang['def']['No available DHCP configs found'] = 'Немає згенерованих конфігів DHCP';
 $lang['def']['File not found'] = 'Файл не знайдено';
-
+$lang['def']['No networks for DHCP setup available'] = 'Немає мереж для налаштування DHCP';
+$lang['def']['All networks already has DHCP configured'] = 'Для усіх мереж DHCP вже сконфігуровано';
+$lang['def']['Config name is required'] = 'Необхідно вказати ім`я конфігу';
+$lang['def']['Config name is already used'] = 'Ім`я конфігу вже використовується';
+$lang['def']['Restart DHCP server'] = 'Перезапустити DHCP сервер';
 
 ?>

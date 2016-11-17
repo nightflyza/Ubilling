@@ -132,7 +132,6 @@ function web_green_led($title = '') {
     return($icon);
 }
 
-
 /**
  * Returns standard yellow led icon
  * 
@@ -212,6 +211,17 @@ function web_icon_search($title = 'Search') {
 }
 
 /**
+ * Returns default download icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_download($title = 'Download') {
+    $icon = wf_img('skins/icon_download.png', __($title));
+    return ($icon);
+}
+
+/**
  * Returns default printing icon
  * 
  * @param string $title
@@ -221,7 +231,6 @@ function web_icon_print($title = 'Print') {
     $icon = wf_img('skins/icon_print.png', __($title));
     return $icon;
 }
-
 
 /**
  * Returns FreeRADIUS icon:

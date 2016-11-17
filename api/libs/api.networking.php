@@ -321,55 +321,12 @@ function multinet_get_dhcp_networks() {
 }
 
 
-
-
-function dhcp_get_data($dhcpid) {
-    $query="SELECT * from `dhcp` where `id`='".$dhcpid."'";
-    $result=simple_query($query);
-    return($result);
-}
-
 function dhcp_get_data_by_netid($netid) {
     $query="SELECT * from `dhcp` where `netid`='".$netid."'";
     $result=simple_query($query);
     return($result);
 }
 
- function dhcp_show_edit_form($dhcpid) {
-        $dhcpid=vf($dhcpid);
-        $dhcpnetdata=dhcp_get_data($dhcpid);
-        $form='
-            <form action="" method="POST">
-            <input type="text" name="editdhcpconfname" value="'.$dhcpnetdata['confname'].'"> '.__('DHCP config name').' <br>
-            '.__('DHCP custom subnet template').' <br>    
-            <textarea name="editdhcpconfig" cols="50" rows="10">'.$dhcpnetdata['dhcpconfig'].'</textarea>   
-            <br>    
-            <input type="button" value="'.__('Cleanup').'" onclick="this.form.elements[\'editdhcpconfig\'].value=\'\'">
-            <input type="submit" value="'.__('Save').'">    
-            </form>
-            ';
-        $form.=wf_delimiter();
-        $form.=wf_Link("?module=dhcp", __('Back'),false,'ubButton');
-        show_window(__('Edit custom subnet template'),$form);
-    }
-    
-    function dhcp_update_data($dhcpid,$dhcpconfname,$dhcpconfig) {
-        $dhcpid=vf($dhcpid);
-        $dhcpconfname=mysql_real_escape_string($dhcpconfname);
-        $dhcpconfname=trim($dhcpconfname);
-        $dhcpconfig=mysql_real_escape_string($dhcpconfig);
-        $query="UPDATE `dhcp` SET `dhcpconfig` = '".$dhcpconfig."',
-         `confname` = '".$dhcpconfname."' WHERE `id` ='".$dhcpid."';";
-        nr_query($query);
-        log_register("CHANGE DHCPNet ".$dhcpid);
-    }
-    
-    function dhcp_delete_net($dhcpid) {
-        $dhcpid=vf($dhcpid);
-        $query="DELETE from `dhcp` WHERE `id`='".$dhcpid."'";
-        nr_query($query);
-        log_register("DELETE DHCPNet ".$dhcpid);
-    }
 
 function handle_dhcp_rebuild_static($netid,$confname) {
     $query="SELECT * from `nethosts` WHERE `netid`='".$netid."'";

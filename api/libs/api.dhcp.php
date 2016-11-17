@@ -27,6 +27,12 @@ class UbillingDHCP {
      * Pregenerated DHCP configs path
      */
     const MULTINET_PATH = 'multinet/';
+
+    /**
+     * Default module URL
+     */
+    const URL_ME = '?module=dhcp';
+
     /**
      * DHCP config generation templates path
      */
@@ -42,7 +48,7 @@ class UbillingDHCP {
      * Loads existing DHCP subnets from database into protected property
      */
     protected function loadDhcpNets() {
-        $query = "SELECT * from `dhcp`";
+        $query = "SELECT * from `dhcp` ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -57,7 +63,7 @@ class UbillingDHCP {
      * @return void
      */
     protected function loadMultinetNets() {
-        $query = "SELECT * from `networks`";
+        $query = "SELECT * from `networks` ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -115,21 +121,45 @@ class UbillingDHCP {
     }
 
     /**
+     * Renders main module controls
+     * 
+     * @return string
+     */
+    public function renderPanel() {
+        $result = '';
+        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add DHCP network'), __('Add DHCP network'), $this->addForm(), 'ubButton') . ' ';
+        $result.= wf_Link(self::URL_ME . '&restartserver=true', wf_img('skins/refresh.gif') . ' ' . __('Restart DHCP server'), false, 'ubButton');
+        return ($result);
+    }
+
+    /**
      * Renders generated configs previews list
      * 
      * @return string
      */
     public function renderConfigPreviews() {
-
         $result = '';
         if (!empty($this->allDhcpNets)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Network/CIDR'));
+            $cells.= wf_TableCell(__('DHCP config name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
             if (file_exists(self::MULTINET_PATH . 'dhcpd.conf')) {
                 $dhcpdconf = str_replace("\n", '<br>', file_get_contents(self::MULTINET_PATH . 'dhcpd.conf'));
             } else {
                 $dhcpdconf = $this->messages->getStyledMessage(__('File not found') . ': dhcpd.conf', 'error');
             }
 
-            $result = wf_modal('dhcpd.conf', 'dhcpd.conf', $dhcpdconf, 'ubButton', 800, 600) . wf_delimiter();
+            $actLinks = wf_Link(self::URL_ME . '&downloadconfig=dhcpd.conf', web_icon_download(), false) . ' ';
+            $actLinks.= wf_modal(web_icon_search(__('Preview') . ' dhcpd.conf'), 'dhcpd.conf', $dhcpdconf, '', 800, 600);
+
+            $cells = wf_TableCell('-');
+            $cells.= wf_TableCell('-');
+            $cells.= wf_TableCell('dhcpd.conf');
+            $cells.= wf_TableCell($actLinks);
+            $rows.= wf_TableRow($cells, 'row5');
 
             foreach ($this->allDhcpNets as $io => $eachnet) {
                 $subconfname = trim($eachnet['confname']);
@@ -139,12 +169,53 @@ class UbillingDHCP {
                     $subconfdata = $this->messages->getStyledMessage(__('File not found') . ': ' . $subconfname, 'error');
                 }
 
-                $result.=wf_modal($subconfname, $subconfname, $subconfdata, 'ubButton', 800, 600) . wf_delimiter();
+                $actLinks = wf_Link(self::URL_ME . '&downloadconfig=' . $subconfname, web_icon_download(), false);
+                $actLinks.= wf_modal(web_icon_search(__('Preview') . ' ' . $subconfname), $subconfname, $subconfdata, '', 800, 600);
+
+                $cells = wf_TableCell($eachnet['id']);
+                $cells.= wf_TableCell(@$this->allMultinetNets[$eachnet['netid']]['desc']);
+                $cells.= wf_TableCell($subconfname);
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row5');
             }
+
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result = $this->messages->getStyledMessage(__('No available DHCP configs found'), 'info');
         }
         return ($result);
+    }
+
+    /**
+     * Downloads pregenerated DHCP config
+     * 
+     * @param string $filename
+     * 
+     * @return void
+     */
+    public function downloadConfig($filename) {
+        $filename = vf($filename);
+        if (file_exists(self::MULTINET_PATH . $filename)) {
+            zb_DownloadFile(self::MULTINET_PATH . $filename, 'text');
+        } else {
+            show_error(__('File not found') . ': ' . $filename);
+        }
+    }
+
+    /**
+     * Downloads DHCP config template
+     * 
+     * @param string $filename
+     * 
+     * @return void
+     */
+    public function downloadTemplate($filename) {
+        $filename = vf($filename);
+        if (file_exists(self::TEMPLATES_PATH . $filename)) {
+            zb_DownloadFile(self::TEMPLATES_PATH . $filename, 'text');
+        } else {
+            show_error(__('File not found') . ': ' . $filename);
+        }
     }
 
     /**
@@ -156,11 +227,21 @@ class UbillingDHCP {
         $allTemplates = rcms_scandir(self::TEMPLATES_PATH);
         $result = '';
         if (!empty($allTemplates)) {
-            foreach ($allTemplates as $each) {
-                $templateData = file_get_contents(self::TEMPLATES_PATH . $each);
+            $cells = wf_TableCell(__('Filename'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($allTemplates as $eachfilename) {
+                $templateData = file_get_contents(self::TEMPLATES_PATH . $eachfilename);
                 $templateData = nl2br($templateData);
-                $result.= wf_modal($each, $each, $templateData, 'ubButton', 800, 600) . ' ';
+                $actLinks = wf_Link(self::URL_ME . '&downloadtemplate=' . $eachfilename, web_icon_download(), false) . ' ';
+                $actLinks.= wf_modal(web_icon_search(__('Preview') . ' ' . $eachfilename), $eachfilename, $templateData, '', 800, 600) . ' ';
+
+                $cells = wf_TableCell($eachfilename);
+                $cells.= wf_TableCell(__($actLinks));
+                $rows.= wf_TableRow($cells, 'row5');
             }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
@@ -169,16 +250,134 @@ class UbillingDHCP {
     }
 
     /**
+     * Checks is multinet netid used for one of DHCP nets or not
+     * 
+     * @param int $netId
+     * 
+     * @return bool
+     */
+    protected function isNetUnused($netId) {
+        $result = true;
+        if (!empty($this->allDhcpNets)) {
+            foreach ($this->allDhcpNets as $io => $each) {
+                if ($each['netid'] == $netId) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks is config name unused?
+     * 
+     * @param string $filename
+     * 
+     * @return bool
+     */
+    public function isConfigNameFree($filename) {
+        $result = true;
+        $filename = vf($filename);
+        $filename = trim($filename);
+        if (!empty($this->allDhcpNets)) {
+            foreach ($this->allDhcpNets as $io => $each) {
+                if ($each['confname'] == $filename) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders network selector with not set DHCP handlers
+     * 
+     * @return string
+     */
+    protected function networkSelector() {
+        $tmpArr = array();
+        $result = '';
+        if (!empty($this->allMultinetNets)) {
+            foreach ($this->allMultinetNets as $io => $each) {
+                if ($this->isNetUnused($each['id'])) {
+                    $tmpArr[$each['id']] = $each['desc'];
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $result = wf_Selector('networkselect', $tmpArr, __('Network'), '', true);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns DHCP network data by its id
+     * 
+     * @param int $dhcpid
+     * 
+     * @return array
+     */
+    public function getNetworkData($dhcpid) {
+        $result = array();
+        if (isset($this->allDhcpNets)) {
+            $result = $this->allDhcpNets[$dhcpid];
+        }
+        return($result);
+    }
+
+    /**
      * Returns DHCP network addition form
      * 
      * @return string
      */
     public function addForm() {
-        $inputs = multinet_network_selector() . ' ' . __('Network') . wf_tag('br');
-        $inputs.= wf_HiddenInput('adddhcp', 'true');
-        $inputs.= wf_TextInput('dhcpconfname', __('DHCP config name'), '', true, '20');
-        $inputs.= wf_Submit(__('Create'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $result = '';
+        //any multinet nets available
+        if (!empty($this->allMultinetNets)) {
+            $networkSelector = $this->networkSelector();
+            //some of it have no DHCP handlers
+            if (!empty($networkSelector)) {
+                $inputs = $networkSelector;
+                $inputs.= wf_HiddenInput('adddhcp', 'true');
+                $inputs.= wf_TextInput('dhcpconfname', __('DHCP config name'), '', true, '20');
+                $inputs.= wf_Submit(__('Create'));
+                $result = wf_Form('', 'POST', $inputs, 'glamour');
+            } else {
+                $result = $this->messages->getStyledMessage(__('All networks already has DHCP configured'), 'info');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('No networks for DHCP setup available'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders network template editing form
+     * 
+     * @param int $dhcpid
+     * 
+     * @return string
+     */
+    public function editForm($dhcpid) {
+        $dhcpid = vf($dhcpid, 3);
+        $result = '';
+
+        if (isset($this->allDhcpNets[$dhcpid])) {
+            $dhcpnetdata = $this->getNetworkData($dhcpid);
+            $inputs = wf_TextInput('editdhcpconfname', __('DHCP config name'), $dhcpnetdata['confname'], true, 20);
+            $inputs.= __('DHCP custom subnet template') . wf_tag('br');
+            $inputs.= wf_TextArea('editdhcpconfig', '', $dhcpnetdata['dhcpconfig'], true, '60x10');
+            $inputs.= wf_Submit(__('Save'));
+            $result = wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=wf_CleanDiv();
+            $result.=wf_Link(self::URL_ME, __('Back'), false, 'ubButton');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong'), 'errors');
+        }
+
 
         return ($result);
     }
@@ -195,19 +394,54 @@ class UbillingDHCP {
         $netid = vf($netid, 3);
         $dhcpconfname = vf($dhcpconfname);
         $dhcpconfname = trim($dhcpconfname);
-        $query = "INSERT INTO `dhcp` (
-                    `id` ,
-                    `netid` ,
-                    `dhcpconfig` ,
-                    `confname`
-                    )
-                    VALUES (
-                    NULL , '" . $netid . "', '', '" . $dhcpconfname . "'
-                    );
-             ";
+        $query = "INSERT INTO `dhcp` (`id` ,`netid` , `dhcpconfig` , `confname`)
+                  VALUES (NULL , '" . $netid . "', '', '" . $dhcpconfname . "');";
         nr_query($query);
         $newID = simple_get_lastid('dhcp');
         log_register('CREATE DHCPNet [' . $newID . '] NETWORK [' . $netid . ']');
+    }
+
+    /**
+     * Updates existing DHCP network handler
+     * 
+     * @param int $dhcpid
+     * @param string $dhcpconfname
+     * @param string $dhcpconfig
+     * 
+     * @return void
+     */
+    public function updateNetwork($dhcpid, $dhcpconfname, $dhcpconfig) {
+        $dhcpid = vf($dhcpid, 3);
+        $dhcpconfname = vf($dhcpconfname);
+        $dhcpconfname = trim($dhcpconfname);
+        $dhcpconfig = mysql_real_escape_string($dhcpconfig);
+        $query = "UPDATE `dhcp` SET `dhcpconfig` = '" . $dhcpconfig . "',"
+                . "`confname` = '" . $dhcpconfname . "' WHERE `id` ='" . $dhcpid . "';";
+        nr_query($query);
+        log_register('CHANGE DHCPNet [' . $dhcpid . ']');
+    }
+
+    /**
+     * Deletes existing DHCP network
+     * 
+     * @param int $dhcpid
+     * 
+     * @return void
+     */
+    public function deleteNetwork($dhcpid) {
+        $dhcpid = vf($dhcpid, 3);
+        $query = "DELETE from `dhcp` WHERE `id`='" . $dhcpid . "'";
+        nr_query($query);
+        log_register('DELETE DHCPNet [' . $dhcpid . ']');
+    }
+
+    /**
+     * Rebuilds all configs and restarts DHCP server
+     * 
+     * @return void
+     */
+    public function restartDhcpServer() {
+        multinet_rebuild_all_handlers();
     }
 
 }
