@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title><?=__('User stats') ?></title>
+        <link href="<?=zbs_GetCurrentSkinPath(); ?>style.css" rel="stylesheet" type="text/css" media="screen" />
+       
+        <link type="text/css" href="modules/jsc/jui/css/smoothness/jquery-ui-1.8.23.custom.css" rel="stylesheet" />
+        <script type="text/javascript" language="javascript" src="modules/jsc/dt/js/jquery.js"></script>
+	<script type="text/javascript" language="javascript" src="modules/jsc/jui/js/jquery-ui-1.8.23.custom.min.js"></script>
+         <?=zbs_CustomBackground(); ?>
+    </head>
+    <body>
+        <div id="header-wrapper">
+            <div id="header">
+                <div id="menu">
+                    <ul>
+                        <li>
+                            <a href="index.php" ><?=__('Home') ?></a>
+                        </li>
+                        <?=zbs_ModulesMenuShow (); ?> 
+                    </ul>
+                </div>
+				
+                <div id="search">
+                    <?=zbs_LangSelector();?>
+                </div>
+				
+            </div>
+        </div>
+
+        <div id="logo">
+            <h1><?=zbs_IspLogoShow();?> <a href="index.php"><?=__('User stats') ?></a></h1>
+            <p></p>
+        </div>
+        <hr />
+
+        <div id="page">
+            <div id="page-bgtop">
+                <div id="content">
+                    <div class="post">
+                    <?=$ContentContainer ?>
+                    </div>
+                </div>
+
+                <div id="sidebar">
+                    <ul>
+                        <li>
+                            <a href="index.php"> <img src="<?=zbs_GetCurrentSkinPath(); ?>iconz/home.gif"> <?=__('Home') ?></a>
+                        </li>
+                        <?=zbs_ModulesMenuShow (true); ?> 
+                    </ul>
+                </div>
+
+                <div style="clear: both;">&nbsp;</div>
+            </div>
+
+            <div id="footer">
+                <p class="legal"><?=zbs_CopyrightsShow();?></p>
+            </div>
+        </div>
+    </body>
+</html>

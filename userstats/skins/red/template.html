@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title><?=__('User stats') ?></title>
+<link href="<?=zbs_GetCurrentSkinPath(); ?>style.css" rel="stylesheet" type="text/css" media="screen" />
+<?=zbs_CustomBackground(); ?>
+</head>
+<body>
+<div id="wrapper">
+	<div id="header-wrapper">
+		<div id="header" class="container">
+			<div id="logo">
+				<h1><?=zbs_IspLogoShow();?> <a href="index.php"><?=__('User stats') ?></a></h1>
+			</div>
+			<div id="menu">
+				<ul>
+				 <?=zbs_LangSelector();?> 
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!-- end #header -->
+	<div id="page">
+		<div id="content">
+			<div class="post">
+			<?=$ContentContainer; ?>
+			</div>
+		</div>
+		<!-- end #content -->
+		<div id="sidebar">
+			<ul>
+				<li>
+					<ul>
+						 <li>
+                            <a href="index.php"> <img src="<?=zbs_GetCurrentSkinPath(); ?>iconz/home.gif"> <?=__('Home') ?></a>
+                        </li>
+                        <?=zbs_ModulesMenuShow (true); ?> 
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<!-- end #sidebar -->
+		<div style="clear: both;">&nbsp;</div>
+	</div>
+	<!-- end #page --> 
+	<div id="featured-content">
+		<div id="column1">
+			
+		</div>
+		<div id="column2">
+			
+		</div>
+		<div id="column3">
+		
+		</div>
+	</div>
+</div>
+<div id="footer">
+	<p>
+		<?=zbs_CopyrightsShow();?>
+	</p>
+</div>
+<!-- end #footer -->
+</body>
+</html>
