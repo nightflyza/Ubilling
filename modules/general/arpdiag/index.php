@@ -185,28 +185,24 @@ class ArpDiag {
     }
 
     /**
-     * Renders localhost ARP table
+     * Returns JSON for actual ARP table
      * 
      * @return string
      */
-    public function renderArpTable() {
+    public function ajaxReplyArp() {
         $result = '';
         $command = 'arp -a';
         $raw = shell_exec($command);
+        $jsonAAData = array();
 
         if (!empty($raw)) {
-            $counter = 0;
+
             $allUserAddress = zb_AddressGetFulladdresslistCached();
             $allUserIps = zb_UserGetAllIPs();
             $allUserIps = array_flip($allUserIps);
             $allSwitchesIps = $this->getAllSwitchesIps();
 
             $raw = explodeRows($raw);
-            $cells = wf_TableCell(__('IP'));
-            $cells.= wf_TableCell(__('MAC'));
-            $cells.= wf_TableCell(__('Host'));
-
-            $rows = wf_TableRow($cells, 'row1');
 
             if (!empty($raw)) {
                 foreach ($raw as $io => $each) {
@@ -214,21 +210,28 @@ class ArpDiag {
                         $ip = zb_ExtractIpAddress($each);
                         $mac = zb_ExtractMacAddress($each);
                         $hostType = $this->getHostLink($allUserIps, $allUserAddress, $allSwitchesIps, $ip);
-                        $cells = wf_TableCell($ip, '', '', 'sorttable_customkey="' . ip2int($ip) . '"');
-                        $cells.= wf_TableCell($mac);
-                        $cells.= wf_TableCell($hostType);
-                        $rows.= wf_TableRow($cells, 'row5');
-                        $counter++;
+                        $jsonItem = array();
+                        $jsonItem[] = $ip;
+                        $jsonItem[] = $mac;
+                        $jsonItem[] = $hostType;
+                        $jsonAAData[] = $jsonItem;
                     }
                 }
             }
-
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
-            $result.= __('Total') . ': ' . $counter;
-        } else {
-            $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing found'), 'warning');
         }
 
+
+        $result = array("aaData" => $jsonAAData);
+        return(json_encode($result));
+    }
+
+    /**
+     * Renders localhost ARP table placeholder
+     * 
+     * @return string
+     */
+    public function renderArpTable() {
+        $result = wf_JqDtLoader(array('IP', 'MAC', 'Host'), self::URL_ME . '&ajaxarp=true', true, __('Host'), '100');
         return ($result);
     }
 
@@ -238,8 +241,11 @@ if (cfr('ARPDIAG')) {
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['ARPDIAG_ENABLED']) {
         $arpDiag = new ArpDiag();
-
+        if (wf_CheckGet(array('ajaxarp'))) {
+            die($arpDiag->ajaxReplyArp());
+        }
         show_window('', $arpDiag->renderPanel());
+
         if (!wf_CheckGet(array('arptable'))) {
             show_window(__('Diagnosing problems with the ARP'), $arpDiag->renderReport());
         } else {
