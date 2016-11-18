@@ -859,7 +859,7 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $pare
     $desc = mysql_real_escape_string($desc);
     $location = mysql_real_escape_string($location);
     $snmp = mysql_real_escape_string($snmp);
-    $swid=  mysql_real_escape_string($swid);
+    $swid = mysql_real_escape_string($swid);
     $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
         $parentid = "'" . $parentid . "'";

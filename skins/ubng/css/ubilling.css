@@ -776,3 +776,8 @@ div.dhtml_menu div.vert_menu a.active:hover
 .ukvassignaddrrow {
     background-color: #b5fdb8;
 }
+
+.rowerror {
+    background-color: #ee1515;
+    color: #fafafa;
+}

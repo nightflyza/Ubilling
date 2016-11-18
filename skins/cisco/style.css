@@ -870,3 +870,8 @@ div.dhtml_menu div.vert_menu a.active:hover
     background-color: #3366cc;
     color: #ffffff;
 }
+
+.rowerror {
+    background-color: #ee1515;
+    color: #fafafa;
+}

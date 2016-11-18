@@ -1042,3 +1042,8 @@ table.sortable.id tbody tr::before {
     background-color: #3366cc;
     color: #ffffff;
 }
+
+.rowerror {
+    background-color: #ee1515;
+    color: #fafafa;
+}

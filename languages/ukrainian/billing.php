@@ -2321,5 +2321,6 @@ $lang['def']['All networks already has DHCP configured'] = 'Для усіх ме
 $lang['def']['Config name is required'] = 'Необхідно вказати ім`я конфігу';
 $lang['def']['Config name is already used'] = 'Ім`я конфігу вже використовується';
 $lang['def']['Restart DHCP server'] = 'Перезапустити DHCP сервер';
+$lang['def']['Local ARP table'] = 'Локальна ARP таблиця';
 
 ?>
