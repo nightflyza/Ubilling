@@ -38,6 +38,7 @@ if (cfr('MTSIGMON')) {
         function deviceQuery($ip, $community) {
             $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';
             $mask_mac = false;
+            $ubnt_shift = 0;
             $result = array();
             $rawsnmp = array();
 
@@ -46,7 +47,15 @@ if (cfr('MTSIGMON')) {
             $snmp->setMode('native');
             $tmpSnmp = $snmp->walk($ip, $community, $oid, false);
 
-            if (!empty($tmpSnmp)) {
+            // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
+            // in AirOS 5.6 and newer
+            if ($tmpSnmp === "$oid = ") {
+                $oid = '.1.3.6.1.4.1.41112.1.4.7.1.3.1';
+                $tmpSnmp = $snmp->walk($ip, $community, $oid, false);
+                $ubnt_shift = 1;
+            }
+
+            if (!empty($tmpSnmp) and ( $tmpSnmp !== "$oid = ")) {
                 $explodeData = explodeRows($tmpSnmp);
                 if (!empty($explodeData)) {
                     foreach ($explodeData as $io => $each) {
@@ -62,7 +71,7 @@ if (cfr('MTSIGMON')) {
                 if (is_array($rawsnmp)) {
                     foreach ($rawsnmp as $indexOID => $rssi) {
                         $oidarray = explode(".", $indexOID);
-                        $end_num = sizeof($oidarray);
+                        $end_num = sizeof($oidarray) + $ubnt_shift;
                         $mac = '';
 
                         for ($counter = 2; $counter < 8; $counter++) {
@@ -95,8 +104,8 @@ if (cfr('MTSIGMON')) {
 
     $alter_config = $ubillingConfig->getAlter();
     if ($alter_config['MTSIGMON_ENABLED']) {
-        $sigmon= new MTSIGMON();
-        
+        $sigmon = new MTSIGMON();
+
         $allMonitoredDevices = $sigmon->getDevices();
         $allusermacs = zb_UserGetAllMACs();
         $alladdress = zb_AddressGetFullCityaddresslist();
@@ -123,7 +132,7 @@ if (cfr('MTSIGMON')) {
             foreach ($allMonitoredDevices as $io => $eachdevice) {
                 $userCounter = 0;
                 $hostdata = $sigmon->deviceQuery($eachdevice['ip'], $eachdevice['community']);
-                $result.=wf_tag('h2', false).  wf_img('skins/wifi.png').' ' . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
+                $result.=wf_tag('h2', false) . wf_img('skins/wifi.png') . ' ' . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
                 $tablecells = wf_TableCell(__('Full address'));
                 $tablecells.= wf_TableCell(__('Real Name'));
                 $tablecells.= wf_TableCell(__('Tariff'));
@@ -183,7 +192,7 @@ if (cfr('MTSIGMON')) {
                 } else {
                     $result.=__('Empty reply received');
                 }
-                
+
                 $result.=wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
                 $result.=wf_tag('div', false, 'glamour') . __('Total') . ': ' . $userCounter . wf_tag('div', true);
                 $result.=wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
