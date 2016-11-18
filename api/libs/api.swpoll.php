@@ -59,8 +59,7 @@ function sp_parse_zyportbytes($data) {
         $portnum = substr($data[0], -2);
         $portnum = str_replace('.', '', $portnum);
 
-        $bytes = str_replace('Counter32:', '', $data[1]);
-        $bytes = str_replace('Counter64:', '', $bytes);
+        $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
         $bytes = trim($bytes);
 
         if (ispos($data[1], 'up')) {
