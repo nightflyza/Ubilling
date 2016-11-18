@@ -34,9 +34,9 @@ if (cfr('REPORTFINANCE')) {
 
         $controlcells = wf_TableCell($yearform);
         $controlcells.= wf_TableCell($dateform);
-        $controlcells.= wf_TableCell(wf_Link("?module=payfind", 'Find', false, 'ubButton'));
-        $controlcells.= wf_TableCell(wf_Link("?module=report_finance&analytics=true", 'Show', false, 'ubButton'));
-        $controlcells.= wf_TableCell(wf_Link("?module=report_arpu", 'Show', false, 'ubButton'));
+        $controlcells.= wf_TableCell(wf_Link("?module=payfind", web_icon_search().' '.__('Find'), false, 'ubButton'));
+        $controlcells.= wf_TableCell(wf_Link("?module=report_finance&analytics=true", wf_img('skins/icon_stats.gif').' '.__('Show'), false, 'ubButton'));
+        $controlcells.= wf_TableCell(wf_Link("?module=report_arpu", wf_img('skins/ukv/report.png').' '.__('Show'), false, 'ubButton'));
         if ($altcfg['AGENTS_ASSIGN'] == '2') {
             $controlcells.= wf_TableCell(wf_Link("?module=report_agentfinance", 'Search', false, 'ubButton'));
         }

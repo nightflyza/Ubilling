@@ -4,13 +4,25 @@ if (cfr('REPORTSIGNUP')) {
 
     $altercfg = $ubillingConfig->getAlter();
 
+    /**
+     * Returns signups array with some custom options
+     * 
+     * @param string $where
+     * 
+     * @return array
+     */
     function zb_SignupsGet($where) {
         $query = "SELECT * from `userreg` " . $where;
         $result = simple_queryall($query);
         return($result);
     }
-
-    // returns array like $month_num=>$signup_count
+    
+    /**
+     * returns array like $month_num=>$signup_count
+     * 
+     * @param int $year
+     * @return array
+     */
     function zb_SignupsGetCountYear($year) {
         $months = months_array();
         $result = array();
@@ -35,7 +47,14 @@ if (cfr('REPORTSIGNUP')) {
         return($result);
     }
 
-    // shows user signups by year with funny bars
+    /**
+     * Shows user signups by year with funny bars
+     * 
+     * @global object $ubillingConfig
+     * @param int $year
+     * 
+     * @return void
+     */
     function web_SignupsGraphYear($year) {
         global $ubillingConfig;
         $altCfg = $ubillingConfig->getAlter();
@@ -55,7 +74,7 @@ if (cfr('REPORTSIGNUP')) {
         $tablecells.=wf_TableCell(__('Signups'));
         if ($cemeteryEnabled) {
             $tablecells.=wf_TableCell(__('Dead souls'));
-            $tablecells.=wf_TableCell('','10%');
+            $tablecells.=wf_TableCell('', '10%');
         }
         $tablecells.=wf_TableCell(__('Visual'), '50%');
         $tablerows = wf_TableRow($tablecells, 'row1');
@@ -67,8 +86,8 @@ if (cfr('REPORTSIGNUP')) {
             $tablecells.=wf_TableCell($count);
             if ($cemeteryEnabled) {
                 $deadDateMask = $year . '-' . $eachmonth . '-';
-                $deadCount=$cemetery->getDeadDateCount($deadDateMask);
-                $deadBar=  web_barTariffs($count, $deadCount);
+                $deadCount = $cemetery->getDeadDateCount($deadDateMask);
+                $deadBar = web_barTariffs($count, $deadCount);
                 $tablecells.=wf_TableCell($deadCount);
                 $tablecells.=wf_TableCell($deadBar);
             }
@@ -81,6 +100,13 @@ if (cfr('REPORTSIGNUP')) {
         show_window(__('User signups by year') . ' ' . $year, $result);
     }
 
+    /**
+     * Shows current month signups
+     * 
+     * @global object $altercfg
+     * 
+     * @return void
+     */
     function web_SignupsShowCurrentMonth() {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
@@ -141,6 +167,14 @@ if (cfr('REPORTSIGNUP')) {
         show_window(__('Current month user signups'), $result);
     }
 
+    /**
+     * Shows signups by another year-month
+     * 
+     * @global object $altercfg
+     * @param string $cmonth
+     * 
+     * @return void
+     */
     function web_SignupsShowAnotherYearMonth($cmonth) {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
@@ -204,11 +238,17 @@ if (cfr('REPORTSIGNUP')) {
         show_window(__('User signups by month') . ' ' . $cmonth, $result);
     }
 
+    /**
+     * Shows signups performed today
+     * 
+     * @return void
+     */
     function web_SignupsShowToday() {
+        $messages=new UbillingMessageHelper();
         $query = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . curdate() . "%'";
         $sigcount = simple_query($query);
         $sigcount = $sigcount['COUNT(`id`)'];
-        show_window(__('Today signups') . ': ' . $sigcount, '');
+        show_window('',$messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('strong').$sigcount.  wf_tag('strong',true), 'info'));
     }
 
     /**
@@ -266,9 +306,10 @@ if (cfr('REPORTSIGNUP')) {
     $yearinputs = wf_YearSelector('yearsel');
     $yearinputs.=wf_Submit(__('Show'));
     $yearform = wf_Form('?module=report_signup', 'POST', $yearinputs, 'glamour');
+    $yearform.= wf_CleanDiv();
 
-    show_window(__('Year'), $yearform);
     web_SignupsShowToday();
+    show_window(__('Year'), $yearform);
     web_SignupsGraphYear($year);
     web_SignupGraph();
     if ($altercfg['CEMETERY_ENABLED']) {

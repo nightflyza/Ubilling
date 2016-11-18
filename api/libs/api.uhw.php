@@ -8,8 +8,8 @@ class UHW {
      * @return string
      */
     public function panel() {
-        $result = wf_Link('?module=uhw', __('Usage report'), false, 'ubButton');
-        $result.= wf_Link('?module=uhw&showbrute=true', __('Brute attempts'), false, 'ubButton');
+        $result = wf_Link('?module=uhw', wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
+        $result.= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
         return ($result);
     }
 
@@ -75,7 +75,7 @@ class UHW {
      */
     public function renderUsageList() {
         $result = '';
-        
+
         $result.= wf_tag('table', false, 'display compact', 'id="uhwlisthp"');
         $result.= wf_tag('thead', false);
 
@@ -93,9 +93,9 @@ class UHW {
 
         $result.= wf_tag('thead', true);
         $result.= wf_tag('table', true);
-        
-        $columns= array('ID','Date','Password','Login','Address','Real name','IP','NHID','Old MAC','New MAC');
-        $result=  wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100);
+
+        $columns = array('ID', 'Date', 'Password', 'Login', 'Address', 'Real name', 'IP', 'NHID', 'Old MAC', 'New MAC');
+        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100);
         return ($result);
     }
 
