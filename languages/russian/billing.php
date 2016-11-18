@@ -2307,7 +2307,7 @@ $lang['def']['Config name is required'] = 'Требуется указать и�
 $lang['def']['Config name is already used'] = 'Имя конфига уже используется';
 $lang['def']['Restart DHCP server'] = 'Перезапустить DHCP сервер';
 $lang['def']['Local ARP table'] = 'Локальная ARP таблица';
-$lang['def'][''] = '';
+$lang['def']['Host'] = 'Хост';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

@@ -178,7 +178,7 @@ class ArpDiag {
             $result = wf_Link($userUrl . $allUserIps[$ip], web_profile_icon(__('User')) . ' ' . @$allUserAddress[$allUserIps[$ip]], false);
         } else {
             if (isset($allSwitchesIps[$ip])) {
-                $result = wf_Link($switchUrl . $allSwitchesIps[$ip]['id'], wf_img_sized('skins/menuicons/switches.png',__('Switch'),'11','13') . ' ' . $allSwitchesIps[$ip]['location'], false);
+                $result = wf_Link($switchUrl . $allSwitchesIps[$ip]['id'], wf_img_sized('skins/menuicons/switches.png', __('Switch'), '11', '13') . ' ' . $allSwitchesIps[$ip]['location'], false);
             }
         }
         return ($result);
@@ -195,6 +195,7 @@ class ArpDiag {
         $raw = shell_exec($command);
 
         if (!empty($raw)) {
+            $counter = 0;
             $allUserAddress = zb_AddressGetFulladdresslistCached();
             $allUserIps = zb_UserGetAllIPs();
             $allUserIps = array_flip($allUserIps);
@@ -217,11 +218,13 @@ class ArpDiag {
                         $cells.= wf_TableCell($mac);
                         $cells.= wf_TableCell($hostType);
                         $rows.= wf_TableRow($cells, 'row5');
+                        $counter++;
                     }
                 }
             }
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            $result.= __('Total') . ': ' . $counter;
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('Nothing found'), 'warning');
         }
