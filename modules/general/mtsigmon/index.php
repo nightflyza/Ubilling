@@ -38,6 +38,7 @@ if (cfr('MTSIGMON')) {
         function deviceQuery($ip, $community) {
             $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';
             $mask_mac = false;
+            $ubnt_shift = 0;
             $result = array();
             $rawsnmp = array();
 
@@ -46,7 +47,15 @@ if (cfr('MTSIGMON')) {
             $snmp->setMode('native');
             $tmpSnmp = $snmp->walk($ip, $community, $oid, false);
 
-            if (!empty($tmpSnmp)) {
+            // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
+            // in AirOS 5.6 and newer
+            if ($tmpSnmp === "$oid = ") {
+                $oid = '.1.3.6.1.4.1.41112.1.4.7.1.3.1';
+                $tmpSnmp = $snmp->walk($ip, $community, $oid, false);
+                $ubnt_shift = 1;
+            }
+
+            if (!empty($tmpSnmp) and ($tmpSnmp !== "$oid = ")) {
                 $explodeData = explodeRows($tmpSnmp);
                 if (!empty($explodeData)) {
                     foreach ($explodeData as $io => $each) {
@@ -62,7 +71,7 @@ if (cfr('MTSIGMON')) {
                 if (is_array($rawsnmp)) {
                     foreach ($rawsnmp as $indexOID => $rssi) {
                         $oidarray = explode(".", $indexOID);
-                        $end_num = sizeof($oidarray);
+                        $end_num = sizeof($oidarray) + $ubnt_shift;
                         $mac = '';
 
                         for ($counter = 2; $counter < 8; $counter++) {
