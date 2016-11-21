@@ -3,7 +3,7 @@
 class UserSideApi {
 
     const API_VER = '1.4';
-    const API_DATE = '12.10.2016';
+    const API_DATE = '21.11.2016';
 
     /**
      * Stores system alter config as key=>value
@@ -95,6 +95,13 @@ class UserSideApi {
      * @var array
      */
     protected $supportedChangeMethods = array();
+
+    /**
+     * Contains supported user states to change
+     *
+     * @var array
+     */
+    protected $supportedChageUserState = array();
 
     /**
      * Contains localised error notices
@@ -200,7 +207,8 @@ class UserSideApi {
             'get_services_list' => __('Returns available user services'),
             'get_user_history' => __('Returns user financial operations history'),
             'change_user_data' => __('Do some changes with user data'),
-            'get_supported_change_user_data_list' => __('Returns list of supported change user data methods')
+            'get_supported_change_user_data_list' => __('Returns list of supported change user data methods'),
+            'get_supported_change_user_state' => __('Returns list of supported change user states'),
         );
 
         $this->supportedChangeMethods = array(
@@ -209,6 +217,15 @@ class UserSideApi {
             'comment' => __('User notes operations'),
             'tariff' => __('User tariff operations'),
             'state' => __('User state operations'),
+        );
+
+        $this->supportedChageUserState = array(
+            'frozen' => __('Frozen user'),
+            'unfrozen' => __('Not frozen user'),
+            'down' => __('User down'),
+            'notdown' => __('User not down'),
+            'ao' => __('User AlwaysOnline'),
+            'notao' => __('User not AlwaysOnline')
         );
 
         $this->errorNotices = array(
@@ -628,6 +645,21 @@ class UserSideApi {
         if (!empty($this->supportedChangeMethods)) {
             foreach ($this->supportedChangeMethods as $io => $each) {
                 $result[$io]['comment'] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns supported change user state options
+     * 
+     * @return array
+     */
+    protected function getChangeStateMethodsList() {
+        $result = array();
+        if (!empty($this->supportedChageUserState)) {
+            foreach ($this->supportedChageUserState as $io => $each) {
+                $result[$io] = $each;
             }
         }
         return ($result);
@@ -1208,6 +1240,70 @@ class UserSideApi {
     }
 
     /**
+     * Changes user basic state
+     * 
+     * @global object $billing
+     * @param array $changeParams
+     * 
+     * @return array
+     */
+    protected function changeUserState($changeParams) {
+        global $billing;
+        $result = array();
+
+        if (isset($changeParams['customerid'])) {
+            if (isset($this->allUserData[$changeParams['customerid']])) {
+                if (isset($changeParams['value'])) {
+                    $newState = $changeParams['value'];
+                    if (isset($this->supportedChageUserState[$newState])) {
+                        switch ($newState) {
+                            case 'frozen':
+                                $billing->setpassive($changeParams['customerid'], 1);
+                                log_register('CHANGE Passive (' . $changeParams['customerid'] . ') ON 1');
+                                $result = array('result' => 'ok');
+                                break;
+                            case 'unfrozen':
+                                $billing->setpassive($changeParams['customerid'], 0);
+                                log_register('CHANGE Passive (' . $changeParams['customerid'] . ') ON 0');
+                                $result = array('result' => 'ok');
+                                break;
+                            case 'down':
+                                $billing->setdown($changeParams['customerid'], 1);
+                                log_register('CHANGE Down (' . $changeParams['customerid'] . ') ON 1');
+                                $result = array('result' => 'ok');
+                                break;
+                            case 'notdown':
+                                $billing->setdown($changeParams['customerid'], 0);
+                                log_register('CHANGE Down (' . $changeParams['customerid'] . ') ON 0');
+                                $result = array('result' => 'ok');
+                                break;
+                            case 'ao':
+                                $billing->setao($changeParams['customerid'], 1);
+                                log_register('CHANGE AlwaysOnline (' . $changeParams['customerid'] . ') ON 1');
+                                $result = array('result' => 'ok');
+                                break;
+                            case 'notao':
+                                $billing->setao($changeParams['customerid'], 0);
+                                log_register('CHANGE AlwaysOnline (' . $changeParams['customerid'] . ') ON 0');
+                                $result = array('result' => 'ok');
+                                break;
+                        }
+                    } else {
+                        $result = array('result' => 'error', 'error' => $this->errorNotices['EX_METHOD_NOT_SUPPORTED'] . ': ' . $newState);
+                    }
+                } else {
+                    $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': value');
+                }
+            } else {
+                $result = array('result' => 'error', 'error' => $this->errorNotices['EX_USER_NOT_EXISTS'] . ': ' . $changeParams['customerid']);
+            }
+        } else {
+            $result = array('result' => 'error', 'error' => $this->errorNotices['EX_PARAM_MISSED'] . ': customer_id');
+        }
+        return ($result);
+    }
+
+    /**
      * Listens API requests and renders replies for it
      * 
      * @return void
@@ -1271,6 +1367,9 @@ class UserSideApi {
                     case 'get_supported_change_user_data_list':
                         $this->renderReply($this->getChangeMethodsList());
                         break;
+                    case 'get_supported_change_user_state':
+                        $this->renderReply($this->getChangeStateMethodsList());
+                        break;
                     case 'change_user_data':
                         $changeParams = $this->catchChangeParams();
                         if (!empty($changeParams)) {
@@ -1289,6 +1388,9 @@ class UserSideApi {
                                             break;
                                         case 'tariff':
                                             $this->renderReply($this->changeUserTariff($changeParams));
+                                            break;
+                                        case 'state':
+                                            $this->renderReply($this->changeUserState($changeParams));
                                             break;
                                     }
                                 } else {

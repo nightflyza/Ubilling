@@ -1,1 +1,1 @@
-$taskbar.=build_task('ROOT','?module=permissions','coffin.jpg',__('Administrators permissions'));
+$taskbar.=build_task('PERMISSIONS','?module=permissions','coffin.jpg',__('Administrators permissions'));

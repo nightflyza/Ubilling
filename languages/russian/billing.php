@@ -2308,6 +2308,11 @@ $lang['def']['Config name is already used'] = 'Имя конфига уже ис
 $lang['def']['Restart DHCP server'] = 'Перезапустить DHCP сервер';
 $lang['def']['Local ARP table'] = 'Локальная ARP таблица';
 $lang['def']['Host'] = 'Хост';
+$lang['def']['Frozen user'] = 'Пользователь заморожен';
+$lang['def']['Not frozen user'] = 'Пользователь разморожен';
+$lang['def']['User not down'] = 'Пользователь включен';
+$lang['def']['User AlwaysOnline'] = 'Пользователь авторизован';
+$lang['def']['User not AlwaysOnline'] = 'Пользователь не авторизован';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
