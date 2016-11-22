@@ -821,3 +821,10 @@ ul.style3 .first
 	position:relative;
 	top:1px;
 }
+
+/*
+dirty magic class ;)
+*/
+.somemagic {
+    display: none;
+}

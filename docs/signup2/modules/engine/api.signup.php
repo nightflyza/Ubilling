@@ -48,7 +48,7 @@ class SignupService {
         $this->setTemplateData();
     }
 
-    /*
+    /**
      * Loads sigreqconf config from database
      *  
      * @return void 
@@ -105,7 +105,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * preprocessing of raw config into private triggers
      * 
      * @return void
@@ -129,7 +129,7 @@ class SignupService {
         $this->optionCaching = (isset($this->configRaw['CACHING'])) ? true : false;
     }
 
-    /*
+    /**
      * sets ISP name and others propertys to external scope
      * 
      * @return void
@@ -149,7 +149,7 @@ class SignupService {
         $templateData['GREETING_TEXT'] = $this->optionGreetingText;
     }
 
-    /*
+    /**
      * loads cities from database into private data property
      * 
      * @return void
@@ -203,7 +203,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * prepares services for service selector inputs
      * 
      * @return void
@@ -220,7 +220,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * prepares tariffs if available, for tariffs selector inputs
      * 
      * @return void
@@ -237,7 +237,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * prepares hideouts if available, for excluding in city and streets lists
      * 
      * @return void
@@ -249,7 +249,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * loads streets from database into private data property
      * 
      * @return void
@@ -304,7 +304,7 @@ class SignupService {
         }
     }
 
-    /*
+    /**
      * returns city input depends selectable option
      * 
      * @return string
@@ -335,7 +335,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns street input depends options
      * 
      * @return string
@@ -371,7 +371,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns build input
      * 
      * @return string
@@ -382,7 +382,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns apartment input
      * 
      * @return string
@@ -393,7 +393,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns realname input
      * 
      * @return string
@@ -404,7 +404,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns phone number input
      * 
      * @return string
@@ -415,7 +415,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns phone number input
      * 
      * @return string
@@ -426,7 +426,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns services select input
      * 
      * @return string
@@ -440,7 +440,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns tariffs select input
      * 
      * @return string
@@ -454,7 +454,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * anti spam bots dirty magic inputs ;)
      * 
      * @rerutn string
@@ -468,7 +468,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns signup notes input
      * 
      * @return string
@@ -479,7 +479,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * returns signup service main form
      * 
      * @retun string
@@ -550,7 +550,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * filters input data
      * 
      * @param string $data data to filter
@@ -565,7 +565,7 @@ class SignupService {
         return ($data);
     }
 
-    /*
+    /**
      * checks spam fields availability
      * 
      * @return bool 
@@ -583,7 +583,7 @@ class SignupService {
         return ($result);
     }
 
-    /*
+    /**
      * creates signup request in database
      * 
      * @return bool

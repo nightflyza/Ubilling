@@ -640,3 +640,10 @@ ul.style1 .first {
             margin: 8px;
             width: 60%;
          } 
+         
+/*
+dirty magic class ;)
+*/
+.somemagic {
+    display: none;
+}

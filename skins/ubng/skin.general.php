@@ -52,7 +52,7 @@
 	<section id="secondary_bar">
 		<div class="user">
                     <p>
-                    <a href="?idleTimerAutoLogout=true" title="<?=__('Log out');?>" class="logout_user"><img src="skins/ubng/images/poweroff.png"></a>
+                    <a href="?forceLogout=true" title="<?=__('Log out');?>" class="logout_user"><img src="skins/ubng/images/poweroff.png"></a>
                     <?=  whoami();?>
                     </p>
                     <a class="menu_toggle" href="javascript:showhideGlobalMenu();" title="<?=__('Toggle menu');?>"><?=__('Toggle menu');?></a> 

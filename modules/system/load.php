@@ -1,4 +1,5 @@
 <?php
+
 ////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ReloadCMS Development Team                                 //
 //   http://reloadcms.sf.net                                                  //
@@ -9,17 +10,16 @@
 //                                                                            //
 //   This product released under GNU General Public License v2                //
 ////////////////////////////////////////////////////////////////////////////////
-
 ////////////////////////////////////////////////////////////////////////////////
 // Ban check function                                                         //
 ////////////////////////////////////////////////////////////////////////////////
-function ifbanned($ip){
-    if(!$banlist = @file(CONFIG_PATH . 'bans.ini')){
+function ifbanned($ip) {
+    if (!$banlist = @file(CONFIG_PATH . 'bans.ini')) {
         $banlist = array();
     }
-    foreach ($banlist as $banstring){
+    foreach ($banlist as $banstring) {
         $ban = '/^' . str_replace('*', '(\d*)', str_replace('.', '\\.', trim($banstring))) . '$/';
-        if(preg_match($ban, $ip)){
+        if (preg_match($ban, $ip)) {
             return true;
         }
     }
@@ -30,8 +30,8 @@ function ifbanned($ip){
 // Ban check                                                                  //
 ////////////////////////////////////////////////////////////////////////////////
 if (ifbanned($_SERVER['REMOTE_ADDR'])) {
-	rcms_log_put('Notification', $this->user['username'], 'Attempt to access from banned IP');
-	die('You are banned from this site');
+    rcms_log_put('Notification', $this->user['username'], 'Attempt to access from banned IP');
+    die('You are banned from this site');
 }
 
 // UMASK Must be 000!
@@ -53,19 +53,27 @@ include_once(SYSTEM_MODULES_PATH . 'formsgen.php');
 // Initializing session                                                       //
 ////////////////////////////////////////////////////////////////////////////////
 $system = new rcms_system(@$_POST['lang_form'], @$_POST['user_selected_skin']);
-if(!empty($_POST['login_form'])) {
+if (!empty($_POST['login_form'])) {
     $system->logInUser(@$_POST['username'], @$_POST['password'], !empty($_POST['remember']) ? true : false);
 }
-if(!empty($_POST['logout_form'])) {
+if (!empty($_POST['logout_form'])) {
     $system->logOutUser();
 }
-//additional get-request user logout sub
+//additional get-request user auto logout sub
 if (!empty($_GET['idleTimerAutoLogout'])) {
     $system->logOutUser();
     rcms_redirect('index.php');
 }
+
+//normal get-request user logout
+if (!empty($_GET['forceLogout'])) {
+    $system->logOutUser();
+    rcms_redirect('index.php');
+}
+
 define('LOGGED_IN', $system->logged_in);
 
 // Show some messages about activation or initialization
-if(!empty($system->results['user_init'])) show_window('', $system->results['user_init'], 'center');
+if (!empty($system->results['user_init']))
+    show_window('', $system->results['user_init'], 'center');
 ?>

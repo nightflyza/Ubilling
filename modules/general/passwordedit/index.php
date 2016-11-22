@@ -4,7 +4,7 @@ if (cfr('PASSWORD')) {
     if (isset($_GET['username'])) {
         $login = vf($_GET['username']);
         // change password  if need
-        if (isset($_POST['newpassword'])) {
+        if (wf_CheckPost(array('newpassword'))) {
             $password = $_POST['newpassword'];
             if (zb_CheckPasswordUnique($password)) {
                 $billing->setpassword($login, $password);

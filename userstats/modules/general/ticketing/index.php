@@ -8,6 +8,37 @@ $us_helpdenied = zbs_GetHelpdeskDeniedAll();
 if ($us_config['TICKETING_ENABLED']) {
 
     /**
+     * anti spam bots dirty magic inputs ;)
+     * 
+     * @return string
+     */
+    function zbs_spambotsTrap() {
+        $result = la_tag('input', false, 'somemagic', 'type="text" name="surname"');
+        $result.= la_tag('input', false, '', 'type="text" name="lastname" style="display:none;"');
+        $result.= la_tag('input', false, 'somemagic', 'type="text" name="seenoevil"');
+        $result.= la_tag('input', false, 'somemagic', 'type="text" name="mobile"');
+        return ($result);
+    }
+
+    /**
+     * checks spam fields availability
+     * 
+     * @return bool 
+     */
+    function zbs_spamCheck() {
+        $spamTraps = array('surname', 'lastname', 'seenoevil', 'mobile');
+        $result = true;
+        if (!empty($spamTraps)) {
+            foreach ($spamTraps as $eachTrap) {
+                if (la_CheckPost(array($eachTrap))) {
+                    return (false);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns array of all tickets by some login
      * 
      * @param string $mylogin
@@ -101,7 +132,8 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return string
      */
     function zbs_TicketCreateForm() {
-        $inputs = la_TextArea('newticket', '', '', true, '60x10');
+        $inputs = zbs_spambotsTrap();
+        $inputs.= la_TextArea('newticket', '', '', true, '60x10');
         $inputs.= la_Submit(__('Post'));
 
         $result = la_Form('', 'POST', $inputs, '');
@@ -118,7 +150,8 @@ if ($us_config['TICKETING_ENABLED']) {
         $ticketid = vf($ticketid);
         $ticketdata = zbs_TicketGetData($ticketid);
         if ($ticketdata['status'] == 0) {
-            $inputs = la_TextArea('replyticket', '', '', true, '60x10');
+            $inputs = zbs_spambotsTrap();
+            $inputs.= la_TextArea('replyticket', '', '', true, '60x10');
             $inputs.= la_Submit(__('Post'));
             $result = la_Form('', 'POST', $inputs, '');
         } else {
@@ -234,7 +267,9 @@ if ($us_config['TICKETING_ENABLED']) {
             $newtickettext = strip_tags($_POST['newticket']);
             if (!empty($newtickettext)) {
                 if (!isset($us_helpdenied[$user_login])) {
-                    zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+                    if (zbs_spamCheck()) {
+                        zbs_TicketCreate($user_login, 'NULL', $newtickettext);
+                    }
                 }
                 rcms_redirect("?module=ticketing");
             }
@@ -255,7 +290,9 @@ if ($us_config['TICKETING_ENABLED']) {
                 if (isset($_POST['replyticket'])) {
                     $replytickettext = strip_tags($_POST['replyticket']);
                     if (!empty($replytickettext)) {
-                        zbs_TicketCreate($user_login, 'NULL', $replytickettext, $ticketid);
+                        if (zbs_spamCheck()) {
+                            zbs_TicketCreate($user_login, 'NULL', $replytickettext, $ticketid);
+                        }
                         rcms_redirect("?module=ticketing&showticket=" . $ticketid);
                     }
                 }
