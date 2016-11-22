@@ -27,7 +27,7 @@ if (cfr('CITY')) {
             zb_AddressDeleteCity($cityid);
             rcms_redirect('?module=city');
             } else {
-                show_window(__('Error'),__('You can not just remove a city where there are streets and possibly survivors'));
+                show_error(__('You can not just remove a city where there are streets and possibly survivors'));
                 show_window('', wf_Link('?module=city', __('Back'), true, 'ubButton'));
             }
         }

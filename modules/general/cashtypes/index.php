@@ -24,7 +24,7 @@ if (cfr('CASHTYPES')) {
             zb_CashDeleteCashtype($cashtypeid);
             rcms_redirect("?module=cashtypes");
             } else {
-                show_window(__('Error'), __('You know, we really would like to let you perform this action, but his conscience does not allow us to do'));
+                show_error(__('You know, we really would like to let you perform this action, but his conscience does not allow us to do'));
             }
         }
         

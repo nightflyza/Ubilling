@@ -2329,4 +2329,7 @@ $lang['def']['User not down'] = 'Користувача увімкнено';
 $lang['def']['User AlwaysOnline'] = 'Користувача авторизовано';
 $lang['def']['User not AlwaysOnline'] = 'Користувача не авторизовано';
 
+//rev 5184
+$lang['def']['Install license key'] = 'Встановити ключ ліцензії';
+
 ?>

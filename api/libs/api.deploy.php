@@ -311,7 +311,11 @@ class Avarice {
 
 }
 
-
+/**
+ * Renders available license keys with all of required controls 
+ * 
+ * @return void
+ */
   function zb_LicenseLister() {
       $avarice=new Avarice();
       $all=$avarice->getLicenseKeys();
@@ -328,7 +332,7 @@ class Avarice {
               $editinputs.=  wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
               $editinputs.= wf_Submit(__('Save'));
               $editform= wf_Form("", 'POST', $editinputs, 'glamour');
-              $editcontrol=  wf_modal(web_edit_icon(), __('Edit'), $editform, '', '500', '300');
+              $editcontrol=  wf_modal(web_edit_icon(), __('Edit').' '.$each['MODULE'], $editform, '', '500', '300');
               //construct deletion controls
               $deletecontrol=  wf_JSAlert('?module=licensekeys&licensedelete='.$each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
                       
@@ -340,12 +344,11 @@ class Avarice {
       }
       
       
-      
       //constructing license creation form
               $addinputs=  wf_TextArea('createlicense', '', '', true, '50x10');
-              $addinputs.= wf_Submit(__('Add'));
+              $addinputs.= wf_Submit(__('Save'));
               $addform= wf_Form("", 'POST', $addinputs, 'glamour');
-              $addcontrol=  wf_modal(wf_img('skins/icon_add.gif', __('Add')).' '.__('Add'), __('Add'), $addform, 'ubButton', '500', '300');
+              $addcontrol=  wf_modal(wf_img('skins/icon_add.gif').' '.__('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
               
               $result=  wf_TableBody($rows, '100%', 0, '');
               $result.= $addcontrol;

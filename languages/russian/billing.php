@@ -2313,7 +2313,9 @@ $lang['def']['Not frozen user'] = 'Пользователь разморожен
 $lang['def']['User not down'] = 'Пользователь включен';
 $lang['def']['User AlwaysOnline'] = 'Пользователь авторизован';
 $lang['def']['User not AlwaysOnline'] = 'Пользователь не авторизован';
-$lang['def'][''] = '';
+
+//rev 5184
+$lang['def']['Install license key'] = 'Установить ключ лицензии';
 $lang['def'][''] = '';
 
 
