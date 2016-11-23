@@ -502,6 +502,19 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     }
 
                     /*
+                     * SendDog queues processing
+                     */
+                    if ($_GET['action'] == 'senddog') {
+                        if ($alterconf['SENDDOG_ENABLED']) {
+                            $runSendDog = new SendDog();
+                            $sendDogSms = $runSendDog->smsProcessing();
+                            die('OK:SENDDOG SMS `' . $sendDogSms . '`');
+                        } else {
+                            die('ERROR:NO_SENDDOG_ENABLED');
+                        }
+                    }
+
+                    /*
                      * UKV charge fee processing
                      */
                     if ($_GET['action'] == 'ukvfeeprocessing') {

@@ -898,7 +898,7 @@ function ts_TaskCreateForm() {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
     //construct sms sending inputs
-    if ($altercfg['WATCHDOG_ENABLED']) {
+    if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
     } else {
         $smsInputs = '';
@@ -954,7 +954,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $allemployee = ts_GetActiveEmployee();
 
     //construct sms sending inputs
-    if ($altercfg['WATCHDOG_ENABLED']) {
+    if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
     } else {
         $smsInputs = '';
@@ -1006,17 +1006,17 @@ function ts_PreviousUserTasksRender($login) {
     if (!empty($login)) {
         $alljobtypes = ts_GetAllJobtypes();
         $allemployee = ts_GetActiveEmployee();
-        $dateMask=date("Y").'-%';
-        
-        $query = "SELECT * from `taskman` WHERE `login`='" . $login . "' AND `date` LIKE '".$dateMask."' ORDER BY `id` DESC;";
+        $dateMask = date("Y") . '-%';
+
+        $query = "SELECT * from `taskman` WHERE `login`='" . $login . "' AND `date` LIKE '" . $dateMask . "' ORDER BY `id` DESC;";
         $allTasks = simple_queryall($query);
         if (!empty($allTasks)) {
             $result.=wf_tag('hr');
             foreach ($allTasks as $io => $each) {
-                $taskColor=($each['status']) ? 'donetask' : 'undone';
+                $taskColor = ($each['status']) ? 'donetask' : 'undone';
                 $result.=wf_tag('div', false, $taskColor, 'style="width:400px;"');
-                $taskdata=$each['startdate'].' - '.@$alljobtypes[$each['jobtype']].', '.@$allemployee[$each['employee']];
-                $result.= wf_link('?module=taskman&edittask='.$each['id'],  wf_img('skins/icon_edit.gif')).' '.$taskdata;
+                $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']];
+                $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
                 $result.= wf_tag('div', true);
             }
         }
@@ -1040,7 +1040,7 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     $allemployee = ts_GetActiveEmployee();
 
     //construct sms sending inputs
-    if ($altercfg['WATCHDOG_ENABLED']) {
+    if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
     } else {
         $smsInputs = '';
@@ -1088,7 +1088,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
 
     //construct sms sending inputs
-    if ($altercfg['WATCHDOG_ENABLED']) {
+    if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
     } else {
         $smsInputs = '';
@@ -1157,7 +1157,7 @@ function ts_ShowPanel() {
 }
 
 /**
- * Stores SMS for some employee for further sending with watchdog run
+ * Stores SMS for some employee for further sending with senddog run
  * 
  * @param int $employeeid
  * @param string $message
@@ -1168,24 +1168,15 @@ function ts_SendSMS($employeeid, $message) {
     $query = "SELECT `mobile`,`name` from `employee` WHERE `id`='" . $employeeid . "'";
     $empData = simple_query($query);
     $mobile = $empData['mobile'];
-    $employeeName = $empData['name'];
     $result = array();
+    $sms = new UbillingSMS();
     if (!empty($mobile)) {
         if (ispos($mobile, '+')) {
-            $message = str_replace('\r\n', ' ', $message);
-            $message = zb_TranslitString($message);
-            $message = trim($message);
-
-            $number = trim($mobile);
-            $filename = 'content/tsms/ts_' . zb_rand_string(8);
-            $storedata = 'NUMBER="' . $number . '"' . "\n";
-            $storedata.='MESSAGE="' . $message . '"' . "\n";
-            $result['number'] = $number;
+            $sms->sendSMS($mobile, $message, true, 'TASKMAN');
+            $result['number'] = $mobile;
             $result['message'] = $message;
-            file_put_contents($filename, $storedata);
-            log_register("TASKMAN SEND SMS `" . $number . "` FOR `" . $employeeName . "`");
         } else {
-            throw new Exception('BAD_MOBILE_FORMAT');
+            throw new Exception('BAD_MOBILE_FORMAT ' . $mobile);
         }
     }
     return ($result);
@@ -1240,8 +1231,8 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $jobnote = mysql_real_escape_string($jobnote);
 
     $smsData = 'NULL';
-    //store sms for backround processing via watchdog
-    if ($altercfg['WATCHDOG_ENABLED']) {
+    //store sms for backround processing via senddog
+    if ($altercfg['SENDDOG_ENABLED']) {
         if (isset($_POST['newtasksendsms'])) {
             $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -1451,7 +1442,7 @@ function ts_TaskChangeForm($taskid) {
             $smsData = wf_modal(wf_img('skins/icon_sms_micro.gif', __('SMS sent to employees')), __('SMS sent to employees'), $smsDataTable . $smsDataFlushControl, '', '400', '200');
         } else {
             //post sending form
-            if ($altercfg['WATCHDOG_ENABLED']) {
+            if ($altercfg['SENDDOG_ENABLED']) {
                 $smsAddress = str_replace('\'', '`', $taskdata['address']);
                 $smsAddress = mysql_real_escape_string($smsAddress);
                 $smsPhone = mysql_real_escape_string($taskdata['phone']);

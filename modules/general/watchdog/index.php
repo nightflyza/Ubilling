@@ -41,14 +41,7 @@ if(cfr('WATCHDOG')) {
        rcms_redirect("?module=watchdog");
       }
       
-   
-   
-   //show sms queue
-   if (wf_CheckGet(array('showsmsqueue'))) {
-       show_window('', wf_Link('?module=watchdog', __('Back'), true, 'ubButton'));
-       show_window(__('View SMS sending queue'), $interface->showSMSqueue());
-       
-   } else {
+
    //show watchdog main control panel
    show_window('', $interface->panel());
    
@@ -73,7 +66,7 @@ if(cfr('WATCHDOG')) {
        //show task edit form
        show_window(__('Edit task'),$interface->editTaskForm($_GET['edit']));
    }
-   }
+   
    
    } else {
        show_error(__('This module is disabled'));

@@ -13,11 +13,14 @@ class UbillingSMS {
      * @param string $number Mobile number in international format. Eg: +380506666666
      * @param string $message Text message for sending
      * @param bool $translit force message transliteration
+     * @param string $module module that inits SMS sending
+     * 
      * @return bool
      */
-    public function sendSMS($number, $message, $translit = true) {
+    public function sendSMS($number, $message, $translit = true, $module = '') {
         $result = false;
         $number = trim($number);
+        $module = (!empty($module)) ? ' MODULE ' . $module : '';
         if (!empty($number)) {
             if (ispos($number, '+')) {
                 $message = str_replace('\r\n', ' ', $message);
@@ -31,7 +34,7 @@ class UbillingSMS {
                 $result['number'] = $number;
                 $result['message'] = $message;
                 file_put_contents($filename, $storedata);
-                log_register("USMS SEND SMS `" . $number . "`");
+                log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = true;
             }
         }

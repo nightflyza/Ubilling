@@ -3089,6 +3089,8 @@ function zb_DiscountProcessPayments($debug = false) {
  */
 function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
     global $hide_passwords;
+    global $configOptionsMissed;
+    $messages = new UbillingMessageHelper();
     $result = '';
     if ((!empty($configdata)) AND ( !empty($optsdata))) {
         foreach ($optsdata as $option => $handlers) {
@@ -3147,6 +3149,7 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
                 $result.=wf_tag('div', false, '', 'style="vertical-align: top; margin:5px; padding:5px; "');
                 $result.=wf_tag('font', false, '', 'style="color: #FF0000;  font-size:100%"');
                 $result.=__('You missed an important option') . ': ' . $option . '';
+                $configOptionsMissed.=$messages->getStyledMessage(__('You missed an important option') . ': ' . $option, 'error');
                 $result.=wf_tag('font', true);
                 $result.=wf_tag('div', true);
                 $result.=wf_tag('br');
@@ -4389,6 +4392,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
 
 
 

@@ -2319,6 +2319,11 @@ $lang['def']['Install license key'] = 'Установить ключ лицен�
 $lang['def']['Use TurboSMS as default SMS service'] = 'Использовать TurboSMS как службу SMS по-умолчанию';
 $lang['def']['SendDog configuration'] = 'Конфигурация собаки-посылаки';
 $lang['def']['SendDog'] = 'Собака-посылака';
+$lang['def']['SMS sended'] = 'Послано SMS';
+$lang['def']['Is SendDog enabled'] = 'Включена ли собака-посылака?';
+$lang['def']['right to control senddog'] = 'Право управления собакой-посылакой';
+$lang['def']['right to change admins per city permissions'] = 'Право управлениями администраторами по городам';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

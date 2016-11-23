@@ -114,7 +114,7 @@ class DarkVoid {
         }
 
         //check sms sending queue 
-        if ($this->altCfg['WATCHDOG_ENABLED']) {
+        if ($this->altCfg['SENDDOG_ENABLED']) {
             $smsQueueCount = rcms_scandir(DATA_PATH . 'tsms/');
             $smsQueueCount = sizeof($smsQueueCount);
             if ($smsQueueCount > 0) {

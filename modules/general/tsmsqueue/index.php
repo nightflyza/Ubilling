@@ -2,8 +2,8 @@
 
 $altCfg = $ubillingConfig->getAlter();
 
-if ($altCfg['WATCHDOG_ENABLED']) {
-    if (cfr('WATCHDOG')) {
+if ($altCfg['SENDDOG_ENABLED']) {
+    if (cfr('SENDDOG')) {
 
         class TSMSQueue {
 

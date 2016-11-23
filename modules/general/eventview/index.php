@@ -99,6 +99,9 @@ if (cfr('EVENTVIEW')) {
         $stg_q = "SELECT COUNT(`unid`) from `logs_" . date("m") . "_" . date("Y") . "`";
         $stgc = simple_query($stg_q);
         $stgc = $stgc['COUNT(`unid`)'];
+        $sms_q = "SELECT COUNT(`id`) from`weblogs` WHERE `date` LIKE '" . $cmonth . "%' AND `event` LIKE 'USMS SEND SMS %'";
+        $smsc = simple_query($sms_q);
+        $smsc = $smsc['COUNT(`id`)'];
 // workdays fix
         $weeks = ($cday / 7);
         $weeks = intval($weeks);
@@ -142,6 +145,12 @@ if (cfr('EVENTVIEW')) {
         $tablecells.=wf_TableCell($tarchc);
         $tablecells.=wf_TableCell(round(($tarchc / $cday), 2));
         $tablerows.=wf_TableRow($tablecells, 'row3');
+        
+        $tablecells = wf_TableCell(__('SMS sended'));
+        $tablecells.=wf_TableCell($smsc);
+        $tablecells.=wf_TableCell(round(($smsc / $cday), 2));
+        $tablerows.=wf_TableRow($tablecells, 'row3');
+        
 
         $tablecells = wf_TableCell(__('External billing events'));
         $tablecells.=wf_TableCell($eventsc);

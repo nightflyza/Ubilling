@@ -5,10 +5,40 @@
  */
 class WatchDog {
 
-    private $taskData = array();
-    private $oldResults = array();
-    private $curResults = array();
-    private $settings = array();
+    /**
+     * Contains watchdog tasks data
+     *
+     * @var array
+     */
+    protected $taskData = array();
+
+    /**
+     * Contains old results returned by watchdog tasks
+     *
+     * @var array
+     */
+    protected $oldResults = array();
+
+    /**
+     * Contains current watchdog run tasks results
+     *
+     * @var array
+     */
+    protected $curResults = array();
+
+    /**
+     * Contains watchdog configuration as key=>value
+     *
+     * @var array
+     */
+    protected $settings = array();
+
+    /**
+     * System SMS object placeholder
+     *
+     * @var object
+     */
+    protected $sms = '';
 
     const PARAM_EX = 'NO_REQUIRED_TASK_PARAM_';
     const PARAMFMT_EX = 'WRONG_FORMAT_TASK_PARAM_';
@@ -23,6 +53,9 @@ class WatchDog {
 
         //load watchdog settings from database
         $this->loadSettings();
+
+        //init sms class
+        $this->initSMS();
     }
 
     /**
@@ -40,7 +73,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function loadOldResults() {
+    protected function loadOldResults() {
         if (!empty($this->taskData)) {
             foreach ($this->taskData as $iy => $eachPrevResult) {
                 $this->oldResults[$eachPrevResult['id']] = $eachPrevResult['oldresult'];
@@ -53,7 +86,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function loadTasks() {
+    protected function loadTasks() {
         $taskQuery = "SELECT * from `watchdog` WHERE `active`='1';";
         $alltasks = simple_queryall($taskQuery);
         if (!empty($alltasks)) {
@@ -76,7 +109,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function loadSettings() {
+    protected function loadSettings() {
         $alert = zb_StorageGet('WATCHDOG_ALERT');
         $phones = zb_StorageGet('WATCHDOG_PHONES');
         $emails = zb_StorageGet('WATCHDOG_EMAILS');
@@ -99,7 +132,16 @@ class WatchDog {
     }
 
     /**
-     * stores sms for deffered sending via TurboSMS
+     * Inits system SMS queue object
+     * 
+     * @return void
+     */
+    protected function initSMS() {
+        $this->sms = new UbillingSMS();
+    }
+
+    /**
+     * stores sms for deffered sending via senddog
      * 
      * @param string $number - number to send sms in internaitional format
      * @message string $message in utf8 encoding
@@ -107,63 +149,7 @@ class WatchDog {
      * @return array
      */
     public function sendSMS($number, $message) {
-        $number = trim($number);
-        $filename = 'content/tsms/wd_' . zb_rand_string(8);
-        $storedata = 'NUMBER="' . $this->safeEscapeString($number) . '"' . "\n";
-        $storedata.='MESSAGE="' . $this->safeEscapeString($message) . '"' . "\n";
-        file_put_contents($filename, $storedata);
-        log_register("WATCHDOG SEND SMS `" . $number . "`");
-    }
-
-    /**
-     *  sends all sms from local storage
-     *  
-     * @return void
-     */
-    public function backgroundSMSProcessing() {
-        $smsPath = 'content/tsms/';
-        $tsms_host = $this->settings['WATCHDOG_TSMS_GATEWAY'];
-        $tsms_db = 'users';
-        $tsms_login = $this->settings['WATCHDOG_TSMS_LOGIN'];
-        $tsms_password = $this->settings['WATCHDOG_TSMS_PASSWORD'];
-        $tsms_table = $this->settings['WATCHDOG_TSMS_LOGIN'];
-        $sign = $this->safeEscapeString($this->settings['WATCHDOG_TSMS_SIGN']);
-        $result = array();
-        //time shift settings
-        $timezone = '2';
-        $tz_offset = (2 - $timezone) * 3600;
-        $date = date("Y-m-d H:i:s", time() + $tz_offset);
-
-        $allSmsStore = rcms_scandir($smsPath);
-        if (!empty($allSmsStore)) {
-            //open new database connection
-            $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
-            $TsmsDB->open() or die($TsmsDB->error());
-            $TsmsDB->query('SET NAMES utf8;');
-            foreach ($allSmsStore as $eachfile) {
-                $fileData = rcms_parse_ini_file($smsPath . $eachfile);
-                if ((isset($fileData['NUMBER'])) AND ( isset($fileData['MESSAGE']))) {
-                    $query = "
-                INSERT INTO `" . $tsms_table . "`
-                    ( `number`, `sign`, `message`, `wappush`,  `send_time`) 
-                    VALUES
-                    ('" . $fileData['NUMBER'] . "', '" . $sign . "', '" . $fileData['MESSAGE'] . "', '', '" . $date . "');
-                ";
-
-                    //push new sms to database
-                    $TsmsDB->query($query);
-
-                    while ($row = $TsmsDB->fetchassoc()) {
-                        $result[] = $row;
-                    }
-                }
-                //remove old send task
-                unlink($smsPath . $eachfile);
-            }
-            //close old datalink
-            $TsmsDB->close();
-        }
-        return ($result);
+        $this->sms->sendSMS($this->safeEscapeString($number), $this->safeEscapeString($message), false, 'WATCHDOG');
     }
 
     /**
@@ -174,7 +160,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function sendEmail($email, $message) {
+    protected function sendEmail($email, $message) {
         $sender = __('Watchdog');
         $subj = 'Ubilling ' . __('Watchdog');
         $message.=' ' . date("Y-m-d H:i:s");
@@ -191,15 +177,14 @@ class WatchDog {
     }
 
     /**
-     * ugly hack to dirty input data filtering in php 5.4 with multiple DB links
+     * ugly hack to dirty input data filtering with multiple DB links
      * 
      * @param $string - string to filter
      * 
      * @return string
      */
-    private function safeEscapeString($string) {
+    protected function safeEscapeString($string) {
         @$result = preg_replace("#[~@\?\%\/\;=\*\>\<\"\']#Uis", '', $string);
-        ;
         return ($result);
     }
 
@@ -211,7 +196,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function setOldValue($taskID, $value) {
+    protected function setOldValue($taskID, $value) {
         simple_update_field('watchdog', 'oldresult', $value, "WHERE `id`='" . $taskID . "'");
     }
 
@@ -223,7 +208,7 @@ class WatchDog {
      * 
      * @return void
      */
-    private function setCurValue($taskID, $value) {
+    protected function setCurValue($taskID, $value) {
         $this->curResults[$taskID] = $value;
     }
 
@@ -234,7 +219,7 @@ class WatchDog {
      * 
      * @return mixed
      */
-    private function doAction($taskID = NULL) {
+    protected function doAction($taskID = NULL) {
         if (!empty($taskID)) {
             switch ($this->taskData[$taskID]['checktype']) {
                 //do the system icmp ping 
@@ -323,7 +308,7 @@ class WatchDog {
      * 
      * @return string
      */
-    private function getOldValue($taskID = NULL) {
+    protected function getOldValue($taskID = NULL) {
         $result = $this->oldResults[$taskID];
         return ($result);
     }
@@ -335,7 +320,7 @@ class WatchDog {
      * 
      * @return string
      */
-    private function checkCondition($taskID = NULL) {
+    protected function checkCondition($taskID = NULL) {
         if (!empty($taskID)) {
             switch ($this->taskData[$taskID]['operator']) {
                 //boolean true
@@ -568,8 +553,6 @@ class WatchDog {
                 }
             }
         }
-
-        $this->backgroundSMSProcessing();
     }
 
 }
@@ -579,9 +562,26 @@ class WatchDog {
  */
 class WatchDogInterface {
 
-    private $allTasks = array();
-    private $settings = array();
-    private $previousAlerts = array();
+    /**
+     * Contains all watchdog tasks
+     *
+     * @var array
+     */
+    protected $allTasks = array();
+
+    /**
+     * Contains watchdog settings as key=>value
+     *
+     * @var array
+     */
+    protected $settings = array();
+
+    /**
+     * Contains previous watchdog alerts parsed from log
+     *
+     * @var array
+     */
+    protected $previousAlerts = array();
 
     const TASKID_EX = 'NO_REQUIRED_TASK_ID';
     const TASKADD_EX = 'MISSING_REQUIRED_OPTION';
@@ -636,7 +636,7 @@ class WatchDogInterface {
     }
 
     /**
-     * private property allTasks getter
+     * protected property allTasks getter
      * 
      * @return array
      */
@@ -665,35 +665,11 @@ class WatchDogInterface {
         if (empty($emails)) {
             zb_StorageSet('WATCHDOG_EMAILS', '');
         }
-        $smsgateway = zb_StorageGet('WATCHDOG_TSMS_GATEWAY');
-        if (empty($smsgateway)) {
-            $altcfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-            $smsgateway = $altcfg['TSMS_GATEWAY'];
-            zb_StorageSet('WATCHDOG_TSMS_GATEWAY', $smsgateway);
-        }
-        $smslogin = zb_StorageGet('WATCHDOG_TSMS_LOGIN');
-        if (empty($smslogin)) {
-            $smslogin = $altcfg['TSMS_LOGIN'];
-            zb_StorageSet('WATCHDOG_TSMS_LOGIN', $smslogin);
-        }
-        $smspassword = zb_StorageGet('WATCHDOG_TSMS_PASSWORD');
-        if (empty($smspassword)) {
-            $smspassword = $altcfg['TSMS_PASSWORD'];
-            zb_StorageSet('WATCHDOG_TSMS_PASSWORD', $smspassword);
-        }
-        $smssign = zb_StorageGet('WATCHDOG_TSMS_SIGN');
-        if (empty($smssign)) {
-            $smssign = 'Ubilling';
-            zb_StorageSet('WATCHDOG_TSMS_SIGN', $smssign);
-        }
+
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
-        $this->settings['WATCHDOG_TSMS_GATEWAY'] = $smsgateway;
-        $this->settings['WATCHDOG_TSMS_LOGIN'] = $smslogin;
-        $this->settings['WATCHDOG_TSMS_PASSWORD'] = $smspassword;
-        $this->settings['WATCHDOG_TSMS_SIGN'] = $smssign;
     }
 
     /**
@@ -947,9 +923,8 @@ class WatchDogInterface {
         $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton', '400', '300');
         $result.= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
-        $result.= wf_Link("?module=watchdog&showsmsqueue=true", wf_img('skins//icon_sms_micro.gif') . ' ' . __('View SMS sending queue'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');
-        $result.= wf_modal(wf_img('skins/settings.png') . ' ' . __('Settings'), __('Settings'), $settingsWindow, 'ubButton', '750', '350');
+        $result.= wf_modalAuto(wf_img('skins/settings.png') . ' ' . __('Settings'), __('Settings'), $settingsWindow, 'ubButton');
 
         return ($result);
     }
@@ -964,10 +939,6 @@ class WatchDogInterface {
         $inputs = wf_TextInput('changealert', __('Watchdog alert text'), $this->settings['WATCHDOG_ALERT'], true, '30');
         $inputs.= wf_TextInput('changephones', __('Phone numbers to send alerts'), $this->settings['WATCHDOG_PHONES'], true, '30');
         $inputs.= wf_TextInput('changeemails', __('Emails to send alerts'), $this->settings['WATCHDOG_EMAILS'], true, '30');
-        $inputs.= wf_TextInput('changetsmsgateway', __('TurboSMS gateway address'), $this->settings['WATCHDOG_TSMS_GATEWAY'], true);
-        $inputs.= wf_TextInput('changetsmslogin', __('User login to access TurboSMS gateway'), $this->settings['WATCHDOG_TSMS_LOGIN'], true);
-        $inputs.= wf_TextInput('changetsmspassword', __('User password for access TurboSMS gateway'), $this->settings['WATCHDOG_TSMS_PASSWORD'], true);
-        $inputs.= wf_TextInput('changetsmssign', __('TurboSMS') . ' ' . __('Sign'), $this->settings['WATCHDOG_TSMS_SIGN'], true);
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form("", 'POST', $inputs, 'glamour');
         return ($form);
@@ -980,101 +951,11 @@ class WatchDogInterface {
      */
     public function saveSettings() {
         if (wf_CheckPost(array('changealert'))) {
-
             zb_StorageSet('WATCHDOG_ALERT', $_POST['changealert']);
             zb_StorageSet('WATCHDOG_PHONES', $_POST['changephones']);
             zb_StorageSet('WATCHDOG_EMAILS', $_POST['changeemails']);
-            zb_StorageSet('WATCHDOG_TSMS_GATEWAY', $_POST['changetsmsgateway']);
-            zb_StorageSet('WATCHDOG_TSMS_LOGIN', $_POST['changetsmslogin']);
-            zb_StorageSet('WATCHDOG_TSMS_PASSWORD', $_POST['changetsmspassword']);
-            zb_StorageSet('WATCHDOG_TSMS_SIGN', $_POST['changetsmssign']);
-
             log_register("WATCHDOG SETTINGS CHANGED");
         }
-    }
-
-    /**
-     * Shows Turbo SMS sending queue
-     * 
-     * @return string
-     */
-    public function showSMSqueue() {
-        $smsPath = 'content/tsms/';
-        $tsms_host = $this->settings['WATCHDOG_TSMS_GATEWAY'];
-        $tsms_db = 'users';
-        $tsms_login = $this->settings['WATCHDOG_TSMS_LOGIN'];
-        $tsms_password = $this->settings['WATCHDOG_TSMS_PASSWORD'];
-        $tsms_table = $this->settings['WATCHDOG_TSMS_LOGIN'];
-        $smsArray = array();
-
-        $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
-        $TsmsDB->open() or die($TsmsDB->error());
-        $TsmsDB->query('SET NAMES utf8;');
-
-        if (wf_CheckPost(array('showdate'))) {
-            $date = mysql_real_escape_string($_POST['showdate']);
-        } else {
-            $date = '';
-        }
-
-        if (!empty($date)) {
-            $where = " WHERE `send_time` LIKE '" . $date . "%' ORDER BY `id` DESC;";
-        } else {
-            $where = '  ORDER BY `id` DESC LIMIT 50;';
-        }
-
-        $query = "SELECT * from `" . $tsms_table . "`" . $where;
-        $TsmsDB->query($query);
-
-        while ($row = $TsmsDB->fetchassoc()) {
-            $smsArray[] = $row;
-        }
-
-
-        //close old datalink
-        $TsmsDB->close();
-
-        //rendering result
-        $inputs = wf_DatePickerPreset('showdate', curdate());
-        $inputs.= wf_Submit(__('Show'));
-        $dateform = wf_Form("", 'POST', $inputs, 'glamour');
-
-        $lighter = 'onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
-
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Msg ID'));
-        $cells.= wf_TableCell(__('Mobile'));
-        $cells.= wf_TableCell(__('Sign'));
-        $cells.= wf_TableCell(__('Message'));
-        $cells.= wf_TableCell(__('WAP'));
-        $cells.= wf_TableCell(__('Cost'));
-        $cells.= wf_TableCell(__('Send time'));
-        $cells.= wf_TableCell(__('Sended'));
-        $cells.= wf_TableCell(__('Status'));
-        $rows = wf_TableRow($cells, 'row1');
-
-        if (!empty($smsArray)) {
-            foreach ($smsArray as $io => $each) {
-                $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['msg_id']);
-                $cells.= wf_TableCell($each['number']);
-                $cells.= wf_TableCell($each['sign']);
-                $msg = wf_modal(__('Show'), __('SMS'), $each['message'], '', '300', '200');
-                $cells.= wf_TableCell($msg);
-                $cells.= wf_TableCell($each['wappush']);
-                $cells.= wf_TableCell($each['cost']);
-                $cells.= wf_TableCell($each['send_time']);
-                $cells.= wf_TableCell($each['sended']);
-                $cells.= wf_TableCell($each['status']);
-                $rows.=wf_tag('tr', false, 'row3', $lighter);
-                $rows.=$cells;
-                $rows.=wf_tag('tr', true);
-            }
-        }
-
-        $result = $dateform;
-        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-        return ($result);
     }
 
     /**

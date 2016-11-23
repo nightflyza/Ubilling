@@ -170,7 +170,7 @@ class Reminder {
                             if (!empty($template)) {
                                 $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
                                 if (!empty($message)) {
-                                    $this->sms->sendSMS($number, $message, false);
+                                    $this->sms->sendSMS($number, $message, false, 'REMINDER');
                                     file_put_contents(self::FLAGPREFIX . $eachLogin, '');
                                 }
                             }
@@ -212,7 +212,7 @@ class Reminder {
                     if (!empty($template)) {
                         $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
                         if (!empty($message)) {
-                            $this->sms->sendSMS($number, $message, true);
+                            $this->sms->sendSMS($number, $message, true,'REMINDER');
                             log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
                         }
                     }

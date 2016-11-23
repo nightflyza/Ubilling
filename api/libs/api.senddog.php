@@ -139,7 +139,7 @@ class SendDog {
         $tsms_password = $this->settings['TSMS_PASSWORD'];
         $tsms_table = $this->settings['TSMS_LOGIN'];
         $smsArray = array();
-        $total=0;
+        $total = 0;
 
         $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
         $TsmsDB->open() or die($TsmsDB->error());
@@ -207,7 +207,7 @@ class SendDog {
         $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
         $result.= $dateform;
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= __('Total').': '.$total;
+        $result.= __('Total') . ': ' . $total;
         return ($result);
     }
 
@@ -259,6 +259,58 @@ class SendDog {
             zb_StorageSet('SENDDOG_SMS_SERVICE', $_POST['defaultsmsservice']);
             log_register('SENDDOG CONFIG SET SMSSERVICE `' . $_POST['defaultsmsservice'] . '`');
         }
+    }
+
+    /**
+     * Sends all sms storage via TurboSMS service
+     *  
+     * @return void
+     */
+    protected function turbosmsPushMessages() {
+        $sign = $this->safeEscapeString($this->settings['TSMS_SIGN']);
+        //time shift settings
+        $timezone = '2';
+        $tz_offset = (2 - $timezone) * 3600;
+        $date = date("Y-m-d H:i:s", time() + $tz_offset);
+
+        $allSmsQueue = $this->smsQueue->getQueueData();
+        if (!empty($allSmsQueue)) {
+            //open new database connection
+            $TsmsDB = new DbConnect($this->settings['TSMS_GATEWAY'], $this->settings['TSMS_LOGIN'], $this->settings['TSMS_PASSWORD'], 'users', $error_reporting = true, $persistent = false);
+            $TsmsDB->open() or die($TsmsDB->error());
+            $TsmsDB->query('SET NAMES utf8;');
+            foreach ($allSmsQueue as $eachsms) {
+
+                if ((isset($eachsms['number'])) AND ( isset($eachsms['message']))) {
+                    $query = "INSERT INTO `" . $this->settings['TSMS_LOGIN'] . "` ( `number`, `sign`, `message`, `wappush`,  `send_time`) VALUES
+                    ('" . $eachsms['number'] . "', '" . $sign . "', '" . $eachsms['message'] . "', '', '" . $date . "');
+                ";
+                    //push new sms to database
+                    $TsmsDB->query($query);
+                }
+                //remove old send task
+                $this->smsQueue->deleteSms($eachsms['filename']);
+            }
+            //close old datalink
+            $TsmsDB->close();
+        }
+    }
+
+    /**
+     * Loads and sends all stored SMS from system queue
+     * 
+     * @return int
+     */
+    public function smsProcessing() {
+        $smsCount = $this->smsQueue->getQueueCount();
+        if ($smsCount > 0) {
+            switch ($this->settings['SMS_SERVICE']) {
+                case 'tsms':
+                    $this->turbosmsPushMessages();
+                    break;
+            }
+        }
+        return ($smsCount);
     }
 
 }
