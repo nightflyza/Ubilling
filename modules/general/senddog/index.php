@@ -21,6 +21,9 @@ if (cfr('SENDDOG')) {
                 case 'tsms':
                     show_window(__('View SMS sending queue'), $sendDog->renderTurboSMSQueue());
                     break;
+                case 'smsflybalance':
+                    show_window(__('SMS-Fly').' '.__('Balance'), $sendDog->renderSmsflyBalance());
+                    break;
             }
         }
     } else {

@@ -2331,5 +2331,18 @@ $lang['def']['User not AlwaysOnline'] = 'Користувача не автор�
 
 //rev 5184
 $lang['def']['Install license key'] = 'Встановити ключ ліцензії';
+$lang['def']['Use TurboSMS as default SMS service'] = 'Використовувати TurboSMS як службу SMS за замовчуванням';
+$lang['def']['SendDog configuration'] = 'Конфігурація собаки-посилаки';
+$lang['def']['SendDog'] = 'Собака-посилака';
+$lang['def']['SMS sended'] = 'Надіслано SMS';
+$lang['def']['Is SendDog enabled'] = 'Увімкнено собаку-посилаку?';
+$lang['def']['right to control senddog'] = 'Право керування собакою-посилакою';
+$lang['def']['right to change admins per city permissions'] = 'Право керування адміністраторами за містами';
+$lang['def']['SMS-Fly API address'] = 'Адреса API SMS-Fly';
+$lang['def']['Alphaname'] = 'Альфаім`я';
+$lang['def']['User login to access SMS-Fly API'] = 'Ім`я користувача для доступ до API SMS-Fly';
+$lang['def']['User password for access SMS-Fly API'] = 'Пароль користувача для доступу до API SMS-Fly';
+$lang['def']['Use SMS-Fly as default SMS service'] = 'Використовувати SMS-Fly як службу SMS за замовчуванням';
+$lang['def']['Current account balance'] = 'Поточний стан рахунку';
 
 ?>
