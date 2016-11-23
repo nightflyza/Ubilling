@@ -112,6 +112,8 @@ class SendDog {
 
     /**
      * Loads TurboSMS config
+     * 
+     * @return void
      */
     protected function loadTurbosmsConfig() {
         $smsgateway = zb_StorageGet('SENDDOG_TSMS_GATEWAY');
@@ -144,6 +146,11 @@ class SendDog {
         $this->settings['TSMS_SIGN'] = $smssign;
     }
 
+    /**
+     * Loads SMS-Fly service config
+     * 
+     * @return void
+     */
     protected function loadSmsflyConfig() {
         $smsgateway = zb_StorageGet('SENDDOG_SMSFLY_GATEWAY');
         if (empty($smsgateway)) {
@@ -168,7 +175,7 @@ class SendDog {
             zb_StorageSet('SENDDOG_SMSFLY_SIGN', $smssign);
         }
 
-        // 
+        
         $this->settings['SMSFLY_GATEWAY'] = $smsgateway;
         $this->settings['SMSFLY_LOGIN'] = $smslogin;
         $this->settings['SMSFLY_PASSWORD'] = $smspassword;
@@ -228,7 +235,7 @@ class SendDog {
         $cells.= wf_TableCell(__('Mobile'));
         $cells.= wf_TableCell(__('Sign'));
         $cells.= wf_TableCell(__('Message'));
-        $cells.= wf_TableCell(__('WAP'));
+        $cells.= wf_TableCell(__('Balance'));
         $cells.= wf_TableCell(__('Cost'));
         $cells.= wf_TableCell(__('Send time'));
         $cells.= wf_TableCell(__('Sended'));
@@ -243,7 +250,7 @@ class SendDog {
                 $cells.= wf_TableCell($each['sign']);
                 $msg = wf_modal(__('Show'), __('SMS'), $each['message'], '', '300', '200');
                 $cells.= wf_TableCell($msg);
-                $cells.= wf_TableCell($each['wappush']);
+                $cells.= wf_TableCell($each['balance']);
                 $cells.= wf_TableCell($each['cost']);
                 $cells.= wf_TableCell($each['send_time']);
                 $cells.= wf_TableCell($each['sended']);
@@ -267,7 +274,7 @@ class SendDog {
      */
     public function renderSmsflyBalance() {
         $result = '';
-        
+
         $myXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
         $myXML .= "<request>";
         $myXML .= "<operation>GETBALANCE</operation>";
@@ -283,11 +290,44 @@ class SendDog {
         curl_setopt($ch, CURLOPT_POSTFIELDS, $myXML);
         $response = curl_exec($ch);
         curl_close($ch);
-        
+
         $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
-        $result.= $this->messages->getStyledMessage(__('Current account balance').': '.$response, 'info');
+        $result.= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
 
         return ($result);
+    }
+
+    /**
+     * Return set of inputs, required for TurboSMS service configuration
+     * 
+     * @return string
+     */
+    protected function renderTsmsConfigInputs() {
+        $inputs = wf_tag('h2') . __('TurboSMS') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=tsms', wf_img('skins/icon_sms_micro.gif', __('View SMS sending queue')), true) . wf_tag('h2', true);
+        $inputs.= wf_HiddenInput('editconfig', 'true');
+        $inputs.= wf_TextInput('edittsmsgateway', __('TurboSMS gateway address'), $this->settings['TSMS_GATEWAY'], true, 30);
+        $inputs.= wf_TextInput('edittsmslogin', __('User login to access TurboSMS gateway'), $this->settings['TSMS_LOGIN'], true, 20);
+        $inputs.= wf_TextInput('edittsmspassword', __('User password for access TurboSMS gateway'), $this->settings['TSMS_PASSWORD'], true, 20);
+        $inputs.= wf_TextInput('edittsmssign', __('TurboSMS') . ' ' . __('Sign'), $this->settings['TSMS_SIGN'], true, 20);
+        $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'tsms') ? true : false;
+        $inputs.= wf_RadioInput('defaultsmsservice', __('Use TurboSMS as default SMS service'), 'tsms', true, $smsServiceFlag);
+        return ($inputs);
+    }
+    
+    /**
+     * Returns set of inputs, required for SMS-Fly service configuration
+     * 
+     * @return string
+     */
+    protected function renderSmsflyConfigInputs() {
+        $inputs= wf_tag('h2') . __('SMS-Fly') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=smsflybalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
+        $inputs.= wf_TextInput('editsmsflygateway', __('SMS-Fly API address'), $this->settings['SMSFLY_GATEWAY'], true, 30);
+        $inputs.= wf_TextInput('editsmsflylogin', __('User login to access SMS-Fly API'), $this->settings['SMSFLY_LOGIN'], true, 20);
+        $inputs.= wf_TextInput('editsmsflypassword', __('User password for access SMS-Fly API'), $this->settings['SMSFLY_PASSWORD'], true, 20);
+        $inputs.= wf_TextInput('editsmsflysign', __('SMS-Fly') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['SMSFLY_SIGN'], true, 20);
+        $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'smsfly') ? true : false;
+        $inputs.= wf_RadioInput('defaultsmsservice', __('Use SMS-Fly as default SMS service'), 'smsfly', true, $smsServiceFlag);
+        return ($inputs);
     }
 
     /**
@@ -297,24 +337,9 @@ class SendDog {
      */
     public function renderConfigForm() {
         $result = '';
-
-        $inputs = wf_tag('h2') . __('TurboSMS') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=tsms', wf_img('skins/icon_sms_micro.gif', __('View SMS sending queue')), true) . wf_tag('h2', true);
-        $inputs.= wf_HiddenInput('editconfig', 'true');
-        $inputs.= wf_TextInput('edittsmsgateway', __('TurboSMS gateway address'), $this->settings['TSMS_GATEWAY'], true, 30);
-        $inputs.= wf_TextInput('edittsmslogin', __('User login to access TurboSMS gateway'), $this->settings['TSMS_LOGIN'], true, 20);
-        $inputs.= wf_TextInput('edittsmspassword', __('User password for access TurboSMS gateway'), $this->settings['TSMS_PASSWORD'], true, 20);
-        $inputs.= wf_TextInput('edittsmssign', __('TurboSMS') . ' ' . __('Sign'), $this->settings['TSMS_SIGN'], true, 20);
-        $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'tsms') ? true : false;
-        $inputs.= wf_RadioInput('defaultsmsservice', __('Use TurboSMS as default SMS service'), 'tsms', true, $smsServiceFlag);
-
-
-        $inputs.= wf_tag('h2') . __('SMS-Fly') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=smsflybalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
-        $inputs.= wf_TextInput('editsmsflygateway', __('SMS-Fly API address'), $this->settings['SMSFLY_GATEWAY'], true, 30);
-        $inputs.= wf_TextInput('editsmsflylogin', __('User login to access SMS-Fly API'), $this->settings['SMSFLY_LOGIN'], true, 20);
-        $inputs.= wf_TextInput('editsmsflypassword', __('User password for access SMS-Fly API'), $this->settings['SMSFLY_PASSWORD'], true, 20);
-        $inputs.= wf_TextInput('editsmsflysign', __('SMS-Fly') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['SMSFLY_SIGN'], true, 20);
-        $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'smsfly') ? true : false;
-        $inputs.= wf_RadioInput('defaultsmsservice', __('Use SMS-Fly as default SMS service'), 'smsfly', true, $smsServiceFlag);
+        $inputs = $this->renderTsmsConfigInputs();
+        $inputs.= $this->renderSmsflyConfigInputs();
+       
         $inputs.= wf_Submit(__('Save'));
         $result.= wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -414,7 +439,7 @@ class SendDog {
         $result = '';
         $apiUrl = $this->settings['SMSFLY_GATEWAY'];
         $source = $this->safeEscapeString($this->settings['SMSFLY_SIGN']);
-        $description = "Ubilling_".  zb_rand_string(8);
+        $description = "Ubilling_" . zb_rand_string(8);
         $start_time = 'AUTO';
         $end_time = 'AUTO';
         $rate = 1;
