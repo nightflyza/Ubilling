@@ -2316,6 +2316,10 @@ $lang['def']['User not AlwaysOnline'] = 'Пользователь не авто�
 
 //rev 5184
 $lang['def']['Install license key'] = 'Установить ключ лицензии';
+$lang['def']['Use TurboSMS as default SMS service'] = 'Использовать TurboSMS как службу SMS по-умолчанию';
+$lang['def']['SendDog configuration'] = 'Конфигурация собаки-посылаки';
+$lang['def']['SendDog'] = 'Собака-посылака';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 
