@@ -40,6 +40,7 @@ class SendDog {
         $this->initSmsQueue();
         $this->initMessages();
         $this->loadBaseConfig();
+        $this->loadTelegramConfig();
         $this->loadTurbosmsConfig();
         $this->loadSmsflyConfig();
     }
@@ -111,6 +112,20 @@ class SendDog {
     }
 
     /**
+     * Loads telegram config
+     * 
+     * @return void
+     */
+    protected function loadTelegramConfig() {
+        $telegramBotToken = zb_StorageGet('SENDDOG_TELEGRAM_BOTTOKEN');
+        if (empty($telegramBotToken)) {
+            $telegramBotToken = 'input_token_here';
+            zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', $telegramBotToken);
+        }
+        $this->settings['TELEGRAM_BOTTOKEN'] = $telegramBotToken;
+    }
+
+    /**
      * Loads TurboSMS config
      * 
      * @return void
@@ -175,7 +190,7 @@ class SendDog {
             zb_StorageSet('SENDDOG_SMSFLY_SIGN', $smssign);
         }
 
-        
+
         $this->settings['SMSFLY_GATEWAY'] = $smsgateway;
         $this->settings['SMSFLY_LOGIN'] = $smslogin;
         $this->settings['SMSFLY_PASSWORD'] = $smspassword;
@@ -293,7 +308,37 @@ class SendDog {
 
         $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
         $result.= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
+        return ($result);
+    }
 
+    /**
+     * Renders current telegram bot contacts
+     * 
+     * @return string
+     */
+    public function renderTelegramContacts() {
+        $result = '';
+        $telegram = new UbillingTelegram();
+        $telegram->setToken($this->settings['TELEGRAM_BOTTOKEN']);
+        $rawContacts = $telegram->getBotContacts();
+        $result.=wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
+
+        if (!empty($rawContacts)) {
+            $cells = wf_TableCell(__('Chat ID'));
+            $cells.= wf_TableCell(__('Type'));
+            $cells.= wf_TableCell(__('Name'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($rawContacts as $io => $each) {
+                $cells = wf_TableCell($each['chatid']);
+                $cells.= wf_TableCell($each['type']);
+                $cells.= wf_TableCell($each['name']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
         return ($result);
     }
 
@@ -303,7 +348,7 @@ class SendDog {
      * @return string
      */
     protected function renderTsmsConfigInputs() {
-        $inputs = wf_tag('h2') . __('TurboSMS') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=tsms', wf_img('skins/icon_sms_micro.gif', __('View SMS sending queue')), true) . wf_tag('h2', true);
+        $inputs = wf_tag('h2') . __('TurboSMS') . ' ' . wf_Link(self::URL_ME . '&showmisc=tsms', wf_img('skins/icon_sms_micro.gif', __('View SMS sending queue')), true) . wf_tag('h2', true);
         $inputs.= wf_HiddenInput('editconfig', 'true');
         $inputs.= wf_TextInput('edittsmsgateway', __('TurboSMS gateway address'), $this->settings['TSMS_GATEWAY'], true, 30);
         $inputs.= wf_TextInput('edittsmslogin', __('User login to access TurboSMS gateway'), $this->settings['TSMS_LOGIN'], true, 20);
@@ -313,20 +358,32 @@ class SendDog {
         $inputs.= wf_RadioInput('defaultsmsservice', __('Use TurboSMS as default SMS service'), 'tsms', true, $smsServiceFlag);
         return ($inputs);
     }
-    
+
     /**
      * Returns set of inputs, required for SMS-Fly service configuration
      * 
      * @return string
      */
     protected function renderSmsflyConfigInputs() {
-        $inputs= wf_tag('h2') . __('SMS-Fly') . ' ' . wf_Link(self::URL_ME . '&showsmsqueue=smsflybalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
+        $inputs = wf_tag('h2') . __('SMS-Fly') . ' ' . wf_Link(self::URL_ME . '&showmisc=smsflybalance', wf_img_sized('skins/icon_dollar.gif', __('Balance'), '10', '10'), true) . wf_tag('h2', true);
         $inputs.= wf_TextInput('editsmsflygateway', __('SMS-Fly API address'), $this->settings['SMSFLY_GATEWAY'], true, 30);
         $inputs.= wf_TextInput('editsmsflylogin', __('User login to access SMS-Fly API'), $this->settings['SMSFLY_LOGIN'], true, 20);
         $inputs.= wf_TextInput('editsmsflypassword', __('User password for access SMS-Fly API'), $this->settings['SMSFLY_PASSWORD'], true, 20);
         $inputs.= wf_TextInput('editsmsflysign', __('SMS-Fly') . ' ' . __('Sign') . ' (' . __('Alphaname') . ')', $this->settings['SMSFLY_SIGN'], true, 20);
         $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'smsfly') ? true : false;
         $inputs.= wf_RadioInput('defaultsmsservice', __('Use SMS-Fly as default SMS service'), 'smsfly', true, $smsServiceFlag);
+        return ($inputs);
+    }
+
+    /**
+     * Returns set of inputs, required for SMS-Fly service configuration
+     * 
+     * @return string
+     */
+    protected function renderTelegramConfigInputs() {
+        $inputs = wf_tag('h2') . __('Telegram') . ' ' . wf_Link(self::URL_ME . '&showmisc=telegramcontacts', wf_img_sized('skins/icon_search_small.gif', __('Telegram bot contacts'), '10', '10'), true) . wf_tag('h2', true);
+        $inputs.= wf_TextInput('edittelegrambottoken', __('Telegram bot token'), $this->settings['TELEGRAM_BOTTOKEN'], true, 40);
+
         return ($inputs);
     }
 
@@ -339,7 +396,8 @@ class SendDog {
         $result = '';
         $inputs = $this->renderTsmsConfigInputs();
         $inputs.= $this->renderSmsflyConfigInputs();
-       
+        $inputs.= $this->renderTelegramConfigInputs();
+
         $inputs.= wf_Submit(__('Save'));
         $result.= wf_Form('', 'POST', $inputs, 'glamour');
 
@@ -386,6 +444,12 @@ class SendDog {
         if ($_POST['editsmsflysign'] != $this->settings['SMSFLY_SIGN']) {
             zb_StorageSet('SENDDOG_SMSFLY_SIGN', $_POST['editsmsflysign']);
             log_register('SENDDOG CONFIG SET SMSFLYSIGN `' . $_POST['editsmsflysign'] . '`');
+        }
+
+        //telegram bot token configuration
+        if ($_POST['edittelegrambottoken'] != $this->settings['TELEGRAM_BOTTOKEN']) {
+            zb_StorageSet('SENDDOG_TELEGRAM_BOTTOKEN', $_POST['edittelegrambottoken']);
+            log_register('SENDDOG CONFIG SET TELEGRAMBOTTOKEN');
         }
 
 
@@ -496,6 +560,26 @@ class SendDog {
             }
         }
         return ($smsCount);
+    }
+
+    /**
+     * Loads and sends all stored Telegram messages from system queue
+     * 
+     * @return int
+     */
+    public function telegramProcessing() {
+        $telegram = new UbillingTelegram($this->settings['TELEGRAM_BOTTOKEN']);
+        $messagesCount = $telegram->getQueueCount();
+        if ($messagesCount > 0) {
+            $allMessagesData = $telegram->getQueueData();
+            if (!empty($allMessagesData)) {
+                foreach ($allMessagesData as $io => $eachmessage) {
+                    $telegram->directPushMessage($eachmessage['chatid'], $eachmessage['message']);
+                    $telegram->deleteMessage($eachmessage['filename']);
+                }
+            }
+        }
+        return ($messagesCount);
     }
 
 }

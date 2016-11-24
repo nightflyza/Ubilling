@@ -2344,5 +2344,9 @@ $lang['def']['User login to access SMS-Fly API'] = 'Ім`я користувач
 $lang['def']['User password for access SMS-Fly API'] = 'Пароль користувача для доступу до API SMS-Fly';
 $lang['def']['Use SMS-Fly as default SMS service'] = 'Використовувати SMS-Fly як службу SMS за замовчуванням';
 $lang['def']['Current account balance'] = 'Поточний стан рахунку';
+$lang['def']['Telegram bot contacts'] = 'Контакти бота Telegram';
+$lang['def']['Chat ID'] = 'ID чату';
+$lang['def']['Telegram bot token'] = 'Токен бота Telegram';
+$lang['def']['Telegram chat ids to send alerts'] = 'ID чатів Telegram для розсилання повідомлень';
 
 ?>

@@ -9,10 +9,25 @@ class UbillingTelegram {
      */
     protected $botToken = '';
 
+    /**
+     * Contains base Telegram API URL 
+     */
     const URL_API = 'https://api.telegram.org/bot';
 
-    public function __construct() {
-        
+    /**
+     * Contains telegram messages path
+     */
+    const QUEUE_PATH = 'content/telegram/';
+
+    /**
+     * Creates new Telegram object instance
+     * 
+     * @param string $token
+     */
+    public function __construct($token = '') {
+        if (!empty($token)) {
+            $this->botToken = $token;
+        }
     }
 
     /**
@@ -24,6 +39,88 @@ class UbillingTelegram {
      */
     public function setToken($token) {
         $this->botToken = $token;
+    }
+
+    /**
+     * Stores message in telegram sending queue. Use this method in your modules.
+     * 
+     * @param int $chatid
+     * @param string $message
+     * @param bool $translit
+     * @param string $module
+     * 
+     * @return bool
+     */
+    public function sendMessage($chatid, $message, $translit = false, $module = '') {
+        $result = false;
+        $chatid = trim($chatid);
+        $module = (!empty($module)) ? ' MODULE ' . $module : '';
+        if (!empty($chatid)) {
+            $message = str_replace('\r\n', ' ', $message);
+            if ($translit) {
+                $message = zb_TranslitString($message);
+            }
+            $message = trim($message);
+            $filename = self::QUEUE_PATH . 'tlg_' . zb_rand_string(8);
+            $storedata = 'CHATID="' . $chatid . '"' . "\n";
+            $storedata.='MESSAGE="' . $message . '"' . "\n";
+            file_put_contents($filename, $storedata);
+            log_register('UTLG SEND MESSAGE `' . $chatid . '`' . $module);
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns count of messages available in queue
+     * 
+     * @return int
+     */
+    public function getQueueCount() {
+        $messagesQueueCount = rcms_scandir(self::QUEUE_PATH);
+        $result = sizeof($messagesQueueCount);
+        return ($result);
+    }
+
+    /**
+     * Returns array containing all messages queue data as index=>data
+     * 
+     * @return array
+     */
+    public function getQueueData() {
+        $result = array();
+        $messagesQueue = rcms_scandir(self::QUEUE_PATH);
+        if (!empty($messagesQueue)) {
+            foreach ($messagesQueue as $io => $eachmessage) {
+                $messageDate = date("Y-m-d H:i:s", filectime(self::QUEUE_PATH . $eachmessage));
+                $messageData = rcms_parse_ini_file(self::QUEUE_PATH . $eachmessage);
+                $result[$io]['filename'] = $eachmessage;
+                $result[$io]['date'] = $messageDate;
+                $result[$io]['chatid'] = $messageData['CHATID'];
+                $result[$io]['message'] = $messageData['MESSAGE'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes message from local queue
+     * 
+     * @param string $filename Existing message filename
+     * 
+     * @return int 0 - ok, 1 - deletion unsuccessful, 2 - file not found 
+     */
+    public function deleteMessage($filename) {
+        if (file_exists(self::QUEUE_PATH . $filename)) {
+            rcms_delete_files(self::QUEUE_PATH . $filename);
+            $result = 0;
+            if (file_exists(self::QUEUE_PATH . $filename)) {
+                $result = 1;
+            }
+        } else {
+            $result = 2;
+        }
+        return ($result);
     }
 
     /**
@@ -101,7 +198,7 @@ class UbillingTelegram {
      * 
      * @return void
      */
-    public function directSendMessage($chatid, $message) {
+    public function directPushMessage($chatid, $message) {
         $data['chat_id'] = $chatid;
         $data['text'] = $message;
         $data_json = json_encode($data);

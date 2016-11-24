@@ -11,18 +11,21 @@ if (cfr('SENDDOG')) {
             rcms_redirect($sendDog->getBaseUrl());
         }
 
-        if (!wf_CheckGet(array('showsmsqueue'))) {
+        if (!wf_CheckGet(array('showmisc'))) {
             //render config interface
             show_window(__('SendDog configuration'), $sendDog->renderConfigForm());
         } else {
             //render SMS queue
-            $smsQueue = $_GET['showsmsqueue'];
+            $smsQueue = $_GET['showmisc'];
             switch ($smsQueue) {
                 case 'tsms':
                     show_window(__('View SMS sending queue'), $sendDog->renderTurboSMSQueue());
                     break;
                 case 'smsflybalance':
                     show_window(__('SMS-Fly').' '.__('Balance'), $sendDog->renderSmsflyBalance());
+                    break;
+                case 'telegramcontacts':
+                    show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());
                     break;
             }
         }

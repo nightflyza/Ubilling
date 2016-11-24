@@ -31,8 +31,6 @@ class UbillingSMS {
                 $filename = self::QUEUE_PATH . 'us_' . zb_rand_string(8);
                 $storedata = 'NUMBER="' . $number . '"' . "\n";
                 $storedata.='MESSAGE="' . $message . '"' . "\n";
-                $result['number'] = $number;
-                $result['message'] = $message;
                 file_put_contents($filename, $storedata);
                 log_register('USMS SEND SMS `' . $number . '`' . $module);
                 $result = true;

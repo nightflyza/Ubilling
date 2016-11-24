@@ -40,6 +40,13 @@ class WatchDog {
      */
     protected $sms = '';
 
+    /**
+     * System Telegram object placeholder
+     *
+     * @var object
+     */
+    protected $telegram = '';
+
     const PARAM_EX = 'NO_REQUIRED_TASK_PARAM_';
     const PARAMFMT_EX = 'WRONG_FORMAT_TASK_PARAM_';
     const SETTINGS_EX = 'NO_SETTINGS_LOADED';
@@ -56,6 +63,9 @@ class WatchDog {
 
         //init sms class
         $this->initSMS();
+
+        //init telegram class
+        $this->initTelegram();
     }
 
     /**
@@ -113,18 +123,12 @@ class WatchDog {
         $alert = zb_StorageGet('WATCHDOG_ALERT');
         $phones = zb_StorageGet('WATCHDOG_PHONES');
         $emails = zb_StorageGet('WATCHDOG_EMAILS');
-        $smsgateway = zb_StorageGet('WATCHDOG_TSMS_GATEWAY');
-        $smslogin = zb_StorageGet('WATCHDOG_TSMS_LOGIN');
-        $smspassword = zb_StorageGet('WATCHDOG_TSMS_PASSWORD');
-        $smssign = zb_StorageGet('WATCHDOG_TSMS_SIGN');
+        $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
-        $this->settings['WATCHDOG_TSMS_GATEWAY'] = $smsgateway;
-        $this->settings['WATCHDOG_TSMS_LOGIN'] = $smslogin;
-        $this->settings['WATCHDOG_TSMS_PASSWORD'] = $smspassword;
-        $this->settings['WATCHDOG_TSMS_SIGN'] = $smssign;
+        $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
 
         if (empty($this->settings['WATCHDOG_ALERT'])) {
             throw new Exception(self::SETTINGS_EX);
@@ -138,6 +142,15 @@ class WatchDog {
      */
     protected function initSMS() {
         $this->sms = new UbillingSMS();
+    }
+
+    /**
+     * Inits system telegram messages queue object
+     * 
+     * @return void
+     */
+    protected function initTelegram() {
+        $this->telegram = new UbillingTelegram();
     }
 
     /**
@@ -496,6 +509,28 @@ class WatchDog {
                             }
                         }
                     }
+                    //send telegram messages with alerts
+                    if (ispos($taskActions, 'telegram')) {
+                        if (!empty($this->settings['WATCHDOG_TELEGRAM'])) {
+                            $allNotifyTelegramChats = explode(',', $this->settings['WATCHDOG_TELEGRAM']);
+                            if (!empty($allNotifyTelegramChats)) {
+                                $notifyMessageTlg = $this->settings['WATCHDOG_ALERT'] . ' ' . $alertTaskName;
+                                //attach old result to email if needed
+                                if (ispos($taskActions, 'oldresult')) {
+                                    $notifyMessageTlg.=' ' . $this->taskData[$taskID]['oldresult'];
+                                }
+
+                                //attach current results
+                                if (ispos($taskActions, 'andresult')) {
+                                    $notifyMessageTlg.=' ' . $this->curResults[$taskID];
+                                }
+
+                                foreach ($allNotifyTelegramChats as $tlgm => $eachtlgchat) {
+                                    $this->telegram->sendMessage($eachtlgchat, $notifyMessageTlg, false, 'WATCHDOG');
+                                }
+                            }
+                        }
+                    }
                     //run some script with path like [path]
                     if (ispos($taskActions, 'script')) {
                         if (preg_match('!\[(.*?)\]!si', $taskActions, $tmpArr)) {
@@ -509,7 +544,7 @@ class WatchDog {
                         }
                     }
 
-                    //send sms via turboSMS
+                    //send sms messages
                     if (ispos($taskActions, 'sms')) {
                         if (!empty($this->settings['WATCHDOG_PHONES'])) {
                             $allNotifyPhones = explode(',', $this->settings['WATCHDOG_PHONES']);
@@ -665,11 +700,14 @@ class WatchDogInterface {
         if (empty($emails)) {
             zb_StorageSet('WATCHDOG_EMAILS', '');
         }
+        $telegramchats = zb_StorageGet('WATCHDOG_TELEGRAM');
+
 
 
         $this->settings['WATCHDOG_ALERT'] = $alert;
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
+        $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
     }
 
     /**
@@ -939,6 +977,7 @@ class WatchDogInterface {
         $inputs = wf_TextInput('changealert', __('Watchdog alert text'), $this->settings['WATCHDOG_ALERT'], true, '30');
         $inputs.= wf_TextInput('changephones', __('Phone numbers to send alerts'), $this->settings['WATCHDOG_PHONES'], true, '30');
         $inputs.= wf_TextInput('changeemails', __('Emails to send alerts'), $this->settings['WATCHDOG_EMAILS'], true, '30');
+        $inputs.= wf_TextInput('changetelegram', __('Telegram chat ids to send alerts'), $this->settings['WATCHDOG_TELEGRAM'], true, '30');
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form("", 'POST', $inputs, 'glamour');
         return ($form);
@@ -954,6 +993,7 @@ class WatchDogInterface {
             zb_StorageSet('WATCHDOG_ALERT', $_POST['changealert']);
             zb_StorageSet('WATCHDOG_PHONES', $_POST['changephones']);
             zb_StorageSet('WATCHDOG_EMAILS', $_POST['changeemails']);
+            zb_StorageSet('WATCHDOG_TELEGRAM', $_POST['changetelegram']);
             log_register("WATCHDOG SETTINGS CHANGED");
         }
     }
