@@ -512,7 +512,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             $sendDogSms = $runSendDog->smsProcessing();
                             die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`');
                         } else {
-                            die('ERROR:NO_SENDDOG_ENABLED');
+                            die('ERROR:SENDDOG_DISABLED');
                         }
                     }
 
@@ -575,7 +575,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      */
                     if ($_GET['action'] == 'reminder') {
                         if ($alterconf['REMINDER_ENABLED']) {
-                            if ($alterconf['WATCHDOG_ENABLED']) {
+                            if ($alterconf['SENDDOG_ENABLED']) {
                                 $sms = new Reminder();
                                 if (wf_CheckGet(array('param'))) {
                                     if ($_GET['param'] == 'force') {
@@ -590,7 +590,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                 die('OK:SEND REMIND SMS');
                             } else {
-                                die('ERROR:WATCHDOG REQUIRED');
+                                die('ERROR:SENDDOG_REQUIRED');
                             }
                         } else {
                             die('ERROR:REMINDER DISABLED');

@@ -62,7 +62,6 @@ $frm->addbreak(__('Additional information'));
 $frm->addrow(__('Users profiles').' ('.get_user_count().')', format_size(get_dir_size(USERS_PATH)+get_dir_size(DATA_PATH.'avatars/')+get_dir_size(DATA_PATH.'pm/')));
 $frm->addrow(__('Logs'), format_size(get_dir_size(LOGS_PATH)));
 $frm->addrow(__('Config'), format_size(get_dir_size(CONFIG_PATH)));
-$frm->addrow(__('Backups'), format_size(get_dir_size(BACKUP_PATH)));
 
 if($system->checkForRight('ARTICLES-EDITOR')){
 	$frm->addbreak(__('Information from users'));

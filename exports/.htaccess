@@ -1,2 +1,1 @@
-AddType application/octet-stream .export
-Options -Indexes 
+deny from all

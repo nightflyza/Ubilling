@@ -114,16 +114,19 @@ class OpenPayz {
      * @return string
      */
     public function renderSearchForm() {
-        $curYear = (wf_CheckPost(array('searchyear'))) ? vf($_POST['searchyear'], 3) : '';
-        $curMonth = (wf_CheckPost(array('searchmonth'))) ? vf($_POST['searchmonth'], 3) : '';
+        $curYear = (wf_CheckPost(array('searchyear'))) ? vf($_POST['searchyear'], 3) : date("Y");
+        $curMonth = (wf_CheckPost(array('searchmonth'))) ? vf($_POST['searchmonth'], 3) : date("m");
         $curPaysys = (wf_CheckPost(array('searchpaysys'))) ? vf($_POST['searchpaysys']) : '';
         /**
          * No lights, no sights, every fright, every night
          * Alone, hurt and cold, she‘s shackled to the pipes
          */
+        $paySysSelector['ANY'] = __('All');
+        $paySysSelector+= $this->allPaySys;
+
         $inputs = wf_YearSelectorPreset('searchyear', __('Year'), false, $curYear) . ' ';
         $inputs.= wf_MonthSelector('searchmonth', __('Month'), $curMonth, false) . ' ';
-        $inputs.= wf_Selector('searchpaysys', $this->allPaySys, __('Payment system'), $curPaysys, false) . ' ';
+        $inputs.= wf_Selector('searchpaysys', $paySysSelector, __('Payment system'), $curPaysys, false) . ' ';
         $inputs.= wf_Submit(__('Search'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         return ($result);
@@ -158,28 +161,30 @@ class OpenPayz {
         if (!empty($this->allTransactions)) {
             $csvdata = __('ID') . ';' . __('Date') . ';' . __('Cash') . ';' . __('Payment ID') . ';' . __('Real Name') . ';' . __('Full address') . ';' . __('Payment system') . "\n";
             foreach ($this->allTransactions as $io => $eachtransaction) {
-                if ((ispos($eachtransaction['date'], $year . '-' . $month)) AND ( $eachtransaction['paysys'] == $paysys)) {
-                    @$user_login = $this->allCustomers[$eachtransaction['customerid']];
-                    @$user_realname = $this->allRealnames[$user_login];
-                    @$user_address = $this->allAddress[$user_login];
+                if (ispos($eachtransaction['date'], $year . '-' . $month)) {
+                    if (( $eachtransaction['paysys'] == $paysys) OR ( ( $paysys == 'ANY'))) {
+                        @$user_login = $this->allCustomers[$eachtransaction['customerid']];
+                        @$user_realname = $this->allRealnames[$user_login];
+                        @$user_address = $this->allAddress[$user_login];
 
-                    $cells = wf_TableCell($eachtransaction['id']);
-                    $cells.= wf_TableCell($eachtransaction['date']);
-                    $cells.= wf_TableCell($eachtransaction['summ']);
-                    $cells.= wf_TableCell($eachtransaction['customerid']);
-                    $cells.= wf_TableCell($user_realname);
-                    $cells.= wf_TableCell($user_address);
-                    $cells.= wf_TableCell($eachtransaction['paysys']);
-                    $cells.= wf_TableCell(web_bool_led($eachtransaction['processed']));
-                    $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon()));
-                    $rows.= wf_TableRow($cells, 'row3');
-                    if ($eachtransaction['summ'] > 0) {
-                        $totalsumm = $totalsumm + $eachtransaction['summ'];
-                        $totalcount = $totalcount + 1;
+                        $cells = wf_TableCell($eachtransaction['id']);
+                        $cells.= wf_TableCell($eachtransaction['date']);
+                        $cells.= wf_TableCell($eachtransaction['summ']);
+                        $cells.= wf_TableCell($eachtransaction['customerid']);
+                        $cells.= wf_TableCell($user_realname);
+                        $cells.= wf_TableCell($user_address);
+                        $cells.= wf_TableCell($eachtransaction['paysys']);
+                        $cells.= wf_TableCell(web_bool_led($eachtransaction['processed']));
+                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon()));
+                        $rows.= wf_TableRow($cells, 'row3');
+                        if ($eachtransaction['summ'] > 0) {
+                            $totalsumm = $totalsumm + $eachtransaction['summ'];
+                            $totalcount = $totalcount + 1;
+                        }
+
+                        $csvSumm = str_replace('.', ',', $eachtransaction['summ']);
+                        $csvdata.=$eachtransaction['id'] . ';' . $eachtransaction['date'] . ';' . $csvSumm . ';' . $eachtransaction['customerid'] . ';' . $user_realname . ';' . $user_address . ';' . $eachtransaction['paysys'] . "\n";
                     }
-
-                    $csvSumm = str_replace('.', ',', $eachtransaction['summ']);
-                    $csvdata.=$eachtransaction['id'] . ';' . $eachtransaction['date'] . ';' . $csvSumm . ';' . $eachtransaction['customerid'] . ';' . $user_realname . ';' . $user_address . ';' . $eachtransaction['paysys'] . "\n";
                 }
             }
         }

@@ -25,7 +25,5 @@ if($system->checkForRight('GENERAL') || $system->checkForRight('GENERAL-M')) {
 if($system->checkForRight('GENERAL') || $system->checkForRight('UPLOAD')) {
 
 }
-if($system->checkForRight('GENERAL')) {
-    $MODULES[$category][1]['backup'] = __('Backups management');
-}
+
 ?>
