@@ -149,6 +149,55 @@ class UbillingTelegram {
     }
 
     /**
+     * Returns all messages received by bot
+     * 
+     * @return array
+     * @throws Exception
+     */
+    public function getBotChats() {
+        $result = array();
+        if (!empty($this->botToken)) {
+            $rawUpdates = $this->getUpdatesRaw();
+            if (!empty($rawUpdates)) {
+                if (isset($rawUpdates['result'])) {
+                    $allUpdates = $rawUpdates['result'];
+                    foreach ($allUpdates as $io => $each) {
+                        if (isset($each['message'])) {
+                            $messageData = $each['message'];
+                            if (isset($messageData['message_id'])) {
+                                $messageId = $messageData['message_id'];
+                                $result[$messageId]['id'] = $messageId;
+                                $result[$messageId]['date'] = date("Y-m-d H:i:s", $messageData['date']);
+                                $result[$messageId]['chatid'] = $messageData['from']['id'];
+                                $result[$messageId]['from'] = @$messageData['from']['username'];
+                                $result[$messageId]['text'] = @$messageData['text'];
+                                $result[$messageId]['type'] = 'user';
+                            }
+                        }
+
+                        if (isset($each['channel_post'])) {
+                            $messageData = $each['channel_post'];
+
+                            if (isset($messageData['message_id'])) {
+                                $messageId = $messageData['message_id'];
+                                $result[$messageId]['id'] = $messageId;
+                                $result[$messageId]['date'] = date("Y-m-d H:i:s", $messageData['date']);
+                                $result[$messageId]['chatid'] = $messageData['chat']['id'];
+                                $result[$messageId]['from'] = @$messageData['chat']['username'];
+                                $result[$messageId]['text'] = @$messageData['text'];
+                                $result[$messageId]['type'] = 'channel';
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            throw new Exception('EX_TOKEN_EMPTY');
+        }
+        return ($result);
+    }
+
+    /**
      * Returns current bot contacts list as chat_id=>name
      * 
      * @return array
@@ -166,7 +215,7 @@ class UbillingTelegram {
                                 if (isset($each['message']['from']['id'])) {
                                     $messageData = $each['message']['from'];
                                     $result[$messageData['id']]['chatid'] = $messageData['id'];
-                                    $result[$messageData['id']]['name'] = $messageData['username'];
+                                    $result[$messageData['id']]['name'] = @$messageData['username']; //may be empty
                                     $result[$messageData['id']]['type'] = 'user';
                                 }
                             }

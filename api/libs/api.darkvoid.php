@@ -9,18 +9,21 @@ class DarkVoid {
      * @var array
      */
     protected $altCfg = array();
+
     /**
      * Contains current user login
      *
      * @var string
      */
     protected $myLogin = '';
+
     /**
      * Contains alerts cache
      *
      * @var string
      */
     protected $alerts = '';
+
     /**
      * Contains default cache timeout in minutes
      *
@@ -32,7 +35,7 @@ class DarkVoid {
      * Cache storage path
      */
     const CACHE_PATH = 'exports/';
-    
+
     /**
      * Cache prefix
      */
@@ -68,9 +71,9 @@ class DarkVoid {
         }
 
         if ($updateCache) {
-            //ugly hack to prevent alerts update on tsms, senddog and watchdog modules
+            //ugly hack to prevent alerts update on tsms and senddog modules
             if (isset($_GET['module'])) {
-                if (($_GET['module'] != 'turbosms') AND ( $_GET['module'] != 'watchdog') AND ( ( $_GET['module'] != 'senddog'))) {
+                if (($_GET['module'] != 'turbosms') AND ( ( $_GET['module'] != 'senddog'))) {
                     //renew cache
                     $this->updateAlerts();
                 }
