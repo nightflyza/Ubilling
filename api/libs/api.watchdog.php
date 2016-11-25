@@ -41,6 +41,13 @@ class WatchDog {
     protected $sms = '';
 
     /**
+     * System Email object placeholder
+     *
+     * @var object
+     */
+    protected $email = '';
+
+    /**
      * System Telegram object placeholder
      *
      * @var object
@@ -64,6 +71,9 @@ class WatchDog {
         //init sms class
         $this->initSMS();
 
+        //init mail class
+        $this->initEmail();
+        
         //init telegram class
         $this->initTelegram();
     }
@@ -145,6 +155,15 @@ class WatchDog {
     }
 
     /**
+     * Inits system email queue object
+     * 
+     * @return void
+     */
+    protected function initEmail() {
+        $this->email = new UbillingMail();
+    }
+
+    /**
      * Inits system telegram messages queue object
      * 
      * @return void
@@ -174,19 +193,9 @@ class WatchDog {
      * @return void
      */
     protected function sendEmail($email, $message) {
-        $sender = __('Watchdog');
         $subj = 'Ubilling ' . __('Watchdog');
         $message.=' ' . date("Y-m-d H:i:s");
-        $headers = 'From: =?UTF-8?B?' . base64_encode($sender) . '?= <' . $email . ">\n";
-        $headers .= "MIME-Version: 1.0\n";
-        $headers .= 'Message-ID: <' . md5(uniqid(time())) . "@" . $sender . ">\n";
-        $headers .= 'Date: ' . gmdate('D, d M Y H:i:s T', time()) . "\n";
-        $headers .= "Content-type: text/plain; charset=UTF-8\n";
-        $headers .= "Content-transfer-encoding: 8bit\n";
-        $headers .= "X-Mailer: Ubilling\n";
-        $headers .= "X-MimeOLE: Ubilling\n";
-        mail($email, '=?UTF-8?B?' . base64_encode($subj) . '?=', $message, $headers);
-        log_register("WATCHDOG SEND EMAIL `" . $email . "`");
+        $this->email->sendEmail($email, $subj, $message, 'WATCHDOG');
     }
 
     /**

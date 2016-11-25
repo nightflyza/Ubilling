@@ -508,9 +508,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['SENDDOG_ENABLED']) {
                             $runSendDog = new SendDog();
                             $sendDogTelegram = $runSendDog->telegramProcessing();
+                            $sendDogEmail = $runSendDog->emailProcessing();
                             $sendDogSms = $runSendDog->smsProcessing();
-
-                            die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '`');
+                            die('OK:SENDDOG SMS `' . $sendDogSms . '` TLG `' . $sendDogTelegram . '` EML `' . $sendDogEmail . '`');
                         } else {
                             die('ERROR:NO_SENDDOG_ENABLED');
                         }

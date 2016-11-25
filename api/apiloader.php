@@ -86,6 +86,7 @@ include('api/libs/api.dealwithit.php');
 include('api/libs/api.megogo.php');
 include('api/libs/api.userside.php');
 include('api/libs/api.whois.php');
+include('api/libs/api.email.php');
 include('api/libs/api.exhorse.php');
 include('api/libs/api.telegram.php');
 include('api/libs/api.senddog.php');

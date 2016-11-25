@@ -543,6 +543,26 @@ class SendDog {
     }
 
     /**
+     * Loads and sends all email messages from system queue
+     * 
+     * @return int
+     */
+    public function emailProcessing() {
+        $email = new UbillingMail();
+        $messagesCount = $email->getQueueCount();
+        if ($messagesCount > 0) {
+            $allMessagesData = $email->getQueueData();
+            if (!empty($allMessagesData)) {
+                foreach ($allMessagesData as $io => $eachmessage) {
+                    $email->directPushEmail($eachmessage['email'], $eachmessage['subj'], $eachmessage['message']);
+                    $email->deleteMessage($eachmessage['filename']);
+                }
+            }
+        }
+        return ($messagesCount);
+    }
+
+    /**
      * Loads and sends all stored SMS from system queue
      * 
      * @return int
