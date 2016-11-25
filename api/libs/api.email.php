@@ -85,7 +85,7 @@ class UbillingMail {
      * 
      * @return int 0 - ok, 1 - deletion unsuccessful, 2 - file not found 
      */
-    public function deleteMessage($filename) {
+    public function deleteEmail($filename) {
         if (file_exists(self::QUEUE_PATH . $filename)) {
             rcms_delete_files(self::QUEUE_PATH . $filename);
             $result = 0;

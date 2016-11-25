@@ -555,7 +555,7 @@ class SendDog {
             if (!empty($allMessagesData)) {
                 foreach ($allMessagesData as $io => $eachmessage) {
                     $email->directPushEmail($eachmessage['email'], $eachmessage['subj'], $eachmessage['message']);
-                    $email->deleteMessage($eachmessage['filename']);
+                    $email->deleteEmail($eachmessage['filename']);
                 }
             }
         }

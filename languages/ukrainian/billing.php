@@ -2348,5 +2348,8 @@ $lang['def']['Telegram bot contacts'] = 'Контакти бота Telegram';
 $lang['def']['Chat ID'] = 'ID чату';
 $lang['def']['Telegram bot token'] = 'Токен бота Telegram';
 $lang['def']['Telegram chat ids to send alerts'] = 'ID чатів Telegram для розсилання повідомлень';
+$lang['def']['Emails in queue'] = 'Е-мейли у черзі';
+$lang['def']['Telegram messages queue'] = 'Черга повідомлень Telegram';
+$lang['def']['Messages queue'] = 'Черга повідомлень';
 
 ?>

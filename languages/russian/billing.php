@@ -2333,10 +2333,13 @@ $lang['def']['Telegram bot contacts'] = 'Контакты бота Telegram';
 $lang['def']['Chat ID'] = 'ID чата';
 $lang['def']['Telegram bot token'] = 'Токен бота Telegram';
 $lang['def']['Telegram chat ids to send alerts'] = 'ID чатов Telegram для рассылки уведомлений';
+$lang['def']['Emails in queue'] = 'Е-мейлы в очереди';
+$lang['def']['Telegram messages queue'] = 'Очередь сообщений Telegram';
+$lang['def']['Messages queue'] = 'Очередь сообщений';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
-
-
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 ?>
