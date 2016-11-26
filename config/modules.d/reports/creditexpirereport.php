@@ -1,1 +1,0 @@
-$taskbar.=build_task('REPORTCREXP','?module=report_creditexpire','calendar.jpg',__('Credit expire report'));

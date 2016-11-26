@@ -1,1 +1,0 @@
-$taskbar.=build_task('BUILDS','?module=builds','home.jpg',__('Builds'));

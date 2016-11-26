@@ -2,104 +2,368 @@
 
 if (cfr('TASKBAR')) {
 
-    if (isset($_POST['iconsize'])) {
-        $iconsize = vf($_POST['iconsize'], 3);
-        setcookie("tb_iconsize", $iconsize, time() + 86400);
-        rcms_redirect("?module=taskbar");
-    }
+    class UbillingTaskbar {
 
-    $altconf = $ubillingConfig->getAlter();
+        /**
+         * Contains system alter config as key=>value
+         *
+         * @var array
+         */
+        protected $altCfg = array();
 
-    function build_task($right, $link, $icon, $text) {
-        global $system;
-        global $billing_config;
-        global $altconf;
-        $icon_path = CUR_SKIN_PATH . 'taskbar/';
-        if (cfr($right)) {
-            $task_link = $link;
-            $task_icon = $icon_path . $icon;
-            if (!file_exists($task_icon)) {
-                $task_icon = 'skins/taskbar/' . $icon;
+        /**
+         * Contains system billing config as key=>value
+         *
+         * @var array
+         */
+        protected $billCfg = array();
+
+        /**
+         * Message helper object placeholder
+         *
+         * @var object
+         */
+        protected $messages = '';
+
+        /**
+         * Contains currently loaded categories as dir=>name
+         *
+         * @var array
+         */
+        protected $categories = array();
+
+        /**
+         * Contains available icon sizes as size=>name
+         *
+         * @var array
+         */
+        protected $iconSizes = array();
+
+        /**
+         * Contains current run alerts if available
+         *
+         * @var string
+         */
+        protected $currentAlerts = '';
+
+        /**
+         * Contains full list of loaded taskbar elements
+         *
+         * @var array
+         */
+        protected $loadedElements = array();
+
+        /**
+         * Taskbar elements rendered content
+         *
+         * @var string
+         */
+        protected $taskbarContent = '';
+
+        /**
+         * Contains default taskbar elements path
+         */
+        const BASE_PATH = 'config/taskbar.d/';
+
+        /**
+         * Contains default module URL
+         */
+        const URL_ME = '?module=taskbar';
+
+        /**
+         * Creates new taskbar instance
+         */
+        public function __construct() {
+            $this->loadConfigs();
+            $this->initMessages();
+            $this->setCategories();
+            $this->setIconSizes();
+        }
+
+        /**
+         * Loads system alter and billing configs into protected properties
+         * 
+         * @global object $ubillingConfig
+         * 
+         * @return void
+         */
+        protected function loadConfigs() {
+            global $ubillingConfig;
+            $this->altCfg = $ubillingConfig->getAlter();
+            $this->billCfg = $ubillingConfig->getBilling();
+        }
+
+        /**
+         * Inits system message helper object
+         * 
+         * @return void
+         */
+        protected function initMessages() {
+            $this->messages = new UbillingMessageHelper();
+        }
+
+        /**
+         * Sets available taskbar element categories
+         * 
+         * @return void
+         */
+        protected function setCategories() {
+            $this->categories['iusers'] = __('Internet users');
+            $this->categories['directories'] = __('Directories');
+            $this->categories['reports'] = __('Reports');
+            $this->categories['system'] = __('System');
+        }
+
+        /**
+         * Sets available icon sizes
+         * 
+         * @return void
+         */
+        protected function setIconSizes() {
+            $this->iconSizes = array(
+                '128' => __('Normal icons'),
+                '96' => __('Lesser'),
+                '64' => __('Macro'),
+                '48' => __('Micro'),
+                '32' => __('Nano')
+            );
+        }
+
+        /**
+         * Renders taskbar icon element
+         * 
+         * @param string $url
+         * @param string $name
+         * @param string $icon
+         * 
+         * @return string
+         */
+        protected function renderIconElement($url, $elementName, $elementIcon) {
+            $result = '';
+            $name = __($elementName);
+            $iconPath = CUR_SKIN_PATH . 'taskbar/';
+            $icon = $iconPath . $elementIcon;
+            if (!file_exists($icon)) {
+                $icon = 'skins/taskbar/' . $elementIcon;
             }
-            $task_text = $text;
-
 
             if (isset($_COOKIE['tb_iconsize'])) {
                 //is icon customize enabled?
-                if ($altconf['TB_ICONCUSTOMSIZE']) {
-                    $tbiconsize = vf($_COOKIE['tb_iconsize'], 3);
+                if ($this->altCfg['TB_ICONCUSTOMSIZE']) {
+                    $iconsize = vf($_COOKIE['tb_iconsize'], 3);
                 } else {
-                    $tbiconsize = $billing_config['TASKBAR_ICON_SIZE'];
+                    $iconsize = $this->billCfg['TASKBAR_ICON_SIZE'];
                 }
             } else {
-                $tbiconsize = $billing_config['TASKBAR_ICON_SIZE'];
+                $iconsize = $this->billCfg['TASKBAR_ICON_SIZE'];
             }
 
-            if ($altconf['TB_LABELED']) {
-                if ($tbiconsize > 63) {
-                    $template = '<div class="dashtask" style="height:' . ($tbiconsize + 30) . 'px; width:' . ($tbiconsize + 30) . 'px;"> <a href="' . $task_link . '"><img  src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"></a> <br><br>' . $task_text . ' </div>';
+            if ($this->altCfg['TB_LABELED']) {
+                if ($iconsize > 63) {
+                    $result = '<div class="dashtask" style="height:' . ($iconsize + 30) . 'px; width:' . ($iconsize + 30) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a> <br><br>' . $name . ' </div>';
                 } else {
-                    $template = '<div class="dashtask" style="height:' . ($tbiconsize + 10) . 'px; width:' . ($tbiconsize + 10) . 'px;"> <a href="' . $task_link . '"><img  src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"></a></div>';
+                    $result = '<div class="dashtask" style="height:' . ($iconsize + 10) . 'px; width:' . ($iconsize + 10) . 'px;"> <a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $iconsize . '" alt="' . $name . '" title="' . $name . '"></a></div>';
                 }
             } else {
-                $template = '<a href="' . $task_link . '"><img  src="' . $task_icon . '" border="0" width="' . $tbiconsize . '"  height="' . $tbiconsize . '" alt="' . $task_text . '" title="' . $task_text . '"></a><img src="' . $icon_path . 'spacer.gif">  ';
+                $result = '<a href="' . $url . '"><img  src="' . $icon . '" border="0" width="' . $iconsize . '"  height="' . $tbiconsize . '" alt="' . $name . '" title="' . $name . '"></a><img src="' . $icon . 'spacer.gif">  ';
             }
-        } else {
-            $template = '';
+
+            return ($result);
         }
 
-        return ($template);
-    }
+        /**
+         * Checks element required rights, options and returns element content
+         * 
+         * @param array $elementData
+         * 
+         * @return string
+         */
+        protected function buildElement($elementData) {
+            $result = '';
+            $elementId = (isset($elementData['ID'])) ? $elementData['ID'] : '';
+            $elementType = (!empty($elementData['TYPE'])) ? $elementData['TYPE'] : '';
+            //basic taskbar icon
+            if ($elementType == 'icon') {
+                $accesCheck = false;
+                $elementRight = (!empty($elementData['NEED_RIGHT'])) ? $elementData['NEED_RIGHT'] : '';
+                if (!empty($elementRight)) {
+                    if (cfr($elementRight)) {
+                        $accesCheck = true;
+                    }
+                } else {
+                    $accesCheck = true;
+                }
+                //basic rights check
+                if ($accesCheck) {
+                    $elementOption = (!empty($elementData['NEED_OPTION'])) ? $elementData['NEED_OPTION'] : '';
+                    $optionCheck = false;
+                    if (!empty($elementOption)) {
+                        if (isset($this->altCfg[$elementOption])) {
+                            if ($this->altCfg[$elementOption]) {
+                                $optionCheck = true;
+                            }
+                        } else {
+                            if (!isset($elementData['UNIMPORTANT'])) {
+                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption, 'error');
+                            }
+                        }
+                    } else {
+                        $optionCheck = true;
+                    }
 
-    $taskbar = '';
-
-    $taskbar_modules = file_get_contents(CONFIG_PATH . 'taskbar_modules.php');
-
-// load taskbar modules
-    eval($taskbar_modules);
-
-    $ressizelinks = ' ';
-    $iconsizes = array(
-        '128' => __('Normal icons'),
-        '96' => __('Lesser'),
-        '64' => __('Macro'),
-        '48' => __('Micro'),
-        '32' => __('Nano')
-    );
-
-    if (isset($_COOKIE['tb_iconsize'])) {
-        $currentsize = vf($_COOKIE['tb_iconsize'], 3);
-    } else {
-        $currentsize = $billing_config['TASKBAR_ICON_SIZE'];
-    }
-    $resizeinputs = wf_SelectorAC('iconsize', $iconsizes, '', $currentsize, false);
-    $resizeform = wf_Form('', 'POST', $resizeinputs);
+                    if ($optionCheck) {
+                        $elementName = (!empty($elementData['NAME'])) ? $elementData['NAME'] : '';
+                        $elementUrl = (!empty($elementData['URL'])) ? $elementData['URL'] : '';
+                        $elementIcon = (!empty($elementData['ICON'])) ? $elementData['ICON'] : '';
+                        $result.=$this->renderIconElement($elementUrl, $elementName, $elementIcon);
+                    }
+                }
+            }
 
 
-    if ($altconf['TB_ICONCUSTOMSIZE']) {
-        $taskbar.=wf_tag('br') . $resizeform;
-    }
+            return ($result);
+        }
 
-// new tickets notify
-    show_window(__('Taskbar'), $taskbar);
+        /**
+         * Loads and returns category taskbar elements
+         * 
+         * @param string $category
+         * 
+         * @return string
+         */
+        protected function loadCategoryElements($category) {
+            $result = '';
+            $elementsPath = self::BASE_PATH . $category . '/';
+            $allElements = rcms_scandir($elementsPath);
 
+            if (!empty($allElements)) {
+                $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $this->categories[$category] . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
+                $result.= wf_tag('div', false, 'dashboard');
+                foreach ($allElements as $io => $eachfilename) {
+                    $elementData = rcms_parse_ini_file($elementsPath . $eachfilename);
+                    if ((isset($elementData['TYPE'])) AND ( isset($elementData['ID']))) {
+                        if (!isset($this->loadedElements[$elementData['ID']])) {
+                            $this->loadedElements[$elementData['ID']] = $elementData;
+                            $result.=$this->buildElement($elementData);
+                        } else {
+                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $eachfilename, 'warning');
+                        }
+                    } else {
+                        $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $eachfilename, 'warning');
+                    }
+                }
+                $result.= wf_tag('div', true);
+                $result.= wf_tag('div', false, '', 'style="clear:both"') . wf_tag('div', true);
+            }
 
-//refresh IM container with notify
-    if ($altconf['TB_UBIM']) {
-        if ($altconf['TB_UBIM_REFRESH']) {
-            if (cfr('UBIM')) {
-                im_RefreshContainer($altconf['TB_UBIM_REFRESH']);
+            return ($result);
+        }
+
+        /**
+         * Loads and try to render all of available taskbar categories
+         * 
+         * @return string
+         */
+        protected function loadAllCategories() {
+            $result = '';
+            if (!empty($this->categories)) {
+                foreach ($this->categories as $category => $categoryname) {
+                    $result.=$this->loadCategoryElements($category);
+                }
+            }
+            return ($result);
+        }
+
+        /**
+         * Returns icon resize form if enabled
+         * 
+         * @return string
+         */
+        protected function renderResizeForm() {
+            $result = '';
+            if ($this->altCfg['TB_ICONCUSTOMSIZE']) {
+                if (isset($_COOKIE['tb_iconsize'])) {
+                    $currentsize = vf($_COOKIE['tb_iconsize'], 3);
+                } else {
+                    $currentsize = $this->billCfg['TASKBAR_ICON_SIZE'];
+                }
+                $resizeinputs = wf_SelectorAC('iconsize', $this->iconSizes, '', $currentsize, false);
+
+                $result.= wf_tag('br');
+                $result.= wf_Form('', 'POST', $resizeinputs);
+            }
+
+            return ($result);
+        }
+
+        /**
+         * Catches and applies icon resize event
+         * 
+         * @return void
+         */
+        protected function catchIconsizeChange() {
+            if (isset($_POST['iconsize'])) {
+                $iconsize = vf($_POST['iconsize'], 3);
+                setcookie("tb_iconsize", $iconsize, time() + 86400);
+                rcms_redirect(self::URL_ME);
             }
         }
+
+        /**
+         * Renders instant messenger notification
+         * 
+         * @return void
+         */
+        protected function loadUbim() {
+            //refresh IM container with notify
+            if ($this->altCfg['TB_UBIM']) {
+                if ($this->altCfg['TB_UBIM_REFRESH']) {
+                    if (cfr('UBIM')) {
+                        im_RefreshContainer($this->altCfg['TB_UBIM_REFRESH']);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returs available sticky notes if enabled
+         * 
+         * @return string
+         */
+        protected function loadStickyNotes() {
+            $result = '';
+            if (isset($this->altCfg['STICKY_NOTES_ENABLED'])) {
+                if ($this->altCfg['STICKY_NOTES_ENABLED']) {
+                    $stickyNotes = new StickyNotes(true);
+                    $result = $stickyNotes->renderTaskbarNotify();
+                }
+            }
+            return ($result);
+        }
+
+        /**
+         * Returns rendered taskbar elements and services content
+         * 
+         * @return string
+         */
+        public function renderTaskbar() {
+            $result = '';
+            $this->catchIconsizeChange();
+            $this->taskbarContent = $this->loadAllCategories();
+            if (!empty($this->currentAlerts)) {
+                $result.=$this->currentAlerts;
+            }
+            $result.=$this->taskbarContent;
+            $result.=$this->renderResizeForm();
+            $result.=$this->loadStickyNotes();
+            $this->loadUbim();
+            return ($result);
+        }
+
     }
 
-    //sticky notes support
-    if (isset($altconf['STICKY_NOTES_ENABLED'])) {
-        if ($altconf['STICKY_NOTES_ENABLED']) {
-            $stickyNotes = new StickyNotes(true);
-            show_window('', $stickyNotes->renderTaskbarNotify());
-        }
-    }
+    $taskbar = new UbillingTaskbar();
+    show_window(__('Taskbar'), $taskbar->renderTaskbar());
 } else {
     show_error(__('Access denied'));
 }

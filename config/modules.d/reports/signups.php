@@ -1,1 +1,0 @@
-$taskbar.=build_task('REPORTSIGNUP','?module=report_signup','icon_report_signup.png',__('Signup report'));

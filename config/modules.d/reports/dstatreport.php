@@ -1,1 +1,0 @@
-$taskbar.=build_task('REPORTDSTAT','?module=report_dstat','noteedit.jpg',__('Detailed stats report'));

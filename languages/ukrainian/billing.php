@@ -2351,5 +2351,8 @@ $lang['def']['Telegram chat ids to send alerts'] = 'ID чатів Telegram дл�
 $lang['def']['Emails in queue'] = 'Е-мейли у черзі';
 $lang['def']['Telegram messages queue'] = 'Черга повідомлень Telegram';
 $lang['def']['Messages queue'] = 'Черга повідомлень';
+$lang['def']['Wrong element format'] = 'Невірний формат елементу';
+$lang['def']['Missed config option'] = 'Пропущено опцію конфігу';
+$lang['def']['Duplicate element ID'] = 'Дублікат ідентифікатора елементу';
 
 ?>
