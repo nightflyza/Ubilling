@@ -66,6 +66,11 @@ if (cfr('TASKBAR')) {
         const BASE_PATH = 'config/taskbar.d/';
 
         /**
+         * Contains path to widgets code
+         */
+        const WIDGETS_CODEPATH = 'config/taskbar.d/widgets/';
+
+        /**
          * Contains default module URL
          */
         const URL_ME = '?module=taskbar';
@@ -108,6 +113,7 @@ if (cfr('TASKBAR')) {
          * @return void
          */
         protected function setCategories() {
+            $this->categories['widgets'] = '';
             $this->categories['iusers'] = __('Internet users');
             $this->categories['directories'] = __('Directories');
             $this->categories['reports'] = __('Reports');
@@ -220,6 +226,55 @@ if (cfr('TASKBAR')) {
                 }
             }
 
+            //widgets loading
+            if ($elementType == 'widget') {
+                $accesCheck = false;
+                $elementRight = (!empty($elementData['NEED_RIGHT'])) ? $elementData['NEED_RIGHT'] : '';
+                if (!empty($elementRight)) {
+                    if (cfr($elementRight)) {
+                        $accesCheck = true;
+                    }
+                } else {
+                    $accesCheck = true;
+                }
+                //basic rights check
+                if ($accesCheck) {
+                    $elementOption = (!empty($elementData['NEED_OPTION'])) ? $elementData['NEED_OPTION'] : '';
+                    $optionCheck = false;
+                    if (!empty($elementOption)) {
+                        if (isset($this->altCfg[$elementOption])) {
+                            if ($this->altCfg[$elementOption]) {
+                                $optionCheck = true;
+                            }
+                        } else {
+                            if (!isset($elementData['UNIMPORTANT'])) {
+                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption, 'error');
+                            }
+                        }
+                    } else {
+                        $optionCheck = true;
+                    }
+
+                    if ($optionCheck) {
+                        //run widget code
+                        if (isset($elementData['CODEFILE'])) {
+                            if (file_exists(self::WIDGETS_CODEPATH . $elementData['CODEFILE'])) {
+                                require_once (self::WIDGETS_CODEPATH . $elementData['CODEFILE']);
+                                if (class_exists($elementData['ID'])) {
+                                    $widget = new $elementData['ID']();
+                                    $result.=$widget->render();
+                                } else {
+                                    $this->currentAlerts.=$this->messages->getStyledMessage(__('Widget class not exists') . ': ' . $elementData['ID'], 'error');
+                                }
+                            } else {
+                                $this->currentAlerts.=$this->messages->getStyledMessage(__('File not exist') . ': ' . self::WIDGETS_CODEPATH . $elementData['CODEFILE'], 'warning');
+                            }
+                        } else {
+                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $elementData['ID'], 'warning');
+                        }
+                    }
+                }
+            }
 
             return ($result);
         }
@@ -234,10 +289,12 @@ if (cfr('TASKBAR')) {
         protected function loadCategoryElements($category) {
             $result = '';
             $elementsPath = self::BASE_PATH . $category . '/';
-            $allElements = rcms_scandir($elementsPath);
+            $allElements = rcms_scandir($elementsPath, '*.ini');
 
             if (!empty($allElements)) {
-                $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $this->categories[$category] . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
+                $categoryName = (isset($this->categories[$category])) ? $this->categories[$category] : '';
+
+                $result.=wf_tag('p') . wf_tag('h3') . wf_tag('u') . $categoryName . wf_tag('u', true) . wf_tag('h3', true) . wf_tag('p', true);
                 $result.= wf_tag('div', false, 'dashboard');
                 foreach ($allElements as $io => $eachfilename) {
                     $elementData = rcms_parse_ini_file($elementsPath . $eachfilename);
@@ -357,6 +414,46 @@ if (cfr('TASKBAR')) {
             $result.=$this->renderResizeForm();
             $result.=$this->loadStickyNotes();
             $this->loadUbim();
+            return ($result);
+        }
+
+    }
+
+    /**
+     * Basic widgets class.
+     */
+    class TaskbarWidget {
+
+        /**
+         * Creates new instance of taskbar widget
+         */
+        public function __construct() {
+            
+        }
+
+        /**
+         * Returns content in default taskbar dashtask coontainer
+         * 
+         * @param string $content
+         * @param string $options
+         * 
+         * @return string
+         */
+        protected function widgetContainer($content, $options = '') {
+            $result = wf_tag('div', false, 'dashtask', $options);
+            $result.= $content;
+            $result.=wf_tag('div', true);
+            $result.=wf_CleanDiv();
+            return ($result);
+        }
+
+        /**
+         * Returns result that directly embeds into taskbar
+         * 
+         * @return string
+         */
+        public function render() {
+            $result = 'EMPTY_WIDGET';
             return ($result);
         }
 
