@@ -2339,7 +2339,7 @@ $lang['def']['Messages queue'] = 'Очередь сообщений';
 $lang['def']['Wrong element format'] = 'Неправильный формат елемента';
 $lang['def']['Missed config option'] = 'Пропущена опция в конфиге';
 $lang['def']['Duplicate element ID'] = 'Дубликат идентификатора элемента';
-$lang['def'][''] = '';
+$lang['def']['Widget class not exists'] = 'Класс виджета не существует';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 ?>

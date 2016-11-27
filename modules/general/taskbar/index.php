@@ -303,7 +303,7 @@ if (cfr('TASKBAR')) {
                             $this->loadedElements[$elementData['ID']] = $elementData;
                             $result.=$this->buildElement($elementData);
                         } else {
-                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $eachfilename, 'warning');
+                            $this->currentAlerts.=$this->messages->getStyledMessage(__('Duplicate element ID') . ': ' . $elementData['ID'] . ' -> ' . $eachfilename, 'warning');
                         }
                     } else {
                         $this->currentAlerts.=$this->messages->getStyledMessage(__('Wrong element format') . ': ' . $eachfilename, 'warning');

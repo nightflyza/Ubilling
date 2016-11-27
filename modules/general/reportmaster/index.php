@@ -404,7 +404,8 @@ if (cfr('REPORTMASTER')) {
             if ($in_charset != $out_charset) {
                 $result = iconv($in_charset, $out_charset, $result);
             }
-            // push data for excel handler
+            log_register('DOWNLOAD FILE `userbase.csv`');
+            // push data for csv handler
             header('Content-type: application/ms-excel');
             header('Content-Disposition: attachment; filename=userbase.csv');
             echo $result;

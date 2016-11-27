@@ -2354,5 +2354,6 @@ $lang['def']['Messages queue'] = 'Черга повідомлень';
 $lang['def']['Wrong element format'] = 'Невірний формат елементу';
 $lang['def']['Missed config option'] = 'Пропущено опцію конфігу';
 $lang['def']['Duplicate element ID'] = 'Дублікат ідентифікатора елементу';
+$lang['def']['Widget class not exists'] = 'Класс віджета не існує';
 
 ?>
