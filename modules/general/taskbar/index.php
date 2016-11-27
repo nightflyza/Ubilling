@@ -443,7 +443,7 @@ if (cfr('TASKBAR')) {
             $result = wf_tag('div', false, 'dashtask', $options);
             $result.= $content;
             $result.=wf_tag('div', true);
-            $result.=wf_CleanDiv();
+            //$result.=wf_CleanDiv();
             return ($result);
         }
 

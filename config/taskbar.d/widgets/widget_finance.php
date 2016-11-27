@@ -73,7 +73,7 @@ class widget_finance extends TaskbarWidget {
                 }
             }
 
-            $result = $this->widgetContainer(wf_gchartsLine($chartData, __('Month payments'), '450px;', '128px;', ''));
+            $result = $this->widgetContainer(wf_gchartsLine($chartData, __('Month payments'), '500px', '256px', ''));
         }
         return ($result);
     }
