@@ -195,7 +195,7 @@ if (cfr('TASKBAR')) {
                 if (!empty($elementRight)) {
                     if (cfr($elementRight)) {
                         $accesCheck = true;
-                    }
+                    } 
                 } else {
                     $accesCheck = true;
                 }

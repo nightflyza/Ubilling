@@ -133,6 +133,8 @@ function multinet_nettype_selector($curnettype = '') {
         'dhcpdynamic' => 'DHCP dynamic hosts',
         'dhcp82' => 'DHCP option 82',
         'dhcp82_vpu' => 'DHCP option 82 + vlan per user',
+	'dhcp82_bdcom'	 => 'DHCP option 82 + mac onu (BDCOM)',
+	'dhcp82_zte'	 => 'DHCP option 82 + mac onu (ZTE)',
         'pppstatic' => 'PPP static network',
         'pppdynamic' => 'PPP dynamic network',
         'other' => 'Other type'
@@ -398,48 +400,134 @@ function handle_dhcp_rebuild_option82($netid, $confname) {
 function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
-        $confpath = 'multinet/' . $confname;
-        $allhosts = simple_queryall($query);
-        $result = '';
-        if (!empty($allhosts)) {
-            foreach ($allhosts as $io => $eachhost) {
-                $login = UserGetLoginByIP($eachhost['ip']);
-                $netid = GetNetidByIp($eachhost['ip']);
-                $remote = GetTermRemoteByNetid($netid);
-                $vlan = UserGetVlan($login);
-                $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
-                $customTemplate = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
-                if (!empty($vlan)) {
-                    if (empty($customTemplate)) {
-                        $customTemplate = '
+	$confpath	 = 'multinet/' . $confname;
+	$allhosts	 = simple_queryall($query);
+	$allVlans	 = GetAllUserVlan();
+	$allIps		 = GetAllUserIp();
+	$result		 = '';
+	if (!empty($allhosts)) {
+	    foreach ($allhosts as $io => $eachhost) {
+		$login = $allIps[$eachhost['ip']];
+		if (isset($allVlans[$login])) {
+		    //$netid		 = GetNetidByIp($eachhost['ip']);
+		    $remote		 = GetTermRemoteByNetid($netid);
+		    $vlan		 = $allVlans[$login];
+		    $dhcphostname	 = 'm' . str_replace('.', 'x', $eachhost['ip']);
+		    $customTemplate	 = file_get_contents(CONFIG_PATH . "dhcp/option82_vpu.template");
+		    if (!empty($vlan)) {
+			if (empty($customTemplate)) {
+			    $customTemplate = '
 class "{HOSTNAME}" { match if binary-to-ascii (16, 8, "", option agent.remote-id) = "{REMOTEID}" and binary-to-ascii(10, 16, "", substring(option agent.circuit-id,2,2)) = "{CIRCUITID}"; }
 pool {
 range {IP};
 allow members of "{HOSTNAME}";
 }
-host {HOSTNAME} {
-fixed-address {IP};
-}
 ' . "\n";
-                    }
-                    if (isset($vlan)) {
-                        $parseTemplate = $customTemplate;
-                        $parseTemplate = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
-                        $parseTemplate = str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
-                        $parseTemplate = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
-                        $parseTemplate = str_ireplace('{REMOTEID}', $remote, $parseTemplate);
-                        $result.=$parseTemplate;
-                    }
-                }
-            }
-            file_put_contents($confpath, $result);
-//deb('REWRITED NOT EMPTY:'.$confpath);
-        } else {
-            file_put_contents($confpath, $result);
-//deb('REWRITED EMPTY:'.$confpath);
-        }
+			}
+			$parseTemplate	 = $customTemplate;
+			$parseTemplate	 = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+			$parseTemplate	 = str_ireplace('{CIRCUITID}', $vlan, $parseTemplate);
+			$parseTemplate	 = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+			$parseTemplate	 = str_ireplace('{REMOTEID}', $remote, $parseTemplate);
+			$result.=$parseTemplate;
+		    }
+		}
+	    }
+	    file_put_contents($confpath, $result);
+	} else {
+	    file_put_contents($confpath, $result);
+	}
     }
 }
+
+function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
+    $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+    if (!empty($confname)) {
+	$confpath	 = 'multinet/' . $confname;
+	$allhosts	 = simple_queryall($query);
+	$allOnu		 = GetAllUserOnu();
+	$allIps		 = GetAllUserIp();
+	$result		 = '';
+	if (!empty($allhosts)) {
+	    foreach ($allhosts as $io => $eachhost) {
+		$login	 = $allIps[$eachhost['ip']];
+		$mac	 = '';
+		if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+		    $macFull = explode(":", $allOnu[$login]);
+		    foreach ($macFull as $eachOctet) {
+			$validOctet = preg_replace('/^0/', '', $eachOctet);
+			$mac.=$validOctet . ':';
+		    }
+		    $mac_len	 = strlen($mac);
+		    $mac		 = substr($mac, 0, $mac_len - 1);
+		    $dhcphostname	 = 'm' . str_replace('.', 'x', $eachhost['ip']);
+		    $customTemplate	 = file_get_contents(CONFIG_PATH . "dhcp/option82_bdcom.template");
+		    if (empty($customTemplate)) {
+			$customTemplate = '
+class "{HOSTNAME}" { match if binary-to-ascii(16,8,":",substring(option agent.remote-id,0,6)) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+		    }
+		    $parseTemplate	 = $customTemplate;
+		    $parseTemplate	 = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+		    $parseTemplate	 = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
+		    $parseTemplate	 = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+		    $result.=$parseTemplate;
+		}
+	    }
+	    file_put_contents($confpath, $result);
+	} else {
+	    file_put_contents($confpath, $result);
+	}
+    }
+}
+
+function handle_dhcp_rebuild_option82_zte($netid, $confname) {
+    $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
+    if (!empty($confname)) {
+	$confpath	 = 'multinet/' . $confname;
+	$allhosts	 = simple_queryall($query);
+	$allOnu		 = GetAllUserOnu();
+	$allIps		 = GetAllUserIp();
+	$result		 = '';
+	if (!empty($allhosts)) {
+	    foreach ($allhosts as $io => $eachhost) {
+		$login	 = $allIps[$eachhost['ip']];
+		$mac	 = '';
+		if (isset($allOnu[$login]) AND ! empty($allOnu[$login])) {
+		    $macFull = explode(":", $allOnu[$login]);
+		    foreach ($macFull as $eachOctet) {
+			$validOctet = preg_replace('/^0/', '', $eachOctet);
+			$mac.=strtoupper($eachOctet);
+		    }
+		    $dhcphostname	 = 'm' . str_replace('.', 'x', $eachhost['ip']);
+		    $customTemplate	 = file_get_contents(CONFIG_PATH . "dhcp/option82_zte.template");
+		    if (empty($customTemplate)) {
+			$customTemplate = '
+class "{HOSTNAME}" { match if substring(option agent.circuit-id,49,12) = "{CIRCUITID}"; }
+pool {
+range {IP};
+allow members of "{HOSTNAME}";
+}
+' . "\n";
+		    }
+		    $parseTemplate	 = $customTemplate;
+		    $parseTemplate	 = str_ireplace('{HOSTNAME}', $dhcphostname, $parseTemplate);
+		    $parseTemplate	 = str_ireplace('{CIRCUITID}', $mac, $parseTemplate);
+		    $parseTemplate	 = str_ireplace('{IP}', $eachhost['ip'], $parseTemplate);
+		    $result.=$parseTemplate;
+		}
+	    }
+	    file_put_contents($confpath, $result);
+	} else {
+	    file_put_contents($confpath, $result);
+	}
+    }
+}
+
 
 function handle_ppp_rebuild_static($netid) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
@@ -498,6 +586,7 @@ function multinet_rebuild_globalconf() {
     $allMembers = simple_queryall($allMembers_q);
     $membersMacroContent = '';
     $vlanMembersMacroContent = '';
+    $onuMembersMacroContent	 = '';
 
     if (!empty($allMembers)) {
         foreach ($allMembers as $ix => $eachMember) {
@@ -508,20 +597,26 @@ function multinet_rebuild_globalconf() {
     }
 
     if (isset($altCfg['VLANGEN_SUPPORT'])) {
-        if ($altCfg['VLANGEN_SUPPORT']) {
-            $vlanMembers_q = "SELECT `ip` FROM `users` WHERE `login` IN(SELECT `login` FROM `vlanhosts`);";
-            $allVlanMembers = simple_queryall($vlanMembers_q);
-            if (!empty($allVlanMembers)) {
-                foreach ($allVlanMembers as $ivl => $eachVlanMember) {
-                    $memberVlanClass = 'm' . str_replace('.', 'x', $eachVlanMember['ip']);
-                    ;
-                    $vlanMembersMacroContent.='deny members of "' . $memberVlanClass . '";' . "\n";
-                }
-            }
-        }
+	if ($altCfg['VLANGEN_SUPPORT']) {
+	    $vlanMembers_q	 = "SELECT `ip` FROM `users` WHERE `login` IN(SELECT `login` FROM `vlanhosts`);";
+	    $allVlanMembers	 = simple_queryall($vlanMembers_q);
+	    if (!empty($allVlanMembers)) {
+		foreach ($allVlanMembers as $ivl => $eachVlanMember) {
+		    $memberVlanClass = 'm' . str_replace('.', 'x', $eachVlanMember['ip']);		    
+		    $vlanMembersMacroContent.='deny members of "' . $memberVlanClass . '";' . "\n";
+		}
+	    }
+	}
     }
 
-
+    $onuMembers_q	 = "SELECT `ip` FROM `nethosts` WHERE `netid` IN (SELECT `id` FROM `networks` WHERE `nettype` = 'dhcp82_bdcom' or `nettype` = 'dhcp82_zte');";
+    $allOnuMembers	 = simple_queryall($onuMembers_q);
+    if (!empty($allOnuMembers)) {
+	foreach ($allOnuMembers as $index => $eachOnuMember) {
+	    $memberOnuClass = 'm' . str_replace('.', 'x', $eachOnuMember['ip']);
+	    $onuMembersMacroContent.='deny members of "' . $memberOnuClass . '";' . "\n";
+	}
+    }
 
     $subnets = '';
     if (!empty($alldhcpsubnets)) {
@@ -551,6 +646,7 @@ function multinet_rebuild_globalconf() {
     $globdata['{SUBNETS}'] = $subnets;
     $globdata['{DENYMEMBERS}'] = $membersMacroContent;
     $globdata['{DENYVLANGENMEMBERS}'] = $vlanMembersMacroContent;
+    $globdata['{DENYONUMEMBERS}']		 = $onuMembersMacroContent;
     $globconf = multinet_ParseTemplate($global_template, $globdata);
     file_write_contents("multinet/dhcpd.conf", $globconf);
 }
@@ -574,6 +670,16 @@ function multinet_rebuild_all_handlers() {
                 handle_dhcp_rebuild_option82_vpu($eachnet['id'], $dhcpdata82_vpu['confname']);
             }
 
+	    if ($eachnet['nettype'] == 'dhcp82_bdcom') {
+		$dhcpdata82_bdcom = dhcp_get_data_by_netid($eachnet['id']);
+		handle_dhcp_rebuild_option82_bdcom($eachnet['id'], $dhcpdata82_bdcom['confname']);
+	    }
+	    
+	    if ($eachnet['nettype'] == 'dhcp82_zte') {
+		$dhcpdata82_zte = dhcp_get_data_by_netid($eachnet['id']);
+		handle_dhcp_rebuild_option82_zte($eachnet['id'], $dhcpdata82_zte['confname']);
+	    }
+	    
             if ($eachnet['nettype'] == 'pppstatic') {
                 handle_ppp_rebuild_static($eachnet['id']);
             }

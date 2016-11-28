@@ -58,6 +58,11 @@ class VlanMacHistory {
 	$this->LoadVlanMacHistory();
     }
 
+    /**
+     * load all data from `vlan_terminators` to $allTerminators
+     * 
+     * @return void
+     */
     protected function LoadTerminators() {
 	$query	 = "SELECT * FROM " . VlanTerminator::DB_TABLE;
 	$data	 = simple_queryall($query);
@@ -122,6 +127,11 @@ class VlanMacHistory {
 	}
     }
 
+    /**
+     * load all from `vlan_mac_history` to $allHistory
+     * 
+     * @return void
+     */
     protected function LoadVlanMacHistory() {
 	$query	 = "SELECT * FROM " . self::DB_NAME;
 	$data	 = simple_queryall($query);
@@ -136,6 +146,7 @@ class VlanMacHistory {
      * Find vlan terminators snmp template
      * 
      * @param string $login
+     * 
      * @return string
      */
     protected function GetTerminatorSnmpTemplate($login) {
@@ -148,6 +159,7 @@ class VlanMacHistory {
      * 
      * @param string $login
      * @param int $vlan
+     * 
      * @return string
      */
     protected function GetOnlineDetectOid($login, $vlan = false) {
@@ -169,12 +181,13 @@ class VlanMacHistory {
      * 
      * @param string $login
      * @param int $vlan
+     * 
      * @return string
      */
     public function GetUserVlanOnline($login, $vlan) {
 	snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
 	if ($this->GetOnlineDetectOid($login, $vlan)) {
-	    @$data = snmp2_real_walk($this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip'], $this->AllSwitches[$this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip']]['snmp'], $this->GetOnlineDetectOid($login, $vlan));
+	    $data = @snmp2_real_walk($this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip'], $this->AllSwitches[$this->allTerminators[$this->allVlanHosts[$login]['vlanpoolid']]['ip']]['snmp'], $this->GetOnlineDetectOid($login, $vlan));
 	    if (empty($data)) {
 		return "Offline" . " " . wf_img_sized('skins/icon_inactive.gif', '', '', '12');
 	    } else {
@@ -186,8 +199,9 @@ class VlanMacHistory {
     }
 
     /**
+     * Parse snmp reply and pass it to function which writes data to DB
      * 
-     * @return type
+     * @return void
      */
     public function WriteVlanMacData() {
 	$count = 0;
@@ -195,7 +209,7 @@ class VlanMacHistory {
 	    foreach ($this->allTerminators as $eachTerminator) {
 		$ip		 = $eachTerminator["ip"];
 		$vlanPoolId	 = $eachTerminator['vlanpoolid'];
-		$data		 = snmp2_real_walk($ip, $this->AllSwitches[$ip]['snmp'], '.1.3.6.1.4.1.9.9.380.1.4.1.1.3');
+		$data		 = @snmp2_real_walk($ip, $this->AllSwitches[$ip]['snmp'], '.1.3.6.1.4.1.9.9.380.1.4.1.1.3');
 		foreach ($data as $each => $value) {
 		    $decmac		 = str_replace('.1.3.6.1.4.1.9.9.380.1.4.1.1.3.', '', $each);
 		    $vlanPlusMac	 = explode(".", $decmac, 2);
@@ -220,6 +234,15 @@ class VlanMacHistory {
 	file_put_contents(self::FLAGPREFIX, $count);
     }
 
+    /**
+     * Get parsed snmp data about vlan, mac and time when device was assigned IP address and write it to DB
+     * 
+     * @param string $login
+     * @param int $vlan     
+     * @param string $mac
+     * 
+     * @return void
+     */
     protected function WriteHistory($login, $vlan, $mac) {
 	$query = "INSERT INTO " . self::DB_NAME . " (`id`, `login`, `vlan`, `mac`, `date`) VALUES (NULL,'" . $login . "','" . $vlan . "','" . $mac . "', NULL);";
 	nr_query($query);
@@ -229,6 +252,7 @@ class VlanMacHistory {
      * Converts decimal (delimiter is dot) MAC to heximal (delimiter is semicolon)
      * 
      * @param string $mac
+     * 
      * @return string
      */
     protected function dec2mac($mac) {
@@ -242,6 +266,13 @@ class VlanMacHistory {
 	return ($string);
     }
 
+    /**
+     * Gether web form and return in in table view
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
     public function RenderHistory($login) {
 	$history	 = $this->allHistory;
 	$tablecells	 = wf_TableCell(__('ID'));
@@ -377,6 +408,7 @@ class VlanGen {
      * Searching vlan by login in AllVlanHosts
      * 
      * @param string $login
+     * 
      * @return int $vlan
      */
     public function GetVlan($login) {
@@ -391,6 +423,7 @@ class VlanGen {
      * Searching QinQ value for vlan pool in AllVlanPools
      * 
      * @param type $VlanPoolID
+     * 
      * @return int $QinQ
      */
     protected function GetVlanPoolQinQ($VlanPoolID) {
@@ -406,6 +439,7 @@ class VlanGen {
      * 
      * @param int $first
      * @param int $end
+     * 
      * @return array $pool
      */
     protected function VlanPoolExpand($first, $end) {
@@ -424,6 +458,7 @@ class VlanGen {
      * Find all unused values from all possible values from VlanPoolExpand
      * 
      * @param int $VlanPoolID
+     * 
      * @return array $freePool
      */
     protected function GetAllFreeVlan($VlanPoolID) {
@@ -447,6 +482,7 @@ class VlanGen {
      * Find all unused values from all possible values from VlanPoolExpand
      * 
      * @param int $vlanPoolID
+     * 
      * @return array $freePool
      */
     protected function GetAllFreeVlanQinQ($vlanPoolID) {
@@ -472,6 +508,7 @@ class VlanGen {
      * Getting first unused value in all possible values of vlan pool
      * 
      * @param int $vlanPoolID
+     * 
      * @return int $allFreeVlans[$tmp[0]
      */
     protected function GetNextFreeVlan($vlanPoolID) {
@@ -484,6 +521,7 @@ class VlanGen {
      * Getting first unused value in all possible values of vlan pool
      * 
      * @param int $vlanPoolID
+     * 
      * @return int $allFreeVlans[$tmp[0]
      */
     protected function GetNextFreeVlanQinQ($vlanPoolID) {
@@ -496,6 +534,7 @@ class VlanGen {
      * Find netid by user's IP
      * 
      * @param string $ip
+     * 
      * @return int $data['netid']
      */
     protected function GetNetidByIP($ip) {
@@ -508,6 +547,7 @@ class VlanGen {
      * Find vlan terminator id by netid
      * 
      * @param int $netid
+     * 
      * @return int $data['id']
      */
     protected function GetTermIdByNetid($netid) {
@@ -522,6 +562,7 @@ class VlanGen {
      * @param int $VlanPoolID
      * @param int $vlan
      * @param string $login
+     * 
      * @return void
      */
     protected function AddVlanHost($VlanPoolID, $vlan, $login) {
@@ -538,6 +579,7 @@ class VlanGen {
      * @param int $LastVlan
      * @param int $QinQ
      * @param int $sVlan
+     * 
      * @return void
      */
     public function AddVlanPool($Desc, $FirstVlan, $LastVlan, $QinQ, $sVlan) {
@@ -562,6 +604,7 @@ class VlanGen {
      * @param int $svlan
      * @param int $cvlan
      * @param string $login
+     * 
      * @return void
      */
     protected function AddVlanHostQinQ($vlanpoolid, $svlan, $cvlan, $login) {
@@ -629,6 +672,7 @@ class VlanGen {
      * Delete users vlan data from DB
      * 
      * @param string $login
+     * 
      * @return void
      */
     public function DeleteVlanHost($login) {
@@ -641,6 +685,7 @@ class VlanGen {
      * Delete users vlan data from DB
      * 
      * @param type $login
+     * 
      * @return void
      */
     public function DeleteVlanHostQinQ($login) {
@@ -653,6 +698,7 @@ class VlanGen {
      * Delete vlan pool data from DB
      * 
      * @param int $VlanPoolID
+     * 
      * @return void
      */
     public function DeleteVlanPool($VlanPoolID) {
@@ -661,6 +707,12 @@ class VlanGen {
 	log_register('DELETE VlanPool [' . $VlanPoolID . ']');
     }
 
+    /**
+     * Gather web form and returns it.
+     * Form is used for applying vlan on onu.
+     * 
+     * @return string
+     */
     public function ChangeOnOnuForm() {
 	$Inputs	 = wf_SubmitClassed('true', 'vlanButton', 'ChangeOnuPvid', __('Change pvid on onu port'));
 	$Form	 = wf_Form("", 'POST', $Inputs);
@@ -670,7 +722,7 @@ class VlanGen {
     /**
      * For for changing pvid on switch port
      * 
-     * @return form
+     * @return string
      */
     public function ChangeOnPortForm() {
 	$inputs	 = wf_SubmitClassed('true', 'vlanButton', 'ChangeVlanOnPort', __('Change vlan on switch port'));
@@ -681,7 +733,7 @@ class VlanGen {
     /**
      * Returns form for change\apply vlan on user
      * 
-     * @return object
+     * @return string
      */
     public function ChangeForm() {
 	$inputs	 = wf_tag('label', false, 'vlanLabel');
@@ -697,7 +749,7 @@ class VlanGen {
     /**
      * Returns form for delete users vlan
      * 
-     * @return object
+     * @return string
      */
     public function DeleteForm() {
 	$inputs	 = wf_SubmitClassed('true', 'vlanButton', 'DeleteVlanHost', __('Delete user Vlan'));
@@ -715,6 +767,7 @@ class VlanGen {
      * @param int $qinq
      * @param int $svlan
      * @param int $id
+     * 
      * @return void
      */
     public function EditVlanPool($first, $last, $desc, $qinq, $svlan, $id) {
@@ -738,7 +791,8 @@ class VlanGen {
      * Form for editing vlan pool data
      * 
      * @param int $PoolID
-     * @return object
+     * 
+     * @return string
      */
     public function VlanPoolEditForm($PoolID) {
 	$PoolData	 = $this->AllVlanPools[$PoolID];
@@ -762,6 +816,7 @@ class VlanGen {
      * 
      * @param string $ip
      * @param int $vlan
+     * 
      * @return void
      */
     protected function OnVlanConnect($ip, $vlan) {
@@ -800,10 +855,11 @@ class VlanGen {
     }
 
     /**
-     * Changes\applies users vlan
+     * Changes\applies users vlan on vlan terminator
      * 
      * @param int $newVlanPoolID
      * @param string $login
+     * 
      * @return void
      */
     public function VlanChange($newVlanPoolID, $login) {
@@ -832,6 +888,10 @@ class VlanGen {
 
 class VlanTerminator {
 
+    const MODULE		 = 'Vlan Terminator';
+    const MODULE_URL	 = '?module=nas';
+    const DB_TABLE	 = 'vlan_terminators';
+
     /**
      * Contains all vlan terminators data
      * 
@@ -853,16 +913,17 @@ class VlanTerminator {
      */
     protected $NetworkSelector = array();
 
-    const MODULE		 = 'Vlan Terminator';
-    const MODULE_URL	 = '?module=nas';
-    const DB_TABLE	 = 'vlan_terminators';
-
     public function __construct() {
 	$this->LoadTerminators();
 	$this->LoadVlanPoolsSelector();
 	$this->LoadNetworkSelecor();
     }
 
+    /**
+     * Load all from `vlan_terminator` to $allTerminators
+     * 
+     * @return void
+     */
     protected function LoadTerminators() {
 	$query	 = "SELECT * FROM " . self::DB_TABLE;
 	$data	 = simple_queryall($query);
@@ -873,6 +934,11 @@ class VlanTerminator {
 	}
     }
 
+    /**
+     * Load data for making web form (select) for selecting vlan pool
+     * 
+     * @return void
+     */
     protected function LoadVlanPoolsSelector() {
 	$query	 = "SELECT * FROM " . VlanGen::POOL_DB_TABLE;
 	$data	 = simple_queryall($query);
@@ -883,6 +949,11 @@ class VlanTerminator {
 	}
     }
 
+    /**
+     * Load data for making web form (select) for selecting network.
+     * 
+     * @return void
+     */
     protected function LoadNetworkSelecor() {
 	$query	 = "SELECT * FROM `networks`";
 	$data	 = simple_queryall($query);
@@ -897,6 +968,7 @@ class VlanTerminator {
      * Delete vlan terminator data from DB
      * 
      * @param int $id
+     * 
      * @return void
      */
     public function delete($id) {
@@ -917,6 +989,7 @@ class VlanTerminator {
      * @param string $remote
      * @param string $interface
      * @param string $relay
+     * 
      * @return void
      */
     public function add($netid, $vlanpoolid, $ip, $type, $username, $password, $remote, $interface, $relay) {
@@ -939,6 +1012,7 @@ class VlanTerminator {
      * @param string $Interface
      * @param string $Relay
      * @param int $id
+     * 
      * @return void
      */
     public function edit($NetID, $VlanPool, $TerminatorIP, $TerminatorType, $TerminatorLogin, $TerminatorPass, $RemoteID, $Interface, $Relay, $id) {
@@ -957,7 +1031,7 @@ class VlanTerminator {
     /**
      * Show's all vlan terminators data
      * 
-     * @return object
+     * @return string
      */
     public function RenderTerminators() {
 	$tablecells	 = wf_TableCell(__('ID'));
@@ -997,7 +1071,7 @@ class VlanTerminator {
     /**
      * Returns form for adding vlan terminator to DB
      * 
-     * @return object
+     * @return string
      */
     public function AddForm() {
 	$type	 = array('FreeBSD' => 'FreeBSD', 'Linux' => 'Linux', 'Cisco' => 'Cisco', 'Cisco_static' => 'Cisco_static');
@@ -1022,7 +1096,8 @@ class VlanTerminator {
      * Returns form for editing vlan terminators data in DB
      * 
      * @param int $id
-     * @return object     
+     * 
+     * @return string
      */
     public function EditForm($id) {
 	$TermData	 = $this->AllTerminators[$id];
@@ -1111,6 +1186,11 @@ class SwitchLogin {
 	}
     }
 
+    /**
+     * Load all from `switchmodels` to $AllSwitchModels.
+     * 
+     * @return void
+     */
     protected function LoadAllSwitchModels() {
 	$query	 = "SELECT * FROM `switchmodels`";
 	$data	 = simple_queryall($query);
@@ -1121,6 +1201,11 @@ class SwitchLogin {
 	}
     }
 
+    /**
+     * Load data from switches, parse it and place to $SwitchSelector.
+     * 
+     * @return void
+     */
     protected function LoadSwitchSelecor() {
 	$query	 = "SELECT * FROM `switches`";
 	$data	 = simple_queryall($query);
@@ -1131,6 +1216,11 @@ class SwitchLogin {
 	}
     }
 
+    /**
+     * Parse all found files in directory, reads directive ['define']['DEVICE'] and place it to $AllAutoconfigSnmptemplates.
+     * 
+     * @return void
+     */
     protected function LoadAutoconfigSnmp() {
 	$allTemplates	 = rcms_scandir(self::PATH);
 	$templates	 = array();
@@ -1151,7 +1241,7 @@ class SwitchLogin {
     /**
      * Shows form for adding new snmp login data for switch
      * 
-     * @return object
+     * @return string
      */
     public function SwLoginAddSnmpForm() {
 	$cell	 = wf_HiddenInput('add', 'true');
@@ -1173,7 +1263,8 @@ class SwitchLogin {
      * Shows form for editing existing snmp login for switch
      * 
      * @param int $id
-     * @return object
+     * 
+     * @return string
      */
     public function SwLoginEditSnmpForm($id) {
 	$params	 = $this->AllSwLogin[$id];
@@ -1196,7 +1287,7 @@ class SwitchLogin {
     /**
      * Shows form for adding new ssh\telnet login data for switch
      * 
-     * @return object
+     * @return string
      */
     public function SwLoginAddConnForm() {
 	$conn	 = array('SSH' => __('SSH'), 'TELNET' => __('TELNET'));
@@ -1223,7 +1314,8 @@ class SwitchLogin {
      * Shows form for editing existing ssh\telnet login data for switch
      * 
      * @param int $id
-     * @return object
+     * 
+     * @return string
      */
     public function SwLoginEditConnForm($id) {
 	$params	 = $this->AllSwLogin[$id];
@@ -1257,6 +1349,7 @@ class SwitchLogin {
      * @param string $method
      * @param string $community
      * @param int $enable
+     * 
      * @return void
      */
     public function SwLoginAdd($SwModel, $SwLogin, $SwPass, $Method, $Community, $Enable, $snmpTemplate) {
@@ -1279,6 +1372,7 @@ class SwitchLogin {
      * @param string $Community
      * @param int $Enable
      * @param int $id
+     * 
      * @return void
      */
     public function SwLoginEditQuery($SwModel, $SwLogin, $SwPass, $Method, $Community, $Enable, $snmpTemplate, $id) {
@@ -1295,7 +1389,7 @@ class SwitchLogin {
     /**
      * Show all availables switch logins
      * 
-     * @return object
+     * @return string
      */
     public function ShowSwAllLogin() {
 	$tablecells	 = wf_TableCell(__('ID'));
@@ -1331,6 +1425,7 @@ class SwitchLogin {
      * Delete login data for switch from database
      * 
      * @param int $id
+     * 
      * @return void
      */
     public function SwLoginDelete($id) {
@@ -1343,6 +1438,8 @@ class SwitchLogin {
 }
 
 class AutoConfigurator {
+
+    const AUTOCONFIG = 'config/autoconfig/';
 
     /**
      * Contains all available switches data
@@ -1393,8 +1490,6 @@ class AutoConfigurator {
      */
     protected $AltCfg = '';
 
-    const AUTOCONFIG = 'config/autoconfig/';
-
     public function __construct() {
 	$this->LoadAllSwitches();
 	$this->LoadAllSwitchPort();
@@ -1405,6 +1500,8 @@ class AutoConfigurator {
 
     /**
      * Function for getting all switches and place them to $AllSwitches
+     * 
+     * @return void
      */
     protected function LoadAllSwitches() {
 	$data = zb_SwitchesGetAll();
@@ -1417,6 +1514,8 @@ class AutoConfigurator {
 
     /**
      * Function for getting all switchport data and place it to $AllSwitchPort
+     * 
+     * @return void
      */
     protected function LoadAllSwitchPort() {
 	$query	 = "SELECT * FROM `switchportassign`";
@@ -1430,6 +1529,8 @@ class AutoConfigurator {
 
     /**
      * Function for getting all switch login data and place it to $AllSwitchLogin
+     * 
+     * @return void
      */
     protected function LoadAllSwitchLogin() {
 	$query	 = "SELECT * FROM " . SwitchLogin::TABLE_NAME;
@@ -1443,6 +1544,8 @@ class AutoConfigurator {
 
     /**
      * Get all available vlan terminators data and place it to $AllTerminators
+     * 
+     * @return void
      */
     protected function LoadTerminators() {
 	$query	 = "SELECT * FROM " . VlanTerminator::DB_TABLE;
@@ -1464,6 +1567,11 @@ class AutoConfigurator {
 	$this->AltCfg = $ubillingConfig->getAlter();
     }
 
+    /**
+     * Load all from `switchmodels` to $AllSwitchModels.
+     * 
+     * @return void
+     */
     protected function LoadAllSwitchModels() {
 	$query	 = "SELECT * FROM `switchmodels`";
 	$data	 = simple_queryall($query);
@@ -1478,7 +1586,8 @@ class AutoConfigurator {
      * Function for getting switchport data by login
      * 
      * @param string $login
-     * @return array
+     * 
+     * @return array/bool bool if false
      */
     protected function GetSwitchPortData($login) {
 	$data = $this->AllSwitchPort;
@@ -1502,6 +1611,7 @@ class AutoConfigurator {
      * Function for getting switch login data by switchid
      * 
      * @param integer $switchid
+     * 
      * @return array
      */
     protected function GetSwitchLoginData($switchid) {
@@ -1526,6 +1636,7 @@ class AutoConfigurator {
      * Function for getting switch data by switchid
      * 
      * @param integer $switchid
+     * 
      * @return array or false
      */
     protected function GetSwitchesData($switchid) {
@@ -1550,6 +1661,7 @@ class AutoConfigurator {
      * Get switch IP by ID
      * 
      * @param integer $parentid
+     * 
      * @return string or false
      */
     protected function GetSwUplinkIP($parentid) {
@@ -1574,6 +1686,7 @@ class AutoConfigurator {
      * Check if IP belongs to vlan terminator
      * 
      * @param string $ip
+     * 
      * @return bool
      */
     protected function CheckTermIP($ip) {
@@ -1594,6 +1707,7 @@ class AutoConfigurator {
      * @param string $ip
      * @param string $community
      * @param string $oid
+     * 
      * @return bool
      */
     protected function CheckVlan($ip, $community, $oid) {
@@ -1618,6 +1732,7 @@ class AutoConfigurator {
      * @param string $community
      * @param string $oid
      * @param integer $vlan
+     * 
      * @return bool
      */
     protected function CheckPvid($ip, $community, $oid, $vlan) {
@@ -1640,6 +1755,7 @@ class AutoConfigurator {
      * 
      * @param string $login
      * @param integer $vlan
+     * 
      * @return void
      */
     public function ChangePvid($login, $vlan) {
@@ -1828,6 +1944,7 @@ class AutoConfigurator {
      * 
      * @param integer $SwitchId
      * @param integer $vlan
+     * 
      * @return void
      */
     public function CreateVlanLooped($SwitchId, $vlan, $parent = true) {
@@ -1934,8 +2051,21 @@ class OnuConfigurator {
      * 
      * @var array 
      */
-    protected $allOltModels	 = array();
-    protected $AutoConfig	 = array();
+    protected $allOltModels = array();
+
+    /**
+     * Contains alter.ini config file
+     * 
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Placeholder for AutoConfigurator() class
+     * 
+     * @var placeholder
+     */
+    protected $AutoConfig = array();
 
     public function __construct() {
 	$this->loadOnu();
@@ -1943,11 +2073,25 @@ class OnuConfigurator {
 	$this->loadOltModels();
 	$this->snmp		 = new SNMPHelper();
 	$this->AutoConfig	 = new AutoConfigurator;
+	$this->loadAlter();
     }
 
     /**
+     * Read and load alter.ini to $AltCfg.
      * 
+     * @global type $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+	global $ubillingConfig;
+	$this->AltCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
      * Load all from `switches` to $allswitches
+     * 
+     * @return void
      */
     protected function LoadAllOlt() {
 	$query	 = "SELECT `id`,`ip`,`snmp`,`modelid` from `switches` WHERE `desc` LIKE '%OLT%'";
@@ -1964,8 +2108,9 @@ class OnuConfigurator {
     }
 
     /**
-     * 
      * Load all from `pononu` to $allOnu
+     * 
+     * @return void
      */
     protected function loadOnu() {
 	$query	 = "SELECT * from `pononu`";
@@ -1994,6 +2139,7 @@ class OnuConfigurator {
      * Getting olt's snmptemplate by it's ID
      * 
      * @param int $modelid
+     * 
      * @return string
      */
     protected function GetOltModelTemplate($modelid) {
@@ -2009,6 +2155,7 @@ class OnuConfigurator {
      * get olt data like ip and snmp community
      * 
      * @param int $id 
+     * 
      * @return array
      */
     protected function GetOltData($id) {
@@ -2026,6 +2173,7 @@ class OnuConfigurator {
      * Get onu data mac and olt ID to which onu is linked
      * 
      * @param string $login 
+     * 
      * @return array
      */
     protected function GetOnuMac($login) {
@@ -2044,6 +2192,7 @@ class OnuConfigurator {
      * Format heximal mac address to decimal or show error
      * 
      * @param string $macOnu 
+     * 
      * @return string
      */
     protected function MacHexToDec($macOnu) {
@@ -2065,12 +2214,13 @@ class OnuConfigurator {
      * @param string $macOnu
      * @param string $oltIp 
      * @param string $oltCommunity 
+     * 
      * @return int
      */
     protected function GetClientIface($macOnu, $oltIp, $oltCommunity, $ifindex) {
 	$macOnuRew	 = $this->MacHexToDec($macOnu);
 	$interface	 = ($ifindex . "." . $macOnuRew);
-	$OltInt		 = snmp2_get($oltIp, $oltCommunity, $interface);
+	$OltInt		 = @snmp2_get($oltIp, $oltCommunity, $interface);
 	$index		 = explode(":", $OltInt);
 	if (isset($index[1])) {
 	    $tmp = trim($index[1]);
@@ -2086,10 +2236,11 @@ class OnuConfigurator {
      * @param int $vlan
      * @param string $oltIp
      * @param string $oltCommunity
+     * 
      * @return bool
      */
     protected function CheckOltVlan($vlan, $oltIp, $oltCommunity, $oid) {
-	@$tmp	 = snmp2_get($oltIp, $oltCommunity, $oid . "." . $vlan);
+	$tmp	 = @snmp2_get($oltIp, $oltCommunity, $oid . "." . $vlan);
 	$tmp	 = trim($tmp);
 	if ($tmp == '1') {
 	    $res = false;
@@ -2104,6 +2255,7 @@ class OnuConfigurator {
      * 
      * @param string $login
      * @param int $vlan
+     * 
      * @return string
      */
     public function ChangeOnuPvid($login, $vlan, $onu_port = '1') {
@@ -2121,7 +2273,6 @@ class OnuConfigurator {
 		if (!empty($template)) {
 		    if (file_exists('config/snmptemplates/' . $template)) {
 			$iniData = rcms_parse_ini_file('config/snmptemplates/' . $template, true);
-
 			if ($iniData['signal']['SIGNALMODE'] == 'BDCOM') {
 			    $vlanCreateOid		 = $iniData['vlan']['CREATE'];
 			    $ChangeOnuPvidOid	 = $iniData['vlan']['PVID'];
@@ -2133,14 +2284,14 @@ class OnuConfigurator {
 				$VlanCheck	 = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
 				$data		 = array();
 				if ($VlanCheck) {
-//create vlan on OLT
+				    //create vlan on OLT
 				    $data[] = array(
 					'oid'	 => $vlanCreateOid . "." . $vlan,
 					'type'	 => 'i',
 					'value'	 => '4'
 				    );
 				}
-//Change pvid on onu port by defolt port 1
+				//Change pvid on onu port by default port 1
 				$data[]	 = array(
 				    'oid'	 => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
 				    'type'	 => 'i',
@@ -2155,7 +2306,111 @@ class OnuConfigurator {
 				$result.= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
 				return ($result);
 			    } else {
-				show_error('cant find onu');
+				show_error(__('Cant find onu'));
+			    }
+			}
+			if ($iniData['signal']['SIGNALMODE'] == 'ZTE') {
+			    $UniIndex		 = '';
+			    $allCards		 = array();
+			    $allCardsRange		 = array();
+			    $OnuUniRange		 = array();
+			    $FoundCardData		 = '';
+			    $ChangeOnuPvidOid	 = $iniData['vlan']['PVID'];
+			    $ChangeOnuPvidAddOid	 = $iniData['vlan']['ADDUNI'];
+			    $GetAllOnuOid		 = $iniData['vlan']['ALLONU'];
+			    $AllCardsOid		 = $iniData['vlan']['ALLCARDS'];
+			    $ApplyOnuPvidOid	 = $iniData['vlan']['PVID'];
+			    $ChangeOnuTrunkOid	 = $iniData['vlan']['TRUNK'];
+			    $ChangeOnuTrunkAddOid	 = $iniData['vlan']['ADDPON'];
+			    $AllOnu			 = @snmp2_real_walk($oltIp, $oltCommunity, $GetAllOnuOid);
+			    $zteFormat		 = explode(":", $OnuMac);
+			    $zteFormatMac		 = $zteFormat[0] . $zteFormat[1] . '.' . $zteFormat[2] . $zteFormat[3] . '.' . $zteFormat[4] . $zteFormat[5];
+			    foreach ($AllOnu as $index => $eachOnu) {
+				$eachOnu = trim(str_replace('Hex-STRING:', '', $eachOnu));
+				if ($eachOnu == $zteFormatMac) {
+				    $UniIndex = str_replace($GetAllOnuOid, '', $index);
+				}
+			    }
+			    if (empty($UniIndex)) {
+				show_error(__('Cant find onu'));
+				die();
+			    }
+			    if (!empty($UniIndex)) {
+				//Need to find out what cards installed into OLT.
+				//Then need expand array of all possible UNI IDs.
+				//Then need expand array of all possible PON port IDs.
+				//Maybe make some advanced search by found out slot and port and expand array for onu pon ports
+				//only for founded slot and port. It could be usefull if many slots and ports are used.
+				$allCards = @snmp2_real_walk($oltIp, $oltCommunity, $AllCardsOid);
+				if (!empty($allCards)) {
+				    foreach ($allCards as $cardIndex => $eachCard) {
+					$startId	 = 805830912;
+					$searchIndex[]	 = $AllCardsOid . '.0.0.';
+					$searchIndex[]	 = $AllCardsOid . '.1.1.';
+					$cardIndex	 = str_replace($searchIndex, '', $cardIndex);
+					$searchCard4[]	 = '/EPFC/';
+					$searchCard4[]	 = '/EPFCB/';
+					$searchCard8[]	 = '/ETGO/';
+					if (preg_match($searchCard4, $eachCard)) {
+					    $counter = $startId + (524288 * ($cardIndex - 1));
+					    for ($i = 1; $i <= 4; $i++) {
+						$allCardsRange[$cardIndex][$i][]['start']	 = $counter;
+						$allCardsRange[$cardIndex][$i][]['end']		 = $counter + (64 * 256);
+						$counter+=65536;
+					    }
+					}
+					if (preg_match($searchCard8, $eachCard)) {
+					    $counter = $startId + (524288 * ($cardIndex - 1));
+					    for ($i = 1; $i <= 8; $i++) {
+						$allCardsRange[$cardIndex][$i][]['start']	 = $counter;
+						$allCardsRange[$cardIndex][$i][]['end']		 = $counter + (64 * 256);
+						$counter+=65536;
+					    }
+					}
+				    }
+				} else {
+				    show_error(__('No cards found on OLT'));
+				    die();
+				}
+				if (!empty($allCardsRange)) {
+				    foreach ($allCardsRange as $CardNumber) {
+					foreach ($CardNumber as $PortNumber => $range) {
+					    if ($UniIndex > $range['start'] AND $UniIndex < $range['end']) {
+						$FoundCardData['card']	 = $CardNumber;
+						$FoundCardData['port']	 = $PortNumber;
+					    }
+					}
+				    }
+				} else {
+				    show_error(__('No suitable cards found on OLT. Supported: EPFC, EPFCB, ETGO.'));
+				    die();
+				}
+				if (!empty($FoundCardData)) {
+				    //Make array of all available onu number for onu and find it out
+				    $UniIdStart	 = 805830912;
+				    $UniIdCard	 = $UniIdStart + (524288 * ($FoundCardData['card'] - 1));
+				    $UniIdPort	 = $UniIdCard + (65536 * ($FoundCardData['port'] - 1));
+				    for ($i = 1; $i <= 64; $i++) {
+					$OnuUniRange[$UniIdCard] = $i;
+					$UniIdCard+=256;
+				    }
+				    $onuNumber		 = $OnuUniRange[$UniIndex];
+				    //ONU PON PORT FIND PART
+				    $OnuPonStartId		 = 1073741824;
+				    $OnuPonPortOltCardId	 = $OnuPonStartId + (524288 * ($FoundCardData['card'] - 1));
+				    $OnuPonPortOltPortId	 = $OnuPonPortOltCardId + (65536 * ($FoundCardData['port'] - 1));
+				    $OnuPonPortId		 = $OnuPonPortOltPortId + (256 * ($onuNumber - 1));
+				    $snmpSet		 = $this->altCfg['SNMPSET_PATH'];
+				    $result			 = '';
+				    $result.= shell_exec($snmpSet . ' -c ' . $oltCommunity . ' ' . $oltIp . ' ' . $ChangeOnuPvidAddOid . $UniIndex . '.1' . ' i 2 ' . $ChangeOnuPvidOid . $UniIndex . '.1' . ' i ' . $vlan);
+				    $result.= shell_exec($snmpSet . ' -c ' . $oltCommunity . ' ' . $oltIp . ' ' . $ApplyOnuPvidOid . $UniIndex . '.1' . ' i 2');
+				    $result.= shell_exec($snmpSet . ' -c ' . $oltCommunity . ' ' . $oltIp . ' ' . $ChangeOnuTrunkAddOid . $OnuPonPortId . ' i 1 ' . $ChangeOnuTrunkOid . ' i ' . $vlan);
+				    $result.= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
+				    return($result);
+				} else {
+				    show_error(__('Onu is out of range of supported cards.'));
+				    die();
+				}
 			    }
 			}
 		    } else {
@@ -2178,6 +2433,7 @@ class OnuConfigurator {
  * Get users login by IP
  * 
  * @param string $ip
+ * 
  * @return string
  */
 function UserGetLoginByIP($ip) {
@@ -2187,10 +2443,45 @@ function UserGetLoginByIP($ip) {
     return($login);
 }
 
+function GetAllUserIp() {
+    $query	 = "SELECT ip,login FROM `users`";
+    $data	 = simple_queryall($query);
+    $result	 = array();
+    foreach ($data as $each) {
+	$result[$each['ip']] = $each['login'];
+    }
+    return($result);
+}
+
+/**
+ * 
+ * @return type
+ */
+function GetAllUserVlan() {
+    $query	 = "SELECT * FROM `vlanhosts`";
+    $result	 = array();
+    $data	 = simple_queryall($query);
+    foreach ($data as $each) {
+	$result[$each['login']] = $each['vlan'];
+    }
+    return($result);
+}
+
+function GetAllUserOnu() {
+    $query	 = "SELECT * FROM `pononu`";
+    $result	 = array();
+    $data	 = simple_queryall($query);
+    foreach ($data as $each) {
+	$result[$each['login']] = $each['mac'];
+    }
+    return($result);
+}
+
 /**
  * Get users vlan by login
  * 
  * @param string $login
+ * 
  * @return int
  */
 function UserGetVlan($login) {
@@ -2203,6 +2494,7 @@ function UserGetVlan($login) {
  * Get network id by ip
  * 
  * @param string $ip
+ * 
  * @return int
  */
 function GetNetidByIP($ip) {
@@ -2215,6 +2507,7 @@ function GetNetidByIP($ip) {
  * Get vlan terminators remote id by network id
  * 
  * @param int $netid
+ * 
  * @return string
  */
 function GetTermRemoteByNetid($netid) {
@@ -2226,7 +2519,8 @@ function GetTermRemoteByNetid($netid) {
 /**
  * 
  * @param string $login
- * @return object
+ * 
+ * @return string
  */
 function web_ProfileVlanControlForm($login) {
     $login		 = mysql_real_escape_string($login);
@@ -2253,6 +2547,13 @@ function web_ProfileVlanControlForm($login) {
     }
 }
 
+/**
+ * Function for deleting entry from DB
+ * 
+ * @param string $login
+ * 
+ * @return void
+ */
 function vlan_delete_host($login) {
     $query = "DELETE FROM `vlanhosts` WHERE `login`='" . $login . "'";
     nr_query($query);
