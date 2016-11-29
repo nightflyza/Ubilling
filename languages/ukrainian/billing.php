@@ -2355,5 +2355,6 @@ $lang['def']['Wrong element format'] = 'Невірний формат елеме
 $lang['def']['Missed config option'] = 'Пропущено опцію конфігу';
 $lang['def']['Duplicate element ID'] = 'Дублікат ідентифікатора елементу';
 $lang['def']['Widget class not exists'] = 'Класс віджета не існує';
+$lang['def']['Missing calls because of overlap with the previous by time'] = 'Пропущено дзвінків, через перекриття з попередніми по часу';
 
 ?>

@@ -4424,6 +4424,8 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
 
 
+
+
         
 //Initializations
     $xml_array = array();
@@ -4650,18 +4652,24 @@ function zb_Percent($sum, $percent) {
 /**
  * Checks is time between some other time ranges?
  * 
- * @param string $fromTime start time (format hh:mm)
+ * @param string $fromTime start time (format hh:mm OR hh:mm:ss with seconds)
  * @param string $toTime end time
  * @param string $checkTime time to check
+ * @param bool $seconds 
  * 
  * @return bool
  */
-function zb_isTimeBetween($fromTime, $toTime, $checkTime) {
+function zb_isTimeBetween($fromTime, $toTime, $checkTime, $seconds = false) {
+    if ($seconds) {
+        $formatPostfix = ':s';
+    } else {
+        $formatPostfix = '';
+    }
     $checkTime = strtotime($checkTime);
-    $checkTime = date("H:i", $checkTime);
-    $f = DateTime::createFromFormat('!H:i', $fromTime);
-    $t = DateTime::createFromFormat('!H:i', $toTime);
-    $i = DateTime::createFromFormat('!H:i', $checkTime);
+    $checkTime = date("H:i" . $formatPostfix, $checkTime);
+    $f = DateTime::createFromFormat('!H:i' . $formatPostfix, $fromTime);
+    $t = DateTime::createFromFormat('!H:i' . $formatPostfix, $toTime);
+    $i = DateTime::createFromFormat('!H:i' . $formatPostfix, $checkTime);
     if ($f > $t) {
         $t->modify('+1 day');
     }

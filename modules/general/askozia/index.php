@@ -158,6 +158,10 @@ if ($altcfg['ASKOZIA_ENABLED']) {
     function zb_AskoziaParseCallHistory($data) {
         global $altcfg;
         $debugFlag = false;
+        $answeredFlag = true;
+        $prevTimeStart = '';
+        $prevTimeEnd = '';
+
         if (isset($altcfg['ASKOZIA_DEBUG'])) {
             if ($altcfg['ASKOZIA_DEBUG']) {
                 $debugFlag = true;
@@ -204,6 +208,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $noAnswerCounter = 0;
             $WorkHoursAnswerCounter = 0;
             $WorkHoursNoAnswerCounter = 0;
+            $busycount = 0;
 
             $chartData = array();
 
@@ -279,6 +284,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $statusIcon = '';
 
                     if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
+                        $answeredFlag = true;
                         $callStatus = __('Answered');
                         $statusIcon = wf_img('skins/calls/phone_green.png');
                         $answerCounter++;
@@ -295,6 +301,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     }
 
                     if ((ispos($each[14], 'NO ANSWER')) OR ( ispos($each[7], 'VoiceMail'))) {
+                        $answeredFlag = false;
                         $callStatus = __('No answer');
                         $statusIcon = wf_img('skins/calls/phone_red.png');
                         //only incoming calls is unanswered
@@ -357,9 +364,38 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
 
                     $cells.= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each[13] . '"');
+                    //default rowclass
+                    $rowClass = 'row3';
+
+                    //non answered calls coloring
+                    if ($answeredFlag == false) {
+                        $rowClass = 'ukvbankstadup';
+                    }
+
+                    //time range processing
+                    $curTimeStart = date("H:i:s", strtotime($each[9]));
+                    $curTimeEnd = date("H:i:s", strtotime($each[11]));
+                    if ((empty($prevTimeStart)) AND ( empty($prevTimeEnd))) {
+                        $prevTimeStart = $curTimeStart;
+                        $prevTimeEnd = $curTimeEnd;
+                    } else {
+                        if ($answeredFlag == false) {
+                            if (zb_isTimeBetween($prevTimeStart, $prevTimeEnd, $curTimeStart, true)) {
+                                $rowClass = 'undone';
+                                if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
+                                    $busycount++;
+                                }
+                            }
+                        }
+
+                        $prevTimeStart = $curTimeStart;
+                        if (strtotime($curTimeEnd) > strtotime($prevTimeEnd)) {
+                            $prevTimeEnd = $curTimeEnd;
+                        }
+                    }
 
 
-                    $rows.= wf_TableRow($cells, 'row3');
+                    $rows.= wf_TableRow($cells, $rowClass);
                 }
             }
 
@@ -404,6 +440,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $result.=__('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_AskoziaPercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
             $result.=wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_AskoziaPercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
             $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_AskoziaPercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
+            $result.= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
 
             if (!empty($customCfg)) {
