@@ -2341,5 +2341,9 @@ $lang['def']['Missed config option'] = 'Пропущена опция в кон�
 $lang['def']['Duplicate element ID'] = 'Дубликат идентификатора элемента';
 $lang['def']['Widget class not exists'] = 'Класс виджета не существует';
 $lang['def']['Missing calls because of overlap with the previous by time'] = 'Пропущенные вызовы из-за перекрытия с предыдущими по времени';
+$lang['def']['required by'] = 'требуемая';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 ?>

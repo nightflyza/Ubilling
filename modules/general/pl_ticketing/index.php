@@ -4,6 +4,11 @@ if (cfr('TICKETING')) {
 
     class ReportUsersTicketing {
 
+        /**
+         * Contains all previous tickets data by some user
+         *
+         * @var array
+         */
         protected $alltickets = array();
 
         public function __construct($login) {
@@ -32,15 +37,14 @@ if (cfr('TICKETING')) {
          */
 
         public function render() {
-
-            $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Text'));
-            $cells.= wf_TableCell(__('Processed'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-
+            $result = '';
             if (!empty($this->alltickets)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Date'));
+                $cells.= wf_TableCell(__('Text'));
+                $cells.= wf_TableCell(__('Processed'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
                 foreach ($this->alltickets as $io => $each) {
                     $cells = wf_TableCell($each['id']);
                     $cells.= wf_TableCell($each['date']);
@@ -54,8 +58,12 @@ if (cfr('TICKETING')) {
                     $cells.= wf_TableCell(wf_Link('?module=ticketing&showticket=' . $each['id'], __('Show'), false, 'ubButton'));
                     $rows.= wf_TableRow($cells, 'row3');
                 }
+                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $messages = new UbillingMessageHelper();
+                $result = $messages->getStyledMessage(__('Nothing found'), 'info');
             }
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+
             return ($result);
         }
 
@@ -94,10 +102,10 @@ if (cfr('TICKETING')) {
 
         $login = $_GET['username'];
         $reportTicketing = new ReportUsersTicketing($login);
-        
+
         //controls
-        $actionLinks=  wf_Link('?module=pl_ticketing&username='.$login, __('Grid view'), false, 'ubButton');
-        $actionLinks.= wf_Link('?module=pl_ticketing&username='.$login.'&calendarview=true', __('As calendar'), false, 'ubButton');
+        $actionLinks = wf_Link('?module=pl_ticketing&username=' . $login, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+        $actionLinks.= wf_Link('?module=pl_ticketing&username=' . $login . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
         show_window('', $actionLinks);
 
         //display results

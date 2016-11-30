@@ -2356,5 +2356,6 @@ $lang['def']['Missed config option'] = 'Пропущено опцію конфі
 $lang['def']['Duplicate element ID'] = 'Дублікат ідентифікатора елементу';
 $lang['def']['Widget class not exists'] = 'Класс віджета не існує';
 $lang['def']['Missing calls because of overlap with the previous by time'] = 'Пропущено дзвінків, через перекриття з попередніми по часу';
+$lang['def']['required by'] = 'потрібна';
 
 ?>

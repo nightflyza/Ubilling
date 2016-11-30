@@ -20,7 +20,7 @@ if (cfr('PLDETAILS')) {
             global $tablename;
             $query = "SELECT CASE WHEN (SELECT COUNT(*) AS STATUS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = (SELECT DATABASE()) AND TABLE_NAME = '" . $tablename . "') = 1 THEN (SELECT 1)  ELSE (SELECT 0) END AS result;";
             $result = simple_query($query);
-            $result = (empty($result)) ? false : true;
+            $result = ($result['result'] == 0) ? false : true;
             return ($result);
         }
 

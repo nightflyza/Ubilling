@@ -195,7 +195,7 @@ if (cfr('TASKBAR')) {
                 if (!empty($elementRight)) {
                     if (cfr($elementRight)) {
                         $accesCheck = true;
-                    } 
+                    }
                 } else {
                     $accesCheck = true;
                 }
@@ -210,7 +210,7 @@ if (cfr('TASKBAR')) {
                             }
                         } else {
                             if (!isset($elementData['UNIMPORTANT'])) {
-                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption, 'error');
+                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
                             }
                         }
                     } else {
@@ -248,7 +248,7 @@ if (cfr('TASKBAR')) {
                             }
                         } else {
                             if (!isset($elementData['UNIMPORTANT'])) {
-                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption, 'error');
+                                $this->currentAlerts.=$this->messages->getStyledMessage(__('Missed config option') . ': ' . $elementOption . ' ' . __('required by') . ' ' . $elementId, 'error');
                             }
                         }
                     } else {
@@ -361,7 +361,7 @@ if (cfr('TASKBAR')) {
         protected function catchIconsizeChange() {
             if (isset($_POST['iconsize'])) {
                 $iconsize = vf($_POST['iconsize'], 3);
-                setcookie("tb_iconsize", $iconsize, time() + 86400);
+                setcookie("tb_iconsize", $iconsize, time() + 2592000);
                 rcms_redirect(self::URL_ME);
             }
         }
