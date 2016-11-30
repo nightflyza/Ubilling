@@ -203,27 +203,39 @@ if ($us_config['TICKETING_ENABLED']) {
      * @return string
      */
     function zbs_TicketShowWithReplies($ticketid) {
+        global $us_config;
+        $curSkinPath = zbs_GetCurrentSkinPath($us_config);
+        $iconzPath = $curSkinPath . 'iconz/';
         $ticketid = vf($ticketid, 3);
         $ticketdata = zbs_TicketGetData($ticketid);
         $ticketreplies = zbs_TicketGetReplies($ticketid);
 
-        if (!empty($ticketdata)) {
 
-            $cells = la_TableCell(__('Date'));
+        if (!empty($ticketdata)) {
+            $ticketAva = la_img($iconzPath . 'userava.png');
+
+            $cells = la_TableCell(__('User'));
             $cells.= la_TableCell($ticketdata['date']);
             $rows = la_TableRow($cells, 'row1');
-
-            $cells = la_TableCell('');
+            $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
             $cells.= la_TableCell(nl2br($ticketdata['text']));
             $rows.= la_TableRow($cells, 'row2');
         }
         if (!empty($ticketreplies)) {
             foreach ($ticketreplies as $io => $eachreply) {
-                $cells = la_TableCell(__('Date'));
+
+                if ($eachreply['from'] == 'NULL') {
+                    $ticketAva = la_img($iconzPath . 'admava.png');
+                    $ticketFrom = __('Support');
+                } else {
+                    $ticketAva = la_img($iconzPath . 'userava.png');
+                    $ticketFrom = __('User');
+                }
+
+                $cells = la_TableCell($ticketFrom);
                 $cells.= la_TableCell($eachreply['date']);
                 $rows.= la_TableRow($cells, 'row1');
-
-                $cells = la_TableCell('');
+                $cells = la_TableCell($ticketAva, '', '', 'valign="top"');
                 $cells.= la_TableCell(nl2br($eachreply['text']));
                 $rows.= la_TableRow($cells, 'row3');
             }
@@ -276,7 +288,7 @@ if ($us_config['TICKETING_ENABLED']) {
         }
         //show previous tickets
         if (!isset($us_helpdenied[$user_login])) {
-            show_window(__('Help request'), zbs_TicketCreateForm());
+            show_window(__('Create new help request'), zbs_TicketCreateForm());
         }
 
         show_window(__('Previous help requests'), zbs_TicketsShowMy());

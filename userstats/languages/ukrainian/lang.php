@@ -332,4 +332,9 @@ $lang['def']['Instructions for subscription'] = 'Інструкція щодо �
 $lang['def']['You must accept license agreement'] = 'Ви повинні ознайомитися з умовами договору';
 $lang['def']['I have read text above and agree with terms of use'] = 'Я прочитав текст та згоден з умовами користування';
 $lang['def']['Discount'] = 'Знижка';
+
+$lang['def']['Support'] = 'Підтримка';
+$lang['def']['User'] = 'Користувач';
+$lang['def']['Create new help request'] = 'Створити новий запит в техпідтримку';
+
 ?>

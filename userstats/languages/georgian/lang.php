@@ -329,5 +329,8 @@ $lang['def']['Attention!'] = 'ყურადღება!';
 $lang['def']['When activated subscription account will be charged fee the equivalent value of the subscription.'] = 'ჩაწერის დროს, ანგარიშიდან შესაბამისი ჩაწერის საფასური ჩამოგეჭრებათ.';
 $lang['def']['Instructions for subscription'] = 'ჩაწერის განხორციელების ინსტრუქცია';
 
+$lang['def']['User'] = 'შესახებ';
+$lang['def']['Support'] = 'ადმინისტრაცია';
+$lang['def']['Create new help request'] = 'ტექნიკური დახმარების მოთხოვნა';
 
 ?>

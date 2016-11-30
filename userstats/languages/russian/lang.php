@@ -332,5 +332,9 @@ $lang['def']['You must accept license agreement'] = 'Вы должны озна�
 $lang['def']['I have read text above and agree with terms of use'] = 'Я прочитал текст выше и согласен с условиями использования';
 $lang['def']['Discount'] = 'Скидка';
 
+$lang['def']['Support'] = 'Поддержка';
+$lang['def']['User'] = 'Пользователь';
+$lang['def']['Create new help request'] = 'Создать новый запрос в техподдержку';
+
 
 ?>
