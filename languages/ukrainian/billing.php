@@ -2357,5 +2357,11 @@ $lang['def']['Duplicate element ID'] = 'Дублікат ідентифікат�
 $lang['def']['Widget class not exists'] = 'Класс віджета не існує';
 $lang['def']['Missing calls because of overlap with the previous by time'] = 'Пропущено дзвінків, через перекриття з попередніми по часу';
 $lang['def']['required by'] = 'потрібна';
+$lang['def']['Forced transliteration'] = 'Примусовий трансліт';
+$lang['def']['Create new SMS'] = 'Створити нову SMS';
+$lang['def']['Number must be in international format'] = 'Номер повинен бути вказаний у міжнародному форматі';
+$lang['def']['Create new email'] = 'Створити новий Е-мелй';
+$lang['def']['Not all of required fields are filled'] = 'Заповнені не усі обовязкові поля';
+$lang['def']['Create new Telegram message'] = 'Створити нове повідомлення Telegram';
 
 ?>

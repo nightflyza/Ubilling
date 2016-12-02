@@ -73,7 +73,7 @@ class DarkVoid {
         if ($updateCache) {
             //ugly hack to prevent alerts update on tsms and senddog modules
             if (isset($_GET['module'])) {
-                if (($_GET['module'] != 'turbosms') AND ( ( $_GET['module'] != 'senddog'))) {
+                if (($_GET['module'] != 'turbosms') AND ( ( $_GET['module'] != 'senddog')) AND ( ( $_GET['module'] != 'remoteapi'))) {
                     //renew cache
                     $this->updateAlerts();
                 }

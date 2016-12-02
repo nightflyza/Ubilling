@@ -270,6 +270,110 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 return ($result);
             }
 
+            /**
+             * Returns modal window with SMS creation form
+             * 
+             * @return string
+             */
+            public function smsCreateForm() {
+                $result = '';
+                $inputs = wf_TextInput('newsmsnumber', __('Mobile'), '', true, '20');
+                $inputs.= wf_TextArea('newsmsmessage', '', '', true, '30x5');
+                $inputs.= wf_CheckInput('newsmstranslit', __('Forced transliteration'), true, true);
+                $inputs.= wf_Submit(__('Create'));
+                $form = wf_Form('', 'POST', $inputs, 'glamour');
+                $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new SMS')), __('Create new SMS'), $form, '');
+                return ($result);
+            }
+
+            /**
+             * Creates new SMS for queue
+             * 
+             * @param string $number
+             * @param string $message
+             * 
+             * @return string/void
+             */
+            public function createSMS($number, $message) {
+                $result = '';
+                $translit = (wf_CheckPost(array('newsmstranslit'))) ? true : false;
+                if (ispos($number, '+')) {
+                    $this->sms->sendSMS($number, $message, $translit, 'TQUEUE');
+                } else {
+                    $result = __('Number must be in international format');
+                }
+                return ($result);
+            }
+
+            /**
+             * Returns modal window with email creation form
+             * 
+             * @return string
+             */
+            public function emailCreateForm() {
+                $result = '';
+                $inputs = wf_TextInput('newemailaddress', __('Email'), '', true, '20');
+                $inputs.= wf_TextInput('newemailsubj', __('Subject'), '', true, '40');
+                $inputs.= wf_TextArea('newemailmessage', '', '', true, '50x10');
+                $inputs.= wf_Submit(__('Create'));
+                $form = wf_Form('', 'POST', $inputs, 'glamour');
+                $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new email')), __('Create new email'), $form, '');
+                return ($result);
+            }
+
+            /**
+             * Creates new email message in queue
+             * 
+             * 
+             * @param string $email
+             * @param string $subj
+             * @param string $messages
+             * 
+             * @return string/void
+             */
+            public function createEmail($email, $subj, $message) {
+                $result = '';
+                if ((!empty($email)) AND ( !empty($message)) AND ( !empty($subj))) {
+                    $this->email->sendEmail($email, $subj, $message, 'TQUEUE');
+                } else {
+                    $result = __('Not all of required fields are filled');
+                }
+                return ($result);
+            }
+
+            /**
+             * Returns modal window with telegram message creation form
+             * 
+             * @return string
+             */
+            public function telegramCreateForm() {
+                $result = '';
+                $inputs = wf_TextInput('newtelegramchatid', __('Chat ID'), '', true, '20');
+                $inputs.= wf_TextArea('newtelegrammessage', '', '', true, '50x10');
+                $inputs.= wf_Submit(__('Create'));
+                $form = wf_Form('', 'POST', $inputs, 'glamour');
+                $result = wf_modalAuto(wf_img('skins/add_icon.png', __('Create new Telegram message')), __('Create new Telegram message'), $form, '');
+                return ($result);
+            }
+
+            /**
+             * Creates new telegram message in queue
+             * 
+             * @param string $chatid
+             * @param string $message
+             * 
+             * @return string
+             */
+            public function createTelegram($chatid, $message) {
+                $result = '';
+                if ((!empty($chatid)) AND ( !empty($message))) {
+                    $this->telegram->sendMessage($chatid, $message, false, 'TQUEUE');
+                } else {
+                    $result = __('Not all of required fields are filled');
+                }
+                return ($result);
+            }
+
         }
 
         $messagesQueue = new MessagesQueue();
@@ -277,6 +381,15 @@ if ($altCfg['SENDDOG_ENABLED']) {
 
         //SMS messages queue management
         if (!wf_CheckGet(array('showqueue'))) {
+            if (wf_CheckPost(array('newsmsnumber', 'newsmsmessage'))) {
+                $smsSendResult = $messagesQueue->createSMS($_POST['newsmsnumber'], $_POST['newsmsmessage']);
+                if (empty($smsSendResult)) {
+                    rcms_redirect($messagesQueue::URL_ME);
+                } else {
+                    show_error($smsSendResult);
+                }
+            }
+
             if (wf_CheckGet(array('deletesms'))) {
                 $deletionResult = $messagesQueue->deleteSms($_GET['deletesms']);
                 if ($deletionResult == 0) {
@@ -296,9 +409,18 @@ if ($altCfg['SENDDOG_ENABLED']) {
             }
 
             //render sms queue
-            show_window(__('SMS in queue'), $messagesQueue->renderSmsQueue());
+            show_window(__('SMS in queue') . ' ' . $messagesQueue->smsCreateForm(), $messagesQueue->renderSmsQueue());
         } else {
             if ($_GET['showqueue'] == 'email') {
+                if (wf_CheckPost(array('newemailaddress', 'newemailmessage'))) {
+                    $emailSendResult = $messagesQueue->createEmail($_POST['newemailaddress'], $_POST['newemailsubj'], $_POST['newemailmessage']);
+                    if (empty($emailSendResult)) {
+                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=email');
+                    } else {
+                        show_error($emailSendResult);
+                    }
+                }
+
                 if (wf_CheckGet(array('deleteemail'))) {
                     $deletionResult = $messagesQueue->deleteEmail($_GET['deleteemail']);
                     if ($deletionResult == 0) {
@@ -316,11 +438,20 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 }
 
                 //render emails queue
-                show_window(__('Emails in queue'), $messagesQueue->renderEmailQueue());
+                show_window(__('Emails in queue') . ' ' . $messagesQueue->emailCreateForm(), $messagesQueue->renderEmailQueue());
             }
 
             if ($_GET['showqueue'] == 'telegram') {
-                  if (wf_CheckGet(array('deletetelegram'))) {
+                if (wf_CheckPost(array('newtelegramchatid'))) {
+                    $telegramSendResult = $messagesQueue->createTelegram($_POST['newtelegramchatid'], $_POST['newtelegrammessage']);
+                    if (empty($telegramSendResult)) {
+                        rcms_redirect($messagesQueue::URL_ME . '&showqueue=telegram');
+                    } else {
+                        show_error($telegramSendResult);
+                    }
+                }
+
+                if (wf_CheckGet(array('deletetelegram'))) {
                     $deletionResult = $messagesQueue->deleteTelegram($_GET['deletetelegram']);
                     if ($deletionResult == 0) {
                         log_register('UTLG DELETE MESSAGE `' . $_GET['deletetelegram'] . '`');
@@ -335,9 +466,9 @@ if ($altCfg['SENDDOG_ENABLED']) {
                         }
                     }
                 }
-                
+
                 //render telegram queue
-                show_window(__('Telegram messages queue'), $messagesQueue->renderTelegramQueue());
+                show_window(__('Telegram messages queue') . ' ' . $messagesQueue->telegramCreateForm(), $messagesQueue->renderTelegramQueue());
             }
         }
     } else {
