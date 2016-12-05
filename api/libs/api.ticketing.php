@@ -478,6 +478,8 @@ function web_TicketDialogue($ticketid) {
     $ticketid = vf($ticketid, 3);
     $ticketdata = zb_TicketGetData($ticketid);
     $ticketreplies = zb_TicketGetReplies($ticketid);
+    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
+
     $result = wf_tag('p', false, '', 'align="right"') . wf_Link('?module=ticketing', 'Back to tickets list', true, 'ubButton') . wf_tag('p', true);
     if (!empty($ticketdata)) {
         $alladdress = zb_AddressGetFulladdresslist();
@@ -547,7 +549,8 @@ function web_TicketDialogue($ticketid) {
         foreach ($ticketreplies as $io => $eachreply) {
             //reply
             if ($eachreply['admin']) {
-                $replyauthor = wf_tag('center') . wf_tag('b') . $eachreply['admin'] . wf_tag('b', true) . wf_tag('center', true);
+                $adminRealName = (isset($employeeNames[$eachreply['admin']])) ? $employeeNames[$eachreply['admin']] : $eachreply['admin'];
+                $replyauthor = wf_tag('center') . wf_tag('b') . $adminRealName . wf_tag('b', true) . wf_tag('center', true);
                 $replyavatar = wf_tag('center') . gravatar_ShowAdminAvatar($eachreply['admin'], '64') . wf_tag('center', true);
             } else {
                 $replyauthor = wf_tag('center') . wf_tag('b') . @$allrealnames[$eachreply['from']] . wf_tag('b', true) . wf_tag('center', true);

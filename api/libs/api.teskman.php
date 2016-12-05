@@ -1366,6 +1366,42 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 }
 
 /**
+ * Returns all available admin_login=>employee name pairs
+ * 
+ * @return string serialized array
+ */
+function ts_GetAllEmployeeLogins() {
+    $result = array();
+    $query = "SELECT `admlogin`,`name` from `employee`";
+    $all = simple_queryall($query);
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            if (!empty($each['admlogin'])) {
+                $result[$each['admlogin']] = $each['name'];
+            }
+        }
+    }
+    $result = serialize($result);
+    return ($result);
+}
+
+/**
+ * Returns all available admin_login=>employee name pairs from cache if available
+ * 
+ * @return string serialized array
+ */
+function ts_GetAllEmployeeLoginsCached() {
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = 3600;
+    $result = $cache->getCallback('EMPLOYEE_LOGINS', function () {
+        return (ts_GetAllEmployeeLogins());
+    }, $cacheTime);
+
+    return ($result);
+}
+
+/**
  * Shows task editing/management form
  * 
  * @global object $ubillingConfig
@@ -1381,6 +1417,7 @@ function ts_TaskChangeForm($taskid) {
     $result = '';
     $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
+    @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
     $alljobtypes = ts_GetAllJobtypes();
     $messages = new UbillingMessageHelper();
     $smsData = '';
@@ -1471,12 +1508,14 @@ function ts_TaskChangeForm($taskid) {
             }
         }
 
+        $administratorName = (isset($employeeLogins[$taskdata['admin']])) ? $employeeLogins[$taskdata['admin']] : $taskdata['admin'];
+
         $tablecells = wf_TableCell(__('ID'), '30%');
         $tablecells.= wf_TableCell($taskdata['id']);
         $tablerows = wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Task creation date') . ' / ' . __('Administrator'));
-        $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $taskdata['admin']);
+        $tablecells.= wf_TableCell($taskdata['date'] . ' / ' . $administratorName);
         $tablerows.= wf_TableRow($tablecells, 'row3');
 
         $tablecells = wf_TableCell(__('Target date'));

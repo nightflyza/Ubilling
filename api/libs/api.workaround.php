@@ -1262,6 +1262,7 @@ function web_PaymentsByUser($login) {
  */
 function web_GrepLogByUser($login, $strict = false) {
     $login = ($strict) ? '(' . $login . ')' : $login;
+    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $query = 'SELECT * from `weblogs` WHERE `event` LIKE "%' . $login . '%" ORDER BY `date` DESC';
     $allevents = simple_queryall($query);
     $cells = wf_TableCell(__('ID'));
@@ -1272,8 +1273,9 @@ function web_GrepLogByUser($login, $strict = false) {
 
     if (!empty($allevents)) {
         foreach ($allevents as $io => $eachevent) {
+            $adminName = (isset($employeeNames[$eachevent['admin']])) ? $employeeNames[$eachevent['admin']] : $eachevent['admin'];
             $cells = wf_TableCell($eachevent['id']);
-            $cells.= wf_TableCell($eachevent['admin']);
+            $cells.= wf_TableCell($adminName);
             $cells.= wf_TableCell($eachevent['date']);
             $cells.= wf_TableCell($eachevent['event']);
             $rows.= wf_TableRow($cells, 'row3');
@@ -4392,6 +4394,9 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
+
+
 
 
 

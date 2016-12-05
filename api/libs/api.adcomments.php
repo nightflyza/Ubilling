@@ -243,13 +243,15 @@ class ADcomments {
         $this->setItem($item);
         $this->loadComments();
         $this->commentSaver();
+        @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
 
         $result = '';
         $rows = '';
 
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
-                $authorName = wf_tag('center') . wf_tag('b') . $each['admin'] . wf_tag('b', true) . wf_tag('center', true);
+                $authorRealname = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
+                $authorName = wf_tag('center') . wf_tag('b') . $authorRealname . wf_tag('b', true) . wf_tag('center', true);
                 $authorAvatar = wf_tag('center') . @gravatar_ShowAdminAvatar($each['admin'], '64') . wf_tag('center', true);
                 $commentController = wf_tag('center') . $this->commentControls($each['id']) . wf_tag('center', true);
                 $authorPanel = $authorName . wf_tag('br') . $authorAvatar . wf_tag('br') . $commentController;
