@@ -136,6 +136,7 @@ function im_CheckForUnreadMessagesByUser($username) {
  */
 function im_ContactList() {
     $me = whoami();
+    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $alladmins = rcms_scandir(DATA_PATH . "users/");
     $activeAdmins = im_GetActiveAdmins();
     $result = '';
@@ -161,7 +162,8 @@ function im_ContactList() {
                     $aliveFlag = web_bool_led(false);
                 }
                 $conatactAvatar = gravatar_ShowAdminAvatar($eachadmin, '32') . ' ';
-                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $eachadmin.' '.$blinker, 'threadContainer', false, 'ubimcontact');
+                $adminName = (isset($employeeNames[$eachadmin])) ? $employeeNames[$eachadmin] : $eachadmin;
+                $threadLink = wf_AjaxLink("?module=ubim&showthread=" . $eachadmin, $adminName . ' ' . $blinker, 'threadContainer', false, 'ubimcontact');
                 //$threadLink.=$blinker;
 
                 $cells = wf_TableCell($aliveFlag, '', '', 'valign="center" align="center"');
@@ -220,8 +222,10 @@ function im_ThreadShow($threadUser) {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $me = whoami();
+    @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
     $threadUser = mysql_real_escape_string($threadUser);
-    $result = __('No conversations with') . ' ' . $threadUser . ' ' . __('yet') . wf_delimiter();
+    $adminName = (isset($employeeNames[$threadUser])) ? $employeeNames[$threadUser] : $threadUser;
+    $result = __('No conversations with') . ' ' . $adminName . ' ' . __('yet') . wf_delimiter();
     $rows = '';
     $query = "SELECT * from `ub_im` WHERE (`to`='" . $me . "' AND `from`='" . $threadUser . "')  OR (`to`='" . $threadUser . "' AND `from`='" . $me . "') ORDER BY `date` DESC";
     $alldata = simple_queryall($query);
@@ -229,17 +233,17 @@ function im_ThreadShow($threadUser) {
         foreach ($alldata as $io => $each) {
             //read icon
             $readIcon = ($each['read'] == '0') ? wf_img("skins/icon_inactive.gif", __('Unread message')) : '';
-
-            $cells = wf_TableCell(wf_tag('b') . $each['from'] . wf_tag('b', true), '20%', '', 'align="center"');
+            $fromName = (isset($employeeNames[$each['from']])) ? $employeeNames[$each['from']] : $each['from'];
+            $cells = wf_TableCell(wf_tag('b') . $fromName . wf_tag('b', true), '20%', '', 'align="center"');
             $cells.= wf_TableCell($each['date'] . ' ' . $readIcon, '80%');
             $rows.= wf_TableRow($cells, 'row2');
-         
+
             $messageText = nl2br($each['text']);
             if (!isset($altCfg['UBIM_NO_LINKIFY'])) {
-                $messageText=  im_linkify($messageText);
+                $messageText = im_linkify($messageText);
             } else {
                 if (!$altCfg['UBIM_NO_LINKIFY']) {
-                    $messageText=  im_linkify($messageText);
+                    $messageText = im_linkify($messageText);
                 }
             }
             $cells = wf_TableCell(gravatar_ShowAdminAvatar($each['from'], '64'), '', 'row3', 'align="center"');
