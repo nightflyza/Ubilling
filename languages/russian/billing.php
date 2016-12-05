@@ -2348,7 +2348,7 @@ $lang['def']['Number must be in international format'] = 'Номер долже�
 $lang['def']['Create new email'] = 'Создать новый Е-мейл';
 $lang['def']['Not all of required fields are filled'] = 'Заполнены не все обязательные поля';
 $lang['def']['Create new Telegram message'] = 'Создать новое сообщение Telegram';
-$lang['def'][''] = '';
+$lang['def']['middle price'] = 'средняя цена';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

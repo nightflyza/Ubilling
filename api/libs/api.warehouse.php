@@ -1852,7 +1852,7 @@ class Warehouse {
             $inputs.= wf_HiddenInput('newoutitemtypeid', $itemtypeid);
             $inputs.= wf_HiddenInput('newoutstorageid', $storageid);
             $inputs.= wf_TextInput('newoutcount', $itemUnit . ' (' . ($itemRemainsStorage - $isReserved) . ' ' . __('maximum') . ')', '', true, '4');
-            $inputs.= wf_TextInput('newoutprice', __('Price'), '', true, '4');
+            $inputs.= wf_TextInput('newoutprice', __('Price') . ' (' . __('middle price') . ': ' . $this->getIncomeMiddlePrice($itemtypeid) . ')', '', true, '4');
             $inputs.= wf_TextInput('newoutnotes', __('Notes'), '', true, 25);
             $inputs.= wf_tag('br');
             $inputs.=wf_Submit(__('Create'));

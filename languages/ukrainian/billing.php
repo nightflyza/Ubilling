@@ -2363,5 +2363,6 @@ $lang['def']['Number must be in international format'] = 'Номер повин�
 $lang['def']['Create new email'] = 'Створити новий Е-мелй';
 $lang['def']['Not all of required fields are filled'] = 'Заповнені не усі обовязкові поля';
 $lang['def']['Create new Telegram message'] = 'Створити нове повідомлення Telegram';
+$lang['def']['middle price'] = 'середня ціна';
 
 ?>
