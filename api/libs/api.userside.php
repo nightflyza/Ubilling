@@ -3,7 +3,7 @@
 class UserSideApi {
 
     const API_VER = '1.4';
-    const API_DATE = '21.11.2016';
+    const API_DATE = '06.12.2016';
 
     /**
      * Stores system alter config as key=>value
@@ -209,6 +209,7 @@ class UserSideApi {
             'change_user_data' => __('Do some changes with user data'),
             'get_supported_change_user_data_list' => __('Returns list of supported change user data methods'),
             'get_supported_change_user_state' => __('Returns list of supported change user states'),
+            'get_supported_change_user_tariff' => __('Returns list of supported change user tariffs')
         );
 
         $this->supportedChangeMethods = array(
@@ -454,24 +455,31 @@ class UserSideApi {
     /**
      * Returns array of all of existing tariffs data
      * 
+     * @param bool $brief - brief tariffs listing only with names
+     * 
      * @return array
      */
-    protected function getTariffsData() {
+    protected function getTariffsData($brief = false) {
         $result = array();
         if (!empty($this->allTariffs)) {
             foreach ($this->allTariffs as $tariffName => $tariffData) {
-                $result[$tariffName]['id'] = $tariffName;
-                $result[$tariffName]['name'] = $tariffName;
-                $result[$tariffName]['payment'] = $tariffData['Fee'];
-                $result[$tariffName]['payment_interval'] = ($this->allTariffPeriods[$tariffName] == 'month') ? 30 : 1;
-                $downspeed = (isset($this->allTariffSpeeds[$tariffName]['speeddown'])) ? $this->allTariffSpeeds[$tariffName]['speeddown'] : 0;
-                $upspeed = (isset($this->allTariffSpeeds[$tariffName]['speedup'])) ? $this->allTariffSpeeds[$tariffName]['speedup'] : 0;
-                $result[$tariffName]['speed'] = array(
-                    'up' => $upspeed,
-                    'down' => $downspeed,
-                );
-                $result[$tariffName]['traffic'] = ($tariffData['Free']) ? $tariffData['Free'] : -1;
-                $result[$tariffName]['service_type'] = 0;
+                if (!$brief) {
+                    $result[$tariffName]['id'] = $tariffName;
+                    $result[$tariffName]['name'] = $tariffName;
+                    $result[$tariffName]['payment'] = $tariffData['Fee'];
+                    $result[$tariffName]['payment_interval'] = ($this->allTariffPeriods[$tariffName] == 'month') ? 30 : 1;
+                    $downspeed = (isset($this->allTariffSpeeds[$tariffName]['speeddown'])) ? $this->allTariffSpeeds[$tariffName]['speeddown'] : 0;
+                    $upspeed = (isset($this->allTariffSpeeds[$tariffName]['speedup'])) ? $this->allTariffSpeeds[$tariffName]['speedup'] : 0;
+                    $result[$tariffName]['speed'] = array(
+                        'up' => $upspeed,
+                        'down' => $downspeed,
+                    );
+                    $result[$tariffName]['traffic'] = ($tariffData['Free']) ? $tariffData['Free'] : -1;
+                    $result[$tariffName]['service_type'] = 0;
+                } else {
+                    $result[$tariffName]['id'] = $tariffName;
+                    $result[$tariffName]['name'] = $tariffName;
+                }
             }
         }
         return ($result);
@@ -1370,6 +1378,10 @@ class UserSideApi {
                     case 'get_supported_change_user_state':
                         $this->renderReply($this->getChangeStateMethodsList());
                         break;
+                    case 'get_supported_change_user_tariff':
+                        $this->renderReply($this->getTariffsData(true));
+                        break;
+
                     case 'change_user_data':
                         $changeParams = $this->catchChangeParams();
                         if (!empty($changeParams)) {
