@@ -23,7 +23,7 @@ class UbillingSMS {
         $module = (!empty($module)) ? ' MODULE ' . $module : '';
         if (!empty($number)) {
             if (ispos($number, '+')) {
-                $message = str_replace('\r\n', ' ', $message);
+                $message = str_replace(array("\n\r","\n","\r"), ' ', $message);
                 if ($translit) {
                     $message = zb_TranslitString($message);
                 }
