@@ -2364,5 +2364,8 @@ $lang['def']['Create new email'] = 'Створити новий Е-мелй';
 $lang['def']['Not all of required fields are filled'] = 'Заповнені не усі обовязкові поля';
 $lang['def']['Create new Telegram message'] = 'Створити нове повідомлення Telegram';
 $lang['def']['middle price'] = 'середня ціна';
+$lang['def']['Returns list of supported change user states'] = 'Повертає список підтримуємих для зміни станів користувача';
+$lang['def']['Returns list of supported change user tariffs'] = 'Повертає список підтримуємих для зміни тарифів користувача';
+
 
 ?>
