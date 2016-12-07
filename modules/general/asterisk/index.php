@@ -1,8 +1,11 @@
 <?php
 
-$altcfg = $ubillingConfig->getAlter();
+$altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
 $mysqlcfg = rcms_parse_ini_file(CONFIG_PATH . "mysql.ini");
 if ($altcfg['ASTERISK_ENABLED']) {
+
+    $allrealnames = zb_UserGetAllRealnames();
+    $alladdress = zb_AddressGetFulladdresslist();
 
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
@@ -158,9 +161,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Function add by Pautina - nice and what it do?
-     *
-     * @return array
+     * Function add by Pautina - nu teper zazhivem :)
+     * 
+     * @return something magic
      */
     function zb_LoginByNumberQuery() {
         global $mysqlcfg;
@@ -184,10 +187,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
             }
             mysqli_free_result($result);
             $loginDB->close();
-            //nahera eto?
-            //echo $test_count;
-            //undefined variable
-            //$test_count++;
         }
         return ($result_a);
     }
@@ -195,19 +194,8 @@ if ($altcfg['ASTERISK_ENABLED']) {
     /**
      * Gets Ubilling user login by number mobile
      * 
-     * @pram string $number - start date
+     * @param string $number - number
      * 
-     * @return void
-     */
-    $allrealnames = zb_UserGetAllRealnames();
-    $alladdress = zb_AddressGetFulladdresslist();
-
-    /**
-     * Gets user login by phone number
-     * 
-     * @global array $allrealnames
-     * @global array $alladdress
-     * @param string $number
      * @return string
      */
     function zb_AsteriskGetLoginByNumber($number) {
@@ -246,9 +234,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Function add by Pautina -  - nice and what it do?
+     * Function add by Pautina - teper tochno zazhivem :)
+     * Looks like it gets some additional comments for something
      *
-     * @return ???
+     * @return string
      */
     function zb_CheckCommentsForUser($scope, $idComments) {
         global $mysqlcfg;
@@ -275,10 +264,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
     /**
      * Parse Asterisk RAW CDR data
      * 
-     * @param array $data - raw CDR
+     * @param string $data - raw CDR
      * 
      * @return void
      */
+//need review with real CDR data
     function zb_AsteriskParseCDR($data) {
         global $altcfg;
         $normalData = $data;
@@ -295,7 +285,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
             $cells.= wf_TableCell(__('Type'));
             $cells.= wf_TableCell(__('Status'));
             $cells.= wf_TableCell(__('Talk time'));
-            $cells.= wf_TableCell(__('Comments'));
+            if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
+                $cells.= wf_TableCell(__('Назойливость'));
+            } else {
+                $cells.= wf_TableCell(__('Comments'));
+            }
 
             $rows = wf_TableRow($cells, 'row1');
 
@@ -386,17 +380,21 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
                 $cells.= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each['billsec'] . '"');
 
-                if (!empty($login)) {
-                    $itemId = $each['uniqueid'] . $each['disposition']{0};
-                    $adcomments = new ADcomments('ASTERISK');
-                    if ($adcomments->haveComments($itemId)) {
-                        $link_text = '<center>' . $adcomments->getCommentsIndicator($itemId) . '<br /><span style="font-size:14px;color: black;">' . zb_CheckCommentsForUser('ASTERISK', $itemId) . '</span></center>';
-                    } else {
-                        $link_text = '<center>Add Comments</center>';
-                    }
-                    $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
+                if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
+                    $cells.= wf_TableCell(__($each['countnum']));
                 } else {
-                    $cells.= wf_TableCell(__(''));
+                    if (!empty($login)) {
+                        $itemId = $each['uniqueid'] . $each['disposition']{0};
+                        $adcomments = new ADcomments('ASTERISK');
+                        if ($adcomments->haveComments($itemId)) {
+                            $link_text = '<center>' . $adcomments->getCommentsIndicator($itemId) . '<br /><span style="font-size:14px;color: black;">' . zb_CheckCommentsForUser('ASTERISK', $itemId) . '</span></center>';
+                        } else {
+                            $link_text = '<center>Add Comments</center>';
+                        }
+                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
+                    } else {
+                        $cells.= wf_TableCell(__(''));
+                    }
                 }
 
                 $rows.= wf_TableRow($cells, 'row3');
@@ -435,7 +433,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
     /**
      * Gets Asterisk CDR data from database and manage cache
      * 
-     * @pram string $from - start date
+     * @param string $from - start date
      * @param string $to  - end date
      * 
      * @return void
@@ -469,15 +467,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
         if (isset($user_login)) {
 //connect to Asterisk database and fetch some data
-            $phone = zb_LoginByNumberQuery();
-            $phone = $phone[$user_login][0];
-            $mobile = zb_LoginByNumberQuery();
-            $mobile = $mobile[$user_login][1];
-            $dop_mobile = zb_LoginByNumberQuery();
-            $dop_mobile = $dop_mobile[$user_login][2];
-            /**
-             * [] array syntax accessible only in PHP =>5.4 - fixed for backward compat
-             */
+            $phonesQueryData = zb_LoginByNumberQuery(); // why? why use this callback three times?
+            $phone = $phonesQueryData[$user_login][0];
+            $mobile = $phonesQueryData[$user_login][1];
+            $dop_mobile = $phonesQueryData[$user_login][2];
+
             if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
                 $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "')";
             } elseif (!empty($mobile) and empty($phone) and empty($dop_mobile)) {
@@ -495,6 +489,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
             }
             $rawResult = zb_AsteriskQuery($query);
             $cacheContent = serialize($rawResult);
+        } elseif (wf_CheckPost(array('countnum')) and ! isset($user_login)) {
+            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' GROUP BY `src`";
+            $rawResult = zb_AsteriskQuery($query);
+            $cacheContent = serialize($rawResult);
         } elseif ($cacheUpdate and ! isset($user_login)) {
             $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' ORDER BY `calldate` DESC";
             $rawResult = zb_AsteriskQuery($query);
@@ -506,7 +504,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             //here is data parsing
             zb_AsteriskParseCDR($rawResult);
         } else {
-            show_window(__('Error'), __('Empty reply received'));
+            show_error( __('Empty reply received'));
         }
     }
 
@@ -516,9 +514,13 @@ if ($altcfg['ASTERISK_ENABLED']) {
      * @return string
      */
     function web_AsteriskDateForm() {
+        global $user_login;
         $inputs = wf_Link("?module=asterisk&config=true", wf_img('skins/settings.png', __('Settings'))) . ' ';
         $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
         $inputs.= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
+        if (!isset($user_login)) {
+            $inputs.= wf_Trigger('countnum', 'Показать самых назойливых', false);
+        }
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
         return ($result);
@@ -544,12 +546,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
         return ($result);
     }
 
-    /*
+    /**
      * Returns number aliases aka phonebook form
      * 
      * @return string 
      */
-
     function web_AsteriskAliasesForm() {
         global $numAliases;
         $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
@@ -640,9 +641,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
             }
         }
     } else {
-        show_error(__('Error'), __('Permission denied'));
+        show_error(__('Permission denied'));
     }
 } else {
-    show_window(__('Error'), __('Asterisk PBX integration now disabled'));
+    show_error( __('Asterisk PBX integration now disabled'));
 }
 ?>

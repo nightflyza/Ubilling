@@ -538,7 +538,12 @@ class UserProfile {
         $result.= $this->getControl('?module=useredit&username=' . $this->login, 'skins/icon_user_edit_big.png', 'Edit user', 'Edit', 'USEREDIT');
         $result.= $this->getControl('?module=jobs&username=' . $this->login, 'skins/worker.png', 'Jobs', 'Jobs', 'EMPLOYEE');
         $result.= $this->getControl('?module=reset&username=' . $this->login, 'skins/icon_reset_big.png', 'Reset user', 'Reset user', 'RESET');
-
+        //optional asterisk controls
+        if (isset($this->alterCfg['ASTERISK_ENABLED'])) {
+            if ($this->alterCfg['ASTERISK_ENABLED']) {
+                $result.= $this->getControl('?module=asterisk&username=' . $this->login . '#profileending', 'skins/asterisk_small.png', 'Asterisk logging', 'Asterisk', 'ASTERISK');
+            }
+        }
         $result.= wf_tag('td', true);
         $result.= wf_tag('tbody', true);
         $result.= wf_tag('table', true);
