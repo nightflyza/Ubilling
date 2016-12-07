@@ -391,7 +391,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
                         if ($adcomments->haveComments($itemId)) {
                             $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . zb_CheckCommentsForUser('ASTERISK', $itemId) . wf_tag('span', true) . wf_tag('center', true);
                         } else {
-                            $link_text = wf_tag('center') . __('Add Comments') . wf_tag('center', true);
+                            $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
                         $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
                     } else {

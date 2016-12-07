@@ -2367,5 +2367,6 @@ $lang['def']['middle price'] = 'середня ціна';
 $lang['def']['Returns list of supported change user states'] = 'Повертає перелік підтримуємих для зміни станів користувача';
 $lang['def']['Returns list of supported change user tariffs'] = 'Повертає перелік підтримуємих для зміни тарифів користувача';
 $lang['def']['Asterisk logging'] = 'Логи Asterisk';
+$lang['def']['Add comments'] = 'Додати коментарі';
 
 ?>
