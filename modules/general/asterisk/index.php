@@ -272,6 +272,8 @@ if ($altcfg['ASTERISK_ENABLED']) {
     function zb_AsteriskParseCDR($data) {
         global $altcfg;
         $normalData = $data;
+        $adcomments = new ADcomments('ASTERISK'); // minus one SQL query per call
+        // only one instance of object required
 
         if (!empty($normalData)) {
             $totalTime = 0;
@@ -385,11 +387,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
                 } else {
                     if (!empty($login)) {
                         $itemId = $each['uniqueid'] . $each['disposition']{0};
-                        $adcomments = new ADcomments('ASTERISK');
+
                         if ($adcomments->haveComments($itemId)) {
-                            $link_text = '<center>' . $adcomments->getCommentsIndicator($itemId) . '<br /><span style="font-size:14px;color: black;">' . zb_CheckCommentsForUser('ASTERISK', $itemId) . '</span></center>';
+                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . zb_CheckCommentsForUser('ASTERISK', $itemId) . wf_tag('span', true) . wf_tag('center', true);
                         } else {
-                            $link_text = '<center>Add Comments</center>';
+                            $link_text = wf_tag('center') . __('Add Comments') . wf_tag('center', true);
                         }
                         $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
                     } else {
@@ -504,7 +506,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             //here is data parsing
             zb_AsteriskParseCDR($rawResult);
         } else {
-            show_error( __('Empty reply received'));
+            show_error(__('Empty reply received'));
         }
     }
 
@@ -644,6 +646,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
         show_error(__('Permission denied'));
     }
 } else {
-    show_error( __('Asterisk PBX integration now disabled'));
+    show_error(__('Asterisk PBX integration now disabled'));
 }
 ?>
