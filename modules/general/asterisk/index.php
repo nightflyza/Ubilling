@@ -1,6 +1,6 @@
 <?php
 
-$altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+$altcfg = $ubillingConfig->getAlter();
 $mysqlcfg = rcms_parse_ini_file(CONFIG_PATH . "mysql.ini");
 if ($altcfg['ASTERISK_ENABLED']) {
 
