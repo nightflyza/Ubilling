@@ -995,7 +995,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 }
 
 /**
- * Renders list of all previous user tasks by current year
+ * Renders list of all previous user tasks by all time
  * 
  * @param string $login
  * 
@@ -1003,21 +1003,39 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
  */
 function ts_PreviousUserTasksRender($login) {
     $result = '';
+    $userTasks = array();
+    $telepathyTasks = array();
+    $telepathy = new Telepathy(false, true);
+
     if (!empty($login)) {
         $alljobtypes = ts_GetAllJobtypes();
         $allemployee = ts_GetActiveEmployee();
-        $dateMask = date("Y") . '-%';
-
-        $query = "SELECT * from `taskman` WHERE `login`='" . $login . "' AND `date` LIKE '" . $dateMask . "' ORDER BY `id` DESC;";
-        $allTasks = simple_queryall($query);
-        if (!empty($allTasks)) {
+        $query = "SELECT * from `taskman` ORDER BY `id` DESC;";
+        $rawTasks = simple_queryall($query);
+        if (!empty($rawTasks)) {
             $result.=wf_tag('hr');
-            foreach ($allTasks as $io => $each) {
-                $taskColor = ($each['status']) ? 'donetask' : 'undone';
-                $result.=wf_tag('div', false, $taskColor, 'style="width:400px;"');
-                $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']];
-                $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
-                $result.= wf_tag('div', true);
+            foreach ($rawTasks as $io => $each) {
+                if ($each['login'] == $login) {
+                    $userTasks[$each['id']] = $each;
+                }
+                //address guessing
+                if ($telepathy->getLogin($each['address']) == $login) {
+                    if (!isset($userTasks[$each['id']])) {
+                        $userTasks[$each['id']] = $each;
+                        $telepathyTasks[$each['id']] = $each['id'];
+                    }
+                }
+            }
+
+            if (!empty($userTasks)) {
+                foreach ($userTasks as $io => $each) {
+                    $telepathyFlag = (isset($telepathyTasks[$each['id']])) ? wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true) : '';
+                    $taskColor = ($each['status']) ? 'donetask' : 'undone';
+                    $result.=wf_tag('div', false, $taskColor, 'style="width:400px;"');
+                    $taskdata = $each['startdate'] . ' - ' . @$alljobtypes[$each['jobtype']] . ', ' . @$allemployee[$each['employee']] . ' ' . $telepathyFlag;
+                    $result.= wf_link('?module=taskman&edittask=' . $each['id'], wf_img('skins/icon_edit.gif')) . ' ' . $taskdata;
+                    $result.= wf_tag('div', true);
+                }
             }
         }
     }
