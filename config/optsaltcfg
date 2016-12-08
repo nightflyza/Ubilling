@@ -270,6 +270,7 @@ UKV_COMPLEX_TARIFFID=VARCHAR|UKV complex users tariff id
 UKV_SOCIAL_TARIFFID=VARCHAR|UKV socail service tariff id
 SWITCHES_EXTENDED=TRIGGER|RemoteID management for switches is enabled
 WORKING_HOURS=VARCHAR|Tech support working hours
+TSUPPORT_API=TRIGGER|Support interface API
 CHAPTEREND_BEH=true
 
 

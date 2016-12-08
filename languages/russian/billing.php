@@ -2353,7 +2353,7 @@ $lang['def']['Returns list of supported change user states'] = 'Возвраща
 $lang['def']['Returns list of supported change user tariffs'] = 'Возвращает список поддерживаемых для изменения тарифов пользователя';
 $lang['def']['Asterisk logging'] = 'Логи Asterisk';
 $lang['def']['Add comments'] = 'Добавить коментарии';
-$lang['def'][''] = '';
+$lang['def']['Support interface API'] = 'API интерфейса техподдержки';
 $lang['def'][''] = '';
 
 ?>
