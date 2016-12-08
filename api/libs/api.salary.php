@@ -833,9 +833,14 @@ class Salary {
                 $empParams[$io] = $each;
             }
         }
-        $inputs = wf_DatePickerPreset('prdatefrom', curdate(), true) . ' ';
-        $inputs.= wf_DatePickerPreset('prdateto', curdate(), true) . ' ';
-        $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), '', false);
+
+        $fromDate = (wf_CheckPost(array('prdatefrom'))) ? $_POST['prdatefrom'] : curdate();
+        $toDate = (wf_CheckPost(array('prdateto'))) ? $_POST['prdateto'] : curdate();
+        $currentEmployee = (wf_CheckPost(array('premployeeid'))) ? $_POST['premployeeid'] : '';
+
+        $inputs = wf_DatePickerPreset('prdatefrom', $fromDate, true) . ' ';
+        $inputs.= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
+        $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
