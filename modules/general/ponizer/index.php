@@ -16,6 +16,7 @@ if ($altCfg['PON_ENABLED']) {
         if (wf_CheckPost(array('createnewonu', 'newoltid', 'newmac'))) {
             $onuCreateResult = $pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
             if ($onuCreateResult) {
+                multinet_rebuild_all_handlers();
                 rcms_redirect('?module=ponizer');
             } else {
                 show_error(__('This MAC have wrong format'));
@@ -25,18 +26,21 @@ if ($altCfg['PON_ENABLED']) {
         //edits existing ONU in database
         if (wf_CheckPost(array('editonu', 'editoltid', 'editmac'))) {
             $pon->onuSave($_POST['editonu'], $_POST['editonumodelid'], $_POST['editoltid'], $_POST['editip'], $_POST['editmac'], $_POST['editserial'], $_POST['editlogin']);
+            multinet_rebuild_all_handlers();
             rcms_redirect('?module=ponizer&editonu=' . $_POST['editonu']);
         }
 
         //deleting existing ONU
         if (wf_CheckGet(array('deleteonu'))) {
             $pon->onuDelete($_GET['deleteonu']);
+            multinet_rebuild_all_handlers();
             rcms_redirect('?module=ponizer');
         }
 
         //assigning ONU with some user
         if (wf_CheckPost(array('assignonulogin', 'assignonuid'))) {
             $pon->onuAssign($_POST['assignonuid'], $_POST['assignonulogin']);
+            multinet_rebuild_all_handlers();
             rcms_redirect('?module=ponizer&editonu=' . $_POST['assignonuid']);
         }
 

@@ -1883,10 +1883,10 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
 function web_NasAddForm() {
 
     $nastypes = array(
+        'local' => 'Local NAS',
         'rscriptd' => 'rscriptd',
         'mikrotik' => 'MikroTik',
-        'radius' => 'Radius',
-        'local' => 'Local NAS'
+        'radius' => 'Radius'
     );
 
 
@@ -4394,6 +4394,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
 
 
 
