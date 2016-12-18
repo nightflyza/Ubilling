@@ -1173,6 +1173,51 @@ function GetAllCreditedUsers() {
     }
 }
 
+/**
+ * Get all data from tables `notes` and `adcomments` and place it into $this->allNotes
+ * 
+ * @return void
+ */
+function GetAllNotes() {
+    $result		 = '';
+    $query		 = "SELECT * FROM `notes`";
+    $allNotes	 = simple_queryall($query);
+    if (!empty($allNotes)) {
+	foreach ($allNotes as $ia => $eachnote) {
+	    $result[$eachnote['login']] = $eachnote['note'];
+	}
+    }
+    $query		 = "SELECT * FROM `adcomments`";
+    $allComments	 = simple_queryall($query);
+    if (!empty($allComments)) {
+	foreach ($allComments as $ia => $eachcomment) {
+	    if (isset($result[$eachcomment['item']])) {
+		$result[$eachcomment['item']].= "  " . $eachcomment['text'];
+	    } else {
+		$result[$eachcomment['item']] = $eachcomment['text'];
+	    }
+	}
+    }
+    return $result;
+}
+
+/**
+ * Get all users pon Data (mac onu, oltid) and load into $this->allOnu
+ * 
+ * @return void
+ */
+function GetAllOnu() {
+    $query	 = "SELECT * FROM `pononu`";
+    $allonu	 = simple_queryall($query);
+    $result	 = '';
+    if (!empty($allonu)) {
+	foreach ($allonu as $io => $each) {
+	    $result[$each['login']] = $each['mac'];
+	}
+    }
+    return $result;
+}
+
 function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $realnames = 0, $rowcount = 0) {
     $alter_conf	 = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
     $report_name	 = wf_tag('h2') . __("Debtors by city") . wf_tag('h2', true);
@@ -1183,7 +1228,6 @@ function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $re
     }
     $allphonedata	 = zb_UserGetAllPhoneData();
     $allnotes	 = GetAllNotes();
-    $allcomments	 = GetAllComments();
     $allonu		 = GetAllOnu();
     $allCredited	 = GetAllCreditedUsers();
 
@@ -1275,7 +1319,7 @@ function web_ReportCityShowPrintable($titles, $keys, $alldata, $address = 0, $re
 	    if ($alter_conf['FINREP_TARIFF']) {
 		$cells.= wf_TableCell(@$alltariffs[$eachdata['login']]);
 	    }
-	    $cells.= wf_TableCell(@$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']]);
+	    $cells.= wf_TableCell(@$allnotes[$eachdata['login']]);
 	    $cells.= wf_TableCell(@$allonu[$eachdata['login']]);
 	    $cells.= wf_TableCell(@$allCredited[$eachdata['login']]);
 	    foreach ($keys as $eachkey) {
@@ -1359,7 +1403,6 @@ function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, 
     }
     $allphonedata	 = zb_UserGetAllPhoneData();
     $allnotes	 = GetAllNotes();
-    $allcomments	 = GetAllComments();
     $allonu		 = GetAllOnu();
     $allCredited	 = GetAllCreditedUsers();
     $i		 = 0;
@@ -1450,7 +1493,7 @@ function web_ReportDebtorsShowPrintable($titles, $keys, $alldata, $address = 0, 
 	    if ($alter_conf['FINREP_TARIFF']) {
 		$cells.=wf_TableCell(@$alltariffs[$eachdata['login']]);
 	    }
-	    $cells.= wf_TableCell(@$allnotes[$eachdata['login']] . " " . @$allcomments[$eachdata['login']]);
+	    $cells.= wf_TableCell(@$allnotes[$eachdata['login']]);
 	    $cells.= wf_TableCell(@$allonu[$eachdata['login']]);
 	    $cells.= wf_TableCell(@$allCredited[$eachdata['login']]);
 	    foreach ($keys as $eachkey) {
