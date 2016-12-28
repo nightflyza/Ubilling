@@ -193,19 +193,19 @@ function zbs_TariffChangeForm($login, $tc_tariffsallowed, $tc_priceup, $tc_price
     $inputs = __('New tariff') . ' ' . zbs_TariffSelector($tc_tariffsallowed, $user_tariff) . la_delimiter();
     $inputs.= la_CheckInput('agree', __('I am sure that I am an adult and have read everything that is written above'), false, false);
     $inputs.= la_delimiter();
-    
-    $nmChangeFlag=true;
+
+    $nmChangeFlag = true;
     if (isset($us_config['TC_RIGHTNOW'])) {
         if ($us_config['TC_RIGHTNOW']) {
-            $nmChangeFlag=false;
+            $nmChangeFlag = false;
         }
     }
-    
-    $sumbitLabel= ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
-    
+
+    $sumbitLabel = ($nmChangeFlag) ? __('I want this tariff next month') : __('I want this tariff right now');
+
     $inputs.= la_Submit($sumbitLabel);
-    
-    
+
+
     $form.= la_Form('', 'POST', $inputs, '');
 
     return ($form);
@@ -247,20 +247,22 @@ if ($tc_enabled) {
                     billing_addcash($user_login, '-' . $change_prices[$_POST['newtariff']]);
 
                     //nm set tariff routine
-                    $nextMonthTc=true;
+                    $nextMonthTc = true;
                     if (isset($us_config['TC_RIGHTNOW'])) {
                         if ($us_config['TC_RIGHTNOW']) {
-                            $nextMonthTc=false;
+                            $nextMonthTc = false;
                         }
                     }
                     if ($nextMonthTc) {
                         billing_settariffnm($user_login, mysql_real_escape_string($_POST['newtariff']));
+                        log_register('CHANGE TariffNM (' . $user_login . ') ON `' . $_POST['newtariff'] . '`');
                     } else {
                         billing_settariff($user_login, mysql_real_escape_string($_POST['newtariff']));
+                        log_register('CHANGE Tariff (' . $user_login . ') ON `' . $_POST['newtariff'] . '`');
                     }
-                    
-                    
-                    
+
+
+
                     rcms_redirect("index.php");
                 } else {
                     // agreement check fail

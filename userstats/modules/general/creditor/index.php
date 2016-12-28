@@ -115,11 +115,13 @@ function zbs_CreditCheckAllowed($sc_allowed, $usertariff) {
  *  @return void
  */
 function zbs_CreditDoTheCredit($user_login, $tariffprice, $sc_price, $scend, $sc_cashtypeid) {
+    $creditLimit = $tariffprice + $sc_price;
     zbs_CreditLogPush($user_login);
-    billing_setcredit($user_login, $tariffprice + $sc_price);
+    billing_setcredit($user_login, $creditLimit);
     billing_setcreditexpire($user_login, $scend);
     zbs_PaymentLog($user_login, '-' . $sc_price, $sc_cashtypeid, "SCFEE");
     billing_addcash($user_login, '-' . $sc_price);
+    log_register('CHANGE Credit (' . $user_login . ') ON ' . $creditLimit);
     show_window('', __('Now you have a credit'));
     rcms_redirect("index.php");
 }

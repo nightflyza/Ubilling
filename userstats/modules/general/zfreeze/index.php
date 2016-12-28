@@ -34,6 +34,7 @@ if ($us_config['AF_ENABLED']) {
                         //push cash fee anyway
                         zbs_PaymentLog($user_login, '-' . $freezeprice, $af_cahtypeid, "AFFEE");
                         billing_addcash($user_login, '-' . $freezeprice);
+                        log_register('CHANGE Passive ('.$user_login.') ON 1');
                         rcms_redirect("index.php");
                     } else {
                         show_window(__('Error'), __('You must accept our policy'));
