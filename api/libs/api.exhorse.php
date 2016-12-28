@@ -664,12 +664,15 @@ class ExistentialHorse {
                                 @$startTime = $startTime[1];
                                 //only working time
                                 if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
-                                    if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
-                                        $this->storeTmp['a_totalanswered'] ++;
+                                    //calls with less then 24 hours duration
+                                    if ($each['13'] < 86400) {
+                                        if (ispos($each[14], 'ANSWERED') AND ( !ispos($each[7], 'VoiceMail'))) {
+                                            $this->storeTmp['a_totalanswered'] ++;
+                                        }
+                                        $this->storeTmp['a_totalcalls'] ++;
+                                        //call duration in seconds increment
+                                        $this->storeTmp['a_totalcallsduration']+=$each[13];
                                     }
-                                    $this->storeTmp['a_totalcalls'] ++;
-                                    //call duration in seconds increment
-                                    $this->storeTmp['a_totalcallsduration']+=$each[13];
                                 }
                             }
                         }
