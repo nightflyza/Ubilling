@@ -2370,4 +2370,11 @@ $lang['def']['Asterisk logging'] = 'Логи Asterisk';
 $lang['def']['Add comments'] = 'Додати коментарі';
 $lang['def']['Support interface API'] = 'API інтерфейсу техпідтримки';
 
+//rev 5272
+$lang['def']['RED-Sms API address'] = 'Адреса API RED-Sms';
+$lang['def']['RED-Sms Balance API address'] = 'Адреса API перевірки балансу користувача RED-Sms';
+$lang['def']['User login to access RED-Sms API'] = 'Логін користувача для доступу до API RED-Sms';
+$lang['def']['User API key for access RED-Sms API'] = 'API ключ користувача для доступу API RED-Sms';
+$lang['def']['Use RED-Sms as default SMS service'] = 'Використовувати RED-Sms як службу SMS за замовчуванням';
+
 ?>

@@ -22,7 +22,10 @@ if (cfr('SENDDOG')) {
                     show_window(__('View SMS sending queue'), $sendDog->renderTurboSMSQueue());
                     break;
                 case 'smsflybalance':
-                    show_window(__('SMS-Fly').' '.__('Balance'), $sendDog->renderSmsflyBalance());
+                    show_window(__('SMS-Fly') . ' ' . __('Balance'), $sendDog->renderSmsflyBalance());
+                    break;
+                case 'redsmsbalance':
+                    show_window(__('RED-SMS') . ' ' . __('Balance'), $sendDog->renderRedsmsBalance());
                     break;
                 case 'telegramcontacts':
                     show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());

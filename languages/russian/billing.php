@@ -2354,6 +2354,14 @@ $lang['def']['Returns list of supported change user tariffs'] = 'Возвращ�
 $lang['def']['Asterisk logging'] = 'Логи Asterisk';
 $lang['def']['Add comments'] = 'Добавить коментарии';
 $lang['def']['Support interface API'] = 'API интерфейса техподдержки';
+
+
+//rev 5272
+$lang['def']['RED-Sms API address'] = 'Адрес API RED-Sms';
+$lang['def']['RED-Sms Balance API address'] = 'Адрес API проверки баланса пользователя RED-Sms';
+$lang['def']['User login to access RED-Sms API'] = 'Имя пользователя для доступа к API RED-Sms';
+$lang['def']['User API key for access RED-Sms API'] = 'API ключ пользователя для доступа к API RED-Sms';
+$lang['def']['Use RED-Sms as default SMS service'] = 'Использовать RED-Sms как службу SMS по-умолчанию';
 $lang['def'][''] = '';
 
 ?>
