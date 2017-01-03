@@ -240,6 +240,7 @@ class FundsFlow {
     public function renderArray($fundsflow) {
         $allcashtypes = $this->getCashTypeNames();
         $allservicenames = zb_VservicesGetAllNamesLabeled();
+        @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
         $result = '';
 
         $tablecells = wf_TableCell(__('Date'));
@@ -292,6 +293,9 @@ class FundsFlow {
                     $displaynote = $each['note'];
                 }
 
+                //admin login detection
+                $adminName = (isset($employeeNames[$each['admin']])) ? $employeeNames[$each['admin']] : $each['admin'];
+
                 $tablecells = wf_TableCell($fc . $each['date'] . $efc, '150');
                 $tablecells.=wf_TableCell($fc . $each['summ'] . $efc);
                 $tablecells.=wf_TableCell($fc . $each['from'] . $efc);
@@ -299,7 +303,7 @@ class FundsFlow {
                 $tablecells.=wf_TableCell($fc . __($each['operation']) . $efc);
                 $tablecells.=wf_TableCell($cashtype);
                 $tablecells.=wf_TableCell($displaynote);
-                $tablecells.=wf_TableCell($each['admin']);
+                $tablecells.=wf_TableCell($adminName);
                 $tablerows.= wf_TableRow($tablecells, 'row3');
             }
 

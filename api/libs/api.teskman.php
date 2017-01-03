@@ -1389,13 +1389,20 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
  * @return string serialized array
  */
 function ts_GetAllEmployeeLogins() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $namesFlag = (@$altCfg['ADMIN_NAMES']) ? true : false;
     $result = array();
     $query = "SELECT `admlogin`,`name` from `employee`";
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {
             if (!empty($each['admlogin'])) {
-                $result[$each['admlogin']] = $each['name'];
+                if ($namesFlag) {
+                    $result[$each['admlogin']] = $each['name'];
+                } else {
+                    $result[$each['admlogin']] = $each['admlogin'];
+                }
             }
         }
     }
@@ -1411,7 +1418,7 @@ function ts_GetAllEmployeeLogins() {
 function ts_GetAllEmployeeLoginsCached() {
     $result = '';
     $cache = new UbillingCache();
-    $cacheTime = 3600;
+    $cacheTime = 86400;
     $result = $cache->getCallback('EMPLOYEE_LOGINS', function () {
         return (ts_GetAllEmployeeLogins());
     }, $cacheTime);
