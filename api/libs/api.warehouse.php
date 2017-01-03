@@ -2370,6 +2370,35 @@ class Warehouse {
     }
 
     /**
+     * Returns additionally spent materials price for some task
+     * 
+     * @param int $taskid
+     * 
+     * @return float
+     */
+    public function taskMaterialsSpentPrice($taskid) {
+        $taskid = vf($taskid, 3);
+        $result = '';
+        $tmpArr = array();
+        $sum = 0;
+        if (!empty($this->allOutcoming)) {
+            foreach ($this->allOutcoming as $io => $each) {
+                if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
+                    $tmpArr[$each['id']] = $each;
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                foreach ($tmpArr as $io => $each) {
+                    $sum = $sum + ($each['price'] * $each['count']);
+                }
+            }
+        }
+        $result = $sum;
+        return ($result);
+    }
+
+    /**
      * shows printable report content
      * 
      * @param $title report title

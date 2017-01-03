@@ -61,6 +61,79 @@ if (cfr('TASKREPORT')) {
         protected $messages = '';
 
         /**
+         * Warehouse usage flag
+         *
+         * @var bool
+         */
+        protected $warehouseFlag = false;
+
+        /**
+         * Salary usage flag
+         *
+         * @var bool
+         */
+        protected $salaryFlag = false;
+
+        /**
+         * Connection details usage flag
+         *
+         * @var bool
+         */
+        protected $condetFlag = false;
+
+        /**
+         * Warehouse object placeholder
+         *
+         * @var object
+         */
+        protected $warehouse = '';
+
+        /**
+         * Salary object placeholder
+         *
+         * @var object
+         */
+        protected $salary = '';
+
+        /**
+         * Telepathy object placeholder
+         *
+         * @var object
+         */
+        protected $telepathy = '';
+
+        /**
+         * Available user contracts
+         *
+         * @var array
+         */
+        protected $userContracts = array();
+
+        /**
+         * Available tariff prices
+         *
+         * @var array
+         */
+        protected $tariffPrices = array();
+
+        /**
+         * Contains current users tariffs
+         *
+         * @var array
+         */
+        protected $userTariffs = array();
+
+        /**
+         * Contains basic URL for task editing
+         */
+        const URL_TASK = '?module=taskman&edittask=';
+
+        /**
+         * Contains basic URL for user profile
+         */
+        const URL_USER = '?module=userprofile&username=';
+
+        /**
          * Creates new TasksReport object instance
          * 
          * @return void
@@ -72,6 +145,11 @@ if (cfr('TASKREPORT')) {
             $this->loadJobtypes();
             $this->setDates();
             $this->loadTasks();
+            $this->loadTariffsData();
+            $this->loadContracts();
+            $this->initWarehouse();
+            $this->initSalary();
+            $this->initTelepathy();
         }
 
         /**
@@ -100,15 +178,16 @@ if (cfr('TASKREPORT')) {
             if (!empty($this->altCfg['TASKREPORT_SIGNUPJOBTYPE'])) {
                 $this->signupJobtypeId = $this->altCfg['TASKREPORT_SIGNUPJOBTYPE'];
             }
-        }
 
-        /**
-         * Inits system messages object
-         * 
-         * @return void
-         */
-        protected function initMessages() {
-            $this->messages = new UbillingMessageHelper();
+            if ($this->altCfg['WAREHOUSE_ENABLED']) {
+                $this->warehouseFlag = true;
+            }
+            if ($this->altCfg['SALARY_ENABLED']) {
+                $this->salaryFlag = true;
+            }
+            if ($this->altCfg['CONDET_ENABLED']) {
+                $this->condetFlag = true;
+            }
         }
 
         /**
@@ -142,6 +221,55 @@ if (cfr('TASKREPORT')) {
         }
 
         /**
+         * Loads available users contracts
+         * 
+         * @return void
+         */
+        protected function loadContracts() {
+            $this->userContracts = array_flip(zb_UserGetAllContracts());
+        }
+
+        /**
+         * Inits system messages object
+         * 
+         * @return void
+         */
+        protected function initMessages() {
+            $this->messages = new UbillingMessageHelper();
+        }
+
+        /**
+         * Inits warehouse object instance
+         * 
+         * @return void
+         */
+        protected function initWarehouse() {
+            if ($this->warehouseFlag) {
+                $this->warehouse = new Warehouse();
+            }
+        }
+
+        /**
+         * Inits salary object instance
+         * 
+         * @return void
+         */
+        protected function initSalary() {
+            if ($this->salaryFlag) {
+                $this->salary = new Salary();
+            }
+        }
+
+        /**
+         * Inits telepathy object
+         * 
+         * @return void
+         */
+        protected function initTelepathy() {
+            $this->telepathy = new Telepathy(false, true);
+        }
+
+        /**
          * Loads tasks for report in selected time range, into protected property for further usage
          * 
          * @return void
@@ -156,6 +284,16 @@ if (cfr('TASKREPORT')) {
                     }
                 }
             }
+        }
+
+        /**
+         * Loads users tariffs and tariffs prices data
+         * 
+         * @return void
+         */
+        protected function loadTariffsData() {
+            $this->tariffPrices = zb_TariffGetPricesAll();
+            $this->userTariffs = zb_TariffsGetAllUsers();
         }
 
         /**
@@ -183,9 +321,12 @@ if (cfr('TASKREPORT')) {
             if (!empty($this->allTasks)) {
                 $cells = wf_TableCell('№');
                 $cells.= wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Contract'));
                 $cells.= wf_TableCell(__('Address'));
                 $cells.= wf_TableCell(__('Type'));
-                $cells.= wf_TableCell(__('Spent on task'));
+                if ($this->warehouseFlag OR $this->salaryFlag) {
+                    $cells.= wf_TableCell(__('Spent on task'));
+                }
                 $cells.= wf_TableCell(__('Tariff fee'));
                 $cells.= wf_TableCell(__('Paid by user'));
                 $cells.= wf_TableCell(__('Notes'));
@@ -201,12 +342,47 @@ if (cfr('TASKREPORT')) {
                         $styleEnd = '';
                     }
 
+                    $userLogin = '';
+                    $userLink = '';
+                    $userTariff = '';
+                    $tariffPrice = '';
+                    if (!empty($each['login'])) {
+                        $userLogin = $each['login'];
+                        @$userContract = $this->userContracts[$userLogin];
+                        $userLink = wf_Link(self::URL_USER . $userLogin, web_profile_icon() . ' ' . $userContract, false);
+                    } else {
+                        $userLogin = $this->telepathy->getLogin($each['address']);
+                        @$userContract = $this->userContracts[$userLogin];
+                        $guessed = wf_tag('sup') . wf_tag('abbr', false, '', 'title="' . __('telepathically guessed') . '"') . '(?)' . wf_tag('abbr', true) . wf_tag('sup', true);
+                        if (!empty($userLogin)) {
+                            $userLink = wf_Link(self::URL_USER . $userLogin, web_profile_icon() . ' ' . $userContract . $guessed, false);
+                        }
+                    }
+
+                    if (!empty($userLogin)) {
+                        $userTariff = $this->userTariffs[$userLogin];
+                        if ((!empty($userTariff)) AND ( $userTariff != '*_NO_TARIFF_*')) {
+                            $tariffPrice = $this->tariffPrices[$userTariff];
+                        }
+                    }
+
                     $cells = wf_TableCell($count);
-                    $cells.= wf_TableCell($each['id']);
+                    $cells.= wf_TableCell(wf_Link(self::URL_TASK . $each['id'], $each['id'], false));
+                    $cells.= wf_TableCell($userLink);
                     $cells.= wf_TableCell($each['address']);
                     $cells.= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
-                    $cells.= wf_TableCell(__('Spent on task'));
-                    $cells.= wf_TableCell(__('Tariff fee'));
+                    if ($this->warehouseFlag OR $this->salaryFlag) {
+                        $warehouseSpent = 0;
+                        $salarySpent = 0;
+                        if ($this->warehouseFlag) {
+                            $warehouseSpent = $this->warehouse->taskMaterialsSpentPrice($each['id']);
+                        }
+                        if ($this->salaryFlag) {
+                            $salarySpent = $this->salary->getTaskPrice($each['id']);
+                        }
+                        $cells.= wf_TableCell(($warehouseSpent + $salarySpent));
+                    }
+                    $cells.= wf_TableCell($tariffPrice);
                     $cells.= wf_TableCell(__('Paid by user'));
                     $cells.= wf_TableCell(__('Notes'));
                     $rows.= wf_TableRow($cells, 'row3');

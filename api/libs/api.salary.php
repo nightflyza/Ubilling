@@ -659,6 +659,29 @@ class Salary {
     }
 
     /**
+     * Renders jobs total price for some task
+     * 
+     * @param int $taskid
+     * @return float
+     */
+    public function getTaskPrice($taskid) {
+        $taskid = vf($taskid, 3);
+        $result = '';
+        $totalSumm = 0;
+        $all = $this->filterTaskJobs($taskid);
+
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $jobPrice = $this->getJobPrice($each['id']);
+                $totalSumm = $totalSumm + $jobPrice;
+            }
+        }
+
+        $result = $totalSumm;
+        return ($result);
+    }
+
+    /**
      * Deletes existing job from database by ID
      * 
      * @param int $jobid
