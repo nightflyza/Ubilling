@@ -95,7 +95,7 @@ function em_JobTypeForm() {
     $createForm = wf_Form("", 'POST', $inputs, '');
     $rows.= $createForm;
 
-    $result = wf_TableBody($rows, '100%', '0', 'sortable');
+    $result = wf_TableBody($rows, '100%', '0', '');
 
     show_window(__('Job types'), $result);
 }

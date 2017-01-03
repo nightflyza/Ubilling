@@ -2376,5 +2376,9 @@ $lang['def']['RED-Sms Balance API address'] = 'Адреса API перевірк
 $lang['def']['User login to access RED-Sms API'] = 'Логін користувача для доступу до API RED-Sms';
 $lang['def']['User API key for access RED-Sms API'] = 'API ключ користувача для доступу API RED-Sms';
 $lang['def']['Use RED-Sms as default SMS service'] = 'Використовувати RED-Sms як службу SMS за замовчуванням';
+$lang['def']['Tasks report'] = 'Звіт по задачах';
+$lang['def']['Spent on task'] = 'Витрати на задачу';
+$lang['def']['Tariff fee'] = 'Абонплата тарифу';
+$lang['def']['Paid by user'] = 'Сплачено користувачем';
 
 ?>
