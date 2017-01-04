@@ -2366,8 +2366,16 @@ $lang['def']['Tasks report'] = 'Отчет по задачам';
 $lang['def']['Spent on task'] = 'Затраты на задачу';
 $lang['def']['Tariff fee'] = 'Абонплата тарифа';
 $lang['def']['Paid by user'] = 'Оплачено пользователем';
+$lang['def']['Total spent on signups'] = 'Всего потрачено на подключения';
+$lang['def']['Total spent materials for signups'] = 'Всего потрачно материалов на подключения';
+$lang['def']['Total spent salary for signups'] = 'Всего оплачено работ на подключения';
+$lang['def']['Signup payments total'] = 'Оплачено абонентами за поключения';
+$lang['def']['Total spent for other tasks'] = 'Всего потрачено на остальные задачи';
+$lang['def']['Profit from users signups'] = 'Прибыль от подключений пользователей';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
+
+
 
 ?>

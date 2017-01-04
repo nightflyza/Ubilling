@@ -19,11 +19,11 @@ if (cfr('TASKREPORT')) {
         protected $reportJobtypes = array();
 
         /**
-         * Signup tasks jobtype ID
+         * Signup tasks jobtype IDs array
          *
-         * @var int
+         * @var array
          */
-        protected $signupJobtypeId = 0;
+        protected $signupJobtypeId = array();
 
         /**
          * Available jobtypes data as jobtypeid=>data
@@ -124,6 +124,34 @@ if (cfr('TASKREPORT')) {
         protected $userTariffs = array();
 
         /**
+         * Contains all signup payments as login=>summ
+         *
+         * @var array
+         */
+        protected $signupPayments = array();
+
+        /**
+         * Contains tagids for notes column
+         *
+         * @var array
+         */
+        protected $notesTagids = array();
+
+        /**
+         * Contains tags assigned for users
+         *
+         * @var array
+         */
+        protected $userTags = array();
+
+        /**
+         * Contains all available tagtypes as id=>name
+         *
+         * @var array
+         */
+        protected $tagTypes = array();
+
+        /**
          * Contains basic URL for task editing
          */
         const URL_TASK = '?module=taskman&edittask=';
@@ -147,6 +175,8 @@ if (cfr('TASKREPORT')) {
             $this->loadTasks();
             $this->loadTariffsData();
             $this->loadContracts();
+            $this->loadSignupPayments();
+            $this->loadTagsData();
             $this->initWarehouse();
             $this->initSalary();
             $this->initTelepathy();
@@ -175,18 +205,26 @@ if (cfr('TASKREPORT')) {
                 $this->reportJobtypes = array_flip($jobtypesTmp);
             }
 
-            if (!empty($this->altCfg['TASKREPORT_SIGNUPJOBTYPE'])) {
-                $this->signupJobtypeId = $this->altCfg['TASKREPORT_SIGNUPJOBTYPE'];
+            if (!empty($this->altCfg['TASKREPORT_SIGNUPJOBTYPES'])) {
+                $signupJobtypeIdtmp = explode(',', $this->altCfg['TASKREPORT_SIGNUPJOBTYPES']);
+                $this->signupJobtypeId = array_flip($signupJobtypeIdtmp);
             }
 
             if ($this->altCfg['WAREHOUSE_ENABLED']) {
                 $this->warehouseFlag = true;
             }
+
             if ($this->altCfg['SALARY_ENABLED']) {
                 $this->salaryFlag = true;
             }
+
             if ($this->altCfg['CONDET_ENABLED']) {
                 $this->condetFlag = true;
+            }
+
+            if ($this->altCfg['TASKREPORT_NOTESTAGIDS']) {
+                $notesTagidsTmp = explode(',', $this->altCfg['TASKREPORT_NOTESTAGIDS']);
+                $this->notesTagids = array_flip($notesTagidsTmp);
             }
         }
 
@@ -297,6 +335,88 @@ if (cfr('TASKREPORT')) {
         }
 
         /**
+         * Loads all signup payments from database into protected prop
+         * 
+         * @return void
+         */
+        protected function loadSignupPayments() {
+            $cahtypeId = vf($this->altCfg['TASKREPORT_SIGPAYID'], 3);
+            if ($cahtypeId) {
+                //natural payments
+                $query = "SELECT * from `payments` WHERE `cashtypeid`='" . $cahtypeId . "';";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        if (isset($this->signupPayments[$each['login']])) {
+                            $this->signupPayments[$each['login']]+=$each['summ'];
+                        } else {
+                            $this->signupPayments[$each['login']] = $each['summ'];
+                        }
+                    }
+                }
+            } else {
+                //payments from condet
+                if ($this->altCfg['CONDET_ENABLED']) {
+                    $query = "SELECT * from `condet`";
+                    $all = simple_queryall($query);
+                    if (!empty($all)) {
+                        foreach ($all as $io => $each) {
+                            $this->signupPayments[$each['login']] = $each['price'];
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Loads and do some preprocessing tags and tagtypes data
+         * 
+         * @return void
+         */
+        protected function loadTagsData() {
+            if (!empty($this->notesTagids)) {
+                //preprocessing tagtypes
+                $query = "SELECT * from `tagtypes`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        $this->tagTypes[$each['id']] = $each['tagname'];
+                    }
+                }
+
+                //preprocessing usertags
+                $query = "SELECT * from `tags`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        if (isset($this->notesTagids[$each['tagid']])) {
+                            if (isset($this->userTags[$each['login']])) {
+                                $this->userTags[$each['login']].=@$this->tagTypes[$each['tagid']] . ' ';
+                            } else {
+                                $this->userTags[$each['login']] = @$this->tagTypes[$each['tagid']] . ' ';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returns user signup price by its login
+         * 
+         * @param string $login
+         * 
+         * @return float
+         */
+        protected function getSignupPrice($login) {
+            $result = 0;
+            if (isset($this->signupPayments[$login])) {
+                $result = $this->signupPayments[$login];
+            }
+            return ($result);
+        }
+
+        /**
          * Renders default from-to date controls form
          * 
          * @return string
@@ -318,6 +438,13 @@ if (cfr('TASKREPORT')) {
         public function renderReport() {
             $result = '';
             $count = 1;
+            $signupsTotalSpent = 0;
+            $signupsTotalPayments = 0;
+            $signupsWarehouseTotalSpent = 0;
+            $signupsSalaryTotalSpent = 0;
+            $otherTasksTotalSpent = 0;
+            $signupsTotalTariffPrices = 0;
+
             if (!empty($this->allTasks)) {
                 $cells = wf_TableCell('№');
                 $cells.= wf_TableCell(__('ID'));
@@ -382,15 +509,60 @@ if (cfr('TASKREPORT')) {
                         }
                         $cells.= wf_TableCell(($warehouseSpent + $salarySpent));
                     }
-                    $cells.= wf_TableCell(__('Paid by user'));
+                    //detecting signup price and some counters only for signup tasks
+                    if (isset($this->signupJobtypeId[$each['jobtype']])) {
+                        $signupPrice = $this->getSignupPrice($userLogin);
+                        $signupsSalaryTotalSpent+=$salarySpent;
+                        $signupsWarehouseTotalSpent+=$warehouseSpent;
+                        $signupsTotalSpent+=$warehouseSpent + $salarySpent;
+                        $signupsTotalPayments+=$signupPrice;
+                        $signupsTotalTariffPrices+=$tariffPrice;
+                    } else {
+                        //other task types
+                        $signupPrice = '';
+                        $otherTasksTotalSpent+=$warehouseSpent + $salarySpent;
+                    }
+                    $cells.= wf_TableCell($signupPrice);
                     $cells.= wf_TableCell($tariffPrice);
 
-                    $cells.= wf_TableCell(__('Notes'));
+                    $cells.= wf_TableCell(@$this->userTags[$userLogin]);
                     $rows.= wf_TableRow($cells, 'row3');
                     $count++;
                 }
 
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                //appending totals counters
+
+                $cells = wf_TableCell(__('Counter'));
+                $cells.= wf_TableCell(__('Money'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                $cells = wf_TableCell(__('Total spent on signups'), '', 'row2');
+                $cells.= wf_TableCell($signupsTotalSpent);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Total spent materials for signups'), '', 'row2');
+                $cells.= wf_TableCell($signupsWarehouseTotalSpent);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Total spent salary for signups'), '', 'row2');
+                $cells.= wf_TableCell($signupsSalaryTotalSpent);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Signup payments total'), '', 'row2');
+                $cells.= wf_TableCell($signupsTotalPayments);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $cells = wf_TableCell(__('Total spent for other tasks'), '', 'row2');
+                $cells.= wf_TableCell($otherTasksTotalSpent);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $signupsProfit = ($signupsTotalTariffPrices + $signupsTotalPayments) - $signupsTotalSpent;
+                $cells = wf_TableCell(__('Profit from users signups'), '', 'row2');
+                $cells.= wf_TableCell($signupsProfit);
+                $rows.= wf_TableRow($cells, 'row3');
+
+                $result.= wf_TableBody($rows, '50%', 0, 'sortable');
             } else {
                 $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }
