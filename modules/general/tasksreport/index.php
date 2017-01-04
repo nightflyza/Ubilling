@@ -327,8 +327,8 @@ if (cfr('TASKREPORT')) {
                 if ($this->warehouseFlag OR $this->salaryFlag) {
                     $cells.= wf_TableCell(__('Spent on task'));
                 }
-                $cells.= wf_TableCell(__('Tariff fee'));
                 $cells.= wf_TableCell(__('Paid by user'));
+                $cells.= wf_TableCell(__('Tariff fee'));
                 $cells.= wf_TableCell(__('Notes'));
                 $rows = wf_TableRow($cells, 'row1');
 
@@ -369,7 +369,7 @@ if (cfr('TASKREPORT')) {
                     $cells = wf_TableCell($count);
                     $cells.= wf_TableCell(wf_Link(self::URL_TASK . $each['id'], $each['id'], false));
                     $cells.= wf_TableCell($userLink);
-                    $cells.= wf_TableCell($each['address']);
+                    $cells.= wf_TableCell($styleStart . $each['address'] . $styleEnd);
                     $cells.= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
                     if ($this->warehouseFlag OR $this->salaryFlag) {
                         $warehouseSpent = 0;
@@ -382,8 +382,9 @@ if (cfr('TASKREPORT')) {
                         }
                         $cells.= wf_TableCell(($warehouseSpent + $salarySpent));
                     }
-                    $cells.= wf_TableCell($tariffPrice);
                     $cells.= wf_TableCell(__('Paid by user'));
+                    $cells.= wf_TableCell($tariffPrice);
+
                     $cells.= wf_TableCell(__('Notes'));
                     $rows.= wf_TableRow($cells, 'row3');
                     $count++;
