@@ -56,7 +56,7 @@ class ConnectionDetails {
     protected function create($login, $seal, $length, $price) {
         $login = mysql_real_escape_string($login);
         $seal = mysql_real_escape_string($seal);
-        $length = mysql_real_escape_string($length);
+        $length = vf($length, 3);
         $price = mysql_real_escape_string($price);
         $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "', '" . $price . "');";
         nr_query($query);
@@ -74,6 +74,7 @@ class ConnectionDetails {
      */
     protected function update($login, $seal, $length, $price) {
         $login = mysql_real_escape_string($login);
+        $length = vf($length, 3);
         simple_update_field('condet', 'seal', $seal, "WHERE `login`='" . $login . "';");
         simple_update_field('condet', 'length', $length, "WHERE `login`='" . $login . "';");
         simple_update_field('condet', 'price', $price, "WHERE `login`='" . $login . "';");
@@ -90,6 +91,9 @@ class ConnectionDetails {
      * @return void
      */
     public function set($login, $seal, $length, $price) {
+        if (!zb_checkMoney($price)) {
+            $price = 0;
+        }
         if (isset($this->allDetails[$login])) {
             $this->update($login, $seal, $length, $price);
         } else {
@@ -102,6 +106,7 @@ class ConnectionDetails {
      * Retuns connection details edit form
      * 
      * @param string $login
+     * 
      * @return string
      */
     public function editForm($login) {
@@ -123,6 +128,7 @@ class ConnectionDetails {
      * Renders connection details data for profile and edit form
      * 
      * @param string $login
+     * 
      * @return string
      */
     public function renderData($login) {

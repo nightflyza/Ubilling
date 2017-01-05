@@ -62,7 +62,11 @@ if ($altCfg['MG_ENABLED']) {
             if (wf_CheckGet(array('subid', 'maction'))) {
                 $mactionResult = $interface->catchManualAction();
                 if (!$mactionResult) {
-                    rcms_redirect($interface::URL_ME . '&' . $interface::URL_SUBVIEW . '&subid=' . $subId);
+                    if ($_GET['maction'] != 'delete') {
+                        rcms_redirect($interface::URL_ME . '&' . $interface::URL_SUBVIEW . '&subid=' . $subId);
+                    } else {
+                        rcms_redirect($interface::URL_ME . '&' . $interface::URL_SUBS);
+                    }
                 } else {
                     show_window(__('Something went wrong'), $mactionResult);
                 }

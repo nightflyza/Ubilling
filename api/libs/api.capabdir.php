@@ -280,7 +280,7 @@ class CapabilitiesDirectory {
         $id = vf($id, 3);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
         $curpage = (wf_CheckGet(array('page'))) ? vf($_GET['page'], 3) : 1;
-        $result = wf_Link('?module=capabilities&page=' . $curpage, __('Back'), true, 'ubButton');
+        $result = '';
         $stateSelector = array();
         $employeeSelector = array();
         $employeeSelector['NULL'] = '-';
@@ -301,6 +301,13 @@ class CapabilitiesDirectory {
                 }
             }
 
+            //task creation form
+
+            $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '');
+            $taskControl = wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
+
+            $result = wf_Link('?module=capabilities&page=' . $curpage, __('Back'), false, 'ubButton') . ' ';
+            $result.= $taskControl . wf_delimiter();
 
             $inputs = wf_TextInput('editaddress', __('Full address') . $sup, $this->allcapab[$id]['address'], true);
             $inputs.= wf_TextInput('editphone', __('Phone') . $sup, $this->allcapab[$id]['phone'], true);

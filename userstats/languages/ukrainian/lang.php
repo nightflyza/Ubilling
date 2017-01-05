@@ -336,5 +336,6 @@ $lang['def']['Discount'] = 'Знижка';
 $lang['def']['Support'] = 'Підтримка';
 $lang['def']['User'] = 'Користувач';
 $lang['def']['Create new help request'] = 'Створити новий запит в техпідтримку';
+$lang['def']['Try it now for free!'] = 'Спробуй зараз безкоштовно!';
 
 ?>

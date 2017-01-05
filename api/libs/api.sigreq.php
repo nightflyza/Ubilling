@@ -141,8 +141,7 @@ class SignupRequests {
      * @return void
      */
     public function renderCalendar() {
-        $curyear = curyear();
-        $query = "SELECT * from `sigreq` WHERE `date` LIKE '" . $curyear . "-%' ORDER BY `date` ASC";
+        $query = "SELECT * from `sigreq` ORDER BY `date` ASC";
         $all = simple_queryall($query);
         $result = '';
         $calendarData = '';

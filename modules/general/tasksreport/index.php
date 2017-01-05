@@ -576,7 +576,7 @@ if (cfr('TASKREPORT')) {
                         }
                         $cells.= wf_TableCell(__('Tariff fee'));
                         $cells.= wf_TableCell(__('Signup payments total'));
-                        
+
                         $cells.= wf_TableCell(__('Profit'));
                         $rows = wf_TableRow($cells, 'row1');
 
@@ -593,7 +593,7 @@ if (cfr('TASKREPORT')) {
                             }
                             $cells.= wf_TableCell($each['tariffprice']);
                             $cells.= wf_TableCell($each['sigprice']);
-                            
+
                             $cells.= wf_TableCell((($each['tariffprice'] + $each['sigprice']) - ($each['warehouse'] + $each['salary'])));
                             $rows.= wf_TableRow($cells, 'row3');
                         }
@@ -641,6 +641,7 @@ if (cfr('TASKREPORT')) {
 
         }
 
+        set_time_limit(0);
         $report = new TasksReport();
         show_window(__('Search'), $report->renderDatesForm());
         show_window(__('Tasks report'), $report->renderReport());

@@ -1234,6 +1234,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $admin = whoami();
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
+    $address = trim($address);
     $login = mysql_real_escape_string($login);
     $phone = mysql_real_escape_string($phone);
     $startdate = mysql_real_escape_string($startdate);

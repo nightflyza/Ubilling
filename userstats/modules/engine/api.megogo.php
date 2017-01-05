@@ -190,10 +190,22 @@ class MegogoFrontend {
             foreach ($this->allTariffs as $io => $each) {
                 $headerType = ($each['primary']) ? 'mgheaderprimary' : 'mgheader';
                 $freePeriodLabel = ($each['freeperiod']) ? la_img($iconsPath . 'ok_small.png', __('Available')) : la_img($iconsPath . 'unavail_small.png', __('Unavailable'));
+                $freeAppend = la_delimiter();
+                $tariffFee = $each['fee'];
+                if ($each['freeperiod']) {
+                    if (!$this->checkFreePeriodAvail($this->userLogin)) {
+                        $freePeriodLabel = la_img($iconsPath . 'unavail_small.png', __('Unavailable'));
+                        $freeAppend = la_delimiter();
+                    } else {
+                        $freeAppend = la_tag('center') . la_tag('strong') . __('Try it now for free!') . la_tag('strong', true) . la_tag('center', true) . la_tag('br');
+                        $tariffFee = 0;
+                    }
+                }
+
                 $primaryLabel = ($each['primary']) ? la_img($iconsPath . 'ok_small.png') : la_img($iconsPath . 'unavail_small.png');
                 $tariffInfo = la_tag('div', false, $headerType) . $each['name'] . la_tag('div', true);
                 $cells = la_TableCell(la_tag('b') . __('Fee') . la_tag('b', true));
-                $cells.= la_TableCell($each['fee'] . ' ' . $this->usConfig['currency']);
+                $cells.= la_TableCell($tariffFee . ' ' . $this->usConfig['currency']);
                 $rows = la_TableRow($cells);
                 $cells = la_TableCell(la_tag('b') . __('Free period') . la_tag('b', true));
                 $cells.= la_TableCell($freePeriodLabel);
@@ -202,7 +214,8 @@ class MegogoFrontend {
                 $cells.= la_TableCell($primaryLabel);
                 $rows.= la_TableRow($cells);
                 $tariffInfo.=la_TableBody($rows, '100%', 0);
-                $tariffInfo.=la_delimiter();
+                $tariffInfo.=$freeAppend;
+
 
 
                 if ($this->checkBalance()) {

@@ -20,7 +20,7 @@ if (@$us_config['MG_ENABLED']) {
                 show_window(__('Sorry'), __($subscribeResult));
             }
         }
-//  try unsubscribe service 
+//try unsubscribe service 
         if (la_CheckGet(array('unsubscribe'))) {
             $unsubscribeResult = $megogo->pushUnsubscribeRequest($_GET['unsubscribe']);
             if (!$unsubscribeResult) {

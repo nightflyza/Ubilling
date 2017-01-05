@@ -30,12 +30,11 @@ if (cfr('SCREPORT')) {
                 $this->loadTariffs();
             }
 
-            /*
+            /**
              * parse data from payments table and stores it into protected data prop
              * 
              * @return void
              */
-
             protected function loadData() {
                 $curmonth = date("m");
                 $query = "SELECT * from `payments` WHERE `note` LIKE 'SCFEE' AND `date` LIKE '" . $this->curyear . "-" . $curmonth . "%' ORDER BY `id` DESC";
@@ -52,12 +51,11 @@ if (cfr('SCREPORT')) {
                 }
             }
 
-            /*
+            /**
              * loads all users tariffs into protected usertariffs prop
              * 
              * @return void
              */
-
             protected function loadTariffs() {
                 $query = "SELECT `login`,`Tariff` from `users`";
                 $all = simple_queryall($query);
@@ -68,29 +66,27 @@ if (cfr('SCREPORT')) {
                 }
             }
 
-            /*
+            /**
              * returns protected property data
              * 
              * @return array
              */
-
             public function getData() {
                 $result = $this->data;
                 return ($result);
             }
 
-            /*
+            /**
              * returns protected property year
              * 
              * @return array
              */
-
             public function getYear() {
                 $result = $this->curyear;
                 return ($result);
             }
 
-            /*
+            /**
              * returns summ of self credit payments by year/month
              * 
              * @param $year target year
@@ -98,7 +94,6 @@ if (cfr('SCREPORT')) {
              * 
              * @return string
              */
-
             protected function getMonthSumm($year, $month) {
                 if (isset($this->yeardata[$year . '-' . $month])) {
                     $result = $this->yeardata[$year . '-' . $month]['summ'];
@@ -108,7 +103,7 @@ if (cfr('SCREPORT')) {
                 return($result);
             }
 
-            /*
+            /**
              * returns count of self credit payments by year/month
              * 
              * @param $year target year
@@ -116,7 +111,6 @@ if (cfr('SCREPORT')) {
              * 
              * @return string
              */
-
             protected function getMonthCount($year, $month) {
                 if (isset($this->yeardata[$year . '-' . $month])) {
                     $result = $this->yeardata[$year . '-' . $month]['count'];
@@ -126,14 +120,13 @@ if (cfr('SCREPORT')) {
                 return($result);
             }
 
-            /*
+            /**
              * returns summ of self credit payments by year
              * 
              * @param $year target year
              * 
              * @return string
              */
-
             protected function getYearSumm($year) {
                 $result = 0;
                 if (!empty($this->yeardata)) {
@@ -168,12 +161,11 @@ if (cfr('SCREPORT')) {
                 }
             }
 
-            /*
+            /**
              * parse data from payments table and stores it into protected monthdata prop
              * 
              * @return void
              */
-
             protected function loadMonthData() {
                 $months = months_array();
                 $year = $this->curyear;
@@ -205,12 +197,11 @@ if (cfr('SCREPORT')) {
                 }
             }
 
-            /*
+            /**
              * renders aself credit report using protected data property
              * 
              * @return string
              */
-
             public function render() {
                 $allAddress = zb_AddressGetFulladdresslist();
                 $allRealNames = zb_UserGetAllRealnames();
@@ -265,12 +256,11 @@ if (cfr('SCREPORT')) {
                 return ($result);
             }
 
-            /*
+            /**
              * renders aself credit report using protected data property
              * 
              * @return string
              */
-
             public function renderMonthGraph() {
                 /*
                  * Танцуй, пока тебе бреют череп,
@@ -290,12 +280,11 @@ if (cfr('SCREPORT')) {
                 return ($result);
             }
 
-            /*
+            /**
              * returns year selector
              * 
              * @return string
              */
-
             public function yearSelector() {
                 $inputs = wf_YearSelector('setyear', '', false);
                 $inputs.= wf_Submit(__('Show'));
@@ -303,12 +292,11 @@ if (cfr('SCREPORT')) {
                 return ($result);
             }
 
-            /*
+            /**
              * returns tariffs graph
              * 
              * @return string
              */
-
             public function renderTariffsGraph() {
                 $result = '';
                 if (!empty($this->tariffstats)) {
@@ -332,10 +320,9 @@ if (cfr('SCREPORT')) {
 
         }
 
-        /*
+        /**
          * controller & view
          */
-
         $screport = new ReportSelfCredit();
 
         if (!wf_CheckGet(array('showgraph'))) {
