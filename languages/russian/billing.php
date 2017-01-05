@@ -2372,7 +2372,15 @@ $lang['def']['Total spent salary for signups'] = 'Всего оплачено р
 $lang['def']['Signup payments total'] = 'Оплачено абонентами за поключения';
 $lang['def']['Total spent for other tasks'] = 'Всего потрачено на остальные задачи';
 $lang['def']['Profit from users signups'] = 'Прибыль от подключений пользователей';
-$lang['def'][''] = '';
+$lang['def']['Paid staff'] = 'Выплачено персоналу';
+$lang['def']['Spent materials'] = 'Потрачено материалов';
+$lang['def']['Tasks report enabled'] = 'Отчет по задачам включен';
+$lang['def']['Tasks jobtype IDs for report'] = 'IDы типов работ для отчета';
+$lang['def']['Tasks jobtype IDs of signup type'] = 'IDы типов работ относящихся к подключениям';
+$lang['def']['Notes tag IDs which will be task notes'] = 'IDы типов тегов которые будут считаться примечаниями';
+$lang['def']['Signup payments cashtype ID'] = 'ID типа платежей за подключение';
+$lang['def']['right to use tasks report'] = 'Право использовать отчет по задачам';
+$lang['def']['right to testing module'] = 'Право использовать тестовый модуль';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

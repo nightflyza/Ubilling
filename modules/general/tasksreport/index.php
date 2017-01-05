@@ -444,10 +444,12 @@ if (cfr('TASKREPORT')) {
             $signupsSalaryTotalSpent = 0;
             $otherTasksTotalSpent = 0;
             $signupsTotalTariffPrices = 0;
+            $tasksSummary = array();
 
             if (!empty($this->allTasks)) {
                 $cells = wf_TableCell('№');
                 $cells.= wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Done'));
                 $cells.= wf_TableCell(__('Contract'));
                 $cells.= wf_TableCell(__('Address'));
                 $cells.= wf_TableCell(__('Type'));
@@ -495,6 +497,7 @@ if (cfr('TASKREPORT')) {
 
                     $cells = wf_TableCell($count);
                     $cells.= wf_TableCell(wf_Link(self::URL_TASK . $each['id'], $each['id'], false));
+                    $cells.= wf_TableCell(web_bool_led($each['status']), '', '', 'sorttable_customkey="' . $each['status'] . '"');
                     $cells.= wf_TableCell($userLink);
                     $cells.= wf_TableCell($styleStart . $each['address'] . $styleEnd);
                     $cells.= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
@@ -527,42 +530,83 @@ if (cfr('TASKREPORT')) {
 
                     $cells.= wf_TableCell(@$this->userTags[$userLogin]);
                     $rows.= wf_TableRow($cells, 'row3');
+
+                    //report summary
+                    if (isset($tasksSummary[$each['jobtype']])) {
+                        $tasksSummary[$each['jobtype']]['count'] ++;
+                        $tasksSummary[$each['jobtype']]['warehouse']+=$warehouseSpent;
+                        $tasksSummary[$each['jobtype']]['salary']+=$salarySpent;
+                        $tasksSummary[$each['jobtype']]['sigprice']+=$signupPrice;
+                    } else {
+                        $tasksSummary[$each['jobtype']]['tasktype'] = $this->jobtypes[$each['jobtype']]['jobname'];
+                        $tasksSummary[$each['jobtype']]['count'] = 1;
+                        $tasksSummary[$each['jobtype']]['warehouse'] = $warehouseSpent;
+                        $tasksSummary[$each['jobtype']]['salary'] = $salarySpent;
+                        $tasksSummary[$each['jobtype']]['sigprice'] = $signupPrice;
+                    }
+
                     $count++;
                 }
 
+
                 $result = wf_TableBody($rows, '100%', 0, 'sortable');
-                //appending totals counters
+                $result.= wf_tag('br');
 
-                $cells = wf_TableCell(__('Counter'));
-                $cells.= wf_TableCell(__('Money'));
-                $rows = wf_TableRow($cells, 'row1');
+                //detailed tasks summary
+                if (!empty($tasksSummary)) {
+                    $cells = wf_TableCell(__('Job type'));
+                    $cells.= wf_TableCell(__('Count'));
+                    $cells.= wf_TableCell(__('Spent materials'));
+                    $cells.= wf_TableCell(__('Paid staff'));
+                    $cells.= wf_TableCell(__('Signup payments total'));
+                    $cells.= wf_TableCell(__('Profit'));
+                    $rows = wf_TableRow($cells, 'row1');
 
-                $cells = wf_TableCell(__('Total spent on signups'), '', 'row2');
-                $cells.= wf_TableCell($signupsTotalSpent);
-                $rows.= wf_TableRow($cells, 'row3');
+                    foreach ($tasksSummary as $io => $each) {
+                        $cells = wf_TableCell($each['tasktype']);
+                        $cells.= wf_TableCell($each['count']);
+                        $cells.= wf_TableCell($each['warehouse']);
+                        $cells.= wf_TableCell($each['salary']);
+                        $cells.= wf_TableCell($each['sigprice']);
+                        $cells.= wf_TableCell(($each['sigprice'] - ($each['warehouse'] + $each['salary'])));
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
 
-                $cells = wf_TableCell(__('Total spent materials for signups'), '', 'row2');
-                $cells.= wf_TableCell($signupsWarehouseTotalSpent);
-                $rows.= wf_TableRow($cells, 'row3');
+                    $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result.= wf_tag('br');
 
-                $cells = wf_TableCell(__('Total spent salary for signups'), '', 'row2');
-                $cells.= wf_TableCell($signupsSalaryTotalSpent);
-                $rows.= wf_TableRow($cells, 'row3');
+                    //appending totals counters
+                    $cells = wf_TableCell(__('Counter'));
+                    $cells.= wf_TableCell(__('Money'));
+                    $rows = wf_TableRow($cells, 'row1');
 
-                $cells = wf_TableCell(__('Signup payments total'), '', 'row2');
-                $cells.= wf_TableCell($signupsTotalPayments);
-                $rows.= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Total spent on signups'), '', 'row2');
+                    $cells.= wf_TableCell($signupsTotalSpent);
+                    $rows.= wf_TableRow($cells, 'row3');
 
-                $cells = wf_TableCell(__('Total spent for other tasks'), '', 'row2');
-                $cells.= wf_TableCell($otherTasksTotalSpent);
-                $rows.= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Total spent materials for signups'), '', 'row2');
+                    $cells.= wf_TableCell($signupsWarehouseTotalSpent);
+                    $rows.= wf_TableRow($cells, 'row3');
 
-                $signupsProfit = ($signupsTotalTariffPrices + $signupsTotalPayments) - $signupsTotalSpent;
-                $cells = wf_TableCell(__('Profit from users signups'), '', 'row2');
-                $cells.= wf_TableCell($signupsProfit);
-                $rows.= wf_TableRow($cells, 'row3');
+                    $cells = wf_TableCell(__('Total spent salary for signups'), '', 'row2');
+                    $cells.= wf_TableCell($signupsSalaryTotalSpent);
+                    $rows.= wf_TableRow($cells, 'row3');
 
-                $result.= wf_TableBody($rows, '50%', 0, 'sortable');
+                    $cells = wf_TableCell(__('Signup payments total'), '', 'row2');
+                    $cells.= wf_TableCell($signupsTotalPayments);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Total spent for other tasks'), '', 'row2');
+                    $cells.= wf_TableCell($otherTasksTotalSpent);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $signupsProfit = ($signupsTotalTariffPrices + $signupsTotalPayments) - $signupsTotalSpent;
+                    $cells = wf_TableCell(__('Profit from users signups'), '', 'row2');
+                    $cells.= wf_TableCell($signupsProfit);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $result.= wf_TableBody($rows, '50%', 0, 'sortable');
+                }
             } else {
                 $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
             }

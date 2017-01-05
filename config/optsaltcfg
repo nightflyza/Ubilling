@@ -271,6 +271,12 @@ UKV_SOCIAL_TARIFFID=VARCHAR|UKV socail service tariff id
 SWITCHES_EXTENDED=TRIGGER|RemoteID management for switches is enabled
 WORKING_HOURS=VARCHAR|Tech support working hours
 TSUPPORT_API=TRIGGER|Support interface API
+
+TASKREPORT_ENABLED=TRIGGER|Tasks report enabled
+TASKREPORT_JOBTYPES=VARCHAR|Tasks jobtype IDs for report
+TASKREPORT_SIGNUPJOBTYPES=VARCHAR|Tasks jobtype IDs of signup type
+TASKREPORT_NOTESTAGIDS=VARCHAR|Notes tag IDs which will be task notes
+TASKREPORT_SIGPAYID=VARCHAR|Signup payments cashtype ID
 CHAPTEREND_BEH=true
 
 

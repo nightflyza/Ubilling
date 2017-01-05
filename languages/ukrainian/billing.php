@@ -2386,4 +2386,15 @@ $lang['def']['Total spent salary for signups'] = 'Всього витрачен�
 $lang['def']['Signup payments total'] = 'Сплачено абонентами за підключення';
 $lang['def']['Total spent for other tasks'] = 'Всього витрачено на інші задачі';
 $lang['def']['Profit from users signups'] = 'Прибуток від підключень користувачів';
+$lang['def']['Paid staff'] = 'Виплачено персоналу';
+$lang['def']['Spent materials'] = 'Витрачено матеріалів';
+
+$lang['def']['Tasks report enabled'] = 'Звіт по задачах увімкнено';
+$lang['def']['Tasks jobtype IDs for report'] = 'IDи типів робіт для звіта';
+$lang['def']['Tasks jobtype IDs of signup type'] = 'IDи типів робіт, що є підключеннями';
+$lang['def']['Notes tag IDs which will be task notes'] = 'IDи типів тегів, що рахуватимуться примітками';
+$lang['def']['Signup payments cashtype ID'] = 'ID типу платежів за підключення';
+$lang['def']['right to use tasks report'] = 'Право використовувати звіт по задачах';
+$lang['def']['right to testing module'] = 'Право використовувати тестовий модуль';
+
 ?>

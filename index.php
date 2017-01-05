@@ -1,4 +1,4 @@
-<?php define('BOOTSTRAP', 0);
+<?php
 // Set following option to 1 for enable debug mode
 define('XHPROF', 0);
 if (XHPROF) {
