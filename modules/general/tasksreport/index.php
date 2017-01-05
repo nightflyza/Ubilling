@@ -574,7 +574,9 @@ if (cfr('TASKREPORT')) {
                                 $cells.= wf_TableCell(__('Paid staff'));
                             }
                         }
+                        $cells.= wf_TableCell(__('Tariff fee'));
                         $cells.= wf_TableCell(__('Signup payments total'));
+                        
                         $cells.= wf_TableCell(__('Profit'));
                         $rows = wf_TableRow($cells, 'row1');
 
@@ -589,7 +591,9 @@ if (cfr('TASKREPORT')) {
                                     $cells.= wf_TableCell($each['salary']);
                                 }
                             }
+                            $cells.= wf_TableCell($each['tariffprice']);
                             $cells.= wf_TableCell($each['sigprice']);
+                            
                             $cells.= wf_TableCell((($each['tariffprice'] + $each['sigprice']) - ($each['warehouse'] + $each['salary'])));
                             $rows.= wf_TableRow($cells, 'row3');
                         }
