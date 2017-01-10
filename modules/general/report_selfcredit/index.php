@@ -172,8 +172,7 @@ if (cfr('SCREPORT')) {
                 $this->loadYearPayments($year);
                 $yearSumm = $this->getYearSumm($year);
 
-
-                $this->chartdata = __('Month') . ',' . __('Count') . ',' . __('Cash') . "\n";
+                $this->chartdata = array(0 => array(__('Month'), __('Count'), __('Cash')));
 
                 $cells = wf_TableCell('');
                 $cells.=wf_TableCell(__('Month'));
@@ -185,7 +184,7 @@ if (cfr('SCREPORT')) {
                 foreach ($months as $eachmonth => $monthname) {
                     $month_summ = $this->getMonthSumm($year, $eachmonth);
                     $paycount = $this->getMonthCount($year, $eachmonth);
-                    $this->chartdata.=$year . '-' . $eachmonth . '-01,' . $paycount . ',' . $month_summ . "\n";
+                    $this->chartdata[] = (array($year . '-' . $eachmonth, $paycount, $month_summ));
 
                     $cells = wf_TableCell($eachmonth);
                     $cells.=wf_TableCell(rcms_date_localise($monthname));
@@ -257,7 +256,7 @@ if (cfr('SCREPORT')) {
             }
 
             /**
-             * renders aself credit report using protected data property
+             * renders a self credit report using protected data property
              * 
              * @return string
              */
@@ -268,15 +267,31 @@ if (cfr('SCREPORT')) {
                  * Прыгнул карась на раскалённый берег,
                  * Жги лезгинку – хоп, хоп.
                  */
+                $chartsOptions = "
+                    'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
                 $this->loadMonthData();
                 $result = '';
                 $result.=wf_TableBody($this->tabledata, '100%', '0', 'sortable');
                 $result.=wf_tag('span', false, 'glamour') . __('Our final profit') . ': ' . $this->yearsumm . wf_tag('span', true);
                 $result.=wf_tag('span', false, 'style="clear:both;"') . wf_tag('div', true);
                 $result.= wf_delimiter();
-                $result.= wf_tag('div', false, '', '');
-                $result.= wf_Graph($this->chartdata, '800', '400', false);
-                $result.= wf_tag('div', true);
+
+                $result.= wf_gchartsLine($this->chartdata, __('Year') . ' ' . $this->curyear, '100%;', '400px;', $chartsOptions);
+
                 return ($result);
             }
 
@@ -286,7 +301,7 @@ if (cfr('SCREPORT')) {
              * @return string
              */
             public function yearSelector() {
-                $inputs = wf_YearSelector('setyear', '', false);
+                $inputs = wf_YearSelectorPreset('setyear', '', false, $this->curyear);
                 $inputs.= wf_Submit(__('Show'));
                 $result = wf_Form("", 'POST', $inputs, 'glamour');
                 return ($result);
@@ -326,10 +341,9 @@ if (cfr('SCREPORT')) {
         $screport = new ReportSelfCredit();
 
         if (!wf_CheckGet(array('showgraph'))) {
-            show_window('', wf_Link('?module=report_selfcredit&showgraph=true', __('Self credit dynamic over the year'), false, 'ubButton'));
+            show_window('', wf_Link('?module=report_selfcredit&showgraph=true', wf_img('skins/icon_stats.gif') . ' ' . __('Self credit dynamic over the year'), false, 'ubButton'));
             $curmonthReport = $screport->render();
-            $graps = $screport->renderTariffsGraph();
-            show_window(__('Self credit report') . ' ' . $graps, $curmonthReport);
+            show_window(__('Self credit report'), $curmonthReport);
         } else {
             show_window(__('Year'), $screport->yearSelector());
             show_window('', wf_Link('?module=report_selfcredit', __('Back'), false, 'ubButton'));

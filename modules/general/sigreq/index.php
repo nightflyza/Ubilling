@@ -14,8 +14,8 @@ if (cfr('SIGREQ')) {
             if (isset($_GET['reqdone'])) {
                 $signups->setDone($_GET['reqdone']);
                 //update notification area
-                      $darkVoid=new DarkVoid();
-                      $darkVoid->flushCache();
+                $darkVoid = new DarkVoid();
+                $darkVoid->flushCache();
                 rcms_redirect("?module=sigreq");
             }
 
@@ -36,11 +36,14 @@ if (cfr('SIGREQ')) {
                 $signups->showRequest($_GET['showreq']);
             } else {
                 if (!wf_CheckGet(array('calendarview'))) {
+                    if (wf_CheckGet(array('ajlist'))) {
+                        $signups->renderAjListData();
+                    }
                     //display signup requests list
                     $signups->renderList();
                 } else {
                     //display signup requests calendar
-                     $signups->renderCalendar();
+                    $signups->renderCalendar();
                 }
             }
         } else {

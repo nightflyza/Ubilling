@@ -12,11 +12,14 @@ class SignupRequests {
     protected $requests = array();
     protected $perpage = 50;
     protected $altcfg = array();
+    protected $messages = '';
 
     const URL_WHOIS = '?module=whois&ip=';
+    const URL_ME = '?module=sigreq';
 
     public function __construct() {
         $this->loadAlter();
+        $this->initMessages();
     }
 
     /**
@@ -27,18 +30,15 @@ class SignupRequests {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altcfg = $ubillingConfig->getAlter();
-        $this->perpage = $this->altcfg['TICKETS_PERPAGE'];
     }
 
     /**
-     * returns available signup requests count
+     * Inits system messages helper object
      * 
-     * @return int
+     * @return void
      */
-    protected function getCount() {
-        $query = "SELECT COUNT(`id`) from `sigreq`";
-        $result = simple_query($query);
-        return ($result['COUNT(`id`)']);
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -46,12 +46,10 @@ class SignupRequests {
      * 
      * @return void
      */
-    protected function loadRequests($from, $to) {
-        $from = vf($from, 3);
-        $to = vf($to, 3);
-        $query = "SELECT * from `sigreq` ORDER BY `date` DESC LIMIT " . $from . "," . $to . ";";
-        $allreqs = simple_queryall($query);
+    protected function loadRequests() {
 
+        $query = "SELECT * from `sigreq` ORDER BY `id` DESC;";
+        $allreqs = simple_queryall($query);
         if (!empty($allreqs)) {
             $this->requests = $allreqs;
         }
@@ -62,52 +60,32 @@ class SignupRequests {
      * 
      * @return void
      */
-    public function renderList() {
-        $totalcount = $this->getCount();
-
-        if (!wf_CheckGet(array('page'))) {
-            $current_page = 1;
-        } else {
-            $current_page = vf($_GET['page'], 3);
-        }
-
-        if ($totalcount > $this->perpage) {
-            $paginator = wf_pagination($totalcount, $this->perpage, $current_page, "?module=sigreq", 'ubButton');
-            $this->loadRequests($this->perpage * ($current_page - 1), $this->perpage);
-        } else {
-            $paginator = '';
-            $this->loadRequests(0, $this->perpage);
-        }
+    public function renderAjListData() {
+        $this->loadRequests();
         $result = '';
+        $jsonAAData = array();
 
         //additional comments indicator
         if ($this->altcfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('SIGREQ');
         }
 
-        $tablecells = wf_TableCell(__('ID'));
-        $tablecells.= wf_TableCell(__('Date'));
-        $tablecells.= wf_TableCell(__('IP'));
-        $tablecells.= wf_TableCell(__('Full address'));
-        $tablecells.= wf_TableCell(__('Real Name'));
-        $tablecells.= wf_TableCell(__('Processed'));
-        $tablecells.= wf_TableCell(__('Actions'));
-        $tablerows = wf_TableRow($tablecells, 'row1');
-
         if (!empty($this->requests)) {
             foreach ($this->requests as $io => $eachreq) {
+                $jsonItem = array();
+                $jsonItem[] = $eachreq['id'];
+                $jsonItem[] = $eachreq['date'];
+                $jsonItem[] = wf_Link(self::URL_WHOIS . $eachreq['ip'], $eachreq['ip']);
 
-                $tablecells = wf_TableCell($eachreq['id']);
-                $tablecells.= wf_TableCell($eachreq['date']);
-                $tablecells.= wf_TableCell(wf_Link(self::URL_WHOIS.$eachreq['ip'], $eachreq['ip']));
                 if (empty($eachreq['apt'])) {
                     $apt = 0;
                 } else {
                     $apt = $eachreq['apt'];
                 }
                 $reqaddr = $eachreq['street'] . ' ' . $eachreq['build'] . '/' . $apt;
-                $tablecells.= wf_TableCell($reqaddr);
-                $tablecells.= wf_TableCell($eachreq['realname']);
+                $jsonItem[] = $reqaddr;
+
+                $jsonItem[] = $eachreq['realname'];
 
                 if ($this->altcfg['ADCOMMENTS_ENABLED']) {
                     $commIndicator = ' ' . $adcomments->getCommentsIndicator($eachreq['id']);
@@ -115,16 +93,24 @@ class SignupRequests {
                     $commIndicator = '';
                 }
 
-                $tablecells.= wf_TableCell(web_bool_led($eachreq['state']) . $commIndicator);
-                $actlinks = wf_Link('?module=sigreq&showreq=' . $eachreq['id'], wf_img('skins/icon_search_small.gif') . ' ' . __('Show'), true, 'ubButton');
-                $tablecells.= wf_TableCell($actlinks);
-                $tablerows.= wf_TableRow($tablecells, 'row3');
+
+                $actlinks = wf_Link('?module=sigreq&showreq=' . $eachreq['id'], wf_img('skins/icon_search_small.gif') . ' ' . __('Show'), true, '');
+                $jsonItem[] = web_bool_led($eachreq['state']) . $commIndicator;
+                $jsonItem[] = $actlinks;
+                $jsonAAData[] = $jsonItem;
             }
         }
 
-        $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.=$paginator;
+        $result = array("aaData" => $jsonAAData);
+        die(json_encode($result));
+    }
 
+    /**
+     * Render requests list
+     * 
+     * @return void
+     */
+    public function renderList() {
         //check database configuration table
         if (zb_CheckTableExists('sigreqconf')) {
             $confControl = wf_Link('?module=sigreq&settings=true', wf_img('skins/settings.png', __('Settings')), false) . ' ';
@@ -132,6 +118,10 @@ class SignupRequests {
             $confControl = '';
         }
         $viewControl = wf_Link('?module=sigreq&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
+        $columns = array(__('ID'), __('Date'), __('IP'), __('Full address'), __('Real Name'), __('Processed'), __('Actions'));
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Signup requests'), 100, $opts);
+
         show_window($confControl . __('Available signup requests') . ' ' . $viewControl, $result);
     }
 
@@ -271,7 +261,7 @@ class SignupRequests {
             $actlinks.=wf_Link('?module=sigreq&requndone=' . $reqid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
         }
 
-        $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $reqid, web_delete_icon(), 'Are you serious');
+        $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $reqid, web_delete_icon(), $this->messages->getDeleteAlert());
 
         show_window(__('Signup request') . ': ' . $reqid . $deletelink, $result);
         show_window('', $actlinks);
