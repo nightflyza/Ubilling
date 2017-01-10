@@ -1366,8 +1366,9 @@ class Warehouse {
     public function incomingOperationsList() {
         $result = '';
         if (!empty($this->allIncoming)) {
+            $opts = '"order": [[ 0, "desc" ]]';
             $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Warehouse storage', 'Actions');
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_IN . '&' . self::URL_INAJLIST, true, 'Incoming operations', 50);
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_IN . '&' . self::URL_INAJLIST, false, 'Incoming operations', 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
@@ -1659,8 +1660,9 @@ class Warehouse {
     public function outcomingOperationsList() {
         $result = '';
         if (!empty($this->allOutcoming)) {
+            $opts = '"order": [[ 0, "desc" ]]';
             $columns = array('ID', 'Date', 'Destination', 'Warehouse storage', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Actions');
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST, true, 'Outcoming operations', 50);
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_OUT . '&' . self::URL_OUTAJLIST, false, 'Outcoming operations', 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }

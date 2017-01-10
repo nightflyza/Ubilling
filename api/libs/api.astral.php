@@ -1920,18 +1920,20 @@ function wf_CleanDiv() {
 /**
  * Renders JQuery Data Tables container
  * 
- * @param array $columns
- * @param string $ajaxUrl
- * @param bool $saveState
- * @param string $objects
- * @param int $rowsCount
+ * @param array $columns columns names array
+ * @param string $ajaxUrl URL to fetch JSON data
+ * @param bool $saveState grid state saving - conflicts with default sort order
+ * @param string $objects object names
+ * @param int $rowsCount rows count to default display
+ * @param string $opts additional options like "order": [[ 0, "desc" ]]
  * 
  * @return string
  */
-function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100) {
+function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '') {
     $tableId = 'jqdt_' . md5($ajaxUrl);
     $result = '';
     $saveState = ($saveState) ? 'true' : 'false';
+    $opts = (!empty($opts)) ? $opts . ',' : '';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
@@ -1965,6 +1967,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
         "iDisplayLength": ' . $rowsCount . ',
         "sAjaxSource": \'' . $ajaxUrl . '\',
 	"bDeferRender": true,
+        ' . $opts . '
         "bJQueryUI": true
                 } );
 		} );
