@@ -2,7 +2,7 @@
 
 if (cfr('CAPAB')) {
 
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $altercfg = $ubillingConfig->getAlter();
 
     if ($altercfg['CAPABDIR_ENABLED']) {
         $capabilities = new CapabilitiesDirectory();
@@ -67,6 +67,9 @@ if (cfr('CAPAB')) {
 //show available
         if (!wf_CheckGet(array('edit'))) {
             if (!wf_CheckGet(array('states'))) {
+                if (wf_CheckGet(array('ajlist'))) {
+                    die($capabilities->ajCapabList());
+                }
                 show_window(__('Available connection capabilities'), $capabilities->render());
             }
         }

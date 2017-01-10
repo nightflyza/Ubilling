@@ -2396,5 +2396,6 @@ $lang['def']['Notes tag IDs which will be task notes'] = 'IDи типів тег
 $lang['def']['Signup payments cashtype ID'] = 'ID типу платежів за підключення';
 $lang['def']['right to use tasks report'] = 'Право використовувати звіт по задачах';
 $lang['def']['right to testing module'] = 'Право використовувати тестовий модуль';
+$lang['def']['Map'] = 'Мапа';
 
 ?>

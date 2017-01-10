@@ -10,11 +10,11 @@ class CapabilitiesDirectory {
     protected $capabstates = array();
     protected $employees = array();
     protected $availids = array();
+    protected $telepathy = '';
 
     const NO_ID = 'NO_SUCH_CAPABILITY_ID';
-    const PER_PAGE = 100;
-    const DEFAULT_ORDER = 'ORDER BY `stateid` ASC';
     const URL_CREATE = '?module=capabilities';
+    const URL_ME = '?module=capabilities';
 
     /**
      * @param bool $noloaders Do not protess load subroutines at object creation
@@ -31,6 +31,8 @@ class CapabilitiesDirectory {
             $this->loadCapabStates();
             //load employees
             $this->loadEmployees();
+            //init telepathy
+            $this->initTelepathy();
         }
     }
 
@@ -50,21 +52,21 @@ class CapabilitiesDirectory {
     }
 
     /**
+     * Inits system telepathy object
+     * 
+     * @return void
+     */
+    protected function initTelepathy() {
+        $this->telepathy = new Telepathy(false, true);
+    }
+
+    /**
      * loads all of available capabilities as protected prop allcapab
      * 
      * @return void
      */
     protected function loadCapabilities() {
-
-        if (!wf_CheckGet(array('page'))) {
-            $currPage = 1;
-        } else {
-            $currPage = vf($_GET['page'], 3);
-        }
-
-        $offset = self::PER_PAGE * ($currPage - 1);
-
-        $query = "SELECT * from `capab` " . self::DEFAULT_ORDER . " LIMIT " . $offset . "," . self::PER_PAGE . ";";
+        $query = "SELECT * from `capab`;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -121,79 +123,63 @@ class CapabilitiesDirectory {
     }
 
     /**
-     * Renders base capabilities grid
+     * Renders base capabilities list
+     * 
+     * @return type
+     */
+    public function render() {
+        $result = '';
+        $columns = array(__('ID'), __('Date'), __('Address'), __('Phone'), __('Status'), __('Notes'), __('Price'), __('Employee'), __('Changed'), __('Actions'));
+        $result = $this->panel();
+        $opts = '"order": [[ 4, "asc" ]]';
+        $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Objects'), 100, $opts);
+        return ($result);
+    }
+
+    /**
+     * Renders capab json data
+     * 
      * 
      * @rerturn string
      */
-    public function render() {
-
-        //pagination processing
-        $totalcount = sizeof($this->availids);
-        if (!wf_CheckGet(array('page'))) {
-            $currPage = 1;
-        } else {
-            $currPage = vf($_GET['page'], 3);
-        }
-
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Address'));
-        $cells.= wf_TableCell(__('Phone'));
-        $cells.= wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(__('Notes'));
-        $cells.= wf_TableCell(__('Price'));
-        $cells.= wf_TableCell(__('Employee'));
-        $cells.= wf_TableCell(__('Changed'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
-
-        $panel = $this->panel();
-        $styles = wf_tag('style');
-        //making some custom styles
-        if (!empty($this->capabstates)) {
-            foreach ($this->capabstates as $ia => $eachstate) {
-                $styles.='.capab_' . $eachstate['id'] . ' { background-color:#' . $eachstate['color'] . '; color: #FFFFFF; } ';
-            }
-        }
-        $styles.=wf_tag('style', true);
+    public function ajCapabList() {
+        $jsonAAData = array();
 
         if (!empty($this->allcapab)) {
             foreach ($this->allcapab as $io => $each) {
+                $jsonItem = array();
+
                 $stateName = @$this->capabstates[$each['stateid']]['state'];
+                $stateColor = @$this->capabstates[$each['stateid']]['color'];
                 $employeeName = @$this->employees[$each['employeeid']]['name'];
 
                 $actions = '';
                 if (cfr('ROOT')) {
-                    $actions.= wf_JSAlert("?module=capabilities&delete=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
+                    $actions.= wf_JSAlert(self::URL_ME . "&delete=" . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
                 }
-                $actions.= wf_JSAlert("?module=capabilities&edit=" . $each['id'] . '&page=' . $currPage, web_edit_icon(), __('Are you serious'));
+                $actions.= wf_link(self::URL_ME . "&edit=" . $each['id'], web_edit_icon(), false);
 
-                $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['address']);
-                $cells.= wf_TableCell($each['phone']);
-                $cells.= wf_TableCell($stateName, '', 'capab_' . $each['stateid']);
-                $cells.= wf_TableCell($each['notes']);
-                $cells.= wf_TableCell($each['price']);
-                $cells.= wf_TableCell($employeeName);
-                $cells.= wf_TableCell($each['donedate']);
-                $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row3');
+                $loginGuess = $this->telepathy->getLogin($each['address']);
+                $profileLink = (!empty($loginGuess)) ? wf_Link('?module=userprofile&username=' . $loginGuess, web_profile_icon(), false, '') : '';
+
+                $jsonItem[] = $each['id'];
+                $jsonItem[] = $each['date'];
+                $jsonItem[] = $each['address'] . ' ' . $profileLink;
+                $jsonItem[] = $each['phone'];
+                $jsonItem[] = wf_tag('span', false, '', 'style="display:none;"') . $each['stateid'] . wf_tag('span', true) . wf_tag('font', false, '', 'color="#' . $stateColor . '"') . $stateName . wf_tag('font', true);
+                $jsonItem[] = $each['notes'];
+                $jsonItem[] = $each['price'];
+                $jsonItem[] = $employeeName;
+                $jsonItem[] = $each['donedate'];
+                $jsonItem[] = $actions;
+                $jsonAAData[] = $jsonItem;
             }
         }
 
 
 
-        if ($totalcount > self::PER_PAGE) {
-            $paginator = wf_pagination($totalcount, self::PER_PAGE, $currPage, "?module=capabilities", 'ubButton');
-        } else {
-            $paginator = '';
-        }
-
-        $result = $panel;
-        $result.= $styles;
-        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= $paginator;
+        $result = array("aaData" => $jsonAAData);
+        return(json_encode($result));
 
         return ($result);
     }
@@ -260,8 +246,9 @@ class CapabilitiesDirectory {
      */
     public function createForm($address = '', $phone = '', $notes = '') {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-
-        $inputs = wf_TextInput('newaddress', __('Full address') . $sup, $address, true);
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        natsort($allAddress);
+        $inputs = wf_AutocompleteTextInput('newaddress', $allAddress, __('Address') . $sup, '', false);
         $inputs.= wf_TextInput('newphone', __('Phone') . $sup, $phone, true);
         $inputs.= __('Notes') . wf_tag('br');
         $inputs.= wf_TextArea('newnotes', '', $notes, true, '40x5');
@@ -494,7 +481,9 @@ class CapabilitiesDirectory {
         if (cfr('ROOT')) {
             $result.= wf_Link("?module=capabilities&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
-        $result.= wf_modal(__('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
+        $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
+        //$result.= wf_link('#', wf_img('skins/swmapsmall.png') . ' ' . __('Map'), false, 'ubButton');
+        $result.=wf_tag('br') . wf_tag('br');
 
         return ($result);
     }
