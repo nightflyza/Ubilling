@@ -75,27 +75,9 @@ class UHW {
      */
     public function renderUsageList() {
         $result = '';
-
-        $result.= wf_tag('table', false, 'display compact', 'id="uhwlisthp"');
-        $result.= wf_tag('thead', false);
-
-        $tablecells = wf_TableCell(__('ID'));
-        $tablecells.=wf_TableCell(__('Date'));
-        $tablecells.=wf_TableCell(__('Password'));
-        $tablecells.=wf_TableCell(__('Login'));
-        $tablecells.=wf_TableCell(__('Address'));
-        $tablecells.=wf_TableCell(__('Real name'));
-        $tablecells.=wf_TableCell(__('IP'));
-        $tablecells.=wf_TableCell(__('NHID'));
-        $tablecells.=wf_TableCell(__('Old MAC'));
-        $tablecells.=wf_TableCell(__('New MAC'));
-        $result.= wf_TableRow($tablecells);
-
-        $result.= wf_tag('thead', true);
-        $result.= wf_tag('table', true);
-
         $columns = array('ID', 'Date', 'Password', 'Login', 'Address', 'Real name', 'IP', 'NHID', 'Old MAC', 'New MAC');
-        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100);
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100, $opts);
         return ($result);
     }
 
