@@ -380,7 +380,7 @@ function web_SwitchEditForm($switchid) {
             $result.=wf_Link('?module=switchpoller&fdbfor=' . $switchdata['ip'], wf_img('skins/menuicons/switchpoller.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
         }
 
-        if (!empty($switchdata['snmp'])) {
+        if ((!empty($switchdata['snmp'])) AND ( ispos($switchdata['desc'], 'SWPOLL'))) {
             $result.=wf_Link('?module=switchpoller&switchid=' . $switchid, wf_img('skins/snmp.png') . ' ' . __('SNMP query'), false, 'ubButton');
         }
     }
