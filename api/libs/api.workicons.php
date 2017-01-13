@@ -178,13 +178,24 @@ function web_star_black() {
 }
 
 /**
- * Returns extended configuration icon:
+ * Returns extended configuration icon
  * 
  * @param string $title
  * @return string
  */
 function web_icon_extended($title = NULL) {
     $icon = wf_img('skins/icon_extended.png', __($title));
+    return $icon;
+}
+
+/**
+ * Returns new item creation icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_icon_create($title = NULL) {
+    $icon = wf_img('skins/add_icon.png', __($title));
     return $icon;
 }
 

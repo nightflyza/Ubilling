@@ -1710,3 +1710,14 @@ CREATE TABLE IF NOT EXISTS `exhorse` (
 ALTER TABLE `switches` ADD `swid` VARCHAR(32) DEFAULT NULL;
 
 ALTER TABLE `exhorse` ADD `f_cashmoney` DOUBLE NULL DEFAULT NULL AFTER `f_paymentscount`, ADD `f_cashcount` INT NULL DEFAULT NULL AFTER `f_cashmoney`;
+
+-- 0.8.1
+
+CREATE TABLE IF NOT EXISTS `policedog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `mac` varchar(40) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`,`mac`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

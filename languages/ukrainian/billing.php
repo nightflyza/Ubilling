@@ -2397,5 +2397,7 @@ $lang['def']['Signup payments cashtype ID'] = 'ID типу платежів за
 $lang['def']['right to use tasks report'] = 'Право використовувати звіт по задачах';
 $lang['def']['right to testing module'] = 'Право використовувати тестовий модуль';
 $lang['def']['Map'] = 'Мапа';
+$lang['def']['PoliceDog'] = 'Собака-поліціяка';
+$lang['def']['Upload new MACs'] = 'Завантаження нових MACів';
 
 ?>
