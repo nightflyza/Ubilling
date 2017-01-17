@@ -1721,3 +1721,12 @@ CREATE TABLE IF NOT EXISTS `policedog` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`mac`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `policedogalerts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `mac` varchar(40) NOT NULL,
+  `login` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`,`mac`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

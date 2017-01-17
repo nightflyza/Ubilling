@@ -2399,5 +2399,10 @@ $lang['def']['right to testing module'] = 'Право використовува
 $lang['def']['Map'] = 'Мапа';
 $lang['def']['PoliceDog'] = 'Собака-поліціяка';
 $lang['def']['Upload new MACs'] = 'Завантаження нових MACів';
+$lang['def']['MAC duplicate'] = 'Дублікат MAC';
+$lang['def']['Wanted MAC database'] = 'База MAC у розшуці';
+$lang['def']['Deep scan'] = 'Глубоке сканування';
+$lang['def']['Assigned'] = 'Призначено';
+$lang['def']['Fast scan'] = 'Швидке сканування';
 
 ?>

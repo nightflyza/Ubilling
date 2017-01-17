@@ -2384,8 +2384,11 @@ $lang['def']['right to testing module'] = 'Право использовать �
 $lang['def']['Map'] = 'Карта';
 $lang['def']['PoliceDog'] = 'Собака-полицияка';
 $lang['def']['Upload new MACs'] = 'Загрузка новых MACов';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['MAC duplicate'] = 'Дубликат MAC';
+$lang['def']['Wanted MAC database'] = 'База разыскиваемых MAC';
+$lang['def']['Deep scan'] = 'Глубокое сканирование';
+$lang['def']['Assigned'] = 'Присвоен';
+$lang['def']['Fast scan'] = 'Быстрое сканирование';
 $lang['def'][''] = '';
 
 

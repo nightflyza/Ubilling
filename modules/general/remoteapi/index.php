@@ -517,6 +517,20 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     }
 
                     /*
+                     * PoliceDog processing
+                     */
+                    if ($_GET['action'] == 'policedog') {
+                        if ($alterconf['POLICEDOG_ENABLED']) {
+                            $runPoliceDog = new PoliceDog();
+                            $runPoliceDog->fastScan();
+                            die('OK:POLICEDOG');
+                        } else {
+                            die('ERROR:POLICEDOG_DISABLED');
+                        }
+                    }
+
+
+                    /*
                      * UKV charge fee processing
                      */
                     if ($_GET['action'] == 'ukvfeeprocessing') {
@@ -632,16 +646,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-		    //tsupport api
-		    if ($_GET['action'] == 'tsupport') {
-			if ($alterconf['TSUPPORT_API']) {
-			    $tsupport = new TSupportApi();
-			    $tsupport->catchRequest();
-			} else {
-			    die('ERROR:NO_TSUPPORT_API_ENABLED');
-			}
-		    }
-		    
+                    //tsupport api
+                    if ($_GET['action'] == 'tsupport') {
+                        if ($alterconf['TSUPPORT_API']) {
+                            $tsupport = new TSupportApi();
+                            $tsupport->catchRequest();
+                        } else {
+                            die('ERROR:NO_TSUPPORT_API_ENABLED');
+                        }
+                    }
+
                     if ($_GET['action'] == 'writevlanmachistory') {
                         if ($alterconf['VLANMACHISTORY']) {
                             $history = new VlanMacHistory;
