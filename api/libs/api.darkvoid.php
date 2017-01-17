@@ -153,6 +153,17 @@ class DarkVoid {
             }
         }
 
+        //police dog alerts
+        if ($this->altCfg['POLICEDOG_ENABLED']) {
+            $policeDogQuery = "SELECT COUNT(`id`) from `policedogalerts`";
+            $policeDogCount = simple_query($policeDogQuery);
+            $policeDogCount = $policeDogCount['COUNT(`id`)'];
+            if ($policeDogCount > 0) {
+                $this->alerts.=wf_Link('?module=policedog&show=fastscan', wf_img('skins/policedogalert.png', $policeDogCount . ' ' . __('Wanted MAC detected')), false, '');
+            }
+        }
+
+
         if ($this->altCfg['TB_TASKMANNOTIFY']) {
             //only "for me" tasks notification
             if ($this->altCfg['TB_TASKMANNOTIFY'] == 1) {

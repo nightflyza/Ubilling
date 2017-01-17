@@ -2388,7 +2388,6 @@ $lang['def']['Total spent for other tasks'] = 'Всього витрачено �
 $lang['def']['Profit from users signups'] = 'Прибуток від підключень користувачів';
 $lang['def']['Paid staff'] = 'Виплачено персоналу';
 $lang['def']['Spent materials'] = 'Витрачено матеріалів';
-
 $lang['def']['Tasks report enabled'] = 'Звіт по задачах увімкнено';
 $lang['def']['Tasks jobtype IDs for report'] = 'IDи типів робіт для звіта';
 $lang['def']['Tasks jobtype IDs of signup type'] = 'IDи типів робіт, що є підключеннями';
@@ -2404,5 +2403,15 @@ $lang['def']['Wanted MAC database'] = 'База MAC у розшуці';
 $lang['def']['Deep scan'] = 'Глубоке сканування';
 $lang['def']['Assigned'] = 'Призначено';
 $lang['def']['Fast scan'] = 'Швидке сканування';
+$lang['def']['Wanted MAC detected'] = 'Розшукуємий MAC знайдено';
+
+$lang['def']['No wanted MAC DHCP requests detected'] = 'Запитів до DHCP від розшукуємих MAC не знайдено';
+$lang['def']['DHCP request from'] = 'DHCP запит від';
+$lang['def']['Wanted MAC occurs in FDB'] = 'Розшукуємий MAC помічено в FDB';
+$lang['def']['No wanted MAC in FDB cache detected'] = 'Появ розшукуємих MAC у кеші FDB не знайдено';
+$lang['def']['Wanted MAC occurs in event logs'] = 'Розшукуємий MAC помічено в лозі подій';
+$lang['def']['No wanted MAC in event logs detected'] = 'Розшукуємих MAC в лозі подій не знайдено';
+$lang['def']['Wanted MAC occurs in PON ONU devices'] = 'Разшукуємий MAC помічено серед пристроїв PON ONU';
+$lang['def']['No wanted MAC in PON ONU  devices detected'] = 'Розщукуємих MAC в пристроях PON ONU не знайдено';
 
 ?>

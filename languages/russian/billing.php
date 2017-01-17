@@ -2389,8 +2389,17 @@ $lang['def']['Wanted MAC database'] = 'База разыскиваемых MAC';
 $lang['def']['Deep scan'] = 'Глубокое сканирование';
 $lang['def']['Assigned'] = 'Присвоен';
 $lang['def']['Fast scan'] = 'Быстрое сканирование';
+$lang['def']['Wanted MAC detected'] = 'Разыскиваемый MAC обнаружен';
+$lang['def']['No wanted MAC DHCP requests detected'] = 'Запросов к DHCP от разыскиваемых MAC не обнаружено';
+$lang['def']['DHCP request from'] = 'DHCP запрос от';
+$lang['def']['Wanted MAC occurs in FDB'] = 'Разыскиваемый MAC замечен в FDB';
+$lang['def']['No wanted MAC in FDB cache detected'] = 'Появлений разыскиваемых MAC в кеше FDB не обнаружено';
+$lang['def']['Wanted MAC occurs in event logs'] = 'Разыскиваемый MAC замечен в логе событий';
+$lang['def']['No wanted MAC in event logs detected'] = 'Разыскиваемых MAC в логе событий не обнаружено';
+$lang['def']['Wanted MAC occurs in PON ONU devices'] = 'Разыскиваемый MAC замечен среди устройств PON ONU';
+$lang['def']['No wanted MAC in PON ONU  devices detected'] = 'Разыскиваемых MAC в устройствах PON ONU не обнаружено';
 $lang['def'][''] = '';
-
+$lang['def'][''] = '';
 
 
 ?>

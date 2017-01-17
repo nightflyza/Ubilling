@@ -3,11 +3,18 @@
 class PoliceDog {
 
     /**
-     * Contains system alter.ini as key=>value
+     * Contains system alter.ini config as key=>value
      *
      * @var array
      */
     protected $altCfg = array();
+
+    /**
+     * Contains system billing.ini config as key=>value
+     *
+     * @var array
+     */
+    protected $billCfg = array();
 
     /**
      * Contains all available MAC data as id=>macdata
@@ -67,6 +74,7 @@ class PoliceDog {
     protected function loadConfig() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->billCfg = $ubillingConfig->getBilling();
     }
 
     /**
@@ -173,9 +181,10 @@ class PoliceDog {
     public function deleteWantedMac($id) {
         $id = vf($id, 3);
         if (isset($this->macData[$id])) {
+            $deleteMac = $this->macData[$id]['mac'];
             $query = "DELETE from `policedog` WHERE `id`='" . $id . "';";
             nr_query($query);
-            log_register('POLICEDOG DELETE MAC [' . $id . ']');
+            log_register('POLICEDOG DELETE MAC `' . $deleteMac . '`');
         }
     }
 
@@ -285,7 +294,7 @@ class PoliceDog {
                         $query = "INSERT INTO `policedogalerts` (`id`,`date`,`mac`,`login`) VALUES ";
                         $query.="(NULL, '" . $curDate . "', '" . $eachmac . "', '" . $detectedLogin . "');";
                         nr_query($query);
-                        log_register('POLICEDOG MAC [' . $eachId . '] ALERT `' . $detectedLogin . '`');
+                        log_register('POLICEDOG MAC `' . $eachmac . '` ALERT `' . $detectedLogin . '`');
                     }
                 }
             }
@@ -335,10 +344,141 @@ class PoliceDog {
     public function deleteAlert($id) {
         $id = vf($id, 3);
         if (isset($this->alerts[$id])) {
+            $alertData=  $this->alerts[$id];
             $query = "DELETE from `policedogalerts` WHERE `id`='" . $id . "';";
             nr_query($query);
-            log_register('POLICEDOG DELETE ALERT [' . $id . ']');
+            log_register('POLICEDOG DELETE ALERT ['.$id.'] MAC `' . $alertData['mac'] . '`');
         }
+    }
+
+    /**
+     * Performs and renders deep scan results
+     * 
+     * @return string
+     */
+    public function renderDeepScan() {
+        set_time_limit(0);
+        $result = '';
+        if (!empty($this->allMacs)) {
+            //DHCP logs parsing
+            $cat_path = $this->billCfg['CAT'];
+            $sudo_path = $this->billCfg['SUDO'];
+            $tail_path = $this->billCfg['TAIL'];
+            $leasefile = $this->altCfg['NMLEASES'];
+            $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $tail_path . ' -n 5000';
+            $rawDhcp = shell_exec($command);
+            $dhcpAlerts = '';
+            $dhcpAlertsTmp = array();
+            if (!empty($rawDhcp)) {
+                $rawDhcp = explodeRows($rawDhcp);
+                if (!empty($rawDhcp)) {
+                    foreach ($rawDhcp as $eachLine) {
+                        $macExtract = zb_ExtractMacAddress($eachLine);
+                        if (!empty($macExtract)) {
+                            if (isset($this->allMacs[$macExtract])) {
+                                if (!isset($dhcpAlertsTmp[$macExtract])) {
+                                    $dhcpAlerts.=$this->messages->getStyledMessage(__('DHCP request from') . ': ' . $macExtract, 'error');
+                                }
+                                $dhcpAlertsTmp[$macExtract] = $macExtract;
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($dhcpAlerts)) {
+                    $result.=$dhcpAlerts;
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('No wanted MAC DHCP requests detected'), 'success');
+                }
+            }
+
+            //FDB cache processing
+            $fdbCachePath = 'exports/';
+            $fdbAlerts = '';
+            $fdbMacTmp = array();
+            $fdbAlertsTmp = array();
+            $allFdb = rcms_scandir($fdbCachePath, '*_fdb');
+            if (!empty($allFdb)) {
+                foreach ($allFdb as $io => $eachFdbFile) {
+                    $fdbData = file_get_contents($fdbCachePath . $eachFdbFile);
+                    $fdbData = unserialize($fdbData);
+                    if (!empty($fdbData)) {
+                        foreach ($fdbData as $fdbmac => $port) {
+                            $fdbMacTmp[$fdbmac] = $fdbmac;
+                        }
+                    }
+                }
+
+                if (!empty($fdbMacTmp)) {
+                    foreach ($fdbMacTmp as $io => $eachFdbMac) {
+                        if (isset($this->allMacs[$eachFdbMac])) {
+                            if (!isset($fdbAlertsTmp[$eachFdbMac])) {
+                                $fdbAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in FDB') . ': ' . $eachFdbMac, 'error');
+                            }
+                            $fdbAlersTmp[$eachFdbMac] = $eachFdbMac;
+                        }
+                    }
+                }
+
+                if (!empty($fdbAlerts)) {
+                    $result.=$fdbAlers;
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
+                }
+
+                //weblogs assigns parsing
+                $logAlerts = '';
+                $logAlertsTmp = array();
+                $weblogs_q = "SELECT `event` from `weblogs` WHERE `event` NOT LIKE '%POLICEDOG%'";
+                $weblogsRaw = simple_queryall($weblogs_q);
+                if (!empty($weblogsRaw)) {
+                    foreach ($weblogsRaw as $io => $eachEvent) {
+                        $macExtract = zb_ExtractMacAddress($eachEvent['event']);
+                        if (!empty($macExtract)) {
+                            if (isset($this->allMacs[$macExtract])) {
+                                if (!isset($logAlertsTmp[$macExtract])) {
+                                    $logAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
+                                }
+                                $logAlertsTmp[$macExtract] = $macExtract;
+                            }
+                        }
+                    }
+                }
+                if (!empty($logAlerts)) {
+                    $result.=$logAlerts;
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in event logs detected'), 'success');
+                }
+
+                //PON devices processing
+                if ($this->altCfg['PON_ENABLED']) {
+                    $ponAlerts = '';
+                    $ponAlertsTmp = array();
+                    $pon_q = "SELECT `mac` from `pononu`";
+                    $ponRaw = simple_queryall($pon_q);
+                    if (!empty($pon_q)) {
+                        foreach ($ponRaw as $io => $eachPonMac) {
+                            $eachPonMac = $eachPonMac['mac'];
+                            if (isset($this->allMacs[$eachPonMac])) {
+                                if (!isset($ponAlertsTmp[$eachPonMac])) {
+
+                                    $ponAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
+                                }
+                                $ponAlertsTmp[$eachPonMac] = $eachPonMac;
+                            }
+                        }
+                    }
+                    if (!empty($ponAlerts)) {
+                        $result.=$ponAlerts;
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('No wanted MAC in PON ONU  devices detected'), 'success');
+                    }
+                }
+            }
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Wanted MAC database') . ': ' . __('No'), 'warning');
+        }
+        return ($result);
     }
 
 }
