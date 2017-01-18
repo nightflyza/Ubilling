@@ -2398,6 +2398,8 @@ $lang['def']['Wanted MAC occurs in event logs'] = 'Разыскиваемый MA
 $lang['def']['No wanted MAC in event logs detected'] = 'Разыскиваемых MAC в логе событий не обнаружено';
 $lang['def']['Wanted MAC occurs in PON ONU devices'] = 'Разыскиваемый MAC замечен среди устройств PON ONU';
 $lang['def']['No wanted MAC in PON ONU  devices detected'] = 'Разыскиваемых MAC в устройствах PON ONU не обнаружено';
+$lang['def']['No wanted MAC assigned to existing users'] = 'Нету разыскиваемых назначенных существующим пользователям';
+$lang['def']['Wanted MAC assigned to user'] = 'Разыскиваемый MAC назначен пользователю';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

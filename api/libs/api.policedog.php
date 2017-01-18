@@ -344,10 +344,10 @@ class PoliceDog {
     public function deleteAlert($id) {
         $id = vf($id, 3);
         if (isset($this->alerts[$id])) {
-            $alertData=  $this->alerts[$id];
+            $alertData = $this->alerts[$id];
             $query = "DELETE from `policedogalerts` WHERE `id`='" . $id . "';";
             nr_query($query);
-            log_register('POLICEDOG DELETE ALERT ['.$id.'] MAC `' . $alertData['mac'] . '`');
+            log_register('POLICEDOG DELETE ALERT [' . $id . '] MAC `' . $alertData['mac'] . '`');
         }
     }
 
@@ -360,6 +360,26 @@ class PoliceDog {
         set_time_limit(0);
         $result = '';
         if (!empty($this->allMacs)) {
+            //nethosts scanning
+            $nethostsAlerts = '';
+            $nethostsAlertsTmp = array();
+            if (!empty($this->allMacs)) {
+                foreach ($this->allMacs as $eachmac => $eachId) {
+                    if (isset($this->usersMacs[$eachmac])) {
+                        if (!isset($nethostsAlertsTmp[$eachmac])) {
+                            $nethostsAlerts.=$this->messages->getStyledMessage(__('Wanted MAC assigned to user') . ': ' . $eachmac, 'error');
+                            $nethostsAlertsTmp[$eachmac] = $eachmac;
+                        }
+                    }
+                }
+
+                if (!empty($nethostsAlerts)) {
+                    $result.=$nethostsAlerts;
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('No wanted MAC assigned to existing users'), 'success');
+                }
+            }
+
             //DHCP logs parsing
             $cat_path = $this->billCfg['CAT'];
             $sudo_path = $this->billCfg['SUDO'];
@@ -378,8 +398,8 @@ class PoliceDog {
                             if (isset($this->allMacs[$macExtract])) {
                                 if (!isset($dhcpAlertsTmp[$macExtract])) {
                                     $dhcpAlerts.=$this->messages->getStyledMessage(__('DHCP request from') . ': ' . $macExtract, 'error');
+                                    $dhcpAlertsTmp[$macExtract] = $macExtract;
                                 }
-                                $dhcpAlertsTmp[$macExtract] = $macExtract;
                             }
                         }
                     }
@@ -414,14 +434,14 @@ class PoliceDog {
                         if (isset($this->allMacs[$eachFdbMac])) {
                             if (!isset($fdbAlertsTmp[$eachFdbMac])) {
                                 $fdbAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in FDB') . ': ' . $eachFdbMac, 'error');
+                                $fdbAlersTmp[$eachFdbMac] = $eachFdbMac;
                             }
-                            $fdbAlersTmp[$eachFdbMac] = $eachFdbMac;
                         }
                     }
                 }
 
                 if (!empty($fdbAlerts)) {
-                    $result.=$fdbAlers;
+                    $result.=$fdbAlerts;
                 } else {
                     $result.=$this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
                 }
@@ -438,8 +458,8 @@ class PoliceDog {
                             if (isset($this->allMacs[$macExtract])) {
                                 if (!isset($logAlertsTmp[$macExtract])) {
                                     $logAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
+                                    $logAlertsTmp[$macExtract] = $macExtract;
                                 }
-                                $logAlertsTmp[$macExtract] = $macExtract;
                             }
                         }
                     }
@@ -461,10 +481,9 @@ class PoliceDog {
                             $eachPonMac = $eachPonMac['mac'];
                             if (isset($this->allMacs[$eachPonMac])) {
                                 if (!isset($ponAlertsTmp[$eachPonMac])) {
-
                                     $ponAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
+                                    $ponAlertsTmp[$eachPonMac] = $eachPonMac;
                                 }
-                                $ponAlertsTmp[$eachPonMac] = $eachPonMac;
                             }
                         }
                     }
