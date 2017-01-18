@@ -385,7 +385,7 @@ class PoliceDog {
             $sudo_path = $this->billCfg['SUDO'];
             $tail_path = $this->billCfg['TAIL'];
             $leasefile = $this->altCfg['NMLEASES'];
-            $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $tail_path . ' -n 5000';
+            $command = $sudo_path . ' ' . $cat_path . ' ' . $leasefile . ' | ' . $tail_path . ' -n 10000';
             $rawDhcp = shell_exec($command);
             $dhcpAlerts = '';
             $dhcpAlertsTmp = array();
@@ -439,59 +439,59 @@ class PoliceDog {
                         }
                     }
                 }
+            }
 
-                if (!empty($fdbAlerts)) {
-                    $result.=$fdbAlerts;
-                } else {
-                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
-                }
+            if (!empty($fdbAlerts)) {
+                $result.=$fdbAlerts;
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
+            }
 
-                //weblogs assigns parsing
-                $logAlerts = '';
-                $logAlertsTmp = array();
-                $weblogs_q = "SELECT `event` from `weblogs` WHERE `event` NOT LIKE '%POLICEDOG%'";
-                $weblogsRaw = simple_queryall($weblogs_q);
-                if (!empty($weblogsRaw)) {
-                    foreach ($weblogsRaw as $io => $eachEvent) {
-                        $macExtract = zb_ExtractMacAddress($eachEvent['event']);
-                        if (!empty($macExtract)) {
-                            if (isset($this->allMacs[$macExtract])) {
-                                if (!isset($logAlertsTmp[$macExtract])) {
-                                    $logAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
-                                    $logAlertsTmp[$macExtract] = $macExtract;
-                                }
+            //weblogs assigns parsing
+            $logAlerts = '';
+            $logAlertsTmp = array();
+            $weblogs_q = "SELECT `event` from `weblogs` WHERE `event` NOT LIKE '%POLICEDOG%' AND `event` LIKE '%MAC%'";
+            $weblogsRaw = simple_queryall($weblogs_q);
+            if (!empty($weblogsRaw)) {
+                foreach ($weblogsRaw as $io => $eachEvent) {
+                    $macExtract = zb_ExtractMacAddress($eachEvent['event']);
+                    if (!empty($macExtract)) {
+                        if (isset($this->allMacs[$macExtract])) {
+                            if (!isset($logAlertsTmp[$macExtract])) {
+                                $logAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
+                                $logAlertsTmp[$macExtract] = $macExtract;
                             }
                         }
                     }
                 }
-                if (!empty($logAlerts)) {
-                    $result.=$logAlerts;
-                } else {
-                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in event logs detected'), 'success');
-                }
+            }
+            if (!empty($logAlerts)) {
+                $result.=$logAlerts;
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No wanted MAC in event logs detected'), 'success');
+            }
 
-                //PON devices processing
-                if ($this->altCfg['PON_ENABLED']) {
-                    $ponAlerts = '';
-                    $ponAlertsTmp = array();
-                    $pon_q = "SELECT `mac` from `pononu`";
-                    $ponRaw = simple_queryall($pon_q);
-                    if (!empty($pon_q)) {
-                        foreach ($ponRaw as $io => $eachPonMac) {
-                            $eachPonMac = $eachPonMac['mac'];
-                            if (isset($this->allMacs[$eachPonMac])) {
-                                if (!isset($ponAlertsTmp[$eachPonMac])) {
-                                    $ponAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
-                                    $ponAlertsTmp[$eachPonMac] = $eachPonMac;
-                                }
+            //PON devices processing
+            if ($this->altCfg['PON_ENABLED']) {
+                $ponAlerts = '';
+                $ponAlertsTmp = array();
+                $pon_q = "SELECT `mac` from `pononu`";
+                $ponRaw = simple_queryall($pon_q);
+                if (!empty($pon_q)) {
+                    foreach ($ponRaw as $io => $eachPonMac) {
+                        $eachPonMac = $eachPonMac['mac'];
+                        if (isset($this->allMacs[$eachPonMac])) {
+                            if (!isset($ponAlertsTmp[$eachPonMac])) {
+                                $ponAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
+                                $ponAlertsTmp[$eachPonMac] = $eachPonMac;
                             }
                         }
                     }
-                    if (!empty($ponAlerts)) {
-                        $result.=$ponAlerts;
-                    } else {
-                        $result.=$this->messages->getStyledMessage(__('No wanted MAC in PON ONU  devices detected'), 'success');
-                    }
+                }
+                if (!empty($ponAlerts)) {
+                    $result.=$ponAlerts;
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in PON ONU  devices detected'), 'success');
                 }
             }
         } else {
