@@ -21,14 +21,13 @@ if (cfr('POLICEDOG')) {
             }
             /**
              * Come on in and join our big top
-              I am your only ringmaster
-
-              Everyone will leave here bewitched
-              Your pulse going faster
-              Yes, it's magic, must be magic
-              Pure black magic that we cannot control
+             * I am your only ringmaster
+             *
+             * Everyone will leave here bewitched
+             * Your pulse going faster
+             * Yes, it's magic, must be magic
+             * Pure black magic that we cannot control
              */
-            
             //mac deletion
             if (wf_CheckGet(array($avidity['P']['MDEL']))) {
                 $policedog->$avidity['M']['KILL']($_GET[$avidity['P']['MDEL']]);

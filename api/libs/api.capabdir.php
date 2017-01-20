@@ -6,10 +6,39 @@
 
 class CapabilitiesDirectory {
 
+    /**
+     * Contains all available capabilities list as id=>data
+     *
+     * @var array
+     */
     protected $allcapab = array();
+
+    /**
+     * Contains array of available capabilities states as id=>data
+     *
+     * @var array
+     */
     protected $capabstates = array();
+
+    /**
+     * Contains array of all employee
+     *
+     * @var array
+     */
     protected $employees = array();
+
+    /**
+     * Contains array of available capabs ids
+     *
+     * @var array
+     */
     protected $availids = array();
+
+    /**
+     * System telepathy object placeholder
+     *
+     * @var object
+     */
     protected $telepathy = '';
 
     const NO_ID = 'NO_SUCH_CAPABILITY_ID';
@@ -472,6 +501,45 @@ class CapabilitiesDirectory {
     }
 
     /**
+     * Renders states charts
+     * 
+     * @return string
+     */
+    protected function renderStatesStats() {
+        $result = '';
+        $statsTmp = array();
+        if (!empty($this->allcapab)) {
+            $total = sizeof($this->allcapab);
+            foreach ($this->allcapab as $io => $each) {
+                if (isset($statsTmp[$each['stateid']])) {
+                    $statsTmp[$each['stateid']] ++;
+                } else {
+                    $statsTmp[$each['stateid']] = 1;
+                }
+            }
+
+            if (!empty($statsTmp)) {
+                $cells = wf_TableCell(__('Status'));
+                $cells.= wf_TableCell(__('Count'));
+                $cells.= wf_TableCell(__('Visual'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($statsTmp as $stateid => $count) {
+                    $cells = wf_TableCell(@$this->capabstates[$stateid]['state']);
+                    $cells.= wf_TableCell($count);
+                    $cells.= wf_TableCell(web_bar($count, $total));
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result.=$messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+        return ($result);
+    }
+
+    /**
      * returns capabilities directory control panel
      * 
      * @return string
@@ -482,7 +550,7 @@ class CapabilitiesDirectory {
             $result.= wf_Link("?module=capabilities&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
         $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
-        //$result.= wf_link('#', wf_img('skins/swmapsmall.png') . ' ' . __('Map'), false, 'ubButton');
+        $result.= wf_modalAuto(wf_img('skins/icon_stats.gif') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
         $result.=wf_tag('br') . wf_tag('br');
 
         return ($result);
