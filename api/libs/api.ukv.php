@@ -70,6 +70,20 @@ class UkvSystem {
     protected $bankstafoundusers = array();
 
     /**
+     * Contains all available tagtypes as id=>data
+     *
+     * @var array
+     */
+    protected $allTagtypes = array();
+
+    /**
+     * Contains all available user tags
+     *
+     * @var array
+     */
+    protected $allUserTags = array();
+
+    /**
      * System alter.ini config represented as key=>value
      *
      * @var array
@@ -156,6 +170,8 @@ class UkvSystem {
         $this->loadStreets();
         $this->loadMonth();
         $this->loadDebtLimit();
+        $this->loadTagtypes();
+        $this->loadUsertags();
         $this->initMessages();
     }
 
@@ -255,6 +271,36 @@ class UkvSystem {
         global $ubillingConfig;
         $altCfg = $ubillingConfig->getAlter();
         $this->debtLimit = $altCfg['UKV_MONTH_DEBTLIMIT'];
+    }
+
+    /**
+     * Loads all available tagstypes
+     * 
+     * @return void
+     */
+    protected function loadTagtypes() {
+        $query = "SELECT * from `tagtypes`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTagtypes[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads all available usertags
+     * 
+     * @return void
+     */
+    protected function loadUsertags() {
+        $query = "SELECT * from `ukv_tags`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allUserTags[$each['id']] = $each;
+            }
+        }
     }
 
     /**
@@ -1139,6 +1185,145 @@ class UkvSystem {
     }
 
     /**
+     * Returns tags edit interface for some user
+     * 
+     * @param int $userid
+     * 
+     * @return string
+     */
+    protected function profileTagsEditForm($userid) {
+        $userid = vf($userid, 3);
+        $result = '';
+        $paramsTmp = array();
+        if (!empty($this->allTagtypes)) {
+            foreach ($this->allTagtypes as $io => $each) {
+                $paramsTmp[$each['id']] = $each['tagname'];
+            }
+        }
+
+        $inputs = wf_Selector('newtagtypeid', $paramsTmp, __('Add tag'), '', false) . ' ';
+        $inputs.= wf_HiddenInput('newtaguserid', $userid);
+        $inputs.=wf_Submit(__('Save'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $result.= wf_CleanDiv();
+        $result.=wf_delimiter();
+
+        $paramsDelTmp = array();
+        if (!empty($this->allUserTags)) {
+            foreach ($this->allUserTags as $io => $eachtag) {
+                if ($eachtag['userid'] == $userid) {
+                    $paramsDelTmp[$eachtag['id']] = @$this->allTagtypes[$eachtag['tagtypeid']]['tagname'];
+                }
+            }
+        }
+
+        if (!empty($paramsDelTmp)) {
+            $inputs = wf_Selector('deltagid', $paramsDelTmp, __('Delete tag'), '', false);
+            $inputs.= wf_HiddenInput('deltaguserid', $userid);
+            $inputs.= wf_Submit(__('Delete'));
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $result.= wf_CleanDiv();
+        }
+
+
+
+        return ($result);
+    }
+
+    /**
+     * Catches and performs if required tagg adding/deletion for some user
+     * 
+     * @return void
+     */
+    protected function catchTagChangeRequest() {
+        if (wf_CheckPost(array('newtagtypeid', 'newtaguserid'))) {
+            $tagTypeId = vf($_POST['newtagtypeid'], 3);
+            $userId = vf($_POST['newtaguserid'], 3);
+            $query = "INSERT INTO `ukv_tags` (`id`,`tagtypeid`,`userid`) VALUES ";
+            $query.="(NULL,'" . $tagTypeId . "','" . $userId . "');";
+            nr_query($query);
+            log_register('UKV TAG ADD ((' . $userId . ')) TYPE [' . $tagTypeId . ']');
+            rcms_redirect(self::URL_USERS_PROFILE . $userId);
+        }
+
+        if (wf_CheckPost(array('deltagid', 'deltaguserid'))) {
+            $delTagId = vf($_POST['deltagid'], 3);
+            $userId = vf($_POST['deltaguserid'], 3);
+            $query = "DELETE from `ukv_tags` WHERE `id`='" . $delTagId . "';";
+            nr_query($query);
+            log_register('UKV TAG DEL ((' . $userId . ')) TAGID [' . $delTagId . ']');
+            rcms_redirect(self::URL_USERS_PROFILE . $userId);
+        }
+    }
+
+    /**
+     * Returns tagtype data
+     * 
+     * @param int $tagtypeid
+     * 
+     * @return array
+     */
+    protected function getTagParams($tagtypeid) {
+        $tagtypeid = vf($tagtypeid, 3);
+        $result = array();
+        if (isset($this->allTagtypes[$tagtypeid])) {
+            $result = $this->allTagtypes[$tagtypeid];
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns tag html preprocessed body
+     * 
+     * @param int $id
+     * @param bool $power
+     * 
+     * @return string
+     */
+    protected function getTagBody($id, $power = false) {
+        $powerTmp = array();
+        if ($power) {
+            foreach ($this->allUserTags as $io => $each) {
+                if (isset($powerTmp[$each['tagtypeid']])) {
+                    $powerTmp[$each['tagtypeid']] ++;
+                } else {
+                    $powerTmp[$each['tagtypeid']] = 1;
+                }
+            }
+            $tagPower = (isset($powerTmp[$id])) ? $powerTmp[$id] : 0;
+            $powerSup = wf_tag('sup', false) . $tagPower . wf_tag('sup', true);
+        } else {
+            $powerSup = '';
+        }
+        $tagbody = $this->getTagParams($id);
+        $renderPower = ($power) ? $tagPower : $tagbody['tagsize'];
+
+        $result = wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $renderPower . '"');
+        $result.= wf_tag('a', false, '', 'href="' . self::URL_REPORTS_MGMT . 'reportTagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . $powerSup . wf_tag('a', true);
+        $result.= wf_tag('font', true);
+        $result.='&nbsp;';
+        return($result);
+    }
+
+    /**
+     * Returns user applied tags as browsable html
+     * 
+     * @param int $userid
+     * @return string
+     */
+    protected function renderUserTags($userid) {
+        $result = '';
+        if (!empty($this->allUserTags)) {
+            foreach ($this->allUserTags as $io => $eachtag) {
+                if ($eachtag['userid'] == $userid) {
+                    $result.=$this->getTagBody($eachtag['tagtypeid']);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * returns some existing user profile
      * 
      * @param int $userid existing user`s ID
@@ -1231,6 +1416,16 @@ class UkvSystem {
 
             $profileData = wf_TableBody($rows, '100%', 0, '');
 
+            //tags area
+            if (!empty($this->allTagtypes)) {
+                $this->catchTagChangeRequest();
+                $tagsArea = wf_modalAuto(web_add_icon(__('Add tag')), __('Add tag'), $this->profileTagsEditForm($userid));
+                $tagsArea.=$this->renderUserTags($userid);
+            } else {
+                $tagsArea = '';
+            }
+
+
             $profilePlugins = '';
             if (cfr('UKV')) {
                 $profilePlugins.= wf_tag('div', false, 'dashtask', 'style="height:75px; width:75px;"') . wf_modal(wf_img('skins/icon_orb_big.gif', __('User lifestory')), __('User lifestory'), $this->userLifeStoryForm($userid), '', '800', '600') . __('Details') . wf_tag('div', true);
@@ -1253,7 +1448,11 @@ class UkvSystem {
 
             $profilerows = wf_TableRow($profilecells);
 
-            $profilecells = wf_tag('td', false, '', 'width="128" valign="top"') . $profilePlugins . wf_tag('td', true);
+            $profilecells = wf_tag('td', false, '', 'valign="top"') . $tagsArea . wf_tag('td', true);
+
+            $profilerows.= wf_TableRow($profilecells);
+
+            $profilecells = wf_tag('td', false, '', ' valign="top"') . $profilePlugins . wf_tag('td', true);
             $profilerows .= wf_TableRow($profilecells);
 
             $result = wf_TableBody($profilerows, '100%', '0');
@@ -2002,38 +2201,44 @@ class UkvSystem {
     }
 
     /**
-     * renders bank statements list 
+     * Renders bank statements list datatables json datasource
      * 
-     * @return string
+     * @return void
      */
-    public function bankstaRenderList() {
+    public function bankstaRenderAjaxList() {
         $query = "SELECT `filename`,`hash`,`date`,`admin`,`payid`,COUNT(`id`) AS `rowcount` FROM `ukv_banksta` GROUP BY `hash` ORDER BY `date` DESC;";
         $all = simple_queryall($query);
         $this->loadCashtypes();
-
-        $cells = wf_TableCell(__('Date'));
-        $cells.= wf_TableCell(__('Filename'));
-        $cells.= wf_TableCell(__('Type'));
-        $cells.= wf_TableCell(__('Rows'));
-        $cells.= wf_TableCell(__('Admin'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
+        $jsonAAData = array();
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
-
-                $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['filename']);
-                $cells.= wf_TableCell(@$this->cashtypes[$each['payid']]);
-                $cells.= wf_TableCell($each['rowcount']);
-                $cells.= wf_TableCell($each['admin']);
+                $jsonItem = array();
+                $jsonItem[] = $each['date'];
+                $jsonItem[] = $each['filename'];
+                $jsonItem[] = @$this->cashtypes[$each['payid']];
+                $jsonItem[] = $each['rowcount'];
+                $jsonItem[] = $each['admin'];
                 $actLinks = wf_Link(self::URL_BANKSTA_PROCESSING . $each['hash'], wf_img('skins/icon_search_small.gif', __('Show')), false, '');
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $jsonItem[] = $actLinks;
+
+                $jsonAAData[] = $jsonItem;
             }
         }
-        $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        $result = array("aaData" => $jsonAAData);
+        die(json_encode($result));
+    }
 
+    /**
+     * Renders bank statements list container
+     * 
+     * @return type
+     */
+    public function bankstaRenderList() {
+        $result = '';
+        $columns = array(__('Date'), __('Filename'), __('Type'), __('Rows'), __('Admin'), __('Actions'));
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result.=wf_JqDtLoader($columns, self::URL_BANKSTA_MGMT . '&ajbslist=true', false, __('Bank statement'), 50, $opts);
         return ($result);
     }
 
@@ -2108,6 +2313,7 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportStreets', 'streetsreport.png', __('Streets report'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtAddr', 'debtaddr.png', __('Current debtors for delivery by address'));
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportDebtStreets', 'debtstreets.png', __('Current debtors for delivery by streets'));
+        $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTagcloud', 'tagcloud.jpg', __('Tag cloud'));
         if ($this->altCfg['COMPLEX_ENABLED']) {
             $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportComplexAssign', 'reportcomplexassign.png', __('Users with complex services'));
         }
@@ -2754,6 +2960,67 @@ class UkvSystem {
     }
 
     /**
+     * Renders tagcloud report
+     * 
+     * @return void
+     */
+    public function reportTagcloud() {
+        $result = '';
+        $reportTmp = array();
+        if (!empty($this->allTagtypes)) {
+            if (!empty($this->allUserTags)) {
+                foreach ($this->allUserTags as $io => $each) {
+                    if (!isset($reportTmp[$each['tagtypeid']])) {
+                        $result.=$this->getTagBody($each['tagtypeid'], true);
+                        $reportTmp[$each['tagtypeid']] = $each['tagtypeid'];
+                    }
+                }
+            }
+            if (wf_CheckGet(array('tagid'))) {
+                $showTagid = vf($_GET['tagid'], 3);
+
+
+                $result.=wf_delimiter();
+                $result.=wf_tag('h2') . __('Tag') . ': ' . @$this->allTagtypes[$showTagid]['tagname'] . wf_tag('h2', true);
+                $cells = wf_TableCell(__('Contract'), '10%');
+                $cells.= wf_TableCell(__('Full address'), '31%');
+                $cells.= wf_TableCell(__('Real Name'), '25%');
+                $cells.= wf_TableCell(__('Tariff'), '15%');
+                $cells.= wf_TableCell(__('Cash'), '7%');
+                $cells.= wf_TableCell(__('Seal'), '5%');
+                $cells.= wf_TableCell(__('Status'), '7%');
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($this->allUserTags as $io => $eachtag) {
+                    if ($eachtag['tagtypeid'] == $showTagid) {
+                        $eachUser = @$this->users[$eachtag['userid']];
+                        if (!empty($eachUser)) {
+                            $cells = wf_TableCell($eachUser['contract']);
+                            $fullAddress = $this->userGetFullAddress($eachUser['id']);
+                            $profileLink = wf_Link(self::URL_USERS_PROFILE . $eachUser['id'], web_profile_icon() . ' ', false, '');
+                            $cells.= wf_TableCell($profileLink . $fullAddress);
+                            $cells.= wf_TableCell($eachUser['realname']);
+                            $cells.= wf_TableCell($this->tariffs[$eachUser['tariffid']]['tariffname']);
+                            $cells.= wf_TableCell($eachUser['cash']);
+                            $cells.= wf_tablecell($eachUser['cableseal']);
+                            $cells.= wf_TableCell(web_bool_led($eachUser['active'], true));
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                    }
+                }
+
+                $result.= wf_TableBody($rows, '100%', '0', 'sortable');
+
+                ////////////////
+            }
+
+            show_window(__('Tag cloud'), $result);
+        } else {
+            show_window(__('Tag cloud'), $this->messages->getStyledMessage(__('Nothing found'), 'warning'));
+        }
+    }
+
+    /**
      * renders finance report
      * 
      * @return void
@@ -3186,15 +3453,15 @@ class UkvSystem {
                                     if (@$ukvNameTmp[0] == @$inetNameTmp[0]) {
                                         $rowclass = 'ukvassignnamerow';
                                     }
-                                    
-                                    if ((!empty($inetAddress)) AND (!empty($ukvAddress))) {
-                                       if (($inetAddress==$ukvAddress) AND (@$ukvNameTmp[0] == @$inetNameTmp[0])) {
-                                           $rowclass = 'ukvassignaddrrow';
-                                       }
+
+                                    if ((!empty($inetAddress)) AND ( !empty($ukvAddress))) {
+                                        if (($inetAddress == $ukvAddress) AND ( @$ukvNameTmp[0] == @$inetNameTmp[0])) {
+                                            $rowclass = 'ukvassignaddrrow';
+                                        }
                                     }
                                 }
-                                
-                                
+
+
                                 $rows.= wf_TableRow($cells, $rowclass);
                             }
                         }

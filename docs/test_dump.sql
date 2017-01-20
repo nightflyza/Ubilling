@@ -1730,3 +1730,11 @@ CREATE TABLE IF NOT EXISTS `policedogalerts` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`mac`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `ukv_tags` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tagtypeid` int(11) NOT NULL,
+  `userid` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
