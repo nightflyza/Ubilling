@@ -397,6 +397,7 @@ class Salary {
         $taskid = vf($taskid, 3);
         $result = '';
         $jobtypes = array();
+        $employeeTmp = array();
 
         if (cfr('SALARYTASKSVIEW')) {
             $result.=$this->renderTaskJobs($taskid);
@@ -415,10 +416,19 @@ class Salary {
                     }
                 }
 
+                if (!empty($this->allEmployee)) {
+                    foreach ($this->allEmployee as $empid => $empname) {
+                        if ($this->checkEmployeeWage($empid)) {
+                            $employeeTmp[$empid] = $empname;
+                        }
+                    }
+                }
+
+
 
                 $inputs = zb_JSHider();
                 $inputs.= wf_HiddenInput('newsalarytaskid', $taskid);
-                $inputs.= wf_Selector('newsalaryemployeeid', $this->allEmployee, __('Worker'), '', true);
+                $inputs.= wf_Selector('newsalaryemployeeid', $employeeTmp, __('Worker'), '', true);
                 $inputs.= wf_Selector('newsalaryjobtypeid', $jobtypes, __('Job type'), '', true);
                 $inputs.= wf_TextInput('newsalaryfactor', __('Factor'), '0', true, 4);
                 $inputs.=wf_tag('input', false, '', 'type="checkbox" id="overpricebox" name="overpricebox" onclick="showhide(\'overpricecontainer\');" ');
@@ -496,6 +506,22 @@ class Salary {
                     $result[$each['id']] = $each;
                 }
             }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks is employee active for timesheets and salary accounting or not
+     * 
+     * @param int $employeeId
+     * 
+     * @return bool
+     */
+    protected function checkEmployeeWage($employeeId) {
+        if (isset($this->allWages[$employeeId])) {
+            $result = true;
+        } else {
+            $result = false;
         }
         return ($result);
     }
@@ -853,7 +879,9 @@ class Salary {
         $empParams = array('' => __('Any'));
         if (!empty($this->allEmployee)) {
             foreach ($this->allEmployee as $io => $each) {
-                $empParams[$io] = $each;
+                if ($this->checkEmployeeWage($io)) {
+                    $empParams[$io] = $each;
+                }
             }
         }
 
@@ -1076,27 +1104,29 @@ class Salary {
 
         if (!empty($this->allEmployee)) {
             foreach ($this->allEmployee as $io => $each) {
-                $cells = wf_TableCell($each);
-                $wage = (isset($this->allWages[$io]['wage'])) ? $this->allWages[$io]['wage'] : __('No');
-                $bounty = (isset($this->allWages[$io]['bounty'])) ? $this->allWages[$io]['bounty'] : __('No');
-                $worktime = (isset($this->allWages[$io]['worktime'])) ? $this->allWages[$io]['worktime'] : __('No');
-                $workerJobsData = (isset($jobsTmp[$io])) ? $jobsTmp[$io] : array('count' => 0, 'sum' => 0, 'payed' => 0, 'time' => 0);
+                if ($this->checkEmployeeWage($io)) {
+                    $cells = wf_TableCell($each);
+                    $wage = (isset($this->allWages[$io]['wage'])) ? $this->allWages[$io]['wage'] : __('No');
+                    $bounty = (isset($this->allWages[$io]['bounty'])) ? $this->allWages[$io]['bounty'] : __('No');
+                    $worktime = (isset($this->allWages[$io]['worktime'])) ? $this->allWages[$io]['worktime'] : __('No');
+                    $workerJobsData = (isset($jobsTmp[$io])) ? $jobsTmp[$io] : array('count' => 0, 'sum' => 0, 'payed' => 0, 'time' => 0);
 
-                $cells.= wf_TableCell($wage);
-                $cells.= wf_TableCell($bounty);
-                $cells.= wf_TableCell(@$perEmployeeTimesheets[$io]);
-                $cells.= wf_TableCell($workerJobsData['count']);
-                $cells.= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
-                $cells.= wf_TableCell($workerJobsData['sum']);
-                $cells.= wf_TableCell($workerJobsData['payed']);
-                $rows.= wf_TableRow($cells, 'row3');
+                    $cells.= wf_TableCell($wage);
+                    $cells.= wf_TableCell($bounty);
+                    $cells.= wf_TableCell(@$perEmployeeTimesheets[$io]);
+                    $cells.= wf_TableCell($workerJobsData['count']);
+                    $cells.= wf_TableCell(round(($workerJobsData['time'] / 60), 2));
+                    $cells.= wf_TableCell($workerJobsData['sum']);
+                    $cells.= wf_TableCell($workerJobsData['payed']);
+                    $rows.= wf_TableRow($cells, 'row3');
 
-                $totalWage+=$wage;
-                $totalBounty+=$bounty;
-                $totalWorkTime+=$workerJobsData['time'];
-                $jobCount+=$workerJobsData['count'];
-                $employeeCharts[$each] = $workerJobsData['count'];
-                $employeeChartsMoney[$each] = $workerJobsData['sum'];
+                    $totalWage+=$wage;
+                    $totalBounty+=$bounty;
+                    $totalWorkTime+=$workerJobsData['time'];
+                    $jobCount+=$workerJobsData['count'];
+                    $employeeCharts[$each] = $workerJobsData['count'];
+                    $employeeChartsMoney[$each] = $workerJobsData['sum'];
+                }
             }
         }
 
@@ -1535,12 +1565,14 @@ class Salary {
             $rows = wf_TableRow($headers, 'row1');
 
             foreach ($this->allEmployee as $employeeid => $employeename) {
-                $defaultWorkTime = (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
-                $cells = wf_TableCell($employeename);
-                $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
-                $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
-                $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
-                $rows.= wf_TableRow($cells, 'row3');
+                if ($this->checkEmployeeWage($employeeid)) {
+                    $defaultWorkTime = (isset($this->allWages[$employeeid]['worktime'])) ? $this->allWages[$employeeid]['worktime'] : 0;
+                    $cells = wf_TableCell($employeename);
+                    $cells.= wf_TableCell(wf_TextInput('_employeehours[' . $employeeid . ']', '', $defaultWorkTime, false, '2'));
+                    $cells.= wf_TableCell(wf_CheckInput('_hospital[' . $employeeid . ']', '', false, false));
+                    $cells.= wf_TableCell(wf_CheckInput('_holidays[' . $employeeid . ']', '', false, false));
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
             }
 
             $result.= wf_TableBody($rows, '100%', '0', '');
