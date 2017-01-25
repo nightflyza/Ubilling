@@ -778,8 +778,17 @@ class Salary {
      */
     public function employeeWageCreateForm() {
         $result = '';
+        $employeeTmp = array();
         if (!empty($this->allEmployee)) {
-            $inputs = wf_Selector('newemployeewageemployeeid', $this->allEmployee, __('Worker'), '', true) . ' ';
+            foreach ($this->allEmployee as $io => $each) {
+                if (!$this->checkEmployeeWage($io)) {
+                    $employeeTmp[$io] = $each;
+                }
+            }
+        }
+
+        if (!empty($this->allEmployee)) {
+            $inputs = wf_Selector('newemployeewageemployeeid', $employeeTmp, __('Worker'), '', true) . ' ';
             $inputs.= wf_TextInput('newemployeewage', __('Wage'), '', true, 5) . ' ';
             $inputs.= wf_TextInput('newemployeewagebounty', __('Bounty'), '', true, 5) . ' ';
             $inputs.= wf_TextInput('newemployeewageworktime', __('Work hours'), '', true, 5);

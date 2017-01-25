@@ -967,6 +967,13 @@ function ub_JGetSwitchDeadLog() {
  * @return string
  */
 function web_DeadSwitchesTop() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if (isset($altCfg['SWITCH_PING_INTERVAL'])) {
+        $repingInterval = $altCfg['SWITCH_PING_INTERVAL'] * 60;
+    } else {
+        $repingInterval = 0;
+    }
     $topThreshold = 10;
     $result = '';
     $cyear = curyear();
@@ -998,6 +1005,9 @@ function web_DeadSwitchesTop() {
         $cells = wf_TableCell(__('IP'));
         $cells.= wf_TableCell(__('Location'));
         $cells.= wf_TableCell(__('Count'));
+        if ($repingInterval) {
+            $cells.= wf_TableCell(__('Time'));
+        }
         $cells.= wf_TableCell(__('Visual'));
         $rows = wf_TableRow($cells, 'row1');
 
@@ -1007,6 +1017,9 @@ function web_DeadSwitchesTop() {
                 $cells = wf_TableCell($io);
                 $cells.= wf_TableCell($each['name']);
                 $cells.= wf_TableCell($each['count']);
+                if ($repingInterval) {
+                    $cells.= wf_TableCell(zb_formatTime($each['count'] * $repingInterval));
+                }
                 $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
                 $rows.= wf_TableRow($cells, 'row3');
             }
