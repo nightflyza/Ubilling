@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta name="keywords" content="" />
+        <meta name="description" content="" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>Тинькофф</title>
+        <link href="style.css" rel="stylesheet" type="text/css" media="screen" />
+
+        <script src="https://securepay.tinkoff.ru/html/payForm/js/tinkoff.js"></script>
+        <script type="text/javascript">
+            function makePaymentWithWidget(amount, orderId, description, name, email, phone) {
+                var now = new Date();
+                var params = {
+                    TerminalKey: "<?=$merchant_id; ?>",
+                    Amount: amount*100,
+                    OrderId: orderId + '_' + now.getTime(),
+                    Description: description,
+                    DATA: "Email=" + email + "|Phone=" + phone + "|Name=" + name,
+                    Frame: true
+                };
+                doPay(params);
+            }
+        </script>
+        <style> .tinkoffPayRow { display: block; margin: 1%; width: 160px; } </style>
+</head>
+<body>
+        <div id="wrapper">
+                <div id="header" class="container">
+                        <div id="logo">
+                                <h1></h1>
+                                <p><?=$merchant_service; ?></p>
+                        </div>
+                        <div id="menu">
+                                <ul>
+                                        <li><a href="<?= $merchant_url; ?>"><?=$merchant_name; ?></a></li>
+                                        <li><a href="<?= $support_link; ?>">Помощь</a></li>
+                                </ul>
+                        </div>
+                </div>
+<!-- end #header -->
+                <div id="page" class="container">
+                        <div id="content">
+                                <div class="post">
+                                        <div class="entry">
+                                                <form name="TinkoffPayForm">
+                                                        <table><tbody>
+                                                                <tr><td><label>Платежный ID:* </label></td><td><input class="tinkoffPayRow" type="text" placeholder="Платежный ID" name="payOrder" value="<?= $customer_id; ?>"></td></tr>
+                                                                <tr><td><label>Сумма:* </label></td><td><input class="tinkoffPayRow" type="text" placeholder="Абонентская плата" name="paySum" value="750"></td><td>руб.</td></tr>
+                                                                <tr><td><label>Комментарий: </label></td><td><textarea class="tinkoffPayRow" type="text" placeholder="Комментарий" name="payDescr"></textarea></td></tr>
+                                                                <tr><td><label>ФИО плательщика: </label></td><td><input class="tinkoffPayRow" type="text" placeholder="ФИО плательщика" name="payName"></td></tr>
+                                                                <tr><td><label>E-mail: </label></td><td><input class="tinkoffPayRow" type="text" placeholder="E-mail" name="payEmail"></td></tr>
+                                                                <tr><td><label>Контактный телефон: </label></td><td><input class="tinkoffPayRow" type="text" placeholder="Контактный телефон" name="payPhone"></td></tr>
+                                                                <tr><td></td><td>
+                                                                        <input type="button"
+                                                                           onclick="makePaymentWithWidget(document.TinkoffPayForm.paySum.value,
+                                                                                                          document.TinkoffPayForm.payOrder.value,
+                                                                                                          document.TinkoffPayForm.payDescr.value,
+                                                                                                          document.TinkoffPayForm.payName.value,
+                                                                                                          document.TinkoffPayForm.payEmail.value,
+                                                                                                          document.TinkoffPayForm.payPhone.value)"
+                                                                           value="Оплатить">
+
+</td><tr>
+                                                        </tbody></table>
+                                                        <p>Внимание! Обязательными для заполнения являются только пункты, отмеченные звездочкой.</p>
+                                                </form>
+                                        </div>
+                                </div>
+                                <div style="clear: both;">&nbsp;</div>
+                        </div>
+<!-- end #content -->
+                        <div id="sidebar">
+                                <ul>
+                                        <li>
+                                            <img src="<?= $merchant_logo; ?>">
+                                        </li>
+                                </ul>
+                        </div>
+<!-- end #sidebar -->
+                        <div style="clear: both;">&nbsp;</div>
+                </div>
+<!-- end #page -->
+        </div>
+        <div id="footer-content" class="container">
+                <div id="footer-bg">
+                        <div id="column1"> Powered by <a href="<?= $merchant_url; ?>"><?=$merchant_name; ?></a></div>
+                        <div id="column2"></div>
+                        <div id="column3"></div>
+                </div>
+        </div>
+        <div id="footer"></div>
+<!-- end #footer -->
+</body>
+</html>
