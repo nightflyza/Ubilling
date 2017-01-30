@@ -636,7 +636,7 @@ class WatchDogInterface {
      * @return void
      */
     public function loadAllTasks() {
-        $taskQuery = "SELECT * from `watchdog`;";
+        $taskQuery = "SELECT * from `watchdog` ORDER BY `id` DESC;";
         $alltasks = simple_queryall($taskQuery);
         if (!empty($alltasks)) {
             foreach ($alltasks as $iz => $eachTask) {
