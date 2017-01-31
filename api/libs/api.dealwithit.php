@@ -419,6 +419,9 @@ class DealWithIt {
         $result = '';
         $messages = new UbillingMessageHelper();
         $tmpArr = array();
+        $allRealNames = zb_UserGetAllRealnames();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
                 if (empty($login)) {
@@ -434,7 +437,9 @@ class DealWithIt {
         if (!empty($tmpArr)) {
             $cells = wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('User'));
+            $cells.= wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Real Name'));
             $cells.= wf_TableCell(__('Task'));
             $cells.= wf_TableCell(__('Parameter'));
             $cells.= wf_TableCell(__('Notes'));
@@ -445,6 +450,8 @@ class DealWithIt {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
+                $cells.= wf_TableCell(@$allAddress[$each['login']]);
+                $cells.= wf_TableCell(@$allRealNames[$each['login']]);
                 $cells.= wf_TableCell($this->actionNames[$each['action']]);
                 $cells.= wf_TableCell($each['param']);
                 $cells.= wf_TableCell($each['note']);
