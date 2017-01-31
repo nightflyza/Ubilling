@@ -755,7 +755,8 @@ function web_StreetCreateForm() {
         $inputs.=wf_Submit(__('Create'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
     } else {
-        $form = __('No added cities - they will need to create a street');
+        $messages = new UbillingMessageHelper();
+        $form = $messages->getStyledMessage(__('No added cities - they will need to create a street'), 'error');
     }
     return($form);
 }

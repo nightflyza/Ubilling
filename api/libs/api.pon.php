@@ -949,7 +949,8 @@ class PONizer {
      */
     public function renderOnuList() {
         $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
-        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', true, 'ONU');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -988,6 +989,7 @@ class PONizer {
         }
 
         $this->loadSignalsCache();
+
 
         $result = '{ 
                   "aaData": [ ';
