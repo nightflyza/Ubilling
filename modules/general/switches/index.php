@@ -80,7 +80,7 @@ if (cfr('SWITCHES')) {
         if (!wf_CheckGet(array('timemachine'))) {
             $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
         } else {
-            $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+            $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), false, 'ubButton');
         }
 
 
