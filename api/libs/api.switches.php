@@ -614,6 +614,112 @@ function zb_SwitchesRepingAll() {
 }
 
 /**
+ * Performs switches alive state check
+ * 
+ * @return void
+ */
+function zb_SwitchesForcePing() {
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+    $allswitches = zb_SwitchesGetAll();
+    $modelnames = zb_SwitchModelsGetAllTag();
+    $currenttime = time();
+    $reping_timeout = $alterconf['SW_PINGTIMEOUT'];
+    $deathTime = zb_SwitchesGetAllDeathTime();
+
+    //counters
+    $countTotal = 0;
+    $countAlive = 0;
+    $countDead = 0;
+    $countNp = 0;
+    $countOnMap = 0;
+    $countSwpoll = 0;
+    $countMtsigmon = 0;
+    $countOlt = 0;
+    $countLinked = 0;
+
+
+    //non realtime switches pinging
+    $last_pingtime = zb_StorageGet('SWPINGTIME');
+
+    if (!$last_pingtime) {
+        zb_SwitchesRepingAll();
+        zb_StorageSet('SWPINGTIME', $currenttime);
+        $last_pingtime = $currenttime;
+    } else {
+        if ($currenttime > ($last_pingtime + ($reping_timeout * 60))) {
+            // normal timeout reping sub here
+            zb_SwitchesRepingAll();
+            zb_StorageSet('SWPINGTIME', $currenttime);
+        }
+    }
+
+    //force total reping and update cache
+    if (wf_CheckGet(array('forcereping'))) {
+        zb_SwitchesRepingAll();
+        zb_StorageSet('SWPINGTIME', $currenttime);
+        if (wf_CheckGet(array('ajaxping'))) {
+            $dead_raw = zb_StorageGet('SWDEAD');
+            $deathTime = zb_SwitchesGetAllDeathTime();
+            $deadarr = array();
+            $ajaxResult = '';
+            if ($dead_raw) {
+                $deadarr = unserialize($dead_raw);
+                if (!empty($deadarr)) {
+                    //there is some dead switches
+                    $deadcount = sizeof($deadarr);
+                    if ($alterconf['SWYMAP_ENABLED']) {
+                        //getting geodata
+                        $switchesGeo = zb_SwitchesGetAllGeo();
+                    }
+                    //ajax container
+                    $ajaxResult.=wf_tag('div', false, '', 'id="switchping"');
+
+                    foreach ($deadarr as $ip => $switch) {
+                        if ($alterconf['SWYMAP_ENABLED']) {
+                            if (isset($switchesGeo[$ip])) {
+                                if (!empty($switchesGeo[$ip])) {
+                                    $devicefind = wf_Link('?module=switchmap&finddevice=' . $switchesGeo[$ip], wf_img('skins/icon_search_small.gif', __('Find on map'))) . ' ';
+                                } else {
+                                    $devicefind = '';
+                                }
+                            } else {
+                                $devicefind = '';
+                            }
+                        } else {
+                            $devicefind = '';
+                        }
+                        //check morgue records for death time
+                        if (isset($deathTime[$ip])) {
+                            $deathClock = wf_img('skins/clock.png', __('Switch dead since') . ' ' . $deathTime[$ip]) . ' ';
+                        } else {
+                            $deathClock = '';
+                        }
+
+                        //switch location link
+                        $switchLocator = wf_Link('?module=switches&gotoswitchbyip=' . $ip, web_edit_icon(__('Go to switch')));
+
+                        //add switch as dead
+                        $ajaxResult.=$devicefind . ' ' . $switchLocator . ' ' . $deathClock . $ip . ' - ' . $switch . '<br>';
+                    }
+                } else {
+                    $ajaxResult = __('Switches are okay, everything is fine - I guarantee');
+                }
+            }
+            $ajaxResult.=wf_delimiter() . __('Cache state at time') . ': ' . date("H:i:s");
+            print($ajaxResult);
+            //darkvoid update
+            $notifyArea = new DarkVoid();
+            $notifyArea->flushCache();
+
+            die();
+        } else {
+            rcms_redirect('?module=switches');
+        }
+    }
+}
+
+/**
  * Returns list of all available switches devices with its controls. Also catches ajaxping and forcereping events.
  * 
  * @return string
@@ -842,6 +948,163 @@ function web_SwitchesShow() {
 }
 
 /**
+ * Returns JQDT switches list container
+ * 
+ * @return string
+ */
+function web_SwitchesRenderList() {
+    $result = '';
+    $summaryCache = 'exports/switchcounterssummary.dat';
+    $columns = array('ID', 'IP', 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+    $opts = '"order": [[ 0, "desc" ]]';
+    $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
+    if (file_exists($summaryCache)) {
+        $result.=file_get_contents($summaryCache);
+    }
+    return ($result);
+}
+
+/**
+ * Renders ajax switches list data
+ * 
+ * @return string
+ */
+function zb_SwitchesRenderAjaxList() {
+    $result = '';
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+    $allswitches = zb_SwitchesGetAll();
+    $modelnames = zb_SwitchModelsGetAllTag();
+    $deathTime = zb_SwitchesGetAllDeathTime();
+    $summaryCache = 'exports/switchcounterssummary.dat';
+
+    //counters
+    $countTotal = 0;
+    $countAlive = 0;
+    $countDead = 0;
+    $countNp = 0;
+    $countOnMap = 0;
+    $countSwpoll = 0;
+    $countMtsigmon = 0;
+    $countOlt = 0;
+    $countLinked = 0;
+
+
+    //load dead switches cache
+    $dead_switches_raw = zb_StorageGet('SWDEAD');
+    if (!$dead_switches_raw) {
+        $dead_switches = array();
+    } else {
+        $dead_switches = unserialize($dead_switches_raw);
+    }
+
+    //create new ADcomments object if enabled 
+    if ($alterconf['ADCOMMENTS_ENABLED']) {
+        $adcomments = new ADcomments('SWITCHES');
+    }
+
+    if (!empty($allswitches)) {
+        foreach ($allswitches as $io => $eachswitch) {
+            $jsonItem = array();
+
+
+            if (isset($dead_switches[$eachswitch['ip']])) {
+                if (isset($deathTime[$eachswitch['ip']])) {
+                    $obituary = __('Switch dead since') . ' ' . $deathTime[$eachswitch['ip']];
+                } else {
+                    $obituary = '';
+                }
+                $aliveled = web_red_led($obituary) . ' ' . __('No');
+                $aliveflag = '0';
+                $countDead++;
+            } else {
+                if (strpos($eachswitch['desc'], 'NP') === false) {
+                    $aliveled = web_green_led() . ' ' . __('Yes');
+                    $aliveflag = '1';
+                    $countAlive++;
+                } else {
+                    $aliveled = web_yellow_led() . ' ' . __('NP');
+                    $aliveflag = '2';
+                    $countNp++;
+                }
+            }
+
+
+            $jsonItem[] = $eachswitch['id'];
+            $jsonItem[] = $eachswitch['ip'];
+            $jsonItem[] = $eachswitch['location'];
+            $jsonItem[] = $aliveled;
+            $jsonItem[] = @$modelnames[$eachswitch['modelid']];
+            $jsonItem[] = $eachswitch['snmp'];
+            $jsonItem[] = $eachswitch['geo'];
+            $jsonItem[] = $eachswitch['desc'];
+            $switchcontrols = '';
+            if (cfr('SWITCHESEDIT')) {
+                $switchcontrols.=wf_Link('?module=switches&edit=' . $eachswitch['id'], web_edit_icon());
+            }
+
+
+            if (cfr('SWITCHPOLL')) {
+                if ((!empty($eachswitch['snmp'])) AND ( ispos($eachswitch['desc'], 'SWPOLL'))) {
+                    $switchcontrols.='&nbsp;' . wf_Link('?module=switchpoller&switchid=' . $eachswitch['id'], wf_img('skins/snmp.png', __('SNMP query')));
+                    $countSwpoll++;
+                }
+            }
+
+            if ($alterconf['SWYMAP_ENABLED']) {
+                if (!empty($eachswitch['geo'])) {
+                    $switchcontrols.=wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')));
+                    $countOnMap++;
+                }
+
+                if (!empty($eachswitch['parentid'])) {
+                    $switchcontrols.= wf_Link('?module=switchmap&finddevice=' . $eachswitch['geo'] . '&showuplinks=true&traceid=' . $eachswitch['id'], wf_img('skins/ymaps/uplinks.png', __('Uplink switch')));
+                    $countLinked++;
+                }
+            }
+
+            if (ispos($eachswitch['desc'], 'MTSIGMON')) {
+                $countMtsigmon++;
+            }
+
+            if (ispos($eachswitch['desc'], 'OLT')) {
+                $countOlt++;
+            }
+
+            if ($alterconf['ADCOMMENTS_ENABLED']) {
+                $switchcontrols.=$adcomments->getCommentsIndicator($eachswitch['id']);
+            }
+
+            if (isset($alterconf['SW_WEBNAV'])) {
+                if ($alterconf['SW_WEBNAV']) {
+                    $switchcontrols.=' ' . wf_tag('a', false, '', 'href="http://' . $eachswitch['ip'] . '" target="_BLANK"') . wf_img('skins/ymaps/globe.png', __('Go to the web interface')) . wf_tag('a', true);
+                }
+            }
+
+            $jsonItem[] = $switchcontrols;
+            $countTotal++;
+            $jsonAAData[] = $jsonItem;
+        }
+    }
+    $countersSummary = wf_tag('br');
+    $countersSummary.= wf_img('skins/icon_active.gif') . ' ' . __('Alive switches') . ' - ' . ($countAlive + $countNp) . ' (' . $countAlive . '+' . $countNp . ')' . wf_tag('br');
+    $countersSummary.=wf_img('skins/icon_inactive.gif') . ' ' . __('Dead switches') . ' - ' . $countDead . wf_tag('br');
+    $countersSummary.=wf_img('skins/yellow_led.png') . ' ' . __('NP switches') . ' - ' . $countNp . wf_tag('br');
+    $countersSummary.=wf_img('skins/snmp.png') . ' ' . __('SWPOLL query') . ' - ' . $countSwpoll . wf_tag('br');
+    $countersSummary.=wf_img('skins/wifi.png') . ' ' . __('MTSIGMON devices') . ' - ' . $countMtsigmon . wf_tag('br');
+    $countersSummary.=wf_img('skins/pon_icon.gif') . ' ' . __('OLT devices') . ' - ' . $countOlt . wf_tag('br');
+    $countersSummary.=wf_img('skins/icon_search_small.gif') . ' ' . __('Placed on map') . ' - ' . $countOnMap . wf_tag('br');
+    $countersSummary.=wf_img('skins/ymaps/uplinks.png') . ' ' . __('Have uplinks') . ' - ' . $countLinked . wf_tag('br');
+    $countersSummary.=wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');
+    file_put_contents($summaryCache, $countersSummary);
+
+
+    $jsonList = array("aaData" => $jsonAAData);
+
+    return(json_encode($jsonList));
+}
+
+/**
  * Creates new switch device in database
  * 
  * @param int    $modelid
@@ -981,6 +1244,7 @@ function web_DeadSwitchesTop() {
     $rawData = simple_queryall($query);
     $topTmp = array();
     $totalCount = 0;
+    $totaldeadTime = 0;
 
     if (!empty($rawData)) {
         foreach ($rawData as $io => $each) {
@@ -1013,19 +1277,34 @@ function web_DeadSwitchesTop() {
 
 
         foreach ($topTmp as $io => $each) {
-            if ($each['count'] > $topThreshold) {
+            if ($each['count'] >= $topThreshold) {
                 $cells = wf_TableCell($io);
                 $cells.= wf_TableCell($each['name']);
                 $cells.= wf_TableCell($each['count']);
                 if ($repingInterval) {
-                    $cells.= wf_TableCell(zb_formatTime($each['count'] * $repingInterval));
+                    $deadTime = $each['count'] * $repingInterval;
+                    $cells.= wf_TableCell(zb_formatTime($deadTime));
+                    $totaldeadTime+=$deadTime;
                 }
                 $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
                 $rows.= wf_TableRow($cells, 'row3');
             }
         }
-
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        
+        
+        
+        if ($repingInterval) {
+            $cells = wf_TableCell(__('Total'));
+            $cells.= wf_TableCell('');
+            $cells.= wf_TableCell('');
+            $cells.= wf_TableCell(zb_formatTime($totaldeadTime));
+            $cells.= wf_TableCell('');
+            $rows.= wf_TableRow($cells, 'row2');
+            
+        }
+        
+        $result = wf_TableBody($rows, '100%', 0, '');
+        
     }
 
     return ($result);

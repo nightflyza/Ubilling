@@ -1,28 +1,5 @@
 <?php
 
-//frontend for cron task
-if (isset($_GET['cronping'])) {
-    $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
-    $hostid = simple_query($hostid_q);
-    if (!empty($hostid)) {
-        $ubserial = $hostid['value'];
-        //check for ubserial validity
-        if ($_GET['cronping'] == $ubserial) {
-            $currenttime = time();
-            $deadSwitches = zb_SwitchesRepingAll();
-            zb_StorageSet('SWPINGTIME', $currenttime);
-            //store dead switches log data
-            if (!empty($deadSwitches)) {
-                zb_SwitchesDeadLog($currenttime, $deadSwitches);
-            }
-            die('SWITCH REPING DONE ' . date("Y-m-d H:i:s"));
-        } else {
-            die('WRONG SERIAL');
-        }
-    }
-}
-
-
 if (cfr('SWITCHES')) {
     $altCfg = $ubillingConfig->getAlter();
 
@@ -92,14 +69,19 @@ if (cfr('SWITCHES')) {
         }
 
         if (cfr('SWITCHM')) {
-            $swlinks.=wf_Link('?module=switchmodels', wf_img('skins/switch_models.png') . ' ' . __('Available switch models'), false, 'ubButton');
+            $swlinks.=wf_Link('?module=switchmodels', wf_img('skins/switch_models.png') . ' ' . __('Equipment models'), false, 'ubButton');
         }
 
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
         if ($altCfg['SWITCHES_EXTENDED']) {
             $swlinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
         }
-        $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+
+        if (!wf_CheckGet(array('timemachine'))) {
+            $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+        } else {
+            $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), true, 'ubButton');
+        }
 
 
         if ($altCfg['SWYMAP_ENABLED']) {
@@ -121,8 +103,14 @@ if (cfr('SWITCHES')) {
 
         if (!isset($_GET['timemachine'])) {
             if ((!isset($_GET['switchdelete']))) {
+                if (wf_CheckGet(array('forcereping'))) {
+                    zb_SwitchesForcePing();
+                }
                 //display switches list
-                show_window(__('Available switches'), web_SwitchesShow());
+                if (wf_CheckGet(array('ajaxlist'))) {
+                    die(zb_SwitchesRenderAjaxList());
+                }
+                show_window(__('Available switches'), web_SwitchesRenderList());
             }
         } else {
             //show dead switch time machine

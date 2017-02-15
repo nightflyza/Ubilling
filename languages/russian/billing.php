@@ -2401,7 +2401,7 @@ $lang['def']['No wanted MAC in PON ONU  devices detected'] = 'Разыскива
 $lang['def']['No wanted MAC assigned to existing users'] = 'Нету разыскиваемых назначенных существующим пользователям';
 $lang['def']['Wanted MAC assigned to user'] = 'Разыскиваемый MAC назначен пользователю';
 $lang['def']['right to control policedog'] = 'Право управлять собакой-полициякой';
-$lang['def'][''] = '';
+$lang['def']['Equipment models'] = 'Модели оборудования';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
