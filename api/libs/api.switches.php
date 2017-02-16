@@ -956,7 +956,7 @@ function web_SwitchesRenderList() {
     $result = '';
     $summaryCache = 'exports/switchcounterssummary.dat';
     $columns = array('ID', 'IP', 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
-    $opts = '"order": [[ 0, "desc" ]], dom: \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']';
+    $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
     if (file_exists($summaryCache)) {
         $result.=file_get_contents($summaryCache);

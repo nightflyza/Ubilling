@@ -1939,10 +1939,15 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $result = '';
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
+    
+    $buttonsTest='
+        dom: \'frtipslB\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\'],
+        ';
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
  		$(document).ready(function() {
+                 
 		$(\'#' . $tableId . '\').dataTable( {
  	       "oLanguage": {
 			"sLengthMenu": "' . __('Show') . ' _MENU_",
@@ -1959,8 +1964,6 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                         "sLast": "' . __('Last') . '"
                     },
 		},
-   
-      
         
         "bPaginate": true,
         "bLengthChange": true,
@@ -1973,11 +1976,13 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
         "iDisplayLength": ' . $rowsCount . ',
         "sAjaxSource": \'' . $ajaxUrl . '\',
 	"bDeferRender": true,
+        
         ' . $opts . '
         "bJQueryUI": true
                 } );
-               
+              
 		}  );
+                
           ';
     $jq_dt.=wf_tag('script', true);
 
@@ -1995,6 +2000,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
 
     $result.= wf_tag('thead', true);
     $result.= wf_tag('table', true);
+
 
     return ($result);
 }
