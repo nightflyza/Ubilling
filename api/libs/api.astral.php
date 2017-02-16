@@ -1183,6 +1183,12 @@ function wf_FullCalendar($data) {
 		var y = date.getFullYear();
          
 		$('#" . $elementid . "').fullCalendar({
+                     header: {
+				left: 'prev,next today',
+				center: 'title',
+				right: 'month,basicWeek,basicDay,listMonth'
+			},
+                        
 			editable: false,
                         theme: true,
                         weekends: true,
@@ -1240,14 +1246,10 @@ function wf_FullCalendar($data) {
                             today:    '" . __('Today') . "',
                             month:    '" . __('Month') . "',
                             week:     '" . __('Week') . "',
-                            day:      '" . __('Day') . "'
+                            day:      '" . __('Day') . "',
+                            list:      '" . __('List') . "'
                         },
 
-                        header: {
-				left: 'prev,next today',
-				center: 'title',
-				right: 'month,basicWeek,basicDay'
-			},
                    
 			events: [
 				" . $data . "
@@ -1925,8 +1927,11 @@ function wf_CleanDiv() {
  * @param bool $saveState grid state saving - conflicts with default sort order
  * @param string $objects object names
  * @param int $rowsCount rows count to default display
- * @param string $opts additional options like "order": [[ 0, "desc" ]]
- * 
+ * @param string $opts additional options like:
+ *                                       "order": [[ 0, "desc" ]]
+ *                                       or 
+ *                                       dom: \'Bfrtipsl\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\']
+ *
  * @return string
  */
 function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users', $rowsCount = 100, $opts = '') {
@@ -1955,7 +1960,8 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                     },
 		},
    
-         
+      
+        
         "bPaginate": true,
         "bLengthChange": true,
         "bFilter": true,
@@ -1970,7 +1976,8 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
         ' . $opts . '
         "bJQueryUI": true
                 } );
-		} );
+               
+		}  );
           ';
     $jq_dt.=wf_tag('script', true);
 

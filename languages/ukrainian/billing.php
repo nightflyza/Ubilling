@@ -2416,4 +2416,6 @@ $lang['def']['No wanted MAC assigned to existing users'] = 'Немає розш�
 $lang['def']['Wanted MAC assigned to user'] = 'Розшукуваний MAC призначено користувачу';
 $lang['def']['right to control policedog'] = 'Право керувати собакою-поліціякою';
 $lang['def']['Equipment models'] = 'Моделі обладнання';
+$lang['def']['List'] = 'Список';
+
 ?>
