@@ -723,7 +723,8 @@ tr:first-child > td > .fc-day-grid-event {
 }
 
 .fc-day-grid-event .fc-content { /* force events to be one-line tall */
-	white-space: nowrap;
+	/** white-space: nowrap; commented for ubilling **/
+        white-space: normal;
 	overflow: hidden;
 }
 

@@ -1195,7 +1195,8 @@ function wf_FullCalendar($data) {
                         timeFormat: 'H(:mm)',
                         displayEventTime: false,
                         height: 'auto',
-
+                        contentHeight: 'auto',
+                        
                         monthNamesShort: [
                         '" . rcms_date_localise('Jan') . "',
                         '" . rcms_date_localise('Feb') . "',
