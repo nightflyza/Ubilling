@@ -2055,6 +2055,7 @@ class Salary {
                 //some other job types
                 $employeeJobsTmp = array();
                 $totalTimeSpent = 0;
+                $chartData = array();
                 if (!empty($this->allEmployee)) {
                     foreach ($this->allEmployee as $employeeId => $employeeName) {
                         if ($this->checkEmployeeWage($employeeId)) {
@@ -2098,9 +2099,16 @@ class Salary {
                         $cells.= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60));
                         $cells.= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
                         $rows.= wf_TableRow($cells, 'row3');
+
+                        //chart data
+                        $chartData[$this->allEmployee[$io]] = $each['timespent'];
                     }
 
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                    if (!empty($chartData)) {
+                        $chartOptions='';
+                        $result.=wf_gcharts3DPie($chartData, __('Stats').' '.@$this->allJobtypes[$jobtypeId], '800px', '500px', $chartOptions);
+                    }
                 } else {
                     $result = $messages->getStyledMessage(__('Nothing found'), 'info');
                 }

@@ -203,7 +203,7 @@ if (cfr('SALARY')) {
             //jobs/time report
             if (wf_CheckGet(array('ltreport'))) {
                 show_window(__('Search'),$salary->ltReportRenderForm());
-                show_window('', $salary->ltReportRenderResults());
+                show_window(__('Labor time'), $salary->ltReportRenderResults());
                 show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
             }
 

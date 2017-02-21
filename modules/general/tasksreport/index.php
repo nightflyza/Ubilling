@@ -493,7 +493,7 @@ if (cfr('TASKREPORT')) {
                         }
 
                         if (!empty($userLogin)) {
-                            $userTariff = $this->userTariffs[$userLogin];
+                            @$userTariff = $this->userTariffs[$userLogin];
                             if ((!empty($userTariff)) AND ( $userTariff != '*_NO_TARIFF_*')) {
                                 $tariffPrice = $this->tariffPrices[$userTariff];
                             }
