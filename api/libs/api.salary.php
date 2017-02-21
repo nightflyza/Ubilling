@@ -1997,13 +1997,13 @@ class Salary {
                                         if (($jobTimestamp >= $fromTimestamp) AND ( $jobTimestamp <= $toTimestamp)) {
                                             if (isset($employeeJobsTmp[$employeeId])) {
                                                 $jobFactor = $jobData['factor'];
-                                                $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                 $jobTimeSpent = $jobFactor * $jobMinutes;
                                                 $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
                                                 $employeeJobsTmp[$employeeId]['timesheet'] = 0;
                                             } else {
                                                 $jobFactor = $jobData['factor'];
-                                                $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                 $jobTimeSpent = $jobFactor * $jobMinutes;
                                                 $employeeJobsTmp[$employeeId]['timespent'] = $jobTimeSpent;
                                                 $employeeJobsTmp[$employeeId]['timesheet'] = 0;
@@ -2043,7 +2043,7 @@ class Salary {
                         $cells = wf_TableCell(@$this->allEmployee[$io]);
                         $cells.= wf_TableCell(__('Any'));
                         $cells.= wf_TableCell(@$each['timesheet'] / 60);
-                        $cells.= wf_TableCell($this->formatTime(@$each['timespent'] * 60) . ' (' . @$this->percentValue($each['timesheet'], $each['timespent']) . '%)');
+                        $cells.= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60) . ' (' . @$this->percentValue($each['timesheet'], $each['timespent']) . '%)');
                         $rows.= wf_TableRow($cells, 'row3');
                     }
 
@@ -2066,12 +2066,12 @@ class Salary {
                                             if (($jobTimestamp >= $fromTimestamp) AND ( $jobTimestamp <= $toTimestamp)) {
                                                 if (isset($employeeJobsTmp[$employeeId])) {
                                                     $jobFactor = $jobData['factor'];
-                                                    $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                    $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                     $jobTimeSpent = $jobFactor * $jobMinutes;
                                                     $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
                                                 } else {
                                                     $jobFactor = $jobData['factor'];
-                                                    $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                    $jobMinutes = @$this->allJobTimes[$jobData['jobtypeid']];
                                                     $jobTimeSpent = $jobFactor * $jobMinutes;
                                                     $employeeJobsTmp[$employeeId]['timespent'] = $jobTimeSpent;
                                                 }
@@ -2095,7 +2095,7 @@ class Salary {
                     foreach ($employeeJobsTmp as $io => $each) {
                         $cells = wf_TableCell(@$this->allEmployee[$io]);
                         $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeId]);
-                        $cells.= wf_TableCell($this->formatTime(@$each['timespent'] * 60));
+                        $cells.= wf_TableCell(@$this->formatTime(@$each['timespent'] * 60));
                         $cells.= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
                         $rows.= wf_TableRow($cells, 'row3');
                     }
