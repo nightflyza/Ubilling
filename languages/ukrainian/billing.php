@@ -2417,5 +2417,7 @@ $lang['def']['Wanted MAC assigned to user'] = 'Розшукуваний MAC пр
 $lang['def']['right to control policedog'] = 'Право керувати собакою-поліціякою';
 $lang['def']['Equipment models'] = 'Моделі обладнання';
 $lang['def']['List'] = 'Список';
+$lang['def']['Labor time'] = 'Нормо-години';
+$lang['def']['Percent of spent time'] = 'Вітсоток витраченого часу';
 
 ?>

@@ -59,7 +59,7 @@ class Salary {
     protected $unitTypes = array();
 
     /**
-     * All available salary jobs
+     * All available salary jobs as id=>jobdata
      *
      * @var array
      */
@@ -73,14 +73,14 @@ class Salary {
     protected $allPaid = array();
 
     /**
-     * All available timesheets as array date=>timesheets
+     * All available timesheets as array id=>timesheetdata
      *
      * @var array
      */
     protected $allTimesheets = array();
 
     /**
-     * Timesheets dates
+     * Timesheets dates as date=>timesheet count
      *
      * @var array
      */
@@ -100,6 +100,7 @@ class Salary {
     const URL_PAYROLL = 'payroll=true';
     const URL_FACONTROL = 'factorcontrol=true';
     const URL_TWJ = 'twjreport=true';
+    const URL_LTR = 'ltreport=true';
     const URL_TSHEETS = 'timesheets=true';
 
     public function __construct() {
@@ -378,6 +379,7 @@ class Salary {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/icon_eye.gif') . ' ' . __('Labor time'), false, 'ubButton');
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
@@ -1891,6 +1893,220 @@ class Salary {
         $result.= 'v - ' . __('Holidays') . wf_tag('br');
         $result.= 'h - ' . __('Hospitalized');
         $result = $this->reportPrintable(__('Timesheets') . ' ' . $dateOffset, $result);
+        return ($result);
+    }
+
+    /**
+     * Counts percentage between two values
+     * 
+     * @param float $valueTotal
+     * @param float $value
+     * 
+     * @return float
+     */
+    protected function percentValue($valueTotal, $value) {
+        $result = 0;
+        if ($valueTotal != 0) {
+            $result = round((($value * 100) / $valueTotal), 2);
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders time duration in seconds into formatted human-readable view
+     *      
+     * @param int $seconds
+     * 
+     * @return string
+     */
+    protected function formatTime($seconds) {
+        $init = $seconds;
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds / 60) % 60);
+        $seconds = $seconds % 60;
+
+        if ($init < 3600) {
+            //less than 1 hour
+            if ($init < 60) {
+                //less than minute
+                $result = $seconds . ' ' . __('sec.');
+            } else {
+                //more than one minute
+                $result = $minutes . ' ' . __('minutes');
+            }
+        } else {
+            //more than hour
+            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns labor time search form
+     * 
+     * @return string
+     */
+    public function ltReportRenderForm() {
+        $result = '';
+        //getting previous state
+        $curdateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : curdate();
+        $curdateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
+        $curJobTypeId = (wf_CheckPost(array('jobtypeid'))) ? $_POST['jobtypeid'] : '-';
+
+        $inputs = wf_DatePickerPreset('datefrom', $curdateFrom) . ' ';
+        $inputs.=wf_DatePickerPreset('dateto', $curdateTo) . ' ';
+        $jobtypeSelectorParams = array('-' => __('Any'));
+        if (!empty($this->allJobtypes)) {
+            foreach ($this->allJobtypes as $io => $each) {
+                $jobtypeSelectorParams[$io] = $each;
+            }
+        }
+        $inputs.= wf_Selector('jobtypeid', $jobtypeSelectorParams, __('Job type'), $curJobTypeId, false);
+        $inputs.= wf_Submit(__('Show'));
+
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders labor time report results
+     * 
+     * @return string
+     */
+    function ltReportRenderResults() {
+        $result = '';
+        if (wf_CheckPost(array('datefrom', 'dateto', 'jobtypeid'))) {
+            $messages = new UbillingMessageHelper();
+            $dateFrom = mysql_real_escape_string($_POST['datefrom']) . ' 00:00:00';
+            $dateTo = mysql_real_escape_string($_POST['dateto']) . ' 23:59:59';
+            $fromTimestamp = strtotime($dateFrom);
+            $toTimestamp = strtotime($dateTo);
+            $jobtypeId = mysql_real_escape_string($_POST['jobtypeid']);
+
+
+            //any job type
+            if ($jobtypeId == '-') {
+                $employeeJobsTmp = array();
+                if (!empty($this->allEmployee)) {
+                    foreach ($this->allEmployee as $employeeId => $employeeName) {
+                        if ($this->checkEmployeeWage($employeeId)) {
+                            if (!empty($this->allJobs)) {
+                                foreach ($this->allJobs as $jobId => $jobData) {
+                                    if ($jobData['employeeid'] == $employeeId) {
+                                        $jobTimestamp = strtotime($jobData['date']);
+                                        if (($jobTimestamp >= $fromTimestamp) AND ( $jobTimestamp <= $toTimestamp)) {
+                                            if (isset($employeeJobsTmp[$employeeId])) {
+                                                $jobFactor = $jobData['factor'];
+                                                $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                $jobTimeSpent = $jobFactor * $jobMinutes;
+                                                $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
+                                                $employeeJobsTmp[$employeeId]['timesheet'] = 0;
+                                            } else {
+                                                $jobFactor = $jobData['factor'];
+                                                $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                $jobTimeSpent = $jobFactor * $jobMinutes;
+                                                $employeeJobsTmp[$employeeId]['timespent'] = $jobTimeSpent;
+                                                $employeeJobsTmp[$employeeId]['timesheet'] = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!empty($this->allTimesheets)) {
+                                foreach ($this->allTimesheets as $timesheetId => $eachTimesheetData) {
+
+                                    if ($employeeId == $eachTimesheetData['employeeid']) {
+                                        $timeSheetTimestamp = strtotime($eachTimesheetData['date']);
+                                        if (($timeSheetTimestamp >= $fromTimestamp) AND ( $timeSheetTimestamp <= $toTimestamp)) {
+                                            if (isset($employeeJobsTmp[$employeeId])) {
+                                                $employeeJobsTmp[$employeeId]['timesheet']+=($eachTimesheetData['hours'] * 60);
+                                            } else {
+                                                $employeeJobsTmp[$employeeId]['timesheet'] = ($eachTimesheetData['hours'] * 60);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($employeeJobsTmp)) {
+                    $cells = wf_TableCell(__('Employee'));
+                    $cells.= wf_TableCell(__('Job type'));
+                    $cells.= wf_TableCell(__('Timesheet') . ' (' . __('hours') . ')');
+                    $cells.= wf_TableCell(__('Spent time'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($employeeJobsTmp as $io => $each) {
+                        $cells = wf_TableCell(@$this->allEmployee[$io]);
+                        $cells.= wf_TableCell(__('Any'));
+                        $cells.= wf_TableCell(@$each['timesheet'] / 60);
+                        $cells.= wf_TableCell($this->formatTime(@$each['timespent'] * 60) . ' (' . @$this->percentValue($each['timesheet'], $each['timespent']) . '%)');
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+
+                    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result = $messages->getStyledMessage(__('Nothing found'), 'info');
+                }
+            } else {
+                //some other job types
+                $employeeJobsTmp = array();
+                $totalTimeSpent = 0;
+                if (!empty($this->allEmployee)) {
+                    foreach ($this->allEmployee as $employeeId => $employeeName) {
+                        if ($this->checkEmployeeWage($employeeId)) {
+                            if (!empty($this->allJobs)) {
+                                foreach ($this->allJobs as $jobId => $jobData) {
+                                    if ($jobData['jobtypeid'] == $jobtypeId) {
+                                        if ($jobData['employeeid'] == $employeeId) {
+                                            $jobTimestamp = strtotime($jobData['date']);
+                                            if (($jobTimestamp >= $fromTimestamp) AND ( $jobTimestamp <= $toTimestamp)) {
+                                                if (isset($employeeJobsTmp[$employeeId])) {
+                                                    $jobFactor = $jobData['factor'];
+                                                    $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                    $jobTimeSpent = $jobFactor * $jobMinutes;
+                                                    $employeeJobsTmp[$employeeId]['timespent']+=$jobTimeSpent;
+                                                } else {
+                                                    $jobFactor = $jobData['factor'];
+                                                    $jobMinutes = $this->allJobTimes[$jobData['jobtypeid']];
+                                                    $jobTimeSpent = $jobFactor * $jobMinutes;
+                                                    $employeeJobsTmp[$employeeId]['timespent'] = $jobTimeSpent;
+                                                }
+                                                $totalTimeSpent+=$jobTimeSpent;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($employeeJobsTmp)) {
+                    $cells = wf_TableCell(__('Employee'));
+                    $cells.= wf_TableCell(__('Job type'));
+                    $cells.= wf_TableCell(__('Spent time') . ' (' . __('hours') . ')');
+                    $cells.= wf_TableCell(__('Percent of spent time'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($employeeJobsTmp as $io => $each) {
+                        $cells = wf_TableCell(@$this->allEmployee[$io]);
+                        $cells.= wf_TableCell(@$this->allJobtypes[$jobtypeId]);
+                        $cells.= wf_TableCell($this->formatTime(@$each['timespent'] * 60));
+                        $cells.= wf_TableCell(@$this->percentValue($totalTimeSpent, $each['timespent']) . '%');
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+
+                    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                } else {
+                    $result = $messages->getStyledMessage(__('Nothing found'), 'info');
+                }
+            }
+        }
+
         return ($result);
     }
 

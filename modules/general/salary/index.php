@@ -169,21 +169,21 @@ if (cfr('SALARY')) {
                 $tsCf = $salary->timesheetCreateForm();
                 if ($tsCf) {
                     $timesheetsControls = wf_modal(web_add_icon() . ' ' . __('Create'), __('Create') . ' ' . __('Timesheet'), $tsCf, 'ubButton', '800', '600');
-                    $timesheetsControls.= wf_Link($salary::URL_ME.'&'.$salary::URL_TSHEETS.'&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton');
+                    $timesheetsControls.= wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS . '&print=true', web_icon_print() . ' ' . __('Print'), false, 'ubButton');
                     show_window('', $timesheetsControls);
                     if (!wf_CheckGet(array('showdate'))) {
                         if (wf_CheckGet(array('print'))) {
                             //printing soubrutine
                             show_window('', $salary->timesheetRenderPrintableForm());
-                            if (wf_CheckPost(array('tsheetprintyear','tsheetprintmonth'))) {
+                            if (wf_CheckPost(array('tsheetprintyear', 'tsheetprintmonth'))) {
                                 die($salary->timesheetRenderPrintable($_POST['tsheetprintyear'], $_POST['tsheetprintmonth']));
                             }
-                            
+
                             show_window('', wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
                         } else {
-                         //render available timesheets list by date
-                        show_window(__('Timesheets'), $salary->timesheetsListRender());
-                        show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                            //render available timesheets list by date
+                            show_window(__('Timesheets'), $salary->timesheetsListRender());
+                            show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
                         }
                     } else {
                         //saving changes for single timesheet row
@@ -199,9 +199,16 @@ if (cfr('SALARY')) {
                     show_warning(__('No available workers for timesheets'));
                 }
             }
-            
-          $salary->summaryReport();
-            
+
+            //jobs/time report
+            if (wf_CheckGet(array('ltreport'))) {
+                show_window(__('Search'),$salary->ltReportRenderForm());
+                show_window('', $salary->ltReportRenderResults());
+                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+            }
+
+            //module summary stats
+            $salary->summaryReport();
         } else {
             show_error(__('No license key available'));
         }

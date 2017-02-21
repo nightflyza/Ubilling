@@ -2402,6 +2402,9 @@ $lang['def']['No wanted MAC assigned to existing users'] = 'Нету разыс�
 $lang['def']['Wanted MAC assigned to user'] = 'Разыскиваемый MAC назначен пользователю';
 $lang['def']['right to control policedog'] = 'Право управлять собакой-полициякой';
 $lang['def']['Equipment models'] = 'Модели оборудования';
+$lang['def']['Labor time'] = 'Нормо-часы';
+$lang['def']['Percent of spent time'] = 'Процент потраченного времени';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
