@@ -2419,5 +2419,9 @@ $lang['def']['Equipment models'] = 'Моделі обладнання';
 $lang['def']['List'] = 'Список';
 $lang['def']['Labor time'] = 'Нормо-години';
 $lang['def']['Percent of spent time'] = 'Вітсоток витраченого часу';
+$lang['def']['right to control available tag types'] = 'Право керувати довідником типів тегів';
+$lang['def']['right to control employees jobs'] = 'Право керувати роботами працівників';
+$lang['def']['right to control employees directory'] = 'Право керувати довідником працівників';
+$lang['def']['Remind time'] = 'Час нагадування';
 
 ?>

@@ -2404,7 +2404,10 @@ $lang['def']['right to control policedog'] = 'Право управлять со
 $lang['def']['Equipment models'] = 'Модели оборудования';
 $lang['def']['Labor time'] = 'Нормо-часы';
 $lang['def']['Percent of spent time'] = 'Процент потраченного времени';
-$lang['def'][''] = '';
+$lang['def']['right to control available tag types'] = 'Право управлять справочником типов тегов';
+$lang['def']['right to control employees jobs'] = 'Право управлять работами работников';
+$lang['def']['right to control employees directory'] = 'Право управлять справочником работников';
+$lang['def']['Remind time'] = 'Время напоминания';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

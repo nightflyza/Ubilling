@@ -1,7 +1,7 @@
 <?php
 
 // check for right of current admin on this module
-if (cfr('EMPLOYEE')) {
+if (cfr('EMPLOYEEDIR')) {
     $ubCache = new UbillingCache();
 
     if (wf_CheckPost(array('addemployee', 'employeename'))) {

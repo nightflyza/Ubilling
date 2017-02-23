@@ -1738,3 +1738,7 @@ CREATE TABLE IF NOT EXISTS `ukv_tags` (
   `userid` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.8.2
+
+ALTER TABLE `stickynotes` ADD `remindtime` TIME DEFAULT NULL AFTER `reminddate`, ADD INDEX (`remindtime`) ; 
