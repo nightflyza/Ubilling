@@ -1651,20 +1651,26 @@ class Salary {
      */
     public function timesheetsListRender($baseUrl = '') {
         $result = '';
+        $tableData = new wf_JqDtHelper();
         $linkBase = (empty($baseUrl)) ? self::URL_ME . '&' . self::URL_TSHEETS : $baseUrl;
-        if (!empty($this->allTimesheetDates)) {
-            $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Rows'));
-            $rows = wf_TableRow($cells, 'row1');
 
-            foreach ($this->allTimesheetDates as $date => $count) {
-                $cells = wf_TableCell(wf_Link($linkBase . '&showdate=' . $date, $date));
-                $cells.= wf_TableCell($count);
-                $rows.= wf_TableRow($cells, 'row3');
+        $columns = array(__('Date'), __('Rows'));
+        if (wf_CheckGet(array('ajaxtimesheetsdata'))) {
+            if (!empty($this->allTimesheetDates)) {
+                foreach ($this->allTimesheetDates as $date => $count) {
+                    $rawData[] = wf_Link($linkBase . '&showdate=' . $date, $date);
+                    $rawData[] = $count;
+                    $tableData->addRow($rawData);
+                    unset($rawData);
+                }
+                
+                $tableData->getJson();
             }
-
-            $result = wf_TableBody($rows, '100%', '0', 'sortable');
+        } else {
+            $opts = '"order": [[ 0, "desc" ]]';
+            $result = wf_JqDtLoader($columns, $linkBase . '&ajaxtimesheetsdata=true', false, __('Timesheets'), 100, $opts);
         }
+
         return ($result);
     }
 
@@ -2106,8 +2112,8 @@ class Salary {
 
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
                     if (!empty($chartData)) {
-                        $chartOptions='';
-                        $result.=wf_gcharts3DPie($chartData, __('Stats').' '.@$this->allJobtypes[$jobtypeId], '800px', '500px', $chartOptions);
+                        $chartOptions = '';
+                        $result.=wf_gcharts3DPie($chartData, __('Stats') . ' ' . @$this->allJobtypes[$jobtypeId], '800px', '500px', $chartOptions);
                     }
                 } else {
                     $result = $messages->getStyledMessage(__('Nothing found'), 'info');

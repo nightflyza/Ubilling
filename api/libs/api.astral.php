@@ -1944,8 +1944,8 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
     $result = '';
     $saveState = ($saveState) ? 'true' : 'false';
     $opts = (!empty($opts)) ? $opts . ',' : '';
-    
-    $buttonsTest='
+
+    $buttonsTest = '
         dom: \'frtipslB\',  buttons: [\'copy\', \'csv\', \'excel\', \'pdf\', \'print\'],
         ';
 
@@ -2156,6 +2156,66 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
     }
 
     return ($result);
+}
+
+/**
+ * Jqeury Data tables JSON formatting class
+ */
+class wf_JqDtHelper {
+
+    /**
+     * Contains raw array of added grid elements
+     *
+     * @var array
+     */
+    protected $allRows = array();
+
+    /**
+     * Adds new row to elements array, dont forget unset() data in your loop, after adding new row.
+     * 
+     * @param array $data
+     * 
+     * @return void
+     */
+    public function addRow($data) {
+        if (!empty($data)) {
+            $jsonItem = array();
+            foreach ($data as $io => $each) {
+                $jsonItem[] = $each;
+            }
+            $this->allRows[] = $jsonItem;
+        }
+    }
+
+    /**
+     * Returns JSON acceptible for jquery data tables
+     * 
+     * @return string
+     */
+    protected function renderJson() {
+        $result = array("aaData" => $this->allRows);
+        $result = json_encode($result);
+        return ($result);
+    }
+
+    /**
+     * Renders empty page JSON data for background ajax requests
+     * 
+     * @return void
+     */
+    public function getJson() {
+        die($this->renderJson());
+    }
+
+    /**
+     * Flushes current object instance elements array
+     * 
+     * @return void
+     */
+    public function flushData() {
+        $this->allRows = array();
+    }
+
 }
 
 ?>
