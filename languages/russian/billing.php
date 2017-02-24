@@ -2408,7 +2408,7 @@ $lang['def']['right to control available tag types'] = 'Право управл�
 $lang['def']['right to control employees jobs'] = 'Право управлять работами работников';
 $lang['def']['right to control employees directory'] = 'Право управлять справочником работников';
 $lang['def']['Remind time'] = 'Время напоминания';
-$lang['def'][''] = '';
+$lang['def']['Users which should be complex in UKV'] = 'Пользователи, которые должны быть комплексными';
 $lang['def'][''] = '';
 
 

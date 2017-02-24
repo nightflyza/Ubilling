@@ -2316,6 +2316,7 @@ class UkvSystem {
         $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportTagcloud', 'tagcloud.jpg', __('Tag cloud'));
         if ($this->altCfg['COMPLEX_ENABLED']) {
             $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportComplexAssign', 'reportcomplexassign.png', __('Users with complex services'));
+            $reports.= $this->buildReportTask(self::URL_REPORTS_MGMT . 'reportShouldbeComplex', 'shouldbecomplex.png', __('Users which should be complex in UKV'));
         }
         $reports.=wf_CleanDiv();
         show_window(__('Reports'), $reports);
@@ -3471,6 +3472,105 @@ class UkvSystem {
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
             show_window(__('Assign UKV users to complex profiles'), $result);
+        }
+    }
+
+    public function reportShouldbeComplex() {
+        $complexCFids = $this->altCfg['COMPLEX_CFIDS'];
+        $complexTariffs = array();
+        $result = array();
+        $reportData = '';
+        if (!empty($complexCFids)) {
+            $complexCFids = explode(',', $complexCFids);
+            $cfitemTypeId = $complexCFids[0];
+
+            $complexTariffId = $this->altCfg['UKV_COMPLEX_TARIFFID'];
+            $complexTariffMasks = $this->altCfg['COMPLEX_MASKS'];
+            if (!empty($complexTariffMasks)) {
+                $complexTariffMasks = explode(',', $complexTariffMasks);
+                if (!empty($complexTariffMasks)) {
+                    foreach ($complexTariffMasks as $io => $eachmask) {
+                        $eachmask = trim($eachmask);
+                        if (!empty($eachmask)) {
+                            $complexTariffs[$eachmask] = $eachmask;
+                        }
+                    }
+                }
+
+
+                $tariff_q = "SELECT `login`,`Tariff`,`TariffChange` from `users`";
+                $loginsRaw = simple_queryall($tariff_q);
+                $allLogins = array();
+                if (!empty($loginsRaw)) {
+                    foreach ($loginsRaw as $io => $each) {
+
+                        foreach ($complexTariffs as $ia => $eachComplexTariff) {
+                            if ((ispos($each['Tariff'], $eachComplexTariff)) OR (ispos($each['TariffChange'], $eachComplexTariff))) {
+                                $allLogins[$each['login']] = $io;
+                            }
+                        }
+                    }
+                }
+
+
+
+                $cf_q = "SELECT * from `cfitems` WHERE `typeid`='" . $cfitemTypeId . "' AND `content` != ''";
+                $allCfs = simple_queryall($cf_q);
+                $allContracts = array();
+
+                if (!empty($allCfs)) {
+                    foreach ($allCfs as $io => $each) {
+                        if (isset($allLogins[$each['login']])) {
+                            $allContracts[$each['content']] = $each['login'];
+                        }
+                    }
+                }
+
+
+                $allUkvUsers = array();
+                if (!empty($this->users)) {
+                    foreach ($this->users as $userid => $userdata) {
+                        if ($userdata['tariffid'] != $complexTariffId) {
+                            $allUkvUsers[$userdata['contract']] = $userdata;
+                        }
+                    }
+                }
+
+                if (!empty($allContracts)) {
+                    foreach ($allContracts as $io => $each) {
+                        if (isset($allUkvUsers[$io])) {
+                            $result[$io] = $allUkvUsers[$io]['id'];
+                        }
+                    }
+                }
+
+                if (!empty($result)) {
+                    $cells = wf_TableCell(__('Contract'));
+                    $cells.= wf_TableCell(__('Full address'));
+                    $cells.= wf_TableCell(__('Real Name'));
+                    $cells.= wf_TableCell(__('Tariff'));
+                    $cells.= wf_TableCell(__('Cash'));
+                    $cells.= wf_TableCell(__('Status'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($result as $userContract => $userId) {
+                        $cells = wf_TableCell($userContract);
+                        $cells.= wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $userId, web_profile_icon()) . ' ' . $this->userGetFullAddress($userId));
+                        $cells.= wf_TableCell($this->users[$userId]['realname']);
+                        $cells.= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
+                        $cells.= wf_TableCell($this->users[$userid]['cash']);
+                        $cells.= wf_TableCell(web_bool_led($this->users[$userId]['active']));
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+
+                    $reportData = wf_TableBody($rows, '100%', 0, 'sortable');
+                    show_window(__('Users which should be complex in UKV'), $reportData);
+                } else {
+                    show_info(__('Nothing found'));
+                }
+            }
+        } else {
+            show_error(__('You missed an important option'));
         }
     }
 
