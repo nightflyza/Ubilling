@@ -2409,7 +2409,12 @@ $lang['def']['right to control employees jobs'] = 'Право управлять
 $lang['def']['right to control employees directory'] = 'Право управлять справочником работников';
 $lang['def']['Remind time'] = 'Время напоминания';
 $lang['def']['Users which should be complex in UKV'] = 'Пользователи, которые должны быть комплексными';
+$lang['def']['Users which should not be complex in UKV'] = 'Пользователи, которые не должны быть комплексными';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
 
 
 ?>

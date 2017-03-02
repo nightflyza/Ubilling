@@ -217,7 +217,8 @@ if (cfr('TAGS')) {
             $totalCount = 0;
             if (!empty($this->allnames)) {
                 $result.= wf_tag('br');
-                $inputs = wf_YearSelector('reportyear', __('Year'), false) . ' ';
+                $curYear = (wf_CheckPost(array('reportyear'))) ? vf($_POST['reportyear'], 3) : curyear();
+                $inputs = wf_YearSelectorPreset('reportyear', __('Year'), false, $curYear) . ' ';
                 $curTagid = (wf_CheckPost(array('reporttagid'))) ? vf($_POST['reporttagid'], 3) : '';
                 $inputs.= wf_Selector('reporttagid', $this->allnames, __('Tag'), $curTagid, false) . ' ';
                 $inputs.= wf_Submit(__('Show'));
