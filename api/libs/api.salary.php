@@ -379,7 +379,7 @@ class Salary {
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/icon_eye.gif') . ' ' . __('Labor time'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/clock.png') . ' ' . __('Labor time'), false, 'ubButton');
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
@@ -921,9 +921,13 @@ class Salary {
         $dateto = mysql_real_escape_string($dateto);
         $employeeid = vf($employeeid, 3);
         $allTasks = ts_GetAllTasks();
+        $totalTimeSpent = 0; //in minutes
+        $timeSheetsTimeSpent = 0; // in minutes
+        $rangeTimesheets = $this->timesheetFilterDateRange($datefrom, $dateto);
 
         $chartData = array();
         $chartDataCash = array();
+        $timeChartData = array();
 
         $result = '';
         $totalSum = 0;
@@ -937,6 +941,7 @@ class Salary {
         $cells.= wf_TableCell(__('Task'));
         $cells.= wf_TableCell(__('Job type'));
         $cells.= wf_TableCell(__('Factor'));
+        $cells.= wf_TableCell(__('Time'));
         $cells.= wf_TableCell(__('Price override'));
         $cells.= wf_TableCell(__('Notes'));
         $cells.= wf_TableCell(__('Paid'));
@@ -965,11 +970,28 @@ class Salary {
                     $unit = __('No');
                 }
 
+                //job time spent collecting
+                $jobTimeSpent = 0;
+                if (isset($this->allJobTimes[$each['jobtypeid']])) {
+                    $jobFactor = $each['factor'];
+                    $jobTimePlanned = $this->allJobTimes[$each['jobtypeid']];
+                    $jobTimeSpent = $jobFactor * $jobTimePlanned;
+                    $totalTimeSpent+=$jobTimeSpent;
+                    $jobTypeName = $this->allJobtypes[$each['jobtypeid']];
+                    if (!empty($jobTypeName)) {
+                        if (isset($timeChartData[$jobTypeName])) {
+                            $timeChartData[$jobTypeName]+=$jobTimeSpent;
+                        } else {
+                            $timeChartData[$jobTypeName] = $jobTimeSpent;
+                        }
+                    }
+                }
 
                 $cells = wf_TableCell($each['date']);
                 $cells.= wf_TableCell(wf_Link(self::URL_TS . $each['taskid'], $each['taskid']) . ' ' . @$allTasks[$each['taskid']]['address']);
                 $cells.= wf_TableCell($jobName);
                 $cells.= wf_TableCell($each['factor'] . ' / ' . $unit);
+                $cells.= wf_TableCell($this->formatTime($jobTimeSpent * 60));
                 $cells.= wf_TableCell($each['overprice']);
                 $cells.= wf_TableCell($each['note']);
                 $cells.= wf_TableCell($this->renderPaidDataLed($each['id']));
@@ -992,6 +1014,15 @@ class Salary {
             }
         }
 
+        //timesheets processing
+        if (!empty($rangeTimesheets)) {
+            foreach ($rangeTimesheets as $io => $each) {
+                if ($each['employeeid'] == $employeeid) {
+                    $timeSheetsTimeSpent+=$each['hours'] * 60; // rly in minutes
+                }
+            }
+        }
+
         $result = wf_TableBody($rows, '100%', 0, '');
         $result.= wf_HiddenInput('prstateprocessing', 'true');
         if ($jobCount > 0) {
@@ -1002,13 +1033,16 @@ class Salary {
 
         $result.= __('Not paid money') . ': ' . $totalSum . wf_tag('br');
         $result.= __('Paid money') . ': ' . $payedSum . wf_tag('br');
-        $result.= __('Total money') . ': ' . ($payedSum + $totalSum);
+        $result.= __('Total money') . ': ' . ($payedSum + $totalSum) . wf_tag('br');
+        $result.= __('Total') . ' ' . __('time') . ': ' . $this->formatTime($totalTimeSpent * 60) . wf_tag('br');
+        $result.= __('Total') . ' ' . __('Work hours') . ': ' . $this->formatTime($timeSheetsTimeSpent * 60);
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
 
             $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-            $chartCells = wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px', $chartOpts));
+            $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time'), '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px', $chartOpts));
             $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px', $chartOpts));
             $chartRows = wf_TableRow($chartCells);
             $result.= wf_TableBody($chartRows, '100%', 0, '');
@@ -1663,7 +1697,7 @@ class Salary {
                     $tableData->addRow($rawData);
                     unset($rawData);
                 }
-                
+
                 $tableData->getJson();
             }
         } else {
