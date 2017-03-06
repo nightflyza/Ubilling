@@ -2425,5 +2425,11 @@ $lang['def']['right to control employees directory'] = 'Право керува�
 $lang['def']['Remind time'] = 'Час нагадування';
 $lang['def']['Users which should be complex in UKV'] = 'Користувачі, які повинні бути комплексними';
 $lang['def']['Users which should not be complex in UKV'] = 'Користувачі, які не повинні бути комплексними';
+$lang['def']['Integrity control'] = 'Контроль цілісності';
+$lang['def']['Address duplicate'] = 'Дублікат адреси';
+$lang['def']['Contract duplicate'] = 'Дублікат угоди';
+$lang['def']['Empty address'] = 'Порожня адреса';
+$lang['def']['Empty contract'] = 'Порожня угода';
+
 
 ?>
