@@ -344,7 +344,7 @@ if (cfr('TAGS')) {
         if (wf_CheckGet(array('report'))) {
             $tagCloud->renderReport();
         } elseif (isset($_GET['notags']) and ($_GET['notags']) == TRUE) {
-			// show users with not have a tag
+			// show users which not have a tag
 			$tagCloud->renderNoTagGrid();
         } else {
             //default tag cloud
