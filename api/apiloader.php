@@ -93,6 +93,9 @@ include('api/libs/api.senddog.php');
 include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
 include('api/libs/api.policedog.php');
+include('api/libs/api.selling.php');
+include('api/libs/api.printcard.php');
+include('api/libs/api.generatecard.php');
 
 /*
  * Initial class creation
