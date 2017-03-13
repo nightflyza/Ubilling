@@ -191,6 +191,7 @@ function uhw_PasswordForm($uconf) {
     $form='
         
        <form action="" method="POST" class="glamour">
+       <label for="loginfield">'.$uconf['SUP_LOGIN'].'</label> <input type="text" name="login" id="loginfield" size="16" style="margin-left: 12px;"><br /><br />
        <label for="passfield">'.$uconf['SUP_PASS'].'</label> <input type="'.$uconf['SELFACT_FIELDTYPE'].'" name="password" id="passfield" size="16">
        <br>
        <br>
