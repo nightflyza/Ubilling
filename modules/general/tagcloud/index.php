@@ -8,16 +8,19 @@ if (cfr('TAGS')) {
         protected $usertags = array();
         protected $allnames = array();
         protected $tagspower = array();
+        protected $notags = array();
 
         const URL_ME = '?module=tagcloud';
         const URL_GRID = 'gridview=true';
         const URL_REPORT = 'report=true';
+        const NO_TAG = 'notags=true';
 
         public function __construct() {
             $this->loadTags();
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
+            $this->loadNoTagUsers();
         }
 
         /**
@@ -127,8 +130,70 @@ if (cfr('TAGS')) {
         protected function panel() {
             $result = wf_Link(self::URL_ME, wf_img('skins/icon_cloud.png') . ' ' . __('Tag cloud'), false, 'ubButton');
             $result.= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
-            $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), true, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), true, 'ubButton');
             return ($result);
+        }
+
+        /**
+         * loads no tag user names into private data property
+         * 
+         * @return void
+         */
+        protected function loadNoTagUsers() {
+            $this->notags = $this->getNoTagged();
+        }
+
+        /**
+         * Returns array of users without tags
+         * 
+         * @return array
+         */
+        protected function getNoTagged() {
+            $query = 'SELECT `users`.`login`,`tags`.`id` FROM `users` LEFT JOIN `tags` ON `users`.`login`=`tags`.`login` WHERE `tags`.`id` IS NULL ORDER BY `tags`.`id` ASC';
+            $notags = simple_queryall($query);
+            return ($notags);
+        }
+
+        /**
+         * Renders tag grid for users that no tagged
+         * 
+         * @return void
+         */
+        public function renderNoTagGrid() {
+             $result = $this->panel();
+
+//            $allrealnames = zb_UserGetAllRealnames();
+//            $alladdress = zb_AddressGetFulladdresslist();
+//
+//            $cells = wf_TableCell(__('ID'));
+//            $cells.= wf_TableCell(__('Login'));
+//            $cells.= wf_TableCell(__('Real Name'));
+//            $cells.= wf_TableCell(__('Address'));
+//
+//            $rows = wf_TableRow($cells, 'row1');
+//            if (!empty($this->notags)) {
+//                foreach ($this->notags as $key => $user) {
+//                    if (isset($this->notags)) {
+//                        $cells = wf_TableCell($key);
+//                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user['login'], $user['login'], false));
+//                        $cells.= wf_TableCell(@$allrealnames[$user['login']]);
+//                        $cells.= wf_TableCell(@$alladdress[$user['login']]);
+//                        $rows.= wf_TableRow($cells, 'row3');
+//                    }
+//                }
+//            }
+//            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+//            
+            // !!  Replaced with default user listing routine. If plain view with four columns are important for you - please, let me know. !!
+            $userArr=array();
+            if (!empty($this->notags)) {
+                foreach ($this->notags as $key=>$user) {
+                    $userArr[]=$user['login'];
+                }
+            }
+            $result.=web_UserArrayShower($userArr);
+            show_window(__('No tags'), $result);
         }
 
         /**
@@ -282,13 +347,15 @@ if (cfr('TAGS')) {
      */
 
 
-
-    $tagCloud = new TagCloud();
+$tagCloud = new TagCloud();
 
 //show cloud or grid tag view
     if (!wf_CheckGet(array('gridview'))) {
         if (wf_CheckGet(array('report'))) {
             $tagCloud->renderReport();
+        } elseif (isset($_GET['notags']) and ( $_GET['notags']) == TRUE) {
+            // show users which not have a tag
+            $tagCloud->renderNoTagGrid();
         } else {
             //default tag cloud
             $tagCloud->renderTagCloud();
