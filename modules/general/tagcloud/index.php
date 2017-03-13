@@ -20,7 +20,7 @@ if (cfr('TAGS')) {
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
-			$this->loadNoTagUsers();
+            $this->loadNoTagUsers();
         }
 
         /**
@@ -148,7 +148,7 @@ if (cfr('TAGS')) {
          * 
          * @return void
          */
-		protected function getNoTagged() {
+            protected function getNoTagged() {
             $query = 'SELECT `users`.`login`,`tags`.`id` FROM `users` LEFT JOIN `tags` ON `users`.`login`=`tags`.`login` WHERE `tags`.`id` IS NULL ORDER BY `tags`.`id` ASC';
             $notags = simple_queryall($query);
             return ($notags);
@@ -158,26 +158,26 @@ if (cfr('TAGS')) {
          * 
          * @return void
          */
-		 public function renderNoTagGrid() {
+            public function renderNoTagGrid() {
 
-			$allrealnames=zb_UserGetAllRealnames();
-			$alladdress=zb_AddressGetFulladdresslist();
+            $allrealnames=zb_UserGetAllRealnames();
+            $alladdress=zb_AddressGetFulladdresslist();
 	
             $cells = wf_TableCell(__('ID'));
             $cells.= wf_TableCell(__('Login'));
             $cells.= wf_TableCell(__('Real Name'));
             $cells.= wf_TableCell(__('Address'));
 			
-			$rows = wf_TableRow($cells, 'row1');
+            $rows = wf_TableRow($cells, 'row1');
             if (!empty($this->notags)) {
                 foreach ($this->notags as $key => $user) {
-					if (isset($this->notags)) {
+		    if (isset($this->notags)) {
                         $cells = wf_TableCell($key);
-						$cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user[login], $user[login], false));
-                        $cells.= wf_TableCell(@$allrealnames[$user[login]]);
-                        $cells.= wf_TableCell(@$alladdress[$user[login]]);
-						$rows.= wf_TableRow($cells, 'row3');
-					}
+			$cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user['login'], $user['login'], false));
+                        $cells.= wf_TableCell(@$allrealnames[$user['login']]);
+                        $cells.= wf_TableCell(@$alladdress[$user['login']]);
+			$rows .= wf_TableRow($cells, 'row3');
+                    }
                 }
             }
 			
