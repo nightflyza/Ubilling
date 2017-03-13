@@ -13,10 +13,10 @@ if (cfr('TARIFFSPEED')) {
         $fieldkeys = array('fieldkey1' => 'newspeeddown', 'fieldkey2' => 'newspeedup', 'fieldkey3' => 'newburstdownload', 'fieldkey4' => 'newburstupload', 'fieldkey5' => 'newbursttimedownload', 'fieldkey6' => 'newburstimetupload');
         $olddata[1] = $existingspeeds[$tariff]['speeddown'];
         $olddata[2] = $existingspeeds[$tariff]['speedup'];
-		$olddata[3] = $existingspeeds[$tariff]['burstdownload'];
-		$olddata[4] = $existingspeeds[$tariff]['burstupload'];
-		$olddata[5] = $existingspeeds[$tariff]['bursttimedownload'];
-		$olddata[6] = $existingspeeds[$tariff]['burstimetupload'];
+        $olddata[3] = $existingspeeds[$tariff]['burstdownload'];
+        $olddata[4] = $existingspeeds[$tariff]['burstupload'];
+        $olddata[5] = $existingspeeds[$tariff]['bursttimedownload'];
+        $olddata[6] = $existingspeeds[$tariff]['burstimetupload'];
         show_window(__('Edit speed') . ' ' . $tariff, web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata));
         show_window('', wf_Link("?module=tariffspeeds", 'Back', true, 'ubButton'));
         // if all ok save speed
@@ -24,10 +24,10 @@ if (cfr('TARIFFSPEED')) {
             zb_TariffDeleteSpeed($tariff);
             $newSpeedDown = trim($_POST['newspeeddown']);
             $newSpeedUp = trim($_POST['newspeedup']);
-			$newBurstDown = trim($_POST['newburstdownload']);
-			$newBurstUp = trim($_POST['newburstupload']);
-			$newBurstTimeDown = trim($_POST['newbursttimedownload']);
-			$newBurstTimeUp = trim($_POST['newburstimetupload']);
+            $newBurstDown = trim($_POST['newburstdownload']);
+            $newBurstUp = trim($_POST['newburstupload']);
+            $newBurstTimeDown = trim($_POST['newbursttimedownload']);
+            $newBurstTimeUp = trim($_POST['newburstimetupload']);
             zb_TariffCreateSpeed($tariff, $newSpeedDown, $newSpeedUp, $newBurstDown, $newBurstUp, $newBurstTimeDown,$newBurstTimeUp,$newBurstTimeUp);
             rcms_redirect("?module=tariffspeeds");
         }
