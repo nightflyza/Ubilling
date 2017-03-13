@@ -45,6 +45,10 @@ CREATE  TABLE IF NOT EXISTS `speeds` (
   `tariff` VARCHAR(45) NULL ,
   `speeddown` VARCHAR(45) NULL ,
   `speedup` VARCHAR(45) NULL ,
+  `burstdownload` varchar(45) DEFAULT NULL,
+  `burstupload` varchar(45) DEFAULT NULL,
+  `bursttimedownload` varchar(45) DEFAULT NULL,
+  `burstimetupload` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`) )
 ENGINE = MyISAM DEFAULT CHARSET=UTF8;
 
