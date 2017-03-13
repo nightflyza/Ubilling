@@ -808,8 +808,63 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $form = wf_Form("", 'POST', $inputs, '');
 
     return($form);
-}
 
+}
+/**
++ * Returns six strings data grid editor (used in tariffspeeds modified by Pautina)
++ * 
++ * @param array $fieldnames
++ * @param array $fieldkeys
++ * @param array $olddata
++ * @return string
++ */
+function web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata) {
+	$field1 = $fieldnames['fieldname1'];
+	$field2 = $fieldnames['fieldname2'];
+	$field3 = $fieldnames['fieldname3'];
+	$field4 = $fieldnames['fieldname4'];
+	$field5 = $fieldnames['fieldname5'];
+	$field6 = $fieldnames['fieldname6'];
+	$fieldkey1 = $fieldkeys['fieldkey1'];
+	$fieldkey2 = $fieldkeys['fieldkey2'];
+	$fieldkey3 = $fieldkeys['fieldkey3'];
+	$fieldkey4 = $fieldkeys['fieldkey4'];
+	$fieldkey5 = $fieldkeys['fieldkey5'];
+	$fieldkey6 = $fieldkeys['fieldkey6'];
+
+	$cells = wf_TableCell($field1, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey1, '', $olddata[1], false, ''), '', 'row3');
+	$rows = wf_TableRow($cells);
+
+	$cells = wf_TableCell($field2, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey2, '', $olddata[2], false, ''), '', 'row3');
+	$rows.= wf_TableRow($cells);
+
+	$cells = wf_TableCell($field3, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey3, '', $olddata[3], false, ''), '', 'row3');
+	$rows.= wf_TableRow($cells);
+
+	$cells = wf_TableCell($field4, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey4, '', $olddata[4], false, ''), '', 'row3');
+	$rows.= wf_TableRow($cells);
+
+	$cells = wf_TableCell($field5, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey5, '', $olddata[5], false, ''), '', 'row3');
+	$rows.= wf_TableRow($cells);
+
+	$cells = wf_TableCell($field6, '', 'row2');
+	$cells.= wf_TableCell(wf_TextInput($fieldkey6, '', $olddata[6], false, ''), '', 'row3');
+	$rows.= wf_TableRow($cells);
+
+	$table = wf_TableBody($rows, '100%', 0);
+
+	$inputs = $table;
+	$inputs.= wf_Submit(__('Change'));
+	$inputs.= wf_delimiter();
+	$form = wf_Form("", 'POST', $inputs, '');
+
+	return($form);
+}
 /**
  * Translates payment notes into human-readable string
  * 
@@ -900,6 +955,10 @@ function web_TariffSpeedLister() {
     $cells = wf_TableCell(__('Tariff'));
     $cells.= wf_TableCell(__('Download speed'));
     $cells.= wf_TableCell(__('Upload speed'));
+    $cells.= wf_TableCell(__('Burst Download speed'));
+    $cells.= wf_TableCell(__('Burst Upload speed'));
+    $cells.= wf_TableCell(__('Burst Download Time speed'));
+    $cells.= wf_TableCell(__('Burst Upload Time speed'));
     $cells.= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
@@ -909,6 +968,10 @@ function web_TariffSpeedLister() {
             $cells = wf_TableCell($eachtariff['name']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstdownload']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstupload']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['bursttimedownload']);
+            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstimetupload']);
             $actLinks = wf_JSAlert('?module=tariffspeeds&tariff=' . $eachtariff['name'], web_edit_icon(), __('Are you serious'));
             $cells.= wf_TableCell($actLinks);
             $rows.= wf_TableRow($cells, 'row3');
