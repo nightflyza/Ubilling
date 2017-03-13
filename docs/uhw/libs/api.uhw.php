@@ -226,9 +226,10 @@ function uhw_IsMacUnique($mac) {
 }
 
 
-function uhw_FindUserByPassword($password) {
+function uhw_FindUserByPassword($password, $login) {
+    $login=  mysql_real_escape_string($login);
     $password=  mysql_real_escape_string($password);
-    $query="SELECT `login` from `users` WHERE `Password`='".$password."'";
+    $query="SELECT `login` from `users` WHERE `Password`='" .$password. "' AND `login` = '" .$login. "'";
     $result=  simple_query($query);
     if (!empty($result)) {
         return ($result['login']);
