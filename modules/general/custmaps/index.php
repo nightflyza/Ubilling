@@ -100,8 +100,12 @@ if (cfr('CUSTMAP')) {
                 }
             } else {
                 if (!wf_CheckGet(array('duplicates'))) {
-                    //render map items list
-                    show_window(__('Objects') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemsList($_GET['showitems']));
+                    //render items list json data in background
+                    if (wf_CheckGet(array('ajax'))) {
+                        $custmaps->renderItemsListJsonData($_GET['showitems']);
+                    }
+                    //render map items list container
+                    show_window(__('Objects') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemsListFast($_GET['showitems']));
                 } else {
                     //show duplicate map objects
                     show_window(__('Show duplicates') . ': ' . $custmaps->mapGetName($_GET['showitems']), $custmaps->renderItemDuplicateList($_GET['showitems']));
