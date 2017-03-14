@@ -161,35 +161,12 @@ if (cfr('TAGS')) {
          * @return void
          */
         public function renderNoTagGrid() {
-             $result = $this->panel();
-
-//            $allrealnames = zb_UserGetAllRealnames();
-//            $alladdress = zb_AddressGetFulladdresslist();
-//
-//            $cells = wf_TableCell(__('ID'));
-//            $cells.= wf_TableCell(__('Login'));
-//            $cells.= wf_TableCell(__('Real Name'));
-//            $cells.= wf_TableCell(__('Address'));
-//
-//            $rows = wf_TableRow($cells, 'row1');
-//            if (!empty($this->notags)) {
-//                foreach ($this->notags as $key => $user) {
-//                    if (isset($this->notags)) {
-//                        $cells = wf_TableCell($key);
-//                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user['login'], $user['login'], false));
-//                        $cells.= wf_TableCell(@$allrealnames[$user['login']]);
-//                        $cells.= wf_TableCell(@$alladdress[$user['login']]);
-//                        $rows.= wf_TableRow($cells, 'row3');
-//                    }
-//                }
-//            }
-//            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
-//            
+            $result = $this->panel();
             // !!  Replaced with default user listing routine. If plain view with four columns are important for you - please, let me know. !!
-            $userArr=array();
+            $userArr = array();
             if (!empty($this->notags)) {
-                foreach ($this->notags as $key=>$user) {
-                    $userArr[]=$user['login'];
+                foreach ($this->notags as $key => $user) {
+                    $userArr[] = $user['login'];
                 }
             }
             $result.=web_UserArrayShower($userArr);
@@ -347,7 +324,7 @@ if (cfr('TAGS')) {
      */
 
 
-$tagCloud = new TagCloud();
+    $tagCloud = new TagCloud();
 
 //show cloud or grid tag view
     if (!wf_CheckGet(array('gridview'))) {

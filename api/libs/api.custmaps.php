@@ -438,23 +438,16 @@ class CustomMaps {
     }
 
     /**
-     * Returns existing map items list view
+     * Returns existing map items list datatables container
+     *      
+     * @param int $mapid
      * 
      * @return string
      */
-    public function renderItemsList($mapid) {
+    public function renderItemsListFast($mapid) {
         $mapid = vf($mapid, 3);
-        $messages = new UbillingMessageHelper();
-        $itemsCount = 0;
-
-        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('CUSTMAPITEMS');
-            $adc = true;
-        } else {
-            $adc = false;
-        }
-
-
+        $opts = '"order": [[ 0, "desc" ]]';
+        $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
         $result = '';
         $result.= wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
         if (cfr('CUSTMAPEDIT')) {
@@ -464,24 +457,34 @@ class CustomMaps {
         $result.=wf_Link('?module=custmaps&showitems=' . $mapid . '&duplicates=true', wf_img('skins/duplicate_icon.gif') . ' ' . __('Show duplicates'), true, 'ubButton');
 
         $result.= wf_delimiter();
+        $result.=wf_JqDtLoader($columns, '?module=custmaps&ajax=true&showitems=' . $mapid, false, 'Objects', '100', $opts);
+        return ($result);
+    }
 
-        $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Type'));
-        $cells.= wf_TableCell(__('Geo location'));
-        $cells.= wf_TableCell(__('Name'));
-        $cells.= wf_TableCell(__('Location'));
-        $cells.= wf_TableCell(__('Actions'));
-        $rows = wf_TableRow($cells, 'row1');
+    /**
+     * Renders custom map items list JSON data
+     * 
+     * @param int $mapid
+     * 
+     * @return void
+     */
+    public function renderItemsListJsonData($mapid) {
+        $mapid = vf($mapid, 3);
+        $json = new wf_JqDtHelper();
+        $messages = new UbillingMessageHelper();
+
+        if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+            $adcomments = new ADcomments('CUSTMAPITEMS');
+            $adc = true;
+        } else {
+            $adc = false;
+        }
 
         if (!empty($this->allItems)) {
             foreach ($this->allItems as $io => $each) {
                 $indicator = ($adc) ? $adcomments->getCommentsIndicator($each['id']) : '';
                 if ($each['mapid'] == $mapid) {
-                    $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($this->itemGetTypeName($each['type']));
-                    $cells.= wf_TableCell($each['geo']);
-                    $cells.= wf_TableCell($each['name']);
-                    $cells.= wf_TableCell($each['location']);
+
                     $actLinks = '';
                     if (cfr('CUSTMAPEDIT')) {
                         $actLinks.= wf_JSAlertStyled('?module=custmaps&deleteitem=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert()) . ' ';
@@ -491,16 +494,22 @@ class CustomMaps {
 
                     $actLinks.=$indicator;
 
-                    $cells.= wf_TableCell($actLinks);
-                    $rows.= wf_TableRow($cells, 'row3');
-                    $itemsCount++;
+
+                    $data[] = $each['id'];
+                    $data[] = $this->itemGetTypeName($each['type']);
+                    $data[] = $each['geo'];
+                    $data[] = $each['name'];
+                    $data[] = $each['location'];
+                    $data[] = $actLinks;
+
+
+                    $json->addRow($data);
+                    unset($data);
                 }
             }
         }
 
-        $result.= wf_TableBody($rows, '100%', '0', 'sortable');
-        $result.= __('Total') . ': ' . $itemsCount;
-        return ($result);
+        $json->getJson();
     }
 
     /**
