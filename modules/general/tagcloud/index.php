@@ -20,7 +20,7 @@ if (cfr('TAGS')) {
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
-            $this->loadNoTagUsers();
+            
         }
 
         /**
@@ -162,8 +162,9 @@ if (cfr('TAGS')) {
          */
         public function renderNoTagGrid() {
             $result = $this->panel();
-            // !!  Replaced with default user listing routine. If plain view with four columns are important for you - please, let me know. !!
             $userArr = array();
+            //usage of this in constructor significantly reduces performance
+            $this->loadNoTagUsers();
             if (!empty($this->notags)) {
                 foreach ($this->notags as $key => $user) {
                     $userArr[] = $user['login'];
