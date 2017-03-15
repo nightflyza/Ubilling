@@ -315,6 +315,9 @@
                         $rate = $this->database->get_user_rate();
                         $template['limit-at']  = $rate['tx'] . $this->config['rate_val'] . '/' . $rate['rx'] . $this->config['rate_val'];
                         $template['max-limit'] = $rate['tx'] . $this->config['rate_val'] . '/' . $rate['rx'] . $this->config['rate_val'];
+                        $template['burst-limit'] = $rate['bt_tx'] . $this->config['rate_val'] . '/' . $rate['bt_rx'] . $this->config['rate_val'];
+                        $template['burst-time'] = $rate['bt_tx_t'] . '/' . $rate['bt_rx_t'];
+                        $template['burst-threshold'] =  $rate['tx']*0.8 . $this->config['rate_val'] . '/' . $rate['rx']*0.8 . $this->config['rate_val'];
                         if ($this->options['version'] == 4 || $this->options['version'] == 5) {
                             $template['interface'] = $this->options['users_interface'];
                         }

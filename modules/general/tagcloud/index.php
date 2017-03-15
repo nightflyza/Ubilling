@@ -20,7 +20,7 @@ if (cfr('TAGS')) {
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
-            
+
         }
 
         /**
@@ -134,7 +134,57 @@ if (cfr('TAGS')) {
             $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), true, 'ubButton');
             return ($result);
         }
+  
+        /**
+         * loads no tag user names into private data property
+         * 
+         * @return void
+         */
+        protected function loadNoTagUsers() {
+            $this->notags = $this->getNoTagged();
+        }
+        /**
+         * Renders tag grid for NO tagged users
+         * 
+         * @return void
+         */
+            protected function getNoTagged() {
+            $query = 'SELECT `users`.`login`,`tags`.`id` FROM `users` LEFT JOIN `tags` ON `users`.`login`=`tags`.`login` WHERE `tags`.`id` IS NULL ORDER BY `tags`.`id` ASC';
+            $notags = simple_queryall($query);
+            return ($notags);
+        }
+		/**
+         * Renders tag grid for users that no tagged
+         * 
+         * @return void
+         */
+            public function renderNoTagGrid() {
 
+            $allrealnames=zb_UserGetAllRealnames();
+            $alladdress=zb_AddressGetFulladdresslist();
+	
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Address'));
+			
+            $rows = wf_TableRow($cells, 'row1');
+            if (!empty($this->notags)) {
+                foreach ($this->notags as $key => $user) {
+		    if (isset($this->notags)) {
+                        $cells = wf_TableCell($key);
+			$cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $user['login'], $user['login'], false));
+                        $cells.= wf_TableCell(@$allrealnames[$user['login']]);
+                        $cells.= wf_TableCell(@$alladdress[$user['login']]);
+			$rows .= wf_TableRow($cells, 'row3');
+                    }
+                }
+            }
+			
+            $result = $this->panel();
+            $result.=wf_TableBody($rows, '100%', '0', 'sortable');
+            show_window(__('Tags'), $result);
+        }
         /**
          * loads no tag user names into private data property
          * 
