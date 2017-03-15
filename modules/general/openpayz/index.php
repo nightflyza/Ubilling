@@ -30,7 +30,7 @@ if (cfr('OPENPAYZ')) {
         }
 
         if (wf_CheckGet(array('ajax'))) {
-            die($opayz->transactionAjaxSource());
+            $opayz->transactionAjaxSource();
         }
 
 
