@@ -2430,6 +2430,7 @@ $lang['def']['Address duplicate'] = 'Дублікат адреси';
 $lang['def']['Contract duplicate'] = 'Дублікат угоди';
 $lang['def']['Empty address'] = 'Порожня адреса';
 $lang['def']['Empty contract'] = 'Порожня угода';
+$lang['def']['No tags'] = 'Без тегів';
 
 //Selling
 $lang['def']['Selling'] = 'Пункти продажу';

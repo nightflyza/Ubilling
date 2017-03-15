@@ -20,7 +20,7 @@ if (cfr('TAGS')) {
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
-            $this->loadNoTagUsers();
+
         }
 
         /**
@@ -186,6 +186,45 @@ if (cfr('TAGS')) {
             show_window(__('Tags'), $result);
         }
         /**
+         * loads no tag user names into private data property
+         * 
+         * @return void
+         */
+        protected function loadNoTagUsers() {
+            $this->notags = $this->getNoTagged();
+        }
+
+        /**
+         * Returns array of users without tags
+         * 
+         * @return array
+         */
+        protected function getNoTagged() {
+            $query = 'SELECT `users`.`login`,`tags`.`id` FROM `users` LEFT JOIN `tags` ON `users`.`login`=`tags`.`login` WHERE `tags`.`id` IS NULL ORDER BY `tags`.`id` ASC';
+            $notags = simple_queryall($query);
+            return ($notags);
+        }
+
+        /**
+         * Renders tag grid for users that no tagged
+         * 
+         * @return void
+         */
+        public function renderNoTagGrid() {
+            $result = $this->panel();
+            $userArr = array();
+            //usage of this in constructor significantly reduces performance
+            $this->loadNoTagUsers();
+            if (!empty($this->notags)) {
+                foreach ($this->notags as $key => $user) {
+                    $userArr[] = $user['login'];
+                }
+            }
+            $result.=web_UserArrayShower($userArr);
+            show_window(__('No tags'), $result);
+        }
+
+        /**
          * Renders tag grid for tagged users
          * 
          * @return void
@@ -334,7 +373,6 @@ if (cfr('TAGS')) {
     /*
      * Controller & view section
      */
-
 
 
     $tagCloud = new TagCloud();
