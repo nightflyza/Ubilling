@@ -288,7 +288,7 @@ class OpenPayz {
         }
 
         if (!empty($gcYearData)) {
-            $gcYearPie = wf_gcharts3DPie($gcMonthData, __('Current year'), '300px', '300px', $chartOpts);
+            $gcYearPie = wf_gcharts3DPie($gcYearData, __('Current year'), '300px', '300px', $chartOpts);
         } else {
             $gcYearPie = '';
         }
