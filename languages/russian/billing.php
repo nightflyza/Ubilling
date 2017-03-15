@@ -2417,6 +2417,8 @@ $lang['def']['Empty address'] = 'Пустой адрес';
 $lang['def']['Empty contract'] = 'Пустой договор';
 $lang['def']['No tags'] = 'Без тегов';
 $lang['def']['Current year'] = 'Текущий год';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 //Selling
 $lang['def']['Selling'] = 'Пункты продаж';
