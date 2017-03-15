@@ -2415,8 +2415,8 @@ $lang['def']['Address duplicate'] = 'Дубликат адреса';
 $lang['def']['Contract duplicate'] = 'Дубликат договора';
 $lang['def']['Empty address'] = 'Пустой адрес';
 $lang['def']['Empty contract'] = 'Пустой договор';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['No tags'] = 'Без тегов';
+$lang['def']['Current year'] = 'Текущий год';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

@@ -1746,3 +1746,5 @@ CREATE TABLE IF NOT EXISTS `ukv_tags` (
 -- 0.8.2
 
 ALTER TABLE `stickynotes` ADD `remindtime` TIME DEFAULT NULL AFTER `reminddate`, ADD INDEX (`remindtime`) ; 
+
+ALTER TABLE `employee` ADD `telegram` VARCHAR(40) NULL DEFAULT NULL AFTER `mobile`; 
