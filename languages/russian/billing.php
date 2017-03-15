@@ -2420,6 +2420,7 @@ $lang['def']['Current year'] = 'Текущий год';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
+
 //Selling
 $lang['def']['Selling'] = 'Пункты продаж';
 $lang['def']['Create new selling'] = 'Создать пункт продаж';
