@@ -2418,7 +2418,6 @@ $lang['def']['Empty contract'] = 'Пустой договор';
 $lang['def']['No tags'] = 'Без тегов';
 $lang['def']['Current year'] = 'Текущий год';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
 
 
 //Selling
