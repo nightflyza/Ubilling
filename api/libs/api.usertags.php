@@ -129,10 +129,27 @@ function stg_get_tagtype_data($tagtypeid) {
 function stg_show_user_tags($login) {
     $query = "SELECT * from `tags` WHERE `login`='" . $login . "';";
     $alltags = simple_queryall($query);
+    $tagTypesData = array();
     $result = '';
     if (!empty($alltags)) {
+        //getting tags data
+        $tagTypes_q = "SELECT * from `tagtypes`";
+        $tagTypesRaw = simple_queryall($tagTypes_q);
+        if (!empty($tagTypesRaw)) {
+            foreach ($tagTypesRaw as $ia => $eachTagType) {
+                $tagTypesData[$eachTagType['id']] = $eachTagType;
+            }
+        }
+
+
         foreach ($alltags as $io => $eachtag) {
-            $result.=stg_get_tag_body($eachtag['tagid']);
+            if (isset($tagTypesData[$eachtag['tagid']])) {
+                $tagbody = $tagTypesData[$eachtag['tagid']];
+                $result.= wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
+                $result.= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $eachtag['tagid'] . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . wf_tag('a', true);
+                $result.= wf_tag('font', true);
+                $result.='&nbsp;';
+            }
         }
     }
     return ($result);
@@ -243,24 +260,6 @@ function stg_del_user_tagid($login, $tagid) {
     $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
     nr_query($query);
     stg_putlogevent('TAGDEL LOGIN (' . $login . ') TAGID [' . $tagid . ']');
-}
-
-/**
- * Returns tag html preprocessed body
- * 
- * @param int $id
- * @return string
- */
-function stg_get_tag_body($id) {
-    $id = vf($id, 3);
-    $query = "SELECT * from `tagtypes` where `id`='" . $id . "'";
-    $tagbody = simple_query($query);
-
-    $result = wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $tagbody['tagsize'] . '"');
-    $result.= wf_tag('a', false, '', 'href="?module=tagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . wf_tag('a', true);
-    $result.= wf_tag('font', true);
-    $result.='&nbsp;';
-    return($result);
 }
 
 /**

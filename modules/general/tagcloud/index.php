@@ -8,16 +8,19 @@ if (cfr('TAGS')) {
         protected $usertags = array();
         protected $allnames = array();
         protected $tagspower = array();
+        protected $notags = array();
 
         const URL_ME = '?module=tagcloud';
         const URL_GRID = 'gridview=true';
         const URL_REPORT = 'report=true';
+        const NO_TAG = 'notags=true';
 
         public function __construct() {
             $this->loadTags();
             $this->loadTagNames();
             $this->loadUserTags();
             $this->tagPowerPreprocessing();
+            
         }
 
         /**
@@ -127,8 +130,48 @@ if (cfr('TAGS')) {
         protected function panel() {
             $result = wf_Link(self::URL_ME, wf_img('skins/icon_cloud.png') . ' ' . __('Tag cloud'), false, 'ubButton');
             $result.= wf_Link(self::URL_ME . '&' . self::URL_GRID, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
-            $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), true, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&' . self::URL_REPORT, wf_img('skins/ukv/report.png') . ' ' . __('Report'), false, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&' . self::NO_TAG, wf_img('skins/track_icon.png') . ' ' . __('No tags'), true, 'ubButton');
             return ($result);
+        }
+
+        /**
+         * loads no tag user names into private data property
+         * 
+         * @return void
+         */
+        protected function loadNoTagUsers() {
+            $this->notags = $this->getNoTagged();
+        }
+
+        /**
+         * Returns array of users without tags
+         * 
+         * @return array
+         */
+        protected function getNoTagged() {
+            $query = 'SELECT `users`.`login`,`tags`.`id` FROM `users` LEFT JOIN `tags` ON `users`.`login`=`tags`.`login` WHERE `tags`.`id` IS NULL ORDER BY `tags`.`id` ASC';
+            $notags = simple_queryall($query);
+            return ($notags);
+        }
+
+        /**
+         * Renders tag grid for users that no tagged
+         * 
+         * @return void
+         */
+        public function renderNoTagGrid() {
+            $result = $this->panel();
+            $userArr = array();
+            //usage of this in constructor significantly reduces performance
+            $this->loadNoTagUsers();
+            if (!empty($this->notags)) {
+                foreach ($this->notags as $key => $user) {
+                    $userArr[] = $user['login'];
+                }
+            }
+            $result.=web_UserArrayShower($userArr);
+            show_window(__('No tags'), $result);
         }
 
         /**
@@ -282,13 +325,15 @@ if (cfr('TAGS')) {
      */
 
 
-
     $tagCloud = new TagCloud();
 
 //show cloud or grid tag view
     if (!wf_CheckGet(array('gridview'))) {
         if (wf_CheckGet(array('report'))) {
             $tagCloud->renderReport();
+        } elseif (isset($_GET['notags']) and ( $_GET['notags']) == TRUE) {
+            // show users which not have a tag
+            $tagCloud->renderNoTagGrid();
         } else {
             //default tag cloud
             $tagCloud->renderTagCloud();

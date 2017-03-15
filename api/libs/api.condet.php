@@ -213,68 +213,45 @@ class ConnectionDetails {
         $allrealnames = zb_UserGetAllRealnames();
         $allStgData_raw = zb_UserGetAllStargazerData();
         $userData = array();
+        $rowData = array();
+        $jsonData = new wf_JqDtHelper();
+
         if (!empty($allStgData_raw)) {
             foreach ($allStgData_raw as $io => $each) {
                 $userData[$each['login']] = $each;
             }
         }
 
-        $result = '{ 
-                  "aaData": [ ';
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ', false);
-                $profileLink = str_replace('"', '', $profileLink);
-                $profileLink = str_replace("'", '', $profileLink);
-                $profileLink = trim($profileLink);
-
                 $userAddress = @$alladdress[$each['login']];
-                $userAddress = str_replace("'", '`', $userAddress);
-                $userAddress = str_replace('"', '``', $userAddress);
-                $userAddress = trim($userAddress);
-
                 $userRealname = @$allrealnames[$each['login']];
-                $userRealname = str_replace("'", '`', $userRealname);
-                $userRealname = str_replace('"', '``', $userRealname);
-                $userRealname = trim($userRealname);
-
                 @$cash = $userData[$each['login']]['Cash'];
                 @$credit = $userData[$each['login']]['Credit'];
-
                 $act = wf_img('skins/icon_active.gif') . __('Yes');
                 //finance check
                 if ($cash < '-' . $credit) {
                     $act = wf_img('skins/icon_inactive.gif') . __('No');
                 }
 
-
-                $act = str_replace('"', '', $act);
-                $act = trim($act);
-
-                $result.='
-                    [
-                    "' . $profileLink . $userAddress . '",
-                    "' . $userRealname . '",
-                    "' . @$userData[$each['login']]['IP'] . '",
-                    "' . @$userData[$each['login']]['Tariff'] . '",
-                    "' . $act . '",
-                    "' . $cash . '",
-                    "' . $credit . '",
-                    "' . $each['seal'] . '",
-                    "' . $each['price'] . '",
-                    "' . $each['length'] . '",
-                    "' . 'CREDIT' . '"
-                    ],';
+                $rowData[] = $profileLink . $userAddress;
+                $rowData[] = $userRealname;
+                $rowData[] = @$userData[$each['login']]['IP'];
+                $rowData[] = @$userData[$each['login']]['Tariff'];
+                $rowData[] = $act;
+                $rowData[] = $cash;
+                $rowData[] = $credit;
+                $rowData[] = $each['seal'];
+                $rowData[] = $each['price'];
+                $rowData[] = $each['length'];
+                $jsonData->addRow($rowData);
+                unset($rowData);
             }
         }
 
-        $result = substr($result, 0, -1);
-
-        $result.='] 
-        }';
-
-        die($result);
+        $jsonData->getJson();
     }
 
     /**
@@ -284,31 +261,18 @@ class ConnectionDetails {
      */
     public function ajaxGetDataUkv() {
         $ukv = new UkvSystem();
+        $jsonData = new wf_JqDtHelper();
 
         $query = "SELECT * from `ukv_users` WHERE `cableseal` != '' ;";
         $all = simple_queryall($query);
+        $rowData = array();
 
-        $result = '{ 
-                  "aaData": [ ';
 
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $profileLink = wf_Link('?module=ukv&users=true&showuser=' . $each['id'], web_profile_icon() . ' ', false);
-                $profileLink = str_replace('"', '', $profileLink);
-                $profileLink = str_replace("'", '', $profileLink);
-                $profileLink = trim($profileLink);
-
                 $userAddress = @$ukv->userGetFullAddress($each['id']);
-                $userAddress = str_replace("'", '`', $userAddress);
-                $userAddress = str_replace('"', '``', $userAddress);
-                $userAddress = trim($userAddress);
-
                 $userRealname = $each['realname'];
-                $userRealname = str_replace("'", '`', $userRealname);
-                $userRealname = str_replace('"', '``', $userRealname);
-                $userRealname = trim($userRealname);
-
-
 
                 $act = wf_img('skins/icon_active.gif') . __('Yes');
                 //finance check
@@ -316,27 +280,20 @@ class ConnectionDetails {
                     $act = wf_img('skins/icon_inactive.gif') . __('No');
                 }
 
-                $act = str_replace('"', '', $act);
-                $act = trim($act);
 
-                $result.='
-                    [
-                    "' . $profileLink . $userAddress . '",
-                    "' . $userRealname . '",
-                    "' . $ukv->tariffGetName($each['tariffid']) . '",
-                    "' . $act . '",
-                    "' . $each['cash'] . '",
-                    "' . $each['cableseal'] . '"
-                    ],';
+
+                $rowData[] = $profileLink . $userAddress;
+                $rowData[] = $userRealname;
+                $rowData[] = $ukv->tariffGetName($each['tariffid']);
+                $rowData[] = $act;
+                $rowData[] = $each['cash'];
+                $rowData[] = $each['cableseal'];
+                $jsonData->addRow($rowData);
+                unset($rowData);
             }
         }
 
-        $result = substr($result, 0, -1);
-
-        $result.='] 
-        }';
-
-        die($result);
+        $jsonData->getJson();
     }
 
 }
