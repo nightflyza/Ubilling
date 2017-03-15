@@ -2431,6 +2431,7 @@ $lang['def']['Contract duplicate'] = 'Дублікат угоди';
 $lang['def']['Empty address'] = 'Порожня адреса';
 $lang['def']['Empty contract'] = 'Порожня угода';
 $lang['def']['No tags'] = 'Без тегів';
+$lang['def']['Current year'] = 'Поточний рік';
 
 
 ?>

@@ -212,6 +212,7 @@ class OpenPayz {
     public function renderGraphs() {
         $psysdata = array();
         $gcAllData = array();
+        $gcYearData = array();
         $gcMonthData = array();
         $gchartsData = array();
 
@@ -236,6 +237,7 @@ class OpenPayz {
             foreach ($this->allTransactions as $io => $each) {
                 $timestamp = strtotime($each['date']);
                 $curMonth = curmonth();
+                $curYear = curyear();
                 $date = date("Y-m", $timestamp);
                 if (isset($psysdata[$each['paysys']][$date]['count'])) {
                     $psysdata[$each['paysys']][$date]['count'] ++;
@@ -252,6 +254,15 @@ class OpenPayz {
                     $gcAllData[$each['paysys']] = 1;
                 }
 
+                //current year stats
+                if (ispos($date, $curYear)) {
+                    if (isset($gcYearData[$each['paysys']])) {
+                        $gcYearData[$each['paysys']] ++;
+                    } else {
+                        $gcYearData[$each['paysys']] = 1;
+                    }
+                }
+
                 //current month stats
                 if (ispos($date, $curMonth)) {
                     if (isset($gcMonthData[$each['paysys']])) {
@@ -265,18 +276,25 @@ class OpenPayz {
         $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
 
         if (!empty($gcAllData)) {
-            $gcAllPie = wf_gcharts3DPie($gcAllData, __('All time'), '400px', '400px', $chartOpts);
+            $gcAllPie = wf_gcharts3DPie($gcAllData, __('All time'), '300px', '300px', $chartOpts);
         } else {
             $gcAllPie = '';
         }
 
         if (!empty($gcMonthData)) {
-            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '400px', '400px', $chartOpts);
+            $gcMonthPie = wf_gcharts3DPie($gcMonthData, __('Current month'), '300px', '300px', $chartOpts);
         } else {
             $gcMonthPie = '';
         }
 
+        if (!empty($gcYearData)) {
+            $gcYearPie = wf_gcharts3DPie($gcMonthData, __('Current year'), '300px', '300px', $chartOpts);
+        } else {
+            $gcYearPie = '';
+        }
+
         $gcells = wf_TableCell($gcAllPie);
+        $gcells.= wf_TableCell($gcYearPie);
         $gcells.= wf_TableCell($gcMonthPie);
         $grows = wf_TableRow($gcells);
         $result.=wf_TableBody($grows, '100%', 0, '');
@@ -343,14 +361,14 @@ class OpenPayz {
      * Retruns json data for jquery data tables with transactions list
      * 
      * @global object $ubillingConfig
-     * @return string
+     * 
+     * @return void
      */
     public function transactionAjaxSource() {
         $manual_mode = $this->altCfg['OPENPAYZ_MANUAL'];
         $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
         $alltransactions = simple_queryall($query);
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
 
 
         if (!empty($alltransactions)) {
@@ -369,15 +387,7 @@ class OpenPayz {
 
                 @$user_login = $this->allCustomers[$eachtransaction['customerid']];
                 @$user_realname = $this->allRealnames[$user_login];
-                $user_realname = str_replace('"', '', $user_realname);
-                $user_realname = str_replace('\\', '', $user_realname);
-                $user_realname = trim($user_realname);
-
                 @$user_address = $this->allAddress[$user_login];
-                $user_address = trim($user_address);
-                $user_address = str_replace("'", '`', $user_address);
-                $user_address = mysql_real_escape_string($user_address);
-
 
                 if (!empty($user_login)) {
                     $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon());
@@ -388,29 +398,23 @@ class OpenPayz {
                 }
 
                 $stateIcon = web_bool_led($eachtransaction['processed']);
-                $stateIcon = str_replace('"', '', $stateIcon);
-                $stateIcon = trim($stateIcon) . ' ' . $control;
 
+                $data[] = $eachtransaction['id'];
+                $data[] = $eachtransaction['date'];
+                $data[] = $eachtransaction['summ'];
+                $data[] = $eachtransaction['customerid'];
+                $data[] = $user_realname;
+                $data[] = $profileLink . ' ' . $user_address;
+                $data[] = $eachtransaction['paysys'];
+                $data[] = $stateIcon;
 
-                $result.='
-                    [
-                    "' . $eachtransaction['id'] . '",
-                    "' . $eachtransaction['date'] . '",
-                    "' . $eachtransaction['summ'] . '",
-                    "' . $eachtransaction['customerid'] . '",
-                    "' . $user_realname . '",
-                    "' . $profileLink . ' ' . $user_address . '",
-                    "' . $eachtransaction['paysys'] . '",
-                    "' . $stateIcon . '"
-                    ],';
+                $json->addRow($data);
+                unset($data);
             }
         }
-        $result = substr($result, 0, -1);
 
-        $result.='] 
-        }';
 
-        return ($result);
+        $json->getJson();
     }
 
     /**
