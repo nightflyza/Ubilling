@@ -2432,6 +2432,7 @@ $lang['def']['Empty address'] = 'Порожня адреса';
 $lang['def']['Empty contract'] = 'Порожня угода';
 $lang['def']['No tags'] = 'Без тегів';
 $lang['def']['Current year'] = 'Поточний рік';
-
+$lang['def']['Branch'] = 'Філія';
+$lang['def']['Payments by month'] = 'Оплати за місяць';
 
 ?>
