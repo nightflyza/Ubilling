@@ -412,9 +412,11 @@ class VlanGen {
      * @return int $vlan
      */
     public function GetVlan($login) {
-	foreach ($this->AllVlanHosts as $each => $io) {
-	    if ($io['login'] == $login) {
-		return($io['vlan']);
+	if (!empty($this->AllVlanHosts)) {
+	    foreach ($this->AllVlanHosts as $each => $io) {
+		if ($io['login'] == $login) {
+		    return($io['vlan']);
+		}
 	    }
 	}
     }
@@ -2129,9 +2131,11 @@ class OnuConfigurator {
      */
     protected function loadOltModels() {
 	$rawModels = zb_SwitchModelsGetAll();
-	foreach ($rawModels as $io => $each) {
-	    $this->allOltModels[$each['id']]['modelname']	 = $each['modelname'];
-	    $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+	if (!empty($rawModels)) {
+	    foreach ($rawModels as $io => $each) {
+		$this->allOltModels[$each['id']]['modelname']	 = $each['modelname'];
+		$this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+	    }
 	}
     }
 
@@ -2179,10 +2183,12 @@ class OnuConfigurator {
     protected function GetOnuMac($login) {
 	$allOnu	 = $this->allOnu;
 	$result	 = array();
-	foreach ($allOnu as $eachOnu => $each) {
-	    if ($each['login'] == $login) {
-		$result[]	 = $each['mac'];
-		$result[]	 = $each['oltid'];
+	if (!empty($allOnu)) {
+	    foreach ($allOnu as $eachOnu => $each) {
+		if ($each['login'] == $login) {
+		    $result[]	 = $each['mac'];
+		    $result[]	 = $each['oltid'];
+		}
 	    }
 	}
 	return $result;
@@ -2204,8 +2210,9 @@ class OnuConfigurator {
 	    }
 	    $string = implode(".", $res);
 	    return ($string);
-	} else
+	} else {
 	    show_error("Wrong mac format (shoud be XX:XX:XX:XX:XX:XX)");
+	}
     }
 
     /**
@@ -2437,9 +2444,12 @@ class OnuConfigurator {
  * @return string
  */
 function UserGetLoginByIP($ip) {
+    $login	 = '';
     $query	 = "SELECT * FROM `users` WHERE `ip`='" . $ip . "'";
     $res	 = simple_query($query);
-    $login	 = $res['login'];
+    if (!empty($res)) {
+	$login = $res['login'];
+    }
     return($login);
 }
 
@@ -2447,8 +2457,10 @@ function GetAllUserIp() {
     $query	 = "SELECT ip,login FROM `users`";
     $data	 = simple_queryall($query);
     $result	 = array();
-    foreach ($data as $each) {
-	$result[$each['ip']] = $each['login'];
+    if (!emtpy($data)) {
+	foreach ($data as $each) {
+	    $result[$each['ip']] = $each['login'];
+	}
     }
     return($result);
 }
@@ -2461,8 +2473,10 @@ function GetAllUserVlan() {
     $query	 = "SELECT * FROM `vlanhosts`";
     $result	 = array();
     $data	 = simple_queryall($query);
-    foreach ($data as $each) {
-	$result[$each['login']] = $each['vlan'];
+    if (!empty($data)) {
+	foreach ($data as $each) {
+	    $result[$each['login']] = $each['vlan'];
+	}
     }
     return($result);
 }
@@ -2471,8 +2485,10 @@ function GetAllUserOnu() {
     $query	 = "SELECT * FROM `pononu`";
     $result	 = array();
     $data	 = simple_queryall($query);
-    foreach ($data as $each) {
-	$result[$each['login']] = $each['mac'];
+    if (!empty($data)) {
+	foreach ($data as $each) {
+	    $result[$each['login']] = $each['mac'];
+	}
     }
     return($result);
 }
@@ -2487,7 +2503,11 @@ function GetAllUserOnu() {
 function UserGetVlan($login) {
     $query	 = "select vlan from vlanhosts where login='" . $login . "'";
     $vlan	 = simple_query($query);
-    return($vlan['vlan']);
+    $result	 = '';
+    if (!empty($vlan)) {
+	$result = $vlan['vlan'];
+    }
+    return $result;
 }
 
 /**
@@ -2500,7 +2520,11 @@ function UserGetVlan($login) {
 function GetNetidByIP($ip) {
     $query	 = "SELECT `netid` FROM `nethosts` WHERE `ip`='" . $ip . "'";
     $res	 = simple_query($query);
-    return($res['netid']);
+    $result	 = '';
+    if (!empty($res)) {
+	$result = $res['netid'];
+    }
+    return $result;
 }
 
 /**
@@ -2513,7 +2537,11 @@ function GetNetidByIP($ip) {
 function GetTermRemoteByNetid($netid) {
     $query	 = "SELECT `remote-id` FROM `vlan_terminators` where `netid`='" . $netid . "'";
     $remote	 = simple_query($query);
-    return($remote ['remote-id'] );
+    $result	 = '';
+    if (!empty($remote)) {
+	$result = $remote['remote-id'];
+    }
+    return $result;
 }
 
 /**
