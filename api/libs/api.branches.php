@@ -573,12 +573,12 @@ class UbillingBranches {
                     $cells.= wf_TableCell($each['admin']);
                     $cells.= wf_TableCell($each['login']);
                     $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
-                    $userLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon()).' ';
-                    $cells.= wf_TableCell($userLink.$each['address']);
+                    $userLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon()) . ' ';
+                    $cells.= wf_TableCell($userLink . $each['address']);
                     $rows.= wf_TableRow($cells, 'row3');
                 }
 
-                $result.=wf_tag('br') . wf_tag('b') . __('Month signups') . wf_tag('b', true) . wf_tag('br');
+                $result.=wf_tag('br') . wf_tag('b') . __('Current month user signups') . wf_tag('b', true) . wf_tag('br');
                 $result.=wf_TableBody($rows, '100%', 0, 'sortable');
             }
         } else {
@@ -586,6 +586,21 @@ class UbillingBranches {
         }
 
 
+        return ($result);
+    }
+
+    /**
+     * Returns branches management form
+     * 
+     * @return string
+     */
+    public function renderSettingsBranches() {
+        $result = '';
+        if (cfr('BRANCHESCONF')) {
+            
+        } else {
+            $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
+        }
         return ($result);
     }
 

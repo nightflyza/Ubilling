@@ -2422,7 +2422,6 @@ $lang['def']['Payments by month'] = 'Оплаты за месяц';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
 
 
 
