@@ -120,7 +120,7 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $telegram = mysql_real_escape_string($telegram);
     $admlogin = mysql_real_escape_string($admlogin);
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`,`telegram`, `admlogin`,`active`)
-            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "'," . $telegram . " ,'" . $admlogin . "' , '1'); ";
+            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1'); ";
     nr_query($query);
     log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
 }

@@ -109,7 +109,39 @@ function zb_AddressListCityAllIds() {
  * @return array
  */
 function zb_AddressGetCityAllData() {
-    $query = "SELECT * from `city` ORDER by `id` ASC";
+    $altCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    $order = (isset($altCfg['CITY_ORDER'])) ? $altCfg['CITY_ORDER'] : 'default';
+    $validStates = array('name', 'namerev', 'id', 'idrev', 'alias', 'aliasrev', 'default');
+    $validStates = array_flip($validStates);
+    if ((isset($validStates[$order])) AND ( $order != 'default')) {
+        switch ($order) {
+            case 'name':
+                $sqlOrder = "ORDER by `cityname` ASC";
+                break;
+            case 'namerev':
+                $sqlOrder = "ORDER by `cityname` DESC";
+                break;
+            case 'id':
+                $sqlOrder = "ORDER by `id` ASC";
+                break;
+            case 'idrev':
+                $sqlOrder = "ORDER by `id` DESC";
+                break;
+            case 'alias':
+                $sqlOrder = "ORDER by `cityalias` ASC";
+                break;
+            case 'aliasrev':
+                $sqlOrder = "ORDER by `cityalias` DESC";
+                break;
+            case 'default':
+                $sqlOrder = "ORDER by `id` ASC";
+                break;
+        }
+    } else {
+        $sqlOrder = "ORDER by `id` ASC";
+    }
+
+    $query = "SELECT * from `city` " . $sqlOrder;
     $all_data = simple_queryall($query);
     return($all_data);
 }

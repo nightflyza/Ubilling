@@ -376,8 +376,6 @@ class OpenPayz {
                 if ($manual_mode) {
                     if ($eachtransaction['processed'] == 0) {
                         $control = wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
-                        $control = str_replace('"', '', $control);
-                        $control = trim($control);
                     } else {
                         $control = '';
                     }
@@ -391,8 +389,6 @@ class OpenPayz {
 
                 if (!empty($user_login)) {
                     $profileLink = wf_Link('?module=userprofile&username=' . $user_login, web_profile_icon());
-                    $profileLink = str_replace('"', '', $profileLink);
-                    $profileLink = trim($profileLink);
                 } else {
                     $profileLink = '';
                 }
