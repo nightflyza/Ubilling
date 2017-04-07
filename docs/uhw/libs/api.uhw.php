@@ -1,4 +1,4 @@
-<?
+<?php
 
 //reads uhw config file
 function uhw_LoadConfig() {

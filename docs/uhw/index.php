@@ -50,7 +50,6 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 		uhw_MacDisplay($usermac);
 
 		if ($uconf['SELFACT_ENABLED']) {
-			$db=new MySQLDB;
 
 		   //is all passwords unique?
 		   $brute_attempts=  uhw_GetBrute($usermac);
