@@ -55,7 +55,7 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 		   //is all passwords unique?
 		   $brute_attempts=  uhw_GetBrute($usermac);
 		   if ($brute_attempts<$uconf['SELFACT_BRUTE']) {
-			   if (!uhw_IsMacUnique($usermac)) {
+			   if (uhw_IsMacUnique($usermac)) {
 				   //catch actiivation request
 				   if (isset($_POST['password']) and isset($_POST['login'])) {
 					   if (!empty($_POST['password']) and !empty($_POST['login'])) {
