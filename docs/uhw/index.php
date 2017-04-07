@@ -44,6 +44,7 @@ $uconf=  uhw_LoadConfig();
 $remote_ip=$_SERVER['REMOTE_ADDR'];
 
 if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
+
 	$usermac=uhw_FindMac($remote_ip);
 	if ($usermac) {
 		//show user mac 
@@ -58,13 +59,13 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 				   //catch actiivation request
 				   if (isset($_POST['password']) and isset($_POST['login'])) {
 					   if (!empty($_POST['password']) and !empty($_POST['login'])) {
-						  $trylogin1=$_POST['login'];
+						  $trylogin=$_POST['login'];
 						  $trypassword=$_POST['password'];
-						  $trylogin=uhw_FindUserByPassword($trypassword, $trylogin1);
-						  if ($trylogin) {
+						  $userlogin=uhw_FindUserByPassword($trypassword, $trylogin);
+						  if ($userlogin) {
 							  //password ok, we know user login
 							  // lets detect his ip
-							  $tryip=uhw_UserGetIp($trylogin);
+							  $tryip=uhw_UserGetIp($userlogin);
 							  if ($tryip) {
 								  //get nethost id
 								  $nethost_id=  uhw_NethostGetID($tryip);
@@ -73,8 +74,8 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 									  //and call rebuild handlers and user reset API calls
 									  $oldmac=  uhw_NethostGetMac($nethost_id);
 									  uhw_ChangeMac($nethost_id,$usermac);
-									  uhw_LogSelfact($trypassword, $trylogin, $tryip, $nethost_id, $oldmac, $usermac);
-									  uhw_RemoteApiPush($uconf['UBILLING_REMOTE'],$uconf['UBILLING_SERIAL'],'reset',$trylogin);
+									  uhw_LogSelfact($trypassword, $userlogin, $tryip, $nethost_id, $oldmac, $usermac);
+									  uhw_RemoteApiPush($uconf['UBILLING_REMOTE'],$uconf['UBILLING_SERIAL'],'reset',$userlogin);
 									  uhw_RemoteApiPush($uconf['UBILLING_REMOTE'],$uconf['UBILLING_SERIAL'],'handlersrebuild');
 									 
 									  print(uhw_modal_open($uconf['SUP_SELFACT'], $uconf['SUP_SELFACTDONE'], '400', '300'));
@@ -87,7 +88,7 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 							  
 						  } else {
 							 //wrong password action
-							 uhw_LogBrute($trypassword, $usermac);
+							 uhw_LogBrute($trypassword, $trylogin, $usermac);
 							 print(uhw_modal_open($uconf['SUP_ERROR'], $uconf['SUP_WRONGPASS'], '400', '300'));
 						  }  
 					   } 
@@ -110,7 +111,7 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 	}
 } else {
 	 //not unknown user network
-	 uhw_redirect($uconf['ISP_URL']);
+	uhw_redirect($uconf['ISP_URL']);
 }
 ?>
        
@@ -130,7 +131,7 @@ if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
 <div id="footer-content" class="container">
 	<div id="footer-bg">
 		<div id="column1">
-			<p>&copy; 2012 <a href="<?=$uconf['ISP_URL'];?>"><?=$uconf['ISP_NAME'];?></a></p>
+			<p>&copy; <?php echo date('Y');?> <a href="<?=$uconf['ISP_URL'];?>"><?=$uconf['ISP_NAME'];?></a></p>
 		</div>
 		<div id="column2">
 				<?=$uconf['SUP_DESC'];?><br>
