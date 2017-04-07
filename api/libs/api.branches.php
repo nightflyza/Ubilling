@@ -295,7 +295,6 @@ class UbillingBranches {
         } else {
             $result = true;
         }
-        //deb($login.'->'.  var_export($result,true));
         return ($result);
     }
 
@@ -323,7 +322,8 @@ class UbillingBranches {
         $result = '';
         if (cfr('BRANCHES')) {
             $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
-            $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
+            $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
+            $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
         }
         if (cfr('BRANCHESCONF')) {
             $result.=wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
@@ -369,34 +369,36 @@ class UbillingBranches {
      */
     public function renderUserListJson() {
         $json = new wf_JqDtHelper();
-        if (!empty($this->myUsers)) {
+        if (!empty($this->branchesLogins)) {
             $allAddress = zb_AddressGetFulladdresslistCached();
             $allRealNames = zb_UserGetAllRealnames();
             $allUserData = zb_UserGetAllStargazerDataAssoc();
             $dnFlag = $this->altCfg['DN_ONLINE_DETECT'] ? true : false;
-            foreach ($this->myUsers as $login => $branchId) {
-                if (isset($allUserData[$login])) {
-                    $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
-                    $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon());
-                    @$userAddress = $allAddress[$login];
-                    @$userRealName = $allRealNames[$login];
-                    $activeFlag = ($allUserData[$login]['Cash'] >= -$allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+            foreach ($this->branchesLogins as $login => $branchId) {
+                if ($this->isMyUser($login)) {
+                    if (isset($allUserData[$login])) {
+                        $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
+                        $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon());
+                        @$userAddress = $allAddress[$login];
+                        @$userRealName = $allRealNames[$login];
+                        $activeFlag = ($allUserData[$login]['Cash'] >= -$allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
 
-                    $data[] = $userLinks . ' ' . $userAddress;
-                    $data[] = $userRealName;
-                    $data[] = $this->getBranchName($branchId);
-                    $data[] = $allUserData[$login]['IP'];
-                    $data[] = $allUserData[$login]['Tariff'];
-                    $data[] = $activeFlag;
-                    if ($dnFlag) {
-                        $onlineFlag = (file_exists('content/dn/' . $login)) ? web_star() . ' ' . __('Yes') : web_star_black() . ' ' . __('No');
-                        $data[] = $onlineFlag;
+                        $data[] = $userLinks . ' ' . $userAddress;
+                        $data[] = $userRealName;
+                        $data[] = $this->getBranchName($branchId);
+                        $data[] = $allUserData[$login]['IP'];
+                        $data[] = $allUserData[$login]['Tariff'];
+                        $data[] = $activeFlag;
+                        if ($dnFlag) {
+                            $onlineFlag = (file_exists('content/dn/' . $login)) ? web_star() . ' ' . __('Yes') : web_star_black() . ' ' . __('No');
+                            $data[] = $onlineFlag;
+                        }
+                        $data[] = zb_TraffToGb(($allUserData[$login]['D0'] + $allUserData[$login]['U0']));
+                        $data[] = $allUserData[$login]['Cash'];
+                        $data[] = $allUserData[$login]['Credit'];
+                        $json->addRow($data);
+                        unset($data);
                     }
-                    $data[] = zb_TraffToGb(($allUserData[$login]['D0'] + $allUserData[$login]['U0']));
-                    $data[] = $allUserData[$login]['Cash'];
-                    $data[] = $allUserData[$login]['Credit'];
-                    $json->addRow($data);
-                    unset($data);
                 }
             }
         }
@@ -459,22 +461,24 @@ class UbillingBranches {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($all as $io => $each) {
-                if ($this->isMyUser($each['login'])) {
-                    $cells = wf_TableCell($each['id']);
-                    $cells.= wf_TableCell($each['date']);
-                    $cells.= wf_TableCell($each['summ']);
-                    $loginLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon() . ' ' . $each['login']);
-                    $cells.= wf_TableCell($loginLink);
-                    $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                    $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                    $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
-                    $cells.= wf_TableCell(__($paymentTypes[$each['cashtypeid']]));
-                    $cells.= wf_TableCell(zb_TranslatePaymentNote($each['note'], $allservicenames));
-                    $cells.= wf_TableCell($each['admin']);
-                    $rows.= wf_TableRow($cells, 'row3');
-                    if ($each['summ'] > 0) {
-                        $totalSumm+=$each['summ'];
-                        $totalCount++;
+                if (isset($this->branchesLogins[$each['login']])) {
+                    if ($this->isMyUser($each['login'])) {
+                        $cells = wf_TableCell($each['id']);
+                        $cells.= wf_TableCell($each['date']);
+                        $cells.= wf_TableCell($each['summ']);
+                        $loginLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon() . ' ' . $each['login']);
+                        $cells.= wf_TableCell($loginLink);
+                        $cells.= wf_TableCell(@$allAddress[$each['login']]);
+                        $cells.= wf_TableCell(@$allRealNames[$each['login']]);
+                        $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
+                        $cells.= wf_TableCell(__($paymentTypes[$each['cashtypeid']]));
+                        $cells.= wf_TableCell(zb_TranslatePaymentNote($each['note'], $allservicenames));
+                        $cells.= wf_TableCell($each['admin']);
+                        $rows.= wf_TableRow($cells, 'row3');
+                        if ($each['summ'] > 0) {
+                            $totalSumm+=$each['summ'];
+                            $totalCount++;
+                        }
                     }
                 }
             }
@@ -488,6 +492,114 @@ class UbillingBranches {
             $result.= wf_tag('b', true);
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders branch users signup report
+     * 
+     * @return string
+     */
+    public function renderSignupReport() {
+        $result = '';
+        $showYear = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : curyear();
+        $query = "SELECT * from `userreg` WHERE `date` LIKE '" . $showYear . "-%' ORDER BY `id` DESC";
+        $all = simple_queryall($query);
+        $yearTmp = array();
+        $yearCount = 0;
+        $todayCount = 0;
+        $monthNames = months_array_localized();
+        $curDate = curdate();
+        $curMonth = curmonth();
+        $monthSignupsTmp = array();
+        //preparing per year stats array
+        foreach ($monthNames as $monthNum => $monthName) {
+            $yearTmp[$monthNum] = 0;
+        }
+
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                if (isset($this->branchesLogins[$each['login']])) {
+                    if ($this->isMyUser($each['login'])) {
+                        if (ispos($each['date'], $curDate)) {
+                            $todayCount++;
+                        }
+                        if (ispos($each['date'], $curMonth)) {
+                            $monthSignupsTmp[$each['id']] = $each;
+                        }
+                        $regTimestamp = strtotime($each['date']);
+                        $regMonth = date("m", $regTimestamp);
+                        $yearTmp[$regMonth] ++;
+                        $yearCount++;
+                    }
+                }
+            }
+
+            $result.=$this->messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('b') . $todayCount . wf_tag('b', true), 'info');
+            $inputs = wf_YearSelector('yearsel', 'Year') . ' ';
+            $inputs.= wf_Submit(__('Show'));
+            $result.= wf_delimiter();
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=wf_CleanDiv();
+
+            $cells = wf_TableCell('');
+            $cells.= wf_TableCell(__('Month'));
+            $cells.= wf_TableCell(__('Signups'));
+            $cells.= wf_TableCell(__('Visual'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($yearTmp as $eachMonth => $monthCount) {
+                $cells = wf_TableCell($eachMonth);
+                $cells.= wf_TableCell($monthNames[$eachMonth]);
+                $cells.= wf_TableCell($monthCount);
+                $cells.= wf_TableCell(web_bar($monthCount, $yearCount));
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result.=wf_tag('br') . wf_tag('b') . __('User signups by year') . ' ' . $showYear . wf_tag('b', true) . wf_tag('br');
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+
+            if (!empty($monthSignupsTmp)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Date'));
+                $cells.= wf_TableCell(__('Administrator'));
+                $cells.= wf_TableCell(__('Login'));
+                $cells.= wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell(__('Full address'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($monthSignupsTmp as $io => $each) {
+                    $cells = wf_TableCell($each['id']);
+                    $cells.= wf_TableCell($each['date']);
+                    $cells.= wf_TableCell($each['admin']);
+                    $cells.= wf_TableCell($each['login']);
+                    $cells.= wf_TableCell(@$this->getBranchName($this->branchesLogins[$each['login']]));
+                    $userLink = wf_Link(self::URL_USERPROFILE . $each['login'], web_profile_icon()) . ' ';
+                    $cells.= wf_TableCell($userLink . $each['address']);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+
+                $result.=wf_tag('br') . wf_tag('b') . __('Current month user signups') . wf_tag('b', true) . wf_tag('br');
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+
+
+        return ($result);
+    }
+
+    /**
+     * Returns branches management form
+     * 
+     * @return string
+     */
+    public function renderSettingsBranches() {
+        $result = '';
+        if (cfr('BRANCHESCONF')) {
+            
+        } else {
+            $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
         return ($result);
     }
