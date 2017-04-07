@@ -308,7 +308,7 @@ function uhw_GetBrute($mac) {
     return ($data['COUNT(`id`)']);
 }
 
-function uhw_LogBrute($password,$mac) {
+function uhw_LogBrute($password,$login,$mac) {
 	global $loginDB;
     $password= $loginDB->real_escape_string($password);
     $date=date("Y-m-d H:i:s");
@@ -316,10 +316,11 @@ function uhw_LogBrute($password,$mac) {
 `id` ,
 `date` ,
 `password` ,
+`login` ,
 `mac`
 )
 VALUES (
-NULL , '".$date."', '".$password."', '".$mac."'
+NULL , '".$date."', '".$password."', '".$login."', '".$mac."'
 );";
    nr_query($query);
     
