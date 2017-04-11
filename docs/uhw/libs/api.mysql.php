@@ -103,16 +103,18 @@ return($result);
 
 //function update single field in table
 function simple_update_field($tablename,$field,$value,$where='') {
-	$tablename=mysqli_real_escape_string($tablename);
-	$value=mysqli_real_escape_string($value);
-	$field=mysqli_real_escape_string($field);
+	global $loginDB;
+	$tablename=$loginDB->real_escape_string($tablename);
+	$value=$loginDB->real_escape_string($value);
+	$field=$loginDB->real_escape_string($field);
 	$query="UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
 	nr_query($query);
     }
 
 //function that gets last id from table
 function  simple_get_lastid($tablename) {
-    $tablename=mysqli_real_escape_string($tablename);
+	global $loginDB;
+    $tablename=$loginDB->real_escape_string($tablename);
     $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
     $result=simple_query($db, $query);
     return ($result['id']);
