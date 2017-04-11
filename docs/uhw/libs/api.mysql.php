@@ -90,30 +90,30 @@ return($result);
 
 // function that executing query and returns array of first result
 function simple_query($query) {
-global $loginDB;
-global $query_counter;
-	if (DEBUG) {
-	print ($query."\n");
-}
-$queried = $loginDB->query($query) or die('wrong data input: '.$query);
-$result= mysqli_fetch_assoc($queried);
-$query_counter++;
-return($result);
+    global $loginDB;
+    global $query_counter;
+        if (DEBUG) {
+        print ($query."\n");
+    }
+    $queried = $loginDB->query($query) or die('wrong data input: '.$query);
+    $result= mysqli_fetch_assoc($queried);
+    $query_counter++;
+    return($result);
 }
 
 //function update single field in table
 function simple_update_field($tablename,$field,$value,$where='') {
-	global $loginDB;
-	$tablename=$loginDB->real_escape_string($tablename);
-	$value=$loginDB->real_escape_string($value);
-	$field=$loginDB->real_escape_string($field);
-	$query="UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
-	nr_query($query);
-    }
+    global $loginDB;
+    $tablename=$loginDB->real_escape_string($tablename);
+    $value=$loginDB->real_escape_string($value);
+    $field=$loginDB->real_escape_string($field);
+    $query="UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
+    nr_query($query);
+}
 
 //function that gets last id from table
 function  simple_get_lastid($tablename) {
-	global $loginDB;
+    global $loginDB;
     $tablename=$loginDB->real_escape_string($tablename);
     $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
     $result=simple_query($db, $query);
