@@ -86,6 +86,9 @@ include('api/libs/api.dealwithit.php');
 include('api/libs/api.megogo.php');
 include('api/libs/api.userside.php');
 include('api/libs/api.whois.php');
+include('api/libs/api.selling.php');
+include('api/libs/api.printcard.php');
+include('api/libs/api.generatecard.php');
 include('api/libs/api.email.php');
 include('api/libs/api.exhorse.php');
 include('api/libs/api.telegram.php');
@@ -93,7 +96,9 @@ include('api/libs/api.senddog.php');
 include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
 include('api/libs/api.policedog.php');
+include('api/libs/api.branches.php');
 
+ 
 /*
  * Initial class creation
  */

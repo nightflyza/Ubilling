@@ -32,12 +32,27 @@ if (!function_exists('show_error')) {
 
 }
 
-//fast debug output
+
+/**
+ * Fast debug output
+ * 
+ * @param string $data
+ * 
+ * @return void
+ */
 function deb($data) {
     show_window('DEBUG', $data);
 }
 
-//fast debug output of array
+
+/**
+ * Fast debug output of array
+ * 
+ * @param array $data
+ * 
+ * @return void
+ */
+
 function debarr($data) {
     $result = print_r($data, true);
     $result = '<pre>' . $result . '</pre>';
@@ -54,19 +69,31 @@ function curdatetime() {
     return($currenttime);
 }
 
-//returns current date in mysql DATETIME view
+/**
+ * Returns current date in mysql DATETIME view
+ * 
+ * @return string
+ */
 function curdate() {
     $currentdate = date("Y-m-d");
     return($currentdate);
 }
 
-//returns current month in mysql DATETIME view
+/**
+ * Returns current year-month in mysql DATETIME view
+ * 
+ * @return string
+ */
 function curmonth() {
     $currentmonth = date("Y-m");
     return($currentmonth);
 }
 
-//returns current year
+/**
+ * Returns current year
+ * 
+ * @return string
+ */
 function curyear() {
     $currentyear = date("Y");
     return($currentyear);
@@ -81,8 +108,10 @@ if (!function_exists('__')) {
 
 }
 
-/** * Shows redirection javascript. 
-  @param string $url
+/**
+ * Shows redirection javascript. 
+ * 
+ * @param string $url
  */
 if (!function_exists('rcms_redirect')) {
 

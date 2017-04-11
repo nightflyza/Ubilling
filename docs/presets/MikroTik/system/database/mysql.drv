@@ -91,8 +91,8 @@
         }
 
         private function get_tariff_rate($tariff) {
-            $return = array('tx' => 0, 'rx' => 0);
-            $result = $this->select('speedup, speeddown', 'speeds', array('tariff' => $tariff));
+            $return = array('tx' => 0, 'rx' => 0, 'bt_tx' => 0, 'bt_rx' => 0, 'bt_tx_t' => 0, 'bt_rx_t' => 0);
+            $result = $this->select('speedup, speeddown, burstupload, burstdownload, burstimetupload, bursttimedownload' , 'speeds', array('tariff' => $tariff));
             foreach ($result as $data) {
                 if ( !empty($data['speedup']) ) {
                     $return['tx'] = $data['speedup'];
@@ -102,6 +102,22 @@
                     $return['rx'] = $data['speeddown'];
                     $this->log->message(__CLASS__, "User's tariff RX rate - `" . $data['speeddown'] . "`", 'debug');
                 } else $this->log->message(__CLASS__, "User's tariff has no RX rate limit!", 'error');
+                if ( !empty($data['burstupload']) ) {
+                    $return['bt_tx'] = $data['burstupload'];
+                    $this->log->message(__CLASS__, "User's tariff Burst TX rate - `" . $data['burstupload'] . "`", 'debug');
+                };
+                if ( !empty($data['burstdownload']) ) {
+                    $return['bt_rx'] = $data['burstdownload'];
+                    $this->log->message(__CLASS__, "User's tariff Burst RX rate - `" . $data['burstdownload'] . "`", 'debug');
+                };
+                if ( !empty($data['burstimetupload']) ) {
+                    $return['bt_tx_t'] = $data['burstimetupload'];
+                    $this->log->message(__CLASS__, "User's tariff Burst Time TX rate - `" . $data['burstimetupload'] . "`", 'debug');
+                };
+                if ( !empty($data['bursttimedownload']) ) {
+                    $return['bt_rx_t'] = $data['bursttimedownload'];
+                    $this->log->message(__CLASS__, "User's tariff Burst Time RX rate - `" . $data['bursttimedownload'] . "`", 'debug');
+                };
             }
             return $return;
         }
