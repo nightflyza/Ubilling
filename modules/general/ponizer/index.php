@@ -9,7 +9,7 @@ if ($altCfg['PON_ENABLED']) {
 
         //getting ONU json data for list
         if (wf_CheckGet(array('ajaxonu'))) {
-            die($pon->ajaxOnuData());
+            $pon->ajaxOnuData();
         }
 
         //creating new ONU device

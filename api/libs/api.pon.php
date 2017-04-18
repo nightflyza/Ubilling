@@ -975,9 +975,10 @@ class PONizer {
     /**
      * Renders json formatted data for jquery data tables list
      * 
-     * @return string
+     * @return void
      */
     public function ajaxOnuData() {
+        $json = new wf_JqDtHelper();
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
 
@@ -991,19 +992,13 @@ class PONizer {
         $this->loadSignalsCache();
 
 
-        $result = '{ 
-                  "aaData": [ ';
 
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (!empty($each['login'])) {
                     $userLogin = trim($each['login']);
                     $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
-                    $userLink = str_replace('"', '', $userLink);
-                    $userLink = trim($userLink);
                     @$userRealName = $allRealnames[$userLogin];
-                    $userRealName = str_replace('"', '', $userRealName);
-                    $userRealName = trim($userRealName);
                 } else {
                     $userLink = '';
                     $userRealName = '';
@@ -1011,15 +1006,12 @@ class PONizer {
                 //checking adcomments availability
                 if ($adc) {
                     $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
-                    $indicatorIcon = str_replace('"', '\'', $indicatorIcon);
-                    $indicatorIcon = trim($indicatorIcon);
                 } else {
                     $indicatorIcon = '';
                 }
 
                 $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
-                $actLinks = str_replace('"', '', $actLinks);
-                $actLinks = trim($actLinks);
+
                 $actLinks.= ' ' . $indicatorIcon;
 
 
@@ -1043,29 +1035,23 @@ class PONizer {
                     $sigColor = '#000000';
                 }
 
+                $data[] = $each['id'];
+                $data[] = $this->getModelName($each['onumodelid']);
+                $data[] = @$this->allOltDevices[$each['oltid']];
+                $data[] = $each['ip'];
+                $data[] = $each['mac'];
+                $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('fornt', true);
+                $data[] = $userLink;
+                $data[] = $userRealName;
+                $data[] = $actLinks;
 
-
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $this->getModelName($each['onumodelid']) . '",
-                    "' . @$this->allOltDevices[$each['oltid']] . '",
-                    "' . $each['ip'] . '",
-                    "' . $each['mac'] . '",
-                    "<font color=' . $sigColor . '>' . $signal . '</font>",
-                    "' . $userLink . '",
-                    "' . $userRealName . '",
-                    "' . $actLinks . '"
-                    ],';
+                $json->addRow($data);
+                unset($data);
             }
         }
 
-        $result = substr($result, 0, -1);
 
-        $result.='] 
-        }';
-
-        return ($result);
+        $json->getJson();
     }
 
 }
