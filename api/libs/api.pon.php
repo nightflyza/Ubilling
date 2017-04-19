@@ -504,6 +504,12 @@ class PONizer {
         }
     }
 
+    /**
+     * Converts hex to string value
+     * 
+     * @param string $hex
+     * @return string
+     */
     protected function HexToString($hex) {
         return pack('H*', $hex);
     }
