@@ -942,7 +942,6 @@ class PONizer {
      */
     public function controls() {
         $result = '';
-
         $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton');
         $result.=wf_delimiter();
         return ($result);
