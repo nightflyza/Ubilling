@@ -227,7 +227,7 @@ class PONizer {
 
 
                     if ($distanceRaw == 0) {
-                        $distanceRaw = 'Offline';
+                        // $distanceRaw = ''; //not sure about this
                     }
                     $distTmp[$devIndex] = $distanceRaw;
                 }
