@@ -2419,7 +2419,7 @@ $lang['def']['No tags'] = 'Без тегов';
 $lang['def']['Current year'] = 'Текущий год';
 $lang['def']['Branch'] = 'Филиал';
 $lang['def']['Payments by month'] = 'Оплаты за месяц';
-$lang['def'][''] = '';
+$lang['def']['Distance'] = 'Расстояние';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
