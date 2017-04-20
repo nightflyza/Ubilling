@@ -2435,5 +2435,8 @@ $lang['def']['Current year'] = 'Поточний рік';
 $lang['def']['Branch'] = 'Філія';
 $lang['def']['Payments by month'] = 'Оплати за місяць';
 $lang['def']['Distance'] = 'Відстань';
+$lang['def']['Unknown ONU'] = 'Невідомі ONU';
+$lang['def']['Register new ONU'] = 'Зареєструвати нову ONU';
+
 
 ?>

@@ -59,6 +59,13 @@ class PONizer {
     protected $distanceCache = array();
 
     /**
+     * Contains ONU indexes cache as mac=>oltid
+     *
+     * @var array
+     */
+    protected $onuIndexCache = array();
+
+    /**
      * System alter.ini config stored as key=>value
      *
      * @var array
@@ -79,6 +86,7 @@ class PONizer {
     const DISTCACHE_EXT = 'OLTDISTANCE';
     const ONUCACHE_PATH = 'exports/';
     const ONUCACHE_EXT = 'ONUINDEX';
+    const URL_ME = '?module=ponizer';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
@@ -839,6 +847,34 @@ class PONizer {
     }
 
     /**
+     * Returns ONU fast registration form
+     * 
+     * @param int $oltId
+     * @param string $onuMac
+     * 
+     * @return string
+     */
+    public function onuRegisterForm($oltId, $onuMac) {
+        $models = array();
+        if (!empty($this->allModelsData)) {
+            foreach ($this->allModelsData as $io => $each) {
+                $models[$each['id']] = $each['modelname'];
+            }
+        }
+
+        $inputs = wf_HiddenInput('createnewonu', 'true');
+        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
+        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+        $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
+        $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20);
+        $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+        $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
+        $inputs.= wf_Submit(__('Create'));
+        $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
      * returns vendor by MAC search control if this enabled in config
      * 
      * @return string
@@ -934,11 +970,11 @@ class PONizer {
             $result.= wf_CleanDiv();
             $result.= wf_delimiter();
 
-            $result.= wf_Link('?module=ponizer', __('Back'), false, 'ubButton');
+            $result.= wf_BackLink(self::URL_ME);
             if (!empty($this->allOnu[$onuId]['login'])) {
                 $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
             }
-            $result.= wf_JSAlertStyled('?module=ponizer&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
+            $result.= wf_JSAlertStyled(self::URL_ME . '&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
@@ -1037,7 +1073,15 @@ class PONizer {
      */
     public function controls() {
         $result = '';
-        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton');
+        if (!wf_CheckGet(array('unknownonulist'))) {
+            $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Register new ONU'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
+            $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+            if (!empty($availOnuCache)) {
+                $result.=wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
+            }
+        } else {
+            $result.=wf_BackLink(self::URL_ME);
+        }
         $result.=wf_delimiter();
         return ($result);
     }
@@ -1056,12 +1100,25 @@ class PONizer {
         }
 
         if ($distCacheAvail) {
-            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Distance', 'Address', 'Real Name', 'Actions');
+            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', __('Distance') . ' (' . __('m') . ')', 'Address', 'Real Name', 'Actions');
         } else {
             $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
         }
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
+        return ($result);
+    }
+
+    /**
+     * Renders unknown ONU list container
+     * 
+     * @return string
+     */
+    public function renderUnknowOnuList() {
+        $result = '';
+        $columns = array('OLT', 'MAC', 'Actions');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -1099,6 +1156,44 @@ class PONizer {
                 }
             }
         }
+    }
+
+    /**
+     * Renders json formatted data about unregistered ONU
+     * 
+     * @return void
+     */
+    public function ajaxOnuUnknownData() {
+        $json = new wf_JqDtHelper();
+        $availCacheData = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::ONUCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                $oltId = explode('_', $each);
+                $oltId = @vf($oltId[0], 3);
+                foreach ($raw as $index => $mac) {
+                    $this->onuIndexCache[$mac] = $oltId;
+                }
+            }
+        }
+
+        if (!empty($this->onuIndexCache)) {
+            foreach ($this->onuIndexCache as $onuMac => $oltId) {
+                //not registered?
+                if ($this->checkMacUnique($onuMac)) {
+                    $oltData = @$this->allOltDevices[$oltId];
+                    $data[] = $oltData;
+                    $data[] = $onuMac;
+                    $actControls = wf_Link(self::URL_ME . '&unknownonulist=true&fastreg=true&oltid=' . $oltId . '&onumac=' . $onuMac, wf_img('skins/add_icon.png', __('Register')));
+                    $data[] = $actControls;
+                    $json->addRow($data);
+                    unset($data);
+                }
+            }
+        }
+
+        $json->getJson();
     }
 
     /**

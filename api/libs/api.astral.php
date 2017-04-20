@@ -2159,6 +2159,20 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
 }
 
 /**
+ * Returns default back control
+ * 
+ * @param type $url
+ * @param type $title
+ * 
+ * @return string
+ */
+function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton') {
+    $title = (empty($title)) ? __('Back') : __($title);
+    $result = wf_Link($url, wf_img('skins/back.png') . ' ' . $title, $br, $class);
+    return ($result);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {

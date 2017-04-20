@@ -2420,6 +2420,10 @@ $lang['def']['Current year'] = 'Текущий год';
 $lang['def']['Branch'] = 'Филиал';
 $lang['def']['Payments by month'] = 'Оплаты за месяц';
 $lang['def']['Distance'] = 'Расстояние';
+$lang['def']['Unknown ONU'] = 'Неизвестные ONU';
+$lang['def']['Register new ONU'] = 'Зарегистрировать новую ONU';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
