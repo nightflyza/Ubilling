@@ -25,7 +25,7 @@ function zb_CardCreate($serial, $cash, $part, $selling) {
  *
  * @return string
  */
-function zb_CardGenerate(array($cardCreate)) {
+function zb_CardGenerate(array $cardCreate) {
     $count = vf($cardCreate['count'], 3);
     $price = vf($cardCreate['price']);
     $part = $cardCreate['part'];
