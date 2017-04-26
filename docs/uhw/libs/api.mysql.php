@@ -90,8 +90,7 @@ return($result);
 
 // function that executing query and returns array of first result
 function simple_query($query) {
-    global $loginDB;
-    global $query_counter;
+    global $loginDB, $query_counter;
         if (DEBUG) {
         print ($query."\n");
     }
@@ -122,8 +121,7 @@ function  simple_get_lastid($tablename) {
 
 // function that just executing query 
 function nr_query($query) {
-	global $loginDB;
-	global $query_counter;
+	global $loginDB, $query_counter;
 	if (DEBUG) {
 		print ($query."\n");
 	}
