@@ -123,7 +123,7 @@ function pbx_UserGetAllRealnames() {
  */
 
 function pbx_UserGetStargazerData($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "';";
     $result = simple_query($query);
     return ($result);
@@ -354,7 +354,7 @@ function pbx_ReplySearch($customerid) {
  * @return int
  */
 function pbx_simple_get_lastid($tablename) {
-    $tablename = mysql_real_escape_string($tablename);
+    $tablename = loginDB_real_escape_string($tablename);
     $query = "SELECT `id` from `" . $tablename . "` ORDER BY `id` DESC LIMIT 1";
     $result = simple_query($query);
     return ($result['id']);
@@ -403,7 +403,7 @@ function pbx_ReplyCheck($customerid) {
  */
 
 function pbx_CheckHash($rawhash) {
-    $rawhash = mysql_real_escape_string($rawhash);
+    $rawhash = loginDB_real_escape_string($rawhash);
     $hash = 'PBX_' . $rawhash;
     $query = "SELECT * from `op_transactions` WHERE `hash`='" . $hash . "';";
     $data = simple_query($query);
