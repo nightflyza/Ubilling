@@ -17,7 +17,7 @@ if (!empty ($_REQUEST['data'])) {
 }
 
 function po_CheckTransaction($hash) {
-    $hash='PORT_'.  mysql_real_escape_string($hash);
+    $hash='PORT_'.  loginDB_real_escape_string($hash);
     $query="SELECT `id` from `op_transactions` WHERE `hash`='".$hash."'";
     $data=  simple_query($query);
     if (!empty($data)) {
