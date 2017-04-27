@@ -70,7 +70,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
         if (!empty($availableServices)) {
             foreach ($availableServices as $eachService) {
                 $eachData = explode(":", $eachService);
-                $serviceTagID[] = isset($eachData[1]);
+                $serviceTagID[] = $eachData[1];
             }
             foreach ($serviceTagID as $eachTagID) {
                 reset($serviceTagID);
@@ -136,7 +136,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 $eq = false;
                 $eachData = explode(":", $eachService);
                 $serviceName = $eachData[0];
-                $serviceTagID = isset($eachData[1]);
+                $serviceTagID = $eachData[1];
                 if (!empty($allSheduledl)) {
                     foreach ($allSheduled as $eachShedule) {
                         if ($eachShedule['param'] === $serviceTagID) {
@@ -252,7 +252,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             foreach ($availableServices as $eachService) {
                 $each = explode(":", $eachService);
                 $name = $each[0];
-                $tagid = isset($each[1]);
+                $tagid = $each[1];
                 if (!empty($allSheduled)) {
                     foreach ($allSheduled as $eachSheduled) {
                         if ($eachSheduled['param'] == $tagid) {
