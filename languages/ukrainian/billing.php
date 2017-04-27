@@ -2437,6 +2437,16 @@ $lang['def']['Payments by month'] = 'Оплати за місяць';
 $lang['def']['Distance'] = 'Відстань';
 $lang['def']['Unknown ONU'] = 'Невідомі ONU';
 $lang['def']['Register new ONU'] = 'Зареєструвати нову ONU';
+$lang['def']['No branches available'] = 'Немає існуючих філій';
+$lang['def']['New branch name'] = 'Ім`я нового філії';
+$lang['def']['right to use branches module'] = 'Право використовувати модуль філій';
+$lang['def']['right to control branches configuration'] = 'Право конфігурувати філії';
+$lang['def']['Branches'] = 'Філії';
+$lang['def']['Branches enabled'] = 'Філії увімкнено';
+$lang['def']['ONU reboot from vlans control module'] = 'Перезавантаження ONU з модулю керування вланами';
+$lang['def']['ONU describe from vlans control module'] = 'Опис ONU з модулю керування вланами';
+$lang['def']['No branches admins available'] = 'Немає ассоційованих з філіями адміністраторів';
+$lang['def']['Administrators'] = 'Адміністратори';
 
 
 ?>

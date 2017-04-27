@@ -2422,12 +2422,16 @@ $lang['def']['Payments by month'] = 'Оплаты за месяц';
 $lang['def']['Distance'] = 'Расстояние';
 $lang['def']['Unknown ONU'] = 'Неизвестные ONU';
 $lang['def']['Register new ONU'] = 'Зарегистрировать новую ONU';
+$lang['def']['No branches available'] = 'Нету существующих филиалов';
+$lang['def']['New branch name'] = 'Имя нового филиала';
+$lang['def']['right to use branches module'] = 'Право использовать модуль филиалов';
+$lang['def']['right to control branches configuration'] = 'Право конфигурировать филиалы';
+$lang['def']['Branches'] = 'Филиалы';
+$lang['def']['Branches enabled'] = 'Филиалы включены';
+$lang['def']['ONU reboot from vlans control module'] = 'Перезагрузка ONU из модуля управления вланами';
+$lang['def']['ONU describe from vlans control module'] = 'Описание ONU из модуля управления вланами';
+$lang['def']['No branches admins available'] = 'Нету привязок администраторов к филиалам';
+$lang['def']['Administrators'] = 'Администраторы';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-
-
-
-
 ?>
