@@ -34,7 +34,9 @@ if (cfr('ANNIHILATION')) {
         log_register("DELETE VCASH (" . $login . ")");
         cf_FlushAllUserCF($login);
         zb_FlushAllUserTags($login);
-        vlan_delete_host($login);
+        if (@$alter_conf['VLANGEN_SUPPORT']) {
+            vlan_delete_host($login);
+        }
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
         //destroy stargazer user

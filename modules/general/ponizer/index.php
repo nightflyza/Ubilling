@@ -9,7 +9,12 @@ if ($altCfg['PON_ENABLED']) {
 
         //getting ONU json data for list
         if (wf_CheckGet(array('ajaxonu'))) {
-            die($pon->ajaxOnuData());
+            $pon->ajaxOnuData();
+        }
+
+        //getting unregistered ONU list
+        if (wf_CheckGet(array('ajaxunknownonu'))) {
+            $pon->ajaxOnuUnknownData();
         }
 
         //creating new ONU device
@@ -59,8 +64,18 @@ if ($altCfg['PON_ENABLED']) {
                     show_window(__('ONU assign'), $pon->onuAssignForm($login));
                 }
             } else {
-                //rendering availavle onu LIST
-                show_window(__('ONU directory'), $pon->controls() . $pon->renderOnuList());
+                if (wf_CheckGet(array('unknownonulist'))) {
+                    if (wf_CheckGet(array('fastreg', 'oltid', 'onumac'))) {
+                        $newOltId = vf($_GET['oltid'], 3);
+                        $newOnuMac = mysql_real_escape_string($_GET['onumac']);
+                        show_window(__('Register new ONU'), wf_BackLink('?module=ponizer&unknownonulist=true', __('Back'), true) . $pon->onuRegisterForm($newOltId, $newOnuMac));
+                    } else {
+                        show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknowOnuList());
+                    }
+                } else {
+                    //rendering availavle onu LIST
+                    show_window(__('ONU directory'), $pon->controls() . $pon->renderOnuList());
+                }
             }
         } else {
             //show ONU editing interface
