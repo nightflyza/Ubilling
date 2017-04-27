@@ -70,7 +70,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
         if (!empty($availableServices)) {
             foreach ($availableServices as $eachService) {
                 $eachData = explode(":", $eachService);
-                $serviceTagID[] = $eachData[1];
+                $serviceTagID[] = isset($eachData[1]);
             }
             foreach ($serviceTagID as $eachTagID) {
                 reset($serviceTagID);
@@ -136,7 +136,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
                 $eq = false;
                 $eachData = explode(":", $eachService);
                 $serviceName = $eachData[0];
-                $serviceTagID = $eachData[1];
+                $serviceTagID = isset($eachData[1]);
                 if (!empty($allSheduledl)) {
                     foreach ($allSheduled as $eachShedule) {
                         if ($eachShedule['param'] === $serviceTagID) {
@@ -200,11 +200,11 @@ if ($us_config['ADSERVICE_ENABLED']) {
      * @param string $note
      */
     function createTask($date, $login, $action, $param, $note) {
-        $dateF = mysql_real_escape_string($date);
-        $loginF = mysql_real_escape_string($login);
-        $actionF = mysql_real_escape_string($action);
-        $paramF = mysql_real_escape_string($param);
-        $noteF = mysql_real_escape_string($note);
+        $dateF = loginDB_real_escape_string($date);
+        $loginF = loginDB_real_escape_string($login);
+        $actionF = loginDB_real_escape_string($action);
+        $paramF = loginDB_real_escape_string($param);
+        $noteF = loginDB_real_escape_string($note);
         $query = "INSERT INTO `dealwithit` (`id`,`date`,`login`,`action`,`param`,`note`) VALUES";
         $query.="(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
         nr_query($query);
@@ -252,7 +252,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             foreach ($availableServices as $eachService) {
                 $each = explode(":", $eachService);
                 $name = $each[0];
-                $tagid = $each[1];
+                $tagid = isset($each[1]);
                 if (!empty($allSheduled)) {
                     foreach ($allSheduled as $eachSheduled) {
                         if ($eachSheduled['param'] == $tagid) {
@@ -293,7 +293,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             $param = vf($_POST['tagid'], 3);
             $param = preg_replace('/\0/s', '', $param);
             $param = strip_tags($param);
-            $param = mysql_real_escape_string($param);
+            $param = loginDB_real_escape_string($param);
             $note = 'Order from userstats';
             if (isset($us_config['ADSERVICE_CUSTOM_ACCEPT'])) {
                 $accept = false;
@@ -323,7 +323,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
         if (!empty($_GET['delete_shedule'])) {
             $tag = preg_replace('/\0/s', '', $_GET['delete_shedule']);
             $tag = strip_tags($tag);
-            $tag = mysql_real_escape_string($tag);
+            $tag = loginDB_real_escape_string($tag);
             $tag = vf($tag, 3);
             deleteTask($user_login, $tag);
             rcms_redirect('?module=adservice&action=delete&wait=true');
@@ -343,7 +343,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             $param = vf($_GET['delete_service'], 3);
             $param = preg_replace('/\0/s', '', $param);
             $param = strip_tags($param);
-            $param = mysql_real_escape_string($param);
+            $param = loginDB_real_escape_string($param);
             $note = 'Deactivate from userstats';
             if (checkTask($user_login, $action, $param)) {
                 createTask($date, $user_login, $action, $param, $note);
@@ -375,7 +375,7 @@ if ($us_config['ADSERVICE_ENABLED']) {
             $param = vf($_GET['service'], 3);
             $param = preg_replace('/\0/s', '', $param);
             $param = strip_tags($param);
-            $param = mysql_real_escape_string($param);
+            $param = loginDB_real_escape_string($param);
             $note = 'Order from userstats';
 
             if (checkTask($user_login, $action, $param)) {

@@ -65,7 +65,8 @@ if ($us_config['REMINDER_ENABLED']) {
      * @return type boolean
      */
     function stg_check_user_tag($login, $tagid) {
-        $login = mysql_real_escape_string($login);
+        global $loginDB;
+        $login=$loginDB->real_escape_string($login);
         $tagid = vf($tagid, 3);
         $query = "SELECT `id` FROM `tags` WHERE `login`= '" . $login . "' AND `tagid`= '" . $tagid . "'";
         $check = simple_queryall($query);
@@ -95,7 +96,8 @@ if ($us_config['REMINDER_ENABLED']) {
      * @param type $tagid integer
      */
     function stg_add_user_tag($login, $tagid) {
-        $login = mysql_real_escape_string($login);
+        global $loginDB;
+        $login=$loginDB->real_escape_string($login);
         $tagid = vf($tagid, 3);
         $query = "INSERT INTO `tags` (`id` ,`login` ,`tagid`) VALUES (NULL , '" . $login . "', '" . $tagid . "'); ";
         nr_query($query);
@@ -108,7 +110,8 @@ if ($us_config['REMINDER_ENABLED']) {
      * @param type $tagid
      */
     function stg_del_user_tagid($login, $tagid) {
-        $login = mysql_real_escape_string($login);
+        global $loginDB;
+        $login=$loginDB->real_escape_string($login);
         $tagid = vf($tagid, 3);
         $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
         nr_query($query);
@@ -254,7 +257,7 @@ if ($us_config['REMINDER_ENABLED']) {
                 $set_mobile = preg_replace('/\0/s', '', $set_mobile);
                 $set_mobile = strip_tags($set_mobile);
                 $set_mobile = str_replace($prefix, '', $set_mobile);
-                $set_mobile = mysql_real_escape_string($set_mobile);
+				$set_mobile=$loginDB->real_escape_string($set_mobile);
                 $set_mobile = vf($set_mobile, 3);
                 $set_mobile = trim($set_mobile);
                 if (strlen($set_mobile) == $length_number) {
