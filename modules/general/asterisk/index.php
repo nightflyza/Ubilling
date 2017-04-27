@@ -16,7 +16,12 @@ if ($altcfg['ASTERISK_ENABLED']) {
             $adcomments = new ADcomments('ASTERISK');
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }
-    }
+    } elseif (isset($_GET['AsteriskWindow']) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
+		if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
+            $adcomments = new ADcomments('ASTERISK');
+            show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
+        }
+	}
 
     /**
      * Get numbers aliases from database, or set default empty array
@@ -382,7 +387,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
                 if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
                     $cells.= wf_TableCell(__($each['countnum']));
                 } else {
-                    if (!empty($login)) {
                         $itemId = $each['uniqueid'] . $each['disposition']{0};
 
                         if ($adcomments->haveComments($itemId)) {
@@ -390,9 +394,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
                         } else {
                             $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
+                    if (!empty($login)) {						
                         $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
                     } else {
-                        $cells.= wf_TableCell(__(''));
+                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false));
                     }
                 }
 
