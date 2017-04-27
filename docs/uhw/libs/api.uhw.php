@@ -1,4 +1,4 @@
-<?
+<?php
 
 //reads uhw config file
 function uhw_LoadConfig() {
@@ -191,6 +191,7 @@ function uhw_PasswordForm($uconf) {
     $form='
         
        <form action="" method="POST" class="glamour">
+       <label for="loginfield">'.$uconf['SUP_LOGIN'].'</label> <input type="text" name="login" id="loginfield" size="16" style="margin-left: 12px;"><br /><br />
        <label for="passfield">'.$uconf['SUP_PASS'].'</label> <input type="'.$uconf['SELFACT_FIELDTYPE'].'" name="password" id="passfield" size="16">
        <br>
        <br>
@@ -225,9 +226,10 @@ function uhw_IsMacUnique($mac) {
 }
 
 
-function uhw_FindUserByPassword($password) {
-    $password=  mysql_real_escape_string($password);
-    $query="SELECT `login` from `users` WHERE `Password`='".$password."'";
+function uhw_FindUserByPassword($password, $login) {
+    $login=loginDB_real_escape_string($login);
+    $password=loginDB_real_escape_string($password);
+    $query="SELECT `login` from `users` WHERE `Password`='" .$password. "' AND `login` = '" .$login. "'";
     $result=  simple_query($query);
     if (!empty($result)) {
         return ($result['login']);
@@ -268,11 +270,11 @@ function uhw_NethostGetMac($nethostid) {
     }
 }
 
-   function uhw_ub_log_register($event) {
+function uhw_ub_log_register($event) {
     $admin_login='external';
     $ip='127.0.0.1';
     $current_time=date("Y-m-d H:i:s");
-    $event=mysql_real_escape_string($event);
+    $event= loginDB_real_escape_string($event);
     $query="INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'".$current_time."','".$admin_login."','".$ip."','".$event."')";
     nr_query($query);
 }
@@ -304,17 +306,18 @@ function uhw_GetBrute($mac) {
     return ($data['COUNT(`id`)']);
 }
 
-function uhw_LogBrute($password,$mac) {
-    $password=  mysql_real_escape_string($password);
+function uhw_LogBrute($password,$login,$mac) {
+    $password=loginDB_real_escape_string($password);
     $date=date("Y-m-d H:i:s");
     $query="INSERT INTO `uhw_brute` (
 `id` ,
 `date` ,
 `password` ,
+`login` ,
 `mac`
 )
 VALUES (
-NULL , '".$date."', '".$password."', '".$mac."'
+NULL , '".$date."', '".$password."', '".$login."', '".$mac."'
 );";
    nr_query($query);
     
