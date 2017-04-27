@@ -97,7 +97,7 @@ if ($us_config['TICKETING_ENABLED']) {
      */
     function zbs_TicketIsMy($ticketid, $login) {
         $ticketid = vf($ticketid, 3);
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $query = "SELECT `id` from `ticketing` WHERE `id`='" . $ticketid . "' AND `from`='" . $login . "'";
         $result = simple_query($query);
         if (!empty($result)) {
@@ -116,9 +116,9 @@ if ($us_config['TICKETING_ENABLED']) {
      * @param string $replyto
      */
     function zbs_TicketCreate($from, $to, $text, $replyto = 'NULL') {
-        $from = mysql_real_escape_string($from);
-        $to = mysql_real_escape_string($to);
-        $text = mysql_real_escape_string(strip_tags($text));
+        $from = loginDB_real_escape_string($from);
+        $to = loginDB_real_escape_string($to);
+        $text = loginDB_real_escape_string(strip_tags($text));
         $date = curdatetime();
         $replyto = vf($replyto);
         $query = "INSERT INTO `ticketing` (`id` ,`date` ,`replyid` , `status` ,`from` ,`to` ,`text`)
