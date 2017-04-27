@@ -43,7 +43,7 @@ if ($loginDB->connect_error) {
 
 function loginDB_real_escape_string($parametr) {
 	global $loginDB;
-    $result=$loginDB->real_escape_string($parametr);
+    $result = $loginDB->real_escape_string($parametr);
 	return($result);
 }
 
@@ -108,19 +108,19 @@ function simple_query($query) {
 
 //function update single field in table
 function simple_update_field($tablename,$field,$value,$where='') {
-    $tablename=loginDB_real_escape_string($tablename);
-    $value=loginDB_real_escape_string($value);
-    $field=loginDB_real_escape_string($field);
-    $query="UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
+    $tablename = loginDB_real_escape_string($tablename);
+    $value = loginDB_real_escape_string($value);
+    $field = loginDB_real_escape_string($field);
+    $query = "UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
     nr_query($query);
 }
 
 //function that gets last id from table
-function  simple_get_lastid($tablename) {
-    $tablename=loginDB_real_escape_string($tablename);
-    $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
-    $result=simple_query($db, $query);
-    return ($result['id']);
+function simple_get_lastid($tablename) {
+    $tablename = loginDB_real_escape_string($tablename);
+    $query = "SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
+    $result = simple_query($query);
+    return($result['id']);
 }
 
 // function that just executing query 
