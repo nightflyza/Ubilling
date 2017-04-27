@@ -14,6 +14,7 @@ function em_EmployeeShowForm() {
     $cells.= wf_TableCell(__('Active'));
     $cells.= wf_TableCell(__('Appointment'));
     $cells.= wf_TableCell(__('Mobile'));
+    $cells.= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
     $cells.= wf_TableCell(__('Administrator'));
     $cells.= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
@@ -25,6 +26,7 @@ function em_EmployeeShowForm() {
             $cells.= wf_TableCell(web_bool_led($eachemployee['active']));
             $cells.= wf_TableCell($eachemployee['appointment']);
             $cells.= wf_TableCell($eachemployee['mobile']);
+            $cells.= wf_TableCell($eachemployee['telegram']);
             $admlogin = $eachemployee['admlogin'];
             if (!empty($admlogin)) {
                 if (file_exists(USERS_PATH . $admlogin)) {
@@ -46,6 +48,7 @@ function em_EmployeeShowForm() {
     $inputs.= wf_TableCell('');
     $inputs.= wf_TableCell(wf_TextInput('employeejob', '', '', false, 20));
     $inputs.= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
+    $inputs.= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
     $inputs.= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
     $inputs.= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
@@ -110,13 +113,14 @@ function em_JobTypeForm() {
  * 
  * @return void
  */
-function em_EmployeeAdd($name, $job, $mobile = '', $admlogin = '') {
+function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '') {
     $name = mysql_real_escape_string(trim($name));
     $job = mysql_real_escape_string(trim($job));
     $mobile = mysql_real_escape_string($mobile);
+    $telegram = mysql_real_escape_string($telegram);
     $admlogin = mysql_real_escape_string($admlogin);
-    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `admlogin`,`active`)
-            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "', '" . $admlogin . "' , '1'); ";
+    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`,`telegram`, `admlogin`,`active`)
+            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1'); ";
     nr_query($query);
     log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
 }
@@ -900,8 +904,10 @@ function ts_TaskCreateForm() {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
     } else {
         $smsInputs = '';
+        $telegramInputs = '';
     }
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
@@ -932,6 +938,7 @@ function ts_TaskCreateForm() {
     $inputs.=wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
     $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
     $inputs.=$smsInputs;
+    $inputs.=$telegramInputs;
     $inputs.=wf_Submit(__('Create new task'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     $result.=__('All fields marked with an asterisk are mandatory');
@@ -956,8 +963,10 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
     } else {
         $smsInputs = '';
+        $telegramInputs = '';
     }
 
     $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
@@ -982,6 +991,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.=ts_TaskTypicalNotesSelector();
     $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
     $inputs.=$smsInputs;
+    $inputs.=$telegramInputs;
     $inputs.=wf_Submit(__('Create new task'));
     if (!empty($login)) {
         $inputs.=wf_AjaxLoader();
@@ -1060,8 +1070,10 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
     } else {
         $smsInputs = '';
+        $telegramInputs = '';
     }
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -1086,6 +1098,7 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     $inputs.=ts_TaskTypicalNotesSelector();
     $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
     $inputs.=$smsInputs;
+    $inputs.=$telegramInputs;
     $inputs.=wf_Submit(__('Create new task'));
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
     $result.=__('All fields marked with an asterisk are mandatory');
@@ -1108,8 +1121,10 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
     } else {
         $smsInputs = '';
+        $telegramInputs = '';
     }
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
@@ -1132,6 +1147,7 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     $inputs.=ts_TaskTypicalNotesSelector();
     $inputs.=wf_TextArea('newjobnote', '', '', true, '35x5');
     $inputs.=$smsInputs;
+    $inputs.=$telegramInputs;
     $inputs.=wf_Submit(__('Create new task'));
     $result = wf_Form("?module=taskman&gotolastid=true", 'POST', $inputs, 'glamour');
     $result.=__('All fields marked with an asterisk are mandatory');
@@ -1201,6 +1217,29 @@ function ts_SendSMS($employeeid, $message) {
 }
 
 /**
+ * Stores Telegram message for some employee
+ * 
+ * @param int $employeeid
+ * @param string $message
+ * 
+ * @return array
+ */
+function ts_SendTelegram($employeeid, $message) {
+    $employeeid = vf($employeeid, 3);
+    $query = "SELECT `telegram`,`name` from `employee` WHERE `id`='" . $employeeid . "'";
+    $empData = simple_query($query);
+    $chatId = $empData['telegram'];
+    $telegram = new UbillingTelegram();
+    $result = array();
+    if (!empty($chatId)) {
+        $telegram->sendMessage($chatId, $message, false, 'TASKMAN');
+        $result['chatid'] = $chatId;
+        $result['message'] = $message;
+    }
+    return ($result);
+}
+
+/**
  * Flushes sms data for some task
  * 
  * @param int $taskid
@@ -1250,8 +1289,9 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $jobnote = mysql_real_escape_string($jobnote);
 
     $smsData = 'NULL';
-    //store sms for backround processing via senddog
+    //store messages for backround processing via senddog
     if ($altercfg['SENDDOG_ENABLED']) {
+        //SMS sending
         if (isset($_POST['newtasksendsms'])) {
             $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
@@ -1259,6 +1299,12 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $smsData = serialize($smsDataRaw);
                 $smsData = "'" . base64_encode($smsData) . "'";
             }
+        }
+
+        //Telegram sending
+        if (isset($_POST['newtasksendtelegram'])) {
+            $newTelegramText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+            ts_SendTelegram($employeeid, $newTelegramText);
         }
     }
 

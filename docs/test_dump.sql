@@ -45,6 +45,10 @@ CREATE  TABLE IF NOT EXISTS `speeds` (
   `tariff` VARCHAR(45) NULL ,
   `speeddown` VARCHAR(45) NULL ,
   `speedup` VARCHAR(45) NULL ,
+  `burstdownload` varchar(45) DEFAULT NULL,
+  `burstupload` varchar(45) DEFAULT NULL,
+  `bursttimedownload` varchar(45) DEFAULT NULL,
+  `burstimetupload` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`) )
 ENGINE = MyISAM DEFAULT CHARSET=UTF8;
 
@@ -1742,3 +1746,26 @@ CREATE TABLE IF NOT EXISTS `ukv_tags` (
 -- 0.8.2
 
 ALTER TABLE `stickynotes` ADD `remindtime` TIME DEFAULT NULL AFTER `reminddate`, ADD INDEX (`remindtime`) ; 
+
+ALTER TABLE `employee` ADD `telegram` VARCHAR(40) NULL DEFAULT NULL AFTER `mobile`; 
+
+CREATE TABLE IF NOT EXISTS `branches` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `branchesadmins` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchid` int(11) NOT NULL,
+  `admin` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `branchesusers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchid` int(11) NOT NULL,
+  `login` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
