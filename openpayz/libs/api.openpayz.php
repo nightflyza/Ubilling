@@ -4,9 +4,6 @@
 include("api.mysql.php");
 include("api.compat.php");
 
-//creating object for db layer
-$db = new MySQLDB();
-
 /**
  * Registers new non processed transaction
  * 
@@ -21,10 +18,10 @@ $db = new MySQLDB();
 function op_TransactionAdd($hash, $summ, $customerid, $paysys, $note) {
     $date = curdatetime();
     $summ = vf($summ);
-    $customerid = mysql_real_escape_string($customerid);
-    $paysys = mysql_real_escape_string($paysys);
-    $note = mysql_real_escape_string($note);
-    $hash = mysql_real_escape_string($hash);
+    $customerid = loginDB_real_escape_string($customerid);
+    $paysys = loginDB_real_escape_string($paysys);
+    $note = loginDB_real_escape_string($note);
+    $hash = loginDB_real_escape_string($hash);
     $query = "INSERT INTO `op_transactions` (`id`,`hash`, `date` , `summ` , `customerid` ,`paysys` , `processed` ,`note`)
         VALUES (NULL ,'" . $hash . "' , '" . $date . "', '" . $summ . "', '" . $customerid . "', '" . $paysys . "', '0', '" . $note . "');";
     nr_query($query);

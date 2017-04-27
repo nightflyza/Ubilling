@@ -214,7 +214,7 @@ function pb_StgGetAllTariffPrices() {
 
 //проверка на уникальность хеша
 function pb_IsHashUnique($ophash) {
-	$hash=mysql_real_escape_string($ophash);
+	$hash=loginDB_real_escape_string($ophash);
 	$query="SELECT `id` from `op_transactions` WHERE `hash`='".$ophash."'";
 	$io=simple_query($query);
 	if (!empty($io)) {

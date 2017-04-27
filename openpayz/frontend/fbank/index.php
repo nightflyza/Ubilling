@@ -131,7 +131,7 @@ function ns_TariffGetPricesAll() {
  * @return bool
  */
 function ns_CheckTransaction($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (!empty($data)) {
@@ -207,8 +207,8 @@ function ns_CheckCustomer($customerId) {
  */
 function ns_PaymentProcessing($payId, $summ, $customerid, $note) {
     global $serviceName;
-    $hash = 'FBANK_' . mysql_real_escape_string($payId);
-    $note = mysql_real_escape_string($note);
+    $hash = 'FBANK_' . loginDB_real_escape_string($payId);
+    $note = loginDB_real_escape_string($note);
 
     if (ns_CheckTransaction($hash)) {
         op_TransactionAdd($hash, $summ, $customerid, 'FBANK', $note);
@@ -244,7 +244,7 @@ function ns_PaymentProcessing($payId, $summ, $customerid, $note) {
  */
 function ns_CheckPaymentStatus($payId) {
     global $serviceName;
-    $hash = 'FBANK_' . mysql_real_escape_string($payId);
+    $hash = 'FBANK_' . loginDB_real_escape_string($payId);
     $query = "SELECT * from `op_transactions` WHERE `hash`='" . $hash . "'";
     $transactionData = simple_query($query);
     if (!empty($transactionData)) {
@@ -282,11 +282,11 @@ function ns_CheckPaymentStatus($payId) {
 if (ns_CheckGet(array('ACT', 'PAY_ID', 'SIGN'))) {
     // Extracting payment id and internal transaction HASH
     $payId = $_GET['PAY_ID'];
-    $hash = 'FBANK_' . mysql_real_escape_string($payId);
+    $hash = 'FBANK_' . loginDB_real_escape_string($payId);
 
     // Extracting service id
     if (ns_CheckGet(array('SERVICE_ID'))) {
-        $serviceId = mysql_real_escape_string($_GET['SERVICE_ID']);
+        $serviceId = loginDB_real_escape_string($_GET['SERVICE_ID']);
     } else {
         $serviceId = '';
     }
@@ -298,7 +298,7 @@ if (ns_CheckGet(array('ACT', 'PAY_ID', 'SIGN'))) {
     //
     if ($action == 1) {
         if (ns_CheckGet(array('PAY_ACCOUNT'))) {
-            $customerId = mysql_real_escape_string($_GET['PAY_ACCOUNT']);
+            $customerId = loginDB_real_escape_string($_GET['PAY_ACCOUNT']);
 
             //check user availability and send reply
             die(ns_CheckCustomer($customerId));
@@ -313,7 +313,7 @@ if (ns_CheckGet(array('ACT', 'PAY_ID', 'SIGN'))) {
         if (ns_CheckGet(array('PAY_AMOUNT'))) {
             $summ = $_GET['PAY_AMOUNT'];
             if (ns_CheckGet(array('PAY_ACCOUNT'))) {
-                $customerId = mysql_real_escape_string($_GET['PAY_ACCOUNT']);
+                $customerId = loginDB_real_escape_string($_GET['PAY_ACCOUNT']);
                 if (ns_CheckGet(array('RECEIPT_NUM'))) {
                     $receiptNum = $_GET['RECEIPT_NUM'];
                     //Payment processing
