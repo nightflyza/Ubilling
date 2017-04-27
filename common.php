@@ -95,6 +95,8 @@ if(empty($_SERVER['HTTP_USER_AGENT'])) $_SERVER['HTTP_USER_AGENT'] = '';
 // Loading modules                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 include("api/apiloader.php");
+require_once( "vendor/fpdf/fpdf.php" );
+
 $em_dir = opendir(ENGINE_PATH);
 while ($em = readdir($em_dir)){
 	if(substr($em, 0, 1) != '.' && is_file(ENGINE_PATH . $em)){
