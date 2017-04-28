@@ -277,6 +277,9 @@ TASKREPORT_JOBTYPES=VARCHAR|Tasks jobtype IDs for report
 TASKREPORT_SIGNUPJOBTYPES=VARCHAR|Tasks jobtype IDs of signup type
 TASKREPORT_NOTESTAGIDS=VARCHAR|Notes tag IDs which will be task notes
 TASKREPORT_SIGPAYID=VARCHAR|Signup payments cashtype ID
+BRANCHES_ENABLED=TRIGGER|Branches enabled
+ONUAUTO_CONFIG_REBOOT=TRIGGER|ONU reboot from vlans control module
+ONUAUTO_CONFIG_DESCRIBE=TRIGGER|ONU describe from vlans control module
 CHAPTEREND_BEH=true
 
 

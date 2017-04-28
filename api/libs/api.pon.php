@@ -52,6 +52,20 @@ class PONizer {
     protected $signalCache = array();
 
     /**
+     * Contains current ONU signal cache data as mac=>distance
+     *
+     * @var array
+     */
+    protected $distanceCache = array();
+
+    /**
+     * Contains ONU indexes cache as mac=>oltid
+     *
+     * @var array
+     */
+    protected $onuIndexCache = array();
+
+    /**
      * System alter.ini config stored as key=>value
      *
      * @var array
@@ -68,6 +82,11 @@ class PONizer {
 
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
+    const DISTCACHE_PATH = 'exports/';
+    const DISTCACHE_EXT = 'OLTDISTANCE';
+    const ONUCACHE_PATH = 'exports/';
+    const ONUCACHE_EXT = 'ONUINDEX';
+    const URL_ME = '?module=ponizer';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
@@ -179,6 +198,69 @@ class PONizer {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Parses & stores in cache OLT ONU distances
+     * 
+     * @param int $oltid
+     * @param array $distIndex
+     * @param array $onuIndex
+     * 
+     * @return void
+     */
+    protected function distanceParseBd($oltid, $distIndex, $onuIndex) {
+        $oltid = vf($oltid, 3);
+        $distTmp = array();
+        $onuTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+        //distance index preprocessing
+        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+            foreach ($distIndex as $io => $eachdist) {
+                $line = explode('=', $eachdist);
+                //distance is present
+                if (isset($line[1])) {
+                    $distanceRaw = trim($line[1]); // distance
+                    $devIndex = trim($line[0]); // device index
+
+
+                    if ($distanceRaw == 0) {
+                        // $distanceRaw = ''; //not sure about this
+                    }
+                    $distTmp[$devIndex] = $distanceRaw;
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($onuIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $onuTmp[$devIndex] = $macRaw;
+                }
+            }
+
+
+            //storing results
+            if (!empty($onuTmp)) {
+                foreach ($onuTmp as $devId => $eachMac) {
+                    if (isset($distTmp[$devId])) {
+                        $distance = $distTmp[$devId];
+                        $result[$eachMac] = $distance;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
+                $onuTmp = serialize($onuTmp);
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+            }
+        }
     }
 
     /**
@@ -408,10 +490,31 @@ class PONizer {
 
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
                             $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+
+                            //ONU distance polling for bdcom devices
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
+                                        $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
+                                        $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
+                                        $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
+                                        $distIndex = explodeRows($distIndex);
+
+                                        $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                        $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
+                                        $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
+                                        $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
+                                        $onuIndex = explodeRows($onuIndex);
+                                        $this->distanceParseBd($oltid, $distIndex, $onuIndex);
+                                    }
+                                }
+                            }
                         }
                         //ZTE devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE') {
@@ -504,6 +607,12 @@ class PONizer {
         }
     }
 
+    /**
+     * Converts hex to string value
+     * 
+     * @param string $hex
+     * @return string
+     */
     protected function HexToString($hex) {
         return pack('H*', $hex);
     }
@@ -511,12 +620,16 @@ class PONizer {
     /**
      * Performs available OLT devices polling. Use only in remote API.
      * 
+     * @param bool $quiet
+     * 
      * @return void
      */
-    public function oltDevicesPolling() {
+    public function oltDevicesPolling($quiet = false) {
         if (!empty($this->allOltDevices)) {
             foreach ($this->allOltDevices as $oltid => $each) {
-                print('POLLING:' . $oltid . ' ' . $each . "\n");
+                if (!$quiet) {
+                    print('POLLING:' . $oltid . ' ' . $each . "\n");
+                }
                 $this->pollOltSignal($oltid);
             }
         }
@@ -738,6 +851,34 @@ class PONizer {
     }
 
     /**
+     * Returns ONU fast registration form
+     * 
+     * @param int $oltId
+     * @param string $onuMac
+     * 
+     * @return string
+     */
+    public function onuRegisterForm($oltId, $onuMac) {
+        $models = array();
+        if (!empty($this->allModelsData)) {
+            foreach ($this->allModelsData as $io => $each) {
+                $models[$each['id']] = $each['modelname'];
+            }
+        }
+
+        $inputs = wf_HiddenInput('createnewonu', 'true');
+        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
+        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+        $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
+        $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20);
+        $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+        $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
+        $inputs.= wf_Submit(__('Create'));
+        $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
      * returns vendor by MAC search control if this enabled in config
      * 
      * @return string
@@ -833,11 +974,11 @@ class PONizer {
             $result.= wf_CleanDiv();
             $result.= wf_delimiter();
 
-            $result.= wf_Link('?module=ponizer', __('Back'), false, 'ubButton');
+            $result.= wf_BackLink(self::URL_ME);
             if (!empty($this->allOnu[$onuId]['login'])) {
                 $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
             }
-            $result.= wf_JSAlertStyled('?module=ponizer&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
+            $result.= wf_JSAlertStyled(self::URL_ME . '&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
@@ -936,8 +1077,17 @@ class PONizer {
      */
     public function controls() {
         $result = '';
+        if (!wf_CheckGet(array('unknownonulist'))) {
+            $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Register new ONU'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
+            $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+            if (!empty($availOnuCache)) {
+                $result.=wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
+            }
+        } else {
 
-        $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton');
+            $result.=wf_BackLink(self::URL_ME);
+            $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+        }
         $result.=wf_delimiter();
         return ($result);
     }
@@ -948,9 +1098,33 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
+        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+        if (!empty($distCacheAvail)) {
+            $distCacheAvail = true;
+        } else {
+            $distCacheAvail = false;
+        }
+
+        if ($distCacheAvail) {
+            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', __('Distance') . ' (' . __('m') . ')', 'Address', 'Real Name', 'Actions');
+        } else {
+            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
+        }
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
+        return ($result);
+    }
+
+    /**
+     * Renders unknown ONU list container
+     * 
+     * @return string
+     */
+    public function renderUnknowOnuList() {
+        $result = '';
+        $columns = array('OLT', 'MAC', 'Actions');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -973,11 +1147,68 @@ class PONizer {
     }
 
     /**
+     * Loads ONU distance cache
+     * 
+     * @return void
+     */
+    protected function loadDistanceCache() {
+        $availCacheData = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::DISTCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $distance) {
+                    $this->distanceCache[$mac] = $distance;
+                }
+            }
+        }
+    }
+
+    /**
+     * Renders json formatted data about unregistered ONU
+     * 
+     * @return void
+     */
+    public function ajaxOnuUnknownData() {
+        $json = new wf_JqDtHelper();
+        $availCacheData = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::ONUCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                $oltId = explode('_', $each);
+                $oltId = @vf($oltId[0], 3);
+                foreach ($raw as $index => $mac) {
+                    $this->onuIndexCache[$mac] = $oltId;
+                }
+            }
+        }
+
+        if (!empty($this->onuIndexCache)) {
+            foreach ($this->onuIndexCache as $onuMac => $oltId) {
+                //not registered?
+                if ($this->checkMacUnique($onuMac)) {
+                    $oltData = @$this->allOltDevices[$oltId];
+                    $data[] = $oltData;
+                    $data[] = $onuMac;
+                    $actControls = wf_Link(self::URL_ME . '&unknownonulist=true&fastreg=true&oltid=' . $oltId . '&onumac=' . $onuMac, wf_img('skins/add_icon.png', __('Register')));
+                    $data[] = $actControls;
+                    $json->addRow($data);
+                    unset($data);
+                }
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
      * Renders json formatted data for jquery data tables list
      * 
-     * @return string
+     * @return void
      */
     public function ajaxOnuData() {
+        $json = new wf_JqDtHelper();
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
 
@@ -990,20 +1221,20 @@ class PONizer {
 
         $this->loadSignalsCache();
 
-
-        $result = '{ 
-                  "aaData": [ ';
+        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+        if (!empty($distCacheAvail)) {
+            $distCacheAvail = true;
+            $this->loadDistanceCache();
+        } else {
+            $distCacheAvail = false;
+        }
 
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 if (!empty($each['login'])) {
                     $userLogin = trim($each['login']);
                     $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
-                    $userLink = str_replace('"', '', $userLink);
-                    $userLink = trim($userLink);
                     @$userRealName = $allRealnames[$userLogin];
-                    $userRealName = str_replace('"', '', $userRealName);
-                    $userRealName = trim($userRealName);
                 } else {
                     $userLink = '';
                     $userRealName = '';
@@ -1011,15 +1242,12 @@ class PONizer {
                 //checking adcomments availability
                 if ($adc) {
                     $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
-                    $indicatorIcon = str_replace('"', '\'', $indicatorIcon);
-                    $indicatorIcon = trim($indicatorIcon);
                 } else {
                     $indicatorIcon = '';
                 }
 
                 $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
-                $actLinks = str_replace('"', '', $actLinks);
-                $actLinks = trim($actLinks);
+
                 $actLinks.= ' ' . $indicatorIcon;
 
 
@@ -1043,29 +1271,26 @@ class PONizer {
                     $sigColor = '#000000';
                 }
 
+                $data[] = $each['id'];
+                $data[] = $this->getModelName($each['onumodelid']);
+                $data[] = @$this->allOltDevices[$each['oltid']];
+                $data[] = $each['ip'];
+                $data[] = $each['mac'];
+                $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('fornt', true);
+                if ($distCacheAvail) {
+                    $data[] = @$this->distanceCache[$each['mac']];
+                }
+                $data[] = $userLink;
+                $data[] = $userRealName;
+                $data[] = $actLinks;
 
-
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $this->getModelName($each['onumodelid']) . '",
-                    "' . @$this->allOltDevices[$each['oltid']] . '",
-                    "' . $each['ip'] . '",
-                    "' . $each['mac'] . '",
-                    "<font color=' . $sigColor . '>' . $signal . '</font>",
-                    "' . $userLink . '",
-                    "' . $userRealName . '",
-                    "' . $actLinks . '"
-                    ],';
+                $json->addRow($data);
+                unset($data);
             }
         }
 
-        $result = substr($result, 0, -1);
 
-        $result.='] 
-        }';
-
-        return ($result);
+        $json->getJson();
     }
 
 }

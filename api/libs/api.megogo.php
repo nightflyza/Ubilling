@@ -710,7 +710,8 @@ class MegogoInterface {
     public function renderSubscribtionsReportMonthly() {
         $result = '';
         $selectedMonth = (wf_CheckPost(array('monthsel'))) ? $_POST['monthsel'] : date("m");
-        $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
+        $selectedYear = (wf_CheckPost(array('yearsel'))) ? $_POST['yearsel'] : date("Y");
+        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $selectedYear) . ' ';
         $inputs.= wf_MonthSelector('monthsel', __('Month'), $selectedMonth, false) . ' ';
         $inputs.= wf_Submit(__('Show'));
         $result.= wf_Form('', 'POST', $inputs, 'glamour');

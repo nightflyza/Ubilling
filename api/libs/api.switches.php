@@ -977,6 +977,7 @@ function zb_SwitchesRenderAjaxList() {
     $modelnames = zb_SwitchModelsGetAllTag();
     $deathTime = zb_SwitchesGetAllDeathTime();
     $summaryCache = 'exports/switchcounterssummary.dat';
+    $jsonAAData = array();
 
     //counters
     $countTotal = 0;
@@ -1290,9 +1291,9 @@ function web_DeadSwitchesTop() {
                 $rows.= wf_TableRow($cells, 'row3');
             }
         }
-        
-        
-        
+
+
+
         if ($repingInterval) {
             $cells = wf_TableCell(__('Total'));
             $cells.= wf_TableCell('');
@@ -1300,11 +1301,9 @@ function web_DeadSwitchesTop() {
             $cells.= wf_TableCell(zb_formatTime($totaldeadTime));
             $cells.= wf_TableCell('');
             $rows.= wf_TableRow($cells, 'row2');
-            
         }
-        
+
         $result = wf_TableBody($rows, '100%', 0, '');
-        
     }
 
     return ($result);
