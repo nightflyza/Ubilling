@@ -2,11 +2,10 @@
 <?php
 
 $config=parse_ini_file(dirname(__FILE__)."/config");
-$link = mysql_connect($config['host'], $config['username'], $config['password']);
-mysql_select_db($config['database']);
+$loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database']);
 $ipq='SELECT `ip`,`mac` FROM `nethosts`';
-$data=mysql_query($ipq);
-           while ($line2 = mysql_fetch_array($data, MYSQL_ASSOC)) {
+$data=$loginDB->query($ipq);
+           while ($line2 = mysqli_fetch_assoc($data)) {
                 print($line2['ip'].' '.$line2['mac']."\n");
            }
 
