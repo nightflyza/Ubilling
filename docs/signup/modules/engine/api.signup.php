@@ -10,7 +10,7 @@ function sn_LoadConfig() {
 
 
 
-$db = new MySQLDB();
+
 $conf=sn_LoadConfig();
 
 function sn_LoadTemplate($templatename) {

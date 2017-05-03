@@ -16,7 +16,7 @@ class linksdb{
     var $data = array();
     
     
-    function linksdb($file){
+    function __construct($file){
         $this->file = $file;
         if(is_readable($file) && $data = unserialize(file_get_contents($file))) $this->data = $data;
         else $this->data = array();

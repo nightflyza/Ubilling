@@ -100,7 +100,7 @@ class rcms_user_cache{
 	var $cache_filename = 'users.cache.dat';
 	var $cache = array();
 
-	function rcms_user_cache(){
+	function __construct(){
 		if(!is_file(DATA_PATH . $this->cache_filename)) {
 			$this->cache = array();
 		} else {

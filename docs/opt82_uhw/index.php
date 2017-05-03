@@ -53,7 +53,7 @@ $uconf=  uhw_LoadConfig();
                 uhw_Opt82Display($useroption);
      
                 if ($uconf['SELFACT_ENABLED']) {
-                    $db=new MySQLDB;
+                    //$db=new MySQLDB;
                     
                 }
                 
