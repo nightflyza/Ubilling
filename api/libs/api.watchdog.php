@@ -862,7 +862,7 @@ class WatchDogInterface {
         $inputs.= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
-        $form.= wf_Link("?module=watchdog", __('Back'), true, 'ubButton');
+        $form.= wf_BackLink("?module=watchdog");
         return ($form);
     }
 

@@ -39,7 +39,7 @@ if (cfr('BUILDS')) {
            zb_AddressDeleteBuild($_GET['buildid']);
            rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
            } else {
-               show_window('', wf_Link("?module=builds&action=edit&streetid=".$streetid, 'Back', false, 'ubButton'));               
+               show_window('', wf_BackLink("?module=builds&action=edit&streetid=".$streetid));               
                show_error(__('You can not delete a building if there are users of the apartment'));
             }
 
@@ -70,7 +70,7 @@ if (cfr('BUILDS')) {
            $editinputs.=wf_Submit('Save');
            $editform=wf_Form('', 'POST', $editinputs, 'glamour');
            show_window(__('Edit').' '.__('Build'), $editform);
-           show_window('',  wf_Link("?module=builds&action=edit&streetid=".$streetid, 'Back', true, 'ubButton'));
+           show_window('', wf_BackLink("?module=builds&action=edit&streetid=".$streetid));
        }
    }
   }

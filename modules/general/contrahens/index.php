@@ -47,7 +47,7 @@ if (cfr('AGENTS')) {
         }
         // show edit form  
         show_window(__('Edit'), zb_ContrAhentEditForm($_GET['edit']));
-        show_window('', wf_Link('?module=contrahens', __('Back'), true, 'ubButton'));
+        show_window('', wf_BackLink('?module=contrahens'));
     }
 
     //list ahents if not editing

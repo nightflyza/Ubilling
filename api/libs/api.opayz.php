@@ -8,12 +8,14 @@ class OpenPayz {
     protected $altCfg = array();
     protected $allAddress = array();
     protected $allRealnames = array();
+    protected $messages = '';
 
     const URL_AJAX_SOURCE = '?module=openpayz&ajax=true';
     const URL_CHARTS = '?module=openpayz&graphs=true';
 
     public function __construct() {
         $this->loadAlter();
+        $this->initMessages();
         $this->loadCustomers();
         $this->loadTransactions();
         $this->loadPaySys();
@@ -106,6 +108,15 @@ class OpenPayz {
                 $this->allPaySys[$each['paysys']] = $each['paysys'];
             }
         }
+    }
+
+    /**
+     * Inits system messages helper
+     * 
+     * @return voids
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -232,7 +243,7 @@ class OpenPayz {
                         trigger: 'none'
                     },";
 
-        $result = wf_Link('?module=openpayz', __('Back'), true, 'ubButton');
+        $result = wf_BackLink('?module=openpayz', '', true);
         if (!empty($this->allTransactions)) {
             foreach ($this->allTransactions as $io => $each) {
                 $timestamp = strtotime($each['date']);
@@ -373,14 +384,12 @@ class OpenPayz {
 
         if (!empty($alltransactions)) {
             foreach ($alltransactions as $io => $eachtransaction) {
+                $control = '';
+
                 if ($manual_mode) {
                     if ($eachtransaction['processed'] == 0) {
-                        $control = wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
-                    } else {
-                        $control = '';
+                        $control.= ' ' . wf_Link('?module=openpayz&process=' . $eachtransaction['id'], web_add_icon('Payment'));
                     }
-                } else {
-                    $control = '';
                 }
 
                 @$user_login = $this->allCustomers[$eachtransaction['customerid']];
@@ -394,15 +403,15 @@ class OpenPayz {
                 }
 
                 $stateIcon = web_bool_led($eachtransaction['processed']);
-
-                $data[] = $eachtransaction['id'];
+                $detailsControl = ' ' . wf_Link('?module=openpayz&showtransaction=' . $eachtransaction['id'], $eachtransaction['id']);
+                $data[] = $detailsControl;
                 $data[] = $eachtransaction['date'];
                 $data[] = $eachtransaction['summ'];
                 $data[] = $eachtransaction['customerid'];
                 $data[] = $user_realname;
                 $data[] = $profileLink . ' ' . $user_address;
                 $data[] = $eachtransaction['paysys'];
-                $data[] = $stateIcon;
+                $data[] = $stateIcon . $control;
 
                 $json->addRow($data);
                 unset($data);
@@ -423,6 +432,27 @@ class OpenPayz {
         $columns = array('ID', 'Date', 'Cash', 'Payment ID', 'Real Name', 'Full address', 'Payment system', 'Processed');
         $graphsUrl = wf_Link(self::URL_CHARTS, wf_img('skins/icon_stats.gif', __('Graphs')), false, '');
         show_window(__('OpenPayz transactions') . ' ' . $graphsUrl, wf_JqDtLoader($columns, self::URL_AJAX_SOURCE, false, 'payments', 100, $opts));
+    }
+
+    /**
+     * Renders transaction details
+     * 
+     * @param int $transactionId
+     * 
+     * @return void
+     */
+    public function renderTransactionDetails($transactionId) {
+        $transactionId = vf($transactionId, 3);
+        $result = '';
+        $result.=wf_BackLink('?module=openpayz', '', true);
+        if (isset($this->allTransactions[$transactionId])) {
+            $result.= wf_tag('pre', false, 'floatpanelswide', '') . print_r($this->allTransactions[$transactionId], true) . wf_tag('pre', true);
+            $result.=wf_CleanDiv();
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Non existent transaction ID'), 'error');
+        }
+
+        show_window(__('Transaction') . ': ' . $transactionId, $result);
     }
 
 }

@@ -604,11 +604,11 @@ class ExtNets {
              $result=  wf_TableBody($rows, '100%', '0', 'sortable');   
              //back links controls
              if (!empty($this->pools[$poolid]['login'])) {
-              $result.= wf_Link("?module=userprofile&username=".$this->pools[$poolid]['login'], __('Back to user profile'), false, 'ubButton');
+              $result.= wf_Link("?module=userprofile&username=".$this->pools[$poolid]['login'], web_profile_icon().' '.__('Back to user profile'), false, 'ubButton');
               
              }
              
-             $result.= wf_Link('?module=extnets&showpoolbynetid='.$this->pools[$poolid]['netid'], __('Back').' '.$this->pools[$poolid]['pool'].'/'.$this->pools[$poolid]['netmask'], true, 'ubButton');
+             $result.= wf_BackLink('?module=extnets&showpoolbynetid='.$this->pools[$poolid]['netid'], __('Back').' '.$this->pools[$poolid]['pool'].'/'.$this->pools[$poolid]['netmask'], true);
              
             }
             

@@ -2112,7 +2112,7 @@ class UkvSystem {
         $query = "SELECT * from `ukv_banksta` WHERE `id`='" . $id . "'";
         $dataRaw = simple_query($query);
         $result = '';
-        $result.= wf_Link(self::URL_BANKSTA_PROCESSING . $dataRaw['hash'], __('Back'), false, 'ubButton');
+        $result.= wf_BackLink(self::URL_BANKSTA_PROCESSING . $dataRaw['hash']);
         $result.= wf_delimiter();
 
         if (!empty($dataRaw)) {

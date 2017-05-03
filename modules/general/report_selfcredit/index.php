@@ -346,7 +346,7 @@ if (cfr('SCREPORT')) {
             show_window(__('Self credit report'), $curmonthReport);
         } else {
             show_window(__('Year'), $screport->yearSelector());
-            show_window('', wf_Link('?module=report_selfcredit', __('Back'), false, 'ubButton'));
+            show_window('', wf_BackLink('?module=report_selfcredit'));
             show_window(__('Self credit dynamic over the year') . ' ' . $screport->getYear(), $screport->renderMonthGraph());
         }
     } else {

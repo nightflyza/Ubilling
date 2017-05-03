@@ -169,7 +169,7 @@ class DynamicShaper {
         $form = wf_Form('', 'POST', $inputs, 'glamour');
         $form.= wf_CleanDiv();
         $form.=wf_tag('br');
-        $form.= wf_Link('?module=dshaper', __('Back'), true, 'ubButton');
+        $form.= wf_BackLink('?module=dshaper');
 
 
         return ($form);

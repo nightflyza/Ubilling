@@ -34,8 +34,8 @@
               rcms_redirect('?module=multinet');
           } else {
               //if here users - go back
-              show_window(__('Error'),__('The network that you are trying to remove - contains live users. We can not afford to do so with them.'));
-              show_window('',  wf_Link('?module=multinet', 'Back', true, 'ubButton'));
+              show_error(__('The network that you are trying to remove - contains live users. We can not afford to do so with them.'));
+              show_window('', wf_BackLink('?module=multinet', 'Back', true));
           }
           
       }

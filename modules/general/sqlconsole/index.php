@@ -43,7 +43,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
         $inputs.= wf_TextArea('newtemplatebody', '', '', true, '80x10');
         $inputs.=wf_Submit('Create template');
         $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.=wf_Link("?module=sqlconsole&devconsole=true", 'Back', true, 'ubButton');
+        $result.=wf_BackLink("?module=sqlconsole&devconsole=true", '', true);
         return ($result);
     }
 
@@ -62,7 +62,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
         $inputs.= wf_TextArea('edittemplatebody', '', $templatebody, true, '80x10');
         $inputs.=wf_Submit('Edit');
         $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.=wf_Link("?module=sqlconsole&devconsole=true", 'Back', true, 'ubButton');
+        $result.=wf_BackLink("?module=sqlconsole&devconsole=true", '', true);
         return ($result);
     }
 

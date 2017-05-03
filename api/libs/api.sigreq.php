@@ -254,7 +254,7 @@ class SignupRequests {
         $result = wf_TableBody($rows, '100%', '0', 'glamour');
 
 
-        $actlinks = wf_Link('?module=sigreq', __('Back'), false, 'ubButton');
+        $actlinks = wf_BackLink('?module=sigreq');
         if ($reqdata['state'] == 0) {
             $actlinks.=wf_Link('?module=sigreq&reqdone=' . $reqid, wf_img_sized('skins/icon_active.gif', '', '10') . ' ' . __('Close'), false, 'ubButton');
         } else {
@@ -454,7 +454,7 @@ class SignupConfig {
         $inputs.= wf_Submit(__('Save'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= wf_Link('?module=sigreq', __('Back'), true, 'ubButton');
+        $result.= wf_BackLink('?module=sigreq');
         return ($result);
     }
 

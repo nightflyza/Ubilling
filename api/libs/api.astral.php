@@ -2161,8 +2161,10 @@ function wf_gchartsLine($params, $title = '', $width = '', $height = '', $option
 /**
  * Returns default back control
  * 
- * @param type $url
- * @param type $title
+ * @param string $url Link URL
+ * @param string $title Link title
+ * @param bool $br Line break line after link
+ * @param string $class Link class name
  * 
  * @return string
  */

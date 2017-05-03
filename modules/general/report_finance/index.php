@@ -81,7 +81,7 @@ if (cfr('REPORTFINANCE')) {
         $yearform = wf_Form("", 'POST', $yearinputs, 'glamour');
         show_window(__('Analytics'), $yearform);
 
-        $graphs = wf_Link("?module=report_finance", __('Back'), true, 'ubButton');
+        $graphs = wf_BackLink("?module=report_finance");
 
         $ubCache = new UbillingCache();
 

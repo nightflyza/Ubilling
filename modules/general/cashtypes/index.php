@@ -24,7 +24,7 @@ if (cfr('CASHTYPES')) {
             zb_CashDeleteCashtype($cashtypeid);
             rcms_redirect("?module=cashtypes");
             } else {
-                show_error(__('You know, we really would like to let you perform this action, but his conscience does not allow us to do'));
+                show_error(__('You know, we really would like to let you perform this action, but our conscience does not allow us to do'));
             }
         }
         
@@ -42,7 +42,7 @@ if (cfr('CASHTYPES')) {
             $editinputs=wf_TextInput('editcashtype', 'Cash type', $cashtypename, true, '10');
             $editinputs.=wf_Submit('Save');
             $editform=wf_Form('', 'POST', $editinputs, 'glamour');
-            $editform.=wf_Link('?module=cashtypes', 'Back', true, 'ubButton');
+            $editform.=wf_BackLink('?module=cashtypes', 'Back', true);
             show_window(__('Edit').' '.__('Cash type'), $editform);
            }
         

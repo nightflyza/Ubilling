@@ -54,7 +54,7 @@ if (cfr('SALARY')) {
                     show_warning(__('No available job types for pricing'));
                 }
                 show_window(__('Available job types pricing'), $salary->$beggar['M']['JPLIST']());
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 
             /**
@@ -91,7 +91,7 @@ if (cfr('SALARY')) {
                     show_warning(__('No available workers for wage creation'));
                 }
                 show_window(__('Available employee wages'), $salary->employeeWagesRender());
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 //rendering payroll report
             if (wf_CheckGet(array('payroll'))) {
@@ -129,7 +129,7 @@ if (cfr('SALARY')) {
                         show_window($reportTitle, $salary->payrollRenderSearchDate($_POST['prdatefrom'], $_POST['prdateto']));
                     }
                 }
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 
 //rendering factor control report 
@@ -138,7 +138,7 @@ if (cfr('SALARY')) {
                 if (wf_CheckPost(array('facontroljobtypeid', 'facontrolmaxfactor'))) {
                     show_window(__('Factor control'), $salary->facontrolRenderSearch($_POST['facontroljobtypeid'], $_POST['facontrolmaxfactor']));
                 }
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 
 
@@ -148,7 +148,7 @@ if (cfr('SALARY')) {
                 if (wf_CheckPost(array('twfdatefrom', 'twfdateto'))) {
                     show_window(__('Tasks without jobs'), $salary->twjReportSearch($_POST['twfdatefrom'], $_POST['twfdateto']));
                 }
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 //timesheets reports
             if (wf_CheckGet(array('timesheets'))) {
@@ -179,11 +179,11 @@ if (cfr('SALARY')) {
                                 die($salary->timesheetRenderPrintable($_POST['tsheetprintyear'], $_POST['tsheetprintmonth']));
                             }
 
-                            show_window('', wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
+                            show_window('', wf_BackLink($salary::URL_ME . '&' . $salary::URL_TSHEETS));
                         } else {
                             //render available timesheets list by date
                             show_window(__('Timesheets'), $salary->timesheetsListRender());
-                            show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                            show_window('', wf_BackLink($salary::URL_ME));
                         }
                     } else {
                         //saving changes for single timesheet row
@@ -193,7 +193,7 @@ if (cfr('SALARY')) {
                         }
                         //render timesheet by date (edit form)
                         show_window(__('Timesheet') . ' ' . $_GET['showdate'], $salary->timesheetEditForm($_GET['showdate']));
-                        show_window('', wf_Link($salary::URL_ME . '&' . $salary::URL_TSHEETS, __('Back'), false, 'ubButton'));
+                        show_window('', wf_BackLink($salary::URL_ME . '&' . $salary::URL_TSHEETS));
                     }
                 } else {
                     show_warning(__('No available workers for timesheets'));
@@ -202,9 +202,9 @@ if (cfr('SALARY')) {
 
             //jobs/time report
             if (wf_CheckGet(array('ltreport'))) {
-                show_window(__('Search'),$salary->ltReportRenderForm());
+                show_window(__('Search'), $salary->ltReportRenderForm());
                 show_window(__('Labor time'), $salary->ltReportRenderResults());
-                show_window('', wf_Link($salary::URL_ME, __('Back'), false, 'ubButton'));
+                show_window('', wf_BackLink($salary::URL_ME));
             }
 
             //module summary stats

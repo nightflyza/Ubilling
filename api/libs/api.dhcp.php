@@ -379,7 +379,7 @@ class UbillingDHCP {
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form('', 'POST', $inputs, 'glamour');
             $result.=wf_CleanDiv();
-            $result.=wf_Link(self::URL_ME, __('Back'), false, 'ubButton');
+            $result.=wf_BackLink(self::URL_ME);
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong'), 'errors');
         }

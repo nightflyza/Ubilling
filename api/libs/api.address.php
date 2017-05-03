@@ -1022,7 +1022,7 @@ function web_CityEditForm($cityid) {
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    $form.=wf_Link('?module=city', 'Back', true, 'ubButton');
+    $form.=wf_BackLink('?module=city', 'Back', true, 'ubButton');
 
     return($form);
 }

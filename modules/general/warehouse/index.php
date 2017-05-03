@@ -171,9 +171,6 @@ if (cfr('WAREHOUSE')) {
                         $creationResult = $warehouse->reserveCreate($_POST['newreservestorageid'], $_POST['newreserveitemtypeid'], $_POST['newreservecount'], $_POST['newreserveemployeeid']);
                         //succefull
                         if (!$creationResult) {
-                            //old style redirect to outcome form
-                            //rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&storageid=' . $_POST['newreservestorageid'] . '&outitemid=' . $_POST['newreserveitemtypeid']);
-                            //new style - reservation preview
                             rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                         } else {
                             show_window('', $creationResult);
@@ -181,9 +178,6 @@ if (cfr('WAREHOUSE')) {
                     }
                     $reservationTitle = __('Reservation') . ' ' . $warehouse->itemtypeGetName($_GET['itemtypeid']) . ' ' . __('from') . ' ' . $warehouse->storageGetName($_GET['storageid']);
                     show_window($reservationTitle, $warehouse->reserveCreateForm($_GET['storageid'], $_GET['itemtypeid']));
-                    //old back to outcoming operation creation
-                    //$warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_OUT . '&storageid=' . $_GET['storageid'] . '&outitemid=' . $_GET['itemtypeid']);
-                    //new back to total remains report
                     $warehouse->$avidity['M']['FALL']($warehouse::URL_ME . '&' . $warehouse::URL_REPORTS . '&' . 'totalremains=true');
                 } else {
                     if (wf_CheckGet(array('deletereserve'))) {

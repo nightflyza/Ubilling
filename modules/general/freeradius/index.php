@@ -191,7 +191,7 @@ WHERE `users`.`login` = '$login'
       $content = $form->text_box('add[Value]', '');
       $form->addrow(__('Value'), $content);
       // Таблица со списком атрибутов для пользователя
-      $html .= wf_Link("?module=userprofile&username=$login", __('Back'), false, 'ubButton');
+      $html .= wf_BackLink("?module=userprofile&username=$login");
       $html .= wf_modal(__('Append'), __('Adding of RADIUS-attribute'), $form->show(1), 'ubButton', 450, 275);
       $html .= wf_TableBody($rows, '100%', '0', 'sortable');
     } elseif ( wf_CheckGet(array('netid')) ) {
@@ -295,7 +295,7 @@ WHERE `users`.`login` = '$login'
         }
       }
       /* Кнопка "Назад" */
-      $html .= wf_Link("?module=multinet", __('Back'), false, 'ubButton');
+      $html .= wf_BackLink("?module=multinet");
       // Форма добавления нового атрибута
       $form = new InputForm('', 'POST', __('Save'), '', '', '', 'add');
       //  - Сценарий

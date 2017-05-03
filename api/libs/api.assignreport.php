@@ -609,8 +609,8 @@ class agentAssignReport {
             $agRows = wf_TableRow($agCells, 'row1');
 
             foreach ($this->agentsumm as $eachAgentId => $eachAgentStat) {
-                $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('full')), false, '').' ';
-                $exportControls.= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '').' ';
+                $exportControls = wf_Link("?module=report_agentfinance&exportcsvagentid=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('full')), false, '') . ' ';
+                $exportControls.= wf_Link("?module=report_agentfinance&exportcsvagentidshort=" . $eachAgentId, wf_img('skins/excel.gif', __('Export') . ' ' . __('short')), false, '') . ' ';
                 $exportControls.= wf_Link("?module=report_agentfinance&exporthtmlagentid=" . $eachAgentId, wf_img('skins/icon_print.png', __('Print')), false, '');
                 $agCells = wf_TableCell($this->agentsNamed[$eachAgentId]);
                 $agCells.= wf_TableCell($eachAgentStat['count']);
@@ -622,6 +622,7 @@ class agentAssignReport {
             $result.=wf_TableBody($agRows, '50%', 0, 'sortable');
             $result.=wf_tag('span', false, 'glamour') . __('Excluded payments count') . ': ' . $this->excludeCount . wf_tag('span', true);
             $result.=wf_tag('span', false, 'glamour') . __('Excluded cash') . ': ' . $this->excludeSumm . wf_tag('span', true);
+            $result.=wf_CleanDiv();
 
             //save per agent printing data for future usage
             $this->savePrintData();
@@ -630,6 +631,7 @@ class agentAssignReport {
         $result.= wf_TableBody($rows, '100%', 0, 'sortable');
         $result.=wf_tag('span', false, 'glamour') . __('Count') . ': ' . $totalCount . wf_tag('span', true);
         $result.=wf_tag('span', false, 'glamour') . __('Total payments') . ': ' . $totalSumm . wf_tag('span', true);
+        $result.=wf_CleanDiv();
         return ($result);
     }
 

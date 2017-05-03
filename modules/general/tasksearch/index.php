@@ -293,7 +293,7 @@ if (cfr('TASKMANSEARCH')) {
         show_window(__('Search results'), $taskmanSearch->renderTasks($searchResults));
     }
 
-    show_window('', wf_Link('?module=taskman', __('Back'), true, 'ubButton'));
+    show_window('', wf_BackLink('?module=taskman'));
 } else {
     show_error(__('You cant control this module'));
 }

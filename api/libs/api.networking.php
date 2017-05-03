@@ -62,7 +62,7 @@ function multinet_show_neteditform($netid) {
 
     $form = wf_Form('', "POST", $inputs, 'glamour');
 
-    $form.=wf_Link('?module=multinet', 'Back', true, 'ubButton');
+    $form.=wf_BackLink('?module=multinet');
     show_window(__('Edit'), $form);
 }
 
@@ -78,7 +78,7 @@ function multinet_show_serviceeditform($serviceid) {
         </form>
          <div style="clear:both;"></div>
         ';
-    $form.=wf_Link('?module=multinet', 'Back', true, 'ubButton');
+    $form.=wf_BackLink('?module=multinet');
 
     show_window(__('Edit'), $form);
 }

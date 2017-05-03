@@ -50,7 +50,7 @@ if (cfr('EMPLOYEEDIR')) {
             $jobinputs.=wf_Submit('Save');
             $jobform = wf_Form("", "POST", $jobinputs, 'glamour');
             show_window(__('Edit'), $jobform);
-            show_window('', wf_Link('?module=employee', 'Back', true, 'ubButton'));
+            show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
         }
     } else {
         $editemployee = vf($_GET['edit'], 3);
@@ -89,7 +89,7 @@ if (cfr('EMPLOYEEDIR')) {
         $editinputs.=wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
         show_window(__('Edit'), $editform);
-        show_window('', wf_Link('?module=employee', 'Back', true, 'ubButton'));
+        show_window('', wf_BackLink('?module=employee', 'Back', true, 'ubButton'));
     }
 } else {
     show_error(__('You cant control this module'));

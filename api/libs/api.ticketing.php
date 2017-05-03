@@ -480,7 +480,7 @@ function web_TicketDialogue($ticketid) {
     $ticketreplies = zb_TicketGetReplies($ticketid);
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
 
-    $result = wf_tag('p', false, '', 'align="right"') . wf_Link('?module=ticketing', 'Back to tickets list', true, 'ubButton') . wf_tag('p', true);
+    $result = wf_tag('p', false, '', 'align="right"') . wf_BackLink('?module=ticketing', 'Back to tickets list', true) . wf_tag('p', true);
     if (!empty($ticketdata)) {
         $alladdress = zb_AddressGetFulladdresslist();
         $allrealnames = zb_UserGetAllRealnames();

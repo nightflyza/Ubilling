@@ -107,7 +107,7 @@ $ubillingConfig = new UbillingConfig();
  * Branches access control 
  */
 $globalAlter = $ubillingConfig->getAlter();
-if ($globalAlter['BRANCHES_ENABLED']) {
+if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl = new UbillingBranches();
     $branchControl->accessControl();
 }

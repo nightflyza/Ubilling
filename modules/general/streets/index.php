@@ -54,7 +54,7 @@ if (cfr('STREETS')) {
                 rcms_redirect('?module=streets');
           }
             show_window(__('Edit Street'),web_StreetEditForm($streetid));
-            show_window('',  wf_Link("?module=streets", 'Back', true, 'ubButton'));
+            show_window('', wf_BackLink("?module=streets", 'Back', true, 'ubButton'));
         }
         }
     }

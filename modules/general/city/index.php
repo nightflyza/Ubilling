@@ -28,7 +28,7 @@ if (cfr('CITY')) {
             rcms_redirect('?module=city');
             } else {
                 show_error(__('You can not just remove a city where there are streets and possibly survivors'));
-                show_window('', wf_Link('?module=city', __('Back'), true, 'ubButton'));
+                show_window('', wf_BackLink('?module=city', __('Back'), true, 'ubButton'));
             }
         }
         if ($_GET['action']=='edit') {

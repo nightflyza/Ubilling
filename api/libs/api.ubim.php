@@ -69,7 +69,7 @@ function im_AvatarControlForm() {
     $cells = wf_TableCell(wf_Link("http://gravatar.com/emails/", __('Change my avatar at gravatar.com')), '', '', 'align="center"');
     $rows.= wf_TableRow($cells);
     $result = wf_TableBody($rows, '100%', '0', 'glamour');
-    $result.=wf_Link("?module=ubim&checknew=true", __('Back'), false, 'ubButton');
+    $result.=wf_BackLink("?module=ubim&checknew=true", __('Back'), false, 'ubButton');
     return ($result);
 }
 

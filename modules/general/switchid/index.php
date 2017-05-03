@@ -4,7 +4,7 @@ if (cfr('SWITCHID')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['SWITCHES_EXTENDED']) {
         $messages = new UbillingMessageHelper();
-        $result = wf_Link('?module=switches', __('Back'), true, 'ubButton');
+        $result = wf_BackLink('?module=switches', __('Back'), true, 'ubButton');
         $result.=wf_tag('br');
 
         $query = "SELECT switches.modelid,switches.ip,switches.id,switches.swid,switches.location,switchmodels.id,switchmodels.modelname "
@@ -31,7 +31,7 @@ if (cfr('SWITCHID')) {
                     $tablecells.=wf_TableCell($swip);
                     $tablecells.=wf_TableCell($swmod);
                     $tablecells.=wf_TableCell($swid);
-                    $tablerows.=wf_TableRow($tablecells, 'row4');
+                    $tablerows.=wf_TableRow($tablecells, 'row5');
                 }
             }
             $result.= wf_TableBody($tablerows, '100%', '0', 'sortable');

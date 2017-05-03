@@ -1165,7 +1165,7 @@ class VlanGen {
 	$inputs.= wf_Tag('br');
 	$inputs .= wf_Submit(__('Save'));
 	$form		 = wf_Form('', "POST", $inputs, 'glamour');
-	$form .= wf_Link(self::MODULE_URL_ADDVLAN, 'Back', true, 'ubButton');
+	$form .= wf_BackLink(self::MODULE_URL_ADDVLAN, '', true);
 	show_window(__('Edit'), $form);
     }
 
@@ -1474,7 +1474,7 @@ class VlanTerminator {
 	$inputs.= wf_Tag('br');
 	$inputs.= wf_Submit(__('Save'));
 	$form		 = wf_Form("", 'POST', $inputs, 'glamour');
-	$form.=wf_Link(self::MODULE_URL, 'Back', true, 'ubButton');
+	$form.=wf_BackLink(self::MODULE_URL, '', true);
 	show_window(__('Edit'), $form);
     }
 

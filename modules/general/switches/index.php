@@ -187,7 +187,7 @@ if (cfr('SWITCHES')) {
         }
 
 
-        show_window('', wf_Link('?module=switches', 'Back', true, 'ubButton'));
+        show_window('', wf_BackLink('?module=switches', 'Back', true, 'ubButton'));
     }
 } else {
     show_error(__('Access denied'));

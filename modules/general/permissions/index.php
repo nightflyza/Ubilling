@@ -124,7 +124,7 @@ if (cfr('PERMISSIONS')) {
         $miscinputs = '';
 
 
-        $inputs = wf_Link('?module=permissions', 'Back', true, 'ubButton') . '<br>';
+        $inputs = wf_BackLink('?module=permissions') . wf_delimiter();
 
         $inputs.=wf_HiddenInput('save', '1');
         if ($system->getRightsForUser($login, $rights, $root, $level)) {
@@ -282,7 +282,7 @@ if (cfr('PERMISSIONS')) {
 
     show_window(__('Admins'), web_list_admins());
 
-    show_window('', wf_Link('?module=adminreg', __('Administrators registration'), true, 'ubButton'));
+    show_window('', wf_Link('?module=adminreg', web_icon_create().' '.__('Administrators registration'), true, 'ubButton'));
 } else {
     show_error(__('You cant control this module'));
 }

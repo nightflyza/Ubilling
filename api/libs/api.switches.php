@@ -373,7 +373,7 @@ function web_SwitchEditForm($switchid) {
 
     $result.=wf_delimiter();
 
-    $result.=wf_Link('?module=switches', __('Back'), false, 'ubButton');
+    $result.=wf_BackLink('?module=switches');
     if (cfr('SWITCHPOLL')) {
         $fdbCacheName = 'exports/' . $switchdata['ip'] . '_fdb';
         if (file_exists($fdbCacheName)) {
@@ -1340,7 +1340,7 @@ function ub_SwitchesTimeMachineShowSnapshot($snapshotid) {
 
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         show_window(__('Dead switches') . ' ' . $deaddata['date'], $result);
-        show_window('', wf_Link("?module=switches&timemachine=true", 'Back', false, 'ubButton'));
+        show_window('', wf_BackLink("?module=switches&timemachine=true"));
     }
 }
 
@@ -1449,7 +1449,7 @@ function zb_SwitchReplaceForm($fromSwitchId) {
     $result = wf_Form('', 'POST', $inputs, 'glamour');
     $result.= wf_CleanDiv();
     $result.= wf_delimiter();
-    $result.= wf_Link('?module=switches&edit=' . $fromSwitchId, __('Back'), false, 'ubButton');
+    $result.= wf_BackLink('?module=switches&edit=' . $fromSwitchId);
     return ($result);
 }
 

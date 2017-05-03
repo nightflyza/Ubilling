@@ -176,16 +176,16 @@ class PhotoStorage {
             $result = web_UserControls($this->itemId);
         }
         if ($this->scope == 'CUSTMAPSITEMS') {
-            $result = wf_Link('?module=custmaps&edititem=' . $this->itemId, __('Back'), false, 'ubButton');
+            $result = wf_BackLink('?module=custmaps&edititem=' . $this->itemId);
         }
         if ($this->scope == 'WAREHOUSEITEMTYPE') {
-            $result = wf_Link('?module=warehouse&itemtypes=true', __('Back'), false, 'ubButton');
+            $result = wf_BackLink('?module=warehouse&itemtypes=true');
         }
         if ($this->scope == 'TASKMAN') {
-            $result = wf_Link('?module=taskman&edittask=' . $this->itemId, __('Back'), false, 'ubButton');
+            $result = wf_BackLink('?module=taskman&edittask=' . $this->itemId);
         }
         if ($this->scope == 'UKVUSERPROFILE') {
-            $result = wf_Link('?module=ukv&users=true&showuser=' . $this->itemId, __('Back'), false, 'ubButton');
+            $result = wf_BackLink('?module=ukv&users=true&showuser=' . $this->itemId);
         }
         return ($result);
     }
@@ -370,7 +370,7 @@ class PhotoStorage {
             }
 
             show_window('', $uploadResult);
-            show_window('', wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader', __('Back'), false, 'ubButton'));
+            show_window('', wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=loader'));
         }
     }
 
@@ -394,7 +394,7 @@ class PhotoStorage {
             $result.=wf_tag('span', false, 'alert_success') . __('Photo upload complete') . wf_tag('span', true);
             $result.=wf_delimiter();
         }
-        $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list', __('Back'), true, 'ubButton');
+        $result.= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
         return ($result);
     }
 
@@ -482,7 +482,7 @@ class PhotoStorage {
         $result = wf_TableBody($rows, '100%', 0);
         $result.= $uploadProgress;
         $result.= wf_delimiter();
-        $result.= wf_Link(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list', __('Back'), true, 'ubButton');
+        $result.= wf_BackLink(self::MODULE_URL . '&scope=' . $this->scope . '&itemid=' . $this->itemId . '&mode=list');
 
 
         return ($result);

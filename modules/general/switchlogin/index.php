@@ -32,7 +32,7 @@ if ($altcfg['SWITCH_AUTOCONFIG']) {
             $megaEditForm.= wf_tag('div', false, '', 'id="megaContainer1"') . wf_tag('div', true);
             show_warning(__("Are you sure that you want to change switch login data") . "?");            
             show_window(__("Switches login data"), $megaEditForm);
-            $back = wf_Link(SwitchLogin::MODULE_URL, __('Back'), false, 'ubButton');
+            $back = wf_BackLink(SwitchLogin::MODULE_URL);
             show_window('', $back);
         }
         

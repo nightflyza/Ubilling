@@ -156,7 +156,7 @@ if (cfr('REPORTFINANCE')) {
          * @return string
          */
         protected function panel() {
-            $result = wf_Link('?module=report_finance', __('Back'), false, 'ubButton');
+            $result = wf_BackLink('?module=report_finance');
             $result.= wf_modal(web_icon_settings() . ' ' . __('Settings'), __('Settings'), $this->configForm(), 'ubButton', '700', '200');
             $result.=wf_delimiter();
             $monthArr = months_array_localized();

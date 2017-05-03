@@ -160,7 +160,7 @@ if (cfr('BACKUP')) {
                                 $lastChanceInputs.= wf_Submit(__('Restore DB'));
                                 $lastChanceForm = wf_Form('', 'POST', $lastChanceInputs, 'glamour');
                                 show_window(__('Warning'), $lastChanceForm);
-                                show_window('', wf_Link('?module=backups', __('Back'), true, 'ubButton'));
+                                show_window('', wf_BackLink('?module=backups', __('Back'), true, 'ubButton'));
                             } else {
                                 $restoreCommand = $alterConf['MYSQL_PATH'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' --default-character-set=utf8 < ' . $restoreFilename;
                                 //show_window(__('Debug'),$restoreCommand);
@@ -169,7 +169,7 @@ if (cfr('BACKUP')) {
                         } else {
                             log_register("BACKUP RESTORE TRY WITH RUNNING STARGAZER");
                             show_error(__('You can restore database only with enabled NOSTGCHECKPID option and stopped Stargazer'));
-                            show_window('', wf_Link('?module=backups', __('Back'), true, 'ubButton'));
+                            show_window('', wf_BackLink('?module=backups', __('Back'), true, 'ubButton'));
                         }
                     } else {
                         show_error(__('Strange exeption') . ': NOT_EXISTING_DUMP_FILE');

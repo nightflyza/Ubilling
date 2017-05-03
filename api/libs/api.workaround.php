@@ -1407,7 +1407,7 @@ function web_DirectionsEditForm($ruleid) {
     $editinputs = wf_TextInput('editrulename', 'Rule name', $ruledata['rulename'], true, '20');
     $editinputs.=wf_Submit('Save');
     $editform = wf_Form("", 'POST', $editinputs, 'glamour');
-    $editform.=wf_Link('?module=rules', 'Back', true, 'ubButton');
+    $editform.=wf_BackLink('?module=rules');
     show_window(__('Edit') . ' ' . __('Rule name'), $editform);
 }
 

@@ -1,7 +1,7 @@
 <?php
 
 if (cfr('ZBSANN')) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['ANNOUNCEMENTS']) {
 
         /*
@@ -18,12 +18,11 @@ if (cfr('ZBSANN')) {
                 $this->loadData();
             }
 
-            /*
+            /**
              * loads all existing announcements into private data property
              * 
              * @return void
              */
-
             protected function loadData() {
                 $query = "SELECT * from `zbsannouncements` ORDER by `id` DESC;";
                 $all = simple_queryall($query);
@@ -34,14 +33,13 @@ if (cfr('ZBSANN')) {
                 }
             }
 
-            /*
+            /**
              * deletes announcement from database
              * 
              * @param int $id existing announcement ID
              * 
              * @return void
              */
-
             public function delete($id) {
                 $id = vf($id, 3);
                 if (isset($this->data[$id])) {
@@ -53,7 +51,7 @@ if (cfr('ZBSANN')) {
                 }
             }
 
-            /*
+            /**
              * creates new announcement in database
              * @param int       $public
              * @param string    $type
@@ -62,7 +60,6 @@ if (cfr('ZBSANN')) {
              * 
              * @return int
              */
-
             public function create($public, $type, $title, $text) {
                 $public = vf($public, 3);
                 $type = vf($type);
@@ -76,14 +73,13 @@ if (cfr('ZBSANN')) {
                 return ($newId);
             }
 
-            /*
+            /**
              * updates some existing announcement in database
              * 
              * @param int  $id   existing announcement ID
              * 
              * @return void
              */
-
             public function save($id) {
                 $id = vf($id, 3);
                 if (isset($this->data[$id])) {
@@ -97,14 +93,13 @@ if (cfr('ZBSANN')) {
                 }
             }
 
-            /*
+            /**
              * returns announcement preview
              * 
              * @param int $id existing announcement ID
              * 
              * @return string
              */
-
             protected function preview($id) {
                 $id = vf($id, 3);
                 if (isset($this->data[$id])) {
@@ -125,12 +120,11 @@ if (cfr('ZBSANN')) {
                 }
             }
 
-            /*
+            /**
              * renders list of existing announcements by private data prop
              * 
              * @return string
              */
-
             public function render() {
                 $cells = wf_TableCell(__('ID'));
                 $cells.= wf_TableCell(__('Public'));
@@ -163,12 +157,11 @@ if (cfr('ZBSANN')) {
                 return ($result);
             }
 
-            /*
+            /**
              * returns announcement create form
              * 
              * @return string
              */
-
             public function createForm() {
                 $states = array("1" => __('Yes'), "0" => __('No'));
                 $types = array("text" => __('Text'), "html" => __('HTML'));
@@ -185,21 +178,20 @@ if (cfr('ZBSANN')) {
                 return ($result);
             }
 
-            /*
+            /**
              * returns announcement edit form
              * 
              * @param int $id existing announcement ID
              *  
              * @return string
              */
-
             public function editForm($id) {
                 $id = vf($id, 3);
                 $states = array("1" => __('Yes'), "0" => __('No'));
                 $types = array("text" => __('Text'), "html" => __('HTML'));
-                $result = wf_Link('?module=zbsannouncements', __('Back'), false, 'ubButton');
-                $result.=wf_modal(__('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
-                $result.=wf_tag('br');
+                $result = wf_BackLink('?module=zbsannouncements');
+                $result.=wf_modal(web_icon_search().' '.__('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
+                $result.=wf_delimiter();
                 if (isset($this->data[$id])) {
                     $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
                     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -245,7 +237,7 @@ if (cfr('ZBSANN')) {
         } else {
             //show announcements list and create form
             show_window(__('Userstats announcements'), $announcements->render());
-            show_window('', wf_modal(__('Create'), __('Create'), $announcements->createForm(), 'ubButton', '600', '400'));
+            show_window('', wf_modal(web_icon_create().' '.__('Create'), __('Create'), $announcements->createForm(), 'ubButton', '600', '400'));
         }
     } else {
         show_error(__('This module is disabled'));

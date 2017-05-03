@@ -863,7 +863,7 @@ $lang['def']['Macro'] = 'Макро';
 $lang['def']['Micro'] = 'Мікро';
 $lang['def']['Nano'] = 'Нано';
 $lang['def']['support tickets expected processing'] = 'заявок хелпдеску очікують обробки';
-$lang['def']['You know, we really would like to let you perform this action, but his conscience does not allow us to do'] = 'Знаєте, нам дуже б хотілося дозволити вам вчинити цю дію, але совість не дозволяє нам цього зробити :(';
+$lang['def']['You know, we really would like to let you perform this action, but our conscience does not allow us to do'] = 'Знаєте, нам дуже б хотілося дозволити вам вчинити цю дію, але совість не дозволяє нам цього зробити :(';
 $lang['def']['Mass sender use ticketing'] = 'Масове розсилання використовує для роботи хелпдеск';
 $lang['def']['Enabled arpdiag module'] = 'Модуль ARPдіагностики увімкнено';
 $lang['def']['Administrators can set the size of icons on their own'] = 'Адміністратори можуть самостійно обирати розмір іконок';
@@ -2447,6 +2447,7 @@ $lang['def']['ONU reboot from vlans control module'] = 'Перезавантаж
 $lang['def']['ONU describe from vlans control module'] = 'Опис ONU з модулю керування вланами';
 $lang['def']['No branches admins available'] = 'Немає ассоційованих з філіями адміністраторів';
 $lang['def']['Administrators'] = 'Адміністратори';
-
+$lang['def']['Transaction'] = 'Транзакція';
+$lang['def']['Non existent transaction ID'] = 'Неіснуючий ідентифікатор транзакції';
 
 ?>

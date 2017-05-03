@@ -40,14 +40,20 @@ if (cfr('OPENPAYZ')) {
                 zb_DownloadFile(base64_decode($_GET['dload']), 'docx');
             }
 
-            show_window(__('Search'), $opayz->renderSearchForm());
+
 
             if (wf_CheckPost(array('searchyear', 'searchmonth', 'searchpaysys'))) {
-                show_window('', wf_Link('?module=openpayz', __('Back'), true, 'ubButton'));
+                show_window(__('Search'), $opayz->renderSearchForm());
+                show_window('', wf_BackLink('?module=openpayz', '', true));
                 $opayz->doSearch($_POST['searchyear'], $_POST['searchmonth'], $_POST['searchpaysys']);
             } else {
-                //show transactions list
-                $opayz->renderTransactionList();
+                if (!wf_CheckGet(array('showtransaction'))) {
+                    show_window(__('Search'), $opayz->renderSearchForm());
+                    //show transactions list
+                    $opayz->renderTransactionList();
+                } else {
+                    $opayz->renderTransactionDetails($_GET['showtransaction']);
+                }
             }
         } else {
             show_window(__('Graphs'), $opayz->renderGraphs());

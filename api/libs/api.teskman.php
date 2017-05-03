@@ -1756,7 +1756,7 @@ function ts_TaskProblemsEditForm() {
 
 
     $rows = '';
-    $result = wf_Link("?module=taskman", __('Back'), true, 'ubButton');
+    $result = wf_BackLink("?module=taskman", '', true);
 
     if (!empty($rawNotes)) {
         foreach ($rawNotes as $eachNote) {

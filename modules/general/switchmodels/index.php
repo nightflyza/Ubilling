@@ -48,7 +48,7 @@ if (cfr('SWITCHM')) {
         $editinputs.=wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
         show_window(__('Switch model edit'), $editform);
-        show_window('', wf_Link('?module=switchmodels', 'Back', true, 'ubButton'));
+        show_window('', wf_BackLink('?module=switchmodels'));
     }
 } else {
     show_error(__('Access denied'));

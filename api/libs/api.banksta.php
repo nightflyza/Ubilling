@@ -380,7 +380,7 @@ function bs_ShowHash($hash) {
         $result=__('Strange exeption catched');
     }
     
-    show_window('', wf_Link("?module=bankstatements", 'Back', true, 'ubButton'));
+    show_window('', wf_BackLink("?module=bankstatements", 'Back', true));
     show_window(__('Bank statement processing'),$result);
 }
 

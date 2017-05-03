@@ -319,7 +319,7 @@ class SendDog {
             }
         }
 
-        $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
+        $result.= wf_BackLink(self::URL_ME, '', true);
         $result.= $dateform;
         $result.= wf_TableBody($rows, '100%', '0', 'sortable');
         $result.= __('Total') . ': ' . $total;
@@ -350,7 +350,7 @@ class SendDog {
         $response = curl_exec($ch);
         curl_close($ch);
 
-        $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
+        $result.= wf_BackLink(self::URL_ME, '', true);
         $result.= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response, 'info');
         return ($result);
     }
@@ -381,7 +381,7 @@ class SendDog {
         $response = curl_exec($curl);
         curl_close($curl);
 
-        $result.= wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
+        $result.= wf_BackLink(self::URL_ME, '', true);
         $result.= $this->messages->getStyledMessage(__('Current account balance') . ': ' . $response . ' RUR', 'info');
         return ($result);
     }
@@ -396,7 +396,7 @@ class SendDog {
         $telegram = new UbillingTelegram();
         $telegram->setToken($this->settings['TELEGRAM_BOTTOKEN']);
         $rawContacts = $telegram->getBotContacts();
-        $result.=wf_Link(self::URL_ME, __('Back'), true, 'ubButton');
+        $result.=wf_BackLink(self::URL_ME, '', true);
 
         if (!empty($rawContacts)) {
             $cells = wf_TableCell(__('Chat ID'));

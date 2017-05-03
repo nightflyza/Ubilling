@@ -39,7 +39,7 @@ if (cfr('SALARYTSHEETS')) {
                     }
                     //render timesheet by date (edit form)
                     show_window(__('Timesheet') . ' ' . $_GET['showdate'], $salary->timesheetEditForm($_GET['showdate']));
-                    show_window('', wf_Link('?module=salary_timesheets', __('Back'), false, 'ubButton'));
+                    show_window('', wf_BackLink('?module=salary_timesheets'));
                 }
             } else {
                 show_warning(__('No available workers for timesheets'));

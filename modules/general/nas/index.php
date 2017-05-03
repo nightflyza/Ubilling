@@ -137,7 +137,7 @@ if (cfr('NAS')) {
         $editinputs.=wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
         show_window(__('Edit') . ' NAS', $editform);
-        show_window('', wf_Link("?module=nas", 'Back', true, 'ubButton'));
+        show_window('', wf_BackLink("?module=nas"));
     }
 } else {
     show_error(__('You cant control this module'));

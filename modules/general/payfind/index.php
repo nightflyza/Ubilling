@@ -2,7 +2,7 @@
 
 if (cfr('PAYFIND')) {
 
-    /*
+    /**
      * Returns all of known payment systems percents
      * 
      * @return array
@@ -26,7 +26,7 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
 
-    /*
+    /**
      * Adds new payment system data to database
      * 
      * @param $mark     identifying text of payment system
@@ -56,7 +56,7 @@ if (cfr('PAYFIND')) {
         }
     }
 
-    /*
+    /**
      * Removes payment system data from database
      * 
      * @param $mark     identifying text of payment system
@@ -77,7 +77,7 @@ if (cfr('PAYFIND')) {
         }
     }
 
-    /*
+    /**
      * Show payment system create and deletion form
      * 
      * @return string
@@ -92,7 +92,7 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form("", "POST", $inputs, 'glamour');
         $result = $form;
-        $result.= wf_Link("?module=payfind", __('Back'), true, 'ubButton');
+        $result.= wf_BackLink("?module=payfind");
 
         if (!empty($allpaysys)) {
 
@@ -113,7 +113,7 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
 
-    /*
+    /**
      * Returns payment system selector - used in search form
      * 
      * @return string
@@ -131,7 +131,7 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
     
-    /*
+    /**
      * Returns available cashier accounts selector
      * 
      * @return string
@@ -151,7 +151,7 @@ if (cfr('PAYFIND')) {
         return ($result);
     }
     
-    /*
+    /**
      * Returns available tags selector
      * 
      * @return string
@@ -172,7 +172,7 @@ if (cfr('PAYFIND')) {
     }
     
     
-    /*
+    /**
      * extracts all user logins by tagid in SQL WHERE accessible format
      * 
      * @param $tagid int existing tag ID
@@ -199,7 +199,7 @@ if (cfr('PAYFIND')) {
     }
     
     
-    /*
+    /**
      * Returns search table selector
      * 
      * @return string
@@ -221,7 +221,7 @@ if (cfr('PAYFIND')) {
     }
     
 
-    /*
+    /**
      * Returns payment search form
      * 
      * @return string
@@ -267,12 +267,12 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_Submit(__('Search'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
-        $result.= wf_Link("?module=report_finance", __('Back'), true, 'ubButton');
+        $result.= wf_BackLink("?module=report_finance");
 
         return ($result);
     }
 
-    /*
+    /**
      * Execute search with prepared options and shows search results
      * 
      * @return void

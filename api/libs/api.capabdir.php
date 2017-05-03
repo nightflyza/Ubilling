@@ -322,7 +322,7 @@ class CapabilitiesDirectory {
             $taskForm = ts_TaskCreateFormUnified($this->allcapab[$id]['address'], $this->allcapab[$id]['phone'], '', '');
             $taskControl = wf_modal(wf_img('skins/createtask.gif') . ' ' . __('Create task'), __('Create task'), $taskForm, 'ubButton', '420', '500');
 
-            $result = wf_Link('?module=capabilities&page=' . $curpage, __('Back'), false, 'ubButton') . ' ';
+            $result = wf_BackLink('?module=capabilities&page=' . $curpage) . ' ';
             $result.= $taskControl . wf_delimiter();
 
             $inputs = wf_TextInput('editaddress', __('Full address') . $sup, $this->allcapab[$id]['address'], true);
@@ -420,7 +420,7 @@ class CapabilitiesDirectory {
      */
     public function statesAddForm() {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $result = wf_Link('?module=capabilities', __('Back'), true, 'ubButton');
+        $result = wf_BackLink('?module=capabilities', '', true);
         $inputs = wf_TextInput('createstate', __('New status') . $sup, '', true, '20');
         $inputs.= wf_ColPicker('createstatecolor', __('New status color') . $sup, '#' . $this->genRandomColor(), true, '10');
         $inputs.= wf_Submit(__('Create'));
@@ -437,7 +437,7 @@ class CapabilitiesDirectory {
     public function statesEditForm($id) {
 
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $result = wf_Link('?module=capabilities&states=true', __('Back'), true, 'ubButton');
+        $result = wf_BackLink('?module=capabilities&states=true', '', true);
         $inputs = wf_TextInput('editstate', __('New status') . $sup, $this->capabstates[$id]['state'], true, '20');
         $inputs.= wf_ColPicker('editstatecolor', __('New status color') . $sup, '#' . $this->capabstates[$id]['color'], true, '10');
         $inputs.= wf_Submit(__('Save'));

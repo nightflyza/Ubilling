@@ -72,7 +72,7 @@ if ($altCfg['MG_ENABLED']) {
                 }
             }
             show_window(__('Edit'), $interface->renderSubManagerForm($subId));
-            show_window('', wf_Link($interface::URL_ME . '&' . $interface::URL_SUBS, __('Back'), false, 'ubButton'));
+            show_window('', wf_BackLink($interface::URL_ME . '&' . $interface::URL_SUBS));
         }
 
         //subscriptions report

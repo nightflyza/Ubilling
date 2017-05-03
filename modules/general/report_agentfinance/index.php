@@ -23,7 +23,7 @@ if ($altcfg['AGENTS_ASSIGN']==2) {
     
     //show search form
     show_window(__('Payment search'),$assignReport->paymentSearchForm());
-    show_window('',  wf_Link('?module=report_finance', __('Back'), true, 'ubButton'));
+    show_window('', wf_BackLink('?module=report_finance'));
     
     //do the search and display results
     if (wf_CheckPost(array('datefrom','dateto','dosearch','cashtypeid'))) {

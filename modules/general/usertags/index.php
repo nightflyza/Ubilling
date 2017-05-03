@@ -11,7 +11,7 @@ if ((cfr('TAGS')) OR ( cfr('TAGSDIR'))) {
                     stg_add_tagtype();
                     rcms_redirect("?module=usertags");
                 } else {
-                    show_window(__('Error'), __('Required fields'));
+                    show_error(__('Required fields'));
                 }
             }
 
@@ -43,7 +43,7 @@ if ((cfr('TAGS')) OR ( cfr('TAGSDIR'))) {
                 $editform = wf_Form('', 'POST', $editinputs, 'glamour');
 
                 show_window(__('Edit'), $editform);
-                show_window('', wf_Link("?module=usertags", 'Back', true, 'ubButton'));
+                show_window('', wf_BackLink("?module=usertags", 'Back', true));
             }
 
 //show available tagtypes

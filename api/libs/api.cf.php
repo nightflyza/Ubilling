@@ -111,7 +111,7 @@ function cf_TypeEditForm($typeid) {
     $editinputs.=wf_Submit('Edit');
     $editform = wf_Form('', 'POST', $editinputs, 'glamour');
     show_window(__('Edit custom field type'), $editform);
-    show_window('', wf_Link('?module=cftypes', 'Back', true, 'ubButton'));
+    show_window('', wf_BackLink('?module=cftypes'));
 }
 
 /**

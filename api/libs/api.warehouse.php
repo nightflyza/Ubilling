@@ -108,7 +108,7 @@ class Warehouse {
     protected $sup = '';
 
     /**
-     * Default routing desc
+     * Default routing defs
      */
     const URL_ME = '?module=warehouse';
     const URL_CATEGORIES = 'categories=true';
@@ -718,9 +718,9 @@ class Warehouse {
      */
     public function backControl($url = '') {
         if (empty($url)) {
-            show_window('', wf_Link(self::URL_ME, __('Back'), false, 'ubButton'));
+            show_window('', wf_BackLink(self::URL_ME));
         } else {
-            show_window('', wf_Link($url, __('Back'), false, 'ubButton'));
+            show_window('', wf_BackLink($url));
         }
     }
 

@@ -156,7 +156,7 @@ class CustomMaps {
      */
     protected function mapControls() {
         $result = '';
-        $result.=wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
+        $result.=wf_BackLink('?module=custmaps');
         if (wf_CheckGet(array('showmap'))) {
             $mapId = $_GET['showmap'];
             if (cfr('CUSTMAPEDIT')) {
@@ -251,7 +251,7 @@ class CustomMaps {
         $itemid = vf($itemid, 3);
         $result = '';
         if (isset($this->allItems[$itemid])) {
-            $result.= wf_Link('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid'], __('Back'), false, 'ubButton');
+            $result.= wf_BackLink('?module=custmaps&showitems=' . $this->allItems[$itemid]['mapid']);
             $result.= wf_delimiter();
             $inputs = wf_HiddenInput('edititemid', $itemid);
             $inputs.= wf_Selector('edititemtype', $this->itemTypes, __('Type'), $this->allItems[$itemid]['type'], true);
@@ -449,7 +449,7 @@ class CustomMaps {
         $opts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Type', 'Geo location', 'Name', 'Location', 'Actions');
         $result = '';
-        $result.= wf_Link('?module=custmaps', __('Back'), false, 'ubButton');
+        $result.= wf_BackLink('?module=custmaps');
         if (cfr('CUSTMAPEDIT')) {
             $result.= wf_modalAuto(wf_img('skins/photostorage_upload.png') . ' ' . __('Upload file from HDD'), __('Upload') . ' KML', $this->itemsImportForm(), 'ubButton');
         }
@@ -545,7 +545,7 @@ class CustomMaps {
             }
         }
 
-        $result.= wf_Link('?module=custmaps&showitems=' . $mapid, __('Back'), false, 'ubButton');
+        $result.= wf_BackLink('?module=custmaps&showitems=' . $mapid);
 
         $result.= wf_delimiter();
 

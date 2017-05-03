@@ -1765,3 +1765,24 @@ CREATE TABLE IF NOT EXISTS `branchesusers` (
   `login` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `branchescities` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchid` int(11) NOT NULL,
+  `cityid` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `branchestariffs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchid` int(11) NOT NULL,
+  `tariff` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `branchesservices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `branchid` int(11) NOT NULL,
+  `serviceid` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

@@ -546,7 +546,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
      */
     function web_AskoziaConfigForm() {
         global $askoziaUrl, $askoziaLogin, $askoziaPassword, $askoziaCacheTime;
-        $result = wf_Link('?module=askozia', __('Back'), true, 'ubButton') . wf_delimiter();
+        $result = wf_BackLink('?module=askozia') . wf_delimiter();
         $inputs = wf_TextInput('newurl', __('AskoziaPBX URL'), $askoziaUrl, true);
         $inputs.= wf_TextInput('newlogin', __('Administrator login'), $askoziaLogin, true);
         $inputs.= wf_TextInput('newpassword', __('Password'), $askoziaPassword, true);

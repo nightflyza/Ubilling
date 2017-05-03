@@ -441,7 +441,7 @@ function web_VserviceEditForm($vserviceid) {
         $inputs.= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
-        $form.=wf_Link('?module=vservices', __('Back'), true, 'ubButton');
+        $form.=wf_BackLink('?module=vservices');
         return($form);
     } else {
         throw new Exception('NOT_EXISTING_VSERVICE_ID');

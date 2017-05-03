@@ -81,7 +81,7 @@ if (cfr('TICKETING')) {
       //add form
       show_window(__('Create new preset'),web_TicketsTAPAddForm());
       
-      show_window('', wf_Link('?module=ticketing', __('Back'), true, 'ubButton'));
+      show_window('', wf_BackLink('?module=ticketing'));
   }   
     
 } else {

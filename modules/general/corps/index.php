@@ -40,7 +40,7 @@ if (cfr('CORPS')) {
                         rcms_redirect(Corps::URL_TAXTYPE_LIST);
                     }
 
-                    show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                    show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
                     if (method_exists($corps, $beggar['METH']['TTRENDER']))
                         show_window(__('Available tax types'), $corps->$beggar['METH']['TTRENDER']());
                 }
@@ -79,7 +79,7 @@ if (cfr('CORPS')) {
                                 show_window(__('Error'), __('All fields marked with an asterisk are mandatory'));
                             }
                         }
-                        show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                        show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
                         if (method_exists($corps, $beggar['VP']['FADF']))
                             show_window(__('Create'), $corps->$beggar['VP']['FADF']());
                     }
@@ -109,7 +109,7 @@ if (cfr('CORPS')) {
                             rcms_redirect(Corps::URL_CORPS_EDIT . $_GET['editid']);
                         }
 
-                        show_window('', wf_Link(Corps::URL_CORPS_LIST, __('Back'), true, 'ubButton'));
+                        show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
                         if (method_exists($corps, $beggar['VP']['MODF']))
                             show_window(__('Edit'), $corps->$beggar['VP']['MODF']($_GET['editid']));
                         show_window(__('Contact persons'), $corps->personCreateForm($_GET['editid']));
@@ -170,19 +170,19 @@ if (cfr('CORPS')) {
                     if (!empty($searchResults)) {
                         show_window(__('Search results'), $searchResults);
                     }
-                    show_window('', wf_Link('?module=usersearch', __('Back'), false, 'ubButton'));
+                    show_window('', wf_BackLink('?module=usersearch'));
                 }
             } else {
                 //default list route
                 rcms_redirect(Corps::URL_CORPS_LIST);
             }
         } else {
-            show_error( __('No license key available'));
+            show_error(__('No license key available'));
         }
     } else {
         show_error(__('This module is disabled'));
     }
 } else {
-    show_error( __('Access denied'));
+    show_error(__('Access denied'));
 }
 ?>

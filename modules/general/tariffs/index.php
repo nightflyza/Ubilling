@@ -37,7 +37,7 @@ if (cfr('TARIFFS')) {
             $periodControls = '';
         }
 
-        $form = wf_Link("?module=tariffs", __('Back'), true, 'ubButton');
+        $form = wf_BackLink("?module=tariffs", '', true);
         $form.= '<form id="tariff_add" method="POST" action="">
     <table>
         <tr>
@@ -169,7 +169,7 @@ if (cfr('TARIFFS')) {
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
 
-        $result = wf_Link("?module=tariffs&action=new", __('Create new tariff'), true, 'ubButton');
+        $result = wf_Link("?module=tariffs&action=new", web_icon_create() . ' ' . __('Create new tariff'), true, 'ubButton');
 
         if (!empty($alltariffs)) {
             foreach ($alltariffs as $io => $eachtariff) {
@@ -230,7 +230,7 @@ if (cfr('TARIFFS')) {
         } else {
             $periodControls = '';
         }
-        $form = wf_Link("?module=tariffs", __('Back'), true, 'ubButton');
+        $form = wf_BackLink("?module=tariffs", '', true);
         $form.= '<form method="POST" action="">
     <table>
         <tr>
@@ -369,7 +369,7 @@ if (cfr('TARIFFS')) {
                 } else {
                     log_register("TARIFF DELETE TRY USED `" . $tariffname . "`");
                     show_error(__('Tariff is used by some users'));
-                    show_window('', wf_Link('?module=tariffs', __('Back'), true, 'ubButton'));
+                    show_window('', wf_BackLink('?module=tariffs', '', true));
                 }
             }
 

@@ -2344,7 +2344,7 @@ function catvbs_ShowHash($hash) {
         $result=__('Strange exeption catched');
     }
     
-    show_window('', wf_Link("?module=catv_banksta", 'Back', true, 'ubButton'));
+    show_window('', wf_BackLink("?module=catv_banksta", 'Back', true));
     show_window(__('Bank statement processing'),$result);
 }
 
