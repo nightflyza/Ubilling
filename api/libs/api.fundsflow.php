@@ -92,7 +92,7 @@ class FundsFlow {
      * @return array
      */
     public function getFees($login) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
 
         $sudo = $this->billingConf['SUDO'];
         $cat = $this->billingConf['CAT'];
@@ -143,7 +143,7 @@ class FundsFlow {
      * @return array
      */
     public function getPayments($login) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $query = "SELECT * from `payments` WHERE `login`='" . $login . "'";
         $allpayments = simple_queryall($query);
 
@@ -187,7 +187,7 @@ class FundsFlow {
      * @return array
      */
     public function getPaymentsCorr($login) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $query = "SELECT * from `paymentscorr` WHERE `login`='" . $login . "'";
         $allpayments = simple_queryall($query);
 

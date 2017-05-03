@@ -17,10 +17,10 @@ if(cfr('MASSSEND')) {
 
 
 function ms_TicketCreate($from,$to,$text,$replyto='NULL',$admin='') {
-    $from=mysql_real_escape_string($from);
-    $to=mysql_real_escape_string($to);
-    $admin=mysql_real_escape_string($admin);
-    $text=mysql_real_escape_string(strip_tags($text));
+    $from=loginDB_real_escape_string($from);
+    $to=loginDB_real_escape_string($to);
+    $admin=loginDB_real_escape_string($admin);
+    $text=loginDB_real_escape_string(strip_tags($text));
     $date=curdatetime();
     $replyto=vf($replyto);
     $query="

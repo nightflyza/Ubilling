@@ -420,7 +420,7 @@ class UbillingDHCP {
         $dhcpid = vf($dhcpid, 3);
         $dhcpconfname = vf($dhcpconfname);
         $dhcpconfname = trim($dhcpconfname);
-        $dhcpconfig = mysql_real_escape_string($dhcpconfig);
+        $dhcpconfig = loginDB_real_escape_string($dhcpconfig);
         $query = "UPDATE `dhcp` SET `dhcpconfig` = '" . $dhcpconfig . "',"
                 . "`confname` = '" . $dhcpconfname . "' WHERE `id` ='" . $dhcpid . "';";
         nr_query($query);

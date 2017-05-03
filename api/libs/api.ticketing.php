@@ -156,10 +156,10 @@ function zb_TicketUpdateReply($replyid, $newtext) {
  * @return void
  */
 function zb_TicketCreate($from, $to, $text, $replyto = 'NULL', $admin = '') {
-    $from = mysql_real_escape_string($from);
-    $to = mysql_real_escape_string($to);
-    $admin = mysql_real_escape_string($admin);
-    $text = mysql_real_escape_string(strip_tags($text));
+    $from = loginDB_real_escape_string($from);
+    $to = loginDB_real_escape_string($to);
+    $admin = loginDB_real_escape_string($admin);
+    $text = loginDB_real_escape_string(strip_tags($text));
     $date = curdatetime();
     $replyto = vf($replyto);
     $query = "INSERT INTO `ticketing` (`id` , `date` , `replyid` , `status` ,`from` , `to` , `text`, `admin`) "
@@ -320,7 +320,7 @@ function zb_TicketsTAPCreate($taptext) {
  * @return void
  */
 function zb_TicketsTAPDelete($keyname) {
-    $keyname = mysql_real_escape_string($keyname);
+    $keyname = loginDB_real_escape_string($keyname);
     $query = "DELETE from `ubstorage` WHERE `key`='" . $keyname . "'";
     nr_query($query);
     log_register('TICKET TAP DELETE `' . $keyname . '`');

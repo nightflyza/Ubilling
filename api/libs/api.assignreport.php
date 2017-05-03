@@ -527,8 +527,8 @@ class agentAssignReport {
             $altercfg = $this->altcfg;
         }
 
-        $datefrom = mysql_real_escape_string($datefrom);
-        $dateto = mysql_real_escape_string($dateto);
+        $datefrom = loginDB_real_escape_string($datefrom);
+        $dateto = loginDB_real_escape_string($dateto);
         $this->loadUserRealnames();
         $this->loadCashTypes();
         $allservicenames = zb_VservicesGetAllNamesLabeled();

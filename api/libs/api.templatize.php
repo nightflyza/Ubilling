@@ -51,7 +51,7 @@ function zb_NasGetParams($netid, $allnasdata) {
  * @return  array
  */
 function zb_cfGetContent($login, $allcfdata) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $result = array();
 
     if (!empty($allcfdata)) {

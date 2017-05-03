@@ -521,7 +521,7 @@ function zb_UserRegisterLog($login) {
     $login = vf($login);
     $address = zb_AddressGetFulladdresslist();
     $address = $address[$login];
-    $address = mysql_real_escape_string($address);
+    $address = loginDB_real_escape_string($address);
     $query = "INSERT INTO `userreg` (`id` ,`date` ,`admin` ,`login` ,`address`) "
             . "VALUES (NULL , '" . $date . "', '" . $admin . "', '" . $login . "', '" . $address . "');";
     nr_query($query);
@@ -534,7 +534,7 @@ function zb_UserRegisterLog($login) {
  * @return bool
  */
 function zb_ip_unique($ip) {
-    $ip = mysql_real_escape_string($ip);
+    $ip = loginDB_real_escape_string($ip);
     $query = "SELECT `login` from `users` WHERE `ip`='" . $ip . "'";
     $usersbyip = simple_queryall($query);
     if (!empty($usersbyip)) {
@@ -551,7 +551,7 @@ function zb_ip_unique($ip) {
  * @return bool
  */
 function zb_mac_unique($mac) {
-    $ip = mysql_real_escape_string($mac);
+    $ip = loginDB_real_escape_string($mac);
     $query = "SELECT `mac` from `nethosts` WHERE `mac`='" . $mac . "'";
     $usersbymac = simple_queryall($query);
     if (!empty($usersbymac)) {

@@ -13,7 +13,7 @@ if (cfr('PLSENDMESSAGE')) {
     
     
     function web_MessagesShowPrevious($login) {
-        $login=mysql_real_escape_string($login);
+        $login=loginDB_real_escape_string($login);
         $query="SELECT * from `ticketing` WHERE `to`='".$login."' AND `from`='NULL' AND `status`='1' ORDER BY `date` DESC";
         $allmessages=simple_queryall($query);
         $result='<table width="100%" class="sortable">';

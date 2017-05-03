@@ -53,7 +53,7 @@ if (cfr('REPORTFINANCE')) {
 
 // payments by somedate
             if (isset($_POST['showdatepayments'])) {
-                $paydate = mysql_real_escape_string($_POST['showdatepayments']);
+                $paydate = loginDB_real_escape_string($_POST['showdatepayments']);
                 $paydate = (!empty($paydate)) ? $paydate : curdate();
                 show_window(__('Payments by date') . ' ' . $paydate, web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '" . $paydate . "%' ORDER by `date` DESC;"));
             } else {
@@ -64,7 +64,7 @@ if (cfr('REPORTFINANCE')) {
             }
         } else {
             // show monthly payments
-            $paymonth = mysql_real_escape_string($_GET['month']);
+            $paymonth = loginDB_real_escape_string($_GET['month']);
 
             show_window(__('Month payments'), web_PaymentsShow("SELECT * from `payments` WHERE `date` LIKE '" . $paymonth . "%'  ORDER by `date` DESC;"));
         }

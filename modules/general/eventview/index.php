@@ -42,7 +42,7 @@ if (cfr('EVENTVIEW')) {
      * @return array
      */
     function zb_GetAllEventsByDate($date) {
-        $date = mysql_real_escape_string($date);
+        $date = loginDB_real_escape_string($date);
         $query = "SELECT * from `weblogs` WHERE `date` LIKE '%" . $date . "%' ORDER BY `id` DESC";
         $allevents = simple_queryall($query);
         return ($allevents);
@@ -266,7 +266,7 @@ if (cfr('EVENTVIEW')) {
     $adminlogin = (wf_CheckPost(array('eventadmin'))) ? $_POST['eventadmin'] : '';
     if (isset($_POST['eventsearch'])) {
         if (strlen($_POST['eventsearch']) >= 3) {
-            $searchevent = mysql_real_escape_string($_POST['eventsearch']);
+            $searchevent = loginDB_real_escape_string($_POST['eventsearch']);
         } else {
             $searchevent = '';
         }

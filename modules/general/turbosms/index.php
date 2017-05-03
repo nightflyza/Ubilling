@@ -309,7 +309,7 @@ if (cfr('TURBOSMS')) {
         
         
         function web_TsmsShowAllSMS ($date='') {
-            $date=  mysql_real_escape_string($date);
+            $date=  loginDB_real_escape_string($date);
             if (!empty($date)) {
                 $where="WHERE `send_time` LIKE '".$date."%'";
             } else {
@@ -657,7 +657,7 @@ if (cfr('TURBOSMS')) {
            //single user send
             if (wf_CheckPost(array('sendsinglelogin'))) {
                 $singlelogin=trim($_POST['sendsinglelogin']);
-                $singlelogin=  mysql_real_escape_string($singlelogin);
+                $singlelogin=  loginDB_real_escape_string($singlelogin);
                 if (!empty($singlelogin)) {
                 $smsTemplate=  tsms_GetTemplate();
                 $smsWap=  tsms_GetWap();

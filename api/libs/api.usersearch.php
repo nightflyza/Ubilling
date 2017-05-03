@@ -39,7 +39,7 @@ function web_UserSearchFieldsForm() {
  */
 function zb_UserSearchFields($query, $searchtype) {
     global $ubillingConfig;
-    $query = mysql_real_escape_string(trim($query));
+    $query = loginDB_real_escape_string(trim($query));
     $searchtype = vf($searchtype);
     $altercfg = $ubillingConfig->getAlter();
 
@@ -166,7 +166,7 @@ function web_UserSearchCFForm() {
  */
 function zb_UserSearchCF($typeid, $query) {
     $typeid = vf($typeid);
-    $query = mysql_real_escape_string($query);
+    $query = loginDB_real_escape_string($query);
     $result = array();
     $dataquery = "SELECT `login` from `cfitems` WHERE `typeid`='" . $typeid . "' AND `content`LIKE '%" . $query . "%'";
     $allusers = simple_queryall($dataquery);
@@ -347,7 +347,7 @@ function web_CorpsSearchForm() {
 function zb_UserSearchAddressPartial($query) {
     global $ubillingConfig;
     $altercfg = $ubillingConfig->getAlter();
-    $query = mysql_real_escape_string($query);
+    $query = loginDB_real_escape_string($query);
     if (!$altercfg['SEARCHADDR_AUTOCOMPLETE']) {
         $query = strtolower_utf8($query);
     }

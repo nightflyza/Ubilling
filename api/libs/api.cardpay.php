@@ -168,7 +168,7 @@ function web_CardsSearchForm() {
  * @return string
  */
 function web_CardsSearchBySerial($serial) {
-    $serial=  mysql_real_escape_string($serial);
+    $serial=  loginDB_real_escape_string($serial);
     $query="SELECT * from `cardbank` WHERE `serial` LIKE '%".$serial."%'";
     $allcards=  simple_queryall($query);
     $result=__('Nothing found');

@@ -443,9 +443,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
     function zb_AsteriskGetCDR($from, $to) {
         global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
         global $user_login;
-        $from = mysql_real_escape_string($from);
-        $to = mysql_real_escape_string($to);
-        $asteriskTable = mysql_real_escape_string($asteriskTable);
+        $from = loginDB_real_escape_string($from);
+        $to = loginDB_real_escape_string($to);
+        $asteriskTable = loginDB_real_escape_string($asteriskTable);
         $cachePath = 'exports/';
 
 //caching
@@ -605,8 +605,8 @@ if ($altcfg['ASTERISK_ENABLED']) {
             //aliases creation
             if (wf_CheckPost(array('newaliasnum', 'newaliasname'))) {
                 $newStoreAliases = $numAliases;
-                $newAliasNum = mysql_real_escape_string($_POST['newaliasnum']);
-                $newAliasName = mysql_real_escape_string($_POST['newaliasname']);
+                $newAliasNum = loginDB_real_escape_string($_POST['newaliasnum']);
+                $newAliasName = loginDB_real_escape_string($_POST['newaliasname']);
                 $newStoreAliases[$newAliasNum] = $newAliasName;
                 $newStoreAliases = serialize($newStoreAliases);
                 $newStoreAliases = base64_encode($newStoreAliases);
@@ -618,7 +618,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             //alias deletion
             if (wf_CheckPost(array('deletealias'))) {
                 $newStoreAliases = $numAliases;
-                $deleteAliasNum = mysql_real_escape_string($_POST['deletealias']);
+                $deleteAliasNum = loginDB_real_escape_string($_POST['deletealias']);
                 if (isset($newStoreAliases[$deleteAliasNum])) {
                     unset($newStoreAliases[$deleteAliasNum]);
                     $newStoreAliases = serialize($newStoreAliases);

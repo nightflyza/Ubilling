@@ -178,7 +178,7 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsShowAnotherYearMonth($cmonth) {
         global $altercfg;
         $alltariffs = zb_TariffsGetAllUsers();
-        $cmonth = mysql_real_escape_string($cmonth);
+        $cmonth = loginDB_real_escape_string($cmonth);
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
@@ -260,7 +260,7 @@ if (cfr('REPORTSIGNUP')) {
         if (!wf_CheckGet(array('month'))) {
             $cmonth = curmonth();
         } else {
-            $cmonth = mysql_real_escape_string($_GET['month']);
+            $cmonth = loginDB_real_escape_string($_GET['month']);
         }
         $where = "WHERE `date` LIKE '" . $cmonth . "%'";
         $alltariffnames = zb_TariffsGetAll();

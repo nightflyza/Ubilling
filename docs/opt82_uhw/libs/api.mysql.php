@@ -189,9 +189,9 @@ class MySQLDB
 	function escape($string)
 	{
 		if (!get_magic_quotes_gpc()) 
-	    	return mysql_real_escape_string($string,$this->connection);
+	    	return loginDB_real_escape_string($string,$this->connection);
 		else
-    		return mysql_real_escape_string(stripslashes($string),$this->connection);
+    		return loginDB_real_escape_string(stripslashes($string),$this->connection);
 	}
 	
 	/**
@@ -268,16 +268,16 @@ return($result);
 
 //function update single field in table
 function simple_update_field($tablename,$field,$value,$where='') {
-        $tablename=mysql_real_escape_string($tablename);
-        $value=mysql_real_escape_string($value);
-        $field=mysql_real_escape_string($field);
+        $tablename=loginDB_real_escape_string($tablename);
+        $value=loginDB_real_escape_string($value);
+        $field=loginDB_real_escape_string($field);
         $query="UPDATE `".$tablename."` SET `".$field."` = '".$value."' ".$where."";
         nr_query($query);
     }
 
 //function that gets last id from table
 function  simple_get_lastid($tablename) {
-    $tablename=mysql_real_escape_string($tablename);
+    $tablename=loginDB_real_escape_string($tablename);
     $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
     $result=simple_query($query);
     return ($result['id']);
