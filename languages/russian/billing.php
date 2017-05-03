@@ -312,6 +312,31 @@ $lang['def']['right view system health report'] = 'Право просматри
 $lang['def']['right to edit traffic classes'] = 'Право редактировать классы трафика';
 $lang['def']['right to use Winbox interface'] = 'Право пользоваться Winbox - интерфейсом кассира';
 
+//Selling
+$lang['def']['Selling'] = 'Пункты продаж';
+$lang['def']['Create new selling'] = 'Создать пункт продаж';
+$lang['def']['Available selling'] = 'Существующие пункты продаж';
+$lang['def']['Selling name'] = 'Название';
+$lang['def']['Selling address'] = 'Адресс';
+$lang['def']['Selling geo data'] = 'Гео координаты';
+$lang['def']['Selling contact'] = 'Контакты';
+$lang['def']['Selling count cards'] = 'Количество карточек';
+$lang['def']['Selling comment'] = 'Комментарии';
+$lang['def']['Receipt date'] = 'Дата поступления';
+$lang['def']['Not used'] = 'Не использовано';
+$lang['def']['Serial part'] = 'Серия';
+$lang['def']['Change cards'] = 'Обновить карточки';
+$lang['def']['Selling report'] = 'Отчет по пункты продаж';
+$lang['def']['Activated'] = 'Активированные';
+$lang['def']['For sum'] = 'На сумму';
+$lang['def']['Remains'] = 'Осталось';
+$lang['def']['You need install php extension GD'] = 'Вам нужно установить php разширение GD';
+$lang['def']['Card for print'] = 'Карточки для печати';
+$lang['def']['You cant control this action'] = 'Вы не можете сделать это действие';
+$lang['def']['Create print card'] = 'Создать шаблон для печати карточек';
+$lang['def']['Font size'] = 'Размер шрифта';
+$lang['def']['Top'] = 'По верхнему краю';
+
 // rev 272
 $lang['def']['DHCP config name'] = 'Имя конфига DHCP';
 $lang['def']['Rule name'] = 'Название правила';
@@ -2422,35 +2447,17 @@ $lang['def']['Payments by month'] = 'Оплаты за месяц';
 $lang['def']['Distance'] = 'Расстояние';
 $lang['def']['Unknown ONU'] = 'Неизвестные ONU';
 $lang['def']['Register new ONU'] = 'Зарегистрировать новую ONU';
+$lang['def']['No branches available'] = 'Нету существующих филиалов';
+$lang['def']['New branch name'] = 'Имя нового филиала';
+$lang['def']['right to use branches module'] = 'Право использовать модуль филиалов';
+$lang['def']['right to control branches configuration'] = 'Право конфигурировать филиалы';
+$lang['def']['Branches'] = 'Филиалы';
+$lang['def']['Branches enabled'] = 'Филиалы включены';
+$lang['def']['ONU reboot from vlans control module'] = 'Перезагрузка ONU из модуля управления вланами';
+$lang['def']['ONU describe from vlans control module'] = 'Описание ONU из модуля управления вланами';
+$lang['def']['No branches admins available'] = 'Нету привязок администраторов к филиалам';
+$lang['def']['Administrators'] = 'Администраторы';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-
-//Selling
-$lang['def']['Selling'] = 'Пункты продаж';
-$lang['def']['Create new selling'] = 'Создать пункт продаж';
-$lang['def']['Available selling'] = 'Существующие пункты продаж';
-$lang['def']['Selling name'] = 'Название';
-$lang['def']['Selling address'] = 'Адресс';
-$lang['def']['Selling geo data'] = 'Гео координаты';
-$lang['def']['Selling contact'] = 'Контакты';
-$lang['def']['Selling count cards'] = 'Количество карточек';
-$lang['def']['Selling comment'] = 'Комментарии';
-$lang['def']['Receipt date'] = 'Дата поступления';
-$lang['def']['Not used'] = 'Не использовано';
-$lang['def']['Serial part'] = 'Серия';
-$lang['def']['Change cards'] = 'Обновить карточки';
-$lang['def']['Selling report'] = 'Отчет по пункты продаж';
-$lang['def']['Activated'] = 'Активированные';
-$lang['def']['For sum'] = 'На сумму';
-$lang['def']['Remains'] = 'Осталось';
-$lang['def']['You need install php extension GD'] = 'Вам нужно установить php разширение GD';
-$lang['def']['Card for print'] = 'Карточки для печати';
-$lang['def']['You cant control this action'] = 'Вы не можете сделать это действие';
-$lang['def']['Create print card'] = 'Создать шаблон для печати карточек';
-$lang['def']['Font size'] = 'Размер шрифта';
-$lang['def']['Top'] = 'По верхнему краю';
-
 
 ?>

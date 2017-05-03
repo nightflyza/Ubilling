@@ -58,7 +58,14 @@ class UbillingBranches {
      */
     protected $messages = '';
 
-    const URL_ME = '?module=testing';
+    /**
+     * Branches enabled flag
+     *
+     * @var bool
+     */
+    protected $branchesEnabled = false;
+
+    const URL_ME = '?module=branches';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const URL_TRAFFSTATS = '?module=traffstats&username=';
     const EX_NO_BRANCH = 'EX_BRANCHID_NOT_EXISTS';
@@ -67,13 +74,18 @@ class UbillingBranches {
     const EX_NO_ADMIN = 'EX_EMPTY_ADMIN';
 
     public function __construct() {
-        $this->setLogin();
         $this->loadAlter();
-        $this->initMessages();
-        $this->loadBranches();
-        $this->loadBranchesAdmins();
-        $this->setMyBranches();
-        $this->loadBranchesUsers();
+        if ($this->altCfg['BRANCHES_ENABLED']) {
+            $this->branchesEnabled = true;
+            $this->setLogin();
+            $this->initMessages();
+            $this->loadBranches();
+            $this->loadBranchesAdmins();
+            $this->setMyBranches();
+            $this->loadBranchesUsers();
+        } else {
+            $this->branchesEnabled = false;
+        }
     }
 
     /**
@@ -112,7 +124,7 @@ class UbillingBranches {
      * @return void
      */
     protected function loadBranches() {
-        $query = "SELECT * from `branches`";
+        $query = "SELECT * from `branches` ORDER BY `id` DESC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -128,7 +140,7 @@ class UbillingBranches {
      */
     protected function loadBranchesAdmins() {
         if (!empty($this->branches)) {
-            $query = "SELECT * from `branchesadmins`";
+            $query = "SELECT * from `branchesadmins` ORDER BY `id` DESC";
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
@@ -194,6 +206,29 @@ class UbillingBranches {
     }
 
     /**
+     * Checks is branch have assigned users
+     * 
+     * @param int $branchId
+     * 
+     * @return bool
+     */
+    public function isBranchProtected($branchId) {
+        $branchId = vf($branchId, 3);
+        $result = false;
+        if (isset($this->branches[$branchId])) {
+            if (!empty($this->branchesLogins)) {
+                foreach ($this->branchesLogins as $eachLogin => $eachId) {
+                    if ($branchId == $eachId) {
+                        $result = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Deletes branch by its ID
      * 
      * @param int $branchId
@@ -205,8 +240,48 @@ class UbillingBranches {
         if (isset($this->branches[$branchId])) {
             $query = "DELETE from `branches` WHERE `id`='" . $branchId . "';";
             nr_query($query);
+            //admins cleanup
+            $queryAdmins = "DELETE from `branchesadmins` WHERE `branchid`='" . $branchId . "';";
+            nr_query($queryAdmins);
             log_register('BRANCH DELETE [' . $branchId . ']');
         }
+    }
+
+    /**
+     * Updates existing branch name
+     * 
+     * @param int $branchId
+     * @param string $branchName
+     * 
+     * @return void
+     */
+    public function editBranch($branchId, $branchName) {
+        $branchId = vf($branchId, 3);
+        if (isset($this->branches[$branchId])) {
+            simple_update_field('branches', 'name', $branchName, "WHERE `id`='" . $branchId . "'");
+            log_register('BRANCH UPDATE [' . $branchId . '] `' . $branchName . '`');
+        }
+    }
+
+    /**
+     * Checks is admin assigned to some branch, to prevent duplicates
+     * 
+     * @param int $branchId
+     * @param string $adminLogin
+     * 
+     * @return bool
+     */
+    protected function isAdminBranchAssigned($branchId, $adminLogin) {
+        $result = false;
+        if (!empty($this->branchesAdmins)) {
+            foreach ($this->branchesAdmins as $io => $each) {
+                if (($each['branchid'] == $branchId) AND ( $each['admin'] == $adminLogin)) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -224,10 +299,38 @@ class UbillingBranches {
         $adminF = mysql_real_escape_string($admin);
         if (isset($this->branches[$branchId])) {
             if (!empty($adminF)) {
-                $query = "INSERT INTO `branchesadmins` (`id`,`branchid`,`admin`) VALUES";
-                $query.="(NULL,'" . $branchId . "','" . $adminF . "');";
+                if (!$this->isAdminBranchAssigned($branchId, $admin)) {
+                    $query = "INSERT INTO `branchesadmins` (`id`,`branchid`,`admin`) VALUES";
+                    $query.="(NULL,'" . $branchId . "','" . $adminF . "');";
+                    nr_query($query);
+                    log_register('BRANCH ASSIGN [' . $branchId . '] ADMIN {' . $admin . '}');
+                }
+            } else {
+                throw new Exception(self::EX_NO_ADMIN);
+            }
+        } else {
+            throw new Exception(self::EX_NO_BRANCH);
+        }
+    }
+
+    /**
+     * Deassigns administrator with some existing branch
+     * 
+     * @param int $branchId
+     * @param string $admin
+     * @throws Exception
+     * 
+     * @return void
+     */
+    public function adminDeassignBranch($branchId, $admin) {
+        $branchId = vf($branchId, 3);
+        $admin = trim($admin);
+        $adminF = mysql_real_escape_string($admin);
+        if (isset($this->branches[$branchId])) {
+            if (!empty($adminF)) {
+                $query = "DELETE from `branchesadmins` WHERE `branchid`='" . $branchId . "' AND `admin`='" . $adminF . "';";
                 nr_query($query);
-                log_register('BRANCH ASSIGN [' . $branchId . '] ADMIN `' . $admin . '`');
+                log_register('BRANCH DEASSIGN [' . $branchId . '] ADMIN {' . $admin . '}');
             } else {
                 throw new Exception(self::EX_NO_ADMIN);
             }
@@ -288,9 +391,19 @@ class UbillingBranches {
      */
     public function isMyUser($login) {
         $result = false;
-        if ((!cfr('ROOT')) OR ( cfr('BRANCHES'))) {
-            if (isset($this->myUsers[$login])) {
+        if ($this->branchesEnabled) {
+            if (cfr('ROOT')) {
                 $result = true;
+            } else {
+                if (cfr('BRANCHES')) {
+                    if (isset($this->myUsers[$login])) {
+                        $result = true;
+                    } else {
+                        $result = false;
+                    }
+                } else {
+                    $result = true;
+                }
             }
         } else {
             $result = true;
@@ -590,6 +703,115 @@ class UbillingBranches {
     }
 
     /**
+     * Returns branch editing form
+     * 
+     * @param int $branchId
+     * 
+     * @return string
+     */
+    protected function renderBranchEditForm($branchId) {
+        $branchId = vf($branchId, 3);
+        $result = '';
+        if (isset($this->branches[$branchId])) {
+            $inputs = wf_HiddenInput('editbranch', 'true');
+            $inputs.= wf_HiddenInput('editbranchid', $branchId);
+            $inputs.= wf_TextInput('editbranchname', __('Name'), $this->branches[$branchId]['name'], true);
+            $inputs.= wf_Submit(__('Save'));
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result.= self::EX_NO_BRANCH;
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of available branches and reqired controls for its management
+     * 
+     * @return string
+     */
+    protected function renderBranchesConfigForm() {
+        $result = '';
+        if (!empty($this->branches)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->branches as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell($each['name']);
+                $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletebranch=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actControls.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderBranchEditForm($each['id']), '') . ' ';
+
+                $cells.= wf_TableCell($actControls);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('No branches available'), 'warning');
+        }
+
+        $inputs = wf_HiddenInput('newbranch', 'true');
+        $inputs.= wf_TextInput('newbranchname', __('New branch name'), '', false) . ' ';
+        $inputs.= wf_Submit(__('Create'));
+        $createForm = wf_Form('', 'POST', $inputs, 'glamour');
+
+        $result.=$createForm;
+
+        return ($result);
+    }
+
+    /**
+     * Returns branches admins assignation list and config form
+     * 
+     * @return string
+     */
+    protected function renderAdminConfigForm() {
+        $result = '';
+        if (!empty($this->branches)) {
+            if (!empty($this->branchesAdmins)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.= wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell(__('Admin'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($this->branchesAdmins as $io => $each) {
+                    $cells = wf_TableCell($each['id']);
+                    $cells.= wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells.= wf_TableCell($each['admin']);
+                    $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deleteadmin=' . $each['admin'] . '&adminbranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($actControls);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No branches admins available'), 'warning');
+                $result.= wf_tag('br');
+            }
+
+            //admin assign form
+            $allAdmins = rcms_scandir('content/users/');
+            $adminsTmp = array();
+            if (!empty($allAdmins)) {
+                foreach ($allAdmins as $io => $each) {
+                    $adminsTmp[$each] = $each;
+                }
+            }
+
+            $branchesTmp = array();
+            foreach ($this->branches as $io => $each) {
+                $branchesTmp[$io] = $each['name'];
+            }
+
+            $inputs = wf_Selector('newadminbranch', $branchesTmp, __('Branch'), '', false) . ' ';
+            $inputs.=wf_Selector('newadminlogin', $adminsTmp, __('Admin'), '', false) . ' ';
+            $inputs.=wf_Submit(__('Assign'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
      * Returns branches management form
      * 
      * @return string
@@ -597,11 +819,35 @@ class UbillingBranches {
     public function renderSettingsBranches() {
         $result = '';
         if (cfr('BRANCHESCONF')) {
-            
+            $result.= wf_tag('h3') . __('Branches') . wf_tag('h3', true);
+            $result.=$this->renderBranchesConfigForm();
+            $result.= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
+            $result.=$this->renderAdminConfigForm();
         } else {
             $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
         return ($result);
+    }
+
+    /**
+     * Contols user module branch access rights
+     * 
+     * @return void
+     */
+    public function accessControl() {
+        if (($this->myLogin != 'guest') AND ( $this->myLogin != 'external')) {
+            if ($this->branchesEnabled) {
+                $controlVars = array('username', 'login', 'inetlogin', 'userlogin');
+                foreach ($controlVars as $io => $each) {
+                    if (wf_CheckGet(array($each))) {
+                        if (!$this->isMyUser($_GET[$each])) {
+                            log_register('BRANCH ACCESS FAIL (' . $_GET[$each] . ') ADMIN {' . $this->myLogin . '}');
+                            die('Access denied');
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

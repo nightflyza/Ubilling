@@ -620,12 +620,16 @@ class PONizer {
     /**
      * Performs available OLT devices polling. Use only in remote API.
      * 
+     * @param bool $quiet
+     * 
      * @return void
      */
-    public function oltDevicesPolling() {
+    public function oltDevicesPolling($quiet = false) {
         if (!empty($this->allOltDevices)) {
             foreach ($this->allOltDevices as $oltid => $each) {
-                print('POLLING:' . $oltid . ' ' . $each . "\n");
+                if (!$quiet) {
+                    print('POLLING:' . $oltid . ' ' . $each . "\n");
+                }
                 $this->pollOltSignal($oltid);
             }
         }
@@ -1080,7 +1084,9 @@ class PONizer {
                 $result.=wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
             }
         } else {
+
             $result.=wf_BackLink(self::URL_ME);
+            $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
         $result.=wf_delimiter();
         return ($result);

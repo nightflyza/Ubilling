@@ -49,6 +49,11 @@ if ($altCfg['PON_ENABLED']) {
             rcms_redirect('?module=ponizer&editonu=' . $_POST['assignonuid']);
         }
 
+        //force OLT polling
+        if (wf_CheckGet(array('forcepoll'))) {
+            $pon->oltDevicesPolling(true);
+            rcms_redirect('?module=ponizer&unknownonulist=true');
+        }
 
 
         if (!wf_CheckGet(array('editonu'))) {
