@@ -12,7 +12,6 @@ include('api/libs/api.ubconfig.php');
 include('api/libs/api.ubcache.php');
 include('api/libs/api.astral.php');
 include('api/libs/api.barcodeqr.php');
-include('api/libs/api.dbconnect.php');
 include('api/libs/api.userdata.php');
 include('api/libs/api.usersearch.php');
 include('api/libs/api.address.php');
