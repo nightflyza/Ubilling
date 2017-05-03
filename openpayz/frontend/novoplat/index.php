@@ -43,7 +43,7 @@ function nvp_CheckGet($params) {
  *
  */
 function  nvp_GetLastid($tablename) {
-    $tablename=mysql_real_escape_string($tablename);
+    $tablename=loginDB_real_escape_string($tablename);
     $query="SELECT `id` from `".$tablename."` ORDER BY `id` DESC LIMIT 1";
     $result=simple_query($query);
     return ($result['id']);
@@ -53,7 +53,7 @@ function  nvp_GetLastid($tablename) {
  * Check is transaction unique?
  */
 function nvp_CheckTransaction($hash) {
-    $hash=  mysql_real_escape_string($hash);
+    $hash=  loginDB_real_escape_string($hash);
     $query="SELECT `id` from `op_transactions` WHERE `hash`='".$hash."'";
     $data=  simple_query($query);
     if (!empty($data)) {

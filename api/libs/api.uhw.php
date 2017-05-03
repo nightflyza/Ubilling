@@ -118,6 +118,7 @@ class UHW {
         $tablecells = wf_TableCell(__('ID'));
         $tablecells.=wf_TableCell(__('Date'));
         $tablecells.=wf_TableCell(__('Password'));
+        $tablecells.=wf_TableCell(__('Login'));
         $tablecells.=wf_TableCell(__('MAC'));
         $tablecells.=wf_TableCell(__('Actions'));
         $tablerows = wf_TableRow($tablecells, 'row1');
@@ -127,6 +128,7 @@ class UHW {
                 $tablecells = wf_TableCell($each['id']);
                 $tablecells.=wf_TableCell($each['date']);
                 $tablecells.=wf_TableCell(strip_tags($each['password']));
+                $tablecells.=wf_TableCell(strip_tags($each['login']));
                 $tablecells.=wf_TableCell($each['mac']);
                 $actlinks = wf_JSAlert('?module=uhw&showbrute=true&delbrute=' . $each['id'], web_delete_icon(), 'Are you serious');
                 $tablecells.=wf_TableCell($actlinks);

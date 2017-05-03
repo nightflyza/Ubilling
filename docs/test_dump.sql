@@ -45,6 +45,10 @@ CREATE  TABLE IF NOT EXISTS `speeds` (
   `tariff` VARCHAR(45) NULL ,
   `speeddown` VARCHAR(45) NULL ,
   `speedup` VARCHAR(45) NULL ,
+  `burstdownload` varchar(45) DEFAULT NULL,
+  `burstupload` varchar(45) DEFAULT NULL,
+  `bursttimedownload` varchar(45) DEFAULT NULL,
+  `burstimetupload` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`) )
 ENGINE = MyISAM DEFAULT CHARSET=UTF8;
 
@@ -794,6 +798,7 @@ CREATE TABLE `uhw_brute` (
 `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
 `date` DATETIME NOT NULL ,
 `password` VARCHAR( 255 ) NOT NULL ,
+`login` VARCHAR( 255 ) NOT NULL ,
 `mac` VARCHAR( 255 ) NOT NULL
 ) ENGINE = MYISAM CHARSET=utf8 AUTO_INCREMENT=1 ;
 

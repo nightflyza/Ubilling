@@ -59,7 +59,7 @@ function zbs_ShowCreditForm() {
  * @return void
  */
 function zbs_CreditLogPush($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $date = curdatetime();
     $query = "INSERT INTO `zbssclog` (`id` , `date` , `login` ) VALUES ( NULL , '" . $date . "', '" . $login . "');";
     nr_query($query);
@@ -73,7 +73,7 @@ function zbs_CreditLogPush($login) {
  * @return bool
  */
 function zbs_CreditLogCheckMonth($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $pattern = date("Y-m");
     $query = "SELECT `id` from `zbssclog` WHERE `login` LIKE '" . $login . "' AND `date` LIKE '" . $pattern . "%';";
     $data = simple_query($query);

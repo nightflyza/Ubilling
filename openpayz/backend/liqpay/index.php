@@ -1,5 +1,6 @@
 <?php
 $liqConf=  parse_ini_file('config/liqpay.ini');
+require_once ($_SERVER['DOCUMENT_ROOT'] . '/libs/api.mysql.php');
 
 //вытаскиваем из конфига все что нам нужно в будущем
 $ispUrl=$liqConf['TEMPLATE_ISP_URL'];
@@ -62,7 +63,7 @@ $signature=$liqConf['SIGNATURE'];
 $url=$liqConf['LIQURL'];
 $method=$liqConf['METHOD'];
 $currency=$liqConf['CURRENCY'];
-$summ=mysql_real_escape_string($_POST['amount']);
+$summ=loginDB_real_escape_string($_POST['amount']);
 $resultUrl=$liqConf['RESULT_URL'];
 $serverUrl=$liqConf['SERVER_URL'];
 $phone='';
@@ -104,7 +105,7 @@ return ($result);
  * main codepart
  */
 if (isset($_GET['customer_id'])) {
-    $customer_id=  mysql_real_escape_string($_GET['customer_id']);
+    $customer_id=  loginDB_real_escape_string($_GET['customer_id']);
     if (!isset($_POST['amount'])) {
         $paymentForm= lq_PricesForm();
     } else {

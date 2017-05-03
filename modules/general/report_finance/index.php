@@ -27,6 +27,7 @@ if (cfr('REPORTFINANCE')) {
         $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Payment search') . wf_tag('h3', true));
         $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Analytics') . wf_tag('h3', true));
         $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('ARPU') . wf_tag('h3', true));
+        $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Selling') . wf_tag('h3', true));
         if ($altcfg['AGENTS_ASSIGN'] == '2') {
             $controlcells.= wf_TableCell(wf_tag('h3', false, 'title') . __('Agent payments') . wf_tag('h3', true));
         }
@@ -37,6 +38,8 @@ if (cfr('REPORTFINANCE')) {
         $controlcells.= wf_TableCell(wf_Link("?module=payfind", web_icon_search() . ' ' . __('Find'), false, 'ubButton'));
         $controlcells.= wf_TableCell(wf_Link("?module=report_finance&analytics=true", wf_img('skins/icon_stats.gif') . ' ' . __('Show'), false, 'ubButton'));
         $controlcells.= wf_TableCell(wf_Link("?module=report_arpu", wf_img('skins/ukv/report.png') . ' ' . __('Show'), false, 'ubButton'));
+        $controlcells.= wf_TableCell(wf_Link("?module=report_selling", __('Show'), false, 'ubButton'));
+	
         if ($altcfg['AGENTS_ASSIGN'] == '2') {
             $controlcells.= wf_TableCell(wf_Link("?module=report_agentfinance", wf_img('skins/corporate_small.png') . ' ' . __('Search'), false, 'ubButton'));
         }
