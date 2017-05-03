@@ -41,7 +41,7 @@ function sber_CheckGet($params) {
  * @return bool
  */
 function sber_CheckTransaction($hash) {
-    $hash=  mysql_real_escape_string($hash);
+    $hash=  loginDB_real_escape_string($hash);
     $query="SELECT `id` from `op_transactions` WHERE `hash`='".$hash."'";
     $data=  simple_query($query);
     if (!empty($data)) {
@@ -59,7 +59,7 @@ function sber_CheckTransaction($hash) {
  * @return bool
  */
 function sber_getTransactionDate($hash) {
-    $hash=  mysql_real_escape_string($hash);
+    $hash=  loginDB_real_escape_string($hash);
     $query="SELECT `date` from `op_transactions` WHERE `hash`='".$hash."'";
     $data=  simple_query($query);
     $rawDate=$data['date'];
