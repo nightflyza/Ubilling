@@ -22,7 +22,7 @@ class rss_feed{
     var $items = array();
     
     
-    function rss_feed($title, $url, $description, $encoding, $language, $copyright){
+    function __construct($title, $url, $description, $encoding, $language, $copyright){
         $this->title = $title;
         $this->url = $url;
         $this->description = $description;
