@@ -1,4 +1,4 @@
-<?php
+п»ї<?php
 
 if (cfr('TURBOSMS')) {
     set_time_limit(0);
@@ -104,7 +104,7 @@ if (cfr('TURBOSMS')) {
         function tsms_query($query) {
             global $tsms_host,$tsms_db,$tsms_login,$tsms_password,$tsms_table;
             $TsmsDB = new mysqli($tsms_host, $tsms_login, $tsms_password, $tsms_db);
-            if ($TsmsDB->connect_error) die('Ошибка подключения (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
+            if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
             $TsmsDB->query('SET NAMES utf8;');
             $TsmsDB->query($query);
             $result = array();

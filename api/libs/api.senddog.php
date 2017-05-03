@@ -1,4 +1,4 @@
-<?php
+п»ї<?php
 
 class SendDog {
 
@@ -256,8 +256,8 @@ class SendDog {
         $smsArray = array();
         $total = 0;
 
-		$TsmsDB = new mysqli($tsms_host, $tsms_login, $tsms_password, $tsms_db);
-		if ($TsmsDB->connect_error) die('Ошибка подключения (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
+        $TsmsDB = new mysqli($tsms_host, $tsms_login, $tsms_password, $tsms_db);
+        if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
         $TsmsDB->query('SET NAMES utf8;');
 
         if (wf_CheckPost(array('showdate'))) {
@@ -591,7 +591,7 @@ class SendDog {
         if (!empty($allSmsQueue)) {
             //open new database connection
             $TsmsDB = new mysqli($this->settings['TSMS_GATEWAY'], $this->settings['TSMS_LOGIN'], $this->settings['TSMS_PASSWORD'], 'users');
-            if ($TsmsDB->connect_error) die('Ошибка подключения (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
+            if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
             $TsmsDB->query('SET NAMES utf8;');
             foreach ($allSmsQueue as $eachsms) {
 
