@@ -254,10 +254,10 @@ if ($tc_enabled) {
                         }
                     }
                     if ($nextMonthTc) {
-                        billing_settariffnm($user_login, mysql_real_escape_string($_POST['newtariff']));
+                        billing_settariffnm($user_login, loginDB_real_escape_string($_POST['newtariff']));
                         log_register('CHANGE TariffNM (' . $user_login . ') ON `' . $_POST['newtariff'] . '`');
                     } else {
-                        billing_settariff($user_login, mysql_real_escape_string($_POST['newtariff']));
+                        billing_settariff($user_login, loginDB_real_escape_string($_POST['newtariff']));
                         log_register('CHANGE Tariff (' . $user_login . ') ON `' . $_POST['newtariff'] . '`');
                     }
 

@@ -10,7 +10,6 @@ include('modules/engine/api.userstats.php');
 include('modules/engine/api.agents.php');
 include('modules/engine/api.megogo.php');
 
-$db = new MySQLDB();
 
 // ACTIONS HANDER:
 $user_ip = zbs_UserDetectIp('debug');
