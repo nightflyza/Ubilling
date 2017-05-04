@@ -63,8 +63,8 @@ if (cfr('ZBSANN')) {
             public function create($public, $type, $title, $text) {
                 $public = vf($public, 3);
                 $type = vf($type);
-                $title = mysql_real_escape_string($title);
-                $text = mysql_real_escape_string($text);
+                $title = loginDB_real_escape_string($title);
+                $text = loginDB_real_escape_string($text);
                 $query = "INSERT INTO `zbsannouncements` (`id`,`public`,`type`,`title`,`text`) VALUES
                 (NULL, '" . $public . "', '" . $type . "', '" . $title . "', '" . $text . "'); ";
                 nr_query($query);

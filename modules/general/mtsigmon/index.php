@@ -119,7 +119,7 @@ if (cfr('MTSIGMON')) {
 
         //hlight user mac sub
         if (isset($_GET['username'])) {
-            $login = mysql_real_escape_string($_GET['username']);
+            $login = loginDB_real_escape_string($_GET['username']);
             $userip = zb_UserGetIP($login);
             $usermac = zb_MultinetGetMAC($userip);
             $hlightmac = $usermac;

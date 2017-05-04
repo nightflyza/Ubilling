@@ -1319,7 +1319,7 @@ class UserSideApi {
     public function catchRequest() {
         if (wf_CheckGet(array('request'))) {
             $request = $_GET['request'];
-            $customerId = (wf_CheckGet(array('customer_id'))) ? mysql_real_escape_string($_GET['customer_id']) : '';
+            $customerId = (wf_CheckGet(array('customer_id'))) ? loginDB_real_escape_string($_GET['customer_id']) : '';
             if (isset($this->supportedMethods[$request])) {
                 switch ($request) {
                     case 'get_tariff_list':

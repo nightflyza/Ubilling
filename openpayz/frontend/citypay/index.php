@@ -41,7 +41,7 @@ function cpay_CheckGet($params) {
  */
 
 function cpay_GetTransactionID($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "';";
     $rawData = simple_query($query);
     if (!empty($rawData)) {
@@ -61,7 +61,7 @@ function cpay_GetTransactionID($hash) {
  */
 
 function cpay_CheckTransaction($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (empty($data)) {
@@ -177,7 +177,7 @@ if (cpay_CheckGet($requiredCheck)) {
             $payDate = $_GET['TransactionDate'];
             //если абонент найден по платежному ID регистрируем транзакцию
             if (isset($allcustomers[$customerid])) {
-                $note = 'hash:' . mysql_real_escape_string($hash) . ' date:' . mysql_real_escape_string($payDate);
+                $note = 'hash:' . loginDB_real_escape_string($hash) . ' date:' . loginDB_real_escape_string($payDate);
                 if (cpay_CheckTransaction($hashPrepared)) {
                     //регистрируем новую транзакцию
                     op_TransactionAdd($hashPrepared, $amount, $customerid, $paysys, $note);

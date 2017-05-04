@@ -41,7 +41,7 @@ function zb_SwitchesGetAllDeathTime() {
  * @return void
  */
 function zb_SwitchDeathTimeSet($ip) {
-    $ip = mysql_real_escape_string($ip);
+    $ip = loginDB_real_escape_string($ip);
     $curdatetime = curdatetime();
     $query = "INSERT INTO `deathtime` (`id` ,`ip` ,`date`) VALUES (NULL , '" . $ip . "', '" . $curdatetime . "');";
     nr_query($query);
@@ -55,7 +55,7 @@ function zb_SwitchDeathTimeSet($ip) {
  * @return void
  */
 function zb_SwitchDeathTimeResurrection($ip) {
-    $ip = mysql_real_escape_string($ip);
+    $ip = loginDB_real_escape_string($ip);
     $query = "DELETE from `deathtime` WHERE `ip`='" . $ip . "'";
     nr_query($query);
 }
@@ -186,8 +186,8 @@ function web_SwitchModelSelector($selectname = 'switchmodelid') {
  */
 function ub_SwitchModelAdd($name, $ports, $snmptemplate = '') {
     $ports = vf($ports, 3);
-    $nameClean = mysql_real_escape_string($name);
-    $snmptemplate = mysql_real_escape_string($snmptemplate);
+    $nameClean = loginDB_real_escape_string($name);
+    $snmptemplate = loginDB_real_escape_string($snmptemplate);
     if (empty($ports)) {
         $ports = 'NULL';
     } else {
@@ -1119,11 +1119,11 @@ function zb_SwitchesRenderAjaxList() {
  */
 function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '') {
     $modelid = vf($modelid, 3);
-    $ip = mysql_real_escape_string($ip);
-    $desc = mysql_real_escape_string($desc);
-    $location = mysql_real_escape_string($location);
-    $snmp = mysql_real_escape_string($snmp);
-    $swid = mysql_real_escape_string($swid);
+    $ip = loginDB_real_escape_string($ip);
+    $desc = loginDB_real_escape_string($desc);
+    $location = loginDB_real_escape_string($location);
+    $snmp = loginDB_real_escape_string($snmp);
+    $swid = loginDB_real_escape_string($swid);
     $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
         $parentid = "'" . $parentid . "'";
@@ -1509,7 +1509,7 @@ function zb_SwitchReplace($fromId, $toId, $employeeId) {
  */
 function zb_SwitchGetIdbyIP($ip) {
     $result = '';
-    $ip = mysql_real_escape_string($ip);
+    $ip = loginDB_real_escape_string($ip);
     $query = "SELECT `id`,`ip` from `switches` WHERE `ip`='" . $ip . "' LIMIT 1;";
     $raw = simple_query($query);
     if (!empty($raw)) {

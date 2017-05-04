@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 if (cfr('TURBOSMS')) {
     set_time_limit(0);
@@ -103,12 +103,12 @@ if (cfr('TURBOSMS')) {
         
         function tsms_query($query) {
             global $tsms_host,$tsms_db,$tsms_login,$tsms_password,$tsms_table;
-            $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
-            $TsmsDB->open() or die($TsmsDB->error());
-            $result = array();
+            $TsmsDB = new mysqli($tsms_host, $tsms_login, $tsms_password, $tsms_db);
+            if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
             $TsmsDB->query('SET NAMES utf8;');
             $TsmsDB->query($query);
-            while ($row = $TsmsDB->fetchassoc()) {
+            $result = array();
+            while ($row = $TsmsDB->fetch_assoc()) {
                 $result[] = $row;
             }
             $TsmsDB->close();
@@ -309,7 +309,7 @@ if (cfr('TURBOSMS')) {
         
         
         function web_TsmsShowAllSMS ($date='') {
-            $date=  mysql_real_escape_string($date);
+            $date=  loginDB_real_escape_string($date);
             if (!empty($date)) {
                 $where="WHERE `send_time` LIKE '".$date."%'";
             } else {
@@ -657,7 +657,7 @@ if (cfr('TURBOSMS')) {
            //single user send
             if (wf_CheckPost(array('sendsinglelogin'))) {
                 $singlelogin=trim($_POST['sendsinglelogin']);
-                $singlelogin=  mysql_real_escape_string($singlelogin);
+                $singlelogin=  loginDB_real_escape_string($singlelogin);
                 if (!empty($singlelogin)) {
                 $smsTemplate=  tsms_GetTemplate();
                 $smsWap=  tsms_GetWap();

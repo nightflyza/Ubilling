@@ -39,7 +39,7 @@ function ibox_CheckGet($params) {
  * @return bool
  */
 function ibox_CheckTransaction($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (!empty($data)) {
@@ -57,7 +57,7 @@ function ibox_CheckTransaction($hash) {
  *
  */
 function ibox_getIdByHash($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $result = simple_query($query);
     return ($result['id']);
@@ -71,7 +71,7 @@ function ibox_getIdByHash($hash) {
  *
  */
 function ibox_getDateByHash($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `date` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $result = simple_query($query);
     return ($result['date']);

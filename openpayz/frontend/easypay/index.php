@@ -129,7 +129,7 @@ function ep_GetTransactionData($transactionId) {
  * @return bool/int
  */
 function ep_CheckTransactionUnique($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (empty($data)) {
@@ -195,7 +195,7 @@ if (!empty($rawXml)) {
         //
         if (isset($rawXml['Request']['Payment'])) {
             $allcustomers = op_CustomersGetAll();
-            $paymentCustomerId = mysql_real_escape_string($rawXml['Request']['Payment']['Account']);
+            $paymentCustomerId = loginDB_real_escape_string($rawXml['Request']['Payment']['Account']);
             $transactionIdRaw = $rawXml['Request']['Payment']['OrderId'];
 
             if (isset($allcustomers[$paymentCustomerId])) {
@@ -244,16 +244,16 @@ if (!empty($rawXml)) {
         // Transaction confirmation
         //
         if (isset($rawXml['Request']['Confirm'])) {
-            $checkPaymentID = mysql_real_escape_string($rawXml['Request']['Confirm']['PaymentId']);
+            $checkPaymentID = loginDB_real_escape_string($rawXml['Request']['Confirm']['PaymentId']);
             $transactionDataRaw = ep_GetTransactionData($checkPaymentID);
 
             @$transactionDate = $transactionDataRaw['DateTime'];
 
             if ($transactionDate) {
-                $hashClean = mysql_real_escape_string($transactionDataRaw['Payment']['OrderId']);
+                $hashClean = loginDB_real_escape_string($transactionDataRaw['Payment']['OrderId']);
                 $hash = 'EP_' . $hashClean;
-                $summ = mysql_real_escape_string($transactionDataRaw['Payment']['Amount']);
-                $paymentCustomerId = mysql_real_escape_string($transactionDataRaw['Payment']['Account']);
+                $summ = loginDB_real_escape_string($transactionDataRaw['Payment']['Amount']);
+                $paymentCustomerId = loginDB_real_escape_string($transactionDataRaw['Payment']['Account']);
 
                 if (ep_CheckTransactionUnique($hash)) {
                     //really processin cash & openpayz transaction

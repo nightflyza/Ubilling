@@ -941,7 +941,7 @@ class VlanGen {
      * @return void
      */
     public function AddVlanPool($Desc, $FirstVlan, $LastVlan, $QinQ, $sVlan) {
-	$Desc		 = vf(mysql_real_escape_string($Desc));
+	$Desc		 = vf(loginDB_real_escape_string($Desc));
 	$FirstVlan	 = vf(trim($FirstVlan), 3);
 	$LastVlan	 = vf(trim($LastVlan), 3);
 	$QinQ		 = vf(trim($QinQ), 3);
@@ -2907,7 +2907,7 @@ function GetTermRemoteByNetid($netid) {
  * @return string
  */
 function web_ProfileVlanControlForm($login) {
-    $login		 = mysql_real_escape_string($login);
+    $login		 = loginDB_real_escape_string($login);
     $query		 = "SELECT * from `vlanhosts` WHERE `login`='" . $login . "'";
     $formStyle	 = 'glamour';
     $alterconf	 = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');

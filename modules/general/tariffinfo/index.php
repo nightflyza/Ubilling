@@ -3,7 +3,7 @@
 $result = '';
 if (cfr('USERPROFILE')) {
     if (wf_CheckGet(array('tariff'))) {
-        $tariffName = mysql_real_escape_string($_GET['tariff']);
+        $tariffName = loginDB_real_escape_string($_GET['tariff']);
         $tariffNameRaw = $_GET['tariff'];
         $tariffInfo = '';
         if ($tariffName == '*_NO_TARIFF_*') {

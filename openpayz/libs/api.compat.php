@@ -125,12 +125,4 @@ if (!function_exists('rcms_redirect')) {
 
 }
 
-function simple_update_field($tablename, $field, $value, $where = '') {
-    $tablename = mysql_real_escape_string($tablename);
-    $value = mysql_real_escape_string($value);
-    $field = mysql_real_escape_string($field);
-    $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = '" . $value . "' " . $where . "";
-    nr_query($query);
-}
-
 ?>

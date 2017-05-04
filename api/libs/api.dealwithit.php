@@ -135,11 +135,11 @@ class DealWithIt {
      * @return void
      */
     public function createTask($date, $login, $action, $param, $note) {
-        $dateF = mysql_real_escape_string($date);
-        $loginF = mysql_real_escape_string($login);
-        $actionF = mysql_real_escape_string($action);
-        $paramF = mysql_real_escape_string($param);
-        $noteF = mysql_real_escape_string($note);
+        $dateF = loginDB_real_escape_string($date);
+        $loginF = loginDB_real_escape_string($login);
+        $actionF = loginDB_real_escape_string($action);
+        $paramF = loginDB_real_escape_string($param);
+        $noteF = loginDB_real_escape_string($note);
         $query = "INSERT INTO `dealwithit` (`id`,`date`,`login`,`action`,`param`,`note`) VALUES";
         $query.="(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
         nr_query($query);

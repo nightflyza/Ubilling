@@ -9,7 +9,7 @@ if(cfr('USERSMAP')) {
     if (wf_CheckPost(array('buildplacing','placecoords'))) {
         if (cfr('BUILDS')) {
             $buildid=vf($_POST['buildplacing'],3);
-            $placegeo=  mysql_real_escape_string($_POST['placecoords']);
+            $placegeo=  loginDB_real_escape_string($_POST['placecoords']);
             
             simple_update_field('build', 'geo', $placegeo,"WHERE `id`='".$buildid."'");
             log_register('BUILD CHANGE ['.$buildid.']'.' GEO `'.$placegeo.'`');

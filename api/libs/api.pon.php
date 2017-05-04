@@ -723,11 +723,11 @@ class PONizer {
         $mac = trim($mac);
         $onumodelid = vf($onumodelid, 3);
         $oltid = vf($oltid, 3);
-        $ip = mysql_real_escape_string($ip);
+        $ip = loginDB_real_escape_string($ip);
         $macRaw = $mac;
-        $mac = mysql_real_escape_string($mac);
-        $serial = mysql_real_escape_string($serial);
-        $login = mysql_real_escape_string($login);
+        $mac = loginDB_real_escape_string($mac);
+        $serial = loginDB_real_escape_string($serial);
+        $login = loginDB_real_escape_string($login);
         $login = trim($login);
         $result = 0;
         if (!empty($mac)) {
@@ -767,10 +767,10 @@ class PONizer {
         $onuId = vf($onuId, 3);
         $onumodelid = vf($onumodelid, 3);
         $oltid = vf($oltid, 3);
-        $ip = mysql_real_escape_string($ip);
-        $mac = mysql_real_escape_string($mac);
-        $serial = mysql_real_escape_string($serial);
-        $login = mysql_real_escape_string($login);
+        $ip = loginDB_real_escape_string($ip);
+        $mac = loginDB_real_escape_string($mac);
+        $serial = loginDB_real_escape_string($serial);
+        $login = loginDB_real_escape_string($login);
         $login = trim($login);
         $where = " WHERE `id`='" . $onuId . "';";
         simple_update_field('pononu', 'onumodelid', $onumodelid, $where);

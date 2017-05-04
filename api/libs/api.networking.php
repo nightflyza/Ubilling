@@ -84,7 +84,7 @@ function multinet_show_serviceeditform($serviceid) {
 }
 
 function multinet_delete_host($ip) {
-//$ip=mysql_real_escape_string($ip);
+//$ip=loginDB_real_escape_string($ip);
     $query = "DELETE from `nethosts` WHERE `ip`='" . $ip . "'";
     nr_query($query);
     log_register("DELETE MultiNetHost " . $ip);
@@ -245,7 +245,7 @@ function multinet_show_service_add_form() {
 }
 
 function multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius) {
-    $desc = mysql_real_escape_string($desc);
+    $desc = loginDB_real_escape_string($desc);
     $firstip = vf($firstip);
     $lastip = vf($lastip);
     $nettype = vf($nettype);
@@ -853,7 +853,7 @@ function zb_TariffGetAllSpeeds() {
 }
 
 function zb_TariffCreateSpeed($tariff, $speeddown, $speedup) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = loginDB_real_escape_string($tariff);
     $speeddown = vf($speeddown);
     $speedup = vf($speedup);
     $query = "INSERT INTO `speeds` (
@@ -870,7 +870,7 @@ function zb_TariffCreateSpeed($tariff, $speeddown, $speedup) {
 }
 
 function zb_TariffDeleteSpeed($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = loginDB_real_escape_string($tariff);
     $query = "DELETE from `speeds` where `tariff`='" . $tariff . "'";
     nr_query($query);
     log_register('DELETE TariffSpeed `' . $tariff . '`');
@@ -936,7 +936,7 @@ function zb_DirectionGetData($directionid) {
 
 function zb_DirectionAdd($rulenumber, $rulename) {
     $rulenumber = vf($rulenumber);
-    $rulename = mysql_real_escape_string($rulename);
+    $rulename = loginDB_real_escape_string($rulename);
     $query = "
           INSERT INTO `directions` (
                         `id` ,
@@ -952,10 +952,10 @@ function zb_DirectionAdd($rulenumber, $rulename) {
 
 function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
     $netid = vf($netid);
-    $nasname = mysql_real_escape_string($nasname);
+    $nasname = loginDB_real_escape_string($nasname);
     $nastype = vf($nastype);
-    $bandw = mysql_real_escape_string($bandw);
-    $nasip = mysql_real_escape_string($nasip);
+    $bandw = loginDB_real_escape_string($bandw);
+    $nasip = loginDB_real_escape_string($nasip);
     $query = "
             INSERT INTO `nas` (
             `id` ,

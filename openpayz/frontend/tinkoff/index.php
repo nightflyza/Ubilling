@@ -45,7 +45,7 @@ function CheckParams() {
 }
 
 function CheckTransaction($hash) {
-        $hash=  mysql_real_escape_string($hash);
+        $hash=  loginDB_real_escape_string($hash);
         $query = "SELECT `id` from `op_transactions` WHERE `paysys`='TINKOFF' AND `hash`='".$hash."'";
         $data = simple_query($query);
         if (!empty($data)) {

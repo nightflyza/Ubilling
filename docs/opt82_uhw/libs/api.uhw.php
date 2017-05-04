@@ -278,7 +278,7 @@ function uhw_IsMacUnique($mac) {
 
 
 function uhw_FindUserByPassword($password) {
-    $password=  mysql_real_escape_string($password);
+    $password=  loginDB_real_escape_string($password);
     $query="SELECT `login` from `users` WHERE `Password`='".$password."'";
     $result=  simple_query($query);
     if (!empty($result)) {
@@ -324,7 +324,7 @@ function uhw_NethostGetMac($nethostid) {
     $admin_login='external';
     $ip='127.0.0.1';
     $current_time=date("Y-m-d H:i:s");
-    $event=mysql_real_escape_string($event);
+    $event=loginDB_real_escape_string($event);
     $query="INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'".$current_time."','".$admin_login."','".$ip."','".$event."')";
     nr_query($query);
 }
@@ -357,7 +357,7 @@ function uhw_GetBrute($mac) {
 }
 
 function uhw_LogBrute($password,$mac) {
-    $password=  mysql_real_escape_string($password);
+    $password=  loginDB_real_escape_string($password);
     $date=date("Y-m-d H:i:s");
     $query="INSERT INTO `uhw_brute` (
 `id` ,

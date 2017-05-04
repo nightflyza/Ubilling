@@ -31,8 +31,8 @@ if (cfr('CARDREPORT')) {
          * @return void
          */
         function web_CardShowUsageByMonth($year, $month) {
-            $month = mysql_real_escape_string($month);
-            $year = mysql_real_escape_string($year);
+            $month = loginDB_real_escape_string($month);
+            $year = loginDB_real_escape_string($year);
             $query = "SELECT * from `cardbank` WHERE `usedate` LIKE '%" . $year . "-" . $month . "-%'";
             $allusedcards = simple_queryall($query);
             $allrealnames = zb_UserGetAllRealnames();

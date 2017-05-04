@@ -731,8 +731,8 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             //aliases creation
             if (wf_CheckPost(array('newaliasnum', 'newaliasname'))) {
                 $newStoreAliases = $numAliases;
-                $newAliasNum = mysql_real_escape_string($_POST['newaliasnum']);
-                $newAliasName = mysql_real_escape_string($_POST['newaliasname']);
+                $newAliasNum = loginDB_real_escape_string($_POST['newaliasnum']);
+                $newAliasName = loginDB_real_escape_string($_POST['newaliasname']);
                 $newStoreAliases[$newAliasNum] = $newAliasName;
                 $newStoreAliases = serialize($newStoreAliases);
                 $newStoreAliases = base64_encode($newStoreAliases);
@@ -744,7 +744,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             //alias deletion
             if (wf_CheckPost(array('deletealias'))) {
                 $newStoreAliases = $numAliases;
-                $deleteAliasNum = mysql_real_escape_string($_POST['deletealias']);
+                $deleteAliasNum = loginDB_real_escape_string($_POST['deletealias']);
                 if (isset($newStoreAliases[$deleteAliasNum])) {
                     unset($newStoreAliases[$deleteAliasNum]);
                     $newStoreAliases = serialize($newStoreAliases);

@@ -40,7 +40,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setScope($scope) {
-        $this->scope = mysql_real_escape_string($scope);
+        $this->scope = loginDB_real_escape_string($scope);
     }
 
     /**
@@ -51,7 +51,7 @@ class PhotoStorage {
      * @return void
      */
     protected function setItemid($itemid) {
-        $this->itemId = mysql_real_escape_string($itemid);
+        $this->itemId = loginDB_real_escape_string($itemid);
     }
 
     /**
@@ -108,7 +108,7 @@ class PhotoStorage {
      */
     protected function registerImage($filename) {
         if ((!empty($this->scope)) AND ( !empty($this->itemId))) {
-            $filename = mysql_real_escape_string($filename);
+            $filename = loginDB_real_escape_string($filename);
             $date = curdatetime();
             $query = "INSERT INTO `photostorage` (`id`, `scope`, `item`, `date`, `admin`, `filename`) "
                     . "VALUES (NULL, '" . $this->scope . "', '" . $this->itemId . "', '" . $date . "', '" . $this->myLogin . "', '" . $filename . "'); ";

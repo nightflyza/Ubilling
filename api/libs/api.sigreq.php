@@ -376,7 +376,7 @@ class SignupConfig {
      * @return void
      */
     protected function deleteConf($key) {
-        $key = mysql_real_escape_string($key);
+        $key = loginDB_real_escape_string($key);
         $query = "DELETE from `sigreqconf` WHERE `key`='" . $key . "';";
         nr_query($query);
     }
@@ -390,8 +390,8 @@ class SignupConfig {
      * @return void
      */
     protected function setConf($key, $data) {
-        $key = mysql_real_escape_string($key);
-        $data = mysql_real_escape_string($data);
+        $key = loginDB_real_escape_string($key);
+        $data = loginDB_real_escape_string($data);
         $this->deleteConf($key);
         $query = "INSERT INTO `sigreqconf` (`id`, `key`, `value`) VALUES (NULL, '" . $key . "', '" . $data . "'); ";
         nr_query($query);

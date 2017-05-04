@@ -27,7 +27,7 @@ class gallery{
 	var $path = GALLERY_PATH;
 	var $indexes = array();
 
-	function gallery(){
+	function __construct(){
 		// Load Index files
 		$this->loadIndexFiles();
 	}

@@ -4,7 +4,7 @@ if ( cfr('SIGNUPPRICES') ) {
     $alter = $ubillingConfig->getAlter();
     if ( isset($alter['SIGNUP_PAYMENTS']) && !empty($alter['SIGNUP_PAYMENTS']) ) {
         if ( isset($_GET['tariff']) ) {
-            $tariff = mysql_real_escape_string($_GET['tariff']);
+            $tariff = loginDB_real_escape_string($_GET['tariff']);
             $prices = zb_TariffGetAllSignupPrices();
             if ( !isset($prices[$tariff]) ) {
                 zb_TariffCreateSignupPrice($tariff, 0);
@@ -29,10 +29,10 @@ if ( cfr('SIGNUPPRICES') ) {
             show_window(__('Edit signup price for tariff') . ' "' . $tariff . '"', $form);
             show_window('', wf_Link("?module=signupprices", 'Back', true, 'ubButton'));
         } elseif ( isset($_GET['username']) ) {
-            $login = mysql_real_escape_string($_GET['username']);
+            $login = loginDB_real_escape_string($_GET['username']);
             $has_paid  = zb_UserGetSignupPricePaid($login);
             $old_price = zb_UserGetSignupPrice($login);
-            $new_price = isset($_POST['new_price']) ? mysql_real_escape_string($_POST['new_price']) : null;
+            $new_price = isset($_POST['new_price']) ? loginDB_real_escape_string($_POST['new_price']) : null;
             if ( !is_null($new_price) ) {
                 if ( $new_price >= $has_paid ) {
                     $cash = $old_price - $new_price;

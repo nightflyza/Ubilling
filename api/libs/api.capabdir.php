@@ -242,9 +242,9 @@ class CapabilitiesDirectory {
      */
     public function addCapability($address, $phone, $notes) {
         $date = curdatetime();
-        $address = mysql_real_escape_string($address);
-        $phone = mysql_real_escape_string($phone);
-        $notes = mysql_real_escape_string($notes);
+        $address = loginDB_real_escape_string($address);
+        $phone = loginDB_real_escape_string($phone);
+        $notes = loginDB_real_escape_string($notes);
 
         $query = "INSERT INTO `capab` (`id` , `date` , `address` , `phone` ,`stateid` ,`notes` ,`price` ,`employeeid` ,`donedate`) 
              VALUES ( NULL , '" . $date . "', '" . $address . "', '" . $phone . "', '0', '" . $notes . "', NULL , NULL , NULL);";
@@ -358,10 +358,10 @@ class CapabilitiesDirectory {
      */
     public function editCapability($id, $address, $phone, $stateid, $notes, $price, $employeeid) {
         $id = vf($id, 3);
-        $address = mysql_real_escape_string($address);
-        $phone = mysql_real_escape_string($phone);
+        $address = loginDB_real_escape_string($address);
+        $phone = loginDB_real_escape_string($phone);
         $stateid = vf($stateid, 3);
-        $price = mysql_real_escape_string($price);
+        $price = loginDB_real_escape_string($price);
         $employeeid = vf($employeeid, 3);
         $curdate = curdatetime();
         if (isset($this->availids[$id])) {
@@ -454,8 +454,8 @@ class CapabilitiesDirectory {
      * @return void
      */
     public function statesCreate($state, $color) {
-        $state = mysql_real_escape_string($state);
-        $color = mysql_real_escape_string($color);
+        $state = loginDB_real_escape_string($state);
+        $color = loginDB_real_escape_string($color);
         $color = str_replace('#', '', $color);
         $query = "INSERT INTO `capabstates` (`id` , `state` , `color`) 
              VALUES ( NULL , '" . $state . "', '" . $color . "');";
@@ -490,8 +490,8 @@ class CapabilitiesDirectory {
      */
     public function statesChange($id, $state, $color) {
         $id = vf($id, 3);
-        $state = mysql_real_escape_string($state);
-        $color = mysql_real_escape_string($color);
+        $state = loginDB_real_escape_string($state);
+        $color = loginDB_real_escape_string($color);
         $color = str_replace('#', '', $color);
         if (!empty($id)) {
             simple_update_field('capabstates', 'state', $state, "WHERE `id`='" . $id . "'");

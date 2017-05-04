@@ -9,7 +9,7 @@ class tar {
 	var $numFiles;
 	var $numDirectories;
 
-	function tar() {
+	function __construct() {
 		return true;
 	}
 

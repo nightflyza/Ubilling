@@ -24,7 +24,7 @@
   }
 
   function catv_TariffAdd($name,$price,$chans='') {
-      $name=mysql_real_escape_string($name);
+      $name=loginDB_real_escape_string($name);
       $price=vf($price);
       $chans=vf($chans,3);
       $query="
@@ -43,7 +43,7 @@
   
   function catv_TariffModify($tariffid,$name,$price,$chans) {
       $tariffid=vf($tariffid,3);
-      $name=mysql_real_escape_string($name);
+      $name=loginDB_real_escape_string($name);
       $price=vf($price);
       $chans=vf($chans,3);
       $query="
@@ -275,14 +275,14 @@
   
   function catv_UserRegister($contract,$realname,$street,$build,$apt,$phone,$tariff,$cash,$decoder) {
       $catvconf=catv_LoadConfig();
-      $contract=mysql_real_escape_string($contract);
-      $realname=mysql_real_escape_string($realname);
-      $street=mysql_real_escape_string($street);
-      $apt=mysql_real_escape_string($apt);
-      $phone=mysql_real_escape_string($phone);
+      $contract=loginDB_real_escape_string($contract);
+      $realname=loginDB_real_escape_string($realname);
+      $street=loginDB_real_escape_string($street);
+      $apt=loginDB_real_escape_string($apt);
+      $phone=loginDB_real_escape_string($phone);
       $tariff=vf($tariff,3);
-      $cash=mysql_real_escape_string($cash);
-      $decoder=mysql_real_escape_string($decoder);
+      $cash=loginDB_real_escape_string($cash);
+      $decoder=loginDB_real_escape_string($decoder);
       $query="
           INSERT INTO `catv_users` (
                         `id` ,
@@ -528,11 +528,11 @@
                 }   
      $clearstreet=trim($eachuser['street']);
      $clearstreet=  str_replace("'", '`', $clearstreet);
-     $clearstreet=  mysql_real_escape_string($clearstreet);
+     $clearstreet=  loginDB_real_escape_string($clearstreet);
      
      $clearrealname=trim($eachuser['realname']);
      $clearrealname=  str_replace("'", '`', $clearrealname);
-     $clearrealname=  mysql_real_escape_string($clearrealname);
+     $clearrealname=  loginDB_real_escape_string($clearrealname);
      
      $act='<img src=skins/icon_active.gif>'.__('Yes');
      //activity
@@ -981,16 +981,16 @@
   
   function catv_UserEdit($userid,$contract,$realname,$street,$build,$apt,$phone,$discount,$decoder,$inetlink,$notes) {
                 $userid=vf($userid,3);
-                $contract=mysql_real_escape_string($contract);
-                $realname=mysql_real_escape_string($realname);
-                $street=mysql_real_escape_string($street);
-                $build=mysql_real_escape_string($build);
-                $apt=mysql_real_escape_string($apt);
-                $phone=mysql_real_escape_string($phone);
-                $discount=mysql_real_escape_string($discount);
-                $decoder=mysql_real_escape_string($decoder);
-                $inetlink=mysql_real_escape_string($inetlink);
-                $notes=mysql_real_escape_string($notes);
+                $contract=loginDB_real_escape_string($contract);
+                $realname=loginDB_real_escape_string($realname);
+                $street=loginDB_real_escape_string($street);
+                $build=loginDB_real_escape_string($build);
+                $apt=loginDB_real_escape_string($apt);
+                $phone=loginDB_real_escape_string($phone);
+                $discount=loginDB_real_escape_string($discount);
+                $decoder=loginDB_real_escape_string($decoder);
+                $inetlink=loginDB_real_escape_string($inetlink);
+                $notes=loginDB_real_escape_string($notes);
                 $query="UPDATE `catv_users` SET
                         `contract` = '".$contract."',
                         `realname` = '".$realname."',
@@ -1016,13 +1016,13 @@
           $admin=whoami();
           $oldbalance=$userdata['cash'];
           $newbalance=$oldbalance+$summ;
-          $date=mysql_real_escape_string($date);
-          $summ=mysql_real_escape_string($summ);
+          $date=loginDB_real_escape_string($date);
+          $summ=loginDB_real_escape_string($summ);
           $from_month=vf($from_month,3);
           $from_year=vf($from_year,3);
           $to_month=vf($to_month,3);
           $to_year=vf($to_year,3);
-          $notes=mysql_real_escape_string($notes);
+          $notes=loginDB_real_escape_string($notes);
           $query="INSERT INTO `catv_payments` (
                     `id` ,
                     `date` ,
@@ -1059,13 +1059,13 @@
           $admin=whoami();
           $oldbalance=$userdata['cash'];
           $newbalance=$oldbalance;
-          $date=mysql_real_escape_string($date);
-          $summ=mysql_real_escape_string($summ);
+          $date=loginDB_real_escape_string($date);
+          $summ=loginDB_real_escape_string($summ);
           $from_month=vf($from_month,3);
           $from_year=vf($from_year,3);
           $to_month=vf($to_month,3);
           $to_year=vf($to_year,3);
-          $notes=mysql_real_escape_string($notes);
+          $notes=loginDB_real_escape_string($notes);
           $query="INSERT INTO `catv_payments` (
                     `id` ,
                     `date` ,
@@ -1102,13 +1102,13 @@
           $admin=whoami();
           $oldbalance=$userdata['cash'];
           $newbalance=$summ;
-          $date=mysql_real_escape_string($date);
-          $summ=mysql_real_escape_string($summ);
+          $date=loginDB_real_escape_string($date);
+          $summ=loginDB_real_escape_string($summ);
           $from_month=vf($from_month,3);
           $from_year=vf($from_year,3);
           $to_month=vf($to_month,3);
           $to_year=vf($to_year,3);
-          $notes=mysql_real_escape_string($notes);
+          $notes=loginDB_real_escape_string($notes);
           $query="INSERT INTO `catv_payments` (
                     `id` ,
                     `date` ,
@@ -1145,13 +1145,13 @@
           $admin=whoami();
           $oldbalance=$userdata['cash'];
           $newbalance=$oldbalance+$summ;
-          $date=mysql_real_escape_string($date);
-          $summ=mysql_real_escape_string($summ);
+          $date=loginDB_real_escape_string($date);
+          $summ=loginDB_real_escape_string($summ);
           $from_month=vf($from_month,3);
           $from_year=vf($from_year,3);
           $to_month=vf($to_month,3);
           $to_year=vf($to_year,3);
-          $notes=mysql_real_escape_string($notes);
+          $notes=loginDB_real_escape_string($notes);
           $query="INSERT INTO `catv_paymentscorr` (
                     `id` ,
                     `date` ,
@@ -1189,13 +1189,13 @@
           $admin=whoami();
           $oldbalance=$userdata['cash'];
           $newbalance=$oldbalance+$summ;
-          $date=mysql_real_escape_string($date);
-          $summ=mysql_real_escape_string($summ);
+          $date=loginDB_real_escape_string($date);
+          $summ=loginDB_real_escape_string($summ);
           $from_month=vf($from_month,3);
           $from_year=vf($from_year,3);
           $to_month=vf($to_month,3);
           $to_year=vf($to_year,3);
-          $notes=mysql_real_escape_string($notes);
+          $notes=loginDB_real_escape_string($notes);
           simple_update_field('catv_payments', 'date', $date,"WHERE `id`='".$paymentid."' ");
           simple_update_field('catv_payments', 'summ', $summ,"WHERE `id`='".$paymentid."' ");
           simple_update_field('catv_payments', 'from_month', $from_month,"WHERE `id`='".$paymentid."' ");
@@ -1394,7 +1394,7 @@ function catv_FeeChargeCheck($month,$year) {
 }
 
 function catv_FeeChargeAllUsers($month,$year) {
-    $month=mysql_real_escape_string($month);
+    $month=loginDB_real_escape_string($month);
     $year=vf($year);
        
       $catv_conf=catv_LoadConfig();
@@ -1448,7 +1448,7 @@ function catv_FeeChargeAllUsers($month,$year) {
  
  function catv_DecoderChange($userid,$decoder) {
      $userid=vf($userid,3);
-     $decoder=mysql_real_escape_string($decoder);
+     $decoder=loginDB_real_escape_string($decoder);
      $date=curdatetime();
      
      simple_update_field('catv_users', 'decoder', $decoder, "WHERE `id`='".$userid."'");
@@ -1556,7 +1556,7 @@ function catv_FeeChargeAllUsers($month,$year) {
         }
         
        function catv_AjaxBuildSelector($street) {
-           $street=  mysql_real_escape_string($street);
+           $street=  loginDB_real_escape_string($street);
            $query="SELECT DISTINCT `build` from `catv_users` WHERE `street`='".$street."'";
            $allbuilds=  simple_queryall($query);
            $result='<select name="buildbox" id="buildbox">';
@@ -1599,8 +1599,8 @@ function catv_FeeChargeAllUsers($month,$year) {
        } 
         
        function catv_ReportDebtorsAddrPrintable($street,$build) {
-           $street=  mysql_real_escape_string($street);
-           $build=  mysql_real_escape_string($build);
+           $street=  loginDB_real_escape_string($street);
+           $build=  loginDB_real_escape_string($build);
            
            $alluserstates=catv_ActivityGetLastAll();
            $query="SELECT * from `catv_users` WHERE `cash`<0 AND `street`='".$street."' AND `build`='".$build."' ORDER BY `street` ";
@@ -1669,7 +1669,7 @@ function catv_FeeChargeAllUsers($month,$year) {
         }
         
         function catv_ReportDebtorsStreetPrintable($street) {
-           $street=  mysql_real_escape_string($street);
+           $street=  loginDB_real_escape_string($street);
            
            $alluserstates=catv_ActivityGetLastAll();
            $query="SELECT * from `catv_users` WHERE `cash`<0 AND `street`='".$street."' ORDER BY `street` ";
@@ -1951,7 +1951,7 @@ function catv_FeeChargeAllUsers($month,$year) {
 
 function catvbs_FilePush($filename,$rawdata) {
     $filename=vf($filename);
-    $rawdata=mysql_real_escape_string($rawdata);
+    $rawdata=loginDB_real_escape_string($rawdata);
     $query="INSERT INTO `catv_bankstaraw` (
             `id` ,
             `filename` ,
@@ -1967,7 +1967,7 @@ function catvbs_FilePush($filename,$rawdata) {
 }
 
 function catvbs_CheckHash($hash) {
-    $hash=mysql_real_escape_string($hash);
+    $hash=loginDB_real_escape_string($hash);
     $query="SELECT COUNT(`id`) from `catv_bankstaparsed` WHERE `hash`='".$hash."'";
     $rowcount=simple_query($query);
     $rowcount=$rowcount['COUNT(`id`)'];
@@ -1980,7 +1980,7 @@ function catvbs_CheckHash($hash) {
 
 
  function catvbs_cu_IsParent($login,$allparentusers) {
-     $login=mysql_real_escape_string($login);
+     $login=loginDB_real_escape_string($login);
      if (isset($allparentusers[$login])) {
         return (true);
     } else {
@@ -2017,10 +2017,10 @@ function catvbs_ParseRaw($rawid) {
            if (isset($rowsplit[$summ_offset])) {
                $realname=trim(strtolower_utf8($rowsplit[$realname_offset]));
                $address=trim(strtolower_utf8($rowsplit[$address_offset]));
-               $address=  mysql_real_escape_string($address);
+               $address=  loginDB_real_escape_string($address);
                $realname=str_replace('  ', '', $realname);
                $summ=trim($rowsplit[$summ_offset]);
-               $realname=mysql_real_escape_string($realname);
+               $realname=loginDB_real_escape_string($realname);
                $address=str_replace('  ', '', $address);
                $query="INSERT INTO `catv_bankstaparsed` (
                         `id` ,
@@ -2145,9 +2145,9 @@ function catvbs_SearchCheckArr($alluseraddress,$allrealnames) {
 }
 
 function catvbs_SearchLoginByAddresspart($queryaddress,$queryname,$checkarr) {
-        $queryaddress=mysql_real_escape_string($queryaddress);
+        $queryaddress=loginDB_real_escape_string($queryaddress);
         $queryaddress=strtolower_utf8($queryaddress);
-        $queryname=mysql_real_escape_string($queryname);
+        $queryname=loginDB_real_escape_string($queryname);
         $queryname=strtolower_utf8($queryname);
         $result=array();
 
@@ -2173,13 +2173,13 @@ function catvbs_SearchLoginByAddresspart($queryaddress,$queryname,$checkarr) {
 
 function catvbs_NameEdit($id,$name) {
     $id=vf($id,3);
-    $name=mysql_real_escape_string($name);
+    $name=loginDB_real_escape_string($name);
     simple_update_field('catv_bankstaparsed', 'realname', $name, "WHERE `id`='".$id."'");
 }
 
 function catvbs_AddressEdit($id,$address) {
     $id=vf($id,3);
-    $address=mysql_real_escape_string($address);
+    $address=loginDB_real_escape_string($address);
     simple_update_field('catv_bankstaparsed', 'address', $address, "WHERE `id`='".$id."'");
 }
 
@@ -2363,7 +2363,7 @@ function catvbs_ProcessHash($hash) {
             //setting payment variables
             
              $cash=$eachrow['summ'];
-             $note=mysql_real_escape_string("CATV_BANKSTA:".$eachrow['id']);
+             $note=loginDB_real_escape_string("CATV_BANKSTA:".$eachrow['id']);
              $month_detect=catvbs_MonthDetect($eachrow['address']);
              if ($month_detect) {
                  $target_month=$month_detect;
@@ -2543,7 +2543,7 @@ if (!isset($_GET['month'])) {
 
 // payments by somedate
 if (isset($_POST['showdatepayments'])) {
-    $paydate=mysql_real_escape_string($_POST['showdatepayments']);
+    $paydate=loginDB_real_escape_string($_POST['showdatepayments']);
     //deb($paydate);
     show_window(__('Payments by date').' '.$paydate,  catv_PaymentsShow("SELECT * from `catv_payments` WHERE `date` LIKE '".$paydate."%'"));
 } else {
@@ -2555,7 +2555,7 @@ show_window(__('Today payments'),  catv_PaymentsShow("SELECT * from `catv_paymen
 
 } else {
     // show monthly payments
-    $paymonth=mysql_real_escape_string($_GET['month']);
+    $paymonth=loginDB_real_escape_string($_GET['month']);
     
     show_window(__('Month payments'),  catv_PaymentsShow("SELECT * from `catv_payments` WHERE `date` LIKE '".$paymonth."%'"));
 }
