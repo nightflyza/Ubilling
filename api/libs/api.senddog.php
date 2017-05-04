@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 class SendDog {
 
@@ -256,12 +256,12 @@ class SendDog {
         $smsArray = array();
         $total = 0;
 
-        $TsmsDB = new DbConnect($tsms_host, $tsms_login, $tsms_password, $tsms_db, $error_reporting = true, $persistent = false);
-        $TsmsDB->open() or die($TsmsDB->error());
+        $TsmsDB = new mysqli($tsms_host, $tsms_login, $tsms_password, $tsms_db);
+        if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
         $TsmsDB->query('SET NAMES utf8;');
 
         if (wf_CheckPost(array('showdate'))) {
-            $date = mysql_real_escape_string($_POST['showdate']);
+            $date = $TsmsDB->real_escape_string($_POST['showdate']);
         } else {
             $date = '';
         }
@@ -275,7 +275,7 @@ class SendDog {
         $query = "SELECT * from `" . $tsms_table . "`" . $where;
         $TsmsDB->query($query);
 
-        while ($row = $TsmsDB->fetchassoc()) {
+        while ($row = $TsmsDB->fetch_assoc()) {
             $smsArray[] = $row;
         }
 
@@ -590,8 +590,8 @@ class SendDog {
         $allSmsQueue = $this->smsQueue->getQueueData();
         if (!empty($allSmsQueue)) {
             //open new database connection
-            $TsmsDB = new DbConnect($this->settings['TSMS_GATEWAY'], $this->settings['TSMS_LOGIN'], $this->settings['TSMS_PASSWORD'], 'users', $error_reporting = true, $persistent = false);
-            $TsmsDB->open() or die($TsmsDB->error());
+            $TsmsDB = new mysqli($this->settings['TSMS_GATEWAY'], $this->settings['TSMS_LOGIN'], $this->settings['TSMS_PASSWORD'], 'users');
+            if ($TsmsDB->connect_error) die('Connection error (' . $TsmsDB->connect_errno . ') ' . $TsmsDB->connect_error);
             $TsmsDB->query('SET NAMES utf8;');
             foreach ($allSmsQueue as $eachsms) {
 

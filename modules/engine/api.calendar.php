@@ -15,7 +15,7 @@ class calendar{
     var $_events = array();
     var $_highlight = array();
     
-    function calendar($month, $year){
+    function __construct($month, $year){
         global $system;
         $this->_temp['first_day_stamp'] = mktime(0, 0, 0, $month, 1, $year);
         $this->_temp['first_day_week_pos'] = date('w', $this->_temp['first_day_stamp']);

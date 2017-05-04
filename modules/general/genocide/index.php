@@ -131,7 +131,7 @@ function gen_check_users() {
 
 
 function gen_create_limit($tariff,$speed) {
-    $tariff=mysql_real_escape_string($tariff);
+    $tariff=loginDB_real_escape_string($tariff);
     $speed=vf($speed,3);
     $query="INSERT INTO `genocide` (
             `id` ,

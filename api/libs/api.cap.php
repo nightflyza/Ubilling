@@ -97,7 +97,7 @@ class CrimeAndPunishment {
      * @param int $days
      */
     protected function createCap($login, $days) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $days = vf($days, 3);
         $query = "INSERT INTO `capdata` (`id`,`login`,`date`,`days`) VALUES"
                 . "(NULL,'" . $login . "','" . $this->curdate . "','" . $days . "');";
@@ -116,7 +116,7 @@ class CrimeAndPunishment {
     protected function setCap($login, $days) {
         if (isset($this->capData[$login])) {
             $days = vf($days, 3);
-            $login = mysql_real_escape_string($login);
+            $login = loginDB_real_escape_string($login);
             simple_update_field('capdata', 'days', $days, "WHERE `login`='" . $login . "'");
             $this->debugLog("CAP UPDATE (" . $login . ") DAYS:" . $days);
         }

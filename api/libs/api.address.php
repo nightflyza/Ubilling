@@ -25,7 +25,7 @@ function zb_AddressCleanAddressCache() {
  * @return void
  */
 function zb_AddressCreateCity($cityname, $cityalias) {
-    $cityname = mysql_real_escape_string($cityname);
+    $cityname = loginDB_real_escape_string($cityname);
     $cityalias = vf($cityalias);
     $query = "INSERT INTO `city` (`id`,`cityname`,`cityalias`) VALUES (NULL, '" . $cityname . "','" . $cityalias . "'); ";
     nr_query($query);
@@ -56,7 +56,7 @@ function zb_AddressDeleteCity($cityid) {
  */
 function zb_AddressChangeCityName($cityid, $cityname) {
     $cityid = vf($cityid, 3);
-    $cityname = mysql_real_escape_string($cityname);
+    $cityname = loginDB_real_escape_string($cityname);
     $query = "UPDATE `city` SET `cityname` = '" . $cityname . "' WHERE `id`= '" . $cityid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressCityName [' . $cityid . '] `' . $cityname . '`');
@@ -175,7 +175,7 @@ function zb_AddressGetFullCityNames() {
  * @return void
  */
 function zb_AddressCreateStreet($cityid, $streetname, $streetalias) {
-    $streetname = mysql_real_escape_string($streetname);
+    $streetname = loginDB_real_escape_string($streetname);
     $streetalias = vf($streetalias);
     $cityid = vf($cityid, 3);
     $query = "INSERT INTO `street` (`id`,`cityid`,`streetname`,`streetalias`) VALUES  (NULL, '" . $cityid . "','" . $streetname . "','" . $streetalias . "');";
@@ -208,7 +208,7 @@ function zb_AddressDeleteStreet($streetid) {
 function zb_AddressChangeStreetName($streetid, $streetname) {
     $streetid = vf($streetid, 3);
     $streetname = zb_AddressFilterStreet($streetname);
-    $streetname = mysql_real_escape_string($streetname);
+    $streetname = loginDB_real_escape_string($streetname);
     $query = "UPDATE `street` SET `streetname` = '" . $streetname . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressStreetName [' . $streetid . '] `' . $streetname . '`');
@@ -224,7 +224,7 @@ function zb_AddressChangeStreetName($streetid, $streetname) {
  */
 function zb_AddressChangeStreetAlias($streetid, $streetalias) {
     $streetid = vf($streetid);
-    $streetalias = mysql_real_escape_string($streetalias);
+    $streetalias = loginDB_real_escape_string($streetalias);
     $query = "UPDATE `street` SET `streetalias` = '" . $streetalias . "' WHERE `id`= '" . $streetid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressStreetAlias [' . $streetid . '] `' . $streetalias . '`');
@@ -289,7 +289,7 @@ function zb_AddressGetStreetAllDataByCity($cityid) {
  * @return void
  */
 function zb_AddressCreateBuild($streetid, $buildnum) {
-    $buildnum = mysql_real_escape_string($buildnum);
+    $buildnum = loginDB_real_escape_string($buildnum);
     $streetid = vf($streetid, 3);
     $query = "INSERT INTO `build` (`id`,`streetid`,`buildnum`) VALUES (NULL, '" . $streetid . "','" . $buildnum . "');";
     nr_query($query);
@@ -374,7 +374,7 @@ function zb_AddressCityProtected($cityid) {
  */
 function zb_AddressChangeBuildNum($buildid, $buildnum) {
     $buildid = vf($buildid, 3);
-    $buildnum = mysql_real_escape_string($buildnum);
+    $buildnum = loginDB_real_escape_string($buildnum);
     $query = "UPDATE `build` SET `buildnum` = '" . $buildnum . "' WHERE `id`= '" . $buildid . "' ;";
     nr_query($query);
     log_register('CHANGE AddressBuildNum [' . $buildid . '] `' . $buildnum . '`');
@@ -467,9 +467,9 @@ function zb_UserGetFullAddress($login) {
  */
 function zb_AddressCreateApartment($buildid, $entrance, $floor, $apt) {
     $buildid = vf($buildid, 3);
-    $entrance = mysql_real_escape_string($entrance);
-    $floor = mysql_real_escape_string($floor);
-    $apt = mysql_real_escape_string($apt);
+    $entrance = loginDB_real_escape_string($entrance);
+    $floor = loginDB_real_escape_string($floor);
+    $apt = loginDB_real_escape_string($apt);
     $query = "INSERT INTO `apt`
          (`id`,`buildid`,`entrance`,`floor`,`apt`)
          VALUES
@@ -508,9 +508,9 @@ function zb_AddressDeleteApartment($aptid) {
 function zb_AddressChangeApartment($aptid, $buildid, $entrance, $floor, $apt) {
     $aptid = vf($aptid, 3);
     $buildid = vf($buildid, 3);
-    $entrance = mysql_real_escape_string($entrance);
-    $floor = mysql_real_escape_string($floor);
-    $apt = mysql_real_escape_string($apt);
+    $entrance = loginDB_real_escape_string($entrance);
+    $floor = loginDB_real_escape_string($floor);
+    $apt = loginDB_real_escape_string($apt);
     $query = "
         UPDATE `apt`
         SET
@@ -1469,16 +1469,16 @@ class BuildPassport {
             $clean_query = "DELETE FROM `buildpassport` WHERE `buildid`='" . $buildid . "';";
             nr_query($clean_query);
 
-            $owner = mysql_real_escape_string($_POST['powner']);
-            $ownername = mysql_real_escape_string($_POST['pownername']);
-            $ownerphone = mysql_real_escape_string($_POST['pownerphone']);
-            $ownercontact = mysql_real_escape_string($_POST['pownercontact']);
+            $owner = loginDB_real_escape_string($_POST['powner']);
+            $ownername = loginDB_real_escape_string($_POST['pownername']);
+            $ownerphone = loginDB_real_escape_string($_POST['pownerphone']);
+            $ownercontact = loginDB_real_escape_string($_POST['pownercontact']);
             $keys = (isset($_POST['pkeys'])) ? 1 : 0;
-            $accessnotices = mysql_real_escape_string($_POST['paccessnotices']);
-            $floors = mysql_real_escape_string($_POST['pfloors']);
-            $entrances = mysql_real_escape_string($_POST['pentrances']);
-            $apts = mysql_real_escape_string($_POST['papts']);
-            $notes = mysql_real_escape_string($_POST['pnotes']);
+            $accessnotices = loginDB_real_escape_string($_POST['paccessnotices']);
+            $floors = loginDB_real_escape_string($_POST['pfloors']);
+            $entrances = loginDB_real_escape_string($_POST['pentrances']);
+            $apts = loginDB_real_escape_string($_POST['papts']);
+            $notes = loginDB_real_escape_string($_POST['pnotes']);
 
             $query = "INSERT INTO `buildpassport` (
                                 `id` ,

@@ -366,7 +366,7 @@ class Warehouse {
     public function reserveCreate($storageId, $itemtypeId, $count, $employeeId) {
         $storageId = vf($storageId, 3);
         $itemtypeId = vf($itemtypeId, 3);
-        $countF = mysql_real_escape_string($count);
+        $countF = loginDB_real_escape_string($count);
         $countF = str_replace(',', '.', $countF);
         $employeeId = vf($employeeId, 3);
         $storageRemains = $this->remainsOnStorage($storageId);
@@ -513,7 +513,7 @@ class Warehouse {
                 if (!empty($reserveData)) {
                     $reserveStorage = $reserveData['storageid'];
                     $count = $_POST['editreservecount'];
-                    $countF = mysql_real_escape_string($count);
+                    $countF = loginDB_real_escape_string($count);
                     $countF = str_replace(',', '.', $countF);
                     $employeeId = vf($_POST['editreserveemployeeid'], 3);
                     $where = " WHERE `id`='" . $id . "';";
@@ -640,7 +640,7 @@ class Warehouse {
      * @return void
      */
     public function categoriesCreate($name) {
-        $nameF = mysql_real_escape_string($name);
+        $nameF = loginDB_real_escape_string($name);
         $query = "INSERT INTO `wh_categories` (`id`,`name`) VALUES (NULL,'" . $nameF . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_categories');
@@ -832,11 +832,11 @@ class Warehouse {
     public function itemtypesCreate($categoryid, $name, $unit, $reserve = 0) {
         $categoryid = vf($categoryid, 3);
         if (isset($this->allCategories[$categoryid])) {
-            $nameF = mysql_real_escape_string($name);
-            $unit = mysql_real_escape_string($unit);
+            $nameF = loginDB_real_escape_string($name);
+            $unit = loginDB_real_escape_string($unit);
             $reserve = str_replace(',', '.', $reserve);
             $reserve = str_replace('-', '', $reserve);
-            $reserve = mysql_real_escape_string($reserve);
+            $reserve = loginDB_real_escape_string($reserve);
 
             $query = "INSERT INTO `wh_itemtypes` (`id`,`categoryid`,`name`,`unit`,`reserve`) VALUES "
                     . "(NULL,'" . $categoryid . "','" . $nameF . "','" . $unit . "','" . $reserve . "')";
@@ -968,7 +968,7 @@ class Warehouse {
      * @return void
      */
     public function storagesCreate($name) {
-        $nameF = mysql_real_escape_string($name);
+        $nameF = loginDB_real_escape_string($name);
         $query = "INSERT INTO `wh_storages` (`id`,`name`) VALUES (NULL,'" . $nameF . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_storages');
@@ -1128,7 +1128,7 @@ class Warehouse {
      * @return void
      */
     public function contractorCreate($name) {
-        $nameF = mysql_real_escape_string($name);
+        $nameF = loginDB_real_escape_string($name);
         $query = "INSERT INTO `wh_contractors` (`id`,`name`) VALUES (NULL,'" . $nameF . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_contractors');
@@ -1340,17 +1340,17 @@ class Warehouse {
      * @return void
      */
     public function incomingCreate($date, $itemtypeid, $contractorid, $storageid, $count, $price, $barcode, $notes) {
-        $dateF = mysql_real_escape_string($date);
+        $dateF = loginDB_real_escape_string($date);
         $itemtypeid = vf($itemtypeid, 3);
         $contractorid = vf($contractorid, 3);
         $storageid = vf($storageid);
         $countF = str_replace(',', '.', $count);
         $countF = str_replace('-', '', $countF);
-        $countF = mysql_real_escape_string($countF);
+        $countF = loginDB_real_escape_string($countF);
         $priceF = str_replace(',', '.', $price);
-        $priceF = mysql_real_escape_string($priceF);
-        $notes = mysql_real_escape_string($notes);
-        $barcode = mysql_real_escape_string($barcode);
+        $priceF = loginDB_real_escape_string($priceF);
+        $notes = loginDB_real_escape_string($notes);
+        $barcode = loginDB_real_escape_string($barcode);
         $query = "INSERT INTO `wh_in` (`id`, `date`, `itemtypeid`, `contractorid`, `count`, `barcode`, `price`, `storageid`, `notes`) "
                 . "VALUES (NULL, '" . $dateF . "', '" . $itemtypeid . "', '" . $contractorid . "', '" . $countF . "', '" . $barcode . "', '" . $priceF . "', '" . $storageid . "', '" . $notes . "');";
         nr_query($query);
@@ -1982,17 +1982,17 @@ class Warehouse {
      */
     public function outcomingCreate($date, $desttype, $destparam, $storageid, $itemtypeid, $count, $price = '', $notes = '') {
         $result = '';
-        $date = mysql_real_escape_string($date);
-        $desttype = mysql_real_escape_string($desttype);
-        $destparam = mysql_real_escape_string($destparam);
+        $date = loginDB_real_escape_string($date);
+        $desttype = loginDB_real_escape_string($desttype);
+        $destparam = loginDB_real_escape_string($destparam);
         $storageid = vf($storageid, 3);
         $itemtypeid = vf($itemtypeid, 3);
-        $countF = mysql_real_escape_string($count);
+        $countF = loginDB_real_escape_string($count);
         $countF = str_replace('-', '', $countF);
         $countF = str_replace(',', '.', $countF);
-        $priceF = mysql_real_escape_string($price);
+        $priceF = loginDB_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
-        $notes = mysql_real_escape_string($notes);
+        $notes = loginDB_real_escape_string($notes);
 
         if (isset($this->allStorages[$storageid])) {
             if (isset($this->allItemTypes[$itemtypeid])) {

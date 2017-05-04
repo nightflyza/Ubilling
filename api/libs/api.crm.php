@@ -8,8 +8,8 @@
  *  @return void
  */
 function zb_UserContractDateCreate($contract, $date) {
-    $contract = mysql_real_escape_string($contract);
-    $date = mysql_real_escape_string($date);
+    $contract = loginDB_real_escape_string($contract);
+    $date = loginDB_real_escape_string($date);
     $query = "INSERT INTO `contractdates` (
                         `id` ,
                         `contract` ,
@@ -48,8 +48,8 @@ function zb_UserContractDatesGetAll() {
  *  @return void
  */
 function zb_UserContractDateSet($contract, $date) {
-    $contract = mysql_real_escape_string($contract);
-    $date = mysql_real_escape_string($date);
+    $contract = loginDB_real_escape_string($contract);
+    $date = loginDB_real_escape_string($date);
     $query = "UPDATE `contractdates` SET `date`='" . $date . "' WHERE `contract`='" . $contract . "'";
     nr_query($query);
     log_register("CHANGE UserContractDate [" . $contract . "] " . $date);
@@ -96,15 +96,15 @@ function web_UserContractDateChangeForm($contract, $date = '') {
  * @return void
  */
 function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
-    $login = mysql_real_escape_string($login);
-    $birthdate = mysql_real_escape_string($birthdate);
-    $passportnum = mysql_real_escape_string($passportnum);
-    $passportdate = mysql_real_escape_string($passportdate);
-    $passportwho = mysql_real_escape_string($passportwho);
-    $pcity = mysql_real_escape_string($pcity);
-    $pstreet = mysql_real_escape_string($pstreet);
-    $pbuild = mysql_real_escape_string($pbuild);
-    $papt = mysql_real_escape_string($papt);
+    $login = loginDB_real_escape_string($login);
+    $birthdate = loginDB_real_escape_string($birthdate);
+    $passportnum = loginDB_real_escape_string($passportnum);
+    $passportdate = loginDB_real_escape_string($passportdate);
+    $passportwho = loginDB_real_escape_string($passportwho);
+    $pcity = loginDB_real_escape_string($pcity);
+    $pstreet = loginDB_real_escape_string($pstreet);
+    $pbuild = loginDB_real_escape_string($pbuild);
+    $papt = loginDB_real_escape_string($papt);
 
     $query = "
         INSERT INTO `passportdata` (
@@ -152,15 +152,15 @@ function zb_UserPassportDataCreate($login, $birthdate, $passportnum, $passportda
  * @return void
  */
 function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
-    $login = mysql_real_escape_string($login);
-    $birthdate = mysql_real_escape_string($birthdate);
-    $passportnum = mysql_real_escape_string($passportnum);
-    $passportdate = mysql_real_escape_string($passportdate);
-    $passportwho = mysql_real_escape_string($passportwho);
-    $pcity = mysql_real_escape_string($pcity);
-    $pstreet = mysql_real_escape_string($pstreet);
-    $pbuild = mysql_real_escape_string($pbuild);
-    $papt = mysql_real_escape_string($papt);
+    $login = loginDB_real_escape_string($login);
+    $birthdate = loginDB_real_escape_string($birthdate);
+    $passportnum = loginDB_real_escape_string($passportnum);
+    $passportdate = loginDB_real_escape_string($passportdate);
+    $passportwho = loginDB_real_escape_string($passportwho);
+    $pcity = loginDB_real_escape_string($pcity);
+    $pstreet = loginDB_real_escape_string($pstreet);
+    $pbuild = loginDB_real_escape_string($pbuild);
+    $papt = loginDB_real_escape_string($papt);
 
     $query = "
         UPDATE `passportdata` SET
@@ -186,7 +186,7 @@ function zb_UserPassportDataSet($login, $birthdate, $passportnum, $passportdate,
  * @return array
  */
 function zb_UserPassportDataGet($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $query = "SELECT * from `passportdata` WHERE `login`='" . $login . "'";
     $passportdata = simple_query($query);
     $result = array();
@@ -237,7 +237,7 @@ function zb_UserPassportDataGetAll() {
  * @return void
  */
 function zb_UserPassportDataChange($login, $birthdate, $passportnum, $passportdate, $passportwho, $pcity, $pstreet, $pbuild, $papt) {
-    $exist_q = "SELECT `id` from `passportdata` WHERE `login`='" . mysql_real_escape_string($login) . "'";
+    $exist_q = "SELECT `id` from `passportdata` WHERE `login`='" . loginDB_real_escape_string($login) . "'";
     $exist = simple_query($exist_q);
     if (!empty($exist)) {
         // data for this user already exists, just - modify
@@ -822,7 +822,7 @@ function web_PassportDataEditFormshow($login, $passportdata) {
  * @return string
  */
 function web_UserPassportDataShow($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $passportdata = zb_UserPassportDataGet($login);
     if (!empty($passportdata)) {
         $cells = wf_TableCell(__('Birth date'));

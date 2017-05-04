@@ -54,10 +54,10 @@ class ConnectionDetails {
      * @return void
      */
     protected function create($login, $seal, $length, $price) {
-        $login = mysql_real_escape_string($login);
-        $seal = mysql_real_escape_string($seal);
+        $login = loginDB_real_escape_string($login);
+        $seal = loginDB_real_escape_string($seal);
         $length = vf($length, 3);
-        $price = mysql_real_escape_string($price);
+        $price = loginDB_real_escape_string($price);
         $query = "INSERT INTO `condet` (`id`,`login`,`seal`,`length`,`price`) VALUES (NULL,'" . $login . "','" . $seal . "','" . $length . "', '" . $price . "');";
         nr_query($query);
     }
@@ -73,7 +73,7 @@ class ConnectionDetails {
      * @return void
      */
     protected function update($login, $seal, $length, $price) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $length = vf($length, 3);
         simple_update_field('condet', 'seal', $seal, "WHERE `login`='" . $login . "';");
         simple_update_field('condet', 'length', $length, "WHERE `login`='" . $login . "';");
@@ -110,7 +110,7 @@ class ConnectionDetails {
      * @return string
      */
     public function editForm($login) {
-        $login = mysql_real_escape_string($login);
+        $login = loginDB_real_escape_string($login);
         $currentData = $this->getByLogin($login);
 
         $inputs = wf_TextInput('newseal', __('Cable seal'), @$currentData['seal'], true, '40');

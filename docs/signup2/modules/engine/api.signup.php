@@ -561,7 +561,7 @@ class SignupService {
     protected function filter($data) {
         $data = trim($data);
         $data = strip_tags($data);
-        $data = mysql_real_escape_string($data);
+        $data = loginDB_real_escape_string($data);
         return ($data);
     }
 

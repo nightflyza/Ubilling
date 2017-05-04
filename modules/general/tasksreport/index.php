@@ -237,8 +237,8 @@ if (cfr('TASKREPORT')) {
              */
             protected function setDates() {
                 if (wf_CheckPost(array('dateto', 'datefrom'))) {
-                    $this->dateFrom = mysql_real_escape_string($_POST['datefrom']);
-                    $this->dateTo = mysql_real_escape_string($_POST['dateto']);
+                    $this->dateFrom = loginDB_real_escape_string($_POST['datefrom']);
+                    $this->dateTo = loginDB_real_escape_string($_POST['dateto']);
                 } else {
                     $this->dateFrom = date("Y-m") . '-01';
                     $this->dateTo = curdate();

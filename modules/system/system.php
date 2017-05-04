@@ -27,7 +27,7 @@ class rcms_system extends rcms_user {
 	var $logging_gz = true;
 	var $url = '';
 
-	function rcms_system($language_select_form = '', $skin_select_form = ''){
+	function __construct($language_select_form = '', $skin_select_form = ''){
 		global $lang;
 		
 		// Loading configuration

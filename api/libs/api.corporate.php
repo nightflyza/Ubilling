@@ -30,7 +30,7 @@ function cu_GetAllLinkedUsers() {
  * @return string
  */
 function cu_GetParentUserLogin($param) {
-    $param = mysql_real_escape_string($param);
+    $param = loginDB_real_escape_string($param);
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $linkfield = $alterconf['USER_LINKING_FIELD'];
     $query = "SELECT `login` from `users` WHERE `" . $linkfield . "`='" . $param . "'";
@@ -48,7 +48,7 @@ function cu_GetParentUserLogin($param) {
  * @return array
  */
 function cu_GetAllChildUsers($param) {
-    $param = mysql_real_escape_string($param);
+    $param = loginDB_real_escape_string($param);
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $linkcfid = $alterconf['USER_LINKING_CFID'];
     $query = "SELECT `login` from `cfitems` WHERE `typeid`='" . $linkcfid . "' AND `content`='" . $param . "' ";
@@ -91,7 +91,7 @@ function cu_GetAllParentUsers() {
  * @return bool
  */
 function cu_IsChild($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $allchilds = cu_GetAllLinkedUsers();
     if (isset($allchilds[$login])) {
         return (true);
@@ -107,7 +107,7 @@ function cu_IsChild($login) {
  * @return bool
  */
 function cu_IsParent($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $allparents = cu_GetAllParentUsers();
     if (isset($allparents[$login])) {
         return (true);

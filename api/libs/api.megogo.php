@@ -418,7 +418,7 @@ class MegogoInterface {
      */
     public function createSubscribtion($login, $tariffid) {
         $curdatetime = curdatetime();
-        $loginF = mysql_real_escape_string($login);
+        $loginF = loginDB_real_escape_string($login);
         $tariffid = vf($tariffid, 3);
         $activeFlag = 1;
         $freePeriodFlag = 0;
@@ -495,7 +495,7 @@ class MegogoInterface {
      */
     public function deleteSubscribtion($login, $tariffid) {
         $curdatetime = curdatetime();
-        $loginF = mysql_real_escape_string($login);
+        $loginF = loginDB_real_escape_string($login);
         $tariffid = vf($tariffid, 3);
         $activeFlag = 1;
         if (isset($this->allTariffs[$tariffid])) {
@@ -637,9 +637,9 @@ class MegogoInterface {
     public function tariffCreate() {
         $result = '';
         if (wf_CheckPost(array('newtariffname', 'newtarifffee', 'newtariffserviceid'))) {
-            $nameF = mysql_real_escape_string($_POST['newtariffname']);
-            $feeF = mysql_real_escape_string($_POST['newtarifffee']);
-            $serviceidF = mysql_real_escape_string($_POST['newtariffserviceid']);
+            $nameF = loginDB_real_escape_string($_POST['newtariffname']);
+            $feeF = loginDB_real_escape_string($_POST['newtarifffee']);
+            $serviceidF = loginDB_real_escape_string($_POST['newtariffserviceid']);
             $primary = wf_CheckPost(array('newtariffprimary')) ? 1 : 0;
             $freePeriod = wf_CheckPost(array('newtarifffreeperiod')) ? 1 : 0;
 
@@ -815,8 +815,8 @@ class MegogoInterface {
         $inputs.= wf_DatePickerPreset('dateto', $defaultDateTo, true);
         $inputs.= wf_Submit(__('Show'));
         $result.= wf_Form('', 'POST', $inputs, 'glamour');
-        $dateFrom = (wf_CheckPost(array('datefrom'))) ? mysql_real_escape_string($_POST['datefrom']) : date("Y-m") . '-01';
-        $dateTo = (wf_CheckPost(array('dateto'))) ? mysql_real_escape_string($_POST['dateto']) : $defaultDateTo;
+        $dateFrom = (wf_CheckPost(array('datefrom'))) ? loginDB_real_escape_string($_POST['datefrom']) : date("Y-m") . '-01';
+        $dateTo = (wf_CheckPost(array('dateto'))) ? loginDB_real_escape_string($_POST['dateto']) : $defaultDateTo;
 
         $query = "SELECT * from `payments` WHERE `date` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' AND  `note` LIKE 'MEGOGO:%';";
         $raw = simple_queryall($query);
@@ -1063,8 +1063,8 @@ class MegogoInterface {
      * @return void
      */
     protected function createQueue($login, $action, $tariffid) {
-        $loginF = mysql_real_escape_string($login);
-        $actionF = mysql_real_escape_string($action);
+        $loginF = loginDB_real_escape_string($login);
+        $actionF = loginDB_real_escape_string($action);
         $tariffid = vf($tariffid, 3);
         $curdate = curdatetime();
         $query = "INSERT INTO `mg_queue` (`id`,`login`,`date`,`action`,`tariffid`) VALUES";

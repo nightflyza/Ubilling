@@ -10,7 +10,7 @@ if ( cfr('CASH') ) {
             $cash = $_POST['newcash'];
             $operation = vf($_POST['operation']);
             $cashtype  = vf($_POST['cashtype']);
-            $note = ( isset($_POST['newpaymentnote']) ) ? mysql_real_escape_string($_POST['newpaymentnote']) : '';
+            $note = ( isset($_POST['newpaymentnote']) ) ? loginDB_real_escape_string($_POST['newpaymentnote']) : '';
 
             // Empty cash hotfix:
             if ( $cash != '' ) {

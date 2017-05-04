@@ -60,7 +60,7 @@ function zb_GetNonUniquePasswordUsers() {
  * @return bool
  */
 function zb_CheckPasswordUnique($password) {
-    $password = mysql_real_escape_string($password);
+    $password = loginDB_real_escape_string($password);
     $query = "SELECT `login` from `users` WHERE `Password`='" . $password . "'";
     $data = simple_query($query);
     if (empty($data)) {
@@ -1031,7 +1031,7 @@ function zb_ProfileGetStgData($login) {
 function web_ProfileSwitchControlForm($login) {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $query = "SELECT * from `switchportassign` WHERE `login`='" . $login . "'";
 
     //switch selector arranged by id (default)
@@ -4169,7 +4169,7 @@ function zb_CheckDbSchema() {
  * @return string
  */
 function web_SnmpSwitchControlForm($login, $allswitches, $allportassigndata, $suggestswitchid = '', $suggestswitchport = '') {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
 
     $switcharr = array();
     if (!empty($allswitches)) {
@@ -4276,7 +4276,7 @@ function zb_TariffGetPeriodsAll() {
  */
 
 function zb_CreditLogCheckMonth($login) {
-    $login = mysql_real_escape_string($login);
+    $login = loginDB_real_escape_string($login);
     $pattern = date("Y-m");
     $query = "SELECT `id` from `zbssclog` WHERE `login` LIKE '" . $login . "' AND `date` LIKE '" . $pattern . "%';";
     $data = simple_query($query);
@@ -4349,8 +4349,8 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     if (wf_CheckPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
         global $billing;
         $setCredit = vf($_POST['easycreditlimit']);
-        $setLogin = mysql_real_escape_string($_POST['easycreditlogin']);
-        $setExpire = mysql_real_escape_string($_POST['easycreditexpire']);
+        $setLogin = loginDB_real_escape_string($_POST['easycreditlogin']);
+        $setExpire = loginDB_real_escape_string($_POST['easycreditexpire']);
         //set credit
         $billing->setcredit($setLogin, $setCredit);
         log_register('CHANGE Credit (' . $setLogin . ') ON ' . $setCredit);
@@ -4606,7 +4606,7 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
  * @return bool
  */
 function zb_TariffProtected($tariffname) {
-    $tariffname = mysql_real_escape_string($tariffname);
+    $tariffname = loginDB_real_escape_string($tariffname);
     $query = "SELECT `login` from `users` WHERE `Tariff`='" . $tariffname . "' OR `TariffChange`='" . $tariffname . "' LIMIT 1;";
     $raw = simple_query($query);
     $result = (empty($raw)) ? false : true;

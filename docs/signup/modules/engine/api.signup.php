@@ -10,7 +10,7 @@ function sn_LoadConfig() {
 
 
 
-$db = new MySQLDB();
+
 $conf=sn_LoadConfig();
 
 function sn_LoadTemplate($templatename) {
@@ -129,31 +129,31 @@ function sn_CreateRequest() {
     //sanitize data
     $street=trim($_POST['street']);
     $street=strip_tags($street);
-    $street=mysql_real_escape_string($street);
+    $street=loginDB_real_escape_string($street);
     
     $build=trim($_POST['build']);
     $build=strip_tags($build);
-    $build=mysql_real_escape_string($build);
+    $build=loginDB_real_escape_string($build);
     
     $apt=trim($_POST['apt']);
     $apt=strip_tags($apt);
-    $apt=mysql_real_escape_string($apt);
+    $apt=loginDB_real_escape_string($apt);
     
     $realname=trim($_POST['realname']);
     $realname=strip_tags($realname);
-    $realname=mysql_real_escape_string($realname);
+    $realname=loginDB_real_escape_string($realname);
     
     $phone=trim($_POST['phone']);
     $phone=strip_tags($phone);
-    $phone=mysql_real_escape_string($phone);
+    $phone=loginDB_real_escape_string($phone);
     
     $service=trim($_POST['service']);
     $service=strip_tags($service);
-    $service=mysql_real_escape_string($service);
+    $service=loginDB_real_escape_string($service);
     
     $notes=trim($_POST['notes']);
     $notes=strip_tags($notes);
-    $notes=mysql_real_escape_string($notes);
+    $notes=loginDB_real_escape_string($notes);
     
     //construct query
     $query="INSERT INTO `sigreq` (

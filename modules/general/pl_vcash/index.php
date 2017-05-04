@@ -55,7 +55,7 @@ if (cfr('PLVCASH')) {
        //if we adds cash to someone
        if (isset($_POST['newcash'])) {
            //collect needed data
-           $cash=mysql_real_escape_string($_POST['newcash']);
+           $cash=loginDB_real_escape_string($_POST['newcash']);
            $balance=zb_VserviceCashGet($login);
            $date=curdatetime();
            $cashtype=$_POST['cashtype'];

@@ -24,7 +24,7 @@ if (cfr('TICKETING')) {
          */
 
         protected function loadTickets($login) {
-            $login = mysql_real_escape_string($login);
+            $login = loginDB_real_escape_string($login);
             $query = "SELECT `id`,`date`,`status`,`text` from `ticketing` WHERE `to` IS NULL AND `replyid` IS NULL AND `from`='" . $login . "' ORDER BY `date` DESC";
             $result = simple_queryall($query);
             return ($result);
