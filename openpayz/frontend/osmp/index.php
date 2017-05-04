@@ -41,7 +41,7 @@ function osmp_CheckGet($params) {
  */
 
 function osmp_CheckTransaction($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (!empty($data)) {
@@ -60,7 +60,7 @@ function osmp_CheckTransaction($hash) {
  *
  */
 function  osmp_getIdByHash($hash) {
-    $hash=mysql_real_escape_string($hash);
+    $hash=loginDB_real_escape_string($hash);
     $query="SELECT `id` from `op_transactions` WHERE `hash`='".$hash."'";
     $result=simple_query($query);
     return ($result['id']);

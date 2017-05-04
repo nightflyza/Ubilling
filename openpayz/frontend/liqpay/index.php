@@ -44,7 +44,7 @@ function lq_CheckPost($params) {
  */
 
 function lq_CheckTransaction($hash) {
-    $hash = mysql_real_escape_string($hash);
+    $hash = loginDB_real_escape_string($hash);
     $query = "SELECT `id` from `op_transactions` WHERE `hash`='" . $hash . "'";
     $data = simple_query($query);
     if (!empty($data)) {
@@ -69,6 +69,7 @@ if (lq_CheckPost(array('operation_xml', 'signature'))) {
             $hash = $xml_arr['response']['order_id'];
             $customerid = $xml_arr['response']['description'];
             $summ = $xml_arr['response']['amount'];
+			$summ= round($summ*0.9725, 2);						  
             $status = $xml_arr['response']['status'];
             $paysys = 'LIQPAY';
             $note = 'some debug data here';
