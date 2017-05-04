@@ -142,6 +142,7 @@ function zb_AddressGetCityAllData() {
     }
 
     $query = "SELECT * from `city` " . $sqlOrder;
+
     $all_data = simple_queryall($query);
     return($all_data);
 }

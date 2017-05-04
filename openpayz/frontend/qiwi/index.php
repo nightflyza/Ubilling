@@ -101,4 +101,5 @@ if (qiwi_CheckGet($required)) {
         }
     }
 }
+
 ?>
