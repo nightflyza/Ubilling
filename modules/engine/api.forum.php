@@ -15,7 +15,7 @@ class forum{
 	var $error = '';
 	var $sort_all = array();
 	
-	function forum(){
+	public function __construct(){
 		if(!$this->loadTopicsData()){
 			return false;
 		}

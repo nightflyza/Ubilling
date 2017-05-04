@@ -75,7 +75,7 @@ class dbf_class {
     var $_hdrsize;           //Length of the header information (offset to 1st record)
     var $_memos;             //The raw memo file (if there is one).
 
-    function dbf_class($filename) {
+    public function __construct($filename) {
         if ( !file_exists($filename)) {
             show_error('Not a valid DBF file !!!'); exit;
         }

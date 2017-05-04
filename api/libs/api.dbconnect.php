@@ -11,7 +11,7 @@ Class DbConnect {
     var $result = false;
     var $error_reporting = false;
 
-    function DbConnect($host, $user, $password, $database, $error_reporting = true, $persistent = false) {
+    public function __construct($host, $user, $password, $database, $error_reporting = true, $persistent = false) {
 
         $this->host = $host;
         $this->user = $user;
