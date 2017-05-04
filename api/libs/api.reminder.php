@@ -57,14 +57,14 @@ class Reminder {
      * it's a magic
      */
     public function __construct() {
-        $this->loadAlter();
-        $this->LoadAllTemplates();
-        $this->LoadRemindLogin();
-        $this->LoadPhones();
-        $this->LoadPassive();
-        $this->sms = new UbillingSMS();
-        $this->money = new FundsFlow();
-        $this->money->runDataLoders();
+	$this->loadAlter();
+	$this->LoadAllTemplates();
+	$this->LoadRemindLogin();
+	$this->LoadPhones();
+	$this->LoadPassive();
+	$this->sms	 = new UbillingSMS();
+	$this->money	 = new FundsFlow();
+	$this->money->runDataLoders();
     }
 
     /**
@@ -73,14 +73,14 @@ class Reminder {
      * @return void
      */
     protected function LoadRemindLogin() {
-        if (isset($this->AltCfg['REMINDER_TAGID'])) {
-            $tagid = vf($this->AltCfg['REMINDER_TAGID'], 3);
-            $query = "SELECT `login` FROM `tags` WHERE `tagid`='" . $tagid . "'";
-            $tmp = simple_queryall($query);
-            if (!empty($tmp)) {
-                $this->AllLogin = $tmp;
-            }
-        }
+	if (isset($this->AltCfg['REMINDER_TAGID'])) {
+	    $tagid	 = vf($this->AltCfg['REMINDER_TAGID'], 3);
+	    $query	 = "SELECT `login` FROM `tags` WHERE `tagid`='" . $tagid . "'";
+	    $tmp	 = simple_queryall($query);
+	    if (!empty($tmp)) {
+		$this->AllLogin = $tmp;
+	    }
+	}
     }
 
     /**
@@ -89,7 +89,7 @@ class Reminder {
      * @return void
      */
     protected function LoadPhones() {
-        $this->AllPhones = zb_UserGetAllPhoneData();
+	$this->AllPhones = zb_UserGetAllPhoneData();
     }
 
     /**
@@ -98,8 +98,8 @@ class Reminder {
      * @return void
      */
     protected function loadAlter() {
-        global $ubillingConfig;
-        $this->AltCfg = $ubillingConfig->getAlter();
+	global $ubillingConfig;
+	$this->AltCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -108,7 +108,7 @@ class Reminder {
      * @return void
      */
     protected function LoadAllTemplates() {
-        $this->AllTemplates = zb_TemplateGetAllUserData();
+	$this->AllTemplates = zb_TemplateGetAllUserData();
     }
 
     /**
@@ -117,13 +117,13 @@ class Reminder {
      * @return void
      */
     protected function LoadPassive() {
-        $query = "SELECT `login` FROM `users` WHERE `Passive`=1";
-        $data = simple_queryall($query);
-        if (!empty($data)) {
-            foreach ($data as $each) {
-                $this->AllPassive[] = $each['login'];
-            }
-        }
+	$query	 = "SELECT `login` FROM `users` WHERE `Passive`=1";
+	$data	 = simple_queryall($query);
+	if (!empty($data)) {
+	    foreach ($data as $each) {
+		$this->AllPassive[] = $each['login'];
+	    }
+	}
     }
 
     /**
@@ -134,15 +134,15 @@ class Reminder {
      * @return bool
      */
     protected function FilterPassive($login) {
-        if (!empty($this->AllPassive)) {
-            foreach ($this->AllPassive as $each) {
-                if ($each == $login) {
-                    return(true);
-                } else {
-                    return(false);
-                }
-            }
-        }
+	if (!empty($this->AllPassive)) {
+	    foreach ($this->AllPassive as $each) {
+		if ($each == $login) {
+		    return(true);
+		} else {
+		    return(false);
+		}
+	    }
+	}
     }
 
     /**
@@ -151,44 +151,44 @@ class Reminder {
      * @return void
      */
     public function RemindUser() {
-        $LiveDays = $this->AltCfg['REMINDER_DAYS_THRESHOLD'];
-        $LiveTime = $LiveDays * 24 * 60 * 60;
-        $CacheTime = time() - $LiveTime;
+	$LiveDays	 = $this->AltCfg['REMINDER_DAYS_THRESHOLD'];
+	$LiveTime	 = $LiveDays * 24 * 60 * 60;
+	$CacheTime	 = time() - $LiveTime;
 
-        foreach ($this->AllLogin as $userLoginData) {
-            $eachLogin = $userLoginData['login'];
-            if (!$this->FilterPassive($eachLogin)) {
-                if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
-                    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
-                        $number = $this->AllPhones[$eachLogin]['mobile'];
-                        if (!empty($number)) {
-                            $number = trim($number);
-                            $number = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
-                            $number = vf($number, 3);
-                            $number = $this->AltCfg['REMINDER_PREFIX'] . $number;
-                            $template = $this->AltCfg['REMINDER_TEMPLATE'];
-                            if (!empty($template)) {
-                                $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
-                                if (!empty($message)) {
-                                    $this->sms->sendSMS($number, $message, false, 'REMINDER');
-                                    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
-                                }
-                            }
-                        } else {
-                            log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
-                        }
-                    }
-                } elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
-                    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');
-                } else {
-                    if (file_exists(self::FLAGPREFIX . $eachLogin)) {
-                        if (filemtime(self::FLAGPREFIX . $eachLogin) > $CacheTime) {
-                            unlink(self::FLAGPREFIX . $eachLogin);
-                        }
-                    }
-                }
-            }
-        }
+	foreach ($this->AllLogin as $userLoginData) {
+	    $eachLogin = $userLoginData['login'];
+	    if (!$this->FilterPassive($eachLogin)) {
+		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
+		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
+			$number = $this->AllPhones[$eachLogin]['mobile'];
+			if (!empty($number)) {
+			    $number		 = trim($number);
+			    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
+			    $number		 = vf($number, 3);
+			    $number		 = $this->AltCfg['REMINDER_PREFIX'] . $number;
+			    $template	 = $this->AltCfg['REMINDER_TEMPLATE'];
+			    if (!empty($template)) {
+				$message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
+				if (!empty($message)) {
+				    $this->sms->sendSMS($number, $message, false, 'REMINDER');
+				    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
+				}
+			    }
+			} else {
+			    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
+			}
+		    }
+		} elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
+		    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');
+		} else {
+		    if (file_exists(self::FLAGPREFIX . $eachLogin)) {
+			if ($CacheTime > filemtime(self::FLAGPREFIX . $eachLogin)) {
+			    unlink(self::FLAGPREFIX . $eachLogin);
+			}
+		    }
+		}
+	    }
+	}
     }
 
     /**
@@ -198,29 +198,29 @@ class Reminder {
      */
     public function forceRemind() {
 
-        foreach ($this->AllLogin as $userLoginData) {
-            $eachLogin = $userLoginData['login'];
-            if (!$this->FilterPassive($eachLogin)) {
+	foreach ($this->AllLogin as $userLoginData) {
+	    $eachLogin = $userLoginData['login'];
+	    if (!$this->FilterPassive($eachLogin)) {
 
-                $number = $this->AllPhones[$eachLogin]['mobile'];
-                if (!empty($number)) {
-                    $number = trim($number);
-                    $number = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
-                    $number = vf($number, 3);
-                    $number = $this->AltCfg['REMINDER_PREFIX'] . $number;
-                    $template = $this->AltCfg['REMINDER_TEMPLATE'];
-                    if (!empty($template)) {
-                        $message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
-                        if (!empty($message)) {
-                            $this->sms->sendSMS($number, $message, true,'REMINDER');
-                            log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
-                        }
-                    }
-                } else {
-                    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
-                }
-            }
-        }
+		$number = $this->AllPhones[$eachLogin]['mobile'];
+		if (!empty($number)) {
+		    $number		 = trim($number);
+		    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
+		    $number		 = vf($number, 3);
+		    $number		 = $this->AltCfg['REMINDER_PREFIX'] . $number;
+		    $template	 = $this->AltCfg['REMINDER_TEMPLATE'];
+		    if (!empty($template)) {
+			$message = zb_TemplateReplace($eachLogin, $template, $this->AllTemplates);
+			if (!empty($message)) {
+			    $this->sms->sendSMS($number, $message, true, 'REMINDER');
+			    log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
+			}
+		    }
+		} else {
+		    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
+		}
+	    }
+	}
     }
 
 }
