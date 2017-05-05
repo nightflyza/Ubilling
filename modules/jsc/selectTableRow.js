@@ -1,4 +1,3 @@
-
 $(function() {
 $('tr.row1 input:checkbox').change(function() {
     var checkboxes = $('tr.row3 input:checkbox').closest('form').find(':checkbox');
