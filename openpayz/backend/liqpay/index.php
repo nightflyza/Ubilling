@@ -1,10 +1,14 @@
 <?php
 $liqConf=  parse_ini_file('config/liqpay.ini');
+/*if (extension_loaded('mysqli')) {
+    include('../../libs/api.mysqli.php');
+} */
 
 //вытаскиваем из конфига все что нам нужно в будущем
 $ispUrl=$liqConf['TEMPLATE_ISP_URL'];
 $ispName=$liqConf['TEMPLATE_ISP'];
 $ispLogo=$liqConf['TEMPLATE_ISP_LOGO'];
+$merchant_service=$liqConf['TEMPLATE_ISP_SERVICE'];
 
 
 /*
