@@ -16,7 +16,12 @@ if ($altcfg['ASTERISK_ENABLED']) {
             $adcomments = new ADcomments('ASTERISK');
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }
-    }
+    } elseif (isset($_GET['AsteriskWindow']) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
+		if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
+            $adcomments = new ADcomments('ASTERISK');
+            show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
+        }
+	}
 
     /**
      * Get numbers aliases from database, or set default empty array
@@ -160,15 +165,13 @@ if ($altcfg['ASTERISK_ENABLED']) {
         }
     }
 
-    /**
-     * Function add by Pautina - nu teper zazhivem :)
+	/**
+     * Gets Login by caller number from DB
      * 
-     * @return something magic
+     * @return array
      */
     function zb_LoginByNumberQuery() {
-        global $mysqlcfg;
-        global $user_login;
-        global $result_a;
+        global $mysqlcfg, $user_login, $result_a;
         if (!isset($result_a) and empty($result_a)) {
             $loginDB = new mysqli($mysqlcfg['server'], $mysqlcfg['username'], $mysqlcfg['password'], $mysqlcfg['db']);
             if ($loginDB->connect_error) {
@@ -183,7 +186,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             $result = $loginDB->query($query);
             $result_a = array();
             while ($row = $result->fetch_assoc()) {
-                $result_a[$row['login']] = array($row['phone'], $row['mobile'], $row['content']);
+                $result_a[$row['login']] = array(substr($row['phone'], -10), substr($row['mobile'], -10), substr($row['content'], -10));
             }
             mysqli_free_result($result);
             $loginDB->close();
@@ -199,8 +202,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
      * @return string
      */
     function zb_AsteriskGetLoginByNumber($number) {
-        global $allrealnames;
-        global $alladdress;
+        global $allrealnames, $alladdress;
         if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
             $number_cut = substr($number, -10);
             $LoginByNumberQueryArray = zb_LoginByNumberQuery();
@@ -385,7 +387,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
                 if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
                     $cells.= wf_TableCell(__($each['countnum']));
                 } else {
-                    if (!empty($login)) {
                         $itemId = $each['uniqueid'] . $each['disposition']{0};
 
                         if ($adcomments->haveComments($itemId)) {
@@ -393,9 +394,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
                         } else {
                             $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
+                    if (!empty($login)) {
                         $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
                     } else {
-                        $cells.= wf_TableCell(__(''));
+                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false));
                     }
                 }
 
@@ -441,8 +443,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
      * @return void
      */
     function zb_AsteriskGetCDR($from, $to) {
-        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
-        global $user_login;
+        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime, $user_login;
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($asteriskTable);
@@ -535,7 +536,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
      */
     function web_AsteriskConfigForm() {
         global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
-
         $result = wf_Link('?module=asterisk', __('Back'), true, 'ubButton') . wf_delimiter();
         $inputs = wf_TextInput('newhost', __('Asterisk host'), $asteriskHost, true);
         $inputs.= wf_TextInput('newdb', __('Database name'), $asteriskDb, true);
