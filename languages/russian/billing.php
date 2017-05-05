@@ -68,7 +68,7 @@ $lang['def']['Available buildings on street'] = 'Дома которые нах�
 $lang['def']['Building number'] = 'Номер дома';
 
 //Selling
-$lang['def']['Selling'] = 'Пункты продаж';
+$lang['def']['Selling'] = 'Пункты продаж карточек';
 $lang['def']['Create new selling'] = 'Создать пункт продаж';
 $lang['def']['Available selling'] = 'Существующие пункты продаж';
 $lang['def']['Selling name'] = 'Название';
