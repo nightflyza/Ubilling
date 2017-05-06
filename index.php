@@ -92,6 +92,8 @@ if(!empty($menu_points)){
    	}
 }
 
+
+
 if (XHPROF) {
 $xhprof_data = xhprof_disable();
 $xhprof_runs = new XHProfRuns_Default();
