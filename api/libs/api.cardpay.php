@@ -177,17 +177,16 @@ function web_CardsSearchForm() {
  *
  * @return string
  */
-function web_CardsChangeForm(array $ids)
-{
+function web_CardsChangeForm(array $ids) {
     $inputs = wf_Selector('card_edit[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
     $inputs .= wf_TextInput('card_edit[part]', __('Serial part'), '', false, '17');
     foreach ($ids as $key => $id) {
         $inputs .= wf_HiddenInput(sprintf('card_edit[id][%s]', $key), $id);
     }
-    $inputs .= wf_Submit('Update');
-    $result = wf_Form('', 'POST', $inputs, 'glamour');
+    $inputs .= wf_Submit('Save');
+    $result = wf_Form("", "POST", $inputs, 'glamour');
 
-    return $result;
+    return ($result);
 }
 
 /**
