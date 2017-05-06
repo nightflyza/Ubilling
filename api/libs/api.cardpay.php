@@ -14,7 +14,7 @@ function zb_CardCreate($serial,$cash, $part, $selling) {
     $admin=whoami();
     $date=curdatetime();
     $query="INSERT INTO `cardbank` (`id` , `serial` , `part` , `cash` , `admin` , `date` , `receipt_date` , `selling_id` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
-         . "VALUES (NULL , '".$serial."', '".$part."', '".$cash."', '".$admin."', '".$date."', '".$date."', '".$selling_id."', '1', '0', NULL , '', NULL);";
+         . "VALUES (NULL , '".$serial."', '".$part."', '".$cash."', '".$admin."', '".$date."', '".$date."', '".$selling."', '1', '0', NULL , '', NULL);";
     nr_query($query);
 }
 
