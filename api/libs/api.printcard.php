@@ -29,13 +29,18 @@ function web_PrintCardLister($ids) {
 
     $result = wf_TableBody($rows, '100%', 0);
     $idsQuery = http_build_query(array('id' => $ids));
-    $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=page&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-    $printcheck .= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
-    $printcheck .= wf_tag('a', true);
 
-    $printcheck .= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-    $printcheck .= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
-    $printcheck .= wf_tag('a', true);
+    if (file_exists(IMG_CARD)) {
+        $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=page&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
+        $printcheck .= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
+        $printcheck .= wf_tag('a', true);
+        $printcheck .= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
+        $printcheck .= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
+        $printcheck .= wf_tag('a', true);
+    } else {
+        $printcheck = wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24));
+        $printcheck .= wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_documents.gif', __('Page'), 24, 24));
+    }
 
     $printcheck .= wf_SubmitClassed(true, 'back', 'back', __('Back'));
 
