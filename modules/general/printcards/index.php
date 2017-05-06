@@ -66,3 +66,4 @@ function pageCards() {
     print(web_PageCard($_GET['id']));
     die;
 }
+?>
