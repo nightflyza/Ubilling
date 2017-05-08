@@ -5,7 +5,7 @@ class CrimeAndPunishment {
     protected $altCfg = array();
     protected $allUsers = array();
     protected $capData = array();
-    protected $login='';
+    protected $login = '';
     protected $logPath = '';
     protected $curdate = '';
     protected $dayLimit = 0; // via CAP_DAYLIMIT
@@ -41,7 +41,7 @@ class CrimeAndPunishment {
     protected function setOptions() {
         $this->curdate = curdatetime();
         $this->dayLimit = vf($this->altCfg['CAP_DAYLIMIT'], 3);
-        $this->percentpenalty = !empty(vf($this->altCfg['CAP_PENALTY_PERCENT'], 3));
+        $this->percentpenalty = vf($this->altCfg['CAP_PENALTY_PERCENT'], 3);
         $this->penalty = ($this->percentpenalty) ? vf($this->altCfg['CAP_PENALTY_PERCENT'], 3) / 100 : vf($this->altCfg['CAP_PENALTY'], 3);
         $this->payId = vf($this->altCfg['CAP_PAYID'], 3);
         $this->ignoreFrozen = ($this->altCfg['CAP_IGNOREFROZEN']) ? true : false;
@@ -133,7 +133,6 @@ class CrimeAndPunishment {
      */
     protected function punish($login) {
         if (isset($this->capData[$login])) {
-            //$penalty = '-' . $this->penalty;
             $penalty = '-' . ( ($this->percentpenalty) ? $this->penalty * $this->allUsers[$login]['fee'] : $this->penalty );
             zb_CashAdd($login, $penalty, 'add', $this->payId, 'PENALTY:' . $this->capData[$login]['days']);
             $this->debugLog("CAP PENALTY (" . $login . ") DAYS:" . $this->capData[$login]['days'] . " PENALTY:" . $penalty);
@@ -170,7 +169,7 @@ class CrimeAndPunishment {
                         //trying to save SQL query count
                         if ($this->capData[$login]['days'] > 0) {
                             $this->setCap($login, 0);
-                            $this->debugLog("CAP RESURRECTED (" . $login . ") DAYS:".$this->capData[$login]['days']);
+                            $this->debugLog("CAP RESURRECTED (" . $login . ") DAYS:" . $this->capData[$login]['days']);
                         }
                     }
                 }
@@ -254,7 +253,7 @@ class CrimeAndPunishment {
         $currentData = $this->getCapData($this->login);
         
         if (!empty($currentData)) {
-            $result.=wf_tag('div', false, 'glamour').__('Inactive days').': '.$currentData['days'].wf_tag('div', true);
+            $result.=wf_tag('div', false, 'glamour') . __('Inactive days') . ': ' . $currentData['days'] . wf_tag('div', true);
             $result.=wf_CleanDiv();
         }
 

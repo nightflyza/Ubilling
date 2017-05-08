@@ -2773,7 +2773,7 @@ function web_UserArrayShower($usersarr) {
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
         $result.= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
     } else {
-        $messages=new UbillingMessageHelper();
+        $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('Any users found'), 'info');
     }
 
@@ -4395,6 +4395,10 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
+
+
+
+
 
 
 

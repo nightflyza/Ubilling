@@ -154,6 +154,7 @@ CAP_PENALTY=VARCHAR|Penalty cash summ
 CAP_PENALTY_PERCENT=VARCHAR|Penalty percent from tariff's fee amount(takes precedence over penalty cash sum if grater than zero)
 CHAPTEREND_DOSTOEVSKY=true
 
+
 CHAPTER_DOCSIS=DOCSIS
 DOCSIS_SUPPORT=TRIGGER|Enable DOCSIS support
 DOCSIS_MODEM_NETID=VARCHAR|DOCSIS modems network ID
