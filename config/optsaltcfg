@@ -147,12 +147,12 @@ CHAPTEREND_DISCOUNT=true
 
 CHAPTER_DOSTOEVSKY=Dostoevsky
 CAP_ENABLED=TRIGGER|Crime and punishment enabled
+CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
+CAP_PAYID=VARCHAR|Payment type
 CAP_DAYLIMIT=VARCHAR|Days limit to push penalty
 CAP_PENALTY=VARCHAR|Penalty cash summ
-CAP_PAYID=VARCHAR|Payment type
-CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
+CAP_PENALTY_PERCENT=VARCHAR|Penalty percent from tariff's fee amount(takes precedence over penalty cash sum if grater than zero)
 CHAPTEREND_DOSTOEVSKY=true
-
 
 CHAPTER_DOCSIS=DOCSIS
 DOCSIS_SUPPORT=TRIGGER|Enable DOCSIS support

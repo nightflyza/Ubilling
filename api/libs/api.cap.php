@@ -9,6 +9,7 @@ class CrimeAndPunishment {
     protected $logPath = '';
     protected $curdate = '';
     protected $dayLimit = 0; // via CAP_DAYLIMIT
+    protected $percentpenalty = false; // via CAP_PENALTY_PERCENT
     protected $penalty = 0; // via CAP_PENALTY
     protected $payId = 1; // via CAP_PAYID
     protected $ignoreFrozen = true; // via CAP_IGNOREFROZEN
@@ -40,7 +41,8 @@ class CrimeAndPunishment {
     protected function setOptions() {
         $this->curdate = curdatetime();
         $this->dayLimit = vf($this->altCfg['CAP_DAYLIMIT'], 3);
-        $this->penalty = vf($this->altCfg['CAP_PENALTY'], 3);
+        $this->percentpenalty = !empty(vf($this->altCfg['CAP_PENALTY_PERCENT'], 3));
+        $this->penalty = ($this->percentpenalty) ? vf($this->altCfg['CAP_PENALTY_PERCENT'], 3) / 100 : vf($this->altCfg['CAP_PENALTY'], 3);
         $this->payId = vf($this->altCfg['CAP_PAYID'], 3);
         $this->ignoreFrozen = ($this->altCfg['CAP_IGNOREFROZEN']) ? true : false;
         $this->logPath = DATA_PATH . 'documents/crimeandpunishment.log';
@@ -63,9 +65,11 @@ class CrimeAndPunishment {
      */
     protected function loadUsers() {
         if ($this->ignoreFrozen) {
-            $query = "SELECT * from `users` WHERE `Passive`='0';";
+            //$query = "SELECT * from `users` WHERE `Passive`='0';";
+            $query = "SELECT `users`.*, `tariffs`.`fee` from `users` left join `tariffs` on `users`.`Tariff` = `tariffs`.`name` WHERE `Passive`='0';";
         } else {
-            $query = "SELECT * from `users`";
+            //$query = "SELECT * from `users`";
+            $query = "SELECT `users`.*, `tariffs`.`fee` from `users` left join `tariffs` on `users`.`Tariff` = `tariffs`.`name`;";
         }
         $raw = simple_queryall($query);
         if (!empty($raw)) {
@@ -129,9 +133,10 @@ class CrimeAndPunishment {
      */
     protected function punish($login) {
         if (isset($this->capData[$login])) {
-            $penalty = '-' . $this->penalty;
+            //$penalty = '-' . $this->penalty;
+            $penalty = '-' . ( ($this->percentpenalty) ? $this->penalty * $this->allUsers[$login]['fee'] : $this->penalty );
             zb_CashAdd($login, $penalty, 'add', $this->payId, 'PENALTY:' . $this->capData[$login]['days']);
-            $this->debugLog("CAP PENALTY (" . $login . ") DAYS:" . $this->capData[$login]['days'] . " PENALTY:" . $this->penalty);
+            $this->debugLog("CAP PENALTY (" . $login . ") DAYS:" . $this->capData[$login]['days'] . " PENALTY:" . $penalty);
         }
     }
 
