@@ -11,16 +11,27 @@ class Telepathy {
     protected $allsurnames = array();
     protected $caseSensitive = false;
     protected $cachedAddress = true;
+    protected $citiesAddress = false;
     protected $useraddress = '';
 
-    public function __construct($caseSensitive = false, $cachedAddress = true) {
-        $this->loadAddress();
+    /**
+     * Creates new telepathy instance
+     * 
+     * @param bool $caseSensitive
+     * @param bool $cachedAddress
+     * @param bool $citiesAddress
+     * 
+     * @return void
+     */
+    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false) {
         $this->caseSensitive = $caseSensitive;
         $this->cachedAddress = $cachedAddress;
+        $this->citiesAddress = $citiesAddress;
+        $this->loadAddress();
+
         if (!$this->caseSensitive) {
             $this->addressToLowerCase();
         }
-
         if (!empty($this->alladdress)) {
             $this->alladdress = array_flip($this->alladdress);
         }
@@ -31,12 +42,15 @@ class Telepathy {
      * 
      * @return void
      */
-
     protected function loadAddress() {
-        if ($this->cachedAddress) {
-            $this->alladdress = zb_AddressGetFulladdresslistCached();
+        if (!$this->citiesAddress) {
+            if ($this->cachedAddress) {
+                $this->alladdress = zb_AddressGetFulladdresslistCached();
+            } else {
+                $this->alladdress = zb_AddressGetFulladdresslist();
+            }
         } else {
-            $this->alladdress = zb_AddressGetFulladdresslist();
+            $this->alladdress = zb_AddressGetFullCityaddresslist();
         }
     }
 
@@ -45,7 +59,6 @@ class Telepathy {
      * 
      * @return void
      */
-
     protected function loadRealnames() {
         $this->allrealnames = zb_UserGetAllRealnames();
     }
@@ -55,18 +68,17 @@ class Telepathy {
      * 
      * @return void
      */
-
     protected function surnamesExtract() {
         if (!empty($this->allrealnames)) {
-            foreach ($this->allrealnames as $login=>$realname) {
-                $raw=explode(' ',$realname);
+            foreach ($this->allrealnames as $login => $realname) {
+                $raw = explode(' ', $realname);
                 if (!empty($raw)) {
-                    $this->allsurnames[$login]=$raw[0];
+                    $this->allsurnames[$login] = $raw[0];
                 }
             }
         }
     }
-    
+
     /**
      * external passive constructor for name realname login detection
      * 
@@ -75,31 +87,32 @@ class Telepathy {
     public function useNames() {
         $this->loadRealnames();
         $this->surnamesExtract();
-        
+
         if (!empty($this->allrealnames)) {
-            $this->allrealnames=  array_flip($this->allrealnames);
+            $this->allrealnames = array_flip($this->allrealnames);
         }
-        
+
         if (!empty($this->allrealnames)) {
-            $this->allsurnames=  array_flip($this->allsurnames);
+            $this->allsurnames = array_flip($this->allsurnames);
         }
     }
-    
-  
 
     /**
      * preprocess available address data into lower case
      * 
      * @return void
      */
-
     protected function addressToLowerCase() {
         global $ubillingConfig;
         $alterconf = $ubillingConfig->getAlter();
 
         $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];
         $cacheTime = time() - ($cacheTime * 60);
-        $cacheName = 'exports/fulladdresslistlowercache.dat';
+        if (!$this->citiesAddress) {
+            $cacheName = 'exports/fulladdresslistlowercache.dat';
+        } else {
+            $cacheName = 'exports/fullcityaddresslistlowercache.dat';
+        }
         $updateCache = false;
         if (file_exists($cacheName)) {
             $updateCache = false;
@@ -151,7 +164,6 @@ class Telepathy {
      * 
      * @return string
      */
-
     public function getLogin($address) {
         if (!$this->caseSensitive) {
             $address = strtolower_utf8($address);
@@ -163,7 +175,7 @@ class Telepathy {
             return(false);
         }
     }
-    
+
     /**
      * returns user login by surname
      * 
@@ -180,7 +192,5 @@ class Telepathy {
     }
 
 }
-
-
 
 ?>
