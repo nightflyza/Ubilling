@@ -2449,5 +2449,6 @@ $lang['def']['No branches admins available'] = 'Немає ассоційова�
 $lang['def']['Administrators'] = 'Адміністратори';
 $lang['def']['Transaction'] = 'Транзакція';
 $lang['def']['Non existent transaction ID'] = 'Неіснуючий ідентифікатор транзакції';
+$lang['def']['Penalty percent from tariff\'s fee'] = 'Штраф у розмірі відсотка від вартості тарифу';
 
 ?>

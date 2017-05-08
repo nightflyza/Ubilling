@@ -150,6 +150,7 @@ CAP_ENABLED=TRIGGER|Crime and punishment enabled
 CAP_DAYLIMIT=VARCHAR|Days limit to push penalty
 CAP_PENALTY=VARCHAR|Penalty cash summ
 CAP_PAYID=VARCHAR|Payment type
+CAP_PENALTY_PERCENT=VARCHAR|Penalty percent from tariff's fee
 CAP_IGNOREFROZEN=TRIGGER|Do not call Raskolnikov frozen
 CHAPTEREND_DOSTOEVSKY=true
 
