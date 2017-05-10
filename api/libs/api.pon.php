@@ -1004,9 +1004,12 @@ class PONizer {
      * @return string
      */
     protected function onuSignalHistory($onuId) {
+        global $ubillingConfig;
+        $billCfg = $ubillingConfig->getBilling();
         $onuId = vf($onuId, 3);
         $result = '';
         if (isset($this->allOnu[$onuId])) {
+
             //not empty MAC
             if ($this->allOnu[$onuId]['mac']) {
                 if (file_exists(self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']))) {
@@ -1017,13 +1020,18 @@ class PONizer {
                     $historyKey = '';
                 }
                 if (!empty($historyKey)) {
-                    $rawData = file_get_contents($historyKey);
+                    $curdate = curdate();
+                    $curmonth = curmonth() . '-';
+                    $getMonthDataCmd = $billCfg['CAT'] . ' ' . $historyKey . ' | ' . $billCfg['GREP'] . ' ' . $curmonth;
+                    $rawData = shell_exec($getMonthDataCmd);
+                    //commented due performance issues with 1 minute OLT polling.
+                    //$rawData = file_get_contents($historyKey);
                     $result.=wf_delimiter();
                     $result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
 
                     //current day signal levels
                     $todaySignal = '';
-                    $curdate = curdate();
+
                     if (!empty($rawData)) {
                         $todayTmp = explodeRows($rawData);
                         if (!empty($todayTmp)) {
