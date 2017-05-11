@@ -490,8 +490,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
             } elseif (!empty($phone) and ! empty($mobile) and ! empty($dop_mobile)) {
                 $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial'";
             }
-            $rawResult = zb_AsteriskQuery($query);
-            $cacheContent = serialize($rawResult);
+            if (!empty($query)) {
+                $rawResult = zb_AsteriskQuery($query);
+                $cacheContent = serialize($rawResult);
+            }
         } elseif (wf_CheckPost(array('countnum')) and ! isset($user_login)) {
             $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
             $rawResult = zb_AsteriskQuery($query);
