@@ -215,7 +215,16 @@ if ($system->checkForRight('SQLCONSOLE')) {
 
             // commented due Den1xxx patch
             // $query_result=simple_queryall($newquery);
-            $queried = mysql_query($newquery);
+            if (extension_loaded('mysqli')) {
+                $queried = $loginDB->query($newquery);
+                if (!function_exists('mysql_fetch_assoc')) {
+                    function mysql_fetch_assoc($data) {
+                        return(mysqli_fetch_assoc($data));
+                    }
+                }
+            } else {
+                $queried = mysql_query($newquery);
+            }
             if ($queried === false) {
                 ob_end_clean();
                 return show_window('SQL ' . __('Result'), wf_tag('b') . __('Wrong query') . ':' . wf_tag('b', true) . wf_delimiter() . $newquery);
