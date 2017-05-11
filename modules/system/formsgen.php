@@ -10,7 +10,7 @@ class InputForm {
         'file' => '<input type="file" name="%1" value="" />',
     );
 
-    function InputForm($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
+    public function __construct($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
         $this->options = array(
             'action' => $action,
             'method' => $method,
@@ -25,10 +25,10 @@ class InputForm {
 
     function addrow($title, $contents = '', $valign = 'middle', $align = 'left') {
         @list( $talign, $calign ) = explode(",", $align);
-        if ( empty($calign) )
+        if (empty($calign))
             $calign = $talign;
         @list( $tvalign, $cvalign ) = explode(",", $valign);
-        if ( empty($cvalign) )
+        if (empty($cvalign))
             $cvalign = $tvalign;
         $this->_rows[] = array(
             'title' => $title,
@@ -58,32 +58,32 @@ class InputForm {
 
     function show($return = false) {
         $result = '<form action="' . $this->options['action'] . '" method="' . $this->options['method'] . '" name="' . $this->options['name'] . '"';
-        if ( !empty($this->options['target']) ) {
+        if (!empty($this->options['target'])) {
             $result .= ' target="' . $this->options['target'] . '"';
         }
-        if ( !empty($this->options['enctype']) ) {
+        if (!empty($this->options['enctype'])) {
             $result .= ' enctype="' . $this->options['enctype'] . '"';
         }
-        if ( !empty($this->options['events']) ) {
+        if (!empty($this->options['events'])) {
             $result .= ' ' . $this->options['events'];
         }
         $result .= '>' . "\n";
 
-        if ( is_array($this->_hiddens) ) {
-            foreach ( $this->_hiddens as $name => $value ) {
+        if (is_array($this->_hiddens)) {
+            foreach ($this->_hiddens as $name => $value) {
                 $result .= str_replace(array('%1', '%2'), array($name, $value), $this->_elements['hidden']) . "\n";
             }
         }
 
         $result .= '<table border="0" cellspacing="2" cellpadding="2" width="100%">' . "\n";
 
-        if ( is_array($this->_rows) ) {
-            foreach ( $this->_rows as $row ) {
-                if ( !empty($row['break']) ) {
+        if (is_array($this->_rows)) {
+            foreach ($this->_rows as $row) {
+                if (!empty($row['break'])) {
                     $result .= '<tr>' . "\n";
                     $result .= '  <th colspan="2">' . $row['break'] . '</td>' . "\n";
                     $result .= '</tr>' . "\n";
-                } elseif ( !empty($row['message']) ) {
+                } elseif (!empty($row['message'])) {
                     $result .= '<tr>' . "\n";
                     $result .= '  <td colspan="2" class="row1">' . $row['message'] . '</td>' . "\n";
                     $result .= '</tr>' . "\n";
