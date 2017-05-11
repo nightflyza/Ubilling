@@ -67,6 +67,30 @@ $lang['def']['New build number'] = 'Номер нового дома';
 $lang['def']['Available buildings on street'] = 'Дома которые находяться на улице';
 $lang['def']['Building number'] = 'Номер дома';
 
+//Selling
+$lang['def']['Selling'] = 'Пункты продаж карточек';
+$lang['def']['Create new selling'] = 'Создать пункт продаж';
+$lang['def']['Available selling'] = 'Существующие пункты продаж';
+$lang['def']['Selling name'] = 'Название';
+$lang['def']['Selling address'] = 'Адресс';
+$lang['def']['Selling geo data'] = 'Гео координаты';
+$lang['def']['Selling contact'] = 'Контакты';
+$lang['def']['Selling count cards'] = 'Количество карточек';
+$lang['def']['Selling comment'] = 'Комментарии';
+$lang['def']['Receipt date'] = 'Дата поступления';
+$lang['def']['Not used'] = 'Не использовано';
+$lang['def']['Serial part'] = 'Серия';
+$lang['def']['Change cards'] = 'Обновить карточки';
+$lang['def']['Selling report'] = 'Отчет по пункты продаж';
+$lang['def']['Activated'] = 'Активированные';
+$lang['def']['For sum'] = 'На сумму';
+$lang['def']['Remains'] = 'Осталось';
+$lang['def']['You need install php extension GD'] = 'Вам нужно установить php разширение GD';
+$lang['def']['Card for print'] = 'Карточки для печати';
+$lang['def']['You cant control this action'] = 'Вы не можете сделать это действие';
+$lang['def']['Create print card'] = 'Создать шаблон для печати карточек';
+$lang['def']['Font size'] = 'Размер шрифта';
+$lang['def']['Top'] = 'По верхнему краю';
 
 
 //networks
