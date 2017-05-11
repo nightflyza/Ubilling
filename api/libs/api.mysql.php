@@ -183,7 +183,7 @@ if (extension_loaded('mysqli')) {
          * @param MySQL Connection Id $connection
          * @return MySQLDB
          */
-        function MySQLDB($connection = false) {
+        public function __construct($connection = false) {
             if ($connection)
                 $this->connection = $connection;
             else {
