@@ -3,7 +3,11 @@
 /*
  * Including all needed APIs and Libs
  */
-include('api/libs/api.mysql.php');
+if (extension_loaded('mysqli')) {
+    include('api/libs/api.mysqli.php');
+} else {
+    include('api/libs/api.mysql.php');
+}
 include('api/libs/api.ubstorage.php');
 include('api/api.stargazer.php');
 include('api/libs/api.compat.php');

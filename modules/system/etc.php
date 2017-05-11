@@ -306,7 +306,7 @@ class message{
      * @param boolean $nl2br
      * @return message
      */
-    function message($message, $bbcode_level = 0, $html = false, $nl2br = false){
+    public function __construct($message, $bbcode_level = 0, $html = false, $nl2br = false){
         $this->str = $message;
         $this->nl2br = $nl2br;
         $this->bbcode_level = $bbcode_level;

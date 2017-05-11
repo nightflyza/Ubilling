@@ -10,7 +10,7 @@ class InputForm {
         'file' => '<input type="file" name="%1" value="" />',
     );
 
-    function InputForm($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
+    public function __construct($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
         $this->options = array(
             'action' => $action,
             'method' => $method,
