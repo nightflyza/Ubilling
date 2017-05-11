@@ -55,8 +55,6 @@ $uconf=  uhw_LoadConfig();
                 
      
                 if ($uconf['SELFACT_ENABLED']) {
-                    $db=new MySQLDB;
-
                     
                    if (uhw_IsAllPasswordsUnique()) {
                        //is all passwords unique?
