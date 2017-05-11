@@ -1,12 +1,13 @@
 <?php
+
 // check for right of current admin on this module
 if (cfr('CARDS')) {
-    $altcfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+    $altcfg = $ubillingConfig->getAlter();
     if ($altcfg['PAYMENTCARDS_ENABLED']) {
 
         if (isset($_POST['card_create'])) {
             $cards = zb_CardGenerate($_POST['card_create']);
-            $generated = '<textarea cols="80" rows="20">'.$cards.'</textarea>';
+            $generated = '<textarea cols="80" rows="20">' . $cards . '</textarea>';
             show_window(__('Cards generated'), $generated);
         }
 
@@ -47,18 +48,14 @@ if (cfr('CARDS')) {
         if (!wf_CheckPost(array('card_search'))) {
             show_window(__('Available payment cards'), web_CardsShow());
             web_CardShowBrutes();
-
         } else {
             show_window(__('Search results'), web_CardsSearch($_POST['card_search']));
             show_window('', wf_Link("?module=cards", __('Back'), false, 'ubButton'));
         }
-    
     } else {
-        show_window(__('Error'), __('This module is disabled'));
+        show_error(__('This module is disabled'));
     }
-    
 } else {
-      show_error(__('You cant control this module'));
+    show_error(__('You cant control this module'));
 }
-
 ?>
