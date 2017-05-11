@@ -100,7 +100,7 @@ function web_CardsShow() {
     $cells .= wf_TableCell(__('Used IP'));
     $cells .= wf_TableCell(__('Receipt date'));
     $cells .= wf_TableCell(__('Selling'));
-    $cells .= wf_TableCell(wf_CheckInput('check', '', false, false));
+    $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allcards)) {
@@ -125,7 +125,7 @@ function web_CardsShow() {
         }
     }
 
-    $result = wf_TableBody($rows, '100%', 0, '');
+    $result = wf_TableBody($rows, '100%', 0, 'sortable');
     $result .= $paginator.wf_delimiter();
     $result = web_CardActions($result);
 
@@ -261,7 +261,7 @@ function web_CardsSearch(array $search)
         $cells .= wf_TableCell(__('Used IP'));
         $cells .= wf_TableCell(__('Receipt date'));
         $cells .= wf_TableCell(__('Selling'));
-        $cells .= wf_TableCell(wf_CheckInput('check', '', false, false));
+        $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allcards as $io => $eachcard) {

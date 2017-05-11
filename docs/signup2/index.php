@@ -16,8 +16,6 @@ include('modules/engine/api.lightastral.php');
 include('modules/engine/api.compat.php');
 include('modules/engine/api.signup.php');
 
-$dbConnect = new MySQLDB();
-
 $signup = new SignupService($snConfig['confcache'],$snConfig['cachetimeout']);
 
 //show form by default
