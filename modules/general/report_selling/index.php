@@ -1,29 +1,28 @@
 <?php
+
 /**
  * Class ReportSelling
  */
-class ReportSelling
-{
+class ReportSelling {
+
     private $reportData = array();
     private $reportParams = array();
 
     /**
      * ReportSelling constructor
      */
-    public function __construct()
-    {
+    public function __construct() {
         $this->reportParams['selling'] = null;
         $this->reportParams['idfrom'] = null;
         $this->reportParams['idto'] = null;
-        $this->reportParams['datefrom'] =date('Y-m-01');
+        $this->reportParams['datefrom'] = date('Y-m-01');
         $this->reportParams['dateto'] = date("Y-m-d");
     }
 
     /**
      * @param array $reportParams
      */
-    public function generateReport($reportParams)
-    {
+    public function generateReport($reportParams) {
         $this->reportParams = $reportParams;
         $this->reportData = zb_SellingReport($reportParams);
     }
@@ -33,8 +32,7 @@ class ReportSelling
      *
      * @return string
      */
-    public function render()
-    {
+    public function render() {
         $cells = wf_TableCell(__('Selling'));
         $cells .= wf_TableCell(__('Selling count cards'));
         $cells .= wf_TableCell(__('Sum'));
@@ -69,8 +67,7 @@ class ReportSelling
      *
      * @return string
      */
-    public function criteriaForReportRender()
-    {
+    public function criteriaForReportRender() {
         $inputs = __('Selling') . ' ';
         $inputs .= wf_Selector('report[selling]', zb_BuilderSelectSellingData(), '', $this->reportParams['selling'], false);
         $inputs .= ' ' . __('ID') . ' ';
@@ -94,27 +91,30 @@ class ReportSelling
      *
      * @return string
      */
-    private function panel()
-    {
+    private function panel() {
         $result = wf_Link('?module=report_finance', __('Back'), false, 'ubButton');
 
         return ($result);
     }
+
 }
 
-if (cfr('REPORTFINANCE')) {
+$altCfg = $ubillingConfig->getAlter();
+if ($altCfg['PAYMENTCARDS_ENABLED']) {
+    if (cfr('REPORTFINANCE')) {
 
-    $reportSelling = new ReportSelling();
-    //config data
-    if (wf_CheckPost(array('report'))) {
-        $reportSelling->generateReport($_POST['report']);
+        $reportSelling = new ReportSelling();
+        //config data
+        if (wf_CheckPost(array('report'))) {
+            $reportSelling->generateReport($_POST['report']);
+        }
+
+        show_window(__('Selling report'), $reportSelling->criteriaForReportRender());
+        show_window(__('Selling report'), $reportSelling->render());
+    } else {
+        show_error(__('You cant control this module'));
     }
-
-    show_window(__('Selling report'), $reportSelling->criteriaForReportRender());
-    show_window(__('Selling report'), $reportSelling->render());
-
 } else {
-    show_error(__('You cant control this module'));
+    show_error(__('This module is disabled'));
 }
-
 ?>
