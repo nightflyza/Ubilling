@@ -1004,6 +1004,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     return ($result);
 }
 
+
 /**
  * Renders list of all previous user tasks by all time
  * 
