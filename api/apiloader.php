@@ -99,7 +99,6 @@ include('api/libs/api.branches.php');
  * Initial class creation
  */
 $billing = new ApiBilling();
-$db = new MySQLDB();
 $ubillingConfig = new UbillingConfig();
 
 
