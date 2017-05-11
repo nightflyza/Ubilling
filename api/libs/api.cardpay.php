@@ -10,11 +10,11 @@
  *
  * @return void
  */
-function zb_CardCreate($serial,$cash, $part, $selling) {
+function zb_CardCreate($serial,$cash, $part, $selling_id) {
     $admin=whoami();
     $date=curdatetime();
     $query="INSERT INTO `cardbank` (`id` , `serial` , `part` , `cash` , `admin` , `date` , `receipt_date` , `selling_id` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
-         . "VALUES (NULL , '".$serial."', '".$part."', '".$cash."', '".$admin."', '".$date."', '".$date."', '".$selling."', '1', '0', NULL , '', NULL);";
+         . "VALUES (NULL , '".$serial."', '".$part."', '".$cash."', '".$admin."', '".$date."', '".$date."', '".$selling_id."', '1', '0', NULL , '', NULL);";
     nr_query($query);
 }
 
@@ -100,7 +100,7 @@ function web_CardsShow() {
     $cells .= wf_TableCell(__('Used IP'));
     $cells .= wf_TableCell(__('Receipt date'));
     $cells .= wf_TableCell(__('Selling'));
-    $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+    $cells .= wf_TableCell(wf_CheckInput('check', '', false, false));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($allcards)) {
@@ -125,7 +125,7 @@ function web_CardsShow() {
         }
     }
 
-    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    $result = wf_TableBody($rows, '100%', 0, '');
     $result .= $paginator.wf_delimiter();
     $result = web_CardActions($result);
 
@@ -177,16 +177,17 @@ function web_CardsSearchForm() {
  *
  * @return string
  */
-function web_CardsChangeForm(array $ids) {
+function web_CardsChangeForm(array $ids)
+{
     $inputs = wf_Selector('card_edit[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
     $inputs .= wf_TextInput('card_edit[part]', __('Serial part'), '', false, '17');
     foreach ($ids as $key => $id) {
         $inputs .= wf_HiddenInput(sprintf('card_edit[id][%s]', $key), $id);
     }
-    $inputs .= wf_Submit('Save');
-    $result = wf_Form("", "POST", $inputs, 'glamour');
+    $inputs .= wf_Submit('Update');
+    $result = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return ($result);
+    return $result;
 }
 
 /**
@@ -260,7 +261,7 @@ function web_CardsSearch(array $search)
         $cells .= wf_TableCell(__('Used IP'));
         $cells .= wf_TableCell(__('Receipt date'));
         $cells .= wf_TableCell(__('Selling'));
-        $cells .= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+        $cells .= wf_TableCell(wf_CheckInput('check', '', false, false));
         $rows = wf_TableRow($cells, 'row1');
 
         foreach ($allcards as $io => $eachcard) {
