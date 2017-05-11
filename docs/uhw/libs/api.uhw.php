@@ -1,4 +1,4 @@
-<?
+<?php
 
 //reads uhw config file
 function uhw_LoadConfig() {
@@ -9,45 +9,44 @@ function uhw_LoadConfig() {
 
 //find substring in string
  function ispos($string,$search) {
-      if (strpos($string,$search)===false) {
+    if (strpos($string,$search)===false) {
         return(false);
-      } else {
+    } else {
         return(true);
-      }
-     }
+    }
+}
 
 //parse mac from a string
 function uhw_MacParse($string) {
-      preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $string, $macdetect);
-      if (!empty($macdetect)) {
-          return ($macdetect[0]);
-      } else {
-          return (false);
-      }
+    preg_match('/[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}/i', $string, $macdetect);
+    if (!empty($macdetect)) {
+        return ($macdetect[0]);
+    } else {
+        return (false);
+    }
 }
 
 // butify mac that will be displayed
 function uhw_MacDisplay($mac) {
-    $uconf=  uhw_LoadConfig();
+    $uconf = uhw_LoadConfig();
     if ($uconf['HIDE_DOTS']) {
-        $mac=  str_replace(':', '', $mac);
+        $mac = str_replace(':', '', $mac);
     }
     if ($uconf['SHOW_MAC_SIZE']) {
-        $mac=  substr($mac, '-'.$uconf['SHOW_MAC_SIZE']);
+        $mac = substr($mac, '-'.$uconf['SHOW_MAC_SIZE']);
     }
-    
     print('<font color="#FF0000">'.$mac.'</font>');
 }
 
 //isp site redirect
 function uhw_redirect($url) {
-     $redirect='<script type="text/javascript">
-		<!--
-		window.location = "'.$url.'"
-		//-->
-		</script>
-		 ';
- die($redirect);
+    $redirect='<script type="text/javascript">
+        <!--
+        window.location = "'.$url.'"
+        //-->
+        </script>
+         ';
+    die($redirect);
 }
 
 function uhw_IsAllPasswordsUnique() {
@@ -93,8 +92,6 @@ function uhw_modal($link, $title, $content, $linkclass = '', $width = '',$height
 
     $wid = rand(0,99999);
 
-     
-    
 //setting link class
     if ($linkclass != '') {
         $link_class = 'class="' . $linkclass . '"';
@@ -115,24 +112,24 @@ function uhw_modal($link, $title, $content, $linkclass = '', $width = '',$height
     $dialog = '
 <script type="text/javascript">
 $(function() {
-		$( "#dialog-modal_' . $wid . '" ).dialog({
-			autoOpen: false,
-			width: ' . $width . ',
+        $( "#dialog-modal_' . $wid . '" ).dialog({
+            autoOpen: false,
+            width: ' . $width . ',
                         height: '.$height.',
-			modal: true,
-			show: "drop",
-			hide: "fold"
-		});
+            modal: true,
+            show: "drop",
+            hide: "fold"
+        });
 
-		$( "#opener_' . $wid . '" ).click(function() {
-			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
-                      	return false;
-		});
-	});
+        $( "#opener_' . $wid . '" ).click(function() {
+            $( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                        return false;
+        });
+    });
 </script>
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
-	<p>
+    <p>
         '.$content.'
         </p>
 </div>
@@ -159,24 +156,24 @@ function uhw_modal_open($title, $content, $width = '',$height='') {
     $dialog = '
 <script type="text/javascript">
 $(function() {
-		$( "#dialog-modal_' . $wid . '" ).dialog({
-			autoOpen: true,
-			width: ' . $width . ',
+        $( "#dialog-modal_' . $wid . '" ).dialog({
+            autoOpen: true,
+            width: ' . $width . ',
                         height: '.$height.',
-			modal: true,
-			show: "drop",
-			hide: "fold"
-		});
+            modal: true,
+            show: "drop",
+            hide: "fold"
+        });
 
-		$( "#opener_' . $wid . '" ).click(function() {
-			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
-                      	return false;
-		});
-	});
+        $( "#opener_' . $wid . '" ).click(function() {
+            $( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                        return false;
+        });
+    });
 </script>
 
 <div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
-	<p>
+    <p>
         '.$content.'
         </p>
 </div>
@@ -188,10 +185,11 @@ $(function() {
 }
 
 function uhw_PasswordForm($uconf) {
-    $form='
-        
-       <form action="" method="POST" class="glamour">
-       <label for="passfield">'.$uconf['SUP_PASS'].'</label> <input type="'.$uconf['SELFACT_FIELDTYPE'].'" name="password" id="passfield" size="16">
+    $form = '<form action="" method="POST" class="glamour">';
+    if ($uconf['USE_LOGIN']) {
+        $form .= '<label for="loginfield">'.$uconf['SUP_LOGIN'].'</label> <input type="text" name="login" id="loginfield" size="16" style="margin-left: 12px;"><br /><br />';
+    }
+    $form .= '<label for="passfield">'.$uconf['SUP_PASS'].'</label> <input type="'.$uconf['SELFACT_FIELDTYPE'].'" name="password" id="passfield" size="16">
        <br>
        <br>
         <input type="submit" value="'.$uconf['SUP_ACTIVATE_QUERY'].'">
@@ -202,16 +200,16 @@ function uhw_PasswordForm($uconf) {
          '.$uconf['SUP_PASSNOTICE'].'
         ';
     
-    $result='<br><br><br>';
-    $result.=uhw_modal($uconf['SUP_SELFACT'], $uconf['SUP_SELFACT'], $form, 'ubButton', '600', '400');
+    $result = '<br><br><br>';
+    $result .= uhw_modal($uconf['SUP_SELFACT'], $uconf['SUP_SELFACT'], $form, 'ubButton', '600', '400');
     print($result);
 }
      
 function uhw_IsMacUnique($mac) {
-    $mac=vf($mac);
-    $mac=  strtolower($mac);
-    $query="SELECT `id` from `nethosts` WHERE `mac`='".$mac."'";
-    $data=  simple_query($query);
+    $mac = vf($mac);
+    $mac = strtolower($mac);
+    $query = "SELECT `id` from `nethosts` WHERE `mac`='".$mac."'";
+    $data = simple_query($query);
 
     if ($mac=='00:00:00:00:00:00') {
        return (false);
@@ -224,11 +222,20 @@ function uhw_IsMacUnique($mac) {
     }
 }
 
-
-function uhw_FindUserByPassword($password) {
-    $password=  mysql_real_escape_string($password);
-    $query="SELECT `login` from `users` WHERE `Password`='".$password."'";
-    $result=  simple_query($query);
+function uhw_FindUserByPassword($password, $login='') {
+    global $uconf;
+    $result = '';
+    $password = mysql_real_escape_string($password);
+    $query = "SELECT `login` from `users` WHERE `Password`='" .$password. "'";
+    if ($uconf['USE_LOGIN'] and !empty($login)) {
+        $login = mysql_real_escape_string($login);
+        $query = "SELECT `login` from `users` WHERE `Password`='" .$password. "'";
+        $query .= " AND `login` = '" .$login. "'";
+        $result =  simple_query($query);
+    } else {
+        $query = "SELECT `login` from `users` WHERE `Password`='" .$password. "'";
+        $result =  simple_query($query);
+    }
     if (!empty($result)) {
         return ($result['login']);
     } else {
@@ -237,8 +244,8 @@ function uhw_FindUserByPassword($password) {
 }
 
 function uhw_UserGetIp($login) {
-    $query="SELECT `IP` from `users` WHERE `login`='".$login."'";
-    $result=  simple_query($query);
+    $query = "SELECT `IP` from `users` WHERE `login`='".$login."'";
+    $result = simple_query($query);
     if (!empty($result)) {
         return ($result['IP']);
     } else {
@@ -246,10 +253,9 @@ function uhw_UserGetIp($login) {
     }
 }
 
-
 function uhw_NethostGetID($ip) {
-    $query="SELECT `id` from `nethosts` WHERE `ip`='".$ip."'";
-    $result=  simple_query($query);
+    $query = "SELECT `id` from `nethosts` WHERE `ip`='".$ip."'";
+    $result = simple_query($query);
     if (!empty($result)) {
         return ($result['id']);
     } else {
@@ -257,10 +263,9 @@ function uhw_NethostGetID($ip) {
     }
 }
 
-
 function uhw_NethostGetMac($nethostid) {
-    $query="SELECT `mac` from `nethosts` WHERE `id`='".$nethostid."'";
-    $result=  simple_query($query);
+    $query = "SELECT `mac` from `nethosts` WHERE `id`='".$nethostid."'";
+    $result = simple_query($query);
     if (!empty($result)) {
         return ($result['mac']);
     } else {
@@ -268,16 +273,16 @@ function uhw_NethostGetMac($nethostid) {
     }
 }
 
-   function uhw_ub_log_register($event) {
-    $admin_login='external';
-    $ip='127.0.0.1';
-    $current_time=date("Y-m-d H:i:s");
-    $event=mysql_real_escape_string($event);
-    $query="INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'".$current_time."','".$admin_login."','".$ip."','".$event."')";
+function uhw_ub_log_register($event) {
+    $admin_login = 'external';
+    $ip = '127.0.0.1';
+    $current_time = date("Y-m-d H:i:s");
+    $event = mysql_real_escape_string($event);
+    $query = "INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'".$current_time."','".$admin_login."','".$ip."','".$event."')";
     nr_query($query);
 }
 
-function uhw_LogSelfact($trypassword,$login,$tryip,$nethostid,$oldmac,$newmac) {
+function uhw_LogSelfact($trypassword, $login, $tryip, $nethostid, $oldmac, $newmac) {
     $date=date("Y-m-d H:i:s");
     $query="INSERT INTO `uhw_log` (
 `id` ,
@@ -297,35 +302,35 @@ NULL , '".$date."', '".$trypassword."', '".$login."', '".$tryip."', '".$nethosti
    uhw_ub_log_register("UHW CHANGE (".$login.") MAC FROM ".$oldmac." ON ".$newmac);
 }
 
-
 function uhw_GetBrute($mac) {
     $query="SELECT COUNT(`id`) from `uhw_brute` WHERE `mac`='".$mac."'";
     $data=  simple_query($query);
     return ($data['COUNT(`id`)']);
 }
 
-function uhw_LogBrute($password,$mac) {
-    $password=  mysql_real_escape_string($password);
-    $date=date("Y-m-d H:i:s");
-    $query="INSERT INTO `uhw_brute` (
-`id` ,
-`date` ,
-`password` ,
-`mac`
-)
-VALUES (
-NULL , '".$date."', '".$password."', '".$mac."'
-);";
+function uhw_LogBrute($password, $mac, $login='') {
+    $password = mysql_real_escape_string($password);
+    $login = mysql_real_escape_string($login);
+    $date = date("Y-m-d H:i:s");
+    $query = "INSERT INTO `uhw_brute` (
+            `id` ,
+            `date` ,
+            `password` ,
+            `mac` ,
+            `login`
+            )
+            VALUES (
+            NULL , '".$date."', '".$password."', '".$mac."', '".$login."'
+            );";
    nr_query($query);
-    
 }
 
 function uhw_ChangeMac($nethost_id,$newmac) {
-    $newmac=strtolower($newmac);
+    $newmac = strtolower($newmac);
     simple_update_field('nethosts', 'mac', $newmac, "WHERE `id`='".$nethost_id."'");
 }
 
-function uhw_RemoteApiPush($url,$serial,$action,$param='') {
+function uhw_RemoteApiPush($url, $serial, $action, $param='') {
     $getdata = http_build_query(
     array(
     'module' => 'remoteapi',
