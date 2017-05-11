@@ -94,6 +94,11 @@ include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
 include('api/libs/api.policedog.php');
 include('api/libs/api.branches.php');
+include('api/libs/api.selling.php');
+include('api/libs/api.printcard.php');
+include('api/libs/api.generatecard.php');
+include('api/vendor/fpdf/fpdf.php');
+
 
 /*
  * Initial class creation

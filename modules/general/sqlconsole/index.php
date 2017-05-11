@@ -102,8 +102,6 @@ if ($system->checkForRight('SQLCONSOLE')) {
     /**
      * Code templates management
      */
-    
-    
     // creating template 
     if (wf_CheckPost(array('newtemplatename', 'newtemplatebody'))) {
         zb_PhpConsoleCreateTemplate($_POST['newtemplatename'], $_POST['newtemplatebody']);
@@ -214,14 +212,23 @@ if ($system->checkForRight('SQLCONSOLE')) {
             ob_start();
 
             // commented due Den1xxx patch
-            // $query_result=simple_queryall($newquery);
-            $queried = mysql_query($newquery);
+            if (extension_loaded('mysqli')) {
+                $queried = mysqli_query($loginDB, $newquery);
+            } else {
+                $queried = mysql_query($newquery);
+            }
             if ($queried === false) {
                 ob_end_clean();
                 return show_window('SQL ' . __('Result'), wf_tag('b') . __('Wrong query') . ':' . wf_tag('b', true) . wf_delimiter() . $newquery);
             } else {
-                while (@$row = mysql_fetch_assoc($queried)) {
-                    $query_result[] = $row;
+                if (extension_loaded('mysqli')) {
+                    while (@$row = mysqli_fetch_assoc($queried)) {
+                        $query_result[] = $row;
+                    }
+                } else {
+                    while (@$row = mysql_fetch_assoc($queried)) {
+                        $query_result[] = $row;
+                    }
                 }
 
                 $sqlDebugData = ob_get_contents();
