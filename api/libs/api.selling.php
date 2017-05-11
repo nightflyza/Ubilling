@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Selling management API
  */
@@ -8,8 +9,7 @@
  *
  * @return string
  */
-function web_SellingLister()
-{
+function web_SellingLister() {
     $selling = zb_GetAllSellingData();
 
     $cells = wf_TableCell(__('ID'));
@@ -32,8 +32,8 @@ function web_SellingLister()
             $cells .= wf_TableCell($row['count_cards']);
             $cells .= wf_TableCell($row['comment']);
 
-            $acts = wf_JSAlert('?module=selling&action=delete&id='.$row['id'], web_delete_icon(), 'Removing this may lead to irreparable results').' ';
-            $acts .= wf_JSAlert('?module=selling&action=edit&id='.$row['id'], web_edit_icon(), 'Are you serious').' ';
+            $acts = wf_JSAlert('?module=selling&action=delete&id=' . $row['id'], web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+            $acts .= wf_JSAlert('?module=selling&action=edit&id=' . $row['id'], web_edit_icon(), 'Are you serious') . ' ';
 
             $cells .= wf_TableCell($acts);
             $rows .= wf_TableRow($cells, 'row3');
@@ -49,10 +49,9 @@ function web_SellingLister()
  *
  * @return string
  */
-function web_SellingCreateForm()
-{
-    $sup = wf_tag('sup').'*'.wf_tag('sup', true);
-    $inputs = wf_TextInput('new_selling[name]', __('Selling name').$sup, '', true);
+function web_SellingCreateForm() {
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $inputs = wf_TextInput('new_selling[name]', __('Selling name') . $sup, '', true);
     $inputs .= wf_TextInput('new_selling[address]', __('Selling address'), '', true);
     $inputs .= wf_TextInput('new_selling[geo]', __('Selling geo data'), '', true);
     $inputs .= wf_TextInput('new_selling[contact]', __('Selling contact'), '', true);
@@ -70,12 +69,11 @@ function web_SellingCreateForm()
  *
  * @return string
  */
-function web_SellingEditForm($sellingId)
-{
+function web_SellingEditForm($sellingId) {
     $data = zb_GetSellingData($sellingId);
 
-    $sup = wf_tag('sup').'*'.wf_tag('sup', true);
-    $inputs = wf_TextInput('edit_selling[name]', __('Selling name').$sup, $data['name'], true);
+    $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+    $inputs = wf_TextInput('edit_selling[name]', __('Selling name') . $sup, $data['name'], true);
     $inputs .= wf_TextInput('edit_selling[address]', __('Selling address'), $data['address'], true);
     $inputs .= wf_TextInput('edit_selling[geo]', __('Selling geo data'), $data['geo'], true);
     $inputs .= wf_TextInput('edit_selling[contact]', __('Selling contact'), $data['contact'], true);
@@ -84,7 +82,7 @@ function web_SellingEditForm($sellingId)
 
     $form = wf_Form('', 'POST', $inputs, 'glamour');
 
-    $form .= wf_Link('?module=selling', 'Back', true, 'ubButton');
+    $form .= wf_BackLink('?module=selling');
 
     return $form;
 }
@@ -96,8 +94,7 @@ function web_SellingEditForm($sellingId)
  *
  * @return array
  */
-function zb_GetSellingData($sellingId)
-{
+function zb_GetSellingData($sellingId) {
     $sellingId = vf($sellingId, 3);
     $query = sprintf("SELECT * from `selling` WHERE `id`='%s'", $sellingId);
     $city_data = simple_query($query);
@@ -113,8 +110,7 @@ function zb_GetSellingData($sellingId)
  *
  * @return void
  */
-function zb_CreateSellingData($name, $newSelling)
-{
+function zb_CreateSellingData($name, $newSelling) {
     foreach ($newSelling as $key => $field) {
         $newSelling[$key] = isset($field) ? mysql_real_escape_string($field) : null;
     }
@@ -127,8 +123,7 @@ function zb_CreateSellingData($name, $newSelling)
     extract($newSelling, EXTR_OVERWRITE);
 
     $query = sprintf(
-        "INSERT INTO `selling` (`id`, `name`, `address`, `geo`, `contact`, `comment`) VALUES (NULL, '%s', '%s', '%s', '%s', '%s'); ",
-        $name, $address, $geo, $contact, $comment
+            "INSERT INTO `selling` (`id`, `name`, `address`, `geo`, `contact`, `comment`) VALUES (NULL, '%s', '%s', '%s', '%s', '%s'); ", $name, $address, $geo, $contact, $comment
     );
     nr_query($query);
     log_register(sprintf('CREATE Selling `%s` `%s` `%s` `%s` `%s`', $name, $address, $geo, $contact, $comment));
@@ -139,8 +134,7 @@ function zb_CreateSellingData($name, $newSelling)
  *
  * @return array
  */
-function zb_GetAllSellingData()
-{
+function zb_GetAllSellingData() {
     $query = 'SELECT `sel`.`id` AS `id`, `sel`.`name` AS `name`, `sel`.`address` AS `address`, `sel`.`geo` AS `geo`, `sel`.`contact` AS `contact`, `sel`.`comment` AS `comment`, COUNT(`ca`.`id`) AS `count_cards`
         FROM `selling` AS `sel`
     	LEFT JOIN `cardbank` AS `ca` ON `ca`.`selling_id` = `sel`.`id` AND `ca`.`active` = 1 AND `ca`.`used` = 0
@@ -158,8 +152,7 @@ function zb_GetAllSellingData()
  *
  * @return void
  */
-function zb_UpdateSellingData($sellingId, $editSelling)
-{
+function zb_UpdateSellingData($sellingId, $editSelling) {
     $sellingId = vf($sellingId, 3);
     foreach ($editSelling as $key => $field) {
         $editSelling[$key] = isset($field) ? mysql_real_escape_string($field) : null;
@@ -174,8 +167,7 @@ function zb_UpdateSellingData($sellingId, $editSelling)
     extract($editSelling, EXTR_OVERWRITE);
 
     $query = sprintf(
-        "UPDATE `selling` SET `name` = '%s', `address` = '%s', `geo` = '%s', `contact` = '%s', `comment` = '%s' WHERE `id` = '%u'; ",
-        $name, $address, $geo, $contact, $comment, $sellingId
+            "UPDATE `selling` SET `name` = '%s', `address` = '%s', `geo` = '%s', `contact` = '%s', `comment` = '%s' WHERE `id` = '%u'; ", $name, $address, $geo, $contact, $comment, $sellingId
     );
     nr_query($query);
     log_register(sprintf('UPDATE Selling [%u] `%s` `%s` `%s` `%s` `%s`', $sellingId, $name, $address, $geo, $contact, $comment));
@@ -188,8 +180,7 @@ function zb_UpdateSellingData($sellingId, $editSelling)
  *
  * @return void
  */
-function zb_DeleteSellingData($sellingId)
-{
+function zb_DeleteSellingData($sellingId) {
     $sellingId = vf($sellingId, 3);
     $query = sprintf("DELETE from `selling` WHERE `id` = '%u';", $sellingId);
     nr_query($query);
@@ -199,8 +190,7 @@ function zb_DeleteSellingData($sellingId)
 /**
  * @return array|string
  */
-function zb_SelectAllSellingData()
-{
+function zb_SelectAllSellingData() {
     $query = "SELECT * FROM `selling` ORDER BY `name` ASC";
     $allData = simple_queryall($query);
     $allData = !empty($allData) ? $allData : array();
@@ -211,8 +201,7 @@ function zb_SelectAllSellingData()
 /**
  * @return array|string
  */
-function zb_BuilderSelectSellingData()
-{
+function zb_BuilderSelectSellingData() {
     $select = zb_SelectAllSellingData();
     $allData[] = '';
 
@@ -228,8 +217,7 @@ function zb_BuilderSelectSellingData()
  *
  * @return array
  */
-function zb_SellingReport(array $params)
-{
+function zb_SellingReport(array $params) {
     $queryCardId = '';
     if ($params['idfrom'] || $params['idto']) {
         if (empty($params['idfrom'])) {

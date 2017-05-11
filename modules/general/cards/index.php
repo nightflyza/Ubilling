@@ -42,7 +42,7 @@ if (cfr('CARDS')) {
 
 
         show_window(__('Cards generation'), web_CardsGenerateForm());
-        show_window(__('Create print card'), wf_Link("?module=printcards&action=setting", __('Edit'), true, 'ubButton'));
+        show_window(__('Create print card'), wf_Link("?module=printcards&action=setting", web_edit_icon().' '.__('Edit'), true, 'ubButton'));
         show_window(__('Cards search'), web_CardsSearchForm());
 
         if (!wf_CheckPost(array('card_search'))) {

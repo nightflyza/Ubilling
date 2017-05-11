@@ -92,7 +92,7 @@ class ReportSelling {
      * @return string
      */
     private function panel() {
-        $result = wf_Link('?module=report_finance', __('Back'), false, 'ubButton');
+        $result = wf_BackLink('?module=report_finance');
 
         return ($result);
     }
