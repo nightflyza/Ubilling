@@ -476,19 +476,19 @@ if ($altcfg['ASTERISK_ENABLED']) {
             $dop_mobile = $phonesQueryData[$user_login][2];
 
             if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($mobile) and empty($phone) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($dop_mobile) and empty($phone) and empty($mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($phone) and ! empty($mobile) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($phone) and ! empty($dop_mobile) and empty($mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($mobile) and ! empty($dop_mobile) and empty($phone)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
             } elseif (!empty($phone) and ! empty($mobile) and ! empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial'";
+                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial' ORDER BY `calldate` DESC" ;
             }
             if (!empty($query)) {
                 $rawResult = zb_AsteriskQuery($query);
