@@ -2479,5 +2479,6 @@ $lang['def']['Burst Download speed'] = 'Burst - швидкість завант�
 $lang['def']['Burst Upload speed'] = 'Burst - швидкість віддачі';
 $lang['def']['Burst Download Time speed'] = 'Burst - час завантаження';
 $lang['def']['Burst Upload Time speed'] = 'Burst - час віддачі';
+$lang['def']['Using MySQL PHP extension'] = 'Розширення PHP, що використовується для роботи з MySQL';
 
 ?>

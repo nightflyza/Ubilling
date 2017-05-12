@@ -14,9 +14,10 @@
  */
 define("DEBUG", 0);
 $query_counter = 0;
+$ubillingDatabaseDriver = 'none';
 
 if (!extension_loaded('mysql')) {
-
+    $ubillingDatabaseDriver = 'mysqli';
     /**
      * MySQLi database layer
      *
@@ -152,6 +153,7 @@ if (!extension_loaded('mysql')) {
     }
 
 } else {
+    $ubillingDatabaseDriver = 'mysql';
 
     /**
      * MySQL database old driver abstraction class

@@ -811,13 +811,13 @@ function web_EditorTwoStringDataForm($fieldnames, $fieldkeys, $olddata) {
 }
 
 /**
-* Returns six strings data grid editor (used in tariffspeeds modified by Pautina)
-*
-* @param array $fieldnames
-* @param array $fieldkeys
-* @param array $olddata
-* @return string
-*/
+ * Returns six strings data grid editor (used in tariffspeeds modified by Pautina)
+ *
+ * @param array $fieldnames
+ * @param array $fieldkeys
+ * @param array $olddata
+ * @return string
+ */
 function web_EditorSixStringDataForm($fieldnames, $fieldkeys, $olddata) {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
@@ -2850,6 +2850,13 @@ function web_UserArrayShower($usersarr) {
     return ($result);
 }
 
+/**
+ * Safely transliterates UTF-8 string
+ * 
+ * @param string $string
+ * 
+ * @return string
+ */
 function strtolower_utf8($string) {
     $convert_to = array(
         "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u",
@@ -2871,6 +2878,8 @@ function strtolower_utf8($string) {
 
 /**
  * Ajax backend for checking Ubilling updates
+ * 
+ * @return void
  */
 function zb_BillingCheckUpdates() {
     $release_url = 'http://ubilling.net.ua/RELEASE';
@@ -3253,12 +3262,11 @@ function web_ConfigGetTabsControls($optsdata) {
     return ($result);
 }
 
-/*
+/**
  * Constructs ajax loader 
  * 
  * @return string
  */
-
 function zb_AjaxLoader() {
     $result = '
           <script type="text/javascript">
@@ -3362,12 +3370,11 @@ function zb_JSHider() {
  * Database cleanup features
  */
 
-/*
+/**
  * Gets list of old stargazer log_ tables exept current month
  * 
  * @return array
  */
-
 function zb_DBCleanupGetLogs() {
     $logs_query = "SHOW TABLE STATUS WHERE `Name` LIKE 'logs_%'";
     $allogs = simple_queryall($logs_query);
@@ -3389,12 +3396,11 @@ function zb_DBCleanupGetLogs() {
     return ($oldlogs);
 }
 
-/*
+/**
  * Gets list of old stargazer detailstat_ tables exept current month
  * 
  * @return array
  */
-
 function zb_DBCleanupGetDetailstat() {
     $detail_query = "SHOW TABLE STATUS WHERE `Name` LIKE 'detailstat_%'";
     $all = simple_queryall($detail_query);
@@ -3416,12 +3422,11 @@ function zb_DBCleanupGetDetailstat() {
     return ($old);
 }
 
-/*
+/**
  * Gets list of ubilling database tables with stats
  * 
  * @return array
  */
-
 function zb_DBGetStats() {
     $detail_query = "SHOW TABLE STATUS WHERE `Name` LIKE '%'";
     $all = simple_queryall($detail_query);
@@ -3439,12 +3444,11 @@ function zb_DBGetStats() {
     return ($stats);
 }
 
-/*
+/**
  * Returns current database info in human readable view
  * 
  * @return string
  */
-
 function zb_DBStatsRender() {
     $all = zb_DBGetStats();
     $result = '';
@@ -3485,27 +3489,29 @@ function zb_DBStatsRender() {
     return ($result);
 }
 
-/*
+/**
  * Returns current database info in human readable view with ajax controls
  * 
  * @return string
  */
-
 function zb_DBStatsRenderContainer() {
+    global $ubillingDatabaseDriver;
+    $messages=new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
     $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', __('Database stats'), 'dbscontainer', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result.= $messages->getStyledMessage(__('Using MySQL PHP extension').': '.$ubillingDatabaseDriver,'info');
+    $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
     return ($result);
 }
 
-/*
+/**
  * checks database table state
  * 
  * @return string
  */
-
 function zb_DBCheckTable($tablename) {
     $result = '';
     if (!empty($tablename)) {
@@ -3518,12 +3524,11 @@ function zb_DBCheckTable($tablename) {
     return ($result);
 }
 
-/*
+/**
  * Returns current database info in human readable view and table check
  * 
  * @return string
  */
-
 function zb_DBCheckRender() {
     $all = zb_DBGetStats();
     if (!empty($all)) {
@@ -3539,13 +3544,12 @@ function zb_DBCheckRender() {
     return($rows);
 }
 
-/*
+/**
  * Destroy or flush table in database
  * 
  * @param $tablename  string table name 
  * @return void
  */
-
 function zb_DBTableCleanup($tablename) {
     $tablename = vf($tablename);
     $method = 'DROP';
@@ -3556,12 +3560,11 @@ function zb_DBTableCleanup($tablename) {
     }
 }
 
-/*
+/**
  * Shows database cleanup form
  * 
  * @return string
  */
-
 function web_DBCleanupForm() {
     $oldLogs = zb_DBCleanupGetLogs();
     $oldDetailstat = zb_DBCleanupGetDetailstat();
@@ -3597,12 +3600,11 @@ function web_DBCleanupForm() {
     return ($result);
 }
 
-/*
+/**
  * Auto Cleans all deprecated data
  * 
  * @return string count of cleaned tables
  */
-
 function zb_DBCleanupAutoClean() {
     $oldLogs = zb_DBCleanupGetLogs();
     $oldDstat = zb_DBCleanupGetDetailstat();
@@ -4275,14 +4277,13 @@ function zb_TariffGetPeriodsAll() {
     return ($result);
 }
 
-/*
+/**
  * checks is user current month use SC module and returns false if used or true if feature available
  * 
  * @param  string $login existing users login
  * 
  * @return bool
  */
-
 function zb_CreditLogCheckMonth($login) {
     $login = mysql_real_escape_string($login);
     $pattern = date("Y-m");
@@ -4339,7 +4340,7 @@ function web_FreeRadiusListClients() {
     return ($result);
 }
 
-/*
+/**
  * returns one-click credit set form for profile
  * 
  * 
@@ -4351,7 +4352,6 @@ function web_FreeRadiusListClients() {
  * 
  * @return string
  */
-
 function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditoption) {
     /////////////////internal controller
     if (wf_CheckPost(array('easycreditlogin', 'easycreditlimit', 'easycreditexpire'))) {
@@ -4465,51 +4465,6 @@ function zb_xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 
     if (!$xml_values)
         return; //Hmm...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
 //Initializations
     $xml_array = array();
     $parents = array();
