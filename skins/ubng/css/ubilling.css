@@ -54,6 +54,9 @@ table.sortable.id tbody tr::before {
     display: table-cell;
 }
 
+table.sortable thead td {
+    cursor: default;
+}
 
 :root .vlanLabel option,
 :root .vlanLabel:after,
