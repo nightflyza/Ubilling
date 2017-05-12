@@ -42,8 +42,8 @@ $uconf=  uhw_LoadConfig();
         <?php
 
         // debug
-        $remote_ip='172.32.0.118';
-        //$remote_ip=$_SERVER['REMOTE_ADDR'];
+        //$remote_ip='172.32.0.118';
+        $remote_ip=$_SERVER['REMOTE_ADDR'];
 
         if (ispos($remote_ip, $uconf['UNKNOWN_MASK'])) {
             $usermac=uhw_FindMac($remote_ip);
