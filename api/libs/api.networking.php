@@ -840,6 +840,8 @@ function zb_TraffToGb($fs) {
  * @return array
  */
 function zb_TariffGetAllSpeeds() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $query = "SELECT * from `speeds`";
     $allspeeds = simple_queryall($query);
     $result = array();
@@ -847,16 +849,18 @@ function zb_TariffGetAllSpeeds() {
         foreach ($allspeeds as $io => $eachspeed) {
             $result[$eachspeed['tariff']]['speeddown'] = $eachspeed['speeddown'];
             $result[$eachspeed['tariff']]['speedup'] = $eachspeed['speedup'];
-            $result[$eachspeed['tariff']]['burstdownload']=$eachspeed['burstdownload'];
-            $result[$eachspeed['tariff']]['burstupload']=$eachspeed['burstupload'];
-            $result[$eachspeed['tariff']]['bursttimedownload']=$eachspeed['bursttimedownload'];
-            $result[$eachspeed['tariff']]['burstimetupload']=$eachspeed['burstimetupload'];
+            if ($altCfg['BURST_ENABLED']) {
+                $result[$eachspeed['tariff']]['burstdownload']=$eachspeed['burstdownload'];
+                $result[$eachspeed['tariff']]['burstupload']=$eachspeed['burstupload'];
+                $result[$eachspeed['tariff']]['bursttimedownload']=$eachspeed['bursttimedownload'];
+                $result[$eachspeed['tariff']]['burstimetupload']=$eachspeed['burstimetupload'];
+            }
         }
     }
     return($result);
 }
 
-function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload, $burstupload, $bursttimedownload, $burstimetupload) {
+function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = '', $burstupload = '', $bursttimedownload = '', $burstimetupload = '') {
     $tariff = mysql_real_escape_string($tariff);
     $speeddown = vf($speeddown);
     $speedup = vf($speedup);

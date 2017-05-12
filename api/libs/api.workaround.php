@@ -947,6 +947,8 @@ function zb_TranslatePaymentNote($paynote, $allservicenames) {
  * @return string
  */
 function web_TariffSpeedLister() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $results = '';
     $alltariffs = zb_TariffsGetAll();
     $availTariffs = array();
@@ -956,10 +958,12 @@ function web_TariffSpeedLister() {
     $cells = wf_TableCell(__('Tariff'));
     $cells.= wf_TableCell(__('Download speed'));
     $cells.= wf_TableCell(__('Upload speed'));
-    $cells.= wf_TableCell(__('Burst Download speed'));
-    $cells.= wf_TableCell(__('Burst Upload speed'));
-    $cells.= wf_TableCell(__('Burst Download Time speed'));
-    $cells.= wf_TableCell(__('Burst Upload Time speed'));
+    if ($altCfg['BURST_ENABLED']) {
+        $cells.= wf_TableCell(__('Burst Download speed'));
+        $cells.= wf_TableCell(__('Burst Upload speed'));
+        $cells.= wf_TableCell(__('Burst Download Time speed'));
+        $cells.= wf_TableCell(__('Burst Upload Time speed'));
+    }
     $cells.= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
@@ -969,10 +973,12 @@ function web_TariffSpeedLister() {
             $cells = wf_TableCell($eachtariff['name']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speeddown']);
             $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['speedup']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstdownload']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstupload']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['bursttimedownload']);
-            $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstimetupload']);
+            if ($altCfg['BURST_ENABLED']) {
+                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstdownload']);
+                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstupload']);
+                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['bursttimedownload']);
+                $cells.= wf_TableCell(@$allspeeds[$eachtariff['name']]['burstimetupload']);
+            }
             $actLinks = wf_JSAlert('?module=tariffspeeds&tariff=' . $eachtariff['name'], web_edit_icon(), __('Are you serious'));
             $cells.= wf_TableCell($actLinks);
             $rows.= wf_TableRow($cells, 'row3');
