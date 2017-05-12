@@ -226,7 +226,6 @@ function uhw_FindUserByPassword($password, $login='') {
     global $uconf;
     $result = '';
     $password = mysql_real_escape_string($password);
-    $query = "SELECT `login` from `users` WHERE `Password`='" .$password. "'";
     if ($uconf['USE_LOGIN'] and !empty($login)) {
         $login = mysql_real_escape_string($login);
         $query = "SELECT `login` from `users` WHERE `Password`='" .$password. "'";
