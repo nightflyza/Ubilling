@@ -19,10 +19,10 @@ if (cfr('TARIFFSPEED')) {
         $olddata[1] = $existingspeeds[$tariff]['speeddown'];
         $olddata[2] = $existingspeeds[$tariff]['speedup'];
         if ($altCfg['BURST_ENABLED']) {
-            $fieldnames['fieldname3'] = (__('Burst Speed Download'));
-            $fieldnames['fieldname4'] = (__('Burst Speed Upload'));
-            $fieldnames['fieldname5'] = (__('Burst Time Download'));
-            $fieldnames['fieldname6'] = (__('Burst Time Upload'));
+            $fieldnames['fieldname3'] = (__('Burst Download speed'));
+            $fieldnames['fieldname4'] = (__('Burst Upload speed'));
+            $fieldnames['fieldname5'] = (__('Burst Download Time speed'));
+            $fieldnames['fieldname6'] = (__('Burst Upload Time speed'));
             $fieldkeys['fieldkey3'] = ('newburstdownload');
             $fieldkeys['fieldkey4'] = ('newburstupload');
             $fieldkeys['fieldkey5'] = ('newbursttimedownload');

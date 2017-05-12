@@ -2473,5 +2473,11 @@ $lang['def']['You cant control this action'] = 'Ви не можете зроб�
 $lang['def']['Create print card'] = 'Зробити шаблон для друку карточок';
 $lang['def']['Font size'] = 'Размір шрифта';
 $lang['def']['Top'] = 'По верхньому краю';
+$lang['def']['right to control printcard'] = 'Право друкувати картки';
+$lang['def']['right to control selling'] = 'Право використовувати пункты пункти продажу';
+$lang['def']['Burst Download speed'] = 'Burst - швидкість завантаження';
+$lang['def']['Burst Upload speed'] = 'Burst - швидкість віддачі';
+$lang['def']['Burst Download Time speed'] = 'Burst - час завантаження';
+$lang['def']['Burst Upload Time speed'] = 'Burst - час віддачі';
 
 ?>
