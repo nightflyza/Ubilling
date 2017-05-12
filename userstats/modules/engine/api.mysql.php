@@ -67,6 +67,17 @@ if (extension_loaded('mysqli')) {
     }
 
     /**
+     * Escapes special characters in a string for use in an SQL statement, taking into account the current charset of the connection
+     * 
+     * @param string $data
+     * 
+     * @return string
+     */
+    function DB_real_escape_string($data) {
+        return(loginDB_real_escape_string($data));
+    }
+
+    /**
      * Executing query and returns result as array
      * 
      * @global int $query_counter
@@ -316,6 +327,15 @@ if (extension_loaded('mysqli')) {
         }
 
     }
+    /**
+     * Prepear $data
+     * 
+     * @param string $data
+     * @return string
+     */
+    function DB_real_escape_string($data) {
+        return(mysql_real_escape_string($data));
+    }
 
     /**
      * Executing query and returns result as array
@@ -342,7 +362,7 @@ if (extension_loaded('mysqli')) {
      * Executing query and returns array of first result
      * 
      * @global int $query_counter
-     * @param string $query
+     * @param string $data
      * @return array
      */
     function simple_query($query) {

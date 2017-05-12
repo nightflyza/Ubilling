@@ -204,13 +204,13 @@ function zb_SelectAllPrintCardData()
 function zb_SaveCardPrint($printCardData)
 {
     foreach ($printCardData as $key => $row) {
-        $field = mysql_real_escape_string($key);
-        $text = mysql_real_escape_string($row['text']);
+        $field = DB_real_escape_string($key);
+        $text = DB_real_escape_string($row['text']);
         $fontSize = vf($row['font_size'], 3);
         $top = vf($row['top'], 3);
         $left = vf($row['left'], 3);
 
-        $color = mysql_real_escape_string($row['color']);
+        $color = DB_real_escape_string($row['color']);
         if (count(explode('.', $color)) !== 3) {
             $color = '0.0.0';
         }

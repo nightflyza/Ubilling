@@ -135,8 +135,8 @@ class FriendshipIsMagic {
      * @return void
      */
     public function createFriend($login, $parentLogin) {
-        $loginF = mysql_real_escape_string($login);
-        $parentLoginF = mysql_real_escape_string($parentLogin);
+        $loginF = DB_real_escape_string($login);
+        $parentLoginF = DB_real_escape_string($parentLogin);
         if ($this->isFriendable($login)) {
             if (isset($this->allUsers[$login])) {
                 if (isset($this->allUsers[$parentLogin])) {
@@ -162,7 +162,7 @@ class FriendshipIsMagic {
      * @return void
      */
     public function deleteFriend($login) {
-        $loginF = mysql_real_escape_string($login);
+        $loginF = DB_real_escape_string($login);
         if (isset($this->allFriends[$login])) {
             $query = "DELETE from `friendship` WHERE `friend`='" . $loginF . "';";
             nr_query($query);

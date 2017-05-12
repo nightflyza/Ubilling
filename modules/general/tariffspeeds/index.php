@@ -3,7 +3,7 @@
 if (cfr('TARIFFSPEED')) {
     if (isset($_GET['tariff'])) {
         // show speed editor and create speed if need
-        $tariff = mysql_real_escape_string($_GET['tariff']);
+        $tariff = DB_real_escape_string($_GET['tariff']);
         $existingspeeds = zb_TariffGetAllSpeeds();
         if (!isset($existingspeeds[$tariff]['speeddown'])) {
             zb_TariffCreateSpeed($tariff, 0, 0);

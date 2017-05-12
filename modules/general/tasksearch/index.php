@@ -129,8 +129,8 @@ if (cfr('TASKMANSEARCH')) {
         public function commonSearch() {
             $result = array();
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
-                $dateFrom = mysql_real_escape_string($_POST['datefrom']);
-                $dateTo = mysql_real_escape_string($_POST['dateto']);
+                $dateFrom = DB_real_escape_string($_POST['datefrom']);
+                $dateTo = DB_real_escape_string($_POST['dateto']);
                 $baseQuery = "SELECT * from `taskman` WHERE `startdate` BETWEEN '" . $dateFrom . "' AND '" . $dateTo . "' ";
                 $appendQuery = '';
                 //task id
@@ -146,13 +146,13 @@ if (cfr('TASKMANSEARCH')) {
 
                 //task address non strict 
                 if (wf_CheckPost(array('cb_taskaddress', 'taskaddress'))) {
-                    $taskaddress = mysql_real_escape_string($_POST['taskaddress']);
+                    $taskaddress = DB_real_escape_string($_POST['taskaddress']);
                     $appendQuery.=" AND `address` LIKE '%" . $taskaddress . "%' ";
                 }
 
                 //task phone non strict 
                 if (wf_CheckPost(array('cb_taskphone', 'taskphone'))) {
-                    $taskphone = mysql_real_escape_string($_POST['taskphone']);
+                    $taskphone = DB_real_escape_string($_POST['taskphone']);
                     $appendQuery.=" AND `phone` LIKE '%" . $taskphone . "%' ";
                 }
 
@@ -164,13 +164,13 @@ if (cfr('TASKMANSEARCH')) {
 
                 //original task employee
                 if (wf_CheckPost(array('cb_employee', 'employee'))) {
-                    $employee = mysql_real_escape_string($_POST['employee']);
+                    $employee = DB_real_escape_string($_POST['employee']);
                     $appendQuery.=" AND `employee`='" . $employee . "' ";
                 }
 
                 //original task employeedone
                 if (wf_CheckPost(array('cb_employeedone', 'employeedone'))) {
-                    $employeedone = mysql_real_escape_string($_POST['employeedone']);
+                    $employeedone = DB_real_escape_string($_POST['employeedone']);
                     $appendQuery.=" AND `employeedone`='" . $employeedone . "' ";
                 }
 

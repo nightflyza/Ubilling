@@ -17,16 +17,16 @@
  * @return void
  */
 function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
+    $bankacc = DB_real_escape_string($bankacc);
+    $bankname = DB_real_escape_string($bankname);
+    $bankcode = DB_real_escape_string($bankcode);
+    $edrpo = DB_real_escape_string($edrpo);
+    $ipn = DB_real_escape_string($ipn);
+    $licensenum = DB_real_escape_string($licensenum);
+    $juraddr = DB_real_escape_string($juraddr);
+    $phisaddr = DB_real_escape_string($phisaddr);
+    $phone = DB_real_escape_string($phone);
+    $contrname = DB_real_escape_string($contrname);
     $query = "INSERT INTO `contrahens` (`id` ,`bankacc` ,`bankname` , `bankcode` , `edrpo` , `ipn` , `licensenum` , `juraddr` , `phisaddr` , `phone` ,`contrname`)
         VALUES (NULL , '" . $bankacc . "', '" . $bankname . "', '" . $bankcode . "', '" . $edrpo . "', '" . $ipn . "', '" . $licensenum . "','" . $juraddr . "', '" . $phisaddr . "','" . $phone . "','" . $contrname . "');";
     nr_query($query);
@@ -52,16 +52,16 @@ function zb_ContrAhentAdd($bankacc, $bankname, $bankcode, $edrpo, $ipn, $license
  */
 function zb_ContrAhentChange($ahentid, $bankacc, $bankname, $bankcode, $edrpo, $ipn, $licensenum, $juraddr, $phisaddr, $phone, $contrname) {
     $ahentid = vf($ahentid, 3);
-    $bankacc = mysql_real_escape_string($bankacc);
-    $bankname = mysql_real_escape_string($bankname);
-    $bankcode = mysql_real_escape_string($bankcode);
-    $edrpo = mysql_real_escape_string($edrpo);
-    $ipn = mysql_real_escape_string($ipn);
-    $licensenum = mysql_real_escape_string($licensenum);
-    $juraddr = mysql_real_escape_string($juraddr);
-    $phisaddr = mysql_real_escape_string($phisaddr);
-    $phone = mysql_real_escape_string($phone);
-    $contrname = mysql_real_escape_string($contrname);
+    $bankacc = DB_real_escape_string($bankacc);
+    $bankname = DB_real_escape_string($bankname);
+    $bankcode = DB_real_escape_string($bankcode);
+    $edrpo = DB_real_escape_string($edrpo);
+    $ipn = DB_real_escape_string($ipn);
+    $licensenum = DB_real_escape_string($licensenum);
+    $juraddr = DB_real_escape_string($juraddr);
+    $phisaddr = DB_real_escape_string($phisaddr);
+    $phone = DB_real_escape_string($phone);
+    $contrname = DB_real_escape_string($contrname);
     $query = "UPDATE `contrahens` SET 
         `bankacc` = '" . $bankacc . "',
         `bankname` = '" . $bankname . "',
@@ -300,7 +300,7 @@ function zb_AgentAssignDelete($id) {
  */
 function zb_AgentAssignAdd($ahenid, $streetname) {
     $ahenid = vf($ahenid, 3);
-    $streetname = mysql_real_escape_string($streetname);
+    $streetname = DB_real_escape_string($streetname);
     $query = "INSERT INTO `ahenassign` ( `id` , `ahenid` ,`streetname`) VALUES (NULL , '" . $ahenid . "', '" . $streetname . "');";
     nr_query($query);
     log_register("AGENTASSIGN CREATE [" . $ahenid . '] `' . $streetname . '`');
@@ -1132,7 +1132,7 @@ function web_AgentAssignStrictForm($login, $currentassign) {
  * @return void
  */
 function zb_AgentAssignStrictDelete($login) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "DELETE from `ahenassignstrict` WHERE `login`='" . $login . "';";
     nr_query($query);
     log_register("AGENTASSIGNSTRICT DELETE (" . $login . ")");
@@ -1148,7 +1148,7 @@ function zb_AgentAssignStrictDelete($login) {
  */
 function zb_AgentAssignStrictCreate($login, $agentid) {
     zb_AgentAssignStrictDelete($login);
-    $clearLogin = mysql_real_escape_string($login);
+    $clearLogin = DB_real_escape_string($login);
     $agentid = vf($agentid, 3);
     $query = "INSERT INTO `ahenassignstrict` (`id` ,  `agentid` ,`login`)
               VALUES (NULL , '" . $agentid . "', '" . $clearLogin . "');";

@@ -119,7 +119,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
   }
   
   function docsis_ModemAdd($maclan) {
-       $maclan=  mysql_real_escape_string($maclan);
+       $maclan=  DB_real_escape_string($maclan);
        //random mac for usb
        $macusb=  '14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
        $altercfg=rcms_parse_ini_file(CONFIG_PATH.'/alter.ini');
@@ -493,8 +493,8 @@ if (wf_CheckGet(array('ajaxsnmp'))) {
   if ( (isset($_POST['edituserbind'])) AND (isset($_POST['editnote'])) ) {
       $editmodemid=vf($_GET['showmodem'],3);
       if (!empty($editmodemid)) {
-      $newmodemuserbind=  mysql_real_escape_string($_POST['edituserbind']);
-      $newmodemnote=      mysql_real_escape_string($_POST['editnote']);
+      $newmodemuserbind=  DB_real_escape_string($_POST['edituserbind']);
+      $newmodemnote=      DB_real_escape_string($_POST['editnote']);
       simple_update_field('modems', 'userbind', $newmodemuserbind, "WHERE `id`='".$editmodemid."'");
       simple_update_field('modems', 'note', $newmodemnote, "WHERE `id`='".$editmodemid."'");
       log_register("DOCSIS MODEM EDIT BIND `".$newmodemuserbind."` [".$editmodemid."]");

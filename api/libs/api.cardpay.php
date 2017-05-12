@@ -200,11 +200,11 @@ function web_CardsChangeForm(array $ids)
 function web_CardsSearch(array $search)
 {
     $selling = zb_BuilderSelectSellingData();
-    $serial = '%' . mysql_real_escape_string($search['serial']) . '%';
+    $serial = '%' . DB_real_escape_string($search['serial']) . '%';
 
     $querySelling = '';
     if ($search['selling']) {
-        $sellingId = mysql_real_escape_string($search['selling']);
+        $sellingId = DB_real_escape_string($search['selling']);
         $querySelling = sprintf("AND `selling_id` = %s", $sellingId);
 
     }
@@ -214,7 +214,7 @@ function web_CardsSearch(array $search)
     }
     $queryPart = '';
     if ($search['part']) {
-        $part = mysql_real_escape_string($search['part']);
+        $part = DB_real_escape_string($search['part']);
         $queryPart = sprintf("AND `part` = %s", $part);
     }
     $queryId = '';
@@ -225,8 +225,8 @@ function web_CardsSearch(array $search)
         if (empty($search['idto'])) {
             $search['idto'] = $search['idfrom'];
         }
-        $idFrom = mysql_real_escape_string($search['idfrom']);
-        $idTo = mysql_real_escape_string($search['idto']);
+        $idFrom = DB_real_escape_string($search['idfrom']);
+        $idTo = DB_real_escape_string($search['idto']);
         $queryId = sprintf("AND `id` BETWEEN %s AND %s", $idFrom, $idTo);
     }
     $queryDate = '';
@@ -237,8 +237,8 @@ function web_CardsSearch(array $search)
         if (empty($search['dateto'])) {
             $search['dateto'] = $search['datefrom'];
         }
-        $dateFrom = mysql_real_escape_string($search['datefrom']);
-        $dateTo = mysql_real_escape_string($search['dateto']);
+        $dateFrom = DB_real_escape_string($search['datefrom']);
+        $dateTo = DB_real_escape_string($search['dateto']);
         $queryDate = sprintf("AND DATE(`receipt_date`) BETWEEN STR_TO_DATE('%s', '%s') AND STR_TO_DATE('%s', '%s')", $dateFrom, '%Y-%m-%d %H:%i:%s', $dateTo, '%Y-%m-%d %H:%i:%s');
     }
 

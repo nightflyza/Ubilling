@@ -72,7 +72,7 @@ if (cfr('OPTION82')) {
      * @return array
      */
     function opt82_GetCurrentOptions($login) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         $userIp = zb_UserGetIP($login);
         $nethost_q = "SELECT * from `nethosts` WHERE `ip`='" . $userIp . "'";
         $nethostRaw = simple_query($nethost_q);

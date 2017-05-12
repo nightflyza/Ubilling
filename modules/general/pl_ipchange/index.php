@@ -117,7 +117,7 @@ if (cfr('PLIPCHANGE')) {
          * @return void
          */
         public function setLogin($login) {
-            $this->login = mysql_real_escape_string($login);
+            $this->login = DB_real_escape_string($login);
         }
 
         /**

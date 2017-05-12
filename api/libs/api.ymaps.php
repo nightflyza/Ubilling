@@ -519,11 +519,11 @@ function sm_MapDrawSwitches() {
 
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
-            $geo = mysql_real_escape_string($each['geo']);
-            $title = mysql_real_escape_string($each['ip']);
+            $geo = DB_real_escape_string($each['geo']);
+            $title = DB_real_escape_string($each['ip']);
 
             //switch hint content
-            $content = mysql_real_escape_string($each['location']);
+            $content = DB_real_escape_string($each['location']);
 
 
             $iconlabel = '';
@@ -656,7 +656,7 @@ function um_MapDrawBuilds() {
 
     if (!empty($allbuilds)) {
         foreach ($allbuilds as $io => $each) {
-            $geo = mysql_real_escape_string($each['geo']);
+            $geo = DB_real_escape_string($each['geo']);
             @$streetname = $streetData[$each['streetid']];
             $title = wf_Link("?module=builds&action=editbuild&streetid=" . $each['streetid'] . "&buildid=" . $each['id'], $streetname . ' ' . $each['buildnum'], false);
 
@@ -749,7 +749,7 @@ function sm_MapDrawSwitchesCoverage() {
     $result = '';
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $each) {
-            $geo = mysql_real_escape_string($each['geo']);
+            $geo = DB_real_escape_string($each['geo']);
             $result.=sm_MapAddCircle($geo, '100');
         }
     }

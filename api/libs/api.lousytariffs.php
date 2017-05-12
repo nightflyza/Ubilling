@@ -12,7 +12,7 @@
  * 
  */
 function zb_LousyTariffAdd($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = DB_real_escape_string($tariff);
     $query = "INSERT INTO `lousytariffs` (`id`,`tariff`) VALUES ('','" . $tariff . "'); ";
     nr_query($query);
     log_register("LOUSYTARIFF ADD `" . $tariff . "`");
@@ -25,7 +25,7 @@ function zb_LousyTariffAdd($tariff) {
  * 
  */
 function zb_LousyTariffDelete($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = DB_real_escape_string($tariff);
     $query = "DELETE from `lousytariffs` WHERE `tariff`='" . $tariff . "' ";
     nr_query($query);
     log_register("LOUSYTARIFF DELETE `" . $tariff . "`");
@@ -57,7 +57,7 @@ function zb_LousyTariffGetAll() {
  *
  */
 function zb_LousyCheckTariff($tariff, $lousyarr) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = DB_real_escape_string($tariff);
     if (!empty($lousyarr)) {
         //check is tariff marked as lousy?
         if (isset($lousyarr[$tariff])) {

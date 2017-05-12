@@ -51,7 +51,7 @@
       if ( wf_CheckPost(array('add'))  ) {
         // Экранируем все введённые данные
         foreach ( $_POST['add'] as &$value)
-          $value = mysql_real_escape_string($value);
+          $value = DB_real_escape_string($value);
         extract($_POST['add'], EXTR_SKIP);
         $query = "INSERT INTO `radius_attributes` (`scenario`, `login`, `Attribute`, `op`, `Value`) VALUES ('$scenario', '$login', '$Attribute', '$op', '$Value')";
         if ( nr_query($query) ) 
@@ -74,7 +74,7 @@
         if ( wf_CheckPost(array('edit'))  ) {
           // Экранируем все введённые данные
           foreach ( $_POST['edit'] as &$value)
-            $value = mysql_real_escape_string($value);
+            $value = DB_real_escape_string($value);
           extract($_POST['edit'], EXTR_SKIP);
           $query = "UPDATE `radius_attributes` SET `scenario` = '$scenario', `Attribute` = '$Attribute', `op` = '$op', `Value` = '$Value' WHERE `id` = '$id'";
           if ( nr_query($query) ) 
@@ -203,7 +203,7 @@ WHERE `users`.`login` = '$login'
       if ( wf_CheckPost(array('add'))  ) {
         // Экранируем все введённые данные
         foreach ( $_POST['add'] as &$value)
-          $value = mysql_real_escape_string($value);
+          $value = DB_real_escape_string($value);
         extract($_POST['add']);
         $login = isset($login) ? "'$login'" : 'NULL';
         $query = "INSERT INTO `radius_attributes` (`scenario`, `login`, `netid`, `Attribute`, `op`, `Value`) VALUES ('$scenario', $login, '$netid', '$Attribute', '$op', '$Value')";
@@ -227,7 +227,7 @@ WHERE `users`.`login` = '$login'
         if ( wf_CheckPost(array('edit'))  ) {
           // Экранируем все введённые данные
           foreach ( $_POST['edit'] as &$value)
-            $value = mysql_real_escape_string($value);
+            $value = DB_real_escape_string($value);
           extract($_POST['edit']);
           $login = isset($login) ? "'$login'" : 'NULL';
           $query = "UPDATE `radius_attributes` SET `scenario` = '$scenario', `login` = $login, `Attribute` = '$Attribute', `op` = '$op', `Value` = '$Value' WHERE `id` = '$id'";
@@ -261,7 +261,7 @@ WHERE `users`.`login` = '$login'
       if ( wf_checkPost(array('reassignment')) ) {
         // Экранируем все введённые данные
         foreach ( $_POST['reassignment'] as &$value)
-          $value = mysql_real_escape_string($value);
+          $value = DB_real_escape_string($value);
         extract($_POST['reassignment']);
         // Добавляем информацию о переназначении
         $query = "INSERT INTO `radius_reassigns` (`netid`, `value`) VALUES ($netid, '$value') ON DUPLICATE KEY UPDATE `value` = '$value'";

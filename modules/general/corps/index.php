@@ -137,7 +137,7 @@ if (cfr('CORPS')) {
                 //user management
                 if ($route == Corps::URL_USER) {
                     if (wf_CheckGet(array('username'))) {
-                        $login = mysql_real_escape_string($_GET['username']);
+                        $login = DB_real_escape_string($_GET['username']);
                         $userCorpCheck = $corps->userIsCorporate($login);
                         if ($userCorpCheck) {
                             //enterprise user

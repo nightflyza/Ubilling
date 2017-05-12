@@ -295,8 +295,8 @@ class Salary {
         $price = str_replace(',', '.', $price);
         $time = vf($time);
         if (!isset($this->allJobPrices[$jobtypeid])) {
-            $priceF = mysql_real_escape_string($price);
-            $unit = mysql_real_escape_string($unit);
+            $priceF = DB_real_escape_string($price);
+            $unit = DB_real_escape_string($unit);
             $query = "INSERT INTO `salary_jobprices` (`id`, `jobtypeid`, `price`, `unit`,`time`) VALUES (NULL ,'" . $jobtypeid . "', '" . $priceF . "', '" . $unit . "', '" . $time . "');";
             nr_query($query);
             log_register('SALARY CREATE JOBPRICE JOBID [' . $jobtypeid . '] PRICE `' . $price . '` TIME `' . $time . '`');
@@ -481,8 +481,8 @@ class Salary {
         $jobtypeid = vf($jobtypeid, 3);
         $factor = str_replace(',', '.', $factor);
         $overprice = str_replace(',', '.', $overprice);
-        $notes = mysql_real_escape_string($notes);
-        $overprice = mysql_real_escape_string($overprice);
+        $notes = DB_real_escape_string($notes);
+        $overprice = DB_real_escape_string($overprice);
         $date = curdatetime();
         $state = 0;
         $query = "INSERT INTO `salary_jobs` (`id`, `date`, `state` ,`taskid`, `employeeid`, `jobtypeid`, `factor`, `overprice`, `note`)"
@@ -749,8 +749,8 @@ class Salary {
         if (!isset($this->allWages[$employeeid])) {
             $wage = str_replace(',', '.', $wage);
             $bounty = str_replace(',', '.', $bounty);
-            $wageF = mysql_real_escape_string($wage);
-            $bountyF = mysql_real_escape_string($bounty);
+            $wageF = DB_real_escape_string($wage);
+            $bountyF = DB_real_escape_string($bounty);
             $query = "INSERT INTO `salary_wages` (`id`, `employeeid`, `wage`, `bounty`,`worktime`) VALUES (NULL, '" . $employeeid . "', '" . $wage . "', '" . $bounty . "','" . $worktime . "');";
             nr_query($query);
             log_register('SALARY CREATE WAGE EMPLOYEE [' . $employeeid . '] WAGE `' . $wageF . '` BOUNTY `' . $bountyF . '` WORKTIME `' . $worktime . '`');
@@ -917,8 +917,8 @@ class Salary {
      * @return string
      */
     public function payrollRenderSearch($datefrom, $dateto, $employeeid) {
-        $datefrom = mysql_real_escape_string($datefrom);
-        $dateto = mysql_real_escape_string($dateto);
+        $datefrom = DB_real_escape_string($datefrom);
+        $dateto = DB_real_escape_string($dateto);
         $employeeid = vf($employeeid, 3);
         $allTasks = ts_GetAllTasks();
         $totalTimeSpent = 0; //in minutes
@@ -1081,8 +1081,8 @@ class Salary {
      * @return string
      */
     public function payrollRenderSearchDate($datefrom, $dateto) {
-        $datefrom = mysql_real_escape_string($datefrom);
-        $dateto = mysql_real_escape_string($dateto);
+        $datefrom = DB_real_escape_string($datefrom);
+        $dateto = DB_real_escape_string($dateto);
 
         $result = '';
         $totalSum = 0;
@@ -1428,8 +1428,8 @@ class Salary {
      * @return string
      */
     public function twjReportSearch($datefrom, $dateto) {
-        $datefrom = mysql_real_escape_string($datefrom);
-        $dateto = mysql_real_escape_string($dateto);
+        $datefrom = DB_real_escape_string($datefrom);
+        $dateto = DB_real_escape_string($dateto);
         $result = '';
         $tmpArr = array();
         $messages = new UbillingMessageHelper();
@@ -1652,7 +1652,7 @@ class Salary {
         $result = 0;
         if (wf_CheckPost(array('newtimesheet', 'newtimesheetdate', '_employeehours'))) {
             $date = $_POST['newtimesheetdate'];
-            $dateF = mysql_real_escape_string($_POST['newtimesheetdate']);
+            $dateF = DB_real_escape_string($_POST['newtimesheetdate']);
             if (!$this->timesheetProtected($date)) {
                 $counter = 0;
                 $employeeHours = $_POST['_employeehours'];
@@ -2017,11 +2017,11 @@ class Salary {
         $result = '';
         if (wf_CheckPost(array('datefrom', 'dateto', 'jobtypeid'))) {
             $messages = new UbillingMessageHelper();
-            $dateFrom = mysql_real_escape_string($_POST['datefrom']) . ' 00:00:00';
-            $dateTo = mysql_real_escape_string($_POST['dateto']) . ' 23:59:59';
+            $dateFrom = DB_real_escape_string($_POST['datefrom']) . ' 00:00:00';
+            $dateTo = DB_real_escape_string($_POST['dateto']) . ' 23:59:59';
             $fromTimestamp = strtotime($dateFrom);
             $toTimestamp = strtotime($dateTo);
-            $jobtypeId = mysql_real_escape_string($_POST['jobtypeid']);
+            $jobtypeId = DB_real_escape_string($_POST['jobtypeid']);
 
 
             //any job type

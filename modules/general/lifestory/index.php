@@ -2,7 +2,7 @@
 if (cfr('LIFESTORY')) {
 
 if (isset ($_GET['username'])) {
-    $login=  mysql_real_escape_string($_GET['username']);
+    $login=  DB_real_escape_string($_GET['username']);
 
 //weblogs user parsing    
 $searchType = (wf_CheckGet(array('strict'))) ? true : false;

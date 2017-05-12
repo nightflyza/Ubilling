@@ -272,7 +272,7 @@ class ExtNets {
      */
     public function poolCreate($netid,$pool,$netmask,$vlan) {
         $netid=vf($netid,3);
-        $pool=  mysql_real_escape_string($pool);
+        $pool=  DB_real_escape_string($pool);
         $netmask=vf($netmask);
         $vlan=vf($vlan,3);
         
@@ -470,7 +470,7 @@ class ExtNets {
      * @return string
      */
     public function poolsExtractByLogin($login) {
-        $login=  mysql_real_escape_string($login);
+        $login=  DB_real_escape_string($login);
         $result='';
         $tmpArr=array();
         if (!empty($this->pools)) {

@@ -87,7 +87,7 @@ function ra_NasGetTemplate($nasid) {
 
 function ra_NasAddTemplate($nasid,$template) {
     $nasid=vf($nasid,3);
-    $template=mysql_real_escape_string($template);
+    $template=DB_real_escape_string($template);
     $query="INSERT INTO `nastemplates` (
             `id` ,
             `nasid` ,
@@ -109,7 +109,7 @@ function ra_NasDeteleTemplate($id) {
 }
 // already parsed template as param needed
 function ra_UserRebuildAttributes($login,$attrtemplate,$verbose=false) {
-    $login=mysql_real_escape_string($login);
+    $login=DB_real_escape_string($login);
     $clean_q="DELETE from `radattr` WHERE `login`='".$login."'";
     nr_query($clean_q);
 
@@ -134,7 +134,7 @@ function ra_UserRebuildAttributes($login,$attrtemplate,$verbose=false) {
 }
 
 function ra_UserRebuild($login,$verbose=false) {
-    $login=mysql_real_escape_string($login);
+    $login=DB_real_escape_string($login);
     $userip=zb_UserGetIP($login);
     $netid=zb_NetworkGetByIp($userip);
     $nasid=zb_NasGetByNet($netid);

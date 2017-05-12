@@ -131,7 +131,7 @@ if (cfr('ZBSMAN')) {
      */
     
     if (isset($_GET['username'])) {
-        $login=  mysql_real_escape_string($_GET['username']);
+        $login=  DB_real_escape_string($_GET['username']);
         
         
         if (wf_CheckPost(array('zbsman_change'))) {

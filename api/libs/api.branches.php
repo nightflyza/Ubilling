@@ -191,7 +191,7 @@ class UbillingBranches {
      * @return int
      */
     public function createBranch($name) {
-        $nameF = mysql_real_escape_string($name);
+        $nameF = DB_real_escape_string($name);
 
         if (!empty($nameF)) {
             $query = "INSERT INTO `branches` (`id`,`name`) VALUES ";
@@ -296,7 +296,7 @@ class UbillingBranches {
     public function adminAssignBranch($branchId, $admin) {
         $branchId = vf($branchId, 3);
         $admin = trim($admin);
-        $adminF = mysql_real_escape_string($admin);
+        $adminF = DB_real_escape_string($admin);
         if (isset($this->branches[$branchId])) {
             if (!empty($adminF)) {
                 if (!$this->isAdminBranchAssigned($branchId, $admin)) {
@@ -325,7 +325,7 @@ class UbillingBranches {
     public function adminDeassignBranch($branchId, $admin) {
         $branchId = vf($branchId, 3);
         $admin = trim($admin);
-        $adminF = mysql_real_escape_string($admin);
+        $adminF = DB_real_escape_string($admin);
         if (isset($this->branches[$branchId])) {
             if (!empty($adminF)) {
                 $query = "DELETE from `branchesadmins` WHERE `branchid`='" . $branchId . "' AND `admin`='" . $adminF . "';";
@@ -351,7 +351,7 @@ class UbillingBranches {
     public function userAssignBranch($branchId, $login) {
         $branchId = vf($branchId, 3);
         $login = trim($login);
-        $loginF = mysql_real_escape_string($login);
+        $loginF = DB_real_escape_string($login);
         if (isset($this->branches[$branchId])) {
             if (!empty($loginF)) {
                 $query = "INSERT INTO `branchesusers` (`id`,`branchid`,`login`) VALUES ";
@@ -375,7 +375,7 @@ class UbillingBranches {
      */
     public function userDeleteBranch($login) {
         $login = trim($login);
-        $loginF = mysql_real_escape_string($login);
+        $loginF = DB_real_escape_string($login);
         $currentBranch = $this->branchesLogins[$login];
         $query = "DELETE from `branchesusers` WHERE `login`='" . $loginF . "';";
         nr_query($query);
@@ -553,7 +553,7 @@ class UbillingBranches {
 
         $whereFilter = "WHERE `date` LIKE '" . $filterDate . "-%' ";
         if (wf_CheckPost(array('datesel'))) {
-            $filterDate = mysql_real_escape_string($_POST['datesel']);
+            $filterDate = DB_real_escape_string($_POST['datesel']);
             $whereFilter = "WHERE `date` LIKE '" . $filterDate . "%' ";
         }
 

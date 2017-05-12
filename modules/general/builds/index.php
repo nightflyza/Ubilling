@@ -55,7 +55,7 @@ if (cfr('BUILDS')) {
                simple_update_field('build', 'buildnum', $_POST['editbuildnum'], "WHERE `id`='".$buildid."'");
                simple_update_field('build', 'geo', $_POST['editbuildgeo'], "WHERE `id`='".$buildid."'");
                }
-               log_register("CHANGE AddressBuild [".$buildid."] ".  mysql_real_escape_string($_POST['editbuildnum']));
+               log_register("CHANGE AddressBuild [".$buildid."] ".  DB_real_escape_string($_POST['editbuildnum']));
                rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
            }
                

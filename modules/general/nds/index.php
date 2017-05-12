@@ -36,7 +36,7 @@ if (!isset($_GET['month'])) {
 
 // payments by somedate
 if (isset($_POST['showdatepayments'])) {
-    $paydate=mysql_real_escape_string($_POST['showdatepayments']);
+    $paydate=DB_real_escape_string($_POST['showdatepayments']);
     //deb($paydate);
     show_window(__('Payments by date').' '.$paydate,  web_NdsPaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paydate."%'"));
 } else {
@@ -48,7 +48,7 @@ show_window(__('Today payments'),  web_NdsPaymentsShow("SELECT * from `payments`
 
 } else {
     // show monthly payments
-    $paymonth=mysql_real_escape_string($_GET['month']);
+    $paymonth=DB_real_escape_string($_GET['month']);
     
     show_window(__('Month payments'),  web_NdsPaymentsShow("SELECT * from `payments` WHERE `date` LIKE '".$paymonth."%'"));
 }

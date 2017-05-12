@@ -38,12 +38,12 @@ function zb_checkMoney($number) {
  */
 function zb_CashAdd($login, $cash, $operation, $cashtype, $note) {
     global $billing;
-    $login = mysql_real_escape_string($login);
-    $cash = mysql_real_escape_string($cash);
+    $login = DB_real_escape_string($login);
+    $cash = DB_real_escape_string($cash);
     $cash = preg_replace("#[^0-9\-\.]#Uis", '', $cash);
     $cash = trim($cash);
     $cashtype = vf($cashtype);
-    $note = mysql_real_escape_string($note);
+    $note = DB_real_escape_string($note);
     $date = curdatetime();
     $balance = zb_CashGetUserBalance($login);
     $admin = whoami();
@@ -203,7 +203,7 @@ function zb_CashGetAllCashTypes() {
  * @param string $cashtype Cashtype name to create
  */
 function zb_CashCreateCashType($cashtype) {
-    $cashtype = mysql_real_escape_string($cashtype);
+    $cashtype = DB_real_escape_string($cashtype);
     $query = "INSERT INTO `cashtype` (`id` , `cashtype`) VALUES (NULL , '" . $cashtype . "'); ";
     nr_query($query);
     log_register("CREATE CashType `" . $cashtype . "`");
@@ -269,7 +269,7 @@ function zb_PaymentsGetMonthCount($year, $month) {
  * @return string
  */
 function zb_PaymentIDGet($login) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "SELECT `virtualid` from `op_customers` WHERE `realid`='" . $login . "'";
     $result = simple_query($query);
     if (!empty($result)) {

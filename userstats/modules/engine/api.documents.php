@@ -45,7 +45,7 @@ class UsProfileDocuments {
      * @return void
      */
     public function setLogin($login) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         $this->userLogin = $login;
     }
 
@@ -268,9 +268,9 @@ class UsProfileDocuments {
      * @return void
      */
     public function registerDocument($login, $templateid, $path) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         $templateid = vf($templateid, 3);
-        $path = mysql_real_escape_string($path);
+        $path = DB_real_escape_string($path);
         $date = date("Y-m-d H:i:s");
 
         $query = "

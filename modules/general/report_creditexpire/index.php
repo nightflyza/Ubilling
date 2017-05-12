@@ -53,7 +53,7 @@ if (cfr('REPORTCREXP')) {
 
         public function flushCredit($login) {
             global $billing;
-            $login = mysql_real_escape_string($login);
+            $login = DB_real_escape_string($login);
             $credit = 0;
             $curdate=curdate();
             $billing->setcredit($login, $credit);

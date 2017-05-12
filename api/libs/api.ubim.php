@@ -13,8 +13,8 @@
  * @return void
  */
 function im_CreateMessage($to, $text) {
-    $to = mysql_real_escape_string($to);
-    $text = mysql_real_escape_string($text);
+    $to = DB_real_escape_string($to);
+    $text = DB_real_escape_string($text);
     $text = strip_tags($text);
     $from = whoami();
     $date = curdatetime();
@@ -107,7 +107,7 @@ function im_IsMineMessage($msgid) {
  * @return void
  */
 function im_ThreadMarkAsRead($sender) {
-    $sender = mysql_real_escape_string($sender);
+    $sender = DB_real_escape_string($sender);
     $me = whoami();
     $query = "UPDATE `ub_im` SET `read` = '1' WHERE `to` = '" . $me . "' AND `from`='" . $sender . "' AND `read`='0'";
     nr_query($query);
@@ -121,7 +121,7 @@ function im_ThreadMarkAsRead($sender) {
  * @return string
  */
 function im_CheckForUnreadMessagesByUser($username) {
-    $username = mysql_real_escape_string($username);
+    $username = DB_real_escape_string($username);
     $me = whoami();
     $query = "SELECT COUNT(`id`) from `ub_im` WHERE `to`='" . $me . "' AND `from`='" . $username . "' AND `read`='0'";
     $data = simple_query($query);
@@ -223,7 +223,7 @@ function im_ThreadShow($threadUser) {
     $altCfg = $ubillingConfig->getAlter();
     $me = whoami();
     @$employeeNames = unserialize(ts_GetAllEmployeeLoginsCached());
-    $threadUser = mysql_real_escape_string($threadUser);
+    $threadUser = DB_real_escape_string($threadUser);
     $adminName = (isset($employeeNames[$threadUser])) ? $employeeNames[$threadUser] : $threadUser;
     $result = __('No conversations with') . ' ' . $adminName . ' ' . __('yet') . wf_delimiter();
     $rows = '';

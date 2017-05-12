@@ -29,7 +29,7 @@ if(cfr('EXPRESSCARDREG')) {
                 
                 $newtariff=$_POST['newtariff'];
                 $newip=$_POST['editip'];
-                $newip=  mysql_real_escape_string($newip);
+                $newip=  DB_real_escape_string($newip);
                 $newpassword=zb_RegPasswordProposal();
                 
                 $newsurname=  $_POST['newsurname'];

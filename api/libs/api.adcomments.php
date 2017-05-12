@@ -45,7 +45,7 @@ class ADcomments {
      */
     protected function setScope($scope) {
         $scope = trim($scope);
-        $scope = mysql_real_escape_string($scope);
+        $scope = DB_real_escape_string($scope);
         $this->scope = $scope;
     }
 
@@ -58,7 +58,7 @@ class ADcomments {
      */
     protected function setItem($item) {
         $item = trim($item);
-        $item = mysql_real_escape_string($item);
+        $item = DB_real_escape_string($item);
         $this->item = $item;
     }
 
@@ -107,7 +107,7 @@ class ADcomments {
     protected function createComment($text) {
         $curdate = curdatetime();
         $text = strip_tags($text);
-        $text = mysql_real_escape_string($text);
+        $text = DB_real_escape_string($text);
         $query = "INSERT INTO `adcomments` (`id`, `scope`, `item`, `date`, `admin`, `text`) "
                 . "VALUES (NULL, '" . $this->scope . "', '" . $this->item . "', '" . $curdate . "', '" . $this->mylogin . "', '" . $text . "');";
         nr_query($query);

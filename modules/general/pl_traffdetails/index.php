@@ -50,7 +50,7 @@ if (cfr('PLDETAILS')) {
             global $tablename;
             $pagelimit = 100;
             $page = vf($page);
-            $login = mysql_real_escape_string($login);
+            $login = DB_real_escape_string($login);
             $dey = vf($day);
             $query = "SELECT * from `" . $tablename . "` WHERE `login`='" . $login . "' AND `day`='" . $day . "' ORDER by `starttime` DESC";
             $daystats = simple_queryall($query);
@@ -166,7 +166,7 @@ if (cfr('PLDETAILS')) {
                     $tc[$eachtc['rulenumber']] = $eachtc['rulename'];
                 }
             }
-            $login = mysql_real_escape_string($login);
+            $login = DB_real_escape_string($login);
             $page = vf($page);
             $day = vf($day);
             $daystats = ds_GetDayStats($login, $day, $page);

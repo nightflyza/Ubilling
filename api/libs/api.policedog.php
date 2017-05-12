@@ -229,13 +229,13 @@ class PoliceDog {
                 if (!empty($macsRaw)) {
                     $curDate = curdatetime();
                     if (wf_CheckPost(array('newnotes'))) {
-                        $newNotes = mysql_real_escape_string($_POST['newnotes']);
+                        $newNotes = DB_real_escape_string($_POST['newnotes']);
                     } else {
                         $newNotes = '';
                     }
                     foreach ($macsRaw as $io => $eachmac) {
                         $insertMac = trim($eachmac);
-                        $insertMac = mysql_real_escape_string($insertMac);
+                        $insertMac = DB_real_escape_string($insertMac);
                         $insertMac = strtolower_utf8($insertMac);
                         if (!empty($insertMac)) {
                             if (check_mac_format($insertMac)) {

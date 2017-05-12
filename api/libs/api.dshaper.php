@@ -120,7 +120,7 @@ class DynamicShaper {
      * @param string $tariff
      */
     public function flushTariff($tariff) {
-        $tariff = mysql_real_escape_string($tariff);
+        $tariff = DB_real_escape_string($tariff);
         $query = "DELETE from `dshape_time` WHERE `tariff`='" . $tariff . "';";
         nr_query($query);
         log_register("DSHAPE FLUSH TARIFF `" . $tariff . '`');
@@ -184,9 +184,9 @@ class DynamicShaper {
      * @param integer $speed
      */
     public function create($tariff, $threshold1, $threshold2, $speed) {
-        $tariff = mysql_real_escape_string($tariff);
-        $threshold1 = mysql_real_escape_string($threshold1);
-        $threshold2 = mysql_real_escape_string($threshold2);
+        $tariff = DB_real_escape_string($tariff);
+        $threshold1 = DB_real_escape_string($threshold1);
+        $threshold2 = DB_real_escape_string($threshold2);
         $speed = vf($speed);
         $query = "INSERT INTO `dshape_time` (`id` , `tariff` , `threshold1` , `threshold2` , `speed` ) "
                 . "VALUES (NULL , '" . $tariff . "', '" . $threshold1 . "', '" . $threshold2 . "', '" . $speed . "');";
@@ -204,8 +204,8 @@ class DynamicShaper {
      */
     public function edit($timeruleid, $threshold1, $threshold2, $speed) {
         $timeruleid = vf($timeruleid);
-        $threshold1 = mysql_real_escape_string($threshold1);
-        $threshold2 = mysql_real_escape_string($threshold2);
+        $threshold1 = DB_real_escape_string($threshold1);
+        $threshold2 = DB_real_escape_string($threshold2);
         $speed = vf($speed);
         $query = "UPDATE `dshape_time` SET 
         `threshold1` = '" . $threshold1 . "',

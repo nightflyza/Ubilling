@@ -112,7 +112,7 @@ function zb_GetSellingData($sellingId) {
  */
 function zb_CreateSellingData($name, $newSelling) {
     foreach ($newSelling as $key => $field) {
-        $newSelling[$key] = isset($field) ? mysql_real_escape_string($field) : null;
+        $newSelling[$key] = isset($field) ? DB_real_escape_string($field) : null;
     }
 
     $address = '';
@@ -155,7 +155,7 @@ function zb_GetAllSellingData() {
 function zb_UpdateSellingData($sellingId, $editSelling) {
     $sellingId = vf($sellingId, 3);
     foreach ($editSelling as $key => $field) {
-        $editSelling[$key] = isset($field) ? mysql_real_escape_string($field) : null;
+        $editSelling[$key] = isset($field) ? DB_real_escape_string($field) : null;
     }
 
     $name = '';
@@ -226,8 +226,8 @@ function zb_SellingReport(array $params) {
         if (empty($params['idto'])) {
             $params['idto'] = $params['idfrom'];
         }
-        $idFrom = mysql_real_escape_string($params['idfrom']);
-        $idTo = mysql_real_escape_string($params['idto']);
+        $idFrom = DB_real_escape_string($params['idfrom']);
+        $idTo = DB_real_escape_string($params['idto']);
         $queryCardId = sprintf("AND `ca`.`id` BETWEEN %s AND %s", $idFrom, $idTo);
     }
     $queryCardDate = '';
@@ -238,14 +238,14 @@ function zb_SellingReport(array $params) {
         if (empty($params['dateto'])) {
             $params['dateto'] = $params['datefrom'];
         }
-        $dateFrom = mysql_real_escape_string($params['datefrom']);
-        $dateTo = mysql_real_escape_string($params['dateto']);
+        $dateFrom = DB_real_escape_string($params['datefrom']);
+        $dateTo = DB_real_escape_string($params['dateto']);
         $queryCardDate = sprintf("AND DATE(`ca`.`receipt_date`) BETWEEN STR_TO_DATE('%s', '%s') AND STR_TO_DATE('%s', '%s')", $dateFrom, '%Y-%m-%d %H:%i:%s', $dateTo, '%Y-%m-%d %H:%i:%s');
     }
 
     $querySellingIdWhere = '';
     if ($params['selling']) {
-        $id = mysql_real_escape_string($params['selling']);
+        $id = DB_real_escape_string($params['selling']);
         $querySellingIdWhere = sprintf('WHERE `sel`.`id` = 1', $id);
     }
 
