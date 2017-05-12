@@ -1829,3 +1829,4 @@ VALUES
     ('Phone', 'phone', '0.0.0', '8', '160', '3', '+38(096)xxx-xx-xx, +38(096)xxx-xx-xx, +38(096)xxx-xx-xx'),
 ('Site', 'site', '0.0.0', '10', '15', '5', 'Сайт: xxx.xxx.ua');
 
+ALTER TABLE `uhw_brute` ADD `login` VARCHAR(255) NOT NULL AFTER `password`;

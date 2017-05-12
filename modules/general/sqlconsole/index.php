@@ -212,7 +212,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             ob_start();
 
             // commented due Den1xxx patch
-            if (extension_loaded('mysqli')) {
+            if (!extension_loaded('mysql')) {
                 $queried = mysqli_query($loginDB, $newquery);
             } else {
                 $queried = mysql_query($newquery);
@@ -221,7 +221,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
                 ob_end_clean();
                 return show_window('SQL ' . __('Result'), wf_tag('b') . __('Wrong query') . ':' . wf_tag('b', true) . wf_delimiter() . $newquery);
             } else {
-                if (extension_loaded('mysqli')) {
+                if (!extension_loaded('mysql')) {
                     while (@$row = mysqli_fetch_assoc($queried)) {
                         $query_result[] = $row;
                     }
