@@ -1,6 +1,6 @@
 <?php
 if(cfr('DOCSIS')) {
- $altercfg=rcms_parse_ini_file(CONFIG_PATH.'/alter.ini');
+ $altercfg=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
  
  
 if ($altercfg['DOCSIS_SUPPORT']) {
@@ -122,7 +122,7 @@ if ($altercfg['DOCSIS_SUPPORT']) {
        $maclan=  mysql_real_escape_string($maclan);
        //random mac for usb
        $macusb=  '14:'.'88'.':'.rand(10,99).':'.rand(10,99).':'.rand(10,99).':'.rand(10,99);
-       $altercfg=rcms_parse_ini_file(CONFIG_PATH.'/alter.ini');
+       $altercfg=rcms_parse_ini_file(CONFIG_PATH.'alter.ini');
        $netid=$altercfg['DOCSIS_MODEM_NETID'];
        $nextfreeip=  multinet_get_next_freeip('nethosts', 'ip', $netid);
        $note='';
