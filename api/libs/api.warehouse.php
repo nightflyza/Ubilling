@@ -1382,33 +1382,24 @@ class Warehouse {
      * @return string
      */
     public function incomingListAjaxReply() {
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
         if (!empty($this->allIncoming)) {
             foreach ($this->allIncoming as $io => $each) {
-
                 $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showinid=' . $each['id'], wf_img_sized('skins/whincoming_icon.png', '', '10', '10') . ' ' . __('Show'));
-                $actLink = str_replace('"', '', $actLink);
-                $actLink = trim($actLink);
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $each['date'] . '",
-                    "' . @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']] . '",
-                    "' . $this->allItemTypeNames[$each['itemtypeid']] . '",
-                    "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
-                    "' . $each['price'] . '",    
-                    "' . ($each['price'] * $each['count']) . '",
-                    "' . @$this->allStorages[$each['storageid']] . '",
-                    "' . $actLink . '"
-                    ],';
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
+                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $data[] = $each['price'];
+                $data[] = ($each['price'] * $each['count']);
+                $data[] = @$this->allStorages[$each['storageid']];
+                $data[] = $actLink;
+                $json->addRow($data);
+                unset($data);
             }
         }
-
-        $result = zb_CutEnd($result);
-        $result.='] 
-        }';
-        die($result);
+        $json->getJson();
     }
 
     /**
@@ -1599,8 +1590,8 @@ class Warehouse {
     public function outcomingRemainsAjaxReply($storageId) {
         $storageId = vf($storageId, 3);
         $remainItems = $this->remainsOnStorage($storageId);
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
+
         if (!empty($remainItems)) {
             foreach ($remainItems as $itemtypeid => $count) {
                 if ($count > 0) {
@@ -1613,24 +1604,17 @@ class Warehouse {
                         $actLink.= wf_Link(self::URL_ME . '&' . self::URL_RESERVE . '&storageid=' . $storageId . '&itemtypeid=' . $itemtypeid, wf_img_sized('skins/whreservation.png', '', '10', '10') . ' ' . __('Reservation'));
                     }
 
-                    $actLink = str_replace('"', '', $actLink);
-                    $actLink = str_replace("\n", '', $actLink);
-                    $actLink = trim($actLink);
-                    $result.='
-                    [
-                    "' . @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']] . '",
-                    "' . @$this->allItemTypeNames[$itemtypeid] . '",
-                    "' . $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']] . '",
-                    "' . $actLink . '"
-                    ],';
+                    $data[] = @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']];
+                    $data[] = @$this->allItemTypeNames[$itemtypeid];
+                    $data[] = $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']];
+                    $data[] = $actLink;
+                    $json->addRow($data);
+                    unset($data);
                 }
             }
         }
 
-        $result = zb_CutEnd($result);
-        $result.='] 
-        }';
-        die($result);
+        $json->getJson();
     }
 
     /**
@@ -1719,33 +1703,27 @@ class Warehouse {
      * @return string
      */
     public function outcomingListAjaxReply() {
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
+
         if (!empty($this->allOutcoming)) {
             foreach ($this->allOutcoming as $io => $each) {
                 $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showoutid=' . $each['id'], wf_img_sized('skins/whoutcoming_icon.png', '', '10', '10') . ' ' . __('Show'));
-                $actLink = str_replace('"', '', $actLink);
-                $actLink = trim($actLink);
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $each['date'] . '",
-                    "' . $this->outDests[$each['desttype']] . $this->outDestControl($each['desttype'], $each['destparam']) . '",
-                    "' . @$this->allStorages[$each['storageid']] . '",
-                    "' . @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']] . '",
-                    "' . $this->allItemTypeNames[$each['itemtypeid']] . '",
-                    "' . $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']] . '",
-                    "' . $each['price'] . '",
-                    "' . ($each['price'] * $each['count']) . '",
-                    "' . $actLink . '"
-                    ],';
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = $this->outDests[$each['desttype']] . $this->outDestControl($each['desttype'], $each['destparam']);
+                $data[] = @$this->allStorages[$each['storageid']];
+                $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
+                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $data[] = $each['price'];
+                $data[] = ($each['price'] * $each['count']);
+                $data[] = $actLink;
+                $json->addRow($data);
+                unset($data);
             }
         }
 
-        $result = zb_CutEnd($result);
-        $result.='] 
-        }';
-        die($result);
+        $json->getJson();
     }
 
     /**
@@ -2046,29 +2024,23 @@ class Warehouse {
      */
     public function reportAllStoragesRemainsAjaxReply() {
         $all = $this->remainsAll();
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
+
         if (!empty($all)) {
             foreach ($all as $itemtypeId => $count) {
                 if ($count > 0) {
                     $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
-                    $actLink = str_replace('"', '', $actLink);
-                    $actLink = trim($actLink);
-                    $result.='
-                    [
-                    "' . $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']] . '",
-                    "' . $this->allItemTypeNames[$itemtypeId] . '",
-                    "' . $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']] . '",
-                    "' . $actLink . '"
-                    ],';
+                    $data[] = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
+                    $data[] = $this->allItemTypeNames[$itemtypeId];
+                    $data[] = $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+                    $data[] = $actLink;
+                    $json->addRow($data);
+                    unset($data);
                 }
             }
         }
 
-        $result = zb_CutEnd($result);
-        $result.='] 
-        }';
-        die($result);
+        $json->getJson();
     }
 
     /**
