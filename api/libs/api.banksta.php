@@ -61,7 +61,7 @@
 
 function bs_FilePush($filename,$rawdata) {
     $filename=vf($filename);
-    $rawdata=mysql_real_escape_string($rawdata);
+    $rawdata=DB_real_escape_string($rawdata);
     $query="INSERT INTO `bankstaraw` (
             `id` ,
             `filename` ,
@@ -77,7 +77,7 @@ function bs_FilePush($filename,$rawdata) {
 }
 
 function bs_CheckHash($hash) {
-    $hash=mysql_real_escape_string($hash);
+    $hash=DB_real_escape_string($hash);
     $query="SELECT COUNT(`id`) from `bankstaparsed` WHERE `hash`='".$hash."'";
     $rowcount=simple_query($query);
     $rowcount=$rowcount['COUNT(`id`)'];
@@ -90,7 +90,7 @@ function bs_CheckHash($hash) {
 
 
  function bs_cu_IsParent($login,$allparentusers) {
-     $login=mysql_real_escape_string($login);
+     $login=DB_real_escape_string($login);
      if (isset($allparentusers[$login])) {
         return (true);
     } else {
@@ -253,9 +253,9 @@ function bs_SearchCheckArr($alluseraddress,$allrealnames) {
 }
 
 function bs_SearchLoginByAddresspart($queryaddress,$queryname,$checkarr) {
-        $queryaddress=mysql_real_escape_string($queryaddress);
+        $queryaddress=DB_real_escape_string($queryaddress);
         $queryaddress=strtolower_utf8($queryaddress);
-        $queryname=mysql_real_escape_string($queryname);
+        $queryname=DB_real_escape_string($queryname);
         $queryname=strtolower_utf8($queryname);
         $result=array();
 
@@ -281,13 +281,13 @@ function bs_SearchLoginByAddresspart($queryaddress,$queryname,$checkarr) {
 
 function bs_NameEdit($id,$name) {
     $id=vf($id,3);
-    $name=mysql_real_escape_string($name);
+    $name=DB_real_escape_string($name);
     simple_update_field('bankstaparsed', 'realname', $name, "WHERE `id`='".$id."'");
 }
 
 function bs_AddressEdit($id,$address) {
     $id=vf($id,3);
-    $address=mysql_real_escape_string($address);
+    $address=DB_real_escape_string($address);
     simple_update_field('bankstaparsed', 'address', $address, "WHERE `id`='".$id."'");
 }
 
@@ -403,7 +403,7 @@ function bs_ProcessHash($hash) {
              $operation='add';
              $cashtype=$alterconf['BS_CASHTYPE'];
              $cash=$eachrow['summ'];
-             $note=mysql_real_escape_string("BANKSTA:".$eachrow['id']);
+             $note=DB_real_escape_string("BANKSTA:".$eachrow['id']);
              
             
             // CU filter subroutine

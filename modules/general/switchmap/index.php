@@ -9,7 +9,7 @@ if(cfr('SWITCHMAP')) {
     if (wf_CheckPost(array('switchplacing','placecoords'))) {
         if (cfr('SWITCHESEDIT')) {
             $switchid=vf($_POST['switchplacing'],3);
-            $placegeo=  mysql_real_escape_string($_POST['placecoords']);
+            $placegeo=  DB_real_escape_string($_POST['placecoords']);
             
             simple_update_field('switches', 'geo', $placegeo,"WHERE `id`='".$switchid."'");
             log_register('SWITCH CHANGE ['.$switchid.']'.' GEO '.$placegeo);

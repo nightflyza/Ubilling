@@ -61,7 +61,7 @@ if (cfr('TASKMANTRACK')) {
          * @return void
          */
         protected function setLogin() {
-            $this->myLogin = mysql_real_escape_string(whoami());
+            $this->myLogin = DB_real_escape_string(whoami());
         }
 
         /**

@@ -109,7 +109,7 @@ function log_register($event) {
         $ip = '127.0.0.1';
     }
     $current_time = curdatetime();
-    $event = mysql_real_escape_string($event);
+    $event = DB_real_escape_string($event);
     $query = "INSERT INTO `weblogs` (`id`,`date`,`admin`,`ip`,`event`) VALUES(NULL,'" . $current_time . "','" . $admin_login . "','" . $ip . "','" . $event . "')";
     nr_query($query);
 }

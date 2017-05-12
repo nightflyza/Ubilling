@@ -69,9 +69,9 @@ function stg_show_tagtypes() {
  * @return void
  */
 function stg_add_tagtype() {
-    $color = mysql_real_escape_string($_POST['newcolor']);
+    $color = DB_real_escape_string($_POST['newcolor']);
     $size = vf($_POST['newpriority'], 3);
-    $text = mysql_real_escape_string($_POST['newtext']);
+    $text = DB_real_escape_string($_POST['newtext']);
     $query = "INSERT INTO `tagtypes` (`id` ,`tagcolor` ,`tagsize` ,`tagname`) VALUES (NULL , '" . $color . "', '" . $size . "', '" . $text . "');";
     nr_query($query);
     $newId = simple_get_lastid('tagtypes');
@@ -225,7 +225,7 @@ function stg_tagdel_selector($login) {
  * @return void
  */
 function stg_add_user_tag($login, $tagid) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $tagid = vf($tagid, 3);
     $query = "INSERT INTO `tags` (`id` ,`login` ,`tagid`) VALUES (NULL , '" . $login . "', '" . $tagid . "'); ";
     nr_query($query);
@@ -255,7 +255,7 @@ function stg_del_user_tag($tagid) {
  * @return void
  */
 function stg_del_user_tagid($login, $tagid) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $tagid = vf($tagid, 3);
     $query = "DELETE from `tags` WHERE `login`='" . $login . "' AND`tagid`='" . $tagid . "'";
     nr_query($query);
@@ -308,7 +308,7 @@ function stg_get_tag_body_deleter($id, $login, $tagid) {
  * @return void
  */
 function zb_FlushAllUserTags($login) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "DELETE from `tags` WHERE `login`='" . $login . "'";
     nr_query($query);
     log_register("TAG FLUSH (" . $login . ")");
@@ -501,7 +501,7 @@ function zb_VserviceCashClear($login) {
  */
 function zb_VserviceCashCreate($login, $cash) {
     $login = vf($login);
-    $cash = mysql_real_escape_string($cash);
+    $cash = DB_real_escape_string($cash);
     $query_set = "INSERT INTO `vcash` (`id` , `login` , `cash`) VALUES (NULL , '" . $login . "', '" . $cash . "');";
     nr_query($query_set);
     log_register("ADD VCASH (" . $login . ") `" . $cash . "`");
@@ -517,7 +517,7 @@ function zb_VserviceCashCreate($login, $cash) {
  */
 function zb_VserviceCashSet($login, $cash) {
     $login = vf($login);
-    $cash = mysql_real_escape_string($cash);
+    $cash = DB_real_escape_string($cash);
     $query_set = "UPDATE `vcash` SET `cash` = '" . $cash . "' WHERE `login` ='" . $login . "' LIMIT 1 ;";
     nr_query($query_set);
     log_register("CHANGE VCASH (" . $login . ") `" . $cash . "`");
@@ -557,9 +557,9 @@ function zb_VserviceCashGet($login) {
  */
 function zb_VserviceCashLog($login, $balance, $cash, $cashtype, $note = '') {
     $login = vf($login);
-    $cash = mysql_real_escape_string($cash);
+    $cash = DB_real_escape_string($cash);
     $cashtype = vf($cashtype);
-    $note = mysql_real_escape_string($note);
+    $note = DB_real_escape_string($note);
     $date = curdatetime();
     $balance = zb_VserviceCashGet($login);
     $query = "INSERT INTO `vcashlog` ( `id` ,  `login` , `date` , `balance` , `summ` , `cashtypeid` , `note`)
@@ -596,7 +596,7 @@ function zb_VserviceCashFee($login, $fee, $vserviceid) {
  */
 function zb_VserviceCashAdd($login, $cash, $vserviceid) {
     $login = vf($login);
-    $cash = mysql_real_escape_string($cash);
+    $cash = DB_real_escape_string($cash);
     $balance = zb_VserviceCashGet($login);
     $newcash = $balance + $cash;
     zb_VserviceCashSet($login, $newcash);

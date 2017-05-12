@@ -10,7 +10,7 @@
  */
 function zb_UserCreateRealName($login, $realname) {
     $login = vf($login);
-    $realname = mysql_real_escape_string($realname);
+    $realname = DB_real_escape_string($realname);
     $query = "INSERT INTO `realname`  (`id`,`login`,`realname`) VALUES   (NULL, '" . $login . "','" . $realname . "'); ";
     nr_query($query);
     log_register('CREATE UserRealName (' . $login . ')  `' . $realname . '`');
@@ -52,7 +52,7 @@ function zb_UserChangeRealName($login, $realname) {
     $realname = str_replace("'", '`', $realname);
     $realname = str_replace('"', '``', $realname);
     $realname = str_replace('\\', '', $realname);
-    $realname = mysql_real_escape_string($realname);
+    $realname = DB_real_escape_string($realname);
 
     $query = "UPDATE `realname` SET `realname` = '" . $realname . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
@@ -144,8 +144,8 @@ function zb_UserGetAllMACs() {
  */
 function zb_UserCreatePhone($login, $phone, $mobile) {
     $login = vf($login);
-    $phone = mysql_real_escape_string($phone);
-    $mobile = mysql_real_escape_string($mobile);
+    $phone = DB_real_escape_string($phone);
+    $mobile = DB_real_escape_string($mobile);
     $query = "INSERT INTO `phones`  (`id`,`login`,`phone`,`mobile`)  VALUES  (NULL, '" . $login . "','" . $phone . "','" . $mobile . "');";
     nr_query($query);
     log_register('CREATE UserPhone (' . $login . ') `' . $phone . '` `' . $mobile . '`');
@@ -195,7 +195,7 @@ function zb_UserGetMobile($login) {
  */
 function zb_UserChangePhone($login, $phone) {
     $login = vf($login);
-    $phone = mysql_real_escape_string($phone);
+    $phone = DB_real_escape_string($phone);
     $query = "UPDATE `phones` SET `phone` = '" . $phone . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserPhone (' . $login . ') `' . $phone . '`');
@@ -209,7 +209,7 @@ function zb_UserChangePhone($login, $phone) {
  */
 function zb_UserChangeMobile($login, $mobile) {
     $login = vf($login);
-    $mobile = mysql_real_escape_string($mobile);
+    $mobile = DB_real_escape_string($mobile);
     $query = "UPDATE `phones` SET `mobile` = '" . $mobile . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserMobile (' . $login . ') `' . $mobile . '`');
@@ -241,7 +241,7 @@ function zb_UserGetAllPhoneData() {
  */
 function zb_UserCreateEmail($login, $email) {
     $login = vf($login);
-    $email = mysql_real_escape_string($email);
+    $email = DB_real_escape_string($email);
     $query = "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $login . "','" . $email . "');";
     nr_query($query);
     log_register('CREATE UserEmail (' . $login . ') `' . $email . '`');
@@ -280,7 +280,7 @@ function zb_UserGetEmail($login) {
  */
 function zb_UserChangeEmail($login, $email) {
     $login = vf($login);
-    $email = mysql_real_escape_string($email);
+    $email = DB_real_escape_string($email);
     $query = "UPDATE `emails` SET `email` = '" . $email . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserEmail (' . $login . ') ' . $email);
@@ -294,7 +294,7 @@ function zb_UserChangeEmail($login, $email) {
  */
 function zb_UserCreateContract($login, $contract) {
     $login = vf($login);
-    $contract = mysql_real_escape_string($contract);
+    $contract = DB_real_escape_string($contract);
     $query = "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $login . "','" . $contract . "');";
     nr_query($query);
     log_register('CREATE UserContract (' . $login . ') `' . $contract . '`');
@@ -333,7 +333,7 @@ function zb_UserGetContract($login) {
  */
 function zb_UserChangeContract($login, $contract) {
     $login = vf($login);
-    $contract = mysql_real_escape_string($contract);
+    $contract = DB_real_escape_string($contract);
     $query = "UPDATE `contracts` SET `contract` = '" . $contract . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserContract (' . $login . ') `' . $contract . '`');
@@ -500,7 +500,7 @@ function zb_UserDeleteSpeedOverride($login) {
  */
 function zb_UserCreateNotes($login, $notes) {
     $login = vf($login);
-    $notes = mysql_real_escape_string($notes);
+    $notes = DB_real_escape_string($notes);
     $query = "INSERT INTO `notes` (`id` , `login` ,`note`) VALUES (NULL , '" . $login . "', '" . $notes . "');";
     nr_query($query);
     log_register('CREATE UserNote (' . $login . ') `' . $notes . '`');
@@ -607,7 +607,7 @@ function zb_CreditGetAllUsers() {
  * @return float
  */
 function zb_TariffGetPrice($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = DB_real_escape_string($tariff);
     $query = "SELECT `Fee` from `tariffs` WHERE `name`='" . $tariff . "'";
     $res = simple_query($query);
     return($res['Fee']);
@@ -620,7 +620,7 @@ function zb_TariffGetPrice($tariff) {
  * @return array
  */
 function zb_TariffGetData($tariff) {
-    $tariff = mysql_real_escape_string($tariff);
+    $tariff = DB_real_escape_string($tariff);
     $query = "SELECT * from `tariffs` WHERE `name`='" . $tariff . "'";
     $result = simple_query($query);
     return ($result);

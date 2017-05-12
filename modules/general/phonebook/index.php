@@ -122,8 +122,8 @@ if (cfr('PHONEBOOK')) {
          * @return void
          */
         public function createContact($phone, $name) {
-            $phoneF = mysql_real_escape_string($phone);
-            $nameF = mysql_real_escape_string($name);
+            $phoneF = DB_real_escape_string($phone);
+            $nameF = DB_real_escape_string($name);
             $query = "INSERT INTO `contacts` (`id`,`phone`,`name`) VALUES (NULL, '" . $phoneF . "','" . $nameF . "');";
             nr_query($query);
             $newId = simple_get_lastid('contacts');
@@ -160,8 +160,8 @@ if (cfr('PHONEBOOK')) {
             if (wf_CheckPost(array('editcontactphone', 'editcontactname', 'editcontactid'))) {
                 $contactId = vf($_POST['editcontactid'], 3);
                 if (isset($this->allContacts[$contactId])) {
-                    $newPhone = mysql_real_escape_string($_POST['editcontactphone']);
-                    $newName = mysql_real_escape_string($_POST['editcontactname']);
+                    $newPhone = DB_real_escape_string($_POST['editcontactphone']);
+                    $newName = DB_real_escape_string($_POST['editcontactname']);
                     $where = " WHERE `id`='" . $contactId . "';";
 
                     if ($this->allContacts[$contactId]['phone'] != $newPhone) {

@@ -108,7 +108,7 @@ class Cemetery {
     protected function logFuneral($login, $state) {
         $state = vf($state, 3);
         $date = curdatetime();
-        $loginF = mysql_real_escape_string($login);
+        $loginF = DB_real_escape_string($login);
         $query = "INSERT INTO `cemetery` (`id`,`login`,`state`,`date`) VALUES (NULL,'" . $loginF . "','" . $state . "','" . $date . "'); ";
         nr_query($query);
         log_register('CEMETERY (' . $login . ') SET `' . $state . '`');

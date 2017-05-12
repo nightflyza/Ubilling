@@ -659,7 +659,7 @@ class CustomMaps {
      * @param string $name
      */
     public function mapCreate($name) {
-        $nameFiltered = mysql_real_escape_string($name);
+        $nameFiltered = DB_real_escape_string($name);
         $query = "INSERT INTO `custmaps` (`id`, `name`) VALUES (NULL, '" . $nameFiltered . "'); ";
         nr_query($query);
         $newId = simple_get_lastid('custmaps');
@@ -800,10 +800,10 @@ class CustomMaps {
      */
     public function itemCreate($mapid, $type, $geo, $name, $location) {
         $mapid = vf($mapid, 3);
-        $type = mysql_real_escape_string($type);
-        $geo = mysql_real_escape_string($geo);
-        $nameFiltered = mysql_real_escape_string($name);
-        $location = mysql_real_escape_string($location);
+        $type = DB_real_escape_string($type);
+        $geo = DB_real_escape_string($geo);
+        $nameFiltered = DB_real_escape_string($name);
+        $location = DB_real_escape_string($location);
 
         if (isset($this->allMaps[$mapid])) {
             $query = "INSERT INTO `custmapsitems` (`id`, `mapid`, `type`, `geo`, `name`, `location`) "

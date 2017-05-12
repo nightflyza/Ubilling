@@ -37,9 +37,9 @@ if (cfr('PAYFIND')) {
      */
 
     function zb_PaySysPercentAdd($mark, $name, $percent) {
-        $mark = mysql_real_escape_string($mark);
-        $name = mysql_real_escape_string($name);
-        $percent = mysql_real_escape_string($percent);
+        $mark = DB_real_escape_string($mark);
+        $name = DB_real_escape_string($name);
+        $percent = DB_real_escape_string($percent);
         if ($percent=='') {
             $percent=0;
         }
@@ -65,7 +65,7 @@ if (cfr('PAYFIND')) {
      */
 
     function zb_PaySysPercentDelete($mark) {
-        $mark = mysql_real_escape_string($mark);
+        $mark = DB_real_escape_string($mark);
         $olddata = zb_PaySysPercentGetAll();
         $newdata = $olddata;
         if (isset($newdata[$mark])) {
@@ -466,8 +466,8 @@ if (cfr('PAYFIND')) {
 
     //date search
     if (wf_CheckPost(array('datefrom', 'dateto'))) {
-        $datefrom = mysql_real_escape_string($_POST['datefrom']);
-        $dateto = mysql_real_escape_string($_POST['dateto']);
+        $datefrom = DB_real_escape_string($_POST['datefrom']);
+        $dateto = DB_real_escape_string($_POST['dateto']);
         $markers.="WHERE `date` BETWEEN '" . $datefrom . "' AND '" . $dateto . "' ";
     }
 
@@ -479,7 +479,7 @@ if (cfr('PAYFIND')) {
 
     //contract search
     if (wf_CheckPost(array('type_contract', 'contract'))) {
-        $contract = mysql_real_escape_string($_POST['contract']);
+        $contract = DB_real_escape_string($_POST['contract']);
         $allcontracts = zb_UserGetAllContracts();
         if (!empty($allcontracts)) {
             if (isset($allcontracts[$contract])) {
@@ -491,13 +491,13 @@ if (cfr('PAYFIND')) {
 
     //login payment search
     if (wf_CheckPost(array('type_login', 'login'))) {
-        $userlogin = mysql_real_escape_string($_POST['login']);
+        $userlogin = DB_real_escape_string($_POST['login']);
         $markers.="AND `login`='" . $userlogin . "' ";
     }
     
     //payment sum  search
     if (wf_CheckPost(array('type_summ', 'summ'))) {
-        $summ= mysql_real_escape_string($_POST['summ']);
+        $summ= DB_real_escape_string($_POST['summ']);
         $markers.="AND `summ`='" . $summ . "' ";
     }
 
@@ -509,13 +509,13 @@ if (cfr('PAYFIND')) {
     
     //cashiers search
     if (wf_CheckPost(array('type_cashier', 'cashier'))) {
-        $cashierLogin = mysql_real_escape_string($_POST['cashier']);
+        $cashierLogin = DB_real_escape_string($_POST['cashier']);
         $markers.="AND `admin`='" . $cashierLogin . "' ";
     }
 
     //payment system search
     if (wf_CheckPost(array('type_paysys', 'paysys'))) {
-        $cashtype = mysql_real_escape_string($_POST['paysys']);
+        $cashtype = DB_real_escape_string($_POST['paysys']);
         $markers.="AND `note` LIKE '" . $cashtype . "' ";
     }
     

@@ -144,7 +144,7 @@ class Corps {
      */
 
     public function taxtypeCreate($type) {
-        $type = mysql_real_escape_string($type);
+        $type = DB_real_escape_string($type);
         $query = "INSERT INTO  `corp_taxtypes` (`id`, `type`) VALUES (NULL, '" . $type . "'); ";
         nr_query($query);
         $newId = simple_get_lastid('corp_taxtypes');
@@ -546,19 +546,19 @@ class Corps {
      */
 
     public function corpCreate() {
-        $corpname = mysql_real_escape_string($_POST['createcorpname']);
-        $address = mysql_real_escape_string($_POST['createaddress']);
+        $corpname = DB_real_escape_string($_POST['createcorpname']);
+        $address = DB_real_escape_string($_POST['createaddress']);
         $doctype = vf($_POST['createdoctype'], 3);
-        $docdate = mysql_real_escape_string($_POST['createdocdate']);
-        $docnum = mysql_real_escape_string($_POST['adddocnum']);
-        $bankacc = mysql_real_escape_string($_POST['addbankacc']);
-        $bankname = mysql_real_escape_string($_POST['addbankname']);
-        $bankmfo = mysql_real_escape_string($_POST['addbankmfo']);
-        $edrpou = mysql_real_escape_string($_POST['addedrpou']);
-        $taxnum = mysql_real_escape_string($_POST['addndstaxnum']);
-        $inncode = mysql_real_escape_string($_POST['addinncode']);
+        $docdate = DB_real_escape_string($_POST['createdocdate']);
+        $docnum = DB_real_escape_string($_POST['adddocnum']);
+        $bankacc = DB_real_escape_string($_POST['addbankacc']);
+        $bankname = DB_real_escape_string($_POST['addbankname']);
+        $bankmfo = DB_real_escape_string($_POST['addbankmfo']);
+        $edrpou = DB_real_escape_string($_POST['addedrpou']);
+        $taxnum = DB_real_escape_string($_POST['addndstaxnum']);
+        $inncode = DB_real_escape_string($_POST['addinncode']);
         $taxtype = vf($_POST['addtaxtype'], 3);
-        $notes = mysql_real_escape_string($_POST['addnotes']);
+        $notes = DB_real_escape_string($_POST['addnotes']);
         $query = "INSERT INTO `corp_data` (`id`, `corpname`, `address`, `doctype`, `docnum`, `docdate`, `bankacc`, `bankname`, `bankmfo`, `edrpou`, `ndstaxnum`, `inncode`, `taxtype`, `notes`) "
                 . "VALUES (NULL, '" . $corpname . "', '" . $address . "', '" . $doctype . "', '" . $docnum . "', '" . $docdate . "', '" . $bankacc . "', '" . $bankname . "', '" . $bankmfo . "', '" . $edrpou . "', '" . $taxnum . "', '" . $inncode . "', '" . $taxtype . "', '" . $notes . "');";
         nr_query($query);
@@ -748,11 +748,11 @@ class Corps {
     public function personCreate() {
         if (wf_CheckPost(array('addpersoncorpid', 'addpersonrealname'))) {
             $corpid = vf($_POST['addpersoncorpid']);
-            $realname = mysql_real_escape_string($_POST['addpersonrealname']);
-            $phone = mysql_real_escape_string($_POST['addpersonphone']);
-            $im = mysql_real_escape_string($_POST['addpersonim']);
-            $email = mysql_real_escape_string($_POST['addpersonemail']);
-            $appointment = mysql_real_escape_string($_POST['addpersonappointment']);
+            $realname = DB_real_escape_string($_POST['addpersonrealname']);
+            $phone = DB_real_escape_string($_POST['addpersonphone']);
+            $im = DB_real_escape_string($_POST['addpersonim']);
+            $email = DB_real_escape_string($_POST['addpersonemail']);
+            $appointment = DB_real_escape_string($_POST['addpersonappointment']);
 
             if (isset($this->corps[$corpid])) {
                 $query = "INSERT INTO `corp_persons` (`id`, `corpid`, `realname`, `phone`, `im`, `email`, `appointment`) VALUES (NULL, '" . $corpid . "', '" . $realname . "', '" . $phone . "', '" . $im . "', '" . $email . "', '" . $appointment . "');";
@@ -810,7 +810,7 @@ class Corps {
      */
 
     public function userBind($login, $corpid) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         $corpid = vf($corpid, 3);
         if (!isset($this->users[$login])) {
             $query = "INSERT INTO `corp_users` (`id`, `login`, `corpid`) VALUES (NULL, '" . $login . "', '" . $corpid . "'); ";
@@ -828,7 +828,7 @@ class Corps {
      */
 
     function userUnbind($login) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         if (isset($this->users[$login])) {
             $query = "DELETE FROM `corp_users` WHERE `login`='" . $login . "';";
             nr_query($query);
@@ -861,7 +861,7 @@ class Corps {
      */
 
     public function userUnbindForm($login) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
         $result = '';
         if (isset($this->users[$login])) {
             $inputs = wf_HiddenInput('corpsunbindlogin', $login);

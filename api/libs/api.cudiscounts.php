@@ -153,7 +153,7 @@ class CumulativeDiscounts {
      * @return void
      */
     protected function createDiscount($login, $days) {
-        $login = mysql_real_escape_string($login);
+        $login = DB_real_escape_string($login);
 
         $currentDiscount = 0;
         $days = vf($days, 3);
@@ -172,8 +172,8 @@ class CumulativeDiscounts {
      */
     protected function setDiscount($login, $days, $discount) {
         $days = vf($days, 3);
-        $discount = mysql_real_escape_string($discount);
-        $login = mysql_real_escape_string($login);
+        $discount = DB_real_escape_string($discount);
+        $login = DB_real_escape_string($login);
         $this->allDiscounts[$login]['days'] = $days;
         $this->allDiscounts[$login]['discount'] = $discount;
         $query = "UPDATE `cudiscounts` SET `days`='" . $days . "', `discount`='" . $discount . "' WHERE `login`='" . $login . "'; ";

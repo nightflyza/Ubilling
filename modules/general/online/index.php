@@ -292,7 +292,7 @@ if ($system->checkForRight('ONLINE')) {
                 @$clearuseraddress = $detect_address[$eachuser['login']];
                 $clearuseraddress = trim($clearuseraddress);
                 $clearuseraddress = str_replace("'", '`', $clearuseraddress);
-                $clearuseraddress = mysql_real_escape_string($clearuseraddress);
+                $clearuseraddress = DB_real_escape_string($clearuseraddress);
 
                 //additional finance links
                 if ($alter_conf['FAST_CASH_LINK']) {
@@ -306,7 +306,7 @@ if ($system->checkForRight('ONLINE')) {
      [
      "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress . '",
      
-         "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
+         "' . @DB_real_escape_string(trim($fioz[$eachuser['login']])) . '",
          "' . $eachuser['IP'] . '",
          "' . $eachuser['Tariff'] . '",
          "' . $act . '",
@@ -321,7 +321,7 @@ if ($system->checkForRight('ONLINE')) {
                  [
                  "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
 
-                     "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
+                     "' . @DB_real_escape_string(trim($fioz[$eachuser['login']])) . '",
                      "' . $eachuser['IP'] . '",
                      "' . $eachuser['Tariff'] . '",
                      "' . $act . '",

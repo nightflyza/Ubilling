@@ -182,17 +182,17 @@ class StickyNotes {
      */
     protected function createNote($owner, $createDate, $remindDate, $remindTime, $activity, $text) {
         $text = strip_tags($text);
-        $text = mysql_real_escape_string($text);
+        $text = DB_real_escape_string($text);
         $activity = vf($activity, 3);
-        $createDate = mysql_real_escape_string($createDate);
+        $createDate = DB_real_escape_string($createDate);
         if (!empty($remindDate)) {
-            $remindDate = "'" . mysql_real_escape_string($remindDate) . "'";
+            $remindDate = "'" . DB_real_escape_string($remindDate) . "'";
         } else {
             $remindDate = 'NULL';
         }
 
         if (!empty($remindTime)) {
-            $remindTime = "'" . mysql_real_escape_string($remindTime) . "'";
+            $remindTime = "'" . DB_real_escape_string($remindTime) . "'";
         } else {
             $remindTime = 'NULL';
         }
@@ -333,7 +333,7 @@ class StickyNotes {
                 $oldRemindDate = $noteData['reminddate'];
                 if ($remindDate != $oldRemindDate) {
                     if (!empty($remindDate)) {
-                        $remindDate = "'" . mysql_real_escape_string($remindDate) . "'";
+                        $remindDate = "'" . DB_real_escape_string($remindDate) . "'";
                     } else {
                         $remindDate = 'NULL';
                     }
@@ -347,7 +347,7 @@ class StickyNotes {
                 $oldRemindTime = $noteData['remindtime'];
                 if ($remindTime != $oldRemindTime) {
                     if (!empty($remindTime)) {
-                        $remindTime = "'" . mysql_real_escape_string($remindTime) . "'";
+                        $remindTime = "'" . DB_real_escape_string($remindTime) . "'";
                     } else {
                         $remindTime = 'NULL';
                     }

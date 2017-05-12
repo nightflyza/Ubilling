@@ -261,7 +261,7 @@ class SendDog {
         $TsmsDB->query('SET NAMES utf8;');
 
         if (wf_CheckPost(array('showdate'))) {
-            $date = mysql_real_escape_string($_POST['showdate']);
+            $date = DB_real_escape_string($_POST['showdate']);
         } else {
             $date = '';
         }

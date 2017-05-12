@@ -64,7 +64,7 @@ function cf_TypeDelete($cftypeid) {
  */
 function cf_TypeAdd($newtype, $newname) {
     $newtype = vf($newtype);
-    $newname = mysql_real_escape_string($newname);
+    $newname = DB_real_escape_string($newname);
     if ((!empty($newname)) AND ( !empty($newtype))) {
         $query = "INSERT INTO `cftypes` (`id` ,`type` ,`name`) VALUES (NULL , '" . $newtype . "', '" . $newname . "');";
         nr_query($query);
@@ -150,7 +150,7 @@ function cf_TypesShow() {
 function cf_TypeGetController($login, $type, $typeid) {
     $type = vf($type);
     $typeid = vf($typeid);
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $result = '';
     if ($type == 'VARCHAR') {
         $inputs = wf_HiddenInput('modtype', $typeid);
@@ -226,8 +226,8 @@ function cf_TypeGetSearchControl($type, $typeid) {
  */
 function cf_FieldSet($typeid, $login, $content) {
     $typeid = vf($typeid);
-    $login = mysql_real_escape_string($login);
-    $content = mysql_real_escape_string($content);
+    $login = DB_real_escape_string($login);
+    $content = DB_real_escape_string($content);
     cf_FieldDelete($login, $typeid);
     $query = "INSERT INTO `cfitems` (`id` ,`typeid` ,`login` ,`content`) VALUES (NULL , '" . $typeid . "', '" . $login . "', '" . $content . "');";
     nr_query($query);
@@ -250,7 +250,7 @@ function cf_FieldSet($typeid, $login, $content) {
  */
 function cf_FieldDelete($login, $typeid) {
     $typeid = vf($typeid);
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "DELETE from `cfitems` WHERE `typeid`='" . $typeid . "' AND `login`='" . $login . "'";
     nr_query($query);
 }
@@ -265,7 +265,7 @@ function cf_FieldDelete($login, $typeid) {
  */
 function cf_FieldGet($login, $typeid) {
     $typeid = vf($typeid);
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $result = '';
     $query = "SELECT `content` from `cfitems` WHERE `login`='" . $login . "' AND `typeid`='" . $typeid . "'";
     $content = simple_query($query);
@@ -330,7 +330,7 @@ function cf_FieldEditor($login) {
         }
     }
     $alltypes = cf_TypeGetAll();
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
 
     if (!empty($alltypes)) {
 
@@ -361,7 +361,7 @@ function cf_FieldEditor($login) {
  */
 function cf_FieldShower($login) {
     $alltypes = cf_TypeGetAll();
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $result = '';
     if (!empty($alltypes)) {
         $rows = '';
@@ -386,7 +386,7 @@ function cf_FieldShower($login) {
  * @return void
  */
 function cf_FlushAllUserCF($login) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "DELETE from `cfitems` WHERE `login`='" . $login . "'";
     nr_query($query);
     log_register("CF FLUSH (" . $login . ")");

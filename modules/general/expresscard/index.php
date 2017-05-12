@@ -66,7 +66,7 @@ if(cfr('EXPRESSCARD')) {
                 log_register("EXPRESSCARD (".$login.") EDIT BEGIN ");
                 //contract edit
                 if (wf_CheckPost(array('editcontract'))) {
-                    $newcontract=  mysql_real_escape_string($_POST['editcontract']);
+                    $newcontract=  DB_real_escape_string($_POST['editcontract']);
                     zb_UserChangeContract($login, $newcontract);
                    
                 }
@@ -74,7 +74,7 @@ if(cfr('EXPRESSCARD')) {
                 
                 //contract date editing
                 if (wf_CheckPost(array('editcontractdate','editcontract'))) {
-                    $newcontractdate=  mysql_real_escape_string($_POST['editcontractdate']);
+                    $newcontractdate=  DB_real_escape_string($_POST['editcontractdate']);
                     $allcontractdates=zb_UserContractDatesGetAll();
                       if (isset($allcontractdates[$_POST['editcontract']])) {
                              $currentContractDate=$allcontractdates[$_POST['editcontract']];
@@ -147,7 +147,7 @@ if(cfr('EXPRESSCARD')) {
                         $currentmac=  zb_MultinetGetMAC($currentip);
                         $newnetid=  multinet_get_service_networkid($service);
                         $newip=trim($_POST['editip']);
-                        $newip=  mysql_real_escape_string($newip);
+                        $newip=  DB_real_escape_string($newip);
                         @$checkfreeip=multinet_get_next_freeip('nethosts', 'ip', $newnetid);
                         
                         if (!empty($checkfreeip)) {

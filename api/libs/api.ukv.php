@@ -321,9 +321,9 @@ class UkvSystem {
      * @return void
      */
     public function tariffCreate($name, $price) {
-        $name = mysql_real_escape_string($name);
+        $name = DB_real_escape_string($name);
         $name = trim($name);
-        $price = mysql_real_escape_string($price);
+        $price = DB_real_escape_string($price);
         $price = trim($price);
         if (!empty($name)) {
             $price = (empty($price)) ? 0 : $price;
@@ -382,9 +382,9 @@ class UkvSystem {
      */
     public function tariffSave($tariffid, $tariffname, $price) {
         $tariffid = vf($tariffid, 3);
-        $tariffname = mysql_real_escape_string($tariffname);
+        $tariffname = DB_real_escape_string($tariffname);
         $tariffname = trim($tariffname);
-        $price = mysql_real_escape_string($price);
+        $price = DB_real_escape_string($price);
         $price = trim($price);
 
         if (!empty($tariffname)) {
@@ -528,13 +528,13 @@ class UkvSystem {
      */
     public function logPayment($userid, $summ, $visible = true, $cashtypeid = 1, $notes = '') {
         $userid = vf($userid, 3);
-        $summ = mysql_real_escape_string($summ);
+        $summ = DB_real_escape_string($summ);
         $date = date("Y-m-d H:i:s");
         $admin = whoami();
         $currentBalance = $this->users[$userid]['cash'];
         $visible = ($visible) ? 1 : 0;
         $cashtypeid = vf($cashtypeid, 3);
-        $notes = mysql_real_escape_string($notes);
+        $notes = DB_real_escape_string($notes);
 
         $query = "INSERT INTO `ukv_payments` (`id` , `userid` ,  `date` , `admin` , `balance` , `summ` , `visible` , `cashtypeid` , `note`)
         VALUES (NULL , '" . $userid . "', '" . $date . "', '" . $admin . "', '" . $currentBalance . "', '" . $summ . "', '" . $visible . "', '" . $cashtypeid . "', '" . $notes . "');";
@@ -554,7 +554,7 @@ class UkvSystem {
      */
     public function userAddCash($userid, $summ, $visible = true, $cashtypeid = 1, $notes = '') {
         $userid = vf($userid, 3);
-        $summ = mysql_real_escape_string($summ);
+        $summ = DB_real_escape_string($summ);
         $currentBalance = $this->users[$userid]['cash'];
 
 //create transaction record
@@ -1840,19 +1840,19 @@ class UkvSystem {
                         if (!empty($eachRow[self::BANKSTA_CONTRACT])) {
                             $newDate = date("Y-m-d H:i:s");
                             $newContract = trim($eachRow[self::BANKSTA_CONTRACT]);
-                            $newContract = mysql_real_escape_string($newContract);
+                            $newContract = DB_real_escape_string($newContract);
                             $newSumm = trim($eachRow[self::BANKSTA_SUMM]);
-                            $newSumm = mysql_real_escape_string($newSumm);
+                            $newSumm = DB_real_escape_string($newSumm);
                             $newAddress = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_ADDRESS]);
-                            $newAddress = mysql_real_escape_string($newAddress);
+                            $newAddress = DB_real_escape_string($newAddress);
                             $newRealname = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_REALNAME]);
-                            $newRealname = mysql_real_escape_string($newRealname);
+                            $newRealname = DB_real_escape_string($newRealname);
                             $newNotes = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_NOTES]);
-                            $newNotes = mysql_real_escape_string($newNotes);
+                            $newNotes = DB_real_escape_string($newNotes);
                             $newPdate = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_DATE]);
-                            $newPdate = mysql_real_escape_string($newPdate);
+                            $newPdate = DB_real_escape_string($newPdate);
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::BANKSTA_TIME]);
-                            $newPtime = mysql_real_escape_string($newPtime);
+                            $newPtime = DB_real_escape_string($newPtime);
 
                             $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
@@ -1900,19 +1900,19 @@ class UkvSystem {
                         if (!empty($eachRow[self::OT_BANKSTA_CONTRACT])) {
                             $newDate = date("Y-m-d H:i:s");
                             $newContract = trim($eachRow[self::OT_BANKSTA_CONTRACT]);
-                            $newContract = mysql_real_escape_string($newContract);
+                            $newContract = DB_real_escape_string($newContract);
                             $newSumm = trim($eachRow[self::OT_BANKSTA_SUMM]);
-                            $newSumm = mysql_real_escape_string($newSumm);
+                            $newSumm = DB_real_escape_string($newSumm);
                             $newAddress = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_ADDRESS]);
-                            $newAddress = mysql_real_escape_string($newAddress);
+                            $newAddress = DB_real_escape_string($newAddress);
                             $newRealname = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_REALNAME]);
-                            $newRealname = mysql_real_escape_string($newRealname);
+                            $newRealname = DB_real_escape_string($newRealname);
                             $newNotes = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_NOTES]);
-                            $newNotes = mysql_real_escape_string($newNotes);
+                            $newNotes = DB_real_escape_string($newNotes);
                             $newPdate = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_DATE]);
-                            $newPdate = mysql_real_escape_string($newPdate);
+                            $newPdate = DB_real_escape_string($newPdate);
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::OT_BANKSTA_TIME]);
-                            $newPtime = mysql_real_escape_string($newPtime);
+                            $newPtime = DB_real_escape_string($newPtime);
 
                             $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
@@ -1960,22 +1960,22 @@ class UkvSystem {
                         if (@$eachRow[self::PB_BANKSTA_CONTRACT] != '') {
                             $newDate = date("Y-m-d H:i:s");
                             $newContract = trim($eachRow[self::PB_BANKSTA_CONTRACT]);
-                            $newContract = mysql_real_escape_string($newContract);
+                            $newContract = DB_real_escape_string($newContract);
                             $newSumm = trim($eachRow[self::PB_BANKSTA_SUMM]);
-                            $newSumm = mysql_real_escape_string($newSumm);
+                            $newSumm = DB_real_escape_string($newSumm);
                             $newAddress = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_ADDRESS]);
-                            $newAddress = mysql_real_escape_string($newAddress);
+                            $newAddress = DB_real_escape_string($newAddress);
                             $newRealname = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_REALNAME]);
-                            $newRealname = mysql_real_escape_string($newRealname);
+                            $newRealname = DB_real_escape_string($newRealname);
                             $newNotes = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $eachRow[self::PB_BANKSTA_NOTES]);
-                            $newNotes = mysql_real_escape_string($newNotes);
+                            $newNotes = DB_real_escape_string($newNotes);
                             $pbDate = $eachRow[self::PB_BANKSTA_DATE];
                             $pbDate = strtotime($pbDate);
                             $pbDate = date("Y-m-d", $pbDate);
                             $newPdate = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, $pbDate);
-                            $newPdate = mysql_real_escape_string($newPdate);
+                            $newPdate = DB_real_escape_string($newPdate);
                             $newPtime = iconv(self::BANKSTA_IN_CHARSET, self::BANKSTA_OUT_CHARSET, curtime());
-                            $newPtime = mysql_real_escape_string($newPtime);
+                            $newPtime = DB_real_escape_string($newPtime);
 
                             $this->bankstaCreateRow($newDate, $newHash, $newFilename, $newAdmin, $newContract, $newSumm, $newAddress, $newRealname, $newNotes, $newPdate, $newPtime, $payId);
 
@@ -2002,7 +2002,7 @@ class UkvSystem {
      * @return string
      */
     public function bankstaProcessingForm($hash) {
-        $hash = mysql_real_escape_string($hash);
+        $hash = DB_real_escape_string($hash);
         $query = "SELECT * from `ukv_banksta` WHERE `hash`='" . $hash . "' ORDER BY `id` ASC;";
         $all = simple_queryall($query);
         $cashPairs = array();
@@ -2250,7 +2250,7 @@ class UkvSystem {
      */
     public function bankstaSetContract($bankstaid, $contract) {
         $bankstaid = vf($bankstaid, 3);
-        $contract = mysql_real_escape_string($contract);
+        $contract = DB_real_escape_string($contract);
         $contract = trim($contract);
         if (empty($this->bankstarecords)) {
             $this->loadBankstaAll();
@@ -2411,8 +2411,8 @@ class UkvSystem {
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             show_window(__('Current debtors for delivery by address'), $form);
         } else {
-            $searchBuild = mysql_real_escape_string($_POST['buildsel']);
-            $searchStreet = mysql_real_escape_string($_POST['streetsel']);
+            $searchBuild = DB_real_escape_string($_POST['buildsel']);
+            $searchStreet = DB_real_escape_string($_POST['streetsel']);
             $debtCash = (wf_CheckPost(array('debtcash'))) ? ('-' . vf($_POST['debtcash'], 3)) : 0;
             $query = "SELECT * from `ukv_users` WHERE `cash`<'" . $debtCash . "' AND `street`='" . $searchStreet . "' AND `build`='" . $searchBuild . "' AND `active`='1' ORDER BY `street`";
             $allDebtors = simple_queryall($query);
@@ -2474,7 +2474,7 @@ class UkvSystem {
             $form = wf_Form('', 'POST', $inputs, 'glamour');
             show_window(__('Current debtors for delivery by streets'), $form);
         } else {
-            $searchStreet = mysql_real_escape_string($_POST['streetsel']);
+            $searchStreet = DB_real_escape_string($_POST['streetsel']);
             $debtCash = (wf_CheckPost(array('debtcash'))) ? ('-' . vf($_POST['debtcash'], 3)) : 0;
             $query = "SELECT * from `ukv_users` WHERE `cash`<'" . $debtCash . "' AND `street`='" . $searchStreet . "'  AND `active`='1' ORDER BY `build`";
             $allDebtors = simple_queryall($query);
@@ -3169,7 +3169,7 @@ class UkvSystem {
 
 // payments by somedate
             if (isset($_POST['showdatepayments'])) {
-                $paydate = mysql_real_escape_string($_POST['showdatepayments']);
+                $paydate = DB_real_escape_string($_POST['showdatepayments']);
                 $paydate = (!empty($paydate)) ? $paydate : curdate();
                 show_window(__('Payments by date') . ' ' . $paydate, $this->paymentsShow("SELECT * from `ukv_payments` WHERE `date` LIKE '" . $paydate . "%' AND `visible`='1' ORDER by `date` DESC;"));
             } else {
@@ -3180,7 +3180,7 @@ class UkvSystem {
             }
         } else {
 // show monthly payments
-            $paymonth = mysql_real_escape_string($_GET['month']);
+            $paymonth = DB_real_escape_string($_GET['month']);
 
             show_window(__('Month payments'), $this->paymentsShow("SELECT * from `ukv_payments` WHERE `date` LIKE '" . $paymonth . "%'  AND `visible`='1' ORDER by `date` DESC;"));
         }
@@ -3196,7 +3196,7 @@ class UkvSystem {
         $months = months_array();
         $monthCount = array();
         $showYear = (wf_CheckPost(array('showyear'))) ? vf($_POST['showyear'], 3) : curyear();
-        $showMonth = (wf_CheckGet(array('month'))) ? mysql_real_escape_string($_GET['month']) : curmonth();
+        $showMonth = (wf_CheckGet(array('month'))) ? DB_real_escape_string($_GET['month']) : curmonth();
         $yearCount = 0;
         $displayCount = 0;
         $displayTmp = array();
@@ -3333,7 +3333,7 @@ class UkvSystem {
         if (wf_CheckGet(array('showfees'))) {
             $feesSumm = 0;
             $feesCount = 0;
-            $searchFees = mysql_real_escape_string($_GET['showfees']);
+            $searchFees = DB_real_escape_string($_GET['showfees']);
             $payments_q = "SELECT * from `ukv_payments` WHERE `date` LIKE '" . $searchFees . "%' AND `note` LIKE 'UKVFEE:%' ORDER BY `id` DESC";
             $allPayments = simple_queryall($payments_q);
             if (!empty($allPayments)) {

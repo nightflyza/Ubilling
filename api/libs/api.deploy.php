@@ -267,7 +267,7 @@ class Avarice {
      * @return void
      */
     public function deleteKey($keyname) {
-        $keyname=  mysql_real_escape_string($keyname);
+        $keyname=  DB_real_escape_string($keyname);
         $query="DELETE from `ubstorage` WHERE `key` = '".$keyname."';";
         nr_query($query);
         log_register("AVARICE DELETE KEY `".$keyname.'`');
@@ -281,7 +281,7 @@ class Avarice {
      * @return bool
      */
     public function createKey($key) {
-        $key=  mysql_real_escape_string($key);
+        $key=  DB_real_escape_string($key);
         if ($this->checkLicenseValidity($key)) {
             $keyname='AVLICENSE_'.  zb_rand_string('8');
             $query="INSERT INTO `ubstorage` (`id`, `key`, `value`) VALUES (NULL, '".$keyname."', '".$key."');";

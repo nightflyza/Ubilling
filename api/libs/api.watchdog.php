@@ -295,7 +295,7 @@ class WatchDog {
                 // gets some user traffic by his login
                 case 'getusertraff':
                     if (!empty($this->taskData[$taskID]['param'])) {
-                        $userLoging = mysql_real_escape_string($this->taskData[$taskID]['param']);
+                        $userLoging = DB_real_escape_string($this->taskData[$taskID]['param']);
                         $traffQuery = "SELECT SUM(`D0`+`U0`) from `users` WHERE login='" . $userLogin . "'";
                         $traffData = simple_query($traffQuery);
                         $result = $traffData['SUM(`D0`+`U0`)'];
@@ -928,13 +928,13 @@ class WatchDogInterface {
      * @return void
      */
     public function createTask($name, $checktype, $param, $operator, $condition, $action, $active = 0) {
-        $active = mysql_real_escape_string($active);
-        $name = mysql_real_escape_string($name);
-        $checktype = mysql_real_escape_string($checktype);
-        $param = mysql_real_escape_string($param);
-        $operator = mysql_real_escape_string($operator);
-        $condition = mysql_real_escape_string($condition);
-        $action = mysql_real_escape_string($action);
+        $active = DB_real_escape_string($active);
+        $name = DB_real_escape_string($name);
+        $checktype = DB_real_escape_string($checktype);
+        $param = DB_real_escape_string($param);
+        $operator = DB_real_escape_string($operator);
+        $condition = DB_real_escape_string($condition);
+        $action = DB_real_escape_string($action);
 
         if ((empty($name)) OR ( empty($param)) OR ( empty($action))) {
             throw new Exception(self::TASKADD_EX);

@@ -146,7 +146,7 @@ class TSupportApi {
     }
 
     protected function loadRealNames($like) {
-	$like_esc	 = mysql_real_escape_string($like);
+	$like_esc	 = DB_real_escape_string($like);
 	$query		 = 'SELECT * FROM `realname` WHERE `realname` LIKE "%' . $like_esc . '%"';
 	$all		 = simple_queryall($query);
 	if (!empty($all)) {
@@ -158,7 +158,7 @@ class TSupportApi {
     }
 
     protected function loadUserInfo($login) {
-	$login_esc	 = mysql_real_escape_string($login);
+	$login_esc	 = DB_real_escape_string($login);
 	$users_qry	 = 'SELECT * FROM `users` WHERE `login` = "' . $login_esc . '"';
 	$users		 = simple_query($users_qry);
 	if (!empty($users)) {

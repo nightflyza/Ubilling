@@ -114,11 +114,11 @@ function em_JobTypeForm() {
  * @return void
  */
 function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '') {
-    $name = mysql_real_escape_string(trim($name));
-    $job = mysql_real_escape_string(trim($job));
-    $mobile = mysql_real_escape_string($mobile);
-    $telegram = mysql_real_escape_string($telegram);
-    $admlogin = mysql_real_escape_string($admlogin);
+    $name = DB_real_escape_string(trim($name));
+    $job = DB_real_escape_string(trim($job));
+    $mobile = DB_real_escape_string($mobile);
+    $telegram = DB_real_escape_string($telegram);
+    $admlogin = DB_real_escape_string($admlogin);
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`,`telegram`, `admlogin`,`active`)
             VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1'); ";
     nr_query($query);
@@ -148,8 +148,8 @@ function em_EmployeeDelete($id) {
  * @return void
  */
 function stg_add_jobtype($jobtype, $jobcolor) {
-    $jobtype = mysql_real_escape_string(trim($jobtype));
-    $jobcolor = mysql_real_escape_string($jobcolor);
+    $jobtype = DB_real_escape_string(trim($jobtype));
+    $jobcolor = DB_real_escape_string($jobcolor);
 
     $query = "INSERT INTO `jobtypes` (`id` , `jobname`, `jobcolor`)
                 VALUES (NULL , '" . $jobtype . "', '" . $jobcolor . "');";
@@ -350,7 +350,7 @@ function stg_delete_job($jobid) {
  * @return void
  */
 function stg_add_new_job($login, $date, $worker_id, $jobtype_id, $job_notes) {
-    $job_notes = mysql_real_escape_string(trim($job_notes));
+    $job_notes = DB_real_escape_string(trim($job_notes));
     $datetime = curdatetime();
     $query = "INSERT INTO `jobs` (`id` , `date` , `jobid` , `workerid` , `login` ,`note`) VALUES (
            NULL , '" . $datetime . "', '" . $jobtype_id . "', '" . $worker_id . "', '" . $login . "', '" . $job_notes . "'); ";
@@ -1272,21 +1272,21 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $curdate = curdatetime();
     $admin = whoami();
     $address = str_replace('\'', '`', $address);
-    $address = mysql_real_escape_string($address);
+    $address = DB_real_escape_string($address);
     $address = trim($address);
-    $login = mysql_real_escape_string($login);
-    $phone = mysql_real_escape_string($phone);
-    $startdate = mysql_real_escape_string($startdate);
+    $login = DB_real_escape_string($login);
+    $phone = DB_real_escape_string($phone);
+    $startdate = DB_real_escape_string($startdate);
     $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
 
     if (!empty($starttime)) {
-        $starttime = "'" . mysql_real_escape_string($starttime) . "'";
+        $starttime = "'" . DB_real_escape_string($starttime) . "'";
     } else {
         $starttime = 'NULL';
     }
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
-    $jobnote = mysql_real_escape_string($jobnote);
+    $jobnote = DB_real_escape_string($jobnote);
 
     $smsData = 'NULL';
     //store messages for backround processing via senddog
@@ -1405,17 +1405,17 @@ function ts_TaskModifyForm($taskid) {
  */
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
-    $startdate = mysql_real_escape_string($startdate);
+    $startdate = DB_real_escape_string($startdate);
     if (!empty($starttime)) {
-        $starttime = "'" . mysql_real_escape_string($starttime) . "'";
+        $starttime = "'" . DB_real_escape_string($starttime) . "'";
     } else {
         $starttime = 'NULL';
     }
 
     $address = str_replace('\'', '`', $address);
-    $address = mysql_real_escape_string($address);
-    $login = mysql_real_escape_string($login);
-    $phone = mysql_real_escape_string($phone);
+    $address = DB_real_escape_string($address);
+    $login = DB_real_escape_string($login);
+    $phone = DB_real_escape_string($phone);
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
 
@@ -1553,10 +1553,10 @@ function ts_TaskChangeForm($taskid) {
             //post sending form
             if ($altercfg['SENDDOG_ENABLED']) {
                 $smsAddress = str_replace('\'', '`', $taskdata['address']);
-                $smsAddress = mysql_real_escape_string($smsAddress);
-                $smsPhone = mysql_real_escape_string($taskdata['phone']);
+                $smsAddress = DB_real_escape_string($smsAddress);
+                $smsPhone = DB_real_escape_string($taskdata['phone']);
                 $smsJobTime = (!empty($taskdata['starttime'])) ? ' ' . date("H:i", strtotime($taskdata['starttime'])) : '';
-                $smsJobNote = mysql_real_escape_string($taskdata['jobnote']);
+                $smsJobNote = DB_real_escape_string($taskdata['jobnote']);
                 $smsEmployee = vf($taskdata['employee']);
 
                 $newSmsText = $smsAddress . ' ' . $smsPhone . ' ' . $smsJobNote . $smsJobTime;
@@ -1804,8 +1804,8 @@ function ts_PrintDialogue() {
  * @return void
  */
 function ts_PrintTasks($datefrom, $dateto) {
-    $datefrom = mysql_real_escape_string($datefrom);
-    $dateto = mysql_real_escape_string($dateto);
+    $datefrom = DB_real_escape_string($datefrom);
+    $dateto = DB_real_escape_string($dateto);
     $allemployee = ts_GetAllEmployee();
     $alljobtypes = ts_GetAllJobtypes();
     $result = wf_tag('style');
@@ -1932,7 +1932,7 @@ function ts_ShowLate() {
  * @return mixed 
  */
 function ts_GetEmployeeByLogin($login) {
-    $login = mysql_real_escape_string($login);
+    $login = DB_real_escape_string($login);
     $query = "SELECT `id` from `employee` WHERE `admlogin`='" . $login . "'";
     $raw = simple_query($query);
     if (!empty($raw)) {

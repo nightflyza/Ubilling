@@ -44,7 +44,7 @@ if (cfr('CORPORATE')) {
                    $cashtype=vf($_POST['cashtype']);
                    $cash=$_POST['newcash'];
                    if (isset($_POST['newpaymentnote'])) {
-                    $note=mysql_real_escape_string($_POST['newpaymentnote']);
+                    $note=DB_real_escape_string($_POST['newpaymentnote']);
                     }
                   //add cash to parent user
                   zb_CashAdd($parent_login, $cash, $operation, $cashtype, $note);
