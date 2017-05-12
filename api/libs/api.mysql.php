@@ -15,7 +15,7 @@
 define("DEBUG", 0);
 $query_counter = 0;
 
-if (extension_loaded('mysqli')) {
+if (!extension_loaded('mysql')) {
 
     /**
      * MySQLi database layer
