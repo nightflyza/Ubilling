@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Tasks tracking', 'Nightfly', array('TASKMANTRACK' => __('right to use tasks tracking')));
+$this->registerModule($module, 'main', __('Tasks tracking'), 'Nightfly', array('TASKMANTRACK' => __('right to use tasks tracking')));
 ?>

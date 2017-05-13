@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Watchdog', 'Nightfly', array('WATCHDOG' => __('right to control watchdog')));
+$this->registerModule($module, 'main', __('Watchdog'), 'Nightfly', array('WATCHDOG' => __('right to control watchdog')));
 ?>

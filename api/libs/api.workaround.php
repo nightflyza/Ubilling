@@ -3496,12 +3496,12 @@ function zb_DBStatsRender() {
  */
 function zb_DBStatsRenderContainer() {
     global $ubillingDatabaseDriver;
-    $messages=new UbillingMessageHelper();
+    $messages = new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
     $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', __('Database stats'), 'dbscontainer', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', __('Check database'), 'dbscontainer', true, 'ubButton');
-    $result.= $messages->getStyledMessage(__('Using MySQL PHP extension').': '.$ubillingDatabaseDriver,'info');
+    $result.= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
     return ($result);
@@ -4740,5 +4740,45 @@ function zb_formatTime($seconds) {
         //more than hour
         $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
     }
+    return ($result);
+}
+
+/**
+ * Renders list of loaded modules
+ * 
+ * @global object $system
+ * 
+ * @return string
+ */
+function zb_ListLoadedModules() {
+    $result = '';
+    $moduleCount=0;
+    global $system;
+    $cells = wf_TableCell(__('Module'));
+    $cells.= wf_TableCell(__('Author'));
+    $cells.= wf_TableCell(__('Rights generated'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    foreach ($system->modules as $type => $modules) {
+        if ($type == 'main') {
+            foreach ($modules as $module => $moduledata) {
+                $moduleRights = '';
+                if (!empty($moduledata['rights'])) {
+                    foreach ($moduledata['rights'] as $right => $rightdesc) {
+                        $moduleRights.=' ' . wf_tag('abbr', false, '', 'title="' . $rightdesc . '"') . $right . wf_tag('abbr', true) . ',';
+                    }
+                    $moduleRights = zb_CutEnd($moduleRights);
+                }
+                $cells = wf_TableCell($moduledata['title']);
+                $cells.= wf_TableCell($moduledata['copyright']);
+                $cells.= wf_TableCell($moduleRights);
+                $rows.= wf_TableRow($cells, 'row3');
+                $moduleCount++;
+            }
+        }
+    }
+
+    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+    $result.=__('Total').': '.$moduleCount;
     return ($result);
 }

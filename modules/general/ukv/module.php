@@ -1,5 +1,5 @@
 <?php
-$this->registerModule($module, 'main', __('UKV'), 'nightfly', array(
+$this->registerModule($module, 'main', __('UKV'), 'Nightfly', array(
                                                                     'UKV' => __('right to use UKV TV management'),
                                                                     'UKVREG' => __('right to register UKV users'),
                                                                     'UKVTAR' => __('right to manage UKV tariffs'),

@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Switch replacement', 'Nightfly');
+$this->registerModule($module, 'main', __('Switch replacement'), 'Nightfly');
 ?>

@@ -1,4 +1,4 @@
 <?php
 
-$this->registerModule($module, 'main', 'SQL Console', 'Nightfly', array('SQLCONSOLE' => __('right to use SQL console')));
+$this->registerModule($module, 'main', __('Developer Console'), 'Nightfly', array('SQLCONSOLE' => __('right to use SQL console')));
 ?>

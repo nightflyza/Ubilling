@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('UHW control module'), 'nightfly', array('UHW' => __('right to control UHW usage')));
+$this->registerModule($module, 'main', __('UHW usage log'), 'Nightfly', array('UHW' => __('right to control UHW usage')));
 ?>

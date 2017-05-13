@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Ubilling instant messenger'), 'nightfly', array('UBIM' => __('right to use instant messenger')));
+$this->registerModule($module, 'main', __('Instant messaging service'), 'Nightfly', array('UBIM' => __('right to use instant messenger')));
 ?>

@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('SMS in queue list'), 'nightfly');
+$this->registerModule($module, 'main', __('Messages queue'), 'Nightfly');
 ?>

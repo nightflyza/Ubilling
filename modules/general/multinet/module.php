@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module,  'main',  'Multinet  support',  'Nightfly',  array('MULTINET'  =>  __('right to control networks')));
+$this->registerModule($module,  'main',  __('Networks and services'),  'Nightfly',  array('MULTINET'  =>  __('right to control networks')));
 ?>

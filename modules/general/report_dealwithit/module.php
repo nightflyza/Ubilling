@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Deal with it report'), 'Nightfly');
+$this->registerModule($module, 'main', __('Available Held jobs for all users'), 'Nightfly');
 ?>

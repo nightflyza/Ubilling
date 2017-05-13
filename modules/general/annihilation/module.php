@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('User annihilation'), 'Nightfly', array('ANNIHILATION' => __('right to totally destroy user')));
+$this->registerModule($module, 'main', __('Users annihilation'), 'Nightfly', array('ANNIHILATION' => __('right to totally destroy user')));
 ?>

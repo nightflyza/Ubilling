@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Task bar', 'Nightfly', array('TASKBAR' => __('right to access taskbar')));
+$this->registerModule($module, 'main', __('Taskbar'), 'Nightfly', array('TASKBAR' => __('right to access taskbar')));
 ?>

@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Per tariff arpu report'), 'Nightfly');
+$this->registerModule($module, 'main', __('Tariff lines ARPU report'), 'Nightfly');
 ?>

@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Previous users tickets'), 'Nightfly');
+$this->registerModule($module, 'main', __('Previous user tickets'), 'Nightfly');
 ?>

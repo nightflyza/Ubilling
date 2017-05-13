@@ -1,1 +1,1 @@
-<?php $this->registerModule($module, 'main', 'Salary timesheets', 'nightfly', array('SALARYTSHEETS' => __('right to manage salary timesheets'))); ?>
+<?php $this->registerModule($module, 'main', __('Timesheets'), 'Nightfly', array('SALARYTSHEETS' => __('right to manage salary timesheets'))); ?>

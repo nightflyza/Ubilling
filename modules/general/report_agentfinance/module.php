@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Per agent finance report'), 'Nightfly');
+$this->registerModule($module, 'main', __('Agent payments'), 'Nightfly');
 ?>

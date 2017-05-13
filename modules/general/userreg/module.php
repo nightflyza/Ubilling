@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'User registration', 'Nightfly', array('USERREG' => __('right to register new users')));
+$this->registerModule($module, 'main', __('Users registration'), 'Nightfly', array('USERREG' => __('right to register new users')));
 ?>

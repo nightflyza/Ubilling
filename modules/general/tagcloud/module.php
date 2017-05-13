@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Tagcloud', 'Nightfly');
+$this->registerModule($module, 'main', __('Tag cloud'), 'Nightfly');
 ?>

@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', __('Avarice license keys'), 'Nightfly');
+$this->registerModule($module, 'main', __('License keys'), 'Nightfly');
 ?>

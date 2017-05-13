@@ -1,3 +1,3 @@
 <?php
-$this->registerModule($module, 'main', 'Jobs report', 'Nightfly');
+$this->registerModule($module, 'main', __('Job report'), 'Nightfly');
 ?>

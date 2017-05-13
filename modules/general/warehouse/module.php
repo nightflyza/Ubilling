@@ -1,6 +1,6 @@
 <?php
 
-$this->registerModule($module, 'main', 'Warehouse', 'Nightfly', array(
+$this->registerModule($module, 'main', __('Warehouse'), 'Nightfly', array(
     'WAREHOUSE' => __('right to control warehouse'),
     'WAREHOUSEIN' => __('right to control warehouse income operations'),
     'WAREHOUSEOUT' => __('right to control warehouse outcome operations'),
