@@ -2465,7 +2465,6 @@ $lang['def']['Burst Upload speed'] = 'Burst - скорость отдачи';
 $lang['def']['Burst Download Time speed'] = 'Burst - время загрузки';
 $lang['def']['Burst Upload Time speed'] = 'Burst - время отдачи';
 $lang['def']['Using MySQL PHP extension'] = 'Используемое расширение PHP для работы с MySQL';
-
 $lang['def']['Add VLAN pool'] = 'Добавление пула VLAN-ов';
 $lang['def']['Users annihilation'] = 'Уничтожение пользователей';
 $lang['def']['Edit Anways Online'] = 'Редактирование ВсегдаОнлайн';
