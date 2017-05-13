@@ -1356,6 +1356,7 @@ function ts_TaskModifyForm($taskid) {
         } else {
             $inputs.=wf_HiddenInput('modifystartdate', $taskdata['startdate']);
         }
+
         $inputs.=wf_TimePickerPreset('modifystarttime', $taskdata['starttime'], '', false);
         $inputs.=wf_tag('label') . __('Target date') . wf_tag('sup') . '*' . wf_tag('sup', true) . wf_tag('label', true);
         $inputs.=wf_delimiter();

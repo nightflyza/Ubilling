@@ -1856,19 +1856,25 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
 
 /**
  * Returns calendar widget with preset time
- * 
+ * Based on Jon Thornton's jquery timepicker:   http://jonthornton.github.io/jquery-timepicker
+ *
  * @param string $field field name to insert time select widget
  * @param string $time default value time for widget
+ * @param string $DisabledTimeRanges string which represents time ranges unavailable to pick up, like: "['11:00', '14:05'], ['20:30', '21:00']" and so on
  * @param string $label label of widget
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPreset($field, $time = '', $label = '', $br = false) {
+function wf_TimePickerPreset($field, $time = '', $DisabledTimeRanges = '', $label = '', $br = false) {
     $inputId = wf_InputId();
+
+    if (isset($DisabledTimeRanges)) {
+        $DisabledTimeRanges = ',\'disableTimeRanges\': [ ' . $DisabledTimeRanges . ']';
+    }
 
     $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="5" id="' . $inputId . '"');
     $result.= wf_tag('script');
-    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i\' });';
+    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i\'' . $DisabledTimeRanges . ' });';
     $result.= wf_tag('script', true);
 
     //clickable icon and label
@@ -1886,19 +1892,25 @@ function wf_TimePickerPreset($field, $time = '', $label = '', $br = false) {
 
 /**
  * Returns calendar widget with preset time
- * 
+ * Based on Jon Thornton's jquery timepicker:   http://jonthornton.github.io/jquery-timepicker
+ *
  * @param string $field field name to insert time select widget
  * @param string $time default value time for widget
+ * @param string $DisabledTimeRanges string which represents time ranges unavailable to pick up, like: "['11:00', '14:05'], ['20:30', '21:00']" and so on
  * @param string $label label of widget
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false) {
+function wf_TimePickerPresetSeconds($field, $time = '', $DisabledTimeRanges = '', $label = '', $br = false) {
     $inputId = wf_InputId();
+
+    if (isset($DisabledTimeRanges)) {
+        $DisabledTimeRanges = ',\'disableTimeRanges\': [ ' . $DisabledTimeRanges . ']';
+    }
 
     $result = wf_tag('input', false, '', 'type="text" value="' . $time . '" name="' . $field . '" size="8" id="' . $inputId . '"');
     $result.= wf_tag('script');
-    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i:s\' });';
+    $result.='$(\'#' . $inputId . '\').timepicker({\'scrollDefault\': \'' . $time . '\', \'timeFormat\': \'H:i:s\'' . $DisabledTimeRanges . ' });';
     $result.= wf_tag('script', true);
 
     //clickable icon and label
