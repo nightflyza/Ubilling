@@ -109,7 +109,8 @@ function zb_AddressListCityAllIds() {
  * @return array
  */
 function zb_AddressGetCityAllData() {
-    $altCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $order = (isset($altCfg['CITY_ORDER'])) ? $altCfg['CITY_ORDER'] : 'default';
     $validStates = array('name', 'namerev', 'id', 'idrev', 'alias', 'aliasrev', 'default');
     $validStates = array_flip($validStates);
@@ -1113,7 +1114,8 @@ function zb_AddressGetFulladdresslistCached() {
  * @return array
  */
 function zb_AddressGetFullCityaddresslist() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $result = array();
     $query_full = "
         SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address` 
@@ -1125,7 +1127,7 @@ function zb_AddressGetFullCityaddresslist() {
     if (!empty($full_adress)) {
         foreach ($full_adress as $ArrayData) {
             // zero apt handle
-            if ($alterconf['ZERO_TOLERANCE']) {
+            if ($altCfg['ZERO_TOLERANCE']) {
                 $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' .  $ArrayData['apt'];
             } else {
                 $apartment_filtered = '/' . $ArrayData['apt'];
