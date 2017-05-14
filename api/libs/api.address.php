@@ -1223,7 +1223,7 @@ function zb_AddressGetFullCityaddresslist() {
 function zb_AddressGetCityUsers() {
     $result = array();
     $query_full = "
-        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address` 
+        SELECT `address`.`login`,`city`.`cityname` FROM `address` 
         INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
         INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
         INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
@@ -1247,36 +1247,17 @@ function zb_AddressGetCityUsers() {
  */
 function zb_AddressGetStreetUsers() {
     $result = array();
-    $apts = array();
-    $builds = array();
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zb_AddressGetFullCityNames();
+    $query_full = "
+        SELECT `address`.`login`,`street`.`streetname` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
 
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $streetid = $builds[$apts[$eachaddress['aptid']]['buildid']]['streetid'];
-
-            $result[$eachaddress['login']] = $streets[$streetid]['streetname'];
+            //only street display option
+            $result[$ArrayData['login']] = $ArrayData['streetname'];
         }
     }
 
