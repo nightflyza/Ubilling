@@ -53,7 +53,6 @@ class Reminder {
 	$this->loadAlter();
 	$this->LoadAllTemplates();
 	$this->LoadRemindLogin();
-	//$this->LoadPhones();
 	$this->sms	 = new UbillingSMS();
 	$this->money	 = new FundsFlow();
 	$this->money->runDataLoders();
@@ -67,14 +66,10 @@ class Reminder {
     protected function LoadRemindLogin() {
 	if (isset($this->AltCfg['REMINDER_TAGID'])) {
 	    $tagid	 = vf($this->AltCfg['REMINDER_TAGID'], 3);
-	    $query	 = "SELECT `users`.`login` FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login LEFT JOIN `users` USING (`login`) WHERE `users`.`Passive`!='1'";
-	    /*$query	 = "
-	        SELECT `users`.`login`,`phones`.`mobile` 
-	        FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
-	        INNER JOIN `users` USING (`login`) 
-	        INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` WHERE mobile <> '' ) `phones` 
-	        USING (`login`) 
-	        WHERE `users`.`Passive`!='1'";*/
+	    $query	 = "
+	                SELECT `users`.`login` FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
+	                LEFT JOIN `users` USING (`login`) WHERE `users`.`Passive`!='1'
+	                ";
 	    $tmp	 = simple_queryall($query);
 	    if (!empty($tmp)) {
 		$this->AllLogin = $tmp;
