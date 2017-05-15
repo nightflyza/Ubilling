@@ -28,14 +28,24 @@
 
         private function connect() {
             if ( !empty($this->config) ) {
-                $this->identifier = mysql_connect($this->config['hostname'], $this->config['username'], $this->config['password']);
-                if ( $this->identifier ) {
-                    if ( mysql_select_db($this->config['database'], $this->identifier) ) {
+                if (extension_loaded('mysqli')) {
+                    $this->identifier = new mysqli($this->config['hostname'], $this->config['username'], $this->config['password'], $this->config['database']);
+                    if ($this->identifier->connect_error) {
+                        $this->log->message(__CLASS__, 'Connection error (' . $this->identifier->connect_errno . ') ' . $this->identifier->connect_error, 'error');
+                    } else {
                         $this->connected = TRUE;
-                        $this->log->message(__CLASS__, "Connection with database is established...", 'debug');
-                    } else $this->log->message(__CLASS__, "Can't select database, name is incorrect!", 'error');
-                    return $this->connected;
-                } else $this->log->message(__CLASS__, "Can't connect to database, authorization data wrong or server halted!", 'error');
+                        return $this->connected;
+                    }
+                } else {
+                    $this->identifier = mysql_connect($this->config['hostname'], $this->config['username'], $this->config['password']);
+                    if ( $this->identifier ) {
+                        if ( mysql_select_db($this->config['database'], $this->identifier) ) {
+                            $this->connected = TRUE;
+                            $this->log->message(__CLASS__, "Connection with database is established...", 'debug');
+                        } else $this->log->message(__CLASS__, "Can't select database, name is incorrect!", 'error');
+                        return $this->connected;
+                    } else $this->log->message(__CLASS__, "Can't connect to database, authorization data wrong or server halted!", 'error');
+                }
             } else $this->log->message(__CLASS__, "Can't connect to database, no configurations data!", 'error');
         }
 
@@ -52,10 +62,18 @@
             $queryID = md5($query);
             if ( !array_key_exists($queryID, $this->cache) ) {
                 $this->log->message(__CLASS__, "Query -> " . $query, 'debug');
-                $result = mysql_query($query, $this->identifier);
-                $this->qc++;
-                while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
-                    $this->cache[$queryID][] = $row;
+                if (extension_loaded('mysqli')) {
+                    $result = $this->identifier->query($query);
+                    $this->qc++;
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        $this->cache[$queryID][] = $row;
+                    }
+                } else {
+                    $result = mysql_query($query, $this->identifier);
+                    $this->qc++;
+                    while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
+                        $this->cache[$queryID][] = $row;
+                    }
                 }
             } else $this->log->message(__CLASS__, "Cashe -> " . $query, 'debug');
             return $this->cache[$queryID];
