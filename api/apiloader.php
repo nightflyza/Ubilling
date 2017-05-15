@@ -98,6 +98,7 @@ include('api/libs/api.selling.php');
 include('api/libs/api.printcard.php');
 include('api/libs/api.generatecard.php');
 include('api/vendor/fpdf/fpdf.php');
+include ('api/libs/api.updates.php');
 
 
 /*

@@ -2534,7 +2534,7 @@ $lang['def']['Tasks manager'] = 'Планировщик задач';
 $lang['def']['User traffic stats'] = 'Статистика по траффику пользователя';
 $lang['def']['UHW usage log'] = 'Журнал использования UHW';
 $lang['def']['Loaded modules'] = 'Загруженные модули';
-$lang['def'][''] = '';
+$lang['def']['Update manager'] = 'Менеджер обновлений';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
