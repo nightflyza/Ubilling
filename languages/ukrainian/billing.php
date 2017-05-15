@@ -2552,5 +2552,6 @@ $lang['def']['Loaded modules'] = 'Завантажені модулі';
 $lang['def']['Update manager'] = 'Менеджер оновлень';
 $lang['def']['Ubilling release'] = 'Реліз Ubilling';
 $lang['def']['Release notes'] = 'Рекомендації до оновлення';
+$lang['def']['Apply'] = 'Застосувати';
 
 ?>

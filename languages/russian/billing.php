@@ -2537,7 +2537,7 @@ $lang['def']['Loaded modules'] = 'Загруженные модули';
 $lang['def']['Update manager'] = 'Менеджер обновлений';
 $lang['def']['Ubilling release'] = 'Релиз Ubilling';
 $lang['def']['Release notes'] = 'Рекомендации к обновлению';
-$lang['def'][''] = '';
+$lang['def']['Apply'] = 'Применить';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

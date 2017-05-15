@@ -97,9 +97,10 @@ class UbillingUpdateManager {
             foreach ($this->allDumps as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
                 $relnotesLink = wf_Link($relnotesUrl, __('Release notes') . ' ' . $release, false, '');
+                $actLink = wf_Link(self::URL_ME . '&applysql=' . $release, wf_img('skins/icon_restoredb.png',__('Apply')), false, '');
                 $cells = wf_TableCell($release);
                 $cells.= wf_TableCell($relnotesLink);
-                $cells.= wf_TableCell(__('Actions'));
+                $cells.= wf_TableCell($actLink);
                 $rows.= wf_TableRow($cells, 'row5');
             }
 
