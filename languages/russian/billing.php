@@ -2535,6 +2535,9 @@ $lang['def']['User traffic stats'] = 'Статистика по траффику
 $lang['def']['UHW usage log'] = 'Журнал использования UHW';
 $lang['def']['Loaded modules'] = 'Загруженные модули';
 $lang['def']['Update manager'] = 'Менеджер обновлений';
+$lang['def']['Ubilling release'] = 'Релиз Ubilling';
+$lang['def']['Release notes'] = 'Рекомендации к обновлению';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

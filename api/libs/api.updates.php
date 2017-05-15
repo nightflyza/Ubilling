@@ -30,7 +30,9 @@ class UbillingUpdateManager {
      */
     protected $allDumps = array();
 
-    const DUMPS_PATH = 'content/updates/sql';
+    const DUMPS_PATH = 'content/updates/sql/';
+    const URL_ME = '?module=updatemanager';
+    const URL_RELNOTES = 'http://wiki.ubilling.net.ua/doku.php?id=relnotes#section';
 
     /**
      * Creates new update manager instance
@@ -39,6 +41,7 @@ class UbillingUpdateManager {
      */
     public function __construct() {
         $this->loadConfigs();
+        $this->initMessages();
         $this->loadDumps();
     }
 
@@ -56,6 +59,15 @@ class UbillingUpdateManager {
     }
 
     /**
+     * Inits system messages helper object instance
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
      * Loads available mysql dumps filenames into protected prop
      * 
      * @return void
@@ -68,6 +80,34 @@ class UbillingUpdateManager {
                 $this->allDumps[$release] = $each;
             }
         }
+    }
+
+    /**
+     * Renders list of sql dumps available for applying
+     * 
+     * @return string
+     */
+    public function renderSqlDumpsList() {
+        $result = '';
+        if (!empty($this->allDumps)) {
+            $cells = wf_TableCell(__('Ubilling release'));
+            $cells.= wf_TableCell(__('Details'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allDumps as $release => $filename) {
+                $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
+                $relnotesLink = wf_Link($relnotesUrl, __('Release notes') . ' ' . $release, false, '');
+                $cells = wf_TableCell($release);
+                $cells.= wf_TableCell($relnotesLink);
+                $cells.= wf_TableCell(__('Actions'));
+                $rows.= wf_TableRow($cells, 'row5');
+            }
+
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+        return ($result);
     }
 
 }
