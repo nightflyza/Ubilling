@@ -24,7 +24,7 @@ class UbillingUpdateManager {
     protected $messages = '';
 
     /**
-     * Available mysql dumps for apply
+     * Available mysql dumps for apply as release=>filename
      *
      * @var array
      */
@@ -61,8 +61,13 @@ class UbillingUpdateManager {
      * @return void
      */
     protected function loadDumps() {
-        $this->allDumps = rcms_scandir(self::DUMPS_PATH, '*.sql');
-        debarr($this->allDumps);
+        $dumpsTmp = rcms_scandir(self::DUMPS_PATH, '*.sql');
+        if (!empty($dumpsTmp)) {
+            foreach ($dumpsTmp as $io => $each) {
+                $release = str_replace('.sql', '', $each);
+                $this->allDumps[$release] = $each;
+            }
+        }
     }
 
 }
