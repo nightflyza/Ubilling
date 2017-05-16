@@ -70,7 +70,7 @@ class Reminder {
 	    	    SELECT `users`.`login`,`phones`.`mobile` 
 	    	    FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
 	    	    INNER JOIN `users` USING (`login`) 
-	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` WHERE mobile <> '' ) `phones` 
+	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones`) `phones` 
 	    	    USING (`login`) 
 	    	    WHERE `users`.`Passive`!='1'";
 	    $tmp	 = simple_queryall($query);
@@ -114,6 +114,7 @@ class Reminder {
 		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
 		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
 			$number = $userLoginData['mobile'];
+			if (!empty($number)) {
 			    $number		 = trim($number);
 			    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 			    $number		 = vf($number, 3);
@@ -126,6 +127,9 @@ class Reminder {
 				    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
 				}
 			    }
+			} else {
+			    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
+			}
 		    }
 		} elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
 		    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');
@@ -148,7 +152,9 @@ class Reminder {
 
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
+
 		$number = $userLoginData['mobile'];
+		if (!empty($number)) {
 		    $number		 = trim($number);
 		    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 		    $number		 = vf($number, 3);
@@ -161,6 +167,9 @@ class Reminder {
 			    log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
 			}
 		    }
+		} else {
+		    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
+		}
 	}
     }
 
