@@ -127,9 +127,6 @@ class Reminder {
 				    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
 				}
 			    }
-			} else {
-			    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
-			}
 		    }
 		} elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
 		    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');

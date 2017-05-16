@@ -1,9 +1,0 @@
-# detect correct NAS ip by user login
-NASIP=`/etc/stargazer/GetSpeed ${LOGIN}`
-
-#arp cleanup
-/etc/stargazer/mk_push ${NASIP} "/ip arp remove [find comment=${LOGIN}]"
-#second way: /ip arp set static ${IP} 00:00:00:00:00:00 comment=${LOGIN}
-
-#delete shape queue
-/etc/stargazer/mk_push ${NASIP} "/queue simple remove [find name=${LOGIN}]"
