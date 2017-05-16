@@ -1,4 +1,0 @@
-host = localhost
-username = mylogin
-password = newpassword
-database = stg

@@ -10,7 +10,7 @@ if (cfr('UHW')) {
     if (!wf_CheckGet(array('showbrute'))) {
         //json reply
         if (wf_CheckGet(array('ajax'))) {
-            die($uhw->ajaxGetData());
+            $uhw->ajaxGetData();
         }
         //list all UHW usage list
         show_window(__('UHW successful log'), $uhw->renderUsageList());

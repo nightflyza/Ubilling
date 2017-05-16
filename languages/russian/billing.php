@@ -2534,7 +2534,10 @@ $lang['def']['Tasks manager'] = 'Планировщик задач';
 $lang['def']['User traffic stats'] = 'Статистика по траффику пользователя';
 $lang['def']['UHW usage log'] = 'Журнал использования UHW';
 $lang['def']['Loaded modules'] = 'Загруженные модули';
-$lang['def'][''] = '';
+$lang['def']['Update manager'] = 'Менеджер обновлений';
+$lang['def']['Ubilling release'] = 'Релиз Ubilling';
+$lang['def']['Release notes'] = 'Рекомендации к обновлению';
+$lang['def']['Apply'] = 'Применить';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
