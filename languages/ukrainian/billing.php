@@ -2555,5 +2555,7 @@ $lang['def']['Release notes'] = 'Рекомендації до оновленн�
 $lang['def']['Apply'] = 'Застосувати';
 $lang['def']['Wrong release'] = 'Невірний реліз';
 $lang['def']['MySQL dump applying result below'] = 'Результат застосування дампу MySQL нижче';
+$lang['def']['Apply changes for Ubilling release'] = 'Застосувати зміни для релізу Ubilling';
+
 
 ?>
