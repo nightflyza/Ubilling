@@ -70,7 +70,7 @@ class Reminder {
 	    	    SELECT `users`.`login`,`phones`.`mobile` 
 	    	    FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
 	    	    INNER JOIN `users` USING (`login`) 
-	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` WHERE mobile <> '' ) `phones` 
+	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` ) `phones` 
 	    	    USING (`login`) 
 	    	    WHERE `users`.`Passive`!='1'";
 	    $tmp	 = simple_queryall($query);
@@ -78,15 +78,6 @@ class Reminder {
 		$this->AllLogin = $tmp;
 	    }
 	}
-    }
-
-    /**
-     * load all available phones + mobile
-     * 
-     * @return void
-     */
-    protected function LoadPhones() {
-	$this->AllPhones = zb_UserGetAllPhoneData();
     }
 
     /**
@@ -122,7 +113,7 @@ class Reminder {
 	    $eachLogin = $userLoginData['login'];
 		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
 		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
-			$number = $this->AllPhones[$eachLogin]['mobile'];
+			$number = $userLoginData['mobile'];
 			if (!empty($number)) {
 			    $number		 = trim($number);
 			    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
@@ -162,7 +153,7 @@ class Reminder {
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
 
-		$number = $this->AllPhones[$eachLogin]['mobile'];
+		$number = $userLoginData['mobile'];
 		if (!empty($number)) {
 		    $number		 = trim($number);
 		    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
