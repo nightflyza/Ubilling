@@ -2553,5 +2553,6 @@ $lang['def']['Update manager'] = 'Менеджер оновлень';
 $lang['def']['Ubilling release'] = 'Реліз Ubilling';
 $lang['def']['Release notes'] = 'Рекомендації до оновлення';
 $lang['def']['Apply'] = 'Застосувати';
+$lang['def']['Wrong release'] = 'Невірний реліз';
 
 ?>

@@ -163,7 +163,6 @@ if (cfr('BACKUP')) {
                                 show_window('', wf_BackLink('?module=backups', __('Back'), true, 'ubButton'));
                             } else {
                                 $restoreCommand = $alterConf['MYSQL_PATH'] . ' -u ' . $mysqlConf['username'] . ' -p' . $mysqlConf['password'] . ' ' . $mysqlConf['db'] . ' --default-character-set=utf8 < ' . $restoreFilename;
-                                //show_window(__('Debug'),$restoreCommand);
                                 show_window(__('Result'), shell_exec($restoreCommand));
                             }
                         } else {

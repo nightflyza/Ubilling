@@ -32,7 +32,7 @@ class UbillingUpdateManager {
 
     const DUMPS_PATH = 'content/updates/sql/';
     const URL_ME = '?module=updatemanager';
-    const URL_RELNOTES = 'http://wiki.ubilling.net.ua/doku.php?id=relnotes#section';
+    const URL_RELNOTES = 'wiki.ubilling.net.ua/doku.php?id=relnotes#section';
 
     /**
      * Creates new update manager instance
@@ -96,8 +96,8 @@ class UbillingUpdateManager {
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDumps as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
-                $relnotesLink = wf_Link($relnotesUrl, __('Release notes') . ' ' . $release, false, '');
-                $actLink = wf_Link(self::URL_ME . '&applysql=' . $release, wf_img('skins/icon_restoredb.png',__('Apply')), false, '');
+                $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '');
+                $actLink = wf_Link(self::URL_ME . '&applysql=' . $release, wf_img('skins/icon_restoredb.png', __('Apply')), false, '');
                 $cells = wf_TableCell($release);
                 $cells.= wf_TableCell($relnotesLink);
                 $cells.= wf_TableCell($actLink);
@@ -111,5 +111,31 @@ class UbillingUpdateManager {
         return ($result);
     }
 
+    /**
+     * Applies mysql dump to current database
+     * 
+     * @param string $release
+     * 
+     * @return string
+     */
+    public function applyMysqlDump($release) {
+        $result = '';
+        $release = trim($release);
+        $release = vf($release);
+        if (isset($this->allDumps[$release])) {
+            if (wf_CheckGet(array('confirm'))) {
+                $fileName = self::DUMPS_PATH . $this->allDumps[$release];
+                $applyCommand = $this->altCfg['MYSQL_PATH'] . ' -u ' . $this->mySqlCfg['username'] . ' -p' . $this->mySqlCfg['password'] . ' ' . $this->mySqlCfg['db'] . ' --default-character-set=utf8 < ' . $fileName;
+                $result = wf_tag('pre') . shell_exec($applyCommand) . wf_tag('pre', true);
+            } else {
+                
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('Wrong release'), 'error');
+        }
+        return ($result);
+    }
+
 }
+
 ?>
