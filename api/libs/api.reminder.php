@@ -81,15 +81,6 @@ class Reminder {
     }
 
     /**
-     * load all available phones + mobile
-     * 
-     * @return void
-     */
-    protected function LoadPhones() {
-	$this->AllPhones = zb_UserGetAllPhoneData();
-    }
-
-    /**
      * load alter.ini config     
      * 
      * @return void
@@ -122,8 +113,7 @@ class Reminder {
 	    $eachLogin = $userLoginData['login'];
 		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
 		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
-			$number = $this->AllPhones[$eachLogin]['mobile'];
-			if (!empty($number)) {
+			$number = $userLoginData['mobile'];
 			    $number		 = trim($number);
 			    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 			    $number		 = vf($number, 3);
@@ -136,9 +126,6 @@ class Reminder {
 				    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
 				}
 			    }
-			} else {
-			    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
-			}
 		    }
 		} elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
 		    log_register('REMINDER IGNORE FREE TARIFF (' . $eachLogin . ')');
@@ -161,9 +148,7 @@ class Reminder {
 
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
-
-		$number = $this->AllPhones[$eachLogin]['mobile'];
-		if (!empty($number)) {
+		$number = $userLoginData['mobile'];
 		    $number		 = trim($number);
 		    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 		    $number		 = vf($number, 3);
@@ -176,9 +161,6 @@ class Reminder {
 			    log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
 			}
 		    }
-		} else {
-		    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
-		}
 	}
     }
 
