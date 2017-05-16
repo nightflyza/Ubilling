@@ -2541,7 +2541,11 @@ $lang['def']['Apply'] = 'Применить';
 $lang['def']['Wrong release'] = 'Неправильный релиз';
 $lang['def']['MySQL dump applying result below'] = 'Результат применения дампа MySQL ниже';
 $lang['def']['Apply changes for Ubilling release'] = 'Применить изменения для релиза Ubilling';
+$lang['def']['MySQL database schema update'] = 'Обновление схемы базы данных MySQL';
+$lang['def']['Caution: these changes can not be undone.'] = 'Осторожно: эти изменения нельзя будет отменить.';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 
 
