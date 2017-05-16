@@ -5,7 +5,8 @@ if (cfr('ROOT')) {
     $updateManager = new UbillingUpdateManager();
 
     if (!wf_CheckGet(array('applysql'))) {
-        show_window(__('Update manager'), $updateManager->renderSqlDumpsList());
+        show_window(__('MySQL database schema updates'), $updateManager->renderSqlDumpsList());
+        show_window(__('Configuration files updates'), $updateManager->renderConfigsList());
     } else {
         $releaseNum = $_GET['applysql'];
         show_window(__('MySQL database schema update'), $updateManager->applyMysqlDump($releaseNum));

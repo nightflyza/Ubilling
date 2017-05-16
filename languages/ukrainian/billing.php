@@ -2558,6 +2558,8 @@ $lang['def']['MySQL dump applying result below'] = 'Результат заст�
 $lang['def']['Apply changes for Ubilling release'] = 'Застосувати зміни для релізу Ubilling';
 $lang['def']['MySQL database schema update'] = 'Оновлення схеми бази даних MySQL';
 $lang['def']['Caution: these changes can not be undone.'] = 'Обережно: ці зміни не можна буде скасувати.';
-
+$lang['def']['MySQL database schema updates'] = 'Оновлення схеми бази даних MySQL';
+$lang['def']['Configuration files updates'] = 'Оновлення файлів конфігурації';
+$lang['def']['Files'] = 'Файли';
 
 ?>
