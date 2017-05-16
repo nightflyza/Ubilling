@@ -24,13 +24,6 @@ class Reminder {
     protected $AllPhones = array();
 
     /**
-     * Contains all frozen users
-     * 
-     * @var array
-     */
-    protected $AllPassive = array();
-
-    /**
      * Placeholder for UbillingSMS object
      *
      * @var object
@@ -60,8 +53,6 @@ class Reminder {
 	$this->loadAlter();
 	$this->LoadAllTemplates();
 	$this->LoadRemindLogin();
-	$this->LoadPhones();
-	$this->LoadPassive();
 	$this->sms	 = new UbillingSMS();
 	$this->money	 = new FundsFlow();
 	$this->money->runDataLoders();
@@ -75,7 +66,13 @@ class Reminder {
     protected function LoadRemindLogin() {
 	if (isset($this->AltCfg['REMINDER_TAGID'])) {
 	    $tagid	 = vf($this->AltCfg['REMINDER_TAGID'], 3);
-	    $query	 = "SELECT `login` FROM `tags` WHERE `tagid`='" . $tagid . "'";
+	    $query	 = "
+	    	    SELECT `users`.`login`,`phones`.`mobile` 
+	    	    FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
+	    	    INNER JOIN `users` USING (`login`) 
+	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` WHERE mobile <> '' ) `phones` 
+	    	    USING (`login`) 
+	    	    WHERE `users`.`Passive`!='1'";
 	    $tmp	 = simple_queryall($query);
 	    if (!empty($tmp)) {
 		$this->AllLogin = $tmp;
@@ -112,40 +109,6 @@ class Reminder {
     }
 
     /**
-     * Loads all of passive aka frozen users from database
-     *
-     * @return void
-     */
-    protected function LoadPassive() {
-	$query	 = "SELECT `login` FROM `users` WHERE `Passive`=1";
-	$data	 = simple_queryall($query);
-	if (!empty($data)) {
-	    foreach ($data as $each) {
-		$this->AllPassive[] = $each['login'];
-	    }
-	}
-    }
-
-    /**
-     * Check is user frozen or not?
-     * 
-     * @param string $login
-     * 
-     * @return bool
-     */
-    protected function FilterPassive($login) {
-	if (!empty($this->AllPassive)) {
-	    foreach ($this->AllPassive as $each) {
-		if ($each == $login) {
-		    return(true);
-		} else {
-		    return(false);
-		}
-	    }
-	}
-    }
-
-    /**
      * Make queue for sms send
      * 
      * @return void
@@ -157,7 +120,6 @@ class Reminder {
 
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
-	    if (!$this->FilterPassive($eachLogin)) {
 		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
 		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
 			$number = $this->AllPhones[$eachLogin]['mobile'];
@@ -187,7 +149,6 @@ class Reminder {
 			}
 		    }
 		}
-	    }
 	}
     }
 
@@ -200,7 +161,6 @@ class Reminder {
 
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
-	    if (!$this->FilterPassive($eachLogin)) {
 
 		$number = $this->AllPhones[$eachLogin]['mobile'];
 		if (!empty($number)) {
@@ -219,7 +179,6 @@ class Reminder {
 		} else {
 		    log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
 		}
-	    }
 	}
     }
 
