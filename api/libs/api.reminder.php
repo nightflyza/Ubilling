@@ -70,7 +70,7 @@ class Reminder {
 	    	    SELECT `users`.`login`,`phones`.`mobile` 
 	    	    FROM (SELECT `tags`.`login` FROM `tags` where tags.tagid='" . $tagid . "') as t_login 
 	    	    INNER JOIN `users` USING (`login`) 
-	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones` ) `phones` 
+	    	    INNER JOIN (SELECT `phones`.`login`,`phones`.`mobile` FROM `phones`) `phones` 
 	    	    USING (`login`) 
 	    	    WHERE `users`.`Passive`!='1'";
 	    $tmp	 = simple_queryall($query);

@@ -109,7 +109,8 @@ function zb_AddressListCityAllIds() {
  * @return array
  */
 function zb_AddressGetCityAllData() {
-    $altCfg = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $order = (isset($altCfg['CITY_ORDER'])) ? $altCfg['CITY_ORDER'] : 'default';
     $validStates = array('name', 'namerev', 'id', 'idrev', 'alias', 'aliasrev', 'default');
     $validStates = array_flip($validStates);
@@ -1033,55 +1034,29 @@ function web_CityEditForm($cityid) {
  * @return array
  */
 function zb_AddressGetFulladdresslist() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $result = array();
-    $apts = array();
-    $builds = array();
-    $city_q = "SELECT * from `city`";
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zb_AddressGetFullCityNames();
-
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $apartment = $apts[$eachaddress['aptid']]['apt'];
-            $building = $builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
-            $streetname = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
-            $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
             // zero apt handle
-            if ($alterconf['ZERO_TOLERANCE']) {
-                if ($apartment == 0) {
-                    $apartment_filtered = '';
-                } else {
-                    $apartment_filtered = '/' . $apartment;
-                }
+            if ($altCfg['ZERO_TOLERANCE']) {
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' .  $ArrayData['apt'];
             } else {
-                $apartment_filtered = '/' . $apartment;
+                $apartment_filtered = '/' . $ArrayData['apt'];
             }
 
-            if (!$alterconf['CITY_DISPLAY']) {
-                $result[$eachaddress['login']] = $streetname . ' ' . $building . $apartment_filtered;
+            if (!$altCfg['CITY_DISPLAY']) {
+                $result[$ArrayData['login']] = $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
             } else {
-                $result[$eachaddress['login']] = $cities[$cityid] . ' ' . $streetname . ' ' . $building . $apartment_filtered;
+                $result[$ArrayData['login']] = $ArrayData['cityname'] . ' ' . $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
             }
         }
     }
@@ -1126,57 +1101,7 @@ function zb_AddressGetFulladdresslistCached() {
         return ($result);
     } else {
 //processing address extracting and store to cache
-        $result = array();
-        $apts = array();
-        $builds = array();
-        $city_q = "SELECT * from `city`";
-        $adrz_q = "SELECT * from `address`";
-        $apt_q = "SELECT * from `apt`";
-        $build_q = "SELECT * from build";
-        $streets_q = "SELECT * from `street`";
-        $alladdrz = simple_queryall($adrz_q);
-        $allapt = simple_queryall($apt_q);
-        $allbuilds = simple_queryall($build_q);
-        $allstreets = simple_queryall($streets_q);
-        if (!empty($alladdrz)) {
-            $cities = zb_AddressGetFullCityNames();
-
-            foreach ($alladdrz as $io1 => $eachaddress) {
-                $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-            }
-            foreach ($allapt as $io2 => $eachapt) {
-                $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-            }
-            foreach ($allbuilds as $io3 => $eachbuild) {
-                $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-            }
-            foreach ($allstreets as $io4 => $eachstreet) {
-                $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-            }
-
-            foreach ($address as $io5 => $eachaddress) {
-                $apartment = $apts[$eachaddress['aptid']]['apt'];
-                $building = $builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
-                $streetname = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
-                $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
-                // zero apt handle
-                if ($alterconf['ZERO_TOLERANCE']) {
-                    if ($apartment == 0) {
-                        $apartment_filtered = '';
-                    } else {
-                        $apartment_filtered = '/' . $apartment;
-                    }
-                } else {
-                    $apartment_filtered = '/' . $apartment;
-                }
-
-                if (!$alterconf['CITY_DISPLAY']) {
-                    $result[$eachaddress['login']] = $streetname . ' ' . $building . $apartment_filtered;
-                } else {
-                    $result[$eachaddress['login']] = $cities[$cityid] . ' ' . $streetname . ' ' . $building . $apartment_filtered;
-                }
-            }
-        }
+        $result = zb_AddressGetFulladdresslist();
         $newCacheData = serialize($result);
         file_put_contents($cacheName, $newCacheData);
         return($result);
@@ -1189,53 +1114,27 @@ function zb_AddressGetFulladdresslistCached() {
  * @return array
  */
 function zb_AddressGetFullCityaddresslist() {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $result = array();
-    $apts = array();
-    $builds = array();
-    $city_q = "SELECT * from `city`";
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zb_AddressGetFullCityNames();
-
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $apartment = $apts[$eachaddress['aptid']]['apt'];
-            $building = $builds[$apts[$eachaddress['aptid']]['buildid']]['buildnum'];
-            $streetname = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['streetname'];
-            $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname`,`street`.`streetname`,`build`.`buildnum`,`apt`.`apt` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
             // zero apt handle
-            if ($alterconf['ZERO_TOLERANCE']) {
-                if ($apartment == 0) {
-                    $apartment_filtered = '';
-                } else {
-                    $apartment_filtered = '/' . $apartment;
-                }
+            if ($altCfg['ZERO_TOLERANCE']) {
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' .  $ArrayData['apt'];
             } else {
-                $apartment_filtered = '/' . $apartment;
+                $apartment_filtered = '/' . $ArrayData['apt'];
             }
 
             //only city display option
-            $result[$eachaddress['login']] = $cities[$cityid] . ' ' . $streetname . ' ' . $building . $apartment_filtered;
+            $result[$ArrayData['login']] = $ArrayData['cityname'] . ' ' . $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
         }
     }
 
@@ -1249,37 +1148,18 @@ function zb_AddressGetFullCityaddresslist() {
  */
 function zb_AddressGetCityUsers() {
     $result = array();
-    $apts = array();
-    $builds = array();
-    $city_q = "SELECT * from `city`";
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zb_AddressGetFullCityNames();
+    $query_full = "
+        SELECT `address`.`login`,`city`.`cityname` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id` 
+        INNER JOIN `city` ON `street`.`cityid`=`city`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
 
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $cityid = $streets[$builds[$apts[$eachaddress['aptid']]['buildid']]['streetid']]['cityid'];
-
-            $result[$eachaddress['login']] = $cities[$cityid];
+            //only city display option
+            $result[$ArrayData['login']] = $ArrayData['cityname'];
         }
     }
 
@@ -1293,36 +1173,17 @@ function zb_AddressGetCityUsers() {
  */
 function zb_AddressGetStreetUsers() {
     $result = array();
-    $apts = array();
-    $builds = array();
-    $adrz_q = "SELECT * from `address`";
-    $apt_q = "SELECT * from `apt`";
-    $build_q = "SELECT * from build";
-    $streets_q = "SELECT * from `street`";
-    $alladdrz = simple_queryall($adrz_q);
-    $allapt = simple_queryall($apt_q);
-    $allbuilds = simple_queryall($build_q);
-    $allstreets = simple_queryall($streets_q);
-    if (!empty($alladdrz)) {
-        $cities = zb_AddressGetFullCityNames();
+    $query_full = "
+        SELECT `address`.`login`,`street`.`streetname` FROM `address` 
+        INNER JOIN `apt` ON `address`.`aptid`= `apt`.`id` 
+        INNER JOIN `build` ON `apt`.`buildid`=`build`.`id` 
+        INNER JOIN `street` ON `build`.`streetid`=`street`.`id`";
+    $full_adress = simple_queryall($query_full);
+    if (!empty($full_adress)) {
+        foreach ($full_adress as $ArrayData) {
 
-        foreach ($alladdrz as $io1 => $eachaddress) {
-            $address[$eachaddress['id']] = array('login' => $eachaddress['login'], 'aptid' => $eachaddress['aptid']);
-        }
-        foreach ($allapt as $io2 => $eachapt) {
-            $apts[$eachapt['id']] = array('apt' => $eachapt['apt'], 'buildid' => $eachapt['buildid']);
-        }
-        foreach ($allbuilds as $io3 => $eachbuild) {
-            $builds[$eachbuild['id']] = array('buildnum' => $eachbuild['buildnum'], 'streetid' => $eachbuild['streetid']);
-        }
-        foreach ($allstreets as $io4 => $eachstreet) {
-            $streets[$eachstreet['id']] = array('streetname' => $eachstreet['streetname'], 'cityid' => $eachstreet['cityid']);
-        }
-
-        foreach ($address as $io5 => $eachaddress) {
-            $streetid = $builds[$apts[$eachaddress['aptid']]['buildid']]['streetid'];
-
-            $result[$eachaddress['login']] = $streets[$streetid]['streetname'];
+            //only street display option
+            $result[$ArrayData['login']] = $ArrayData['streetname'];
         }
     }
 

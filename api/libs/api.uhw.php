@@ -16,56 +16,37 @@ class UHW {
     /**
      * Returns JSON reply for jquery datatables with full list of available UHW usages
      * 
-     * @return string
+     * @return void
      */
     public function ajaxGetData() {
         $query = "SELECT * from `uhw_log` ORDER by `id` DESC;";
         $alluhw = simple_queryall($query);
         $alladdress = zb_AddressGetFulladdresslist();
         $allrealnames = zb_UserGetAllRealnames();
-
-        $result = '{ 
-                  "aaData": [ ';
+        $json = new wf_JqDtHelper();
 
         if (!empty($alluhw)) {
             foreach ($alluhw as $io => $each) {
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false);
-                $profileLink = str_replace('"', '', $profileLink);
-                $profileLink = str_replace("'", '', $profileLink);
-                $profileLink = trim($profileLink);
-
                 $userAddress = @$alladdress[$each['login']];
-                $userAddress = str_replace("'", '`', $userAddress);
-                $userAddress = str_replace('"', '``', $userAddress);
-                $userAddress = trim($userAddress);
-
                 $userRealname = @$allrealnames[$each['login']];
-                $userRealname = str_replace("'", '`', $userRealname);
-                $userRealname = str_replace('"', '``', $userRealname);
-                $userRealname = trim($userRealname);
 
-                $result.='
-                    [
-                    "' . $each['id'] . '",
-                    "' . $each['date'] . '",
-                    "' . $each['password'] . '",
-                    "' . $profileLink . '",
-                    "' . $userAddress . '",
-                    "' . $userRealname . '",
-                    "' . $each['ip'] . '",
-                    "' . $each['nhid'] . '",
-                    "' . $each['oldmac'] . '",
-                    "' . $each['newmac'] . '"
-                    ],';
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = $each['password'];
+                $data[] = $profileLink;
+                $data[] = $userAddress;
+                $data[] = $userRealname;
+                $data[] = $each['ip'];
+                $data[] = $each['nhid'];
+                $data[] = $each['oldmac'];
+                $data[] = $each['newmac'];
+                $json->addRow($data);
+                unset($data);
             }
         }
 
-        $result = substr($result, 0, -1);
-
-        $result.='] 
-        }';
-
-        return ($result);
+        $json->getJson();
     }
 
     /**

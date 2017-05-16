@@ -19,7 +19,7 @@ if (cfr('BUILDS')) {
                        }
                    }
                    if (!in_array(strtolower_utf8($_POST['newbuildnum']), $existingBuilds)) {
-                       zb_AddressCreateBuild($streetid, $_POST['newbuildnum']);
+                       zb_AddressCreateBuild($streetid, trim($_POST['newbuildnum']));
                    } else {
                        show_error(__('The same build already exists'));
                    }
@@ -52,10 +52,10 @@ if (cfr('BUILDS')) {
            //build edit subroutine
            if (isset($_POST['editbuildnum'])) {
                if (!empty($_POST['editbuildnum'])) {
-               simple_update_field('build', 'buildnum', $_POST['editbuildnum'], "WHERE `id`='".$buildid."'");
-               simple_update_field('build', 'geo', $_POST['editbuildgeo'], "WHERE `id`='".$buildid."'");
+               simple_update_field('build', 'buildnum', trim($_POST['editbuildnum']), "WHERE `id`='".$buildid."'");
+               simple_update_field('build', 'geo', preg_replace('/[^0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='".$buildid."'");
                }
-               log_register("CHANGE AddressBuild [".$buildid."] ".  mysql_real_escape_string($_POST['editbuildnum']));
+               log_register("CHANGE AddressBuild [".$buildid."] ".  mysql_real_escape_string(trim($_POST['editbuildnum'])));
                rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
            }
                

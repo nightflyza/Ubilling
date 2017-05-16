@@ -1,5 +1,0 @@
-#!/bin/sh
-NASIP=$1
-COMMAND=$2
-
-ssh -l ubilling  -i /etc/stargazer/dsakey.ubilling  ${NASIP}  "${COMMAND}"
