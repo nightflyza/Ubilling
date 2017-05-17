@@ -114,6 +114,7 @@ class Reminder {
 		if ($this->money->getOnlineLeftCountFast($eachLogin) <= $LiveDays AND $this->money->getOnlineLeftCountFast($eachLogin) >= 0) {
 		    if (!file_exists(self::FLAGPREFIX . $eachLogin)) {
 			$number = $userLoginData['mobile'];
+			if (!empty($number)) {
 			    $number		 = trim($number);
 			    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 			    $number		 = vf($number, 3);
@@ -125,6 +126,9 @@ class Reminder {
 				    $this->sms->sendSMS($number, $message, false, 'REMINDER');
 				    file_put_contents(self::FLAGPREFIX . $eachLogin, '');
 				}
+			    }
+			    } else {
+			        log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
 			    }
 		    }
 		} elseif ($this->money->getOnlineLeftCountFast($eachLogin) == -2) {
@@ -149,6 +153,7 @@ class Reminder {
 	foreach ($this->AllLogin as $userLoginData) {
 	    $eachLogin = $userLoginData['login'];
 		$number = $userLoginData['mobile'];
+			if (!empty($number)) {
 		    $number		 = trim($number);
 		    $number		 = str_replace($this->AltCfg['REMINDER_PREFIX'], '', $number);
 		    $number		 = vf($number, 3);
@@ -160,6 +165,9 @@ class Reminder {
 			    $this->sms->sendSMS($number, $message, true, 'REMINDER');
 			    log_register('REMINDER FORCE SEND SMS (' . $eachLogin . ') NUMBER `' . $number . '`');
 			}
+		    }
+		    } else {
+		        log_register('REMINDER EMPTY NUMBER (' . $eachLogin . ')');
 		    }
 	}
     }
