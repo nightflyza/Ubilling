@@ -2,30 +2,51 @@
 <?php
 $login=$argv[1];
 $config=parse_ini_file(dirname(__FILE__)."/config");
-$link = mysql_connect($config['host'], $config['username'], $config['password']);
-mysql_select_db($config['database']);
+if (extension_loaded('mysqli')) {
+    $loginDB = new mysqli($config['host'], $config['username'], $config['password'], $config['database']);
+    function DB_query($query) {
+        global $loginDB;
+        $result = $loginDB->query($query);
+        return($result);
+    }
+    function DB_real_escape_string($parametr) {
+        global $loginDB;
+        $result = $loginDB->real_escape_string($parametr);
+        return($result);
+    }
+    function DB_fetch_array($data) {
+        $result = mysqli_fetch_assoc($data);
+        return($result);
+    }
+} else {
+    $link = mysql_connect($config['host'], $config['username'], $config['password']);
+    mysql_select_db($config['database']);
+    function DB_query($query) {
+        $result = mysql_query($query);
+        return($result);
+    }
+    function DB_real_escape_string($parametr) {
+        $result = mysql_real_escape_string($parametr);
+        return($result);
+    }
+    function DB_fetch_array($data) {
+        $result = mysql_fetch_array($data, MYSQL_ASSOC);
+        return($result);
+    }
+}
 $query = 'SELECT `speed` FROM `userspeeds` where `login`= "'.$login.'"';
-$result = mysql_query($query);
-while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-foreach ($line as $col_value) {
+$result = DB_query($query);
+while ($line = DB_fetch_array($result)) {
+    $col_value = $line['speed'];
 if ($col_value) {
  print ($col_value);
   } else {
- $tarq='SELECT `Tariff` FROM users WHERE `login`="'.$login.'"';
- $tar=mysql_query($tarq);
-           while ($line2 = mysql_fetch_array($tar, MYSQL_ASSOC)) {
-                foreach($line2 as $tarval) {
-                                $speedq='SELECT `speedup` from `speeds` WHERE `tariff`="'.$tarval.'"';
-                                $speed=mysql_query($speedq);
-                                   while ($line3 = mysql_fetch_array($speed, MYSQL_ASSOC)) {
-                                   foreach($line3 as $speedval) {
+ $tarq='SELECT `speedup` from `speeds` INNER JOIN (SELECT `Tariff` FROM users WHERE `login`="'.$login.'") AS t_u USING (`Tariff`)';
+ $tar=DB_query($tarq);
+           while ($line2 = DB_fetch_array($tar)) {
+                $speedval = $line2['speedup'];
                                    print($speedval);
-                                   }
-                                  }
-                           }    
                         }
   }
-
- }
 }
 ?>
