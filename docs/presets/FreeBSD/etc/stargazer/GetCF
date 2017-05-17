@@ -6,9 +6,8 @@ include('mysql.php');
 $ipq='SELECT `content` FROM `cfitems` WHERE `login`="'.$login.'" AND `typeid`="'.$cfid.'"';
 $ip=DB_query($ipq);
            while ($line2 = DB_fetch_array($ip)) {
-                foreach($line2 as $ipval) {
+                $ipval = $line2['content'];
                                    print($ipval);
-                           }    
                         }
 
 ?>
