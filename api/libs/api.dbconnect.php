@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL ^ E_DEPRECATED); //hide some deprecated warnings on 5.6 :(
+
 Class DbConnect {
 
     var $host = '';

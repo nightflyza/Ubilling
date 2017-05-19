@@ -6,7 +6,7 @@ if (cfr('ROOT')) {
 
     if (!wf_CheckGet(array('applysql'))) {
         show_window(__('MySQL database schema updates'), $updateManager->renderSqlDumpsList());
-        show_window(__('Configuration files updates'), $updateManager->renderConfigsList());
+        //show_window(__('Configuration files updates'), $updateManager->renderConfigsList());
     } else {
         $releaseNum = $_GET['applysql'];
         show_window(__('MySQL database schema update'), $updateManager->applyMysqlDump($releaseNum));
