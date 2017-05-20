@@ -17,7 +17,14 @@ if (cfr('CREDIT')) {
                 $credit = vf($rawCredit);
             }
             //checking money format
-            if (zb_checkMoney($credit)) {
+            if (empty($credit)) {
+                //ignoring empty values
+                $creditValid = true;
+            } else {
+                $creditValid = zb_checkMoney($credit);
+            }
+            
+            if ($creditValid) {
                 //credit limit check
                 if ($credit_limit != 'DISABLED') {
                     if ($credit <= $credit_limit) {
