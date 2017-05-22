@@ -16,7 +16,7 @@ if (cfr('REPORTSIGNUP')) {
         $result = simple_queryall($query);
         return($result);
     }
-    
+
     /**
      * returns array like $month_num=>$signup_count
      * 
@@ -114,6 +114,8 @@ if (cfr('REPORTSIGNUP')) {
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
+        $chartData = array();
+        
         //cemetery hide processing
         $ignoreUsers = array();
         if ($altercfg['CEMETERY_ENABLED']) {
@@ -159,12 +161,35 @@ if (cfr('REPORTSIGNUP')) {
                 if (empty($sigTariff)) {
                     $rowClass = 'sigdeleteduser';
                 }
+
+                //chart data filling
+                if (isset($chartData[$eachsignup['admin']])) {
+                    $chartData[$eachsignup['admin']] ++;
+                } else {
+                    $chartData[$eachsignup['admin']] = 1;
+                }
+
                 $tablerows.=wf_TableRow($tablecells, $rowClass);
             }
         }
 
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        show_window(__('Current month user signups'), $result);
+        show_window(__('Current month user signups') . ' ' . web_SignupsRenderChart($chartData), $result);
+    }
+
+    /**
+     * Renders google charts for month signups data array
+     * 
+     * @param array $data
+     * 
+     * @return string
+     */
+    function web_SignupsRenderChart($data) {
+        $result = '';
+        $options = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
+        $chart = wf_gcharts3DPie($data, __('Admins'), '400px;', '400px;', $options);
+        $result = wf_modalAuto(wf_img_sized('skins/icon_stats.gif', __('Admins')), __('Admins'), $chart, '');
+        return ($result);
     }
 
     /**
@@ -182,6 +207,7 @@ if (cfr('REPORTSIGNUP')) {
         $where = "WHERE `date` LIKE '" . $cmonth . "%' ORDER by `date` DESC;";
         $signups = zb_SignupsGet($where);
         $curdate = curdate();
+        $chartData = array();
 
         //cemetery hide processing
         $ignoreUsers = array();
@@ -230,12 +256,18 @@ if (cfr('REPORTSIGNUP')) {
                     $rowClass = 'sigdeleteduser';
                 }
 
+                //chart data filling
+                if (isset($chartData[$eachsignup['admin']])) {
+                    $chartData[$eachsignup['admin']] ++;
+                } else {
+                    $chartData[$eachsignup['admin']] = 1;
+                }
+
                 $tablerows.=wf_TableRow($tablecells, $rowClass);
             }
         }
-
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        show_window(__('User signups by month') . ' ' . $cmonth, $result);
+        show_window(__('User signups by month') . ' ' . $cmonth . ' ' . web_SignupsRenderChart($chartData), $result);
     }
 
     /**
@@ -244,11 +276,11 @@ if (cfr('REPORTSIGNUP')) {
      * @return void
      */
     function web_SignupsShowToday() {
-        $messages=new UbillingMessageHelper();
+        $messages = new UbillingMessageHelper();
         $query = "SELECT COUNT(`id`) from `userreg` WHERE `date` LIKE '" . curdate() . "%'";
         $sigcount = simple_query($query);
         $sigcount = $sigcount['COUNT(`id`)'];
-        show_window('',$messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('strong').$sigcount.  wf_tag('strong',true), 'info'));
+        show_window('', $messages->getStyledMessage(__('Today signups') . ': ' . wf_tag('strong') . $sigcount . wf_tag('strong', true), 'info'));
     }
 
     /**
