@@ -189,19 +189,21 @@ if (cfr('REPORTSIGNUP')) {
         if (!empty($data)) {
             $options = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
             $chart = wf_gcharts3DPie($data, __('Admins'), '400px;', '400px;', $options);
-            $result = wf_modalAuto(wf_img_sized('skins/icon_stats.gif', __('Admins')), __('Admins'), $chart, '');
 
             $cells = wf_TableCell(__('Admin'));
             $cells.= wf_TableCell(__('Count'));
             $rows = wf_TableRow($cells, 'row1');
+
             foreach ($data as $eachAdmin => $count) {
-                $cells = wf_TableCell(__('Admin'));
-                $cells.= wf_TableCell(__('Count'));
-                $rows.= wf_TableRow($cells, 'row2');
+                $cells = wf_TableCell($eachAdmin);
+                $cells.= wf_TableCell($count);
+                $rows.= wf_TableRow($cells, 'row3');
             }
 
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $chart.=wf_TableBody($rows, '100%', 0, 'sortable');
+            $result = wf_modalAuto(wf_img_sized('skins/icon_stats.gif', __('Admins')), __('Admins'), $chart, '');
         }
+
         return ($result);
     }
 
