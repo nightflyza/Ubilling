@@ -20,7 +20,7 @@
 	border-style: dashed;
 	border-color: gray;
 	background-color: white;
-	-moz-border-radius: ;
+	-moz-border-radius: 1px;
         }
         
         table.printable td {
@@ -28,7 +28,7 @@
 	padding: 1px;
 	border-style: dotted;
 	border-color: gray;
-	-moz-border-radius: ;
+	-moz-border-radius: 1px;
         }
         
         .row1 {
