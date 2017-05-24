@@ -2561,5 +2561,6 @@ $lang['def']['Caution: these changes can not be undone.'] = 'Обережно: �
 $lang['def']['MySQL database schema updates'] = 'Оновлення схеми бази даних MySQL';
 $lang['def']['Configuration files updates'] = 'Оновлення файлів конфігурації';
 $lang['def']['Files'] = 'Файли';
+$lang['def']['Tariffs burst support'] = 'Підтримка бурстів у тарифах';
 
 ?>

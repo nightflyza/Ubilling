@@ -214,6 +214,7 @@ CONTRACT_GENERATION_DEFAULT=TRIGGER|Contracts default generation mode
 PAYMENTCARDS_ENABLED=TRIGGER|Payment cards functionality enabled
 SETCASH_ONLY_ROOT=TRIGGER|Only users with root rights can use set cash option
 DSHAPER_ENABLED=TRIGGER|Dynamic shaper is enabled
+BURST_ENABLED=TRIGGER|Tariffs burst support
 WATCHDOG_ENABLED=TRIGGER|Watchdog enabled
 SENDDOG_ENABLED=TRIGGER|Is SendDog enabled
 AUTOFREEZE_CASH_LIMIT=VARCHAR|Autofreezing cash limit
