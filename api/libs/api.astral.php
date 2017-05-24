@@ -1865,7 +1865,7 @@ function wf_AutocompleteTextInput($name, $data = array(), $label = '', $value = 
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPreset($field, $time = '', $DisabledTimeRanges = '', $label = '', $br = false) {
+function wf_TimePickerPreset($field, $time = '', $label = '', $br = false, $DisabledTimeRanges = '') {
     $inputId = wf_InputId();
 
     if (isset($DisabledTimeRanges)) {
@@ -1901,7 +1901,7 @@ function wf_TimePickerPreset($field, $time = '', $DisabledTimeRanges = '', $labe
  * @param bool $br add break after the widget body?
  * @return string
  */
-function wf_TimePickerPresetSeconds($field, $time = '', $DisabledTimeRanges = '', $label = '', $br = false) {
+function wf_TimePickerPresetSeconds($field, $time = '', $label = '', $br = false, $DisabledTimeRanges = '') {
     $inputId = wf_InputId();
 
     if (isset($DisabledTimeRanges)) {
