@@ -228,6 +228,7 @@ class UbillingUpdateManager {
                 $result .= wf_CleanDiv();
                 $result .= wf_tag('pre', false, '', 'style="width:100%;overflow:auto"') . shell_exec($applyCommand) . wf_tag('pre', true);
                 $result .= wf_BackLink(self::URL_ME);
+                log_register('UPDMGR APPLY SQL RELEASE `' . $release . '`');
             } else {
                 if ((!wf_CheckPost(array('applyconfirm'))) AND ( wf_CheckPost(array('applysqldump')))) {
                     $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
@@ -253,6 +254,7 @@ class UbillingUpdateManager {
             }
         } else {
             $result = $this->messages->getStyledMessage(__('Wrong release'), 'error');
+            log_register('UPDMGR FAIL SQL RELEASE `' . $release . '`');
         }
 
         return ($result);
