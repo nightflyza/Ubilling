@@ -1,6 +1,5 @@
 <?php
-show_warning('Допишем до 0.8.3 - честно, честно');
-/*
+
 if (cfr('BRANCHES')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['BRANCHES_ENABLED']) {
@@ -68,6 +67,5 @@ if (cfr('BRANCHES')) {
     }
 } else {
     show_error(__('Access denied'));
-}*/
-
+}
 ?>
