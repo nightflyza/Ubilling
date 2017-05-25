@@ -252,7 +252,7 @@ class StickyNotes {
         $inputs.= wf_DatePickerPreset('newreminddate', '');
         $inputs.= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
         $inputs.=wf_tag('br');
-        $inputs.= wf_TimePickerPreset('newremindtime', '', __('Remind time'), false);
+        $inputs.= wf_TimePickerPreset('newremindtime', '', '', __('Remind time'), false);
         $inputs.= wf_tag('br');
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
@@ -278,7 +278,7 @@ class StickyNotes {
             $inputs.= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
             $inputs.= wf_tag('label') . __('Remind only after this date') . wf_tag('label', true);
             $inputs.= wf_tag('br');
-            $inputs.= wf_TimePickerPreset('editremindtime', $noteData['remindtime'], __('Remind time'), true);
+            $inputs.= wf_TimePickerPreset('editremindtime', $noteData['remindtime'], '', __('Remind time'), true);
             $inputs.= wf_tag('br');
             $inputs.= wf_tag('br');
             $inputs.= wf_Submit(__('Save'));
