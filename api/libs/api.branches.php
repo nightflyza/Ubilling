@@ -537,12 +537,19 @@ class UbillingBranches {
         $inputs = wf_YearSelector('yearsel', __('Year') . ' ', false);
         $inputs.= wf_Selector('monthsel', $monthArr, __('Month') . ' ', date("m"), false);
         $inputs.=wf_Submit(__('Payments by month'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-        $result.=wf_CleanDiv();
+        $monthForm = wf_Form('', 'POST', $inputs, 'glamour');
+        $monthForm.=wf_CleanDiv();
+
 
         $inputsDate = wf_DatePickerPreset('datesel', curdate());
         $inputsDate.= wf_Submit(__('Payments by date'));
-        $result.=wf_Form('', 'POST', $inputsDate, 'glamour');
+        $dateForm = wf_Form('', 'POST', $inputsDate, 'glamour');
+        $dateForm.= wf_CleanDiv();
+
+        $controlCells = wf_TableCell($monthForm);
+        $controlCells.= wf_TableCell($dateForm);
+        $controlRows = wf_TableRow($controlCells);
+        $result.= wf_TableBody($controlRows, '60%', 0, '');
 
         $filterDate = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : curyear();
         if (wf_CheckPost(array('monthsel'))) {
