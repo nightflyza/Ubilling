@@ -21,7 +21,6 @@
                 
                 /* Load APIs: */
                 $this->api = new RouterOS();
-                $this->form = new InputForm();
                 
                 /* Get NAS current options: */
                 $this->options = zb_NasOptionsGet($this->_id);
@@ -54,7 +53,7 @@
             }
             
             public function render() {
-                $this->form->InputForm(null, 'POST', __('Save'), null, null, null, self::FORM_NAME, null);
+                $this->form = new InputForm(null, 'POST', __('Save'), null, null, null, self::FORM_NAME, null);
                 // Block 1: Authorization Data
                 $this->form->addmessage(__('Authorization Data'));
                 $inputs = array('username', 'password');
