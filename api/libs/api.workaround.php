@@ -1836,6 +1836,8 @@ function web_GridEditor($titles, $keys, $alldata, $module, $delete = true, $edit
  * @return string
  */
 function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $edit = true, $prefix = '') {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     // Получаем список сетей
     $networks = multinet_get_all_networks();
     $cidrs = array();
@@ -1865,10 +1867,16 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                             $cells .= wf_TableCell($data[$key] . ': ' . $cidrs[$data[$key]]);
                             break;
                         case 'nastype':
-                            if ($data[$key] == 'mikrotik')
-                                $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
-                            if ($data[$key] == 'radius')
-                                $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
+                            if ($data[$key] == 'mikrotik') {
+                                if ($altCfg['MIKROTIK_SUPPORT']) {
+                                    $actions .= wf_Link('?module=mikrotikextconf&nasid=' . $data['id'], web_icon_extended('MikroTik extended configuration'));
+                                }
+                            }
+                            if ($data[$key] == 'radius') {
+                                if ($altCfg['FREERADIUS_ENABLED']) {
+                                    $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
+                                }
+                            }
                             $cells .= wf_TableCell($data[$key]);
                             break;
                         default:
@@ -4752,7 +4760,7 @@ function zb_formatTime($seconds) {
  */
 function zb_ListLoadedModules() {
     $result = '';
-    $moduleCount=0;
+    $moduleCount = 0;
     global $system;
     $cells = wf_TableCell(__('Module'));
     $cells.= wf_TableCell(__('Author'));
@@ -4779,6 +4787,6 @@ function zb_ListLoadedModules() {
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    $result.=__('Total').': '.$moduleCount;
+    $result.=__('Total') . ': ' . $moduleCount;
     return ($result);
 }

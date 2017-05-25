@@ -11,6 +11,10 @@ class InputForm {
     );
 
     public function __construct($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
+        $this->InputForm($action, $method, $submit, $reset, $target, $enctype, $name, $events);
+    }
+
+    public function InputForm($action = '', $method = 'get', $submit = 'Submit', $reset = '', $target = '', $enctype = '', $name = '', $events = '') {
         $this->options = array(
             'action' => $action,
             'method' => $method,
