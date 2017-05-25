@@ -135,8 +135,8 @@ class DynamicShaper {
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
         $inputs = wf_Selector('newdshapetariff', $this->selectorParams, __('Tariff'), '', true);
-        $inputs.= wf_TimePickerPresetSeconds('newthreshold1', '', __('Time from') . $sup . ' ', true);
-        $inputs.= wf_TimePickerPresetSeconds('newthreshold2', '', __('Time to') . $sup . ' ', true);
+        $inputs.= wf_TimePickerPresetSeconds('newthreshold1', '', __('Time from') . $sup . ' ', true, '');
+        $inputs.= wf_TimePickerPresetSeconds('newthreshold2', '', __('Time to') . $sup . ' ', true, '');
         $inputs.= wf_TextInput('newspeed', __('Speed') . $sup, '', true, 8);
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -162,8 +162,8 @@ class DynamicShaper {
         $inputs.= wf_tag('select', true);
         $inputs.= wf_tag('br');
         $inputs.= wf_HiddenInput('editdshapetariff', $timerule_data['tariff']);
-        $inputs.= wf_TimePickerPresetSeconds('editthreshold1', $timerule_data['threshold1'], __('Time from') . $sup, true);
-        $inputs.= wf_TimePickerPresetSeconds('editthreshold2', $timerule_data['threshold2'], __('Time to') . $sup, true);
+        $inputs.= wf_TimePickerPresetSeconds('editthreshold1', $timerule_data['threshold1'],__('Time from') . $sup, true, '');
+        $inputs.= wf_TimePickerPresetSeconds('editthreshold2', $timerule_data['threshold2'], __('Time to') . $sup, true, '');
         $inputs.= wf_TextInput('editspeed', __('Speed') . $sup, $timerule_data['speed'], true, 8);
         $inputs.= wf_Submit(__('Save'));
         $form = wf_Form('', 'POST', $inputs, 'glamour');
