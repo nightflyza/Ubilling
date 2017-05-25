@@ -22,6 +22,7 @@ define('PBX_DEBUG_MODE', 0);
 define('ISP_CODE', '1'); // Id в ПС
 define('ISP_SERVICE_NAME', 'Интернет'); // Наименование услуги
 define('ISP_SERVICE_CODE', '1'); //Код услуги
+define('USER_BALANCE_DECIMALS', -1);    // Сколько знаков после запятой возвращать в балансе абонента 0 - возвращать только целую часть
 //Исключения
 define('PBX_EX_NOT_FOUND', 'Абонент не найден');
 define('PBX_EX_DUPLICATE', 'Дублирование платежа');
@@ -34,11 +35,10 @@ error_reporting(E_ALL);
 // Send main headers
 header('Last-Modified: ' . gmdate('r'));
 header('Content-Type: text/html; charset=utf-8');
-header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1 
+header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
 header("Pragma: no-cache");
 
 /**
- *
  * Check for POST have needed variables
  *
  * @param   $params array of POST variables to check
@@ -61,12 +61,11 @@ function pbx_CheckPost($params) {
     return ($result);
 }
 
-/*
+/**
  * Returns request data
- * 
+ *
  * @return string
  */
-
 function pbx_RequestGet() {
     $result = '';
     if (PBX_REQUEST_MODE != 'raw') {
@@ -80,14 +79,13 @@ function pbx_RequestGet() {
     return ($result);
 }
 
-/*
+/**
  * String entity search
- * 
+ *
  * @param $string - string variable to compare
  * @param $search - searched substring
  * @return bool
  */
-
 function pbx_ispos($string, $search) {
     if (strpos($string, $search) === false) {
         return(false);
@@ -96,12 +94,11 @@ function pbx_ispos($string, $search) {
     }
 }
 
-/*
+/**
  * Returns all user RealNames
- * 
+ *
  * @return array
  */
-
 function pbx_UserGetAllRealnames() {
     $query = "SELECT * from `realname`";
     $all = simple_queryall($query);
@@ -114,14 +111,13 @@ function pbx_UserGetAllRealnames() {
     return($result);
 }
 
-/*
+/**
  * Returns user stargazer data by login
- * 
+ *
  * @param string $login existing stargazer login
- * 
+ *
  * @return array
  */
-
 function pbx_UserGetStargazerData($login) {
     $login = mysql_real_escape_string($login);
     $query = "SELECT * from `users` WHERE `login`='" . $login . "';";
@@ -129,12 +125,11 @@ function pbx_UserGetStargazerData($login) {
     return ($result);
 }
 
-/*
+/**
  * Returns all user mobile phones
- * 
+ *
  * @return array
  */
-
 function pbx_UserGetAllMobiles() {
     $query = "SELECT * from `phones`";
     $all = simple_queryall($query);
@@ -147,12 +142,11 @@ function pbx_UserGetAllMobiles() {
     return($result);
 }
 
-/*
+/**
  * Returns all tariff prices array
- * 
+ *
  * @return array
  */
-
 function pbx_TariffGetPricesAll() {
     $query = "SELECT `name`,`Fee` from `tariffs`";
     $allprices = simple_queryall($query);
@@ -169,7 +163,7 @@ function pbx_TariffGetPricesAll() {
 
 /**
  * Returns random numeric string, which will be used as unique transaction hash
- * 
+ *
  * @param int $size
  * @return int
  */
@@ -183,12 +177,11 @@ function pbx_GenerateHash($size = 12) {
     return ($string);
 }
 
-/*
+/**
  * Returns full address list
- * 
+ *
  * @return array
  */
-
 function pbx_AddressGetFulladdresslist() {
     $result = array();
     $apts = array();
@@ -247,12 +240,11 @@ function pbx_AddressGetFulladdresslist() {
     return($result);
 }
 
-/*
+/**
  * Returns presearch reply
- * 
+ *
  * @return string
  */
-
 function pbx_ReplyPresearch($customerid) {
     $allcustomers = op_CustomersGetAll();
 
@@ -293,13 +285,12 @@ function pbx_ReplyPresearch($customerid) {
     return ($result);
 }
 
-/*
+/**
  * Returns search reply
- * 
+ *
  * @return string
  */
-
-function pbx_ReplySearch($customerid) {
+function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
         $customerLogin = $allcustomers[$customerid];
@@ -307,7 +298,7 @@ function pbx_ReplySearch($customerid) {
         $alladdress = pbx_AddressGetFulladdresslist();
         $allmobiles = pbx_UserGetAllMobiles();
         $userdata = pbx_UserGetStargazerData($customerLogin);
-        $userBalance = $userdata['Cash'];
+        $userBalance = ($UsrBalanceDecimals < 0) ? $userdata['Cash'] : ($UsrBalanceDecimals == 0) ? intval($userdata['Cash'], 10) : round($userdata['Cash'], $UsrBalanceDecimals, PHP_ROUND_HALF_EVEN);
 
         //normal reply
         $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -327,6 +318,11 @@ function pbx_ReplySearch($customerid) {
                          <Balance>' . $userBalance . '</Balance>
                         </DebtInfo>
                        <ServiceName>' . ISP_SERVICE_NAME . '</ServiceName>
+                       <PayerInfo billIdentifier="' . $customerid . '" ls="' . $customerid . '">
+                         <Fio>' . @$allrealnames[$customerLogin] . '</Fio>
+                         <Phone>' . @$allmobiles[$customerLogin] . '</Phone>
+                         <Address>' . @$alladdress[$customerLogin] . '</Address>
+                        </PayerInfo>
                     </DebtService>
                     </ServiceGroup>
                     </Data>
@@ -349,7 +345,7 @@ function pbx_ReplySearch($customerid) {
 
 /**
  * Function that gets last id from table
- * 
+ *
  * @param string $tablename
  * @return int
  */
@@ -360,12 +356,11 @@ function pbx_simple_get_lastid($tablename) {
     return ($result['id']);
 }
 
-/*
+/**
  * Returns payment possibility reply
- * 
+ *
  * @return string
  */
-
 function pbx_ReplyCheck($customerid) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
@@ -394,14 +389,13 @@ function pbx_ReplyCheck($customerid) {
     return ($result);
 }
 
-/*
+/**
  * Checks is reference unique?
- * 
+ *
  * @param int $rawhash reference number to check
- * 
+ *
  * @return bool
  */
-
 function pbx_CheckHash($rawhash) {
     $rawhash = mysql_real_escape_string($rawhash);
     $hash = 'PBX_' . $rawhash;
@@ -414,17 +408,16 @@ function pbx_CheckHash($rawhash) {
     }
 }
 
-/*
+/**
  * Returns payment processing reply
- * 
+ *
  * @return string
  */
-
 function pbx_ReplyPayment($customerid, $summ, $rawhash) {
     $allcustomers = op_CustomersGetAll();
     if (isset($allcustomers[$customerid])) {
         if (pbx_CheckHash($rawhash)) {
-            //do the payment 
+            //do the payment
             $hash = 'PBX_' . $rawhash;
             $paysys = 'PBANKX';
             $note = 'inputreference: ' . $rawhash;
@@ -495,7 +488,7 @@ if (!empty($xmlRequest)) {
                 if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
                     if ($xmlParse['Transfer_attr']['action'] == 'Search') {
                         $customerid = vf($xmlParse['Transfer']['Data']['Unit_attr']['value'], 3);
-                        die(pbx_ReplySearch($customerid));
+                        die(pbx_ReplySearch($customerid, USER_BALANCE_DECIMALS));
                     }
                 }
             }
