@@ -177,8 +177,7 @@ function web_CardsSearchForm() {
  *
  * @return string
  */
-function web_CardsChangeForm(array $ids)
-{
+function web_CardsChangeForm(array $ids) {
     $inputs = wf_Selector('card_edit[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
     $inputs .= wf_TextInput('card_edit[part]', __('Serial part'), '', false, '17');
     foreach ($ids as $key => $id) {
@@ -197,8 +196,7 @@ function web_CardsChangeForm(array $ids)
  *
  * @return string
  */
-function web_CardsSearch(array $search)
-{
+function web_CardsSearch(array $search) {
     $selling = zb_BuilderSelectSellingData();
     $serial = '%' . mysql_real_escape_string($search['serial']) . '%';
 
@@ -296,8 +294,7 @@ function web_CardsSearch(array $search)
  *
  * @return string
  */
-function web_CardActions($result)
-{
+function web_CardActions($result) {
     $cardActions = array(
         'cachangepart' => __('Change'),
         'caprint' => __('Print'),
@@ -499,8 +496,7 @@ function zb_CardBruteCleanupAll() {
  * @param int   $selling
  * @param array $ids
  */
-function zb_CardChange($part, $selling, $ids)
-{
+function zb_CardChange($part, $selling, $ids) {
     if ($part) {
         zb_CardChangePart($part, $ids);
     }
@@ -515,8 +511,7 @@ function zb_CardChange($part, $selling, $ids)
  * @param int   $part
  * @param array $ids
  */
-function zb_CardChangePart($part, $ids)
-{
+function zb_CardChangePart($part, $ids) {
     foreach ($ids as $key => $id) {
         $ids[$key] = vf($id, 3);
     }
@@ -533,8 +528,7 @@ function zb_CardChangePart($part, $ids)
  * @param int   $selling
  * @param array $ids
  */
-function zb_CardChangeSelling($selling, array $ids)
-{
+function zb_CardChangeSelling($selling, array $ids) {
     foreach ($ids as $key => $id) {
         $ids[$key] = vf($id, 3);
     }
@@ -552,8 +546,7 @@ function zb_CardChangeSelling($selling, array $ids)
  *
  * @return array|string
  */
-function zb_GetCardByIds(array $ids)
-{
+function zb_GetCardByIds(array $ids) {
     foreach ($ids as $key => $id) {
         $ids[$key] = vf($id, 3);
     }
