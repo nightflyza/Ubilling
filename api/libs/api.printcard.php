@@ -56,6 +56,7 @@ function web_PrintCardLister($ids)
  */
 function web_PrintCardCreateForm()
 {
+    $messages = new UbillingMessageHelper();
     if (!file_exists(IMG_CARD)) {
         return web_UploadFileForm();
     }
@@ -67,6 +68,7 @@ function web_PrintCardCreateForm()
 
     $sup = wf_tag('sup').'*'.wf_tag('sup', true);
     $inputs = wf_img($image).'<br/>';
+	$inputs .= $messages->getStyledMessage(__('Available macroses').__(': <b>{number} {serial} {sum}</b>'), 'info').wf_tag('br/', false);
 
     $printCardData = zb_SelectAllPrintCardData();
 
