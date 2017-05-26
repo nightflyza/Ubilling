@@ -2,8 +2,7 @@
 /**
  * Generate print card management API
  */
-class GenerateCard
-{
+class GenerateCard {
     private $font = 'content/documents/card_print/font/AvanteBs_ExtraBold.ttf';
 
     /**
@@ -67,3 +66,5 @@ class GenerateCard
         return $color;
     }
 }
+
+?>
