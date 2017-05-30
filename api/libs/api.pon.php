@@ -1114,9 +1114,9 @@ class PONizer {
         }
 
         if ($distCacheAvail) {
-            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', __('Distance') . ' (' . __('m') . ')', 'Address', 'Real Name', 'Actions');
+            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', __('Distance') . ' (' . __('m') . ')', 'Address', 'Real Name', 'Tariff', 'Actions');
         } else {
-            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Actions');
+            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Tariff', 'Actions');
         }
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
@@ -1219,6 +1219,7 @@ class PONizer {
         $json = new wf_JqDtHelper();
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
+        $allTariffs = zb_TariffsGetAllUsers();
 
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
@@ -1239,10 +1240,16 @@ class PONizer {
 
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
+                $userTariff = '';
                 if (!empty($each['login'])) {
                     $userLogin = trim($each['login']);
                     $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
                     @$userRealName = $allRealnames[$userLogin];
+
+                    //tariff data
+                    if (isset($allTariffs[$userLogin])) {
+                        $userTariff = $allTariffs[$userLogin];
+                    }
                 } else {
                     $userLink = '';
                     $userRealName = '';
@@ -1290,6 +1297,7 @@ class PONizer {
                 }
                 $data[] = $userLink;
                 $data[] = $userRealName;
+                $data[] = $userTariff;
                 $data[] = $actLinks;
 
                 $json->addRow($data);
