@@ -205,6 +205,7 @@ if (cfr('SCREPORT')) {
                 $allAddress = zb_AddressGetFulladdresslist();
                 $allRealNames = zb_UserGetAllRealnames();
                 $allUserCash = zb_CashGetAllUsers();
+                $allUserCredits = zb_CreditGetAllUsers();
                 $totalCount = 0;
                 $totalSumm = 0;
                 $result = '';
@@ -217,6 +218,7 @@ if (cfr('SCREPORT')) {
                 $cells.= wf_TableCell(__('Full address'));
                 $cells.= wf_TableCell(__('Tariff'));
                 $cells.= wf_TableCell(__('Balance'));
+                $cells.= wf_TableCell(__('Credit'));
                 $rows = wf_TableRow($cells, 'row1');
 
                 if (!empty($this->data)) {
@@ -232,6 +234,7 @@ if (cfr('SCREPORT')) {
                             }
                         }
                         @$usercash = $allUserCash[$each['login']];
+                        @$usercredit = $allUserCredits[$each['login']];
 
                         $totalSumm = $totalSumm + $each['summ'];
                         $cells = wf_TableCell($each['id']);
@@ -243,6 +246,7 @@ if (cfr('SCREPORT')) {
                         $cells.= wf_TableCell(@$allAddress[$each['login']]);
                         $cells.= wf_TableCell($usertariff);
                         $cells.= wf_TableCell($usercash);
+                        $cells.= wf_TableCell($usercredit);
                         $rows.= wf_TableRow($cells, 'row3');
                     }
                 }
