@@ -173,7 +173,7 @@ class DealWithIt {
         $result = '';
         $result.=wf_AjaxLoader();
         $inputs = wf_HiddenInput('newschedlogin', $login);
-        $inputs.= wf_DatePickerPreset('newscheddate', curdate()) . ' ' . __('Target date') . wf_tag('br');
+        $inputs.= wf_DatePickerPreset('newscheddate', curdate(), true) . ' ' . __('Target date') . wf_tag('br');
         $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
         $inputs.= wf_AjaxContainer('ajparamcontainer');
 
@@ -457,7 +457,7 @@ class DealWithIt {
                 $cells.= wf_TableCell($each['note']);
                 $taskControls = wf_JSAlert(self::URL_ME . '&username=' . $each['login'] . '&deletetaskid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
                 $cells.= wf_TableCell($taskControls);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
