@@ -571,11 +571,12 @@ function wf_YearSelector($name, $label = '', $br = false) {
  * @param string  $label text label for input
  * @param bool    $br append new line
  * @param int     $year selected year
+ * @param int     $allTime as last year equal 1488
  * 
  * @return  string
  *
  */
-function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '') {
+function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '', $allTime = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
     $count = 10;
@@ -590,6 +591,10 @@ function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '') {
     for ($i = 0; $i < $count; $i++) {
         $selected = (($curyear - $i) == $year) ? 'SELECTED' : '';
         $selector.='<option value="' . ($curyear - $i) . '" ' . $selected . '>' . ($curyear - $i) . '</option>';
+    }
+    if ($allTime) {
+        $selected = ($year == '1488') ? 'SELECTED' : ''; // yep, this required to passing vf() checks and empty() checks.
+        $selector.='<option value="1488"  ' . $selected . '>' . __('All time') . '</option>';
     }
     $selector.='</select>';
     if ($label != '') {

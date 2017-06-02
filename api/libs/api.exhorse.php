@@ -832,11 +832,10 @@ class ExistentialHorse {
     public function renderReport() {
         $result = '';
         $months = months_array_localized();
-        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->showYear) . ' ';
+        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->showYear, true) . ' ';
         $chartsFlag = (wf_CheckPost(array('showcharts'))) ? true : false;
-        $allTimeFlag = (wf_CheckPost(array('alltime'))) ? true : false;
+        $allTimeFlag = ($this->showYear == '1488') ? true : false; // dont ask me why
         $inputs.= wf_CheckInput('showcharts', __('Graphs'), false, $chartsFlag) . ' ';
-        $inputs.= wf_CheckInput('alltime', __('All time'), false, $allTimeFlag) . ' ';
         $inputs.= wf_Submit(__('Show'));
         $yearForm = wf_Form('', 'POST', $inputs, 'glamour');
         $yearForm.=wf_CleanDiv();
