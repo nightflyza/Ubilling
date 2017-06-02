@@ -18,6 +18,9 @@ if (cfr('EVENTVIEW')) {
             }
         }
 
+        $alllogins['external'] = 'external';
+        $alllogins['guest'] = 'guest';
+
         $result = wf_Selector($name, $alllogins, $label, '', false);
         return ($result);
     }
@@ -145,12 +148,12 @@ if (cfr('EVENTVIEW')) {
         $tablecells.=wf_TableCell($tarchc);
         $tablecells.=wf_TableCell(round(($tarchc / $cday), 2));
         $tablerows.=wf_TableRow($tablecells, 'row3');
-        
+
         $tablecells = wf_TableCell(__('SMS sended'));
         $tablecells.=wf_TableCell($smsc);
         $tablecells.=wf_TableCell(round(($smsc / $cday), 2));
         $tablerows.=wf_TableRow($tablecells, 'row3');
-        
+
 
         $tablecells = wf_TableCell(__('External billing events'));
         $tablecells.=wf_TableCell($eventsc);
@@ -211,7 +214,8 @@ if (cfr('EVENTVIEW')) {
           ' . wf_Link('?module=eventview&onpage=100', '100', false) . '
           ' . wf_Link('?module=eventview&onpage=200', '200', false) . '
           ' . wf_Link('?module=eventview&onpage=500', '500', false) . '
-          ' . wf_Link('?module=eventview&onpage=800', '800', true) . '
+          ' . wf_Link('?module=eventview&onpage=800', '800', false) . '
+              ' . wf_Link('?module=eventview&onpage=1000', '1000', true) . '
           ' . wf_tag('br');
 
         $dateinputs = __('By date') . ': ';
