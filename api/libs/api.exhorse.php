@@ -754,18 +754,25 @@ class ExistentialHorse {
     /**
      * Loads stats data from database
      * 
+     * @param bool $allTime - load stored data for all time, ignoring this->showYear
+     * 
      * @return array
      */
-    protected function loadStoredData() {
+    protected function loadStoredData($allTime = false) {
         $result = array();
         if (!empty($this->showYear)) {
-            $query = "SELECT * from `exhorse` WHERE `date` LIKE '" . $this->showYear . "-%' ORDER BY `id` ASC;";
+            if ($allTime) {
+                $query = "SELECT * from `exhorse` ORDER BY `id` ASC;";
+            } else {
+                $query = "SELECT * from `exhorse` WHERE `date` LIKE '" . $this->showYear . "-%' ORDER BY `id` ASC;";
+            }
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     $timestamp = strtotime($each['date']);
+                    $year = date("Y", $timestamp);
                     $month = date("m", $timestamp);
-                    $result[$month] = $each;
+                    $result[$year][$month] = $each;
                 }
             }
         }
@@ -825,14 +832,18 @@ class ExistentialHorse {
     public function renderReport() {
         $result = '';
         $months = months_array_localized();
-        $yearData = $this->loadStoredData();
         $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $this->showYear) . ' ';
         $chartsFlag = (wf_CheckPost(array('showcharts'))) ? true : false;
+        $allTimeFlag = (wf_CheckPost(array('alltime'))) ? true : false;
         $inputs.= wf_CheckInput('showcharts', __('Graphs'), false, $chartsFlag) . ' ';
+        $inputs.= wf_CheckInput('alltime', __('All time'), false, $allTimeFlag) . ' ';
         $inputs.= wf_Submit(__('Show'));
         $yearForm = wf_Form('', 'POST', $inputs, 'glamour');
         $yearForm.=wf_CleanDiv();
         $result.=$yearForm;
+        //data loading
+        $yearData = $this->loadStoredData($allTimeFlag);
+
 
         //charts presets
         $chartsOptions = "
@@ -851,7 +862,8 @@ class ExistentialHorse {
                         trigger: 'none'
                     },";
 
-        $usersChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Frozen'), __('Signups'),));
+        $usersChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Frozen')));
+        $usersSignupsChartData = array(0 => array(__('Month'), __('Signups')));
         $complexChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive')));
         $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU')));
         $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
@@ -869,45 +881,50 @@ class ExistentialHorse {
             $cells.= wf_TableCell(__('Frozen'));
             $cells.= wf_TableCell(__('Signups'));
             $rows = wf_TableRow($cells, 'row1');
-            foreach ($yearData as $monthNum => $each) {
-                $cells = wf_TableCell($months[$monthNum]);
-                $cells.= wf_TableCell($each['u_totalusers']);
-                $cells.= wf_TableCell($each['u_activeusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_activeusers']) . '%)');
-                $cells.= wf_TableCell($each['u_inactiveusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_inactiveusers']) . '%)');
-                $cells.= wf_TableCell($each['u_frozenusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_frozenusers']) . '%)');
-                if (!empty($each['u_citysignups'])) {
-                    $signupData = '';
-                    $sigDataTmp = base64_decode($each['u_citysignups']);
-                    $sigDataTmp = unserialize($sigDataTmp);
-                    $citySigs = '';
-                    $cityRows = '';
-                    if (!empty($sigDataTmp)) {
-                        $cityCells = wf_TableCell(__('City'));
-                        $cityCells.= wf_TableCell(__('Signups'));
-                        $cityRows.=wf_TableRow($cityCells, 'row1');
-                        foreach ($sigDataTmp as $sigCity => $cityCount) {
-                            $cityCells = wf_TableCell($sigCity);
-                            $cityCells.= wf_TableCell($cityCount);
-                            $cityRows.=wf_TableRow($cityCells, 'row3');
+            foreach ($yearData as $yearNum => $monthArr) {
+                foreach ($monthArr as $monthNum => $each) {
+                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                    $cells.= wf_TableCell($each['u_totalusers']);
+                    $cells.= wf_TableCell($each['u_activeusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_activeusers']) . '%)');
+                    $cells.= wf_TableCell($each['u_inactiveusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_inactiveusers']) . '%)');
+                    $cells.= wf_TableCell($each['u_frozenusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_frozenusers']) . '%)');
+                    if (!empty($each['u_citysignups'])) {
+                        $signupData = '';
+                        $sigDataTmp = base64_decode($each['u_citysignups']);
+                        $sigDataTmp = unserialize($sigDataTmp);
+                        $citySigs = '';
+                        $cityRows = '';
+                        if (!empty($sigDataTmp)) {
+                            $cityCells = wf_TableCell(__('City'));
+                            $cityCells.= wf_TableCell(__('Signups'));
+                            $cityRows.=wf_TableRow($cityCells, 'row1');
+                            foreach ($sigDataTmp as $sigCity => $cityCount) {
+                                $cityCells = wf_TableCell($sigCity);
+                                $cityCells.= wf_TableCell($cityCount);
+                                $cityRows.=wf_TableRow($cityCells, 'row3');
+                            }
+                            $citySigs.=wf_TableBody($cityRows, '100%', 0, '');
                         }
-                        $citySigs.=wf_TableBody($cityRows, '100%', 0, '');
+                        $signupData.=wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
+                    } else {
+                        $signupData = $each['u_signups'];
                     }
-                    $signupData.=wf_modalAuto($each['u_signups'], __('Cities'), $citySigs);
-                } else {
-                    $signupData = $each['u_signups'];
+
+                    $cells.= wf_TableCell($signupData);
+                    $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                    $usersChartData[] = array($yearDisplay . $months[$monthNum], $each['u_totalusers'], $each['u_activeusers'], $each['u_inactiveusers'], $each['u_frozenusers']);
+                    $usersSignupsChartData[] = array($yearDisplay . $months[$monthNum], $each['u_signups']);
                 }
-
-                $cells.= wf_TableCell($signupData);
-                $rows.= wf_TableRow($cells, 'row3');
-                //chart data
-                $usersChartData[] = array($months[$monthNum], $each['u_totalusers'], $each['u_activeusers'], $each['u_inactiveusers'], $each['u_frozenusers'], $each['u_signups']);
             }
-
 
             $result.=wf_tag('h2') . __('Internets users') . wf_tag('h2', true);
             $result.=wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
                 $result.=wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
+                $result.=wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
             }
 
 
@@ -920,14 +937,19 @@ class ExistentialHorse {
                 $cells.= wf_TableCell(__('Active'));
                 $cells.= wf_TableCell(__('Inactive'));
                 $rows = wf_TableRow($cells, 'row1');
-                foreach ($yearData as $monthNum => $each) {
-                    $cells = wf_TableCell($months[$monthNum]);
-                    $cells.= wf_TableCell($each['u_complextotal']);
-                    $cells.= wf_TableCell($each['u_complexactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexactive']) . '%)');
-                    $cells.= wf_TableCell($each['u_complexinactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexinactive']) . '%)');
-                    $rows.= wf_TableRow($cells, 'row3');
-                    //chart data
-                    $complexChartData[] = array($months[$monthNum], $each['u_complextotal'], $each['u_complexactive'], $each['u_complexinactive']);
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells.= wf_TableCell($each['u_complextotal']);
+                        $cells.= wf_TableCell($each['u_complexactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexactive']) . '%)');
+                        $cells.= wf_TableCell($each['u_complexinactive'] . ' (' . $this->percentValue($each['u_complextotal'], $each['u_complexinactive']) . '%)');
+                        $rows.= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                        $complexChartData[] = array($yearDisplay . $months[$monthNum], $each['u_complextotal'], $each['u_complexactive'], $each['u_complexinactive']);
+                    }
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
@@ -946,17 +968,21 @@ class ExistentialHorse {
             $cells.= wf_TableCell(__('ARPU'));
             $cells.= wf_TableCell(__('ARPAU'));
             $rows = wf_TableRow($cells, 'row1');
-            foreach ($yearData as $monthNum => $each) {
-                $cells = wf_TableCell($months[$monthNum]);
-                $cells.= wf_TableCell($each['f_totalmoney']);
-                $cells.= wf_TableCell($each['f_paymentscount']);
-                $cells.= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
-                $cells.= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
-                $cells.= wf_TableCell($each['f_arpu']);
-                $cells.= wf_TableCell($each['f_arpau']);
-                $rows.= wf_TableRow($cells, 'row3');
-                //chart data
-                $financeChartsData[] = array($months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount'], $each['f_arpu'], $each['f_arpau']);
+            foreach ($yearData as $yearNum => $monthArr) {
+                foreach ($monthArr as $monthNum => $each) {
+                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                    $cells.= wf_TableCell($each['f_totalmoney']);
+                    $cells.= wf_TableCell($each['f_paymentscount']);
+                    $cells.= wf_TableCell($each['f_cashmoney'] . ' (' . $this->percentValue($each['f_totalmoney'], $each['f_cashmoney']) . '%)');
+                    $cells.= wf_TableCell($each['f_cashcount'] . ' (' . $this->percentValue($each['f_paymentscount'], $each['f_cashcount']) . '%)');
+                    $cells.= wf_TableCell($each['f_arpu']);
+                    $cells.= wf_TableCell($each['f_arpau']);
+                    $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                    $financeChartsData[] = array($yearDisplay . $months[$monthNum], $each['f_totalmoney'], $each['f_paymentscount'], $each['f_arpu'], $each['f_arpau']);
+                }
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
@@ -978,22 +1004,26 @@ class ExistentialHorse {
                 $cells.= wf_TableCell(__('Signups'));
 
                 $rows = wf_TableRow($cells, 'row1');
-                foreach ($yearData as $monthNum => $each) {
-                    $cells = wf_TableCell($months[$monthNum]);
-                    $cells.= wf_TableCell($each['c_totalusers']);
-                    $cells.= wf_TableCell($each['c_activeusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_activeusers']) . '%)');
-                    $cells.= wf_TableCell($each['c_inactiveusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_inactiveusers']) . '%)');
-                    $cells.= wf_TableCell($each['c_illegal'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_illegal']) . '%)');
-                    if ($this->complexFlag) {
-                        $cells.= wf_TableCell($each['c_complex'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_complex']) . '%)');
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells.= wf_TableCell($each['c_totalusers']);
+                        $cells.= wf_TableCell($each['c_activeusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_activeusers']) . '%)');
+                        $cells.= wf_TableCell($each['c_inactiveusers'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_inactiveusers']) . '%)');
+                        $cells.= wf_TableCell($each['c_illegal'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_illegal']) . '%)');
+                        if ($this->complexFlag) {
+                            $cells.= wf_TableCell($each['c_complex'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_complex']) . '%)');
+                        }
+
+                        $cells.= wf_TableCell($each['c_social'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_social']) . '%)');
+                        $cells.= wf_TableCell($each['c_signups']);
+
+                        $rows.= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                        $ukvChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalusers'], $each['c_activeusers'], $each['c_inactiveusers'], $each['c_illegal'], $each['c_complex'], $each['c_social'], $each['c_signups']);
                     }
-
-                    $cells.= wf_TableCell($each['c_social'] . ' (' . $this->percentValue($each['c_totalusers'], $each['c_social']) . '%)');
-                    $cells.= wf_TableCell($each['c_signups']);
-
-                    $rows.= wf_TableRow($cells, 'row3');
-                    //chart data
-                    $ukvChartData[] = array($months[$monthNum], $each['c_totalusers'], $each['c_activeusers'], $each['c_inactiveusers'], $each['c_illegal'], $each['c_complex'], $each['c_social'], $each['c_signups']);
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
@@ -1010,16 +1040,20 @@ class ExistentialHorse {
                 $cells.= wf_TableCell(__('Debt'));
 
                 $rows = wf_TableRow($cells, 'row1');
-                foreach ($yearData as $monthNum => $each) {
-                    $cells = wf_TableCell($months[$monthNum]);
-                    $cells.= wf_TableCell($each['c_totalmoney']);
-                    $cells.= wf_TableCell($each['c_paymentscount']);
-                    $cells.= wf_TableCell($each['c_arpu']);
-                    $cells.= wf_TableCell($each['c_arpau']);
-                    $cells.= wf_TableCell($each['c_totaldebt']);
-                    $rows.= wf_TableRow($cells, 'row3');
-                    //chart data
-                    $ukvfChartData[] = array($months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_arpu'], $each['c_arpau'], $each['c_totaldebt']);
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells.= wf_TableCell($each['c_totalmoney']);
+                        $cells.= wf_TableCell($each['c_paymentscount']);
+                        $cells.= wf_TableCell($each['c_arpu']);
+                        $cells.= wf_TableCell($each['c_arpau']);
+                        $cells.= wf_TableCell($each['c_totaldebt']);
+                        $rows.= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                        $ukvfChartData[] = array($yearDisplay . $months[$monthNum], $each['c_totalmoney'], $each['c_paymentscount'], $each['c_arpu'], $each['c_arpau'], $each['c_totaldebt']);
+                    }
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
@@ -1039,17 +1073,21 @@ class ExistentialHorse {
                 $cells.= wf_TableCell(__('Answers percent'));
 
                 $rows = wf_TableRow($cells, 'row1');
-                foreach ($yearData as $monthNum => $each) {
-                    $cells = wf_TableCell($months[$monthNum]);
-                    $cells.= wf_TableCell($each['a_totalcalls']);
-                    $cells.= wf_TableCell($each['a_totalanswered']);
-                    $cells.= wf_TableCell($each['a_totalcalls'] - $each['a_totalanswered']);
-                    $cells.= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
-                    $cells.= wf_TableCell($this->formatTime($each['a_averagecallduration']));
-                    $cells.= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
-                    $rows.= wf_TableRow($cells, 'row3');
-                    //chart data
-                    $askoziaChartData[] = array($months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
+                foreach ($yearData as $yearNum => $monthArr) {
+                    foreach ($monthArr as $monthNum => $each) {
+                        $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                        $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                        $cells.= wf_TableCell($each['a_totalcalls']);
+                        $cells.= wf_TableCell($each['a_totalanswered']);
+                        $cells.= wf_TableCell($each['a_totalcalls'] - $each['a_totalanswered']);
+                        $cells.= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
+                        $cells.= wf_TableCell($this->formatTime($each['a_averagecallduration']));
+                        $cells.= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
+                        $rows.= wf_TableRow($cells, 'row3');
+                        //chart data
+                        $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                        $askoziaChartData[] = array($yearDisplay . $months[$monthNum], $each['a_totalcalls'], $each['a_totalanswered'], ($each['a_totalcalls'] - $each['a_totalanswered']));
+                    }
                 }
                 $result.=wf_TableBody($rows, '100%', 0, '');
                 if ($chartsFlag) {
@@ -1069,19 +1107,23 @@ class ExistentialHorse {
             }
 
             $rows = wf_TableRow($cells, 'row1');
-            foreach ($yearData as $monthNum => $each) {
-                $cells = wf_TableCell($months[$monthNum]);
-                $cells.= wf_TableCell($each['e_switches']);
-                if ($this->ponFlag) {
-                    $cells.= wf_TableCell($each['e_pononu']);
-                }
-                if ($this->docsisFlag) {
-                    $cells.= wf_TableCell($each['e_docsis']);
-                }
+            foreach ($yearData as $yearNum => $monthArr) {
+                foreach ($monthArr as $monthNum => $each) {
+                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                    $cells.= wf_TableCell($each['e_switches']);
+                    if ($this->ponFlag) {
+                        $cells.= wf_TableCell($each['e_pononu']);
+                    }
+                    if ($this->docsisFlag) {
+                        $cells.= wf_TableCell($each['e_docsis']);
+                    }
 
-                $rows.= wf_TableRow($cells, 'row3');
-                //chart data
-                $equipChartData[] = array($months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
+                    $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                    $equipChartData[] = array($yearDisplay . $months[$monthNum], $each['e_switches'], $each['e_pononu'], $each['e_docsis']);
+                }
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
