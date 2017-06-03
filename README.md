@@ -9,3 +9,4 @@ Please visit our official resources:
   * [Documentation](http://wiki.ubilling.net.ua)
   * [Community forums](http://local.com.ua/forum/forum/144-stargazer-ubilling/)
 
+[![Build Status](https://travis-ci.org/nightflyza/Ubilling.svg?branch=master)](https://travis-ci.org/nightflyza/Ubilling)
