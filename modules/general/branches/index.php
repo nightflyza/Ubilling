@@ -7,19 +7,27 @@ if (cfr('BRANCHES')) {
 
         show_window('', $branch->panel());
 
+        //rendering branches users list
         if (wf_CheckGet(array('userlist'))) {
             if (wf_CheckGet(array('ajaxuserlist'))) {
                 $branch->renderUserListJson();
             }
-
             show_window(__('Users'), $branch->renderUserList());
         }
 
+        //user branches assign * management interface
+        if (wf_CheckGet(array('userbranch'))) {
+            $userLogin = $_GET['userbranch'];
+            show_window(__('Change branch'), $branch->renderUserBranchFrom($userLogin));
+        }
 
+
+        //financial report 
         if (wf_CheckGet(array('finreport'))) {
             show_window(__('Finance report'), $branch->renderFinanceReport());
         }
 
+        //signups report here
         if (wf_CheckGet(array('sigreport'))) {
             show_window(__('Signup report'), $branch->renderSignupReport());
         }

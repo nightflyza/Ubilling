@@ -873,6 +873,39 @@ class UbillingBranches {
         }
     }
 
+    /**
+     * Renders users assign/editing branch form
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    public function renderUserBranchFrom($userLogin) {
+        $result = '';
+        $allUserAddress = zb_AddressGetFullCityaddresslist();
+        $currentBranch = $this->userGetBranchName($userLogin);
+
+        $cells = wf_TableCell(__('User'), '', 'row2');
+        $cells.= wf_TableCell(@$allUserAddress[$userLogin] . ' (' . $userLogin . ')');
+        $rows = wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('Current branch'), '', 'row2');
+        $cells.= wf_TableCell($currentBranch);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $cells = wf_TableCell(__('New branch'), '', 'row2');
+        $cells.= wf_TableCell($currentBranch);
+        $rows.= wf_TableRow($cells, 'row3');
+
+        $inputs = wf_TableBody($rows, '100%', 0, '');
+        $inputs.= wf_Submit(__('Change'));
+
+        $result.= wf_Form('', 'POST', $inputs, '');
+        $result.=wf_delimiter();
+        $result.=web_UserControls($userLogin);
+        return ($result);
+    }
+
 }
 
 ?>

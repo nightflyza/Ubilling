@@ -2563,5 +2563,7 @@ $lang['def']['Configuration files updates'] = 'Оновлення файлів �
 $lang['def']['Files'] = 'Файли';
 $lang['def']['Tariffs burst support'] = 'Підтримка бурстів у тарифах';
 $lang['def']['Change branch'] = 'Змінити філію';
+$lang['def']['Current branch'] = 'Поточна філія';
+$lang['def']['New branch'] = 'Нова філія';
 
 ?>
