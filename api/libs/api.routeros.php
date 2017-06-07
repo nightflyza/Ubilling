@@ -47,7 +47,7 @@ class RouterOS {
                 socket_set_timeout($this->socket, self::TIMEOUT);
                 $this->write('/login');
                 $response = $this->read(false);
-                if ( $response[0] == '!done' ) {
+                if ( isset($response[0]) && $response[0] == '!done' ) {
                     if ( preg_match_all('/[^=]+/i', $response[1], $matches) ) {
                         if ( $matches[0][0] == 'ret' && strlen($matches[0][1]) == 32 ) {
                             $this->write('/login', false);
@@ -171,8 +171,10 @@ class RouterOS {
                     }
                 }
             } else $length = $byte;
+
+            $_ = null;
+
             if ( $length > 0 ) {
-                $_ = null;
                 $retlen = 0;
                 while ( $retlen < $length ) {
                     $toread = $length - $retlen;
