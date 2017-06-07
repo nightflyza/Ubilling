@@ -65,6 +65,13 @@ class PONizer {
      */
     protected $onuIndexCache = array();
 
+     /**
+     * Contains ONU indexes cache as mac=>oltid
+     *
+     * @var array
+     */
+    protected $onuInterfaceCache = array();
+
     /**
      * System alter.ini config stored as key=>value
      *
@@ -86,6 +93,8 @@ class PONizer {
     const DISTCACHE_EXT = 'OLTDISTANCE';
     const ONUCACHE_PATH = 'exports/';
     const ONUCACHE_EXT = 'ONUINDEX';
+    const ONUCACHE_PATH = 'exports/';
+    const ONUCACHE_EXT = 'ONUINTERFACE';
     const URL_ME = '?module=ponizer';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
