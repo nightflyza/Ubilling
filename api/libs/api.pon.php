@@ -1339,6 +1339,14 @@ class PONizer {
             $distCacheAvail = false;
         }
 
+        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+        if (!empty($intCacheAvail)) {
+            $intCacheAvail = true;
+            $this->loadInterfaceCache();
+        } else {
+            $intCacheAvail = false;
+        }
+
         if (!empty($this->allOnu)) {
             foreach ($this->allOnu as $io => $each) {
                 $userTariff = '';
@@ -1395,6 +1403,9 @@ class PONizer {
                 $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('fornt', true);
                 if ($distCacheAvail) {
                     $data[] = @$this->distanceCache[$each['mac']];
+                }
+                if ($intCacheAvail) {
+                    $data[] = @$this->interfaceCache[$each['mac']];
                 }
                 $data[] = $userLink;
                 $data[] = $userRealName;
