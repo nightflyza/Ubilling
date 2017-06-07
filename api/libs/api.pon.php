@@ -1182,17 +1182,25 @@ class PONizer {
      */
     public function renderOnuList() {
         $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        if (!empty($distCacheAvail)) {
-            $distCacheAvail = true;
-        } else {
-            $distCacheAvail = false;
-        }
+        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+
+        $distCacheAvail = !empty($distCacheAvail) ? true : false;
+        $intCacheAvail = !empty($intCacheAvail) ? true : false;
+
+        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal');
 
         if ($distCacheAvail) {
-            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', __('Distance') . ' (' . __('m') . ')', 'Address', 'Real Name', 'Tariff', 'Actions');
-        } else {
-            $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal', 'Address', 'Real Name', 'Tariff', 'Actions');
+            $columns[] = __('Distance') . ' (' . __('m') . ')';
         }
+        if ($intCacheAvail) {
+            $columns[] =  __('Interface');
+        }
+
+        $columns[] = 'Address';
+        $columns[] = 'Real Name';
+        $columns[] = 'Tariff';
+        $columns[] = 'Actions';
+
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
         return ($result);
