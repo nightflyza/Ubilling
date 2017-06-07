@@ -93,8 +93,8 @@ class PONizer {
     const DISTCACHE_EXT = 'OLTDISTANCE';
     const ONUCACHE_PATH = 'exports/';
     const ONUCACHE_EXT = 'ONUINDEX';
-    const ONUCACHE_PATH = 'exports/';
-    const ONUCACHE_EXT = 'ONUINTERFACE';
+    const INTCACHE_PATH = 'exports/';
+    const INTCACHE_EXT = 'ONUINTERFACE';
     const URL_ME = '?module=ponizer';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
@@ -268,6 +268,65 @@ class PONizer {
                 file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
                 $onuTmp = serialize($onuTmp);
                 file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+            }
+        }
+    }
+
+
+    /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $intIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function interfaceParseBd($oltid, $intIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $intTmp = array();
+        $macTmp = array();
+        $result = array();
+
+        //distance index preprocessing
+        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+            foreach ($intIndex as $io => $eachint) {
+                $line = explode('=', $eachint);
+                //distance is present
+                if (isset($line[1])) {
+                    $interfaceRaw = trim($line[1]); // distance
+                    $devIndex = trim($line[0]); // device index
+
+                    if ($interfaceRaw == 0) {
+                        // $interfaceRaw = ''; //not sure about this
+                    }
+                    $intTmp[$devIndex] = $interfaceRaw;
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+
+            //storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($intTmp[$devId])) {
+                        $inteface = $intTmp[$devId];
+                        $result[$eachMac] = $inteface;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
             }
         }
     }
@@ -521,6 +580,13 @@ class PONizer {
                                         $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                         $onuIndex = explodeRows($onuIndex);
                                         $this->distanceParseBd($oltid, $distIndex, $onuIndex);
+
+                                        $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
+                                        $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
+                                        $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
+                                        $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
+                                        $intIndex = explodeRows($intIndex);
+                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex);
                                     }
                                 }
                             }
