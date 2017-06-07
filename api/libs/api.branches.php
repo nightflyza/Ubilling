@@ -10,7 +10,7 @@ class UbillingBranches {
     protected $myLogin = '';
 
     /**
-     * Contains available branches as id=>branch data
+     * Contains available branches as branchid=>admin login
      *
      * @var array
      */
@@ -376,10 +376,12 @@ class UbillingBranches {
     public function userDeleteBranch($login) {
         $login = trim($login);
         $loginF = mysql_real_escape_string($login);
-        $currentBranch = $this->branchesLogins[$login];
-        $query = "DELETE from `branchesusers` WHERE `login`='" . $loginF . "';";
-        nr_query($query);
-        log_register('BRANCH UNASSIGN [' . $currentBranch . '] USER (' . $login . ')');
+        $currentBranch = @$this->branchesLogins[$login];
+        if (!empty($currentBranch)) {
+            $query = "DELETE from `branchesusers` WHERE `login`='" . $loginF . "';";
+            nr_query($query);
+            log_register('BRANCH UNASSIGN [' . $currentBranch . '] USER (' . $login . ')');
+        }
     }
 
     /**
@@ -874,6 +876,28 @@ class UbillingBranches {
     }
 
     /**
+     * Returns selector widget for accessible branches
+     * 
+     * @param string $name
+     * @param int $selected
+     * 
+     * @return string
+     */
+    protected function branchSelector($name, $selected = '') {
+        $result = '';
+        if (!empty($this->myBranches)) {
+            $params = array();
+            foreach ($this->myBranches as $branchId => $adminLogin) {
+                $params[$branchId] = $this->getBranchName($branchId);
+            }
+            if (!empty($params)) {
+                $result = wf_Selector($name, $params, $result, $selected, false);
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders users assign/editing branch form
      * 
      * @param string $userLogin
@@ -883,27 +907,78 @@ class UbillingBranches {
     public function renderUserBranchFrom($userLogin) {
         $result = '';
         $allUserAddress = zb_AddressGetFullCityaddresslist();
-        $currentBranch = $this->userGetBranchName($userLogin);
+        $currentBranchId = $this->userGetBranch($userLogin);
+        $currentBranchName = $this->getBranchName($currentBranchId);
 
         $cells = wf_TableCell(__('User'), '', 'row2');
         $cells.= wf_TableCell(@$allUserAddress[$userLogin] . ' (' . $userLogin . ')');
         $rows = wf_TableRow($cells, 'row3');
 
         $cells = wf_TableCell(__('Current branch'), '', 'row2');
-        $cells.= wf_TableCell($currentBranch);
+        $cells.= wf_TableCell($currentBranchName);
         $rows.= wf_TableRow($cells, 'row3');
 
+        $branchControls = $this->branchSelector('newuserbranchid', $currentBranchId);
+        if (cfr('ROOT')) {
+            $branchControls.= ' ' . wf_CheckInput('newuserbranchdelete', __('Delete branch'), false, false);
+        }
         $cells = wf_TableCell(__('New branch'), '', 'row2');
-        $cells.= wf_TableCell($currentBranch);
+        $cells.= wf_TableCell($branchControls);
         $rows.= wf_TableRow($cells, 'row3');
+
+
 
         $inputs = wf_TableBody($rows, '100%', 0, '');
+        $inputs.= wf_HiddenInput('newuserbranchlogin', $userLogin);
         $inputs.= wf_Submit(__('Change'));
 
         $result.= wf_Form('', 'POST', $inputs, '');
         $result.=wf_delimiter();
         $result.=web_UserControls($userLogin);
         return ($result);
+    }
+
+    /**
+     * Catches and performs user branch changing if required
+     * 
+     * @return void
+     */
+    public function catchUserBranchEditRequest() {
+        $result = '';
+        if (wf_CheckPost(array('newuserbranchid', 'newuserbranchlogin'))) {
+            $allUsers = zb_UserGetAllStargazerDataAssoc();
+            $userLogin = $_POST['newuserbranchlogin'];
+            if (isset($allUsers[$userLogin])) {
+                $currentBranchId = $this->userGetBranch($userLogin);
+                $newBranchId = $_POST['newuserbranchid'];
+                //change is really reqired?
+                if (!wf_CheckPost(array('newuserbranchdelete'))) {
+                    if ($currentBranchId != $newBranchId) {
+                        if (isset($this->myBranches[$newBranchId])) {
+                            $this->userDeleteBranch($userLogin);
+                            $this->userAssignBranch($newBranchId, $userLogin);
+                            rcms_redirect(self::URL_ME . '&userbranch=' . $userLogin);
+                        } else {
+                            $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
+                        }
+                    }
+                } else {
+                    if (cfr('ROOT')) {
+                        $this->userDeleteBranch($userLogin);
+                        rcms_redirect(self::URL_ME . '&userbranch=' . $userLogin);
+                    } else {
+                        $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
+                    }
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('No such user available'), 'error');
+            }
+        }
+
+        //something happens
+        if (!empty($result)) {
+            show_window(__('Result'), $result);
+        }
     }
 
 }

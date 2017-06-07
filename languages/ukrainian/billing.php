@@ -2565,5 +2565,6 @@ $lang['def']['Tariffs burst support'] = 'Підтримка бурстів у т
 $lang['def']['Change branch'] = 'Змінити філію';
 $lang['def']['Current branch'] = 'Поточна філія';
 $lang['def']['New branch'] = 'Нова філія';
+$lang['def']['Delete branch'] = 'Видалити філію';
 
 ?>

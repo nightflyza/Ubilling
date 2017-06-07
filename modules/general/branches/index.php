@@ -18,7 +18,12 @@ if (cfr('BRANCHES')) {
         //user branches assign * management interface
         if (wf_CheckGet(array('userbranch'))) {
             $userLogin = $_GET['userbranch'];
-            show_window(__('Change branch'), $branch->renderUserBranchFrom($userLogin));
+            if ($branch->isMyUser($userLogin)) {
+                $branch->catchUserBranchEditRequest();
+                show_window(__('Change branch'), $branch->renderUserBranchFrom($userLogin));
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
 

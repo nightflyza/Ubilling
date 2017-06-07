@@ -2550,7 +2550,7 @@ $lang['def']['Tariffs burst support'] = 'Поддержка бурстов в т
 $lang['def']['Change branch'] = 'Изменить филиал';
 $lang['def']['Current branch'] = 'Текущий филиал';
 $lang['def']['New branch'] = 'Новый филиал';
-$lang['def'][''] = '';
+$lang['def']['Delete branch'] = 'Удалить филиал';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
