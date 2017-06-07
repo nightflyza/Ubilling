@@ -92,6 +92,14 @@ if (cfr('USEREDIT')) {
             $cells.= wf_TableCell(wf_Link('?module=contractedit&username=' . $login, wf_img('skins/icon_link.gif') . ' ' . __('Change') . ' ' . __('contract')));
             $rows.= wf_TableRow($cells, 'row3');
 
+            if ($alter_conf['BRANCHES_ENABLED']) {
+                global $branchControl;
+                $cells = wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell($branchControl->userGetBranchName($login));
+                $cells.= wf_TableCell(wf_Link('?module=branches&userbranch=' . $login, wf_img('skins/icon_branch.png') . ' ' . __('Change branch')));
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
             if ($alter_conf['CORPS_ENABLED']) {
                 $greed = new Avarice();
                 $corpsRuntime = $greed->runtime('CORPS');

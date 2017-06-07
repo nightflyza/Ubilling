@@ -2562,5 +2562,6 @@ $lang['def']['MySQL database schema updates'] = 'Оновлення схеми �
 $lang['def']['Configuration files updates'] = 'Оновлення файлів конфігурації';
 $lang['def']['Files'] = 'Файли';
 $lang['def']['Tariffs burst support'] = 'Підтримка бурстів у тарифах';
+$lang['def']['Change branch'] = 'Змінити філію';
 
 ?>

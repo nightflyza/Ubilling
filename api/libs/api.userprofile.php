@@ -986,12 +986,7 @@ class UserProfile {
         $result = '';
         if ($this->alterCfg['BRANCHES_ENABLED']) {
             global $branchControl;
-            $branchId = $branchControl->userGetBranch($this->login);
-            if (!empty($branchId)) {
-                $branchName = $branchControl->getBranchName($branchId);
-            } else {
-                $branchName = __('No');
-            }
+            $branchName = $branchControl->userGetBranchName($this->login);
             $result = $this->addRow(__('Branch'), $branchName);
         }
         return ($result);

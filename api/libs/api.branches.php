@@ -427,6 +427,22 @@ class UbillingBranches {
     }
 
     /**
+     * Returns user branch name by his login
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function userGetBranchName($login) {
+        $result = '';
+        $branchId = $this->userGetBranch($login);
+        if (!empty($branchId)) {
+            $result = $this->getBranchName($branchId);
+        }
+        return ($result);
+    }
+
+    /**
      * Renders branches module control panel interface
      * 
      * @return string
