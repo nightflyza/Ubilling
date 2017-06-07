@@ -978,6 +978,26 @@ class UserProfile {
     }
 
     /**
+     * If branches enabled - returns user current branch name
+     * 
+     * @return string
+     */
+    protected function getUserBranchName() {
+        $result = '';
+        if ($this->alterCfg['BRANCHES_ENABLED']) {
+            global $branchControl;
+            $branchId = $branchControl->userGetBranch($this->login);
+            if (!empty($branchId)) {
+                $branchName = $branchControl->getBranchName($branchId);
+            } else {
+                $branchName = __('No');
+            }
+            $result = $this->addRow(__('Branch'), $branchName);
+        }
+        return ($result);
+    }
+
+    /**
      * Cemetery controls 
      * 
      * @return string
@@ -1086,6 +1106,8 @@ class UserProfile {
         $profile.= $this->getContractDate();
 //assigned agents row
         $profile.= $this->getAgentsControls();
+//current user branch
+        $profile.= $this->getUserBranchName();
 //old corporate users aka userlinking
         $profile.= $this->getCorporateControls();
 //phone     
