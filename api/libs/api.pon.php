@@ -1248,6 +1248,24 @@ class PONizer {
     }
 
     /**
+     * Loads ONU interface cache
+     *
+     * @return void
+     */
+    protected function loadInterfaceCache() {
+        $availCacheData = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::INTCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $interface) {
+                    $this->interfaceCache[$mac] = $interface;
+                }
+            }
+        }
+    }
+
+    /**
      * Renders json formatted data about unregistered ONU
      * 
      * @return void
