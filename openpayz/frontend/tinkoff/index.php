@@ -62,7 +62,8 @@ if( CheckIpClient() AND CheckParams() ) {
 
         $hash=$_POST['PaymentId'];
         $sum=$_POST['Amount'] / 100;
-        $customerid=explode('_' ,trim($_POST['OrderId']))[0];
+        $customerid=explode('_' ,trim($_POST['OrderId']));
+        $customerid=$customerid[0];
         $paysys='TINKOFF';
         $hashStore=$paysys.'_'.$hash;
         $status=$_POST['Status'];
