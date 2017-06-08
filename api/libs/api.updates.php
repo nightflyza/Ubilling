@@ -284,6 +284,10 @@ class UbillingUpdateManager {
                             $result.=$this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
                             //some logging
                             if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
+                                //Initial line break and update header
+                                $configUpdateHeader = "\n";
+                                $configUpdateHeader.=';release ' . $release . ' update' . "\n";
+                                file_put_contents($configName, $configUpdateHeader, FILE_APPEND);
                                 log_register('UPDMGR APPLY CONFIG `' . $configId . '` RELEASE `' . $release . '`');
                             }
                             if (!empty($configOptions)) {
@@ -302,34 +306,32 @@ class UbillingUpdateManager {
                                     }
                                 }
                             }
-
-
-                            //confirmation checkbox notice
-                            if ((wf_CheckPost(array('applyconfigoptions'))) AND ( !wf_CheckPost(array('applyconfirm')))) {
-                                $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
-                            }
-
-                            //apply form assembly
-                            if ($newOptsCount > 0) {
-                                $result .= wf_tag('br');
-                                $inputs = __('Apply changes for Ubilling release') . ' ' . $release . '?';
-                                $inputs .= wf_tag('br');
-                                $inputs .= wf_tag('br');
-                                $inputs .= wf_HiddenInput('applyconfigoptions', 'true');
-                                $inputs .= wf_CheckInput('applyconfirm', __('I`m ready'), true, false);
-                                $inputs .= wf_tag('br');
-                                $inputs .= wf_Submit(__('Apply'));
-                                $result .= wf_Form('', 'POST', $inputs, 'glamour');
-                                $result.= wf_CleanDiv();
-                            } else {
-                                $result.=$this->messages->getStyledMessage(__('Everything is fine. All required options for release') . ' ' . $release . ' ' . __('is on their places.'), 'success');
-                            }
                         } else {
                             $result.=$this->messages->getStyledMessage(__('Wrong config path') . ': ' . $configName, 'error');
                         }
                     } else {
                         $result.=$this->messages->getStyledMessage(__('Unknown config') . ': ' . $configId, 'error');
                     }
+                }
+                //confirmation checkbox notice
+                if ((wf_CheckPost(array('applyconfigoptions'))) AND ( !wf_CheckPost(array('applyconfirm')))) {
+                    $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
+                }
+
+                //apply form assembly
+                if ($newOptsCount > 0) {
+                    $result .= wf_tag('br');
+                    $inputs = __('Apply changes for Ubilling release') . ' ' . $release . '?';
+                    $inputs .= wf_tag('br');
+                    $inputs .= wf_tag('br');
+                    $inputs .= wf_HiddenInput('applyconfigoptions', 'true');
+                    $inputs .= wf_CheckInput('applyconfirm', __('I`m ready'), true, false);
+                    $inputs .= wf_tag('br');
+                    $inputs .= wf_Submit(__('Apply'));
+                    $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                    $result.= wf_CleanDiv();
+                } else {
+                    $result.=$this->messages->getStyledMessage(__('Everything is fine. All required options for release') . ' ' . $release . ' ' . __('is on their places.'), 'success');
                 }
             }
             $result.=wf_CleanDiv();
