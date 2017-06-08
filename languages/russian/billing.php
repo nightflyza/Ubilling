@@ -2552,10 +2552,18 @@ $lang['def']['Current branch'] = 'Текущий филиал';
 $lang['def']['New branch'] = 'Новый филиал';
 $lang['def']['Delete branch'] = 'Удалить филиал';
 $lang['def']['right to use tagcloud module'] = 'Право использовать модуль облака тегов';
+$lang['def']['Existing config file'] = 'Существующий файл конфигурации';
+$lang['def']['New option'] = 'Новая опция';
+$lang['def']['will be added with value'] = 'будет добавлена со значением';
+$lang['def']['Option already exists, will be ignored'] = 'Опция уже существует и будет проигнорирована';
+$lang['def']['Unknown config'] = 'Неизвестный конфиг';
+$lang['def']['Wrong config path'] = 'Неправильный путь к конфигу';
+$lang['def']['Option added'] = 'Опция добавлена';
+$lang['def']['Everything is fine. All required options for release'] = 'Все нормально. Все необходимые опции для релиза';
+$lang['def']['is on their places.'] = 'на своих местах.';
 $lang['def'][''] = '';
-
-
-
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 
 ?>

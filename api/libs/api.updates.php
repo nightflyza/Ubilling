@@ -116,15 +116,16 @@ class UbillingUpdateManager {
     }
 
     /**
-     * Sets shortid=>filename configs associations array
+     * Sets shortid=>filename with path configs associations array
      * 
      * @return void
      */
     protected function setConfigFilenames() {
         $this->configFileNames = array(
-            'alter' => 'alter.ini',
-            'billing' => 'billing.ini',
-            'ymaps' => 'ymaps.ini',
+            'alter' => 'config/alter.ini',
+            'billing' => 'config/billing.ini',
+            'ymaps' => 'config/ymaps.ini',
+            'userstats' => 'userstats/config/userstats.ini',
         );
     }
 
@@ -191,7 +192,7 @@ class UbillingUpdateManager {
             $cells .= wf_TableCell(__('Files'));
             $cells .= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
-            foreach ($this->allDumps as $release => $filename) {
+            foreach ($this->allConfigs as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
                 $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '');
                 $actLink = wf_Link(self::URL_ME . '&showconfigs=' . $release, web_icon_search(__('Show')));
@@ -255,6 +256,88 @@ class UbillingUpdateManager {
         } else {
             $result = $this->messages->getStyledMessage(__('Wrong release'), 'error');
             log_register('UPDMGR FAIL SQL RELEASE `' . $release . '`');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders interface and applies new options to some config files
+     * 
+     * @param string $release
+     * 
+     * @return string
+     */
+    public function applyConfigOptions($release) {
+        $result = '';
+        $release = trim($release);
+        $release = vf($release);
+        $newOptsCount = 0;
+        if (isset($this->allConfigs[$release])) {
+            $releaseData = $this->allConfigs[$release];
+            if (!empty($releaseData)) {
+                foreach ($releaseData as $configId => $configOptions) {
+                    @$configName = $this->configFileNames[$configId];
+                    if (!empty($configName)) {
+                        if (file_exists($configName)) {
+                            $currentConfigOptions = rcms_parse_ini_file($configName);
+                            $result.=$this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
+                            //some logging
+                            if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
+                                log_register('UPDMGR APPLY CONFIG `' . $configId . '` RELEASE `' . $release . '`');
+                            }
+                            if (!empty($configOptions)) {
+                                foreach ($configOptions as $optionName => $optionContent) {
+                                    if (!isset($currentConfigOptions[$optionName])) {
+                                        $newOptsCount++;
+                                        $result.=$this->messages->getStyledMessage(__('New option') . ': ' . $optionName . ' ' . __('will be added with value') . ' ' . $optionContent, 'info');
+                                        if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
+                                            $saveOptions = $optionName . '=' . $optionContent . "\n";
+                                            file_put_contents($configName, $saveOptions, FILE_APPEND);
+                                            $result.=$this->messages->getStyledMessage(__('Option added') . ': ' . $optionName . '= ' . $optionContent, 'success');
+                                            $newOptsCount--;
+                                        }
+                                    } else {
+                                        $result.=$this->messages->getStyledMessage(__('Option already exists, will be ignored') . ': ' . $optionName, 'warning');
+                                    }
+                                }
+                            }
+
+
+                            //confirmation checkbox notice
+                            if ((wf_CheckPost(array('applyconfigoptions'))) AND ( !wf_CheckPost(array('applyconfirm')))) {
+                                $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
+                            }
+
+                            //apply form assembly
+                            if ($newOptsCount > 0) {
+                                $result .= wf_tag('br');
+                                $inputs = __('Apply changes for Ubilling release') . ' ' . $release . '?';
+                                $inputs .= wf_tag('br');
+                                $inputs .= wf_tag('br');
+                                $inputs .= wf_HiddenInput('applyconfigoptions', 'true');
+                                $inputs .= wf_CheckInput('applyconfirm', __('I`m ready'), true, false);
+                                $inputs .= wf_tag('br');
+                                $inputs .= wf_Submit(__('Apply'));
+                                $result .= wf_Form('', 'POST', $inputs, 'glamour');
+                                $result.= wf_CleanDiv();
+                            } else {
+                                $result.=$this->messages->getStyledMessage(__('Everything is fine. All required options for release') . ' ' . $release . ' ' . __('is on their places.'), 'success');
+                            }
+                        } else {
+                            $result.=$this->messages->getStyledMessage(__('Wrong config path') . ': ' . $configName, 'error');
+                        }
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('Unknown config') . ': ' . $configId, 'error');
+                    }
+                }
+            }
+            $result.=wf_CleanDiv();
+            $result.=wf_delimiter();
+            $result.=wf_BackLink(self::URL_ME);
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Wrong release'), 'error');
+            log_register('UPDMGR FAIL CONF RELEASE `' . $release . '`');
         }
 
         return ($result);

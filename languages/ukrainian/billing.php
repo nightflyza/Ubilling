@@ -2568,4 +2568,15 @@ $lang['def']['New branch'] = 'Нова філія';
 $lang['def']['Delete branch'] = 'Видалити філію';
 $lang['def']['right to use tagcloud module'] = 'Право використовувати модуль хмаринки тегів';
 
+$lang['def']['Existing config file'] = 'Існуючий файл конфігурації';
+$lang['def']['New option'] = 'Нова опція';
+$lang['def']['will be added with value'] = 'буде додана зі значенням';
+$lang['def']['Option already exists, will be ignored'] = 'Опція вже існує і буде проігнорована';
+$lang['def']['Unknown config'] = 'Невідомий конфіг';
+$lang['def']['Wrong config path'] = 'Невірний шлях до конфігу';
+$lang['def']['Option added'] = 'Опцію додано';
+$lang['def']['Everything is fine. All required options for release'] = 'Все нормально. Усі необхідні опції для релізу';
+$lang['def']['is on their places.'] = 'на своїх місцях.';
+
+
 ?>
