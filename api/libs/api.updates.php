@@ -195,7 +195,9 @@ class UbillingUpdateManager {
             foreach ($this->allConfigs as $release => $filename) {
                 $relnotesUrl = self::URL_RELNOTES . str_replace('.', '', $release);
                 $relnotesLink = wf_Link('http://' . $relnotesUrl, __('Release notes') . ' ' . $release, false, '');
-                $actLink = wf_Link(self::URL_ME . '&showconfigs=' . $release, web_icon_search(__('Show')));
+                $alertText = __('Are you serious') . ' ' . __('Apply') . ' Ubilling ' . $release . '?';
+                $actLink = wf_JSAlert(self::URL_ME . '&showconfigs=' . $release, wf_img('skins/icon_addrow.png', __('Apply')), $alertText);
+
                 $cells = wf_TableCell($release);
                 $cells .= wf_TableCell($relnotesLink);
                 $cells .= wf_TableCell($this->getReleaseConfigFiles($release));
