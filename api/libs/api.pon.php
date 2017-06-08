@@ -66,11 +66,11 @@ class PONizer {
     protected $onuIndexCache = array();
 
      /**
-     * Contains ONU indexes cache as mac=>oltid
+     * Contains ONU indexes cache as mac=>interface
      *
      * @var array
      */
-    protected $onuInterfaceCache = array();
+    protected $interfaceCache = array();
 
     /**
      * System alter.ini config stored as key=>value
