@@ -1,6 +1,6 @@
 <?php
 
-if (cfr('TAGS')) {
+if (cfr('TAGCLOUD')) {
 
     class TagCloud {
 
