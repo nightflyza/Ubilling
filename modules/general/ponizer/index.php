@@ -79,7 +79,8 @@ if ($altCfg['PON_ENABLED']) {
                     }
                 } else {
                     //rendering availavle onu LIST
-                    show_window(__('ONU directory'), $pon->controls() . $pon->renderOnuList());
+                    show_window(__('ONU directory'), $pon->controls());
+                    $pon->renderOnuList();
                 }
             }
         } else {
