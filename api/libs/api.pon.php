@@ -1202,7 +1202,11 @@ class PONizer {
         $columns[] = 'Actions';
 
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true', false, 'ONU', 100, $opts);
+
+        $result = '';
+        foreach ($this->allOltDevices as $oltId => $eachOltData) {
+            $result .= show_window(__($eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&OltID=' . $oltId . '', false, 'ONU', 100, $opts));
+		}
         return ($result);
     }
 
