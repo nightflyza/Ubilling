@@ -2561,9 +2561,7 @@ $lang['def']['Wrong config path'] = 'Неправильный путь к кон
 $lang['def']['Option added'] = 'Опция добавлена';
 $lang['def']['Everything is fine. All required options for release'] = 'Все нормально. Все необходимые опции для релиза';
 $lang['def']['is on their places.'] = 'на своих местах.';
+$lang['def']['right to register branches users'] = 'Право регистрации пользователей филиалов';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
-
-
 ?>

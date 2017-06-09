@@ -45,6 +45,27 @@ class UbillingBranches {
     protected $branchesAdmins = array();
 
     /**
+     * Contains array of cityid=>branchid assigns
+     *
+     * @var array
+     */
+    protected $branchesCities = array();
+
+    /**
+     * Contains available cities names as cityid=>cityname
+     *
+     * @var array
+     */
+    protected $allCityNames = array();
+
+    /**
+     * Contains array of accessible cities for current administrator as cityid=>cityname
+     *
+     * @var array
+     */
+    protected $myCities = array();
+
+    /**
      * Contains system alter.ini config as key=>value
      *
      * @var array
@@ -71,6 +92,7 @@ class UbillingBranches {
     const EX_NO_BRANCH = 'EX_BRANCHID_NOT_EXISTS';
     const EX_NO_NAME = 'EX_EMPTY_BRANCH_NAME';
     const EX_NO_USER = 'EX_EMPTY_LOGIN';
+    const EX_NO_CITY = 'EX_EMPTY_CITY';
     const EX_NO_ADMIN = 'EX_EMPTY_ADMIN';
 
     public function __construct() {
@@ -145,6 +167,25 @@ class UbillingBranches {
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     $this->branchesAdmins[$each['id']] = $each;
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads cities assigns from database into protected prop
+     * 
+     * @return void
+     */
+    protected function loadCities() {
+        $this->allCityNames = zb_AddressGetFullCityNames();
+        $query = "SELECT * from `branchescities`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->branchesCities[$each['cityid']] = $each['branchid'];
+                if (isset($this->myBranches[$each['branchid']])) {
+                    $this->myCities[$each['cityid']] = $this->allCityNames[$each['cityid']];
                 }
             }
         }
@@ -445,19 +486,73 @@ class UbillingBranches {
     }
 
     /**
+     * Perfoms city to branch assign
+     * 
+     * @param int $branchId
+     * @param int $cityId
+     * 
+     * @return void
+     */
+    public function cityAssignBranch($branchId, $cityId) {
+        $branchId = vf($branchId, 3);
+        $cityId = vf($cityId, 3);
+        if (isset($this->branches[$branchId])) {
+            if (!empty($cityId)) {
+                $query = "INSERT INTO `branchescities` (`id`,`branchid`,`cityid`) VALUES ";
+                $query.="(NULL,'" . $branchId . "','" . $cityId . "');";
+                nr_query($query);
+                log_register('BRANCH ASSIGN [' . $branchId . '] CITY [' . $cityId . ']');
+            } else {
+                throw new Exception(self::EX_NO_CITY);
+            }
+        } else {
+            throw new Exception(self::EX_NO_BRANCH);
+        }
+    }
+
+    /**
+     * Performs deletion of city assignation to some branch
+     * 
+     * @param int $branchId
+     * @param int $cityId
+     * @throws Exception
+     * 
+     * @return void
+     */
+    public function cityDeassignBranch($branchId, $cityId) {
+        $branchId = vf($branchId, 3);
+        $cityId = vf($cityId, 3);
+        if (isset($this->branches[$branchId])) {
+            if (!empty($adminF)) {
+                $query = "DELETE from `branchescitiess` WHERE `branchid`='" . $branchId . "' AND `cityid`='" . $cityId . "';";
+                nr_query($query);
+                log_register('BRANCH DEASSIGN [' . $branchId . '] CITY [' . $cityId . ']');
+            } else {
+                throw new Exception(self::EX_NO_CITY);
+            }
+        } else {
+            throw new Exception(self::EX_NO_BRANCH);
+        }
+    }
+
+    /**
      * Renders branches module control panel interface
      * 
      * @return string
      */
     public function panel() {
         $result = '';
-        if (cfr('BRANCHES')) {
-            $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
-            $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
-            $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
-        }
-        if (cfr('BRANCHESCONF')) {
-            $result.=wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
+        //hide control panel on user branch editing
+        if (!wf_CheckGet(array('userbranch'))) {
+            if (cfr('BRANCHES')) {
+                $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
+                $result.=wf_Link(self::URL_ME . '&userreg=true', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
+                $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
+                $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
+            }
+            if (cfr('BRANCHESCONF')) {
+                $result.=wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
+            }
         }
         return ($result);
     }
@@ -838,6 +933,45 @@ class UbillingBranches {
     }
 
     /**
+     * Returns branches=>cities assign list and config form
+     * 
+     * @return string
+     */
+    public function renderCitiesConfigForm() {
+        $result = '';
+        //manually preloading cities bingings
+        $this->loadCities();
+
+        if (!empty($this->branchesCities)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.=wf_TableCell(__('Branch'));
+            $cells.= wf_TableCell(__('City'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->branchesCities as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.=wf_TableCell($this->getBranchName($each['branchid']));
+                $cells.= wf_TableCell($this->allCityNames[$each['cityid']]);
+                $cells.= wf_TableCell('TODO');
+                $rows = wf_TableRow($cells, 'row3');
+            }
+        }
+
+        //assign form
+        $branchesTmp = array();
+        foreach ($this->branches as $io => $each) {
+            $branchesTmp[$io] = $each['name'];
+        }
+
+        $inputs = wf_Selector('newcitybranchid', $branchesTmp, __('Branch'), '', false) . ' ';
+        $inputs.= wf_Selector('newcityid', $this->allCityNames, __('City'), '', false) . ' ';
+        $inputs.= wf_Submit(__('Assign'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+
+        return ($result);
+    }
+
+    /**
      * Returns branches management form
      * 
      * @return string
@@ -849,6 +983,8 @@ class UbillingBranches {
             $result.=$this->renderBranchesConfigForm();
             $result.= wf_tag('h3') . __('Administrators') . wf_tag('h3', true);
             $result.=$this->renderAdminConfigForm();
+            $result.= wf_tag('h3') . __('Cities') . wf_tag('h3', true);
+            $result.=$this->renderCitiesConfigForm();
         } else {
             $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
