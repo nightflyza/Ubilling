@@ -80,6 +80,29 @@ if (cfr('BRANCHES')) {
                     rcms_redirect($branch::URL_ME . '&settings=true');
                 }
 
+                //city branch assigns
+                if (wf_CheckPost(array('newcitybranchid', 'newcityid'))) {
+                    $branch->cityAssignBranch($_POST['newcitybranchid'], $_POST['newcityid']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
+
+                //city branch deassign
+                if (wf_CheckGet(array('deletecity', 'citybranchid'))) {
+                    $branch->cityDeassignBranch($_GET['citybranchid'], $_GET['deletecity']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
+
+                //tariff branch assigns
+                if (wf_CheckPost(array('newtariffbranchid', 'newtariffname'))) {
+                    $branch->tariffAssignBranch($_POST['newtariffbranchid'], $_POST['newtariffname']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
+
+                //tariff branch deassign
+                if (wf_CheckGet(array('deletetariff', 'tariffbranchid'))) {
+                    $branch->tariffDeassignBranch($_GET['tariffbranchid'], $_GET['deletetariff']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
 
                 show_window(__('Configuration'), $branch->renderSettingsBranches());
             }
