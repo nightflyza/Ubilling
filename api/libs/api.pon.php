@@ -1205,7 +1205,7 @@ class PONizer {
         $distCacheAvail = !empty($distCacheAvail) ? true : false;
         $intCacheAvail = !empty($intCacheAvail) ? true : false;
 
-        $columns = array('ID', 'Model', 'OLT', 'IP', 'MAC', 'Signal');
+        $columns = array('ID', 'Model', 'IP', 'MAC', 'Signal');
 
         if ($distCacheAvail) {
             $columns[] = __('Distance') . ' (' . __('m') . ')';
@@ -1223,7 +1223,7 @@ class PONizer {
 
         $result = '';
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
-            $result .= show_window(__($eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
+            $result .= show_window(__(@$eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
 		}
         return ($result);
     }
@@ -1421,7 +1421,6 @@ class PONizer {
 
                 $data[] = $each['id'];
                 $data[] = $this->getModelName($each['onumodelid']);
-                $data[] = @$this->allOltDevices[$each['oltid']];
                 $data[] = $each['ip'];
                 $data[] = $each['mac'];
                 $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('fornt', true);
