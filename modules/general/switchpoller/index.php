@@ -101,6 +101,11 @@ if (cfr('SWITCHPOLL')) {
         return ($result);
     }
 
+    /**
+     * Performs downloading of switches polling logs
+     * 
+     * @return void
+     */
     function zb_FDBTableLogDownload() {
         $logPath = 'exports/swpolldata.log';
         if (file_exists($logPath)) {
@@ -203,11 +208,11 @@ if (cfr('SWITCHPOLL')) {
                     $fdbData_raw = array($_GET['swfilter'] . '_fdb');
                 }
                 if (wf_CheckGet(array('macfilter'))) {
-                    $macFilter=$_GET['macfilter'];
+                    $macFilter = $_GET['macfilter'];
                 } else {
-                    $macFilter='';
+                    $macFilter = '';
                 }
-                die(sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter));
+                sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter);
             } else {
                 if (wf_CheckGet(array('fdbfor'))) {
                     $fdbSwitchFilter = $_GET['fdbfor'];

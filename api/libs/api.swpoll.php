@@ -523,7 +523,7 @@ function sn_FDBFilterCheckMac($mac, $allfilters) {
  * 
  * @param $fdbData_raw - array of existing cache _fdb files
  * 
- * @return string
+ * @return void
  */
 function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     $allusermacs = zb_UserGetAllMACs();
@@ -534,6 +534,8 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
     $filteredCounter = 0;
     $switchdata = array();
     $allfilters = array();
+    $json = new wf_JqDtHelper();
+
     //switch data preprocessing
     if (!empty($allswitches)) {
         foreach ($allswitches as $io => $eachswitch) {
@@ -557,10 +559,6 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
         $allfilters[trim($macFilter)] = '42'; // The Ultimate Question of Life, the Universe, and Everything
     }
 
-
-    $result = '{ 
-                  "aaData": [';
-
     foreach ($fdbData_raw as $each_raw) {
         $nameExplode = explode('_', $each_raw);
         if (sizeof($nameExplode) == 2) {
@@ -578,20 +576,19 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
                         }
 
                         if ($userlogin) {
-                            $userlink = '<a href=?module=userprofile&username=' . $userlogin . '><img src=skins/icon_user.gif> ' . @$alladdress[$userlogin] . '</a>';
+                            $userlink = wf_Link('?module=userprofile&username=' . $userlogin, web_profile_icon() . ' ' . @$alladdress[$userlogin], $allfilters, false, '');
                         } else {
                             $userlink = '';
                         }
 
                         if (sn_FDBFilterCheckMac($mac, $allfilters)) {
-                            $result.='
-                    [
-                    "' . $switchIp . '",
-                    "' . $port . '",
-                    "' . @$switchdata[$switchIp] . '",
-                    "' . $mac . '",
-                    "' . $userlink . '"
-                    ],';
+                            $data[] = $switchIp;
+                            $data[] = $port;
+                            $data[] = @$switchdata[$switchIp];
+                            $data[] = $mac;
+                            $data[] = $userlink;
+                            $json->addRow($data);
+                            unset($data);
                             $filteredCounter++;
                         }
                     }
@@ -599,24 +596,7 @@ function sn_SnmpParseFdbCacheJson($fdbData_raw, $macFilter) {
             }
         }
     }
-    //show some data if filters failed
-    if ($filteredCounter == 0) {
-        $result.='
-                    [
-                    "",
-                    "",
-                    "",
-                    "' . __('Nothing found') . '",
-                    ""
-                    ],';
-    }
-
-    $result = substr($result, 0, -1);
-
-    $result.='] 
-        }';
-
-    return($result);
+    $json->getJson();
 }
 
 /**
