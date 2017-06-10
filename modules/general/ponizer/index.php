@@ -8,8 +8,8 @@ if ($altCfg['PON_ENABLED']) {
         $pon = new PONizer();
 
         //getting ONU json data for list
-        if (wf_CheckGet(array('ajaxonu'))) {
-            $pon->ajaxOnuData();
+        if (wf_CheckGet(array('ajaxonu', 'oltid'))) {
+            $pon->ajaxOnuData(vf($_GET['oltid'], 3));
         }
 
         //getting unregistered ONU list
