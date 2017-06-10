@@ -1205,13 +1205,19 @@ class PONizer {
         $distCacheAvail = !empty($distCacheAvail) ? true : false;
         $intCacheAvail = !empty($intCacheAvail) ? true : false;
 
-        $columns = array('ID', 'Model', 'IP', 'MAC', 'Signal');
+        $columns = array('ID');
+
+        if ($intCacheAvail) {
+            $columns[] =  __('Interface');
+        }
+
+        $columns[] = 'Model';
+        $columns[] = 'IP';
+        $columns[] = 'MAC';
+        $columns[] = 'Signal';
 
         if ($distCacheAvail) {
             $columns[] = __('Distance') . ' (' . __('m') . ')';
-        }
-        if ($intCacheAvail) {
-            $columns[] =  __('Interface');
         }
 
         $columns[] = 'Address';
@@ -1420,15 +1426,15 @@ class PONizer {
                 }
 
                 $data[] = $each['id'];
+                if ($intCacheAvail) {
+                    $data[] = @$this->interfaceCache[$each['mac']];
+                }
                 $data[] = $this->getModelName($each['onumodelid']);
                 $data[] = $each['ip'];
                 $data[] = $each['mac'];
                 $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('fornt', true);
                 if ($distCacheAvail) {
                     $data[] = @$this->distanceCache[$each['mac']];
-                }
-                if ($intCacheAvail) {
-                    $data[] = @$this->interfaceCache[$each['mac']];
                 }
                 $data[] = $userLink;
                 $data[] = $userRealName;
