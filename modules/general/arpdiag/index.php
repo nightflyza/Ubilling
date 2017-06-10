@@ -187,14 +187,12 @@ class ArpDiag {
     /**
      * Returns JSON for actual ARP table
      * 
-     * @return string
+     * @return void
      */
     public function ajaxReplyArp() {
-        $result = '';
+        $json = new wf_JqDtHelper();
         $command = 'arp -a';
         $raw = shell_exec($command);
-        $jsonAAData = array();
-
         if (!empty($raw)) {
 
             $allUserAddress = zb_AddressGetFulladdresslistCached();
@@ -210,19 +208,16 @@ class ArpDiag {
                         $ip = zb_ExtractIpAddress($each);
                         $mac = zb_ExtractMacAddress($each);
                         $hostType = $this->getHostLink($allUserIps, $allUserAddress, $allSwitchesIps, $ip);
-                        $jsonItem = array();
                         $jsonItem[] = $ip;
                         $jsonItem[] = $mac;
                         $jsonItem[] = $hostType;
-                        $jsonAAData[] = $jsonItem;
+                        $json->addRow($jsonItem);
+                        unset($jsonItem);
                     }
                 }
             }
         }
-
-
-        $result = array("aaData" => $jsonAAData);
-        return(json_encode($result));
+        $json->getJson();
     }
 
     /**
@@ -242,7 +237,7 @@ if (cfr('ARPDIAG')) {
     if ($alterconf['ARPDIAG_ENABLED']) {
         $arpDiag = new ArpDiag();
         if (wf_CheckGet(array('ajaxarp'))) {
-            die($arpDiag->ajaxReplyArp());
+            $arpDiag->ajaxReplyArp();
         }
         show_window('', $arpDiag->renderPanel());
 
