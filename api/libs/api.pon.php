@@ -1336,9 +1336,11 @@ class PONizer {
     /**
      * Renders json formatted data for jquery data tables list
      * 
+     * @param string $OltId
      * @return void
      */
-    public function ajaxOnuData() {
+    public function ajaxOnuData($OltId) {
+		$OnuByOLT = $this->getOnuArrayByOltID($OltId);
         $json = new wf_JqDtHelper();
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
@@ -1369,8 +1371,8 @@ class PONizer {
             $intCacheAvail = false;
         }
 
-        if (!empty($this->allOnu)) {
-            foreach ($this->allOnu as $io => $each) {
+        if (!empty($OnuByOLT)) {
+            foreach ($OnuByOLT as $io => $each) {
                 $userTariff = '';
                 if (!empty($each['login'])) {
                     $userLogin = trim($each['login']);
