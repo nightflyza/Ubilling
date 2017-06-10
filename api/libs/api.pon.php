@@ -210,6 +210,24 @@ class PONizer {
     }
 
     /**
+     * Try get new ONU Array by assigned users login
+     *
+     * @param string $OltId
+     * @return void
+     */
+    protected function getOnuArrayByOltID($OltId = '') {
+        $result = array();
+        if (!empty($this->allOnu) and !empty($OltId)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['oltid'] == $OltId) {
+                    $result[$io] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Parses & stores in cache OLT ONU distances
      * 
      * @param int $oltid
@@ -1205,7 +1223,7 @@ class PONizer {
 
         $result = '';
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
-            $result .= show_window(__($eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&OltID=' . $oltId . '', false, 'ONU', 100, $opts));
+            $result .= show_window(__($eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
 		}
         return ($result);
     }
