@@ -95,6 +95,8 @@ class PONizer {
     const ONUCACHE_EXT = 'ONUINDEX';
     const INTCACHE_PATH = 'exports/';
     const INTCACHE_EXT = 'ONUINTERFACE';
+    const FDBCACHE_PATH = 'exports/';
+    const FDBCACHE_EXT = 'OLTFDB';
     const URL_ME = '?module=ponizer';
     const SNMPCACHE = false;
     const SNMPPORT = 161;
