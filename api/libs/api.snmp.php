@@ -137,7 +137,7 @@ class SNMPHelper {
      * @return string
      */
     protected function snmpWalkSystem($ip, $community, $oid, $cache = true) {
-        $command = $this->pathWalk . ' -c ' . $community . ' ' . $ip . ' ' . $oid;
+        $command = $this->pathWalk . ' -c ' . $community . ' -Cc ' . $ip . ' ' . $oid;
         $cachetime = time() - $this->cacheTime;
         $cachepath = self::CACHE_PATH;
         $cacheFile = $cachepath . $ip . '_' . $oid;
@@ -247,6 +247,7 @@ class SNMPHelper {
                 //cache expired - refresh data
                 snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
                 $session = new SNMP(SNMP::VERSION_1, $ip, $community, $this->timeoutNative, $this->retriesNative);
+                $session->oid_increasing_check = false;
                 $raw = $session->walk($oid);
                 $session->close();
 
