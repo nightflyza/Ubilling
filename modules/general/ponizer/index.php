@@ -17,6 +17,11 @@ if ($altCfg['PON_ENABLED']) {
             $pon->ajaxOnuUnknownData();
         }
 
+        //getting OLT FDB list
+        if (wf_CheckGet(array('ajaxoltfdb', 'onuid'))) {
+            $pon->ajaxOltFdbData(vf($_GET['onuid'], 3));
+        }
+
         //creating new ONU device
         if (wf_CheckPost(array('createnewonu', 'newoltid', 'newmac'))) {
             $onuCreateResult = $pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
@@ -86,6 +91,7 @@ if ($altCfg['PON_ENABLED']) {
         } else {
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
+            show_window(__('ONU FDB'),  $pon->renderOltFdbList($_GET['editonu']));
         }
     } else {
         show_error(__('You cant control this module'));
