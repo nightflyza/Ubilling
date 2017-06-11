@@ -379,8 +379,12 @@ class PONizer {
                         $devline = explode('.', $devOID);
                         $devIndex = trim($devline[0]); // FDB index
                         $FDBvlan = trim($devline[1]); // Vlan
+                        $FDBnum = trim($devline[7]); // Count number of MAC
 
-                        $FDBTmp[$devIndex] = $FDBRaw;
+                        $FDBRaw = str_replace(' ', ':', $FDBRaw);
+                        $FDBRaw = strtolower($macRaw);
+
+                        $FDBTmp[$devIndex][$FDBnum] = $FDBRaw;
                     }
                 }
             }
@@ -1365,6 +1369,24 @@ class PONizer {
                 $raw = unserialize($raw);
                 foreach ($raw as $mac => $interface) {
                     $this->interfaceCache[$mac] = $interface;
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads OLT FDB cache
+     *
+     * @return void
+     */
+    protected function loadFDBCache() {
+        $availCacheData = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        if (!empty($availCacheData)) {
+            foreach ($availCacheData as $io => $each) {
+                $raw = file_get_contents(self::FDBCACHE_PATH . $each);
+                $raw = unserialize($raw);
+                foreach ($raw as $mac => $fdb) {
+                    $this->FDBCache[$mac] = $fdb;
                 }
             }
         }
