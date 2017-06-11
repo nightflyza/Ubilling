@@ -382,7 +382,7 @@ class PONizer {
                         $FDBnum = trim($devline[7]); // Count number of MAC
 
                         $FDBRaw = str_replace(' ', ':', $FDBRaw);
-                        $FDBRaw = strtolower($macRaw);
+                        $FDBRaw = strtolower($FDBRaw);
 
                         $FDBTmp[$devIndex][$FDBnum] = $FDBRaw;
                     }
@@ -1327,7 +1327,7 @@ class PONizer {
      */
     public function renderOltFdbList($onuid = '') {
         $result = '';
-        $columns = array('ONU', 'MAC',);
+        $columns = array('ID', 'MAC',);
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid .'', false, 'ONU', 100, $opts);
         return ($result);
@@ -1548,6 +1548,41 @@ class PONizer {
                 $json->addRow($data);
                 unset($data);
             }
+        }
+
+
+        $json->getJson();
+    }
+
+    /**
+     * Renders json formatted data for jquery data tables list
+     * 
+     * @param string $OnuId
+     * @return void
+     */
+    public function ajaxOltFdbData($OnuId) {
+        $json = new wf_JqDtHelper();
+        if (!empty($OnuId)) {
+        $onuMacId = $this->allOnu[$OnuId]['mac'];
+
+        $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        if (!empty($fdbCacheAvail)) {
+            $fdbCacheAvail = true;
+            $this->loadFDBCache();
+        } else {
+            $fdbCacheAvail = false;
+        }
+        if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
+            //print_r ($this->FDBCache);
+            foreach ($this->FDBCache[$onuMacId] as $io => $each) {
+
+                $data[] = $io;
+                $data[] = $each;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
         }
 
 
