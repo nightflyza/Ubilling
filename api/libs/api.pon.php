@@ -72,6 +72,13 @@ class PONizer {
      */
     protected $interfaceCache = array();
 
+     /**
+     * Contains FDB indexes cache as id=>mac
+     *
+     * @var array
+     */
+    protected $FDBCache = array();
+
     /**
      * System alter.ini config stored as key=>value
      *
@@ -1398,8 +1405,8 @@ class PONizer {
             foreach ($availCacheData as $io => $each) {
                 $raw = file_get_contents(self::FDBCACHE_PATH . $each);
                 $raw = unserialize($raw);
-                foreach ($raw as $mac => $fdb) {
-                    $this->FDBCache[$mac] = $fdb;
+                foreach ($raw as $oidMac => $FDB) {
+                    $this->FDBCache[$oidMac] = $FDB;
                 }
             }
         }
@@ -1574,9 +1581,9 @@ class PONizer {
         }
         if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
             //print_r ($this->FDBCache);
-            foreach ($this->FDBCache[$onuMacId] as $io => $each) {
+            foreach ($this->FDBCache[$onuMacId] as $id => $each) {
 
-                $data[] = $io;
+                $data[] = $id;
                 $data[] = $each;
 
                 $json->addRow($data);
