@@ -351,6 +351,68 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $FDBIndex
+     * @param array $macIndex
+     * @param array $oltModelId
+     *
+     * @return void
+     */
+    protected function FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId) {
+        $oltid = vf($oltid, 3);
+        $FDBTmp = array();
+        $macTmp = array();
+        $result = array();
+
+        //fdb index preprocessing
+        if ((!empty($FDBIndex)) AND ( !empty($macIndex))) {
+            foreach ($FDBIndex as $io => $eachfdb) {
+                if (preg_match('/' . $this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'] . '/', $eachfdb)) {
+                    $eachfdb = str_replace($this->snmpTemplates[$oltModelId]['misc']['FDBVALUE'], '', $eachfdb);
+                    $line = explode('=', $eachfdb);
+                    //fdb is present
+                    if (isset($line[1])) {
+                        $FDBRaw = trim($line[1]); // FDB
+                        $devOID = trim($line[0]); // FDB last OID
+                        $devline = explode('.', $devOID);
+                        $devIndex = trim($devline[0]); // FDB index
+                        $FDBvlan = trim($devline[1]); // Vlan
+
+                        $FDBTmp[$devIndex] = $FDBRaw;
+                    }
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                }
+            }
+
+            //storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($FDBTmp[$devId])) {
+                        $fdb = $FDBTmp[$devId];
+                        $result[$eachMac] = $fdb;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::FDBCACHE_PATH . $oltid . '_' . self::FDBCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache
      * 
      * @param int   $oltid
@@ -606,6 +668,12 @@ class PONizer {
                                         $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
                                         $intIndex = explodeRows($intIndex);
                                         $this->interfaceParseBd($oltid, $intIndex, $macIndex);
+
+                                        $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
+                                        $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
+                                        $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
+                                        $FDBIndex = explodeRows($FDBIndex);
+                                        $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
                                     }
                                 }
                             }
@@ -1231,7 +1299,7 @@ class PONizer {
         $result = '';
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
             $result .= show_window(__(@$eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
-		}
+        }
         return ($result);
     }
 
@@ -1347,7 +1415,7 @@ class PONizer {
      * @return void
      */
     public function ajaxOnuData($OltId) {
-		$OnuByOLT = $this->getOnuArrayByOltID($OltId);
+        $OnuByOLT = $this->getOnuArrayByOltID($OltId);
         $json = new wf_JqDtHelper();
         $allRealnames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
