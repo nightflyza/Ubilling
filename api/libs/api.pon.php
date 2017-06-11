@@ -292,7 +292,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
