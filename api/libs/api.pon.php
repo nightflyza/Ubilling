@@ -389,7 +389,7 @@ class PONizer {
                         $FDBnum = trim($devline[7]); // Count number of MAC
 
                         $FDBRaw = str_replace(' ', ':', $FDBRaw);
-                        $FDBRaw = strtolower($FDBRaw);
+                        $FDBRaw = strtoupper($FDBRaw);
 
                         $FDBTmp[$devIndex][$FDBnum] = $FDBRaw;
                     }
@@ -1334,7 +1334,7 @@ class PONizer {
      */
     public function renderOltFdbList($onuid = '') {
         $result = '';
-        $columns = array('ID', 'MAC',);
+        $columns = array('ID', 'MAC', 'Address', 'Real Name');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid .'', false, 'ONU', 100, $opts);
         return ($result);
@@ -1580,11 +1580,20 @@ class PONizer {
             $fdbCacheAvail = false;
         }
         if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
-            //print_r ($this->FDBCache);
-            foreach ($this->FDBCache[$onuMacId] as $id => $each) {
+            $GetLoginMac = zb_UserGetAllMACs();
+            $allAddress = zb_AddressGetFulladdresslistCached();
+            $allRealnames = zb_UserGetAllRealnames();
+
+            foreach ($this->FDBCache[$onuMacId] as $id => $mac) {
+                $login = in_array($mac, array_map('strtoupper', $GetLoginMac)) ? array_search($mac, array_map('strtoupper', $GetLoginMac)) : '';
+
+                $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
+                $userRealnames = $login ? @$allRealnames[$login] : '';
 
                 $data[] = $id;
-                $data[] = $each;
+                $data[] = $mac;
+                $data[] = @$userLink;
+                $data[] = @$userRealnames;
 
                 $json->addRow($data);
                 unset($data);
