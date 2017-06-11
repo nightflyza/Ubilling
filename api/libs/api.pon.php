@@ -1321,6 +1321,19 @@ class PONizer {
     }
 
     /**
+     * Renders OLT FDB list container
+     * 
+     * @return string
+     */
+    public function renderOltFdbList($onuid = '') {
+        $result = '';
+        $columns = array('ONU', 'MAC',);
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid .'', false, 'ONU', 100, $opts);
+        return ($result);
+    }
+
+    /**
      * Loads existing signal cache from FS
      * 
      * @return void
