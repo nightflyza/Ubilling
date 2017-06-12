@@ -1651,6 +1651,7 @@ class PONizer {
             $allAddress = zb_AddressGetFulladdresslistCached();
             $allRealnames = zb_UserGetAllRealnames();
             $allUserMac = zb_UserGetAllMACs();
+            $allUserMac = array_map('strtolower', $allUserMac);
             $allUserMac = array_flip($allUserMac);
             $allUserTariffs = zb_TariffsGetAllUsers();
 
