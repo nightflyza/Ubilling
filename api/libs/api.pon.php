@@ -1263,6 +1263,11 @@ class PONizer {
             if (!empty($availOnuCache)) {
                 $result.=wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
             }
+
+            $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+            if (!empty($availOnuFdbCache)) {
+                $result.=wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
+            }
         } else {
 
             $result.=wf_BackLink(self::URL_ME);
@@ -1335,6 +1340,20 @@ class PONizer {
         $columns = array('OLT', 'MAC', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxunknownonu=true', false, 'ONU', 100, $opts);
+        return ($result);
+    }
+
+    /**
+     * Returns current FDB cache list container with controls
+     * 
+     * @return string
+     */
+    public function renderOnuFdbCache() {
+        $result = wf_BackLink(self::URL_ME);
+        $result.=wf_delimiter();
+        $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result.= wf_JqDtLoader($columns, self::URL_ME . '&fdbcachelist=true&ajaxfdblist=true', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -1617,6 +1636,57 @@ class PONizer {
         }
 
 
+        $json->getJson();
+    }
+
+    /**
+     * Renders json for current all OLT FDB list
+     * 
+     * @return void
+     */
+    public function ajaxFdbCacheList() {
+        $json = new wf_JqDtHelper();
+        $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+        if (!empty($availOnuFdbCache)) {
+            $allAddress = zb_AddressGetFulladdresslistCached();
+            $allRealnames = zb_UserGetAllRealnames();
+            $allUserMac = zb_UserGetAllMACs();
+            $allUserMac = array_flip($allUserMac);
+            $allUserTariffs = zb_TariffsGetAllUsers();
+
+            foreach ($availOnuFdbCache as $io => $eachFile) {
+                $oltId = explode('_', $eachFile);
+                $oltId = $oltId[0];
+                $oltDesc = @$this->allOltDevices[$oltId];
+                $fileData = file_get_contents(self::FDBCACHE_PATH . '/' . $eachFile);
+                if (!empty($fileData)) {
+                    $fileData = unserialize($fileData);
+                    if (!empty($fileData)) {
+                        foreach ($fileData as $onuMac => $onuTmp) {
+                            if (!empty($onuTmp)) {
+                                foreach ($onuTmp as $id => $onuData) {
+                                    $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
+                                    @$userAddress = $allAddress[$userLogin];
+                                    @$userRealName = $allRealnames[$userLogin];
+                                    @$userTariff = $allUserTariffs[$userLogin];
+                                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=', web_profile_icon() . ' ' . $userAddress) : '';
+                                    $data[] = $oltDesc;
+                                    $data[] = $onuMac;
+                                    $data[] = $id;
+                                    $data[] = $onuData['vlan'];
+                                    $data[] = $onuData['mac'];
+                                    $data[] = $userLink;
+                                    $data[] = $userRealName;
+                                    $data[] = $userTariff;
+                                    $json->addRow($data);
+                                    unset($data);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         $json->getJson();
     }
 

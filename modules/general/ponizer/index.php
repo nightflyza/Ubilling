@@ -83,15 +83,22 @@ if ($altCfg['PON_ENABLED']) {
                         show_window(__('Unknown ONU'), $pon->controls() . $pon->renderUnknowOnuList());
                     }
                 } else {
-                    //rendering availavle onu LIST
-                    show_window(__('ONU directory'), $pon->controls());
-                    $pon->renderOnuList();
+                    if (wf_CheckGet(array('fdbcachelist'))) {
+                        if (wf_CheckGet(array('ajaxfdblist'))) {
+                            $pon->ajaxFdbCacheList();
+                        }
+                        show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
+                    } else {
+                        //rendering availavle onu LIST
+                        show_window(__('ONU directory'), $pon->controls());
+                        $pon->renderOnuList();
+                    }
                 }
             }
         } else {
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
-            show_window(__('ONU FDB'),  $pon->renderOltFdbList($_GET['editonu']));
+            show_window(__('ONU FDB'), $pon->renderOltFdbList($_GET['editonu']));
             $pon->loadonuSignalHistory($_GET['editonu']);
         }
     } else {
