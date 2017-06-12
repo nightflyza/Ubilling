@@ -1275,6 +1275,18 @@ class PONizer {
     }
 
     /**
+     * Returns ONU signal history chart
+     * 
+     * @param int $onuId
+     * @return string
+     */
+    public function loadonuSignalHistory($onuId) {
+        $result = '';
+        $result.= show_window(__('ONU signal history'),  $pon->onuSignalHistory($onuId));
+        return ($result);
+    }
+
+    /**
      * Renders available ONU JQDT list container
      * 
      * @return string
