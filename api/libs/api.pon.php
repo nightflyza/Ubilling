@@ -65,14 +65,14 @@ class PONizer {
      */
     protected $onuIndexCache = array();
 
-     /**
+    /**
      * Contains ONU indexes cache as mac=>interface
      *
      * @var array
      */
     protected $interfaceCache = array();
 
-     /**
+    /**
      * Contains FDB indexes cache as id=>mac
      *
      * @var array
@@ -226,7 +226,7 @@ class PONizer {
      */
     protected function getOnuArrayByOltID($OltId = '') {
         $result = array();
-        if (!empty($this->allOnu) and !empty($OltId)) {
+        if (!empty($this->allOnu) and ! empty($OltId)) {
             foreach ($this->allOnu as $io => $each) {
                 if ($each['oltid'] == $OltId) {
                     $result[$io] = $each;
@@ -389,7 +389,7 @@ class PONizer {
                         $FDBnum = trim($devline[7]); // Count number of MAC
 
                         $FDBRaw = str_replace(' ', ':', $FDBRaw);
-                        $FDBRaw = strtoupper($FDBRaw);
+                        $FDBRaw = strtolower($FDBRaw);
 
                         $FDBTmp[$devIndex][$FDBnum]['mac'] = $FDBRaw;
                         $FDBTmp[$devIndex][$FDBnum]['vlan'] = $FDBvlan;
@@ -1159,7 +1159,6 @@ class PONizer {
 
         //Signal history chart
         //$result.=$this->onuSignalHistory($onuId);
-
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
@@ -1202,7 +1201,6 @@ class PONizer {
                     //$rawData = file_get_contents($historyKey);
                     $result.=wf_delimiter();
                     //$result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
-
                     //current day signal levels
                     $todaySignal = '';
 
@@ -1282,7 +1280,7 @@ class PONizer {
      */
     public function loadonuSignalHistory($onuId) {
         $result = '';
-        $result.= show_window(__('ONU signal history'),  $this->onuSignalHistory($onuId));
+        $result.= show_window(__('ONU signal history'), $this->onuSignalHistory($onuId));
         return ($result);
     }
 
@@ -1301,7 +1299,7 @@ class PONizer {
         $columns = array('ID');
 
         if ($intCacheAvail) {
-            $columns[] =  __('Interface');
+            $columns[] = __('Interface');
         }
 
         $columns[] = 'Model';
@@ -1347,9 +1345,9 @@ class PONizer {
      */
     public function renderOltFdbList($onuid = '') {
         $result = '';
-        $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name');
+        $columns = array('ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid .'', false, 'ONU', 100, $opts);
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxoltfdb=true&onuid=' . $onuid . '', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -1583,36 +1581,39 @@ class PONizer {
     public function ajaxOltFdbData($OnuId) {
         $json = new wf_JqDtHelper();
         if (!empty($OnuId)) {
-        $onuMacId = $this->allOnu[$OnuId]['mac'];
+            $allUserTariffs = zb_TariffsGetAllUsers();
+            $onuMacId = $this->allOnu[$OnuId]['mac'];
 
-        $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
-        if (!empty($fdbCacheAvail)) {
-            $fdbCacheAvail = true;
-            $this->loadFDBCache();
-        } else {
-            $fdbCacheAvail = false;
-        }
-        if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
-            $GetLoginMac = zb_UserGetAllMACs();
-            $allAddress = zb_AddressGetFulladdresslistCached();
-            $allRealnames = zb_UserGetAllRealnames();
-
-            foreach ($this->FDBCache[$onuMacId] as $id=>$FDBdata) {
-                $login = in_array($FDBdata['mac'], array_map('strtoupper', $GetLoginMac)) ? array_search($FDBdata['mac'], array_map('strtoupper', $GetLoginMac)) : '';
-
-                $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
-                $userRealnames = $login ? @$allRealnames[$login] : '';
-
-                $data[] = $id;
-                $data[] = $FDBdata['vlan'];
-                $data[] = $FDBdata['mac'];
-                $data[] = @$userLink;
-                $data[] = @$userRealnames;
-
-                $json->addRow($data);
-                unset($data);
+            $fdbCacheAvail = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
+            if (!empty($fdbCacheAvail)) {
+                $fdbCacheAvail = true;
+                $this->loadFDBCache();
+            } else {
+                $fdbCacheAvail = false;
             }
-        }
+            if ($fdbCacheAvail and isset($this->FDBCache[$onuMacId])) {
+                $GetLoginMac = zb_UserGetAllMACs();
+                $allAddress = zb_AddressGetFulladdresslistCached();
+                $allRealnames = zb_UserGetAllRealnames();
+
+                foreach ($this->FDBCache[$onuMacId] as $id => $FDBdata) {
+                    $login = in_array($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) ? array_search($FDBdata['mac'], array_map('strtolower', $GetLoginMac)) : '';
+
+                    $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$allAddress[$login], false) : '';
+                    $userRealnames = $login ? @$allRealnames[$login] : '';
+                    $userTariff = (isset($allUserTariffs[$login])) ? $allUserTariffs[$login] : '';
+
+                    $data[] = $id;
+                    $data[] = $FDBdata['vlan'];
+                    $data[] = $FDBdata['mac'];
+                    $data[] = @$userLink;
+                    $data[] = @$userRealnames;
+                    $data[] = $userTariff;
+
+                    $json->addRow($data);
+                    unset($data);
+                }
+            }
         }
 
 
