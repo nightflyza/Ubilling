@@ -1158,7 +1158,7 @@ class PONizer {
         }
 
         //Signal history chart
-        $result.=$this->onuSignalHistory($onuId);
+        //$result.=$this->onuSignalHistory($onuId);
 
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
@@ -1201,7 +1201,7 @@ class PONizer {
                     //commented due performance issues with 1 minute OLT polling.
                     //$rawData = file_get_contents($historyKey);
                     $result.=wf_delimiter();
-                    $result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
+                    //$result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
 
                     //current day signal levels
                     $todaySignal = '';
@@ -1282,7 +1282,7 @@ class PONizer {
      */
     public function loadonuSignalHistory($onuId) {
         $result = '';
-        $result.= show_window(__('ONU signal history'),  $pon->onuSignalHistory($onuId));
+        $result.= show_window(__('ONU signal history'),  $this->onuSignalHistory($onuId));
         return ($result);
     }
 

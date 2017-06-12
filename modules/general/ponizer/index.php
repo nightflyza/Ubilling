@@ -92,6 +92,7 @@ if ($altCfg['PON_ENABLED']) {
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
             show_window(__('ONU FDB'),  $pon->renderOltFdbList($_GET['editonu']));
+            $pon->loadonuSignalHistory($_GET['editonu']);
         }
     } else {
         show_error(__('You cant control this module'));
