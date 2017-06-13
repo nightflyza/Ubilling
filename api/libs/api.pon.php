@@ -1670,7 +1670,7 @@ class PONizer {
                                     @$userAddress = $allAddress[$userLogin];
                                     @$userRealName = $allRealnames[$userLogin];
                                     @$userTariff = $allUserTariffs[$userLogin];
-                                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=', web_profile_icon() . ' ' . $userAddress) : '';
+                                    $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
                                     $data[] = $oltDesc;
                                     $data[] = $onuMac;
                                     $data[] = $id;
