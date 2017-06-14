@@ -2563,5 +2563,11 @@ $lang['def']['Everything is fine. All required options for release'] = 'Все �
 $lang['def']['is on their places.'] = 'на своих местах.';
 $lang['def']['right to register branches users'] = 'Право регистрации пользователей филиалов';
 $lang['def']['right to manage branches users tariffs'] = 'Право управлять тарифами пользователей филиалов';
+$lang['def']['Your branch have no cities assigned'] = 'Ваш филиал не имеет назначенных городов';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 ?>

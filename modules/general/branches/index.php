@@ -28,7 +28,11 @@ if (cfr('BRANCHES')) {
 
         //rendering branches users registration interface
         if (wf_CheckGet(array('userreg'))) {
-            show_window(__('Users registration'), 'TODO');
+            if (cfr('BRANCHESREG')) {
+                show_window(__('Users registration'), $branch->renderRegistrationForm());
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
 

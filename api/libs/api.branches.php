@@ -1269,6 +1269,35 @@ class UbillingBranches {
         }
     }
 
+    /**
+     * Renders user registration wizard-like form
+     * 
+     * @return string
+     */
+    public function renderRegistrationForm() {
+        $result = '';
+        $this->loadCities();
+        $this->loadTariffs();
+        if (!empty($this->myCities)) {
+            $cityTmp = array('' => '-');
+            $cityTmp += $this->myCities;
+            
+            if (!wf_CheckPost(array('regusercityid'))) {
+                $citySelector = wf_SelectorAC('regusercityid', $cityTmp, __('City') . ' ' . web_city_icon(), '', true);
+            } else {
+                $catchedCityId = vf($_POST['regusercityid'], 3);
+                $citySelector = wf_HiddenInput('regusercityid', $catchedCityId);
+                $citySelector.= $this->myCities[$catchedCityId] . ' ' . web_ok_icon() . wf_tag('br');
+            }
+
+            $inputs = $citySelector;
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Your branch have no cities assigned'), 'error');
+        }
+        return ($result);
+    }
+
 }
 
 ?>
