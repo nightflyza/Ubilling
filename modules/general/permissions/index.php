@@ -114,6 +114,7 @@ if (cfr('PERMISSIONS')) {
         $finperms = zb_PermissionGroup('FINANCE');
         $repperms = zb_PermissionGroup('REPORTS');
         $catvperms = zb_PermissionGroup('CATV');
+        $branchesperms = zb_PermissionGroup('BRANCHES');
 
         $reginputs = '';
         $geoinputs = '';
@@ -121,6 +122,7 @@ if (cfr('PERMISSIONS')) {
         $fininputs = '';
         $repinputs = '';
         $catvinputs = '';
+        $branchesinputs = '';
         $miscinputs = '';
 
 
@@ -134,7 +136,7 @@ if (cfr('PERMISSIONS')) {
                 $inputs.=wf_tag('p', false, 'glamour') . wf_CheckInput('rootuser', __('Root administrator'), true, false) . wf_tag('p', true) . wf_CleanDiv();
                 foreach ($system->rights_database as $right_id => $right_desc) {
                     //sorting inputs
-                    if ((!isset($regperms[$right_id])) AND ( !isset($geoperms[$right_id])) AND ( !isset($sysperms[$right_id])) AND ( !isset($finperms[$right_id])) AND ( !isset($repperms[$right_id])) AND ( !isset($catvperms[$right_id]))) {
+                    if ((!isset($regperms[$right_id])) AND ( !isset($geoperms[$right_id])) AND ( !isset($sysperms[$right_id])) AND ( !isset($finperms[$right_id])) AND ( !isset($repperms[$right_id])) AND ( !isset($catvperms[$right_id])) AND ( !isset($branchesperms[$right_id]))) {
                         $miscinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
                     }
                     //user register rights
@@ -163,6 +165,10 @@ if (cfr('PERMISSIONS')) {
                     if (isset($catvperms[$right_id])) {
                         $catvinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
                     }
+                    //branches inputs
+                    if (isset($branchesperms[$right_id])) {
+                        $branchesinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                    }
                 }
             }
         }
@@ -190,6 +196,8 @@ if (cfr('PERMISSIONS')) {
 
         $label = wf_tag('h3') . __('Misc rights') . wf_tag('h3', true);
         $tablecells = wf_TableCell($label . $miscinputs, '', '', 'valign="top"');
+        $label = wf_tag('h3') . __('Branches') . wf_tag('h3', true);
+        $tablecells.= wf_TableCell($label . $branchesinputs, '', '', 'valign="top"');
         $tablerows.= wf_TableRow($tablecells);
 
 
@@ -202,7 +210,7 @@ if (cfr('PERMISSIONS')) {
         $permission_forms = wf_Form("", 'POST', $rightsgrid, '');
         $permission_forms.=wf_CleanDiv();
         $permission_forms.=wf_tag('br');
-        
+
         //copy permissions form
         $copyinputs = wf_tag('h2') . __('Rights cloning') . wf_tag('h2', true);
         $copyinputs.= web_AdminLoginSelector($login);
@@ -211,8 +219,8 @@ if (cfr('PERMISSIONS')) {
         $copyform = wf_Form("", 'POST', $copyinputs, 'glamour');
 
         $permission_forms.=$copyform;
-    
-        
+
+
 
         show_window(__('Rights for') . ' ' . $login, $permission_forms);
     }
@@ -282,7 +290,7 @@ if (cfr('PERMISSIONS')) {
 
     show_window(__('Admins'), web_list_admins());
 
-    show_window('', wf_Link('?module=adminreg', web_icon_create().' '.__('Administrators registration'), true, 'ubButton'));
+    show_window('', wf_Link('?module=adminreg', web_icon_create() . ' ' . __('Administrators registration'), true, 'ubButton'));
 } else {
     show_error(__('You cant control this module'));
 }

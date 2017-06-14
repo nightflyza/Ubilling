@@ -2578,6 +2578,7 @@ $lang['def']['Option added'] = 'Опцію додано';
 $lang['def']['Everything is fine. All required options for release'] = 'Все нормально. Усі необхідні опції для релізу';
 $lang['def']['is on their places.'] = 'на своїх місцях.';
 $lang['def']['right to register branches users'] = 'Право реєстрації користувачів філій';
+$lang['def']['right to manage branches users tariffs'] = 'Право керувати тарифами користувачів філій';
 
 
 ?>
