@@ -4,9 +4,6 @@
 include("api.mysql.php");
 include("api.compat.php");
 
-//creating object for db layer
-$db = new MySQLDB();
-
 /**
  * Registers new non processed transaction
  * 
