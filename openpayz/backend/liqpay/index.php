@@ -5,7 +5,7 @@ $liqConf = parse_ini_file('config/liqpay.ini');
 $ispUrl = $liqConf['TEMPLATE_ISP_URL'];
 $ispName = $liqConf['TEMPLATE_ISP'];
 $ispLogo = $liqConf['TEMPLATE_ISP_LOGO'];
-
+$merchant_service = $liqConf['MERCHANT_SERVICE'];
 
 /*
  * generates random transaction hash
