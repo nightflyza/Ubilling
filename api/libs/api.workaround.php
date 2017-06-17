@@ -622,13 +622,27 @@ function zb_TariffsGetAll() {
  * @return string
  */
 function web_tariffselector($fieldname = 'tariffsel') {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if ($altCfg['BRANCHES_ENABLED']) {
+        global $branchControl;
+        $branchControl->loadTariffs();
+    }
+
+
     $alltariffs = zb_TariffsGetAll();
     $options = array();
 
+
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
-
-            $options[$eachtariff['name']] = $eachtariff['name'];
+            if ($altCfg['BRANCHES_ENABLED']) {
+                if ($branchControl->isMyTariff($eachtariff['name'])) {
+                    $options[$eachtariff['name']] = $eachtariff['name'];
+                }
+            } else {
+                $options[$eachtariff['name']] = $eachtariff['name'];
+            }
         }
     }
 
@@ -643,6 +657,13 @@ function web_tariffselector($fieldname = 'tariffsel') {
  * @return string
  */
 function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if ($altCfg['BRANCHES_ENABLED']) {
+        global $branchControl;
+        $branchControl->loadTariffs();
+    }
+
     $alltariffs = zb_TariffsGetAll();
     $allousytariffs = zb_LousyTariffGetAll();
     $options = array();
@@ -650,7 +671,13 @@ function web_tariffselectorNoLousy($fieldname = 'tariffsel') {
     if (!empty($alltariffs)) {
         foreach ($alltariffs as $io => $eachtariff) {
             if (!zb_LousyCheckTariff($eachtariff['name'], $allousytariffs)) {
-                $options[$eachtariff['name']] = $eachtariff['name'];
+                if ($altCfg['BRANCHES_ENABLED']) {
+                    if ($branchControl->isMyTariff($eachtariff['name'])) {
+                        $options[$eachtariff['name']] = $eachtariff['name'];
+                    }
+                } else {
+                    $options[$eachtariff['name']] = $eachtariff['name'];
+                }
             }
         }
     }

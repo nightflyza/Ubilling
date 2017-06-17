@@ -220,7 +220,7 @@ class UbillingBranches {
      * 
      * @return void
      */
-    protected function loadTariffs() {
+    public function loadTariffs() {
         $this->allTariffs = zb_TariffGetPricesAll();
 
         $query = "SELECT * from `branchestariffs`";
@@ -530,6 +530,35 @@ class UbillingBranches {
     }
 
     /**
+     * Checks is tariff accessible by current administrator
+     * 
+     * @param string $tariffName
+     * 
+     * @return bool
+     */
+    public function isMyTariff($tariffName) {
+        $result = false;
+        if ($this->branchesEnabled) {
+            if (cfr('ROOT')) {
+                $result = true;
+            } else {
+                if (cfr('BRANCHES')) {
+                    if (isset($this->myTariffs[$tariffName])) {
+                        $result = true;
+                    } else {
+                        $result = false;
+                    }
+                } else {
+                    $result = true;
+                }
+            }
+        } else {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
      * Returns user assigned branch
      * 
      * @param string $login
@@ -620,11 +649,11 @@ class UbillingBranches {
      */
     public function tariffAssignBranch($branchId, $tariff) {
         $branchId = vf($branchId, 3);
-        $tariff = vf($tariff);
+        $tariffF = mysql_real_escape_string($tariff);
         if (isset($this->branches[$branchId])) {
             if (!empty($tariff)) {
                 $query = "INSERT INTO `branchestariffs` (`id`,`branchid`,`tariff`) VALUES ";
-                $query.="(NULL,'" . $branchId . "','" . $tariff . "');";
+                $query.="(NULL,'" . $branchId . "','" . $tariffF . "');";
                 nr_query($query);
                 log_register('BRANCH ASSIGN [' . $branchId . '] TARIFF `' . $tariff . '`');
             } else {
