@@ -2580,5 +2580,6 @@ $lang['def']['is on their places.'] = 'на своїх місцях.';
 $lang['def']['right to register branches users'] = 'Право реєстрації користувачів філій';
 $lang['def']['right to manage branches users tariffs'] = 'Право керувати тарифами користувачів філій';
 $lang['def']['Your branch have no cities assigned'] = 'Ваша філія не має призначених міст';
+$lang['def']['Register user with no branch'] = 'Зареєструвати користувача без філії';
 
 ?>

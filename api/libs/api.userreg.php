@@ -426,6 +426,9 @@ function zb_CheckLoginRscriptdCompat($login) {
  */
 function web_UserRegFormNetData($newuser_data) {
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    if ($alterconf['BRANCHES_ENABLED']) {
+        global $branchControl;
+    }
     $safe_mode = $alterconf['SAFE_REGMODE'];
     $citydata = zb_AddressGetCityData($newuser_data['city']);
     $cityalias = zb_TranslitString($citydata['cityalias']);
@@ -498,6 +501,20 @@ function web_UserRegFormNetData($newuser_data) {
     $form.=__('IP');
     $form.= wf_tag('td', true);
     $form.= wf_tag('tr', true);
+
+    if ($alterconf['BRANCHES_ENABLED']) {
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= $branchControl->branchSelector('reguserbranchid') . ' ';
+        if ((!cfr('BRANCHES')) OR ( cfr('ROOT'))) {
+            $form.= wf_CheckInput('reguserwithnobranch', __('Register user with no branch'), false, true);
+        }
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.=__('Branch');
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
+    }
 
     $form.=wf_tag('table', true);
     $form.= wf_HiddenInput('repostdata', base64_encode(serialize($newuser_data)));
@@ -708,6 +725,15 @@ function zb_UserRegister($user_data, $goprofile = true) {
                 zb_UserChangeContract($login, $contract_proposal);
                 zb_UserContractDateCreate($contract_proposal, $contractDate);
             }
+        }
+    }
+
+    //branches assign for newly created user
+    if ($alterconf['BRANCHES_ENABLED']) {
+        global $branchControl;
+        if ((wf_CheckPost(array('reguserbranchid'))) AND ( !wf_CheckPost(array('reguserwithnobranch')))) {
+            $newUserBranchId = vf($_POST['reguserbranchid'], 3);
+            $branchControl->userAssignBranch($newUserBranchId, $login);
         }
     }
 

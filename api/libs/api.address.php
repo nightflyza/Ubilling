@@ -655,13 +655,26 @@ function web_CitySelector() {
  * @return string
  */
 function web_CitySelectorAc() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    if ($altCfg['BRANCHES_ENABLED']) {
+        global $branchControl;
+        $branchControl->loadCities();
+    }
+
     $allcity = array();
     $tmpCity = zb_AddressGetCityAllData();
     $allcity['-'] = '-'; //placeholder
 
     if (!empty($tmpCity)) {
         foreach ($tmpCity as $io => $each) {
-            $allcity[$each['id']] = $each['cityname'];
+            if ($altCfg['BRANCHES_ENABLED']) {
+                if ($branchControl->isMyCity($each['id'])) {
+                    $allcity[$each['id']] = $each['cityname'];
+                }
+            } else {
+                $allcity[$each['id']] = $each['cityname'];
+            }
         }
     }
 
@@ -1048,7 +1061,7 @@ function zb_AddressGetFulladdresslist() {
         foreach ($full_adress as $ArrayData) {
             // zero apt handle
             if ($altCfg['ZERO_TOLERANCE']) {
-                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' .  $ArrayData['apt'];
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' . $ArrayData['apt'];
             } else {
                 $apartment_filtered = '/' . $ArrayData['apt'];
             }
@@ -1128,7 +1141,7 @@ function zb_AddressGetFullCityaddresslist() {
         foreach ($full_adress as $ArrayData) {
             // zero apt handle
             if ($altCfg['ZERO_TOLERANCE']) {
-                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' .  $ArrayData['apt'];
+                $apartment_filtered = ($ArrayData['apt'] == 0) ? '' : '/' . $ArrayData['apt'];
             } else {
                 $apartment_filtered = '/' . $ArrayData['apt'];
             }

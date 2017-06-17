@@ -26,17 +26,6 @@ if (cfr('BRANCHES')) {
             show_window(__('Users'), $branch->renderUserList());
         }
 
-        //rendering branches users registration interface
-        if (wf_CheckGet(array('userreg'))) {
-            if (cfr('BRANCHESREG')) {
-                show_window(__('Users registration'), $branch->renderRegistrationForm());
-            } else {
-                show_error(__('Access denied'));
-            }
-        }
-
-
-
         //financial report 
         if (wf_CheckGet(array('finreport'))) {
             show_window(__('Finance report'), $branch->renderFinanceReport());

@@ -195,11 +195,11 @@ class UbillingBranches {
     }
 
     /**
-     * Loads cities assigns from database into protected prop
+     * Loads cities assigns from database into protected prop. Must be executed first before isMyCity() usage.
      * 
      * @return void
      */
-    protected function loadCities() {
+    public function loadCities() {
         $this->allCityNames = zb_AddressGetFullCityNames();
         $query = "SELECT * from `branchescities`";
         $all = simple_queryall($query);
@@ -501,6 +501,35 @@ class UbillingBranches {
     }
 
     /**
+     * Checks is city accessible by current administrator
+     * 
+     * @param int $cityId
+     * 
+     * @return bool
+     */
+    public function isMyCity($cityId) {
+        $result = false;
+        if ($this->branchesEnabled) {
+            if (cfr('ROOT')) {
+                $result = true;
+            } else {
+                if (cfr('BRANCHES')) {
+                    if (isset($this->myCities[$cityId])) {
+                        $result = true;
+                    } else {
+                        $result = false;
+                    }
+                } else {
+                    $result = true;
+                }
+            }
+        } else {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
      * Returns user assigned branch
      * 
      * @param string $login
@@ -642,7 +671,9 @@ class UbillingBranches {
         if (!wf_CheckGet(array('userbranch'))) {
             if (cfr('BRANCHES')) {
                 $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
-                $result.=wf_Link(self::URL_ME . '&userreg=true', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
+                if (cfr('BRANCHESREG')) {
+                    $result.=wf_Link('?module=userreg', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
+                }
                 $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
                 $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
             }
@@ -1171,7 +1202,7 @@ class UbillingBranches {
      * 
      * @return string
      */
-    protected function branchSelector($name, $selected = '') {
+    public function branchSelector($name, $selected = '') {
         $result = '';
         if (!empty($this->myBranches)) {
             $params = array();
@@ -1267,35 +1298,6 @@ class UbillingBranches {
         if (!empty($result)) {
             show_window(__('Result'), $result);
         }
-    }
-
-    /**
-     * Renders user registration wizard-like form
-     * 
-     * @return string
-     */
-    public function renderRegistrationForm() {
-        $result = '';
-        $this->loadCities();
-        $this->loadTariffs();
-        if (!empty($this->myCities)) {
-            $cityTmp = array('' => '-');
-            $cityTmp += $this->myCities;
-            
-            if (!wf_CheckPost(array('regusercityid'))) {
-                $citySelector = wf_SelectorAC('regusercityid', $cityTmp, __('City') . ' ' . web_city_icon(), '', true);
-            } else {
-                $catchedCityId = vf($_POST['regusercityid'], 3);
-                $citySelector = wf_HiddenInput('regusercityid', $catchedCityId);
-                $citySelector.= $this->myCities[$catchedCityId] . ' ' . web_ok_icon() . wf_tag('br');
-            }
-
-            $inputs = $citySelector;
-            $result.=wf_Form('', 'POST', $inputs, 'glamour');
-        } else {
-            $result.=$this->messages->getStyledMessage(__('Your branch have no cities assigned'), 'error');
-        }
-        return ($result);
     }
 
 }
