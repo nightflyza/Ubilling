@@ -47,7 +47,10 @@ if (cfr('CASH')) {
         $fieldkey = 'newcash';
 
         $form = '';
+        $form.= wf_FormDisabler();
         $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price);
+        
+
 
         // Check is user corporate?
         if ($alter['USER_LINKING_ENABLED']) {

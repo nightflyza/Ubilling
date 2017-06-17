@@ -2,7 +2,6 @@
 
 if (cfr('USERREG')) {
     $alter_conf = $ubillingConfig->getAlter();
-
     if ((!isset($_POST['apt'])) AND ( !isset($_POST['IP']))) {
         show_window(__('User registration step 1 (location)'), web_UserRegFormLocation());
     } else {
@@ -40,6 +39,8 @@ if (cfr('USERREG')) {
     if ($alter_conf['CRM_MODE']) {
         show_window('', wf_Link("?module=expressuserreg", __('Express registration'), false, 'ubButton'));
     }
+
+    show_window('', wf_FormDisabler());
 } else {
     show_error(__('Access denied'));
 }

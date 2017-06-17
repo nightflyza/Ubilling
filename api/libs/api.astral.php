@@ -2184,6 +2184,16 @@ function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton') {
 }
 
 /**
+ * Returns form disabler JS code, for preventing duplicating POST requests
+ * 
+ * @return string
+ */
+function wf_FormDisabler() {
+    $result = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/form-disabler.js"') . wf_tag('script', true);
+    return ($result);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {
