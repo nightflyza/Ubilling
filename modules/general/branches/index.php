@@ -97,6 +97,18 @@ if (cfr('BRANCHES')) {
                     rcms_redirect($branch::URL_ME . '&settings=true');
                 }
 
+                //service branch assigns
+                if (wf_CheckPost(array('newservicebranchid', 'newserviceid'))) {
+                    $branch->serviceAssignBranch($_POST['newservicebranchid'], $_POST['newserviceid']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
+
+                //service branch deassign
+                if (wf_CheckGet(array('deleteservice', 'servicebranchid'))) {
+                    $branch->serviceDeassignBranch($_GET['servicebranchid'], $_GET['deleteservice']);
+                    rcms_redirect($branch::URL_ME . '&settings=true');
+                }
+
                 show_window(__('Configuration'), $branch->renderSettingsBranches());
             }
         }

@@ -138,12 +138,22 @@ if (cfr('PLIPCHANGE')) {
          * @return string
          */
         public function renderMainForm() {
+            if ($this->altCfg['BRANCHES_ENABLED']) {
+                global $branchControl;
+                $branchControl->loadServices();
+            }
             $result = '';
             $servSelector = array();
             if (!empty($this->allServices)) {
 
                 foreach ($this->allServices as $serviceId => $serviceName) {
-                    $servSelector[self::URL_ME . '&ajserviceid=' . $serviceId] = $serviceName;
+                    if ($this->altCfg['BRANCHES_ENABLED']) {
+                        if ($branchControl->isMyService($serviceId)) {
+                            $servSelector[self::URL_ME . '&ajserviceid=' . $serviceId] = $serviceName;
+                        }
+                    } else {
+                        $servSelector[self::URL_ME . '&ajserviceid=' . $serviceId] = $serviceName;
+                    }
                 }
                 //getting firs service ID
                 reset($this->allServices);
@@ -402,7 +412,9 @@ if (cfr('PLIPCHANGE')) {
         //rendering interface
         show_window('', $ipChange->renderCurrentIp());
         show_window(__('Change user IP'), $ipChange->renderMainForm());
-        show_window(__('IP usage stats'), $ipChange->renderFreeIpStats());
+        if ((!cfr('BRANCHES')) OR (cfr('ROOT'))) {
+            show_window(__('IP usage stats'), $ipChange->renderFreeIpStats());
+        }
         show_window('', web_UserControls($userLogin));
     } else {
         show_error(__('Something went wrong'));
