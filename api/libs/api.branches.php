@@ -637,6 +637,35 @@ class UbillingBranches {
     }
 
     /**
+     * Checks is branch accessible by current administrator
+     * 
+     * @param int $branchId
+     * 
+     * @return bool
+     */
+    public function isMyBranch($branchId) {
+        $result = false;
+        if ($this->branchesEnabled) {
+            if (cfr('ROOT')) {
+                $result = true;
+            } else {
+                if (cfr('BRANCHES')) {
+                    if (isset($this->myBranches[$branchId])) {
+                        $result = true;
+                    } else {
+                        $result = false;
+                    }
+                } else {
+                    $result = true;
+                }
+            }
+        } else {
+            $result = true;
+        }
+        return ($result);
+    }
+
+    /**
      * Returns user assigned branch
      * 
      * @param string $login
@@ -1419,10 +1448,12 @@ class UbillingBranches {
      */
     public function branchSelector($name, $selected = '') {
         $result = '';
-        if (!empty($this->myBranches)) {
+        if (!empty($this->branches)) {
             $params = array();
-            foreach ($this->myBranches as $branchId => $adminLogin) {
-                $params[$branchId] = $this->getBranchName($branchId);
+            foreach ($this->branches as $branchId => $branchData) {
+                if ($this->isMyBranch($branchId)) {
+                    $params[$branchId] = $this->getBranchName($branchId);
+                }
             }
             if (!empty($params)) {
                 $result = wf_Selector($name, $params, $result, $selected, false);
@@ -1488,7 +1519,7 @@ class UbillingBranches {
                 //change is really reqired?
                 if (!wf_CheckPost(array('newuserbranchdelete'))) {
                     if ($currentBranchId != $newBranchId) {
-                        if (isset($this->myBranches[$newBranchId])) {
+                        if ($this->isMyBranch($newBranchId)) {
                             $this->userDeleteBranch($userLogin);
                             $this->userAssignBranch($newBranchId, $userLogin);
                             rcms_redirect(self::URL_ME . '&userbranch=' . $userLogin);
