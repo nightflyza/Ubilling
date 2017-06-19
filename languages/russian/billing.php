@@ -2567,6 +2567,13 @@ $lang['def']['Your branch have no cities assigned'] = 'Ваш филиал не 
 $lang['def']['Register user with no branch'] = 'Зарегистрировать пользователя без филиала';
 $lang['def']['right to use branches financial report'] = 'Право просматривать финансовый отчет филиалов';
 $lang['def']['right to use branches signup report'] = 'Право просматривать отчет по подключениям филиалов';
+$lang['def']['No branches cities assigns available'] = 'Нету привязок городов к филиалам';
+$lang['def']['No branches tariffs assigns available'] = 'Нету привязок тарифов к филиалам';
+$lang['def']['No branches services assigns available'] = 'Нету привязок услуг к филиалам';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

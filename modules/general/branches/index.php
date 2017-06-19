@@ -118,6 +118,8 @@ if (cfr('BRANCHES')) {
                 }
 
                 show_window(__('Configuration'), $branch->renderSettingsBranches());
+            } else {
+                show_error(__('Access denied'));
             }
         }
     } else {

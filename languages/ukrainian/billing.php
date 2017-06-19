@@ -2581,5 +2581,11 @@ $lang['def']['right to register branches users'] = 'Право реєстрац�
 $lang['def']['right to manage branches users tariffs'] = 'Право керувати тарифами користувачів філій';
 $lang['def']['Your branch have no cities assigned'] = 'Ваша філія не має призначених міст';
 $lang['def']['Register user with no branch'] = 'Зареєструвати користувача без філії';
+$lang['def']['right to use branches financial report'] = 'Право переглядати фінансовий звіт філій';
+$lang['def']['right to use branches signup report'] = 'Право переглядати звіт по підключеннях філій';
+$lang['def']['No branches cities assigns available'] = 'Немає прив`язок міст до філій';
+$lang['def']['No branches tariffs assigns available'] = 'Немає прив`язок тарифів до філій';
+$lang['def']['No branches services assigns available'] = 'Немає прив`язок послуг до філій';
+
 
 ?>

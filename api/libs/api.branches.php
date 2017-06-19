@@ -1231,36 +1231,39 @@ class UbillingBranches {
         $result = '';
         //manually preloading cities bingings
         $this->loadCities();
-        if (!empty($this->branchesCities)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells.=wf_TableCell(__('Branch'));
-            $cells.= wf_TableCell(__('City'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($this->branchesCities as $io => $each) {
-                $cells = wf_TableCell($io);
-                $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                $cells.= wf_TableCell($this->allCityNames[$each['cityid']]);
-                $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletecity=' . $each['cityid'] . '&citybranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
-            }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-        }
-
-        //assign form
-        $branchesTmp = array();
         if (!empty($this->branches)) {
-            foreach ($this->branches as $io => $each) {
-                $branchesTmp[$io] = $each['name'];
+            if (!empty($this->branchesCities)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.=wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell(__('City'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($this->branchesCities as $io => $each) {
+                    $cells = wf_TableCell($io);
+                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells.= wf_TableCell($this->allCityNames[$each['cityid']]);
+                    $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletecity=' . $each['cityid'] . '&citybranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($actControls);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No branches cities assigns available'), 'warning');
             }
+
+            //assign form
+            $branchesTmp = array();
+            if (!empty($this->branches)) {
+                foreach ($this->branches as $io => $each) {
+                    $branchesTmp[$io] = $each['name'];
+                }
+            }
+
+            $inputs = wf_Selector('newcitybranchid', $branchesTmp, __('Branch'), '', false) . ' ';
+            $inputs.= wf_Selector('newcityid', $this->allCityNames, __('City'), '', false) . ' ';
+            $inputs.= wf_Submit(__('Assign'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
         }
-
-        $inputs = wf_Selector('newcitybranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-        $inputs.= wf_Selector('newcityid', $this->allCityNames, __('City'), '', false) . ' ';
-        $inputs.= wf_Submit(__('Assign'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-
         return ($result);
     }
 
@@ -1273,42 +1276,45 @@ class UbillingBranches {
         $result = '';
         //manually preloading tariffs bingings
         $this->loadTariffs();
-        if (!empty($this->branchesTariffs)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells.=wf_TableCell(__('Branch'));
-            $cells.= wf_TableCell(__('Tariff'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($this->branchesTariffs as $io => $each) {
-                $cells = wf_TableCell($io);
-                $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                $cells.= wf_TableCell($each['tariff']);
-                $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletetariff=' . $each['tariff'] . '&tariffbranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
-            }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-        }
-
-        //assign form
-        $branchesTmp = array();
         if (!empty($this->branches)) {
-            foreach ($this->branches as $io => $each) {
-                $branchesTmp[$io] = $each['name'];
+            if (!empty($this->branchesTariffs)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.=wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell(__('Tariff'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($this->branchesTariffs as $io => $each) {
+                    $cells = wf_TableCell($io);
+                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells.= wf_TableCell($each['tariff']);
+                    $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deletetariff=' . $each['tariff'] . '&tariffbranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($actControls);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No branches tariffs assigns available'), 'warning');
             }
-        }
-        $tariffsTmp = array();
-        if (!empty($this->allTariffs)) {
-            foreach ($this->allTariffs as $tariffName => $tariffFee) {
-                $tariffsTmp[$tariffName] = $tariffName;
+
+            //assign form
+            $branchesTmp = array();
+            if (!empty($this->branches)) {
+                foreach ($this->branches as $io => $each) {
+                    $branchesTmp[$io] = $each['name'];
+                }
             }
+            $tariffsTmp = array();
+            if (!empty($this->allTariffs)) {
+                foreach ($this->allTariffs as $tariffName => $tariffFee) {
+                    $tariffsTmp[$tariffName] = $tariffName;
+                }
+            }
+
+            $inputs = wf_Selector('newtariffbranchid', $branchesTmp, __('Branch'), '', false) . ' ';
+            $inputs.= wf_Selector('newtariffname', $tariffsTmp, __('Tariff'), '', false) . ' ';
+            $inputs.= wf_Submit(__('Assign'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
         }
-
-        $inputs = wf_Selector('newtariffbranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-        $inputs.= wf_Selector('newtariffname', $tariffsTmp, __('Tariff'), '', false) . ' ';
-        $inputs.= wf_Submit(__('Assign'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-
         return ($result);
     }
 
@@ -1321,37 +1327,40 @@ class UbillingBranches {
         $result = '';
         //manually preloading services bindings
         $this->loadServices();
-        if (!empty($this->branchesServices)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells.=wf_TableCell(__('Branch'));
-            $cells.= wf_TableCell(__('Service'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-            foreach ($this->branchesServices as $io => $each) {
-                $cells = wf_TableCell($io);
-                $cells.=wf_TableCell($this->getBranchName($each['branchid']));
-                $cells.= wf_TableCell($this->allServices[$each['serviceid']]);
-                $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deleteservice=' . $each['serviceid'] . '&servicebranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actControls);
-                $rows.= wf_TableRow($cells, 'row3');
-            }
-            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
-        }
-
-        //assign form
-        $branchesTmp = array();
         if (!empty($this->branches)) {
-            foreach ($this->branches as $io => $each) {
-                $branchesTmp[$io] = $each['name'];
+            if (!empty($this->branchesServices)) {
+                $cells = wf_TableCell(__('ID'));
+                $cells.=wf_TableCell(__('Branch'));
+                $cells.= wf_TableCell(__('Service'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($this->branchesServices as $io => $each) {
+                    $cells = wf_TableCell($io);
+                    $cells.=wf_TableCell($this->getBranchName($each['branchid']));
+                    $cells.= wf_TableCell($this->allServices[$each['serviceid']]);
+                    $actControls = wf_JSAlert(self::URL_ME . '&settings=true&deleteservice=' . $each['serviceid'] . '&servicebranchid=' . $each['branchid'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($actControls);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('No branches services assigns available'), 'warning');
             }
+
+            //assign form
+            $branchesTmp = array();
+            if (!empty($this->branches)) {
+                foreach ($this->branches as $io => $each) {
+                    $branchesTmp[$io] = $each['name'];
+                }
+            }
+
+
+            $inputs = wf_Selector('newservicebranchid', $branchesTmp, __('Branch'), '', false) . ' ';
+            $inputs.= wf_Selector('newserviceid', $this->allServices, __('Service'), '', false) . ' ';
+            $inputs.= wf_Submit(__('Assign'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
         }
-
-
-        $inputs = wf_Selector('newservicebranchid', $branchesTmp, __('Branch'), '', false) . ' ';
-        $inputs.= wf_Selector('newserviceid', $this->allServices, __('Service'), '', false) . ' ';
-        $inputs.= wf_Submit(__('Assign'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
-
         return ($result);
     }
 
