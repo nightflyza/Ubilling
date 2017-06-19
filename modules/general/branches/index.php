@@ -28,12 +28,20 @@ if (cfr('BRANCHES')) {
 
         //financial report 
         if (wf_CheckGet(array('finreport'))) {
-            show_window(__('Finance report'), $branch->renderFinanceReport());
+            if (cfr('BRANCHESFINREP')) {
+                show_window(__('Finance report'), $branch->renderFinanceReport());
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         //signups report here
         if (wf_CheckGet(array('sigreport'))) {
-            show_window(__('Signup report'), $branch->renderSignupReport());
+            if (cfr('BRANCHESSIGREP')) {
+                show_window(__('Signup report'), $branch->renderSignupReport());
+            } else {
+                show_error(__('Access denied'));
+            }
         }
 
         if (wf_CheckGet(array('settings'))) {

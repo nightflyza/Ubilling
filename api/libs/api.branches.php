@@ -829,10 +829,14 @@ class UbillingBranches {
             if (cfr('BRANCHES')) {
                 $result.=wf_Link(self::URL_ME . '&userlist=true', wf_img('skins/ukv/users.png') . ' ' . __('Users'), false, 'ubButton') . ' ';
                 if (cfr('BRANCHESREG')) {
-                    $result.=wf_Link('?module=userreg', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
+                    $result.=wf_Link('?module=userreg&branchesback=true', wf_img('skins/ukv/add.png') . ' ' . __('Users registration'), false, 'ubButton') . ' ';
                 }
-                $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
-                $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
+                if (cfr('BRANCHESFINREP')) {
+                    $result.=wf_Link(self::URL_ME . '&finreport=true', wf_img('skins/icon_dollar.gif') . ' ' . __('Finance report'), false, 'ubButton') . ' ';
+                }
+                if (cfr('BRANCHESSIGREP')) {
+                    $result.=wf_Link(self::URL_ME . '&sigreport=true', wf_img('skins/ukv/report.png') . ' ' . __('Signup report'), false, 'ubButton') . ' ';
+                }
             }
             if (cfr('BRANCHESCONF')) {
                 $result.=wf_Link(self::URL_ME . '&settings=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
