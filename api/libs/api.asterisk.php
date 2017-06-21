@@ -23,6 +23,20 @@ class Asterisk {
      */
     protected $result_LoginByNumber;
 
+    /**
+     *
+     *
+     * @var array
+     */
+    protected $allrealnames ;
+
+    /**
+     *
+     *
+     * @var array
+     */
+    protected $alladdress ;
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
@@ -34,6 +48,8 @@ class Asterisk {
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
         $this->AsteriskGetLoginByNumberQuery();
+        $this->AsteriskGetUserAllRealnames();
+        $this->AsteriskGetFulladdress();
     }
 
     /**
@@ -311,6 +327,24 @@ class Asterisk {
     }
 
     /**
+     * Returns all of users realnames records as login=>realname array
+     * 
+     * @return void
+     */
+    protected function AsteriskGetUserAllRealnames () {
+        $this->allrealnames = zb_UserGetAllRealnames();
+    }
+
+    /**
+     * Returns user address by some user login
+     * 
+     * @return void
+     */
+    protected function AsteriskGetFulladdress () {
+        $this->alladdress = zb_AddressGetFulladdresslistCached();
+    }
+
+    /**
      * Returns human readable alias from phone book by phone number
      * 
      * @param string $number - phone number
@@ -337,8 +371,7 @@ class Asterisk {
      * @return string
      */
     protected function AsteriskGetLoginByNumber($number) {
-        $allrealnames = zb_UserGetAllRealnames();
-        $alladdress = zb_AddressGetFulladdresslist();
+
         if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
             $number_cut = substr($number, -10);
             $LoginByNumberQueryArray = $this->result_LoginByNumber;
@@ -352,8 +385,8 @@ class Asterisk {
             if (!empty($user_by_number)) {
                 $result['link'] = wf_Link('?module=userprofile&username=' . $user_by_number, $number, false);
                 $result['login'] = $user_by_number;
-                $result['name'] = @$allrealnames[$user_by_number];
-                $result['adres'] = @$alladdress[$user_by_number];
+                $result['name'] = @$this->allrealnames[$user_by_number];
+                $result['adres'] = @$this->alladdress[$user_by_number];
                 return ($result);
             } else {
                 $result['link'] = $number;
