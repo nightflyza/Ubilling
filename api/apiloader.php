@@ -92,6 +92,7 @@ include('api/libs/api.telegram.php');
 include('api/libs/api.senddog.php');
 include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
+include('api/libs/api.asterisk.php');
 include('api/libs/api.policedog.php');
 include('api/libs/api.branches.php');
 include('api/libs/api.selling.php');
