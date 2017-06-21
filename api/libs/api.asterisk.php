@@ -285,6 +285,153 @@ class Asterisk {
     }
 
     /**
+     * Parse Asterisk RAW CDR data
+     * 
+     * @param string $data - raw CDR
+     * 
+     * @return void
+     */
+    //need review with real CDR data
+    protected function AsteriskParseCDR($data) {
+        $normalData = $data;
+        $adcomments = new ADcomments('ASTERISK'); // minus one SQL query per call
+        // only one instance of object required
+
+        if (!empty($normalData)) {
+            $totalTime = 0;
+            $callsCounter = 0;
+            $cells = wf_TableCell('#');
+            $cells.= wf_TableCell(__('Time'));
+            $cells.= wf_TableCell(__('From'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('To'));
+            $cells.= wf_TableCell(__('Type'));
+            $cells.= wf_TableCell(__('Status'));
+            $cells.= wf_TableCell(__('Talk time'));
+            if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
+                $cells.= wf_TableCell(__('Назойливость'));
+            } else {
+                $cells.= wf_TableCell(__('Comments'));
+            }
+
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($normalData as $io => $each) {
+
+                if (isset($normalData[$io - 1]['src'])) {
+                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['disposition'] == 'NO ANSWER' and $normalData[$io]['disposition'] != 'ANSWERED')
+                        continue;
+                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['dst'] == 'hangup')
+                        continue;
+                    if ($normalData[$io]['src'] == $normalData[$io - 1]['src'] and $normalData[$io - 1]['dst'] == 'musiconhold')
+                        continue;
+                }
+
+                $callsCounter++;
+                $AsteriskGetLoginByNumberAraySrc = array(zb_AsteriskGetLoginByNumber($each['src']));
+                foreach ($AsteriskGetLoginByNumberAraySrc as $data) {
+                    $link_src = $data['link'];
+                    $login = $data['login'];
+                    $name_src = $data['name'];
+                    $adres_src = $data['adres'];
+                }
+                $debugData = wf_tag('pre') . print_r($each, true) . wf_tag('pre', true);
+
+                $startTime = $each['calldate'];
+                //$startTime=  explode(' ', $each['calldate']);
+                //@$startTime=$startTime[1];
+                $tmpTime = strtotime($each['calldate']);
+                $endTime = $tmpTime + $each['duration'];
+                $endTime = date("H:i:s", $endTime);
+                $answerTime = $tmpTime + ($each['duration'] - $each['billsec']);
+                $answerTime = date("H:i:s", $answerTime);
+                $tmpStats = __('Taken up the phone') . ': ' . $answerTime . "\n";
+                $tmpStats.=__('End of call') . ': ' . $endTime;
+                $sessionTimeStats = wf_tag('abbr', false, '', 'title="' . $tmpStats . '"');
+                $sessionTimeStats.=$startTime;
+                $sessionTimeStats.=wf_tag('abbr', true);
+                $callDirection = '';
+
+                $cells = wf_TableCell(wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600'), '', '', 'sorttable_customkey="' . $callsCounter . '"');
+                $cells.= wf_TableCell($sessionTimeStats, '', '', 'sorttable_customkey="' . $tmpTime . '"');
+                $cells.= wf_TableCell($link_src);
+                $cells.= wf_TableCell($name_src);
+                $cells.= wf_TableCell($adres_src);
+
+                $AsteriskGetLoginByNumberArayDst = array(zb_AsteriskGetLoginByNumber($each['dst']));
+                foreach ($AsteriskGetLoginByNumberArayDst as $data) {
+                    $link_dst = $data['link'];
+                    if (!empty($data['login'])) {
+                        $login = $data['login'];
+                    }
+                }
+                //$cells.=  wf_TableCell(zb_AsteriskGetNumAlias($each['dst']));
+                $cells.= wf_TableCell($link_dst);
+
+                $CallType = __('Dial');
+                if (ispos($each['lastapp'], 'internal-caller-transfer')) {
+                    $CallType = __('Call transfer');
+                }
+
+                $cells.= wf_TableCell($CallType);
+
+                $callStatus = $each['disposition'];
+                $statusIcon = '';
+                if (ispos($each['disposition'], 'ANSWERED')) {
+                    $callStatus = __('Answered');
+                    $statusIcon = wf_img('skins/calls/phone_green.png');
+                }
+                if (ispos($each['disposition'], 'NO ANSWER')) {
+                    $callStatus = __('No answer');
+                    $statusIcon = wf_img('skins/calls/phone_red.png');
+                }
+
+                if (ispos($each['disposition'], 'BUSY')) {
+                    $callStatus = __('Busy');
+                    $statusIcon = wf_img('skins/calls/phone_yellow.png');
+                }
+
+                if (ispos($each['disposition'], 'FAILED')) {
+                    $callStatus = __('Failed');
+                    $statusIcon = wf_img('skins/calls/phone_fail.png');
+                }
+
+                $cells.= wf_TableCell($statusIcon . ' ' . $callStatus);
+                $speekTime = $each['billsec'];
+                $totalTime = $totalTime + $each['billsec'];
+                $speekTime = zb_AsteriskFormatTime($speekTime);
+
+                $cells.= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each['billsec'] . '"');
+
+                if (wf_CheckPost(array('countnum')) and ! isset($user_login) and $_POST['countnum']) {
+                    $cells.= wf_TableCell(__($each['countnum']));
+                } else {
+                        $itemId = $each['uniqueid'] . $each['disposition']{0};
+
+                        if ($adcomments->haveComments($itemId)) {
+                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . zb_CheckCommentsForUser('ASTERISK', $itemId) . wf_tag('span', true) . wf_tag('center', true);
+                        } else {
+                            $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
+                        }
+                    if (!empty($login)) {
+                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
+                    } else {
+                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false));
+                    }
+                }
+
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result = wf_TableBody($rows, '100%', '0', 'sortable');
+            $result.=__('Time spent on calls') . ': ' . zb_AsteriskFormatTime($totalTime) . wf_tag('br');
+            $result.=__('Total calls') . ': ' . $callsCounter;
+            show_window('', $result);
+        }
+    }
+
+    /**
      * Load Asterisk CDR
      * 
      * @param string $from - start date
@@ -369,7 +516,7 @@ class Asterisk {
         // Check for rawResult
         if (!empty($rawResult)) {
             //here is data parsing
-            zb_AsteriskParseCDR($rawResult);
+            $this->AsteriskParseCDR($rawResult);
         } elseif (empty($rawResult) and ! $this->connected) {
             rcms_redirect(self::URL_ME . '&config=true');
         } else {
