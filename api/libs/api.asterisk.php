@@ -54,9 +54,6 @@ class Asterisk {
         $this->AsteriskLoadConf();
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
-        $this->AsteriskGetLoginByNumberQuery();
-        $this->AsteriskGetUserAllRealnames();
-        $this->AsteriskGetFulladdress();
     }
 
     /**
@@ -339,7 +336,7 @@ class Asterisk {
                 $result[$data['login']]['mobile'] = substr($data['mobile'], -10);
                 $result_a[substr($data['mobile'], -10)] = $data['login'];
             }
-			foreach ($result_md as $data) {
+            foreach ($result_md as $data) {
                 $result[$data['login']]['dop_mob'] = substr($data['content'], -10);
                 $result_a[substr($data['content'], -10)] = $data['login'];
             }
@@ -569,18 +566,25 @@ class Asterisk {
 
     /**
      * Gets Asterisk CDR data from database and manage cache
+     * Load AsteriskGetLoginByNumberQuery,  AsteriskGetUserAllRealnames, AsteriskGetFulladdress
      * 
      * @param string $from - start date
      * @param string $to  - end date
+     * @param string $user_login  - login if not empty
      * 
      * @return void
      */
     public function AsteriskGetCDR($from, $to, $user_login = '') {
+        // Load needed function
+        $this->AsteriskGetLoginByNumberQuery();
+        $this->AsteriskGetUserAllRealnames();
+        $this->AsteriskGetFulladdress();
+
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($this->config['table']);
 
-//caching
+        //caching
         $cacheUpdate = true;
         $cacheName = $from . $to;
         $cacheName = md5($cacheName);
