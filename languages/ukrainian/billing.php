@@ -2586,6 +2586,6 @@ $lang['def']['right to use branches signup report'] = 'Право перегля
 $lang['def']['No branches cities assigns available'] = 'Немає прив`язок міст до філій';
 $lang['def']['No branches tariffs assigns available'] = 'Немає прив`язок тарифів до філій';
 $lang['def']['No branches services assigns available'] = 'Немає прив`язок послуг до філій';
-
+$lang['def']['Wrong OLT'] = 'Невірна OLT';
 
 ?>

@@ -1640,6 +1640,27 @@ class PONizer {
     }
 
     /**
+     * Checks is ONU really associated with some OLT
+     * 
+     * @param string $onuMac
+     * @param  int $oltId
+     * @return bool
+     */
+    protected function checkOnuOLTid($onuMac, $oltId) {
+        $result = true;
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['mac'] == $onuMac) {
+                    if ($oltId != $each['oltid']) {
+                        $result = false;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders json for current all OLT FDB list
      * 
      * @return void
@@ -1671,7 +1692,10 @@ class PONizer {
                                     @$userRealName = $allRealnames[$userLogin];
                                     @$userTariff = $allUserTariffs[$userLogin];
                                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
-                                    $data[] = $oltDesc;
+
+                                    $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) : '';
+
+                                    $data[] = $oltDesc . $oltCheck;
                                     $data[] = $onuMac;
                                     $data[] = $id;
                                     $data[] = $onuData['vlan'];
