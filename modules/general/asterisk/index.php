@@ -522,14 +522,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
         if (wf_CheckGet(array('config'))) {
             //changing settings
             if (wf_CheckPost(array('newhost', 'newdb', 'newtable', 'newlogin', 'newpassword'))) {
-                zb_StorageSet('ASTERISK_HOST', $_POST['newhost']);
-                zb_StorageSet('ASTERISK_DB', $_POST['newdb']);
-                zb_StorageSet('ASTERISK_TABLE', $_POST['newtable']);
-                zb_StorageSet('ASTERISK_LOGIN', $_POST['newlogin']);
-                zb_StorageSet('ASTERISK_PASSWORD', $_POST['newpassword']);
-                zb_StorageSet('ASTERISK_CACHETIME', $_POST['newcachetime']);
-                log_register("ASTERISK settings changed");
-                rcms_redirect("?module=asterisk&config=true");
+                $asterisk->AsteriskUpdateConfig($_POST['newhost'],  $_POST['newdb'], $_POST['newtable'], $_POST['newlogin'], $_POST['newpassword'], $_POST['newcachetime']);
             }
 
             //aliases creation
