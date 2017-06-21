@@ -96,6 +96,33 @@ class Asterisk {
         $result.= wf_Form("", "POST", $inputs, 'glamour');
         return ($result);
     }
+
+    /**
+     * Returns number aliases aka phonebook form
+     * 
+     * @return string 
+     */
+    public function AsteriskAliasesForm() {
+        global $numAliases;
+        $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
+        $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
+        $createinputs.=wf_Submit(__('Create'));
+        $createform = wf_Form('', 'POST', $createinputs, 'glamour');
+        $result = $createform;
+
+        if (!empty($numAliases)) {
+            $delArr = array();
+            foreach ($numAliases as $num => $eachname) {
+                $delArr[$num] = $num . ' - ' . $eachname;
+            }
+            $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
+            $delinputs.= wf_Submit(__('Delete'));
+            $delform = wf_Form('', 'POST', $delinputs, 'glamour');
+            $result.= $delform;
+        }
+
+        return ($result);
+    }
 }
 
 ?>

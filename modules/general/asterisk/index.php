@@ -531,34 +531,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
         return ($result);
     }
 
-    /**
-     * Returns number aliases aka phonebook form
-     * 
-     * @return string 
-     */
-    function web_AsteriskAliasesForm() {
-        global $numAliases;
-        $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
-        $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
-        $createinputs.=wf_Submit(__('Create'));
-        $createform = wf_Form('', 'POST', $createinputs, 'glamour');
-        $result = $createform;
-
-
-        if (!empty($numAliases)) {
-            $delArr = array();
-            foreach ($numAliases as $num => $eachname) {
-                $delArr[$num] = $num . ' - ' . $eachname;
-            }
-            $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
-            $delinputs.= wf_Submit(__('Delete'));
-            $delform = wf_Form('', 'POST', $delinputs, 'glamour');
-            $result.= $delform;
-        }
-
-        return ($result);
-    }
-
     if (cfr('ASTERISK')) {
 
 //loading asterisk config
@@ -613,7 +585,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             }
 
             show_window(__('Settings'), $asterisk->AsteriskConfigForm());
-            show_window(__('Phone book'), web_AsteriskAliasesForm());
+            show_window(__('Phone book'), $asterisk->AsteriskAliasesForm());
         } else {
             //showing call history form
             show_window(__('Calls history'), web_AsteriskDateForm());
