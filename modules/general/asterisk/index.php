@@ -53,27 +53,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Returns human readable alias from phone book by phone number
-     * 
-     * @param string $number - phone number
-     * 
-     * @return string
-     */
-    function zb_AsteriskGetNumAlias($number) {
-        global $numAliases;
-
-        if (!empty($numAliases)) {
-            if (isset($numAliases[$number])) {
-                return($number . ' - ' . $numAliases[$number]);
-            } else {
-                return ($number);
-            }
-        } else {
-            return ($number);
-        }
-    }
-
-    /**
      * Function add by Pautina - teper tochno zazhivem :)
      * Looks like it gets some additional comments for something
      *

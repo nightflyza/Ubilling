@@ -295,7 +295,7 @@ class Asterisk {
     /**
      * Gets Login by caller number from DB
      * 
-     * @return array
+     * @return array('login'=>array(0=>phone,1=>mobile,2=>content))
      */
     protected function AsteriskGetLoginByNumberQuery() {
         if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
@@ -308,6 +308,25 @@ class Asterisk {
         }
         $this->result_LoginByNumber = $result;
         return ($this->result_LoginByNumber);
+    }
+
+    /**
+     * Returns human readable alias from phone book by phone number
+     * 
+     * @param string $number - phone number
+     * 
+     * @return string
+     */
+    protected function AsteriskGetNumAlias($number) {
+        if (!empty($this->NumAliases)) {
+            if (isset($this->NumAliases[$number])) {
+                return($number . ' - ' . $this->NumAliases[$number]);
+            } else {
+                return ($number);
+            }
+        } else {
+            return ($number);
+        }
     }
 
     /**
@@ -343,7 +362,7 @@ class Asterisk {
                 return ($result);
             }
         } else {
-            $result['link'] = isset($this->NumAliases[$number]) ? $this->NumAliases[$number] : $number;
+            $result['link'] = $this->AsteriskGetNumAlias($number);
             $result['login'] = '';
             $result['name'] = '';
             $result['adres'] = '';
