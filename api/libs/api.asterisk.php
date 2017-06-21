@@ -24,6 +24,13 @@ class Asterisk {
     protected $result_LoginByNumber;
 
     /**
+     * Contains mobiles and Login from MySQL Databases as Number=>Login
+     *
+     * @var array
+     */
+    protected $result_NumberLogin;
+
+    /**
      *
      *
      * @var array
@@ -311,19 +318,34 @@ class Asterisk {
     /**
      * Gets Login by caller number from DB
      * 
-     * @return array('login'=>array(0=>phone,1=>mobile,2=>content))
+     * @return array('number'=>login))
      */
     protected function AsteriskGetLoginByNumberQuery() {
         if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
-            $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` USING (`login`)";
-            $result_q = simple_queryall($query);
             $result = array();
-            foreach ($result_q as $data) {
-                $result[$data['login']] = array(substr($data['phone'], -10), substr($data['mobile'], -10), substr($data['content'], -10));
+            $result_a = array();
+            $query_phone = "SELECT `phones`.`login`,`phone` FROM `phones`";
+            $query_mobile = "SELECT `phones`.`login`,`mobile` FROM `phones`";
+            $query_mobile_dop = "SELECT `login`,`content` FROM `cfitems` WHERE `typeid`='2'";
+            $result_p = simple_queryall($query_phone);
+            $result_m = simple_queryall($query_mobile);
+            $result_md = simple_queryall($query_mobile_dop);
+
+            foreach ($result_p as $data) {
+                $result[$data['login']]['phone'] = substr($data['phone'], -10);
+                $result_a[substr($data['phone'], -10)] = $data['login'];
+            }
+            foreach ($result_m as $data) {
+                $result[$data['login']]['mobile'] = substr($data['mobile'], -10);
+                $result_a[substr($data['mobile'], -10)] = $data['login'];
+            }
+			foreach ($result_md as $data) {
+                $result[$data['login']]['dop_mob'] = substr($data['content'], -10);
+                $result_a[substr($data['content'], -10)] = $data['login'];
             }
         }
         $this->result_LoginByNumber = $result;
-        return ($this->result_LoginByNumber);
+        $this->result_NumberLogin = $result_a;
     }
 
     /**
@@ -331,7 +353,7 @@ class Asterisk {
      * 
      * @return void
      */
-    protected function AsteriskGetUserAllRealnames () {
+    protected function AsteriskGetUserAllRealnames() {
         $this->allrealnames = zb_UserGetAllRealnames();
     }
 
@@ -340,7 +362,7 @@ class Asterisk {
      * 
      * @return void
      */
-    protected function AsteriskGetFulladdress () {
+    protected function AsteriskGetFulladdress() {
         $this->alladdress = zb_AddressGetFulladdresslistCached();
     }
 
@@ -374,13 +396,7 @@ class Asterisk {
 
         if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
             $number_cut = substr($number, -10);
-            $LoginByNumberQueryArray = $this->result_LoginByNumber;
-            foreach ($LoginByNumberQueryArray as $num => $loginArray) {
-                if (in_array($number_cut, $loginArray)) {
-                    $user_by_number = $num;
-                    break;
-                }
-            }
+            $user_by_number = @$this->result_NumberLogin[$number_cut];
             $result = array();
             if (!empty($user_by_number)) {
                 $result['link'] = wf_Link('?module=userprofile&username=' . $user_by_number, $number, false);
@@ -585,9 +601,9 @@ class Asterisk {
 
         if (! empty($user_login)) {
 //connect to Asterisk database and fetch some data
-            $phone = $this->result_LoginByNumber[$user_login][0];
-            $mobile = $this->result_LoginByNumber[$user_login][1];
-            $dop_mobile = $this->result_LoginByNumber[$user_login][2];
+            $phone = $this->result_LoginByNumber[$user_login]['phone'];
+            $mobile = $this->result_LoginByNumber[$user_login]['mobile'];
+            $dop_mobile = $this->result_LoginByNumber[$user_login]['dop_mob'];
 
             if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
                 $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
