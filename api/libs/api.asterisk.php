@@ -299,7 +299,7 @@ class Asterisk {
      */
     protected function AsteriskGetLoginByNumberQuery() {
         if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
-            $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` ON `phones`.`login`=`cfitems`.`login`";
+            $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` USING (`login`)";
             $result_q = simple_queryall($query);
             $result = array();
             foreach ($result_q as $data) {
@@ -337,7 +337,8 @@ class Asterisk {
      * @return string
      */
     protected function AsteriskGetLoginByNumber($number) {
-        global $allrealnames, $alladdress;
+        $allrealnames = zb_UserGetAllRealnames();
+        $alladdress = zb_AddressGetFulladdresslist();
         if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
             $number_cut = substr($number, -10);
             $LoginByNumberQueryArray = $this->result_LoginByNumber;
