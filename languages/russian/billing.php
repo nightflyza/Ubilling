@@ -2571,10 +2571,16 @@ $lang['def']['No branches cities assigns available'] = 'Нету привязо�
 $lang['def']['No branches tariffs assigns available'] = 'Нету привязок тарифов к филиалам';
 $lang['def']['No branches services assigns available'] = 'Нету привязок услуг к филиалам';
 $lang['def']['Wrong OLT'] = 'Неправильная OLT';
+$lang['def']['Why do you call'] = 'Почему ты звонишь?';
+$lang['def']['right to view missed Askozia calls'] = 'Право просматривать пропущенные звонки Askozia';
+$lang['def']['Missed calls that require your response'] = 'Пропущенные звонки требующие вашей реакции';
+$lang['def']['Last call time'] = 'Последняя попытка дозвониться';
+$lang['def']['Number of attempts to call'] = 'Попыток дозвониться';
+$lang['def']['No missed calls at this time'] = 'На данный момент, нету пропущенных звонков';
+$lang['def']['No unanswered calls cache available'] = 'Нету кеша пропущенных звонков';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 ?>

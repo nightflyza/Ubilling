@@ -2587,5 +2587,13 @@ $lang['def']['No branches cities assigns available'] = 'Немає прив`яз
 $lang['def']['No branches tariffs assigns available'] = 'Немає прив`язок тарифів до філій';
 $lang['def']['No branches services assigns available'] = 'Немає прив`язок послуг до філій';
 $lang['def']['Wrong OLT'] = 'Невірна OLT';
+$lang['def']['Why do you call'] = 'Навіщо телефонуєш?';
+$lang['def']['right to view missed Askozia calls'] = 'Право переглядати пропущені дзвінки Askozia';
+$lang['def']['Missed calls that require your response'] = 'Пропущені дзвінки, що потребують вашої реакції';
+$lang['def']['Last call time'] = 'Остання спроба додзвонитись';
+$lang['def']['Number of attempts to call'] = 'Спроб дозвонитись';
+$lang['def']['No missed calls at this time'] = 'Наразі немає пропущених телефонних дзвінків, служба техпідтримки - лапочки :)';
+$lang['def']['No unanswered calls cache available'] = 'Немає кешу пропущених дзвінків';
+
 
 ?>
