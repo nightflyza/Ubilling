@@ -4,9 +4,6 @@ $altcfg = $ubillingConfig->getAlter();
 $mysqlcfg = rcms_parse_ini_file(CONFIG_PATH . "mysql.ini");
 if ($altcfg['ASTERISK_ENABLED']) {
     $asterisk = new Asterisk();
-    $allrealnames = zb_UserGetAllRealnames();
-    $alladdress = zb_AddressGetFulladdresslist();
-
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
         // Profile:
