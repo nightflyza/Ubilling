@@ -8,6 +8,7 @@ class Asterisk {
      * @var array
      */
     public $config = array();
+    const URL_ME = '?module=asterisk';
 
     public function __construct () {
         $this->AsteriskLoadConf();
@@ -121,6 +122,27 @@ class Asterisk {
             $result.= $delform;
         }
 
+        return ($result);
+    }
+
+    /**
+     * Returns CDR date selection form
+     * 
+     * @return string
+     */
+    public function panel() {
+        global $user_login;
+        $inputs = '';
+        if (cfr('ASTERISK')) {
+            $inputs.=wf_Link(self::URL_ME . '&config=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
+        }
+        $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
+        $inputs.= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
+        if (!isset($user_login)) {
+            $inputs.= wf_Trigger('countnum', 'Показать самых назойливых', false);
+        }
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form("", "POST", $inputs, 'glamour');
         return ($result);
     }
 }
