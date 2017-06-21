@@ -7,7 +7,8 @@ class Asterisk {
      *
      * @var array
      */
-    public $config = array();
+    protected $config = array();
+
     const URL_ME = '?module=asterisk';
 
     public function __construct () {
@@ -85,8 +86,6 @@ class Asterisk {
      * @return string
      */
     public function AsteriskConfigForm() {
-        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
-        $result = wf_Link('?module=asterisk', __('Back'), true, 'ubButton') . wf_delimiter();
         $inputs = wf_TextInput('newhost', __('Asterisk host'), $this->config['host'], true);
         $inputs.= wf_TextInput('newdb', __('Database name'), $this->config['db'], true);
         $inputs.= wf_TextInput('newtable', __('CDR table name'), $this->config['table'], true);
@@ -94,7 +93,8 @@ class Asterisk {
         $inputs.= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
         $inputs.= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
         $inputs.= wf_Submit(__('Save'));
-        $result.= wf_Form("", "POST", $inputs, 'glamour');
+        $result = wf_Form("", "POST", $inputs, 'glamour');
+        $result.= wf_BackLink(self::URL_ME);
         return ($result);
     }
 
