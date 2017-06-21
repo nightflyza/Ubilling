@@ -24,26 +24,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Get numbers aliases from database, or set default empty array
-     * 
-     * @return array
-     */
-    function zb_AsteriskGetNumAliases() {
-        $result = array();
-        $rawAliases = zb_StorageGet('ASTERISK_NUMALIAS');
-        if (empty($rawAliases)) {
-            $newAliasses = serialize($result);
-            $newAliasses = base64_encode($newAliasses);
-            zb_StorageSet('ASTERISK_NUMALIAS', $newAliasses);
-        } else {
-            $readAlias = base64_decode($rawAliases);
-            $readAlias = unserialize($readAlias);
-            $result = $readAlias;
-        }
-        return ($result);
-    }
-
-    /**
      * Gets Asterisk config from DB, or sets default values
      * 
      * @return array
@@ -412,10 +392,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     if (cfr('ASTERISK')) {
-
-//loading asterisk config
-        $numAliases = zb_AsteriskGetNumAliases();
-
 //showing configuration form
         if (wf_CheckGet(array('config'))) {
             //changing settings
@@ -425,21 +401,12 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
             //aliases creation
             if (wf_CheckPost(array('newaliasnum', 'newaliasname'))) {
-                $asterisk->AsteriskCreateAlias($_POST['newaliasnum'],  $_POST['newaliasnum']);
+                $asterisk->AsteriskCreateAlias($_POST['newaliasnum'],  $_POST['newaliasname']);
             }
 
             //alias deletion
             if (wf_CheckPost(array('deletealias'))) {
-                $newStoreAliases = $numAliases;
-                $deleteAliasNum = mysql_real_escape_string($_POST['deletealias']);
-                if (isset($newStoreAliases[$deleteAliasNum])) {
-                    unset($newStoreAliases[$deleteAliasNum]);
-                    $newStoreAliases = serialize($newStoreAliases);
-                    $newStoreAliases = base64_encode($newStoreAliases);
-                    zb_StorageSet('ASTERISK_NUMALIAS', $newStoreAliases);
-                    log_register("ASTERISK ALIAS DELETE `" . $deleteAliasNum . "`");
-                    rcms_redirect("?module=asterisk&config=true");
-                }
+                $asterisk->AsteriskDeleteAlias($_POST['deletealias']);
             }
 
             show_window(__('Settings'), $asterisk->AsteriskConfigForm());

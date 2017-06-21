@@ -192,16 +192,15 @@ class Asterisk {
      * @return string 
      */
     public function AsteriskAliasesForm() {
-        global $numAliases;
         $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
         $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
         $createinputs.=wf_Submit(__('Create'));
         $createform = wf_Form('', 'POST', $createinputs, 'glamour');
         $result = $createform;
 
-        if (!empty($numAliases)) {
+        if (!empty($this->NumAliases)) {
             $delArr = array();
-            foreach ($numAliases as $num => $eachname) {
+            foreach ($this->NumAliases as $num => $eachname) {
                 $delArr[$num] = $num . ' - ' . $eachname;
             }
             $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
@@ -214,12 +213,30 @@ class Asterisk {
     }
 
     /**
+     * Delete aliase for number on Ubstorage
+     * 
+     * @return string
+     */
+    public function AsteriskDeleteAlias($deleteAliasNum) {
+        $newStoreAliases = $this->NumAliases;
+        $deleteAliasNum = mysql_real_escape_string($deleteAliasNum);
+        if (isset($newStoreAliases[$deleteAliasNum])) {
+            unset($newStoreAliases[$deleteAliasNum]);
+            $newStoreAliases = serialize($newStoreAliases);
+            $newStoreAliases = base64_encode($newStoreAliases);
+            zb_StorageSet('ASTERISK_NUMALIAS', $newStoreAliases);
+            log_register("ASTERISK ALIAS DELETE `" . $deleteAliasNum . "`");
+            rcms_redirect(self::URL_ME . '&config=true');
+        }
+    }
+
+    /**
      * Create aliases for number on Ubstorage
      * 
      * @return string
      */
     public function AsteriskCreateAlias($newAliasNum, $newAliasName) {
-        $newStoreAliases = $numAliases;
+        $newStoreAliases = $this->NumAliases;
         $newAliasNum = mysql_real_escape_string($newAliasNum);
         $newAliasName = mysql_real_escape_string($newAliasName);
         $newStoreAliases[$newAliasNum] = $newAliasName;
