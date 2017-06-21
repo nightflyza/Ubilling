@@ -513,35 +513,10 @@ if ($altcfg['ASTERISK_ENABLED']) {
         }
     }
 
-    /**
-     * Returns CDR date selection form
-     * 
-     * @return string
-     */
-    function web_AsteriskDateForm() {
-        global $user_login;
-        $inputs = wf_Link("?module=asterisk&config=true", wf_img('skins/settings.png', __('Settings'))) . ' ';
-        $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
-        $inputs.= wf_DatePickerPreset('dateto', curdate()) . ' ' . __('To');
-        if (!isset($user_login)) {
-            $inputs.= wf_Trigger('countnum', 'Показать самых назойливых', false);
-        }
-        $inputs.= wf_Submit(__('Show'));
-        $result = wf_Form("", "POST", $inputs, 'glamour');
-        return ($result);
-    }
-
     if (cfr('ASTERISK')) {
 
 //loading asterisk config
-        $asteriskConf = zb_AsteriskGetConf();
         $numAliases = zb_AsteriskGetNumAliases();
-        $asteriskHost = $asteriskConf['host'];
-        $asteriskDb = $asteriskConf['db'];
-        $asteriskTable = $asteriskConf['table'];
-        $asteriskLogin = $asteriskConf['login'];
-        $asteriskPassword = $asteriskConf['password'];
-        $asteriskCacheTime = $asteriskConf['cachetime'];
 
 //showing configuration form
         if (wf_CheckGet(array('config'))) {
@@ -588,7 +563,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
             show_window(__('Phone book'), $asterisk->AsteriskAliasesForm());
         } else {
             //showing call history form
-            show_window(__('Calls history'), web_AsteriskDateForm());
+            show_window(__('Calls history'),$asterisk->panel());
 
             //and parse some calls history if this needed
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
