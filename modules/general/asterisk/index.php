@@ -24,62 +24,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Gets Asterisk config from DB, or sets default values
-     * 
-     * @return array
-     */
-    function zb_AsteriskGetConf() {
-        $result = array();
-        $emptyArray = array();
-        //getting url
-        $host = zb_StorageGet('ASTERISK_HOST');
-        if (empty($host)) {
-            $host = 'localhost';
-            zb_StorageSet('ASTERISK_HOST', $host);
-        }
-        //getting login
-        $login = zb_StorageGet('ASTERISK_LOGIN');
-        if (empty($login)) {
-            $login = 'asterisk';
-            zb_StorageSet('ASTERISK_LOGIN', $login);
-        }
-
-        //getting DB name
-        $db = zb_StorageGet('ASTERISK_DB');
-        if (empty($db)) {
-            $db = 'asteriskdb';
-            zb_StorageSet('ASTERISK_DB', $db);
-        }
-        //getting CDR table name
-        $table = zb_StorageGet('ASTERISK_TABLE');
-        if (empty($table)) {
-            $table = 'cdr';
-            zb_StorageSet('ASTERISK_TABLE', $table);
-        }
-
-        //getting password
-        $password = zb_StorageGet('ASTERISK_PASSWORD');
-        if (empty($password)) {
-            $password = 'password';
-            zb_StorageSet('ASTERISK_PASSWORD', $password);
-        }
-        //getting caching time
-        $cache = zb_StorageGet('ASTERISK_CACHETIME');
-        if (empty($cache)) {
-            $cache = '1';
-            zb_StorageSet('ASTERISK_CACHETIME', $cache);
-        }
-
-        $result['host'] = $host;
-        $result['db'] = $db;
-        $result['table'] = $table;
-        $result['login'] = $login;
-        $result['password'] = $password;
-        $result['cachetime'] = $cache;
-        return ($result);
-    }
-
-    /**
      * Converts per second time values to human-readable format
      * 
      * @param int $seconds - time interval in seconds
@@ -146,76 +90,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Gets Login by caller number from DB
-     * 
-     * @return array
-     */
-    function zb_LoginByNumberQuery() {
-        global $mysqlcfg, $user_login, $result_a;
-        if (!isset($result_a) and empty($result_a)) {
-            $loginDB = new mysqli($mysqlcfg['server'], $mysqlcfg['username'], $mysqlcfg['password'], $mysqlcfg['db']);
-            if ($loginDB->connect_error) {
-                die('Ошибка подключения (' . $loginDB->connect_errno . ') '
-                        . $loginDB->connect_error);
-            }
-            if (isset($user_login)) {
-                $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` ON `phones`.`login`=`cfitems`.`login` WHERE `phones`.`login`='" . $user_login . "'";
-            } else {
-                $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` ON `phones`.`login`=`cfitems`.`login`";
-            }
-            $result = $loginDB->query($query);
-            $result_a = array();
-            while ($row = $result->fetch_assoc()) {
-                $result_a[$row['login']] = array(substr($row['phone'], -10), substr($row['mobile'], -10), substr($row['content'], -10));
-            }
-            mysqli_free_result($result);
-            $loginDB->close();
-        }
-        return ($result_a);
-    }
-
-    /**
-     * Gets Ubilling user login by number mobile
-     * 
-     * @param string $number - number
-     * 
-     * @return string
-     */
-    function zb_AsteriskGetLoginByNumber($number) {
-        global $allrealnames, $alladdress;
-        if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
-            $number_cut = substr($number, -10);
-            $LoginByNumberQueryArray = zb_LoginByNumberQuery();
-            foreach ($LoginByNumberQueryArray as $num => $loginArray) {
-                if (in_array($number_cut, $loginArray)) {
-                    $user_by_number = $num;
-                    break;
-                }
-            }
-            $result = array();
-            if (!empty($user_by_number)) {
-                $result['link'] = wf_Link('?module=userprofile&username=' . $user_by_number, $number, false);
-                $result['login'] = $user_by_number;
-                $result['name'] = @$allrealnames[$user_by_number];
-                $result['adres'] = @$alladdress[$user_by_number];
-                return ($result);
-            } else {
-                $result['link'] = $number;
-                $result['login'] = '';
-                $result['name'] = '';
-                $result['adres'] = '';
-                return ($result);
-            }
-        } else {
-            $result['link'] = zb_AsteriskGetNumAlias($number);
-            $result['login'] = '';
-            $result['name'] = '';
-            $result['adres'] = '';
-            return ($result);
-        }
-    }
-
-    /**
      * Function add by Pautina - teper tochno zazhivem :)
      * Looks like it gets some additional comments for something
      *
@@ -269,9 +143,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
             //and parse some calls history if this needed
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskLoadCDR($_POST['datefrom'], $_POST['dateto']);
+                $asterisk->AsteriskLoadCDR($_POST['datefrom'], $_POST['dateto'], $user_login);
             } elseif (isset($user_login) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskLoadCDR('2000', curdate());
+                $asterisk->AsteriskLoadCDR('2000', curdate(), $user_login);
             }
         }
     } else {
