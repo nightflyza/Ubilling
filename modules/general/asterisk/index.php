@@ -411,108 +411,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
         }
     }
 
-    /**
-     * Another database query execution
-     * 
-     * @param string $query - query to execute
-     * 
-     * @return array
-     */
-    function zb_AsteriskQuery($query) {
-        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
-        $asteriskDB = new mysqli($asteriskHost, $asteriskLogin, $asteriskPassword, $asteriskDb);
-        if ($asteriskDB->connect_error) {
-            die('Ошибка подключения (' . $asteriskDB->connect_errno . ') ' . $asteriskDB->connect_error);
-        }
-        $result = array();
-        $result_query = $asteriskDB->query($query, MYSQLI_USE_RESULT);
-        while ($row = $result_query->fetch_assoc()) {
-            $result[] = $row;
-        }
-        mysqli_free_result($result_query);
-        $asteriskDB->close();
-        return ($result);
-    }
-
-    /**
-     * Gets Asterisk CDR data from database and manage cache
-     * 
-     * @param string $from - start date
-     * @param string $to  - end date
-     * 
-     * @return void
-     */
-    function zb_AsteriskGetCDR($from, $to) {
-        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime, $user_login;
-        $from = mysql_real_escape_string($from);
-        $to = mysql_real_escape_string($to);
-        $asteriskTable = mysql_real_escape_string($asteriskTable);
-        $cachePath = 'exports/';
-
-//caching
-        $cacheUpdate = true;
-        $cacheName = $from . $to;
-        $cacheName = md5($cacheName);
-        $cacheName = $cachePath . $cacheName . '.asterisk';
-        $cachetime = time() - ($asteriskCacheTime * 60);
-
-        if (file_exists($cacheName)) {
-            if ((filemtime($cacheName) > $cachetime)) {
-                $rawResult = file_get_contents($cacheName);
-                $rawResult = unserialize($rawResult);
-                $cacheUpdate = false;
-            } else {
-                $cacheUpdate = true;
-            }
-        } else {
-            $cacheUpdate = true;
-        }
-
-        if (isset($user_login)) {
-//connect to Asterisk database and fetch some data
-            $phonesQueryData = zb_LoginByNumberQuery(); // why? why use this callback three times?
-            $phone = $phonesQueryData[$user_login][0];
-            $mobile = $phonesQueryData[$user_login][1];
-            $dop_mobile = $phonesQueryData[$user_login][2];
-
-            if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($mobile) and empty($phone) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($dop_mobile) and empty($phone) and empty($mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($phone) and ! empty($mobile) and empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($phone) and ! empty($dop_mobile) and empty($mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($mobile) and ! empty($dop_mobile) and empty($phone)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            } elseif (!empty($phone) and ! empty($mobile) and ! empty($dop_mobile)) {
-                $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "' OR `src` LIKE '%" . $mobile . "' OR `dst` LIKE '%" . $mobile . "' OR `src` LIKE '%" . $dop_mobile . "' OR `dst` LIKE '%" . $dop_mobile . "')  AND `lastapp`='dial' ORDER BY `calldate` DESC" ;
-            }
-            if (!empty($query)) {
-                $rawResult = zb_AsteriskQuery($query);
-                $cacheContent = serialize($rawResult);
-            }
-        } elseif (wf_CheckPost(array('countnum')) and ! isset($user_login)) {
-            $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
-            $rawResult = zb_AsteriskQuery($query);
-            $cacheContent = serialize($rawResult);
-        } elseif ($cacheUpdate and ! isset($user_login)) {
-            $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            $rawResult = zb_AsteriskQuery($query);
-            $cacheContent = serialize($rawResult);
-            file_put_contents($cacheName, $cacheContent);
-        }
-
-        if (!empty($rawResult)) {
-            //here is data parsing
-            zb_AsteriskParseCDR($rawResult);
-        } else {
-            show_error(__('Empty reply received'));
-        }
-    }
-
     if (cfr('ASTERISK')) {
 
 //loading asterisk config
@@ -527,15 +425,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
             //aliases creation
             if (wf_CheckPost(array('newaliasnum', 'newaliasname'))) {
-                $newStoreAliases = $numAliases;
-                $newAliasNum = mysql_real_escape_string($_POST['newaliasnum']);
-                $newAliasName = mysql_real_escape_string($_POST['newaliasname']);
-                $newStoreAliases[$newAliasNum] = $newAliasName;
-                $newStoreAliases = serialize($newStoreAliases);
-                $newStoreAliases = base64_encode($newStoreAliases);
-                zb_StorageSet('ASTERISK_NUMALIAS', $newStoreAliases);
-                log_register("ASTERISK ALIAS ADD `" . $newAliasNum . "` NAME `" . $newAliasName . "`");
-                rcms_redirect("?module=asterisk&config=true");
+                $asterisk->AsteriskCreateAlias($_POST['newaliasnum'],  $_POST['newaliasnum']);
             }
 
             //alias deletion
@@ -560,9 +450,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
             //and parse some calls history if this needed
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
-                zb_AsteriskGetCDR($_POST['datefrom'], $_POST['dateto']);
+                $asterisk->AsteriskLoadCDR($_POST['datefrom'], $_POST['dateto']);
             } elseif (isset($user_login) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-                zb_AsteriskGetCDR('2000', curdate());
+                $asterisk->AsteriskLoadCDR('2000', curdate());
             }
         }
     } else {
