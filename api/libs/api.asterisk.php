@@ -552,18 +552,6 @@ class Asterisk {
     }
 
     /**
-     * Load Asterisk CDR
-     * 
-     * @param string $from - start date
-     * @param string $to  - end date
-     * 
-     * @return void
-     */
-    public function AsteriskLoadCDR($from, $to, $user_login= '') {
-        return ($this->AsteriskGetCDR($from, $to, $user_login));
-    }
-
-    /**
      * Gets Asterisk CDR data from database and manage cache
      * 
      * @param string $from - start date
@@ -571,7 +559,7 @@ class Asterisk {
      * 
      * @return void
      */
-    protected function AsteriskGetCDR($from, $to, $user_login) {
+    public function AsteriskGetCDR($from, $to, $user_login = '') {
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($this->config['table']);

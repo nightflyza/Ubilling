@@ -103,9 +103,9 @@ if ($altcfg['ASTERISK_ENABLED']) {
 
             //and parse some calls history if this needed
             if (wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskLoadCDR($_POST['datefrom'], $_POST['dateto'], $user_login);
+                $asterisk->AsteriskGetCDR($_POST['datefrom'], $_POST['dateto'], $user_login);
             } elseif (isset($user_login) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-                $asterisk->AsteriskLoadCDR('2000', curdate(), $user_login);
+                $asterisk->AsteriskGetCDR('2000', curdate(), $user_login);
             }
         }
     } else {
