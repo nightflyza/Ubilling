@@ -16,16 +16,24 @@ class Asterisk {
      */
     protected $NumAliases = array();
 
+    /**
+     * Contains Login and mobiles from MySQL Databases as login=>data
+     *
+     * @var array
+     */
+    protected $result_LoginByNumber;
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
 
     const URL_ME = '?module=asterisk';
-
+    const CACHE_PATH = 'exports/';
     public function __construct () {
         $this->AsteriskLoadConf();
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
+        $this->AsteriskGetLoginByNumberQuery();
     }
 
     /**
@@ -285,6 +293,65 @@ class Asterisk {
     }
 
     /**
+     * Gets Login by caller number from DB
+     * 
+     * @return array
+     */
+    protected function AsteriskGetLoginByNumberQuery() {
+        if (!isset($this->result_LoginByNumber) and empty($this->result_LoginByNumber)) {
+            $query = "SELECT `phones`.`login`,`phone`,`mobile`,`content` FROM `phones` LEFT JOIN `cfitems` ON `phones`.`login`=`cfitems`.`login`";
+            $result_q = simple_queryall($query);
+            $result = array();
+            foreach ($result_q as $data) {
+                $result[$data['login']] = array(substr($data['phone'], -10), substr($data['mobile'], -10), substr($data['content'], -10));
+            }
+        }
+        $this->result_LoginByNumber = $result;
+        return ($this->result_LoginByNumber);
+    }
+
+    /**
+     * Gets Ubilling user login by number mobile
+     * 
+     * @param string $number - number
+     * 
+     * @return string
+     */
+    protected function AsteriskGetLoginByNumber($number) {
+        global $allrealnames, $alladdress;
+        if (strlen($number) == 13 or strlen(substr($number, -10)) == 10) {
+            $number_cut = substr($number, -10);
+            $LoginByNumberQueryArray = $this->result_LoginByNumber;
+            foreach ($LoginByNumberQueryArray as $num => $loginArray) {
+                if (in_array($number_cut, $loginArray)) {
+                    $user_by_number = $num;
+                    break;
+                }
+            }
+            $result = array();
+            if (!empty($user_by_number)) {
+                $result['link'] = wf_Link('?module=userprofile&username=' . $user_by_number, $number, false);
+                $result['login'] = $user_by_number;
+                $result['name'] = @$allrealnames[$user_by_number];
+                $result['adres'] = @$alladdress[$user_by_number];
+                return ($result);
+            } else {
+                $result['link'] = $number;
+                $result['login'] = '';
+                $result['name'] = '';
+                $result['adres'] = '';
+                return ($result);
+            }
+        } else {
+            $result['link'] = isset($this->NumAliases[$number]) ? $this->NumAliases[$number] : $number;
+            $result['login'] = '';
+            $result['name'] = '';
+            $result['adres'] = '';
+            return ($result);
+        }
+    }
+
+    /**
      * Parse Asterisk RAW CDR data
      * 
      * @param string $data - raw CDR
@@ -329,7 +396,7 @@ class Asterisk {
                 }
 
                 $callsCounter++;
-                $AsteriskGetLoginByNumberAraySrc = array(zb_AsteriskGetLoginByNumber($each['src']));
+                $AsteriskGetLoginByNumberAraySrc = array($this->AsteriskGetLoginByNumber($each['src']));
                 foreach ($AsteriskGetLoginByNumberAraySrc as $data) {
                     $link_src = $data['link'];
                     $login = $data['login'];
@@ -359,7 +426,7 @@ class Asterisk {
                 $cells.= wf_TableCell($name_src);
                 $cells.= wf_TableCell($adres_src);
 
-                $AsteriskGetLoginByNumberArayDst = array(zb_AsteriskGetLoginByNumber($each['dst']));
+                $AsteriskGetLoginByNumberArayDst = array($this->AsteriskGetLoginByNumber($each['dst']));
                 foreach ($AsteriskGetLoginByNumberArayDst as $data) {
                     $link_dst = $data['link'];
                     if (!empty($data['login'])) {
@@ -415,9 +482,9 @@ class Asterisk {
                             $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
                     if (!empty($login)) {
-                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
+                        $cells.= wf_TableCell(wf_Link(self::URL_ME . '&addComments=' . $itemId . '&username=' . $login . '#profileending', $link_text, false));
                     } else {
-                        $cells.= wf_TableCell(wf_Link('?module=asterisk&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false));
+                        $cells.= wf_TableCell(wf_Link(self::URL_ME . '&addComments=' . $itemId . '&AsteriskWindow=1', $link_text, false));
                     }
                 }
 
@@ -439,8 +506,8 @@ class Asterisk {
      * 
      * @return void
      */
-    public function AsteriskLoadCDR($from, $to) {
-        return ($this->AsteriskGetCDR($from, $to));
+    public function AsteriskLoadCDR($from, $to, $user_login= '') {
+        return ($this->AsteriskGetCDR($from, $to, $user_login));
     }
 
     /**
@@ -451,17 +518,16 @@ class Asterisk {
      * 
      * @return void
      */
-    protected function AsteriskGetCDR($from, $to) {
+    protected function AsteriskGetCDR($from, $to, $user_login) {
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($this->config['table']);
-        $cachePath = 'exports/';
 
 //caching
         $cacheUpdate = true;
         $cacheName = $from . $to;
         $cacheName = md5($cacheName);
-        $cacheName = $cachePath . $cacheName . '.asterisk';
+        $cacheName = self::CACHE_PATH . 'ASTERISK_' . $cacheName;
         $cachetime = time() - ($this->config['cachetime'] * 60);
 
         if (file_exists($cacheName)) {
@@ -476,12 +542,11 @@ class Asterisk {
             $cacheUpdate = true;
         }
 
-        if (isset($user_login)) {
+        if (! empty($user_login)) {
 //connect to Asterisk database and fetch some data
-            $phonesQueryData = zb_LoginByNumberQuery(); // why? why use this callback three times?
-            $phone = $phonesQueryData[$user_login][0];
-            $mobile = $phonesQueryData[$user_login][1];
-            $dop_mobile = $phonesQueryData[$user_login][2];
+            $phone = $this->result_LoginByNumber[$user_login][0];
+            $mobile = $this->result_LoginByNumber[$user_login][1];
+            $dop_mobile = $this->result_LoginByNumber[$user_login][2];
 
             if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
                 $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
