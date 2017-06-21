@@ -2594,6 +2594,7 @@ $lang['def']['Last call time'] = 'Остання спроба додзвонит
 $lang['def']['Number of attempts to call'] = 'Спроб дозвонитись';
 $lang['def']['No missed calls at this time'] = 'Наразі немає пропущених телефонних дзвінків, служба техпідтримки - лапочки :)';
 $lang['def']['No unanswered calls cache available'] = 'Немає кешу пропущених дзвінків';
+$lang['def']['users tried to contact you but could not'] = 'номерів намагалось вам зателефонувати, але так і не дочекались відповіді.';
 
 
 ?>

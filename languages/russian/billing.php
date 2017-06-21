@@ -2578,7 +2578,7 @@ $lang['def']['Last call time'] = 'Последняя попытка дозвон
 $lang['def']['Number of attempts to call'] = 'Попыток дозвониться';
 $lang['def']['No missed calls at this time'] = 'На данный момент, нету пропущенных звонков';
 $lang['def']['No unanswered calls cache available'] = 'Нету кеша пропущенных звонков';
-$lang['def'][''] = '';
+$lang['def']['users tried to contact you but could not'] = 'номеров пытались до вас дозвониться, но так и не дождались ответа';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

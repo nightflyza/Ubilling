@@ -192,6 +192,22 @@ class DarkVoid {
                 }
             }
         }
+        
+        //missed Askozia calls notification
+        if ($this->altCfg['ASKOZIA_ENABLED']) {
+            $wdycCache='exports/whydoyoucall.dat';
+            if (file_exists($wdycCache)) {
+                $cacheData=  file_get_contents($wdycCache);
+                if (!empty($wdycCache)) {
+                    $cacheData=  unserialize($cacheData);
+                    $missedCallsCount=  sizeof($cacheData);
+                    if ($missedCallsCount>0) {
+                    $missedCallsAlert = $missedCallsCount . ' ' . __('users tried to contact you but could not');
+                    $this->alerts.=wf_Link('?module=whydoyoucall', wf_img("skins/wdycnotify.png", $missedCallsAlert), false, '');
+                    }
+                }
+            }
+        }
 
         //switchmon at notify area
         if ($this->altCfg['TB_SWITCHMON']) {
