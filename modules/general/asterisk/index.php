@@ -3,7 +3,7 @@
 $altcfg = $ubillingConfig->getAlter();
 $mysqlcfg = rcms_parse_ini_file(CONFIG_PATH . "mysql.ini");
 if ($altcfg['ASTERISK_ENABLED']) {
-
+    $asterisk = new Asterisk();
     $allrealnames = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFulladdresslist();
 
@@ -17,11 +17,11 @@ if ($altcfg['ASTERISK_ENABLED']) {
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }
     } elseif (isset($_GET['AsteriskWindow']) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-		if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
+        if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
             $adcomments = new ADcomments('ASTERISK');
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }
-	}
+    }
 
     /**
      * Get numbers aliases from database, or set default empty array
@@ -165,7 +165,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
         }
     }
 
-	/**
+    /**
      * Gets Login by caller number from DB
      * 
      * @return array
@@ -532,25 +532,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Returns Asterisk module configuration form
-     * 
-     * @return string
-     */
-    function web_AsteriskConfigForm() {
-        global $asteriskHost, $asteriskDb, $asteriskTable, $asteriskLogin, $asteriskPassword, $asteriskCacheTime;
-        $result = wf_Link('?module=asterisk', __('Back'), true, 'ubButton') . wf_delimiter();
-        $inputs = wf_TextInput('newhost', __('Asterisk host'), $asteriskHost, true);
-        $inputs.= wf_TextInput('newdb', __('Database name'), $asteriskDb, true);
-        $inputs.= wf_TextInput('newtable', __('CDR table name'), $asteriskTable, true);
-        $inputs.= wf_TextInput('newlogin', __('Database login'), $asteriskLogin, true);
-        $inputs.= wf_TextInput('newpassword', __('Database password'), $asteriskPassword, true);
-        $inputs.= wf_TextInput('newcachetime', __('Cache time'), $asteriskCacheTime, true);
-        $inputs.= wf_Submit(__('Save'));
-        $result.= wf_Form("", "POST", $inputs, 'glamour');
-        return ($result);
-    }
-
-    /**
      * Returns number aliases aka phonebook form
      * 
      * @return string 
@@ -631,7 +612,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
                 }
             }
 
-            show_window(__('Settings'), web_AsteriskConfigForm());
+            show_window(__('Settings'), $asterisk->AsteriskConfigForm());
             show_window(__('Phone book'), web_AsteriskAliasesForm());
         } else {
             //showing call history form
