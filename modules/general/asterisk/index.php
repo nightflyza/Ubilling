@@ -74,22 +74,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Checks first digit in some number by some prefix
-     * 
-     * @param string $prefix - search prefix
-     * @param string $callerid - phone number
-     * 
-     * @return bool
-     */
-    function zb_AsteriskCheckPrefix($prefix, $callerid) {
-        if (substr($callerid, 0, 1) == $prefix) {
-            return (true);
-        } else {
-            return (false);
-        }
-    }
-
-    /**
      * Function add by Pautina - teper tochno zazhivem :)
      * Looks like it gets some additional comments for something
      *
