@@ -111,7 +111,7 @@ class Asterisk {
             $cache = '1';
             zb_StorageSet('ASTERISK_CACHETIME', $cache);
         }        
-		//getting caching time
+        //getting caching time
         $dopmobile = zb_StorageGet('ASTERISK_DOPMOBILE');
         if (empty($dopmobile)) {
             $dopmobile = '';
@@ -375,10 +375,9 @@ class Asterisk {
             $result_a = array();
             $query_phone = "SELECT `phones`.`login`,`phone` FROM `phones`";
             $query_mobile = "SELECT `phones`.`login`,`mobile` FROM `phones`";
-            $query_mobile_dop = "SELECT `login`,`content` FROM `cfitems` WHERE `typeid`='2'";
             $result_p = simple_queryall($query_phone);
             $result_m = simple_queryall($query_mobile);
-            $result_md = simple_queryall($query_mobile_dop);
+
 
             foreach ($result_p as $data) {
                 $result[$data['login']]['phone'] = substr($data['phone'], -10);
@@ -388,9 +387,14 @@ class Asterisk {
                 $result[$data['login']]['mobile'] = substr($data['mobile'], -10);
                 $result_a[substr($data['mobile'], -10)] = $data['login'];
             }
-            foreach ($result_md as $data) {
-                $result[$data['login']]['dop_mob'] = substr($data['content'], -10);
-                $result_a[substr($data['content'], -10)] = $data['login'];
+            if ($this->config['dopmobile']) {
+                $query_mobile_dop = "SELECT `login`,`content` FROM `cfitems` WHERE `typeid`='" . $this->config['dopmobile'] . "'";
+                $result_md = simple_queryall($query_mobile_dop);
+
+                foreach ($result_md as $data) {
+                    $result[$data['login']]['dop_mob'] = substr($data['content'], -10);
+                    $result_a[substr($data['content'], -10)] = $data['login'];
+                }
             }
         }
         $this->result_LoginByNumber = $result;
