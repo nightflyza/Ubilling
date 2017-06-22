@@ -1,7 +1,7 @@
 <?php
 
 $altcfg = $ubillingConfig->getAlter();
-$mysqlcfg = rcms_parse_ini_file(CONFIG_PATH . "mysql.ini");
+
 if ($altcfg['ASTERISK_ENABLED']) {
     $asterisk = new Asterisk();
     if (isset($_GET['username'])) {
