@@ -1,5 +1,4 @@
 <?php
-
 $altcfg = $ubillingConfig->getAlter();
 
 if ($altcfg['ASTERISK_ENABLED']) {
@@ -25,7 +24,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
         if (wf_CheckGet(array('config'))) {
             //changing settings
             if (wf_CheckPost(array('newhost', 'newdb', 'newtable', 'newlogin', 'newpassword'))) {
-                $asterisk->AsteriskUpdateConfig($_POST['newhost'],  $_POST['newdb'], $_POST['newtable'], $_POST['newlogin'], $_POST['newpassword'], $_POST['newcachetime']);
+                $asterisk->AsteriskUpdateConfig($_POST['newhost'],  $_POST['newdb'], $_POST['newtable'], $_POST['newlogin'], $_POST['newpassword'], $_POST['newcachetime'], $_POST['dopmobile']);
             }
 
             //aliases creation
