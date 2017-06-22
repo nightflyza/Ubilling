@@ -728,6 +728,70 @@ class UserProfile {
     }
 
     /**
+     * Renders users available deal with it tasks notification
+     * 
+     * @return string
+     */
+    protected function getUserDealWithItNotification() {
+        $result = '';
+        if ($this->alterCfg['DEALWITHIT_IN_PROFILE']) {
+            $notification = '';
+            $query = "SELECT `login`,`action` from `dealwithit` WHERE `login`='" . $this->login . "';";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                $actionNames = array(
+                    'addcash' => __('Add cash'),
+                    'corrcash' => __('Correct saldo'),
+                    'setcash' => __('Set cash'),
+                    'credit' => __('Change') . ' ' . __('credit'),
+                    'creditexpire' => __('Change') . ' ' . __('credit expire date'),
+                    'tariffchange' => __('Change') . ' ' . __('tariff'),
+                    'tagadd' => __('Add tag'),
+                    'tagdel' => __('Delete tag'),
+                    'freeze' => __('Freeze user'),
+                    'unfreeze' => __('Unfreeze user'),
+                    'reset' => __('User reset'),
+                    'setspeed' => __('Change speed override'),
+                    'down' => __('Set user down'),
+                    'undown' => __('Enable user'),
+                    'ao' => __('Enable AlwaysOnline'),
+                    'unao' => __('Disable AlwaysOnline')
+                );
+
+                $actionIcons = array(
+                    'addcash' => 'skins/icon_dollar.gif',
+                    'corrcash' => 'skins/icon_dollar.gif',
+                    'setcash' => 'skins/icon_dollar.gif',
+                    'credit' => 'skins/icon_credit.gif',
+                    'creditexpire' => 'skins/icon_calendar.gif',
+                    'tariffchange' => 'skins/icon_tariff.gif',
+                    'tagadd' => 'skins/tagiconsmall.png',
+                    'tagdel' => 'skins/tagiconsmall.png',
+                    'freeze' => 'skins/icon_passive.gif',
+                    'unfreeze' => 'skins/icon_passive.gif',
+                    'reset' => 'skins/refresh.gif',
+                    'setspeed' => 'skins/icon_speed.gif',
+                    'down' => 'skins/icon_down.gif',
+                    'undown' => 'skins/icon_down.gif',
+                    'ao' => 'skins/icon_online.gif',
+                    'unao' => 'skins/icon_online.gif'
+                );
+
+                foreach ($all as $io => $each) {
+                    if ((isset($actionNames[$each['action']])) AND ( isset($actionIcons[$each['action']]))) {
+                        $icon=wf_img_sized($actionIcons[$each['action']], $actionNames[$each['action']], '10', '10');
+                        $notification.=wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false).' ';
+                    } else {
+                        $notification.=$each['action'] . ' ';
+                    }
+                }
+            }
+            $result = $this->addRow(__('Held jobs for this user'), $notification);
+        }
+        return ($result);
+    }
+
+    /**
      * gets and preformats last activity time
      * 
      * @return string
@@ -1153,6 +1217,8 @@ class UserProfile {
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
 //Disable aka Down flag row
         $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
+//Deal with it available tasks notification
+        $profile.= $this->getUserDealWithItNotification();
 //Connection details  row
         $profile.= $this->getUserConnectionDetails();
 //User notes row

@@ -24,6 +24,13 @@ class DealWithIt {
     protected $actionNames = array();
 
     /**
+     * Contains available actions icons as action=>icon URL
+     *
+     * @var array
+     */
+    protected $actionIcons = array();
+
+    /**
      * Contains available actions array as  callback url=>name
      *
      * @var array
@@ -38,6 +45,7 @@ class DealWithIt {
     public function __construct() {
         $this->loadAlter();
         $this->setActionNames();
+        $this->setActionIcons();
         $this->setActionsURL();
         $this->loadTasks();
     }
@@ -93,6 +101,32 @@ class DealWithIt {
             'undown' => __('Enable user'),
             'ao' => __('Enable AlwaysOnline'),
             'unao' => __('Disable AlwaysOnline')
+        );
+    }
+
+    /**
+     * Sets available actions array with icons
+     * 
+     * @return void
+     */
+    protected function setActionIcons() {
+        $this->actionIcons = array(
+            'addcash' => 'skins/icon_dollar.gif',
+            'corrcash' => 'skins/icon_dollar.gif',
+            'setcash' => 'skins/icon_dollar.gif',
+            'credit' => 'skins/icon_credit.gif',
+            'creditexpire' => 'skins/icon_calendar.gif',
+            'tariffchange' => 'skins/icon_tariff.gif',
+            'tagadd' => 'skins/tagiconsmall.png',
+            'tagdel' => 'skins/tagiconsmall.png',
+            'freeze' => 'skins/icon_passive.gif',
+            'unfreeze' => 'skins/icon_passive.gif',
+            'reset' => 'skins/refresh.gif',
+            'setspeed' => 'skins/icon_speed.gif',
+            'down' => 'skins/icon_down.gif',
+            'undown' => 'skins/icon_down.gif',
+            'ao' => 'skins/icon_online.gif',
+            'unao' => 'skins/icon_online.gif'
         );
     }
 
@@ -447,12 +481,13 @@ class DealWithIt {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($tmpArr as $io => $each) {
+                $actionIcon=(isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12').' ' : '' ;
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 $cells.= wf_TableCell(@$allAddress[$each['login']]);
                 $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                $cells.= wf_TableCell($this->actionNames[$each['action']]);
+                $cells.= wf_TableCell($actionIcon.$this->actionNames[$each['action']]);
                 $cells.= wf_TableCell($each['param']);
                 $cells.= wf_TableCell($each['note']);
                 $taskControls = wf_JSAlert(self::URL_ME . '&username=' . $each['login'] . '&deletetaskid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());

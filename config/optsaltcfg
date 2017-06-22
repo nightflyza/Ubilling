@@ -266,6 +266,7 @@ VLANMACHISTORY=TRIGGER|VLAN and MAC history enabled
 VLAN_ONLINE_IN_PROFILE=TRIGGER|Detect online in profile enabled
 SIGNAL_IN_PROFILE=TRIGGER|Show ONU signal in profile
 DEALWITHIT_ENABLED=TRIGGER|Delayed per-user actions management enabled
+DEALWITHIT_IN_PROFILE=TRIGGER|Delayed per-user actions profile indication
 EXHORSE_ENABLED=TRIGGER|Is exestential horse enabled
 UKV_ILLEGAL_TARIFFID=VARCHAR|UKV illegal users tariff id
 UKV_COMPLEX_TARIFFID=VARCHAR|UKV complex users tariff id
