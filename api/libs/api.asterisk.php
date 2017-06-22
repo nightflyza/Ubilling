@@ -35,14 +35,7 @@ class Asterisk {
      *
      * @var array
      */
-    protected $allrealnames;
-
-    /**
-     * Contains All comments whis scope Asterisk item=>text
-     *
-     * @var array
-     */
-    protected $comments = array();
+    protected $allrealnames ;
 
     /**
      *
@@ -320,19 +313,17 @@ class Asterisk {
     }
 
     /**
-     * Function add by Pautina - teper tochno zazhivem :)
-     * Looks like it gets some additional comments for something
+     * Get comment for user
+     *
+     * @param int $idComments - comment id
      *
      * @return string
      */
-    protected function AsteriskCheckCommentsForUser($from, $to) {
-            $query = "SELECT `text`,`item` FROM `adcomments` WHERE `scope`='ASTERISK' BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'";
-            $result = simple_queryall($query);
-            foreach ($result as $data) {
-                $item = $data['item'];
-                $text = $data['text'];
-                $this->comments[$item] = $text;
-            }
+    protected function AsteriskGetCommentsForUser($idComments) {
+            $query = "SELECT `text` from `adcomments` WHERE `scope`='ASTERISK' AND `item`='" . $idComments . "' ORDER BY `date` ASC LIMIT 1;";
+            $result = simple_query($query);
+            $comments = $result["text"];
+            return ($comments);
     }
 
     /**
@@ -595,7 +586,7 @@ class Asterisk {
                         $itemId = $each['uniqueid'] . $each['disposition']{0};
 
                         if ($adcomments->haveComments($itemId)) {
-                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') .     $this->comments[$itemId] . wf_tag('span', true) . wf_tag('center', true);
+                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . $this->AsteriskGetCommentsForUser($itemId) . wf_tag('span', true) . wf_tag('center', true);
                         } else {
                             $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
@@ -631,7 +622,6 @@ class Asterisk {
         $this->AsteriskGetLoginByNumberQuery();
         $this->AsteriskGetUserAllRealnames();
         $this->AsteriskGetFulladdress();
-        $this->AsteriskCheckCommentsForUser($from, $to);
 
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
@@ -655,9 +645,9 @@ class Asterisk {
         } else {
             $cacheUpdate = true;
         }
- 
+
         if (! empty($user_login)) {
-            //fetch some data from Asterisk database
+//connect to Asterisk database and fetch some data
             $phone = $this->result_LoginByNumber[$user_login]['phone'];
             $mobile = $this->result_LoginByNumber[$user_login]['mobile'];
             $dop_mobile = $this->result_LoginByNumber[$user_login]['dop_mob'];
