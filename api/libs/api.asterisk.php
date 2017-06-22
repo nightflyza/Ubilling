@@ -313,6 +313,35 @@ class Asterisk {
     }
 
     /**
+     * Converts per second time values to human-readable format
+     * 
+     * @param int $seconds - time interval in seconds
+     * 
+     * @return string
+     */
+    protected function AsteriskFormatTime($seconds) {
+        $init = $seconds;
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds / 60) % 60);
+        $seconds = $seconds % 60;
+
+        if ($init < 3600) {
+            //less than 1 hour
+            if ($init < 60) {
+                //less than minute
+                $result = $seconds . ' ' . __('sec.');
+            } else {
+                //more than one minute
+                $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+            }
+        } else {
+            //more than hour
+            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        }
+        return ($result);
+    }
+
+    /**
      * Gets Login by caller number from DB
      * 
      * @return array('number'=>login))
@@ -533,7 +562,7 @@ class Asterisk {
                 $cells.= wf_TableCell($statusIcon . ' ' . $callStatus);
                 $speekTime = $each['billsec'];
                 $totalTime = $totalTime + $each['billsec'];
-                $speekTime = zb_AsteriskFormatTime($speekTime);
+                $speekTime = $this->AsteriskFormatTime($speekTime);
 
                 $cells.= wf_TableCell($speekTime, '', '', 'sorttable_customkey="' . $each['billsec'] . '"');
 
@@ -558,7 +587,7 @@ class Asterisk {
             }
 
             $result = wf_TableBody($rows, '100%', '0', 'sortable');
-            $result.=__('Time spent on calls') . ': ' . zb_AsteriskFormatTime($totalTime) . wf_tag('br');
+            $result.=__('Time spent on calls') . ': ' . $this->AsteriskFormatTime($totalTime) . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
             show_window('', $result);
         }

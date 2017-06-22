@@ -21,35 +21,6 @@ if ($altcfg['ASTERISK_ENABLED']) {
     }
 
     /**
-     * Converts per second time values to human-readable format
-     * 
-     * @param int $seconds - time interval in seconds
-     * 
-     * @return string
-     */
-    function zb_AsteriskFormatTime($seconds) {
-        $init = $seconds;
-        $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds / 60) % 60);
-        $seconds = $seconds % 60;
-
-        if ($init < 3600) {
-            //less than 1 hour
-            if ($init < 60) {
-                //less than minute
-                $result = $seconds . ' ' . __('sec.');
-            } else {
-                //more than one minute
-                $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
-            }
-        } else {
-            //more than hour
-            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
-        }
-        return ($result);
-    }
-
-    /**
      * Function add by Pautina - teper tochno zazhivem :)
      * Looks like it gets some additional comments for something
      *
