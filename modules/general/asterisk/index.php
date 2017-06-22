@@ -20,36 +20,8 @@ if ($altcfg['ASTERISK_ENABLED']) {
         }
     }
 
-    /**
-     * Function add by Pautina - teper tochno zazhivem :)
-     * Looks like it gets some additional comments for something
-     *
-     * @return string
-     */
-    function zb_CheckCommentsForUser($scope, $idComments) {
-        global $mysqlcfg;
-        $loginDB = new mysqli($mysqlcfg['server'], $mysqlcfg['username'], $mysqlcfg['password'], $mysqlcfg['db']);
-        $loginDB->set_charset("utf8");
-        if ($loginDB->connect_error) {
-            die('Ошибка подключения (' . $loginDB->connect_errno . ') '
-                    . $loginDB->connect_error);
-        }
-        if (isset($scope) and isset($idComments)) {
-            $query = "SELECT `text` from `adcomments` WHERE `scope`='" . $scope . "' AND `item`='" . $idComments . "' ORDER BY `date` ASC LIMIT 1;";
-
-            $result = $loginDB->query($query);
-            //$result_a = array();
-            while ($row = $result->fetch_assoc()) {
-                $comments = $row["text"];
-            }
-            mysqli_free_result($result);
-            $loginDB->close();
-            return ($comments);
-        }
-    }
-
     if (cfr('ASTERISK')) {
-//showing configuration form
+    //showing configuration form
         if (wf_CheckGet(array('config'))) {
             //changing settings
             if (wf_CheckPost(array('newhost', 'newdb', 'newtable', 'newlogin', 'newpassword'))) {
