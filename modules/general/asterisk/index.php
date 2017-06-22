@@ -24,7 +24,7 @@ if ($altcfg['ASTERISK_ENABLED']) {
         if (wf_CheckGet(array('config'))) {
             //changing settings
             if (wf_CheckPost(array('newhost', 'newdb', 'newtable', 'newlogin', 'newpassword'))) {
-                $asterisk->AsteriskUpdateConfig($_POST['newhost'],  $_POST['newdb'], $_POST['newtable'], $_POST['newlogin'], $_POST['newpassword'], $_POST['newcachetime'], $_POST['dopmobile']);
+                $asterisk->AsteriskUpdateConfig($_POST['newhost'],  $_POST['newdb'], $_POST['newtable'], $_POST['newlogin'], $_POST['newpassword'], vf($_POST['newcachetime'], 3), vf($_POST['dopmobile'], 3));
             }
 
             //aliases creation
