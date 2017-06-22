@@ -35,7 +35,14 @@ class Asterisk {
      *
      * @var array
      */
-    protected $allrealnames ;
+    protected $allrealnames;
+
+    /**
+     * Contains All comments whis scope Asterisk item=>text
+     *
+     * @var array
+     */
+    protected $comments = array();
 
     /**
      *
@@ -313,6 +320,22 @@ class Asterisk {
     }
 
     /**
+     * Function add by Pautina - teper tochno zazhivem :)
+     * Looks like it gets some additional comments for something
+     *
+     * @return string
+     */
+    protected function AsteriskCheckCommentsForUser($from, $to) {
+            $query = "SELECT `text`,`item` FROM `adcomments` WHERE `scope`='ASTERISK' BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'";
+            $result = simple_queryall($query);
+            foreach ($result as $data) {
+                $item = $data['item'];
+                $text = $data['text'];
+                $this->comments[$item] = $text;
+            }
+    }
+
+    /**
      * Converts per second time values to human-readable format
      * 
      * @param int $seconds - time interval in seconds
@@ -572,7 +595,7 @@ class Asterisk {
                         $itemId = $each['uniqueid'] . $each['disposition']{0};
 
                         if ($adcomments->haveComments($itemId)) {
-                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') . zb_CheckCommentsForUser('ASTERISK', $itemId) . wf_tag('span', true) . wf_tag('center', true);
+                            $link_text = wf_tag('center') . $adcomments->getCommentsIndicator($itemId) . wf_tag('br') . wf_tag('span', false, '', 'style="font-size:14px;color: black;"') .     $this->comments[$itemId] . wf_tag('span', true) . wf_tag('center', true);
                         } else {
                             $link_text = wf_tag('center') . __('Add comments') . wf_tag('center', true);
                         }
@@ -608,6 +631,7 @@ class Asterisk {
         $this->AsteriskGetLoginByNumberQuery();
         $this->AsteriskGetUserAllRealnames();
         $this->AsteriskGetFulladdress();
+        $this->AsteriskCheckCommentsForUser($from, $to);
 
         $from = mysql_real_escape_string($from);
         $to = mysql_real_escape_string($to);
@@ -631,9 +655,9 @@ class Asterisk {
         } else {
             $cacheUpdate = true;
         }
-
+ 
         if (! empty($user_login)) {
-//connect to Asterisk database and fetch some data
+            //fetch some data from Asterisk database
             $phone = $this->result_LoginByNumber[$user_login]['phone'];
             $mobile = $this->result_LoginByNumber[$user_login]['mobile'];
             $dop_mobile = $this->result_LoginByNumber[$user_login]['dop_mob'];
