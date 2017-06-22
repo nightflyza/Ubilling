@@ -140,12 +140,15 @@ class WhyDoYouCall {
                             //not answered call
                             if (ispos($each[14], 'NO ANSWER') OR ( ispos($each[7], 'VoiceMail'))) {
                                 if (!ispos($each[16], 'outbound')) {
-                                    $unansweredCalls[$incomingNumber] = $each;
-                                    //unanswered calls count
-                                    if (isset($missedTries[$incomingNumber])) {
-                                        $missedTries[$incomingNumber] ++;
-                                    } else {
-                                        $missedTries[$incomingNumber] = 1;
+                                    //excluding internal numbers
+                                    if (strlen((string)$incomingNumber) > 3) {
+                                        $unansweredCalls[$incomingNumber] = $each;
+                                        //unanswered calls count
+                                        if (isset($missedTries[$incomingNumber])) {
+                                            $missedTries[$incomingNumber] ++;
+                                        } else {
+                                            $missedTries[$incomingNumber] = 1;
+                                        }
                                     }
                                 }
                             } else {
@@ -297,4 +300,5 @@ class WhyDoYouCall {
     }
 
 }
+
 ?>
