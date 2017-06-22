@@ -110,6 +110,12 @@ class Asterisk {
         if (empty($cache)) {
             $cache = '1';
             zb_StorageSet('ASTERISK_CACHETIME', $cache);
+        }        
+		//getting caching time
+        $dopmobile = zb_StorageGet('ASTERISK_DOPMOBILE');
+        if (empty($dopmobile)) {
+            $dopmobile = '';
+            zb_StorageSet('ASTERISK_DOPMOBILE', $dopmobile);
         }
 
         $result['host'] = $host;
@@ -118,6 +124,7 @@ class Asterisk {
         $result['login'] = $login;
         $result['password'] = $password;
         $result['cachetime'] = $cache;
+        $result['dopmobile'] = $dopmobile;
         return ($result);
     }
 
@@ -208,6 +215,7 @@ class Asterisk {
         $inputs.= wf_TextInput('newlogin', __('Database login'), $this->config['login'], true);
         $inputs.= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
         $inputs.= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
+        $inputs.= wf_TextInput('dopmobile', __('Dop Mobile'), $this->config['dopmobile'], true);
         $inputs.= wf_Submit(__('Save'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
         $result.= wf_BackLink(self::URL_ME);
@@ -280,13 +288,14 @@ class Asterisk {
      * 
      * @return string
      */
-    public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '1') {
+    public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '1', $dopmobile = '') {
         zb_StorageSet('ASTERISK_HOST', $newhost);
         zb_StorageSet('ASTERISK_DB', $newdb);
         zb_StorageSet('ASTERISK_TABLE', $newtable);
         zb_StorageSet('ASTERISK_LOGIN', $newlogin);
         zb_StorageSet('ASTERISK_PASSWORD', $newpassword);
         zb_StorageSet('ASTERISK_CACHETIME', $newcachetime);
+        zb_StorageSet('ASTERISK_DOPMOBILE', $dopmobile);
         log_register('ASTERISK settings changed');
         rcms_redirect(self::URL_ME . '&config=true');
     }
@@ -647,7 +656,7 @@ class Asterisk {
         }
 
         if (! empty($user_login)) {
-//connect to Asterisk database and fetch some data
+            //fetch some data from Asterisk database
             $phone = $this->result_LoginByNumber[$user_login]['phone'];
             $mobile = $this->result_LoginByNumber[$user_login]['mobile'];
             $dop_mobile = $this->result_LoginByNumber[$user_login]['dop_mob'];
