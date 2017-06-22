@@ -44,6 +44,13 @@ class Asterisk {
      */
     protected $alladdress ;
 
+    /**
+     * Contains system mussages object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
@@ -51,6 +58,7 @@ class Asterisk {
     const URL_ME = '?module=asterisk';
     const CACHE_PATH = 'exports/';
     public function __construct () {
+        $this->initMessages();
         $this->AsteriskLoadConf();
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
@@ -64,6 +72,15 @@ class Asterisk {
     protected function AsteriskLoadConf() {
         $this->config = $this->AsteriskGetConf();
 
+    }
+
+    /**
+     * Inits system messages helper object for further usage
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -204,21 +221,26 @@ class Asterisk {
      * @return string
      */
     public function AsteriskConfigForm() {
-        $inputs = '';
-        if (! $this->connected) {
-            $messages = new UbillingMessageHelper();
-            $inputs .= $messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error').wf_tag('br/', false);
+        $result = wf_BackLink(self::URL_ME, '', true);
+        $result.= wf_tag('br');
+
+        if (cfr('ASTERISKCONF')) {
+            $inputs = '';
+            if (! $this->connected) {
+                $inputs .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error').wf_tag('br/', false);
+            }
+            $inputs.= wf_TextInput('newhost', __('Asterisk host'), $this->config['host'], true);
+            $inputs.= wf_TextInput('newdb', __('Database name'), $this->config['db'], true);
+            $inputs.= wf_TextInput('newtable', __('CDR table name'), $this->config['table'], true);
+            $inputs.= wf_TextInput('newlogin', __('Database login'), $this->config['login'], true);
+            $inputs.= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
+            $inputs.= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
+            $inputs.= wf_TextInput('dopmobile', __('Additional mobile - Profile field ID'), $this->config['dopmobile'], true);
+            $inputs.= wf_Submit(__('Save'));
+            $result.= wf_Form("", "POST", $inputs, 'glamour');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
-        $inputs.= wf_TextInput('newhost', __('Asterisk host'), $this->config['host'], true);
-        $inputs.= wf_TextInput('newdb', __('Database name'), $this->config['db'], true);
-        $inputs.= wf_TextInput('newtable', __('CDR table name'), $this->config['table'], true);
-        $inputs.= wf_TextInput('newlogin', __('Database login'), $this->config['login'], true);
-        $inputs.= wf_TextInput('newpassword', __('Database password'), $this->config['password'], true);
-        $inputs.= wf_TextInput('newcachetime', __('Cache time'), $this->config['cachetime'], true);
-        $inputs.= wf_TextInput('dopmobile', __('Dop Mobile'), $this->config['dopmobile'], true);
-        $inputs.= wf_Submit(__('Save'));
-        $result = wf_Form("", "POST", $inputs, 'glamour');
-        $result.= wf_BackLink(self::URL_ME);
         return ($result);
     }
 
@@ -228,23 +250,27 @@ class Asterisk {
      * @return string 
      */
     public function AsteriskAliasesForm() {
-        $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
-        $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
-        $createinputs.=wf_Submit(__('Create'));
-        $createform = wf_Form('', 'POST', $createinputs, 'glamour');
-        $result = $createform;
+        $result = '';
+        if (cfr('ASTERISKALIAS')) {
+            $createinputs = wf_TextInput('newaliasnum', __('Phone'), '', true);
+            $createinputs.=wf_TextInput('newaliasname', __('Alias'), '', true);
+            $createinputs.=wf_Submit(__('Create'));
+            $createform = wf_Form('', 'POST', $createinputs, 'glamour');
+            $result = $createform;
 
-        if (!empty($this->NumAliases)) {
-            $delArr = array();
-            foreach ($this->NumAliases as $num => $eachname) {
-                $delArr[$num] = $num . ' - ' . $eachname;
+            if (!empty($this->NumAliases)) {
+                $delArr = array();
+                foreach ($this->NumAliases as $num => $eachname) {
+                    $delArr[$num] = $num . ' - ' . $eachname;
+                }
+                $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
+                $delinputs.= wf_Submit(__('Delete'));
+                $delform = wf_Form('', 'POST', $delinputs, 'glamour');
+                $result.= $delform;
             }
-            $delinputs = wf_Selector('deletealias', $delArr, __('Delete alias'), '', false);
-            $delinputs.= wf_Submit(__('Delete'));
-            $delform = wf_Form('', 'POST', $delinputs, 'glamour');
-            $result.= $delform;
+        } else {
+            $result = $this->messages->getStyledMessage(__('Access denied'), 'error');
         }
-
         return ($result);
     }
 
@@ -308,7 +334,10 @@ class Asterisk {
     public function panel() {
         global $user_login;
         $inputs = '';
-        if (cfr('ASTERISK')) {
+        if (isset($user_login)) {
+            $inputs .= wf_BackLink(self::URL_ME, '', false);
+        }
+        if (cfr('ASTERISKCONF')) {
             $inputs.=wf_Link(self::URL_ME . '&config=true', wf_img('skins/icon_extended.png') . ' ' . __('Settings'), false, 'ubButton') . ' ';
         }
         $inputs.= wf_DatePickerPreset('datefrom', curdate()) . ' ' . __('From');
@@ -318,6 +347,9 @@ class Asterisk {
         }
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form("", "POST", $inputs, 'glamour');
+        if (! $this->connected) {
+            $result .= $this->messages->getStyledMessage(__('Connection error for Asterisk Database'), 'error').wf_tag('br/', false);
+        }
         return ($result);
     }
 
@@ -377,7 +409,6 @@ class Asterisk {
             $query_mobile = "SELECT `phones`.`login`,`mobile` FROM `phones`";
             $result_p = simple_queryall($query_phone);
             $result_m = simple_queryall($query_mobile);
-
 
             foreach ($result_p as $data) {
                 $result[$data['login']]['phone'] = substr($data['phone'], -10);
