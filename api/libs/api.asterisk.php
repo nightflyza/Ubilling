@@ -692,9 +692,9 @@ class Asterisk {
 
         if (! empty($user_login)) {
             //fetch some data from Asterisk database
-            $phone = $this->result_LoginByNumber[$user_login]['phone'];
-            $mobile = $this->result_LoginByNumber[$user_login]['mobile'];
-            $dop_mobile = $this->result_LoginByNumber[$user_login]['dop_mob'];
+            $phone = @$this->result_LoginByNumber[$user_login]['phone'];
+            $mobile = @$this->result_LoginByNumber[$user_login]['mobile'];
+            $dop_mobile = @$this->result_LoginByNumber[$user_login]['dop_mob'];
 
             if (!empty($phone) and empty($mobile) and empty($dop_mobile)) {
                 $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND (`src` LIKE '%" . $phone . "' OR `dst` LIKE '%" . $phone . "') AND `lastapp`='dial' ORDER BY `calldate` DESC";
