@@ -368,6 +368,49 @@ class Asterisk {
     }
 
     /**
+     * Get status switch for user
+     *
+     * @param int $login - user login
+     *
+     * @return string
+     */
+    protected function AsteriskGetSWStatus($login) {
+        $alldeadswitches = zb_SwitchesGetAllDead();
+        $query = "SELECT `login`,`ip` FROM `switchportassign` LEFT JOIN `switches` ON switchportassign.switchid=switches.id WHERE `login`='" . $login . "';";
+        $result_q = simple_query($query);
+        if (empty($result_q) ) {
+            $result =  'ERROR: USER NOT HAVE SWITCH';
+        } else {
+            $result = isset($alldeadswitches[$result_q['ip']]) ? "DEAD" : "OK";
+        }
+        return ($result);
+    }
+
+    /**
+     * Get status switch and other for user, if his bumber have database. Use only in remote API.
+     * 
+     * @param int $number, $param
+     * 
+     * @return void
+     */
+    public function AsteriskGetInfoApi($number, $param) {
+		$this->AsteriskGetLoginByNumberQuery();
+		$number_cut = substr($number, -10);
+		$login = @$this->result_NumberLogin[$number_cut];
+		if (!empty($login)) {
+			if ($param == "login") {
+				$result = $login;
+			}
+			if ($param == "swstatus") {
+				$result = $this->AsteriskGetSWStatus($login);
+			}
+		} else {
+			$result = 'ERROR: NOT OUR USER';
+		}
+        return ($result);
+    }
+
+    /**
      * Converts per second time values to human-readable format
      * 
      * @param int $seconds - time interval in seconds
