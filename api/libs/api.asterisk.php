@@ -394,19 +394,20 @@ class Asterisk {
      * @return void
      */
     public function AsteriskGetInfoApi($number, $param) {
-		$this->AsteriskGetLoginByNumberQuery();
-		$number_cut = substr($number, -10);
-		$login = @$this->result_NumberLogin[$number_cut];
-		if (!empty($login)) {
-			if ($param == "login") {
-				$result = $login;
-			}
-			if ($param == "swstatus") {
-				$result = $this->AsteriskGetSWStatus($login);
-			}
-		} else {
-			$result = 'ERROR: NOT OUR USER';
-		}
+        $this->AsteriskGetLoginByNumberQuery();
+        $number_cut = substr($number, -10);
+        $login = @$this->result_NumberLogin[$number_cut];
+        if (!empty($login)) {
+            if ($param == "login") {
+                $result = $login;
+            } elseif ($param == "swstatus") {
+                $result = $this->AsteriskGetSWStatus($login);
+            } else {
+                $result = 'ERROR: MISTAKE PARAMETR';
+            }
+        } else {
+            $result = 'ERROR: NOT OUR USER';
+        }
         return ($result);
     }
 
