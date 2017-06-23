@@ -45,9 +45,28 @@ class WhyDoYouCall {
     protected $messages = '';
 
     /**
-     * Contains path to the calls cache
+     * Contains array of all available user names as login=>reanlnames
+     *
+     * @var array
+     */
+    protected $allUserNames = array();
+
+    /**
+     * Contains array of all available users address as login=>fulladdress
+     *
+     * @var array
+     */
+    protected $allUserAddress = array();
+
+    /**
+     * Contains path to the unanswered calls cache
      */
     const CACHE_FILE = 'exports/whydoyoucall.dat';
+
+    /**
+     * Contains path to recalled phone numbers cache
+     */
+    const CACHE_RECALLED = 'exports/whydoyourecall.dat';
 
     /**
      * Contains user profile base URL
@@ -92,6 +111,7 @@ class WhyDoYouCall {
      */
     protected function fetchAskoziaCalls() {
         $unansweredCalls = array();
+        $recalledCalls = array();
         $missedTries = array();
         if ((!empty($this->askoziaUrl)) AND ( !empty($this->askoziaLogin)) AND ( !empty($this->askoziaPassword))) {
             $callsTmp = array();
@@ -141,7 +161,7 @@ class WhyDoYouCall {
                             if (ispos($each[14], 'NO ANSWER') OR ( ispos($each[7], 'VoiceMail'))) {
                                 if (!ispos($each[16], 'outbound')) {
                                     //excluding internal numbers
-                                    if (strlen((string)$incomingNumber) > 3) {
+                                    if (strlen((string) $incomingNumber) > 3) {
                                         $unansweredCalls[$incomingNumber] = $each;
                                         //unanswered calls count
                                         if (isset($missedTries[$incomingNumber])) {
@@ -165,15 +185,50 @@ class WhyDoYouCall {
                                 }
                             }
 
-                            //outcoming call success
+                            //outcoming call success - deleting form unanswered, adding it to recalled cache
                             if (ispos($each[16], 'outbound')) {
                                 if (ispos($each[14], 'ANSWERED')) {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);
+                                        if (isset($recalledCalls[$destinationNumber])) {
+                                            $recalledCalls[$destinationNumber]['time']+= $each[13];
+                                            $recalledCalls[$destinationNumber]['count'] ++;
+                                        } else {
+                                            $recalledCalls[$destinationNumber]['time'] = $each[13];
+                                            $recalledCalls[$destinationNumber]['count'] = 1;
+                                        }
                                     }
                                     $uglyHack = '38' . $destinationNumber; //lol
                                     if (isset($unansweredCalls[$uglyHack])) {
                                         unset($unansweredCalls[$uglyHack]);
+                                        if (isset($recalledCalls[$uglyHack])) {
+                                            $recalledCalls[$uglyHack]['time']+= $each[13];
+                                            $recalledCalls[$uglyHack]['count'] ++;
+                                        } else {
+                                            $recalledCalls[$uglyHack]['time'] = $each[13];
+                                            $recalledCalls[$uglyHack]['count'] = 1;
+                                        }
+                                    }
+                                } else {
+                                    //unsuccessful recall try
+                                    if ((isset($unansweredCalls[$destinationNumber]))) {
+                                        if (isset($recalledCalls[$destinationNumber])) {
+                                            $recalledCalls[$destinationNumber]['time']+= $each[13];
+                                            $recalledCalls[$destinationNumber]['count'] ++;
+                                        } else {
+                                            $recalledCalls[$destinationNumber]['time'] = $each[13];
+                                            $recalledCalls[$destinationNumber]['count'] = 1;
+                                        }
+                                    }
+                                    $uglyHack = '38' . $destinationNumber;
+                                    if (isset($unansweredCalls[$uglyHack])) {
+                                        if (isset($recalledCalls[$uglyHack])) {
+                                            $recalledCalls[$uglyHack]['time']+= $each[13];
+                                            $recalledCalls[$uglyHack]['count'] ++;
+                                        } else {
+                                            $recalledCalls[$uglyHack]['time'] = $each[13];
+                                            $recalledCalls[$uglyHack]['count'] = 1;
+                                        }
                                     }
                                 }
                             }
@@ -192,6 +247,8 @@ class WhyDoYouCall {
             }
         }
 
+        //filling recalled calls cache
+        file_put_contents(self::CACHE_RECALLED, serialize($recalledCalls));
         return ($unansweredCalls);
     }
 
@@ -222,10 +279,10 @@ class WhyDoYouCall {
                     $this->phoneBase[$cleanMobile] = $each['login'];
                 }
 
-                if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR (!@$this->altCfg['WDYC_ONLY_MOBILE'])) {
-                if (!empty($cleanPhone)) {
-                    $this->phoneBase[$cleanPhone] = $each['login'];
-                }
+                if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
+                    if (!empty($cleanPhone)) {
+                        $this->phoneBase[$cleanPhone] = $each['login'];
+                    }
                 }
             }
         }
@@ -259,14 +316,15 @@ class WhyDoYouCall {
     public function renderMissedCallsReport() {
         $result = '';
         $this->loadPhonebase();
-        $allUserNames = zb_UserGetAllRealnames();
-        $allUserAddress = zb_AddressGetFulladdresslistCached();
+        $this->allUserNames = zb_UserGetAllRealnames();
+        $this->allUserAddress = zb_AddressGetFulladdresslistCached();
 
         if (file_exists(self::CACHE_FILE)) {
             $rawData = file_get_contents(self::CACHE_FILE);
             if (!empty($rawData)) {
                 $rawData = unserialize($rawData);
                 if (!empty($rawData)) {
+                    $totalCount = 0;
                     $cells = wf_TableCell(__('Number'));
                     $cells.= wf_TableCell(__('Last call time'));
                     $cells.= wf_TableCell(__('Number of attempts to call'));
@@ -277,8 +335,8 @@ class WhyDoYouCall {
                         $loginDetect = $this->userLoginTelepathy($number);
 
                         if (!empty($loginDetect)) {
-                            $userAddress = @$allUserAddress[$loginDetect];
-                            $userRealName = @$allUserNames[$loginDetect];
+                            $userAddress = @$this->allUserAddress[$loginDetect];
+                            $userRealName = @$this->allUserNames[$loginDetect];
                             $profileLink = wf_Link(self::URL_PROFILE . $loginDetect, web_profile_icon() . ' ' . $userAddress, false) . ' ' . $userRealName;
                         } else {
                             $profileLink = '';
@@ -289,14 +347,70 @@ class WhyDoYouCall {
                         $cells.= wf_TableCell($profileLink);
 
                         $rows.= wf_TableRow($cells, 'row5');
+                        $totalCount++;
                     }
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result.= __('Total') . ': ' . $totalCount;
                 } else {
                     $result = $this->messages->getStyledMessage(__('No missed calls at this time'), 'success');
                 }
             }
         } else {
             $result = $this->messages->getStyledMessage(__('No unanswered calls cache available'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns report of recalled numbers
+     * 
+     * @return string
+     */
+    public function renderRecalledCallsReport() {
+        $result = '';
+        if (file_exists(self::CACHE_RECALLED)) {
+            $rawData = file_get_contents(self::CACHE_RECALLED);
+            if (!empty($rawData)) {
+                $rawData = unserialize($rawData);
+                if (!empty($rawData)) {
+                    $totalCount = 0;
+                    $cells = wf_TableCell(__('Number'));
+                    $cells.= wf_TableCell(__('Number of attempts to call'));
+                    $cells.= wf_TableCell(__('Talk time'));
+                    $cells.= wf_TableCell(__('Status'));
+                    $cells.= wf_TableCell(__('User'));
+
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($rawData as $number => $callData) {
+                        $callTime = $callData['time'];
+                        $callTimeFormated = zb_formatTime($callTime);
+                        $loginDetect = $this->userLoginTelepathy($number);
+
+                        if (!empty($loginDetect)) {
+                            $userAddress = @$this->allUserAddress[$loginDetect];
+                            $userRealName = @$this->allUserNames[$loginDetect];
+                            $profileLink = wf_Link(self::URL_PROFILE . $loginDetect, web_profile_icon() . ' ' . $userAddress, false) . ' ' . $userRealName;
+                        } else {
+                            $profileLink = '';
+                        }
+                        $callStatus = ($callTime > 0) ? wf_img('skins/calls/phone_green.png') . ' ' . __('Answered') : wf_img('skins/calls/phone_red.png') . ' ' . __('No answer');
+                        $callStatusFlag = ($callTime > 0) ? 1 : 0;
+                        $cells = wf_TableCell(wf_tag('strong') . $number . wf_tag('strong', true));
+                        $cells.= wf_TableCell($callData['count']);
+                        $cells.= wf_TableCell($callTimeFormated, '', '', 'sorttable_customkey="' . $callTime . '"');
+                        $cells.= wf_TableCell($callStatus, '', '', 'sorttable_customkey="' . $callStatusFlag . '"');
+                        $cells.= wf_TableCell($profileLink);
+                        $rows.= wf_TableRow($cells, 'row5');
+                        $totalCount++;
+                    }
+                    $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result.= __('Total') . ': ' . $totalCount;
+                } else {
+                    $result = $this->messages->getStyledMessage(__('No missed calls at this time'), 'success');
+                }
+            }
+        } else {
+            $result = $this->messages->getStyledMessage(__('No recalled calls cache available'), 'warning');
         }
         return ($result);
     }

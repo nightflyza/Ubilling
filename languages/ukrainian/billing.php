@@ -2599,6 +2599,7 @@ $lang['def']['No missed calls at this time'] = 'Наразі немає проп
 $lang['def']['No unanswered calls cache available'] = 'Немає кешу пропущених дзвінків';
 $lang['def']['users tried to contact you but could not'] = 'номерів намагалось вам зателефонувати, але так і не дочекались відповіді.';
 $lang['def']['Delayed per-user actions profile indication'] = 'Індикація наявності відкладених задач для користувача у профілі';
-
+$lang['def']['We tried to call back these numbers, and sometimes it even happened'] = 'Ми намагались перетелефонувати цим номерам і навіть інколи це вдалось';
+$lang['def']['No recalled calls cache available'] = 'Немає кеша перетелефонованих дзвінків';
 
 ?>
