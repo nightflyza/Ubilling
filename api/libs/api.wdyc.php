@@ -222,8 +222,10 @@ class WhyDoYouCall {
                     $this->phoneBase[$cleanMobile] = $each['login'];
                 }
 
+                if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR (!@$this->altCfg['WDYC_ONLY_MOBILE'])) {
                 if (!empty($cleanPhone)) {
                     $this->phoneBase[$cleanPhone] = $each['login'];
+                }
                 }
             }
         }
