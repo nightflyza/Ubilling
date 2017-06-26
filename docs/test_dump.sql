@@ -1830,3 +1830,15 @@ VALUES
 ('Site', 'site', '0.0.0', '10', '15', '5', 'Сайт: xxx.xxx.ua');
 
 ALTER TABLE `uhw_brute` ADD `login` VARCHAR(255) NOT NULL AFTER `password`;
+
+-- 0.8.3
+
+CREATE TABLE IF NOT EXISTS `wdycinfo` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` date NOT NULL,
+  `missedcount` int(11) DEFAULT NULL,
+  `recallscount` int(11) DEFAULT NULL,
+  `unsucccount` int(11) DEFAULT NULL,
+  `missednumbers` text,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

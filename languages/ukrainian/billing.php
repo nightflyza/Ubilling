@@ -2601,5 +2601,10 @@ $lang['def']['users tried to contact you but could not'] = 'номерів на�
 $lang['def']['Delayed per-user actions profile indication'] = 'Індикація наявності відкладених задач для користувача у профілі';
 $lang['def']['We tried to call back these numbers, and sometimes it even happened'] = 'Ми намагались перетелефонувати цим номерам і навіть інколи це вдалось';
 $lang['def']['No recalled calls cache available'] = 'Немає кеша перетелефонованих дзвінків';
+$lang['def']['No recalled calls at this time'] = 'Немає перетелефонованих дзвінків на даний час';
+$lang['def']['Calls'] = 'Дзвінки';
+$lang['def']['Missed calls'] = 'Пропущених дзвінків';
+$lang['def']['Recalled calls'] = 'Перетелефонували';
+$lang['def']['Unsuccessful recalls'] = 'Не додзвонились';
 
 ?>

@@ -73,6 +73,11 @@ class WhyDoYouCall {
      */
     const URL_PROFILE = '?module=userprofile&username=';
 
+    /**
+     * Contains primary module URL
+     */
+    const URL_ME = '?module=whydoyoucall';
+
     public function __construct() {
         $this->loadConfig();
         $this->initMessages();
@@ -309,6 +314,22 @@ class WhyDoYouCall {
     }
 
     /**
+     * Renders module controls
+     * 
+     * @return string
+     */
+    public function panel() {
+        $result = '';
+        if (!wf_CheckGet(array('renderstats'))) {
+            $result.= wf_Link(self::URL_ME, wf_img_sized('skins/icon_phone.gif', '', '16', '16') . ' ' . __('Calls'), false, 'ubButton') . ' ';
+            $result.= wf_Link(self::URL_ME . '&renderstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), false, 'ubButton');
+        } else {
+            $result.=wf_BackLink(self::URL_ME);
+        }
+        return ($result);
+    }
+
+    /**
      * Renders report of missed calls that required to be processed
      * 
      * @return string
@@ -406,13 +427,127 @@ class WhyDoYouCall {
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
                     $result.= __('Total') . ': ' . $totalCount;
                 } else {
-                    $result = $this->messages->getStyledMessage(__('No missed calls at this time'), 'success');
+                    $result = $this->messages->getStyledMessage(__('No recalled calls at this time'), 'info');
                 }
             }
         } else {
             $result = $this->messages->getStyledMessage(__('No recalled calls cache available'), 'warning');
         }
         return ($result);
+    }
+
+    /**
+     * Saves day unansweres/recalls stats into database
+     * 
+     * @return void
+     */
+    public function saveStats() {
+        $date = curdate();
+        $missedCallsCount = 0;
+        $recallsCount = 0;
+        $unsuccCount = 0;
+        $missedCallsNumbers = '';
+        //missed calls stats
+        if (file_exists(self::CACHE_FILE)) {
+            $rawData = file_get_contents(self::CACHE_FILE);
+            if (!empty($rawData)) {
+                $rawData = unserialize($rawData);
+                if (!empty($rawData)) {
+                    $missedCallsCount = sizeof($rawData);
+                    foreach ($rawData as $missedNumber => $callData) {
+                        $missedCallsNumbers.= $missedNumber . ' ';
+                    }
+                }
+            }
+        }
+
+        //recalled calls stats
+        if (file_exists(self::CACHE_RECALLED)) {
+            $rawData = file_get_contents(self::CACHE_RECALLED);
+            if (!empty($rawData)) {
+                $rawData = unserialize($rawData);
+                if (!empty($rawData)) {
+                    $recallsCount = sizeof($rawData);
+                    foreach ($rawData as $recalledNumber => $callData) {
+                        if ($callData['time'] == 0) {
+                            $unsuccCount++;
+                        }
+                    }
+                }
+            }
+        }
+        $missedCallsNumbers = mysql_real_escape_string($missedCallsNumbers);
+        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`) VALUES "
+                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Renders previous days stats
+     * 
+     * @return string
+     */
+    public function renderStats() {
+        $result = '';
+        $gchartsData = array();
+        $gchartsData[] = array(__('Date'), __('Missed calls'), __('Recalled calls'), __('Unsuccessful recalls'));
+        $chartsOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+
+        $jqDtOpts = '"order": [[ 0, "desc" ]]';
+        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Phones');
+
+        $query = "SELECT * from `wdycinfo`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $gchartsData[] = array($each['date'], $each['missedcount'], $each['recallscount'], $each['unsucccount']);
+            }
+
+            $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
+            $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true', false, __('Calls'), 25, $jqDtOpts);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders json for previous calls stats
+     * 
+     * @return void
+     */
+    public function jsonPreviousStats() {
+        $json = new wf_JqDtHelper();
+        $query = "SELECT * from `wdycinfo`";
+        $all = simple_queryall($query);
+        $data = array();
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = $each['missedcount'];
+                $data[] = $each['recallscount'];
+                $data[] = $each['unsucccount'];
+                $data[] = $each['missednumbers'];
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
     }
 
 }
