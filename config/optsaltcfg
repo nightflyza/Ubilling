@@ -283,6 +283,7 @@ TASKREPORT_SIGPAYID=VARCHAR|Signup payments cashtype ID
 BRANCHES_ENABLED=TRIGGER|Branches enabled
 ONUAUTO_CONFIG_REBOOT=TRIGGER|ONU reboot from vlans control module
 ONUAUTO_CONFIG_DESCRIBE=TRIGGER|ONU describe from vlans control module
+STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
 CHAPTEREND_BEH=true
 
 

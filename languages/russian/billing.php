@@ -2590,8 +2590,8 @@ $lang['def']['Calls'] = 'Звонки';
 $lang['def']['Missed calls'] = 'Пропущенных звонков';
 $lang['def']['Recalled calls'] = 'Перезвонили';
 $lang['def']['Unsuccessful recalls'] = 'Не дозвонились';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Nothing to show'] = 'Нечего показывать';
+$lang['def']['New streets alias autogeneration'] = 'Автогенерация алиасов для новых улиц';
 $lang['def'][''] = '';
 
 

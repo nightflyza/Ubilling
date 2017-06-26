@@ -2606,5 +2606,7 @@ $lang['def']['Calls'] = 'Дзвінки';
 $lang['def']['Missed calls'] = 'Пропущених дзвінків';
 $lang['def']['Recalled calls'] = 'Перетелефонували';
 $lang['def']['Unsuccessful recalls'] = 'Не додзвонились';
+$lang['def']['Nothing to show'] = 'Нічого показувати';
+$lang['def']['New streets alias autogeneration'] = 'Автогенерація аліасів для нових вулиць';
 
 ?>
