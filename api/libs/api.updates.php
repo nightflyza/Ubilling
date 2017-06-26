@@ -226,7 +226,7 @@ class UbillingUpdateManager {
         if (isset($this->allDumps[$release])) {
             if (wf_CheckPost(array('applyconfirm', 'applysqldump'))) {
                 $fileName = self::DUMPS_PATH . $this->allDumps[$release];
-                $applyCommand = $this->altCfg['MYSQL_PATH'] . ' -u ' . $this->mySqlCfg['username'] . ' -p' . $this->mySqlCfg['password'] . ' ' . $this->mySqlCfg['db'] . ' --default-character-set=utf8 < ' . $fileName . ' 2>&1; echo $?';
+                $applyCommand = $this->altCfg['MYSQL_PATH'] . ' -u ' . $this->mySqlCfg['username'] . ' -p' . $this->mySqlCfg['password'] . ' -h' . $this->mySqlCfg['server'] . ' ' . $this->mySqlCfg['db'] . ' --default-character-set=utf8 < ' . $fileName . ' 2>&1; echo $?';
                 $result .= $this->messages->getStyledMessage(__('MySQL dump applying result below'), 'info');
                 $result .= wf_CleanDiv();
                 $result .= wf_tag('pre', false, '', 'style="width:100%;overflow:auto"') . shell_exec($applyCommand) . wf_tag('pre', true);
