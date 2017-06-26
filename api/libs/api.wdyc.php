@@ -520,7 +520,7 @@ class WhyDoYouCall {
             $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
             $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true', false, __('Calls'), 25, $jqDtOpts);
         } else {
-            $result = $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
     }
