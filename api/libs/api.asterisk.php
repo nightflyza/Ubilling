@@ -381,7 +381,7 @@ class Asterisk {
         if (empty($result_q) ) {
             $result =  'ERROR: USER NOT HAVE SWITCH';
         } else {
-            $result = isset($alldeadswitches[$result_q['ip']]) ? "DEAD" : "OK";
+            $result = isset($alldeadswitches[$result_q['ip']]) ? "DIE" : "OK";
         }
         return ($result);
     }
