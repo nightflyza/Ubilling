@@ -13,7 +13,6 @@
 function sm_ShowMapContainer() {
     $container = wf_tag('div', false, '', 'id="swmap" style="width: 1000; height:800px;"');
     $container.=wf_tag('div', true);
-
     $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
@@ -151,7 +150,7 @@ function um_MapLocationBuildForm() {
         foreach ($allNoGeoBuilds as $io => $each) {
             @$streetname = $streetData[$each['streetid']];
             $streetcity = (isset($cityData[$each['streetid']])) ? $cityData[$each['streetid']] . ' ' : '';
-            $buildData[$each['id']] = $streetcity.$streetname . ' - ' . $each['buildnum'];
+            $buildData[$each['id']] = $streetcity . $streetname . ' - ' . $each['buildnum'];
         }
         //form construct
         if (cfr('BUILDS')) {

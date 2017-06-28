@@ -37,7 +37,6 @@ include('api/libs/api.corporate.php');
 include('api/libs/api.lousytariffs.php');
 include('api/libs/api.banksta.php');
 include('api/libs/api.templatize.php');
-include('api/libs/api.ymaps.php');
 include('api/libs/api.custmaps.php');
 include('api/libs/api.deploy.php');
 include('api/libs/api.crm.php');
@@ -101,7 +100,7 @@ include('api/libs/api.generatecard.php');
 include('api/vendor/fpdf/fpdf.php');
 include('api/libs/api.updates.php');
 include('api/libs/api.wdyc.php');
-
+include('api/libs/api.mapscompat.php');
 
 /*
  * Initial class creation
