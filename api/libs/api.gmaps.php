@@ -65,6 +65,35 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
 }
 
 /**
+ * Translates yandex to google icon code
+ * 
+ * @param string $icon
+ * @return string
+ */
+function gm_GetIconUrl($icon) {
+    $result = '';
+    switch ($icon) {
+        case 'twirl#lightblueIcon':
+            $result = 'skins/mapmarks/blue.png';
+            break;
+        case 'twirl#lightblueStretchyIcon':
+            $result = 'skins/mapmarks/blue.png';
+            break;
+        case 'twirl#redStretchyIcon':
+            $result = 'skins/mapmarks/red.png';
+            break;
+        case 'twirl#redIcon':
+            $result = 'skins/mapmarks/red.png';
+            break;
+
+        default :
+            $result = 'skins/mapmarks/blue.png';
+            break;
+    }
+    return ($result);
+}
+
+/**
  * Returns placemark code
  * 
  * @param string $coords
@@ -85,6 +114,11 @@ function gm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon 
         $coordLng = trim($coords[1]);
     }
 
+    $iconUrl = gm_GetIconUrl($icon);
+    if (!empty($iconUrl)) {
+        $iconCode = "var image_" . $markerId . " = '" . $iconUrl . "';";
+    }
+
     if (!empty($title)) {
         $titleCode = '<strong>' . $title . '</strong><br>';
     } else {
@@ -102,11 +136,11 @@ function gm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon 
             $footerCode = '';
         }
         $contentWindow = 'var contentString_' . $markerId . ' = \'<div id = "content_' . $markerId . '">' . $titleCode . $content . $footerCode . '</div>\';
-            var infowindow_'.$markerId.' = new google.maps.InfoWindow({
+            var infowindow_' . $markerId . ' = new google.maps.InfoWindow({
             content: contentString_' . $markerId . '
             });
             google.maps.event.addListener(marker_' . $markerId . ', \'click\', function() {
-                infowindow_'.$markerId.'.open(map,marker_' . $markerId . ');
+                infowindow_' . $markerId . '.open(map,marker_' . $markerId . ');
             });
             ';
     } else {
@@ -115,10 +149,12 @@ function gm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon 
 
     $result = '
           var position_' . $markerId . ' = {lat: ' . $coordLat . ', lng: ' . $coordLng . '};
+          ' . $iconCode . '
           var marker_' . $markerId . ' = new google.maps.Marker({
           ' . $labelCode . '
           position: position_' . $markerId . ',
-          map: map
+          map: map,
+          icon: image_' . $markerId . '
         });
          ' . $contentWindow . '
             ';
@@ -160,6 +196,21 @@ function sm_MapGoodIcon($stretchy = true) {
         return ('twirl#lightblueStretchyIcon');
     } else {
         return ('twirl#lightblueIcon');
+    }
+}
+
+/**
+ * Returns bad icon class
+ * 
+ * @param bool $stretchy - icon resizable by content?
+ * 
+ * @return string
+ */
+function sm_MapBadIcon($stretchy = true) {
+    if ($stretchy) {
+        return ('twirl#redStretchyIcon');
+    } else {
+        return ('twirl#redIcon');
     }
 }
 
