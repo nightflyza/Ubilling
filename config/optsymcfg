@@ -9,4 +9,6 @@ CANVAS_RENDER=TRIGGER|Use fast canvas renderer
 FINDING_ZOOM=VARCHAR|Device finder zoom
 FINDING_CIRCLE=TRIGGER|Hightlight area with circle when device found
 CANVAS_RENDER_IGNORE_LABELED=TRIGGER|Ignore canvas renderer for labeled placemarks
+MAPS_SERVICE=VARCHAR|Default maps service
+GMAPS_APIKEY=VARCHAR|Google maps API key
 CHAPTEREND_YM=true

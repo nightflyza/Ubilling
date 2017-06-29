@@ -2592,6 +2592,14 @@ $lang['def']['Recalled calls'] = 'Перезвонили';
 $lang['def']['Unsuccessful recalls'] = 'Не дозвонились';
 $lang['def']['Nothing to show'] = 'Нечего показывать';
 $lang['def']['New streets alias autogeneration'] = 'Автогенерация алиасов для новых улиц';
+$lang['def']['Default maps service'] = 'Служба карт по умолчанию';
+$lang['def']['Google maps API key'] = 'Ключ Google maps API';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 
