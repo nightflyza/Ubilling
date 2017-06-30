@@ -11,7 +11,7 @@
  *  
  */
 function sm_ShowMapContainer() {
-    $container = wf_tag('div', false, '', 'id="swmap" style="width: 1000; height:800px;"');
+    $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
     $container.=wf_tag('div', true);
     $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -31,7 +31,7 @@ function sm_ShowMapContainer() {
  * @return void
  */
 function um_ShowMapContainer() {
-    $container = wf_tag('div', false, '', 'id="swmap" style="width: 1000; height:800px;"');
+    $container = wf_tag('div', false, '', 'id="ubmap" style="width: 1000; height:800px;"');
     $container.=wf_tag('div', true);
 
     $controls = wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -259,7 +259,7 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
     $js.= '
         ymaps.ready(init);
     function init () {
-            var myMap = new ymaps.Map(\'swmap\', {
+            var myMap = new ymaps.Map(\'ubmap\', {
                     center: [' . $center . '], 
                     zoom: ' . $zoom . ',
                     type: \'yandex#' . $type . '\',
@@ -320,7 +320,7 @@ function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', 
     $js.= '
         ymaps.ready(init);
     function init () {
-            var myMap = new ymaps.Map(\'swmap\', {
+            var myMap = new ymaps.Map(\'ubmap\', {
                     center: [' . $center . '], 
                     zoom: ' . $zoom . ',
                     type: \'yandex#' . $type . '\',
@@ -382,7 +382,7 @@ function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', 
     $js.= '
         ymaps.ready(init);
     function init () {
-            var myMap = new ymaps.Map(\'swmap\', {
+            var myMap = new ymaps.Map(\'ubmap\', {
                     center: [' . $center . '], 
                     zoom: ' . $zoom . ',
                     type: \'yandex#' . $type . '\',

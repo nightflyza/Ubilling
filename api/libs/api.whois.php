@@ -40,8 +40,8 @@ class UbillingWhois {
     /**
      * Some URLs for requesting of IP data
      */
-    const URL_GEO = 'http://api.2ip.com.ua/geo.json?ip=';
-    const URL_ISP = 'http://api.2ip.com.ua/provider.json?ip=';
+    const URL_GEO = 'http://api.2ip.ua/geo.json?ip=';
+    const URL_ISP = 'http://api.2ip.ua/provider.json?ip=';
     const URL_ASINFO = 'http://bgp.he.net/AS';
 
     /**
@@ -139,9 +139,8 @@ class UbillingWhois {
         if ((!empty($this->geoData->latitude)) AND ( !empty($this->geoData->longitude))) {
             global $ubillingConfig;
             $ymconf = $ubillingConfig->getYmaps();
-
-
-            $result = wf_tag('div', false, '', 'id="swmap" style="width: 100%; height:300px;"');
+            
+            $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:400px;"');
             $result.=wf_tag('div', true);
             $placemarks = sm_MapAddMark($this->geoData->latitude . ',' . $this->geoData->longitude);
             sm_MapInit($this->geoData->latitude . ',' . $this->geoData->longitude, 8, $ymconf['TYPE'], $placemarks, '', $ymconf['LANG']);

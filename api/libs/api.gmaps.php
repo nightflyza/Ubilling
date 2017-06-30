@@ -8,8 +8,8 @@
 function gm_MapContainer($width = '', $height = '', $id = '') {
     $width = (!empty($width)) ? $width : '100%';
     $height = (!empty($height)) ? $height : '800px;';
-    $id = (!empty($id)) ? $id : 'gmap';
-    $result = wf_tag('div', false, '', 'id="gmap" style="width: 100%; height:800px;"');
+    $id = (!empty($id)) ? $id : 'ubmap';
+    $result = wf_tag('div', false, '', 'id="'.$id.'" style="width: 100%; height:800px;"');
     $result.=wf_tag('div', true);
     return ($result);
 }
@@ -27,7 +27,7 @@ function gm_MapContainer($width = '', $height = '', $id = '') {
  * 
  * @return string
  */
-function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'gmap') {
+function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU', $container = 'ubmap') {
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     @$apikey = $mapsCfg['GMAPS_APIKEY'];
@@ -279,7 +279,7 @@ function gm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
  *
  */
 function sm_ShowMapContainer() {
-    $container = gm_MapContainer('', '', 'swmap');
+    $container = gm_MapContainer('', '', 'ubmap');
     $controls = wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
     $controls.= wf_Link("?module=switchmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
@@ -442,7 +442,7 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 }
 
 function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
-    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang, 'swmap'));
+    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang, 'ubmap'));
 }
 
 /**
@@ -549,7 +549,7 @@ function sm_MapDrawSwitchesCoverage() {
  * @return void
  */
 function um_ShowMapContainer() {
-    $container = gm_MapContainer('100%', '800px;', 'swmap');
+    $container = gm_MapContainer('100%', '800px;', 'ubmap');
     $controls = wf_Link("?module=switchmap", wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
     $controls.= wf_Link("?module=usersmap", wf_img('skins/ymaps/build.png') . ' ' . __('Builds map'), false, 'ubButton');
     $controls.= wf_Link("?module=usersmap&locfinder=true", wf_img('skins/ymaps/edit.png') . ' ' . __('Edit map'), false, 'ubButton');
