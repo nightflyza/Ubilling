@@ -324,8 +324,13 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
     show_window('', gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
 
-//need some code here
+//need some code here - required for builds placement
 function um_MapLocationFinder() {
+    return ('');
+}
+
+//need some code here - required for swithes placement
+function sm_MapLocationFinder() {
     return ('');
 }
 
