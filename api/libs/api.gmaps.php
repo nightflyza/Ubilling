@@ -325,7 +325,7 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
 }
 
 //need some code here
-function sm_MapLocationFinder() {
+function um_MapLocationFinder() {
     return ('');
 }
 

@@ -53,7 +53,7 @@ if(cfr('USERSMAP')) {
     }
 
     if (wf_CheckGet(array('locfinder'))) {
-      sm_MapInit($ym_center,$ym_zoom,$ym_type,$placemarks, sm_MapLocationFinder(),$ym_lang);
+      sm_MapInit($ym_center,$ym_zoom,$ym_type,$placemarks, um_MapLocationFinder(),$ym_lang);
     } else {
       sm_MapInit($ym_center,$ym_zoom,$ym_type,$area.$placemarks, '',$ym_lang);   
     }
