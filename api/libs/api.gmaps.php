@@ -442,7 +442,11 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 }
 
 function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
-    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang, 'ubmap'));
+    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
+}
+
+function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
+    return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
 
 /**
