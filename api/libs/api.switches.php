@@ -279,7 +279,7 @@ function web_SwitchMiniMap($switchdata) {
     global $ubillingConfig;
     $ymconf = $ubillingConfig->getYmaps();
     $result = '';
-    $result.= wf_tag('div', false, '', 'id="swmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
+    $result.= wf_tag('div', false, '', 'id="ubmap" class="glamour" style="width: 97%; height:300px;"') . wf_tag('div', true);
     $result.=wf_delimiter();
     $placemarks = sm_MapDrawSwitches();
     $placemarks.=sm_MapDrawSwitchUplinks($switchdata['id']);
