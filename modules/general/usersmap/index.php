@@ -22,32 +22,32 @@ if(cfr('USERSMAP')) {
     }    
         
     
-    $ymconf=  $ubillingConfig->getYmaps();
-    $ym_center=$ymconf['CENTER'];
-    $ym_zoom=$ymconf['ZOOM'];
-    $ym_type=$ymconf['TYPE'];
-    $ym_lang=$ymconf['LANG'];
-    $area='';
+    $ymconf = $ubillingConfig->getYmaps();
+    $ym_center = $ymconf['CENTER'];
+    $ym_zoom = $ymconf['ZOOM'];
+    $ym_type = $ymconf['TYPE'];
+    $ym_lang = $ymconf['LANG'];
+    $area = '';
     
     //show map container
     um_ShowMapContainer();
     
     //collect biulds geolocation data
-    $placemarks=um_MapDrawBuilds();
+    $placemarks = um_MapDrawBuilds();
     
     
     
     //setting custom zoom and map center if need to find some build
     
     if (wf_CheckGet(array('findbuild'))) {
-            $ym_zoom=$ymconf['FINDING_ZOOM'];
-            $ym_center=vf($_GET['findbuild']);
+            $ym_zoom = $ymconf['FINDING_ZOOM'];
+            $ym_center = vf($_GET['findbuild']);
            
             if ($ymconf['FINDING_CIRCLE']) {
-                $radius=30;
-                $area=sm_MapAddCircle($_GET['findbuild'], $radius,__('Search area radius').' '.$radius.' '.__('meters'),__('Search area'));
+                $radius = 30;
+                $area = sm_MapAddCircle($_GET['findbuild'], $radius,__('Search area radius').' '.$radius.' '.__('meters'),__('Search area'));
             } else {
-                $area='';
+                $area = '';
             }
             
     }
