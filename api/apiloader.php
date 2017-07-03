@@ -100,6 +100,7 @@ include('api/libs/api.generatecard.php');
 include('api/vendor/fpdf/fpdf.php');
 include('api/libs/api.updates.php');
 include('api/libs/api.wdyc.php');
+include('api/libs/api.mapscommon.php');
 include('api/libs/api.mapscompat.php');
 
 /*
