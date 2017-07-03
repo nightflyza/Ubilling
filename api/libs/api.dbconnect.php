@@ -24,21 +24,29 @@ Class DbConnect {
     }
 
     function open() {
-        if ($this->persistent) {
-            $func = 'mysql_pconnect';
+        if (!extension_loaded('mysqli')) {
+            if ($this->persistent) {
+                $func = 'mysql_pconnect';
+            } else {
+                $func = 'mysql_connect';
+            }
+
+            $this->conn = $func($this->host, $this->user, $this->password);
+            if (!$this->conn) {
+
+                return false;
+            }
+
+            if (@!mysql_select_db($this->database, $this->conn)) {
+                return false;
+            }
         } else {
-            $func = 'mysql_connect';
+            $this->conn = new mysqli($this->host, $this->user, $this->password, $this->database);
+            if ($this->conn->connect_error) {
+                return false;
+            }
         }
 
-        $this->conn = $func($this->host, $this->user, $this->password);
-        if (!$this->conn) {
-
-            return false;
-        }
-
-        if (@!mysql_select_db($this->database, $this->conn)) {
-            return false;
-        }
         return true;
     }
 
