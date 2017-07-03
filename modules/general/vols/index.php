@@ -1224,7 +1224,8 @@
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['MRKTPDLT']) and method_exists($obj, $runtime['METHOD']['MRKTPDLT']) ) {
-                                        if ( $obj->$runtime['METHOD']['MRKTPDLT']($id) ) {
+                                        $runtime = $runtime['METHOD']['MRKTPDLT'];
+                                        if ( $obj->$runtime($id) ) {
                                             rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                         }
                                     }
@@ -1295,7 +1296,8 @@
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['MRKDLT']) and method_exists($obj, $runtime['METHOD']['MRKDLT']) ) {
-                                        if ( $obj->$runtime['METHOD']['MRKDLT']($id) ) {
+                                        $runtime = $runtime['METHOD']['MRKDLT'];
+                                        if ( $obj->$runtime($id) ) {
                                             rcms_redirect($obj::URL_MARKS_LIST);
                                         }
                                     }
@@ -1389,7 +1391,8 @@
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['LNDLT']) and method_exists($obj, $runtime['METHOD']['LNDLT']) ) {
-                                        if ( $obj->$runtime['METHOD']['LNDLT']($id) ) {
+                                        $runtime = $runtime['METHOD']['LNDLT'];
+                                        if ( $obj->$runtime($id) ) {
                                             rcms_redirect($obj::URL_LINES_LIST);
                                         }
                                     }
@@ -1430,15 +1433,17 @@
                             case 'download':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['DCMNTSDWNLD']) and method_exists($obj, $runtime['METHOD']['DCMNTSDWNLD']) ) 
-                                        $obj->$runtime['METHOD']['DCMNTSDWNLD']($id);
+                                    if (  isset($runtime['METHOD']['DCMNTSDWNLD']) and method_exists($obj, $runtime['METHOD']['DCMNTSDWNLD']) )
+                                        $runtime = $runtime['METHOD']['DCMNTSDWNLD'];
+                                        $obj->$runtime($id);
                                 } else rcms_redirect($obj::URL_HOME);
                                 break;
                             case 'delete':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
-                                    if (  isset($runtime['METHOD']['DCMNTSDLT']) and method_exists($obj, $runtime['METHOD']['DCMNTSDLT']) ) 
-                                        $obj->$runtime['METHOD']['DCMNTSDLT']($id);
+                                    if (  isset($runtime['METHOD']['DCMNTSDLT']) and method_exists($obj, $runtime['METHOD']['DCMNTSDLT']) )
+                                        $runtime = $runtime['METHOD']['DCMNTSDLT'];
+                                        $obj->$runtime($id);
                                 } else rcms_redirect($obj::URL_HOME);
                                 break;
                             default:
