@@ -22,8 +22,9 @@ if (cfr('CORPS')) {
                     //del 
                     if (wf_CheckGet(array('deltaxtypeid'))) {
                         if (!$corps->taxtypeProtected($_GET['deltaxtypeid'])) {
-                            if (method_exists($corps, $beggar['METH']['TTFLUSH']))
-                                $corps->$beggar['METH']['TTFLUSH']($_GET['deltaxtypeid']);
+                            if (isset($beggar['METH']['TTFLUSH']) and method_exists($corps, $beggar['METH']['TTFLUSH']))
+                                $beggar = $beggar['METH']['TTFLUSH'];
+                                $corps->$beggar($_GET['deltaxtypeid']);
                             rcms_redirect(Corps::URL_TAXTYPE_LIST);
                         } else {
                             show_window(__('Error'), __('This item is used by something'));
@@ -41,8 +42,9 @@ if (cfr('CORPS')) {
                     }
 
                     show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
-                    if (method_exists($corps, $beggar['METH']['TTRENDER']))
-                        show_window(__('Available tax types'), $corps->$beggar['METH']['TTRENDER']());
+                    if (isset($beggar['METH']['TTRENDER']) and method_exists($corps, $beggar['METH']['TTRENDER']))
+                        $beggar = $beggar['METH']['TTRENDER'];
+                        show_window(__('Available tax types'), $corps->$beggar());
                 }
 
 
@@ -53,8 +55,9 @@ if (cfr('CORPS')) {
                     //del
                     if (wf_CheckGet(array('deleteid'))) {
                         if (!$corps->corpProtected($_GET['deleteid'])) {
-                            if (method_exists($corps, $beggar['METH']['FLUSH']))
-                                $corps->$beggar['METH']['FLUSH']($_GET['deleteid']);
+                            if (isset($beggar['METH']['FLUSH']) and method_exists($corps, $beggar['METH']['FLUSH']))
+                                $beggar = $beggar['METH']['FLUSH'];
+                                $corps->$beggar($_GET['deleteid']);
                             rcms_redirect(Corps::URL_CORPS_LIST);
                         } else {
                             show_window(__('Error'), __('This item is used by something'));
@@ -66,8 +69,9 @@ if (cfr('CORPS')) {
                         //creation 
                         if (wf_CheckPost(array('createcorpid'))) {
                             if (wf_CheckPost(array('createcorpname'))) {
-                                if (method_exists($corps, $beggar['METH']['ADD'])) {
-                                    $corpAddResult = $corps->$beggar['METH']['ADD']();
+                                if (isset($beggar['METH']['ADD']) and method_exists($corps, $beggar['METH']['ADD'])) {
+                                    $beggar = $beggar['METH']['ADD'];
+                                    $corpAddResult = $corps->$beggar();
                                     if (wf_CheckPost(array('alsobindsomelogin'))) {
                                         $corps->userBind($_POST['alsobindsomelogin'], $corpAddResult);
                                         rcms_redirect(Corps::URL_USER_MANAGE . $_POST['alsobindsomelogin']);
@@ -80,16 +84,18 @@ if (cfr('CORPS')) {
                             }
                         }
                         show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
-                        if (method_exists($corps, $beggar['VP']['FADF']))
-                            show_window(__('Create'), $corps->$beggar['VP']['FADF']());
+                        if (isset($beggar['VP']['FADF']) and method_exists($corps, $beggar['VP']['FADF']))
+                            $beggar = $beggar['VP']['FADF'];
+                            show_window(__('Create'), $corps->$beggar());
                     }
 
                     //editing
                     if (wf_CheckGet(array('editid'))) {
                         //editing push
                         if (wf_CheckPost(array('editcorpid', 'editcorpname'))) {
-                            if (method_exists($corps, $beggar['METH']['PUSH']))
-                                $corps->$beggar['METH']['PUSH']($_POST['editcorpid']);
+                            if (isset($beggar['METH']['PUSH']) and method_exists($corps, $beggar['METH']['PUSH']))
+                                $beggar = $beggar['METH']['PUSH'];
+                                $corps->$beggar($_POST['editcorpid']);
                             rcms_redirect(Corps::URL_CORPS_EDIT . $_GET['editid']);
                         }
                         //deleting person
@@ -110,8 +116,9 @@ if (cfr('CORPS')) {
                         }
 
                         show_window('', wf_BackLink(Corps::URL_CORPS_LIST, '', true));
-                        if (method_exists($corps, $beggar['VP']['MODF']))
-                            show_window(__('Edit'), $corps->$beggar['VP']['MODF']($_GET['editid']));
+                        if (isset($beggar['VP']['MODF']) and method_exists($corps, $beggar['VP']['MODF']))
+                            $beggar = $beggar['VP']['MODF'];
+                            show_window(__('Edit'), $corps->$beggar($_GET['editid']));
                         show_window(__('Contact persons'), $corps->personCreateForm($_GET['editid']));
                         //user binding/unbinding actions
                         if (wf_CheckGet(array('usercallback'))) {
@@ -128,7 +135,7 @@ if (cfr('CORPS')) {
                     } else {
 
                         if (!wf_CheckGet(array('add'))) {
-                            if (method_exists($corps, $beggar['METH']['RENDER']))
+                            if (isset($beggar['METH']['RENDER']) and method_exists($corps, $beggar['METH']['RENDER']))
                                 $beggar = $beggar['METH']['RENDER'];
                                 show_window(__('Available corps'), $corps->$beggar());
                         }
@@ -153,13 +160,15 @@ if (cfr('CORPS')) {
                                 $corps->userBind($_POST['bindsomelogin'], $_POST['bindlogintocorpid']);
                                 rcms_redirect(Corps::URL_USER_MANAGE . $_POST['bindsomelogin']);
                             }
-                            if (method_exists($corps, $beggar['BU']['F'])) {
-                                $corpAttachControls = $corps->$beggar['BU']['F']($login);
+                            if (isset($beggar['BU']['F']) and method_exists($corps, $beggar['BU']['F'])) {
+                                $beggar = $beggar['BU']['F'];
+                                $corpAttachControls = $corps->$beggar($login);
                                 show_window(__('Private user'), $corpAttachControls);
                             }
 
-                            if (method_exists($corps, $beggar['BU']['AB'])) {
-                                $corpAddAttachControls = $corps->$beggar['BU']['AB']($login);
+                            if (isset($beggar['BU']['AB']) and method_exists($corps, $beggar['BU']['AB'])) {
+                                $beggar = $beggar['BU']['AB'];
+                                $corpAddAttachControls = $corps->$beggar($login);
                                 show_window(__('Create') . ' ' . __('Corporate user'), $corpAddAttachControls);
                             }
                         }
