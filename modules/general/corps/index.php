@@ -129,7 +129,8 @@ if (cfr('CORPS')) {
 
                         if (!wf_CheckGet(array('add'))) {
                             if (method_exists($corps, $beggar['METH']['RENDER']))
-                                show_window(__('Available corps'), $corps->$beggar['METH']['RENDER']());
+                                $beggar = $beggar['METH']['RENDER'];
+                                show_window(__('Available corps'), $corps->$beggar());
                         }
                     }
                 }
