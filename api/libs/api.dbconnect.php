@@ -50,8 +50,12 @@ Class DbConnect {
         return true;
     }
 
-    function close() {
-        return (@mysql_close($this->conn));
+    public function close() {
+           if (!extension_loaded('mysqli')) {
+                return (@mysql_close($this->conn));
+           } else {
+               return (@$this->conn->close());
+           }
     }
 
     public function error() {
