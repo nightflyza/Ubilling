@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Checks is some switch id linked with
  * 
@@ -417,4 +418,85 @@ function sm_MapBadIcon($stretchy = true) {
     } else {
         return ('twirl#redIcon');
     }
+}
+
+/**
+ * Returns good icon class
+ * 
+ * @param bool $stretchy - icon resizable by content?
+ * 
+ * @return string
+ */
+function sm_MapGoodIcon($stretchy = true) {
+    if ($stretchy) {
+        return ('twirl#lightblueStretchyIcon');
+    } else {
+        return ('twirl#lightblueIcon');
+    }
+}
+
+/**
+ * Returns form for placing switch to selected coordinates
+ * 
+ * @return string
+ */
+function um_MapLocationBuildForm() {
+    $query = "SELECT * from `build` WHERE `geo` IS NULL OR `geo`='' ORDER by `streetid`";
+    $allNoGeoBuilds = simple_queryall($query);
+    $buildData = array();
+    $streetData = array();
+    $cityData = array();
+    $result = '';
+
+    if (!empty($allNoGeoBuilds)) {
+        $allCities = zb_AddressGetFullCityNames();
+        $allStreets = zb_AddressGetStreetAllData();
+        if (!empty($allStreets)) {
+            foreach ($allStreets as $ia => $eachstreet) {
+                $streetData[$eachstreet['id']] = $eachstreet['streetname'];
+                if (isset($allCities[$eachstreet['cityid']])) {
+                    $cityData[$eachstreet['id']] = $allCities[$eachstreet['cityid']];
+                }
+            }
+        }
+
+        foreach ($allNoGeoBuilds as $io => $each) {
+            @$streetname = $streetData[$each['streetid']];
+            $streetcity = (isset($cityData[$each['streetid']])) ? $cityData[$each['streetid']] . ' ' : '';
+            $buildData[$each['id']] = $streetcity . $streetname . ' - ' . $each['buildnum'];
+        }
+        //form construct
+        if (cfr('BUILDS')) {
+            $inputs = wf_Selector('buildplacing', $buildData, '', '', true);
+            $inputs.=wf_Submit('Save');
+            $result.=$inputs;
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Returns form for placing switch to selected coordinates
+ * 
+ * @return string
+ */
+function sm_MapLocationSwitchForm() {
+    $query = "SELECT * from `switches` WHERE `geo`='' AND `desc` NOT LIKE '%NP%'";
+    $allNoGeoSwitches = simple_queryall($query);
+    $switchData = array();
+    $result = '';
+
+    if (!empty($allNoGeoSwitches)) {
+        foreach ($allNoGeoSwitches as $io => $each) {
+            $cleanLocation = str_replace("'", '`', $each['location']);
+            $switchData[$each['id']] = $each['ip'] . ' - ' . $cleanLocation;
+        }
+        //form construct
+        if (cfr('SWITCHESEDIT')) {
+            $inputs = wf_Selector('switchplacing', $switchData, '', '', true);
+            $inputs.=wf_Submit('Save');
+            $result.=$inputs;
+        }
+    }
+    return ($result);
 }

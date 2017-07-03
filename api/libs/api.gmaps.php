@@ -276,7 +276,6 @@ function gm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
  * Shows map container
  *
  * @return void
- *
  */
 function sm_ShowMapContainer() {
     $container = gm_MapContainer('', '', 'ubmap');
@@ -291,47 +290,95 @@ function sm_ShowMapContainer() {
 }
 
 /**
- * Returns good icon class
+ * Initialize map container with some settings
  * 
- * @param bool $stretchy - icon resizable by content?
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
  * 
- * @return string
+ * @return void
  */
-function sm_MapGoodIcon($stretchy = true) {
-    if ($stretchy) {
-        return ('twirl#lightblueStretchyIcon');
-    } else {
-        return ('twirl#lightblueIcon');
-    }
-}
-
-
 function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     show_window('', gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
 
-//need some code here - required for builds placement
+/**
+ * Return geo coordinates locator for builds :TODO
+ * 
+ * @return string
+ */
 function um_MapLocationFinder() {
     return ('');
 }
 
-//need some code here - required for swithes placement
+/**
+ * Returns geo coordinates locator :TODO
+ * 
+ * @return string
+ */
 function sm_MapLocationFinder() {
     return ('');
 }
 
+/**
+ * Returns JS code to draw line within two points
+ * 
+ * @param string $coord1
+ * @param string $coord2
+ * @param string $color
+ * @param string $hint
+ * 
+ * @return string
+ */
 function sm_MapAddLine($coord1, $coord2, $color = '', $hint = '', $width = '') {
     return (gm_MapAddLine($coord1, $coord2, $color, $hint, $width));
 }
 
+/**
+ * Returns map circle
+ * 
+ * @param string $coords
+ * @param int $radius
+ * @param string $content
+ * @param string $hint
+ * 
+ * @return string
+ */
 function sm_MapAddCircle($coords, $radius, $content = '', $hint = '') {
     return (gm_MapAddCircle($coords, $radius, $content, $hint));
 }
 
+/**
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return void
+ */
 function sm_MapInitQuiet($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
 
+/**
+ * Initialize map container with some settings
+ * 
+ * @param $center - map center lat,long
+ * @param $zoom - default map zoom
+ * @param $type - map type, may be: map, satellite, hybrid
+ * @param $placemarks - already filled map placemarks
+ * @param $editor - field for visual editor or geolocator
+ * @param $lang - map language in format ru-RU
+ * 
+ * @return void
+ */
 function sm_MapInitBasic($center, $zoom, $type, $placemarks = '', $editor = '', $lang = 'ru-RU') {
     return (gm_MapInit($center, $zoom, $type, $placemarks, $editor, $lang));
 }
@@ -351,6 +398,19 @@ function um_ShowMapContainer() {
     show_window(__('Builds and users map'), $controls . $container);
 }
 
+/**
+ * Returns map mark
+ * 
+ * @param $coords - map coordinates
+ * @param $title - ballon title
+ * @param $content - ballon content
+ * @param $footer - ballon footer content
+ * @param $icon - YM icon class
+ * @param $iconlabel - icon label string
+ * @param $canvas - is canvas rendering enabled?
+ * 
+ * @return string
+ */
 function sm_MapAddMark($coords, $title = '', $content = '', $footer = '', $icon = 'twirl#lightblueIcon', $iconlabel = '', $canvas = false) {
     return (gm_MapAddMark($coords, $title, $content, $footer, $icon, $iconlabel, $canvas));
 }
