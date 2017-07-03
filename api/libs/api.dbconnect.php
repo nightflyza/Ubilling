@@ -23,7 +23,7 @@ Class DbConnect {
         $this->error_reporting = $error_reporting;
     }
 
-    function open() {
+    public function open() {
         if (!extension_loaded('mysqli')) {
             if ($this->persistent) {
                 $func = 'mysql_pconnect';
