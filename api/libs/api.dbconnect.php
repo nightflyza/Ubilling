@@ -85,8 +85,12 @@ Class DbConnect {
         }
     }
 
-    function numrows() {
-        return(@mysql_num_rows($this->result));
+    public function numrows() {
+        if (!extension_loaded('mysqli')) {
+            return(@mysql_num_rows($this->result));
+        } else {
+            return(@$this->conn->num_rows);
+        }
     }
 
     function fetchobject() {
