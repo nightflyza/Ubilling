@@ -109,12 +109,20 @@ Class DbConnect {
         }
     }
 
-    function fetchassoc() {
-        return(@mysql_fetch_assoc($this->result));
+    public function fetchassoc() {
+        if (!extension_loaded('mysqli')) {
+            return(@mysql_fetch_assoc($this->result));
+        } else {
+            return(@$this->result->fetch_assoc());
+        }
     }
 
-    function freeresult() {
-        return(@mysql_free_result($this->result));
+    public function freeresult() {
+        if (!extension_loaded('mysqli')) {
+            return(@mysql_free_result($this->result));
+        } else {
+            return(@$this->result->free());
+        }
     }
 
 }
