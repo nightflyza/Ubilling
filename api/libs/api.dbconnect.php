@@ -54,9 +54,13 @@ Class DbConnect {
         return (@mysql_close($this->conn));
     }
 
-    function error() {
+    public function error() {
         if ($this->error_reporting) {
-            return (mysql_error());
+           if (!extension_loaded('mysqli')) {
+                return (mysql_error());
+           } else {
+               return ($this->conn->connect_error);
+           }
         }
     }
 
