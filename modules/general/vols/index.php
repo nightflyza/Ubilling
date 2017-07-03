@@ -1159,7 +1159,8 @@
                         switch ( $action ) {
                             case 'show':
                                 if ( method_exists($obj, $runtime['METHOD']['RNDR']) )
-                                    show_window(__('Map of VOLS'), $obj->$runtime['METHOD']['RNDR']());
+                                    $runtime = $runtime['METHOD']['RNDR'];
+                                    show_window(__('Map of VOLS'), $obj->$runtime());
                                 break;
                             case 'edit':
                                 if ( method_exists($obj, $runtime['METHOD']['RNDR']) )
