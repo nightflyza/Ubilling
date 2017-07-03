@@ -68,13 +68,21 @@ Class DbConnect {
         }
     }
 
-    function query($sql) {
-        $this->result = @mysql_query($sql, $this->conn);
+    public function query($sql) {
+        if (!extension_loaded('mysqli')) {
+            $this->result = @mysql_query($sql, $this->conn);
+        } else {
+            $this->result = @$this->conn->query($sql);
+        }
         return($this->result != false);
     }
 
-    function affectedrows() {
-        return(@mysql_affected_rows($this->conn));
+    public function affectedrows() {
+        if (!extension_loaded('mysqli')) {
+            return(@mysql_affected_rows($this->conn));
+        } else {
+            return(@$this->conn->affected_rows);
+        }
     }
 
     function numrows() {
