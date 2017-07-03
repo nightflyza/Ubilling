@@ -93,8 +93,12 @@ Class DbConnect {
         }
     }
 
-    function fetchobject() {
-        return(@mysql_fetch_object($this->result, MYSQL_ASSOC));
+    public function fetchobject() {
+        if (!extension_loaded('mysqli')) {
+            return(@mysql_fetch_object($this->result, MYSQL_ASSOC));
+        } else {
+            return($this->result->fetch_object());
+        }
     }
 
     function fetcharray() {
