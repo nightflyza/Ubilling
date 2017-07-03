@@ -236,8 +236,15 @@
                     case 'OnConnect':
                     case 'OnDisconnect':
                         // Load template:
-                        $template = parse_ini_file(NASPATH . 'tpls/firewall.ini');
-                        $template['disabled'] = ( ENVIRONMENT != 'OnConnect' ) ? 'yes' : 'no';
+                        if ( $this->config['use2addrlists'] ) {
+                            $firewall_ini_path = ( ENVIRONMENT == 'OnConnect' ) ? 'firewall.ini' : 'firewall_off.ini';
+                            $template = parse_ini_file(NASPATH . 'tpls/' . $firewall_ini_path);
+                            $template['disabled'] = 'no';
+                        } else {
+                            $template = parse_ini_file(NASPATH . 'tpls/firewall.ini');
+                            $template['disabled'] = ( ENVIRONMENT != 'OnConnect' ) ? 'yes' : 'no';
+                        }
+
                     case 'OnChange':
                     case 'OnUserDel':
                     // Find entry on NAS:
