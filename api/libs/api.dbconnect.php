@@ -101,8 +101,12 @@ Class DbConnect {
         }
     }
 
-    function fetcharray() {
-        return(mysql_fetch_array($this->result));
+    public function fetcharray() {
+        if (!extension_loaded('mysqli')) {
+            return(mysql_fetch_array($this->result));
+        } else {
+            return($this->result->fetch_array(MYSQLI_NUM));
+        }
     }
 
     function fetchassoc() {
