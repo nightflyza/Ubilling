@@ -483,12 +483,44 @@ class WhyDoYouCall {
     }
 
     /**
+     * Returns date search form
+     * 
+     * @param int $year
+     * @param int $month
+     * 
+     * @return string
+     */
+    protected function statsDateForm($year = '', $month = '') {
+        $result = '';
+        $curYear = (empty($year)) ? date("Y") : $year;
+        $curMonth = (empty($month)) ? date("m") : $month;
+        $monthArr = months_array_localized();
+
+        $inputs = wf_YearSelectorPreset('yearsel', __('Year'), false, $curYear) . ' ';
+        $inputs.= wf_Selector('monthsel', $monthArr, __('Month'), $curMonth, false) . ' ';
+        $inputs.= wf_Submit(__('Show'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $result.=wf_CleanDiv();
+
+        return ($result);
+    }
+
+    /**
      * Renders previous days stats
      * 
      * @return string
      */
     public function renderStats() {
         $result = '';
+        $year = (wf_CheckPost(array('yearsel'))) ? vf($_POST['yearsel'], 3) : date("Y");
+        $month = (wf_CheckPost(array('monthsel'))) ? vf($_POST['monthsel'], 3) : date("m");
+        $totalMissed = 0;
+        $totalRecalls = 0;
+        $totalUnsucc = 0;
+        $totalCalls = 0;
+
+        $result.= $this->statsDateForm($year, $month);
+
         $gchartsData = array();
         $gchartsData[] = array(__('Date'), __('Missed calls'), __('Recalled calls'), __('Unsuccessful recalls'));
         $chartsOptions = "
@@ -510,17 +542,27 @@ class WhyDoYouCall {
         $jqDtOpts = '"order": [[ 0, "desc" ]]';
         $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Phones');
 
-        $query = "SELECT * from `wdycinfo`";
+        $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $gchartsData[] = array($each['date'], $each['missedcount'], $each['recallscount'], $each['unsucccount']);
+                $totalMissed += $each['missedcount'];
+                $totalRecalls += $each['recallscount'];
+                $totalUnsucc += $each['unsucccount'];
             }
 
+            $totalCalls+=$totalMissed + $totalRecalls + $totalUnsucc;
             $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
-            $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true', false, __('Calls'), 25, $jqDtOpts);
+            $result.= wf_tag('strong') . __('Total') . ': ' . wf_tag('strong', true) . wf_tag('br');
+            $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
+            $result.= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
+            $result.= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
+            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, $totalMissed) . '%';
+            $result.= wf_tag('br');
+            $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
         } else {
-            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+            $result.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
     }
@@ -528,11 +570,14 @@ class WhyDoYouCall {
     /**
      * Renders json for previous calls stats
      * 
+     * @param int $year
+     * @param int $month
+     * 
      * @return void
      */
-    public function jsonPreviousStats() {
+    public function jsonPreviousStats($year, $month) {
         $json = new wf_JqDtHelper();
-        $query = "SELECT * from `wdycinfo`";
+        $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
         $all = simple_queryall($query);
         $data = array();
         if (!empty($all)) {

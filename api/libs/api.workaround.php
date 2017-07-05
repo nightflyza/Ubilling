@@ -4723,6 +4723,22 @@ function zb_Percent($sum, $percent) {
 }
 
 /**
+ * Counts percentage between two values
+ * 
+ * @param float $valueTotal
+ * @param float $value
+ * 
+ * @return float
+ */
+function zb_PercentValue($valueTotal, $value) {
+    $result = 0;
+    if ($valueTotal != 0) {
+        $result = round((($value * 100) / $valueTotal), 2);
+    }
+    return ($result);
+}
+
+/**
  * Checks is time between some other time ranges?
  * 
  * @param string $fromTime start time (format hh:mm OR hh:mm:ss with seconds)

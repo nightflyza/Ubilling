@@ -64,21 +64,6 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
-    /**
-     * Counts percentage between two values
-     * 
-     * @param float $valueTotal
-     * @param float $value
-     * 
-     * @return float
-     */
-    function zb_AskoziaPercentValue($valueTotal, $value) {
-        $result = 0;
-        if ($valueTotal != 0) {
-            $result = round((($value * 100) / $valueTotal), 2);
-        }
-        return ($result);
-    }
 
     /**
      * Renders time duration in seconds into formatted human-readable view
@@ -437,9 +422,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
             $result.=__('Time spent on calls') . ': ' . zb_AskoziaFormatTime($totalTime) . wf_tag('br');
-            $result.=__('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_AskoziaPercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
-            $result.=wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_AskoziaPercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
-            $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_AskoziaPercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
+            $result.=__('Total') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $answerCounter . ' / ' . $noAnswerCounter . ' (' . zb_PercentValue($answerCounter + $noAnswerCounter, $answerCounter) . '%)' . wf_tag('br');
+            $result.=wf_tag('b') . __('Working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . $WorkHoursAnswerCounter . ' / ' . $WorkHoursNoAnswerCounter . ' (' . zb_PercentValue($WorkHoursAnswerCounter + $WorkHoursNoAnswerCounter, $WorkHoursAnswerCounter) . '%)' . wf_tag('b', true) . wf_tag('br');
+            $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_PercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
             $result.= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
 

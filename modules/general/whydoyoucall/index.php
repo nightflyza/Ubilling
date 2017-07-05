@@ -11,8 +11,8 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             show_window(__('We tried to call back these numbers, and sometimes it even happened'), $whydoyoucall->renderRecalledCallsReport());
         } else {
             //rendering stats
-            if (wf_CheckGet(array('ajaxlist'))) {
-                $whydoyoucall->jsonPreviousStats();
+            if (wf_CheckGet(array('ajaxlist', 'year', 'month'))) {
+                $whydoyoucall->jsonPreviousStats($_GET['year'], $_GET['month']);
             }
             show_window(__('Stats'), $whydoyoucall->renderStats());
         }
