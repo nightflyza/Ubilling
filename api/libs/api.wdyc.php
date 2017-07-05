@@ -558,7 +558,8 @@ class WhyDoYouCall {
             $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
             $result.= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
             $result.= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
-            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, $totalMissed) . '%';
+            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%';
+            $result.= wf_tag('br');
             $result.= wf_tag('br');
             $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
         } else {
