@@ -2,7 +2,7 @@
 
 error_reporting(E_ALL ^ E_DEPRECATED); //hide some deprecated warnings on 5.6 :(
 
-Class DbConnect {
+class DbConnect {
 
     var $host = '';
     var $user = '';
@@ -97,7 +97,7 @@ Class DbConnect {
         if (!extension_loaded('mysqli')) {
             return(@mysql_fetch_object($this->result, MYSQL_ASSOC));
         } else {
-            return($this->result->fetch_object());
+            return($result = @$this->result->fetch_object());
         }
     }
 
@@ -105,7 +105,7 @@ Class DbConnect {
         if (!extension_loaded('mysqli')) {
             return(mysql_fetch_array($this->result));
         } else {
-            return($this->result->fetch_array(MYSQLI_NUM));
+            return($result = @$this->result->fetch_array(MYSQLI_NUM));
         }
     }
 
@@ -113,7 +113,7 @@ Class DbConnect {
         if (!extension_loaded('mysqli')) {
             return(@mysql_fetch_assoc($this->result));
         } else {
-            return(@$this->result->fetch_assoc());
+            return($result = @$this->result->fetch_assoc());
         }
     }
 
