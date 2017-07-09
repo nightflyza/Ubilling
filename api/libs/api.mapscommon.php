@@ -15,7 +15,7 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
     $x = $traceid;
 
 
-    while (!empty($x)) {
+    if (!empty($x)) {
         foreach ($alllinks as $id => $parentid) {
             if ($x == $id) {
                 $road[] = $parentid;
