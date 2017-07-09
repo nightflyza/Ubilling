@@ -1842,3 +1842,5 @@ CREATE TABLE IF NOT EXISTS `wdycinfo` (
   `missednumbers` text,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `taskman` ADD `change_admin` VARCHAR(255) NULL DEFAULT NULL;
