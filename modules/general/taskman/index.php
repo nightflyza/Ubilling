@@ -53,6 +53,7 @@ if (cfr('TASKMAN')) {
                 simple_update_field('taskman', 'enddate', $_POST['editenddate'], "WHERE `id`='" . $editid . "'");
                 simple_update_field('taskman', 'employeedone', $_POST['editemployeedone'], "WHERE `id`='" . $editid . "'");
                 simple_update_field('taskman', 'donenote', $_POST['editdonenote'], "WHERE `id`='" . $editid . "'");
+                simple_update_field('taskman', 'change_admin', $_POST['change_admin'], "WHERE `id`='" . $editid . "'");
                 simple_update_field('taskman', 'status', '1', "WHERE `id`='" . $editid . "'");
 
                 //flushing darkvoid after changing task
