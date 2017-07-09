@@ -98,7 +98,7 @@
         }
 
         private function get_user_reassigned_rate() {
-            $return = array('tx' => 0, 'rx' => 0);
+            $return = array('tx' => 0, 'rx' => 0, 'bt_tx' => 0, 'bt_rx' => 0, 'bt_tx_t' => 0, 'bt_rx_t' => 0);
             $result = $this->select('speed', 'userspeeds', array('login' => LOGIN));
             foreach ( $result as $data ) {
                 if ( !empty($data['speed']) ) {
