@@ -153,7 +153,7 @@ class OpenPayz {
         $this->loadRealname();
         $this->loadAddress();
         $this->loadCustomers();
-        
+
         $csvdata = '';
         $totalsumm = 0;
         $totalcount = 0;
@@ -381,9 +381,9 @@ class OpenPayz {
         $this->loadCustomers();
         $this->loadAddress();
         $this->loadRealname();
-        
+        $curYear = curyear();
         $manual_mode = $this->altCfg['OPENPAYZ_MANUAL'];
-        $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
+        $query = "SELECT * from `op_transactions` WHERE `date` LIKE '" . $curYear . "-%' ORDER by `id` DESC;";
         $alltransactions = simple_queryall($query);
         $json = new wf_JqDtHelper();
 
