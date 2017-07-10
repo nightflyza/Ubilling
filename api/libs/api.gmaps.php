@@ -42,16 +42,32 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
             $centerLat = trim($center[0]);
             $centerLng = trim($center[1]);
             $centerCode = 'center: uluru';
+            $autoLocator = '';
         } else {
-            //not working yet, some R&D reqiured about auto detecting position
+
+      $autoLocator = '
+       if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success, error);
+        } else {
+            alert(\'geolocation not supported\');
+        }
+
+        function success(position) {
+            map.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude),' . $zoom . ');
+        }
+
+        function error(msg) {
+            alert(\'error: \' + msg);
+        }
+        ';
             $centerLat = '48.5319';
-            $centerLng = '25.0350';
+            $centerLng = '30.0350';
             $centerCode = 'center: uluru';
         }
-        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+        $result.= wf_tag('script', false, '', 'type = "text/javascript"');
         $result.=' function initMap() {
-        var uluru = {lat: ' . $centerLat . ', lng: ' . $centerLng . '};
-        var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
+var uluru = {lat: ' . $centerLat . ', lng: ' . $centerLng . '};
+var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
           zoom: ' . $zoom . ',
          mapTypeId: \'' . $mapType . '\',
 
@@ -59,8 +75,9 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
         });
         ' . $placemarks . '
         ' . $editor . '
+        ' . $autoLocator . '          
       }
-
+ 
 ';
         $result.=wf_tag('script', true);
         $result.=wf_tag('script', false, '', 'async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=' . $apikey . '&language=' . $lang . '&callback=initMap"');
