@@ -31,6 +31,10 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
     global $ubillingConfig;
     $mapsCfg = $ubillingConfig->getYmaps();
     @$apikey = $mapsCfg['GMAPS_APIKEY'];
+    $mapType = $mapsCfg['TYPE'];
+    if ($mapType == 'map') {
+        $mapType = 'roadmap';
+    }
     $result = '';
     if ((!empty($apikey)) AND ( $apikey != 'YOUR_API_KEY_HERE')) {
         if (!empty($center)) {
@@ -49,9 +53,12 @@ function gm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
         var uluru = {lat: ' . $centerLat . ', lng: ' . $centerLng . '};
         var map = new google.maps.Map(document.getElementById(\'' . $container . '\'), {
           zoom: ' . $zoom . ',
+         mapTypeId: \'' . $mapType . '\',
+
           ' . $centerCode . '
         });
         ' . $placemarks . '
+        ' . $editor . '
       }
 
 ';
@@ -306,21 +313,64 @@ function sm_MapInit($center, $zoom, $type, $placemarks = '', $editor = '', $lang
 }
 
 /**
- * Return geo coordinates locator for builds :TODO
+ * Return geo coordinates locator for builds
  * 
  * @return string
  */
 function um_MapLocationFinder() {
-    return ('');
+    $windowId = wf_InputId();
+
+    $buildSelector = str_replace("'", '`', um_MapLocationBuildForm());
+    $buildSelector = str_replace("\n", '', $buildSelector);
+
+    $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
+    $content = '<form action="" method="POST"><input type="hidden" name="placecoords" value="\'+lat+\', \'+lng+\'">' . $buildSelector . '</form>';
+
+    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
+            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
+            content: contentString_' . $windowId . '
+            });';
+    $result = '
+            google.maps.event.addListener(map, \'click\', function(event) {
+            var myLatLng = event.latLng;
+            var lat = myLatLng.lat().toPrecision(6);
+            var lng = myLatLng.lng().toPrecision(6);
+            ' . $windowCode . '
+               infowindow_' . $windowId . '.setPosition(event.latLng);
+               infowindow_' . $windowId . '.open(map);
+                  // alert(event.latLng);  
+            });
+            ';
+    return ($result);
 }
 
 /**
- * Returns geo coordinates locator :TODO
+ * Returns geo coordinates locator
  * 
  * @return string
  */
 function sm_MapLocationFinder() {
-    return ('');
+    $windowId = wf_InputId();
+
+    $title = wf_tag('b') . __('Place coordinates') . wf_tag('b', true);
+    $content = '<form action="" method="POST"><input type="hidden" name="placecoords" value="\'+lat+\', \'+lng+\'">' . str_replace("\n", '', sm_MapLocationSwitchForm()) . '</form>';
+
+    $windowCode = 'var contentString_' . $windowId . ' = \'<div id = "content_' . $windowId . '">' . $title . '<br> \'+lat+\', \'+lng+\' <br> ' . $content . '</div>\';
+            var infowindow_' . $windowId . ' = new google.maps.InfoWindow({
+            content: contentString_' . $windowId . '
+            });';
+    $result = '
+            google.maps.event.addListener(map, \'click\', function(event) {
+            var myLatLng = event.latLng;
+            var lat = myLatLng.lat().toPrecision(6);
+            var lng = myLatLng.lng().toPrecision(6);
+            ' . $windowCode . '
+               infowindow_' . $windowId . '.setPosition(event.latLng);
+               infowindow_' . $windowId . '.open(map);
+                  // alert(event.latLng);  
+            });
+            ';
+    return ($result);
 }
 
 /**
