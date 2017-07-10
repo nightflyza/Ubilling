@@ -149,6 +149,11 @@ class OpenPayz {
      * @return void
      */
     public function doSearch($year, $month, $paysys) {
+        $this->loadTransactions();
+        $this->loadRealname();
+        $this->loadAddress();
+        $this->loadCustomers();
+        
         $csvdata = '';
         $totalsumm = 0;
         $totalcount = 0;
