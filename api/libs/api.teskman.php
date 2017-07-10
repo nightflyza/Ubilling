@@ -1644,6 +1644,7 @@ function ts_TaskChangeForm($taskid) {
         if ($taskdata['status'] == 0) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
+            $inputs.= wf_HiddenInput('change_admin', whoami());
             $inputs.=wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
             $inputs.=wf_tag('br');
             $inputs.=wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
@@ -1677,6 +1678,12 @@ function ts_TaskChangeForm($taskid) {
 
             $donecells = wf_TableCell(__('Finish note'));
             $donecells.=wf_TableCell($taskdata['donenote']);
+            $donerows.=wf_TableRow($donecells, 'row3');
+
+            $administratorChange = (isset($employeeLogins[$taskdata['change_admin']])) ? $employeeLogins[$taskdata['change_admin']] : $taskdata['change_admin'];
+
+            $donecells = wf_TableCell( __('Administrator'));
+            $donecells.=wf_TableCell($administratorChange);
             $donerows.=wf_TableRow($donecells, 'row3');
 
             $doneresult = wf_TableBody($donerows, '100%', '0', 'glamour');
