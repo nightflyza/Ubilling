@@ -16,11 +16,7 @@ class OpenPayz {
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
-        $this->loadCustomers();
-        $this->loadTransactions();
         $this->loadPaySys();
-        $this->loadAddress();
-        $this->loadRealname();
     }
 
     /**
@@ -221,6 +217,7 @@ class OpenPayz {
      * @return string
      */
     public function renderGraphs() {
+        $this->loadTransactions();
         $psysdata = array();
         $gcAllData = array();
         $gcYearData = array();
@@ -376,6 +373,10 @@ class OpenPayz {
      * @return void
      */
     public function transactionAjaxSource() {
+        $this->loadCustomers();
+        $this->loadAddress();
+        $this->loadRealname();
+        
         $manual_mode = $this->altCfg['OPENPAYZ_MANUAL'];
         $query = "SELECT * from `op_transactions` ORDER by `id` DESC;";
         $alltransactions = simple_queryall($query);
@@ -442,6 +443,7 @@ class OpenPayz {
      * @return void
      */
     public function renderTransactionDetails($transactionId) {
+        $this->loadTransactions();
         $transactionId = vf($transactionId, 3);
         $result = '';
         $result.=wf_BackLink('?module=openpayz', '', true);
