@@ -2610,6 +2610,12 @@ $lang['def']['Nothing to show'] = 'Нічого показувати';
 $lang['def']['New streets alias autogeneration'] = 'Автогенерація аліасів для нових вулиць';
 $lang['def']['Default maps service'] = 'Служба карт за замовчуванням';
 $lang['def']['Google maps API key'] = 'Ключ Google maps API';
-
+$lang['def']['Switches integrity check'] = 'Перевірка цілісності комутаторів';
+$lang['def']['Integrity check'] = 'Перевірка цілісності';
+$lang['def']['is empty'] = 'порожні';
+$lang['def']['Parent switches found'] = 'Батьківських комутаторів знайдено';
+$lang['def']['Uplink switch is deleted from database'] = 'Аплінковий комутатор відсутній у базі';
+$lang['def']['uplink deleted'] = 'аплінка видалено';
+$lang['def']['Total switches in database'] = 'Всього комутаторів в базі';
 
 ?>

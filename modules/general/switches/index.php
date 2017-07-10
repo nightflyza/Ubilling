@@ -83,6 +83,9 @@ if (cfr('SWITCHES')) {
             $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), false, 'ubButton');
         }
 
+        if (cfr('SWITCHESEDIT')) {
+            $swlinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+        }
 
         if ($altCfg['SWYMAP_ENABLED']) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');

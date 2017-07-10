@@ -2594,13 +2594,20 @@ $lang['def']['Nothing to show'] = 'Нечего показывать';
 $lang['def']['New streets alias autogeneration'] = 'Автогенерация алиасов для новых улиц';
 $lang['def']['Default maps service'] = 'Служба карт по умолчанию';
 $lang['def']['Google maps API key'] = 'Ключ Google maps API';
+$lang['def']['Switches integrity check'] = 'Проверка целостности свитчей';
+$lang['def']['Integrity check'] = 'Проверка целосности';
+$lang['def']['is empty'] = 'пустые';
+$lang['def']['Parent switches found'] = 'Родительских свитчей найдено';
+$lang['def']['Uplink switch is deleted from database'] = 'Аплинковый свитч отсутствует в базе';
+$lang['def']['uplink deleted'] = 'аплинк удален';
+$lang['def']['Total switches in database'] = 'Всего свитчей в базе';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 
 ?>
