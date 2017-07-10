@@ -569,6 +569,42 @@ class WhyDoYouCall {
     }
 
     /**
+     * Cuts string to some normal length
+     * 
+     * @param string $string
+     * @param int $count
+     * @return string
+     */
+    protected function cutString($string, $count) {
+        if (strlen($string) <= $count) {
+            $result = $string;
+        } else {
+            $result = substr($string, 0, $count) . '...';
+        }
+        return ($result);
+    }
+
+    /**
+     * Do some coloring of missed counts
+     * 
+     * @param int $missedCount
+     * 
+     * @return string
+     */
+    protected function colorMissed($missedCount) {
+        if ($missedCount > 0) {
+            if ($missedCount <= 5) {
+                $result = $missedCount;
+            } else {
+                $result = wf_tag('font', false, '', 'color="#FF0000"') . $missedCount . wf_tag('font', true);
+            }
+        } else {
+            $result = wf_tag('font', false, '', 'color="#118819"') . $missedCount . wf_tag('font', true);
+        }
+        return ($result);
+    }
+
+    /**
      * Renders json for previous calls stats
      * 
      * @param int $year
@@ -585,10 +621,10 @@ class WhyDoYouCall {
             foreach ($all as $io => $each) {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
-                $data[] = $each['missedcount'];
+                $data[] = $this->colorMissed($each['missedcount']);
                 $data[] = $each['recallscount'];
                 $data[] = $each['unsucccount'];
-                $data[] = $each['missednumbers'];
+                $data[] = $this->cutString($each['missednumbers'], 45);
                 $json->addRow($data);
                 unset($data);
             }
