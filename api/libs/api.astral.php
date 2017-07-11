@@ -343,7 +343,7 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @return  string
  *
  */
-function wf_Selector($name, $params, $label, $selected = '', $br = false) {
+function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false) {
     $inputid = wf_InputId();
     if ($br) {
         $newline = '<br>';
@@ -352,6 +352,7 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false) {
     }
     $result = '<select name="' . $name . '" id="' . $inputid . '">';
     if (!empty($params)) {
+        ($sort) ? asort($params) : $params;
         foreach ($params as $value => $eachparam) {
             $sel_flag = '';
             if ($selected != '') {
