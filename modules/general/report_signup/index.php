@@ -156,10 +156,10 @@ if (cfr('REPORTSIGNUP')) {
                 if (ispos($eachsignup['date'], $curdate)) {
                     $rowClass = 'todaysig';
                     //today chart data
-                    if (isset($chartDataDay[$eachsignup['admin']])) {
-                        $chartDataDay[$eachsignup['admin']] ++;
+                    if (isset($chartDataDay[$administratorName])) {
+                        $chartDataDay[$administratorName] ++;
                     } else {
-                        $chartDataDay[$eachsignup['admin']] = 1;
+                        $chartDataDay[$administratorName] = 1;
                     }
                 } else {
                     $rowClass = 'row3';
@@ -174,10 +174,10 @@ if (cfr('REPORTSIGNUP')) {
                 }
 
                 //chart data filling
-                if (isset($chartDataMonth[$eachsignup['admin']])) {
-                    $chartDataMonth[$eachsignup['admin']] ++;
+                if (isset($chartDataMonth[$administratorName])) {
+                    $chartDataMonth[$administratorName] ++;
                 } else {
-                    $chartDataMonth[$eachsignup['admin']] = 1;
+                    $chartDataMonth[$administratorName] = 1;
                 }
 
                 $tablerows.=wf_TableRow($tablecells, $rowClass);
@@ -278,10 +278,10 @@ if (cfr('REPORTSIGNUP')) {
                 if (ispos($eachsignup['date'], $curdate)) {
                     $rowClass = 'todaysig';
                     //today chart data
-                    if (isset($chartDataDay[$eachsignup['admin']])) {
-                        $chartDataDay[$eachsignup['admin']] ++;
+                    if (isset($chartDataDay[$administratorName])) {
+                        $chartDataDay[$administratorName] ++;
                     } else {
-                        $chartDataDay[$eachsignup['admin']] = 1;
+                        $chartDataDay[$administratorName] = 1;
                     }
                 } else {
                     $rowClass = 'row3';
@@ -296,10 +296,10 @@ if (cfr('REPORTSIGNUP')) {
                 }
 
                 //chart data filling per month
-                if (isset($chartDataMonth[$eachsignup['admin']])) {
-                    $chartDataMonth[$eachsignup['admin']] ++;
+                if (isset($chartDataMonth[$administratorName])) {
+                    $chartDataMonth[$administratorName] ++;
                 } else {
-                    $chartDataMonth[$eachsignup['admin']] = 1;
+                    $chartDataMonth[$administratorName] = 1;
                 }
 
                 $tablerows.=wf_TableRow($tablecells, $rowClass);
