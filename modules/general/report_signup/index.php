@@ -137,10 +137,14 @@ if (cfr('REPORTSIGNUP')) {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($signups)) {
+            @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
             foreach ($signups as $io => $eachsignup) {
                 $tablecells = wf_TableCell($eachsignup['id']);
                 $tablecells.=wf_TableCell($eachsignup['date']);
-                $tablecells.=wf_TableCell($eachsignup['admin']);
+
+                $administratorName = (isset($employeeLogins[$eachsignup['admin']])) ? $employeeLogins[$eachsignup['admin']] : $eachsignup['admin'];
+                $tablecells.=wf_TableCell($administratorName);
+
                 if ($altercfg['SIGREP_CONTRACT']) {
                     $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
@@ -255,10 +259,14 @@ if (cfr('REPORTSIGNUP')) {
         $tablerows = wf_TableRow($tablecells, 'row1');
 
         if (!empty($signups)) {
+            @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
             foreach ($signups as $io => $eachsignup) {
                 $tablecells = wf_TableCell($eachsignup['id']);
                 $tablecells.=wf_TableCell($eachsignup['date']);
-                $tablecells.=wf_TableCell($eachsignup['admin']);
+
+                $administratorName = (isset($employeeLogins[$eachsignup['admin']])) ? $employeeLogins[$eachsignup['admin']] : $eachsignup['admin'];
+                $tablecells.=wf_TableCell($administratorName);
+
                 if ($altercfg['SIGREP_CONTRACT']) {
                     $tablecells.=wf_TableCell(@$allcontracts[$eachsignup['login']]);
                 }
