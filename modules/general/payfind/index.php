@@ -169,7 +169,7 @@ if (cfr('PAYFIND')) {
                     $tags[$eachtag['id']] = $eachtag['tagname'];
                 }
             }
-            $result=  wf_Selector('tagid', $tags, __('Tags'), '', true);
+            $result=  wf_Selector('tagid', $tags, __('Tags'), '', true, true);
             return($result);
     }
     
