@@ -48,8 +48,8 @@ if (cfr('SALARY')) {
 //listing avalable job pricings            
             if (isset($beggar['U']['JPCG']) and wf_CheckGet(array($beggar['U']['JPCG']))) {
                 if (isset($beggar['VP']['JPAF']) and method_exists($salary, $beggar['VP']['JPAF'])) {
-                    $beggar_m = $beggar['VP']['JPAF'];
-                    $jpCf = $salary->$beggar_m();
+                    $beggar_vp = $beggar['VP']['JPAF'];
+                    $jpCf = $salary->$beggar_vp();
                 } else {
                     $jpCf = '';
                 }
@@ -58,7 +58,8 @@ if (cfr('SALARY')) {
                 } else {
                     show_warning(__('No available job types for pricing'));
                 }
-                show_window(__('Available job types pricing'), $salary->$beggar['M']['JPLIST']());
+                $beggar_m = $beggar['M']['JPLIST'];
+                show_window(__('Available job types pricing'), $salary->$beggar_m());
                 show_window('', wf_BackLink($salary::URL_ME));
             }
 
