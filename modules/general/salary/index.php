@@ -9,15 +9,15 @@ if (cfr('SALARY')) {
             $salary = new Salary();
 
             if (isset($beggar['M']['PANEL']) and method_exists($salary, $beggar['M']['PANEL'])) {
-                $beggar = $beggar['M']['PANEL'];
-                show_window('', $salary->$beggar());
+                $beggar_m = $beggar['M']['PANEL'];
+                show_window('', $salary->$beggar_m());
             }
 
 // jobtype pricing creation
             if (wf_CheckPost(array('newjobtypepriceid', 'newjobtypepriceunit'))) {
                 if (isset($beggar['M']['JPADD']) and method_exists($salary, $beggar['M']['JPADD'])) {
-                    $beggar = $beggar['M']['JPADD'];
-                    $salary->$beggar($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit'], $_POST['newjobtypepricetime']);
+                    $beggar_m = $beggar['M']['JPADD'];
+                    $salary->$beggar_m($_POST['newjobtypepriceid'], $_POST['newjobtypeprice'], $_POST['newjobtypepriceunit'], $_POST['newjobtypepricetime']);
                 }
                 if (isset($beggar['U']['JPL'])) {
                     rcms_redirect($beggar['U']['JPL']);
@@ -27,8 +27,8 @@ if (cfr('SALARY')) {
 //jobtype price deletion
             if (wf_CheckGet(array('deletejobprice'))) {
                 if (isset($beggar['M']['JPFLUSH']) and method_exists($salary, $beggar['M']['JPFLUSH'])) {
-                    $beggar = $beggar['M']['JPFLUSH'];
-                    $salary->$beggar($_GET['deletejobprice']);
+                    $beggar_m = $beggar['M']['JPFLUSH'];
+                    $salary->$beggar_m($_GET['deletejobprice']);
                 }
                 if (isset($beggar['U']['JPL'])) {
                     rcms_redirect($beggar['U']['JPL']);
@@ -37,8 +37,8 @@ if (cfr('SALARY')) {
 //saving jobprices into database
             if (isset($beggar['U']['JPCPE']) and wf_CheckPost(array($beggar['U']['JPCPE']))) {
                 if (isset($beggar['M']['JPSAVE']) and method_exists($salary, $beggar['M']['JPSAVE'])) {
-                    $beggar = $beggar['M']['JPSAVE'];
-                    $salary->$beggar($_POST[$beggar['U']['JPCPE']]);
+                    $beggar_m = $beggar['M']['JPSAVE'];
+                    $salary->$beggar_m($_POST[$beggar['U']['JPCPE']]);
                 }
                 if (isset($beggar['U']['JPL'])) {
                     rcms_redirect($beggar['U']['JPL']);
@@ -48,8 +48,8 @@ if (cfr('SALARY')) {
 //listing avalable job pricings            
             if (isset($beggar['U']['JPCG']) and wf_CheckGet(array($beggar['U']['JPCG']))) {
                 if (isset($beggar['VP']['JPAF']) and method_exists($salary, $beggar['VP']['JPAF'])) {
-                    $beggar = $beggar['VP']['JPAF'];
-                    $jpCf = $salary->$beggar();
+                    $beggar_m = $beggar['VP']['JPAF'];
+                    $jpCf = $salary->$beggar_m();
                 } else {
                     $jpCf = '';
                 }
@@ -89,8 +89,8 @@ if (cfr('SALARY')) {
 
 //listing available employee wages
             if (isset($beggar['U']['EWCG']) and wf_CheckGet(array($beggar['U']['EWCG']))) {
-                $beggar = $beggar['VP']['EWAF'];
-                $ewCf = $salary->$beggar();
+                $beggar_m = $beggar['VP']['EWAF'];
+                $ewCf = $salary->$beggar_m();
                 if ($ewCf) {
                     show_window(__('Employee wages'), $ewCf);
                 } else {
