@@ -975,8 +975,8 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
     $inputs.=wf_HiddenInput('createtask', 'true');
-    $inputs.=wf_DatePicker('newstartdate');
-    $inputs.=wf_TimePickerPreset('newstarttime', '', '', false);
+    $inputs.=wf_DatePickerPreset('newstartdate', date("Y-m-d"));
+    $inputs.=wf_TimePickerPreset('newstarttime', date( "H:i", strtotime( "+1 hour" ) ), '', false);
     $inputs.=wf_tag('label') . __('Target date') . $sup . wf_tag('label', true);
     $inputs.=wf_delimiter();
     $inputs.=wf_TextInput('newtaskaddress', __('Address') . $sup, $address, true, '30');
