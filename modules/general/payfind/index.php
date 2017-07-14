@@ -138,15 +138,17 @@ if (cfr('PAYFIND')) {
      */
     
     function web_PayFindCashierSelector() {
-        $alladmins=  rcms_scandir(USERS_PATH);
-        $adminlist=array();
-        $result='';
+        $alladmins = rcms_scandir(USERS_PATH);
+        $adminlist = array();
+        @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+        $result = '';
         if (!empty($alladmins)) {
             foreach ($alladmins as $nu=>$login) {
-                $adminlist[$login]=$login;
+                $administratorName = (isset($employeeLogins[$login])) ? $employeeLogins[$login] : $login;
+                $adminlist[$login] = $administratorName;
             }
             
-            $result=  wf_Selector('cashier', $adminlist, __('Cashier'), '', true);
+            $result = wf_Selector('cashier', $adminlist, __('Cashier'), '', true, true);
         }
         return ($result);
     }
@@ -167,7 +169,7 @@ if (cfr('PAYFIND')) {
                     $tags[$eachtag['id']] = $eachtag['tagname'];
                 }
             }
-            $result=  wf_Selector('tagid', $tags, __('Tags'), '', true);
+            $result=  wf_Selector('tagid', $tags, __('Tags'), '', true, true);
             return($result);
     }
     
