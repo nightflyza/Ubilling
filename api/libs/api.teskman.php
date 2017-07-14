@@ -963,7 +963,9 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
+        // SET checkbed TELEGRAM for creating task from Userprofile if TELEGRAM_CHECKED == 1
+        $telegramInputsCheck = (isset($altercfg['TELEGRAM_CHECKED']) && $altercfg['TELEGRAM_CHECKED']) ? TRUE : FALSE;
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
         $smsInputs = '';
         $telegramInputs = '';
