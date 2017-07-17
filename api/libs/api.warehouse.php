@@ -80,6 +80,13 @@ class Warehouse {
     protected $allReserve = array();
 
     /**
+     * Contains previous reservation history
+     *
+     * @var array
+     */
+    protected $allReserveHistory = array();
+
+    /**
      * Available unit types as unittype=>localized name
      *
      * @var array
@@ -143,6 +150,7 @@ class Warehouse {
         $this->loadInOperations();
         $this->loadOutOperations();
         $this->loadReserve();
+        $this->loadReserveHistory();
     }
 
     /**
@@ -327,6 +335,21 @@ class Warehouse {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allReserve[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads reserve history logs from database
+     * 
+     * @return void
+     */
+    protected function loadReserveHistory() {
+        $query = "SELECT * from `wh_reshist` ORDER BY `id` DESC";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allReserveHistory[$each['id']] = $each;
             }
         }
     }
@@ -598,6 +621,51 @@ class Warehouse {
                 $rows.= wf_TableRow($cells, 'row3');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders json list of available reservation history log entries
+     * 
+     * @return void
+     */
+    public function reserveHistoryAjaxReply() {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allReserveHistory)) {
+            $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            foreach ($this->allReserveHistory as $io => $each) {
+                $administratorName = (isset($employeeLogins[$each['admin']])) ? $employeeLogins[$each['admin']] : $each['admin'];
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = $each['type'];
+                $data[] = @$this->allStorages[$each['storageid']];
+                $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
+                $data[] = @$this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
+                $data[] = @$this->allEmployee[$each['employeeid']];
+                $data[] = $administratorName;
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
+    }
+
+    /**
+     * Renders reservation history log
+     * 
+     * @return string
+     */
+    public function reserveRenderHistory() {
+        $result = '';
+        if (!empty($this->allReserveHistory)) {
+            $colums = array('ID', 'Date', 'Type', 'Warehouse storage', 'Category', 'Warehouse item type', 'Count', 'Employee', 'Admin');
+            $opts = '"order": [[ 0, "desc" ]]';
+            $result.= wf_JqDtLoader($colums, self::URL_ME . '&' . self::URL_RESERVE . '&reshistajlist=true', false, __('Reserve'), 10, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
         }

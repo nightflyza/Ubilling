@@ -211,7 +211,12 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveSave();
                         rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
+                    
+                    if (wf_CheckGet(array('reshistajlist'))) {
+                        $warehouse->reserveHistoryAjaxReply();
+                    }
                     show_window(__('Reserved'), $warehouse->reserveRenderList());
+                    show_window(__('History'), $warehouse->reserveRenderHistory());
                     $avidity_m = $avidity['M']['FALL'];
                     $warehouse->$avidity_m($warehouse::URL_ME);
                 }
