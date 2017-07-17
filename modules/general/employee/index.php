@@ -5,7 +5,7 @@ if (cfr('EMPLOYEEDIR')) {
     $ubCache = new UbillingCache();
 
     if (wf_CheckPost(array('addemployee', 'employeename'))) {
-        em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'], @$_POST['employeetelegram'], @$_POST['employeeadmlogin']);
+        em_EmployeeAdd($_POST['employeename'], $_POST['employeejob'], @$_POST['employeemobile'], @$_POST['employeetelegram'], @$_POST['employeeadmlogin'], @$_POST['editadtagid']);
         $ubCache->delete('EMPLOYEE_LOGINS');
         rcms_redirect("?module=employee");
     }
@@ -62,6 +62,7 @@ if (cfr('EMPLOYEEDIR')) {
             simple_update_field('employee', 'mobile', $_POST['editmobile'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'telegram', $_POST['edittelegram'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'admlogin', $_POST['editadmlogin'], "WHERE `id`='" . $editemployee . "'");
+            simple_update_field('employee', 'tagid', $_POST['editadtagid'], "WHERE `id`='" . $editemployee . "'");
 
             if (wf_CheckPost(array('editactive'))) {
                 simple_update_field('employee', 'active', '1', "WHERE `id`='" . $editemployee . "'");
@@ -85,6 +86,7 @@ if (cfr('EMPLOYEEDIR')) {
         $editinputs.=wf_TextInput('editmobile', __('Mobile'), $employeedata['mobile'], true, 20);
         $editinputs.=wf_TextInput('edittelegram', __('Chat ID') . ' ' . __('Telegram'), $employeedata['telegram'], true, 20);
         $editinputs.=wf_TextInput('editadmlogin', __('Administrator'), $employeedata['admlogin'], true, 20);
+        $editinputs.=em_TagSelector('editadtagid', __('Tag'), $employeedata['tagid'], true);
         $editinputs.=wf_CheckInput('editactive', 'Active', true, $actflag);
         $editinputs.=wf_Submit('Save');
         $editform = wf_Form('', 'POST', $editinputs, 'glamour');
