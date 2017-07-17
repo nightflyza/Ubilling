@@ -4,7 +4,8 @@
  * Maps services compatibility dispatcher
  */
 $mapsCfg = rcms_parse_ini_file(CONFIG_PATH . 'ymaps.ini');
-$mapsService = $mapsCfg['MAPS_SERVICE'];
+$mapsService = isset($mapsCfg['MAPS_SERVICE']) ? $mapsCfg['MAPS_SERVICE'] : 'yandex';
+
 switch ($mapsService) {
     case 'yandex':
         include('api/libs/api.ymaps.php');
