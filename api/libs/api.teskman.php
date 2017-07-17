@@ -1,6 +1,26 @@
 <?php
 
 /**
+ * Returns tag id selector
+ * 
+ * @param string $name
+ * @param string $label
+ * @return string
+ */
+function em_TagSelector($name, $label = '', $selected = '', $br = false) {
+    $alltypes = stg_get_alltagnames();
+    $allltags = array('' => '-');
+    if (!empty($alltypes)) {
+        foreach ($alltypes as $io => $eachtype) {
+            $allltags[$io] = $eachtype . " (" . $io . ")";
+        }
+    }
+
+    $result = wf_Selector($name, $allltags, $label, $selected, $br);
+    return ($result);
+}
+
+/**
  * Renders employee list with required controls and creation form
  * 
  * @return void
@@ -16,6 +36,7 @@ function em_EmployeeShowForm() {
     $cells.= wf_TableCell(__('Mobile'));
     $cells.= wf_TableCell(__('Chat ID') . ' ' . __('Telegram'));
     $cells.= wf_TableCell(__('Administrator'));
+    $cells.= wf_TableCell(__('Tag'));
     $cells.= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
 
@@ -34,6 +55,9 @@ function em_EmployeeShowForm() {
                 }
             }
             $cells.= wf_TableCell($admlogin);
+            $employeetag = stg_get_tagtype_data($eachemployee['tagid']);
+            $employeename = $employeetag ? $employeetag['tagname'] . " (" . $eachemployee['tagid'] . ")" : '';
+            $cells.= wf_TableCell($employeename);
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions.= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
             $cells.= wf_TableCell($actions);
@@ -50,6 +74,7 @@ function em_EmployeeShowForm() {
     $inputs.= wf_TableCell(wf_TextInput('employeemobile', '', '', false, 15));
     $inputs.= wf_TableCell(wf_TextInput('employeetelegram', '', '', false, 15));
     $inputs.= wf_TableCell(wf_TextInput('employeeadmlogin', '', '', false, 10));
+    $inputs.= wf_TableCell(em_TagSelector('editadtagid'));
     $inputs.= wf_TableCell(wf_Submit(__('Create')));
     $inputs = wf_TableRow($inputs, 'row2');
     $addForm = wf_Form("", 'POST', $inputs, '');
@@ -113,14 +138,15 @@ function em_JobTypeForm() {
  * 
  * @return void
  */
-function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '') {
+function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '', $tagid = '') {
     $name = mysql_real_escape_string(trim($name));
     $job = mysql_real_escape_string(trim($job));
     $mobile = mysql_real_escape_string($mobile);
     $telegram = mysql_real_escape_string($telegram);
     $admlogin = mysql_real_escape_string($admlogin);
-    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`,`telegram`, `admlogin`,`active`)
-            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1'); ";
+    $tagid = mysql_real_escape_string($tagid);
+    $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
+            VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', '" . $tagid . "'); ";
     nr_query($query);
     log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
 }
