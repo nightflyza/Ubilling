@@ -986,6 +986,10 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
+    // telepaticheskoe ugadivanie po tegu, kot dolzhen vipolnit rabotu
+    $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
+    $telepat_who_should_do = simple_query($query);
+
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
@@ -1013,7 +1017,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.=wf_tag('br');
     $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
     $inputs.=wf_tag('br');
-    $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), '', true, true);
+    $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, true);
     $inputs.=wf_tag('br');
     $inputs.=wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
     $inputs.=ts_TaskTypicalNotesSelector();
