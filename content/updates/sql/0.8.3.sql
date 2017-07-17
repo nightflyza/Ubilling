@@ -22,3 +22,7 @@ CREATE TABLE IF NOT EXISTS `wh_reshist` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`storageid`,`itemtypeid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `wh_in` ADD `admin` VARCHAR(100) NULL DEFAULT NULL AFTER `notes`; 
+
+ALTER TABLE `wh_out` ADD `admin` VARCHAR(100) NULL DEFAULT NULL AFTER `notes`; 

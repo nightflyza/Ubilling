@@ -1448,8 +1448,10 @@ class Warehouse {
         $priceF = mysql_real_escape_string($priceF);
         $notes = mysql_real_escape_string($notes);
         $barcode = mysql_real_escape_string($barcode);
-        $query = "INSERT INTO `wh_in` (`id`, `date`, `itemtypeid`, `contractorid`, `count`, `barcode`, `price`, `storageid`, `notes`) "
-                . "VALUES (NULL, '" . $dateF . "', '" . $itemtypeid . "', '" . $contractorid . "', '" . $countF . "', '" . $barcode . "', '" . $priceF . "', '" . $storageid . "', '" . $notes . "');";
+        $admin = mysql_real_escape_string(whoami());
+
+        $query = "INSERT INTO `wh_in` (`id`, `date`, `itemtypeid`, `contractorid`, `count`, `barcode`, `price`, `storageid`, `notes`,`admin`) "
+                . "VALUES (NULL, '" . $dateF . "', '" . $itemtypeid . "', '" . $contractorid . "', '" . $countF . "', '" . $barcode . "', '" . $priceF . "', '" . $storageid . "', '" . $notes . "','" . $admin . "');";
         nr_query($query);
         $newId = simple_get_lastid('wh_in');
         log_register('WAREHOUSE INCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
@@ -2068,6 +2070,7 @@ class Warehouse {
         $priceF = mysql_real_escape_string($price);
         $priceF = str_replace(',', '.', $priceF);
         $notes = mysql_real_escape_string($notes);
+        $admin = mysql_real_escape_string(whoami());
 
         if (isset($this->allStorages[$storageid])) {
             if (isset($this->allItemTypes[$itemtypeid])) {
@@ -2076,8 +2079,8 @@ class Warehouse {
                 $itemsReserved = $this->reserveGet($storageid, $itemtypeid);
                 $realRemains = $itemRemains - $itemsReserved;
                 if ($countF <= $realRemains) {
-                    $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`) VALUES "
-                            . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $countF . "','" . $priceF . "','" . $notes . "')";
+                    $query = "INSERT INTO `wh_out` (`id`,`date`,`desttype`,`destparam`,`storageid`,`itemtypeid`,`count`,`price`,`notes`,`admin`) VALUES "
+                            . "(NULL,'" . $date . "','" . $desttype . "','" . $destparam . "','" . $storageid . "','" . $itemtypeid . "','" . $countF . "','" . $priceF . "','" . $notes . "','" . $admin . "')";
                     nr_query($query);
                     $newId = simple_get_lastid('wh_out');
                     log_register('WAREHOUSE OUTCOME CREATE [' . $newId . '] ITEM [' . $itemtypeid . '] COUNT `' . $count . '` PRICE `' . $price . '`');
