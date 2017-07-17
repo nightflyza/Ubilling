@@ -354,6 +354,28 @@ class Warehouse {
     }
 
     /**
+     * Stores reservation history log record into database
+     * 
+     * @param string $type - create/update/delete
+     * @param int $storageId
+     * @param int $itemtypeId
+     * @param float $count
+     * @param int $employeeId
+     */
+    protected function reservePushLog($type, $storageId = '', $itemtypeId = '', $count = '', $employeeId = '') {
+        $curdate = curdatetime();
+        $type = vf($type);
+        $adminLogin = mysql_real_escape_string(whoami());
+        $storageId = "'" . vf($storageId, 3) . "'";
+        $itemtypeId = "'" . vf($itemtypeId, 3) . "'";
+        $count = "'" . mysql_real_escape_string($count) . "'";
+        $employeeId = "'" . vf($employeeId, 3) . "'";
+        $query = "INSERT INTO `wh_reshist` (`id`,`date`,`type`,`storageid`,`itemtypeid`,`count`,`employeeid`,`admin`) VALUES ";
+        $query.= "(NULL,'" . $curdate . "','" . $type . "'," . $storageId . "," . $itemtypeId . "," . $count . "," . $employeeId . ",'" . $adminLogin . "');";
+        nr_query($query);
+    }
+
+    /**
      * Creates new reserve record in database
      * 
      * @param int $storageId
@@ -387,6 +409,7 @@ class Warehouse {
                         nr_query($query);
                         $newId = simple_get_lastid('wh_reserve');
                         log_register('WAREHOUSE RESERVE CREATE [' . $newId . '] ITEM [' . $itemtypeId . '] COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                        $this->reservePushLog('create', $storageId, $itemtypeId, $count, $employeeId);
                     } else {
                         $result = $this->messages->getStyledMessage(__('The balance of goods and materials in stock is less than the amount') . ' (' . $countF . ' > ' . $itemtypeRemains . '-' . $alreadyReserved . ')', 'error');
                     }
@@ -468,6 +491,10 @@ class Warehouse {
     public function reserveDelete($id) {
         $id = vf($id, 3);
         if (isset($this->allReserve[$id])) {
+            $reserveData = $this->allReserve[$id];
+            if (!empty($reserveData)) {
+                $this->reservePushLog('delete', $reserveData['storageid'], $reserveData['itemtypeid'], $reserveData['count'], $reserveData['employeeid']);
+            }
             $query = "DELETE from `wh_reserve` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register('WAREHOUSE RESERVE DELETE [' . $id . ']');
@@ -512,13 +539,14 @@ class Warehouse {
                 $reserveData = $this->allReserve[$id];
                 if (!empty($reserveData)) {
                     $reserveStorage = $reserveData['storageid'];
+                    $reserveItemtypeId = $reserveData['itemtypeid'];
                     $count = $_POST['editreservecount'];
                     $countF = mysql_real_escape_string($count);
                     $countF = str_replace(',', '.', $countF);
                     $employeeId = vf($_POST['editreserveemployeeid'], 3);
                     $where = " WHERE `id`='" . $id . "';";
                     $storageRemains = $this->remainsOnStorage($reserveStorage);
-                    @$itemtypeRemains = $storageRemains[$reserveData['itemtypeid']];
+                    @$itemtypeRemains = $storageRemains[$reserveItemtypeId];
                     if (empty($itemtypeRemains)) {
                         $itemtypeRemains = 0;
                     }
@@ -529,6 +557,7 @@ class Warehouse {
                         simple_update_field('wh_reserve', 'employeeid', $employeeId, $where);
                         simple_update_field('wh_reserve', 'count', $countF, $where);
                         log_register('WAREHOUSE RESERVE EDIT [' . $id . ']  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
+                        $this->reservePushLog('update', $reserveStorage, $reserveItemtypeId, $count, $employeeId);
                     } else {
                         log_register('WAREHOUSE RESERVE FAIL [' . $id . ']  TO MANY  COUNT `' . $count . '` EMPLOYEE [' . $employeeId . ']');
                     }
