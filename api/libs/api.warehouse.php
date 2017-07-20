@@ -976,9 +976,11 @@ class Warehouse {
 
         if (!empty($this->allItemTypes)) {
             foreach ($this->allItemTypes as $io => $each) {
+                $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['id'], $each['name']);
+                
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(@$this->allCategories[$each['categoryid']]);
-                $cells.= wf_TableCell($each['name']);
+                $cells.= wf_TableCell($itemTypeLink);
                 $cells.= wf_TableCell(@$this->unitTypes[$each['unit']]);
                 $cells.= wf_TableCell($each['reserve']);
                 $actLinks = wf_JSAlertStyled(self::URL_ME . '&' . self::URL_ITEMTYPES . '&deleteitemtype=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
@@ -2929,9 +2931,8 @@ class Warehouse {
             }
 
             if (!empty($tmpArr)) {
+                ksort($tmpArr);
                 $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
-
-
                 $cells = wf_TableCell(__('Date'));
                 $cells.= wf_TableCell(__('Type'));
                 $cells.= wf_TableCell(__('Warehouse storage'));
