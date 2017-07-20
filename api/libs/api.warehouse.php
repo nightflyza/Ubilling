@@ -1527,6 +1527,9 @@ class Warehouse {
         if (isset($this->allIncoming[$id])) {
             $operationData = $this->allIncoming[$id];
 
+            $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            $administratorName = (isset($employeeLogins[$operationData['admin']])) ? $employeeLogins[$operationData['admin']] : $operationData['admin'];
+
             $cells = wf_TableCell(__('ID') . ' ' . $this->qrControl('in', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
@@ -1562,6 +1565,9 @@ class Warehouse {
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Barcode'), '30%', 'row2');
             $cells.= wf_TableCell($operationData['barcode']);
+            $rows.= wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Worker'), '30%', 'row2');
+            $cells.= wf_TableCell($administratorName);
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Notes'), '30%', 'row2');
             $cells.= wf_TableCell($operationData['notes']);
@@ -1992,6 +1998,9 @@ class Warehouse {
         if (isset($this->allOutcoming[$id])) {
             $operationData = $this->allOutcoming[$id];
 
+            $employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            $administratorName = (isset($employeeLogins[$operationData['admin']])) ? $employeeLogins[$operationData['admin']] : $operationData['admin'];
+
             $cells = wf_TableCell(__('ID') . ' ' . $this->qrControl('out', $id), '30%', 'row2');
             $cells.= wf_TableCell($id);
             $rows = wf_TableRow($cells, 'row3');
@@ -2018,6 +2027,9 @@ class Warehouse {
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Warehouse storage'), '30%', 'row2');
             $cells.= wf_TableCell($this->allStorages[$operationData['storageid']]);
+            $rows.= wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Worker'), '30%', 'row2');
+            $cells.= wf_TableCell($administratorName);
             $rows.= wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('Notes'), '30%', 'row2');
             $cells.= wf_TableCell($operationData['notes']);
