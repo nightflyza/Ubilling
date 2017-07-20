@@ -24,7 +24,7 @@ class DbConnect {
     }
 
     public function open() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             if ($this->persistent) {
                 $func = 'mysql_pconnect';
             } else {
@@ -51,7 +51,7 @@ class DbConnect {
     }
 
     public function close() {
-           if (!extension_loaded('mysqli')) {
+            if (extension_loaded('mysql')) {
                 return (@mysql_close($this->conn));
            } else {
                return (@$this->conn->close());
@@ -60,7 +60,7 @@ class DbConnect {
 
     public function error() {
         if ($this->error_reporting) {
-           if (!extension_loaded('mysqli')) {
+            if (extension_loaded('mysql')) {
                 return (mysql_error());
            } else {
                return ($this->conn->connect_error);
@@ -69,7 +69,7 @@ class DbConnect {
     }
 
     public function query($sql) {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             $this->result = @mysql_query($sql, $this->conn);
         } else {
             $this->result = @$this->conn->query($sql);
@@ -78,7 +78,7 @@ class DbConnect {
     }
 
     public function affectedrows() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(@mysql_affected_rows($this->conn));
         } else {
             return(@$this->conn->affected_rows);
@@ -86,7 +86,7 @@ class DbConnect {
     }
 
     public function numrows() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(@mysql_num_rows($this->result));
         } else {
             return(@$this->conn->num_rows);
@@ -94,7 +94,7 @@ class DbConnect {
     }
 
     public function fetchobject() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(@mysql_fetch_object($this->result, MYSQL_ASSOC));
         } else {
             return($result = @$this->result->fetch_object());
@@ -102,7 +102,7 @@ class DbConnect {
     }
 
     public function fetcharray() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(mysql_fetch_array($this->result));
         } else {
             return($result = @$this->result->fetch_array(MYSQLI_NUM));
@@ -110,7 +110,7 @@ class DbConnect {
     }
 
     public function fetchassoc() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(@mysql_fetch_assoc($this->result));
         } else {
             return($result = @$this->result->fetch_assoc());
@@ -118,7 +118,7 @@ class DbConnect {
     }
 
     public function freeresult() {
-        if (!extension_loaded('mysqli')) {
+         if (extension_loaded('mysql')) {
             return(@mysql_free_result($this->result));
         } else {
             return(@$this->result->free());
