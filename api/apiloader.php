@@ -17,7 +17,7 @@ include('api/libs/api.userdata.php');
 include('api/libs/api.usersearch.php');
 include('api/libs/api.address.php');
 include('api/libs/api.telepathy.php');
-include('api/libs/api.teskman.php');
+include('api/libs/api.taskman.php');
 include('api/libs/api.networking.php');
 include('api/libs/api.dhcp.php');
 include('api/libs/api.userreg.php');
