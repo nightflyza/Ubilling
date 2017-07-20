@@ -28,6 +28,7 @@ function em_TagSelector($name, $label = '', $selected = '', $br = false) {
 function em_EmployeeShowForm() {
     $show_q = "SELECT * from `employee`";
     $allemployee = simple_queryall($show_q);
+    $allTagNames = stg_get_alltagnames();
 
     $cells = wf_TableCell(__('ID'));
     $cells.= wf_TableCell(__('Real Name'));
@@ -55,9 +56,10 @@ function em_EmployeeShowForm() {
                 }
             }
             $cells.= wf_TableCell($admlogin);
-            $employeetag = stg_get_tagtype_data($eachemployee['tagid']);
-            $employeename = $employeetag ? $employeetag['tagname'] . " (" . $eachemployee['tagid'] . ")" : '';
-            $cells.= wf_TableCell($employeename);
+            $employeeTagId = $eachemployee['tagid'];
+            $employeeTagName = (!empty($employeeTagId)) ? $allTagNames[$employeeTagId] : '';
+            $employeeTagLabel=(!empty($employeeTagName)) ? $employeeTagName .' ('.$employeeTagId.')' : '';
+            $cells.= wf_TableCell($employeeTagLabel);
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions.= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
             $cells.= wf_TableCell($actions);
