@@ -146,8 +146,8 @@ if (cfr('TURBOSMS')) {
                     @$userMobile = $td_mobiles[$login];
                     if (tsms_CheckMobile($userMobile)) {
                         $userTariff = $data['Tariff'];
-                        $userTariffPrice = $td_tariffprices[$userTariff];
-                        $userTariffPeriod = $td_tariffperiods[$userTariff];
+                        @$userTariffPrice = $td_tariffprices[$userTariff];
+                        @$userTariffPeriod = $td_tariffperiods[$userTariff];
                         if ($userTariffPeriod == 'month') {
                             $dayprice = $userTariffPrice/30;
                         } else {
