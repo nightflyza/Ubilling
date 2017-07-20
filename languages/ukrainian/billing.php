@@ -2617,5 +2617,8 @@ $lang['def']['Parent switches found'] = 'Батьківських комутат
 $lang['def']['Uplink switch is deleted from database'] = 'Аплінковий комутатор відсутній у базі';
 $lang['def']['uplink deleted'] = 'аплінка видалено';
 $lang['def']['Total switches in database'] = 'Всього комутаторів в базі';
+$lang['def']['Default new tasks telegram checkbox'] = 'Чекбокс телеграму встановлено за замовчуванням для нових задач';
+$lang['def']['New tasks with automatic time'] = 'Автоматичний час виконання для нових задач';
+
 
 ?>
