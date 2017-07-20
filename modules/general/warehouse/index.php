@@ -211,7 +211,7 @@ if (cfr('WAREHOUSE')) {
                         $warehouse->reserveSave();
                         rcms_redirect($warehouse::URL_ME . '&' . $warehouse::URL_RESERVE);
                     }
-                    
+
                     if (wf_CheckGet(array('reshistajlist'))) {
                         $warehouse->reserveHistoryAjaxReply();
                     }
@@ -248,6 +248,10 @@ if (cfr('WAREHOUSE')) {
 
                 if (wf_CheckGet(array('printremainsstorage'))) {
                     $warehouse->reportStorageRemainsPrintable($_GET['printremainsstorage']);
+                }
+
+                if (wf_CheckGet(array('itemhistory'))) {
+                    $warehouse->renderItemHistory($_GET['itemhistory']);
                 }
             }
 
