@@ -58,7 +58,7 @@ function em_EmployeeShowForm() {
             $cells.= wf_TableCell($admlogin);
             $employeeTagId = $eachemployee['tagid'];
             $employeeTagName = (!empty($employeeTagId)) ? $allTagNames[$employeeTagId] : '';
-            $employeeTagLabel=(!empty($employeeTagName)) ? $employeeTagName .' ('.$employeeTagId.')' : '';
+            $employeeTagLabel = (!empty($employeeTagName)) ? $employeeTagName . ' (' . $employeeTagId . ')' : '';
             $cells.= wf_TableCell($employeeTagLabel);
             $actions = wf_JSAlert('?module=employee&delete=' . $eachemployee['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions.= wf_JSAlert('?module=employee&edit=' . $eachemployee['id'], web_edit_icon(), 'Are you serious');
@@ -1012,6 +1012,8 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $newTaskTime = '';
     }
 
+    $employeeSorting = (@$altercfg['TASKMAN_NEWTASK_EMPSORT']) ? true : false;
+
     $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
 
     $inputs = '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
@@ -1028,7 +1030,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.=wf_tag('br');
     $inputs.=wf_Selector('newtaskjobtype', $alljobtypes, __('Job type'), '', true);
     $inputs.=wf_tag('br');
-    $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, true);
+    $inputs.=wf_Selector('newtaskemployee', $allemployee, __('Who should do'), $telepat_who_should_do['id'], true, $employeeSorting);
     $inputs.=wf_tag('br');
     $inputs.=wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
     $inputs.=ts_TaskTypicalNotesSelector();

@@ -37,6 +37,7 @@ SUSP_PAYMENTS_NOTIFY=VARCHAR|Reporting of suspicious payments
 CREATETASK_IN_PROFILE=TRIGGER|Create tasks in user profile
 TASKMAN_TELEGRAM_PROFILE_CHECK=TRIGGER|Default new tasks telegram checkbox
 TASKMAN_NEWTASK_AUTOTIME=TRIGGER|New tasks with automatic time
+TASKMAN_NEWTASK_EMPSORT=TRIGGER|New tasks employee sorting
 PASSPDATA_IN_PROFILE=TRIGGER|Show passport data in user profile
 SWITCHPORT_IN_PROFILE=TRIGGER|Switch port assign in user profile
 CONTRACTDATE_IN_PROFILE=TRIGGER|Contract date in user profile

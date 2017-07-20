@@ -340,6 +340,8 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @param string  $label text label for input
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
+ * @param bool    $sort alphabetical sorting of params array by value
+ * 
  * @return  string
  *
  */
