@@ -4,18 +4,43 @@ if (cfr('ZBSANN')) {
     $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['ANNOUNCEMENTS']) {
 
-        /*
-         * Userstats announcements base class
+        /**
+         * Userstats/admin interface announcements base class
          */
-
         class ZbsAnnouncements {
 
+            /**
+             * Contains available userstats announcements data as id=>data
+             *
+             * @var array
+             */
             protected $data = array();
+            
+            /**
+             * Contains available administrators announcements data as id=>data
+             *
+             * @var array
+             */
+            protected $adminData=array();
 
+            const URL_ME = '?module=zbsannouncements';
+            const URL_ADM = 'admiface=true';
             const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
             public function __construct() {
                 $this->loadData();
+            }
+
+            /**
+             * Renders module control panel
+             * 
+             * @return string
+             */
+            public function panel() {
+                $result = '';
+                $result.=wf_Link(self::URL_ME, __('Userstats announcements'), false, 'ubButton') . ' ';
+                $result.=wf_Link(self::URL_ME . '&' . self::URL_ADM, __('Administrators announcements'), false, 'ubButton');
+                return ($result);
             }
 
             /**
@@ -190,7 +215,7 @@ if (cfr('ZBSANN')) {
                 $states = array("1" => __('Yes'), "0" => __('No'));
                 $types = array("text" => __('Text'), "html" => __('HTML'));
                 $result = wf_BackLink('?module=zbsannouncements');
-                $result.=wf_modal(web_icon_search().' '.__('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
+                $result.=wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');
                 $result.=wf_delimiter();
                 if (isset($this->data[$id])) {
                     $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
@@ -214,30 +239,34 @@ if (cfr('ZBSANN')) {
          * module code part
          */
         $announcements = new ZbsAnnouncements();
-
-
-        //creating new one
-        if (wf_CheckPost(array('newtext', 'newtype'))) {
-            $announcements->create($_POST['newpublic'], $_POST['newtype'], $_POST['newtitle'], $_POST['newtext']);
-            rcms_redirect('?module=zbsannouncements');
-        }
-
-        //deleting announcement
-        if (wf_CheckGet(array('delete'))) {
-            $announcements->delete($_GET['delete']);
-            rcms_redirect('?module=zbsannouncements');
-        }
-
-        if (isset($_GET['edit'])) {
-            if (wf_CheckPost(array('edittext', 'edittype'))) {
-                $announcements->save($_GET['edit']);
-                rcms_redirect('?module=zbsannouncements&edit=' . $_GET['edit']);
+        show_window('', $announcements->panel());
+        //userstats announcements management
+        if (!wf_CheckGet(array('admiface'))) {
+            //creating new one
+            if (wf_CheckPost(array('newtext', 'newtype'))) {
+                $announcements->create($_POST['newpublic'], $_POST['newtype'], $_POST['newtitle'], $_POST['newtext']);
+                rcms_redirect('?module=zbsannouncements');
             }
-            show_window(__('Edit'), $announcements->editForm($_GET['edit']));
+
+            //deleting announcement
+            if (wf_CheckGet(array('delete'))) {
+                $announcements->delete($_GET['delete']);
+                rcms_redirect('?module=zbsannouncements');
+            }
+
+            if (isset($_GET['edit'])) {
+                if (wf_CheckPost(array('edittext', 'edittype'))) {
+                    $announcements->save($_GET['edit']);
+                    rcms_redirect('?module=zbsannouncements&edit=' . $_GET['edit']);
+                }
+                show_window(__('Edit'), $announcements->editForm($_GET['edit']));
+            } else {
+                //show announcements list and create form
+                show_window(__('Userstats announcements'), $announcements->render());
+                show_window('', wf_modal(web_icon_create() . ' ' . __('Create'), __('Create'), $announcements->createForm(), 'ubButton', '600', '400'));
+            }
         } else {
-            //show announcements list and create form
-            show_window(__('Userstats announcements'), $announcements->render());
-            show_window('', wf_modal(web_icon_create().' '.__('Create'), __('Create'), $announcements->createForm(), 'ubButton', '600', '400'));
+            //administrators announcements management
         }
     } else {
         show_error(__('This module is disabled'));

@@ -1836,7 +1836,7 @@ $lang['def']['Mass reset'] = 'Масовий ресет';
 $lang['def']['Personal notes'] = 'Персональні нотатки';
 $lang['def']['Signup capabilities'] = 'Можливості підключень';
 $lang['def']['TurboSMS sending'] = 'Розсилання TurboSMS';
-$lang['def']['Announcements'] = 'Оголошення кабінету';
+$lang['def']['Announcements'] = 'Оголошення';
 $lang['def']['License keys'] = 'Ключі ліцензій';
 $lang['def']['Paycards report'] = 'Звіт по картках';
 $lang['def']['Complex services'] = 'Комплексні послуги';
@@ -2621,5 +2621,6 @@ $lang['def']['Default new tasks telegram checkbox'] = 'Чекбокс телег
 $lang['def']['New tasks with automatic time'] = 'Автоматичний час виконання для нових задач';
 $lang['def']['Created'] = 'Створено';
 $lang['def']['New tasks employee sorting'] = 'Сортування працівників при створенні задач';
+$lang['def']['Administrators announcements'] = 'Оголошення адміністраторам';
 
 ?>
