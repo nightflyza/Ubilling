@@ -2606,7 +2606,7 @@ $lang['def']['New tasks with automatic time'] = 'Автоматическое в
 $lang['def']['Created'] = 'Создан';
 $lang['def']['New tasks employee sorting'] = 'Сортировка сотрудников при создании задач';
 $lang['def']['Administrators announcements'] = 'Объявления администраторам';
-$lang['def'][''] = '';
+$lang['def']['Acquainted'] = 'Ознакомлен';
 $lang['def'][''] = '';
 
 

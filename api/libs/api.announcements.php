@@ -241,10 +241,35 @@ class AdminAnnouncements {
      */
     protected $data = array();
 
+    /**
+     * Contains current administrators login
+     *
+     * @var string
+     */
+    protected $myLogin = '';
+
+    /**
+     * Contains array of acquainted announcements as annid=>date
+     *
+     * @var array
+     */
+    protected $acquainted = array();
+
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
     public function __construct() {
+        $this->setLogin();
         $this->loadData();
+        $this->loadAcquainted();
+    }
+
+    /**
+     * Sets current administrators login into protected property
+     * 
+     * @return voids
+     */
+    protected function setLogin() {
+        $this->myLogin = whoami();
     }
 
     /**
@@ -258,6 +283,24 @@ class AdminAnnouncements {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->data[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads acquainted administrators list from database
+     * 
+     * @return void
+     */
+    protected function loadAcquainted() {
+        if (!empty($this->myLogin)) {
+            $loginFiltered = mysql_real_escape_string($this->myLogin);
+            $query = "SELECT * from `admacquainted` WHERE `admin`='" . $loginFiltered . "';";
+            $all = simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io => $each) {
+                    $this->acquainted[$each['annid']] = $each['date'];
+                }
             }
         }
     }
@@ -327,17 +370,16 @@ class AdminAnnouncements {
      * @return string
      */
     protected function preview($id) {
-        $id = vf($id, 3);
+        $result = '';
         if (isset($this->data[$id])) {
-            $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
-            $result.= wf_delimiter();
+            if (!empty($this->data[$id]['title'])) {
+                $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
+            }
             $previewtext = strip_tags($this->data[$id]['text']);
             $result.= nl2br($previewtext);
             $result.=wf_delimiter();
-            return ($result);
-        } else {
-            throw new Exception(self::EX_ID_NO_EXIST);
         }
+        return ($result);
     }
 
     /**
@@ -412,6 +454,49 @@ class AdminAnnouncements {
             return ($result);
         } else {
             throw new Exception(self::EX_ID_NO_EXIST);
+        }
+    }
+
+    /**
+     * Renders current user announcements if required
+     * 
+     * @return string
+     */
+    public function showAnnouncements() {
+        $result = '';
+        if (!empty($this->data)) {
+            if (!empty($this->myLogin)) {
+                foreach ($this->data as $io => $each) {
+                    if (!isset($this->acquainted[$each['id']])) {
+                        $result.=$this->preview($each['id']);
+                        $result.=wf_Link('?module=taskbar&setacquainted=' . $each['id'], __('Acquainted'), true, 'ubButton');
+                    }
+                }
+            }
+        }
+
+        if (!empty($result)) {
+            $result = wf_modalOpened(__('Announcements'), $result, '800', '600');
+        }
+        return ($result);
+    }
+
+    /**
+     * Sets some admiface announcement as read
+     * 
+     * @param int $announcementId
+     * 
+     * @return void
+     */
+    public function setAcquainted($announcementId) {
+        $announcementId = vf($announcementId, 3);
+        $curDate = curdatetime();
+        $loginFiltered = mysql_real_escape_string($this->myLogin);
+        if (!empty($loginFiltered)) {
+            $query = "INSERT INTO `admacquainted` (`id`,`date`,`admin`,`annid`) VALUES "
+                    . "(NULL, '" . $curDate . "','" . $loginFiltered . "','" . $announcementId . "');";
+            nr_query($query);
+            log_register("ANNOUNCEMENT ADM READ [" . $announcementId . "]");
         }
     }
 

@@ -2622,5 +2622,6 @@ $lang['def']['New tasks with automatic time'] = 'Автоматичний час
 $lang['def']['Created'] = 'Створено';
 $lang['def']['New tasks employee sorting'] = 'Сортування працівників при створенні задач';
 $lang['def']['Administrators announcements'] = 'Оголошення адміністраторам';
+$lang['def']['Acquainted'] = 'Ознайомлений';
 
 ?>

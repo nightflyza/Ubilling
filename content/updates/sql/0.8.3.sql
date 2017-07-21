@@ -35,3 +35,12 @@ CREATE TABLE IF NOT EXISTS `admannouncements` (
   `text` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `admacquainted` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `admin` varchar(40) NOT NULL,
+  `annid` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`,`admin`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

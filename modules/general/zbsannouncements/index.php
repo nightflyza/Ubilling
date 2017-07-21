@@ -35,8 +35,8 @@ if (cfr('ZBSANN')) {
             //administrators announcements management
             $admAnnouncements = new AdminAnnouncements();
             //creating new one
-            if (wf_CheckPost(array('newtext', 'newtitle'))) {
-                $admAnnouncements->create($_POST['newtitle'], $_POST['newtext']);
+            if (wf_CheckPost(array('newtext'))) {
+                $admAnnouncements->create(@$_POST['newtitle'], $_POST['newtext']);
                 rcms_redirect('?module=zbsannouncements&admiface=true');
             }
 

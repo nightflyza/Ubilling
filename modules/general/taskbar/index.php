@@ -136,6 +136,15 @@ if (cfr('TASKBAR')) {
         }
 
         /**
+         * Sets current administrators login into protected prof for further usage
+         * 
+         * @return void
+         */
+        protected function setLogin() {
+            $this->myLogin = whoami();
+        }
+
+        /**
          * Renders taskbar icon element
          * 
          * @param string $url
@@ -399,6 +408,26 @@ if (cfr('TASKBAR')) {
         }
 
         /**
+         * Renders administrators announcements if some unread is present/sets read some of them
+         * 
+         * @return string
+         */
+        protected function loadAnnouncements() {
+            $result = '';
+            if (isset($this->altCfg['ANNOUNCEMENTS'])) {
+                if ($this->altCfg['ANNOUNCEMENTS']) {
+                    $admAnnouncements = new AdminAnnouncements();
+                    if (wf_CheckGet(array('setacquainted'))) {
+                        $admAnnouncements->setAcquainted($_GET['setacquainted']);
+                        rcms_redirect(self::URL_ME);
+                    }
+                    $result.=$admAnnouncements->showAnnouncements();
+                }
+            }
+            return ($result);
+        }
+
+        /**
          * Returns rendered taskbar elements and services content
          * 
          * @return string
@@ -413,6 +442,7 @@ if (cfr('TASKBAR')) {
             $result.=$this->taskbarContent;
             $result.=$this->renderResizeForm();
             $result.=$this->loadStickyNotes();
+            $result.=$this->loadAnnouncements();
             $this->loadUbim();
             return ($result);
         }
