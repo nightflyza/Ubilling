@@ -259,8 +259,31 @@ class AdminAnnouncements {
 
     public function __construct() {
         $this->setLogin();
-        $this->loadData();
-        $this->loadAcquainted();
+        if ($this->checkBaseAvail()) { // checking required tables availability
+            $this->loadData();
+            $this->loadAcquainted();
+        }
+    }
+
+    /**
+     * Must prevent update troubles and make billing usable between 0.8.2 and 0.8.3 releases
+     * 
+     * @return bool
+     */
+    protected function checkBaseAvail() {
+        $result = false;
+        $fileFlagPath = 'exports/admannouncementsdb';
+        if (file_exists($fileFlagPath)) {
+            $result = true;
+        } else {
+            if (zb_CheckTableExists('admannouncements')) {
+                $result = true;
+                file_put_contents($fileFlagPath, 'ok');
+            } else {
+                $result = false;
+            }
+        }
+        return ($result);
     }
 
     /**
