@@ -339,7 +339,7 @@ function sp_SnmpParseFdbDl($portTable) {
  * 
  * @return  void
  */
-function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $quiet = false) {
+function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite='', $quiet = false) {
     global $ubillingConfig;
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
@@ -377,15 +377,32 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     }
                     $sectionName = $eachpoll['NAME'];
                     $sectionOids = explode(',', $eachpoll['OIDS']);
+                    if (isset($eachpoll['SETOIDS'])) {
+                        $sectionSetOids = explode(',', $eachpoll['SETOIDS']);
+                    } else {
+                        $sectionSetOids = array();
+                    }
                     $sectionParser = $eachpoll['PARSER'];
                     $sectionResult = '';
+                    
+                    //yeah, lets set some oids to this shit
+                    //TODO: May be tomorrow
+//                    if (!empty($sectionSetOids)) {
+//                        foreach ($sectionSetOids as $eachSetOid) {
+//                            $eachSetOid=trim($eachSetOid);
+//                            $runSet=$snmp->set($deviceFdbMode, $finalResult, $eachSetOid);
+//                        }
+//                    }
+                    
                     //now parse each oid
-                    foreach ($sectionOids as $eachOid) {
-                        $eachOid = trim($eachOid);
-                        $rawData = $snmp->walk($ip, $community, $eachOid, true);
-                        $rawData = str_replace('"', '`', $rawData);
-                        $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
-                        eval($parseCode);
+                    if (!empty($sectionOids)) {
+                        foreach ($sectionOids as $eachOid) {
+                            $eachOid = trim($eachOid);
+                            $rawData = $snmp->walk($ip, $community, $eachOid, true);
+                            $rawData = str_replace('"', '`', $rawData);
+                            $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
+                            eval($parseCode);
+                        }
                     }
 
                     if (!$quiet) {
