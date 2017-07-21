@@ -102,6 +102,7 @@ include('api/libs/api.updates.php');
 include('api/libs/api.wdyc.php');
 include('api/libs/api.mapscommon.php');
 include('api/libs/api.mapscompat.php');
+include('api/libs/api.announcements.php');
 
 /*
  * Initial class creation
