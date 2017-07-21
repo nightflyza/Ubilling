@@ -733,10 +733,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     //existential horse
                     if ($_GET['action'] == 'exhorse') {
                         if ($alterconf['EXHORSE_ENABLED']) {
-                            if (date("d") == date("t")) {
-                                $exhorse = new ExistentialHorse();
-                                $exhorse->runHorse();
-                            }
+                            $exhorse = new ExistentialHorse();
+                            $exhorse->runHorse();
+                            
                             die('OK: EXHORSE');
                         } else {
                             die('ERROR: EXHORSE DISABLED');

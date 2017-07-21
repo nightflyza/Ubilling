@@ -731,6 +731,7 @@ class ExistentialHorse {
                '" . $this->storeTmp['e_pononu'] . "',
                '" . $this->storeTmp['e_docsis'] . "');";
         nr_query($query);
+        log_register('EXHORSE SAVE DATA');
     }
 
     /**
@@ -745,6 +746,7 @@ class ExistentialHorse {
         $this->preprocessEquipmentData();
         $this->preprocessAskoziaData();
         $this->saveHorseData();
+        $this->cleanupDb();
 
         if (self::DEBUG) {
             debarr($this->storeTmp);
@@ -822,6 +824,22 @@ class ExistentialHorse {
             $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         }
         return ($result);
+    }
+
+    /**
+     * Cleans previous days data if current month day is the last
+     * 
+     * @return void
+     */
+    public function cleanupDb() {
+        $curDay = date("d");
+        if ($curDay == date("t")) {
+            $curMonth = date("Y-m");
+            $query = "DELETE FROM `exhorse` WHERE `date` LIKE '" . $curMonth . "-%' AND `date` NOT LIKE '" . $curMonth . "-" . $curDay . "%';";
+            deb($query);
+            nr_query($query);
+            log_register('EXHORSE CLEANUP MONTH `' . $curMonth . '`');
+        }
     }
 
     /**
