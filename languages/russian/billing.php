@@ -2607,7 +2607,13 @@ $lang['def']['Created'] = 'Создан';
 $lang['def']['New tasks employee sorting'] = 'Сортировка сотрудников при создании задач';
 $lang['def']['Administrators announcements'] = 'Объявления администраторам';
 $lang['def']['Acquainted'] = 'Ознакомлен';
+
+//rev 5603
+$lang['def']['SNMP write community'] = 'SNMP комьюнити записи';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 
 

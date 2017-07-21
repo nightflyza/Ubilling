@@ -254,6 +254,7 @@ function web_SwitchFormAdd() {
     $addinputs.=wf_TextInput('newlocation', 'Location', '', true, 30);
     $addinputs.=wf_TextInput('newdesc', 'Description', '', true, 30);
     $addinputs.=wf_TextInput('newsnmp', 'SNMP community', '', true, 20);
+    $addinputs.=wf_TextInput('newsnmpwrite', 'SNMP write community', '', true, 20);
     if ($altCfg['SWITCHES_EXTENDED']) {
         $addinputs.=wf_TextInput('newswid', 'Switch ID', '', true, 20);
     }
@@ -360,6 +361,7 @@ function web_SwitchEditForm($switchid) {
     $editinputs.=wf_TextInput('editlocation', 'Location', $switchdata['location'], true, 30);
     $editinputs.=wf_TextInput('editdesc', 'Description', $switchdata['desc'], true, 30);
     $editinputs.=wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
+    $editinputs.=wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
     if ($altCfg['SWITCHES_EXTENDED']) {
         $editinputs.=wf_TextInput('editswid', 'Switch ID', $switchdata['swid'], true, 20);
     }
@@ -1117,12 +1119,13 @@ function zb_SwitchesRenderAjaxList() {
  * @param string $geo
  * @param int    $parentid
  */
-function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '') {
+function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '',$snmpwrite='') {
     $modelid = vf($modelid, 3);
     $ip = mysql_real_escape_string($ip);
     $desc = mysql_real_escape_string($desc);
     $location = mysql_real_escape_string($location);
     $snmp = mysql_real_escape_string($snmp);
+    $snmpwrite=  mysql_real_escape_string($snmpwrite);
     $swid = mysql_real_escape_string($swid);
     $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
@@ -1130,8 +1133,8 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $pare
     } else {
         $parentid = 'NULL';
     }
-    $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`) "
-            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . " );";
+    $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`,`snmpwrite`) "
+            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'".$snmpwrite."' );";
     nr_query($query);
     $lastid = simple_get_lastid('switches');
     log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');

@@ -32,7 +32,8 @@ if (cfr('SWITCHES')) {
             $swid = ($altCfg['SWITCHES_EXTENDED']) ? $_POST['newswid'] : '';
             $geo = $_POST['newgeo'];
             $parentid = $_POST['newparentid'];
-            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid);
+            $snmpwrite=$_POST['newsnmpwrite'];
+            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid,$snmpwrite);
             rcms_redirect("?module=switches");
         } else {
             show_window(__('Error'), __('Access denied'));
@@ -156,6 +157,7 @@ if (cfr('SWITCHES')) {
                 simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
                 simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
+                simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
                 if ($altCfg['SWITCHES_EXTENDED']) {
                     simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
                 }

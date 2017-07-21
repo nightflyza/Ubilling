@@ -1879,3 +1879,6 @@ CREATE TABLE IF NOT EXISTS `admacquainted` (
   PRIMARY KEY (`id`),
   KEY `date` (`date`,`admin`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.8.4
+ALTER TABLE `switches` ADD `snmpwrite` VARCHAR(45) NULL AFTER `swid`;

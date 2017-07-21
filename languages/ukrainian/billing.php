@@ -2624,4 +2624,7 @@ $lang['def']['New tasks employee sorting'] = 'Сортування праців�
 $lang['def']['Administrators announcements'] = 'Оголошення адміністраторам';
 $lang['def']['Acquainted'] = 'Ознайомлений';
 
+//rev 5603
+$lang['def']['SNMP write community'] = 'SNMP комьюнити записи';
+
 ?>
