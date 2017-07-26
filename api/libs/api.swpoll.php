@@ -330,6 +330,37 @@ function sp_SnmpParseFdbDl($portTable) {
 }
 
 /**
+ * Parsing of FDB port table SNMP raw data for some exotic Tplink switches
+ * 
+ * @param   $portTable raw SNMP data
+ * 
+ * @return  array
+ */
+function sp_SnmpParseFdbTlp($portTable, $oid) {
+    $portData = array();
+    $arr_PortTable = explodeRows($portTable);
+    if (!empty($arr_PortTable)) {
+        foreach ($arr_PortTable as $eachEntry) {
+            if (!empty($eachEntry)) {
+                $eachEntry = str_replace($oid, '', $eachEntry);
+                $cleanMac = '';
+                $rawMac = explode('=', $eachEntry);
+                $rawMac[0] = substr($rawMac[0], 0, -2); //drop last 01 octet
+                $rawMac[0] = '.1'.$rawMac[0]; // add .1 part. fuck this shit
+                deb($rawMac[0]);
+                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                unset($parts[0]);
+                if (count($parts) == 7) {
+                    $cleanMac = call_user_func_array('sprintf', $parts);
+                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                }
+            }
+        }
+    }
+    return ($portData);
+}
+
+/**
  * Show data for some device
  * 
  * @param   $ip device ip
@@ -339,7 +370,7 @@ function sp_SnmpParseFdbDl($portTable) {
  * 
  * @return  void
  */
-function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite='', $quiet = false) {
+function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $allusermacs, $alladdress, $communitywrite = '', $quiet = false) {
     global $ubillingConfig;
     if (isset($alltemplates[$deviceTemplate])) {
         $currentTemplate = $alltemplates[$deviceTemplate];
@@ -384,7 +415,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     }
                     $sectionParser = $eachpoll['PARSER'];
                     $sectionResult = '';
-                    
+
                     //yeah, lets set some oids to this shit
                     //TODO: May be tomorrow
 //                    if (!empty($sectionSetOids)) {
@@ -393,7 +424,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 //                            $runSet=$snmp->set($deviceFdbMode, $finalResult, $eachSetOid);
 //                        }
 //                    }
-                    
                     //now parse each oid
                     if (!empty($sectionOids)) {
                         foreach ($sectionOids as $eachOid) {
@@ -433,6 +463,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         //custom dlink port table with VLANS
                         $portTable = $snmp->walk($ip, $community, '.1.3.6.1.2.1.17.7.1.2.2.1.2', true);
                     }
+
+                    if ($deviceFdbMode == 'tlp5428ev2') {
+                        $tlpOid = '.1.3.6.1.4.1.11863.1.1.1.2.3.2.2.1.3';
+                        $portTable = $snmp->walk($ip, $community, $tlpOid, true);
+                    }
                 }
                 if (!empty($portTable)) {
                     if ($deviceFdbMode == 'default') {
@@ -442,6 +477,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         if ($deviceFdbMode == 'dlp') {
                             //exotic dlink parser
                             $portData = sp_SnmpParseFdbDl($portTable);
+                        }
+
+                        if ($deviceFdbMode == 'tlp5428ev2') {
+                            //more exotic tplink parser
+                            $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
                         }
                     }
 
