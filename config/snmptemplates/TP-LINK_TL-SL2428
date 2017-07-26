@@ -1,8 +1,7 @@
-
 [define]
 DEVICE=TP-LINK TL-SL2428
-FDB=false
-FDB_MODE=default
+FDB=true
+FDB_MODE=tlp2428
 FDB_IGNORE_PORTS=
 
 [PORTSTATE]

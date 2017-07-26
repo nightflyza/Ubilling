@@ -346,7 +346,7 @@ function sp_SnmpParseFdbTlp($portTable, $oid) {
                 $cleanMac = '';
                 $rawMac = explode('=', $eachEntry);
                 $rawMac[0] = substr($rawMac[0], 0, -2); //drop last 01 octet
-                $rawMac[0] = '.1'.$rawMac[0]; // add .1 part. fuck this shit
+                $rawMac[0] = '.1' . $rawMac[0]; // add .1 part. fuck this shit
                 $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
                 unset($parts[0]);
                 if (count($parts) == 7) {
@@ -467,6 +467,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $tlpOid = '.1.3.6.1.4.1.11863.1.1.1.2.3.2.2.1.3';
                         $portTable = $snmp->walk($ip, $community, $tlpOid, true);
                     }
+
+                    if ($deviceFdbMode == 'tlp2428') {
+                        $tlpOid = '.1.3.6.1.4.1.11863.1.1.11.2.3.2.2.1.3';
+                        $portTable = $snmp->walk($ip, $community, $tlpOid, true);
+                    }
                 }
                 if (!empty($portTable)) {
                     if ($deviceFdbMode == 'default') {
@@ -478,7 +483,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $portData = sp_SnmpParseFdbDl($portTable);
                         }
 
-                        if ($deviceFdbMode == 'tlp5428ev2') {
+                        if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428')) {
                             //more exotic tplink parser
                             $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
                         }
