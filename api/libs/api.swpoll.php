@@ -347,7 +347,6 @@ function sp_SnmpParseFdbTlp($portTable, $oid) {
                 $rawMac = explode('=', $eachEntry);
                 $rawMac[0] = substr($rawMac[0], 0, -2); //drop last 01 octet
                 $rawMac[0] = '.1'.$rawMac[0]; // add .1 part. fuck this shit
-                deb($rawMac[0]);
                 $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
                 unset($parts[0]);
                 if (count($parts) == 7) {
