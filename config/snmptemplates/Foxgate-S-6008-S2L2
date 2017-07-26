@@ -1,5 +1,5 @@
 [define]
-DEVICE=Foxgate-S-6008-S2L2
+DEVICE="Foxgate S-6008-S2L2"
 FDB=true
 FDB_MODE=flp
 FDB_IGNORE_PORTS=
