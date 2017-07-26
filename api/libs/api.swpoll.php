@@ -360,6 +360,34 @@ function sp_SnmpParseFdbTlp($portTable, $oid) {
 }
 
 /**
+ * Parsing of FDB port table SNMP raw data for some strange foxgate switches
+ * 
+ * @param   $portTable raw SNMP data
+ * 
+ * @return  array
+ */
+function sp_SnmpParseFdbFlp($portTable, $oid) {
+    $portData = array();
+    $arr_PortTable = explodeRows($portTable);
+    if (!empty($arr_PortTable)) {
+        foreach ($arr_PortTable as $eachEntry) {
+            if (!empty($eachEntry)) {
+                $eachEntry = str_replace($oid, '', $eachEntry);
+                $cleanMac = '';
+                $rawMac = explode('=', $eachEntry);
+                $parts = array('format' => '%02X:%02X:%02X:%02X:%02X:%02X') + explode('.', trim($rawMac[0], '.'));
+                unset($parts[0]);
+                if (count($parts) == 7) {
+                    $cleanMac = call_user_func_array('sprintf', $parts);
+                    $portData[strtolower($cleanMac)] = vf($rawMac[1], 3);
+                }
+            }
+        }
+    }
+    return ($portData);
+}
+
+/**
  * Show data for some device
  * 
  * @param   $ip device ip
@@ -472,6 +500,12 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $tlpOid = '.1.3.6.1.4.1.11863.1.1.11.2.3.2.2.1.3';
                         $portTable = $snmp->walk($ip, $community, $tlpOid, true);
                     }
+
+                    //foxgate lazy parsing
+                    if ($deviceFdbMode == 'flp') {
+                        $flpOid = '.1.3.6.1.2.1.17.7.1.2.3.1.2';
+                        $portTable = $snmp->walk($ip, $community, $flpOid, true);
+                    }
                 }
                 if (!empty($portTable)) {
                     if ($deviceFdbMode == 'default') {
@@ -486,6 +520,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428')) {
                             //more exotic tplink parser
                             $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
+                        }
+
+                        //foxgate - its you again? Oo
+                        if ($deviceFdbMode == 'flp') {
+                            $portData = sp_SnmpParseFdbFlp($portTable, $flpOid);
                         }
                     }
 
