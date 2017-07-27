@@ -433,38 +433,53 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                     if (!$quiet) {
                         $finalResult.= wf_tag('div', false, 'dashboard', '');
                     }
-                    $sectionName = $eachpoll['NAME'];
-                    $sectionOids = explode(',', $eachpoll['OIDS']);
+
+                    @$sectionName = $eachpoll['NAME'];
+                    @$sectionOids = explode(',', $eachpoll['OIDS']);
+
                     if (isset($eachpoll['SETOIDS'])) {
                         $sectionSetOids = explode(',', $eachpoll['SETOIDS']);
                     } else {
                         $sectionSetOids = array();
                     }
-                    $sectionParser = $eachpoll['PARSER'];
+
+                    @$sectionParser = $eachpoll['PARSER'];
                     $sectionResult = '';
 
                     //yeah, lets set some oids to this shit
-                    //TODO: May be tomorrow
-//                    if (!empty($sectionSetOids)) {
-//                        foreach ($sectionSetOids as $eachSetOid) {
-//                            $eachSetOid=trim($eachSetOid);
-//                            $runSet=$snmp->set($deviceFdbMode, $finalResult, $eachSetOid);
-//                        }
-//                    }
+                    if (!empty($sectionSetOids)) {
+                        foreach ($sectionSetOids as $eachSetOid) {
+                            $eachSetOidRaw = trim($eachSetOid);
+                            $eachSetOidRaw = explode('|', $eachSetOidRaw);
+                            //all three parts of set squense present
+                            if ((isset($eachSetOidRaw[0])) AND ( isset($eachSetOidRaw[1])) AND ( isset($eachSetOidRaw[2]))) {
+                                $setDataTmp[0] = array('oid' => $eachSetOidRaw[0], 'type' => $eachSetOidRaw[1], 'value' => $eachSetOidRaw[2]);
+                                if (!empty($communitywrite)) {
+                                    $runSet = $snmp->set($ip, $communitywrite, $setDataTmp);
+                                }
+                            }
+                        }
+                    }
                     //now parse each oid
                     if (!empty($sectionOids)) {
                         foreach ($sectionOids as $eachOid) {
                             $eachOid = trim($eachOid);
                             $rawData = $snmp->walk($ip, $community, $eachOid, true);
                             $rawData = str_replace('"', '`', $rawData);
-                            $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
-                            eval($parseCode);
+                            if (!empty($sectionParser)) {
+                                $parseCode = '$sectionResult.=' . $sectionParser . '("' . $rawData . '");';
+                                eval($parseCode);
+                            } else {
+                                $sectionResult = '';
+                            }
                         }
                     }
 
                     if (!$quiet) {
-                        $finalResult.=wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
-                        $finalResult.=$sectionResult . wf_tag('div', true);
+                        if (!empty($sectionResult)) {
+                            $finalResult.=wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
+                            $finalResult.=$sectionResult . wf_tag('div', true);
+                        }
                     }
                 }
             }
