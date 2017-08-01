@@ -1348,7 +1348,18 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $newTelegramText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+            $newTelegramText = 'Address: ' . $address . '\r\n';
+            $newTelegramText.= 'Phone: ' . $phone . '\r\n';
+            $newTelegramText.= 'Notes: ' . $jobnote . '\r\n';
+            $newTelegramText.= 'Create date: ' . $jobSendTime . '\r\n';
+            if (!empty($login)) {
+                $UserIpMAC = zb_UserGetAllData($login);
+
+                $newTelegramText.= 'Login: ' . $login . '\r\n';
+                $newTelegramText.= 'Contract: ' . @$UserIpMAC[$login]['contract'] . '\r\n';
+                $newTelegramText.= 'IP: ' . @$UserIpMAC[$login]['ip'] . '\r\n';
+                $newTelegramText.= 'MAC: ' . @$UserIpMAC[$login]['mac'] . '\r\n';
+            }
             ts_SendTelegram($employeeid, $newTelegramText);
         }
     }
