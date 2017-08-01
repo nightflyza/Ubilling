@@ -124,7 +124,7 @@ function zb_UserGetAllData($login = '') {
             SELECT `users`.`login`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`, `ip`,
                     `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
                     concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, ' ', `entrance`, ' ', `floor`, ' ', `apt`) AS `fulladress`,
-                    `phones`.`phone`,`mobile`
+                    `phones`.`phone`,`mobile`,`contract`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `address` ON (`users`.`address`=`address`.`id`)
                     LEFT JOIN `apt` ON (`address`.`aptid`=`apt`.`id`)
@@ -132,6 +132,7 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `street` ON (`build`.`streetid`=`street`.`id`)
                     LEFT JOIN `city` ON (`street`.`cityid`=`city`.`id`)
                     LEFT JOIN `phones` ON (`users`.`login`=`phones`.`login`)
+                    LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
                     " . $query_wh;
     $Alldata =  (!empty($login)) ? simple_query($query) : simple_queryall($query);
     if (empty($login) and !empty($Alldata) ){
