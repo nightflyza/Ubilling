@@ -272,13 +272,12 @@ if ($system->checkForRight('ONLINE')) {
                     $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
                 }
 
-
                 $act = '<img src=skins/icon_active.gif>' . __('Yes');
                 //finance check
                 if ($cash < '-' . $credit) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
-
+                $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
                     $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
@@ -409,6 +408,7 @@ if ($system->checkForRight('ONLINE')) {
                 if ($cash < '-' . $credit) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
+                $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
                     $onlineFlag = '<img src=skins/icon_nostar.gif> ' . __('No');
