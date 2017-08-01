@@ -1647,6 +1647,18 @@ function ts_TaskChangeForm($taskid) {
         $tablecells.= wf_TableCell($taskLogin . $loginType);
         $tablerows.= wf_TableRow($tablecells, 'row3');
 
+        if (!empty($taskLogin)) {
+            $UserIpMAC = zb_UserGetAllData($taskLogin);
+
+            $tablecells = wf_TableCell(__('IP'));
+            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
+            $tablerows.= wf_TableRow($tablecells, 'row3');
+
+            $tablecells = wf_TableCell(__('MAC'));
+            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
+            $tablerows.= wf_TableRow($tablecells, 'row3');
+        }
+
         $tablecells = wf_TableCell(__('Phone'));
         $tablecells.= wf_TableCell($taskdata['phone']);
         $tablerows.= wf_TableRow($tablecells, 'row3');
