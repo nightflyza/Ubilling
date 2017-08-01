@@ -114,18 +114,19 @@ function zb_UserGetAllIpMACs() {
  * Returns all information about User by login
  * 
  * @param string $login existing user login
- * @return array['login']=>array(login,Passive,AlwaysOnline,Tariff,Credit,Cash,ip,mac,cityname,streetname,buildnum,entrance,floor,apt,geo,fulladress,phone,mobile)
+ * @return array['login']=>array(login,realname,Passive,AlwaysOnline,Tariff,Credit,Cash,ip,mac,cityname,streetname,buildnum,entrance,floor,apt,geo,fulladress,phone,mobile,contract)
  * Crazy Pautina
  */
 function zb_UserGetAllData($login = '') {
     $result = array();
     $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . $login . "'" : "";
     $query ="
-            SELECT `users`.`login`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`, `ip`,
-                    `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
+            SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
+                    `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
                     concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, ' ', `entrance`, ' ', `floor`, ' ', `apt`) AS `fulladress`,
                     `phones`.`phone`,`mobile`,`contract`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
+                    LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
                     LEFT JOIN `address` ON (`users`.`address`=`address`.`id`)
                     LEFT JOIN `apt` ON (`address`.`aptid`=`apt`.`id`)
                     LEFT JOIN `build` ON (`apt`.`buildid`=`build`.`id`)
