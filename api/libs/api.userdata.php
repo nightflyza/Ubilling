@@ -119,7 +119,7 @@ function zb_UserGetAllIpMACs() {
  */
 function zb_UserGetAllData($login = '') {
     $result = array();
-    $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . $login . "'" : "";
+    $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
     $query ="
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
