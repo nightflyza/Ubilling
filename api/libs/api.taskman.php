@@ -1348,7 +1348,18 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $newTelegramText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+            $newTelegramText = 'Address: ' . $address . '\r\n';
+            $newTelegramText.= 'Phone: ' . $phone . '\r\n';
+            $newTelegramText.= 'Notes: ' . $jobnote . '\r\n';
+            $newTelegramText.= 'Create date: ' . $jobSendTime . '\r\n';
+            if (!empty($login)) {
+                $UserIpMAC = zb_UserGetAllData($login);
+
+                $newTelegramText.= 'Login: ' . $login . '\r\n';
+                $newTelegramText.= 'Contract: ' . @$UserIpMAC[$login]['contract'] . '\r\n';
+                $newTelegramText.= 'IP: ' . @$UserIpMAC[$login]['ip'] . '\r\n';
+                $newTelegramText.= 'MAC: ' . @$UserIpMAC[$login]['mac'] . '\r\n';
+            }
             ts_SendTelegram($employeeid, $newTelegramText);
         }
     }
@@ -1646,6 +1657,18 @@ function ts_TaskChangeForm($taskid) {
         $tablecells = wf_TableCell(__('Login'));
         $tablecells.= wf_TableCell($taskLogin . $loginType);
         $tablerows.= wf_TableRow($tablecells, 'row3');
+
+        if (!empty($taskLogin)) {
+            $UserIpMAC = zb_UserGetAllData($taskLogin);
+
+            $tablecells = wf_TableCell(__('IP'));
+            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['ip']);
+            $tablerows.= wf_TableRow($tablecells, 'row3');
+
+            $tablecells = wf_TableCell(__('MAC'));
+            $tablecells.= wf_TableCell(@$UserIpMAC[$taskLogin]['mac']);
+            $tablerows.= wf_TableRow($tablecells, 'row3');
+        }
 
         $tablecells = wf_TableCell(__('Phone'));
         $tablecells.= wf_TableCell($taskdata['phone']);

@@ -111,6 +111,42 @@ function zb_UserGetAllIpMACs() {
 }
 
 /**
+ * Returns all information about User by login
+ * 
+ * @param string $login existing user login
+ * @return array['login']=>array(login,realname,Passive,AlwaysOnline,Tariff,Credit,Cash,ip,mac,cityname,streetname,buildnum,entrance,floor,apt,geo,fulladress,phone,mobile,contract)
+ * Crazy Pautina
+ */
+function zb_UserGetAllData($login = '') {
+    $result = array();
+    $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
+    $query ="
+            SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
+                    `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
+                    concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, ' ', `entrance`, ' ', `floor`, ' ', `apt`) AS `fulladress`,
+                    `phones`.`phone`,`mobile`,`contract`
+                    FROM `users` LEFT JOIN `nethosts` USING (`ip`)
+                    LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
+                    LEFT JOIN `address` ON (`users`.`address`=`address`.`id`)
+                    LEFT JOIN `apt` ON (`address`.`aptid`=`apt`.`id`)
+                    LEFT JOIN `build` ON (`apt`.`buildid`=`build`.`id`)
+                    LEFT JOIN `street` ON (`build`.`streetid`=`street`.`id`)
+                    LEFT JOIN `city` ON (`street`.`cityid`=`city`.`id`)
+                    LEFT JOIN `phones` ON (`users`.`login`=`phones`.`login`)
+                    LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
+                    " . $query_wh;
+    $Alldata =  (!empty($login)) ? simple_query($query) : simple_queryall($query);
+    if (empty($login) and !empty($Alldata) ){
+        foreach ($Alldata as $data){
+            $result[$data['login']] = $data;
+        }
+    } else {
+        $result[$login] = $Alldata;
+    }
+    return($result);
+}
+
+/**
  * Returns all of used by users MAC bindings from database as array login=>mac
  * 
  * @return array
