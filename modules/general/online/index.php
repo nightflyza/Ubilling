@@ -228,6 +228,7 @@ if ($system->checkForRight('ONLINE')) {
         $detect_address = zb_AddressGetFulladdresslistCached();
         $ucount = 0;
         $deadUsers = array();
+        $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
 
         //alternate view of online module
         $addrDelimiter = '';
@@ -277,7 +278,9 @@ if ($system->checkForRight('ONLINE')) {
                 if ($cash < '-' . $credit) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
-                $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                if ($displayFreezeFlag) {
+                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
                     $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
@@ -368,6 +371,7 @@ if ($system->checkForRight('ONLINE')) {
         $detect_address = zb_AddressGetFulladdresslist();
         $ucount = 0;
         $deadUsers = array();
+        $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
 
         //alternate view of online module
         $addrDelimiter = '';
@@ -408,7 +412,9 @@ if ($system->checkForRight('ONLINE')) {
                 if ($cash < '-' . $credit) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
-                $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                if ($displayFreezeFlag) {
+                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
                     $onlineFlag = '<img src=skins/icon_nostar.gif> ' . __('No');
