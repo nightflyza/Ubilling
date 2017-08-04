@@ -63,7 +63,7 @@ class DbConnect {
             if (extension_loaded('mysql')) {
                 return (mysql_error());
            } else {
-               return ($this->conn->connect_error);
+               return ($this->conn->error);
            }
         }
     }
