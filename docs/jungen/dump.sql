@@ -63,3 +63,23 @@ SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATO
      JOIN `networks` ON `networks`.`id` = `nas`.`netid`
 LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`;
 
+CREATE TABLE IF NOT EXISTS `jun_check` (
+  id int(11) unsigned NOT NULL auto_increment,
+  username varchar(64) NOT NULL default '',
+  attribute varchar(64)  NOT NULL default '',
+  op char(2) NOT NULL DEFAULT '==',
+  value varchar(253) NOT NULL default '',
+  PRIMARY KEY  (id),
+  KEY username (username(32))
+) ;
+
+
+CREATE TABLE IF NOT EXISTS `jun_reply` (
+  id int(11) unsigned NOT NULL auto_increment,
+  username varchar(64) NOT NULL default '',
+  attribute varchar(64) NOT NULL default '',
+  op char(2) NOT NULL DEFAULT '=',
+  value varchar(253) NOT NULL default '',
+  PRIMARY KEY  (id),
+  KEY username (username(32))
+) ;
