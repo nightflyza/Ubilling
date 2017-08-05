@@ -103,6 +103,7 @@ include('api/libs/api.wdyc.php');
 include('api/libs/api.mapscommon.php');
 include('api/libs/api.mapscompat.php');
 include('api/libs/api.announcements.php');
+include('api/libs/api.jungen.php');
 
 /*
  * Initial class creation

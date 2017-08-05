@@ -58,9 +58,8 @@ CREATE TABLE IF NOT EXISTS `jun_attributes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE OR REPLACE VIEW `radius_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
+CREATE OR REPLACE VIEW `jun_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
 SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
      JOIN `networks` ON `networks`.`id` = `nas`.`netid`
-LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`
-WHERE `networks`.`use_radius` = TRUE;
+LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`;
 

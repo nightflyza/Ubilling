@@ -50,6 +50,11 @@ if (cfr('NAS')) {
         } else {
             $radiusControls = '';
         }
+
+        if ($altCfg['JUNGEN_ENABLED']) {
+            $juniperRadiusClientData = web_JuniperListClients();
+            $radiusControls = ' ' . wf_modal(web_icon_extended(__('Juniper NAS parameters')), __('Juniper NAS parameters'), $juniperRadiusClientData, '', '600', '300');
+        }
         show_window(__('Network Access Servers') . ' ' . $radiusControls, web_GridEditorNas($titles, $keys, $allnas, 'nas'));
         show_window(__('Add new'), web_NasAddForm());
         //vlangen patch start
