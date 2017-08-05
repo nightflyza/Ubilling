@@ -60,6 +60,7 @@ class UbillingUpdateManager {
         $this->setConfigFilenames();
         $this->loadDumps();
         $this->loadConfigs();
+        $this->ConnectDB();
     }
 
     /**
@@ -130,6 +131,17 @@ class UbillingUpdateManager {
     }
 
     /**
+     * Initialises connection with Ubilling database server and selects needed db
+     *
+     * @param MySQL Connection Id $connection
+     * 
+     * @return MySQLDB
+     */
+    protected function ConnectDB() {
+        $this->DBConnection = new DbConnect($this->mySqlCfg['server'], $this->mySqlCfg['username'], $this->mySqlCfg['password'], $this->mySqlCfg['db'], true);
+    }
+
+    /**
      * Returns list of files which was updated in some release
      * 
      * @param string $release
@@ -146,6 +158,40 @@ class UbillingUpdateManager {
                 }
             }
         }
+        return($result);
+    }
+
+    /**
+     * Apply Mysql Dump and returns results
+     * 
+     * @param string $release
+     * 
+     * @return string
+     */
+    protected function DoSqlDump($release) {
+        $result = '';
+            if (!empty($release)) {
+                $fileName = self::DUMPS_PATH . $this->allDumps[$release];
+                $file = explode(';', file_get_contents($fileName));
+                $sql_dumps = array_diff($file, array(''));  // Delete empty data Array
+                $sql_array = array_map('trim', $sql_dumps);
+
+                // Open DB connection and set character 
+                $this->DBConnection->open();
+                $this->DBConnection->query("set character_set_client='" . $this->mySqlCfg['character'] . "'");
+                $this->DBConnection->query("set character_set_results='" . $this->mySqlCfg['character'] . "'");
+                $this->DBConnection->query("set collation_connection='" . $this->mySqlCfg['character'] . "_general_ci'");
+                
+                foreach ($sql_array as $query) {
+                    $this->DBConnection->query($query);
+                    if (! $this->DBConnection->error()) {
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('DONE: ') . wf_tag('b', true) . wf_tag('pre', false) . $query . wf_tag('pre', true),'success') . wf_tag('br');
+                    } else {
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('EROOR: ') . wf_tag('b', true) . $this->DBConnection->error() . wf_tag('pre', false) . $query . wf_tag('pre', true), 'error') . wf_tag('br');
+                    }
+                }
+                $this->DBConnection->close();
+            }
         return($result);
     }
 
@@ -225,11 +271,9 @@ class UbillingUpdateManager {
         $release = vf($release);
         if (isset($this->allDumps[$release])) {
             if (wf_CheckPost(array('applyconfirm', 'applysqldump'))) {
-                $fileName = self::DUMPS_PATH . $this->allDumps[$release];
-                $applyCommand = $this->altCfg['MYSQL_PATH'] . ' -u ' . $this->mySqlCfg['username'] . ' -p' . $this->mySqlCfg['password'] . ' -h' . $this->mySqlCfg['server'] . ' ' . $this->mySqlCfg['db'] . ' --default-character-set=utf8 < ' . $fileName . ' 2>&1; echo $?';
                 $result .= $this->messages->getStyledMessage(__('MySQL dump applying result below'), 'info');
                 $result .= wf_CleanDiv();
-                $result .= wf_tag('pre', false, '', 'style="width:100%;overflow:auto"') . shell_exec($applyCommand) . wf_tag('pre', true);
+                $result .= $this->DoSqlDump($release);
                 $result .= wf_BackLink(self::URL_ME);
                 log_register('UPDMGR APPLY SQL RELEASE `' . $release . '`');
             } else {
