@@ -185,9 +185,9 @@ class UbillingUpdateManager {
                 foreach ($sql_array as $query) {
                     $this->DBConnection->query($query);
                     if (! $this->DBConnection->error()) {
-                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('DONE: ') . wf_tag('b', true) . wf_tag('pre', false) . $query . wf_tag('pre', true),'success') . wf_tag('br');
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Done').': ' . wf_tag('b', true) . wf_tag('pre', false) . $query . wf_tag('pre', true),'success') . wf_tag('br');
                     } else {
-                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('EROOR: ') . wf_tag('b', true) . $this->DBConnection->error() . wf_tag('pre', false) . $query . wf_tag('pre', true), 'error') . wf_tag('br');
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Error').': ' . wf_tag('b', true) . $this->DBConnection->error() . wf_tag('pre', false) . $query . wf_tag('pre', true), 'error') . wf_tag('br');
                     }
                 }
                 $this->DBConnection->close();
@@ -273,9 +273,10 @@ class UbillingUpdateManager {
             if (wf_CheckPost(array('applyconfirm', 'applysqldump'))) {
                 $result .= $this->messages->getStyledMessage(__('MySQL dump applying result below'), 'info');
                 $result .= wf_CleanDiv();
+                log_register('UPDMGR APPLY SQL RELEASE `' . $release . '`');
                 $result .= $this->DoSqlDump($release);
                 $result .= wf_BackLink(self::URL_ME);
-                log_register('UPDMGR APPLY SQL RELEASE `' . $release . '`');
+                
             } else {
                 if ((!wf_CheckPost(array('applyconfirm'))) AND ( wf_CheckPost(array('applysqldump')))) {
                     $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
