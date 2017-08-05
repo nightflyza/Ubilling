@@ -764,6 +764,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    if ($_GET['action'] == 'jungen') {
+                        if ($alterconf['JUNGEN_ENABLED']) {
+                            $jungen = new JunGen();
+                            $jungen->totalRegeneration();
+                            die('OK: JUNGEN');
+                        } else {
+                            die('ERROR: JUNGEN DISABLED');
+                        }
+                    }
+
                     /*
                      * Ubilling remote API for Asterisk and other CRM
                      * -----------------------------

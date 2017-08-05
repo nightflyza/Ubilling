@@ -41,8 +41,6 @@ class JunGen {
         $this->loadUsers();
         $this->loadMacs();
         $this->loadSpeeds();
-        $this->generateCheckAll();
-        $this->generateReplyAll();
     }
 
     protected function loadUsers() {
@@ -121,6 +119,11 @@ class JunGen {
                 }
             }
         }
+    }
+
+    public function totalRegeneration() {
+        $this->generateCheckAll();
+        $this->generateReplyAll();
     }
 
 }

@@ -83,3 +83,33 @@ CREATE TABLE IF NOT EXISTS `jun_reply` (
   PRIMARY KEY  (id),
   KEY username (username(32))
 ) ;
+
+
+CREATE TABLE IF NOT EXISTS jun_groupcheck (
+  id int(11) unsigned NOT NULL auto_increment,
+  groupname varchar(64) NOT NULL default '',
+  attribute varchar(64)  NOT NULL default '',
+  op char(2) NOT NULL DEFAULT '==',
+  value varchar(253)  NOT NULL default '',
+  PRIMARY KEY  (id),
+  KEY groupname (groupname(32))
+) ;
+
+
+CREATE TABLE IF NOT EXISTS jun_groupreply (
+  id int(11) unsigned NOT NULL auto_increment,
+  groupname varchar(64) NOT NULL default '',
+  attribute varchar(64)  NOT NULL default '',
+  op char(2) NOT NULL DEFAULT '=',
+  value varchar(253)  NOT NULL default '',
+  PRIMARY KEY  (id),
+  KEY groupname (groupname(32))
+) ;
+
+
+CREATE TABLE IF NOT EXISTS jun_usergroup (
+  username varchar(64) NOT NULL default '',
+  groupname varchar(64) NOT NULL default '',
+  priority int(11) NOT NULL default '1',
+  KEY username (username(32))
+) ;

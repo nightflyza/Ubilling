@@ -173,7 +173,9 @@ authorize {
 	#  is meant to mirror the "users" file.
 	#
 	#  See "Authorization Queries" in sql.conf
-	sql
+	sql {
+            ok = return
+        }
 
 	files
 	#
