@@ -170,28 +170,30 @@ class UbillingUpdateManager {
      */
     protected function DoSqlDump($release) {
         $result = '';
-            if (!empty($release)) {
-                $fileName = self::DUMPS_PATH . $this->allDumps[$release];
-                $file = explode(';', file_get_contents($fileName));
-                $sql_dumps = array_diff($file, array(''));  // Delete empty data Array
-                $sql_array = array_map('trim', $sql_dumps);
+        if (!empty($release)) {
+            $fileName = self::DUMPS_PATH . $this->allDumps[$release];
+            $file = explode(';', file_get_contents($fileName));
+            $sql_dumps = array_diff($file, array(''));  // Delete empty data Array
+            $sql_array = array_map('trim', $sql_dumps);
 
-                // Open DB connection and set character 
-                $this->DBConnection->open();
-                $this->DBConnection->query("set character_set_client='" . $this->mySqlCfg['character'] . "'");
-                $this->DBConnection->query("set character_set_results='" . $this->mySqlCfg['character'] . "'");
-                $this->DBConnection->query("set collation_connection='" . $this->mySqlCfg['character'] . "_general_ci'");
-                
-                foreach ($sql_array as $query) {
+            // Open DB connection and set character 
+            $this->DBConnection->open();
+            $this->DBConnection->query("set character_set_client='" . $this->mySqlCfg['character'] . "'");
+            $this->DBConnection->query("set character_set_results='" . $this->mySqlCfg['character'] . "'");
+            $this->DBConnection->query("set collation_connection='" . $this->mySqlCfg['character'] . "_general_ci'");
+
+            foreach ($sql_array as $query) {
+                if (!empty($query)) {
                     $this->DBConnection->query($query);
-                    if (! $this->DBConnection->error()) {
-                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Done').': ' . wf_tag('b', true) . wf_tag('pre', false) . $query . wf_tag('pre', true),'success') . wf_tag('br');
+                    if (!$this->DBConnection->error()) {
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Done') . ': ' . wf_tag('b', true) . wf_tag('pre', false) . $query . wf_tag('pre', true), 'success') . wf_tag('br');
                     } else {
-                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Error').': ' . wf_tag('b', true) . $this->DBConnection->error() . wf_tag('pre', false) . $query . wf_tag('pre', true), 'error') . wf_tag('br');
+                        $result .= $this->messages->getStyledMessage(wf_tag('b', false) . __('Error') . ': ' . wf_tag('b', true) . $this->DBConnection->error() . wf_tag('pre', false) . $query . wf_tag('pre', true), 'error') . wf_tag('br');
                     }
                 }
-                $this->DBConnection->close();
             }
+            $this->DBConnection->close();
+        }
         return($result);
     }
 
@@ -276,7 +278,6 @@ class UbillingUpdateManager {
                 log_register('UPDMGR APPLY SQL RELEASE `' . $release . '`');
                 $result .= $this->DoSqlDump($release);
                 $result .= wf_BackLink(self::URL_ME);
-                
             } else {
                 if ((!wf_CheckPost(array('applyconfirm'))) AND ( wf_CheckPost(array('applysqldump')))) {
                     $result .= $this->messages->getStyledMessage(__('You are not mentally prepared for this'), 'error');
