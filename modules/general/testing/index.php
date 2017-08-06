@@ -6,4 +6,5 @@ error_reporting(E_ALL);
 $jun=new JunGen();
 
 
+
 ?>
