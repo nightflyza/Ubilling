@@ -3,6 +3,13 @@
 class JunGen {
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains array of all available users as login=>userdata
      *
      * @var array
@@ -38,6 +45,7 @@ class JunGen {
     protected $replyTable = 'jun_reply';
 
     /**
+     * Default NAS password. May be exported from JUNGEN_KEY option
      *
      * @var string
      */
@@ -56,11 +64,43 @@ class JunGen {
      * @var int
      */
     protected $speedOffset = 1024;
+    
+    /**
+     * Juniper NAS users password option name
+     */
+    const OPTION_PASSWORD='JUNGEN_KEY';
 
     public function __construct() {
+        $this->loadAlter();
+        $this->setOptions();
         $this->loadUsers();
         $this->loadMacs();
         $this->loadSpeeds();
+    }
+
+    /**
+     * Loads system alter config into protected property
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->altCfg[self::OPTION_PASSWORD])) {
+            if (!empty($this->altCfg[self::OPTION_PASSWORD])) {
+                $this->defaultMxPass = mysql_real_escape_string(trim($this->altCfg[self::OPTION_PASSWORD]));
+            }
+        }
     }
 
     /**
