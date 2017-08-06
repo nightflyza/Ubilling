@@ -290,6 +290,11 @@ class JunCast {
      */
     protected $remotePort = 3799;
 
+    /**
+     * Debug mode
+     */
+    const DEBUG = true;
+
     public function __construct() {
         $this->loadSystemConfigs();
         $this->setOptions();
@@ -326,7 +331,7 @@ class JunCast {
      * 
      * @return string
      */
-    public function transformMac($mac) {
+    protected function transformMac($mac) {
         $result = implode(".", str_split(str_replace(":", "", $mac), 4));
         return ($result);
     }
@@ -338,7 +343,7 @@ class JunCast {
      * 
      * @return string
      */
-    public function disconnectUser($login) {
+    public function terminateUser($login) {
         $result = '';
         $login = trim($login);
         $userIp = zb_UserGetIP($login);
@@ -353,9 +358,79 @@ class JunCast {
                     $nasSecret = simple_query($query_nas_key);
                     if (!empty($nasSecret)) {
                         $nasSecret = $nasSecret['secret'];
-                        // run this shit
                         $userNameAsMac = $this->transformMac($userMac);
                         $command = $this->printfPath . ' "User-Name = ' . $userNameAsMac . '" | ' . $this->sudoPath . ' ' . $this->radclienPath . ' ' . $nasIp . ':' . $this->remotePort . ' disconnect ' . $nasSecret;
+                        if (self::DEBUG) {
+                            deb($command);
+                        }
+                        $result = shell_exec($command);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets user as unblocked at NAS
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function unblockUser($login) {
+        $result = '';
+        $login = trim($login);
+        $userIp = zb_UserGetIP($login);
+        if (!empty($userIp)) {
+            $userMac = zb_MultinetGetMAC($userIp);
+            if (!empty($userMac)) {
+                $query_nas = "SELECT `nasip` FROM `nas` WHERE `netid` IN (SELECT `netid` FROM `nethosts` WHERE `ip` = '" . $userIp . "')";
+                $nasIp = simple_query($query_nas);
+                if (!empty($nasIp)) {
+                    $nasIp = $nasIp['nasip'];
+                    $query_nas_key = "SELECT `secret` from `jun_clients` WHERE `nasname`='" . $nasIp . "';";
+                    $nasSecret = simple_query($query_nas_key);
+                    if (!empty($nasSecret)) {
+                        $nasSecret = $nasSecret['secret'];
+                        $userNameAsMac = $this->transformMac($userMac);
+                        $command = $this->printfPath . ' "User-Name = ' . $userNameAsMac . '\nUnisphere-Service-Deactivate:3 -= block" | ' . $this->sudoPath . ' ' . $this->radclienPath . ' ' . $nasIp . ':' . $this->remotePort . ' coa ' . $nasSecret;
+                        if (self::DEBUG) {
+                            deb($command);
+                        }
+                        $result = shell_exec($command);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets user blocked at NAS
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function blockUser($login) {
+        $result = '';
+        $login = trim($login);
+        $userIp = zb_UserGetIP($login);
+        if (!empty($userIp)) {
+            $userMac = zb_MultinetGetMAC($userIp);
+            if (!empty($userMac)) {
+                $query_nas = "SELECT `nasip` FROM `nas` WHERE `netid` IN (SELECT `netid` FROM `nethosts` WHERE `ip` = '" . $userIp . "')";
+                $nasIp = simple_query($query_nas);
+                if (!empty($nasIp)) {
+                    $nasIp = $nasIp['nasip'];
+                    $query_nas_key = "SELECT `secret` from `jun_clients` WHERE `nasname`='" . $nasIp . "';";
+                    $nasSecret = simple_query($query_nas_key);
+                    if (!empty($nasSecret)) {
+                        $nasSecret = $nasSecret['secret'];
+                        $userNameAsMac = $this->transformMac($userMac);
+                        $command = $this->printfPath . ' "User-Name = ' . $userNameAsMac . '\nUnisphere-Service-Activate:3 += block" | ' . $this->sudoPath . ' ' . $this->radclienPath . ' ' . $nasIp . ':' . $this->remotePort . ' coa ' . $nasSecret;
+                        if (self::DEBUG) {
+                            deb($command);
+                        }
                         $result = shell_exec($command);
                     }
                 }
