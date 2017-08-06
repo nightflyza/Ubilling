@@ -64,11 +64,11 @@ class JunGen {
      * @var int
      */
     protected $speedOffset = 1024;
-    
+
     /**
      * Juniper NAS users password option name
      */
-    const OPTION_PASSWORD='JUNGEN_KEY';
+    const OPTION_PASSWORD = 'JUNGEN_KEY';
 
     public function __construct() {
         $this->loadAlter();
@@ -136,7 +136,7 @@ class JunGen {
                 $speedOverrides[$each['login']] = ($each['speed'] / $this->speedOffset);
             }
         }
-        //Скажем нет обратному захвату серотонина
+//Скажем нет обратному захвату серотонина
         if (!empty($this->allUsers)) {
             foreach ($this->allUsers as $login => $userData) {
                 if (isset($tariffSpeeds[$userData['Tariff']])) {
@@ -242,6 +242,125 @@ class JunGen {
     public function totalRegeneration() {
         $this->generateCheckAll();
         $this->generateReplyAll();
+    }
+
+}
+
+class JunCast {
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Contains system billing config as key=>value
+     *
+     * @var array
+     */
+    protected $billCfg = array();
+
+    /**
+     * Contains default path for radclient
+     *
+     * @var string
+     */
+    protected $radclienPath = '/usr/local/bin/radclient';
+
+    /**
+     * Contains path to printf
+     *
+     * @var string
+     */
+    protected $printfPath = '/usr/bin/printf';
+
+    /**
+     * Contains path to system sudo command
+     *
+     * @var string
+     */
+    protected $sudoPath = '/usr/local/bin/sudo';
+
+    /**
+     * Default remote radclient port
+     *
+     * @var int
+     */
+    protected $remotePort = 3799;
+
+    public function __construct() {
+        $this->loadSystemConfigs();
+        $this->setOptions();
+    }
+
+    /**
+     * Loads system alter config into protected property
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadSystemConfigs() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+        $this->billCfg = $ubillingConfig->getBilling();
+    }
+
+    /**
+     * Sets some options here
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->billCfg['SUDO'])) {
+            $this->sudoPath = $this->billCfg['SUDO'];
+        }
+    }
+
+    /**
+     * Transforms mac from xx:xx:xx:xx:xx:xx format to xxxx.xxxx.xxxx
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    public function transformMac($mac) {
+        $result = implode(".", str_split(str_replace(":", "", $mac), 4));
+        return ($result);
+    }
+
+    /**
+     * Terminates user session on associated NAS
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function disconnectUser($login) {
+        $result = '';
+        $login = trim($login);
+        $userIp = zb_UserGetIP($login);
+        if (!empty($userIp)) {
+            $userMac = zb_MultinetGetMAC($userIp);
+            if (!empty($userMac)) {
+                $query_nas = "SELECT `nasip` FROM `nas` WHERE `netid` IN (SELECT `netid` FROM `nethosts` WHERE `ip` = '" . $userIp . "')";
+                $nasIp = simple_query($query_nas);
+                if (!empty($nasIp)) {
+                    $nasIp = $nasIp['nasip'];
+                    $query_nas_key = "SELECT `secret` from `jun_clients` WHERE `nasname`='" . $nasIp . "';";
+                    $nasSecret = simple_query($query_nas_key);
+                    if (!empty($nasSecret)) {
+                        $nasSecret = $nasSecret['secret'];
+                        // run this shit
+                        $userNameAsMac = $this->transformMac($userMac);
+                        $command = $this->printfPath . ' "User-Name = ' . $userNameAsMac . '" | ' . $this->sudoPath . ' ' . $this->radclienPath . ' ' . $nasIp . ':' . $this->remotePort . ' disconnect ' . $nasSecret;
+                        $result = shell_exec($command);
+                    }
+                }
+            }
+        }
     }
 
 }
