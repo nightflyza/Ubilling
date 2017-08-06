@@ -1,0 +1,15 @@
+#!/usr/local/bin/php
+<?php
+$ip = $argv[1];
+$config = parse_ini_file(dirname(__FILE__) . "/config");
+$link = mysql_connect($config['host'], $config['username'], $config['password']);
+mysql_select_db($config['database']);
+
+$query = "SELECT `nasip` FROM `nas` WHERE `netid` IN (SELECT `netid` FROM `nethosts` WHERE `ip` = '" . $ip . "')";
+$result = mysql_query($query);
+while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+    foreach ($line as $col_value) {
+        print ($col_value);
+    }
+}
+?>

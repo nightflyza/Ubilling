@@ -1,0 +1,21 @@
+#!/usr/local/bin/php
+<?php
+$login=$argv[1];
+$config=parse_ini_file(dirname(__FILE__)."/config");
+$link = mysql_connect($config['host'], $config['username'], $config['password']);
+mysql_select_db($config['database']);
+$ipq='SELECT `IP` FROM `users` WHERE `login`="'.$login.'"';
+$ip=mysql_query($ipq);
+           while ($line2 = mysql_fetch_array($ip, MYSQL_ASSOC)) {
+                foreach($line2 as $ipval) {
+                                $nasq='select `nas`.`nasip` from `nethosts` join  `nas` on (`nas`.`netid` = `nethosts`.`netid`) where `nethosts`.`ip` = "'.$ipval.'"';
+                                $nas=mysql_query($nasq);
+                                   while ($line3 = mysql_fetch_array($nas, MYSQL_ASSOC)) {
+                                   foreach($line3 as $nasip) {
+                                   print($nasip);
+                                   }
+                                  }
+                           }    
+                        }
+
+?>

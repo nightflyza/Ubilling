@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `jun_check` (
   value varchar(253) NOT NULL default '',
   PRIMARY KEY  (id),
   KEY username (username(32))
-) ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE IF NOT EXISTS `jun_reply` (
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `jun_reply` (
   value varchar(253) NOT NULL default '',
   PRIMARY KEY  (id),
   KEY username (username(32))
-) ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE IF NOT EXISTS jun_groupcheck (
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS jun_groupcheck (
   value varchar(253)  NOT NULL default '',
   PRIMARY KEY  (id),
   KEY groupname (groupname(32))
-) ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE IF NOT EXISTS jun_groupreply (
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS jun_groupreply (
   value varchar(253)  NOT NULL default '',
   PRIMARY KEY  (id),
   KEY groupname (groupname(32))
-) ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
 CREATE TABLE IF NOT EXISTS jun_usergroup (
@@ -112,4 +112,4 @@ CREATE TABLE IF NOT EXISTS jun_usergroup (
   groupname varchar(64) NOT NULL default '',
   priority int(11) NOT NULL default '1',
   KEY username (username(32))
-) ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
