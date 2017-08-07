@@ -398,9 +398,15 @@ function web_SwitchEditForm($switchid) {
     }
 
 
-    if (cfr('SWITCHEDIT')) {
+    if (cfr('SWITCHESEDIT')) {
         if (!ispos($switchdata['desc'], 'NP')) {
             $result.=wf_JSAlertStyled('?module=switchreplace&switchid=' . $switchid, wf_img('skins/duplicate_icon.gif') . ' ' . __('Replacement'), __('Are you serious'), 'ubButton') . ' ';
+        }
+    }
+
+    if (cfr('SWITCHESEDIT')) {
+        if (empty($switchdata['geo'])) {
+            $result.=wf_Link('?module=switchmap&locfinder=true', wf_img('skins/ymaps/network.png') . ' ' . __('Place on map'), false, 'ubButton');
         }
     }
 
@@ -1119,13 +1125,13 @@ function zb_SwitchesRenderAjaxList() {
  * @param string $geo
  * @param int    $parentid
  */
-function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '',$snmpwrite='') {
+function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid = '', $snmpwrite = '') {
     $modelid = vf($modelid, 3);
     $ip = mysql_real_escape_string($ip);
     $desc = mysql_real_escape_string($desc);
     $location = mysql_real_escape_string($location);
     $snmp = mysql_real_escape_string($snmp);
-    $snmpwrite=  mysql_real_escape_string($snmpwrite);
+    $snmpwrite = mysql_real_escape_string($snmpwrite);
     $swid = mysql_real_escape_string($swid);
     $parentid = vf($parentid, 3);
     if (!empty($parentid)) {
@@ -1134,7 +1140,7 @@ function ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $pare
         $parentid = 'NULL';
     }
     $query = "INSERT INTO `switches` (`id` ,`modelid` ,`ip` ,`desc` ,`location` ,`snmp`,`swid`,`geo`,`parentid`,`snmpwrite`) "
-            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'".$snmpwrite."' );";
+            . "VALUES ('', '" . $modelid . "', '" . $ip . "', '" . $desc . "', '" . $location . "', '" . $snmp . "', '" . $swid . "','" . $geo . "', " . $parentid . ",'" . $snmpwrite . "' );";
     nr_query($query);
     $lastid = simple_get_lastid('switches');
     log_register('SWITCH ADD [' . $lastid . '] IP `' . $ip . '` ON LOC `' . $location . '`');
@@ -1520,7 +1526,5 @@ function zb_SwitchGetIdbyIP($ip) {
     }
     return ($result);
 }
-
-
 
 ?>
