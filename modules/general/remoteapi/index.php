@@ -787,7 +787,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                         $juncast->blockUser($junUserName);
                                         break;
                                     case 'unblock':
-                                        $juncast->blockUser($junUserName);
+                                        $juncast->unblockUser($junUserName);
                                         break;
                                     case 'terminate':
                                         $juncast->terminateUser($junUserName);
