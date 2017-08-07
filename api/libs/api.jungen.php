@@ -293,7 +293,7 @@ class JunCast {
     /**
      * Debug mode
      */
-    const DEBUG = true;
+    const DEBUG = false;
 
     public function __construct() {
         $this->loadSystemConfigs();

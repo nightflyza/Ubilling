@@ -764,11 +764,40 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    // juniper mx attributes regeneration
                     if ($_GET['action'] == 'jungen') {
                         if ($alterconf['JUNGEN_ENABLED']) {
                             $jungen = new JunGen();
                             $jungen->totalRegeneration();
                             die('OK: JUNGEN');
+                        } else {
+                            die('ERROR: JUNGEN DISABLED');
+                        }
+                    }
+
+                    //some juniper mx coa handling
+                    if ($_GET['action'] == 'juncast') {
+                        if ($alterconf['JUNGEN_ENABLED']) {
+                            if ((isset($_GET['login'])) AND ( isset($_GET['run']))) {
+                                $junRun = $_GET['run'];
+                                $junUserName = $_GET['login'];
+                                $juncast = new JunCast();
+                                switch ($junRun) {
+                                    case 'block':
+                                        $juncast->blockUser($junUserName);
+                                        break;
+                                    case 'unblock':
+                                        $juncast->blockUser($junUserName);
+                                        break;
+                                    case 'terminate':
+                                        $juncast->terminateUser($junUserName);
+                                        break;
+                                }
+                            } else {
+                                die('ERROR: RUN OR PARAM NOT SET');
+                            }
+
+                            die('OK: JUNCAST');
                         } else {
                             die('ERROR: JUNGEN DISABLED');
                         }
