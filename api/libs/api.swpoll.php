@@ -567,7 +567,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             if (!empty($sectionParser)) {
                                 $sectionResult .= $sectionParser($ip, $community, $currentTemplate['cablediag']);
                             } else {
-                                $sectionResult .= '';
+                                $sectionResult = '';
                             }
                         } else {
                             foreach ($sectionOids as $eachOid) {
