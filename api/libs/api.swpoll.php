@@ -95,7 +95,8 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                     if ($test_id == 0 and $info != 2) {
                         if ($data[1] == 0 OR $data[2] == 0 OR $data[3] == 0 OR $data[4] == 0) {
                             $cells_data .= __("OK");
-                            $cells_data .= ($data[5] > 0 ) ? "," . __("Cable Length:") . $data[5] : '';
+                            // Return Length for Pair2, becase some modele have accrose rawdata
+                            $cells_data .= ($data[2] == 0 AND $data[6] > 0 ) ? "," . __("Cable Length:") . $data[6] : '';
                         } elseif ($data[1] == 1 OR $data[2] == 1 OR $data[3] == 1 OR $data[4] == 1) {
                             $cells_data .= ($data[1] == 1) ?  __("Pair1 Open:") . $data[5]  . " " : '';
                             $cells_data .= ($data[2] == 1) ?  __("Pair2 Open:") . $data[6]  . " " : '';
@@ -133,7 +134,7 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
 
                         }
                     } elseif ($test_id == 0 and $info == 2){
-                        $cells_data .= __("Тест кабеля в процессе (processing)");
+                        $cells_data .= __("Cable Diagnostic processing");
                     }
                 }
                 $cells.= wf_TableCell($cells_data);
