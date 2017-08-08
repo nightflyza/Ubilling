@@ -2627,5 +2627,6 @@ $lang['def']['Acquainted'] = 'Ознайомлений';
 //rev 5603
 $lang['def']['SNMP write community'] = 'SNMP комьюнити записи';
 $lang['def']['Show users freezing state in online module'] = 'Відображати стан мороженості у модулі "Онлайн"';
+$lang['def']['Cable tester'] = 'Кабельний тестер';
 
 ?>
