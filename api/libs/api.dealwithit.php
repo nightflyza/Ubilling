@@ -158,6 +158,29 @@ class DealWithIt {
     }
 
     /**
+     * Logs tasks creation/execution to database
+     * 
+     * @param string $id
+     * @param string $date
+     * @param string $login
+     * @param string $action
+     * @param string $param
+     * @param string $note
+     * @param bool $done
+     * 
+     * @return void
+     */
+    protected function logTask($id, $date, $login, $action, $param, $note, $done) {
+        $id = vf($id, 3);
+        $admin = whoami();
+        $mtime = curdatetime();
+        $doneFlag = ($done) ? 1 : 0;
+        $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
+        $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "','" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','" . $doneFlag . "');";
+        nr_query($query);
+    }
+
+    /**
      * Creates scheduler task in database
      * 
      * @param string $date
@@ -178,6 +201,7 @@ class DealWithIt {
         $query.="(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
         nr_query($query);
         $newId = simple_get_lastid('dealwithit');
+        $this->logTask($newId, $dateF, $loginF, $actionF, $paramF, $noteF, false);
         log_register('SCHEDULER CREATE ID [' . $newId . '] (' . $login . ')  DATE `' . $date . ' `ACTION `' . $action . '` NOTE `' . $note . '`');
     }
 
@@ -481,17 +505,77 @@ class DealWithIt {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($tmpArr as $io => $each) {
-                $actionIcon=(isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12').' ' : '' ;
+                $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['date']);
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
                 $cells.= wf_TableCell(@$allAddress[$each['login']]);
                 $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                $cells.= wf_TableCell($actionIcon.$this->actionNames[$each['action']]);
+                $cells.= wf_TableCell($actionIcon . $this->actionNames[$each['action']]);
                 $cells.= wf_TableCell($each['param']);
                 $cells.= wf_TableCell($each['note']);
                 $taskControls = wf_JSAlert(self::URL_ME . '&username=' . $each['login'] . '&deletetaskid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
                 $cells.= wf_TableCell($taskControls);
+                $rows.= wf_TableRow($cells, 'row5');
+            }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $messages->getStyledMessage(__('Nothing found'), 'info');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders available tasks list with controls
+     * 
+     * 
+     * @return string
+     */
+    public function renderTasksHistory() {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        $tmpArr = array();
+        $allRealNames = zb_UserGetAllRealnames();
+        $allAddress = zb_AddressGetFulladdresslistCached();
+        $query="SELECT * from `dealwithithist` ORDER by `id` DESC";
+        $allTasksHistory=  simple_queryall($query);
+        
+        if (!empty($allTasksHistory)) {
+            foreach ($allTasksHistory as $io => $each) {
+                $tmpArr[$io] = $each;
+            }
+        }
+
+        if (!empty($tmpArr)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Changed'));
+            $cells.= wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Task'));
+            $cells.= wf_TableCell(__('Parameter'));
+            $cells.= wf_TableCell(__('Notes'));
+            $cells.= wf_TableCell(__('Done'));
+            $cells.= wf_TableCell(__('Admin'));
+
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($tmpArr as $io => $each) {
+                $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
+                $cells = wf_TableCell($each['originalid']);
+                $cells.= wf_TableCell($each['date']);
+                $cells.= wf_TableCell($each['mtime']);
+                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
+                $cells.= wf_TableCell(@$allAddress[$each['login']]);
+                $cells.= wf_TableCell(@$allRealNames[$each['login']]);
+                $cells.= wf_TableCell($actionIcon . $this->actionNames[$each['action']]);
+                $cells.= wf_TableCell($each['param']);
+                $cells.= wf_TableCell($each['note']);
+                $cells.= wf_TableCell(web_bool_led($each['done']));
+                $cells.= wf_TableCell($each['admin']);
+
                 $rows.= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
@@ -513,6 +597,7 @@ class DealWithIt {
         $taskId = vf($taskId, 3);
         if (isset($this->allTasks[$taskId])) {
             $taskData = $this->allTasks[$taskId];
+            $this->logTask($taskId, $taskData['date'], $taskData['login'], $taskData['action'], $taskData['param'], $taskData['note'], true);
             $query = "DELETE from `dealwithit` WHERE `id`='" . $taskId . "'";
             nr_query($query);
             log_register('SCHEDULER DONE ID [' . $taskId . '] (' . $taskData['login'] . ')');
@@ -610,6 +695,7 @@ class DealWithIt {
                                 log_register('CHANGE AlwaysOnline (' . $login . ') ON 0');
                                 break;
                         }
+
                         //flush task from database
                         $this->setTaskIsDone($each['id']);
                     } else {
