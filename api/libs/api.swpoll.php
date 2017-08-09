@@ -48,6 +48,39 @@ function sp_parse_zyportstates($data) {
 }
 
 /**
+ * Some Foxgate 60xx port state data parser
+ * 
+ * @return string
+ */
+function sp_parse_fxportstates($data) {
+    $result = '';
+    if (!empty($data)) {
+        $data = explode('=', $data);
+        $data[0] = trim($data[0]);
+        $portnum = substr($data[0], -2);
+        $portnum = str_replace('.', '', $portnum);
+        $portnum = $portnum - 1;
+
+        if ($portnum != 0) {
+            if (ispos($data[1], '1')) {
+                $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+                $cells.= wf_TableCell(web_bool_led(true));
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+                $cells.= wf_TableCell(web_bool_led(false));
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', 0, '');
+            }
+        }
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
  * D-Link Cable diagnostic data parser
  * 
  * @return string
@@ -87,7 +120,7 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
             }
         }
         // Parsing result after snmwalk and create data array
-        foreach ($sectionResult as $port=>$data) {
+        foreach ($sectionResult as $port => $data) {
             if (!empty($data)) {
                 $cells = wf_TableCell($port, '24', '', 'style="height:20px;"');
                 $cells_data = '';
@@ -98,42 +131,41 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                             // Return Length for Pair2, becase some modele have accrose rawdata
                             $cells_data .= ($data[2] == 0 AND $data[6] > 0 ) ? "," . __("Cable Length:") . $data[6] : '';
                         } elseif ($data[1] == 1 OR $data[2] == 1 OR $data[3] == 1 OR $data[4] == 1) {
-                            $cells_data .= ($data[1] == 1) ?  __("Pair1 Open:") . $data[5]  . " " : '';
-                            $cells_data .= ($data[2] == 1) ?  __("Pair2 Open:") . $data[6]  . " " : '';
-                            $cells_data .= ($data[3] == 1) ?  __("Pair3 Open:") . $data[7]  . " " : '';
-                            $cells_data .= ($data[4] == 1) ?  __("Pair4 Open:") . $data[8]  . " " : '';
+                            $cells_data .= ($data[1] == 1) ? __("Pair1 Open:") . $data[5] . " " : '';
+                            $cells_data .= ($data[2] == 1) ? __("Pair2 Open:") . $data[6] . " " : '';
+                            $cells_data .= ($data[3] == 1) ? __("Pair3 Open:") . $data[7] . " " : '';
+                            $cells_data .= ($data[4] == 1) ? __("Pair4 Open:") . $data[8] . " " : '';
                         } elseif ($data[1] == 2 OR $data[2] == 2 OR $data[3] == 2 OR $data[4] == 2) {
-                            $cells_data .= ($data[1] == 2) ?  __("Pair1 Short:") . $data[5]  . " " : '';
-                            $cells_data .= ($data[2] == 2) ?  __("Pair2 Short:") . $data[6]  . " " : '';
-                            $cells_data .= ($data[3] == 2) ?  __("Pair3 Short:") . $data[7]  . " " : '';
-                            $cells_data .= ($data[4] == 2) ?  __("Pair4 Short:") . $data[8]  . " " : '';
+                            $cells_data .= ($data[1] == 2) ? __("Pair1 Short:") . $data[5] . " " : '';
+                            $cells_data .= ($data[2] == 2) ? __("Pair2 Short:") . $data[6] . " " : '';
+                            $cells_data .= ($data[3] == 2) ? __("Pair3 Short:") . $data[7] . " " : '';
+                            $cells_data .= ($data[4] == 2) ? __("Pair4 Short:") . $data[8] . " " : '';
                         } elseif ($data[1] == 3 OR $data[2] == 3 OR $data[3] == 3 OR $data[4] == 3) {
-                            $cells_data .= ($data[1] == 3) ?  __("Pair1 Open-Short:") . $data[5]  . " " : '';
-                            $cells_data .= ($data[2] == 3) ?  __("Pair2 Open-Short:") . $data[6]  . " " : '';
-                            $cells_data .= ($data[3] == 3) ?  __("Pair3 Open-Short:") . $data[7]  . " " : '';
-                            $cells_data .= ($data[4] == 3) ?  __("Pair4 Open-Short:") . $data[8]  . " " : '';
+                            $cells_data .= ($data[1] == 3) ? __("Pair1 Open-Short:") . $data[5] . " " : '';
+                            $cells_data .= ($data[2] == 3) ? __("Pair2 Open-Short:") . $data[6] . " " : '';
+                            $cells_data .= ($data[3] == 3) ? __("Pair3 Open-Short:") . $data[7] . " " : '';
+                            $cells_data .= ($data[4] == 3) ? __("Pair4 Open-Short:") . $data[8] . " " : '';
                         } elseif ($data[1] == 4 OR $data[2] == 4 OR $data[3] == 4 OR $data[4] == 4) {
-                            $cells_data .= ($data[1] == 4) ?  __("Pair1 crosstalk") . " " : '';
-                            $cells_data .= ($data[2] == 4) ?  __("Pair2 crosstalk") . " " : '';
-                            $cells_data .= ($data[3] == 4) ?  __("Pair3 crosstalk") . " " : '';
-                            $cells_data .= ($data[4] == 4) ?  __("Pair4 crosstalk") . " " : '';
+                            $cells_data .= ($data[1] == 4) ? __("Pair1 crosstalk") . " " : '';
+                            $cells_data .= ($data[2] == 4) ? __("Pair2 crosstalk") . " " : '';
+                            $cells_data .= ($data[3] == 4) ? __("Pair3 crosstalk") . " " : '';
+                            $cells_data .= ($data[4] == 4) ? __("Pair4 crosstalk") . " " : '';
                         } elseif ($data[1] == 5 OR $data[2] == 5 OR $data[5] == 5 OR $data[4] == 5) {
-                            $cells_data .= ($data[1] == 5) ?  __("Pair1 unknown") . " " : '';
-                            $cells_data .= ($data[2] == 5) ?  __("Pair2 unknown") . " " : '';
-                            $cells_data .= ($data[3] == 5) ?  __("Pair3 unknown") . " " : '';
-                            $cells_data .= ($data[4] == 5) ?  __("Pair4 unknown") . " " : '';
+                            $cells_data .= ($data[1] == 5) ? __("Pair1 unknown") . " " : '';
+                            $cells_data .= ($data[2] == 5) ? __("Pair2 unknown") . " " : '';
+                            $cells_data .= ($data[3] == 5) ? __("Pair3 unknown") . " " : '';
+                            $cells_data .= ($data[4] == 5) ? __("Pair4 unknown") . " " : '';
                         } elseif ($data[1] == 6 OR $data[2] == 6 OR $data[5] == 6 OR $data[4] == 6) {
-                            $cells_data .= ($data[1] == 6) ?  __("Pair1 count") . " " : '';
-                            $cells_data .= ($data[2] == 6) ?  __("Pair2 count") . " " : '';
-                            $cells_data .= ($data[3] == 6) ?  __("Pair3 count") . " " : '';
-                            $cells_data .= ($data[4] == 6) ?  __("Pair4 count") . " " : '';
+                            $cells_data .= ($data[1] == 6) ? __("Pair1 count") . " " : '';
+                            $cells_data .= ($data[2] == 6) ? __("Pair2 count") . " " : '';
+                            $cells_data .= ($data[3] == 6) ? __("Pair3 count") . " " : '';
+                            $cells_data .= ($data[4] == 6) ? __("Pair4 count") . " " : '';
                         } elseif ($data[1] == 7 OR $data[2] == 7 OR $data[5] == 7 OR $data[4] == 7) {
                             $cells_data .= __("No Cable");
                         } elseif ($data[1] == 8 OR $data[2] == 8 OR $data[5] == 8 OR $data[4] == 8) {
                             $cells_data .= __("The PHY can't support Cable Diagnostic");
-
                         }
-                    } elseif ($test_id == 0 and $info == 2){
+                    } elseif ($test_id == 0 and $info == 2) {
                         $cells_data .= __("Cable Diagnostic processing");
                     }
                 }
@@ -173,6 +205,42 @@ function sp_parse_zyportbytes($data) {
             $cells.= wf_TableCell($bytes);
             $rows = wf_TableRow($cells, 'row3');
             $result = wf_TableBody($rows, '100%', 0, '');
+        }
+        return ($result);
+    } else {
+        return (__('Empty reply received'));
+    }
+}
+
+/**
+ * Foxgate 60xx port byte counters data parser
+ * 
+ * @return string
+ */
+function sp_parse_fxportbytes($data) {
+    $result = '';
+    if (!empty($data)) {
+        $data = explode('=', $data);
+        $data[0] = trim($data[0]);
+        $portnum = substr($data[0], -2);
+        $portnum = str_replace('.', '', $portnum);
+        $portnum = $portnum - 1; //shitty offset
+
+        $bytes = str_replace(array('Counter32:', 'Counter64:'), '', $data[1]);
+        $bytes = trim($bytes);
+
+        if ($portnum != 0) {
+            if (ispos($data[1], 'up')) {
+                $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+                $cells.= wf_TableCell($bytes);
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', 0, '');
+            } else {
+                $cells = wf_TableCell($portnum, '24', '', 'style="height:20px;"');
+                $cells.= wf_TableCell($bytes);
+                $rows = wf_TableRow($cells, 'row3');
+                $result = wf_TableBody($rows, '100%', 0, '');
+            }
         }
         return ($result);
     } else {
