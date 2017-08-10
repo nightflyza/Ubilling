@@ -181,7 +181,7 @@ class JunGen {
 
 
     /**
-     * Performs flushing and regeneration of all data in radius check table
+     * Performs full or partial regeneration of all data in radius check table
      * 
      * @return void
      */
