@@ -244,6 +244,62 @@ class JunGen {
     }
 
     /**
+     * Flushes all check/reply entries for some user
+     * 
+     * @param string $userMac
+     * 
+     * @return void
+     */
+    public function destroyAllUserAttributes($userMac) {
+        $queryCheck = "DELETE FROM `" . $this->checkTable . "` WHERE `username`='" . $userMac . "';";
+        nr_query($queryCheck);
+
+        $queryReply = "DELETE FROM `" . $this->replyTable . "` WHERE `username`='" . $userMac . "';";
+        nr_query($queryReply);
+        $this->logEvent($userMac . ' FLUSH ALL ATTRIBUTES', 1);
+    }
+
+    /**
+     * Checks database for deleted/unknown users and drops their all attributes
+     * 
+     * @return void
+     */
+    protected function flushBuriedUsers() {
+        /**
+         * Come on, come on, turn the radio on
+         * It's Friday night and it won't be long
+         * Gotta do my hair, put my make-up on
+         * It's Friday night and it won't be long 
+         */
+        $macTmp = array();
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $userLogin => $userData) {
+                if (isset($this->allMacs[$userData['IP']])) {
+                    $userMac = $this->allMacs[$userData['IP']];
+                    $macTmp[$userMac] = $userData['IP'];
+                }
+            }
+        }
+
+        if (!empty($this->allCheck)) {
+            foreach ($this->allCheck as $targetMac => $eachAttr) {
+                if (!isset($macTmp[$targetMac])) {
+                    $this->destroyAllUserAttributes($targetMac);
+                }
+            }
+        }
+
+        /**
+         * Baby I don't need dollar bills to have fun tonight
+         * I love cheap thrills!
+         * I don't need no money
+         * As long as I can feel the beat
+         * I don't need no money
+         * As long as I keep dancing
+         */
+    }
+
+    /**
      * Performs full or partial regeneration of all data in radius check table
      * 
      * @return void
@@ -442,26 +498,12 @@ class JunGen {
     }
 
     /**
-     * Flushes all check/reply entries for some user
-     * 
-     * @param string $userMac
-     * 
-     * @return void
-     */
-    public function destroyAllUserAttributes($userMac) {
-        $queryCheck = "DELETE FROM `" . $this->checkTable . "` WHERE `username`='" . $userMac . "';";
-        nr_query($queryCheck);
-
-        $queryReply = "DELETE FROM `" . $this->replyTable . "` WHERE `username`='" . $userMac . "';";
-        nr_query($queryReply);
-    }
-
-    /**
      * Regeneration of all auth/reply data if its not exists or changed
      * 
      * @return
      */
     public function totalRegeneration() {
+        $this->flushBuriedUsers();
         $this->generateCheckAll();
         $this->generateReplyAll();
     }
