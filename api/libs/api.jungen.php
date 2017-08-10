@@ -66,6 +66,13 @@ class JunGen {
     protected $speedOffset = 1024;
 
     /**
+     * Contains all available auth attributes pairs as username=>attr=>data
+     *
+     * @var array
+     */
+    protected $allCheck = array();
+
+    /**
      * Juniper NAS users password option name
      */
     const OPTION_PASSWORD = 'JUNGEN_KEY';
@@ -76,6 +83,7 @@ class JunGen {
         $this->loadUsers();
         $this->loadMacs();
         $this->loadSpeeds();
+        $this->loadChecks();
     }
 
     /**
@@ -157,19 +165,64 @@ class JunGen {
     }
 
     /**
+     * Loads all available data from auth table
+     * 
+     * @return void
+     */
+    protected function loadChecks() {
+        $query = "select * from `" . $this->checkTable . "`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allCheck[$each['username']]['attribute'][$each['attribute']] = $each['value'];
+            }
+        }
+    }
+
+
+    /**
      * Performs flushing and regeneration of all data in radius check table
      * 
      * @return void
      */
     protected function generateCheckAll() {
-        nr_query("TRUNCATE TABLE `" . $this->checkTable . "`;");
         if (!empty($this->allUsers)) {
             foreach ($this->allUsers as $io => $each) {
+                $regenFlag = false;
+                $deleteFlag = false;
                 if (isset($this->allMacs[$each['IP']])) {
                     $userMac = $this->allMacs[$each['IP']];
-                    $query = "INSERT INTO `" . $this->checkTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                            "(NULL,'" . $userMac . "','Cleartext-Password',':=','" . $this->defaultMxPass . "');";
-                    nr_query($query);
+
+                    if (!isset($this->allCheck[$userMac])) {
+                        $regenFlag = true;
+                    } else {
+                        if (isset($this->allCheck[$userMac]['attribute'])) {
+                            if (isset($this->allCheck[$userMac]['attribute']['Cleartext-Password'])) {
+                                if ($this->allCheck[$userMac]['attribute']['Cleartext-Password'] == $this->defaultMxPass) {
+                                    $regenFlag = false;
+                                } else {
+                                    $regenFlag = true;
+                                    $deleteFlag = true;
+                                }
+                            } else {
+                                $regenFlag = true;
+                            }
+                        } else {
+                            $regenFlag = true;
+                        }
+                    }
+
+                    if ($deleteFlag) {
+                        //password is changed
+                        $queryClear = "DELETE from `" . $this->checkTable . "` WHERE `username`='" . $userMac . "' AND `attribute`='Cleartext-Password';";
+                        nr_query($queryClear);
+                    }
+
+                    if ($regenFlag) {
+                        $query = "INSERT INTO `" . $this->checkTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
+                                "(NULL,'" . $userMac . "','Cleartext-Password',':=','" . $this->defaultMxPass . "');";
+                        nr_query($query);
+                    }
                 }
             }
         }
@@ -241,7 +294,7 @@ class JunGen {
      */
     public function totalRegeneration() {
         $this->generateCheckAll();
-        $this->generateReplyAll();
+        //  $this->generateReplyAll();
     }
 
 }
