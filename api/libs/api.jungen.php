@@ -80,9 +80,26 @@ class JunGen {
     protected $allReply = array();
 
     /**
+     * Is logging enabled may be exported from JUNGEN_LOGGING option
+     *
+     * @var bool
+     */
+    protected $logging = false;
+
+    /**
      * Juniper NAS users password option name
      */
     const OPTION_PASSWORD = 'JUNGEN_KEY';
+
+    /**
+     * Attributes generation logging option name
+     */
+    const OPTION_LOGGING = 'JUNGEN_LOGGING';
+
+    /**
+     * log path
+     */
+    const LOG_PATH = 'exports/jungen.log';
 
     public function __construct() {
         $this->loadAlter();
@@ -115,6 +132,12 @@ class JunGen {
         if (isset($this->altCfg[self::OPTION_PASSWORD])) {
             if (!empty($this->altCfg[self::OPTION_PASSWORD])) {
                 $this->defaultMxPass = mysql_real_escape_string(trim($this->altCfg[self::OPTION_PASSWORD]));
+            }
+        }
+
+        if (isset($this->altCfg[self::OPTION_LOGGING])) {
+            if (!empty($this->altCfg[self::OPTION_LOGGING])) {
+                $this->logging = $this->altCfg[self::OPTION_LOGGING];
             }
         }
     }
@@ -203,6 +226,24 @@ class JunGen {
     }
 
     /**
+     * 
+     * Logs data if logging is enabled
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    protected function logEvent($data, $logLevel = 1) {
+        if ($this->logging) {
+            if ($this->logging >= $logLevel) {
+                $curDate = curdatetime();
+                $logData = $curDate . ' ' . $data . "\n";
+                file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
+            }
+        }
+    }
+
+    /**
      * Performs full or partial regeneration of all data in radius check table
      * 
      * @return void
@@ -286,6 +327,7 @@ class JunGen {
         $query = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
                 "(NULL,'" . $userMac . "','" . $attribute . "','" . $op . "','" . $value . "');";
         nr_query($query);
+        $this->logEvent($userMac . ' REPLY CREATE ' . $attribute . ' ' . $op . ' ' . $value, 1);
     }
 
     /**
@@ -312,6 +354,7 @@ class JunGen {
         } else {
             $result = 0;
         }
+        $this->logEvent($userMac . ' REPLY CHECK ' . $attribute . ' ' . $value . ' RESULT ' . $result, 2);
         return ($result);
     }
 
@@ -326,6 +369,7 @@ class JunGen {
     protected function deleteReplyAttribute($userMac, $attribute) {
         $query = "DELETE FROM `" . $this->replyTable . "` WHERE `username`='" . $userMac . "' AND `attribute`='" . $attribute . "';";
         nr_query($query);
+        $this->logEvent($userMac . ' REPLY DELETE ' . $attribute, 1);
     }
 
     /**
@@ -393,6 +437,21 @@ class JunGen {
                 }
             }
         }
+    }
+
+    /**
+     * Flushes all check/reply entries for some user
+     * 
+     * @param string $userMac
+     * 
+     * @return void
+     */
+    public function destroyAllUserAttributes($userMac) {
+        $queryCheck = "DELETE FROM `" . $this->checkTable . "` WHERE `username`='" . $userMac . "';";
+        nr_query($queryCheck);
+
+        $queryReply = "DELETE FROM `" . $this->replyTable . "` WHERE `username`='" . $userMac . "';";
+        nr_query($queryReply);
     }
 
     /**
