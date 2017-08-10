@@ -279,12 +279,14 @@ class JunGen {
                         //password is changed
                         $queryClear = "DELETE from `" . $this->checkTable . "` WHERE `username`='" . $userMac . "' AND `attribute`='Cleartext-Password';";
                         nr_query($queryClear);
+                        $this->logEvent($userMac . ' CHECK DELETE Cleartext-Password', 1);
                     }
 
                     if ($regenFlag) {
                         $query = "INSERT INTO `" . $this->checkTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
                                 "(NULL,'" . $userMac . "','Cleartext-Password',':=','" . $this->defaultMxPass . "');";
                         nr_query($query);
+                        $this->logEvent($userMac . ' CHECK CREATE Cleartext-Password := ' . $this->defaultMxPass, 1);
                     }
                 }
             }
@@ -354,7 +356,7 @@ class JunGen {
         } else {
             $result = 0;
         }
-        $this->logEvent($userMac . ' REPLY CHECK ' . $attribute . ' ' . $value . ' RESULT ' . $result, 2);
+        $this->logEvent($userMac . ' REPLY TEST ' . $attribute . ' ' . $value . ' RESULT ' . $result, 2);
         return ($result);
     }
 
