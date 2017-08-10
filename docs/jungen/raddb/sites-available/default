@@ -405,7 +405,7 @@ accounting {
 	#  Log traffic to an SQL database.
 	#
 	#  See "Accounting queries" in sql.conf
-	# sql
+	sql
 
 	#
 	#  If you receive stop packets with zero session length,
@@ -431,10 +431,10 @@ accounting {
   #	pgsql-voip
 
 	# For Exec-Program and Exec-Program-Wait
-	exec
+ #	exec
 
 	#  Filter attributes from the accounting response.
-	attr_filter.accounting_response
+ #      attr_filter.accounting_response
 
 	#
 	#  See "Autz-Type Status-Server" for how this works.
