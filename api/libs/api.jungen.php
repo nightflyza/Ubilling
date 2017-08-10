@@ -66,11 +66,18 @@ class JunGen {
     protected $speedOffset = 1024;
 
     /**
-     * Contains all available auth attributes pairs as username=>attr=>data
+     * Contains all available auth attributes pairs as username=>attribute=>data
      *
      * @var array
      */
     protected $allCheck = array();
+
+    /**
+     * Contains all available reply attributes pairs as username=>...
+     *
+     * @var array
+     */
+    protected $allReply = array();
 
     /**
      * Juniper NAS users password option name
@@ -84,6 +91,7 @@ class JunGen {
         $this->loadMacs();
         $this->loadSpeeds();
         $this->loadChecks();
+        $this->loadReplies();
     }
 
     /**
@@ -179,6 +187,20 @@ class JunGen {
         }
     }
 
+    /**
+     * Loads all available data from reply table
+     *
+     * @return void 
+     */
+    protected function loadReplies() {
+        $query = "SELECT * from `" . $this->replyTable . "`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allReply[$each['username']][$each['attribute']] = $each['value'];
+            }
+        }
+    }
 
     /**
      * Performs full or partial regeneration of all data in radius check table
@@ -251,36 +273,122 @@ class JunGen {
     }
 
     /**
+     * Pushes some reply attribute to database
+     * 
+     * @param string $userMac
+     * @param string $attribute
+     * @param string $op
+     * @param string $value
+     * 
+     * @return void
+     */
+    protected function createReplyAttribute($userMac, $attribute, $op, $value) {
+        $query = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
+                "(NULL,'" . $userMac . "','" . $attribute . "','" . $op . "','" . $value . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Checks is some user attribute available and is not changed
+     * 
+     * @param string $userMac
+     * @param string $attribute
+     * @param string $value
+     * 
+     * @return int 0 - not exist / 1 - exists and not changed / -2 - changed
+     */
+    protected function checkReplyAttribute($userMac, $attribute, $value) {
+        $result = 0;
+        if (isset($this->allReply[$userMac])) {
+            if (isset($this->allReply[$userMac][$attribute])) {
+                if ($this->allReply[$userMac][$attribute] == $value) {
+                    $result = 1;
+                } else {
+                    $result = -2;
+                }
+            } else {
+                $result = 0;
+            }
+        } else {
+            $result = 0;
+        }
+        return ($result);
+    }
+
+    /**
+     * Drops some reply attribute from database (required on value changes)
+     * 
+     * @param string $userMac
+     * @param string $attribute
+     * 
+     * @return void
+     */
+    protected function deleteReplyAttribute($userMac, $attribute) {
+        $query = "DELETE FROM `" . $this->replyTable . "` WHERE `username`='" . $userMac . "' AND `attribute`='" . $attribute . "';";
+        nr_query($query);
+    }
+
+    /**
      * Performs flushing and regeneration of all attributes in radius reply table
      * 
      * @return void
      */
     protected function generateReplyAll() {
-        nr_query("TRUNCATE TABLE `" . $this->replyTable . "`;");
         if (!empty($this->allUsers)) {
             foreach ($this->allUsers as $userLogin => $userData) {
                 if (isset($this->allMacs[$userData['IP']])) {
                     $userMac = $this->allMacs[$userData['IP']];
-                    $queryIP = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                            "(NULL,'" . $userMac . "','Framed-IP-Address','=','" . $userData['IP'] . "');";
-                    nr_query($queryIP);
+                    // user ip address
+                    $userIp = $userData['IP'];
+                    $ipCheck = $this->checkReplyAttribute($userMac, 'Framed-IP-Address', $userIp);
+                    if ($ipCheck == -2) {
+                        $this->deleteReplyAttribute($userMac, 'Framed-IP-Address');
+                    }
+                    if (($ipCheck == 0) OR ( $ipCheck == -2)) {
+                        $this->createReplyAttribute($userMac, 'Framed-IP-Address', '=', $userIp);
+                    }
 
-                    $queryTimeout = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                            "(NULL,'" . $userMac . "','Session-Timeout','=','" . $this->defaultSessionTimeout . "');";
-                    nr_query($queryTimeout);
+                    //user session timeout
+                    $sessionTimeout = $this->defaultSessionTimeout;
+                    $timeoutCheck = $this->checkReplyAttribute($userMac, 'Session-Timeout', $sessionTimeout);
+                    if ($timeoutCheck == -2) {
+                        $this->deleteReplyAttribute($userMac, 'Session-Timeout');
+                    }
+                    if (($timeoutCheck == 0) OR ( $timeoutCheck == -2)) {
+                        $this->createReplyAttribute($userMac, 'Session-Timeout', '=', $sessionTimeout);
+                    }
 
-                    $queryActivate1 = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                            "(NULL,'" . $userMac . "','Unisphere-Service-Activate:1','+=','service-shape-in(" . $this->allSpeeds[$userLogin]['up'] . ",shape," . $userData['IP'] . ",,)');";
-                    nr_query($queryActivate1);
+                    //user shaper up
+                    $serviceActivate1 = "service-shape-in(" . $this->allSpeeds[$userLogin]['up'] . ",shape," . $userData['IP'] . ",,)";
+                    $serviceCheck1 = $this->checkReplyAttribute($userMac, 'Unisphere-Service-Activate:1', $serviceActivate1);
+                    if ($serviceCheck1 == -2) {
+                        $this->deleteReplyAttribute($userMac, 'Unisphere-Service-Activate:1');
+                    }
+                    if (($serviceCheck1 == 0) OR ( $serviceCheck1 == -2)) {
+                        $this->createReplyAttribute($userMac, 'Unisphere-Service-Activate:1', '+=', $serviceActivate1);
+                    }
 
-                    $queryActivate2 = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                            "(NULL,'" . $userMac . "','Unisphere-Service-Activate:2','+=','service-shape-out(" . $this->allSpeeds[$userLogin]['down'] . ",shape," . $userData['IP'] . ",,)');";
-                    nr_query($queryActivate2);
+                    //user shaper down
+                    $serviceActivate2 = "service-shape-out(" . $this->allSpeeds[$userLogin]['down'] . ",shape," . $userData['IP'] . ",,)";
+                    $serviceCheck2 = $this->checkReplyAttribute($userMac, 'Unisphere-Service-Activate:2', $serviceActivate2);
+                    if ($serviceCheck2 == -2) {
+                        $this->deleteReplyAttribute($userMac, 'Unisphere-Service-Activate:2');
+                    }
+                    if (($serviceCheck2 == 0) OR ( $serviceCheck2 == -2)) {
+                        $this->createReplyAttribute($userMac, 'Unisphere-Service-Activate:2', '+=', $serviceActivate2);
+                    }
 
+                    //debtor blocking service
+                    $serviceBlocking = 'block';
+                    $blockingCheck = $this->checkReplyAttribute($userMac, 'Unisphere-Service-Activate:3', $serviceBlocking);
                     if (!$this->isUserActive($userLogin)) {
-                        $queryDeactivate = "INSERT INTO `" . $this->replyTable . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
-                                "(NULL,'" . $userMac . "','Unisphere-Service-Activate:3','+=','block');";
-                        nr_query($queryDeactivate);
+                        if ($blockingCheck == 0) {
+                            $this->createReplyAttribute($userMac, 'Unisphere-Service-Activate:3', '+=', $serviceBlocking);
+                        }
+                    } else {
+                        if ($blockingCheck == 1) {
+                            $this->deleteReplyAttribute($userMac, 'Unisphere-Service-Activate:3');
+                        }
                     }
                 }
             }
@@ -288,13 +396,13 @@ class JunGen {
     }
 
     /**
-     * Really stupid method for regeneration of all auth/reply data
+     * Regeneration of all auth/reply data if its not exists or changed
      * 
      * @return
      */
     public function totalRegeneration() {
         $this->generateCheckAll();
-        //  $this->generateReplyAll();
+        $this->generateReplyAll();
     }
 
 }
