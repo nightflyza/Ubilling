@@ -8,7 +8,7 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
         $controls.= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
         show_window('', $controls);
         if (wf_CheckGet(array('history'))) {
-            deb($dealWithIt->renderTasksHistory());
+            show_window(__('Scheduler history'),$dealWithIt->renderTasksHistory());
         } else {
             show_window(__('Available Held jobs for all users'), $dealWithIt->renderTasksList());
         }
