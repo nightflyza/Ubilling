@@ -2628,5 +2628,12 @@ $lang['def']['Acquainted'] = 'Ознайомлений';
 $lang['def']['SNMP write community'] = 'SNMP комьюнити записи';
 $lang['def']['Show users freezing state in online module'] = 'Відображати стан мороженості у модулі "Онлайн"';
 $lang['def']['Cable tester'] = 'Кабельний тестер';
+$lang['def']['Terminate user session'] = 'Вбити сесію користувача';
+$lang['def']['Block user'] = 'Блокувати користувача';
+$lang['def']['Unblock user'] = 'Розблокувати користувача';
+$lang['def']['Juniper NAS sessions stats'] = 'Статистика сесій наNAS Juniper';
+$lang['def']['Juniper MX NAS control'] = 'Керування Juniper MX';
+$lang['def']['Right to control Juniper MX NAS'] = 'Право керувати серверами доступу Juniper MX';
+$lang['def']['Juniper NAS parameters'] = 'Параметри сервера доступу Juniper';
 
 ?>

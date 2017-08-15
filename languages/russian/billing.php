@@ -2612,10 +2612,16 @@ $lang['def']['Acquainted'] = 'Ознакомлен';
 $lang['def']['SNMP write community'] = 'SNMP комьюнити записи';
 $lang['def']['Show users freezing state in online module'] = 'Показывать состояние замороженности в модуле "Онлайн"';
 $lang['def']['Cable tester'] = 'Тестер кабеля';
+$lang['def']['Terminate user session'] = 'Убить сессию пользователя';
+$lang['def']['Block user'] = 'Блокировать пользователя';
+$lang['def']['Unblock user'] = 'Разблокировать пользователя';
+$lang['def']['Juniper NAS sessions stats'] = 'Статистика сессий на NAS Juniper';
+$lang['def']['Juniper MX NAS control'] = 'Управление Juniper MX';
+$lang['def']['Right to control Juniper MX NAS'] = 'Право управлять серверами доступа Juniper MX';
+$lang['def']['Juniper NAS parameters'] = 'Параметры сервера доступа Juniper';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
-
+$lang['def'][''] = '';
 
 
 ?>

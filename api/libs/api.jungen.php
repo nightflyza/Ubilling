@@ -704,6 +704,144 @@ class JunCast {
 
 }
 
+class JunAcct {
+
+    /**
+     * Contains preloaded user accounting data
+     *
+     * @var array
+     */
+    protected $userAcctData = array();
+
+    /**
+     * Contains current user login
+     *
+     * @var string
+     */
+    protected $userLogin = '';
+
+    /**
+     * Contains interesting fields from database acct table
+     *
+     * @var array
+     */
+    protected $fieldsRequired = array();
+
+    /**
+     * Contains name of accounting table
+     *
+     * @var string
+     */
+    protected $tableName = 'jun_acct';
+
+    public function __construct($login) {
+        $this->setLogin($login);
+        $this->setFields();
+        $this->loadAcctData();
+    }
+
+    /**
+     * Sets current user login
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    protected function setLogin($login) {
+        $this->userLogin = mysql_real_escape_string($login);
+    }
+
+    /**
+     * Sets interesting fields from accounting table for selecting data
+     * 
+     * @return void
+     */
+    protected function setFields() {
+        $this->fieldsRequired = array(
+            'acctsessionid',
+            'username',
+            'nasipaddress',
+            'nasportid',
+            'acctstarttime',
+            'acctstoptime',
+            'acctinputoctets',
+            'acctoutputoctets',
+            'framedipaddress',
+            'acctterminatecause'
+        );
+    }
+
+    /**
+     * Loading some data from database
+     * 
+     * @return void
+     */
+    protected function loadAcctData() {
+        if (!empty($this->userLogin)) {
+            $userIp = zb_UserGetIP($this->userLogin);
+            if (!empty($userIp)) {
+                $fieldsList = implode(', ', $this->fieldsRequired);
+                $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` WHERE `framedipaddress`='" . $userIp . "' ORDER BY `radacctid` DESC;";
+                $this->userAcctData = simple_queryall($query);
+            }
+        }
+    }
+
+    /**
+     * Renders preloaded accounting data in human-readable view
+     * 
+     * @return string
+     */
+    public function renderAcctStats() {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        if (!empty($this->userAcctData)) {
+            $cells = wf_TableCell('acctsessionid');
+            $cells.= wf_TableCell('username');
+            $cells.= wf_TableCell('nasipaddress');
+            $cells.= wf_TableCell('nasportid');
+            $cells.= wf_TableCell('acctstarttime');
+            $cells.= wf_TableCell('acctstoptime');
+            $cells.= wf_TableCell('acctinputoctets');
+            $cells.= wf_TableCell('acctoutputoctets');
+            $cells.= wf_TableCell('framedipaddress');
+            $cells.= wf_TableCell('acctterminatecause');
+            $cells.= wf_TableCell(__('Time'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->userAcctData as $io => $each) {
+                if (!empty($each['acctstoptime'])) {
+                    $startTime = strtotime($each['acctstarttime']);
+                    $endTime = strtotime($each['acctstoptime']);
+                    $timeOffsetRaw = $endTime - $startTime;
+                    $timeOffset = zb_formatTime($timeOffsetRaw);
+                } else {
+                    $timeOffset = '';
+                    $timeOffsetRaw = '';
+                }
+                $cells = wf_TableCell($each['acctsessionid']);
+                $cells.= wf_TableCell($each['username']);
+                $cells.= wf_TableCell($each['nasipaddress']);
+                $cells.= wf_TableCell($each['nasportid']);
+                $cells.= wf_TableCell($each['acctstarttime']);
+                $cells.= wf_TableCell($each['acctstoptime']);
+                $cells.= wf_TableCell(stg_convert_size($each['acctinputoctets']), '', '', 'sorttable_customkey="' . $each['acctinputoctets'] . '"');
+                $cells.= wf_TableCell(stg_convert_size($each['acctoutputoctets']), '', '', 'sorttable_customkey="' . $each['acctoutputoctets'] . '"');
+                $cells.= wf_TableCell($each['framedipaddress']);
+                $cells.= wf_TableCell($each['acctterminatecause']);
+                $cells.= wf_TableCell($timeOffset, '', '', 'sorttable_customkey="' . $timeOffsetRaw . '"');
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
+        }
+        return ($result);
+    }
+
+}
+
 /**
  * Returns list of available free Juniper NASes
  * 
