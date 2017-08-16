@@ -914,7 +914,7 @@ class JunAcct {
                 $renderData.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
             }
 
-            $result = wf_modal(wf_img('skins/log_icon_small.png', __('Attributes regeneration log')), __('Attributes regeneration log'), $renderData, '', '1024', '600');
+            $result = wf_modal(wf_img('skins/log_icon_small.png', __('Attributes regeneration log')), __('Attributes regeneration log'), $renderData, '', '1280', '600');
         }
         return ($result);
     }
