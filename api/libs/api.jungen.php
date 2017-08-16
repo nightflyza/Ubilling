@@ -734,10 +734,32 @@ class JunAcct {
      */
     protected $tableName = 'jun_acct';
 
-    public function __construct($login) {
+    /**
+     * Messages helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
+     * log path
+     */
+    const LOG_PATH = 'exports/jungen.log';
+
+    public function __construct($login = '') {
         $this->setLogin($login);
         $this->setFields();
         $this->loadAcctData();
+        $this->initMessages();
+    }
+
+    /**
+     * Inits system messages object
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -777,13 +799,16 @@ class JunAcct {
      * @return void
      */
     protected function loadAcctData() {
+        $fieldsList = implode(', ', $this->fieldsRequired);
         if (!empty($this->userLogin)) {
             $userIp = zb_UserGetIP($this->userLogin);
             if (!empty($userIp)) {
-                $fieldsList = implode(', ', $this->fieldsRequired);
                 $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` WHERE `framedipaddress`='" . $userIp . "' ORDER BY `radacctid` DESC;";
                 $this->userAcctData = simple_queryall($query);
             }
+        } else {
+            $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` ORDER BY `radacctid` DESC;";
+            $this->userAcctData = simple_queryall($query);
         }
     }
 
@@ -794,7 +819,6 @@ class JunAcct {
      */
     public function renderAcctStats() {
         $result = '';
-        $messages = new UbillingMessageHelper();
         if (!empty($this->userAcctData)) {
             $cells = wf_TableCell('acctsessionid');
             $cells.= wf_TableCell('username');
@@ -835,9 +859,77 @@ class JunAcct {
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
-            $result = $messages->getStyledMessage(__('Nothing found'), 'warning');
+            $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
         return ($result);
+    }
+
+    /**
+     * Renders jungen logs control
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return string
+     */
+    function renderLogControl() {
+        global $ubillingConfig;
+        $result = '';
+        $logData = array();
+        $renderData = '';
+        $rows = '';
+        $recordsLimit = 200;
+        $prevTime = '';
+        $curTimeTime = '';
+        $diffTime = '';
+
+        if (file_exists(self::LOG_PATH)) {
+            $billCfg = $ubillingConfig->getBilling();
+            $tailCmd = $billCfg['TAIL'];
+            $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . self::LOG_PATH;
+            $rawResult = shell_exec($runCmd);
+            $renderData.= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
+            $renderData.= wf_Link('?module=report_jungen&dljungenlog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+
+            if (!empty($rawResult)) {
+                $logData = explodeRows($rawResult);
+                if (!empty($logData)) {
+
+
+                    $cells = wf_TableCell(__('Date'));
+                    $cells.= wf_TableCell(__('Event'));
+                    $rows.=wf_TableRow($cells, 'row1');
+
+                    foreach ($logData as $io => $each) {
+                        if (!empty($each)) {
+
+                            $eachEntry = explode(' ', $each);
+                            $cells = wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
+                            $cells.= wf_TableCell(str_replace(($eachEntry[0] . ' ' . $eachEntry[1]), '', $each));
+                            $rows.=wf_TableRow($cells, 'row3');
+                        }
+                    }
+                    $renderData.= wf_TableBody($rows, '100%', 0, 'sortable');
+                }
+            } else {
+                $renderData.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+            }
+
+            $result = wf_modal(wf_img('skins/log_icon_small.png', __('Attributes regeneration log')), __('Attributes regeneration log'), $renderData, '', '1024', '600');
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs downloading of log
+     * 
+     * @return void
+     */
+    public function logDownload() {
+        if (file_exists(self::LOG_PATH)) {
+            zb_DownloadFile(self::LOG_PATH);
+        } else {
+            show_error(__('Something went wrong') . ': EX_FILE_NOT_FOUND ' . self::LOG_PATH);
+        }
     }
 
 }

@@ -2637,5 +2637,6 @@ $lang['def']['Right to control Juniper MX NAS'] = 'Право керувати �
 $lang['def']['Juniper NAS parameters'] = 'Параметри сервера доступу Juniper';
 $lang['def']['Base regeneration'] = 'Регенерація бази';
 $lang['def']['Scheduler history'] = 'Історія планувальника';
+$lang['def']['Attributes regeneration log'] = 'Журнал регенерації аттрибутів';
 
 ?>
