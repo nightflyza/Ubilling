@@ -2631,12 +2631,12 @@ $lang['def']['Cable tester'] = 'Кабельний тестер';
 $lang['def']['Terminate user session'] = 'Вбити сесію користувача';
 $lang['def']['Block user'] = 'Блокувати користувача';
 $lang['def']['Unblock user'] = 'Розблокувати користувача';
-$lang['def']['Juniper NAS sessions stats'] = 'Статистика сесій наNAS Juniper';
+$lang['def']['Juniper NAS sessions stats'] = 'Статистика сесій на NAS Juniper';
 $lang['def']['Juniper MX NAS control'] = 'Керування Juniper MX';
 $lang['def']['Right to control Juniper MX NAS'] = 'Право керувати серверами доступу Juniper MX';
 $lang['def']['Juniper NAS parameters'] = 'Параметри сервера доступу Juniper';
 $lang['def']['Base regeneration'] = 'Регенерація бази';
 $lang['def']['Scheduler history'] = 'Історія планувальника';
-$lang['def']['Attributes regeneration log'] = 'Журнал регенерації аттрибутів';
+$lang['def']['Attributes regeneration log'] = 'Журнал регенерації атрибутів';
 
 ?>
