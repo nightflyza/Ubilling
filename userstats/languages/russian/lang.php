@@ -337,4 +337,12 @@ $lang['def']['User'] = 'Пользователь';
 $lang['def']['Create new help request'] = 'Создать новый запрос в техподдержку';
 $lang['def']['Try it now for free!'] = 'Попробуйте сейчас бесплатно!';
 
+$lang['def']['Download speed'] = 'Входная скорость';
+$lang['def']['Upload speed'] = 'Исходящая скорость';
+$lang['def']['Ping'] = 'Пинг';
+$lang['def']['Jitter'] = 'Джиттер';
+$lang['def']['Start'] = 'Начать';
+$lang['def']['Abort'] = 'Прервать';
+
+
 ?>
