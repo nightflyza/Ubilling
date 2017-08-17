@@ -779,8 +779,8 @@ class UserProfile {
 
                 foreach ($all as $io => $each) {
                     if ((isset($actionNames[$each['action']])) AND ( isset($actionIcons[$each['action']]))) {
-                        $icon=wf_img_sized($actionIcons[$each['action']], $actionNames[$each['action']], '10', '10');
-                        $notification.=wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false).' ';
+                        $icon = wf_img_sized($actionIcons[$each['action']], $actionNames[$each['action']], '10', '10');
+                        $notification.=wf_Link('?module=pl_dealwithit&username=' . $this->login, $icon, false) . ' ';
                     } else {
                         $notification.=$each['action'] . ' ';
                     }
@@ -958,6 +958,56 @@ class UserProfile {
                 $result = $this->addRow(__('User type'), __('Corporate user') . ' ' . $corpPreviewControl);
             } else {
                 $result = $this->addRow(__('User type'), __('Private user'));
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns mobile controls if required
+     * 
+     * @return string
+     */
+    protected function getMobileControls() {
+        $result = '';
+        if (isset($this->alterCfg['EASY_SMS'])) {
+            if ($this->alterCfg['EASY_SMS']) {
+                if ($this->alterCfg['SENDDOG_ENABLED']) {
+                    //perform sending
+                    if (wf_CheckPost(array('neweasysmsnumber', 'neweasysmstext'))) {
+                        $sms = new UbillingSMS();
+                        $targetNumber = $_POST['neweasysmsnumber'];
+                        $targetText = $_POST['neweasysmstext'];
+                        $translitFlag = (wf_CheckPost(array('neweasysmstranslit'))) ? true : false;
+                        $sms->sendSMS($targetNumber, $targetText, $translitFlag, 'EASYSMS');
+                        rcms_redirect('?module=userprofile&username=' . $this->login);
+                    }
+
+                    if (!empty($this->mobile)) {
+                        //cleaning mobile number
+                        $userMobile = trim($this->mobile);
+                        $userMobile = str_replace(' ', '', $userMobile);
+                        $userMobile = str_replace('-', '', $userMobile);
+                        $userMobile = str_replace('(', '', $userMobile);
+                        $userMobile = str_replace(')', '', $userMobile);
+                        if (isset($this->alterCfg['REMINDER_PREFIX'])) {
+                            $prefix = $this->alterCfg['REMINDER_PREFIX']; //trying to support defferent formats
+                            if (!empty($prefix)) {
+                                $userMobile = str_replace($prefix, '', $userMobile);
+                                $userMobile = $prefix . $userMobile;
+                            }
+
+                            $sendInputs = wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15');
+                            $sendInputs.= wf_TextArea('neweasysmstext', '', '', true, '40x5');
+                            $sendInputs.= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
+                            $sendInputs.=wf_tag('br');
+                            $sendInputs.= wf_Submit(__('Send SMS'));
+                            $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
+
+                            $result = ' ' . wf_modalAuto(wf_img_sized('skins/icon_sms_micro.gif', __('Send SMS'), '10', '10'), __('Send SMS'), $sendingForm, '');
+                        }
+                    }
+                }
             }
         }
         return ($result);
@@ -1172,7 +1222,7 @@ class UserProfile {
 //phone     
         $profile.= $this->addRow(__('Phone'), $this->phone);
 //and mobile data rows
-        $profile.= $this->addRow(__('Mobile'), $this->mobile);
+        $profile.= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
 //Email data row
         $profile.= $this->addRow(__('Email'), $this->mail);
 //payment ID data

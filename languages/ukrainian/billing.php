@@ -2638,5 +2638,6 @@ $lang['def']['Juniper NAS parameters'] = 'Параметри сервера до
 $lang['def']['Base regeneration'] = 'Регенерація бази';
 $lang['def']['Scheduler history'] = 'Історія планувальника';
 $lang['def']['Attributes regeneration log'] = 'Журнал регенерації атрибутів';
+$lang['def']['Fast SMS sending to user directly from his profile'] = 'Швидке надсилання SMS з профілю користувача';
 
 ?>
