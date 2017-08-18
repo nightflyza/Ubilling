@@ -1,0 +1,21 @@
+.opbackend {
+    float: left !important;
+    display: block !important;
+    padding: 10px;
+    margin: 5px;
+    border:solid 1px #EEE;
+    border-radius:10px;
+    text-align: center;
+    font-size: 8pt;
+    overflow: hidden;
+    box-shadow: 3px 3px 4px rgba(0,0,0,0);
+    line-height: 100%;
+    width:200px;
+    height:200px;
+}
+
+.opbackend:hover {
+    -webkit-box-shadow: 3px 3px 4px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    3px 3px 4px rgba(50, 50, 50, 0.75);
+    box-shadow:         3px 3px 4px rgba(50, 50, 50, 0.75);
+}
