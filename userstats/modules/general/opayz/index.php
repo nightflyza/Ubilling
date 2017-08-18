@@ -71,7 +71,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
                 $inputs.=la_tag('br');
                 $inputs.=$paysys_desc;
             } else {
-                $fullDesc = 'alt="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" title="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" ';
+                $fullDesc = ' alt="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" title="' . strtoupper($eachpaysys) . ' - ' . $paysys_desc . '" ';
                 $iconParams = 'width="200" height="200" ';
                 $inputs.=la_tag('input', false, '', 'type="image" src="' . $paysysIcon . '"' . $fullDesc . $iconParams);
             }
