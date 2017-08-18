@@ -27,7 +27,7 @@ function la_InputId() {
  * 
  * @return  string
  */
-function la_Form($action, $method, $inputs, $class = '', $legend = '') {
+function la_Form($action, $method, $inputs, $class = '', $legend = '', $cleanStyle = true) {
     if ($class != '') {
         $form_class = ' class="' . $class . '" ';
     } else {
@@ -39,12 +39,18 @@ function la_Form($action, $method, $inputs, $class = '', $legend = '') {
         $form_legend = '';
     }
 
+    if ($cleanStyle) {
+        $cleanDiv = '<div style="clear:both;"></div>';
+    } else {
+        $cleanDiv = '';
+    }
+
     $form = '
         <form action="' . $action . '" method="' . $method . '" ' . $form_class . '>
          ' . $form_legend . '
         ' . $inputs . '
         </form>
-        <div style="clear:both;"></div>
+        ' . $cleanDiv . '
         ';
     return ($form);
 }
