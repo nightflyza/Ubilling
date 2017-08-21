@@ -3,7 +3,7 @@
 class NasMon {
 
     /**
-     * Contains array of all available grouped by name
+     * Contains array of all available grouped by their IP
      *
      * @var array
      */
@@ -39,7 +39,7 @@ class NasMon {
      * @return void
      */
     protected function loadAllNas() {
-        $query = "SELECT * from `nas` GROUP BY `nasname`";
+        $query = "SELECT * from `nas` GROUP BY `nasip`";
         $all = simple_queryall($query);
         if (!empty($all)) {
             $this->allNas = $all;
