@@ -527,11 +527,11 @@ class JunCast {
     protected $billCfg = array();
 
     /**
-     * Contains default path for radclient
+     * Contains default path and options for radclient
      *
      * @var string
      */
-    protected $radclienPath = '/usr/local/bin/radclient';
+    protected $radclienPath = '/usr/local/bin/radclient -r 3 -t 1';
 
     /**
      * Contains path to printf
@@ -585,6 +585,9 @@ class JunCast {
     protected function setOptions() {
         if (isset($this->billCfg['SUDO'])) {
             $this->sudoPath = $this->billCfg['SUDO'];
+        }
+        if (isset($this->altCfg['JUNGEN_RADCLIENT'])) {
+            $this->radclienPath = $this->altCfg['JUNGEN_RADCLIENT'];
         }
     }
 
