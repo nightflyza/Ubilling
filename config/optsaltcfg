@@ -283,7 +283,6 @@ UKV_SOCIAL_TARIFFID=VARCHAR|UKV socail service tariff id
 SWITCHES_EXTENDED=TRIGGER|RemoteID management for switches is enabled
 WORKING_HOURS=VARCHAR|Tech support working hours
 TSUPPORT_API=TRIGGER|Support interface API
-
 TASKREPORT_ENABLED=TRIGGER|Tasks report enabled
 TASKREPORT_JOBTYPES=VARCHAR|Tasks jobtype IDs for report
 TASKREPORT_SIGNUPJOBTYPES=VARCHAR|Tasks jobtype IDs of signup type
@@ -293,6 +292,7 @@ BRANCHES_ENABLED=TRIGGER|Branches enabled
 ONUAUTO_CONFIG_REBOOT=TRIGGER|ONU reboot from vlans control module
 ONUAUTO_CONFIG_DESCRIBE=TRIGGER|ONU describe from vlans control module
 STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
+NASMON_ENABLED=TRIGGER|Is NAS monitoring enabled
 CHAPTEREND_BEH=true
 
 

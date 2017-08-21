@@ -2639,5 +2639,12 @@ $lang['def']['Base regeneration'] = 'Регенерація бази';
 $lang['def']['Scheduler history'] = 'Історія планувальника';
 $lang['def']['Attributes regeneration log'] = 'Журнал регенерації атрибутів';
 $lang['def']['Fast SMS sending to user directly from his profile'] = 'Швидке надсилання SMS з профілю користувача';
+$lang['def']['No NAS available in database'] = 'Жодних NAS не знайдено в базі';
+$lang['def']['Alive'] = 'Живий';
+$lang['def']['Dead'] = 'Помер';
+$lang['def']['Is NAS monitoring enabled'] = 'Моніторинг серверів доступу увімкнено';
+$lang['def']['NAS servers is dead'] = 'серверів доступу померли';
+$lang['def']['NAS servers state'] = 'Стан серверів доступу';
+$lang['def']['right to view NAS servers state report'] = 'Право переглядати звіт зі станом NAS';
 
 ?>

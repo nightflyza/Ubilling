@@ -809,6 +809,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    if ($_GET['action'] == 'nasmon') {
+                        if ($alterconf['NASMON_ENABLED']) {
+                            $nasMon = new NasMon();
+                            $nasMon->saveCheckResults();
+                            die('OK: NASMON');
+                        } else {
+                            die('ERROR: NASMON DISABLED');
+                        }
+                    }
+
                     /*
                      * Ubilling remote API for Asterisk and other CRM
                      * -----------------------------
