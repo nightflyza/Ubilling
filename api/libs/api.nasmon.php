@@ -60,7 +60,7 @@ class NasMon {
             $cells = wf_TableCell(__('NAS name'));
             $cells.= wf_TableCell(__('IP'));
             $cells.= wf_TableCell(__('Status'));
-            $rows = wf_TableRowStyled($cells, 'row1');
+            $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allNas as $io => $each) {
                 $icmpState = zb_PingICMP($each['nasip']);
                 //second try
@@ -77,7 +77,7 @@ class NasMon {
                 $cells = wf_TableCell($each['nasname']);
                 $cells.= wf_TableCell($each['nasip']);
                 $cells.= wf_TableCell($aliveFlag);
-                $rows.= wf_TableRowStyled($cells, 'row5');
+                $rows.= wf_TableRow($cells, 'row5');
             }
             $list = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {

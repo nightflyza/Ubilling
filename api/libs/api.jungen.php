@@ -895,6 +895,7 @@ class JunAcct {
 
             if (!empty($rawResult)) {
                 $logData = explodeRows($rawResult);
+                $logData = array_reverse($logData); //from new to old list
                 if (!empty($logData)) {
 
 
