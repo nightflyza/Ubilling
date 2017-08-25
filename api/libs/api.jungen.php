@@ -818,10 +818,12 @@ class JunAcct {
         $curTime = time();
         $dayAgo = $curTime - 86400;
         $dayAgo = date("Y-m-d", $dayAgo);
+        $dayTomorrow = $curTime + 86400;
+        $dayTomorrow = date("Y-m-d", $dayTomorrow);
         $preDateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : $dayAgo;
+        $preDateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : $dayTomorrow;
         $unfinishedFlag = (wf_CheckPost(array('showunfinished'))) ? true : false;
 
-        $preDateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
         $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
         $inputs.= wf_DatePickerPreset('dateto', $preDateTo, false);
         $inputs.= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
@@ -850,8 +852,13 @@ class JunAcct {
                 $searchDateFrom = mysql_real_escape_string($_POST['datefrom']);
                 $searchDateTo = mysql_real_escape_string($_POST['dateto']);
             } else {
-                $searchDateFrom = curdate();
-                $searchDateTo = curdate();
+                $curTime = time();
+                $dayAgo = $curTime - 86400;
+                $dayAgo = date("Y-m-d", $dayAgo);
+                $dayTomorrow = $curTime + 86400;
+                $dayTomorrow = date("Y-m-d", $dayTomorrow);
+                $searchDateFrom = $dayAgo;
+                $searchDateTo = $dayTomorrow;
             }
 
             if (wf_CheckPost(array('showunfinished'))) {
@@ -873,6 +880,7 @@ class JunAcct {
      */
     public function renderAcctStats() {
         $result = '';
+        $totalCount = 0;
         if (!empty($this->userAcctData)) {
             $cells = wf_TableCell('acctsessionid');
             $cells.= wf_TableCell('username');
@@ -920,9 +928,11 @@ class JunAcct {
                 $cells.= wf_TableCell($each['acctterminatecause']);
                 $cells.= wf_TableCell($timeOffset, '', '', 'sorttable_customkey="' . $timeOffsetRaw . '"');
                 $rows.= wf_TableRow($cells, 'row3');
+                $totalCount++;
             }
 
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            $result.=__('Total') . ': ' . $totalCount;
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
         }
