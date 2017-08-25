@@ -2646,5 +2646,6 @@ $lang['def']['Is NAS monitoring enabled'] = 'Моніторинг сервері
 $lang['def']['NAS servers is dead'] = 'серверів доступу померли';
 $lang['def']['NAS servers state'] = 'Стан серверів доступу';
 $lang['def']['right to view NAS servers state report'] = 'Право переглядати звіт зі станом NAS';
+$lang['def']['Show unfinished'] = 'Показувати незавершені';
 
 ?>

@@ -7,7 +7,8 @@ if ($altCfg['JUNGEN_ENABLED']) {
         if (wf_CheckGet(array('dljungenlog'))) {
             $junAcct->logDownload();
         }
-        show_window(__('Juniper NAS sessions stats') . ' ' . $junAcct->renderLogControl(), $junAcct->renderAcctStats());
+        $dateFormControls = $junAcct->renderDateSerachControls();
+        show_window(__('Juniper NAS sessions stats') . ' ' . $junAcct->renderLogControl(), $dateFormControls . $junAcct->renderAcctStats());
     } else {
         show_error(__('Access denied'));
     }

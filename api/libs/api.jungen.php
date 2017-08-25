@@ -797,6 +797,40 @@ class JunAcct {
     }
 
     /**
+     * Transforms mac from xx:xx:xx:xx:xx:xx format to xxxx.xxxx.xxxx
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function transformMac($mac) {
+        $result = implode(".", str_split(str_replace(":", "", $mac), 4));
+        return ($result);
+    }
+
+    /**
+     * Renders controls for acct date search
+     * 
+     * @return string
+     */
+    public function renderDateSerachControls() {
+        $result = '';
+        $curTime = time();
+        $dayAgo = $curTime - 86400;
+        $dayAgo = date("Y-m-d", $dayAgo);
+        $preDateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : $dayAgo;
+        $unfinishedFlag = (wf_CheckPost(array('showunfinished'))) ? true : false;
+
+        $preDateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
+        $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
+        $inputs.= wf_DatePickerPreset('dateto', $preDateTo, false);
+        $inputs.= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
      * Loading some data from database
      * 
      * @return void
@@ -805,12 +839,29 @@ class JunAcct {
         $fieldsList = implode(', ', $this->fieldsRequired);
         if (!empty($this->userLogin)) {
             $userIp = zb_UserGetIP($this->userLogin);
+            $userMac = zb_MultinetGetMAC($userIp);
+            $userMacJ = $this->transformMac($userMac);
             if (!empty($userIp)) {
-                $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` WHERE `framedipaddress`='" . $userIp . "' ORDER BY `radacctid` DESC;";
+                $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` WHERE `username`='" . $userMacJ . "' ORDER BY `radacctid` DESC;";
                 $this->userAcctData = simple_queryall($query);
             }
         } else {
-            $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` ORDER BY `radacctid` DESC;";
+            if (wf_CheckPost(array('datefrom', 'dateto'))) {
+                $searchDateFrom = mysql_real_escape_string($_POST['datefrom']);
+                $searchDateTo = mysql_real_escape_string($_POST['dateto']);
+            } else {
+                $searchDateFrom = curdate();
+                $searchDateTo = curdate();
+            }
+
+            if (wf_CheckPost(array('showunfinished'))) {
+                $unfQueryfilter = "OR `acctstoptime` IS NULL ";
+            } else {
+                $unfQueryfilter = '';
+            }
+
+            $query = "SELECT " . $fieldsList . " FROM `" . $this->tableName . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
+                    . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
             $this->userAcctData = simple_queryall($query);
         }
     }
@@ -837,6 +888,7 @@ class JunAcct {
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->userAcctData as $io => $each) {
+                $cellClass = 'row3';
                 if (!empty($each['acctstoptime'])) {
                     $startTime = strtotime($each['acctstarttime']);
                     $endTime = strtotime($each['acctstoptime']);
@@ -846,7 +898,17 @@ class JunAcct {
                     $timeOffset = '';
                     $timeOffsetRaw = '';
                 }
-                $cells = wf_TableCell($each['acctsessionid']);
+
+                //some coloring
+                if (empty($each['acctstoptime'])) {
+                    $cellClass = 'undone';
+                } else {
+                    $cellClass = 'todaysig';
+                }
+
+
+
+                $cells = wf_TableCell($each['acctsessionid'], '', $cellClass);
                 $cells.= wf_TableCell($each['username']);
                 $cells.= wf_TableCell($each['nasipaddress']);
                 $cells.= wf_TableCell($each['nasportid']);
