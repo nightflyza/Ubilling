@@ -809,6 +809,18 @@ class JunAcct {
     }
 
     /**
+     * Transforms mac from xxxx.xxxx.xxxx format to xx:xx:xx:xx:xx:xx
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function transformMacNormal($mac) {
+        $result = implode(":", str_split(str_replace(".", "", $mac), 2));
+        return ($result);
+    }
+
+    /**
      * Renders controls for acct date search
      * 
      * @return string
@@ -881,7 +893,12 @@ class JunAcct {
     public function renderAcctStats() {
         $result = '';
         $totalCount = 0;
+
         if (!empty($this->userAcctData)) {
+            $allUserMacs = zb_UserGetAllMACs();
+            $allUserMacs = array_flip($allUserMacs);
+            $allUserAddress = zb_AddressGetFulladdresslistCached();
+
             $cells = wf_TableCell('acctsessionid');
             $cells.= wf_TableCell('username');
             $cells.= wf_TableCell('nasipaddress');
@@ -893,10 +910,12 @@ class JunAcct {
             $cells.= wf_TableCell('framedipaddress');
             $cells.= wf_TableCell('acctterminatecause');
             $cells.= wf_TableCell(__('Time'));
+            $cells.= wf_TableCell(__('User'));
             $rows = wf_TableRow($cells, 'row1');
 
             foreach ($this->userAcctData as $io => $each) {
-                $cellClass = 'row3';
+                $fc = '';
+                $efc = wf_tag('font', true);
                 if (!empty($each['acctstoptime'])) {
                     $startTime = strtotime($each['acctstarttime']);
                     $endTime = strtotime($each['acctstoptime']);
@@ -909,14 +928,19 @@ class JunAcct {
 
                 //some coloring
                 if (empty($each['acctstoptime'])) {
-                    $cellClass = 'undone';
+                    $fc = wf_tag('font', false, '', 'color="#ff6600"');
                 } else {
-                    $cellClass = 'todaysig';
+                    $fc = wf_tag('font', false, '', 'color="#005304"');
                 }
 
+                //user detection
+                $normalMac = $this->transformMacNormal($each['username']);
+                $loginDetect = (isset($allUserMacs[$normalMac])) ? $allUserMacs[$normalMac] : '';
+                $userAddress = (!empty($loginDetect)) ? @$allUserAddress[$loginDetect] : '';
+                $profileLink = (!empty($loginDetect)) ? wf_Link('?module=userprofile&username=' . $loginDetect, web_profile_icon() . ' ' . $userAddress, false) : '';
 
 
-                $cells = wf_TableCell($each['acctsessionid'], '', $cellClass);
+                $cells = wf_TableCell($fc . $each['acctsessionid'] . $efc);
                 $cells.= wf_TableCell($each['username']);
                 $cells.= wf_TableCell($each['nasipaddress']);
                 $cells.= wf_TableCell($each['nasportid']);
@@ -927,6 +951,7 @@ class JunAcct {
                 $cells.= wf_TableCell($each['framedipaddress']);
                 $cells.= wf_TableCell($each['acctterminatecause']);
                 $cells.= wf_TableCell($timeOffset, '', '', 'sorttable_customkey="' . $timeOffsetRaw . '"');
+                $cells.= wf_TableCell($profileLink);
                 $rows.= wf_TableRow($cells, 'row3');
                 $totalCount++;
             }
