@@ -1727,7 +1727,7 @@ class UkvSystem {
     /**
      * process of uploading of bank statement
      * 
-     * @return void
+     * @return array
      */
     public function bankstaDoUpload() {
         $uploaddir = self::BANKSTA_PATH;
@@ -1837,7 +1837,7 @@ class UkvSystem {
                 for ($i = 0; $i <= $num_rec; $i++) {
                     $eachRow = $dbf->getRowAssoc($i);
                     if (!empty($eachRow)) {
-                        if (!empty($eachRow[self::BANKSTA_CONTRACT])) {
+                        if (@$eachRow[self::BANKSTA_CONTRACT] != '') {
                             $newDate = date("Y-m-d H:i:s");
                             $newContract = trim($eachRow[self::BANKSTA_CONTRACT]);
                             $newContract = mysql_real_escape_string($newContract);
@@ -3268,7 +3268,6 @@ class UkvSystem {
                 if (ispos($eachRegDate, $showMonth)) {
                     foreach ($eachRegUsers as $ix => $eachUserId) {
                         $displayTmp[] = $eachUserId;
-                        
                     }
                 }
             }
