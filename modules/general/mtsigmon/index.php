@@ -146,6 +146,8 @@ if (cfr('MTSIGMON')) {
                         //signal coloring   
                         if ($eachsig < -79) {
                             $displaysig = wf_tag('font', false, '', 'color="#900000"') . $eachsig . wf_tag('font', true);
+                        } elseif ($eachsig > -80 and $eachsig < -74) {
+                            $displaysig = wf_tag('font', false, '', 'color="#FF5500"') . $eachsig . wf_tag('font', true);
                         } else {
                             $displaysig = wf_tag('font', false, '', 'color="#006600"') . $eachsig . wf_tag('font', true);
                         }
