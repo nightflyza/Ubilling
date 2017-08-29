@@ -58,6 +58,13 @@ class IpChange {
      */
     protected $messages = '';
 
+    /**
+     * is database locking feature enabled
+     * 
+     * @var bool
+     */
+    protected $dbLockEnabled = false;
+
     const URL_ME = '?module=pl_ipchange';
 
     public function __construct() {
@@ -81,6 +88,9 @@ class IpChange {
             if ($this->altCfg['IP_CUSTOM_SELECT']) {
                 $this->customFlag = true;
             }
+        }
+        if (isset($this->altCfg['DB_LOCK_ENABLED'])) {
+            $this->dbLockEnabled = $this->altCfg['DB_LOCK_ENABLED'];
         }
     }
 
@@ -159,11 +169,11 @@ class IpChange {
 
             $result = wf_AjaxLoader();
             $inputs = wf_AjaxSelectorAC('ajcontainer', $servSelector, __('Select User new service'), '', false);
-            $inputs.= wf_tag('br') . wf_tag('br');
-            $inputs.= wf_AjaxContainer('ajcontainer', '', $this->ajIpSelector($defaultService));
-            $inputs.= wf_delimiter();
-            $inputs.= wf_Submit(__('Save'));
-            $result.= wf_Form("", 'POST', $inputs, 'floatpanels');
+            $inputs .= wf_tag('br') . wf_tag('br');
+            $inputs .= wf_AjaxContainer('ajcontainer', '', $this->ajIpSelector($defaultService));
+            $inputs .= wf_delimiter();
+            $inputs .= wf_Submit(__('Save'));
+            $result .= wf_Form("", 'POST', $inputs, 'floatpanels');
         } else {
             $result = $this->messages->getStyledMessage(__('No available services'), 'error');
         }
@@ -187,7 +197,7 @@ class IpChange {
                 @$nextFreeIp = multinet_get_next_freeip('nethosts', 'ip', $networkId);
                 if (!empty($nextFreeIp)) {
                     $result = wf_HiddenInput('ipselector', $nextFreeIp) . ' ' . $nextFreeIp . ' (' . __('first free for this service') . ')';
-                    $result.= wf_HiddenInput('serviceselector', $serviceId);
+                    $result .= wf_HiddenInput('serviceselector', $serviceId);
                 } else {
                     $result = __('No free IP available in selected pool. Please fix it in networks and services module.');
                 }
@@ -200,7 +210,7 @@ class IpChange {
                         $allFreeIpsSelector[$each] = $each;
                     }
                     $result = wf_Selector('ipselector', $allFreeIpsSelector, '', '', true);
-                    $result.= wf_HiddenInput('serviceselector', $serviceId);
+                    $result .= wf_HiddenInput('serviceselector', $serviceId);
                 } else {
                     $result = __('No free IP available in selected pool. Please fix it in networks and services module.');
                 }
@@ -217,7 +227,7 @@ class IpChange {
     public function renderCurrentIp() {
         $result = wf_tag('h2', false, 'floatpanels', '') . ' ' . $this->currentIp . wf_tag('h2', true);
         $result = $this->messages->getStyledMessage(wf_tag('h2', false, '', '') . __('Current user IP') . ': ' . $this->currentIp . wf_tag('h2', true), 'info');
-        $result.= wf_CleanDiv();
+        $result .= wf_CleanDiv();
         return ($result);
     }
 
@@ -282,11 +292,11 @@ class IpChange {
         $data = $this->getFreeIpStats();
 
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('Network/CIDR'));
-        $cells.= wf_TableCell(__('Total') . ' ' . __('IP'));
-        $cells.= wf_TableCell(__('Used') . ' ' . __('IP'));
-        $cells.= wf_TableCell(__('Free') . ' ' . __('IP'));
-        $cells.= wf_TableCell(__('Service'));
+        $cells .= wf_TableCell(__('Network/CIDR'));
+        $cells .= wf_TableCell(__('Total') . ' ' . __('IP'));
+        $cells .= wf_TableCell(__('Used') . ' ' . __('IP'));
+        $cells .= wf_TableCell(__('Free') . ' ' . __('IP'));
+        $cells .= wf_TableCell(__('Service'));
         $rows = wf_TableRow($cells, 'row1');
 
         if (!empty($data)) {
@@ -294,12 +304,12 @@ class IpChange {
                 $free = $each['total'] - $each['used'];
                 $fontColor = ($free <= 5) ? '#a90000' : '';
                 $cells = wf_TableCell($io);
-                $cells.= wf_TableCell($each['desc']);
-                $cells.= wf_TableCell($each['total']);
-                $cells.= wf_TableCell($each['used']);
-                $cells.= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
-                $cells.= wf_TableCell($each['service']);
-                $rows.= wf_TableRow($cells, 'row3');
+                $cells .= wf_TableCell($each['desc']);
+                $cells .= wf_TableCell($each['total']);
+                $cells .= wf_TableCell($each['used']);
+                $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
+                $cells .= wf_TableCell($each['service']);
+                $rows .= wf_TableRow($cells, 'row3');
             }
         }
 
@@ -332,6 +342,16 @@ class IpChange {
      * @return void/string
      */
     public function changeUserIp($serviceId, $newIp) {
+        //set lock or wait until previous lock will be released
+        //lock name "ipBind" is shared between userreg and pl_ipchange
+        if($this->dbLockEnabled) {
+            $dbLockQuery = 'SELECT GET_LOCK("ipBind",1) AS result';
+            $dbLock = false;
+            while(!$dbLock) {
+                $dbLockCheck = simple_query($dbLockQuery);
+                $dbLock = $dbLockCheck['result'];
+            }
+        }
         global $billing;
         $result = '';
         $serviceId = vf($serviceId, 3);
@@ -377,6 +397,11 @@ class IpChange {
         } else {
             log_register("CHANGE FAIL MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . " NO_SERVICE");
             $result = __('Unexistent service');
+        }
+        //release lock
+        if($this->dbLockEnabled) {
+            $dbUnlockQuery = 'SELECT RELEASE_LOCK("ipBind")';
+            nr_query($dbUnlockQuery);
         }
         return ($result);
     }
