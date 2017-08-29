@@ -345,10 +345,11 @@ class IpChange {
         //set lock or wait until previous lock will be released
         //lock name "ipBind" is shared between userreg and pl_ipchange
         if($this->dbLockEnabled) {
-            $dbLockQuery = 'SELECT GET_LOCK("ipBind",1)';
+            $dbLockQuery = 'SELECT GET_LOCK("ipBind",1) AS result';
             $dbLock = false;
             while(!$dbLock) {
-                $dbLock = simple_query($dbLockQuery);
+                $dbLockCheck = simple_query($dbLockQuery);
+                $dbLock = $dbLockCheck['result'];
             }
         }
         global $billing;
