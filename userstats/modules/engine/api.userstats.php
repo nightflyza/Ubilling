@@ -1316,12 +1316,9 @@ function zbs_ModulesMenuShow($icons = false) {
 
     if ($globconf['auth'] == 'login') {
         if (isset($globconf['INTRO_MODE'])) {
-            if ($globconf['INTRO_MODE']) {
+            if ($globconf['INTRO_MODE'] == '2') {
                 if ((!isset($_COOKIE['upassword'])) OR ( @$_COOKIE['upassword'] == 'nopassword')) {
-                    $introFileName = 'config/intro.txt';
-                    if (file_exists($introFileName)) {
-                        $result = file_get_contents($introFileName);
-                    }
+                    $result = zbs_IntroLoadText();
                 }
             }
         }
@@ -1831,6 +1828,16 @@ function zbs_AnnouncementsNotice() {
         $result.=la_TableBody($rows, '70%', 0, '');
         show_window('', $result);
     }
+}
+
+/**
+ * Loads current userstats intro text
+ * 
+ * @return string
+ */
+function zbs_IntroLoadText() {
+    $result = zbs_StorageGet('ZBS_INTRO');
+    return ($result);
 }
 
 ?>

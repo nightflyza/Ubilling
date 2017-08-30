@@ -3,6 +3,13 @@
 if (cfr('ZBSANN')) {
     $altercfg = $ubillingConfig->getAlter();
     if ($altercfg['ANNOUNCEMENTS']) {
+        //intro editing here
+        if (wf_CheckPost(array('newzbsintro'))) {
+            $zbsIntro = new ZbsIntro();
+            $zbsIntro->saveIntroText($_POST['newzbsintrotext']);
+            rcms_redirect('?module=zbsannouncements');
+        }
+
 
         show_window('', web_AnnouncementsControls());
         //userstats announcements management

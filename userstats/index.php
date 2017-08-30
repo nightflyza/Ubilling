@@ -1,7 +1,6 @@
 <?php
 
 //error_reporting(E_ALL);
-
 // LOAD LIBS:
 include('modules/engine/api.mysql.php');
 include('modules/engine/api.compat.php');
@@ -47,13 +46,31 @@ if ($user_ip) {
             }
         }
 
+        //top intro
+        if (isset($us_config['INTRO_MODE'])) {
+            if ($us_config['INTRO_MODE'] == '3') {
+                show_window('', zbs_IntroLoadText());
+            }
+        }
         //shows user profile by default
         show_window(__('User profile'), zbs_UserShowProfile($user_login));
+        //bottom intro
+        if (isset($us_config['INTRO_MODE'])) {
+            if ($us_config['INTRO_MODE'] == '1') {
+                show_window('', zbs_IntroLoadText());
+            }
+        }
     } else
         zbs_LoadModule($_GET['module']);
 } else {
     if ($us_config['auth'] == 'login') {
         zbs_LoginForm();
+        //bottom auth intro
+        if (isset($us_config['INTRO_MODE'])) {
+            if ($us_config['INTRO_MODE'] == '4') {
+                show_window('', zbs_IntroLoadText());
+            }
+        }
     }
 }
 

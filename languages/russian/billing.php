@@ -2632,6 +2632,8 @@ $lang['def']['NAS servers state'] = 'Состояние серверов дос�
 $lang['def']['right to view NAS servers state report'] = 'Право просматривать отчет по состоянию NAS';
 $lang['def']['Show unfinished'] = 'Показывать незавершенные';
 $lang['def']['All networks'] = 'Все сети';
+$lang['def']['Userstats intro'] = 'Интро кабинета';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

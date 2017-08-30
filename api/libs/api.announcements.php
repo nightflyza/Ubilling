@@ -6,8 +6,10 @@
  * @return string
  */
 function web_AnnouncementsControls() {
+    $introObj = new ZbsIntro();
     $result = '';
     $result.=wf_Link('?module=zbsannouncements', wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats announcements'), false, 'ubButton') . ' ';
+    $result.= wf_modalAuto(wf_img('skins/zbsannouncements.png') . ' ' . __('Userstats intro'), __('Userstats intro'), $introObj->introEditForm(), 'ubButton');
     $result.=wf_Link('?module=zbsannouncements&admiface=true', wf_img('skins/admannouncements.png') . ' ' . __('Administrators announcements'), false, 'ubButton');
     return ($result);
 }
@@ -521,6 +523,65 @@ class AdminAnnouncements {
             nr_query($query);
             log_register("ANNOUNCEMENT ADM READ [" . $announcementId . "]");
         }
+    }
+
+}
+
+class ZbsIntro {
+
+    /**
+     * Contains current intro text
+     *
+     * @var string
+     */
+    protected $introText = '';
+
+    /**
+     * Contains intro text storage key name
+     */
+    const INTRO_KEY = 'ZBS_INTRO';
+
+    /**
+     * Creates new intro instance
+     */
+    public function __construct() {
+        $this->loadIntroText();
+    }
+
+    /**
+     * Loads current intro text from database
+     * 
+     * @return void
+     */
+    protected function loadIntroText() {
+        $this->introText = zb_StorageGet(self::INTRO_KEY);
+    }
+
+    /**
+     * Renders intro text editing form
+     * 
+     * @return string
+     */
+    public function introEditForm() {
+        $result = '';
+        $inputs = wf_HiddenInput('newzbsintro', 'true');
+        $inputs.= __('Text') . ' (HTML)' . wf_tag('br');
+        $inputs.= wf_TextArea('newzbsintrotext', '', $this->introText, true, '70x15');
+        $inputs.= wf_Submit(__('Save'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Stores new intro text in database
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    public function saveIntroText($data) {
+        zb_StorageSet(self::INTRO_KEY, $data);
+        log_register('ANNOUNCEMENT INTRO UPDATE');
     }
 
 }
