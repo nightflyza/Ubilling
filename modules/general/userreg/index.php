@@ -2,6 +2,13 @@
 
 if (cfr('USERREG')) {
     $alter_conf = $ubillingConfig->getAlter();
+    //check if exclusive database locking is enabled
+    $dbLockEnabled = false;
+    if (isset($alter_conf['DB_LOCK_ENABLED'])) {
+        if ($alter_conf['DB_LOCK_ENABLED']) {
+            $dbLockEnabled = true;
+        }
+    }
 
     if ( $_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac']) ) {
         $PONAPIObject = new PONizer();
@@ -48,6 +55,16 @@ if (cfr('USERREG')) {
             $newuser_data = unserialize(base64_decode($_POST['repostdata']));
         }
 
+        //create exclusive lock or wait until previous lock will be released
+        //lock name "ipBind" is shared between userreg and pl_ipchange
+        if ($dbLockEnabled) {
+            $dbLockQuery = 'SELECT GET_LOCK("ipBind",1) AS result';
+            $dbLock = false;
+            while(!$dbLock) {
+                $dbLockCheck = simple_query($dbLockQuery);
+                $dbLock = $dbLockCheck['result'];
+            }
+        }
         show_window(__('User registration step 2 (Services)'), web_UserRegFormNetData($newuser_data));
         zb_BillingStats(true);
 
@@ -61,6 +78,11 @@ if (cfr('USERREG')) {
             $newuser_data['onumac'] = $_POST['onumac'];
 
             zb_UserRegister($newuser_data);
+            //release db lock
+            if ($dbLockEnabled) {
+                $dbUnlockQuery = 'SELECT RELEASE_LOCK("ipBind")';
+                nr_query($dbUnlockQuery);
+            }
         }
     }
 
