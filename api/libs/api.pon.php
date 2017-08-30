@@ -153,6 +153,16 @@ class PONizer {
     }
 
     /**
+     * Getter for allOltDevices array
+     *
+     * @return array
+     */
+
+    public function getAllOltDevices() {
+        return $this->allOltDevices;
+    }
+
+    /**
      * Loads all available snmp models data into private data property
      * 
      * @return void
@@ -825,6 +835,39 @@ class PONizer {
     }
 
     /**
+     * Returns int for ONU has or has not some of subscribers login assignment
+     * 0 - has no assignment
+     * 1 - has assignment, but login does not exist
+     * 2 - has assignment
+     *
+     * @param int $onuid
+     *
+     * @return int
+     */
+    public function checkONUAssignment($onuid) {
+        $result = 0;
+        $tLogin = '';
+
+        if (empty($onuid)) return $result;
+
+        $query = "SELECT * from `pononu` WHERE `id`='" . $onuid . "'" ;
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            $tLogin = $all[0]['login'];
+
+            if (!empty($tLogin)) {
+                $query = "SELECT * from `users` WHERE `login`='" . $tLogin . "'" ;
+                $LoginRec = simple_queryall($query);
+
+                empty($LoginRec) ? $result = 1 : $result = 2;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Getter for loaded ONU devices
      * 
      * @return array
@@ -832,6 +875,29 @@ class PONizer {
     public function getAllOnu() {
         return ($this->allOnu);
     }
+
+    /**
+     * Returns ONU ID by ONU MAC or 0 if not found
+     *
+     * @param string $mac
+     *
+     * @return int
+     */
+    public function getONUIDByMAC($mac) {
+        $mac = strtolower($mac);
+        $ONUID = 0;
+
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if ($each['mac'] == $mac) {
+                    $ONUID = $each['id'];
+                }
+            }
+        }
+
+        return $ONUID;
+    }
+
 
     /**
      * Loads available device models from database
@@ -845,6 +911,15 @@ class PONizer {
                 $this->allModelsData[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Getter for allModelsData array
+     *
+     * @return array
+     */
+    public function getAllModelsData() {
+        return $this->allModelsData;
     }
 
     /**
@@ -867,7 +942,7 @@ class PONizer {
      * @param string $mac
      * @return bool
      */
-    protected function checkMacUnique($mac) {
+    public function checkMacUnique($mac) {
         $mac = strtolower($mac);
         $result = true;
         if (!empty($this->allOnu)) {
