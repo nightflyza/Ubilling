@@ -9,7 +9,6 @@
 include ("../../libs/api.openpayz.php");
 
 /**
- *
  * Check for GET have needed variables
  *
  * @param   $params array of GET variables to check
@@ -50,15 +49,86 @@ function qiwi_CheckTransaction($hash) {
     }
 }
 
+/**
+ * Makes some bad reply
+ * 
+ * @param string $hash
+ * @param int $errorCode
+ * 
+ * @return void
+ */
+function qiwi_BadReply($hash, $errorCode = 5) {
+    $comment = 'Unknown error';
+    switch ($errorCode) {
+        case 5:
+            $comment = 'The subscriber has gone to Bobruisk...';
+            break;
+    }
+    $result = '
+                        <?xml version="1.0" encoding="UTF-8"?>
+                        <response>
+                        <osmp_txn_id>' . $hash . '</osmp_txn_id>
+                        <result>5</result>
+                        <comment>' . $comment . '</comment>
+                        </response>
+                        ';
+    $result = trim($result);
+    die($result);
+}
+
+/**
+ * Casts some good reply
+ * 
+ * @param string $hash
+ * 
+ * @return void
+ */
+function qiwi_GoodReply($hash) {
+    $result = '
+                    <?xml version="1.0"?>
+                    <response>
+                       <osmp_txn_id>' . $hash . '</osmp_txn_id>
+                       <result>0</result>
+                    </response>
+                    ';
+    $result = trim($result);
+    die($result);
+}
+
 $required = array('command', 'txn_id', 'account', 'sum');
 
 //если нас пнули объязательными параметрами
 if (qiwi_CheckGet($required)) {
+    $command = $_GET['command'];
 
     //это нас киви как-бы проверяет на вшивость
-    if ($_GET['command'] == 'check') {
+    if ($command == 'check') {
         $allcustomers = op_CustomersGetAll();
+        $hash = $_GET['txn_id'];
+        $summ = $_GET['sum'];
+        $customerid = trim($_GET['account']);
+        $hashStore = $paysys . '_' . $hash;
 
+
+        //нашелся братиша!
+        if (isset($allcustomers[$customerid])) {
+            //проверяем транзакцию на уникальность   
+            if (qiwi_CheckTransaction($hashStore)) {
+                //говорим, что все хорошо и мы готовы принимать платеж
+                qiwi_GoodReply($hash);
+            } else {
+                //дубликат транзакции
+                qiwi_BadReply($hash, 300);
+            }
+        } else {
+            //абонент не найден
+            qiwi_BadReply($hash, 5);
+        }
+    }
+
+    //уже совершение платежа после проверки на вшивость
+    if ($command == 'pay') {
+        $allcustomers = op_CustomersGetAll();
         $hash = $_GET['txn_id'];
         $summ = $_GET['sum'];
         $customerid = trim($_GET['account']);
@@ -70,34 +140,19 @@ if (qiwi_CheckGet($required)) {
         if (isset($allcustomers[$customerid])) {
             //проверяем транзакцию на уникальность   
             if (qiwi_CheckTransaction($hashStore)) {
-                //и если все ок - регистрируем новую  
-                //регистрируем новую транзакцию
+                //и если все ок - регистрируем новую транзакцию
                 op_TransactionAdd($hashStore, $summ, $customerid, $paysys, $note);
                 //вызываем обработчики необработанных транзакций
                 op_ProcessHandlers();
+                //говорим, что вроде как получилось
+                qiwi_GoodReply($hash);
+            } else {
+                //дубликат транзакции
+                qiwi_BadReply($hash, 300);
             }
-
-            //в любом случае отвечаем, что у нас все хорошо в этой жизни
-            $good_reply = '
-                    <?xml version="1.0"?>
-                    <response>
-                       <osmp_txn_id>' . $hash . '</osmp_txn_id>
-                       <result>0</result>
-                    </response>
-                    ';
-            $good_reply = trim($good_reply);
-            die($good_reply);
         } else {
-            $bad_reply = '
-                        <?xml version="1.0" encoding="UTF-8"?>
-                        <response>
-                        <osmp_txn_id>' . $hash . '</osmp_txn_id>
-                        <result>5</result>
-                        <comment>The subscriber has gone to Bobruisk...</comment>
-                        </response>
-                        ';
-            $bad_reply = trim($bad_reply);
-            die($bad_reply);
+            //user not found
+            qiwi_BadReply($hash, 5);
         }
     }
 }
