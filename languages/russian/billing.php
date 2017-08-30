@@ -2631,7 +2631,7 @@ $lang['def']['NAS servers is dead'] = 'серверов доступа умер�
 $lang['def']['NAS servers state'] = 'Состояние серверов доступа';
 $lang['def']['right to view NAS servers state report'] = 'Право просматривать отчет по состоянию NAS';
 $lang['def']['Show unfinished'] = 'Показывать незавершенные';
-$lang['def'][''] = '';
+$lang['def']['All networks'] = 'Все сети';
 $lang['def'][''] = '';
 
 

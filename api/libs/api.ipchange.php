@@ -291,7 +291,15 @@ class IpChange {
         $result = '';
         $data = $this->getFreeIpStats();
 
-        $controls = wf_Link(self::URL_ME . '&username=' . $this->login . '&servnets=true', __('Networks with services'), false, 'ubButton');
+        //checking service filters
+        if (wf_CheckGet(array('allnets'))) {
+            $servFlag = false;
+        } else {
+            $servFlag = true;
+        }
+
+        $controls = wf_Link(self::URL_ME . '&username=' . $this->login, wf_img('skins/done_icon.png') . ' ' . __('Services'), false, 'ubButton');
+        $controls.= wf_Link(self::URL_ME . '&username=' . $this->login . '&allnets=true', wf_img('skins/categories_icon.png') . ' ' . __('All networks'), false, 'ubButton');
 
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Network/CIDR'));
@@ -303,20 +311,33 @@ class IpChange {
 
         if (!empty($data)) {
             foreach ($data as $io => $each) {
-                $free = $each['total'] - $each['used'];
-                $fontColor = ($free <= 5) ? '#a90000' : '';
-                $cells = wf_TableCell($io);
-                $cells .= wf_TableCell($each['desc']);
-                $cells .= wf_TableCell($each['total']);
-                $cells .= wf_TableCell($each['used']);
-                $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
-                $cells .= wf_TableCell($each['service']);
-                $rows .= wf_TableRow($cells, 'row3');
+                if ($servFlag) {
+                    if (!empty($each['service'])) {
+                        $appendResult = true;
+                    } else {
+                        $appendResult = false;
+                    }
+                } else {
+                    $appendResult = true;
+                }
+
+                if ($appendResult) {
+                    $free = $each['total'] - $each['used'];
+                    $fontColor = ($free <= 5) ? '#a90000' : '';
+                    $cells = wf_TableCell($io);
+                    $cells .= wf_TableCell($each['desc']);
+                    $cells .= wf_TableCell($each['total']);
+                    $cells .= wf_TableCell($each['used']);
+                    $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
+                    $cells .= wf_TableCell($each['service']);
+                    $rows .= wf_TableRow($cells, 'row3');
+                }
             }
         }
 
-        $result.= $controls;
+
         $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.= $controls;
         return ($result);
     }
 
