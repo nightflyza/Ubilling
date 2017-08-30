@@ -105,6 +105,7 @@ include('api/libs/api.mapscompat.php');
 include('api/libs/api.announcements.php');
 include('api/libs/api.jungen.php');
 include('api/libs/api.nasmon.php');
+include('api/libs/api.ipchange.php');
 
 /*
  * Initial class creation

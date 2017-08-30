@@ -1,6 +1,7 @@
 [define]
 DEVICE="Foxgate S6224-S4"
 FDB=true
+FDB_IGNORE_PORTS=28
 
 [PORTSTATE]
 NAME="Port states"

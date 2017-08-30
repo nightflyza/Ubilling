@@ -5,6 +5,26 @@
  */
 
 /**
+ * Returns array of user assigned tags as login=>array of tags with their names
+ * 
+ * @return array
+ */
+function zb_UserGetAllTags() {
+    $result = array();
+    $tagTypes = stg_get_alltagnames();
+    if (!empty($tagTypes)) {
+        $query = "SELECT * from `tags`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $result[$each['login']][$each['tagid']] = @$tagTypes[$each['tagid']];
+            }
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns tag creation priority selector
  * 
  * @param int $max

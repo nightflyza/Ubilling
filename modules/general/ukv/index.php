@@ -169,6 +169,7 @@ if (cfr('UKV')) {
                         if (isset($_POST['lockbankstarow'])) {
                             //locking some row if needed
                             $ukv->bankstaSetProcessed($_POST['bankstacontractedit']);
+                            log_register('UKV BANKSTA [' . $_POST['bankstacontractedit'] . '] LOCKED');
                         }
                         rcms_redirect(UkvSystem::URL_BANKSTA_PROCESSING . $_GET['showhash']);
                     }
