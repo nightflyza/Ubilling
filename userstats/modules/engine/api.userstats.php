@@ -1275,6 +1275,12 @@ function zbs_ModulesMenuShow($icons = false) {
 
     $count = 1;
     $result = '';
+    //default home link
+    if ($icons) {
+        $result.='<li><a href="index.php"><img src="' . $skinPath . 'iconz/home.gif"> ' . __('Home') . '</a></li>';
+    } else {
+        $result.='<li><a href="index.php"> ' . __('Home') . '</a></li>';
+    }
     if (!empty($all_modules)) {
         foreach ($all_modules as $eachmodule) {
             if ($icons == true) {
@@ -1307,6 +1313,21 @@ function zbs_ModulesMenuShow($icons = false) {
             }
         }
     }
+
+    if ($globconf['auth'] == 'login') {
+        if (isset($globconf['INTRO_MODE'])) {
+            if ($globconf['INTRO_MODE']) {
+                if ((!isset($_COOKIE['upassword'])) OR ( @$_COOKIE['upassword'] == 'nopassword')) {
+                    $introFileName = 'config/intro.txt';
+                    if (file_exists($introFileName)) {
+                        $result = file_get_contents($introFileName);
+                    }
+                }
+            }
+        }
+    }
+
+
     return($result);
 }
 

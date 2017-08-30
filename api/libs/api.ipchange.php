@@ -291,6 +291,8 @@ class IpChange {
         $result = '';
         $data = $this->getFreeIpStats();
 
+        $controls = wf_Link(self::URL_ME . '&username=' . $this->login . '&servnets=true', __('Networks with services'), false, 'ubButton');
+
         $cells = wf_TableCell(__('ID'));
         $cells .= wf_TableCell(__('Network/CIDR'));
         $cells .= wf_TableCell(__('Total') . ' ' . __('IP'));
@@ -313,7 +315,8 @@ class IpChange {
             }
         }
 
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.= $controls;
+        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
         return ($result);
     }
 
@@ -344,10 +347,10 @@ class IpChange {
     public function changeUserIp($serviceId, $newIp) {
         //set lock or wait until previous lock will be released
         //lock name "ipBind" is shared between userreg and pl_ipchange
-        if($this->dbLockEnabled) {
+        if ($this->dbLockEnabled) {
             $dbLockQuery = 'SELECT GET_LOCK("ipBind",1) AS result';
             $dbLock = false;
-            while(!$dbLock) {
+            while (!$dbLock) {
                 $dbLockCheck = simple_query($dbLockQuery);
                 $dbLock = $dbLockCheck['result'];
             }
@@ -399,7 +402,7 @@ class IpChange {
             $result = __('Unexistent service');
         }
         //release lock
-        if($this->dbLockEnabled) {
+        if ($this->dbLockEnabled) {
             $dbUnlockQuery = 'SELECT RELEASE_LOCK("ipBind")';
             nr_query($dbUnlockQuery);
         }

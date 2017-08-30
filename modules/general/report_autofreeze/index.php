@@ -4,9 +4,9 @@ if (cfr('REPORTAUTOFREEZE')) {
 
     class ReportAutoFreeze {
 
-        private $data = array();
-        private $frozen = array();
-        private $interval = '';
+        protected $data = array();
+        protected $frozen = array();
+        protected $interval = '';
 
         public function __construct($date = '') {
             //load actual data
@@ -22,7 +22,7 @@ if (cfr('REPORTAUTOFREEZE')) {
          * 
          * @return void
          */
-        private function loadData($date = '') {
+        protected function loadData($date = '') {
             if (!empty($date)) {
                 $wherePostfix = " AND `date` LIKE '" . $date . "%';";
             } else {
@@ -57,7 +57,7 @@ if (cfr('REPORTAUTOFREEZE')) {
          * 
          * @return void 
          */
-        private function loadFrozen() {
+        protected function loadFrozen() {
             $query = "SELECT `login` from `users` WHERE `Passive`='1'";
             $all = simple_queryall($query);
             if (!empty($all)) {
