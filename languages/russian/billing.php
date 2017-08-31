@@ -2633,8 +2633,12 @@ $lang['def']['right to view NAS servers state report'] = 'Право просм�
 $lang['def']['Show unfinished'] = 'Показывать незавершенные';
 $lang['def']['All networks'] = 'Все сети';
 $lang['def']['Userstats intro'] = 'Интро кабинета';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Associate ONU with subscriber'] = 'Ассоциировать ONU с пользователем';
+$lang['def']['Make ONU IP same as subscriber IP'] = 'Использовать IP пользователя так же и как IP ONU';
+$lang['def']['Check if ONU is assigned to any login already'] = 'Проверить, не ассоциирована ли ONU с другим пользователем';
+$lang['def']['ONU is not assigned'] = 'ONU еще не ассоциирована';
+$lang['def']['ONU is already assigned'] = 'ONU уже ассоциирована';
+$lang['def']['ONU is already assigned, but such login is not exists anymore'] = 'ONU уже ассоциирована, но пользователя с таким логином больше не существует';
 
 
 ?>
