@@ -291,6 +291,7 @@ TASKREPORT_SIGPAYID=VARCHAR|Signup payments cashtype ID
 BRANCHES_ENABLED=TRIGGER|Branches enabled
 ONUAUTO_CONFIG_REBOOT=TRIGGER|ONU reboot from vlans control module
 ONUAUTO_CONFIG_DESCRIBE=TRIGGER|ONU describe from vlans control module
+ONUAUTO_USERREG=TRIGGER|Is PON ONU auto assign on user register enabled
 STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
 NASMON_ENABLED=TRIGGER|Is NAS monitoring enabled
 CHAPTEREND_BEH=true

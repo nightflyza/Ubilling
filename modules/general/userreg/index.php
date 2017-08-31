@@ -10,27 +10,30 @@ if (cfr('USERREG')) {
         }
     }
 
-    if ( $_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac']) ) {
-        $PONAPIObject = new PONizer();
-        $ONUMAC = $_GET['onumac'];
-        $ONUAssignment = $PONAPIObject->checkONUAssignment($PONAPIObject->getONUIDByMAC($ONUMAC));
+    //ONU assigment check
+    if (@$alter_conf['ONUAUTO_USERREG']) {
+        if ($_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac'])) {
+            $PONAPIObject = new PONizer();
+            $ONUMAC = $_GET['onumac'];
+            $ONUAssignment = $PONAPIObject->checkONUAssignment($PONAPIObject->getONUIDByMAC($ONUMAC));
 
-        switch ($ONUAssignment) {
-            case 0:
-                $tString = __('ONU is not assigned');
-                break;
+            switch ($ONUAssignment) {
+                case 0:
+                    $tString = __('ONU is not assigned');
+                    break;
 
-            case 1:
-                $tString = __('ONU is already assigned, but such login is not exists anymore');
-                break;
+                case 1:
+                    $tString = __('ONU is already assigned, but such login is not exists anymore');
+                    break;
 
-            case 2:
-                $tString = __('ONU is already assigned');
-                break;
+                case 2:
+                    $tString = __('ONU is already assigned');
+                    break;
+            }
+
+            echo $tString;
+            die();
         }
-
-        echo $tString;
-        die();
     }
 
     if ((!isset($_POST['apt'])) AND ( !isset($_POST['IP']))) {
@@ -60,7 +63,7 @@ if (cfr('USERREG')) {
         if ($dbLockEnabled) {
             $dbLockQuery = 'SELECT GET_LOCK("ipBind",1) AS result';
             $dbLock = false;
-            while(!$dbLock) {
+            while (!$dbLock) {
                 $dbLockCheck = simple_query($dbLockQuery);
                 $dbLock = $dbLockCheck['result'];
             }
@@ -72,11 +75,13 @@ if (cfr('USERREG')) {
             $newuser_data['IP'] = $_POST['IP'];
             $newuser_data['login'] = $_POST['login'];
             $newuser_data['password'] = $_POST['password'];
-            $newuser_data['oltid'] = $_POST['oltid'];
-            $newuser_data['onumodelid'] = $_POST['onumodelid'];
-            $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['onuip'] : $_POST['IP'];
-            $newuser_data['onumac'] = $_POST['onumac'];
-
+            //ONU auto assign additional options
+            if (@$alter_conf['ONUAUTO_USERREG']) {
+                $newuser_data['oltid'] = $_POST['oltid'];
+                $newuser_data['onumodelid'] = $_POST['onumodelid'];
+                $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['IP'] : $_POST['onuip'];
+                $newuser_data['onumac'] = $_POST['onumac'];
+            }
             zb_UserRegister($newuser_data);
             //release db lock
             if ($dbLockEnabled) {

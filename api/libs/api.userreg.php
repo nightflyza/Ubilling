@@ -516,75 +516,76 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('tr', true);
     }
 
-    $PONAPIObject = new PONizer();
+    if (@$alterconf['ONUAUTO_USERREG']) {
+        $PONAPIObject = new PONizer();
 
-    $models = array();
-    $ModelsData = $PONAPIObject->getAllModelsData();
-    if (!empty($ModelsData)) {
-        foreach ($ModelsData as $io => $each) {
-            $models[$each['id']] = $each['modelname'];
+        $models = array();
+        $ModelsData = $PONAPIObject->getAllModelsData();
+        if (!empty($ModelsData)) {
+            foreach ($ModelsData as $io => $each) {
+                $models[$each['id']] = $each['modelname'];
+            }
         }
-    }
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('tr', true, 'row3');
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('tr', true, 'row3');
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('tr', true, 'row3');
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('tr', true, 'row3');
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false, '', 'style="padding-left: 15px"');
-    $form.= wf_tag('h3', false, '', 'style="color: #000"');
-    $form.= __('Associate ONU with subscriber');
-    $form.= wf_tag('h3', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false, '', 'style="padding-left: 15px"');
+        $form.= wf_tag('h3', false, '', 'style="color: #000"');
+        $form.= __('Associate ONU with subscriber');
+        $form.= wf_tag('h3', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false);
-    $form.= wf_Selector('oltid', $PONAPIObject->getAllOltDevices(), '', '', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.= __('OLT device') . wf_tag('sup') . '*' . wf_tag('sup', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_Selector('oltid', $PONAPIObject->getAllOltDevices(), '', '', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.= __('OLT device') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false);
-    $form.= wf_Selector('onumodelid', $models, '', '', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.= __('ONU model') . wf_tag('sup') . '*' . wf_tag('sup', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_Selector('onumodelid', $models, '', '', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.= __('ONU model') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false);
-    $form.= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
-    $form.= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.=__('IP ONU');
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
+        $form.= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.=__('IP ONU');
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false);
-    $form.= wf_tag('input', false, '', 'type="text" name="onumac" value="" ');
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.=__('MAC ONU') . wf_tag('sup') . '*' . wf_tag('sup', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('input', false, '', 'type="text" name="onumac" value="" ');
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.=__('MAC ONU') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
 
-    $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false);
-    $form.= wf_tag('a', false,'ubButton','href="" class="ubButton" id="onuassignment1"');
-    $form.= __('Check if ONU is assigned to any login already');
-    $form.= wf_tag('a', true);
-    $form.= wf_tag('script', false, '', 'type="text/javascript"');
-    $form.= '$(\'#onuassignment1\').click(function(evt){
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('a', false, 'ubButton', 'href="" class="ubButton" id="onuassignment1"');
+        $form.= __('Check if ONU is assigned to any login already');
+        $form.= wf_tag('a', true);
+        $form.= wf_tag('script', false, '', 'type="text/javascript"');
+        $form.= '$(\'#onuassignment1\').click(function(evt){
                 if ( typeof( $(\'input[name=onumac]\').val() ) === "string" && $(\'input[name=onumac]\').val().length > 0 ) {
                     $.ajax({
                         type: "GET",
@@ -599,13 +600,14 @@ function web_UserRegFormNetData($newuser_data) {
                 evt.preventDefault();
                 return false;                
             });';
-    $form.= wf_tag('script', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('td', false);
-    $form.= wf_tag('p', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
-    $form.= wf_tag('p', true);
-    $form.= wf_tag('td', true);
-    $form.= wf_tag('tr', true);
+        $form.= wf_tag('script', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('p', false, '', 'id="onuassignment2" style="font-weight: 600; color: #000"');
+        $form.= wf_tag('p', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
+    }
 
     $form.=wf_tag('table', true);
     $form.= wf_HiddenInput('repostdata', base64_encode(serialize($newuser_data)));
@@ -677,7 +679,10 @@ function zb_mac_unique($mac) {
  * @param bool $goprofile
  */
 function zb_UserRegister($user_data, $goprofile = true) {
-    global $billing;
+    global $billing, $ubillingConfig;
+    $billingconf = $ubillingConfig->getBilling();
+    $alterconf = $ubillingConfig->getAlter();
+
     // Init all of needed user data
     $login = vf($user_data['login']);
     $login = zb_RegLoginFilter($login);
@@ -692,11 +697,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
     $apt = $user_data['apt'];
     $serviceid = $user_data['service'];
 
-    $OLTID = $user_data['oltid'];
-    $ONUModelID = $user_data['onumodelid'];
-    $ONUIP = $user_data['onuip'];
-    $ONUMAC = $user_data['onumac'];
-    $NeedONUAssignment = !empty($ONUMAC);
+    //ONU auto assign options
+    if (@$alterconf['ONUAUTO_USERREG']) {
+        $OLTID = $user_data['oltid'];
+        $ONUModelID = $user_data['onumodelid'];
+        $ONUIP = $user_data['onuip'];
+        $ONUMAC = $user_data['onumac'];
+        $NeedONUAssignment = !empty($ONUMAC);
+    }
 
     $netid = multinet_get_service_networkid($serviceid);
     $busylogins = zb_AllBusyLogins();
@@ -758,8 +766,6 @@ function zb_UserRegister($user_data, $goprofile = true) {
     zb_UserRegisterLog($login);
 
     // if random mac needed
-    $billingconf = rcms_parse_ini_file(CONFIG_PATH . '/billing.ini');
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     if ($billingconf['REGRANDOM_MAC']) {
         // funny random mac, yeah? :)
         $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
@@ -837,17 +843,18 @@ function zb_UserRegister($user_data, $goprofile = true) {
     }
 
     // ONU assign for newly created user
-    if ($NeedONUAssignment) {
-        $PONAPIObject = new PONizer();
+    if (@$alterconf['ONUAUTO_USERREG']) {
+        if ($NeedONUAssignment) {
+            $PONAPIObject = new PONizer();
 
-        if ($PONAPIObject->checkMacUnique($ONUMAC)) {
-            $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, '', $login);
-        } else {
-            $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
-            $PONAPIObject->onuAssign($ONUID, $login);
+            if ($PONAPIObject->checkMacUnique($ONUMAC)) {
+                $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, '', $login);
+            } else {
+                $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
+                $PONAPIObject->onuAssign($ONUID, $login);
+            }
         }
     }
-
     ///////////////////////////////////
     if ($goprofile) {
         rcms_redirect("?module=userprofile&username=" . $login);

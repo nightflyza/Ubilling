@@ -2639,6 +2639,9 @@ $lang['def']['Check if ONU is assigned to any login already'] = 'Провери�
 $lang['def']['ONU is not assigned'] = 'ONU еще не ассоциирована';
 $lang['def']['ONU is already assigned'] = 'ONU уже ассоциирована';
 $lang['def']['ONU is already assigned, but such login is not exists anymore'] = 'ONU уже ассоциирована, но пользователя с таким логином больше не существует';
+$lang['def']['Is PON ONU auto assign on user register enabled'] = 'Автоматическое присваивание ONU при регистрации пользователя';
+
+
 
 
 ?>
