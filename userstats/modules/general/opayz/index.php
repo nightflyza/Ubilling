@@ -192,8 +192,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
                     }
 
 
-                    show_window(__('Online payments'), $style);
-                    show_window('', $result);
+                    show_window(__('Online payments'), $result);
                 }
             } else {
                 show_window(__('Sorry'), __('No available payment systems'));
