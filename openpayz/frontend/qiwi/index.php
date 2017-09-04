@@ -107,6 +107,7 @@ if (qiwi_CheckGet($required)) {
         $hash = $_GET['txn_id'];
         $summ = $_GET['sum'];
         $customerid = trim($_GET['account']);
+        $paysys = 'QIWI';
         $hashStore = $paysys . '_' . $hash;
 
 
