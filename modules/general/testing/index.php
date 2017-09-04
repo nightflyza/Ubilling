@@ -68,38 +68,7 @@ if ($learningFlag) {
 
         $objValues = new Values;
 
-//        $objValues->train()
-//                ->input(
-//                        $objTotalUsers->getInputValue($sampleData[0][0]), $objActiveUsers->getInputValue($sampleData[0][1]), $objInactiveUsers->getInputValue($sampleData[0][2])
-//                )
-//                ->output(
-//                        $objMoney->getOutputValue($sampleData[0][3])
-//                )
-//                   ->input(
-//                        $objTotalUsers->getInputValue($sampleData[1][0]), $objActiveUsers->getInputValue($sampleData[1][1]), $objInactiveUsers->getInputValue($sampleData[1][2])
-//                )
-//                ->output(
-//                        $objMoney->getOutputValue($sampleData[1][3])
-//                )
-//                  ->input(
-//                        $objTotalUsers->getInputValue($sampleData[2][0]), $objActiveUsers->getInputValue($sampleData[2][1]), $objInactiveUsers->getInputValue($sampleData[2][2])
-//                )
-//                ->output(
-//                        $objMoney->getOutputValue($sampleData[2][3])
-//                )
-//                   ->input(
-//                        $objTotalUsers->getInputValue($sampleData[3][0]), $objActiveUsers->getInputValue($sampleData[3][1]), $objInactiveUsers->getInputValue($sampleData[3][2])
-//                )
-//                ->output(
-//                        $objMoney->getOutputValue($sampleData[3][3])
-//                )
-//                ->input(
-//                        $objTotalUsers->getInputValue($sampleData[4][0]), $objActiveUsers->getInputValue($sampleData[4][1]), $objInactiveUsers->getInputValue($sampleData[4][2])
-//                )
-//                ->output(
-//                        $objMoney->getOutputValue($sampleData[4][3])
-//        );
-
+        //filling sample data
         if (!empty($sampleData)) {
             foreach ($sampleData as $io => $eachData) {
                 $objValues->train()->input($objTotalUsers->getInputValue($eachData[0]), $objActiveUsers->getInputValue($eachData[1]), $objInactiveUsers->getInputValue($eachData[2]))->output($objMoney->getOutputValue($eachData[3]));
