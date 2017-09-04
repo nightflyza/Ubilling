@@ -2657,4 +2657,8 @@ $lang['def']['ONU is already assigned'] = 'ONU вже асоційовано';
 $lang['def']['ONU is already assigned, but such login is not exists anymore'] = 'ONU вже асоційовано, але користувача з таким логіном більше не існує';
 $lang['def']['Is PON ONU auto assign on user register enabled'] = 'Автоматичне присвоєння ONU при реєстрації користувача';
 
+//rev 5683
+$lang['def']['All fields'] = 'Всім полям';
+$lang['def']['At least 3 characters are required for search'] = 'Для пошуку необхідно мінімум 3 символи';
+
 ?>
