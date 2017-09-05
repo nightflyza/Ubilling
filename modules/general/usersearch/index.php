@@ -27,7 +27,7 @@ if (cfr('USERSEARCH')) {
         $query = $_POST['searchquery'];
         $searchtype = $_POST['searchtype'];
         if (!empty($query)) {
-            show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize($searchtype,$query), zb_UserSearchFields($query, $searchtype));
+            show_window(__('Search results').' - '.  zb_UserSearchTypeLocalize($searchtype,$query), ($searchtype == 'full') ? zb_UserSearchAllFields($query) : zb_UserSearchFields($query, $searchtype));
         }
     }
 

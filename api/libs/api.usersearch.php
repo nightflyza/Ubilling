@@ -9,7 +9,8 @@ function web_UserSearchFieldsForm() {
     global $ubillingConfig;
     $altCf = $ubillingConfig->getAlter();
     $fieldinputs = wf_TextInput('searchquery', 'Search by', '', true, '40');
-    $fieldinputs.=wf_RadioInput('searchtype', 'Real Name', 'realname', true, true);
+    $fieldinputs.=wf_RadioInput('searchtype', 'All fields', 'full', true, true);
+    $fieldinputs.=wf_RadioInput('searchtype', 'Real Name', 'realname', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'Login', 'login', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'Phone', 'phone', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'Mobile', 'mobile', true);
@@ -136,6 +137,30 @@ function zb_UserSearchFields($query, $searchtype) {
     }
 
     $result = web_UserArrayShower($allfoundlogins);
+    return($result);
+}
+
+/**
+ * Returns user profile search results by all fields
+ * 
+ * @param string $query
+ * @return string
+ */
+function zb_UserSearchAllFields($query) {
+    $allfoundlogins = array();
+    if (strlen($query) >= 3) {
+        $searh_data_array = zb_UserGetAllData();
+        $searh_part = trim($query);
+        foreach ($searh_data_array as $login=>$data) {
+            if (preg_grep('/' . $searh_part . '/i', $data)) {
+                $allfoundlogins[] = $login;
+            }
+        }
+        $result = web_UserArrayShower($allfoundlogins);
+    } else {
+        $messages = new UbillingMessageHelper();
+        $result = $messages->getStyledMessage(__('At least 3 characters are required for search'), 'info');
+    }
     return($result);
 }
 
@@ -381,6 +406,9 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
     $result = __('Search by') . ' ';
 
     switch ($searchtype) {
+        case 'full':
+            $result .= __('All fields');
+            break;
         case 'realname':
             $result .= __('Real Name');
             break;
