@@ -127,7 +127,7 @@ function zb_UserGetAllData($login = '') {
                     `phones`.`phone`,`mobile`,`contract`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
-                    LEFT JOIN `address` ON (`users`.`address`=`address`.`id`)
+                    LEFT JOIN `address` ON (`users`.`login`=`address`.`login`)
                     LEFT JOIN `apt` ON (`address`.`aptid`=`apt`.`id`)
                     LEFT JOIN `build` ON (`apt`.`buildid`=`build`.`id`)
                     LEFT JOIN `street` ON (`build`.`streetid`=`street`.`id`)
