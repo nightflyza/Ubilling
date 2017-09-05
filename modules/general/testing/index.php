@@ -4,7 +4,7 @@
 error_reporting(E_ALL);
 
 ini_set('max_execution_time', 10);
-
+//ini_set('precision', '5');
 
 $learningFlag = true;
 $predicationFlag = true;
@@ -22,15 +22,14 @@ $sampleDataTmp = array(
     4 => array(10326, 7883, 1659, 651981),
     5 => array(10427, 7880, 1741, 609111),
     6 => array(10531, 7793, 1872, 605112),
-  
 );
 
-//  7 => array(10682, 7989, 1750, 683215)
 
+//  7 => array(10682, 7989, 1750, 683215)
 //sample data normalization
 if (!empty($sampleDataTmp)) {
     foreach ($sampleDataTmp as $io => $each) {
-        $sampleData[$io] = array(round(($each[0] / 1000),2), round(($each[1] / 1000),2), round(($each[2] / 1000),2), round(($each[3] / 1000),2));
+        $sampleData[$io] = array(round(($each[0] / 1000), 2), round(($each[1] / 1000), 2), round(($each[2] / 1000), 2), round(($each[3] / 1000), 2));
     }
 }
 
