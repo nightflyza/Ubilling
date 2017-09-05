@@ -152,7 +152,7 @@ function zb_UserSearchAllFields($query) {
         $searh_data_array = zb_UserGetAllData();
         $searh_part = trim($query);
         foreach ($searh_data_array as $login=>$data) {
-            if (preg_grep('/' . $searh_part . '/i', $data)) {
+            if (preg_grep('/' . $searh_part . '/iu', $data)) {
                 $allfoundlogins[] = $login;
             }
         }
