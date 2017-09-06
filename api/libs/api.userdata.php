@@ -123,7 +123,7 @@ function zb_UserGetAllData($login = '') {
     $query ="
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
-                    concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, ' ', `entrance`, ' ', `floor`, ' ', `apt`) AS `fulladress`,
+                    concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,
                     `phones`.`phone`,`mobile`,`contract`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
