@@ -3706,16 +3706,19 @@ class UkvSystem {
                                 $complexFlag = false;
                             }
                         }
-                        $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $userId, web_profile_icon(__('Profile') . ' ' . __('UKV'))) . ' ' . $userContract);
-                        $cells.= wf_TableCell($userTariff);
 
-                        $cells.= wf_TableCell(web_bool_led($complexFlag));
-                        $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
-                        $cells.= wf_TableCell($this->users[$userId]['realname']);
-                        $cells.= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
-                        $cells.= wf_TableCell($this->users[$userid]['cash']);
-                        $cells.= wf_TableCell(web_bool_led($this->users[$userId]['active']));
-                        $rows.= wf_TableRow($cells, 'row3');
+                        if (($this->users[$userId]['active']) OR ( $complexFlag)) {
+                            $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $userId, web_profile_icon(__('Profile') . ' ' . __('UKV'))) . ' ' . $userContract);
+                            $cells.= wf_TableCell($userTariff);
+
+                            $cells.= wf_TableCell(web_bool_led($complexFlag));
+                            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon(__('Profile') . ' ' . __('Internet'))) . ' ' . $this->userGetFullAddress($userId));
+                            $cells.= wf_TableCell($this->users[$userId]['realname']);
+                            $cells.= wf_TableCell($this->tariffs[$this->users[$userId]['tariffid']]['tariffname']);
+                            $cells.= wf_TableCell($this->users[$userid]['cash']);
+                            $cells.= wf_TableCell(web_bool_led($this->users[$userId]['active']));
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
                     }
 
                     $reportData = wf_TableBody($rows, '100%', 0, 'sortable');
