@@ -150,7 +150,9 @@ function zb_UserSearchAllFields($query) {
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
         $searh_data_array = zb_UserGetAllData();
+        // Delete space and quote special characters
         $searh_part = trim($query);
+        $searh_part = preg_quote($searh_part, '/');
         foreach ($searh_data_array as $login=>$data) {
             if (preg_grep('/' . $searh_part . '/iu', $data)) {
                 $allfoundlogins[] = $login;
