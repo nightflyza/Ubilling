@@ -1066,10 +1066,10 @@ function zb_AddressGetFulladdresslist() {
                 $apartment_filtered = '/' . $ArrayData['apt'];
             }
 
-            if (!$altCfg['CITY_DISPLAY']) {
-                $result[$ArrayData['login']] = $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
-            } else {
+            if ($altCfg['CITY_DISPLAY']) {
                 $result[$ArrayData['login']] = $ArrayData['cityname'] . ' ' . $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
+            } else {
+                $result[$ArrayData['login']] = $ArrayData['streetname'] . ' ' . $ArrayData['buildnum'] . $apartment_filtered;
             }
         }
     }
