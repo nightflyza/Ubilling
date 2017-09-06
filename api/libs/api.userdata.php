@@ -118,12 +118,23 @@ function zb_UserGetAllIpMACs() {
  * Crazy Pautina
  */
 function zb_UserGetAllData($login = '') {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
     $result = array();
     $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
     $query ="
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
-                    `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,
-                    concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,
+                    `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
+        if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
+            $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+        } elseif ($altCfg['ZERO_TOLERANCE'] and !$altCfg['CITY_DISPLAY']) {
+            $query .="concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+        } elseif (!$altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
+            $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+        } else {
+            $query .="concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+       }
+            $query .="
                     `phones`.`phone`,`mobile`,`contract`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
