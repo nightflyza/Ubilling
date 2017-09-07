@@ -2644,5 +2644,7 @@ $lang['def']['Is PON ONU auto assign on user register enabled'] = 'Автома�
 //rev 5683
 $lang['def']['All fields'] = 'Всем полям';
 $lang['def']['At least 3 characters are required for search'] = 'Для поиска необходимо минимум 3 символа';
+$lang['def']['Deprecated in'] = 'Устарело и исключено из';
+$lang['def']['May require manual installation'] = 'Может потребовать ручной установки';
 
 ?>

@@ -4537,10 +4537,28 @@ function zb_CheckPHPExtensions() {
             $allRequired = explodeRows($allRequired);
             if (!empty($allRequired)) {
                 foreach ($allRequired as $io => $each) {
-                    if (!extension_loaded($each)) {
-                        $result.=wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . wf_tag('span', true);
-                    } else {
-                        $result.=wf_tag('span', false, 'alert_success') . __('PHP extension loaded') . ': ' . $each . wf_tag('span', true);
+                    if (!empty($each)) {
+                        $each = trim($each);
+                        $notice = '';
+                        if (!extension_loaded($each)) {
+                            switch ($each) {
+                                case 'mysql':
+                                    $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
+                                    break;
+                                case 'ereg':
+                                    $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
+                                    break;
+                                case 'memcache':
+                                    $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
+                                    break;
+                                case 'xhprof':
+                                    $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
+                                    break;
+                            }
+                            $result.=wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . $notice . wf_tag('span', true);
+                        } else {
+                            $result.=wf_tag('span', false, 'alert_success') . __('PHP extension loaded') . ': ' . $each . wf_tag('span', true);
+                        }
                     }
                 }
             }
