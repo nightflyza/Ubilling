@@ -4552,7 +4552,7 @@ function zb_CheckPHPExtensions() {
                                     $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
                                     break;
                                 case 'xhprof':
-                                    $notice = ' ' . __('Deprecated in') . '  PHP 7.0';
+                                    $notice = ' ' . __('May require manual installation');
                                     break;
                             }
                             $result.=wf_tag('span', false, 'alert_error') . __('PHP extension not found') . ': ' . $each . $notice . wf_tag('span', true);
