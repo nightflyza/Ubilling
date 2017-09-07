@@ -11,8 +11,7 @@ if (cfr('BACKUP')) {
                     //run system mysqldump command
                     zb_backup_database();
                 } else {
-                    //using old native mysql storing function
-                    zb_backup_tables();
+                    show_error(__('You missed an important option') . ': MYSQLDUMP_PATH');
                 }
             } else {
                 show_error(__('You are not mentally prepared for this'));

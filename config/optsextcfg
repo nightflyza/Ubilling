@@ -16,7 +16,6 @@ libxml
 mbstring
 memcache
 memcached
-mhash
 mysql
 mysqli
 mysqlnd
