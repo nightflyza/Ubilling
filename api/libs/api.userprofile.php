@@ -38,6 +38,13 @@ class UserProfile {
     protected $aptdata = array();
 
     /**
+     * Array of all available non cached login=>data
+     *
+     * @var array
+     */
+    protected $AllUserData = '';
+
+    /**
      * Important profile fields highlighting start
      *
      * @var string
@@ -122,6 +129,13 @@ class UserProfile {
     protected $mac = '';
 
     /**
+     * Build geo location
+     *
+     * @var string
+     */
+    protected $buildgeo = '';
+
+    /**
      * Payment ID of current user
      *
      * @var string
@@ -151,14 +165,10 @@ class UserProfile {
             if (empty($this->userdata)) {
                 throw new Exception(self::EX_EMPTY_USERDATA . ' ' . print_r($this, true));
             }
-            $this->loadAlladdress();
-            $this->loadRealname();
-            $this->loadPhonedata();
-            $this->loadContract();
-            $this->loadEmail();
             $this->loadAptdata();
+            $this->loadUserAlldata();
+            $this->extractUserAllData();
             $this->loadSpeedoverride();
-            $this->loadNethostsMac();
             $this->loadPaymentID();
             $this->loadPlugins();
         } else {
@@ -202,57 +212,33 @@ class UserProfile {
     }
 
     /**
-     * loads all available users address from database (yep, with forced cities)
+     * loads All user data from database in pricate data property
      * 
      * @return void
      */
-    protected function loadAlladdress() {
-        $this->alladdress = zb_AddressGetFullCityaddresslist();
-        @$this->useraddress = $this->alladdress[$this->login];
-    }
-
-    /**
-     * loads user realname from database and sets it to private prop
-     * 
-     * @return void
-     */
-    protected function loadRealname() {
-        $this->realname = zb_UserGetRealName($this->login);
-    }
-
-    /**
-     * gets phonedata from database and sets it to private data properties
-     * 
-     * @return void
-     */
-    protected function loadPhonedata() {
+    protected function loadUserAlldata() {
         if (!empty($this->login)) {
-            $query = "SELECT * from `phones` WHERE `login`='" . $this->login . "'";
-            $this->phonedata = simple_query($query);
-            if (!empty($this->phonedata)) {
-                $this->phone = $this->phonedata['phone'];
-                $this->mobile = $this->phonedata['mobile'];
-            }
+            $this->AllUserData = zb_UserGetAllData($this->login);
         }
     }
 
     /**
-     * loads user contract from database
+     * returns private all userdata property to external scope
      * 
-     * @return void
+     * @return array
      */
-    protected function loadContract() {
-        $this->contract = zb_UserGetContract($this->login);
+    protected function extractUserAllData() {
+        $this->useraddress = $this->AllUserData[$this->login]['fulladress'];
+        $this->realname = $this->AllUserData[$this->login]['realname'];
+        $this->phone = $this->AllUserData[$this->login]['phone'];
+        $this->mobile = $this->AllUserData[$this->login]['mobile'];
+        $this->contract = $this->AllUserData[$this->login]['contract'];
+        $this->mail = $this->AllUserData[$this->login]['email'];
+        //$this->apt = $this->AllUserData[$this->login]['apt'];
+        $this->mac = $this->AllUserData[$this->login]['mac'];
+        $this->buildgeo = $this->AllUserData[$this->login]['geo'];
     }
 
-    /**
-     * loads user email from database
-     * 
-     * @return void
-     */
-    protected function loadEmail() {
-        $this->mail = zb_UserGetEmail($this->login);
-    }
 
     /**
      * loads user apartment data like floor or entrance from database
@@ -270,15 +256,6 @@ class UserProfile {
      */
     protected function loadSpeedoverride() {
         $this->speedoverride = zb_UserGetSpeedOverride($this->login);
-    }
-
-    /**
-     * loads user nethosts mac address by IP
-     * 
-     * @return void
-     */
-    protected function loadNethostsMac() {
-        $this->mac = zb_MultinetGetMAC($this->userdata['IP']);
     }
 
     /**
@@ -600,8 +577,7 @@ class UserProfile {
     protected function getTaskCreateControl() {
 //profile task creation icon
         if ($this->alterCfg['CREATETASK_IN_PROFILE']) {
-            $fulladdresslist = zb_AddressGetFulladdresslistCached();
-            @$shortAddress = $fulladdresslist[$this->login];
+            @$shortAddress = $this->useraddress;
             $createForm = ts_TaskCreateFormProfile($shortAddress, $this->mobile, $this->phone, $this->login);
             $result = wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), $createForm, '', '450', '540');
         } else {
@@ -620,8 +596,7 @@ class UserProfile {
         if ($this->alterCfg['SWYMAP_ENABLED']) {
 //getting build locator
             if (isset($this->aptdata['buildid'])) {
-                $thisUserBuildData = zb_AddressGetBuildData($this->aptdata['buildid']);
-                $thisUserBuildGeo = $thisUserBuildData['geo'];
+                $thisUserBuildGeo = $this->buildgeo;
                 if (!empty($thisUserBuildGeo)) {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
