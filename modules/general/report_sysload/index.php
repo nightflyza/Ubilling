@@ -22,10 +22,23 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxdbstats'))) {
         die(zb_DBStatsRender());
     }
+    // Cache keys info
+    if (wf_CheckGet(array('ajaxcacheinfo'))) {
+        die(zb_ListCacheInform());
+    }
+    // Cache keys and data info
+     if (wf_CheckGet(array('ajaxcachedata'))) {
+        die(zb_ListCacheInform('data'));
+    }
+    // Clear cache
+     if (wf_CheckGet(array('ajaxcacheclear'))) {
+        die(zb_ListCacheInform('clear'));
+    }
 
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
     $monit_url = $globconf['PHPSYSINFO'];
+    $cache_info = $alterconf['UBCACHE_STORAGE'];
 
     //custom scripts output handling. We must run this before all others.
     if (isset($alterconf['SYSLOAD_CUSTOM_SCRIPTS'])) {
@@ -58,6 +71,12 @@ if (cfr('SYSLOAD')) {
     if (!empty($monit_url)) {
         $monitCode = wf_tag('iframe', false, '', 'src="' . $monit_url . '" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
         $sysInfoData.= wf_modalAuto(__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+    }
+
+    //Cache
+    if ($cache_info == 'files' OR $cache_info = 'memcached') {
+        $cacheInfo = zb_ListCacheInformRenderContainer();
+        $sysInfoData.= wf_modalAuto(__('Cache'), __('Cache information'), $cacheInfo, 'ubButton');
     }
 
     show_window('', $sysInfoData);

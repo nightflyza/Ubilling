@@ -4760,3 +4760,63 @@ function zb_ListLoadedModules() {
     $result.=__('Total') . ': ' . $moduleCount;
     return ($result);
 }
+
+
+/**
+ * Returns current cache info in human readable view with ajax controls
+ * 
+ * @return string
+ */
+function zb_ListCacheInformRenderContainer() {
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
+    $messages = new UbillingMessageHelper();
+    $result = '';
+    $result.= wf_AjaxLoader();
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
+    $result.= $messages->getStyledMessage(__('Using system caching engine storage:') . ': ' . $alterconf['UBCACHE_STORAGE'], 'info');
+    $result.=wf_tag('br');
+    $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
+    return ($result);
+}
+
+/**
+ * Renders list of cache data
+ * 
+ * @global object $system
+ * 
+ * @return string
+ */
+function zb_ListCacheInform($param = '') {
+    $cache = new UbillingCache();
+    $messages = new UbillingMessageHelper();
+   ($param == 'clear') ? $cache->deleteAllcache() : '';
+    $data = ($param == 'data') ? $cache->getAllcache($param) : $cache->getAllcache();
+    $result = '';
+    if (!empty($data) and $param != 'clear') {
+        $cells = wf_TableCell(__('ID'));
+        $cells.= wf_TableCell(__('KEY'));
+        if ($param == 'data') {
+            $cells.= wf_TableCell(__('Data'));
+        }
+        $rows = wf_TableRow($cells, 'row1');
+
+        foreach ($data as $id =>$key) {
+            $cells = wf_TableCell($id);
+            if ($param == 'data') {
+                $cells.= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
+                $value = (is_array($key['value'])) ? serialize($key['value']) : $key['value'];
+                $cells.= wf_TableCell($value);
+            } else {
+                $cells.= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');
+            }
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+        $result .= $rows;
+    } elseif (empty($data) and $param == 'clear') {
+        $result.= $messages->getStyledMessage(__('Cache cleared'), 'success');
+    }
+    return ($result);
+}
