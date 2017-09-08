@@ -49,6 +49,11 @@ class UbillingCache {
 
     const CACHE_PREFIX = 'UBCACHE_';
 
+    /**
+     * Creates new UbillingCache instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
@@ -134,12 +139,12 @@ class UbillingCache {
      * Puts data into cache storage
      * 
      * @param string $key
-     * @param mixed $data
+     * @param string $data
      * @param int $expiration
      * 
      * @return void
      */
-    protected function set($key, $data, $expiration = 0) {
+    public function set($key, $data, $expiration = 0) {
         $key = $this->genKey($key);
         if ($this->storage == 'files') {
             file_put_contents($this->storagePath . $key, $data);
@@ -148,6 +153,72 @@ class UbillingCache {
         if ($this->storage == 'memcached') {
             $this->memcached->set($key, $data, $expiration);
         }
+    }
+
+    /**
+     * Returns data by key name. Empty if no data exists or cache expired.
+     * 
+     * @param string $key Storage key name
+     * @param int   $expiration Expiration time in seconds
+     * 
+     * @return string
+     */
+    public function get($key, $expiration = 0) {
+        $result = '';
+        $keyRaw = $key;
+        $key = $this->genKey($key);
+
+        //files storage
+        if ($this->storage == 'files') {
+            $cacheName = $this->storagePath . $key;
+            if (!$expiration) {
+                $expiration = 2629743; // month by default
+            }
+            $cacheTime = time() - $expiration;
+            $updateCache = false;
+            if (file_exists($cacheName)) {
+                $updateCache = false;
+                if ((filemtime($cacheName) > $cacheTime)) {
+                    $updateCache = false;
+                } else {
+                    $updateCache = true;
+                }
+            } else {
+                $updateCache = true;
+            }
+
+            if (!$updateCache) {
+                //read data directly from cache
+                $result = file_get_contents($cacheName);
+            } else {
+                //cache expired, return empty result
+                $result = '';
+                $this->delete($keyRaw);
+            }
+            return ($result);
+        }
+
+        //memcached storage
+        if ($this->storage == 'memcached') {
+            /**
+             * Everybody's knowin'
+             * Where ya think you're goin' ain't goin' nowhere
+             * Satellite, handle that
+             * Wit a lead pipe
+             */
+            $result = $this->memcached->get($key);
+            if (!$result) {
+                $result = '';
+            }
+            return ($result);
+        }
+        //fake storage
+        if ($this->storage == 'fake') {
+            $result = '';
+            return ($result);
+        }
+
+        return ($result);
     }
 
     /**
