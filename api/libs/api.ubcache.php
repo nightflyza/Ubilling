@@ -255,11 +255,12 @@ class UbillingCache {
 
             if (!$updateCache) {
                 //read data directly from cache
-                $result = file_get_contents($cacheName);
+                $data = file_get_contents($cacheName);
+                $result = unserialize($data);
             } else {
                 //run callback function and store new data into cache
                 $result = $callback();
-                $this->set($keyRaw, $result, $expiration);
+                $this->set($keyRaw, serialize($result), $expiration);
             }
             return ($result);
         }
@@ -314,7 +315,7 @@ class UbillingCache {
                 $result = array();
                 foreach ($keys as $key=>$file) {
                     $result[$key]['key'] = $file;
-                    $result[$key]['value'] = file_get_contents($this->storagePath . $file);
+                    $result[$key]['value'] = unserialize(file_get_contents($this->storagePath . $file));
                 }
             } else {
                  $result = $keys;
