@@ -1087,38 +1087,14 @@ function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
 ///////////// cache options
-    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];
-    $cacheTime = time() - ($cacheTime * 60);
-    $cacheName = 'exports/fulladdresslistcache.dat';
-    $updateCache = false;
-    if (file_exists($cacheName)) {
-        $updateCache = false;
-        if ((filemtime($cacheName) > $cacheTime)) {
-            $updateCache = false;
-        } else {
-            $updateCache = true;
-        }
-    } else {
-        $updateCache = true;
-    }
+    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];;
+    $result = '';
+    $cache = new UbillingCache();
+    $result = $cache->getCallback('fulladdresslistcache.dat', function () {
+        return (zb_AddressGetFulladdresslist());
+    }, $cacheTime);
 
-/////////////////////////////////////////////////
-
-    if (!$updateCache) {
-        //read data directly from cache
-        $result = array();
-        $rawData = file_get_contents($cacheName);
-        if (!empty($rawData)) {
-            $result = unserialize($rawData);
-        }
-        return ($result);
-    } else {
-//processing address extracting and store to cache
-        $result = zb_AddressGetFulladdresslist();
-        $newCacheData = serialize($result);
-        file_put_contents($cacheName, $newCacheData);
-        return($result);
-    }
+    return($result);
 }
 
 /**
