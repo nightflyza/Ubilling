@@ -234,18 +234,32 @@ class UbillingCache {
      * 
      * @return void
      */
-    public function getAllcache() {
+    public function getAllcache($show_data = '') {
         if ($this->storage == 'files') {
             $cache = scandir($this->storagePath);
-            $result = array_diff($cache, array('..', '.', '.gitignore', '.htaccess'));
+            $keys = array_diff($cache, array('..', '.', '.gitignore', '.htaccess'));
+            $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
+            if ($show_data) {
+                $result = array();
+                foreach ($keys as $key=>$file) {
+                    $result[$key]['key'] = $file;
+                    $result[$key]['value'] = file_get_contents($this->storagePath . $file);
+                }
+            } else {
+                 $result = $keys;
+            }
             return($result);
         }
 
         if ($this->storage == 'memcached') {
             $keys = $this->memcached->getAllKeys();
             $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
-            $this->memcached->getDelayed($keys);
-            $result = $this->memcached->fetchAll();
+            if ($show_data) {
+                $this->memcached->getDelayed($keys);
+                $result = $this->memcached->fetchAll();
+            } else {
+                 $result = $keys;
+            }
             return($result);
         }
     }
