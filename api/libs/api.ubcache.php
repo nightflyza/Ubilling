@@ -250,6 +250,28 @@ class UbillingCache {
         }
     }
 
+    /**
+     * Delete all data from cache
+     * 
+     * @return void
+     */
+    public function deleteAllcache() {
+        $cache_data = $this->getAllcache();
+        if ($this->storage == 'files' and !empty($cache_data)) {
+            foreach ($cache_data as $cache) {
+                unlink($this->storagePath . $cache);
+            }
+        }
+
+        if ($this->storage == 'memcached' and !empty($cache_data)) {
+            $keys = array();
+            foreach ($cache_data as $key=>$cache) {
+                $keys[] = $cache['key'];
+            }
+            $result = $this->memcached->deleteMulti($keys);
+            return($result);
+        }
+    }
 }
 
 ?>
