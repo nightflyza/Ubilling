@@ -1645,7 +1645,8 @@ function wf_JuiComboBox($name, $params, $label, $selected = '', $br = false) {
 
     if (!empty($params)) {
         foreach ($params as $io => $each) {
-            $select.='<option value="' . $io . '">' . $each . '</option>' . "\n";
+            $flag_selected = (!empty($selected) and $selected == $io) ? 'SELECTED' : '';
+            $select.='<option value="' . $io . '" ' . $flag_selected . '>' . $each . '</option>' . "\n";
         }
     }
 
