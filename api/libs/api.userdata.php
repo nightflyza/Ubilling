@@ -111,6 +111,34 @@ function zb_UserGetAllIpMACs() {
 }
 
 /**
+ * Flushes USER_ALL_DATA cache
+ * 
+ * @return void
+ */
+function zb_UserGetAllDataCacheClean() {
+    $cache = new UbillingCache();
+    $cache->delete('USER_ALL_DATA');
+}
+
+/**
+ * Returns cache for functionzb_UserGetAllData
+ * Use this function only when not set $login
+ * 
+ * @param string $login existing user login
+ * @return array
+ */
+function zb_UserGetAllDataCache() {
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = 86400;
+    $result = $cache->getCallback('USER_ALL_DATA', function () {
+        return (zb_UserGetAllData());
+    }, $cacheTime);
+
+    return ($result);
+}
+
+/**
  * Returns all information about User by login
  * 
  * @param string $login existing user login
