@@ -229,6 +229,26 @@ class UbillingCache {
         }
     }
 
+    /**
+     * Show all data from cache
+     * 
+     * @return void
+     */
+    public function getAllcache() {
+        if ($this->storage == 'files') {
+            $cache = scandir($this->storagePath);
+            $result = array_diff($cache, array('..', '.', '.gitignore', '.htaccess'));
+            return($result);
+        }
+
+        if ($this->storage == 'memcached') {
+            $keys = $this->memcached->getAllKeys();
+            $this->memcached->getDelayed($keys);
+            $result = $this->memcached->fetchAll();
+            return($result);
+        }
+    }
+
 }
 
 ?>
