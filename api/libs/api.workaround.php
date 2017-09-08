@@ -1516,7 +1516,7 @@ function web_DirectionsEditForm($ruleid) {
  */
 function web_PaymentsShow($query) {
     $alter_conf = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-    $alladrs = zb_AddressGetFulladdresslist();
+    $alladrs = zb_AddressGetFulladdresslistCached();
     $allrealnames = zb_UserGetAllRealnames();
     $alltypes = zb_CashGetAllCashTypes();
     $allapayments = simple_queryall($query);
