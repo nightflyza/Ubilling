@@ -399,6 +399,7 @@ class IpChange {
                         log_register("CHANGE MultiNetIP (" . $this->login . ") FROM " . $this->currentIp . " ON " . $newIp . "");
                         multinet_rebuild_all_handlers();
                         multinet_RestartDhcp();
+                        zb_UserGetAllDataCacheClean();
 
                         //back teh user online
                         if ($this->billingCfg['RESET_AO']) {

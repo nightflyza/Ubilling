@@ -255,11 +255,12 @@ class UbillingCache {
 
             if (!$updateCache) {
                 //read data directly from cache
-                $result = file_get_contents($cacheName);
+                $data = file_get_contents($cacheName);
+                $result = unserialize($data);
             } else {
                 //run callback function and store new data into cache
                 $result = $callback();
-                $this->set($keyRaw, $result, $expiration);
+                $this->set($keyRaw, serialize($result), $expiration);
             }
             return ($result);
         }
@@ -300,6 +301,59 @@ class UbillingCache {
         }
     }
 
+    /**
+     * Show all data from cache
+     * 
+     * @return void
+     */
+    public function getAllcache($show_data = '') {
+        if ($this->storage == 'files') {
+            $cache = scandir($this->storagePath);
+            $keys = array_diff($cache, array('..', '.', '.gitignore', '.htaccess'));
+            $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
+            if ($show_data) {
+                $result = array();
+                foreach ($keys as $key=>$file) {
+                    $result[$key]['key'] = $file;
+                    $result[$key]['value'] = unserialize(file_get_contents($this->storagePath . $file));
+                }
+            } else {
+                 $result = $keys;
+            }
+            return($result);
+        }
+
+        if ($this->storage == 'memcached') {
+            $keys = $this->memcached->getAllKeys();
+            $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
+            if ($show_data) {
+                $this->memcached->getDelayed($keys);
+                $result = $this->memcached->fetchAll();
+            } else {
+                 $result = $keys;
+            }
+            return($result);
+        }
+    }
+
+    /**
+     * Delete all data from cache
+     * 
+     * @return void
+     */
+    public function deleteAllcache() {
+        $cache_data = $this->getAllcache();
+        if ($this->storage == 'files' and !empty($cache_data)) {
+            foreach ($cache_data as $cache) {
+                unlink($this->storagePath . $cache);
+            }
+        }
+
+        if ($this->storage == 'memcached' and !empty($cache_data)) {
+            $result = $this->memcached->deleteMulti($cache_data);
+            return($result);
+        }
+    }
 }
 
 ?>

@@ -729,6 +729,7 @@ function multinet_change_mac($ip, $newmac) {
     $query = "UPDATE `nethosts` SET `mac` = '" . $newmac . "' WHERE `ip` = '" . $ip . "' ;";
     nr_query($query);
     log_register("CHANGE MultiNetHostMac " . $ip . " " . $newmac);
+    zb_UserGetAllDataCacheClean();
 }
 
 function multinet_expand_network($first_ip, $last_ip) {

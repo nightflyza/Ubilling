@@ -149,7 +149,7 @@ function zb_UserSearchFields($query, $searchtype) {
 function zb_UserSearchAllFields($query) {
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
-        $searh_data_array = zb_UserGetAllData();
+        $searh_data_array = zb_UserGetAllDataCache();
         // Delete space and quote special characters
         $searh_part = trim($query);
         $searh_part = preg_quote($searh_part, '/');

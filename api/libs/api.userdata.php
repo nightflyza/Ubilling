@@ -14,6 +14,7 @@ function zb_UserCreateRealName($login, $realname) {
     $query = "INSERT INTO `realname`  (`id`,`login`,`realname`) VALUES   (NULL, '" . $login . "','" . $realname . "'); ";
     nr_query($query);
     log_register('CREATE UserRealName (' . $login . ')  `' . $realname . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -26,6 +27,7 @@ function zb_UserDeleteRealName($login) {
     $query = "DELETE from `realname` WHERE `login` = '" . $login . "';";
     nr_query($query);
     log_register('DELETE UserRealName (' . $login . ')');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -57,6 +59,7 @@ function zb_UserChangeRealName($login, $realname) {
     $query = "UPDATE `realname` SET `realname` = '" . $realname . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserRealName (' . $login . ')   `' . $realname . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -108,6 +111,34 @@ function zb_UserGetAllIpMACs() {
         }
     }
     return($result);
+}
+
+/**
+ * Flushes USER_ALL_DATA cache
+ * 
+ * @return void
+ */
+function zb_UserGetAllDataCacheClean() {
+    $cache = new UbillingCache();
+    $cache->delete('USER_ALL_DATA');
+}
+
+/**
+ * Returns cache for functionzb_UserGetAllData
+ * Use this function only when not set $login
+ * 
+ * @param string $login existing user login
+ * @return array
+ */
+function zb_UserGetAllDataCache() {
+    $result = '';
+    $cache = new UbillingCache();
+    $cacheTime = 86400;
+    $result = $cache->getCallback('USER_ALL_DATA', function () {
+        return (zb_UserGetAllData());
+    }, $cacheTime);
+
+    return ($result);
 }
 
 /**
@@ -197,6 +228,7 @@ function zb_UserCreatePhone($login, $phone, $mobile) {
     $query = "INSERT INTO `phones`  (`id`,`login`,`phone`,`mobile`)  VALUES  (NULL, '" . $login . "','" . $phone . "','" . $mobile . "');";
     nr_query($query);
     log_register('CREATE UserPhone (' . $login . ') `' . $phone . '` `' . $mobile . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -209,6 +241,7 @@ function zb_UserDeletePhone($login) {
     $query = "DELETE from `phones` WHERE `login` = '" . $login . "';";
     nr_query($query);
     log_register('DELETE UserPhone (' . $login . ')');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -247,6 +280,7 @@ function zb_UserChangePhone($login, $phone) {
     $query = "UPDATE `phones` SET `phone` = '" . $phone . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserPhone (' . $login . ') `' . $phone . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -261,6 +295,7 @@ function zb_UserChangeMobile($login, $mobile) {
     $query = "UPDATE `phones` SET `mobile` = '" . $mobile . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserMobile (' . $login . ') `' . $mobile . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -293,6 +328,7 @@ function zb_UserCreateEmail($login, $email) {
     $query = "INSERT INTO `emails`  (`id`,`login`,`email`) VALUES  (NULL, '" . $login . "','" . $email . "');";
     nr_query($query);
     log_register('CREATE UserEmail (' . $login . ') `' . $email . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -305,6 +341,7 @@ function zb_UserDeleteEmail($login) {
     $query = "DELETE from `emails` WHERE `login` = '" . $login . "';";
     nr_query($query);
     log_register('DELETE UserEmail (' . $login . ')');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -332,6 +369,7 @@ function zb_UserChangeEmail($login, $email) {
     $query = "UPDATE `emails` SET `email` = '" . $email . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserEmail (' . $login . ') ' . $email);
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -346,6 +384,7 @@ function zb_UserCreateContract($login, $contract) {
     $query = "INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES  (NULL, '" . $login . "','" . $contract . "');";
     nr_query($query);
     log_register('CREATE UserContract (' . $login . ') `' . $contract . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -358,6 +397,7 @@ function zb_UserDeleteContract($login) {
     $query = "DELETE from `contracts` WHERE `login` = '" . $login . "';";
     nr_query($query);
     log_register('DELETE UserContract (' . $login . ')');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
@@ -385,6 +425,7 @@ function zb_UserChangeContract($login, $contract) {
     $query = "UPDATE `contracts` SET `contract` = '" . $contract . "' WHERE `login`= '" . $login . "' ;";
     nr_query($query);
     log_register('CHANGE UserContract (' . $login . ') `' . $contract . '`');
+    zb_UserGetAllDataCacheClean();
 }
 
 /**
