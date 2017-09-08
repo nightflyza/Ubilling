@@ -10,10 +10,8 @@
  * @return void
  */
 function zb_AddressCleanAddressCache() {
-    $cachePath = 'exports/fulladdresslistcache.dat';
-    if (file_exists($cachePath)) {
-        unlink($cachePath);
-    }
+    $cache = new UbillingCache();
+    $cache->delete('fulladdresslistcache.dat');
 }
 
 /**
