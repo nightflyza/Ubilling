@@ -4776,7 +4776,7 @@ function zb_ListCacheInformRenderContainer() {
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
-    $result.= $messages->getStyledMessage(__('Using system caching engine storage:') . ': ' . $alterconf['UBCACHE_STORAGE'], 'info');
+    $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b',true), 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
     return ($result);

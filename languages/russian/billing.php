@@ -2646,5 +2646,8 @@ $lang['def']['All fields'] = 'Всем полям';
 $lang['def']['At least 3 characters are required for search'] = 'Для поиска необходимо минимум 3 символа';
 $lang['def']['Deprecated in'] = 'Устарело и исключено из';
 $lang['def']['May require manual installation'] = 'Может потребовать ручной установки';
+$lang['def']['Cache'] = 'Кэш';
+$lang['def']['Cache information'] = 'Информация по кэшу';
+$lang['def']['Using system caching engine storage'] = 'Используется хранилище системного кэша';
 
 ?>
