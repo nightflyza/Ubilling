@@ -356,13 +356,8 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort 
     if (!empty($params)) {
         ($sort) ? asort($params) : $params;
         foreach ($params as $value => $eachparam) {
-            $sel_flag = '';
-            if ($selected != '') {
-                if ($selected == $value) {
-                    $sel_flag = 'SELECTED';
-                }
-            }
-            $result.='<option value="' . $value . '" ' . $sel_flag . '>' . $eachparam . '</option>' . "\n";
+            $flag_selected = (!empty($selected) and $selected == $value) ? 'SELECTED' : '';
+            $result.='<option value="' . $value . '" ' . $flag_selected . '>' . $eachparam . '</option>' . "\n";
         }
     }
 
@@ -1645,7 +1640,8 @@ function wf_JuiComboBox($name, $params, $label, $selected = '', $br = false) {
 
     if (!empty($params)) {
         foreach ($params as $io => $each) {
-            $select.='<option value="' . $io . '">' . $each . '</option>' . "\n";
+            $flag_selected = (!empty($selected) and $selected == $io) ? 'SELECTED' : '';
+            $select.='<option value="' . $io . '" ' . $flag_selected . '>' . $each . '</option>' . "\n";
         }
     }
 
