@@ -314,6 +314,7 @@ class UbillingCache {
 
         if ($this->storage == 'memcached') {
             $keys = $this->memcached->getAllKeys();
+            $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
             $this->memcached->getDelayed($keys);
             $result = $this->memcached->fetchAll();
             return($result);
