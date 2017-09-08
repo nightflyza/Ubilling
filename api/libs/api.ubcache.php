@@ -278,11 +278,7 @@ class UbillingCache {
         }
 
         if ($this->storage == 'memcached' and !empty($cache_data)) {
-            $keys = array();
-            foreach ($cache_data as $key=>$cache) {
-                $keys[] = $cache['key'];
-            }
-            $result = $this->memcached->deleteMulti($keys);
+            $result = $this->memcached->deleteMulti($cache_data);
             return($result);
         }
     }
