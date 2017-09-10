@@ -189,7 +189,8 @@ class UbillingCache {
 
             if (!$updateCache) {
                 //read data directly from cache
-                $result = file_get_contents(unserialize($data));
+                $data = file_get_contents($cacheName);
+                $result = unserialize($data);
             } else {
                 //cache expired, return empty result
                 $result = '';
