@@ -745,25 +745,6 @@ class Asterisk {
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($this->config['table']);
 
-       /* //caching
-        $cacheUpdate = true;
-        $cacheName = $from . $to;
-        $cacheName = md5($cacheName);
-        $cacheName = self::CACHE_PATH . 'ASTERISK_' . $cacheName;
-        $cachetime = time() - ($this->config['cachetime'] * 60);
-
-        if (file_exists($cacheName)) {
-            if ((filemtime($cacheName) > $cachetime)) {
-                $rawResult = file_get_contents($cacheName);
-                $rawResult = unserialize($rawResult);
-                $cacheUpdate = false;
-            } else {
-                $cacheUpdate = true;
-            }
-        } else {
-            $cacheUpdate = true;
-        }*/
-
         if (! empty($user_login)) {
             //fetch some data from Asterisk database
             $phone = @$this->result_LoginByNumber[$user_login]['phone'];
@@ -787,21 +768,14 @@ class Asterisk {
             }
             if (!empty($query)) {
                 $rawResult = $this->AsteriskQuery($query);
-                //$cacheContent = serialize($rawResult);
             }
         } elseif (wf_CheckPost(array('countnum')) and ! isset($user_login)) {
             $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
             $rawResult = $this->AsteriskQuery($query);
-            //$cacheContent = serialize($rawResult);
-        /*} elseif ($cacheUpdate and ! isset($user_login)) {
-            $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
-            $rawResult = $this->AsteriskQuery($query);
-            $cacheContent = serialize($rawResult);
-            file_put_contents($cacheName, $cacheContent);
-        }*/
         } else {
             // check if need clean cache 
             $this->AsterikCacheInfoClean($asteriskTable, $from, $to);
+            // Start check cache and get result
             $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
             $obj = $this;
             $cacheName = $from . $to;
