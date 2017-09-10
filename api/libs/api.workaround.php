@@ -4809,7 +4809,7 @@ function zb_ListCacheInform($param = '') {
                 $cells.= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
                 //$value = (is_array($key['value'])) ? serialize($key['value']) : $key['value'];
                 $value = wf_tag('pre') . print_r($key['value'], true) . wf_tag('pre', true);
-                $cells.= wf_TableCell(wf_modal(__('Cache data'), __('Cache information'), $value, 'ubButton', '800', '600'));
+                $cells.= wf_TableCell(wf_modal(__('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600'));
             } else {
                 $cells.= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');
             }
