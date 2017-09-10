@@ -22,9 +22,28 @@ class ADcomments {
         if (!empty($scope)) {
             $this->setScope($scope);
             $this->setMyLogin();
+            $this->initCache();
         } else {
             throw new Exception(self::EX_EMPTY_SCOPE);
         }
+    }
+
+    /**
+     * Initalizes system cache object for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Clear scope cache object
+     * 
+     * @return void
+     */
+    protected function clearScopeCache() {
+        $this->cache->delete('ADCOMMENTS_' . $this->scope);
     }
 
     /**
@@ -112,6 +131,7 @@ class ADcomments {
                 . "VALUES (NULL, '" . $this->scope . "', '" . $this->item . "', '" . $curdate . "', '" . $this->mylogin . "', '" . $text . "');";
         nr_query($query);
         log_register("ADCOMM CREATE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $this->clearScopeCache();
     }
 
     /**
@@ -126,6 +146,7 @@ class ADcomments {
         $query = "DELETE FROM `adcomments` WHERE `id`='" . $id . "';";
         nr_query($query);
         log_register("ADCOMM DELETE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $this->clearScopeCache();
     }
 
     /**
@@ -139,6 +160,7 @@ class ADcomments {
         $text = strip_tags($text);
         simple_update_field('adcomments', 'text', $text, "WHERE `id`='" . $id . "';");
         log_register("ADCOMM CHANGE SCOPE `" . $this->scope . "` ITEM [" . $this->item . "]");
+        $this->clearScopeCache();
     }
 
     /**
@@ -290,7 +312,9 @@ class ADcomments {
     protected function loadScopeItems() {
         if ($this->scope) {
             $query = "SELECT * from `adcomments` WHERE `scope`='" . $this->scope . "';";
-            $all = simple_queryall($query);
+            $all = $this->cache->getCallback('ADCOMMENTS_' . $this->scope, function()  use ($query) {
+                                            return (simple_queryall($query));
+                                            });
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
                     if (isset($this->scopeItems[$each['item']])) {
