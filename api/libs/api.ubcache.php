@@ -147,7 +147,7 @@ class UbillingCache {
     public function set($key, $data, $expiration = 0) {
         $key = $this->genKey($key);
         if ($this->storage == 'files') {
-            file_put_contents($this->storagePath . $key, $data);
+            file_put_contents($this->storagePath . $key, serialize($data));
         }
 
         if ($this->storage == 'memcached') {
@@ -189,7 +189,8 @@ class UbillingCache {
 
             if (!$updateCache) {
                 //read data directly from cache
-                $result = file_get_contents($cacheName);
+                $data = file_get_contents($cacheName);
+                $result = unserialize($data);
             } else {
                 //cache expired, return empty result
                 $result = '';
@@ -260,7 +261,7 @@ class UbillingCache {
             } else {
                 //run callback function and store new data into cache
                 $result = $callback();
-                $this->set($keyRaw, serialize($result), $expiration);
+                $this->set($keyRaw, $result, $expiration);
             }
             return ($result);
         }
