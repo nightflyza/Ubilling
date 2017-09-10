@@ -62,6 +62,7 @@ class Asterisk {
         $this->AsteriskLoadConf();
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
+        $this->initCache();
     }
 
     /**
@@ -81,6 +82,35 @@ class Asterisk {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Initalizes system cache object for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Check for last cache data and if need clean
+     * 
+     * @return void
+     */
+    protected function AsterikCacheInfoClean($asteriskTable, $from, $to) {
+        if (!empty($from) and !empty($to)) {
+        $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC LIMIT 1";
+        $cacheName = $from . $to;
+        $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
+        $last_db_uniqueid = $this->AsteriskQuery($query);
+        $last_cache_uniqueid = $this->cache->get($cache_uniqueid_key, $this->config['cachetime']);
+        // Если `uniqueid` не равен записи в кеше, то очищаем весь кеш
+        if (($uniqueid = $last_db_uniqueid['0']['uniqueid']) != $last_cache_uniqueid) {
+            $this->cache->delete('ASTERISK_CDR_' . $cacheName, $this->config['cachetime']);
+            $this->cache->set($cache_uniqueid_key, $uniqueid, $this->config['cachetime']);
+        }
+        }
     }
 
     /**
@@ -177,7 +207,7 @@ class Asterisk {
                 $result[] = $row;
             }
             mysqli_free_result($result_query);
-            $this->AsteriskDB->close();
+            //$this->AsteriskDB->close();
             return ($result);
         } else {
             $result = rcms_redirect(self::URL_ME . '&config=true');
@@ -715,7 +745,7 @@ class Asterisk {
         $to = mysql_real_escape_string($to);
         $asteriskTable = mysql_real_escape_string($this->config['table']);
 
-        //caching
+       /* //caching
         $cacheUpdate = true;
         $cacheName = $from . $to;
         $cacheName = md5($cacheName);
@@ -732,7 +762,7 @@ class Asterisk {
             }
         } else {
             $cacheUpdate = true;
-        }
+        }*/
 
         if (! empty($user_login)) {
             //fetch some data from Asterisk database
@@ -757,17 +787,27 @@ class Asterisk {
             }
             if (!empty($query)) {
                 $rawResult = $this->AsteriskQuery($query);
-                $cacheContent = serialize($rawResult);
+                //$cacheContent = serialize($rawResult);
             }
         } elseif (wf_CheckPost(array('countnum')) and ! isset($user_login)) {
             $query = "select *,count(`src`) as `countnum`  from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59' AND `lastapp`='dial' GROUP BY `src`";
             $rawResult = $this->AsteriskQuery($query);
-            $cacheContent = serialize($rawResult);
-        } elseif ($cacheUpdate and ! isset($user_login)) {
+            //$cacheContent = serialize($rawResult);
+        /*} elseif ($cacheUpdate and ! isset($user_login)) {
             $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
             $rawResult = $this->AsteriskQuery($query);
             $cacheContent = serialize($rawResult);
             file_put_contents($cacheName, $cacheContent);
+        }*/
+        } else {
+            // check if need clean cache 
+            $this->AsterikCacheInfoClean($asteriskTable, $from, $to);
+            $query = "select * from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC";
+            $obj = $this;
+            $cacheName = $from . $to;
+            $rawResult = $this->cache->getCallback('ASTERISK_CDR_' . $cacheName, function()  use ($query, $obj) {
+                        return ($obj->AsteriskQuery($query));
+                        }, $this->config['cachetime']);
         }
 
         // Check for rawResult
