@@ -261,7 +261,7 @@ class UbillingCache {
             } else {
                 //run callback function and store new data into cache
                 $result = $callback();
-                $this->set($keyRaw, serialize($result), $expiration);
+                $this->set($keyRaw, $result, $expiration);
             }
             return ($result);
         }
