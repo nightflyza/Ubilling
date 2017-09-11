@@ -4636,6 +4636,41 @@ function web_MemCachedRenderStats() {
 }
 
 /**
+ * Returns redis usage stats
+ * 
+ * @global object $ubillingConfig
+ * @return string
+ */
+function web_RedisRenderStats() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+    $result = '';
+    $redisHost = 'localhost';
+    $redisdPort = 6379;
+    if (isset($altCfg['REDIS_SERVER'])) {
+        $redisHost = $altCfg['REDIS_SERVER'];
+    }
+    if (isset($altCfg['REDIS_PORT'])) {
+        $redisdPort = $altCfg['REDIS_PORT'];
+    }
+    $redis = new Redis();
+    $redis->connect($redisHost, $redisdPort);
+    $rawStats = $redis->info();
+    $cells = wf_TableCell(__('Parameter'));
+    $cells.= wf_TableCell(__('Value'));
+    $rows = wf_TableRow($cells, 'row1');
+    if (!empty($rawStats)) {
+        foreach ($rawStats as $param =>$value) {
+            $cells = wf_TableCell($param);
+            $cells.= wf_TableCell($value);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+    }
+    $result = wf_TableBody($rows, '100%', 0, '');
+    return ($result);
+}
+
+/**
  * Calculates percent value
  * 
  * @param float $sum
@@ -4775,6 +4810,9 @@ function zb_ListCacheInformRenderContainer() {
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
     if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
         $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
+    }
+    if ($alterconf['UBCACHE_STORAGE'] == 'redis') {
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
     }
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
