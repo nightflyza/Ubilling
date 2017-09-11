@@ -51,6 +51,13 @@ class Asterisk {
      */
     protected $messages = '';
 
+    /**
+     * Comments caching time
+     *
+     * @var int
+     */
+    public $cacheTime = ''; //month by default
+
     // Database's vars:
     private $connected;
     private $AsteriskDB;
@@ -72,6 +79,7 @@ class Asterisk {
      */
     protected function AsteriskLoadConf() {
         $this->config = $this->AsteriskGetConf();
+        $this->cacheTime = $this->config['cachetime'];
 
     }
 
@@ -100,16 +108,16 @@ class Asterisk {
      */
     protected function AsterikCacheInfoClean($asteriskTable, $from, $to) {
         if (!empty($from) and !empty($to)) {
-        $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC LIMIT 1";
-        $cacheName = $from . $to;
-        $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
-        $last_db_uniqueid = $this->AsteriskQuery($query);
-        $last_cache_uniqueid = $this->cache->get($cache_uniqueid_key, $this->config['cachetime']);
-        // Если `uniqueid` не равен записи в кеше, то очищаем весь кеш
-        if (($uniqueid = $last_db_uniqueid['0']['uniqueid']) != $last_cache_uniqueid) {
-            $this->cache->delete('ASTERISK_CDR_' . $cacheName, $this->config['cachetime']);
-            $this->cache->set($cache_uniqueid_key, $uniqueid, $this->config['cachetime']);
-        }
+            $query = "select uniqueid from `" . $asteriskTable . "` where `calldate` BETWEEN '" . $from . " 00:00:00' AND '" . $to . " 23:59:59'  AND `lastapp`='dial' ORDER BY `calldate` DESC LIMIT 1";
+            $cacheName = $from . $to;
+            $cache_uniqueid_key = 'ASTERISK_UNI_' . $cacheName;
+            $last_db_uniqueid = $this->AsteriskQuery($query);
+            $last_cache_uniqueid = $this->cache->get($cache_uniqueid_key, $this->cacheTime);
+            // Если `uniqueid` не равен записи в кеше, то очищаем весь кеш
+            if (($uniqueid = $last_db_uniqueid['0']['uniqueid']) != $last_cache_uniqueid) {
+                $this->cache->delete('ASTERISK_CDR_' . $cacheName, $this->cacheTime);
+                $this->cache->set($cache_uniqueid_key, $uniqueid, $this->cacheTime);
+            }
         }
     }
 
@@ -781,7 +789,7 @@ class Asterisk {
             $cacheName = $from . $to;
             $rawResult = $this->cache->getCallback('ASTERISK_CDR_' . $cacheName, function()  use ($query, $obj) {
                         return ($obj->AsteriskQuery($query));
-                        }, $this->config['cachetime']);
+                        }, $this->cacheTime);
         }
 
         // Check for rawResult
