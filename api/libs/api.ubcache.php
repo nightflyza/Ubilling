@@ -150,7 +150,6 @@ class UbillingCache {
         }
     }
 
-
     /**
      * Generates key storable internal name
      * 
@@ -162,15 +161,6 @@ class UbillingCache {
         $result = self::CACHE_PREFIX . md5($key);
         return ($result);
     }
-
-    /* If you think it's too loud
-      Bitch get the fuck out
-      If you wanna slow down
-      Bitch get the fuck out
-      If your ass ain't with me
-      Bitch get the fuck out
-      What get the fuck out
-      Bitch get the fuck out */
 
     /**
      * Puts data into cache storage
@@ -212,7 +202,6 @@ class UbillingCache {
         $result = '';
         $keyRaw = $key;
         $key = $this->genKey($key);
-
         //files storage
         if ($this->storage == 'files') {
             $cacheName = $this->storagePath . $key;
@@ -246,12 +235,6 @@ class UbillingCache {
 
         //memcached storage
         if ($this->storage == 'memcached') {
-            /**
-             * Everybody's knowin'
-             * Where ya think you're goin' ain't goin' nowhere
-             * Satellite, handle that
-             * Wit a lead pipe
-             */
             $result = $this->memcached->get($key);
             if (!$result) {
                 $result = '';
@@ -261,12 +244,6 @@ class UbillingCache {
 
         //redis storage
         if ($this->storage == 'redis') {
-            /**
-             * Everybody's knowin'
-             * Where ya think you're goin' ain't goin' nowhere
-             * Satellite, handle that
-             * Wit a lead pipe
-             */
             $result = $this->redis->get($key);
             if (!$result) {
                 $result = '';
@@ -313,16 +290,20 @@ class UbillingCache {
      */
     public function delete($key) {
         $key = $this->genKey($key);
+
+        //files storage
         if ($this->storage == 'files') {
             if (file_exists($this->storagePath . $key)) {
                 unlink($this->storagePath . $key);
             }
         }
 
+        //memcached storage
         if ($this->storage == 'memcached') {
             $this->memcached->delete($key);
         }
 
+        //redis storage
         if ($this->storage == 'redis') {
             $this->redis->delete($key);
         }
@@ -334,6 +315,8 @@ class UbillingCache {
      * @return void
      */
     public function getAllcache($show_data = '') {
+
+        //files storage
         if ($this->storage == 'files') {
             $cache = scandir($this->storagePath);
             $keys = array_diff($cache, array('..', '.', '.gitignore', '.htaccess'));
@@ -350,6 +333,7 @@ class UbillingCache {
             return($result);
         }
 
+        //memcached storage
         if ($this->storage == 'memcached') {
             $keys = $this->memcached->getAllKeys();
             $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
@@ -362,6 +346,7 @@ class UbillingCache {
             return($result);
         }
 
+        //redis storage
         if ($this->storage == 'redis') {
             $keys = $this->redis->keys(self::CACHE_PREFIX . '*');
             if ($show_data) {
@@ -375,7 +360,6 @@ class UbillingCache {
             }
             return($result);
         }
-
     }
 
     /**
@@ -385,17 +369,21 @@ class UbillingCache {
      */
     public function deleteAllcache() {
         $cache_data = $this->getAllcache();
+
+        //files storage
         if ($this->storage == 'files' and !empty($cache_data)) {
             foreach ($cache_data as $cache) {
                 unlink($this->storagePath . $cache);
             }
         }
 
+        //memcached storage
         if ($this->storage == 'memcached' and !empty($cache_data)) {
             $result = $this->memcached->deleteMulti($cache_data);
             return($result);
         }
 
+        //redis storage
         if ($this->storage == 'redis' and !empty($cache_data)) {
             $result = $this->redis->delete($cache_data);
             return($result);
