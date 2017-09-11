@@ -1734,6 +1734,35 @@ class PONizer {
     }
 
     /**
+     * Checks is ONU associated with some login or not
+     * 
+     * @param int $onuId
+     * @param string $userLogin
+     * 
+     * @return bool
+     */
+    protected function checkOnuUserAssign($onuId, $userLogin) {
+        $result = true;
+        if (@$this->altCfg['PON_USERLINK_CHECK']) {
+            //ONU is registered
+            if ($onuId != 0) {
+                @$associatedUserLogin = $this->allOnu[$onuId]['login'];
+            } else {
+                $associatedUserLogin = '';
+            }
+
+            if (!empty($associatedUserLogin)) {
+                if ($userLogin != $associatedUserLogin) {
+                    $result = false;
+                } else {
+                    $result = true;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders json for current all OLT FDB list
      * 
      * @return void
@@ -1767,26 +1796,14 @@ class PONizer {
                                         $associatedUserLogin = '';
                                     }
                                     $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
-                                    if (@$this->altCfg['PON_USERLINK_CHECK']) {
-                                        if ((!empty($associatedUserLogin))) {
-                                            if ($userLogin != $associatedUserLogin) {
-                                                $userCheck = ' ' . wf_img('skins/createtask.gif', __('Wrong associated user'));
-                                            } else {
-                                                $userCheck = '';
-                                            }
-                                        } else {
-                                            $userCheck = '';
-                                        }
-                                    } else {
-                                        $userCheck = '';
-                                    }
+
                                     $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
                                     @$userAddress = $allAddress[$userLogin];
                                     @$userRealName = $allRealnames[$userLogin];
                                     @$userTariff = $allUserTariffs[$userLogin];
                                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
-
                                     $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) : '';
+                                    $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) : '';
 
                                     $data[] = $oltDesc . $oltCheck;
                                     $data[] = $onuMac;
