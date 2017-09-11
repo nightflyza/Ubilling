@@ -395,4 +395,147 @@ class UbillingUpdateManager {
 
 }
 
+class UbillingUpdateStuff {
+
+    /**
+     * Contains system billing.ini as key=>value
+     *
+     * @var array
+     */
+    protected $billingCfg = array();
+
+    /**
+     * Wget path
+     *
+     * @var string
+     */
+    protected $wgetPath = '/usr/local/bin/wget';
+
+    /**
+     * Tar archiver path
+     *
+     * @var string
+     */
+    protected $tarPath = '/usr/bin/tar';
+
+    /**
+     * system sudo path
+     *
+     * @var string
+     */
+    protected $sudoPath = '/usr/local/bin/sudo';
+
+    /**
+     * Gzip archiver path
+     *
+     * @var gzip
+     */
+    protected $gzipPath = '/usr/bin/gzip';
+
+    public function __construct() {
+        $this->loadConfig();
+        $this->setOptions();
+    }
+
+    /**
+     * Loads all required configs
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->billingCfg = $ubillingConfig->getBilling();
+    }
+
+    /**
+     * Sets custom paths to required software
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (isset($this->billingCfg['SUDO'])) {
+            $this->sudoPath = $this->billingCfg['SUDO'];
+        }
+
+        if (isset($this->billingCfg['WGET_PATH'])) {
+            $this->wgetPath = $this->billingCfg['WGET_PATH'];
+        }
+
+        if (isset($this->billingCfg['TAR_PATH'])) {
+            $this->tarPath = $this->billingCfg['TAR_PATH'];
+        }
+
+        if (isset($this->billingCfg['GZIP_PATH'])) {
+            $this->gzipPath = $this->billingCfg['GZIP_PATH'];
+        }
+    }
+
+    /**
+     * Changes access rights for some directory to be writable
+     * 
+     * @param string $directory
+     * 
+     * @return void
+     */
+    public function fixAccessRights($directory) {
+        $command = $this->sudoPath . ' chmod -R 777 ' . $directory;
+        shell_exec($command);
+    }
+
+    /**
+     * Downloads file from remote host
+     * 
+     * @param string $url
+     * @param string $directory
+     * @param string $filename
+     * 
+     * @return void
+     */
+    public function downloadRemoteFile($url, $directory, $filename = '') {
+        if ($filename) {
+            $wgetOptions = '--output-document=' . $directory . $filename . ' ';
+        } else {
+            $wgetOptions = '--directory-prefix=' . $directory . basename($url) . ' ';
+        }
+        $wgetOptions.= '--no-check-certificate ';
+        if (file_exists($directory)) {
+            if (!is_writable($directory)) {
+                throw new Exception('DOWNLOAD_DIRECTORY_NOT_WRITABLE');
+            }
+            $command = $this->wgetPath . ' ' . $wgetOptions . ' ' . $url;
+            shell_exec($command);
+        } else {
+            throw new Exception('DOWNLOAD_DIRECTORY_NOT_EXISTS');
+        }
+    }
+
+    /**
+     * Extracts tar.gz archive to some path
+     * 
+     * @param string $archivePath
+     * @param string $extractPath
+     * 
+     * @return void
+     */
+    public function extractTgz($archivePath, $extractPath) {
+        if (file_exists($archivePath)) {
+            if (is_readable($archivePath)) {
+                if (file_exists($extractPath)) {
+                    if (!is_writable($extractPath)) {
+                        $this->fixAccessRights($extractPath);
+                    }
+                    //unpacking archive
+                    $command = $this->tarPath . ' zxvf ' . $archivePath . ' -C ' . $extractPath;
+                    shell_exec($command);
+                } else {
+                    throw new Exception('EXTRACT_DIRECTORY_NOT_EXISTS');
+                }
+            }
+        }
+    }
+
+}
+
 ?>
