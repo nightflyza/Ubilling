@@ -34,6 +34,22 @@ class UbillingCache {
     protected $memcachedPort = '';
 
     /**
+     * Redis server IP/Hostname
+     * via REDIS_SERVER option
+     * 
+     * @var string
+     */
+    protected $redisServer = '';
+
+    /**
+     * Redis server port
+     * via REDIS_PORT option
+     *
+     * @var int
+     */
+    protected $redisPort = '';
+
+    /**
      * File storage path: "exports/" by default
      *
      * @var string
@@ -57,7 +73,7 @@ class UbillingCache {
     public function __construct() {
         $this->loadAlter();
         $this->setOptions();
-        $this->initMemcached();
+        $this->initStorageServerCache();
     }
 
     /**
@@ -97,22 +113,43 @@ class UbillingCache {
             }
         }
 
+        if ($this->storage == 'redis') {
+            if (isset($this->altCfg['REDIS_SERVER'])) {
+                $this->redisServer = $this->altCfg['REDIS_SERVER'];
+            } else {
+                $this->redisServer = 'localhost';
+            }
+            if (isset($this->altCfg['REDIS_PORT'])) {
+                $this->redisPort = $this->altCfg['REDIS_PORT'];
+            } else {
+                $this->redisPort = 6379;
+            }
+        }
+
         if ($this->storage == 'files') {
             $this->storagePath = 'exports/';
         }
     }
 
     /**
-     * Inits memcached server if it needed
+     * Inits storage server cache if it needed
      * 
      * @return void
      */
-    protected function initMemcached() {
+    protected function initStorageServerCache() {
+        // Init Memcached
         if ($this->storage == 'memcached') {
             $this->memcached = new Memcached();
             $this->memcached->addServer($this->memcachedServer, $this->memcachedPort);
         }
+        // Init Redis
+        if ($this->storage == 'redis') {
+            $this->redis = new Redis();
+            $this->redis->connect($this->redisServer, $this->redisPort);
+            $this->redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+        }
     }
+
 
     /**
      * Generates key storable internal name
@@ -146,12 +183,20 @@ class UbillingCache {
      */
     public function set($key, $data, $expiration = 0) {
         $key = $this->genKey($key);
+
+        //files storage
         if ($this->storage == 'files') {
             file_put_contents($this->storagePath . $key, serialize($data));
         }
 
+        //memcached storage
         if ($this->storage == 'memcached') {
             $this->memcached->set($key, $data, $expiration);
+        }
+
+        //redis storage
+        if ($this->storage == 'redis') {
+            $this->redis->set($key, $data, $expiration);
         }
     }
 
@@ -213,6 +258,22 @@ class UbillingCache {
             }
             return ($result);
         }
+
+        //redis storage
+        if ($this->storage == 'redis') {
+            /**
+             * Everybody's knowin'
+             * Where ya think you're goin' ain't goin' nowhere
+             * Satellite, handle that
+             * Wit a lead pipe
+             */
+            $result = $this->redis->get($key);
+            if (!$result) {
+                $result = '';
+            }
+            return ($result);
+        }
+
         //fake storage
         if ($this->storage == 'fake') {
             $result = '';
@@ -261,6 +322,10 @@ class UbillingCache {
         if ($this->storage == 'memcached') {
             $this->memcached->delete($key);
         }
+
+        if ($this->storage == 'redis') {
+            $this->redis->delete($key);
+        }
     }
 
     /**
@@ -296,6 +361,21 @@ class UbillingCache {
             }
             return($result);
         }
+
+        if ($this->storage == 'redis') {
+            $keys = $this->redis->keys(self::CACHE_PREFIX . '*');
+            if ($show_data) {
+                $value = $this->redis->mGet($keys);
+                foreach ($keys as $id=>$key) {
+                    $result[$id]['key'] = $key;
+                    $result[$id]['value'] = $value[$id];
+                }
+            } else {
+                 $result = $keys;
+            }
+            return($result);
+        }
+
     }
 
     /**
@@ -313,6 +393,11 @@ class UbillingCache {
 
         if ($this->storage == 'memcached' and !empty($cache_data)) {
             $result = $this->memcached->deleteMulti($cache_data);
+            return($result);
+        }
+
+        if ($this->storage == 'redis' and !empty($cache_data)) {
+            $result = $this->redis->delete($cache_data);
             return($result);
         }
     }
