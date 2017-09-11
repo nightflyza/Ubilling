@@ -4761,7 +4761,6 @@ function zb_ListLoadedModules() {
     return ($result);
 }
 
-
 /**
  * Returns current cache info in human readable view with ajax controls
  * 
@@ -4774,9 +4773,12 @@ function zb_ListCacheInformRenderContainer() {
     $result = '';
     $result.= wf_AjaxLoader();
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
+    if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
+    }
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
     $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
-    $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b',true), 'info');
+    $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b', true), 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
     return ($result);
@@ -4792,7 +4794,7 @@ function zb_ListCacheInformRenderContainer() {
 function zb_ListCacheInform($param = '') {
     $cache = new UbillingCache();
     $messages = new UbillingMessageHelper();
-   ($param == 'clear') ? $cache->deleteAllcache() : '';
+    ($param == 'clear') ? $cache->deleteAllcache() : '';
     $data = ($param == 'data') ? $cache->getAllcache($param) : $cache->getAllcache();
     $result = '';
     if (!empty($data) and $param != 'clear') {
@@ -4803,7 +4805,7 @@ function zb_ListCacheInform($param = '') {
         }
         $rows = wf_TableRow($cells, 'row1');
 
-        foreach ($data as $id =>$key) {
+        foreach ($data as $id => $key) {
             $cells = wf_TableCell($id);
             if ($param == 'data') {
                 $cells.= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');

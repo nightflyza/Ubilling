@@ -27,12 +27,16 @@ if (cfr('SYSLOAD')) {
         die(zb_ListCacheInform());
     }
     // Cache keys and data info
-     if (wf_CheckGet(array('ajaxcachedata'))) {
+    if (wf_CheckGet(array('ajaxcachedata'))) {
         die(zb_ListCacheInform('data'));
     }
     // Clear cache
-     if (wf_CheckGet(array('ajaxcacheclear'))) {
+    if (wf_CheckGet(array('ajaxcacheclear'))) {
         die(zb_ListCacheInform('clear'));
+    }
+    //memcached stats
+    if (wf_CheckGet(array('ajaxmemcachedstats'))) {
+        die(web_MemCachedRenderStats());
     }
 
     $globconf = $ubillingConfig->getBilling();
@@ -51,9 +55,6 @@ if (cfr('SYSLOAD')) {
     $sysInfoData = '';
     //phpinfo()
     $phpInfoCode = wf_modal(__('Check required PHP extensions'), __('Check required PHP extensions'), zb_CheckPHPExtensions(), 'ubButton', '800', '600');
-    if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
-        $phpInfoCode.= wf_modal(__('Stats') . ' ' . __('Memcached'), __('Stats') . ' ' . __('Memcached'), web_MemCachedRenderStats(), 'ubButton', '800', '600');
-    }
     $phpInfoCode.= wf_tag('br');
     $phpInfoCode.= wf_tag('iframe', false, '', 'src="?module=report_sysload&phpinfo=true" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
     $sysInfoData.= wf_modalAuto(__('Information about PHP version'), __('Information about PHP version'), $phpInfoCode, 'ubButton');
