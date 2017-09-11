@@ -186,7 +186,8 @@ class UbillingCache {
 
         //redis storage
         if ($this->storage == 'redis') {
-            $this->redis->set($key, $data, $expiration);
+            $this->redis->set($key, $data);
+            $this->redis->setTimeout($key, $expiration);
         }
     }
 
