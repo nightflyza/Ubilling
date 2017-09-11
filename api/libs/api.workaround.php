@@ -4823,3 +4823,14 @@ function zb_ListCacheInform($param = '') {
     }
     return ($result);
 }
+
+/**
+ * Downloads and unpacks phpsysinfo distro
+ * 
+ * @return void
+ */
+function zb_InstallPhpsysinfo() {
+    $upd = new UbillingUpdateStuff();
+    $upd->downloadRemoteFile('http://ubilling.net.ua/packages/phpsysinfo.tar.gz', 'exports/', 'phpsysinfo.tar.gz');
+    $upd->extractTgz('exports/phpsysinfo.tar.gz', 'phpsysinfo/');
+}

@@ -70,8 +70,20 @@ if (cfr('SYSLOAD')) {
 
     //phpsysinfo frame
     if (!empty($monit_url)) {
-        $monitCode = wf_tag('iframe', false, '', 'src="' . $monit_url . '" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
-        $sysInfoData.= wf_modalAuto(__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+        if (file_exists($monit_url . '/index.php')) {
+            $monitCode = wf_tag('iframe', false, '', 'src="' . $monit_url . '" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
+            $sysInfoData.= wf_modalAuto(__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+        } else {
+            //installing phpsysinfo
+            if (wf_CheckGet(array('phpsysinfoinstall'))) {
+                zb_InstallPhpsysinfo();
+                die(__('Done'));
+            }
+            $monitCode = wf_AjaxLink('?module=report_sysload&phpsysinfoinstall=true', __('Download') . ' ' . __('phpSysInfo'), 'phpsysinfoinstall', true, 'ubButton');
+            $monitCode.= wf_AjaxContainer('phpsysinfoinstall');
+
+            $sysInfoData.= wf_modalAuto(__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+        }
     }
 
     //Cache
