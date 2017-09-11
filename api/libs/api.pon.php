@@ -157,7 +157,6 @@ class PONizer {
      *
      * @return array
      */
-
     public function getAllOltDevices() {
         return $this->allOltDevices;
     }
@@ -848,15 +847,16 @@ class PONizer {
         $result = 0;
         $tLogin = '';
 
-        if (empty($onuid)) return $result;
+        if (empty($onuid))
+            return $result;
 
-        $query = "SELECT * from `pononu` WHERE `id`='" . $onuid . "'" ;
+        $query = "SELECT * from `pononu` WHERE `id`='" . $onuid . "'";
         $all = simple_queryall($query);
         if (!empty($all)) {
             $tLogin = $all[0]['login'];
 
             if (!empty($tLogin)) {
-                $query = "SELECT * from `users` WHERE `login`='" . $tLogin . "'" ;
+                $query = "SELECT * from `users` WHERE `login`='" . $tLogin . "'";
                 $LoginRec = simple_queryall($query);
 
                 empty($LoginRec) ? $result = 1 : $result = 2;
@@ -865,7 +865,6 @@ class PONizer {
 
         return $result;
     }
-
 
     /**
      * Getter for loaded ONU devices
@@ -897,7 +896,6 @@ class PONizer {
 
         return $ONUID;
     }
-
 
     /**
      * Loads available device models from database
@@ -1762,7 +1760,27 @@ class PONizer {
                         foreach ($fileData as $onuMac => $onuTmp) {
                             if (!empty($onuTmp)) {
                                 foreach ($onuTmp as $id => $onuData) {
+                                    $onuRealId = $this->getONUIDByMAC($onuMac);
+                                    if ($onuRealId) {
+                                        $associatedUserLogin = $this->allOnu[$onuRealId]['login'];
+                                    } else {
+                                        $associatedUserLogin = '';
+                                    }
                                     $userLogin = (isset($allUserMac[$onuData['mac']])) ? $allUserMac[$onuData['mac']] : '';
+                                    if (@$this->altCfg['PON_USERLINK_CHECK']) {
+                                        if ((!empty($associatedUserLogin))) {
+                                            if ($userLogin != $associatedUserLogin) {
+                                                $userCheck = ' ' . wf_img('skins/createtask.gif', __('Wrong associated user'));
+                                            } else {
+                                                $userCheck = '';
+                                            }
+                                        } else {
+                                            $userCheck = '';
+                                        }
+                                    } else {
+                                        $userCheck = '';
+                                    }
+                                    $onuLink = ($onuRealId) ? wf_Link(self::URL_ME . '&editonu=' . $onuRealId, $id) : $id;
                                     @$userAddress = $allAddress[$userLogin];
                                     @$userRealName = $allRealnames[$userLogin];
                                     @$userTariff = $allUserTariffs[$userLogin];
@@ -1772,9 +1790,9 @@ class PONizer {
 
                                     $data[] = $oltDesc . $oltCheck;
                                     $data[] = $onuMac;
-                                    $data[] = $id;
+                                    $data[] = $onuLink;
                                     $data[] = $onuData['vlan'];
-                                    $data[] = $onuData['mac'];
+                                    $data[] = $onuData['mac'] . $userCheck;
                                     $data[] = $userLink;
                                     $data[] = $userRealName;
                                     $data[] = $userTariff;

@@ -2668,5 +2668,7 @@ $lang['def']['Using system caching engine storage'] = 'Використовує�
 $lang['def']['Contol groups stats'] = 'Статистика контрольных груп';
 $lang['def']['Cache data'] = 'Дані кеша';
 $lang['def']['Clear all cache'] = 'Очистити весь кеш';
+$lang['def']['Wrong associated user'] = 'Невірний асоційований користувач';
+$lang['def']['Check of ONU associated user'] = 'Перевіряти асоційованого з ONU користувача';
 
 ?>
