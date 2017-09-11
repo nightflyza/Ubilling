@@ -38,7 +38,10 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxmemcachedstats'))) {
         die(web_MemCachedRenderStats());
     }
-
+    //redis stats
+    if (wf_CheckGet(array('ajaxredisstats'))) {
+        die(web_RedisRenderStats());
+    }
     $globconf = $ubillingConfig->getBilling();
     $alterconf = $ubillingConfig->getAlter();
     $monit_url = $globconf['PHPSYSINFO'];
