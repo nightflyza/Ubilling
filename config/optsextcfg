@@ -25,6 +25,7 @@ PDO
 pdo_sqlite
 Phar
 posix
+redis
 Reflection
 session
 SimpleXML
