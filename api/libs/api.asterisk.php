@@ -163,7 +163,7 @@ class Asterisk {
         //getting caching time
         $cache = zb_StorageGet('ASTERISK_CACHETIME');
         if (empty($cache)) {
-            $cache = '1';
+            $cache = '2592000';
             zb_StorageSet('ASTERISK_CACHETIME', $cache);
         }        
         //getting caching time
@@ -352,13 +352,13 @@ class Asterisk {
      * 
      * @return string
      */
-    public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '1', $dopmobile = '') {
+    public function AsteriskUpdateConfig($newhost, $newdb, $newtable, $newlogin, $newpassword, $newcachetime = '2592000', $dopmobile = '') {
         zb_StorageSet('ASTERISK_HOST', $newhost);
         zb_StorageSet('ASTERISK_DB', $newdb);
         zb_StorageSet('ASTERISK_TABLE', $newtable);
         zb_StorageSet('ASTERISK_LOGIN', $newlogin);
         zb_StorageSet('ASTERISK_PASSWORD', $newpassword);
-        zb_StorageSet('ASTERISK_CACHETIME', $newcachetime);
+        zb_StorageSet('ASTERISK_CACHETIME', ($newcachetime < 2592000) ? $newcachetime: 2592000);
         zb_StorageSet('ASTERISK_DOPMOBILE', $dopmobile);
         log_register('ASTERISK settings changed');
         rcms_redirect(self::URL_ME . '&config=true');
