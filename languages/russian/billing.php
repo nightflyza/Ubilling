@@ -2649,5 +2649,11 @@ $lang['def']['May require manual installation'] = 'Может потребова
 $lang['def']['Cache'] = 'Кэш';
 $lang['def']['Cache information'] = 'Информация по кэшу';
 $lang['def']['Using system caching engine storage'] = 'Используется хранилище системного кэша';
+$lang['def']['Contol groups stats'] = 'Статистика контрольных групп';
+$lang['def']['Cache data'] = 'Данные кэша';
+$lang['def']['Clear all cache'] = 'Очистить весь кэш';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 ?>

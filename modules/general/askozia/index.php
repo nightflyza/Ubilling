@@ -146,6 +146,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         $prevTimeStart = '';
         $prevTimeEnd = '';
         $controlGroups = array();
+        $controlStats = array();
 
         if (isset($altcfg['ASKOZIA_DEBUG'])) {
             if ($altcfg['ASKOZIA_DEBUG']) {
@@ -153,11 +154,11 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
         }
 
+        //control groups option handling
         if (isset($altcfg['ASKOZIA_CONTROLGROUPS'])) {
             if (!empty($altcfg['ASKOZIA_CONTROLGROUPS'])) {
                 $controlGroups = explode(',', $altcfg['ASKOZIA_CONTROLGROUPS']);
-                $controlGroups=  array_flip($controlGroups);
-                debarr($controlGroups);
+                $controlGroups = array_flip($controlGroups);
             }
         }
 
@@ -250,6 +251,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     } else {
                         $callIdData = $callsCounter;
                     }
+
+
+
                     $cells = wf_TableCell($callIdData, '', '', 'sorttable_customkey="' . $callsCounter . '"');
                     $cells.= wf_TableCell($callDirection . $sessionTimeStats, '', '', 'sorttable_customkey="' . strtotime($each[9]) . '"');
                     $cells.= wf_TableCell(zb_AskoziaGetNumAlias($each[1]));
@@ -284,6 +288,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         //work time controls
                         if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
                             $WorkHoursAnswerCounter++;
+                            //control groups answered calls handling
+                            if (isset($controlGroups[$toNumber])) {
+                                if (isset($controlStats[$toNumber])) {
+                                    if (isset($controlStats[$toNumber]['answered'])) {
+                                        $controlStats[$toNumber]['answered'] ++;
+                                    } else {
+                                        $controlStats[$toNumber]['answered'] = 1;
+                                    }
+                                }
+                            }
                         }
 
                         if (isset($chartData[$startDate . ' ' . $startHour]['answered'])) {
@@ -302,6 +316,14 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                             $noAnswerCounter++;
                             if (zb_isTimeBetween($workStartTime, $workEndTime, $startTime)) {
                                 $WorkHoursNoAnswerCounter++;
+                                if (isset($controlGroups[$toNumber])) {
+                                    //control groups no answered calls count in work time
+                                    if (isset($controlStats[$toNumber]['noanswer'])) {
+                                        $controlStats[$toNumber]['noanswer'] ++;
+                                    } else {
+                                        $controlStats[$toNumber]['noanswer'] = 1;
+                                    }
+                                }
                             }
                         }
                         if (isset($chartData[$startDate . ' ' . $startHour]['noanswer'])) {
@@ -387,8 +409,36 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         }
                     }
 
+                    //control groups stats
+                    if (isset($controlGroups[$toNumber])) {
+                        if (isset($controlStats[$toNumber])) {
+                            if (isset($controlStats[$toNumber]['time'])) {
+                                $controlStats[$toNumber]['time'] += $speekTimeRaw;
+                            } else {
+                                $controlStats[$toNumber]['time'] = $speekTime;
+                            }
+                        }
+                    }
+
 
                     $rows.= wf_TableRow($cells, $rowClass);
+                }
+            }
+
+
+
+            if (!empty($controlStats)) {
+                $ccells = wf_TableCell(__('Phone'));
+                $ccells.= wf_TableCell(__('Total calls'));
+                $ccells.= wf_TableCell(__('Time'));
+                $ccells.= wf_TableCell(__('Answered'));
+                $crows = wf_TableRow($ccells, 'row1');
+                foreach ($controlStats as $io => $each) {
+                    $ccells = wf_TableCell(zb_AskoziaGetNumAlias($io));
+                    $ccells.= wf_TableCell($each['answered'] + $each['noanswer']);
+                    $ccells.= wf_TableCell(zb_AskoziaFormatTime($each['time']));
+                    $ccells.= wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
+                    $crows.= wf_TableRow($ccells, 'row3');
                 }
             }
 
@@ -436,9 +486,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $result.= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
 
-            if (!empty($customCfg)) {
-                @$result.=wf_delimiter() . wf_TableBody($grows, '100%', '0', 'sortable') . wf_delimiter();
+
+            if (!empty($controlStats)) {
+                $result.=wf_tag('h3') . __('Contol groups stats') . wf_tag('h3', true);
+                @$result.= wf_TableBody($crows, '100%', '0', 'sortable') . wf_delimiter();
             }
+            if (!empty($customCfg)) {
+                @$result.= wf_TableBody($grows, '100%', '0', 'sortable') . wf_delimiter();
+            }
+
+
 
             $result.=wf_TableBody($rows, '100%', '0', 'sortable');
 
