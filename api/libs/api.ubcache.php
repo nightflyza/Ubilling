@@ -232,54 +232,15 @@ class UbillingCache {
      * @return string
      */
     public function getCallback($key, Closure $callback, $expiration = 0) {
-        $keyRaw = $key;
-        $key = $this->genKey($key);
-
-        //files storage
-        if ($this->storage == 'files') {
-            $cacheName = $this->storagePath . $key;
-            if (!$expiration) {
-                $expiration = 2629743; // month by default
-            }
-            $cacheTime = time() - $expiration;
-            $updateCache = false;
-            if (file_exists($cacheName)) {
-                $updateCache = false;
-                if ((filemtime($cacheName) > $cacheTime)) {
-                    $updateCache = false;
-                } else {
-                    $updateCache = true;
-                }
-            } else {
-                $updateCache = true;
-            }
-
-            if (!$updateCache) {
-                //read data directly from cache
-                $data = file_get_contents($cacheName);
-                $result = unserialize($data);
-            } else {
-                //run callback function and store new data into cache
-                $result = $callback();
-                $this->set($keyRaw, $result, $expiration);
-            }
-            return ($result);
-        }
-
-        //memcached storage
-        if ($this->storage == 'memcached') {
-            $result = $this->memcached->get($key);
+            // Use this class get function
+            $result = $this->get($key);
             if (!$result) {
+            // If not have result from class get function
+            // return $callback data function and set new cache
                 $result = $callback();
-                $this->set($keyRaw, $result, $expiration);
+                $this->set($key, $result, $expiration);
             }
             return ($result);
-        }
-        //fake storage
-        if ($this->storage == 'fake') {
-            $result = $callback();
-            return ($result);
-        }
     }
 
     /**
