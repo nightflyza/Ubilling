@@ -64,7 +64,6 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         return ($result);
     }
 
-
     /**
      * Renders time duration in seconds into formatted human-readable view
      *      
@@ -146,10 +145,19 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         $answeredFlag = true;
         $prevTimeStart = '';
         $prevTimeEnd = '';
+        $controlGroups = array();
 
         if (isset($altcfg['ASKOZIA_DEBUG'])) {
             if ($altcfg['ASKOZIA_DEBUG']) {
                 $debugFlag = true;
+            }
+        }
+
+        if (isset($altcfg['ASKOZIA_CONTROLGROUPS'])) {
+            if (!empty($altcfg['ASKOZIA_CONTROLGROUPS'])) {
+                $controlGroups = explode(',', $altcfg['ASKOZIA_CONTROLGROUPS']);
+                $controlGroups=  array_flip($controlGroups);
+                debarr($controlGroups);
             }
         }
 
