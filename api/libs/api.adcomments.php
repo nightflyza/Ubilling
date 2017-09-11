@@ -23,12 +23,12 @@ class ADcomments {
      */
     protected $cache = '';
 
-    /**
+     /**
      * Comments caching time
      *
      * @var int
      */
-    public $cacheTime = 2629743; //month by default
+    protected $cacheTime = 2592000; //month by default
 
     /**
      * Current instance item id

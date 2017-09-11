@@ -56,7 +56,7 @@ class Asterisk {
      *
      * @var int
      */
-    public $cacheTime = ''; //month by default
+    protected $cacheTime = ''; //month by default
 
     // Database's vars:
     private $connected;
