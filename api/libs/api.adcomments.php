@@ -28,7 +28,7 @@ class ADcomments {
      *
      * @var int
      */
-    protected $cacheTime = 2629743; //month by default
+    public $cacheTime = 2629743; //month by default
 
     /**
      * Current instance item id
