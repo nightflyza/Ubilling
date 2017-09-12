@@ -778,6 +778,34 @@ function zbs_TariffGetSpeed($tariff) {
 }
 
 /**
+ * Returns all tariff speeds
+ * 
+ * @param string $tariff
+ * @return array
+ */
+function zbs_TariffGetAllSpeeds() {
+    $offset = 1024;
+    $query = "SELECT * from `speeds`";
+    $speedData = simple_queryall($query);
+    $result = array();
+    if (!empty($speedData)) {
+        foreach ($speedData as $io => $each) {
+            if ($each['speeddown'] != 0) {
+                if ($each['speeddown'] < $offset) {
+                    $speed = $each['speeddown'] . ' ' . __('Kbit/s');
+                } else {
+                    $speed = ($each['speeddown'] / $offset) . ' ' . __('Mbit/s');
+                }
+            } else {
+                $speed = __('Unlimited');
+            }
+            $result[$each['tariff']] = $speed;
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns speed override by login, if available
  * 
  * @param string $login

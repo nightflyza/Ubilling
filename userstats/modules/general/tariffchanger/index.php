@@ -86,11 +86,19 @@ if (!$tc_extended_matrix) {
  * @return string
  */
 function zbs_TariffSelector($tc_tariffsallowed, $user_tariff) {
+    global $us_config;
+    if ($us_config['SHOW_SPEED']) {
+        $allSpeeds = zbs_TariffGetAllSpeeds();
+    }
     $params = array();
     if (!empty($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $io => $eachtariff) {
             if ($eachtariff != $user_tariff) {
-                $params[trim($eachtariff)] = __($eachtariff);
+                if ($us_config['SHOW_SPEED']) {
+                    $params[trim($eachtariff)] = __($eachtariff).' - '.@$allSpeeds[$eachtariff];
+                } else {
+                    $params[trim($eachtariff)] = __($eachtariff);
+                }
             }
         }
     }
@@ -144,10 +152,15 @@ function zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup,
  * @return string
  */
 function zbs_TariffGetShowPrices($tc_tariffsallowed, $us_currency, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar) {
+    global $us_config;
     $allprices = zbs_TariffGetAllPrices();
+    $allSpeeds = zbs_TariffGetAllSpeeds();
     $allcosts = zbs_TariffGetChangePrice($tc_tariffsallowed, $user_tariff, $tc_priceup, $tc_pricedown, $tc_pricesimilar);
 
     $cells = la_TableCell(__('Tariff'));
+    if ($us_config['SHOW_SPEED']) {
+        $cells.= la_TableCell(__('Tariff speed'));
+    }
     $cells.= la_TableCell(__('Monthly fee'));
     $cells.= la_TableCell(__('Cost of change'));
     $rows = la_TableRow($cells, 'row1');
@@ -155,6 +168,9 @@ function zbs_TariffGetShowPrices($tc_tariffsallowed, $us_currency, $user_tariff,
     if (!empty($tc_tariffsallowed)) {
         foreach ($tc_tariffsallowed as $eachtariff) {
             $cells = la_TableCell(__($eachtariff));
+            if ($us_config['SHOW_SPEED']) {
+                $cells.= la_TableCell(@$allSpeeds[$eachtariff]);
+            }
             $cells.= la_TableCell(@$allprices[$eachtariff] . ' ' . $us_currency);
             $cells.= la_TableCell(@$allcosts[$eachtariff] . ' ' . $us_currency);
             $rows.= la_TableRow($cells, 'row2');
