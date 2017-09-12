@@ -214,7 +214,7 @@ class ProfileDocuments {
                 if ($this->altcfg['OPENPAYZ_REALID']) {
                     @$userdata[$eachuser['login']]['PAYID'] = $allopcustomers[$eachuser['login']];
                 } else {
-                    @$userdata[$eachuser['login']]['PAYID'] = ip2int($eachuser['IP']);
+                    @$userdata[$eachuser['login']]['PAYID'] = ip2long($eachuser['IP']);
                 }
                 //traffic params
                 $userdata[$eachuser['login']]['TRAFFIC'] = $eachuser['D0'] + $eachuser['U0'];

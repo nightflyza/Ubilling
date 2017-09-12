@@ -128,7 +128,7 @@ function zb_TemplateGetAllUserData() {
             if ($altcfg['OPENPAYZ_REALID']) {
                 @$userdata[$eachuser['login']]['payid'] = $allopcustomers[$eachuser['login']];
             } else {
-                @$userdata[$eachuser['login']]['payid'] = ip2int($eachuser['IP']);
+                @$userdata[$eachuser['login']]['payid'] = ip2long($eachuser['IP']);
             }
             //traffic params
             $userdata[$eachuser['login']]['traffic'] = $eachuser['D0'] + $eachuser['U0'];
