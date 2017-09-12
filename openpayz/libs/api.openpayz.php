@@ -181,34 +181,6 @@ function xml2array($contents, $get_attributes = 1, $priority = 'tag') {
 }
 
 /**
- * Converts IP address into integer value
- * 
- * @param string $src
- * 
- * @return int
- */
-function ip2int($src) {
-    $t = explode('.', $src);
-    return count($t) != 4 ? 0 : 256 * (256 * ((float) $t[0] * 256 + (float) $t[1]) + (float) $t[2]) + (float) $t[3];
-}
-
-/**
- * Converts integer value into IP address
- * 
- * @param int $src
- * 
- * @return string
- */
-function int2ip($src) {
-    $s1 = (int) ($src / 256);
-    $i1 = $src - 256 * $s1;
-    $src = (int) ($s1 / 256);
-    $i2 = $s1 - 256 * $src;
-    $s1 = (int) ($src / 256);
-    return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
-}
-
-/**
  * Returns plain array of not processed transactions
  * 
  * @return array
