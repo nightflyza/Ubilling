@@ -1095,11 +1095,10 @@ function zb_NasGetByNet($netid) {
 
 function zb_NetworkGetByIp($ip) {
     $allnets = multinet_get_all_networks();
-    $result = false;
     if (!empty($allnets)) {
         foreach ($allnets as $io => $eachnet) {
-            $completenet = multinet_expand_network($eachnet['startip'], $eachnet['endip']);
-            if (in_array($ip, $completenet, true)) {
+            $completenet = multinet_checkIP($ip, $eachnet['startip'], $eachnet['endip']);
+            if ($completenet) {
                 $result = $eachnet['id'];
                 break;
             } else {
