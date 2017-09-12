@@ -113,7 +113,7 @@ function gen_check_users() {
              $tablecells.=wf_TableCell(@$alluseraddress[$eachuser['login']]);
              $tablecells.=wf_TableCell(@$allusernames[$eachuser['login']]);
              $tablecells.=wf_TableCell($eachuser['Tariff']);
-             $tablecells.=wf_TableCell($eachuser['IP'],'','','sorttable_customkey="'.ip2int($eachuser['IP']).'"');
+             $tablecells.=wf_TableCell($eachuser['IP'],'','','sorttable_customkey="'.ip2long($eachuser['IP']).'"');
              $tablecells.=wf_TableCell(stg_convert_size($eachuser['D0']),'','','sorttable_customkey="'.$eachuser['D0'].'"');
              $tablecells.=wf_TableCell(stg_convert_size($eachuser['U0']),'','','sorttable_customkey="'.$eachuser['U0'].'"');
              $tablecells.=wf_TableCell(stg_convert_size(($eachuser['D0']+$eachuser['U0'])),'','','sorttable_customkey="'.($eachuser['D0']+$eachuser['U0']).'"');

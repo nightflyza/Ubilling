@@ -639,7 +639,7 @@ function multinet_rebuild_globalconf() {
             $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
             $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
             $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
-            $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
+            $templatedata['{ROUTERS}'] = long2ip(ip2long($templatedata['{STARTIP}']) + 1);
             $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
             $dhcpdata = dhcp_get_data_by_netid($eachnet['netid']);
             if (isset($dhcpdata['confname'])) {
@@ -733,10 +733,10 @@ function multinet_change_mac($ip, $newmac) {
 }
 
 function multinet_expand_network($first_ip, $last_ip) {
-    $first = ip2int($first_ip);
-    $last = ip2int($last_ip);
+    $first = ip2long($first_ip);
+    $last = ip2long($last_ip);
     for ($i = $first; $i <= $last; $i++) {
-        $totalnet[] = int2ip($i);
+        $totalnet[] = long2ip($i);
     }
     if (!empty($totalnet)) {
         foreach ($totalnet as $eachip) {
@@ -750,20 +750,6 @@ function multinet_expand_network($first_ip, $last_ip) {
         }
     }
     return($filterednet);
-}
-
-function ip2int($src) {
-    $t = explode('.', $src);
-    return count($t) != 4 ? 0 : 256 * (256 * ((float) $t[0] * 256 + (float) $t[1]) + (float) $t[2]) + (float) $t[3];
-}
-
-function int2ip($src) {
-    $s1 = (int) ($src / 256);
-    $i1 = $src - 256 * $s1;
-    $src = (int) ($s1 / 256);
-    $i2 = $s1 - 256 * $src;
-    $s1 = (int) ($src / 256);
-    return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
 function multinet_get_all_free_ip($table, $field, $network_id) {

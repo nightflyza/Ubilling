@@ -212,7 +212,7 @@ class GlobalSearch {
                     $tmpArrPayids = array();
                     if (!empty($allPayIds)) {
                         foreach ($allPayIds as $io => $each) {
-                            $tmpArrPayids[$each['login']] = ip2int($each['IP']);
+                            $tmpArrPayids[$each['login']] = ip2long($each['IP']);
                         }
                     }
                     $this->rawData = $this->rawData + $this->transformArray($tmpArrPayids, __('Payment ID'), 'payid');

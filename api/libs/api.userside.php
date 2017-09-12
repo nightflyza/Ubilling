@@ -739,7 +739,7 @@ class UserSideApi {
         } else {
             if (!empty($this->allUserData)) {
                 foreach (@$this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2int($each['IP']);
+                    $result[$each['login']] = ip2long($each['IP']);
                 }
             }
         }
@@ -979,7 +979,7 @@ class UserSideApi {
                 }
 
                 $userIp = $userData['IP'];
-                $userIp = ip2int($userIp);
+                $userIp = ip2long($userIp);
                 $result[$userLogin]['ip_mac'][0]['ip'] = $userIp;
                 $nethostsData = @$allNethosts[$userData['IP']];
                 if (!empty($nethostsData)) {
