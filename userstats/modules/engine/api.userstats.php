@@ -535,7 +535,7 @@ function zbs_UserShowAgentData($login) {
     $result.='email=' . $email . "\n";
     $result.='credit=' . @$userdata['Credit'] . "\n";
     $result.='creditexpire=' . $credexpire . "\n";
-    $result.='payid=' . ip2int($userdata['IP']) . "\n";
+    $result.='payid=' . ip2long($userdata['IP']) . "\n";
     $result.='contract=' . $contract . "\n";
     $result.='tariff=' . $userdata['Tariff'] . "\n";
     $result.='tariffnm=' . $userdata['TariffChange'] . "\n";
@@ -632,7 +632,7 @@ function zbs_UserShowXmlAgentData($login) {
     if ($us_config['OPENPAYZ_REALID']) {
         $paymentid = zbs_PaymentIDGet($login);
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = ip2long($userdata['IP']);
     }
 
     if ($userdata['CreditExpire'] != 0) {
@@ -989,7 +989,7 @@ function zbs_UserShowProfile($login) {
     if ($us_config['OPENPAYZ_REALID']) {
         $paymentid = zbs_PaymentIDGet($login);
     } else {
-        $paymentid = ip2int($userdata['IP']);
+        $paymentid = ip2long($userdata['IP']);
     }
 
     //payment id qr dialog

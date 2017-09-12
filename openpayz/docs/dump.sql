@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `op_transactions` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 -- view for compat with ubilling
--- transform users.login -> ip2int(users.IP);
+-- transform users.login -> ip2long(users.IP);
 -- CREATE VIEW op_customers (realid,virtualid) AS SELECT users.login, INET_ATON(users.IP) from `users`;
 
 
