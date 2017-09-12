@@ -271,15 +271,15 @@ class UbillingCache {
      * @return string
      */
     public function getCallback($key, Closure $callback, $expiration = 0) {
-            // Use this class get function
-            $result = $this->get($key);
-            if (!$result) {
+        // Use this class get function
+        $result = $this->get($key, $expiration);
+        if (!$result) {
             // If not have result from class get function
             // return $callback data function and set new cache
-                $result = $callback();
-                $this->set($key, $result, $expiration);
-            }
-            return ($result);
+            $result = $callback();
+            $this->set($key, $result, $expiration);
+        }
+        return ($result);
     }
 
     /**
@@ -324,12 +324,12 @@ class UbillingCache {
             $keys = preg_grep("/^" . self::CACHE_PREFIX . "/", $keys);
             if ($show_data) {
                 $result = array();
-                foreach ($keys as $key=>$file) {
+                foreach ($keys as $key => $file) {
                     $result[$key]['key'] = $file;
                     $result[$key]['value'] = unserialize(file_get_contents($this->storagePath . $file));
                 }
             } else {
-                 $result = $keys;
+                $result = $keys;
             }
             return($result);
         }
@@ -342,7 +342,7 @@ class UbillingCache {
                 $this->memcached->getDelayed($keys);
                 $result = $this->memcached->fetchAll();
             } else {
-                 $result = $keys;
+                $result = $keys;
             }
             return($result);
         }
@@ -352,12 +352,12 @@ class UbillingCache {
             $keys = $this->redis->keys(self::CACHE_PREFIX . '*');
             if ($show_data) {
                 $value = $this->redis->mGet($keys);
-                foreach ($keys as $id=>$key) {
+                foreach ($keys as $id => $key) {
                     $result[$id]['key'] = $key;
                     $result[$id]['value'] = $value[$id];
                 }
             } else {
-                 $result = $keys;
+                $result = $keys;
             }
             return($result);
         }
@@ -372,24 +372,25 @@ class UbillingCache {
         $cache_data = $this->getAllcache();
 
         //files storage
-        if ($this->storage == 'files' and !empty($cache_data)) {
+        if ($this->storage == 'files' and ! empty($cache_data)) {
             foreach ($cache_data as $cache) {
                 unlink($this->storagePath . $cache);
             }
         }
 
         //memcached storage
-        if ($this->storage == 'memcached' and !empty($cache_data)) {
+        if ($this->storage == 'memcached' and ! empty($cache_data)) {
             $result = $this->memcached->deleteMulti($cache_data);
             return($result);
         }
 
         //redis storage
-        if ($this->storage == 'redis' and !empty($cache_data)) {
+        if ($this->storage == 'redis' and ! empty($cache_data)) {
             $result = $this->redis->delete($cache_data);
             return($result);
         }
     }
+
 }
 
 ?>
