@@ -739,6 +739,7 @@ function multinet_expand_network($first_ip, $last_ip) {
         $totalnet[] = long2ip($i);
     }
     if (!empty($totalnet)) {
+        //$filterednet = preg_grep("/\b\.([2-9]|[0-9]\d|1[0-9]\d|2[0-4]\d|25[0-4])$\b/", $totalnet);
         foreach ($totalnet as $eachip) {
             if (preg_match("#\.(0|1|255)$#", $eachip)) {
 //preg_match("#(0|1|255)$#", $eachip)
@@ -783,6 +784,11 @@ function multinet_get_service_networkid($service_id) {
     $service_network = simple_query($query);
     $service_network = $service_network['netid'];
     return($service_network);
+}
+
+// проверка IP по маске
+function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
+    return (ip2long($user_ip)>=ip2long($ip_begin) && ip2long($user_ip)<=ip2long($ip_end));
 }
 
 function stg_convert_size($fs) {
