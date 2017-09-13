@@ -2675,5 +2675,9 @@ $lang['def']['Tar path'] = 'Шлях до tar';
 $lang['def']['Gzip path'] = 'Шлях до gzip';
 $lang['def']['Cache cleared'] = 'Кеш очищено';
 $lang['def']['AP devices'] = 'AP пристрої';
+$lang['def']['Create new CPE'] = 'Створити нове CPE';
+$lang['def']['Bridge mode'] = 'Режим моста';
+$lang['def']['Connected to AP'] = 'З`єднано AP';
+$lang['def']['Available CPE list'] = 'Список існуючих CPE';
 
 ?>

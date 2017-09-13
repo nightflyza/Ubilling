@@ -2659,6 +2659,12 @@ $lang['def']['Tar path'] = 'Путь к tar';
 $lang['def']['Gzip path'] = 'Путь к gzip';
 $lang['def']['Cache cleared'] = 'Кэш очищен';
 $lang['def']['AP devices'] = 'AP устройства';
+$lang['def']['Create new CPE'] = 'Создать новое CPE';
+$lang['def']['Bridge mode'] = 'Режим моста';
+$lang['def']['Connected to AP'] = 'Соединено с AP';
+$lang['def']['Available CPE list'] = 'Список существующих CPE';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

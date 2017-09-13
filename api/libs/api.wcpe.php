@@ -17,6 +17,13 @@ class WifiCPE {
     protected $allAP = array();
 
     /**
+     * Contains available AP SSIDs if exists as id=>ssid
+     *
+     * @var array
+     */
+    protected $allSSids = array();
+
+    /**
      * Contains all available devices models as modelid=>name
      *
      * @var array
@@ -36,6 +43,11 @@ class WifiCPE {
      * @var object
      */
     protected $messages = '';
+
+    /**
+     * Base module URL
+     */
+    const URL_ME = '?module=testing';
 
     public function __construct() {
         $this->loadConfigs();
@@ -77,8 +89,34 @@ class WifiCPE {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allAP[$each['id']] = $each;
+                $apSsid = $this->extractSsid($each['desc']);
+                if (!empty($apSsid)) {
+                    $this->allSSids[$each['id']] = $apSsid;
+                }
             }
         }
+    }
+
+    /**
+     * Ectracts SSID if exists from AP description
+     * 
+     * @param string $desc
+     * 
+     * @return string
+     */
+    protected function extractSsid($desc) {
+        $result = '';
+        if (!empty($desc)) {
+            $rawDesc = explode(' ', $desc);
+            if (!empty($rawDesc)) {
+                foreach ($rawDesc as $io => $each) {
+                    if (ispos($each, 'ssid:')) {
+                        $result = $each;
+                    }
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -130,7 +168,12 @@ class WifiCPE {
         $geoF = mysql_real_escape_string($geo);
 
         if (isset($this->deviceModels[$modelId])) {
-            if (check_mac_format($macF)) {
+            if (empty($macF)) {
+                $macCheckFlag = true;
+            } else {
+                $macCheckFlag = check_mac_format($macF);
+            }
+            if ($macCheckFlag) {
                 $query = "INSERT INTO `wcpedevices` (`id`, `modelid`, `ip`, `mac`, `location`, `bridge`, `uplinkapid`, `uplinkcpeid`, `geo`) "
                         . "VALUES (NULL, '" . $modelId . "', '" . $ipF . "', '" . $macF . "', '" . $loactionF . "', '" . $bridgeMode . "', '" . $uplinkApId . "', NULL, '" . $geoF . "');";
                 nr_query($query);
@@ -140,7 +183,27 @@ class WifiCPE {
                 $result.=$this->messages->getStyledMessage(__('This MAC have wrong format'), 'error');
             }
         } else {
-            $result.=$this->messages->getStyledMessage(__('Wrong element format') . ': modeleid', 'error');
+            $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': MODELID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes existing CPE from database
+     * 
+     * @param int $cpeId
+     * 
+     * @return void/string
+     */
+    public function deleteCPE($cpeId) {
+        $result = '';
+        $cpeId = vf($cpeId, 3);
+        if (isset($this->allCPE[$cpeId])) {
+            $query = "DELETE from `wcpedevices` WHERE `id`='" . $cpeId . "';";
+            nr_query($query);
+            log_register('WCPE DELETE [' . $cpeId . ']');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
         }
         return ($result);
     }
@@ -150,14 +213,26 @@ class WifiCPE {
      * 
      * @return string
      */
-    public function renderCpeCreateForm() {
+    public function renderCPECreateForm() {
         $result = '';
         if (!empty($this->deviceModels)) {
+            $apTmp = array('' => __('No'));
+
+            if (!empty($this->allAP)) {
+                foreach ($this->allAP as $io => $each) {
+                    $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
+                }
+            }
+
             $inputs = wf_HiddenInput('createnewcpe', 'true');
             $inputs.= wf_Selector('newcpemodelid', $this->deviceModels, __('Model'), '', true);
+            $inputs.= wf_CheckInput('newcpebridge', __('Bridge mode'), true, false);
             $inputs.= wf_TextInput('newcpeip', __('IP'), '', true, 15);
             $inputs.= wf_TextInput('newcpemac', __('MAC'), '', true, 15);
-            $inputs.= wf_Selector('newcpebridge', array('0' => __('No'), '1' => __('Yes')), __('Bridge mode'), '0', true);
+            $inputs.= wf_TextInput('newcpelocation', __('Location'), '', true, 25);
+            $inputs.= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25);
+            $inputs.= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), '', true);
+            $inputs.= wf_Submit(__('Create'));
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
         } else {
@@ -166,5 +241,49 @@ class WifiCPE {
         return ($result);
     }
 
+    /**
+     * Renders available CPE list container
+     * 
+     * @return string
+     */
+    public function renderCPEList() {
+        $result = '';
+        if (!empty($this->allCPE)) {
+            $columns = array('ID', 'Model', 'IP', 'MAC', 'Location', 'Geo location', 'Connected to AP', 'Bridge mode', 'Actions');
+            $opts = '"order": [[ 0, "desc" ]]';
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&ajcpelist=true', false, __('CPE'), 100, $opts);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders JSON data of available CPE devices
+     * 
+     * @return void
+     */
+    public function getCPEListJson() {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allCPE)) {
+            foreach ($this->allCPE as $io => $each) {
+                $data[] = $each['id'];
+                $data[] = @$this->deviceModels[$each['modelid']];
+                $data[] = $each['ip'];
+                $data[] = $each['mac'];
+                $data[] = $each['location'];
+                $data[] = $each['geo'];
+                $data[] = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allSSids[$each['uplinkapid']];
+                $data[] = web_bool_led($each['bridge']);
+                $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $actLinks;
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
+    }
+
 }
+
 ?>
