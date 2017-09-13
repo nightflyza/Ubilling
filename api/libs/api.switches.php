@@ -995,6 +995,7 @@ function zb_SwitchesRenderAjaxList() {
     $countOnMap = 0;
     $countSwpoll = 0;
     $countMtsigmon = 0;
+    $countAP=0;
     $countOlt = 0;
     $countLinked = 0;
 
@@ -1079,6 +1080,10 @@ function zb_SwitchesRenderAjaxList() {
             if (ispos($eachswitch['desc'], 'OLT')) {
                 $countOlt++;
             }
+            
+            if (ispos($eachswitch['desc'], 'AP')) {
+                $countAP++;
+            }
 
             if ($alterconf['ADCOMMENTS_ENABLED']) {
                 $switchcontrols.=$adcomments->getCommentsIndicator($eachswitch['id']);
@@ -1102,6 +1107,7 @@ function zb_SwitchesRenderAjaxList() {
     $countersSummary.=wf_img('skins/snmp.png') . ' ' . __('SWPOLL query') . ' - ' . $countSwpoll . wf_tag('br');
     $countersSummary.=wf_img('skins/wifi.png') . ' ' . __('MTSIGMON devices') . ' - ' . $countMtsigmon . wf_tag('br');
     $countersSummary.=wf_img('skins/pon_icon.gif') . ' ' . __('OLT devices') . ' - ' . $countOlt . wf_tag('br');
+    $countersSummary.=wf_img('skins/wifi.png') . ' ' . __('AP devices') . ' - ' . $countAP . wf_tag('br');
     $countersSummary.=wf_img('skins/icon_search_small.gif') . ' ' . __('Placed on map') . ' - ' . $countOnMap . wf_tag('br');
     $countersSummary.=wf_img('skins/ymaps/uplinks.png') . ' ' . __('Have uplinks') . ' - ' . $countLinked . wf_tag('br');
     $countersSummary.=wf_tag('br') . wf_tag('b') . __('Total') . ': ' . $countTotal . wf_tag('b', true) . wf_tag('br');

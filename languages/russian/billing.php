@@ -2657,8 +2657,8 @@ $lang['def']['Check of ONU associated user'] = 'Проверять связан�
 $lang['def']['Wget path'] = 'Путь к wget';
 $lang['def']['Tar path'] = 'Путь к tar';
 $lang['def']['Gzip path'] = 'Путь к gzip';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Cache cleared'] = 'Кэш очищен';
+$lang['def']['AP devices'] = 'AP устройства';
 $lang['def'][''] = '';
 
 

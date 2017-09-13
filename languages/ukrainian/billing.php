@@ -2663,7 +2663,7 @@ $lang['def']['At least 3 characters are required for search'] = 'Для пошу
 $lang['def']['Deprecated in'] = 'Застаріло та виключено з';
 $lang['def']['May require manual installation'] = 'Може потребувати ручного встановлення';
 $lang['def']['Cache'] = 'Кеш';
-$lang['def']['Cache information'] = 'Інфоррмація по кешу';
+$lang['def']['Cache information'] = 'Інформація по кешу';
 $lang['def']['Using system caching engine storage'] = 'Використовується сховище системного кешу';
 $lang['def']['Contol groups stats'] = 'Статистика контрольных груп';
 $lang['def']['Cache data'] = 'Дані кеша';
@@ -2673,5 +2673,7 @@ $lang['def']['Check of ONU associated user'] = 'Перевіряти асоці�
 $lang['def']['Wget path'] = 'Шлях до wget';
 $lang['def']['Tar path'] = 'Шлях до tar';
 $lang['def']['Gzip path'] = 'Шлях до gzip';
+$lang['def']['Cache cleared'] = 'Кеш очищено';
+$lang['def']['AP devices'] = 'AP пристрої';
 
 ?>

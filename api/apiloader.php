@@ -107,6 +107,7 @@ include('api/libs/api.jungen.php');
 include('api/libs/api.nasmon.php');
 include('api/libs/api.ipchange.php');
 include('api/libs/api.messagesqueue.php');
+include('api/libs/api.wcpe.php');
 
 /*
  * Initial class creation
