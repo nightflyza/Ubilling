@@ -759,7 +759,7 @@ function multinet_get_all_free_ip($table, $field, $network_id) {
     $last_ip = $network_spec['endip'];
     $clear_ips = array();
     $full_network_pool = multinet_expand_network($first_ip, $last_ip);
-    $current_state_q = 'SELECT `' . $field . '` from `' . $table . '`';
+    $current_state_q = "SELECT `" . $field . "` from `" . $table . "` WHERE `netid` = '" . $network_id . "'";
     $all_current_used_ip = simple_queryall($current_state_q);
     if (!empty($all_current_used_ip)) {
         foreach ($all_current_used_ip as $io => $usedip) {
