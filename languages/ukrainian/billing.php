@@ -2679,5 +2679,8 @@ $lang['def']['Create new CPE'] = 'Створити нове CPE';
 $lang['def']['Bridge mode'] = 'Режим моста';
 $lang['def']['Connected to AP'] = 'З`єднано AP';
 $lang['def']['Available CPE list'] = 'Список існуючих CPE';
+$lang['def']['Some users is assigned to this CPE'] = 'Якісь користувачі пов`язані з цією CPE';
+$lang['def']['Users WiFi equipment'] = 'Користувацьке WiFi обладнання';
+$lang['def']['Taken from the user, because the router mode is used'] = 'Показано користувацькі, оскільки використовується режим роутера та не вказано інші';
 
 ?>

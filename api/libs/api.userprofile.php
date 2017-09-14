@@ -239,7 +239,6 @@ class UserProfile {
         $this->buildgeo = $this->AllUserData[$this->login]['geo'];
     }
 
-
     /**
      * loads user apartment data like floor or entrance from database
      * 
@@ -1148,6 +1147,20 @@ class UserProfile {
     }
 
     /**
+     * Returns WiFi CPE user controls
+     * 
+     * @return string
+     */
+    protected function getUserCpeControls() {
+        $result = '';
+        if ($this->alterCfg['WIFICPE_ENABLED']) {
+            $wcpe = new WifiCPE();
+            $result.=$wcpe->renderCpeUserControls($this->login,  $this->AllUserData);
+        }
+        return ($result);
+    }
+
+    /**
       Брат, братан, братишка Когда меня отпустит?
      */
 
@@ -1271,6 +1284,8 @@ class UserProfile {
         $profile.=$this->getVlanAssignControls();
 //profile vlan online
         $profile.=$this->getVlanOnline();
+//profile CPE controls
+        $profile.=$this->getUserCpeControls();
 
 //Custom filelds display
         $profile.=cf_FieldShower($this->login);

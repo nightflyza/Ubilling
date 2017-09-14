@@ -2663,8 +2663,10 @@ $lang['def']['Create new CPE'] = 'Создать новое CPE';
 $lang['def']['Bridge mode'] = 'Режим моста';
 $lang['def']['Connected to AP'] = 'Соединено с AP';
 $lang['def']['Available CPE list'] = 'Список существующих CPE';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Some users is assigned to this CPE'] = 'Какие-то пользователи связаны с этой CPE';
+$lang['def']['Users WiFi equipment'] = 'Пользовательское WiFi оборудование';
+$lang['def']['Navigate to AP'] = 'Перейти к AP';
+$lang['def']['Taken from the user, because the router mode is used'] = 'Показаны пользовательские, поскольку используется режим роутера и не заполнены иные';
 $lang['def'][''] = '';
 
 

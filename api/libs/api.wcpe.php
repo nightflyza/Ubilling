@@ -38,6 +38,20 @@ class WifiCPE {
     protected $allCPE = array();
 
     /**
+     * Contains all available user to CPE assigns as id=>assignData
+     *
+     * @var array
+     */
+    protected $allAssigns = array();
+
+    /**
+     * Contains array of all existing users data as login=>userData
+     *
+     * @var array
+     */
+    protected $allUsersData = array();
+
+    /**
      * Messages helper object placeholder
      *
      * @var object
@@ -55,6 +69,7 @@ class WifiCPE {
         $this->loadDeviceModels();
         $this->loadAps();
         $this->loadCPEs();
+        $this->loadAssigns();
     }
 
     /**
@@ -135,6 +150,30 @@ class WifiCPE {
     }
 
     /**
+     * Loads existing CPE assigns from database
+     * 
+     * @return void
+     */
+    protected function loadAssigns() {
+        $query = "SELECT * from `wcpeusers`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allAssigns[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads all existing users data into protected property
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUsersData = zb_UserGetAllDataCache();
+    }
+
+    /**
      * Loads available device models from database
      * 
      * @return void
@@ -199,11 +238,55 @@ class WifiCPE {
         $result = '';
         $cpeId = vf($cpeId, 3);
         if (isset($this->allCPE[$cpeId])) {
-            $query = "DELETE from `wcpedevices` WHERE `id`='" . $cpeId . "';";
-            nr_query($query);
-            log_register('WCPE DELETE [' . $cpeId . ']');
+            if (!$this->isCPEProtected($cpeId)) {
+                $query = "DELETE from `wcpedevices` WHERE `id`='" . $cpeId . "';";
+                nr_query($query);
+                log_register('WCPE DELETE [' . $cpeId . ']');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Some users is assigned to this CPE'), 'warning');
+            }
         } else {
             $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks is CPE assigned with some users or not?
+     * 
+     * @param int $cpeId
+     * 
+     * @return string
+     */
+    protected function isCPEProtected($cpeId) {
+        $result = false;
+        if (!empty($this->allAssigns)) {
+            foreach ($this->allAssigns as $io => $each) {
+                if ($each['cpeid'] == $cpeId) {
+                    $result = true;
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns user CPE assign ID or 0 if assign not exists
+     * 
+     * @param string $userLogin
+     * 
+     * @return int
+     */
+    protected function userHaveCPE($userLogin) {
+        $result = 0;
+        if (!empty($this->allAssigns)) {
+            foreach ($this->allAssigns as $io => $each) {
+                if ($each['login'] == $userLogin) {
+                    $result = $each['id'];
+                    break;
+                }
+            }
         }
         return ($result);
     }
@@ -294,16 +377,38 @@ class WifiCPE {
      * 
      * @return void/string
      */
-    public function assignCpeUser($cpeId, $userLogin) {
+    public function assignCPEUser($cpeId, $userLogin) {
         $result = '';
         $cpeId = vf($cpeId, 3);
         $userLoginF = mysql_real_escape_string($userLogin);
         if (isset($this->allCPE[$cpeId])) {
             $query = "INSERT INTO `wcpeusers` (`id`,`cpeid`,`login`) VALUES (NULL,'" . $cpeId . "','" . $userLoginF . "');";
             nr_query($query);
-            log_register('WCPE [' . $cpeId . '] USERASSIGN (' . $userLogin . ')');
+            $newId = simple_get_lastid('wcpeusers');
+            log_register('WCPE [' . $cpeId . '] ASSIGN (' . $userLogin . ') ID [' . $newId . ']');
         } else {
             $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes CPE to user assign from database
+     * 
+     * @param int $assignId
+     * 
+     * @return void/string
+     */
+    public function deassignCPEUser($assignId) {
+        $result = '';
+        $assignId = vf($assignId, 3);
+        if (isset($this->allAssigns[$assignId])) {
+            $assignData = $this->allAssigns[$assignId];
+            $query = "DELETE from `wcpeusers` WHERE `id`='" . $assignId . "';";
+            nr_query($query);
+            log_register('WCPE [' . $cpeId . '] DEASSIGN (' . $assignData['login'] . ') ID [' . $assignId . ']');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': ASSIGNID_NOT_EXISTS', 'error');
         }
         return ($result);
     }
@@ -339,6 +444,13 @@ class WifiCPE {
                     $inputs.= wf_Submit(__('Save'));
 
                     $result = wf_Form('', 'POST', $inputs, 'glamour');
+                    $result.=wf_tag('br');
+                    if (!empty($cpeData['uplinkapid'])) {
+                        $result.=wf_Link('?module=switches&edit=' . $cpeData['uplinkapid'], web_edit_icon('Navigate to AP') . ' ' . __('Navigate to AP'), false, 'ubButton');
+                    }
+                    if (!empty($cpeData['geo'])) {
+                        $result.=wf_Link('?module=switchmap&finddevice=' . $cpeData['geo'], web_icon_search('Find on map') . ' ' . __('Find on map'), false, 'ubButton');
+                    }
                 }
             } else {
                 $result = $this->messages->getStyledMessage(__('No') . ' ' . __('Equipment models'), 'error');
@@ -413,9 +525,258 @@ class WifiCPE {
                     simple_update_field('wcpedevices', 'geo', $_POST['editcpegeo'], $where);
                     log_register('WCPE [' . $cpeId . '] CHANGE GEO `' . $_POST['editcpegeo'] . '`');
                 }
+                //changing uplink AP
+                if ($_POST['editcpeuplinkapid'] != $cpeData['uplinkapid']) {
+                    simple_update_field('wcpedevices', 'uplinkapid', $_POST['editcpeuplinkapid'], $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE UPLINKAP [' . $_POST['editcpeuplinkapid'] . ']');
+                }
             } else {
                 $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $cpeId . ']', 'error');
             }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns user array in table view
+     * 
+     * @global object $ubillingConfig
+     * @param array $usersarr
+     * @return string
+     */
+    function renderAssignedUsersArray($usersarr) {
+        if (!empty($usersarr)) {
+            $alladdress = zb_AddressGetFulladdresslistCached();
+            $allrealnames = zb_UserGetAllRealnames();
+            $alltariffs = zb_TariffsGetAllUsers();
+            $allusercash = zb_CashGetAllUsers();
+            $allusercredits = zb_CreditGetAllUsers();
+            $alluserips = zb_UserGetAllIPs();
+
+            if ($this->altCfg['ONLINE_LAT']) {
+                $alluserlat = zb_LatGetAllUsers();
+            }
+
+
+            //additional finance links
+            if ($this->altCfg['FAST_CASH_LINK']) {
+                $fastcash = true;
+            } else {
+                $fastcash = false;
+            }
+
+            $tablecells = wf_TableCell(__('Login'));
+            $tablecells.=wf_TableCell(__('Address'));
+            $tablecells.=wf_TableCell(__('Real Name'));
+            $tablecells.=wf_TableCell(__('IP'));
+            $tablecells.=wf_TableCell(__('Tariff'));
+            // last activity time
+            if ($this->altCfg['ONLINE_LAT']) {
+                $tablecells.=wf_TableCell(__('LAT'));
+            }
+            $tablecells.=wf_TableCell(__('Active'));
+            //online detect
+            if ($this->altCfg['DN_ONLINE_DETECT']) {
+                $tablecells.=wf_TableCell(__('Users online'));
+            }
+            $tablecells.=wf_TableCell(__('Balance'));
+            $tablecells.=wf_TableCell(__('Credit'));
+            $tablecells.=wf_TableCell(__('Actions'));
+
+
+
+            $tablerows = wf_TableRow($tablecells, 'row1');
+
+            foreach ($usersarr as $assignId => $eachlogin) {
+                @$usercash = $allusercash[$eachlogin];
+                @$usercredit = $allusercredits[$eachlogin];
+                //finance check
+                $activity = web_green_led();
+                $activity_flag = 1;
+                if ($usercash < '-' . $usercredit) {
+                    $activity = web_red_led();
+                    $activity_flag = 0;
+                }
+
+                //fast cash link
+                if ($fastcash) {
+                    $financelink = wf_Link('?module=addcash&username=' . $eachlogin, wf_img('skins/icon_dollar.gif', __('Finance operations')), false, '');
+                } else {
+                    $financelink = '';
+                }
+
+                $profilelink = $financelink . wf_Link('?module=userprofile&username=' . $eachlogin, web_profile_icon() . ' ' . $eachlogin);
+                $tablecells = wf_TableCell($profilelink);
+                $tablecells.=wf_TableCell(@$alladdress[$eachlogin]);
+                $tablecells.=wf_TableCell(@$allrealnames[$eachlogin]);
+                $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2long(@$alluserips[$eachlogin]) . '"');
+                $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
+                if ($this->altCfg['ONLINE_LAT']) {
+                    if (isset($alluserlat[$eachlogin])) {
+                        $cUserLat = date("Y-m-d H:i:s", $alluserlat[$eachlogin]);
+                    } else {
+                        $cUserLat = __('No');
+                    }
+                    $tablecells.=wf_TableCell($cUserLat);
+                }
+                $tablecells.=wf_TableCell($activity, '', '', 'sorttable_customkey="' . $activity_flag . '"');
+                if ($this->altCfg['DN_ONLINE_DETECT']) {
+                    if (file_exists(DATA_PATH . 'dn/' . $eachlogin)) {
+                        $online_flag = 1;
+                    } else {
+                        $online_flag = 0;
+                    }
+                    $tablecells.=wf_TableCell(web_bool_star($online_flag), '', '', 'sorttable_customkey="' . $online_flag . '"');
+                }
+                $tablecells.=wf_TableCell($usercash);
+                $tablecells.=wf_TableCell($usercredit);
+                $actLinks = wf_JSAlert(self::URL_ME . '&deleteassignid=' . $assignId . '&tocpe=' . $this->allAssigns[$assignId]['cpeid'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $tablecells.=wf_TableCell($actLinks);
+
+                $tablerows.=wf_TableRow($tablecells, 'row3');
+            }
+
+            $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
+            $result.= wf_tag('b') . __('Total') . ': ' . wf_tag('b', true) . sizeof($usersarr);
+        } else {
+            $result = $this->messages->getStyledMessage(__('Any users found'), 'info');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders list of users assigned with some CPE
+     * 
+     * @param int $cpeId
+     * 
+     * @return string
+     */
+    public function renderCPEAssignedUsers($cpeId) {
+        $result = '';
+        if (!empty($this->allAssigns)) {
+            $assignedUsers = array();
+            foreach ($this->allAssigns as $io => $each) {
+                if (!empty($each)) {
+                    if ($each['cpeid'] == $cpeId) {
+                        $assignedUsers[$each['id']] = $each['login'];
+                    }
+                }
+            }
+
+            if (!empty($assignedUsers)) {
+                $result = $this->renderAssignedUsersArray($assignedUsers);
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders user profile CPE controls
+     * 
+     * @param string $userLogin
+     * @param array $allUserData
+     * 
+     * @return string
+     */
+    public function renderCpeUserControls($userLogin, $allUserData) {
+        $result = '';
+        $assignId = $this->userHaveCPE($userLogin);
+        //debarr($allUserData);
+        if ($assignId) {
+            //user have some CPE assigned
+            $assignedCpeId = $this->allAssigns[$assignId]['cpeid'];
+            if (isset($this->allCPE[$assignedCpeId])) {
+                $assignedCpeData = $this->allCPE[$assignedCpeId];
+                if (!empty($assignedCpeData)) {
+                    $actLinks = '';
+                    $telepathySup = wf_tag('abbr', false, '', 'title="' . __('Taken from the user, because the router mode is used') . '"') . '(?)' . wf_tag('abbr', true);
+                    $telepathySup = ' ' . wf_tag('sup') . $telepathySup . wf_tag('sup', true);
+                    $result.=wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true);
+                    $cpeModel = $this->deviceModels[$assignedCpeData['modelid']];
+                    $cpeBridge = $assignedCpeData['bridge'];
+                    $cpeIp = $assignedCpeData['ip'];
+                    if ((empty($cpeIp)) AND ( !$cpeBridge)) {
+                        $cpeIp = $allUserData[$userLogin]['ip'] . $telepathySup;
+                    }
+
+                    $cpeMac = $assignedCpeData['mac'];
+                    if ((empty($cpeMac)) AND ( !$cpeBridge)) {
+                        $cpeMac = $allUserData[$userLogin]['mac'] . $telepathySup;
+                    }
+
+                    $cpeLocation = $assignedCpeData['location'];
+                    if ((empty($cpeLocation)) AND ( !$cpeBridge)) {
+                        $cpeLocation = $allUserData[$userLogin]['fulladress'] . $telepathySup;
+                    }
+
+                    $cpeGeo = $assignedCpeData['geo'];
+                    if ((empty($cpeGeo)) AND ( !$cpeBridge)) {
+                        $cpeGeoCoords = $allUserData[$userLogin]['geo'];
+                        if (!empty($cpeGeoCoords)) {
+                            $cpeGeo = $cpeGeoCoords . $telepathySup;
+                        }
+                    }
+
+                    $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+
+                    $cells = wf_TableCell(__('Model'), '20%', 'row2');
+                    $cells.= wf_TableCell($cpeModel);
+                    $rows = wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('IP'), '20%', 'row2');
+                    $cells.= wf_TableCell($cpeIp);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('MAC'), '20%', 'row2');
+                    $cells.= wf_TableCell($cpeMac);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Location'), '20%', 'row2');
+                    $cells.= wf_TableCell($cpeLocation);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Geo location'), '20%', 'row2');
+                    $cells.= wf_TableCell($cpeGeo);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Bridge mode'), '20%', 'row2');
+                    $cells.= wf_TableCell($bridgeLabel);
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    if (!empty($assignedCpeData['uplinkapid'])) {
+                        if (isset($this->allAP[$assignedCpeData['uplinkapid']])) {
+                            $apLabel = $this->allAP[$assignedCpeData['uplinkapid']]['ip'];
+                            if (isset($this->allSSids[$assignedCpeData['uplinkapid']])) {
+                                $apLabel.=' - ' . $this->allSSids[$assignedCpeData['uplinkapid']];
+                            } else {
+                                $apLabel.=' - ' . $this->allAP[$assignedCpeData['uplinkapid']]['location'];
+                            }
+                            $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
+                            $cells.= wf_TableCell($apLabel);
+                            $rows.= wf_TableRow($cells, 'row3');
+                        } else {
+                            $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
+                            $cells.= wf_TableCell(__('No'));
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                    }
+
+                    $actLinks.= wf_Link(self::URL_ME . '&editcpeid=' . $assignedCpeId, web_edit_icon() . ' ' . __('Show') . ' ' . __('CPE'), false, 'ubButton');
+
+                    $result.= wf_TableBody($rows, '100%', 0, '');
+                    $result.=$actLinks;
+                }
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $assignedCpeId . ']', 'error');
+            }
+        } else {
+            //here we must render CPE assign form
         }
         return ($result);
     }
