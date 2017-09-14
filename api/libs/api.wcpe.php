@@ -232,6 +232,7 @@ class WifiCPE {
             $inputs.= wf_TextInput('newcpelocation', __('Location'), '', true, 25);
             $inputs.= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25);
             $inputs.= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), '', true);
+            $inputs.=wf_tag('br');
             $inputs.= wf_Submit(__('Create'));
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -275,13 +276,148 @@ class WifiCPE {
                 $data[] = $each['geo'];
                 $data[] = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allSSids[$each['uplinkapid']];
                 $data[] = web_bool_led($each['bridge']);
-                $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_JSAlert(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert() . ' ' . __('Edit') . '?');
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Assigns existing CPE to some user login
+     * 
+     * @param int $cpeId
+     * @param string $userLogin
+     * 
+     * @return void/string
+     */
+    public function assignCpeUser($cpeId, $userLogin) {
+        $result = '';
+        $cpeId = vf($cpeId, 3);
+        $userLoginF = mysql_real_escape_string($userLogin);
+        if (isset($this->allCPE[$cpeId])) {
+            $query = "INSERT INTO `wcpeusers` (`id`,`cpeid`,`login`) VALUES (NULL,'" . $cpeId . "','" . $userLoginF . "');";
+            nr_query($query);
+            log_register('WCPE [' . $cpeId . '] USERASSIGN (' . $userLogin . ')');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders CPE edit form
+     * 
+     * @param int $cpeId
+     * 
+     * @return string
+     */
+    public function renderCPEEditForm($cpeId) {
+        $result = '';
+        $cpeId = vf($cpeId, 3);
+        if (isset($this->allCPE[$cpeId])) {
+            if (!empty($this->deviceModels)) {
+                $cpeData = $this->allCPE[$cpeId];
+                $apTmp = array('' => __('No'));
+                if (!empty($this->allAP)) {
+                    foreach ($this->allAP as $io => $each) {
+                        $apTmp[$each['id']] = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
+                    }
+
+                    $inputs = wf_HiddenInput('editcpe', $cpeId);
+                    $inputs.= wf_Selector('editcpemodelid', $this->deviceModels, __('Model'), $cpeData['modelid'], true);
+                    $inputs.= wf_CheckInput('editcpebridge', __('Bridge mode'), true, $cpeData['bridge']);
+                    $inputs.= wf_TextInput('editcpeip', __('IP'), $cpeData['ip'], true, 15);
+                    $inputs.= wf_TextInput('editcpemac', __('MAC'), $cpeData['mac'], true, 15);
+                    $inputs.= wf_TextInput('editcpelocation', __('Location'), $cpeData['location'], true, 25);
+                    $inputs.= wf_TextInput('editcpegeo', __('Geo location'), $cpeData['geo'], true, 25);
+                    $inputs.= wf_Selector('editcpeuplinkapid', $apTmp, __('Connected to AP'), $cpeData['uplinkapid'], true);
+                    $inputs.=wf_tag('br');
+                    $inputs.= wf_Submit(__('Save'));
+
+                    $result = wf_Form('', 'POST', $inputs, 'glamour');
+                }
+            } else {
+                $result = $this->messages->getStyledMessage(__('No') . ' ' . __('Equipment models'), 'error');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs CPE changes, return string on error
+     * 
+     * @return void/string
+     */
+    public function saveCPE() {
+        $result = '';
+        if (wf_CheckPost(array('editcpe', 'editcpemodelid'))) {
+            $cpeId = vf($_POST['editcpe']);
+            if (isset($this->allCPE[$cpeId])) {
+                $cpeData = $this->allCPE[$cpeId];
+                $where = "WHERE `id`='" . $cpeId . "'";
+                //model changing
+                if ($_POST['editcpemodelid'] != $cpeData['modelid']) {
+                    if (isset($this->deviceModels[$_POST['editcpemodelid']])) {
+                        simple_update_field('wcpedevices', 'modelid', $_POST['editcpemodelid'], $where);
+                        log_register('WCPE [' . $cpeId . '] CHANGE MODEL [' . $_POST['editcpemodelid'] . ']');
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': MODELID_NOT_EXISTS [' . $_POST['editcpemodelid'] . ']', 'error');
+                    }
+                }
+
+                //bridge mode flag
+                $bridgeFlag = (wf_CheckPost(array('editcpebridge'))) ? 1 : 0;
+                if ($bridgeFlag != $cpeData['bridge']) {
+                    simple_update_field('wcpedevices', 'bridge', $bridgeFlag, $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE BRIDGE `' . $bridgeFlag . '`');
+                }
+
+                //ip change
+                if ($_POST['editcpeip'] != $cpeData['ip']) {
+                    simple_update_field('wcpedevices', 'ip', $_POST['editcpeip'], $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE IP `' . $_POST['editcpeip'] . '`');
+                }
+
+                //mac editing
+                if ($_POST['editcpemac'] != $cpeData['mac']) {
+                    $clearMac = trim($_POST['editcpemac']);
+                    $clearMac = strtolower_utf8($clearMac);
+                    if (empty($clearMac)) {
+                        $macCheckFlag = true;
+                    } else {
+                        $macCheckFlag = check_mac_format($clearMac);
+                    }
+                    if ($macCheckFlag) {
+                        simple_update_field('wcpedevices', 'mac', $clearMac, $where);
+                        log_register('WCPE [' . $cpeId . '] CHANGE MAC `' . $clearMac . '`');
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('This MAC have wrong format') . ' ' . $clearMac, 'error');
+                    }
+                }
+
+                //location changing
+                if ($_POST['editcpelocation'] != $cpeData['location']) {
+                    simple_update_field('wcpedevices', 'location', $_POST['editcpelocation'], $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE LOC `' . $_POST['editcpelocation'] . '`');
+                }
+
+
+                //location changing
+                if ($_POST['editcpegeo'] != $cpeData['geo']) {
+                    simple_update_field('wcpedevices', 'geo', $_POST['editcpegeo'], $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE GEO `' . $_POST['editcpegeo'] . '`');
+                }
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $cpeId . ']', 'error');
+            }
+        }
+        return ($result);
     }
 
 }

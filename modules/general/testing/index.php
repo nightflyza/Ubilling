@@ -32,8 +32,22 @@ if (wf_CheckGet(array('deletecpeid'))) {
     }
 }
 
+//CPE editing
+if (wf_CheckPost(array('editcpe'))) {
+    $saveResult = $wcpe->saveCPE();
+    if (empty($saveResult)) {
+        rcms_redirect($wcpe::URL_ME . '&editcpeid=' . $_POST['editcpe']);
+    } else {
+        show_window(__('Something went wrong'), $saveResult);
+    }
+}
 
 
-show_window(__('Create new CPE'), $wcpe->renderCPECreateForm());
-show_window(__('Available CPE list'), $wcpe->renderCPEList());
+if (wf_CheckGet(array('editcpeid'))) {
+    show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
+    show_window('', wf_BackLink($wcpe::URL_ME));
+} else {
+    show_window(__('Create new CPE'), $wcpe->renderCPECreateForm());
+    show_window(__('Available CPE list'), $wcpe->renderCPEList());
+}
 ?>
