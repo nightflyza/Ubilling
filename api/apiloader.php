@@ -108,6 +108,7 @@ include('api/libs/api.nasmon.php');
 include('api/libs/api.ipchange.php');
 include('api/libs/api.messagesqueue.php');
 include('api/libs/api.wcpe.php');
+include('api/libs/api.mtsigmon.php');
 
 /*
  * Initial class creation
