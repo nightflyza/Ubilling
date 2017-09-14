@@ -12,7 +12,11 @@ if (cfr('MTSIGMON')) {
         // force MT polling
         if (wf_CheckGet(array('forcepoll'))) {
             $sigmon->MTDevicesPolling(true);
-            rcms_redirect($sigmon::URL_ME);
+            if (wf_CheckGet(array('username'))) {
+                 rcms_redirect($sigmon::URL_ME . '&username='. vf($_GET['username']));
+            } else {
+                rcms_redirect($sigmon::URL_ME);
+            }
         }
 
         // getting MT json data for list

@@ -230,8 +230,13 @@ class MTsigmon {
      * @return string
      */
     public function controls() {
-        $result = ($this->userLogin) ? wf_BackLink('?module=userprofile&username='. $this->userLogin) : '';
-        $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+		$result = '';
+		if ($this->userLogin) {
+			$result.= wf_BackLink('?module=userprofile&username='. $this->userLogin);
+			$result.= wf_Link(self::URL_ME . '&forcepoll=true' . '&username='. $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+		} else {
+			$result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+		}
         $result.=wf_delimiter();
         $result.= __('Cache state at time') . ': ' . @$this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime);;
         return ($result);
