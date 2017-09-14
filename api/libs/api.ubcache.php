@@ -316,7 +316,7 @@ class UbillingCache {
      * @return void
      */
     public function getAllcache($show_data = '') {
-
+        $result = array();
         //files storage
         if ($this->storage == 'files') {
             $cache = scandir($this->storagePath);
