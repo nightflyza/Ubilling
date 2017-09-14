@@ -18,7 +18,6 @@ if (cfr('MTSIGMON')) {
         $result = '';
         $hlightmac = '';
 
-
         //hlight user mac sub
         if (isset($_GET['username'])) {
             $login = mysql_real_escape_string($_GET['username']);
@@ -27,14 +26,11 @@ if (cfr('MTSIGMON')) {
             $hlightmac = $usermac;
         }
 
-
-
-
         if (!empty($allMonitoredDevices)) {
             foreach ($allMonitoredDevices as $io => $eachdevice) {
                 $userCounter = 0;
                 $hostdata = $sigmon->deviceQuery($eachdevice['ip'], $eachdevice['community']);
-                $result.=wf_tag('h2', false) . wf_img('skins/wifi.png') . ' ' . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
+                $result.= wf_tag('h2', false) . wf_img('skins/wifi.png') . ' ' . $eachdevice['location'] . ' - ' . $eachdevice['ip'] . wf_tag('h2', true);
                 $tablecells = wf_TableCell(__('Full address'));
                 $tablecells.= wf_TableCell(__('Real Name'));
                 $tablecells.= wf_TableCell(__('Tariff'));
@@ -92,9 +88,9 @@ if (cfr('MTSIGMON')) {
                         $tablerows.= wf_TableRow($tablecells, $rowclass);
                     }
 
-                    $result.=wf_TableBody($tablerows, '100%', '0', 'sortable');
+                    $result.= wf_TableBody($tablerows, '100%', '0', 'sortable');
                 } else {
-                    $result.=__('Empty reply received');
+                    $result.= __('Empty reply received');
                 }
 
                 $result.=wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
@@ -108,7 +104,7 @@ if (cfr('MTSIGMON')) {
 
         //if called as an user profile plugin
         if (isset($_GET['username'])) {
-            $result.=wf_Link('?module=userprofile&username=' . $_GET['username'], __('Back'), true, 'ubButton');
+            $result.= wf_Link('?module=userprofile&username=' . $_GET['username'], __('Back'), true, 'ubButton');
         }
 
         //show final result
