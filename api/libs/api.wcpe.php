@@ -330,12 +330,17 @@ class WifiCPE {
      * 
      * @return string
      */
-    public function renderCPEList() {
+    public function renderCPEList($userLogin = '') {
         $result = '';
+        if (!empty($userLogin)) {
+            $assignPostfix = '&assignpf=' . $userLogin;
+        } else {
+            $assignPostfix = '';
+        }
         if (!empty($this->allCPE)) {
             $columns = array('ID', 'Model', 'IP', 'MAC', 'Location', 'Geo location', 'Connected to AP', 'Bridge mode', 'Actions');
             $opts = '"order": [[ 0, "desc" ]]';
-            $result = wf_JqDtLoader($columns, self::URL_ME . '&ajcpelist=true', false, __('CPE'), 100, $opts);
+            $result = wf_JqDtLoader($columns, self::URL_ME . '&ajcpelist=true' . $assignPostfix, false, __('CPE'), 100, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
@@ -347,7 +352,7 @@ class WifiCPE {
      * 
      * @return void
      */
-    public function getCPEListJson() {
+    public function getCPEListJson($userLogin = '') {
         $json = new wf_JqDtHelper();
         if (!empty($this->allCPE)) {
             foreach ($this->allCPE as $io => $each) {
@@ -359,8 +364,12 @@ class WifiCPE {
                 $data[] = $each['geo'];
                 $data[] = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allSSids[$each['uplinkapid']];
                 $data[] = web_bool_led($each['bridge']);
-                $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_JSAlert(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert() . ' ' . __('Edit') . '?');
+                if (empty($userLogin)) {
+                    $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                    $actLinks.= wf_JSAlert(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert() . ' ' . __('Edit') . '?');
+                } else {
+                    $actLinks = wf_link(self::URL_ME . '&newcpeassign=' . $each['id'] . '&assignuslo=' . $userLogin, web_icon_create('Assign'));
+                }
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
@@ -677,6 +686,18 @@ class WifiCPE {
     }
 
     /**
+     * Returns link to CPE assign directory, if 
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    protected function renderCPEAssignControl($userLogin) {
+        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign') . ' ' . __('CPE'), false, 'ubButton');
+        return ($result);
+    }
+
+    /**
      * Renders user profile CPE controls
      * 
      * @param string $userLogin
@@ -775,7 +796,7 @@ class WifiCPE {
                 $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $assignedCpeId . ']', 'error');
             }
         } else {
-            //here we must render CPE assign form
+            $result.=$this->renderCPEAssignControl($userLogin);
         }
         return ($result);
     }

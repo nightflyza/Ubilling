@@ -8,7 +8,8 @@ $wcpe = new WifiCPE();
 
 //rendering available CPE list
 if (wf_CheckGet(array('ajcpelist'))) {
-    $wcpe->getCPEListJson();
+    $assignUserLogin = (wf_CheckGet(array('assignpf'))) ? $_GET['assignpf'] : '';
+    $wcpe->getCPEListJson($assignUserLogin);
 }
 
 //creating new CPE
@@ -52,13 +53,29 @@ if (wf_CheckGet(array('deleteassignid', 'tocpe'))) {
     }
 }
 
+//CPE assign creation
+if (wf_CheckGet(array('newcpeassign', 'assignuslo'))) {
+    $assignCreateResult = $wcpe->assignCPEUser($_GET['newcpeassign'], $_GET['assignuslo']);
+    if (empty($assignCreateResult)) {
+        rcms_redirect('?module=userprofile&username=' . $_GET['assignuslo']);
+    } else {
+        show_window(__('Something went wrong'), $assignCreateResult);
+    }
+}
+
 
 if (wf_CheckGet(array('editcpeid'))) {
     show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
     show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
     show_window('', wf_BackLink($wcpe::URL_ME));
 } else {
-    show_window('', $wcpe->panel());
-    show_window(__('Available CPE list'), $wcpe->renderCPEList());
+    if (!wf_CheckGet(array('userassign'))) {
+        show_window('', $wcpe->panel());
+        show_window(__('Available CPE list'), $wcpe->renderCPEList());
+    } else {
+        //CPE assign interface here
+        show_window('', wf_BackLink('?module=userprofile&username=' . $_GET['userassign'], __('Back to user profile')));
+        show_window(__('Available CPE list'), $wcpe->renderCPEList($_GET['userassign']));
+    }
 }
 ?>
