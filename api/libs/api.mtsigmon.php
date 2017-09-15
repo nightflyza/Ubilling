@@ -182,6 +182,9 @@ class MTsigmon {
             }
             // Set cache for Device fdb table
             $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
+            if (! $this->userLogin) {
+                $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
+            }
         }
     }
 
@@ -259,7 +262,6 @@ class MTsigmon {
             } else {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
                 $this->deviceIdUsersMac[$mtid] = $result_fdb;
-                $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
     }
@@ -297,26 +299,25 @@ class MTsigmon {
      */
     public function renderMTList() {
         $result = '';
-        if (empty($this->allMTDevices) and ! empty($this->userLogin)) {
+        $columns = array();
+        $opts = '"order": [[ 0, "desc" ]]';
+        $columns[] = ('Address');
+        $columns[] = ('Real Name');
+        $columns[] = ('Tariff');
+        $columns[] = ('IP');
+        $columns[] = ('MAC');
+        $columns[] = __('Signal') . ' (' . __('dBm') . ')';
+        if (empty($this->allMTDevices) and ! empty($this->userLogin) and empty($this->userSwitch)) {
             $result.=  show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
-        } elseif (! empty($this->allMTDevices)) {
-            $columns = array();
-            $opts = '"order": [[ 0, "desc" ]]';
-
-            $columns[] = ('Address');
-            $columns[] = ('Real Name');
-            $columns[] = ('Tariff');
-            $columns[] = ('IP');
-            $columns[] = ('MAC');
-            $columns[] = __('Signal') . ' (' . __('dBm') . ')';
-
+        } elseif (! empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
+            $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '', false, __('results'), 100, $opts));
+        } elseif (! empty($this->allMTDevices) and empty($this->userLogin)) {
             foreach ($this->allMTDevices as $MTId => $eachMT) {
                 $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
             }
         } else {
             $result.= show_window('',$this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
         }
-
         $result.= wf_delimiter();
         return ($result);
     }
