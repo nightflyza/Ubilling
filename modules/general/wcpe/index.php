@@ -16,7 +16,11 @@ if (cfr('WCPE')) {
             $newCpeBridge = (wf_CheckPost(array('newcpebridge'))) ? true : false;
             $creationResult = $wcpe->createCPE($_POST['newcpemodelid'], $_POST['newcpeip'], $_POST['newcpemac'], $_POST['newcpelocation'], $newCpeBridge, $_POST['newcpeuplinkapid'], $_POST['newcpegeo']);
             if (empty($creationResult)) {
-                rcms_redirect($wcpe::URL_ME);
+                $newCreatedCpeId = simple_get_lastid('wcpedevices');
+                if (wf_CheckPost(array('assignoncreate'))) {
+                    $assignCreateResult = $wcpe->assignCPEUser($newCreatedCpeId, $_POST['assignoncreate']);
+                }
+                rcms_redirect($wcpe::URL_ME . '&editcpeid=' . $newCreatedCpeId);
             } else {
                 show_window(__('Something went wrong'), $creationResult);
             }
@@ -68,8 +72,8 @@ if (cfr('WCPE')) {
                 show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
                 show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
                 if ($altCfg['ADCOMMENTS_ENABLED']) {
-                     $adcomments=new ADcomments('WIFICPE');
-                      show_window(__('Additional comments'), $adcomments->renderComments($_GET['editcpeid']));
+                    $adcomments = new ADcomments('WIFICPE');
+                    show_window(__('Additional comments'), $adcomments->renderComments($_GET['editcpeid']));
                 }
                 show_window('', wf_BackLink($wcpe::URL_ME));
             } else {

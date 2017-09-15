@@ -218,6 +218,7 @@ class WifiCPE {
                 nr_query($query);
                 $newId = simple_get_lastid('wcpedevices');
                 log_register('WCPE CREATE [' . $newId . ']');
+                $this->loadCPEs();
             } else {
                 $result.=$this->messages->getStyledMessage(__('This MAC have wrong format'), 'error');
             }
@@ -314,9 +315,11 @@ class WifiCPE {
     /**
      * Renders CPE creation form
      * 
+     * @param string $userLogin
+     * 
      * @return string
      */
-    public function renderCPECreateForm() {
+    public function renderCPECreateForm($userLogin = '') {
         $result = '';
         if (!empty($this->deviceModels)) {
             $apTmp = array('' => __('No'));
@@ -335,10 +338,14 @@ class WifiCPE {
             $inputs.= wf_TextInput('newcpelocation', __('Location'), '', true, 25);
             $inputs.= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25);
             $inputs.= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), '', true);
+            if (!empty($userLogin)) {
+                $inputs.=wf_HiddenInput('assignoncreate', $userLogin);
+                $inputs.=__('Assign user WiFi equipment') . ': ' . $userLogin;
+            }
             $inputs.=wf_tag('br');
             $inputs.= wf_Submit(__('Create'));
 
-            $result = wf_Form('', 'POST', $inputs, 'glamour');
+            $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
         } else {
             $result = $this->messages->getStyledMessage(__('No') . ' ' . __('Equipment models'), 'error');
         }
@@ -742,7 +749,12 @@ class WifiCPE {
      * @return string
      */
     protected function renderCPEAssignControl($userLogin) {
-        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign user WiFi equipment'), true, 'ubButton');
+        $result = '';
+        $result.=wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true) . wf_tag('br');
+        $result.= wf_Link(self::URL_ME . '&userassign=' . $userLogin, wf_img('skins/icon_link.gif') . ' ' . __('Assign user WiFi equipment'), false, 'ubButton').' ';
+        $createForm = $this->renderCPECreateForm($userLogin);
+        $result.= wf_modalAuto(web_icon_create() . ' ' . __('Create new CPE'), __('Create new CPE'), $createForm, 'ubButton');
+        $result.=wf_tag('br');
         return ($result);
     }
 
