@@ -58,7 +58,7 @@ if (wf_CheckGet(array('editcpeid'))) {
     show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
     show_window('', wf_BackLink($wcpe::URL_ME));
 } else {
-    show_window(__('Create new CPE'), $wcpe->renderCPECreateForm());
+    show_window('', $wcpe->panel());
     show_window(__('Available CPE list'), $wcpe->renderCPEList());
 }
 ?>

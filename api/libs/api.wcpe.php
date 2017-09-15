@@ -762,11 +762,11 @@ class WifiCPE {
                             $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
                             $cells.= wf_TableCell($apLabel . ' ' . $apLink);
                             $rows.= wf_TableRow($cells, 'row3');
-                        } else {
-                            $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
-                            $cells.= wf_TableCell(__('No'));
-                            $rows.= wf_TableRow($cells, 'row3');
                         }
+                    } else {
+                        $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
+                        $cells.= wf_TableCell(__('No'));
+                        $rows.= wf_TableRow($cells, 'row3');
                     }
 
                     $result.= wf_TableBody($rows, '100%', 0, '');
@@ -777,6 +777,17 @@ class WifiCPE {
         } else {
             //here we must render CPE assign form
         }
+        return ($result);
+    }
+
+    /**
+     * Renders main module control panel
+     * 
+     * @return string
+     */
+    public function panel() {
+        $result = '';
+        $result.=wf_modalAuto(web_add_icon() . ' ' . __('Create new CPE'), __('Create new CPE'), $this->renderCPECreateForm(), 'ubButton');
         return ($result);
     }
 
