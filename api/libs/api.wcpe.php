@@ -292,6 +292,26 @@ class WifiCPE {
     }
 
     /**
+     * Returns user CPE assign ID or 0 if assign not exists
+     * 
+     * @param int $cpeId
+     * 
+     * @return int
+     */
+    protected function cpeHaveUser($cpeId) {
+        $result = 0;
+        if (!empty($this->allAssigns)) {
+            foreach ($this->allAssigns as $io => $each) {
+                if ($each['cpeid'] == $cpeId) {
+                    $result = $each['id'];
+                    break;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders CPE creation form
      * 
      * @return string
@@ -717,7 +737,7 @@ class WifiCPE {
      * @return string
      */
     protected function renderCPEAssignControl($userLogin) {
-        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign user WiFi equipment'), false, 'ubButton');
+        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign user WiFi equipment'), true, 'ubButton');
         return ($result);
     }
 
@@ -832,7 +852,75 @@ class WifiCPE {
      */
     public function panel() {
         $result = '';
-        $result.=wf_modalAuto(web_add_icon() . ' ' . __('Create new CPE'), __('Create new CPE'), $this->renderCPECreateForm(), 'ubButton');
+        $result.=wf_modalAuto(web_add_icon() . ' ' . __('Create new CPE'), __('Create new CPE'), $this->renderCPECreateForm(), 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('List'), false, 'ubButton');
+        $result.=wf_Link(self::URL_ME . '&rendermap=true', wf_img('skins/ymaps/network.png') . ' ' . __('Map'), false, 'ubButton');
+        return ($result);
+    }
+
+    /**
+     * Renders wireless devices map
+     * 
+     * @return string
+     */
+    public function renderDevicesMap() {
+        global $ubillingConfig;
+        $ymconf = $ubillingConfig->getYmaps();
+        $this->loadUserData();
+        $result = '';
+        $placemarks = '';
+        $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:800px;"');
+        $result.=wf_tag('div', true);
+
+        if (!empty($this->allAP)) {
+            foreach ($this->allAP as $io => $each) {
+                if (!empty($each['geo'])) {
+                    $apName = $each['location'] . ' - ' . $each['ip'] . ' ' . $this->allSSids[$each['id']];
+                    $apLink = trim(wf_Link('?module=switches&edit=' . $each['id'], web_edit_icon() . ' ' . __('Navigate to AP')));
+                    $apLink = str_replace('"', '\"', $apLink);
+                    $placemarks.=sm_MapAddMark($each['geo'], $apName, $apLink);
+                }
+            }
+        }
+
+        if (!empty($this->allCPE)) {
+            foreach ($this->allCPE as $io => $each) {
+                $cpeCoords = '';
+                if (!empty($each['geo'])) {
+                    $cpeCoords = $each['geo'];
+                } else {
+                    //try extract from user geo
+                    $assignId = $this->cpeHaveUser($each['id']);
+                    if ($assignId) {
+                        if (isset($this->allAssigns[$assignId])) {
+                            if (isset($this->allUsersData[$this->allAssigns[$assignId]['login']])) {
+                                if (!empty($this->allUsersData[$this->allAssigns[$assignId]['login']]['geo'])) {
+                                    $cpeCoords = $this->allUsersData[$this->allAssigns[$assignId]['login']]['geo'];
+                                }
+                            }
+                        }
+                    }
+                }
+                //drawing CPE on map
+                if (!empty($cpeCoords)) {
+                    $cpeName = $each['id'] . ': ' . @$this->deviceModels[$each['modelid']];
+                    $cpeLink = trim(wf_Link(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon() . ' ' . __('Show') . ' ' . __('CPE')));
+                    $cpeLink = str_replace('"', '\"', $cpeLink);
+                    $placemarks.=sm_MapAddMark($cpeCoords, $cpeName, $cpeLink,'',  um_MapBuildIcon(1));
+
+                    //drawing CPE uplinks
+                    if (!empty($each['uplinkapid'])) {
+                        if (isset($this->allAP[$each['uplinkapid']])) {
+                            if (!empty($this->allAP[$each['uplinkapid']]['geo'])) {
+                                $placemarks.=sm_MapAddLine($cpeCoords, $this->allAP[$each['uplinkapid']]['geo'], '#00FF00','',2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        sm_MapInit($ymconf['CENTER'], $ymconf['ZOOM'], $ymconf['TYPE'], $placemarks, '', $ymconf['LANG']);
         return ($result);
     }
 

@@ -62,22 +62,28 @@ if (cfr('WCPE')) {
             }
         }
 
-
-        if (wf_CheckGet(array('editcpeid'))) {
-            show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
-            show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
-            show_window('', wf_BackLink($wcpe::URL_ME));
-        } else {
-            if (!wf_CheckGet(array('userassign'))) {
-                show_window('', $wcpe->panel());
-                show_window(__('Available CPE list'), $wcpe->renderCPEList());
+//interface part
+        if (!wf_CheckGet(array('rendermap'))) {
+            if (wf_CheckGet(array('editcpeid'))) {
+                show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
+                show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
+                show_window('', wf_BackLink($wcpe::URL_ME));
             } else {
+                if (!wf_CheckGet(array('userassign'))) {
+                    show_window('', $wcpe->panel());
+                    show_window(__('Available CPE list'), $wcpe->renderCPEList());
+                } else {
 //CPE assign interface here
-                $backControls = wf_BackLink('?module=userprofile&username=' . $_GET['userassign'], __('Back to user profile')) . ' ';
-                $backControls.= wf_Link($wcpe::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available CPE list'), false, 'ubButton');
-                show_window('', $backControls);
-                show_window(__('Available CPE list'), $wcpe->renderCPEList($_GET['userassign']));
+                    $backControls = wf_BackLink('?module=userprofile&username=' . $_GET['userassign'], __('Back to user profile')) . ' ';
+                    $backControls.= wf_Link($wcpe::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available CPE list'), false, 'ubButton');
+                    show_window('', $backControls);
+                    show_window(__('Available CPE list'), $wcpe->renderCPEList($_GET['userassign']));
+                }
             }
+        } else {
+            //map rendering here
+            show_window('', $wcpe->panel());
+            show_window(__('Map'), $wcpe->renderDevicesMap());
         }
     } else {
         show_error(__('This module is disabled'));
