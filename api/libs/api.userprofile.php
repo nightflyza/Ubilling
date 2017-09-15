@@ -1162,7 +1162,7 @@ class UserProfile {
                     }
                 }
             }
-            
+
             if ($wcpeFlag) {
                 $wcpe = new WifiCPE();
                 $result.=$wcpe->renderCpeUserControls($this->login, $this->AllUserData);
@@ -1203,7 +1203,12 @@ class UserProfile {
 
 
 //address row and controls
-        $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $this->useraddress . $this->getBuildControls());
+        if (!$this->alterCfg['CITY_DISPLAY']) {
+            $renderAddress = $this->AllUserData[$this->login]['cityname'] . ' ' . $this->useraddress;
+        } else {
+            $renderAddress = $this->useraddress;
+        }
+        $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
 //apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
 //realname row
