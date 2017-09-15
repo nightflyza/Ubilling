@@ -181,7 +181,7 @@ class MTsigmon {
                 $this->deviceQuery($mtid);
             }
             // Set cache for Device fdb table
-            if (empty($this->userLogin) or (! empty($this->userLogin and empty($this->userSwitch)))) {
+            if (empty($this->userLogin) or (! empty($this->userLogin) and empty($this->userSwitch))) {
                 $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
