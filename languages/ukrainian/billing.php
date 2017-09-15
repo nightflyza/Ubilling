@@ -2684,5 +2684,6 @@ $lang['def']['Users WiFi equipment'] = 'Користувацьке WiFi обла
 $lang['def']['Taken from the user, because the router mode is used'] = 'Показано користувацькі, оскільки використовується режим роутера та не вказано інші';
 $lang['def']['Assign user WiFi equipment'] = 'Присвоїти користувачу WiFi обладнання';
 $lang['def']['right to control WiFi CPE'] = 'Право керувати користувацьким WiFi обладнанням';
+$lang['def']['WiFi equipment'] = 'WiFi обладнання';
 
 ?>
