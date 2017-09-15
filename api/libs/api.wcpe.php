@@ -382,7 +382,12 @@ class WifiCPE {
                 $data[] = $each['mac'];
                 $data[] = $each['location'];
                 $data[] = $each['geo'];
-                $data[] = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allSSids[$each['uplinkapid']];
+                if (isset($this->allSSids[$each['uplinkapid']])) {
+                    $apLabel = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allSSids[$each['uplinkapid']];
+                } else {
+                    $apLabel = @$this->allAP[$each['uplinkapid']]['ip'] . ' - ' . @$this->allAP[$each['uplinkapid']]['location'];
+                }
+                $data[] = $apLabel;
                 $data[] = web_bool_led($each['bridge']);
                 if (empty($userLogin)) {
                     $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
@@ -867,6 +872,7 @@ class WifiCPE {
         global $ubillingConfig;
         $ymconf = $ubillingConfig->getYmaps();
         $this->loadUserData();
+        $deadSwitches = zb_SwitchesGetAllDead();
         $result = '';
         $placemarks = '';
         $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:800px;"');
@@ -875,10 +881,14 @@ class WifiCPE {
         if (!empty($this->allAP)) {
             foreach ($this->allAP as $io => $each) {
                 if (!empty($each['geo'])) {
-                    $apName = $each['location'] . ' - ' . $each['ip'] . ' ' . $this->allSSids[$each['id']];
+                    $apName = $each['location'] . ' - ' . $each['ip'] . ' ' . @$this->allSSids[$each['id']];
                     $apLink = trim(wf_Link('?module=switches&edit=' . $each['id'], web_edit_icon() . ' ' . __('Navigate to AP')));
                     $apLink = str_replace('"', '\"', $apLink);
-                    $placemarks.=sm_MapAddMark($each['geo'], $apName, $apLink);
+                    $apIcon = sm_MapGoodIcon();
+                    if (isset($deadSwitches[$each['ip']])) {
+                        $apIcon = sm_MapBadIcon();
+                    }
+                    $placemarks.=sm_MapAddMark($each['geo'], $apName, $apLink, '', $apIcon);
                 }
             }
         }
@@ -906,13 +916,19 @@ class WifiCPE {
                     $cpeName = $each['id'] . ': ' . @$this->deviceModels[$each['modelid']];
                     $cpeLink = trim(wf_Link(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon() . ' ' . __('Show') . ' ' . __('CPE')));
                     $cpeLink = str_replace('"', '\"', $cpeLink);
-                    $placemarks.=sm_MapAddMark($cpeCoords, $cpeName, $cpeLink,'',  um_MapBuildIcon(1));
+                    $placemarks.=sm_MapAddMark($cpeCoords, $cpeName, $cpeLink, '', um_MapBuildIcon(1));
 
                     //drawing CPE uplinks
                     if (!empty($each['uplinkapid'])) {
                         if (isset($this->allAP[$each['uplinkapid']])) {
                             if (!empty($this->allAP[$each['uplinkapid']]['geo'])) {
-                                $placemarks.=sm_MapAddLine($cpeCoords, $this->allAP[$each['uplinkapid']]['geo'], '#00FF00','',2);
+                                $lineColor = '#00FF00';
+                                $lineWidth = 2;
+                                if (isset($deadSwitches[$this->allAP[$each['uplinkapid']]['ip']])) {
+                                    $lineColor = '#FF0000';
+                                    $lineWidth = 3;
+                                }
+                                $placemarks.=sm_MapAddLine($cpeCoords, $this->allAP[$each['uplinkapid']]['geo'], $lineColor, '', $lineWidth);
                             }
                         }
                     }

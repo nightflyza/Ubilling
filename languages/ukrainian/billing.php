@@ -2681,6 +2681,7 @@ $lang['def']['Connected to AP'] = 'З`єднано AP';
 $lang['def']['Available CPE list'] = 'Список існуючих CPE';
 $lang['def']['Some users is assigned to this CPE'] = 'Якісь користувачі пов`язані з цією CPE';
 $lang['def']['Users WiFi equipment'] = 'Користувацьке WiFi обладнання';
+$lang['def']['Navigate to AP'] = 'Перейти до AP';
 $lang['def']['Taken from the user, because the router mode is used'] = 'Показано користувацькі, оскільки використовується режим роутера та не вказано інші';
 $lang['def']['Assign user WiFi equipment'] = 'Присвоїти користувачу WiFi обладнання';
 $lang['def']['right to control WiFi CPE'] = 'Право керувати користувацьким WiFi обладнанням';

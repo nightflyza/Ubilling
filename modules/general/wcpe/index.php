@@ -67,6 +67,10 @@ if (cfr('WCPE')) {
             if (wf_CheckGet(array('editcpeid'))) {
                 show_window(__('Edit') . ' ' . __('CPE'), $wcpe->renderCPEEditForm($_GET['editcpeid']));
                 show_window(__('Linked users'), $wcpe->renderCPEAssignedUsers($_GET['editcpeid']));
+                if ($altCfg['ADCOMMENTS_ENABLED']) {
+                     $adcomments=new ADcomments('WIFICPE');
+                      show_window(__('Additional comments'), $adcomments->renderComments($_GET['editcpeid']));
+                }
                 show_window('', wf_BackLink($wcpe::URL_ME));
             } else {
                 if (!wf_CheckGet(array('userassign'))) {
