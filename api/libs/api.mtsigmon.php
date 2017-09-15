@@ -20,6 +20,13 @@ class MTsigmon {
     protected $userSwitch = '';
 
     /**
+     * Data DEVICE id and his array mac data
+     *
+     * @var array
+     */
+    protected $deviceIdUsersMac = array();
+
+    /**
      * All users MAC
      *
      * @var array
@@ -155,6 +162,8 @@ class MTsigmon {
                 }
                 $this->deviceQuery($mtid);
             }
+            // Set cache for Device fdb table
+            $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
         }
     }
 
@@ -174,6 +183,7 @@ class MTsigmon {
             $ubnt_shift = 0;
             $result = array();
             $rawsnmp = array();
+            $result_fdb = array();
 
             $this->snmp->setBackground(false);
             $this->snmp->setMode('native');
@@ -222,6 +232,7 @@ class MTsigmon {
                         $rssi = str_replace('INTEGER:', '', $rssi);
                         $rssi = trim($rssi);
                         $result[$mac] = $rssi;
+                        $result_fdb[] = $mac;
                     }
                 }
             }
@@ -229,6 +240,7 @@ class MTsigmon {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
             } else {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
+                $this->deviceIdUsersMac[$mtid][$result_fdb];
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
