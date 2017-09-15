@@ -21,7 +21,6 @@ if (cfr('MTSIGMON')) {
 
         // getting MT json data for list
         if (wf_CheckGet(array('ajaxmt', 'mtid'))) {
-            $sigmon->LoadUsersData();
             $sigmon->renderMTsigmonList(vf($_GET['mtid'], 3));
         }
 

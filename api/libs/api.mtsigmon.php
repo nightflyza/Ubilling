@@ -80,12 +80,13 @@ class MTsigmon {
     const CACHE_PREFIX = 'MTSIGMON_';
 
     public function __construct () {
+        $this->LoadUsersData();
+        $this->initCache();
         if (wf_CheckGet(array('username'))) {
             $this->initLogin(vf($_GET['username']));
         }
         $this->getMTDevices();
         $this->initSNMP();
-        $this->initCache();
     }
 
     /**
@@ -104,8 +105,7 @@ class MTsigmon {
      */
     protected function initLogin($login) {
         $this->userLogin = $login;
-        $query = "SELECT `switchid` from `switchportassign` WHERE `login`='" . mysql_real_escape_string($this->userLogin) . "'";
-        $this->userSwitch = simple_query($query);
+        $this->getMTidByUserMac();
     }
 
     /**
@@ -118,12 +118,30 @@ class MTsigmon {
     }
 
     /**
+     * If get login set $userSwitch
+     * 
+     * @return void
+     */
+    protected function getMTidByUserMac() {
+        $usermac = strtolower($this->allUsermacs[$this->userLogin]);
+        $MT_fdb_arr = $this->cache->get(self::CACHE_PREFIX . 'MTID_UMAC', $this->cacheTime);
+        if (! empty($MT_fdb_arr) and isset($usermac)) {
+            foreach ($MT_fdb_arr as $mtid=>$fdb_arr) {
+                if (in_array($usermac, $fdb_arr)) {
+                    $this->userSwitch = $mtid;
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
      * Returns array of monitored MikroTik devices with MTSIGMON label and enabled SNMP
      * 
      * @return array
      */
     protected function getMTDevices() {
-        $query_where = ($this->userLogin) ? "AND `id` ='" . $this->userSwitch['switchid'] . "'" : '';
+        $query_where = ($this->userLogin and ! empty($this->userSwitch)) ? "AND `id` ='" . $this->userSwitch . "'" : '';
         $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
         $alldevices = simple_queryall($query);
         if (! empty($alldevices)) {
@@ -142,7 +160,7 @@ class MTsigmon {
      * 
      * @return array
      */
-    public function LoadUsersData() {
+    protected function LoadUsersData() {
         $this->allUsermacs = zb_UserGetAllMACs();
         $this->allUserData = zb_UserGetAllDataCache();
     }
@@ -236,11 +254,11 @@ class MTsigmon {
                     }
                 }
             }
-            if ($this->userLogin) {
+            if ($this->userLogin and $this->userSwitch) {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
             } else {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
-                $this->deviceIdUsersMac[$mtid][$result_fdb];
+                $this->deviceIdUsersMac[$mtid] = $result_fdb;
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
@@ -279,7 +297,9 @@ class MTsigmon {
      */
     public function renderMTList() {
         $result = '';
-        if (! empty($this->allMTDevices)) {
+        if (empty($this->allMTDevices) and ! empty($this->userLogin)) {
+            $result.=  show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
+        } elseif (! empty($this->allMTDevices)) {
             $columns = array();
             $opts = '"order": [[ 0, "desc" ]]';
 
@@ -294,8 +314,10 @@ class MTsigmon {
                 $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
             }
         } else {
-            $result .= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning').wf_tag('br/', false));
+            $result.= show_window('',$this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
         }
+
+        $result.= wf_delimiter();
         return ($result);
     }
 
