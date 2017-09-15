@@ -379,6 +379,18 @@ class WifiCPE {
     }
 
     /**
+     * Checks is user available for CPE assign?
+     * 
+     * @param string $userLogin
+     * 
+     * @return bool
+     */
+    protected function isUserUnassigned($userLogin) {
+        $result = true;
+        return ($result);
+    }
+
+    /**
      * Assigns existing CPE to some user login
      * 
      * @param int $cpeId
@@ -415,7 +427,7 @@ class WifiCPE {
             $assignData = $this->allAssigns[$assignId];
             $query = "DELETE from `wcpeusers` WHERE `id`='" . $assignId . "';";
             nr_query($query);
-            log_register('WCPE [' . $cpeId . '] DEASSIGN (' . $assignData['login'] . ') ID [' . $assignId . ']');
+            log_register('WCPE [' . $assignData['cpeid'] . '] DEASSIGN (' . $assignData['login'] . ') ID [' . $assignId . ']');
         } else {
             $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': ASSIGNID_NOT_EXISTS', 'error');
         }

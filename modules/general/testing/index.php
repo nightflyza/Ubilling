@@ -74,7 +74,9 @@ if (wf_CheckGet(array('editcpeid'))) {
         show_window(__('Available CPE list'), $wcpe->renderCPEList());
     } else {
         //CPE assign interface here
-        show_window('', wf_BackLink('?module=userprofile&username=' . $_GET['userassign'], __('Back to user profile')));
+        $backControls = wf_BackLink('?module=userprofile&username=' . $_GET['userassign'], __('Back to user profile')) . ' ';
+        $backControls.= wf_Link($wcpe::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available CPE list'), false, 'ubButton');
+        show_window('', $backControls);
         show_window(__('Available CPE list'), $wcpe->renderCPEList($_GET['userassign']));
     }
 }
