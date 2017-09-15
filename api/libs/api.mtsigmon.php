@@ -168,8 +168,8 @@ class MTsigmon {
             $result = array();
             $rawsnmp = array();
 
-            //$this->snmp->setBackground(false);
-            //$this->snmp->setMode('native');
+            $this->snmp->setBackground(false);
+            $this->snmp->setMode('native');
             $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
 
             // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
@@ -210,7 +210,6 @@ class MTsigmon {
                                 $mac = ":$temp.$mac";
                         }
 
-
                         $mac = str_replace('.', '', $mac);
                         $mac = trim($mac);
                         $rssi = str_replace('INTEGER:', '', $rssi);
@@ -225,7 +224,6 @@ class MTsigmon {
                 $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
-
         }
     }
 
