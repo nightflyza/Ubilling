@@ -1154,8 +1154,19 @@ class UserProfile {
     protected function getUserCpeControls() {
         $result = '';
         if ($this->alterCfg['WIFICPE_ENABLED']) {
-            $wcpe = new WifiCPE();
-            $result.=$wcpe->renderCpeUserControls($this->login,  $this->AllUserData);
+            $wcpeFlag = true;
+            if (isset($this->alterCfg['WIFICPE_TARIFFMASK'])) {
+                if (!empty($this->alterCfg['WIFICPE_TARIFFMASK'])) {
+                    if (!ispos($this->userdata['Tariff'], $this->alterCfg['WIFICPE_TARIFFMASK'])) {
+                        $wcpeFlag = false;
+                    }
+                }
+            }
+            
+            if ($wcpeFlag) {
+                $wcpe = new WifiCPE();
+                $result.=$wcpe->renderCpeUserControls($this->login, $this->AllUserData);
+            }
         }
         return ($result);
     }

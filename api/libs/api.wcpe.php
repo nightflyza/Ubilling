@@ -633,7 +633,7 @@ class WifiCPE {
                 $actLinks = wf_JSAlert(self::URL_ME . '&deleteassignid=' . $assignId . '&tocpe=' . $this->allAssigns[$assignId]['cpeid'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $tablecells.=wf_TableCell($actLinks);
 
-                $tablerows.=wf_TableRow($tablecells, 'row3');
+                $tablerows.=wf_TableRow($tablecells, 'row5');
             }
 
             $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -724,9 +724,10 @@ class WifiCPE {
                     }
 
                     $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                    $cpeLink = wf_Link(self::URL_ME . '&editcpeid=' . $assignedCpeId, web_edit_icon(__('Show') . ' ' . __('CPE')), false, '');
 
                     $cells = wf_TableCell(__('Model'), '20%', 'row2');
-                    $cells.= wf_TableCell($cpeModel);
+                    $cells.= wf_TableCell($cpeModel . ' ' . $cpeLink);
                     $rows = wf_TableRow($cells, 'row3');
 
                     $cells = wf_TableCell(__('IP'), '20%', 'row2');
@@ -757,8 +758,9 @@ class WifiCPE {
                             } else {
                                 $apLabel.=' - ' . $this->allAP[$assignedCpeData['uplinkapid']]['location'];
                             }
+                            $apLink = wf_Link('?module=switches&edit=' . $assignedCpeData['uplinkapid'], web_edit_icon(__('Navigate to AP')), false, '');
                             $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
-                            $cells.= wf_TableCell($apLabel);
+                            $cells.= wf_TableCell($apLabel . ' ' . $apLink);
                             $rows.= wf_TableRow($cells, 'row3');
                         } else {
                             $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
@@ -767,10 +769,7 @@ class WifiCPE {
                         }
                     }
 
-                    $actLinks.= wf_Link(self::URL_ME . '&editcpeid=' . $assignedCpeId, web_edit_icon() . ' ' . __('Show') . ' ' . __('CPE'), false, 'ubButton');
-
                     $result.= wf_TableBody($rows, '100%', 0, '');
-                    $result.=$actLinks;
                 }
             } else {
                 $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $assignedCpeId . ']', 'error');
