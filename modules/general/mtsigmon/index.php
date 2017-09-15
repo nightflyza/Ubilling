@@ -26,7 +26,7 @@ if (cfr('MTSIGMON')) {
         }
 
         // rendering availavle MT LIST
-        show_window(__('MT directory'), $sigmon->controls());
+        show_window(__('Mikrotik signal monitor'), $sigmon->controls());
         $sigmon->renderMTList();
 
 

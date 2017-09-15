@@ -62,6 +62,13 @@ class MTsigmon {
      */
     protected $cacheTime = 2592000; //month by default
 
+    /**
+     * Contains system mussages object placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
 
@@ -112,7 +119,7 @@ class MTsigmon {
         $query_where = ($this->userLogin) ? "AND `id` ='" . $this->userSwitch['switchid'] . "'" : '';
         $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
         $alldevices = simple_queryall($query);
-        if (!empty($alldevices)) {
+        if (! empty($alldevices)) {
             foreach ($alldevices as $io => $each) {
                 $this->allMTDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
                 if (!empty($each['snmp'])) {
@@ -233,6 +240,8 @@ class MTsigmon {
      * @return string
      */
     public function controls() {
+        // Load only when using web module
+        $this->messages = new UbillingMessageHelper();
         $result = '';
         if ($this->userLogin) {
             $result.= wf_BackLink('?module=userprofile&username='. $this->userLogin);
@@ -240,8 +249,10 @@ class MTsigmon {
         } else {
             $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
-        $result.=wf_delimiter();
-        $result.= __('Cache state at time') . ': ' . @$this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime);;
+
+        $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . @$this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime), 'info');
+        $result.= wf_delimiter();
+
         return ($result);
     }
 
@@ -251,20 +262,23 @@ class MTsigmon {
      * @return string
      */
     public function renderMTList() {
-
-        $columns = array();
-        $opts = '"order": [[ 0, "desc" ]]';
-
-        $columns[] = ('Address');
-        $columns[] = ('Real Name');
-        $columns[] = ('Tariff');
-        $columns[] = ('IP');
-        $columns[] = ('MAC');
-        $columns[] = __('Signal') . ' (' . __('dBm') . ')';
-
         $result = '';
-        foreach ($this->allMTDevices as $MTId => $eachMT) {
-            $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, 'MTSigmon', 100, $opts));
+        if (! empty($this->allMTDevices)) {
+            $columns = array();
+            $opts = '"order": [[ 0, "desc" ]]';
+
+            $columns[] = ('Address');
+            $columns[] = ('Real Name');
+            $columns[] = ('Tariff');
+            $columns[] = ('IP');
+            $columns[] = ('MAC');
+            $columns[] = __('Signal') . ' (' . __('dBm') . ')';
+
+            foreach ($this->allMTDevices as $MTId => $eachMT) {
+                $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, 'MTSigmon', 100, $opts));
+            }
+        } else {
+            $result .= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'error').wf_tag('br/', false));
         }
         return ($result);
     }
@@ -278,9 +292,8 @@ class MTsigmon {
         // Get MTSigmon cache gtom stroage by MT id
         $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTid, $this->cacheTime);
         $json = new wf_JqDtHelper();
-        if (!empty($MTsigmonData)) {
+        if (! empty($MTsigmonData)) {
             $data = array();
-
              foreach ($MTsigmonData as $eachmac => $eachsig) {
                     //signal coloring
                     if ($eachsig < -79) {
@@ -308,8 +321,7 @@ class MTsigmon {
                 unset($data);
             }
         }
-
-        print_r ($json->getJson());
+        $json->getJson();
     }
 }
 
