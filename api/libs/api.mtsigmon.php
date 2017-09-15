@@ -181,8 +181,8 @@ class MTsigmon {
                 $this->deviceQuery($mtid);
             }
             // Set cache for Device fdb table
-            $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
-            if (! $this->userLogin) {
+            if (empty($this->userLogin) or (! empty($this->userLogin and empty($this->userSwitch)))) {
+                $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
@@ -285,7 +285,7 @@ class MTsigmon {
         if (! empty($cache_date)) {
             $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . wf_tag('b', false) . @$cache_date . wf_tag('b', true), 'info');
         } else {
-            $result.= $this->messages->getStyledMessage(__('Devices are not yet polled'), 'warning');
+            $result.= $this->messages->getStyledMessage(__('Devices are not polled yet'), 'warning');
         }
         $result.= wf_delimiter();
 
