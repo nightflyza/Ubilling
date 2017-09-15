@@ -61,7 +61,7 @@ class WifiCPE {
     /**
      * Base module URL
      */
-    const URL_ME = '?module=testing';
+    const URL_ME = '?module=wcpe';
 
     public function __construct() {
         $this->loadConfigs();
@@ -387,6 +387,14 @@ class WifiCPE {
      */
     protected function isUserUnassigned($userLogin) {
         $result = true;
+        if (!empty($this->allAssigns)) {
+            foreach ($this->allAssigns as $io => $each) {
+                if ($each['login'] == $userLogin) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
         return ($result);
     }
 
@@ -403,10 +411,14 @@ class WifiCPE {
         $cpeId = vf($cpeId, 3);
         $userLoginF = mysql_real_escape_string($userLogin);
         if (isset($this->allCPE[$cpeId])) {
-            $query = "INSERT INTO `wcpeusers` (`id`,`cpeid`,`login`) VALUES (NULL,'" . $cpeId . "','" . $userLoginF . "');";
-            nr_query($query);
-            $newId = simple_get_lastid('wcpeusers');
-            log_register('WCPE [' . $cpeId . '] ASSIGN (' . $userLogin . ') ID [' . $newId . ']');
+            if ($this->isUserUnassigned($userLogin)) {
+                $query = "INSERT INTO `wcpeusers` (`id`,`cpeid`,`login`) VALUES (NULL,'" . $cpeId . "','" . $userLoginF . "');";
+                nr_query($query);
+                $newId = simple_get_lastid('wcpeusers');
+                log_register('WCPE [' . $cpeId . '] ASSIGN (' . $userLogin . ') ID [' . $newId . ']');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': USERLOGIN_ALREADY_ASSIGNED', 'error');
+            }
         } else {
             $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS', 'error');
         }
@@ -705,7 +717,7 @@ class WifiCPE {
      * @return string
      */
     protected function renderCPEAssignControl($userLogin) {
-        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign') . ' ' . __('CPE'), false, 'ubButton');
+        $result = wf_Link(self::URL_ME . '&userassign=' . $userLogin, web_icon_create() . ' ' . __('Assign user WiFi equipment'), false, 'ubButton');
         return ($result);
     }
 

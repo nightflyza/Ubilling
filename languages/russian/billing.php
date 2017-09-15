@@ -2667,6 +2667,8 @@ $lang['def']['Some users is assigned to this CPE'] = 'Какие-то польз
 $lang['def']['Users WiFi equipment'] = 'Пользовательское WiFi оборудование';
 $lang['def']['Navigate to AP'] = 'Перейти к AP';
 $lang['def']['Taken from the user, because the router mode is used'] = 'Показаны пользовательские, поскольку используется режим роутера и не заполнены иные';
+$lang['def']['Assign user WiFi equipment'] = 'Присвоить пользователю WiFi оборудование';
+$lang['def']['right to control WiFi CPE'] = 'Право управлять пользовательским WiFi оборудованием';
 $lang['def'][''] = '';
 
 
