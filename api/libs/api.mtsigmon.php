@@ -243,14 +243,18 @@ class MTsigmon {
         // Load only when using web module
         $this->messages = new UbillingMessageHelper();
         $result = '';
+        $cache_date = $this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime);
         if ($this->userLogin) {
             $result.= wf_BackLink('?module=userprofile&username='. $this->userLogin);
             $result.= wf_Link(self::URL_ME . '&forcepoll=true' . '&username='. $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         } else {
             $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
-
-        $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . @$this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime), 'info');
+        if (! empty($cache_date)) {
+            $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . wf_tag('b', false) . @$cache_date . wf_tag('b', true), 'info');
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Devices are not yet polled'), 'warning');
+        }
         $result.= wf_delimiter();
 
         return ($result);
@@ -275,10 +279,10 @@ class MTsigmon {
             $columns[] = __('Signal') . ' (' . __('dBm') . ')';
 
             foreach ($this->allMTDevices as $MTId => $eachMT) {
-                $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, 'MTSigmon', 100, $opts));
+                $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
             }
         } else {
-            $result .= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'error').wf_tag('br/', false));
+            $result .= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning').wf_tag('br/', false));
         }
         return ($result);
     }
