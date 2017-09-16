@@ -870,8 +870,8 @@ class WifiCPE {
     public function panel() {
         $result = '';
         $result.=wf_modalAuto(web_add_icon() . ' ' . __('Create new CPE'), __('Create new CPE'), $this->renderCPECreateForm(), 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('List'), false, 'ubButton');
-        $result.=wf_Link(self::URL_ME . '&rendermap=true', wf_img('skins/ymaps/network.png') . ' ' . __('Map'), false, 'ubButton');
+        $result.=wf_Link(self::URL_ME, wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available CPE list'), false, 'ubButton');
+        $result.=wf_Link(self::URL_ME . '&rendermap=true', wf_img('skins/ymaps/network.png') . ' ' . __('Map').' '.__('CPE').'/'.__('AP'), false, 'ubButton');
         return ($result);
     }
 
