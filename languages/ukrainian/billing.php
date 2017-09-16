@@ -2688,5 +2688,9 @@ $lang['def']['right to control WiFi CPE'] = 'Право керувати кор�
 $lang['def']['WiFi equipment'] = 'WiFi обладнання';
 $lang['def']['Devices are not polled yet'] = 'Пристрої ще не опитано';
 $lang['def']['results'] = 'результатів';
+$lang['def']['Duplicate'] = 'Дублікат';
+$lang['def']['Not exists'] = 'Не існує';
+$lang['def']['No network detected'] = 'Мережа не визначена';
+
 
 ?>
