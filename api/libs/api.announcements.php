@@ -208,7 +208,7 @@ class ZbsAnnouncements {
      */
     public function editForm($id) {
         $id = vf($id, 3);
-        $states = array("1" => __('Yes'), "0" => __('No'));
+        $states = array(1 => __('Yes'), 0 => __('No'));
         $types = array("text" => __('Text'), "html" => __('HTML'));
         $result = wf_BackLink('?module=zbsannouncements');
         $result.=wf_modal(web_icon_search() . ' ' . __('Preview'), __('Preview'), $this->preview($id), 'ubButton', '600', '400');

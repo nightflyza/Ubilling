@@ -356,7 +356,7 @@ function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort 
     if (!empty($params)) {
         ($sort) ? asort($params) : $params;
         foreach ($params as $value => $eachparam) {
-            $flag_selected = (!empty($selected) and $selected == $value) ? 'SELECTED' : '';
+            $flag_selected = ($selected == $value) ? 'SELECTED' : '';
             $result.='<option value="' . $value . '" ' . $flag_selected . '>' . $eachparam . '</option>' . "\n";
         }
     }
