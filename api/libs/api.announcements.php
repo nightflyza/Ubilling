@@ -257,6 +257,13 @@ class AdminAnnouncements {
      */
     protected $acquainted = array();
 
+    /**
+     * Contains data about administrators viewed some announcement as annid=>data
+     *
+     * @var array
+     */
+    protected $acStats = array();
+
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
     public function __construct() {
@@ -324,8 +331,23 @@ class AdminAnnouncements {
             $all = simple_queryall($query);
             if (!empty($all)) {
                 foreach ($all as $io => $each) {
-                    $this->acquainted[$each['annid']] = $each['date'];
+                    $this->acquainted[$each['annid']][$each['admin']] = $each['date'];
                 }
+            }
+        }
+    }
+
+    /**
+     * Loads data about users which acquainted announcement
+     * 
+     * @return void
+     */
+    protected function loadAcquaintedStats() {
+        $query = "SELECT * from `admacquainted`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->acStats[$each['annid']][$each['admin']] = $each['date'];
             }
         }
     }
@@ -415,14 +437,28 @@ class AdminAnnouncements {
     public function render() {
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Title'));
+        $cells.= wf_TableCell(__('Acquainted'));
         $cells.= wf_TableCell(__('Text'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
-
+        $this->loadAcquaintedStats();
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(strip_tags($each['title']));
+                $acCount = (isset($this->acStats[$each['id']])) ? sizeof($this->acStats[$each['id']]) : 0;
+                if (!empty($acCount)) {
+                    $acList = '';
+                    if (!empty($this->acStats[$each['id']])) {
+                        foreach ($this->acStats[$each['id']] as $eachAdmLogin => $eachAc) {
+                            $acList.=$eachAdmLogin . ' ' . $eachAc . wf_tag('br');
+                        }
+                    }
+                    $acControl = wf_modalAuto($acCount, __('Acquainted'), $acList);
+                } else {
+                    $acControl = $acCount;
+                }
+                $cells.= wf_TableCell($acControl);
                 if (strlen($each['text']) > 100) {
                     $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
                 } else {
