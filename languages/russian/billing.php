@@ -2670,6 +2670,8 @@ $lang['def']['Taken from the user, because the router mode is used'] = 'Пока
 $lang['def']['Assign user WiFi equipment'] = 'Присвоить пользователю WiFi оборудование';
 $lang['def']['right to control WiFi CPE'] = 'Право управлять пользовательским WiFi оборудованием';
 $lang['def']['WiFi equipment'] = 'WiFi оборудование';
+$lang['def']['Devices are not polled yet'] = 'Устройства еще не опрошены';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 
