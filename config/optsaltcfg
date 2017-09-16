@@ -135,6 +135,7 @@ ARPING_EXTRA_OPTIONS=VARCHAR|arping extra options
 ARPDIAG_ENABLED=TRIGGER|Enabled arpdiag module
 ARPDIAG_LOG=VARCHAR|arpdiag log file
 MACVEN_ENABLED=TRIGGER|Vendor detection by MAC
+MACVEN_CACHE=TRIGGER|Cache mac address vendors
 CHAPTEREND_ARP=true
 
 CHAPTER_NDS=NDS accounting

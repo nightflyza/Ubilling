@@ -2675,7 +2675,9 @@ $lang['def']['results'] = 'результатов';
 $lang['def']['Duplicate'] = 'Дубликат';
 $lang['def']['Not exists'] = 'Не существует';
 $lang['def']['No network detected'] = 'Сеть не определена';
+$lang['def']['Cache mac address vendors'] = 'Кэшировать производителей оборудования';
 $lang['def'][''] = '';
+
 
 
 ?>

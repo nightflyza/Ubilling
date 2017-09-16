@@ -2691,6 +2691,7 @@ $lang['def']['results'] = 'результатів';
 $lang['def']['Duplicate'] = 'Дублікат';
 $lang['def']['Not exists'] = 'Не існує';
 $lang['def']['No network detected'] = 'Мережа не визначена';
+$lang['def']['Cache mac address vendors'] = 'Кешувати виробників обладнання';
 
 
 ?>
