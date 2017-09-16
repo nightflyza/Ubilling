@@ -2687,5 +2687,6 @@ $lang['def']['Assign user WiFi equipment'] = 'Присвоїти користу�
 $lang['def']['right to control WiFi CPE'] = 'Право керувати користувацьким WiFi обладнанням';
 $lang['def']['WiFi equipment'] = 'WiFi обладнання';
 $lang['def']['Devices are not polled yet'] = 'Пристрої ще не опитано';
+$lang['def']['results'] = 'результатів';
 
 ?>
