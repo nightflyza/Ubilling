@@ -100,8 +100,10 @@ function zbs_PaycardUse($cardnumber) {
     if ($res) {
         zbs_PaymentLog($user_login, $cardcash, $us_config['PC_CASHTYPEID'], "CARD:".$cardnumber);
         billing_addcash($user_login, $cardcash);
+        rcms_redirect("index.php");
+    } else {
+        show_window(__('Error'), __('Payment card used'));
     }
-    rcms_redirect("index.php");
 }
 
 /**
