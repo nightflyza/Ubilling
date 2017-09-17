@@ -2333,12 +2333,14 @@ class Warehouse {
                 }
                 break;
 
-            case 'out':if (isset($this->allOutcoming[$id])) {
+            case 'out':
+                if (isset($this->allOutcoming[$id])) {
                     $itemName = $this->allItemTypeNames[$this->allOutcoming[$id]['itemtypeid']];
                     $qr->text($itemName . ' ' . __('Outcoming operation') . '# ' . $id);
                 } else {
                     $qr->text('Wrong ID');
                 }
+            break;
 
             case 'itemtype':
                 if (isset($this->allItemTypeNames[$id])) {
