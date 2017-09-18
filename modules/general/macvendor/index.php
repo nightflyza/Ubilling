@@ -8,7 +8,7 @@ if (cfr('MAC')) {
             $mac = $_GET['mac'];
             if (@$altercfg['MACVEN_CACHE']) {
                 $cache = new UbillingCache();
-                $cacheTime = 86400;
+                $cacheTime = 2592000; //something about month
                 $vendorCache = $cache->get('MACVENDB', $cacheTime);
                 debarr($vendorCache);
                 if (!empty($vendorCache)) {

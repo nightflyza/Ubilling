@@ -74,7 +74,7 @@ if (cfr('PERMISSIONS')) {
 
                 $cells = wf_TableCell($eachadmin);
                 $cells.= wf_TableCell($actions);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
         }
 
