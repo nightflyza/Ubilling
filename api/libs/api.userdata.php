@@ -153,19 +153,19 @@ function zb_UserGetAllData($login = '') {
     $altCfg = $ubillingConfig->getAlter();
     $result = array();
     $query_wh = (!empty($login)) ? "WHERE `users`.`login` = '" . vf($login) . "'" : "";
-    $query ="
+    $query = "
             SELECT `users`.`login`, `realname`.`realname`, `Passive`, `AlwaysOnline`, `Tariff`, `Credit`, `Cash`,
                     `ip`, `mac`, `cityname`, `streetname`, `buildnum`, `entrance`, `floor`, `apt`, `geo`,";
-        if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
-            $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
-        } elseif ($altCfg['ZERO_TOLERANCE'] and !$altCfg['CITY_DISPLAY']) {
-            $query .="concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
-        } elseif (!$altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
-            $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
-        } else {
-            $query .="concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
-       }
-            $query .="
+    if ($altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
+        $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+    } elseif ($altCfg['ZERO_TOLERANCE'] and ! $altCfg['CITY_DISPLAY']) {
+        $query .="concat(`streetname`, ' ', `buildnum`, IF(`apt`, concat('/',`apt`), '')) AS `fulladress`,";
+    } elseif (!$altCfg['ZERO_TOLERANCE'] and $altCfg['CITY_DISPLAY']) {
+        $query .="concat(`cityname`, ' ', `streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+    } else {
+        $query .="concat(`streetname`, ' ', `buildnum`, '/', `apt`) AS `fulladress`,";
+    }
+    $query .="
                     `phones`.`phone`,`mobile`,`contract`,`emails`.`email`
                     FROM `users` LEFT JOIN `nethosts` USING (`ip`)
                     LEFT JOIN `realname` ON (`users`.`login`=`realname`.`login`)
@@ -178,9 +178,9 @@ function zb_UserGetAllData($login = '') {
                     LEFT JOIN `contracts` ON (`users`.`login`=`contracts`.`login`)
                     LEFT JOIN `emails` ON (`users`.`login`=`emails`.`login`)
                     " . $query_wh;
-    $Alldata =  (!empty($login)) ? simple_query($query) : simple_queryall($query);
-    if (empty($login) and !empty($Alldata) ){
-        foreach ($Alldata as $data){
+    $Alldata = (!empty($login)) ? simple_query($query) : simple_queryall($query);
+    if (empty($login) and ! empty($Alldata)) {
+        foreach ($Alldata as $data) {
             $result[$data['login']] = $data;
         }
     } else {
@@ -766,6 +766,68 @@ function zb_UserGetAllNotes() {
         }
     }
     return ($result);
+}
+
+/**
+ * Temporary resurrects user if he is inactive by some reasons
+ * 
+ * @param string $login
+ * 
+ * @return void
+ */
+function zb_UserResurrect($login) {
+    global $billing;
+    $userData = zb_UserGetStargazerData($login);
+    $resurrectFlag = false;
+    $resurrectType = array();
+    if (!empty($userData)) {
+        //user manually disabled?
+        if ($userData['Down'] == 1) {
+            $resurrectFlag = true;
+            $resurrectType['DOWN'] = 'DOWN';
+            $billing->setdown($login, 0);
+        }
+
+        //user frozen at this moment
+        if ($userData['Passive'] == 1) {
+            $resurrectFlag = true;
+            $resurrectType['PASSIVE'] = 'PASSIVE';
+            $billing->setpassive($login, 0);
+        }
+
+        //user AlwaysOnline flag disabled
+        if ($userData['AlwaysOnline'] == 0) {
+            $resurrectFlag = true;
+            $resurrectType['AO'] = 'AO';
+            $billing->setao($login, 1);
+        }
+
+        if ($userData['Cash'] < '-' . $userData['Credit']) {
+            $resurrectFlag = true;
+            $resurrectType['CASH'] = 'CASH';
+            $currentCreditValue = $userData['Credit'];
+            $tmpCreditValue = abs($userData['Cash']);
+            $billing->setcredit($login, $tmpCreditValue);
+        }
+
+        //back user data to original state
+        if ($resurrectFlag) {
+            if (isset($resurrectType['DOWN'])) {
+                $billing->setdown($login, 1);
+            }
+            if (isset($resurrectType['PASSIVE'])) {
+                $billing->setpassive($login, 1);
+            }
+            if (isset($resurrectType['AO'])) {
+                $billing->setao($login, 0);
+            }
+            if (isset($resurrectType['CASH'])) {
+                $billing->setcredit($login, $currentCreditValue);
+            }
+
+            log_register('RESURRECT (' . $login . ') ' . implode(',', $resurrectType));
+        }
+    }
 }
 
 ?>
