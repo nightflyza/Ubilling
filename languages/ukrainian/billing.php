@@ -2692,6 +2692,7 @@ $lang['def']['Duplicate'] = 'Дублікат';
 $lang['def']['Not exists'] = 'Не існує';
 $lang['def']['No network detected'] = 'Мережа не визначена';
 $lang['def']['Cache mac address vendors'] = 'Кешувати виробників обладнання';
+$lang['def']['Hard reset is enabled'] = 'Жорсткий ресет увімкнено';
 
 
 ?>

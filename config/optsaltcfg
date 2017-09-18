@@ -290,6 +290,7 @@ BRANCHES_ENABLED=TRIGGER|Branches enabled
 STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
 NASMON_ENABLED=TRIGGER|Is NAS monitoring enabled
 WIFICPE_ENABLED=TRIGGER|Is client side wifi equipment accounting enabled
+RESETHARD=TRIGGER|Hard reset is enabled
 CHAPTEREND_BEH=true
 
 

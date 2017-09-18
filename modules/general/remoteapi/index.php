@@ -36,6 +36,10 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 log_register("JUNGEN UHW REGENERATION (" . $_GET['param'] . ")");
                                 print('OK:JUNGEN' . "\n");
                             }
+                            //may be user ressurection required?
+                            if (@$alterconf['RESETHARD']) {
+                                zb_UserResurrect($_GET['param']);
+                            }
                             die('OK:RESET');
                         } else {
                             die('ERROR:GET_NO_PARAM');
