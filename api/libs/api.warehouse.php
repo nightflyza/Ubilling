@@ -977,7 +977,7 @@ class Warehouse {
         if (!empty($this->allItemTypes)) {
             foreach ($this->allItemTypes as $io => $each) {
                 $itemTypeLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['id'], $each['name']);
-                
+
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(@$this->allCategories[$each['categoryid']]);
                 $cells.= wf_TableCell($itemTypeLink);
@@ -2309,6 +2309,7 @@ class Warehouse {
 
             if (!empty($result)) {
                 show_window(__('Stats'), $result);
+                zb_BillingStats(true);
             }
         }
     }
@@ -2340,7 +2341,7 @@ class Warehouse {
                 } else {
                     $qr->text('Wrong ID');
                 }
-            break;
+                break;
 
             case 'itemtype':
                 if (isset($this->allItemTypeNames[$id])) {
@@ -2954,7 +2955,7 @@ class Warehouse {
                                     $to = '';
                                     $opTypeName = '';
                                     $opLink = '';
-                                    $itemUnitType=@$this->unitTypes[$this->allItemTypes[$eachOp['itemtypeid']]['unit']];
+                                    $itemUnitType = @$this->unitTypes[$this->allItemTypes[$eachOp['itemtypeid']]['unit']];
 
                                     //incoming ops
                                     if ($opType == 'in') {
@@ -3006,7 +3007,7 @@ class Warehouse {
                                     $cells = wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $eachOp['date'] . wf_tag('font', true));
                                     $cells.= wf_TableCell(wf_tag('font', false, '', 'color="' . $rowColor . '"') . $opTypeName . wf_tag('font', true) . ' ' . $opLink);
                                     $cells.= wf_TableCell(@$this->allStorages[$eachOp['storageid']]);
-                                    $cells.= wf_TableCell($eachOp['count'].' '.$itemUnitType);
+                                    $cells.= wf_TableCell($eachOp['count'] . ' ' . $itemUnitType);
                                     $cells.= wf_TableCell($opPrice);
                                     $cells.= wf_TableCell($from . ' ' . wf_img('skins/arrow_right_green.png') . ' ' . $to);
                                     $cells.= wf_TableCell($administratorName);

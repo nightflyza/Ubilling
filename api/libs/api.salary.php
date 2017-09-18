@@ -2216,6 +2216,7 @@ class Salary {
 
             if (!empty($result)) {
                 show_window(__('Stats'), $result);
+                zb_BillingStats(true);
             }
         }
     }
