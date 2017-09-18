@@ -94,12 +94,16 @@ function zbs_PaycardUse($cardnumber) {
         `usedip` = '".$user_ip."',
         `usedate`= '".$ctime."',
         `used`='1'
-         WHERE `serial` ='".$cardnumber."';
+         WHERE `serial` ='".$cardnumber." AND `active`='1' AND `used`='0'';
         ";
-    nr_query($carduse_q);
-    zbs_PaymentLog($user_login, $cardcash, $us_config['PC_CASHTYPEID'], "CARD:".$cardnumber);
-    billing_addcash($user_login, $cardcash);
-    rcms_redirect("index.php");
+    $res = nr_query($carduse_q);
+    if ($res) {
+        zbs_PaymentLog($user_login, $cardcash, $us_config['PC_CASHTYPEID'], "CARD:".$cardnumber);
+        billing_addcash($user_login, $cardcash);
+        rcms_redirect("index.php");
+    } else {
+        show_window(__('Error'), __('Payment card used'));
+    }
 }
 
 /**
