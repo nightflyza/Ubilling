@@ -330,7 +330,7 @@ class IpChange {
                     $cells .= wf_TableCell($each['used']);
                     $cells .= wf_TableCell(wf_tag('font', false, '', 'color="' . $fontColor . '"') . $free . wf_tag('font', false));
                     $cells .= wf_TableCell($each['service']);
-                    $rows .= wf_TableRow($cells, 'row3');
+                    $rows .= wf_TableRow($cells, 'row5');
                 }
             }
         }

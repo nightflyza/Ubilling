@@ -64,8 +64,8 @@ if (cfr('MAC')) {
             $form = web_EditorStringDataFormMAC($fieldnames, $fieldkey, $useraddress, $current_mac);
         }
 
-        $form.=wf_Link('?module=macedit&username=' . $login . '', 'Simple MAC selector', false, 'ubButton');
-        $form.=wf_Link('?module=macedit&username=' . $login . '&oldform=true', 'Manual MAC input', false, 'ubButton');
+        $form.=wf_Link('?module=macedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Simple MAC selector'), false, 'ubButton');
+        $form.=wf_Link('?module=macedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Manual MAC input'), false, 'ubButton');
         $form.=wf_delimiter();
 
         if ($newmac_report) {
