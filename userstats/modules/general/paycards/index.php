@@ -94,7 +94,7 @@ function zbs_PaycardUse($cardnumber) {
         `usedip` = '".$user_ip."',
         `usedate`= '".$ctime."',
         `used`='1'
-         WHERE `serial` ='".$cardnumber." AND `active`='1' AND `used`='0'';
+         WHERE `serial` ='".$cardnumber."' AND `active`='1' AND `used`='0'";
         ";
     $res = nr_query($carduse_q);
     if ($res) {
