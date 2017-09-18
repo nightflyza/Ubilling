@@ -158,7 +158,7 @@ class UbillingCache {
      * @return string
      */
     protected function genKey($key) {
-        $result = self::CACHE_PREFIX . md5($key);
+        $result = self::CACHE_PREFIX . vf($key);
         return ($result);
     }
 
