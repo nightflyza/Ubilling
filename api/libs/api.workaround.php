@@ -2845,6 +2845,8 @@ function zb_BillingCheckUpdates() {
 function zb_BillingStats($quiet = false) {
     $ubstatsurl = 'http://stats.ubilling.net.ua/';
     $statsflag = 'exports/NOTRACK';
+    $cache = new UbillingCache();
+    $cacheTime = 3600;
     //detect host id
     $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
     $hostid = simple_query($hostid_q);
@@ -2872,39 +2874,47 @@ function zb_BillingStats($quiet = false) {
         }
         rcms_redirect("?module=report_sysload");
     }
-    //detect total user count
-    $usercount_q = "SELECT COUNT(`login`) from `users`";
-    $usercount = simple_query($usercount_q);
-    $usercount = $usercount['COUNT(`login`)'];
-
-    //detect tariffs count
-    $tariffcount_q = "SELECT COUNT(`name`) from `tariffs`";
-    $tariffcount = simple_query($tariffcount_q);
-    $tariffcount = $tariffcount['COUNT(`name`)'];
-
-    //detect nas count
-    $nascount_q = "SELECT COUNT(`id`) from `nas`";
-    $nascount = simple_query($nascount_q);
-    $nascount = $nascount['COUNT(`id`)'];
-
-    //detect payments count
-    $paycount_q = "SELECT COUNT(`id`) from `payments`";
-    $paycount = simple_query($paycount_q);
-    $paycount = $paycount['COUNT(`id`)'];
-    $paycount = $paycount / 100;
-    $paycount = round($paycount);
-
-    //detect ubilling actions count
-    $eventcount_q = "SELECT COUNT(`id`) from `weblogs`";
-    $eventcount = simple_query($eventcount_q);
-    $eventcount = $eventcount['COUNT(`id`)'];
-    $eventcount = $eventcount / 100;
-    $eventcount = round($eventcount);
-
     //detect ubilling version
     $releaseinfo = file_get_contents("RELEASE");
     $ubversion = explode(' ', $releaseinfo);
     $ubversion = vf($ubversion[0], 3);
+
+    $ubillingInstanceStats = $cache->get('UBINSTANCE', $cacheTime);
+    if (empty($ubillingInstanceStats)) {
+        //detect total user count
+        $usercount_q = "SELECT COUNT(`login`) from `users`";
+        $usercount = simple_query($usercount_q);
+        $usercount = $usercount['COUNT(`login`)'];
+
+        //detect tariffs count
+        $tariffcount_q = "SELECT COUNT(`name`) from `tariffs`";
+        $tariffcount = simple_query($tariffcount_q);
+        $tariffcount = $tariffcount['COUNT(`name`)'];
+
+        //detect nas count
+        $nascount_q = "SELECT COUNT(`id`) from `nas`";
+        $nascount = simple_query($nascount_q);
+        $nascount = $nascount['COUNT(`id`)'];
+
+        //detect payments count
+        $paycount_q = "SELECT COUNT(`id`) from `payments`";
+        $paycount = simple_query($paycount_q);
+        $paycount = $paycount['COUNT(`id`)'];
+        $paycount = $paycount / 100;
+        $paycount = round($paycount);
+
+        //detect ubilling actions count
+        $eventcount_q = "SELECT COUNT(`id`) from `weblogs`";
+        $eventcount = simple_query($eventcount_q);
+        $eventcount = $eventcount['COUNT(`id`)'];
+        $eventcount = $eventcount / 100;
+        $eventcount = round($eventcount);
+
+        $ubillingInstanceStats = '?u=' . $thisubid . 'x' . $usercount . 'x' . $tariffcount . 'x' . $nascount . 'x' . $paycount . 'x' . $eventcount . 'x' . $ubversion;
+        $cache->set('UBINSTANCE', $ubillingInstanceStats, $cacheTime);
+    }
+
+
 
     $releasebox = wf_tag('span', false, '', 'id="lastrelease"');
     $releasebox.=wf_tag('span', true) . wf_tag('br');
@@ -2919,14 +2929,23 @@ function zb_BillingStats($quiet = false) {
     $ubstatsinputs.=' ' . wf_Submit('Save');
     $ubstatsform = wf_Form("", 'POST', $ubstatsinputs, 'glamour');
     $ubstatsform.= wf_CleanDiv();
-    $statsurl = $ubstatsurl . '?u=' . $thisubid . 'x' . $usercount . 'x' . $tariffcount . 'x' . $nascount . 'x' . $paycount . 'x' . $eventcount . 'x' . $ubversion;
+    $statsurl = $ubstatsurl . $ubillingInstanceStats;
     $tracking_code = wf_tag('div', false, '', 'style="display:none;"') . wf_tag('iframe', false, '', 'src="' . $statsurl . '" width="1" height="1" frameborder="0"') . wf_tag('iframe', true) . wf_tag('div', true);
     if ($quiet == false) {
         show_window(__('Billing info'), $ubstatsform);
     }
 
     if ($thiscollect) {
-        show_window('', $tracking_code);
+        if (isset($_SERVER['SERVER_PORT']) AND ( @$_SERVER['SERVER_PORT'] == 80)) {
+            show_window('', $tracking_code);
+        } else {
+            if (extension_loaded('curl')) {
+                $curlStats = curl_init($statsurl);
+                curl_setopt($curlStats, CURLOPT_RETURNTRANSFER, 1);
+                $output = curl_exec($curlStats);
+                curl_close($curlStats);
+            }
+        }
     }
 }
 
@@ -4660,7 +4679,7 @@ function web_RedisRenderStats() {
     $cells.= wf_TableCell(__('Value'));
     $rows = wf_TableRow($cells, 'row1');
     if (!empty($rawStats)) {
-        foreach ($rawStats as $param =>$value) {
+        foreach ($rawStats as $param => $value) {
             $cells = wf_TableCell($param);
             $cells.= wf_TableCell($value);
             $rows.= wf_TableRow($cells, 'row3');
