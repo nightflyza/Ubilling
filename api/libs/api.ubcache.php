@@ -171,8 +171,10 @@ class UbillingCache {
      * 
      * @return void
      */
-    public function set($key, $data, $expiration = 0) {
+    public function set($key, $data, $expiration = 2592000) {
         $key = $this->genKey($key);
+        // Set expiration time not more 1 month
+        $expiration = ($expiration > 2592000) ? '2592000' : $expiration; ;
 
         //files storage
         if ($this->storage == 'files') {
@@ -199,16 +201,13 @@ class UbillingCache {
      * 
      * @return string
      */
-    public function get($key, $expiration = 0) {
+    public function get($key, $expiration = 2592000) {
         $result = '';
         $keyRaw = $key;
         $key = $this->genKey($key);
         //files storage
         if ($this->storage == 'files') {
             $cacheName = $this->storagePath . $key;
-            if (!$expiration) {
-                $expiration = 2629743; // month by default
-            }
             $cacheTime = time() - $expiration;
             $updateCache = false;
             if (file_exists($cacheName)) {
@@ -270,7 +269,7 @@ class UbillingCache {
      * 
      * @return string
      */
-    public function getCallback($key, Closure $callback, $expiration = 0) {
+    public function getCallback($key, Closure $callback, $expiration = 2592000) {
         // Use this class get function
         $result = $this->get($key, $expiration);
         if (!$result) {
