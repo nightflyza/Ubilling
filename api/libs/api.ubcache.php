@@ -174,7 +174,7 @@ class UbillingCache {
     public function set($key, $data, $expiration = 2592000) {
         $key = $this->genKey($key);
         // Set expiration time not more 1 month
-        $expiration = ($expiration > 2592000) ? '2592000' : $expiration; ;
+        $expiration = ($expiration > 2592000) ? '2592000' : $expiration;
 
         //files storage
         if ($this->storage == 'files') {
