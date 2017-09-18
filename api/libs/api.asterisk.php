@@ -114,7 +114,7 @@ class Asterisk {
             $last_db_uniqueid = $this->AsteriskQuery($query);
             $last_cache_uniqueid = $this->cache->get($cache_uniqueid_key, $this->cacheTime);
             // Если `uniqueid` не равен записи в кеше, то очищаем весь кеш
-            if (($uniqueid = $last_db_uniqueid['0']['uniqueid']) != $last_cache_uniqueid) {
+            if (($uniqueid = @$last_db_uniqueid['0']['uniqueid']) != $last_cache_uniqueid) {
                 $this->cache->delete('ASTERISK_CDR_' . $cacheName, $this->cacheTime);
                 $this->cache->set($cache_uniqueid_key, $uniqueid, $this->cacheTime);
             }
