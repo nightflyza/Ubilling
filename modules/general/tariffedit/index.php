@@ -84,9 +84,9 @@ if (cfr('TARIFFEDIT')) {
         }
 
 
-        $form.=wf_Link('?module=tariffedit&username=' . $login, 'Popular tariff selector', false, 'ubButton');
-        $form.=wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', 'Full tariff selector', false, 'ubButton');
-        $form.='<br><br>';
+        $form.=wf_Link('?module=tariffedit&username=' . $login, wf_img('skins/done_icon.png') . ' ' . __('Popular tariff selector'), false, 'ubButton');
+        $form.=wf_Link('?module=tariffedit&username=' . $login . '&oldform=true', wf_img('skins/categories_icon.png') . ' ' . __('Full tariff selector'), false, 'ubButton');
+        $form.=wf_delimiter();
 
         $form.=web_UserControls($login);
 // show form
