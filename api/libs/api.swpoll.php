@@ -431,12 +431,20 @@ function sp_SnmpGetAllDevices() {
  * @return array
  */
 function sp_SnmpGetAllModelTemplates() {
-    $path = CONFIG_PATH . "snmptemplates/";
+    $path = CONFIG_PATH . 'snmptemplates/';
+    $privatePath = DATA_PATH . 'documents/mysnmptemplates/';
     $alltemplates = rcms_scandir($path);
     $result = array();
     if (!empty($alltemplates)) {
         foreach ($alltemplates as $each) {
             $result[$each] = rcms_parse_ini_file($path . $each, true);
+        }
+    }
+
+    $myTemplates = rcms_scandir($privatePath);
+    if (!empty($myTemplates)) {
+        foreach ($myTemplates as $each) {
+            $result[$each] = rcms_parse_ini_file($privatePath . $each, true);
         }
     }
     return ($result);
