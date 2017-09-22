@@ -80,7 +80,7 @@ if (cfr('SYSLOAD')) {
             //installing phpsysinfo
             if (wf_CheckGet(array('phpsysinfoinstall'))) {
                 zb_InstallPhpsysinfo();
-                die(__('Done'));
+                die(wf_tag('span',false,'alert_success').__('Done').  wf_tag('span',true));
             }
             $monitCode = wf_AjaxLink('?module=report_sysload&phpsysinfoinstall=true', __('Download') . ' ' . __('phpSysInfo'), 'phpsysinfoinstall', true, 'ubButton');
             $monitCode.= wf_AjaxContainer('phpsysinfoinstall');
