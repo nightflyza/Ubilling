@@ -31,7 +31,6 @@ class MTsigmon {
      *
      * @var array
      */
-
     protected $allUsermacs = array();
 
     /**
@@ -39,8 +38,8 @@ class MTsigmon {
      *
      * @var array
      */
-
     protected $allUserData = array();
+
     /**
      * All available MT devices
      *
@@ -62,7 +61,7 @@ class MTsigmon {
      */
     protected $cache = '';
 
-     /**
+    /**
      * Comments caching time
      *
      * @var int
@@ -79,7 +78,7 @@ class MTsigmon {
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
 
-    public function __construct () {
+    public function __construct() {
         $this->LoadUsersData();
         $this->initCache();
         if (wf_CheckGet(array('username'))) {
@@ -125,8 +124,8 @@ class MTsigmon {
     protected function getMTidByUserMac() {
         $usermac = strtolower($this->allUsermacs[$this->userLogin]);
         $MT_fdb_arr = $this->cache->get(self::CACHE_PREFIX . 'MTID_UMAC', $this->cacheTime);
-        if (! empty($MT_fdb_arr) and isset($usermac)) {
-            foreach ($MT_fdb_arr as $mtid=>$fdb_arr) {
+        if (!empty($MT_fdb_arr) and isset($usermac)) {
+            foreach ($MT_fdb_arr as $mtid => $fdb_arr) {
                 if (in_array($usermac, $fdb_arr)) {
                     $this->userSwitch = $mtid;
                     break;
@@ -144,7 +143,7 @@ class MTsigmon {
         $query_where = ($this->userLogin and ! empty($this->userSwitch)) ? "AND `id` ='" . $this->userSwitch . "'" : '';
         $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
         $alldevices = simple_queryall($query);
-        if (! empty($alldevices)) {
+        if (!empty($alldevices)) {
             foreach ($alldevices as $io => $each) {
                 $this->allMTDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
                 if (!empty($each['snmp'])) {
@@ -165,7 +164,7 @@ class MTsigmon {
         $this->allUserData = zb_UserGetAllDataCache();
     }
 
-     /**
+    /**
      * Performs available MT devices polling. Use only in remote API.
      * 
      * @param bool $quiet
@@ -181,7 +180,7 @@ class MTsigmon {
                 $this->deviceQuery($mtid);
             }
             // Set cache for Device fdb table
-            if (empty($this->userLogin) or (! empty($this->userLogin) and empty($this->userSwitch))) {
+            if (empty($this->userLogin) or ( !empty($this->userLogin) and empty($this->userSwitch))) {
                 $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
@@ -277,12 +276,12 @@ class MTsigmon {
         $result = '';
         $cache_date = $this->cache->get(self::CACHE_PREFIX . 'DATE', $this->cacheTime);
         if ($this->userLogin) {
-            $result.= wf_BackLink('?module=userprofile&username='. $this->userLogin);
-            $result.= wf_Link(self::URL_ME . '&forcepoll=true' . '&username='. $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+            $result.= wf_BackLink('?module=userprofile&username=' . $this->userLogin);
+            $result.= wf_Link(self::URL_ME . '&forcepoll=true' . '&username=' . $this->userLogin, wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         } else {
             $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
-        if (! empty($cache_date)) {
+        if (!empty($cache_date)) {
             $result.= $this->messages->getStyledMessage(__('Cache state at time') . ': ' . wf_tag('b', false) . @$cache_date . wf_tag('b', true), 'info');
         } else {
             $result.= $this->messages->getStyledMessage(__('Devices are not polled yet'), 'warning');
@@ -301,6 +300,7 @@ class MTsigmon {
         $result = '';
         $columns = array();
         $opts = '"order": [[ 0, "desc" ]]';
+        $columns[] = ('Login');
         $columns[] = ('Address');
         $columns[] = ('Real Name');
         $columns[] = ('Tariff');
@@ -308,15 +308,15 @@ class MTsigmon {
         $columns[] = ('MAC');
         $columns[] = __('Signal') . ' (' . __('dBm') . ')';
         if (empty($this->allMTDevices) and ! empty($this->userLogin) and empty($this->userSwitch)) {
-            $result.=  show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
-        } elseif (! empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
-            $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '', false, __('results'), 100, $opts));
-        } elseif (! empty($this->allMTDevices) and empty($this->userLogin)) {
+            $result.= show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
+        } elseif (!empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
+            $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '&username=' . $this->userLogin, false, __('results'), 100, $opts));
+        } elseif (!empty($this->allMTDevices) and empty($this->userLogin)) {
             foreach ($this->allMTDevices as $MTId => $eachMT) {
                 $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
             }
         } else {
-            $result.= show_window('',$this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
+            $result.= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
         }
         $result.= wf_delimiter();
         return ($result);
@@ -331,30 +331,39 @@ class MTsigmon {
         // Get MTSigmon cache gtom stroage by MT id
         $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTid, $this->cacheTime);
         $json = new wf_JqDtHelper();
-        if (! empty($MTsigmonData)) {
+        if (!empty($MTsigmonData)) {
             $data = array();
-             foreach ($MTsigmonData as $eachmac => $eachsig) {
-                    //signal coloring
-                    if ($eachsig < -79) {
-                        $displaysig = wf_tag('font', false, '', 'color="#900000"') . $eachsig . wf_tag('font', true);
-                    } elseif ($eachsig > -80 and $eachsig < -74) {
-                        $displaysig = wf_tag('font', false, '', 'color="#FF5500"') . $eachsig . wf_tag('font', true);
-                    } else {
-                        $displaysig = wf_tag('font', false, '', 'color="#006600"') . $eachsig . wf_tag('font', true);
-                    }
+            foreach ($MTsigmonData as $eachmac => $eachsig) {
+                //signal coloring
+                if ($eachsig < -79) {
+                    $displaysig = wf_tag('font', false, '', 'color="#900000"') . $eachsig . wf_tag('font', true);
+                } elseif ($eachsig > -80 and $eachsig < -74) {
+                    $displaysig = wf_tag('font', false, '', 'color="#FF5500"') . $eachsig . wf_tag('font', true);
+                } else {
+                    $displaysig = wf_tag('font', false, '', 'color="#006600"') . $eachsig . wf_tag('font', true);
+                }
 
                 $login = in_array($eachmac, array_map('strtolower', $this->allUsermacs)) ? array_search($eachmac, array_map('strtolower', $this->allUsermacs)) : '';
-
-                $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' (' . @$this->allUserData[$login]['login'] .') ' . @$this->allUserData[$login]['fulladress'], false) : '';
+                //user search highlight
+                if ((!empty($this->userLogin)) AND ( $this->userLogin == $login)) {
+                    $hlStart = wf_tag('font', false, '', 'color="#0045ac"');
+                    $hlEnd = wf_tag('font', true);
+                } else {
+                    $hlStart = '';
+                    $hlEnd = '';
+                }
+                
+                $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$this->allUserData[$login]['login'] . '', false) : '';
                 $userRealnames = $login ? @$this->allUserData[$login]['realname'] : '';
                 $userTariff = $login ? @$this->allUserData[$login]['Tariff'] : '';
                 $userIP = $login ? @$this->allUserData[$login]['ip'] : '';
 
                 $data[] = $userLink;
-                $data[] = $userRealnames;
-                $data[] = $userTariff;
-                $data[] = $userIP;
-                $data[] = $eachmac;
+                $data[] = $hlStart . @$this->allUserData[$login]['fulladress'] . $hlEnd;
+                $data[] = $hlStart . $userRealnames . $hlEnd;
+                $data[] = $hlStart . $userTariff . $hlEnd;
+                $data[] = $hlStart . $userIP . $hlEnd;
+                $data[] = $hlStart . $eachmac . $hlEnd;
                 $data[] = $displaysig;
                 $json->addRow($data);
                 unset($data);
@@ -362,6 +371,7 @@ class MTsigmon {
         }
         $json->getJson();
     }
+
 }
 
 ?>
