@@ -95,9 +95,9 @@ class DbConnect {
 
     public function fetchobject() {
          if (extension_loaded('mysql')) {
-            return(@mysql_fetch_object($this->result, MYSQL_ASSOC));
+            return(@mysql_fetch_object($this->result));
         } else {
-            return($result = @$this->result->fetch_object);
+            return($result = @$this->result->fetch_object());
         }
     }
 
@@ -105,7 +105,7 @@ class DbConnect {
          if (extension_loaded('mysql')) {
             return(mysql_fetch_array($this->result));
         } else {
-            return($result = @$this->result->fetch_array(MYSQLI_NUM));
+            return($result = @$this->result->fetch_array(MYSQLI_BOTH));
         }
     }
 
@@ -113,7 +113,7 @@ class DbConnect {
          if (extension_loaded('mysql')) {
             return(@mysql_fetch_assoc($this->result));
         } else {
-            return($result = @mysqli_fetch_assoc($this->result));
+            return($result = @$this->result->fetch_assoc());
         }
     }
 
