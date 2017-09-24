@@ -113,7 +113,7 @@ class DbConnect {
          if (extension_loaded('mysql')) {
             return(@mysql_fetch_assoc($this->result));
         } else {
-            return($result = @$this->result->fetch_assoc);
+            return($result = @mysqli_fetch_assoc($this->result));
         }
     }
 
