@@ -198,16 +198,20 @@ class MTsigmon {
         if (isset($this->allMTSnmp[$mtid]['community'])) {
             $ip = $this->allMTSnmp[$mtid]['ip'];
             $community = $this->allMTSnmp[$mtid]['community'];
-            $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';
+            $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
+            $oid2 = '.1.3.6.1.4.1.14988.1.1.1.2.1.19';  // - TX Signal Strength
             $mask_mac = false;
             $ubnt_shift = 0;
             $result = array();
             $rawsnmp = array();
+            $rawsnmp2 = array();
             $result_fdb = array();
 
             $this->snmp->setBackground(false);
             $this->snmp->setMode('native');
             $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
+            $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
+
 
             // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
             // in AirOS 5.6 and newer
@@ -229,9 +233,26 @@ class MTsigmon {
                 }
             }
 
+            if (!empty($tmpSnmp2) and ( $tmpSnmp2 !== "$oid2 = ")) {
+                $explodeData = explodeRows($tmpSnmp2);
+                if (!empty($explodeData)) {
+                    foreach ($explodeData as $io => $each) {
+                        $explodeRow = explode(' = ', $each);
+                        if (isset($explodeRow[1])) {
+                            $rawsnmp2[$explodeRow[0]] = $explodeRow[1];
+                        }
+                    }
+                }
+            }
+
+            $rssi2 = '';
+            $TXoid = '';
+
             if (!empty($rawsnmp)) {
                 if (is_array($rawsnmp)) {
                     foreach ($rawsnmp as $indexOID => $rssi) {
+                        $TXoid = (!empty($rawsnmp2)) ? str_replace($oid, $oid2, $indexOID) : '';
+
                         $oidarray = explode(".", $indexOID);
                         $end_num = sizeof($oidarray) + $ubnt_shift;
                         $mac = '';
@@ -251,9 +272,19 @@ class MTsigmon {
                         $mac = trim($mac);
                         $rssi = str_replace('INTEGER:', '', $rssi);
                         $rssi = trim($rssi);
-                        $result[$mac] = $rssi;
+
+                        if (!empty($TXoid)) {
+                            $rssi2 = $rawsnmp2[$TXoid];
+                            $rssi2 = str_replace('INTEGER:', '', $rssi2);
+                            $rssi2 = trim($rssi2);
+                            $rssi2 = ' / ' . $rssi2;
+                        }
+
+                        $result[$mac] = $rssi . $rssi2;
                         $result_fdb[] = $mac;
                     }
+
+
                 }
             }
             if ($this->userLogin and $this->userSwitch) {
@@ -313,6 +344,19 @@ class MTsigmon {
             $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$this->allMTDevices[$this->userSwitch]), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $this->userSwitch . '&username=' . $this->userLogin, false, __('results'), 100, $opts));
         } elseif (!empty($this->allMTDevices) and empty($this->userLogin)) {
             foreach ($this->allMTDevices as $MTId => $eachMT) {
+                $MTsigmonData = $this->cache->get(self::CACHE_PREFIX . $MTId, $this->cacheTime);
+                if (! empty($MTsigmonData)) {
+                    foreach ($MTsigmonData as $eachmac => $eachsig) {
+                        if (strpos($eachsig, '/') !== false) {
+                            $columns[5] = __('Signal') . ' RX / TX (' . __('dBm') . ')';
+                        } else {
+                            $columns[5] = __('Signal') . ' (' . __('dBm') . ')';
+                        }
+
+                        break;
+                    }
+                }
+                unset($MTsigmonData);
                 $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
             }
         } else {
