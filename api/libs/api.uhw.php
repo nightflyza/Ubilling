@@ -8,18 +8,26 @@ class UHW {
      * @return string
      */
     public function panel() {
-        $result = wf_Link('?module=uhw', wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
-        $result.= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
+        if (!wf_CheckGet(array('username'))) {
+            $result = wf_Link('?module=uhw', wf_img('skins/ukv/report.png') . ' ' . __('Usage report'), false, 'ubButton');
+            $result.= wf_Link('?module=uhw&showbrute=true', wf_img('skins/icon_key.gif') . ' ' . __('Brute attempts'), false, 'ubButton');
+        } else {
+            $result = '';
+        }
         return ($result);
     }
 
     /**
      * Returns JSON reply for jquery datatables with full list of available UHW usages
      * 
+     * @param string $loginFilter
+     * 
      * @return void
      */
-    public function ajaxGetData() {
-        $query = "SELECT * from `uhw_log` ORDER by `id` DESC;";
+    public function ajaxGetData($loginFilter = '') {
+        $loginFilter = mysql_real_escape_string($loginFilter);
+        $where = (!empty($loginFilter)) ? "WHERE `login`='" . $loginFilter . "'" : '';
+        $query = "SELECT * from `uhw_log` " . $where . " ORDER by `id` DESC;";
         $alluhw = simple_queryall($query);
         $alladdress = zb_AddressGetFulladdresslist();
         $allrealnames = zb_UserGetAllRealnames();
@@ -52,13 +60,16 @@ class UHW {
     /**
      * Returns container of succefull UHW usages
      * 
+     * @param string $searchLogin
+     * 
      * @return string
      */
-    public function renderUsageList() {
+    public function renderUsageList($searchLogin = '') {
         $result = '';
         $columns = array('ID', 'Date', 'Password', 'Login', 'Address', 'Real name', 'IP', 'NHID', 'Old MAC', 'New MAC');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true', false, 'users', 100, $opts);
+        $loginFilter = (!empty($searchLogin)) ? '&username=' . $searchLogin : '';
+        $result = wf_JqDtLoader($columns, '?module=uhw&ajax=true' . $loginFilter, false, 'users', 100, $opts);
         return ($result);
     }
 

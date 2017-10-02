@@ -10,10 +10,15 @@ if (cfr('UHW')) {
     if (!wf_CheckGet(array('showbrute'))) {
         //json reply
         if (wf_CheckGet(array('ajax'))) {
-            $uhw->ajaxGetData();
+            $loginFilter = (wf_CheckGet(array('username'))) ? $_GET['username'] : '';
+            $uhw->ajaxGetData($loginFilter);
         }
         //list all UHW usage list
-        show_window(__('UHW successful log'), $uhw->renderUsageList());
+        $searchLogin = (wf_CheckGet(array('username'))) ? $_GET['username'] : '';
+        show_window(__('UHW successful log'), $uhw->renderUsageList($searchLogin));
+        if (!empty($searchLogin)) {
+            show_window('', web_UserControls($searchLogin));
+        }
     } else {
         //deleting brute
         if (wf_CheckGet(array('delbrute'))) {
@@ -27,7 +32,7 @@ if (cfr('UHW')) {
             rcms_redirect("?module=uhw&showbrute=true");
         }
 
-        
+
         $cleanupLink = wf_JSAlert('?module=uhw&showbrute=true&cleanallbrute=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), 'Are you serious');
         show_window(__('Brute attempts') . ' ' . $cleanupLink, $uhw->renderBruteAttempts());
     }
