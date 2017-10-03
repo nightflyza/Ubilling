@@ -60,7 +60,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '') {
     $inputid = wf_InputId();
     //set size
     if ($size != '') {
@@ -73,7 +73,11 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '') 
     } else {
         $newline = '';
     }
-    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '">' . "\n";
+    // We will verify that we correctly enter data by input type
+    if ($pattern == 'geo') {
+        $pattern = 'pattern="-?\d{1,2}(\.\d+),-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000"';
+    }
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
