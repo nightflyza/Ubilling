@@ -161,7 +161,7 @@ if (cfr('SWITCHES')) {
                 if ($altCfg['SWITCHES_EXTENDED']) {
                     simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
                 }
-                simple_update_field('switches', 'geo', $_POST['editgeo'], "WHERE `id`='" . $switchid . "'");
+                simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
                 if ($_POST['editparentid'] != $switchid) {
                     simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
                 }
