@@ -32,8 +32,8 @@ if (cfr('SWITCHES')) {
             $swid = ($altCfg['SWITCHES_EXTENDED']) ? $_POST['newswid'] : '';
             $geo = $_POST['newgeo'];
             $parentid = $_POST['newparentid'];
-            $snmpwrite=$_POST['newsnmpwrite'];
-            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid,$snmpwrite);
+            $snmpwrite = $_POST['newsnmpwrite'];
+            ub_SwitchAdd($modelid, $ip, $desc, $location, $snmp, $swid, $geo, $parentid, $snmpwrite);
             rcms_redirect("?module=switches");
         } else {
             show_window(__('Error'), __('Access denied'));
@@ -172,11 +172,11 @@ if (cfr('SWITCHES')) {
             }
         }
 
-        //render switch edit form
+        //render switch edit form (aka switch profile)
         show_window(__('Edit switch'), web_SwitchEditForm($switchid));
         //minimap container
         if ($altCfg['SWYMAP_ENABLED']) {
-            if (!empty($switchdata['geo'])) {
+            if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
                 show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
             }
         }

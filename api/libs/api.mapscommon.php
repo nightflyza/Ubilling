@@ -73,7 +73,7 @@ function sm_MapDrawSwitchUplinks($traceid = '') {
         foreach ($allswitches as $io => $each) {
             if (!empty($each['parentid'])) {
                 if (isset($allswitches[$each['parentid']])) {
-                    if ($allswitches[$each['parentid']]['geo'] != '') {
+                    if (($allswitches[$each['parentid']]['geo'] != '') AND ( $each['geo'] != '')) {
                         $coord1 = $each['geo'];
                         $coord2 = $allswitches[$each['parentid']]['geo'];
                         $hint = $each['location'] . ' ' . $each['ip'] . ' → ' . $allswitches[$each['parentid']]['location'] . ' ' . $allswitches[$each['parentid']]['ip'];
