@@ -42,7 +42,7 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 function sm_MapDrawSwitchUplinks($traceid = '') {
     global $ubillingConfig;
     $ym_conf = $ubillingConfig->getYmaps();
-    $query = "SELECT * from `switches` WHERE `geo` != '' ";
+    $query = "SELECT * from `switches`";
     $tmpSwitches = simple_queryall($query);
     $allswitches = array();
     $alllinks = array();
@@ -493,7 +493,13 @@ function sm_MapLocationSwitchForm() {
         }
         //form construct
         if (cfr('SWITCHESEDIT')) {
-            $inputs = wf_Selector('switchplacing', $switchData, '', '', true);
+            //preselect some switch if required
+            if (wf_CheckGet(array('placesw'))) {
+                $selected = $_GET['placesw'];
+            } else {
+                $selected = '';
+            }
+            $inputs = wf_Selector('switchplacing', $switchData, '', $selected, true);
             $inputs.=wf_Submit('Save');
             $result.=$inputs;
         }
