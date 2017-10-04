@@ -169,7 +169,7 @@ sorttable = {
     for (var i=0; i<table.tBodies[0].rows.length; i++) {
       text = sorttable.getInnerText(table.tBodies[0].rows[i].cells[column]);
       if (text != '') {
-        if (text.match(/^-?[£$€]?[\d,.]+%?$/)) {
+        if (text.match(/^-?[£$¤]?[\d,.]+%?$/)) {
           return sorttable.sort_numeric;
         }
         // check for a date: dd/mm/yyyy or dd/mm/yy 
@@ -206,7 +206,7 @@ sorttable = {
     hasInputs = (typeof node.getElementsByTagName == 'function') &&
                  node.getElementsByTagName('input').length;
     
-    if (node.getAttribute("sorttable_customkey") != null) {
+    if (node.nodeType == 1 && node.getAttribute("sorttable_customkey") != null) {
       return node.getAttribute("sorttable_customkey");
     }
     else if (typeof node.textContent != 'undefined' && !hasInputs) {

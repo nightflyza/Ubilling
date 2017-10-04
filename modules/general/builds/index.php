@@ -53,7 +53,7 @@ if (cfr('BUILDS')) {
            if (isset($_POST['editbuildnum'])) {
                if (!empty($_POST['editbuildnum'])) {
                simple_update_field('build', 'buildnum', trim($_POST['editbuildnum']), "WHERE `id`='".$buildid."'");
-               simple_update_field('build', 'geo', preg_replace('/[^0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='".$buildid."'");
+               simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='".$buildid."'");
                }
                log_register("CHANGE AddressBuild [".$buildid."] ".  mysql_real_escape_string(trim($_POST['editbuildnum'])));
                rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
@@ -66,7 +66,7 @@ if (cfr('BUILDS')) {
            $streetname=$streetname['streetname'];
            $editinputs=$streetname." ".$builddata['buildnum'].  wf_tag('hr');
            $editinputs.=wf_TextInput('editbuildnum', 'Building number', $builddata['buildnum'], true, '10');
-           $editinputs.=wf_TextInput('editbuildgeo', 'Geo location', $builddata['geo'], true, '20');
+           $editinputs.=wf_TextInput('editbuildgeo', 'Geo location', $builddata['geo'], true, '20', 'geo');
            $editinputs.=wf_Submit('Save');
            $editform=wf_Form('', 'POST', $editinputs, 'glamour');
            show_window(__('Edit').' '.__('Build'), $editform);
