@@ -448,6 +448,8 @@ function um_MapLocationBuildForm() {
     $cityData = array();
     $result = '';
 
+    $selectedBuild = (wf_CheckGet(array('placebld'))) ? vf($_GET['placebld'], 3) : '';
+
     if (!empty($allNoGeoBuilds)) {
         $allCities = zb_AddressGetFullCityNames();
         $allStreets = zb_AddressGetStreetAllData();
@@ -467,7 +469,7 @@ function um_MapLocationBuildForm() {
         }
         //form construct
         if (cfr('BUILDS')) {
-            $inputs = wf_Selector('buildplacing', $buildData, '', '', true);
+            $inputs = wf_Selector('buildplacing', $buildData, '', $selectedBuild, true);
             $inputs.=wf_Submit('Save');
             $result.=$inputs;
         }

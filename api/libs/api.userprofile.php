@@ -599,6 +599,8 @@ class UserProfile {
                 if (!empty($thisUserBuildGeo)) {
                     $locatorIcon = wf_img_sized('skins/icon_search_small.gif', __('Find on map'), 10);
                     $buildLocator = ' ' . wf_Link("?module=usersmap&findbuild=" . $thisUserBuildGeo, $locatorIcon, false);
+                } else {
+                    $buildLocator.= ' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $this->aptdata['buildid'], wf_img_sized('skins/ymaps/target.png', __('Place on map'), '10'), false, '');
                 }
 //and neighbors state cache
                 if (!empty($this->aptdata['buildid'])) {
