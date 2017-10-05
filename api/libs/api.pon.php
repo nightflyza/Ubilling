@@ -1087,7 +1087,12 @@ class PONizer {
         $inputs = wf_HiddenInput('createnewonu', 'true');
         $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
         $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
-        $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
+        if (@$this->altCfg['PON_ONUIPASIF']) {
+            $ipFieldLabel = __('Interface');
+        } else {
+            $ipFieldLabel = __('IP');
+        }
+        $inputs.= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
         $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
         $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
@@ -1210,7 +1215,12 @@ class PONizer {
             $inputs = wf_HiddenInput('editonu', $onuId);
             $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
             $inputs.= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
-            $inputs.= wf_TextInput('editip', __('IP'), $this->allOnu[$onuId]['ip'], true, 20);
+            if (@$this->altCfg['PON_ONUIPASIF']) {
+                $ipFieldLabel = __('Interface');
+            } else {
+                $ipFieldLabel = __('IP');
+            }
+            $inputs.= wf_TextInput('editip', $ipFieldLabel, $this->allOnu[$onuId]['ip'], true, 20);
             $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup . ' ' . $this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
             $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
             $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
@@ -1381,7 +1391,11 @@ class PONizer {
         }
 
         $columns[] = 'Model';
-        $columns[] = 'IP';
+        if (@$this->altCfg['PON_ONUIPASIF']) {
+            $columns[] = 'Interface';
+        } else {
+            $columns[] = 'IP';
+        }
         $columns[] = 'MAC';
         $columns[] = 'Signal';
 
