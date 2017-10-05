@@ -940,6 +940,8 @@ function web_BuildLister($streetid) {
             $acts.='' . wf_JSAlert('?module=builds&action=editbuild&streetid=' . $streetid . '&buildid=' . $eachbuild['id'], web_edit_icon(), 'Are you serious');
             if (!empty($eachbuild['geo'])) {
                 $acts.=' ' . wf_Link("?module=usersmap&findbuild=" . $eachbuild['geo'], wf_img('skins/icon_search_small.gif', __('Find on map')), false);
+            } else {
+                $acts.=' ' . wf_Link('?module=usersmap&locfinder=true&placebld=' . $eachbuild['id'], wf_img('skins/ymaps/target.png', __('Place on map')), false, '');
             }
             if ($altcfg['BUILD_EXTENDED']) {
                 $acts.=' ' . wf_modal(wf_img('skins/icon_passport.gif', __('Build passport')), __('Build passport'), $buildPassport->renderEditForm($eachbuild['id']), '', '600', '450');
@@ -1112,7 +1114,8 @@ function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
 ///////////// cache options
-    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];;
+    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];
+    ;
     $result = '';
     $cache = new UbillingCache();
     $result = $cache->getCallback('fulladdresslistcache.dat', function () {
