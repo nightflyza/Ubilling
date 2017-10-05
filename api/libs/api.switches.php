@@ -349,6 +349,8 @@ function web_SwitchEditForm($switchid) {
     $switchid = vf($switchid, 3);
     $altCfg = $ubillingConfig->getAlter();
     $result = '';
+    $mainForm = '';
+    $rightContainer = '';
     $allswitchmodels = zb_SwitchModelsGetAllTag();
     $switchdata = zb_SwitchGetData($switchid);
 
@@ -362,12 +364,29 @@ function web_SwitchEditForm($switchid) {
         $editinputs.= wf_TextInput('editswid', 'Switch ID', $switchdata['swid'], true, 20);
     }
     $editinputs.= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
-    $editinputs.= web_SwitchUplinkSelector('editparentid', __('Uplink switch'), $switchdata['parentid']);
+    if (!empty($switchdata['parentid'])) {
+        $uplinkSwitchLabel = wf_Link('?module=switches&edit=' . $switchdata['parentid'], __('Uplink switch'), false, '');
+    } else {
+        $uplinkSwitchLabel = __('Uplink switch');
+    }
+    $editinputs.= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid']);
     $editinputs.= wf_tag('br');
 
     $editinputs.= wf_Submit('Save');
-    $result.= wf_Form('', 'POST', $editinputs, 'glamour');
-    $result.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+    $mainForm.= wf_Form('', 'POST', $editinputs, 'glamour');
+
+
+    //main interface grid
+    if (!empty($switchdata['ip'])) {
+        $rightContainer.= wf_AjaxLoader();
+        $rightContainer.= wf_AjaxContainer('icmppingcontainer');
+    }
+
+    $cells = wf_TableCell($mainForm);
+    $cells.= wf_TableCell($rightContainer);
+    $rows = wf_TableRow($cells);
+    $result.=wf_TableBody($rows, '100%', 0, '');
+    $result.=wf_CleanDiv();
 
     $result.= wf_delimiter();
 
@@ -407,11 +426,6 @@ function web_SwitchEditForm($switchid) {
 
     if (cfr('SWITCHESEDIT')) {
         $result.= wf_JSAlertStyled('?module=switches&switchdelete=' . $switchid, web_delete_icon() . ' ' . __('Delete'), 'Removing this may lead to irreparable results', 'ubButton');
-    }
-
-    if (!empty($switchdata['ip'])) {
-        $result.= wf_AjaxLoader();
-        $result.= wf_AjaxContainer('icmppingcontainer');
     }
 
     return ($result);
