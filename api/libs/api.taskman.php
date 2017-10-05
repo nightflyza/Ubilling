@@ -548,7 +548,7 @@ function ts_JGetJobsReport() {
                         start: new Date(" . $startdate . "),
                         end: new Date(" . $startdate . "),
                         url: '?module=userprofile&username=" . $eachjob['login'] . "'
-		      }
+                      }
                     " . $thelast;
             $i++;
         }
@@ -661,7 +661,7 @@ function ts_JGetUndoneTasks() {
                         className : '" . $jobColorClass . "',
                         url: '?module=taskman&edittask=" . $eachtask['id'] . "'
                         
-		      } 
+                      } 
                     " . $thelast;
         }
     }
@@ -749,7 +749,7 @@ function ts_JGetDoneTasks() {
                         start: new Date(" . $startdate . "),
                         end: new Date(" . $enddate . "),
                         url: '?module=taskman&edittask=" . $eachtask['id'] . "'
-		      }
+                      }
                     " . $thelast;
         }
     }
@@ -867,7 +867,7 @@ function ts_JGetAllTasks() {
                         end: new Date(" . $enddate . "),
                         " . $coloring . "
                         url: '?module=taskman&edittask=" . $eachtask['id'] . "'
-		      }
+                      }
                     " . $thelast;
         }
     }
@@ -1348,7 +1348,9 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
+            $jobtype = ts_GetAllJobtypes();
             $newTelegramText = 'Address: ' . $address . '\r\n';
+            $newTelegramText.= 'Job type: ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= 'Phone: ' . $phone . '\r\n';
             $newTelegramText.= 'Notes: ' . $jobnote . '\r\n';
             $newTelegramText.= 'Create date: ' . $jobSendTime . '\r\n';
