@@ -450,9 +450,17 @@ class AdminAnnouncements {
                 if (!empty($acCount)) {
                     $acList = '';
                     if (!empty($this->acStats[$each['id']])) {
+                        $acCells = wf_TableCell(__('Admin'));
+                        $acCells.= wf_TableCell(__('Date'));
+                        $acRows = wf_TableRow($acCells, 'row1');
                         foreach ($this->acStats[$each['id']] as $eachAdmLogin => $eachAc) {
-                            $acList.=$eachAdmLogin . ' ' . $eachAc . wf_tag('br');
+                            $acCells = wf_TableCell($eachAdmLogin);
+                            $acCells.= wf_TableCell($eachAc);
+                            $acRows.= wf_TableRow($acCells, 'row3');
                         }
+
+
+                        $acList.=wf_TableBody($acRows, '100%', 0, 'sortable');
                     }
                     $acControl = wf_modalAuto($acCount, __('Acquainted'), $acList);
                 } else {
