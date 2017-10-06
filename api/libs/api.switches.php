@@ -382,8 +382,8 @@ function web_SwitchEditForm($switchid) {
         $rightContainer.= wf_AjaxContainer('icmppingcontainer');
     }
 
-    $cells = wf_TableCell($mainForm);
-    $cells.= wf_TableCell($rightContainer);
+    $cells = wf_TableCell($mainForm,'','','valign="top"');
+    $cells.= wf_TableCell($rightContainer,'','','valign="top"');
     $rows = wf_TableRow($cells);
     $result.=wf_TableBody($rows, '100%', 0, '');
     $result.=wf_CleanDiv();
