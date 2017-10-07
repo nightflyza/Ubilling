@@ -1459,11 +1459,7 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
-    if (!empty($starttime)) {
-        $starttime = "'" . mysql_real_escape_string($starttime) . "'";
-    } else {
-        $starttime = 'NULL';
-    }
+    $starttime = (!empty($starttime)) ? date("H:i:s" ,strtotime(mysql_real_escape_string($starttime))) : 'NULL';
 
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
@@ -1471,16 +1467,36 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $phone = mysql_real_escape_string($phone);
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
+    $org_taskdata = ts_GetTaskData($taskid);
 
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
-    nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //that shit for preventing quotes
+    nr_query("UPDATE `taskman` SET `starttime` = '" . $starttime . "' WHERE `id`='" . $taskid . "'"); //that shit for preventing quotes
     simple_update_field('taskman', 'address', $address, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'login', $login, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'phone', $phone, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'jobtype', $jobtypeid, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'employee', $employeeid, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='" . $taskid . "'");
-    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . '`');
+
+    // Unset parametr, that we dont diff
+    unset ($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
+    $new_taskdata = array(
+                            'id' => $taskid,
+                            'address' => $address,
+                            'login' => $login,
+                            'jobtype' => $jobtypeid,
+                            'jobnote' => $jobnote,
+                            'phone' => $phone,
+                            'employee' => $employeeid,
+                            'startdate' => $startdate,
+                            'starttime' => $starttime
+                        );
+    $cahged_taskdata = (array_diff_assoc($org_taskdata, $new_taskdata));
+    $log_data = '';
+    foreach ($cahged_taskdata as $par => $value) {
+        $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
+    }
+    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . " `" . "[" . $log_data . "]");
 }
 
 /**
