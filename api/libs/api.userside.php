@@ -2,8 +2,8 @@
 
 class UserSideApi {
 
-    const API_VER = '1.4';
-    const API_DATE = '06.12.2016';
+    const API_VER = '1.5';
+    const API_DATE = '06.10.2017';
 
     /**
      * Stores system alter config as key=>value
@@ -146,6 +146,27 @@ class UserSideApi {
     protected $serviceTagMappings = array();
 
     /**
+     * Contains available device types as id=>name
+     *
+     * @var array
+     */
+    protected $allDeviceTypes = array();
+
+    /**
+     * Contains available devices models as id=>modeldata
+     *
+     * @var array
+     */
+    protected $allSwitchModels = array();
+
+    /**
+     * Contains available devices directory as id=>devicedata
+     *
+     * @var array
+     */
+    protected $allSwitches = array();
+
+    /**
      * Debug mode flag
      *
      * @var bool
@@ -169,6 +190,8 @@ class UserSideApi {
         $this->loadTagTypes();
         $this->loadBuildPassports();
         $this->loadVservices();
+        $this->loadSwitchModels();
+        $this->loadSwitchesAll();
     }
 
     /**
@@ -209,7 +232,11 @@ class UserSideApi {
             'change_user_data' => __('Do some changes with user data'),
             'get_supported_change_user_data_list' => __('Returns list of supported change user data methods'),
             'get_supported_change_user_state' => __('Returns list of supported change user states'),
-            'get_supported_change_user_tariff' => __('Returns list of supported change user tariffs')
+            'get_supported_change_user_tariff' => __('Returns list of supported change user tariffs'),
+            'get_device_type' => __('Returns device type'),
+            'get_device_model' => __('Returns device model'),
+            'get_device_list' => __('Returns devices list'),
+            'get_connect_list' => __('Get device connection list')
         );
 
         $this->supportedChangeMethods = array(
@@ -227,6 +254,14 @@ class UserSideApi {
             'notdown' => __('User not down'),
             'ao' => __('User AlwaysOnline'),
             'notao' => __('User not AlwaysOnline')
+        );
+
+        $this->allDeviceTypes = array(
+            1 => 'switch',
+            2 => 'radio',
+            3 => 'olt',
+            4 => 'onu',
+            5 => 'other'
         );
 
         $this->errorNotices = array(
@@ -428,6 +463,34 @@ class UserSideApi {
             foreach ($all as $io => $each) {
                 $this->vServices[$each['id']] = $each;
                 $this->serviceTagMappings[$each['tagid']] = $each['id'];
+            }
+        }
+    }
+
+    /**
+     * Loads available devices models from database
+     * 
+     * @return void
+     */
+    protected function loadSwitchModels() {
+        $all = zb_SwitchModelsGetAll();
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allSwitchModels[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing devices directory from database
+     * 
+     * @return void
+     */
+    protected function loadSwitchesAll() {
+        $all = zb_SwitchesGetAll();
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allSwitches[$each['id']] = $each;
             }
         }
     }
@@ -670,6 +733,16 @@ class UserSideApi {
                 $result[$io] = $each;
             }
         }
+        return ($result);
+    }
+
+    /**
+     * Returns available devices types
+     * 
+     * @return array
+     */
+    protected function getDeviceTypesList() {
+        $result = $this->allDeviceTypes;
         return ($result);
     }
 
@@ -1380,6 +1453,9 @@ class UserSideApi {
                         break;
                     case 'get_supported_change_user_tariff':
                         $this->renderReply($this->getTariffsData(true));
+                        break;
+                    case 'get_device_type':
+                        $this->renderReply($this->getDeviceTypesList());
                         break;
 
                     case 'change_user_data':

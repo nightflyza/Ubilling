@@ -2677,6 +2677,14 @@ $lang['def']['Not exists'] = 'Не существует';
 $lang['def']['No network detected'] = 'Сеть не определена';
 $lang['def']['Cache mac address vendors'] = 'Кэшировать производителей оборудования';
 $lang['def']['Hard reset is enabled'] = 'Жесткий ресет включен';
+
+//rev 5773 
+$lang['def']['Returns device type'] = 'Возвращает типы устройств';
+$lang['def']['Returns device model'] = 'Возвращает существующие модели устройств';
+$lang['def']['Returns devices list'] = 'Возвращает список существующих устройств';
+$lang['def']['Get device connection list'] = 'Возвращает список коммутации устройств';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';

@@ -2694,5 +2694,11 @@ $lang['def']['No network detected'] = 'Мережа не визначена';
 $lang['def']['Cache mac address vendors'] = 'Кешувати виробників обладнання';
 $lang['def']['Hard reset is enabled'] = 'Жорсткий ресет увімкнено';
 
+//rev 5773 
+$lang['def']['Returns device type'] = 'Повертає типи пристроїв';
+$lang['def']['Returns device model'] = 'Повертає наявні моделі пристроїв';
+$lang['def']['Returns devices list'] = 'Повертає список наявних пристроїв';
+$lang['def']['Get device connection list'] = 'Повертає список комутації пристроїв';
+
 
 ?>
