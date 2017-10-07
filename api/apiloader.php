@@ -109,6 +109,7 @@ include('api/libs/api.ipchange.php');
 include('api/libs/api.messagesqueue.php');
 include('api/libs/api.wcpe.php');
 include('api/libs/api.mtsigmon.php');
+include('api/libs/api.taskbar.php');
 
 /*
  * Initial class creation
