@@ -929,7 +929,9 @@ function ts_TaskCreateForm() {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
+        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
         $smsInputs = '';
         $telegramInputs = '';
@@ -1111,7 +1113,9 @@ function ts_TaskCreateFormUnified($address, $mobile, $phone, $login = '') {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
+        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
         $smsInputs = '';
         $telegramInputs = '';
@@ -1162,7 +1166,9 @@ function ts_TaskCreateFormSigreq($address, $phone) {
     //construct sms sending inputs
     if ($altercfg['SENDDOG_ENABLED']) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
-        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, false);
+        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+        $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
         $smsInputs = '';
         $telegramInputs = '';
@@ -1402,6 +1408,16 @@ function ts_TaskModifyForm($taskid) {
     $allemployee = ts_GetAllEmployee();
     $activeemployee = ts_GetActiveEmployee();
     $alljobtypes = ts_GetAllJobtypes();
+    //construct sms sending inputs
+    if ($altercfg['SENDDOG_ENABLED']) {
+        $smsInputs = wf_CheckInput('changetasksendsms', __('Send SMS'), false, false);
+        // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
+        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+        $telegramInputs = wf_CheckInput('changetasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
+    } else {
+        $smsInputs = '';
+        $telegramInputs = '';
+    }
     if (!empty($taskdata)) {
         $inputs = wf_HiddenInput('modifytask', $taskid);
         $inputs.= '<!--ugly hack to prevent datepicker autoopen --> <input type="text" name="shittyhackmod" style="width: 0; height: 0; top: -100px; position: absolute;"/>';
@@ -1433,6 +1449,8 @@ function ts_TaskModifyForm($taskid) {
         $inputs.= wf_tag('br');
         $inputs.= wf_tag('label') . __('Job note') . wf_tag('label', true) . wf_tag('br');
         $inputs.= wf_TextArea('modifytaskjobnote', '', $taskdata['jobnote'], true, '35x5');
+        $inputs.= $smsInputs;
+        $inputs.= $telegramInputs;
         $inputs.= wf_Submit(__('Save'));
         $result = wf_Form("", 'POST', $inputs, 'glamour');
         $result.= __('All fields marked with an asterisk are mandatory');
@@ -1468,6 +1486,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
     $org_taskdata = ts_GetTaskData($taskid);
+    $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
 
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
     nr_query("UPDATE `taskman` SET `starttime` = '" . $starttime . "' WHERE `id`='" . $taskid . "'"); //that shit for preventing quotes
@@ -1477,6 +1496,36 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     simple_update_field('taskman', 'jobtype', $jobtypeid, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'employee', $employeeid, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'jobnote', $jobnote, "WHERE `id`='" . $taskid . "'");
+
+    $smsData = 'NULL';
+    //SMS sending
+    if (isset($_POST['changetasksendsms'])) {
+        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+        $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
+        if (!empty($smsDataRaw)) {
+            $smsData = serialize($smsDataRaw);
+            $smsData = "'" . base64_encode($smsData) . "'";
+        }
+    }
+
+    //Telegram sending
+    if (isset($_POST['changetasksendtelegram'])) {
+        $jobtype = ts_GetAllJobtypes();
+        $newTelegramText = __('Address') . ': ' . $address . '\r\n';
+        $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
+        $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
+        $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
+        $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
+        if (!empty($login)) {
+            $UserIpMAC = zb_UserGetAllData($login);
+
+            $newTelegramText.= __('Login') . ': ' . $login . '\r\n';
+            $newTelegramText.= __('Contract') . ': ' . @$UserIpMAC[$login]['contract'] . '\r\n';
+            $newTelegramText.= __('IP') . ': ' . @$UserIpMAC[$login]['ip'] . '\r\n';
+            $newTelegramText.= __('MAC') . ': ' . @$UserIpMAC[$login]['mac'] . '\r\n';
+        }
+        ts_SendTelegram($employeeid, $newTelegramText);
+    }
 
     // Unset parametr, that we dont diff
     unset ($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
