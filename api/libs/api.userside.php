@@ -747,6 +747,24 @@ class UserSideApi {
     }
 
     /**
+     * Returns available device models
+     * 
+     * @return array
+     */
+    protected function getDeviceModels() {
+        $result = array();
+        if (!empty($this->allSwitchModels)) {
+            foreach ($this->allSwitchModels as $io => $each) {
+                $result[$each['id']]['id']=$each['id'];
+                $result[$each['id']]['type_id']=1; //switch is hardcodded now, because model don't know anything about this
+                $result[$each['id']]['name']=$each['modelname'];
+                $result[$each['id']]['iface_count']=$each['ports'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns Userside API information
      * 
      * @return array
@@ -1456,6 +1474,9 @@ class UserSideApi {
                         break;
                     case 'get_device_type':
                         $this->renderReply($this->getDeviceTypesList());
+                        break;
+                    case 'get_device_model':
+                        $this->renderReply($this->getDeviceModels());
                         break;
 
                     case 'change_user_data':
