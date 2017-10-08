@@ -1477,7 +1477,7 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
-    $starttime = (!empty($starttime)) ? date("H:i:s" ,strtotime(mysql_real_escape_string($starttime))) : 'NULL';
+    $starttime = (!empty($starttime)) ? date("H:i:s" , strtotime(mysql_real_escape_string($starttime))) : 'NULL';
 
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
@@ -1545,7 +1545,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     foreach ($cahged_taskdata as $par => $value) {
         $log_data.= __($par) . ':`' . $value . '` => `' . $new_taskdata[$par] . '`';
     }
-    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . " `" . "[" . $log_data . "]");
+    log_register("TASKMAN MODIFY [" . $taskid . "] `" . $address . "`" . " CHANGED [" . $log_data . "]");
 }
 
 /**
