@@ -16,14 +16,14 @@ function web_PrintCardLister($ids) {
     $cards = zb_GetCardByIds($ids);
 
     $cells = wf_TableCell(__('Serial number'));
-    $cells .= wf_TableCell(__('Price'));
+    $cells.= wf_TableCell(__('Price'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($cards)) {
         foreach ($cards as $row) {
             $cells = wf_TableCell($row['serial']);
-            $cells .= wf_TableCell($row['cash']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $cells.= wf_TableCell($row['cash']);
+            $rows.= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -31,21 +31,21 @@ function web_PrintCardLister($ids) {
     $idsQuery = http_build_query(array('id' => $ids));
     if (file_exists(IMG_CARD)) {
         $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=page&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-        $printcheck .= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
-        $printcheck .= wf_tag('a', true);
-        $printcheck .= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-        $printcheck .= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
-        $printcheck .= wf_tag('a', true);
+        $printcheck.= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
+        $printcheck.= wf_tag('a', true);
+        $printcheck.= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
+        $printcheck.= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
+        $printcheck.= wf_tag('a', true);
     } else {
         $printcheck = wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24));
-        $printcheck .= wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_documents.gif', __('Page'), 24, 24));
+        $printcheck.= wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_documents.gif', __('Page'), 24, 24));
     }
 
-    $printcheck .= wf_SubmitClassed(true, 'back', 'back', __('Back'));
+    $printcheck.= wf_SubmitClassed(true, 'back', 'back', __('Back'));
 
     $result = wf_Form('?module=cards', 'POST', $result.$printcheck, 'glamour');
 
-    return $result;
+    return ($result);
 }
 
 /**
@@ -102,8 +102,8 @@ function web_PrintCardCreateForm() {
 
 function web_UploadFileForm() {
     $uploadInputs = wf_HiddenInput('upload', 'true');
-    $uploadInputs .= __('File').' <input id="fileselector" type="file" name="filename" size="10" /><br>';
-    $uploadInputs .= wf_Submit('Upload');
+    $uploadInputs.= __('File').' <input id="fileselector" type="file" name="filename" size="10" /><br>';
+    $uploadInputs.= wf_Submit('Upload');
 
     $uploadForm = '<form action="" method="POST" class="glamour" enctype="multipart/form-data">
         '.$uploadInputs.'
@@ -111,7 +111,7 @@ function web_UploadFileForm() {
         <div style="clear:both;"></div>
     ';
 
-    return $uploadForm;
+    return ($uploadForm);
 }
 
 function web_UploadFileCopy($tmpName) {
@@ -133,7 +133,7 @@ function web_DeleteImege() {
 
 function web_PageCard($ids) {
     $cardList = web_GenerateImages($ids);
-    return web_ParsePrintable($cardList);
+    return (web_ParsePrintable($cardList));
 }
 
 function web_GenerateImages($ids) {
@@ -156,7 +156,7 @@ function web_GenerateImages($ids) {
         array_push($filePathList, $filePath);
     }
 
-    return $filePathList;
+    return ($filePathList);
 }
 
 function web_PrintCardDataFormatForGenerate($printCards) {
@@ -168,7 +168,7 @@ function web_PrintCardDataFormatForGenerate($printCards) {
         $rc[$printCard['field']] = $printCard;
     }
 
-    return $rc;
+    return ($rc);
 }
 
 function web_ClearDirForGenerate() {
@@ -202,7 +202,7 @@ function zb_SelectAllPrintCardData() {
     $allData = simple_queryall($query);
     $allData = !empty($allData) ? $allData : array();
 
-    return $allData;
+    return ($allData);
 }
 
 /**
@@ -233,7 +233,7 @@ function zb_SaveCardPrint($printCardData) {
 function web_ParsePrintable($cardList, $title = '') {
     $data = '';
     foreach ($cardList as $card) {
-        $data .= wf_img($card);
+        $data.= wf_img($card);
     }
 
     if (file_exists(PRINT_TEMPLATE)) {
@@ -243,11 +243,11 @@ function web_ParsePrintable($cardList, $title = '') {
     } else {
         $result = $data;
 
-        $result .= wf_tag('body', true);
-        $result .= wf_tag('html', true);
+        $result.= wf_tag('body', true);
+        $result.= wf_tag('html', true);
     }
 
-   return $result;
+   return ($result);
 }
 
 function web_CreatePdf($cardList) {
@@ -269,7 +269,7 @@ function web_CreatePdf($cardList) {
     foreach ($cardList as $card) {
         if ($paperHeight < ($hPos + $height)) {
             $hPos = $indentHeight;
-            $wPos += $width;
+            $wPos+= $width;
         }
         if ($paperWidth < ($wPos + $width)) {
             $pdf->AddPage();
