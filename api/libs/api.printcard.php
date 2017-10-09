@@ -65,26 +65,39 @@ function web_PrintCardCreateForm() {
     }
 
     $sup = wf_tag('sup').'*'.wf_tag('sup', true);
-    $inputs = wf_img($image).'<br/>';
-	$inputs .= $messages->getStyledMessage(__('Available macroses').__(': <b>{number} {serial} {sum}</b>'), 'info').wf_tag('br/', false);
+    $form = wf_img($image).'<br/>';
+    $form.= $messages->getStyledMessage(__('Available macroses').__(': <b>{number} {serial} {sum}</b>'), 'info').wf_tag('br/', false);
 
     $printCardData = zb_SelectAllPrintCardData();
 
+    $cells = wf_TableCell(__('Parameter'));
+    $cells.= wf_TableCell(__('Color'));
+    $cells.= wf_TableCell(__('Font size'));
+    $cells.= wf_TableCell(__('Top'));
+    $cells.= wf_TableCell(__('Left'));
+    $cells.= wf_TableCell(__('Text'));
+    $rows = wf_TableRow($cells, 'row1');
+
     foreach ($printCardData as $row) {
-        $inputs .= __($row['title']).'<br/>';
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][color]', __('Color').$sup, $row['color'], false, 12);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][font_size]', __('Font size').$sup, $row['font_size'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][top]', __('Top').$sup, $row['top'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][left]', __('Left').$sup, $row['left'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][text]', __('Text').$sup, $row['text'], true);
+        $cells = wf_TableCell(__($row['title']));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][color]', $sup, $row['color'], false, 12));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][font_size]', $sup, $row['font_size'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][top]', $sup, $row['top'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][left]', $sup, $row['left'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][text]', $sup, $row['text'], true));
+        $rows.= wf_TableRow($cells, 'row3');
     }
 
-    $inputs .= wf_SubmitClassed(true, 'save', 'save', __('Save'));
-    $inputs .= wf_SubmitClassed(true, 'delete', 'delete', __('Delete'));
-    $inputs .= wf_SubmitClassed(true, 'back', 'back', __('Back'));
-    $form = wf_Form('', 'POST', $inputs, 'glamour');
+    $iputs = wf_SubmitClassed(true, 'save', 'save', __('Save'));
+    $iputs.= wf_SubmitClassed(true, 'delete', 'delete', __('Delete'));
+    $iputs.= wf_SubmitClassed(true, 'back', 'back', __('Back'));
+    $rows.= wf_TableRow(wf_TableCell($iputs));
 
-    return $form;
+    $result = wf_TableBody($rows, '100%', 0);
+
+    $form.= wf_Form('', 'POST', $result, '');
+
+    return ($form);
 }
 
 function web_UploadFileForm() {
