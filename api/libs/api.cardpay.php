@@ -53,7 +53,7 @@ function zb_CardGenerate(array $cardCreate) {
         zb_CardCreate($serial, $price, $part, $selling);
     }
     log_register("CARDS CREATED `".$count."` PART `".$part."` SERIAL `".$serial."` PRICE `".$price."` SELLING_ID [".$selling."]");
-    return($reported);
+    return ($reported);
 }
 
 /**
@@ -141,7 +141,7 @@ function web_CardsShow() {
     $result.= $paginator . wf_delimiter();
     $result = web_CardActions($result);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -167,10 +167,10 @@ function web_CardsGenerateForm() {
 
     $rows.= wf_TableRow(wf_TableCell(wf_Submit('Create')));
 
-    $result = wf_TableBody($rows, '100%', 0);
-    $form = wf_Form("", "POST", $result, 'glamour');
+    $table = wf_TableBody($rows, '100%', 0);
+    $result = wf_Form("", "POST", $table, 'glamour');
 
-    return($form);
+    return ($result);
 }
 
 /**
@@ -227,7 +227,7 @@ function web_CardsChangeForm(array $ids) {
     $inputs.= wf_Submit('Update');
     $result = wf_Form('', 'POST', $inputs, 'glamour');
 
-    return $result;
+    return ($result);
 }
 
 /**
@@ -350,7 +350,7 @@ function web_CardActions($result) {
     $result.= $actionSelect.wf_delimiter();
     $result = wf_Form('', 'POST', $result, '');
 
-    return $result;
+    return ($result);
 }
 
 /**
@@ -364,7 +364,7 @@ function zb_CardsGetData($id) {
     $query = "SELECT * from `cardbank` WHERE `id`='".$id."'";
     $result = simple_query($query);
 
-    return($result);
+    return ($result);
 }
 
 /**
@@ -416,7 +416,7 @@ function zb_CardsExport($id) {
     // i want to templatize it later
     $result = $cardnum;
 
-    return($result);
+    return ($result);
 }
 
 function zb_CardsMassactions() {
@@ -596,7 +596,7 @@ function zb_GetCardByIds(array $ids) {
     $query = sprintf("SELECT * from `cardbank` WHERE `id` in (%s)", $ids);
     $selectCards = simple_queryall($query);
 
-    return $selectCards;
+    return ($selectCards);
 }
 
 /**
