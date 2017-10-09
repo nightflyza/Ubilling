@@ -35,12 +35,20 @@ function zb_CardGenerate(array $cardCreate) {
         die('No count or price');
     }
     $reported = '';
+    $reported_arr = array();
     for ($cardcount = 0; $cardcount < $count; $cardcount++) {
         if ($cardCreate['length'] == 16) {
             $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
         } elseif ($cardCreate['length'] == 8) {
             $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999);
         }
+        $reported_arr[] = $serial;
+    }
+    // Delete duplicat serial number cards
+    array_unique($reported_arr);
+    $count = count($reported_arr);
+
+    foreach ($reported_arr as $serial) {
         $reported.= $serial . "\n";
         zb_CardCreate($serial, $price, $part, $selling);
     }
