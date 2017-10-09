@@ -484,7 +484,7 @@ function web_CardShowBrutes() {
 
     if (!empty($allbrutes)) {
         $allrealnames = zb_UserGetAllRealnames();
-        $alladdress = zb_AddressGetFulladdresslist();
+        $alladdress = zb_AddressGetFulladdresslistCached();
         foreach ($allbrutes as $io => $eachbrute) {
             $cleaniplink = wf_JSAlert('?module=cards&cleanip='.$eachbrute['ip'], web_delete_icon(__('Clean this IP')), __('Removing this may lead to irreparable results'));
 
