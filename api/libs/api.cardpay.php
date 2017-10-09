@@ -167,19 +167,35 @@ function web_CardsGenerateForm() {
  * @return string
  */
 function web_CardsSearchForm() {
-    $inputs = wf_Selector('card_search[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
-    $inputs.= __('ID');
-    $inputs.= wf_TextInput('card_search[idfrom]', __('From'), '', false, '5');
-    $inputs.= wf_TextInput('card_search[idto]', __('To'), '', true, '5');
-    $inputs.= __('Date');
-    $inputs.= wf_DatePickerPreset('card_search[datefrom]', '') . ' ' . __('From');
-    $inputs.= wf_DatePickerPreset('card_search[dateto]', '') . ' ' . __('To');
-    $inputs.= wf_CheckInput('card_search[used]', __('Not used'), true);
-    $inputs.= wf_TextInput('card_search[part]', __('Serial part'), '', false, '5');
-    $inputs.= wf_TextInput('card_search[serial]', __('Serial number'), '', true, '17');
-    $inputs.= wf_Submit('Search');
-    $result = wf_Form("", "POST", $inputs, 'glamour');
 
+    $cells = wf_TableCell(__('Selling'));
+    $cells.= wf_TableCell(wf_Selector('card_search[selling]', zb_BuilderSelectSellingData(), '', '', false));
+    $rows = wf_TableRow($cells, 'row2');
+
+    $cells = wf_TableCell(__('ID'));
+    $cells.= wf_TableCell(wf_TextInput('card_search[idfrom]', __('From'), '', false, '7') . wf_TextInput('card_search[idto]', __('To'), '', true, '7'));
+    $rows.= wf_TableRow($cells, 'row2');
+
+    $cells = wf_TableCell(__('Date'));
+    $cells.= wf_TableCell(wf_DatePickerPreset('card_search[datefrom]', '') . ' ' . __('From') . wf_DatePickerPreset('card_search[dateto]', '') . ' ' . __('To'));
+    $rows.= wf_TableRow($cells, 'row2');
+
+    $cells = wf_TableCell(__('Not used'));
+    $cells.= wf_TableCell(wf_CheckInput('card_search[used]', '', true));
+    $rows.= wf_TableRow($cells, 'row2');
+
+    $cells = wf_TableCell(__('Serial part'));
+    $cells.= wf_TableCell(wf_TextInput('card_search[part]', '', '', false, '5'));
+    $rows.= wf_TableRow($cells, 'row2');
+
+    $cells = wf_TableCell(__('Serial number'));
+    $cells.= wf_TableCell(wf_TextInput('card_search[serial]', '', '', true, '17'));
+    $rows.= wf_TableRow($cells, 'row2');
+
+    $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+
+    $result = wf_TableBody($rows, '', 0);
+    $result = wf_Form("", "POST", $result, 'glamour');
     return ($result);
 }
 
