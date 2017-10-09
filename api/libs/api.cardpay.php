@@ -150,13 +150,25 @@ function web_CardsShow() {
  * @return string
  */
 function web_CardsGenerateForm() {
-    $inputs = wf_Selector('card_create[selling]', zb_BuilderSelectSellingData(), __('Selling'), '', false);
-    $inputs.= wf_TextInput('card_create[part]', 'Serial part', '', false, '5');
-    $inputs.= wf_TextInput('card_create[count]', 'Count', '', false, '5');
-    $inputs.= wf_TextInput('card_create[price]', 'Price', '', false, '5');
-    $inputs.= wf_Selector('card_create[length]', array('16' => 16, '8' => 8), __('Serial number length'), '', true);
-    $inputs.= wf_Submit('Create');
-    $form = wf_Form("", 'POST', $inputs, 'glamour');
+
+    $cells = wf_TableCell(__('Selling'));
+    $cells.= wf_TableCell(__('Serial part'));
+    $cells.= wf_TableCell(__('Count'));
+    $cells.= wf_TableCell(__('Price'));
+    $cells.= wf_TableCell(__('Serial number length'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    $cells = wf_TableCell(wf_Selector('card_create[selling]', zb_BuilderSelectSellingData(), '', '', false));
+    $cells.= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
+    $cells.= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
+    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5'));
+    $cells.= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
+    $rows.= wf_TableRow($cells, 'row1');
+
+    $rows.= wf_TableRow(wf_TableCell(wf_Submit('Create')));
+
+    $result = wf_TableBody($rows, '100%', 0);
+    $form = wf_Form("", "POST", $result, 'glamour');
 
     return($form);
 }
