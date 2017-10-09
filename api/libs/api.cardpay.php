@@ -10,7 +10,7 @@
  *
  * @return void
  */
-function zb_CardCreate($serial,$cash, $part, $selling_id) {
+function zb_CardCreate($serial, $cash, $part, $selling_id) {
     $admin=whoami();
     $date=curdatetime();
     $query="INSERT INTO `cardbank` (`id` , `serial` , `part` , `cash` , `admin` , `date` , `receipt_date` , `selling_id` , `active` , `used` , `usedate` , `usedlogin` , `usedip`) "
@@ -36,7 +36,11 @@ function zb_CardGenerate(array $cardCreate) {
     }
     $reported = '';
     for ($cardcount = 0; $cardcount < $count; $cardcount++) {
-        $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
+        if ($cardCreate['length'] == 16) {
+            $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
+        } elseif ($cardCreate['length'] == 8) {
+            $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999);
+        }
         $reported.= $serial . "\n";
         zb_CardCreate($serial, $price, $part, $selling);
     }
@@ -142,6 +146,7 @@ function web_CardsGenerateForm() {
     $inputs.= wf_TextInput('card_create[part]', 'Serial part', '', false, '5');
     $inputs.= wf_TextInput('card_create[count]', 'Count', '', false, '5');
     $inputs.= wf_TextInput('card_create[price]', 'Price', '', false, '5');
+    $inputs.= wf_Selector('card_create[length]', array('16' => 16, '8' => 8), __('Serial number length'), '', true);
     $inputs.= wf_Submit('Create');
     $form = wf_Form("", 'POST', $inputs, 'glamour');
 
