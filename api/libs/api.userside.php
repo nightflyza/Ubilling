@@ -774,6 +774,7 @@ class UserSideApi {
     protected function getDevicesList($types = '') {
         $result = array();
         if (!empty($this->allSwitches)) {
+            $switchCemetery = zb_SwitchesGetAllDeathTime(); //getting currently dead switches list
             foreach ($this->allSwitches as $io => $each) {
                 $deviceType = 1; //switch by default
                 if (ispos($each['desc'], 'OLT')) {
@@ -783,18 +784,27 @@ class UserSideApi {
                 if ((ispos($each['desc'], 'MTSIGMON')) OR ( ispos($each['desc'], 'AP')) OR ( ispos($each['desc'], 'ssid:'))) {
                     $deviceType = 2;
                 }
+                $switchIp = $each['ip'];
+                if (isset($switchCemetery[$switchIp])) {
+                    $lastActivityTime = $switchCemetery[$switchIp];
+                } else {
+                    $lastActivityTime = curdatetime();
+                }
+                $switchMac = (check_mac_format($each['swid'])) ? $each['swid'] : '';
 
                 $result[$each['id']]['id'] = $each['id'];
                 $result[$each['id']]['type_id'] = $deviceType;
-                $result[$each['id']]['mac'] = $each['id'];
-                $result[$each['id']]['house_id'] = $each['id'];
-                $result[$each['id']]['entrance'] = $each['id'];
-                $result[$each['id']]['floor'] = $each['id'];
-                $result[$each['id']]['node_id'] = $each['id'];
+                $result[$each['id']]['model_id'] = $each['modelid'];
+                $result[$each['id']]['ip'] = $each['ip'];
+                $result[$each['id']]['mac'] = $switchMac; //requires SWITCHES_EXTENDED option enabled.
+                $result[$each['id']]['house_id'] = ''; //no normal topology points at this moment
+                $result[$each['id']]['entrance'] = '';
+                $result[$each['id']]['floor'] = '';
+                $result[$each['id']]['node_id'] = '';
                 $result[$each['id']]['location'] = $each['location'];
                 $result[$each['id']]['geo'] = $each['geo'];
                 $result[$each['id']]['comment'] = $each['desc'];
-                $result[$each['id']]['date_activity'] = $each['id'];
+                $result[$each['id']]['date_activity'] = $lastActivityTime;
                 $result[$each['id']]['date_create'] = '';
                 $result[$each['id']]['snmp_version'] = '2c';
                 $result[$each['id']]['snmp_port'] = '161';
