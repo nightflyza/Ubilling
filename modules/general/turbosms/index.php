@@ -105,9 +105,11 @@ if (cfr('TURBOSMS')) {
             $TsmsDB->open() or die($TsmsDB->error());
             $result = array();
             $TsmsDB->query('SET NAMES utf8;');
-            $TsmsDB->query($query);
-            while ($row = $TsmsDB->fetchassoc()) {
-                $result[] = $row;
+            $result = $TsmsDB->query($query);
+            if (! is_bool($result)) {
+                while ($row = $result->fetchassoc()) {
+                    $result[] = $row;
+                }
             }
             $TsmsDB->close();
             return ($result);
