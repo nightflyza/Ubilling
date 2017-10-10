@@ -106,7 +106,7 @@ if (cfr('TURBOSMS')) {
             $result = array();
             $TsmsDB->query('SET NAMES utf8;');
             $result = $TsmsDB->query($query);
-            if (! is_bool($result)) {
+            if (stripos($query, 'INSERT ') === FALSE) {
                 while ($row = $result->fetchassoc()) {
                     $result[] = $row;
                 }
