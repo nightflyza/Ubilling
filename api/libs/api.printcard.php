@@ -16,14 +16,14 @@ function web_PrintCardLister($ids) {
     $cards = zb_GetCardByIds($ids);
 
     $cells = wf_TableCell(__('Serial number'));
-    $cells .= wf_TableCell(__('Price'));
+    $cells.= wf_TableCell(__('Price'));
     $rows = wf_TableRow($cells, 'row1');
 
     if (!empty($cards)) {
         foreach ($cards as $row) {
             $cells = wf_TableCell($row['serial']);
-            $cells .= wf_TableCell($row['cash']);
-            $rows .= wf_TableRow($cells, 'row3');
+            $cells.= wf_TableCell($row['cash']);
+            $rows.= wf_TableRow($cells, 'row3');
         }
     }
 
@@ -31,21 +31,21 @@ function web_PrintCardLister($ids) {
     $idsQuery = http_build_query(array('id' => $ids));
     if (file_exists(IMG_CARD)) {
         $printcheck = wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=page&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-        $printcheck .= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
-        $printcheck .= wf_tag('a', true);
-        $printcheck .= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
-        $printcheck .= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
-        $printcheck .= wf_tag('a', true);
+        $printcheck.= wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24);
+        $printcheck.= wf_tag('a', true);
+        $printcheck.= wf_tag('a', false, '', 'href="#" onClick="window.open(\'?module=printcards&action=print&'.$idsQuery.'\',\'checkwindow\',\'scrollbars=yes,width=800,height=600\')"');
+        $printcheck.= wf_img_sized('skins/icon_documents.gif', __('Print'), 24, 24);
+        $printcheck.= wf_tag('a', true);
     } else {
         $printcheck = wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_edit.gif', __('Page'), 24, 24));
-        $printcheck .= wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_documents.gif', __('Page'), 24, 24));
+        $printcheck.= wf_Link("?module=printcards&action=setting", wf_img_sized('skins/icon_documents.gif', __('Page'), 24, 24));
     }
 
-    $printcheck .= wf_SubmitClassed(true, 'back', 'back', __('Back'));
+    $printcheck.= wf_SubmitClassed(true, 'back', 'back', __('Back'));
 
     $result = wf_Form('?module=cards', 'POST', $result.$printcheck, 'glamour');
 
-    return $result;
+    return ($result);
 }
 
 /**
@@ -65,32 +65,45 @@ function web_PrintCardCreateForm() {
     }
 
     $sup = wf_tag('sup').'*'.wf_tag('sup', true);
-    $inputs = wf_img($image).'<br/>';
-	$inputs .= $messages->getStyledMessage(__('Available macroses').__(': <b>{number} {serial} {sum}</b>'), 'info').wf_tag('br/', false);
+    $form = wf_img($image).'<br/>';
+    $form.= $messages->getStyledMessage(__('Available macroses').__(': <b>{number} {serial} {sum}</b>'), 'info').wf_tag('br/', false);
 
     $printCardData = zb_SelectAllPrintCardData();
 
+    $cells = wf_TableCell(__('Parameter'));
+    $cells.= wf_TableCell(__('Color'));
+    $cells.= wf_TableCell(__('Font size'));
+    $cells.= wf_TableCell(__('Top'));
+    $cells.= wf_TableCell(__('Left'));
+    $cells.= wf_TableCell(__('Text'));
+    $rows = wf_TableRow($cells, 'row1');
+
     foreach ($printCardData as $row) {
-        $inputs .= __($row['title']).'<br/>';
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][color]', __('Color').$sup, $row['color'], false, 12);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][font_size]', __('Font size').$sup, $row['font_size'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][top]', __('Top').$sup, $row['top'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][left]', __('Left').$sup, $row['left'], false, 3);
-        $inputs .= wf_TextInput('print_card['.$row['field'].'][text]', __('Text').$sup, $row['text'], true);
+        $cells = wf_TableCell(__($row['title']));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][color]', $sup, $row['color'], false, 12));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][font_size]', $sup, $row['font_size'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][top]', $sup, $row['top'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][left]', $sup, $row['left'], false, 3));
+        $cells.= wf_TableCell(wf_TextInput('print_card['.$row['field'].'][text]', $sup, $row['text'], true));
+        $rows.= wf_TableRow($cells, 'row3');
     }
 
-    $inputs .= wf_SubmitClassed(true, 'save', 'save', __('Save'));
-    $inputs .= wf_SubmitClassed(true, 'delete', 'delete', __('Delete'));
-    $inputs .= wf_SubmitClassed(true, 'back', 'back', __('Back'));
-    $form = wf_Form('', 'POST', $inputs, 'glamour');
+    $iputs = wf_SubmitClassed(true, 'save', 'save', __('Save'));
+    $iputs.= wf_SubmitClassed(true, 'delete', 'delete', __('Delete'));
+    $iputs.= wf_SubmitClassed(true, 'back', 'back', __('Back'));
+    $rows.= wf_TableRow(wf_TableCell($iputs));
 
-    return $form;
+    $result = wf_TableBody($rows, '100%', 0);
+
+    $form.= wf_Form('', 'POST', $result, '');
+
+    return ($form);
 }
 
 function web_UploadFileForm() {
     $uploadInputs = wf_HiddenInput('upload', 'true');
-    $uploadInputs .= __('File').' <input id="fileselector" type="file" name="filename" size="10" /><br>';
-    $uploadInputs .= wf_Submit('Upload');
+    $uploadInputs.= __('File').' <input id="fileselector" type="file" name="filename" size="10" /><br>';
+    $uploadInputs.= wf_Submit('Upload');
 
     $uploadForm = '<form action="" method="POST" class="glamour" enctype="multipart/form-data">
         '.$uploadInputs.'
@@ -98,7 +111,7 @@ function web_UploadFileForm() {
         <div style="clear:both;"></div>
     ';
 
-    return $uploadForm;
+    return ($uploadForm);
 }
 
 function web_UploadFileCopy($tmpName) {
@@ -120,7 +133,7 @@ function web_DeleteImege() {
 
 function web_PageCard($ids) {
     $cardList = web_GenerateImages($ids);
-    return web_ParsePrintable($cardList);
+    return (web_ParsePrintable($cardList));
 }
 
 function web_GenerateImages($ids) {
@@ -143,7 +156,7 @@ function web_GenerateImages($ids) {
         array_push($filePathList, $filePath);
     }
 
-    return $filePathList;
+    return ($filePathList);
 }
 
 function web_PrintCardDataFormatForGenerate($printCards) {
@@ -155,7 +168,7 @@ function web_PrintCardDataFormatForGenerate($printCards) {
         $rc[$printCard['field']] = $printCard;
     }
 
-    return $rc;
+    return ($rc);
 }
 
 function web_ClearDirForGenerate() {
@@ -189,7 +202,7 @@ function zb_SelectAllPrintCardData() {
     $allData = simple_queryall($query);
     $allData = !empty($allData) ? $allData : array();
 
-    return $allData;
+    return ($allData);
 }
 
 /**
@@ -220,7 +233,7 @@ function zb_SaveCardPrint($printCardData) {
 function web_ParsePrintable($cardList, $title = '') {
     $data = '';
     foreach ($cardList as $card) {
-        $data .= wf_img($card);
+        $data.= wf_img($card);
     }
 
     if (file_exists(PRINT_TEMPLATE)) {
@@ -230,11 +243,11 @@ function web_ParsePrintable($cardList, $title = '') {
     } else {
         $result = $data;
 
-        $result .= wf_tag('body', true);
-        $result .= wf_tag('html', true);
+        $result.= wf_tag('body', true);
+        $result.= wf_tag('html', true);
     }
 
-   return $result;
+   return ($result);
 }
 
 function web_CreatePdf($cardList) {
@@ -256,7 +269,7 @@ function web_CreatePdf($cardList) {
     foreach ($cardList as $card) {
         if ($paperHeight < ($hPos + $height)) {
             $hPos = $indentHeight;
-            $wPos += $width;
+            $wPos+= $width;
         }
         if ($paperWidth < ($wPos + $width)) {
             $pdf->AddPage();

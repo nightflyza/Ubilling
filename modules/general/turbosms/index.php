@@ -105,9 +105,11 @@ if (cfr('TURBOSMS')) {
             $TsmsDB->open() or die($TsmsDB->error());
             $result = array();
             $TsmsDB->query('SET NAMES utf8;');
-            $TsmsDB->query($query);
-            while ($row = $TsmsDB->fetchassoc()) {
-                $result[] = $row;
+            $result = $TsmsDB->query($query);
+            if (! is_bool($result)) {
+                while ($row = $result->fetchassoc()) {
+                    $result[] = $row;
+                }
             }
             $TsmsDB->close();
             return ($result);
@@ -539,7 +541,8 @@ if (cfr('TURBOSMS')) {
            $cells.= wf_TableCell(__('Balance'));
            $cells.= wf_TableCell(__('Credit'));
            $rows =  wf_TableRow($cells, 'row1');
-           
+
+           $excludeResult = '';
            if (!empty($userarray)) {
                
                //excluded users handling
@@ -549,8 +552,6 @@ if (cfr('TURBOSMS')) {
                        unset($userarray[$excludeLogin]);
                        $excludeArr[$excludeLogin]=$excludeLogin;
                    }
-               } else {
-                   $excludeResult='';
                }
                
                foreach ($userarray as $login=>$phone) {

@@ -40,6 +40,8 @@ if (cfr('CARDS')) {
             rcms_redirect("?module=cards");
         }
 
+        // Check cards for dublicate
+        show_window(__('There are duplicate serial numbers of cards'), zb_GetCardDublicate());
 
         show_window(__('Cards generation'), web_CardsGenerateForm());
         show_window(__('Create print card'), wf_Link("?module=printcards&action=setting", web_edit_icon().' '.__('Edit'), true, 'ubButton'));
