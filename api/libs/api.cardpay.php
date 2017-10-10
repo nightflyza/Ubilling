@@ -614,7 +614,7 @@ function zb_GetCardDublicate() {
             $result.= $messages->getStyledMessage(__('Serial number of the card with duplicates').__(': <b>' . $card['serial'] . '</b>'), 'error');
         }
     }
-    return (show_window(__('There are duplicate serial numbers of cards'), $result));
+    return ($result);
 }
 
 ?>
