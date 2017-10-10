@@ -1477,7 +1477,7 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
-    $starttime = (!empty($starttime)) ? date("H:i:s" , strtotime(mysql_real_escape_string($starttime))) : 'NULL';
+    $starttime = (!empty($starttime)) ? "'".date("H:i:s" , strtotime(mysql_real_escape_string($starttime)))."'" : 'NULL';
 
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
@@ -1489,7 +1489,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
 
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
-    nr_query("UPDATE `taskman` SET `starttime` = '" . $starttime . "' WHERE `id`='" . $taskid . "'"); //that shit for preventing quotes
+    nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //That shit for preventing quotes. Dont touch this.
     simple_update_field('taskman', 'address', $address, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'login', $login, "WHERE `id`='" . $taskid . "'");
     simple_update_field('taskman', 'phone', $phone, "WHERE `id`='" . $taskid . "'");

@@ -755,10 +755,51 @@ class UserSideApi {
         $result = array();
         if (!empty($this->allSwitchModels)) {
             foreach ($this->allSwitchModels as $io => $each) {
-                $result[$each['id']]['id']=$each['id'];
-                $result[$each['id']]['type_id']=1; //switch is hardcodded now, because model don't know anything about this
-                $result[$each['id']]['name']=$each['modelname'];
-                $result[$each['id']]['iface_count']=$each['ports'];
+                $result[$each['id']]['id'] = $each['id'];
+                $result[$each['id']]['type_id'] = ''; //empty now, because model don't know anything about this
+                $result[$each['id']]['name'] = $each['modelname'];
+                $result[$each['id']]['iface_count'] = $each['ports'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of available devices in database
+     * 
+     * @param string $types
+     * 
+     * @return  array
+     */
+    protected function getDevicesList($types = '') {
+        $result = array();
+        if (!empty($this->allSwitches)) {
+            foreach ($this->allSwitches as $io => $each) {
+                $deviceType = 1; //switch by default
+                if (ispos($each['desc'], 'OLT')) {
+                    $deviceType = 3;
+                }
+
+                if ((ispos($each['desc'], 'MTSIGMON')) OR ( ispos($each['desc'], 'AP')) OR ( ispos($each['desc'], 'ssid:'))) {
+                    $deviceType = 2;
+                }
+
+                $result[$each['id']]['id'] = $each['id'];
+                $result[$each['id']]['type_id'] = $deviceType;
+                $result[$each['id']]['mac'] = $each['id'];
+                $result[$each['id']]['house_id'] = $each['id'];
+                $result[$each['id']]['entrance'] = $each['id'];
+                $result[$each['id']]['floor'] = $each['id'];
+                $result[$each['id']]['node_id'] = $each['id'];
+                $result[$each['id']]['location'] = $each['location'];
+                $result[$each['id']]['geo'] = $each['geo'];
+                $result[$each['id']]['comment'] = $each['desc'];
+                $result[$each['id']]['date_activity'] = $each['id'];
+                $result[$each['id']]['date_create'] = '';
+                $result[$each['id']]['snmp_version'] = '2c';
+                $result[$each['id']]['snmp_port'] = '161';
+                $result[$each['id']]['snmp_read_community'] = $each['snmp'];
+                $result[$each['id']]['software_version'] = '';
             }
         }
         return ($result);
@@ -1477,6 +1518,10 @@ class UserSideApi {
                         break;
                     case 'get_device_model':
                         $this->renderReply($this->getDeviceModels());
+                        break;
+
+                    case 'get_device_list':
+                        $this->renderReply($this->getDevicesList());
                         break;
 
                     case 'change_user_data':
