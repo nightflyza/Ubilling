@@ -110,6 +110,7 @@ include('api/libs/api.messagesqueue.php');
 include('api/libs/api.wcpe.php');
 include('api/libs/api.mtsigmon.php');
 include('api/libs/api.taskbar.php');
+include('api/api.autolader.php');
 
 /*
  * Initial class creation
