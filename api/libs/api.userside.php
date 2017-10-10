@@ -774,7 +774,20 @@ class UserSideApi {
     protected function getDevicesList($types = '') {
         $result = array();
         if (!empty($this->allSwitches)) {
+            $typesFilter = array(); //ids of device types for result rendering
             $switchCemetery = zb_SwitchesGetAllDeathTime(); //getting currently dead switches list
+            if (!empty($types)) {
+                //filters preprocessing
+                $filtersTmp = explode(',', $types);
+                if (!empty($filtersTmp)) {
+                    foreach ($filtersTmp as $ia => $eachFilter) {
+                        $tidTmp = array_search($eachFilter, $this->allDeviceTypes);
+                        if ($tidTmp) {
+                            $typesFilter[$tidTmp] = $this->allDeviceTypes[$tidTmp];
+                        }
+                    }
+                }
+            }
             foreach ($this->allSwitches as $io => $each) {
                 $deviceType = 1; //switch by default
                 if (ispos($each['desc'], 'OLT')) {
@@ -784,6 +797,17 @@ class UserSideApi {
                 if ((ispos($each['desc'], 'MTSIGMON')) OR ( ispos($each['desc'], 'AP')) OR ( ispos($each['desc'], 'ssid:'))) {
                     $deviceType = 2;
                 }
+                //applying filters if required
+                if (empty($typesFilter)) {
+                    $filteredFlag = true;
+                } else {
+                    if (isset($typesFilter[$deviceType])) {
+                        $filteredFlag = true;
+                    } else {
+                        $filteredFlag = false;
+                    }
+                }
+
                 $switchIp = $each['ip'];
                 if (isset($switchCemetery[$switchIp])) {
                     $lastActivityTime = $switchCemetery[$switchIp];
@@ -792,24 +816,26 @@ class UserSideApi {
                 }
                 $switchMac = (check_mac_format($each['swid'])) ? $each['swid'] : '';
 
-                $result[$each['id']]['id'] = $each['id'];
-                $result[$each['id']]['type_id'] = $deviceType;
-                $result[$each['id']]['model_id'] = $each['modelid'];
-                $result[$each['id']]['ip'] = $each['ip'];
-                $result[$each['id']]['mac'] = $switchMac; //requires SWITCHES_EXTENDED option enabled.
-                $result[$each['id']]['house_id'] = ''; //no normal topology points at this moment
-                $result[$each['id']]['entrance'] = '';
-                $result[$each['id']]['floor'] = '';
-                $result[$each['id']]['node_id'] = '';
-                $result[$each['id']]['location'] = $each['location'];
-                $result[$each['id']]['geo'] = $each['geo'];
-                $result[$each['id']]['comment'] = $each['desc'];
-                $result[$each['id']]['date_activity'] = $lastActivityTime;
-                $result[$each['id']]['date_create'] = '';
-                $result[$each['id']]['snmp_version'] = '2c';
-                $result[$each['id']]['snmp_port'] = '161';
-                $result[$each['id']]['snmp_read_community'] = $each['snmp'];
-                $result[$each['id']]['software_version'] = '';
+                if ($filteredFlag) {
+                    $result[$each['id']]['id'] = $each['id'];
+                    $result[$each['id']]['type_id'] = $deviceType;
+                    $result[$each['id']]['model_id'] = $each['modelid'];
+                    $result[$each['id']]['ip'] = $each['ip'];
+                    $result[$each['id']]['mac'] = $switchMac; //requires SWITCHES_EXTENDED option enabled.
+                    $result[$each['id']]['house_id'] = ''; //no normal topology points at this moment
+                    $result[$each['id']]['entrance'] = '';
+                    $result[$each['id']]['floor'] = '';
+                    $result[$each['id']]['node_id'] = '';
+                    $result[$each['id']]['location'] = $each['location'];
+                    $result[$each['id']]['geo'] = $each['geo'];
+                    $result[$each['id']]['comment'] = $each['desc'];
+                    $result[$each['id']]['date_activity'] = $lastActivityTime;
+                    $result[$each['id']]['date_create'] = '';
+                    $result[$each['id']]['snmp_version'] = '2c';
+                    $result[$each['id']]['snmp_port'] = '161';
+                    $result[$each['id']]['snmp_read_community'] = $each['snmp'];
+                    $result[$each['id']]['software_version'] = '';
+                }
             }
         }
         return ($result);
@@ -1531,7 +1557,8 @@ class UserSideApi {
                         break;
 
                     case 'get_device_list':
-                        $this->renderReply($this->getDevicesList());
+                        $devTypeFilters = (wf_CheckGet(array('device_type'))) ? $_GET['device_type'] : '';
+                        $this->renderReply($this->getDevicesList($devTypeFilters));
                         break;
 
                     case 'change_user_data':
