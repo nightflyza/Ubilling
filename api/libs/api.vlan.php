@@ -151,15 +151,37 @@ class RebootOnu {
             if (!isset($snmpData['onu']['RELOAD'])) {
                 return false;
             }
-            $ifIndexOid = $snmpData['onu']['IFINDEX'] . '.' . $decMacOnu;
-            $ifIndexFull = snmp2_get($this->oltData['ip'], $this->oltData['snmp'], $ifIndexOid);
-            $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:'), '', $ifIndexFull));
-            if (!empty($ifIndex)) {
-                $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
-                $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $reloadData);
-                return true;
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_B') {
+                $ifIndexOid = $snmpData['onu']['IFINDEX'] . '.' . $decMacOnu;
+                $ifIndexFull = snmp2_get($this->oltData['ip'], $this->oltData['snmp'], $ifIndexOid);
+                $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:'), '', $ifIndexFull));
+                if (!empty($ifIndex)) {
+                    $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
+                    $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $reloadData);
+                    return true;
+                }
             }
-
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_C') {
+                $allOnuOid = $snmpData['signal']['MACINDEX'];
+                snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                $allOnu = @snmp2_real_walk($this->oltData['ip'], $this->oltData['snmp'], $allOnuOid);
+                $searchArray = array();
+                if (!empty($allOnu)) {
+                    foreach ($allOnu as $eachIndex => $eachOnu) {
+                        $eachIndex = trim(str_replace($allOnuOid . '.', '', $eachIndex));
+                        $eachOnu = strtolower(trim(str_replace($snmpData['signal']['MACVALUE'], '', $eachOnu)));
+                        $eachOnuMacArray = explode(" ", $eachOnu);
+                        $eachOnuMac = implode(":", $eachOnuMacArray);
+                        $searchArray[$eachOnuMac] = $eachIndex;
+                    }
+                    if (!empty($searchArray) and isset($searchArray[$macOnu])) {
+                        $ifIndex = $searchArray[$macOnu];
+                        $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
+                        $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $reloadData);
+                        return true;
+                    }
+                }
+            }
             return false;
         }
     }
@@ -330,7 +352,7 @@ class DescribeOnu {
             if (!isset($snmpData['onu']['IFINDEX'])) {
                 return false;
             }
-            if ($snmpData['signal']['SIGNALMODE'] == 'BDCOM') {
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_B') {
                 $ifIndexOid = $snmpData['onu']['IFINDEX'] . '.' . $decMacOnu;
                 $ifIndexFull = snmp2_get($this->oltData['ip'], $this->oltData['snmp'], $ifIndexOid);
                 $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:', '= '), '', $ifIndexFull));
@@ -344,6 +366,34 @@ class DescribeOnu {
                     $Result = trim(str_replace(array($descriptionOid, ' = STRING: '), '', $checkResult));
                     if (!empty($Result)) {
                         return $Result;
+                    }
+                }
+            }
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_C') {
+                $allOnuOid = $snmpData['signal']['MACINDEX'];
+                snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                $allOnu = @snmp2_real_walk($this->oltData['ip'], $this->oltData['snmp'], $allOnuOid);
+                $searchArray = array();
+                if (!empty($allOnu)) {
+                    foreach ($allOnu as $eachIndex => $eachOnu) {
+                        $eachIndex = trim(str_replace($allOnuOid . '.', '', $eachIndex));
+                        $eachOnu = strtolower(trim(str_replace($snmpData['signal']['MACVALUE'], '', $eachOnu)));
+                        $eachOnuMacArray = explode(" ", $eachOnu);
+                        $eachOnuMac = implode(":", $eachOnuMacArray);
+                        $searchArray[$eachOnuMac] = $eachIndex;
+                    }
+                    if (!empty($searchArray) and isset($searchArray[$macOnu])) {
+                        $ifIndex = $searchArray[$macOnu];
+                        $eponIntBare = $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $snmpData['onu']['EPONINDEX'] . '.' . $ifIndex);
+                        $eponInt = trim(str_replace(array($snmpData['onu']['EPONINDEX'] . '.' . $ifIndex, ' = INTEGER: '), '', $eponIntBare));
+                    }
+                    if (!empty($eponInt)) {
+                        $descriptionOid = $snmpData['onu']['DESCRIPTION'] . '.' . $eponInt . '.' . $decMacOnu;
+                        $checkResult = $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $descriptionOid, FALSE);
+                        $Result = trim(str_replace(array($descriptionOid, ' = STRING: '), '', $checkResult));
+                        if (!empty($Result)) {
+                            return $Result;
+                        }
                     }
                 }
             }
@@ -371,7 +421,7 @@ class DescribeOnu {
             if (!isset($snmpData['onu']['IFINDEX'])) {
                 return false;
             }
-            if ($snmpData['signal']['SIGNALMODE'] == 'BDCOM') {
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_B') {
                 $ifIndexOid = $snmpData['onu']['IFINDEX'] . '.' . $decMacOnu;
                 $ifIndexFull = snmp2_get($this->oltData['ip'], $this->oltData['snmp'], $ifIndexOid);
                 $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:', '= '), '', $ifIndexFull));
@@ -398,7 +448,45 @@ class DescribeOnu {
                 }
                 return false;
             }
-            return false;
+
+            if ($snmpData['vlan']['VLANMODE'] == 'BDCOM_C') {
+                $allOnuOid = $snmpData['signal']['MACINDEX'];
+                snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                $allOnu = @snmp2_real_walk($this->oltData['ip'], $this->oltData['snmp'], $allOnuOid);
+                $searchArray = array();
+                if (!empty($allOnu)) {
+                    foreach ($allOnu as $eachIndex => $eachOnu) {
+                        $eachIndex = trim(str_replace($allOnuOid . '.', '', $eachIndex));
+                        $eachOnu = strtolower(trim(str_replace($snmpData['signal']['MACVALUE'], '', $eachOnu)));
+                        $eachOnuMacArray = explode(" ", $eachOnu);
+                        $eachOnuMac = implode(":", $eachOnuMacArray);
+                        $searchArray[$eachOnuMac] = $eachIndex;
+                    }
+                    if (!empty($searchArray) and isset($searchArray[$macOnu])) {
+                        $ifIndex = $searchArray[$macOnu];
+                        $eponIntBare = $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $snmpData['onu']['EPONINDEX'] . '.' . $ifIndex);
+                        $eponInt = trim(str_replace(array($snmpData['onu']['EPONINDEX'] . '.' . $ifIndex, ' = INTEGER: '), '', $eponIntBare));
+                    }
+                    if (!empty($eponInt)) {
+                        $describeData[] = array(
+                            'oid' => $snmpData['onu']['DESCRIPTION'] . '.' . $eponInt . '.' . $decMacOnu,
+                            'type' => 's',
+                            'value' => '"' . addcslashes($description, '_') . '"',
+                        );
+                        $describeData[] = array(
+                            'oid' => $snmpData['vlan']['SAVE'],
+                            'type' => 'i',
+                            'value' => '1'
+                        );
+                        $checkResult = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $describeData);
+                        $checkResult .= $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $snmpData['onu']['DESCRIPTION'] . '.' . $eponInt . '.' . $decMacOnu, FALSE);
+                        if (!empty($checkResult)) {
+                            return $checkResult;
+                        }
+                    }
+                }
+                return false;
+            }
         }
     }
 
@@ -2695,7 +2783,7 @@ class OnuConfigurator {
                 if (!empty($template)) {
                     if (file_exists('config/snmptemplates/' . $template)) {
                         $iniData = rcms_parse_ini_file('config/snmptemplates/' . $template, true);
-                        if ($iniData['signal']['SIGNALMODE'] == 'BDCOM') {
+                        if ($iniData['vlan']['VLANMODE'] == 'BDCOM_B') {
                             $vlanCreateOid = $iniData['vlan']['CREATE'];
                             $ChangeOnuPvidOid = $iniData['vlan']['PVID'];
                             $SaveConfigOid = $iniData['vlan']['SAVE'];
@@ -2729,6 +2817,55 @@ class OnuConfigurator {
                                 return ($result);
                             } else {
                                 show_error(__('Cant find onu'));
+                            }
+                        }
+                        //hacks for BDCOM 3310C
+                        if ($iniData['vlan']['VLANMODE'] == 'BDCOM_C') {
+                            $vlanCreateOid = $iniData['vlan']['CREATE'];
+                            $ChangeOnuPvidOid = $iniData['vlan']['PVID'];
+                            $SaveConfigOid = $iniData['vlan']['SAVE'];
+                            $CheckVlanOid = $iniData['vlan']['CHECK'];
+                            $allOnuOid = $iniData['signal']['MACINDEX'];
+                            snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+                            $allOnu = @snmp2_real_walk($oltIp, $oltCommunity, $allOnuOid);
+                            $searchArray = array();
+                            if (!empty($allOnu)) {
+                                foreach ($allOnu as $eachIndex => $eachOnu) {
+                                    $eachIndex = trim(str_replace($allOnuOid . '.', '', $eachIndex));
+                                    $eachOnu = strtolower(trim(str_replace($iniData['signal']['MACVALUE'], '', $eachOnu)));
+                                    $eachOnuMacArray = explode(" ", $eachOnu);
+                                    $eachOnuMac = implode(":", $eachOnuMacArray);
+                                    $searchArray[$eachOnuMac] = $eachIndex;
+                                }
+                                if (!empty($searchArray) and isset($searchArray[$OnuMac])) {
+                                    $IfIndex = $searchArray[$OnuMac];
+                                    $VlanCheck = $this->CheckOltVlan($vlan, $oltIp, $oltCommunity, $CheckVlanOid);
+                                    $data = array();
+                                    if ($VlanCheck) {
+                                        //create vlan on OLT
+                                        $data[] = array(
+                                            'oid' => $vlanCreateOid . "." . $vlan,
+                                            'type' => 'i',
+                                            'value' => '4'
+                                        );
+                                    }
+                                    //Change pvid on onu port by default port 1
+                                    $data[] = array(
+                                        'oid' => $ChangeOnuPvidOid . "." . $IfIndex . "." . $onu_port,
+                                        'type' => 'i',
+                                        'value' => "$vlan"
+                                    );
+                                    $data[] = array(
+                                        'oid' => $SaveConfigOid,
+                                        'type' => 'i',
+                                        'value' => '1'
+                                    );
+                                    $result = $this->snmp->set($oltIp, $oltCommunity, $data);
+                                    $result .= $this->AutoConfig->CreateVlanLooped($oltId, $vlan, false);
+                                    return ($result);
+                                } else {
+                                    show_error(__('Cant find onu'));
+                                }
                             }
                         }
                         if ($iniData['signal']['SIGNALMODE'] == 'ZTE') {
@@ -3002,3 +3139,4 @@ function vlan_delete_host($login) {
     nr_query($query);
     log_register("DELETE VLanHost (" . $login . ")");
 }
+
