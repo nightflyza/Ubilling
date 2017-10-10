@@ -541,7 +541,8 @@ if (cfr('TURBOSMS')) {
            $cells.= wf_TableCell(__('Balance'));
            $cells.= wf_TableCell(__('Credit'));
            $rows =  wf_TableRow($cells, 'row1');
-           
+
+           $excludeResult = '';
            if (!empty($userarray)) {
                
                //excluded users handling
@@ -551,8 +552,6 @@ if (cfr('TURBOSMS')) {
                        unset($userarray[$excludeLogin]);
                        $excludeArr[$excludeLogin]=$excludeLogin;
                    }
-               } else {
-                   $excludeResult='';
                }
                
                foreach ($userarray as $login=>$phone) {
