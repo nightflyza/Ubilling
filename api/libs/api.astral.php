@@ -57,6 +57,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
+ * @param  string $pattern input check pattern. Avaible: geo, mobile, finance
  * @return string
  *
  */
@@ -74,9 +75,10 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
         $newline = '';
     }
     // We will verify that we correctly enter data by input type
-    if ($pattern == 'geo') {
-        $pattern = 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000"';
-    }
+    $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000"' : $pattern;
+    $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{2})?\d{10}" placeholder="(+)(38)0500000000"' : $pattern;
+    $pattern = ($pattern == 'finance') ? 'pattern="\d(\.\d)?" placeholder="0(.00)"' : $pattern;
+
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
