@@ -790,14 +790,8 @@ class UserSideApi {
             }
             foreach ($this->allSwitches as $io => $each) {
                 //setting device type
-                $deviceType = 1; //switch by default
-                if (ispos($each['desc'], 'OLT')) {
-                    $deviceType = 3;
-                }
+                $deviceType = $this->getDeviceType($each['id']);
 
-                if ((ispos($each['desc'], 'MTSIGMON')) OR ( ispos($each['desc'], 'AP')) OR ( ispos($each['desc'], 'ssid:'))) {
-                    $deviceType = 2;
-                }
                 //applying filters if required
                 if (empty($typesFilter)) {
                     $filteredFlag = true;
@@ -879,7 +873,20 @@ class UserSideApi {
                 $uplinkPort = 1;
                 //detecting, have device uplinks or not?
                 if (!empty($each['parentid'])) {
-                    $result[$deviceType][$each['id']][1][$uplinkPort][] = array($this->getDeviceType($each['parentid']),$each['parentid'],2,$uplinkPort);
+                    //uplinks description
+                    $result[$this->allDeviceTypes[$deviceType]][$each['id']][1][$uplinkPort][] = array(
+                        'type' => $this->allDeviceTypes[$this->getDeviceType($each['parentid'])],
+                        'id' => $each['parentid'],
+                        'direction' => 1,
+                        'interface' => $uplinkPort);
+
+                    //downlinks description
+                    $result[$this->allDeviceTypes[$this->getDeviceType($each['parentid'])]][$each['parentid']][1][$uplinkPort][] = array(
+                        'type' => $this->allDeviceTypes[$deviceType],
+                        'id' => $each['id'],
+                        'direction' => 1,
+                        'interface' => 2
+                    );
                 }
             }
         }
