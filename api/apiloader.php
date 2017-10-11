@@ -127,4 +127,4 @@ if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl->accessControl();
 }
     
-
+include('api/api.autolader.php');
