@@ -789,6 +789,7 @@ class UserSideApi {
                 }
             }
             foreach ($this->allSwitches as $io => $each) {
+                //setting device type
                 $deviceType = 1; //switch by default
                 if (ispos($each['desc'], 'OLT')) {
                     $deviceType = 3;
@@ -835,6 +836,50 @@ class UserSideApi {
                     $result[$each['id']]['snmp_port'] = '161';
                     $result[$each['id']]['snmp_read_community'] = $each['snmp'];
                     $result[$each['id']]['software_version'] = '';
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns device type id
+     * 
+     * @param int $deviceId
+     * 
+     * @return int
+     */
+    protected function getDeviceType($deviceId) {
+        //switch by default
+        $result = 1;
+        if (isset($this->allSwitches[$deviceId])) {
+            if (ispos($this->allSwitches[$deviceId]['desc'], 'OLT')) {
+                $result = 3;
+            }
+
+            if ((ispos($this->allSwitches[$deviceId]['desc'], 'MTSIGMON')) OR ( ispos($this->allSwitches[$deviceId]['desc'], 'AP')) OR ( ispos($this->allSwitches[$deviceId]['desc'], 'ssid:'))) {
+                $result = 2;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of devices connection topology
+     * 
+     * @return array
+     */
+    protected function getDeviceConnectionsList() {
+        $result = array();
+        if (!empty($this->allSwitches)) {
+            foreach ($this->allSwitches as $io => $each) {
+                //setting device type
+                $deviceType = $this->getDeviceType($each['id']);
+                // We dont know anyting about is. Like John Snow, yeah.
+                $uplinkPort = 1;
+                //detecting, have device uplinks or not?
+                if (!empty($each['parentid'])) {
+                    $result[$deviceType][$each['id']][1][$uplinkPort][] = array($this->getDeviceType($each['parentid']),$each['parentid'],2,$uplinkPort);
                 }
             }
         }
@@ -1559,6 +1604,10 @@ class UserSideApi {
                     case 'get_device_list':
                         $devTypeFilters = (wf_CheckGet(array('device_type'))) ? $_GET['device_type'] : '';
                         $this->renderReply($this->getDevicesList($devTypeFilters));
+                        break;
+
+                    case 'get_connect_list':
+                        $this->renderReply($this->getDeviceConnectionsList());
                         break;
 
                     case 'change_user_data':
