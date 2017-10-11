@@ -973,10 +973,10 @@ class UserProfile {
                                 $userMobile = $prefix . $userMobile;
                             }
 
-                            $sendInputs = wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15');
+                            $sendInputs = wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
                             $sendInputs.= wf_TextArea('neweasysmstext', '', '', true, '40x5');
                             $sendInputs.= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
-                            $sendInputs.=wf_tag('br');
+                            $sendInputs.= wf_tag('br');
                             $sendInputs.= wf_Submit(__('Send SMS'));
                             $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
 

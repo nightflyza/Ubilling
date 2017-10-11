@@ -106,7 +106,7 @@ function web_trigger($value) {
  * @param string $olddata
  * @return string
  */
-function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '') {
+function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $pattern = '') {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
 
@@ -119,7 +119,7 @@ function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata
     $rows.= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, '', 'tel'), '', 'row3');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, '', $pattern), '', 'row3');
     $rows.= wf_TableRow($cells);
     $form = wf_TableBody($rows, '100%', 0);
     $form.= wf_Submit(__('Change'));
