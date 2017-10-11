@@ -466,7 +466,7 @@ function zb_AddressGetAptAllDataByBuild($buildid) {
  * @return string
  */
 function zb_UserGetFullAddress($login) {
-    $alladdress = zb_AddressGetFulladdresslist();
+    $alladdress = zb_AddressGetFulladdresslistCached();
     @$address = $alladdress[$login];
     return ($address);
 }

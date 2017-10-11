@@ -161,7 +161,7 @@ function web_CardsGenerateForm() {
     $cells = wf_TableCell(wf_Selector('card_create[selling]', zb_BuilderSelectSellingData(), '', '', false));
     $cells.= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
     $cells.= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
-    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5'));
+    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5', 'finance'));
     $cells.= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
     $rows.= wf_TableRow($cells, 'row1');
 
