@@ -11,7 +11,7 @@ include('api/libs/api.morph.php');
 include('api/libs/api.ubconfig.php');
 //include('api/libs/api.ubcache.php');
 include('api/libs/api.astral.php');
-include('api/libs/api.barcodeqr.php'); // Проверить
+include('api/libs/api.barcodeqr.php'); // РџСЂРѕРІРµСЂРёС‚СЊ
 //include('api/libs/api.dbconnect.php');
 include('api/libs/api.userdata.php');
 include('api/libs/api.usersearch.php');
@@ -50,7 +50,7 @@ include('api/libs/api.swpoll.php');
 //include('api/libs/api.documents.php');
 //include('api/libs/api.dbf.php');
 //include('api/libs/api.ukv.php');
-include('api/libs/api.idlelogout.php'); // Внутри файла есть функции
+include('api/libs/api.idlelogout.php'); // Р’РЅСѓС‚СЂРё С„Р°Р№Р»Р° РµСЃС‚СЊ С„СѓРЅРєС†РёРё
 //include('api/libs/api.corps.php');
 //include('api/libs/api.extnets.php');
 //include('api/libs/api.assignreport.php');
@@ -62,7 +62,7 @@ include('api/libs/api.idlelogout.php'); // Внутри файла есть функции
 //include('api/libs/api.stickynotes.php');
 //include('api/libs/api.fundsflow.php');
 //include('api/libs/api.adcomments.php');
-include('api/libs/api.vlan.php'); // Внутри файла есть функции
+include('api/libs/api.vlan.php'); // Р’РЅСѓС‚СЂРё С„Р°Р№Р»Р° РµСЃС‚СЊ С„СѓРЅРєС†РёРё
 //include('api/libs/api.globalsearch.php');
 //include('api/libs/api.darkvoid.php');
 //include('api/libs/api.globalmenu.php');
@@ -80,7 +80,7 @@ include('api/libs/api.vlan.php'); // Внутри файла есть функции
 //include('api/libs/api.reminder.php');
 //include('api/libs/api.friendship.php');
 //include('api/libs/api.migration.php');
-include('api/libs/api.percity.php'); // Внутри файла есть функции
+include('api/libs/api.percity.php'); // Р’РЅСѓС‚СЂРё С„Р°Р№Р»Р° РµСЃС‚СЊ С„СѓРЅРєС†РёРё
 //include('api/libs/api.dealwithit.php');
 //include('api/libs/api.megogo.php');
 //include('api/libs/api.userside.php');
@@ -102,7 +102,7 @@ include('api/libs/api.printcard.php');
 //include('api/libs/api.wdyc.php');
 include('api/libs/api.mapscommon.php');
 include('api/libs/api.mapscompat.php');
-include('api/libs/api.announcements.php'); // убрать функцию с класса
+include('api/libs/api.announcements.php'); // СѓР±СЂР°С‚СЊ С„СѓРЅРєС†РёСЋ СЃ РєР»Р°СЃСЃР°
 //include('api/libs/api.jungen.php');
 //include('api/libs/api.nasmon.php');
 //include('api/libs/api.ipchange.php');
