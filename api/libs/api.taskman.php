@@ -948,7 +948,8 @@ function ts_TaskCreateForm() {
         $inputs.= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
     } else {
         $allAddress = zb_AddressGetFulladdresslistCached();
-        natsort($allAddress);
+        //Commented because significantly reduces performance. Waiting for feedback.
+        //natsort($allAddress);
         $inputs.= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
     }
     $inputs.= wf_tag('br');
@@ -1432,7 +1433,8 @@ function ts_TaskModifyForm($taskid) {
         $inputs.= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress = zb_AddressGetFulladdresslistCached();
-            natsort($alladdress);
+            //Commented because significantly reduces performance. Waiting for feedback.
+            //natsort($alladdress);
             $inputs.= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
             $inputs.= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
