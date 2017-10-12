@@ -11,7 +11,7 @@
  */
 function zb_AddressCleanAddressCache() {
     $cache = new UbillingCache();
-    $cache->delete('fulladdresslistcache.dat');
+    $cache->delete('FULLADDRESSLISTCACHE');
 }
 
 /**
@@ -1116,7 +1116,7 @@ function zb_AddressGetFulladdresslistCached() {
     $cacheTime = $alterconf['ADDRESS_CACHE_TIME']*60; // in minutes!!!!
     $result = '';
     $cache = new UbillingCache();
-    $result = $cache->getCallback('fulladdresslistcache.dat', function () {
+    $result = $cache->getCallback('FULLADDRESSLISTCACHE', function () {
         return (zb_AddressGetFulladdresslist());
     }, $cacheTime);
 
