@@ -1113,9 +1113,7 @@ function zb_AddressGetFulladdresslist() {
 function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
-///////////// cache options
-    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];
-    ;
+    $cacheTime = $alterconf['ADDRESS_CACHE_TIME']*60; // in minutes!!!!
     $result = '';
     $cache = new UbillingCache();
     $result = $cache->getCallback('fulladdresslistcache.dat', function () {
