@@ -1762,8 +1762,8 @@ function ts_TaskChangeForm($taskid) {
         //warehouse integration
         if ($altercfg['WAREHOUSE_ENABLED']) {
             if (cfr('WAREHOUSE')) {
-                $warehouse = new Warehouse();
-                show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($_GET['edittask']));
+                $warehouse = new Warehouse($taskid);
+                show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($taskid));
             }
         }
 
