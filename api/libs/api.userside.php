@@ -229,6 +229,7 @@ class UserSideApi {
             'get_user_tags' => __('Returns available users tags'),
             'get_services_list' => __('Returns available user services'),
             'get_user_history' => __('Returns user financial operations history'),
+            'get_user_messages' => __('Previous user tickets'),
             'change_user_data' => __('Do some changes with user data'),
             'get_supported_change_user_data_list' => __('Returns list of supported change user data methods'),
             'get_supported_change_user_state' => __('Returns list of supported change user states'),
@@ -1035,6 +1036,38 @@ class UserSideApi {
     }
 
     /**
+     * Returns all users support tickets
+     * 
+     * @return array
+     */
+    protected function getUsersMessages() {
+        $result = array();
+        $query = "SELECT * from `ticketing` ORDER BY `id` ASC;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                if (($each['from'] != 'NULL') AND ( empty($each['replyid']))) {
+                    //original ticket body
+                    $result[$each['id']]['id'] = $each['id'];
+                    $result[$each['id']]['user_id'] = $each['from'];
+                    $result[$each['id']]['msg_date'] = $each['date'];
+                    $result[$each['id']]['subject'] = __('Ticket') . ' ' . $each['date'];
+                    $result[$each['id']]['text'] = $each['text'];
+                } else {
+                    //thats replies for a ticket
+                    if ((isset($result[$each['replyid']]))) {
+                        $replyAuthor = (!empty($each['admin'])) ? $each['admin'] : $each['from'];
+                        $result[$each['replyid']]['text'].=PHP_EOL . '=========' . PHP_EOL;
+                        $result[$each['replyid']]['text'].=PHP_EOL . __('Message') . ' ' . $each['date'] . ' (' . $replyAuthor . ')';
+                        $result[$each['replyid']]['text'].=': ' . PHP_EOL . $each['text'] . PHP_EOL;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns existing users full info
      * 
      * @param string $customerId
@@ -1578,6 +1611,9 @@ class UserSideApi {
                         } else {
                             $this->renderReply($this->getUsersList($customerId));
                         }
+                        break;
+                    case 'get_user_messages':
+                        $this->renderReply($this->getUsersMessages());
                         break;
                     case 'get_user_history':
                         if (!empty($customerId)) {
