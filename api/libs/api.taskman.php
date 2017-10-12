@@ -1038,7 +1038,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.= wf_Submit(__('Create new task'));
     if (!empty($login)) {
         $inputs.= wf_AjaxLoader();
-        $inputs.= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')),                             'taskshistorycontainer', false, '');
+        $inputs.= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
         $inputs.= wf_tag('br');
         $inputs.= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
     }
@@ -1477,7 +1477,7 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
-    $starttime = (!empty($starttime)) ? "'".date("H:i:s" , strtotime(mysql_real_escape_string($starttime)))."'" : 'NULL';
+    $starttime = (!empty($starttime)) ? "'" . date("H:i:s", strtotime(mysql_real_escape_string($starttime))) . "'" : 'NULL';
 
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
@@ -1528,18 +1528,18 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     }
 
     // Unset parametr, that we dont diff
-    unset ($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
+    unset($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
     $new_taskdata = array(
-                            'id' => $taskid,
-                            'address' => $address,
-                            'login' => $login,
-                            'jobtype' => $jobtypeid,
-                            'jobnote' => $jobnote,
-                            'phone' => $phone,
-                            'employee' => $employeeid,
-                            'startdate' => $startdate,
-                            'starttime' => $starttime
-                        );
+        'id' => $taskid,
+        'address' => $address,
+        'login' => $login,
+        'jobtype' => $jobtypeid,
+        'jobnote' => $jobnote,
+        'phone' => $phone,
+        'employee' => $employeeid,
+        'startdate' => $startdate,
+        'starttime' => $starttime
+    );
     $cahged_taskdata = (array_diff_assoc($org_taskdata, $new_taskdata));
     $log_data = '';
     foreach ($cahged_taskdata as $par => $value) {
@@ -1754,8 +1754,8 @@ function ts_TaskChangeForm($taskid) {
         //Salary accounting
         if ($altercfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
-                $salary = new Salary();
-                show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
+                $salary = new Salary($taskid);
+                show_window(__('Additional jobs done'), $salary->taskJobCreateForm($taskid));
             }
         }
 
