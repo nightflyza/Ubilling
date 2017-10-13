@@ -2702,5 +2702,6 @@ $lang['def']['Get device connection list'] = 'Повертає список ко
 $lang['def']['Tools'] = 'Реманент';
 $lang['def']['Scan for unknown devices'] = 'Пошук невідомих пристроїв';
 $lang['def']['Unknown device'] = 'Невідомий пристрій';
+$lang['def']['MAC mismatch'] = 'Неспівпадіння MAC';
 
 ?>

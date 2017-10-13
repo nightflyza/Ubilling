@@ -74,15 +74,16 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
-        if ($altCfg['SWITCHES_EXTENDED']) {
-            $swlinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
-        }
+
 
         if (cfr('SWITCHESEDIT')) {
             $toolsLinks = '';
             $toolsLinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            if ($altCfg['SWITCHES_EXTENDED']) {
+                $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+            }
             $swlinks.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
         }
 

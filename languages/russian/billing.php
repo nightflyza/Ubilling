@@ -2686,7 +2686,7 @@ $lang['def']['Get device connection list'] = 'Возвращает список 
 $lang['def']['Tools'] = 'Инструменты';
 $lang['def']['Scan for unknown devices'] = 'Поиск неизвестных устройств';
 $lang['def']['Unknown device'] = 'Неизвестное устройство';
-$lang['def'][''] = '';
+$lang['def']['MAC mismatch'] = 'Несовпадение MAC';
 $lang['def'][''] = '';
 
 

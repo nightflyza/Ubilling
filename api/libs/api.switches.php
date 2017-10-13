@@ -361,7 +361,7 @@ function web_SwitchEditForm($switchid) {
     $editinputs.= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
     $editinputs.= wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
     if ($altCfg['SWITCHES_EXTENDED']) {
-        $editinputs.= wf_TextInput('editswid', 'Switch ID', $switchdata['swid'], true, 20);
+        $editinputs.= wf_TextInput('editswid', __('Switch ID') . ' (MAC)', $switchdata['swid'], true, 20);
     }
     $editinputs.= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
@@ -382,8 +382,8 @@ function web_SwitchEditForm($switchid) {
         $rightContainer.= wf_AjaxContainer('icmppingcontainer');
     }
 
-    $cells = wf_TableCell($mainForm,'','','valign="top"');
-    $cells.= wf_TableCell($rightContainer,'','','valign="top"');
+    $cells = wf_TableCell($mainForm, '', '', 'valign="top"');
+    $cells.= wf_TableCell($rightContainer, '', '', 'valign="top"');
     $rows = wf_TableRow($cells);
     $result.=wf_TableBody($rows, '100%', 0, '');
     $result.=wf_CleanDiv();

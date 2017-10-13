@@ -75,6 +75,14 @@ if (cfr('SWITCHESEDIT')) {
          */
         public function renderForm() {
             $result = '';
+            /**
+             *          Am             C
+             * Я знав тебе пацанкою малою
+             * Em                 D
+             * І ноль вніманія на тебе обращав
+             * А як прийшов із армії додому
+             * Тебе побачив і на дупу впав
+             */
             $curNet = (wf_CheckPost(array('searchnetdevs'))) ? $_POST['searchnetdevs'] : '';
             $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : '';
             $availMasks = array(29 => 29, 28 => 28, 27 => 27, 26 => 26, 25 => 25, 24 => 24, 23 => 23, 22 => 22, 21 => 21, 20 => 20, 19 => 19, 18 => 18);
