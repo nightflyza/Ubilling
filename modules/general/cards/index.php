@@ -7,8 +7,7 @@ if (cfr('CARDS')) {
 
         if (isset($_POST['card_create'])) {
             $cards = zb_CardGenerate($_POST['card_create']);
-            $generated = wf_tag('pre', false) . $cards . wf_tag('pre', true);
-            show_window('', wf_modalOpened(__('Cards generated'), $generated, '400', '200'));
+            show_window('', wf_modalOpened(__('Cards generated'), $cards, '500', '600'));
         }
 
         //cards print
