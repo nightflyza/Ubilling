@@ -1159,13 +1159,13 @@
                         switch ( $action ) {
                             case 'show':
                                 if (  isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']) )
-                                    $runtime = $runtime['METHOD']['RNDR'];
-                                    show_window(__('Map of VOLS'), $obj->$runtime());
+                                    $runtimeA = $runtime['METHOD']['RNDR'];
+                                    show_window(__('Map of VOLS'), $obj->$runtimeA());
                                 break;
                             case 'edit':
                                 if (  isset($runtime['METHOD']['RNDR']) and method_exists($obj, $runtime['METHOD']['RNDR']) )
-                                    $runtime = $runtime['METHOD']['RNDR'];
-                                    show_window(__('Map of VOLS'), $obj->$runtime(true));
+                                    $runtimeB = $runtime['METHOD']['RNDR'];
+                                    show_window(__('Map of VOLS'), $obj->$runtimeB(true));
                                 break;
                             default:
                                 // Переадресация на главную стр. модуля при попытке доступа
@@ -1182,8 +1182,8 @@
                                 $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_TYPE_ADD, wf_img('skins/vols_nav/add.png', __('Create')));
                                 if (  isset($runtime['METHOD']['MRKTPLST']) and method_exists($obj, $runtime['METHOD']['MRKTPLST']) )
-                                    $runtime = $runtime['METHOD']['MRKTPLST'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeC = $runtime['METHOD']['MRKTPLST'];
+                                    show_window($title, $obj->$runtimeC());
                                 break;
                             case 'add':
                                 // Form submit handle:
@@ -1198,8 +1198,8 @@
                                 $title .= wf_Link($obj::URL_MAP_SHOW,        wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_TYPES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                 if (  isset($runtime['METHOD']['MRKTPD']) and method_exists($obj, $runtime['METHOD']['MRKTPD']) )
-                                    $runtime = $runtime['METHOD']['MRKTPD'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeD = $runtime['METHOD']['MRKTPD'];
+                                    show_window($title, $obj->$runtimeD());
                                 break;
                             case 'edit':
                                 if ( wf_CheckGet(array('id')) ) {
@@ -1216,16 +1216,16 @@
                                     $title .= wf_Link($obj::URL_MAP_SHOW,        wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_MARK_TYPES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                     if (  isset($runtime['METHOD']['MRKTPDT']) and method_exists($obj, $runtime['METHOD']['MRKTPDT']) )
-                                        $runtime = $runtime['METHOD']['MRKTPDT'];
-                                        show_window($title, $obj->$runtime($id));
+                                        $runtimeE = $runtime['METHOD']['MRKTPDT'];
+                                        show_window($title, $obj->$runtimeE($id));
                                 } else rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                 break;
                             case 'delete':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['MRKTPDLT']) and method_exists($obj, $runtime['METHOD']['MRKTPDLT']) ) {
-                                        $runtime = $runtime['METHOD']['MRKTPDLT'];
-                                        if ( $obj->$runtime($id) ) {
+                                        $runtimeF = $runtime['METHOD']['MRKTPDLT'];
+                                        if ( $obj->$runtimeF($id) ) {
                                             rcms_redirect($obj::URL_MARK_TYPES_LIST);
                                         }
                                     }
@@ -1241,8 +1241,8 @@
                                 $title .= wf_Link($obj::URL_MAP_SHOW, wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARK_ADD, wf_img('skins/vols_nav/add.png', __('Add mark'))) . ' ';
                                 if (  isset($runtime['METHOD']['MRKLST']) and method_exists($obj, $runtime['METHOD']['MRKLST']) )
-                                    $runtime = $runtime['METHOD']['MRKLST'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeH = $runtime['METHOD']['MRKLST'];
+                                    show_window($title, $obj->$runtimeH());
                                 break;
                             case 'add':
                                 // Form submit handle:
@@ -1257,16 +1257,16 @@
                                 $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                 if (  isset($runtime['METHOD']['MRKD']) and method_exists($obj, $runtime['METHOD']['MRKD']) )
-                                    $runtime = $runtime['METHOD']['MRKD'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeI = $runtime['METHOD']['MRKD'];
+                                    show_window($title, $obj->$runtimeI());
                                 break;
                             case 'place':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     $obj->place_placemark($id);
                                     if (  isset($runtime['METHOD']['MRKPLC']) and method_exists($obj, $runtime['METHOD']['MRKPLC']) )
-                                        $runtime = $runtime['METHOD']['MRKPLC'];
-                                        show_window(__('Map of VOLS'), $obj->$runtime());
+                                        $runtimeJ = $runtime['METHOD']['MRKPLC'];
+                                        show_window(__('Map of VOLS'), $obj->$runtimeJ());
                                 } else rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'edit':
@@ -1288,16 +1288,16 @@
                                     $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                     if (  isset($runtime['METHOD']['MRKDT']) and method_exists($obj, $runtime['METHOD']['MRKDT']) )
-                                        $runtime = $runtime['METHOD']['MRKDT'];
-                                        show_window($title, $obj->$runtime($id));
+                                        $runtimeK = $runtime['METHOD']['MRKDT'];
+                                        show_window($title, $obj->$runtimeK($id));
                                 } else rcms_redirect($obj::URL_MARKS_LIST);
                                 break;
                             case 'delete':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['MRKDLT']) and method_exists($obj, $runtime['METHOD']['MRKDLT']) ) {
-                                        $runtime = $runtime['METHOD']['MRKDLT'];
-                                        if ( $obj->$runtime($id) ) {
+                                        $runtimeL = $runtime['METHOD']['MRKDLT'];
+                                        if ( $obj->$runtimeL($id) ) {
                                             rcms_redirect($obj::URL_MARKS_LIST);
                                         }
                                     }
@@ -1317,11 +1317,11 @@
                                     $title .= wf_Link($obj::URL_MARKS_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                     // Show window:
                                     if (  isset($runtime['METHOD']['MRKDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSLST']) )
-                                        $runtime = $runtime['METHOD']['MRKDCMNTSLST'];
-                                        show_window($title, $obj->$runtime($item, $id));
+                                        $runtimeM = $runtime['METHOD']['MRKDCMNTSLST'];
+                                        show_window($title, $obj->$runtimeM($item, $id));
                                     if ( isset($runtime['METHOD']['MRKDCMNTSD']) and method_exists($obj, $runtime['METHOD']['MRKDCMNTSD']) )
-                                        $runtime = $runtime['METHOD']['MRKDCMNTSD'];
-                                        show_window(__('Adding of document'), $obj->$runtime($item, $id));
+                                        $runtimeN = $runtime['METHOD']['MRKDCMNTSD'];
+                                        show_window(__('Adding of document'), $obj->$runtimeN($item, $id));
                                 } else rcms_redirect($obj::URL_MARKS_LIST);
                                 break;
                         }
@@ -1336,8 +1336,8 @@
 
                                 // Show window:
                                 if (  isset($runtime['METHOD']['LNLST']) and method_exists($obj, $runtime['METHOD']['LNLST']) )
-                                    $runtime = $runtime['METHOD']['LNLST'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeO = $runtime['METHOD']['LNLST'];
+                                    show_window($title, $obj->$runtimeO());
                                 break;
                             case 'add':
                                 // Form submit handle:
@@ -1352,16 +1352,16 @@
                                 $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                 $title .= wf_Link($obj::URL_LINES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                 if (  isset($runtime['METHOD']['LND']) and method_exists($obj, $runtime['METHOD']['LND']) )
-                                    $runtime = $runtime['METHOD']['LND'];
-                                    show_window($title, $obj->$runtime());
+                                    $runtimeP = $runtime['METHOD']['LND'];
+                                    show_window($title, $obj->$runtimeP());
                                 break;
                             case 'place':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     $obj->place_polyline($id);
                                     if (  isset($runtime['METHOD']['LNPLC']) and method_exists($obj, $runtime['METHOD']['LNPLC']) )
-                                        $runtime = $runtime['METHOD']['LNPLC'];
-                                        show_window(__('Map of VOLS'), $obj->$runtime());
+                                        $runtimeS = $runtime['METHOD']['LNPLC'];
+                                        show_window(__('Map of VOLS'), $obj->$runtimeS());
                                 } else rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'edit':
@@ -1383,16 +1383,16 @@
                                     $title .= wf_Link($obj::URL_MAP_SHOW,   wf_img('skins/vols_nav/map.png', __('Map of VOLS'))) . ' ';
                                     $title .= wf_Link($obj::URL_LINES_LIST, wf_img('skins/vols_nav/arrow-left.png', __('Back'))) . ' ';
                                     if (  isset($runtime['METHOD']['LNDT']) and method_exists($obj, $runtime['METHOD']['LNDT']) )
-                                        $runtime = $runtime['METHOD']['LNDT'];
-                                        show_window($title, $obj->$runtime($id));
+                                        $runtimeQ= $runtime['METHOD']['LNDT'];
+                                        show_window($title, $obj->$runtimeQ($id));
                                 } else rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             case 'delete':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['LNDLT']) and method_exists($obj, $runtime['METHOD']['LNDLT']) ) {
-                                        $runtime = $runtime['METHOD']['LNDLT'];
-                                        if ( $obj->$runtime($id) ) {
+                                        $runtimeR = $runtime['METHOD']['LNDLT'];
+                                        if ( $obj->$runtimeR($id) ) {
                                             rcms_redirect($obj::URL_LINES_LIST);
                                         }
                                     }
@@ -1414,11 +1414,11 @@
 
                                     // Show window:
                                     if (  isset($runtime['METHOD']['LNDCMNTSLST']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSLST']) )
-                                        $runtime = $runtime['METHOD']['LNDCMNTSLST'];
-                                        show_window($title, $obj->$runtime($item, $id));
+                                        $runtimeT = $runtime['METHOD']['LNDCMNTSLST'];
+                                        show_window($title, $obj->$runtimeT($item, $id));
                                     if (  isset($runtime['METHOD']['LNDCMNTSD']) and method_exists($obj, $runtime['METHOD']['LNDCMNTSD']) )
-                                        $runtime = $runtime['METHOD']['LNDCMNTSD'];
-                                        show_window(__('Adding of document'), $obj->$runtime($item, $id));
+                                        $runtimeU = $runtime['METHOD']['LNDCMNTSD'];
+                                        show_window(__('Adding of document'), $obj->$runtimeU($item, $id));
                                 } else rcms_redirect($obj::URL_LINES_LIST);
                                 break;
                             default:
@@ -1434,16 +1434,16 @@
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['DCMNTSDWNLD']) and method_exists($obj, $runtime['METHOD']['DCMNTSDWNLD']) )
-                                        $runtime = $runtime['METHOD']['DCMNTSDWNLD'];
-                                        $obj->$runtime($id);
+                                        $runtimeV = $runtime['METHOD']['DCMNTSDWNLD'];
+                                        $obj->$runtimeV($id);
                                 } else rcms_redirect($obj::URL_HOME);
                                 break;
                             case 'delete':
                                 if ( wf_CheckGet(array('id')) ) {
                                     $id = vf($_GET['id'], 3);
                                     if (  isset($runtime['METHOD']['DCMNTSDLT']) and method_exists($obj, $runtime['METHOD']['DCMNTSDLT']) )
-                                        $runtime = $runtime['METHOD']['DCMNTSDLT'];
-                                        $obj->$runtime($id);
+                                        $runtimeW = $runtime['METHOD']['DCMNTSDLT'];
+                                        $obj->$runtimeW($id);
                                 } else rcms_redirect($obj::URL_HOME);
                                 break;
                             default:
