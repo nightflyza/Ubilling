@@ -201,7 +201,7 @@ class ArpDiag {
         //normal user
         if (isset($allUserIps[$ip])) {
             if (isset($allUserIpMacs[$ip])) {
-                if ($allUserIpMacs[$ip] != $mac) {
+                if (($allUserIpMacs[$ip] != $mac) AND (!empty($mac))) {
                     $result = wf_img('skins/createtask.gif') . ' ' . __('MAC mismatch');
                 } else {
                     $result = wf_img_sized('skins/icon_ok.gif', '', 10, 10) . ' ' . __('Ok');
