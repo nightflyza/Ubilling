@@ -52,6 +52,13 @@ class Polls {
     protected $pollsVotes = array();
 
     /**
+     * Contains all options votes as [poll_id] => Array ( [login] => [option_id] )
+     *
+     * @var array
+     */
+    protected $optionVotes = array();
+
+    /**
      * Contains poll votes count as poll_id => count
      *
      * @var array
@@ -363,6 +370,7 @@ class Polls {
                     $this->pollsVotes[$data['poll_id']][$data['id']]['login'] = $data['login'];
                     $this->pollsVotes[$data['poll_id']][$data['id']]['date'] = $data['date'];
                     $this->pollsVotes[$data['poll_id']][$data['id']]['option_id'] = $data['option_id'];
+                    $this->optionVotes[$data['poll_id']][$data['login']] = $data['option_id'];
                     // Count poll votes
                     if (isset($this->pollsVotesCount[$data['poll_id']])) {
                         $this->pollsVotesCount[$data['poll_id']] = $this->pollsVotesCount[$data['poll_id']] + 1;
