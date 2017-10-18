@@ -93,11 +93,13 @@ class Polls {
         $this->setLogin();
         $this->initCache();
         $this->setPollId();
-        $this->pollsVotesCacheInfoClean();
         $this->loadAdminsName();
         $this->loadAvaiblePollsCached();
         $this->loadPollsOptionsCached();
         $this->loadPollsVotesCached();
+        if ( ! wf_CheckGet(array('ajaxavaiblepolls'))) {
+            $this->loadPollsVotesCached();
+        }
     }
 
     /**
@@ -329,13 +331,14 @@ class Polls {
      * 
      * @return void
      */
-    protected function pollsVotesCacheInfoClean() {
-            $last_db_uniqueid = simple_get_lastid('polls_votes');
-            $last_cache_id = $this->cache->get('POLLS_VOTES_LAST', $this->cacheTime);
-            if ($last_db_uniqueid != $last_cache_id) {
-                $this->cache->delete('POLLS_VOTES', $this->cacheTime);
-                $this->cache->set('POLLS_VOTES_LAST', $last_db_uniqueid, $this->cacheTime);
-            }
+    protected function pollsVotesCacheInfoClean($poll_id) {
+        $query = "SELECT `id` FROM `polls_votes` WHERE `poll_id` = '" . $poll_id . "' ORDER BY `id` DESC LIMIT 1";
+        $last_db_uniqueid = simple_query($query);
+        $last_cache_id = $this->cache->get('POLL_' . $poll_id . '_VOTES_LAST', $this->cacheTime);
+        if ($last_db_uniqueid != $last_cache_id) {
+            $this->cache->delete('POLL_' . $poll_id . '_VOTES', $this->cacheTime);
+            $this->cache->set('POLL_' . $poll_id . '_VOTES_LAST', $last_db_uniqueid, $this->cacheTime);
+        }
     }
 
      /**
@@ -345,26 +348,33 @@ class Polls {
      * @return array pollsVotesCount
      * @return array pollsOptionVotesCount
      */
-    protected function loadPollsVotesCached() {
-        $votes_arr = $this->cache->getCallback('POLLS_VOTES', function() {
-                    return ($this->loadPollsVotes());
-                    }, $this->cacheTime);
-        if ( ! empty($votes_arr)) {
-            foreach ($votes_arr as $data) {
-                $this->pollsVotes[$data['poll_id']][$data['id']]['login'] = $data['login'];
-                $this->pollsVotes[$data['poll_id']][$data['id']]['date'] = $data['date'];
-                $this->pollsVotes[$data['poll_id']][$data['id']]['option_id'] = $data['option_id'];
-                // Count poll votes
-                if (isset($this->pollsVotesCount[$data['poll_id']])) {
-                    $this->pollsVotesCount[$data['poll_id']] = $this->pollsVotesCount[$data['poll_id']] + 1;
-                } else {
-                    $this->pollsVotesCount[$data['poll_id']] = 1;
-                }
-                // Count votes by options
-                if (isset($this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']])) {
-                    $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] + 1;
-                } else {
-                    $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = 1;
+    protected function loadPollsVotesCached($poll_id = '') {
+        // Initialises poll_id
+        $poll_id = ($poll_id) ? $poll_id : $this->poll_id;
+
+        if (isset($this->pollsAvaible[$poll_id])) {
+            // Check for needed cache by poll_id
+            $this->pollsVotesCacheInfoClean($poll_id);
+            $votes_arr = $this->cache->getCallback('POLL_' . $poll_id . '_VOTES', function() use ($poll_id) {
+                        return ($this->loadPollsVotes($poll_id));
+                        }, $this->cacheTime);
+            if ( ! empty($votes_arr)) {
+                foreach ($votes_arr as $data) {
+                    $this->pollsVotes[$data['poll_id']][$data['id']]['login'] = $data['login'];
+                    $this->pollsVotes[$data['poll_id']][$data['id']]['date'] = $data['date'];
+                    $this->pollsVotes[$data['poll_id']][$data['id']]['option_id'] = $data['option_id'];
+                    // Count poll votes
+                    if (isset($this->pollsVotesCount[$data['poll_id']])) {
+                        $this->pollsVotesCount[$data['poll_id']] = $this->pollsVotesCount[$data['poll_id']] + 1;
+                    } else {
+                        $this->pollsVotesCount[$data['poll_id']] = 1;
+                    }
+                    // Count votes by options
+                    if (isset($this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']])) {
+                        $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] + 1;
+                    } else {
+                        $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = 1;
+                    }
                 }
             }
         }
@@ -375,8 +385,8 @@ class Polls {
      * 
      * @return array polls_votes
      */
-    protected function loadPollsVotes() {
-        $query = "SELECT * FROM `polls_votes`";
+    protected function loadPollsVotes($poll_id) {
+        $query = "SELECT * FROM `polls_votes` WHERE `poll_id` = '" . $poll_id . "'";
         $result = simple_queryall($query);
         return ($result);
     }
@@ -452,7 +462,8 @@ class Polls {
     protected function deletePollVotes($poll_id) {
         $query = "DELETE FROM `polls_votes` WHERE `poll_id` ='" . $poll_id . "'";
         nr_query($query);
-        $this->cache->delete('POLLS_VOTES', $this->cacheTime);
+        $this->cache->delete('POLL_' . $poll_id . '_VOTES', $this->cacheTime);
+        $this->cache->delete('POLL_' . $poll_id . '_VOTES_LAST', $this->cacheTime);
     }
 
     /**
@@ -870,30 +881,31 @@ class Polls {
     public function ajaxAvaiblePolls() {
         $json = new wf_JqDtHelper();
         if (!empty($this->pollsAvaible)) {
-            foreach ($this->pollsAvaible as $id => $poll) {
+            foreach ($this->pollsAvaible as $poll_id => $poll) {
+                $this->loadPollsVotesCached($poll_id);
                 $acts = '';
                 if (cfr('POLLSCONFIG')) {
-                    $acts.= wf_JSAlert(self::URL_ME . '&action=delete_poll&poll_id=' . $id, web_delete_icon(), 'If you delete this poll, you will delete all data including voting results') . ' ';
-                    $acts.= wf_JSAlert(self::URL_ME . '&action=edit_poll&poll_id=' . $id, web_edit_icon(), 'Are you serious') . ' ';
+                    $acts.= wf_JSAlert(self::URL_ME . '&action=delete_poll&poll_id=' . $poll_id, web_delete_icon(), 'If you delete this poll, you will delete all data including voting results') . ' ';
+                    $acts.= wf_JSAlert(self::URL_ME . '&action=edit_poll&poll_id=' . $poll_id, web_edit_icon(), 'Are you serious') . ' ';
                 }
-                if (isset($this->pollsOptionsCount[$id])) {
-                    $options = $this->pollsOptionsCount[$id];
-                    $options.= ' ' . wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $id, web_icon_search());
+                if (isset($this->pollsOptionsCount[$poll_id])) {
+                    $options = $this->pollsOptionsCount[$poll_id];
+                    $options.= ' ' . wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $poll_id, web_icon_search());
                     if (cfr('POLLSCONFIG')) {
-                        $options.= wf_JSAlert(self::URL_ME . '&action=polloptions&poll_id=' . $id, ' ' . web_edit_icon(), 'Are you serious') . ' ';
+                        $options.= wf_JSAlert(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, ' ' . web_edit_icon(), 'Are you serious') . ' ';
                     }
                 } else {
                     $options = 0;
                     if (cfr('POLLSCONFIG')) {
-                        $options.= ' ' . wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $id, web_icon_create());
+                        $options.= ' ' . wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, web_icon_create());
                     }
                 }
 
-                $votes = (isset($this->pollsVotesCount[$id])) ? $this->pollsVotesCount[$id] : 0;
+                $votes = (isset($this->pollsVotesCount[$poll_id])) ? $this->pollsVotesCount[$poll_id] : 0;
 
-                $data[] = $id;
+                $data[] = $poll_id;
                 $data[] = $poll['title'];
-                $data[] = $this->renderPollStatus($id);
+                $data[] = $this->renderPollStatus($poll_id);
                 $data[] = $poll['start_date'];
                 $data[] = $poll['end_date'];
                 $data[] = $votes;
