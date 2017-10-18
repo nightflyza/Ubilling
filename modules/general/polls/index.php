@@ -29,24 +29,24 @@ if ($altcfg['POLLS_ENABLED']) {
                         if (wf_CheckPost(array('editpoll'))) {
                             show_window('', $polls->controlPoll($_POST['editpoll']));
                         }
-                        show_window('Edit poll', $polls->renderFormPoll($_GET['poll_id']));
+                        show_window('Edit poll', $polls->renderFormPoll());
                     }
                     // create or edit poll options
                     if ($_GET['action'] == 'polloptions') {
                         if (wf_CheckPost(array('polloptions'))) {
                             show_window('', $polls->controlPollOptions($_POST['polloptions']));
                         }
-                         show_window('Configure poll options', $polls->renderFormPollOption($_GET['poll_id']));
+                         show_window('Configure poll options', $polls->renderFormPollOption());
                     }
                     // delete poll
                     if ($_GET['action'] == 'delete_poll') {
-                        $polls->deletePollData($_GET['poll_id']);
+                        $polls->deletePollData();
                     }
                 } else {
                     show_error(__('Access denied'));
                 }
         } elseif (wf_CheckGet(array('show_options'))) {
-                show_window('Preview poll form', $polls->renderPreviewPollOption($_GET['poll_id']));
+                show_window('Preview poll form', $polls->renderPreviewPollOption());
         } else {
             show_window('Avaible polls', $polls->renderAvaiblePolls());
         }
