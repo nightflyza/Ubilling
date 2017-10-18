@@ -483,7 +483,7 @@ class Polls {
         } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
             $result = wf_img('skins/yellow_led.png') . ' '.  __('Not started yet');
         } elseif (mktime() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
-            $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finiched');
+            $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
         } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
             $result = wf_img('skins/icon_active.gif') . ' ' . __('In progress');
         }
