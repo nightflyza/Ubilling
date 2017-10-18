@@ -10,6 +10,13 @@ class Polls {
     protected $myLogin = '';
 
     /**
+     * Contains Poll ID from $_GET
+     *
+     * @var string
+     */
+    protected $poll_id  = '';
+
+    /**
      * Contains admns Name as admin_login => admin_name
      *
      * @var array
@@ -85,6 +92,7 @@ class Polls {
         $this->initMessages();
         $this->setLogin();
         $this->initCache();
+        $this->setPollId();
         $this->pollsVotesCacheInfoClean();
         $this->loadAdminsName();
         $this->loadAvaiblePollsCached();
@@ -211,6 +219,17 @@ class Polls {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Initalizes $poll_id
+     * 
+     * @return void
+     */
+    protected function setPollId() {
+        if (wf_CheckGet(array('poll_id'))) {
+            $this->poll_id = vf($_GET['poll_id']);
+        }
     }
 
     /**
@@ -493,16 +512,19 @@ class Polls {
      * @param int $poll_id
      * @return void
      */
-    protected function renderPollStatus($poll_id) {
+    protected function renderPollStatus() {
         $result = '';
-        if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
-            $result = wf_img('skins/icon_inactive.gif') . ' ' . __('Disabled');
-        } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
-            $result = wf_img('skins/yellow_led.png') . ' '.  __('Not started yet');
-        } elseif (mktime() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
-            $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
-        } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
-            $result = wf_img('skins/icon_active.gif') . ' ' . __('In progress');
+        if (isset($this->pollsAvaible[$this->poll_id])) {
+            $poll_id = $this->poll_id;
+            if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+                $result = wf_img('skins/icon_inactive.gif') . ' ' . __('Disabled');
+            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
+                $result = wf_img('skins/yellow_led.png') . ' '.  __('Not started yet');
+            } elseif (mktime() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+                $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
+            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+                $result = wf_img('skins/icon_active.gif') . ' ' . __('In progress');
+            }
         }
         return ($result);
     }
@@ -513,26 +535,29 @@ class Polls {
      * @param int $poll_id
      * @return string
      */
-    protected function renderPollData($poll_id) {
+    protected function renderPollData() {
         $result = '';
 
-        $cells = wf_TableCell(__('Status'));
-        $cells.= wf_TableCell(__('Start date'));
-        $cells.= wf_TableCell(__('End date'));
-        $cells.= wf_TableCell(__('Admin'));
-        $rows = wf_TableRow($cells, 'row1');
+        if (isset($this->pollsAvaible[$this->poll_id])) {
+            $cells = wf_TableCell(__('Status'));
+            $cells.= wf_TableCell(__('Start date'));
+            $cells.= wf_TableCell(__('End date'));
+            $cells.= wf_TableCell(__('Admin'));
+            $rows = wf_TableRow($cells, 'row1');
 
-        if ( ! empty($poll_id)) {
-            $cells = wf_TableCell($this->renderPollStatus($poll_id));
-            $cells.= wf_TableCell($this->pollsAvaible[$poll_id]['start_date']);
-            $cells.= wf_TableCell($this->pollsAvaible[$poll_id]['end_date']);
-            $cells.= wf_TableCell($this->initAdminName($this->pollsAvaible[$poll_id]['admin']));
+
+            $window = @$this->poll_id . ' - ' . @$this->pollsAvaible[$this->poll_id]['title'];
+            $cells = wf_TableCell($this->renderPollStatus($this->poll_id));
+            $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['start_date']);
+            $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['end_date']);
+            $cells.= wf_TableCell($this->initAdminName($this->pollsAvaible[$this->poll_id]['admin']));
             $rows.= wf_TableRow($cells, 'row4');
+
+            $table = wf_TableBody($rows, '', 0);
+
+            $result.= show_window($window, $table);
         }
 
-        $table = wf_TableBody($rows, '', 0);
-
-        $result.= show_window(@$poll_id . ' - ' . @$this->pollsAvaible[$poll_id]['title'], $table);
 
         return ($result);
     }
@@ -542,17 +567,28 @@ class Polls {
      * 
      * @return string
      */
-    public function renderFormPoll($poll_id = '') {
+    public function renderFormPoll() {
         $result = '';
         // Preset start date and time 
-        $poll_action = ($poll_id) ? 'editpoll' : 'createpoll';
-        $poll_name = ($poll_id) ? $this->pollsAvaible[$poll_id]['title'] : '';
-        $start_date = ($poll_id) ? date("Y-m-d", strtotime($this->pollsAvaible[$poll_id]['start_date'])) : date("Y-m-d");
-        $start_time = ($poll_id) ? date("H:i", strtotime($this->pollsAvaible[$poll_id]['start_date'])) : date("H:i");
-        $end_date = ($poll_id) ? date("Y-m-d", strtotime($this->pollsAvaible[$poll_id]['end_date'])) : '';
-        $end_time = ($poll_id) ? date("H:i", strtotime($this->pollsAvaible[$poll_id]['end_date'])) : '';
-        $poll_status = ($poll_id) ? $this->pollsAvaible[$poll_id]['enabled'] : true;
-        $post_submit = ($poll_id) ? 'Save' : 'Create';
+        if (isset($this->pollsAvaible[$this->poll_id])) {
+            $poll_action = 'editpoll';
+            $poll_name = $this->pollsAvaible[$this->poll_id]['title'];
+            $start_date = date("Y-m-d", strtotime($this->pollsAvaible[$this->poll_id]['start_date']));
+            $start_time = date("H:i", strtotime($this->pollsAvaible[$this->poll_id]['start_date']));
+            $end_date = date("Y-m-d", strtotime($this->pollsAvaible[$this->poll_id]['end_date']));
+            $end_time = date("H:i", strtotime($this->pollsAvaible[$this->poll_id]['end_date']));
+            $poll_status = $this->pollsAvaible[$this->poll_id]['enabled'];
+            $post_submit = 'Save';
+        } else {
+            $poll_action = 'createpoll';
+            $poll_name = '';
+            $start_date = date("Y-m-d");
+            $start_time = date("H:i");
+            $end_date = '';
+            $end_time = '';
+            $poll_status = true;
+            $post_submit = 'Create';
+        }
 
 
         $cells = wf_TableCell(__('Poll title'));
@@ -584,11 +620,11 @@ class Polls {
      * 
      * @return string
      */
-    public function renderPreviewPollOption($poll_id) {
+    public function renderPreviewPollOption() {
         $result = '';
-        if ($poll_id) {
-            if (isset($this->pollsOptions[$poll_id])) {
-                $poll_options = $this->pollsOptions[$poll_id];
+        if (isset($this->pollsAvaible[$this->poll_id])) {
+            if (isset($this->pollsOptions[$this->poll_id])) {
+                $poll_options = $this->pollsOptions[$this->poll_id];
                 $inputs = '';
                 foreach ($poll_options as $id => $option) {
                     $inputs.= wf_RadioInput('option', $option, $id, true);
@@ -597,8 +633,11 @@ class Polls {
             } else {
                 $result.= $this->messages->getStyledMessage(__('You have not created any options yet'), 'info');
             }
-            $result.= $this->renderPollData($poll_id);
+            $result.= $this->renderPollData();
+        } else {
+                $result.= $this->messages->getStyledMessage(__('This poll does not exist'), 'error');
         }
+
         return ($result);
     }  
     
@@ -649,16 +688,16 @@ class Polls {
                     rcms_redirect(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id);
                 }
             } elseif (empty($message_warn) and @$_POST['editpoll']) {
-                $poll_id = vf($_GET['poll_id']);
                 $new_poll_data = array('title' => $name, 'enabled' => $status, 'start_date' => $startDateTime, 'end_date' => $endDateTime, 'params' => $parametr = '');
-                $this->editPoll($poll_id, $new_poll_data);
-                rcms_redirect(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id);
+                $this->editPoll($this->poll_id, $new_poll_data);
+                rcms_redirect(self::URL_ME . '&action=polloptions&poll_id=' . $this->poll_id);
             }
         } else {
             $result.= $this->messages->getStyledMessage(__('Poll data cannot be empty '), 'warning');
         }
 
         $result.= $message_warn;
+
         return ($result);
     }
     
@@ -681,11 +720,10 @@ class Polls {
                 $message_warn = $this->messages->getStyledMessage(__('Options for voting responses can not be empty'), 'warning');
             }
             // Check that we dont have warning message and create poll
-            if (empty($message_warn) and @$_POST['polloptions']) {
-                $poll_id = vf($_GET['poll_id']);
-                $this->editPollConfigs($poll_id, $poll_options);
+            if (empty($message_warn) AND @$_POST['polloptions'] AND isset($this->pollsAvaible[$this->poll_id])) {
+                $this->editPollConfigs($this->poll_id, $poll_options);
                 // If dont have Message warninng  - go to Poll option preview container
-                rcms_redirect(self::URL_ME . '&show_options=true&poll_id=' . $poll_id);
+                rcms_redirect(self::URL_ME . '&show_options=true&poll_id=' . $this->poll_id);
             }
         } else {
             $result.= $this->messages->getStyledMessage(__('Poll options cannot be empty '), 'warning');
@@ -701,10 +739,10 @@ class Polls {
      * @param int $poll_id
      * @return string
      */
-    public function renderFormPollOption($poll_id = '') {
+    public function renderFormPollOption() {
         $result = '';
         $form = '';
-        if ( ! empty($poll_id)) {
+        if (isset($this->pollsAvaible[$this->poll_id])) {
             // Form parameter for future, if on next we want use this function global
             $method = "POST";
             $input_name = "polloptions";
@@ -722,9 +760,9 @@ class Polls {
              $form.= '
                         <form method="' . $method . '">
                             <div id="add_field_area">';
-            if (isset($this->pollsOptions[$poll_id])) {
+            if (isset($this->pollsOptions[$this->poll_id])) {
                 $n = 1;
-                foreach ($this->pollsOptions[$poll_id] as $opt_id => $text) {
+                foreach ($this->pollsOptions[$this->poll_id] as $opt_id => $text) {
                     $form.= '
                             <div id="add' . $n . '" class="add">
                                 <label>' . __($label) . ' №' . $n . '</label>
@@ -758,7 +796,7 @@ class Polls {
             ';
         }
 
-        $result.= $this->renderPollData($poll_id);
+        $result.= $this->renderPollData();
         $result.= $form;
 
         return ($result);
@@ -781,16 +819,16 @@ class Polls {
             $result.= wf_Link('index.php?module=report_polls', wf_img('skins/icon_star.gif') . ' ' . __('Show votes result'), false, 'ubButton') . ' ';
         }
 
-        if (cfr('POLLSCONFIG') AND @$_GET['action'] == 'polloptions' OR (cfr('POLLSCONFIG') AND wf_CheckGet(array('show_options')))) {
-            $result.= wf_Link(self::URL_ME . '&action=edit_poll&poll_id=' . vf($_GET['poll_id']), wf_img('skins/icon_extended.png') . ' ' . __('Config poll'), false, 'ubButton') . ' ';
+        if (cfr('POLLSCONFIG') AND @$_GET['action'] == 'polloptions' OR (cfr('POLLSCONFIG') AND wf_CheckGet(array('show_options'))) AND isset($this->pollsAvaible[$this->poll_id])) {
+            $result.= wf_Link(self::URL_ME . '&action=edit_poll&poll_id=' . $this->poll_id, wf_img('skins/icon_extended.png') . ' ' . __('Config poll'), false, 'ubButton') . ' ';
         }
 
-        if (cfr('POLLSCONFIG') AND (@$_GET['action'] == 'edit_poll' OR wf_CheckGet(array('show_options')))) {
-            $result.= wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . vf($_GET['poll_id']), wf_img('skins/icon_edit.gif') . ' ' . __('Edit options'), false, 'ubButton') . ' ';
+        if (cfr('POLLSCONFIG') AND (@$_GET['action'] == 'edit_poll' OR wf_CheckGet(array('show_options'))) AND isset($this->pollsAvaible[$this->poll_id])) {
+            $result.= wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $this->poll_id, wf_img('skins/icon_edit.gif') . ' ' . __('Edit options'), false, 'ubButton') . ' ';
         }
 
-        if (cfr('POLLSCONFIG') AND wf_CheckGet(array('action')) AND $_GET['action'] != 'create_poll') {
-            $result.= wf_Link(self::URL_ME . '&show_options=true&poll_id=' . vf($_GET['poll_id']), wf_img('skins/icon_eye.gif') . ' ' . __('Show preview poll form'), false, 'ubButton') . ' ';
+        if (cfr('POLLSCONFIG') AND wf_CheckGet(array('action')) AND $_GET['action'] != 'create_poll' AND isset($this->pollsAvaible[$this->poll_id])) {
+            $result.= wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $this->poll_id, wf_img('skins/icon_eye.gif') . ' ' . __('Show preview poll form'), false, 'ubButton') . ' ';
         }
 
         return ($result);
@@ -802,9 +840,9 @@ class Polls {
      * @param int $poll_id
      * @return void
      */
-    public function deletePollData($poll_id = '') {
-        if( ! empty($poll_id)) {
-            $this->deletePoll($poll_id);
+    public function deletePollData() {
+        if(isset($this->pollsAvaible[$this->poll_id])) {
+            $this->deletePoll($this->poll_id);
         }
         rcms_redirect(self::URL_ME);
     }
