@@ -21,7 +21,7 @@ if ($altcfg['POLLS_ENABLED']) {
         // show form for create poll
         if (wf_CheckGet(array('action'))) {
             if ($_GET['action'] == 'show_poll_votes') {
-                show_window(__('Poll votes result'), $pollsReport->renderPollVotes());
+                $pollsReport->renderPollVotes();
             }
             if ($_GET['action'] == 'show_option_votes') {
                 $pollsReport->renderOptionVotes();
