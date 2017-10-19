@@ -36,7 +36,7 @@ if ($altcfg['POLLS_ENABLED']) {
                         if (wf_CheckPost(array('polloptions'))) {
                             show_window('', $polls->controlPollOptions($_POST['polloptions']));
                         }
-                         show_window(__('Configure poll options'), $polls->renderFormPollOption());
+                         show_window(__('Setting the answers to the survey'), $polls->renderFormPollOption());
                     }
                     // delete poll
                     if ($_GET['action'] == 'delete_poll') {
