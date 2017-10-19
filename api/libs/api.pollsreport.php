@@ -12,6 +12,7 @@ class PollsReport extends Polls {
     const URL_REPORT = '?module=report_polls';
 
     public function __construct() {
+        $this->initMessages();
         $this->initCache();
         $this->setPollId();
         $this->loadAdminsName();
@@ -61,7 +62,7 @@ class PollsReport extends Polls {
         $rows = wf_TableRow($cells);
         $votes_3D = wf_TableBody($rows, '100%', 0, '');
 
-        $result = show_window(__('Poll votes result on 3D chart'), $votes_3D);
+        $result = show_window(__('Number of votes on a 3D chart'), $votes_3D);
 
         return ($result);
     }
@@ -104,32 +105,43 @@ class PollsReport extends Polls {
             $rows = wf_TableRow($cells, 'row2');
 
             // Check that we get option_id and array optionVotes have this option
-            if (wf_CheckGet(array('option_id')) AND isset($this->pollsVotes[$this->poll_id])) {
+            if (wf_CheckGet(array('option_id'))) {
                 $option_id = vf($_GET['option_id']);
 
-                if (isset($option_id)) {
-                    $opt_arr = array_keys($this->pollsVotes[$this->poll_id]['option_id'], $option_id);
+                if (isset($this->pollsOptions[$this->poll_id][$option_id])) {
+                    if (isset($this->pollsVotes[$this->poll_id])) {
+                        $opt_arr = array_keys($this->pollsVotes[$this->poll_id]['option_id'], $option_id);
 
-                    if ( ! empty($opt_arr) ) {
-                        $this->getFulladdress();
-                        foreach ($opt_arr as $login) {
-                            $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
-                            
-                            $cells = wf_TableCell($this->pollsVotes[$this->poll_id]['date'][$login]);
-                            $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, $login, false));
-                            $cells.= wf_TableCell($address);
-                            $rows.= wf_TableRow($cells, 'row3');
+                        if ( ! empty($opt_arr) ) {
+                            $this->getFulladdress();
+                            foreach ($opt_arr as $login) {
+                                $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
+
+                                $cells = wf_TableCell($this->pollsVotes[$this->poll_id]['date'][$login]);
+                                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, $login, false));
+                                $cells.= wf_TableCell($address);
+                                $rows.= wf_TableRow($cells, 'row3');
+                            }
+
+                            $opt_name = $this->pollsOptions[$this->poll_id][$option_id];
+                            $table = wf_TableBody($rows, '100%', 0);
+                            $result.= show_window(__('Voting results for option') . ': ' . $opt_name, $table);
+                        } else {
+                            $result.= show_window('', $this->messages->getStyledMessage(__('For this option, no one voted yet'), 'info'));
                         }
-
-                        $opt_name = $this->pollsOptions[$this->poll_id][$option_id];
+                    } else {
+                        $result.= show_window('', $this->messages->getStyledMessage(__('No one voted on this poll yet'), 'info'));
                     }
-                }
+                 } else {
+                    $result.= show_window('', $this->messages->getStyledMessage(__('The answer option passed to the module does not exist'), 'error'));
+                 }
+             } else {
+                $result.= show_window('', $this->messages->getStyledMessage(__('The module was not given the answer option'), 'error'));
              }
-
-            $table = wf_TableBody($rows, '100%', 0);
-            $result.= show_window(__('Results by option') . ': ' . $opt_name, $table);
+        } else {
+            $result.= show_window('', $this->messages->getStyledMessage(__('This poll does not exist'), 'error'));
         }
-        
+
         return ($result);
     }
 
@@ -146,7 +158,7 @@ class PollsReport extends Polls {
             $window.= ', ' . __('Title') . ': ' . $this->pollsAvaible[$poll_id]['title'];
             $window.= ', ' . __('Status') . ': ' . $this->renderPollStatus($poll_id);
             $window.= ', ' . __('Actions') . ': ' . wf_Link(self::URL_REPORT . '&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon(__('Result')));
-            $columns = array('ID', 'Opions', 'Number of votes', 'Visual', 'Actions');
+            $columns = array('ID', 'Options', 'Number of votes', 'Visual', 'Actions');
             $opts = '"order": [[ 0, "asc" ]]';
             $loader = wf_JqDtLoader($columns, self::URL_REPORT . '&ajaxavaiblevotes=true&poll_id=' . $poll_id, false, 'Option', 100, $opts);
             $result.= show_window($window, $loader);
@@ -163,7 +175,7 @@ class PollsReport extends Polls {
     public function ajaxAvaibleVotes() {
         $json = new wf_JqDtHelper();
         if(isset($this->pollsAvaible[$this->poll_id])) {
-            //$this->loadPollsVotesCached($this->poll_id);
+
             foreach ($this->pollsOptions[$this->poll_id] as $id => $options) {
                 if (isset($this->pollsOptionVotesCount[$this->poll_id][$id])) {
                     $votes = $this->pollsOptionVotesCount[$this->poll_id][$id];
@@ -196,11 +208,17 @@ class PollsReport extends Polls {
     public function renderPollVotes() {
         $result = '';
         if(isset($this->pollsAvaible[$this->poll_id])) {
+            if (isset($this->pollsVotes[$this->poll_id])) {
                 $result.= $this->renderPollData($this->poll_id);
                 $result.= $this->draw3DPie($this->poll_id);
                 $columns = array('ID', 'Option', 'Date', 'User', 'Address');
                 $opts = '"order": [[ 0, "desc" ]]';
-                $result = wf_JqDtLoader($columns, self::URL_REPORT . '&ajaxapollvotes=true&poll_id=' . $this->poll_id, false, 'Votes', 100, $opts);
+                $result = show_window(__('Poll results'), wf_JqDtLoader($columns, self::URL_REPORT . '&ajaxapollvotes=true&poll_id=' . $this->poll_id, false, 'votes', 100, $opts));
+            } else {
+                $result.= show_window('', $this->messages->getStyledMessage(__('No one voted on this poll yet'), 'info'));
+            }
+        } else {
+            $result.= show_window('', $this->messages->getStyledMessage(__('This poll does not exist'), 'error'));
         }
         return ($result);
     }
@@ -215,7 +233,7 @@ class PollsReport extends Polls {
 
         $json = new wf_JqDtHelper();
         if(isset($this->pollsAvaible[$this->poll_id])) {
-            //$this->loadPollsVotesCached($this->poll_id);
+
             foreach ($this->pollsVotes[$this->poll_id]['id'] as $login => $value) {
                 $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
 
