@@ -515,10 +515,12 @@ class Polls {
      * @param int $poll_id
      * @return void
      */
-    protected function renderPollStatus() {
+    protected function renderPollStatus($poll_id = '') {
         $result = '';
-        if (isset($this->pollsAvaible[$this->poll_id])) {
-            $poll_id = $this->poll_id;
+        // Initialises poll_id
+        $poll_id = ($poll_id) ? $poll_id : $this->poll_id;
+
+        if (isset($this->pollsAvaible[$poll_id])) {
             if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_inactive.gif') . ' ' . __('Disabled');
             } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
