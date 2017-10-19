@@ -45,18 +45,11 @@ class Polls {
     protected $pollsOptionsCount = array();
 
     /**
-     * Contains all polls votes as [poll_id] => Array ( [id] => Array ( [login], [date], [option_id] ))
+     * Contains all polls votes as [poll_id] => Array ( parametr => Array ( [login] => $value))
      *
      * @var array
      */
     protected $pollsVotes = array();
-
-    /**
-     * Contains all options votes as [poll_id] => Array ( [login] => [option_id] )
-     *
-     * @var array
-     */
-    protected $optionVotes = array();
 
     /**
      * Contains poll votes count as poll_id => count
@@ -367,23 +360,14 @@ class Polls {
                         }, $this->cacheTime);
             if ( ! empty($votes_arr)) {
                 foreach ($votes_arr as $data) {
-                    $this->pollsVotes[$data['poll_id']][$data['id']]['login'] = $data['login'];
-                    $this->pollsVotes[$data['poll_id']][$data['id']]['date'] = $data['date'];
-                    $this->pollsVotes[$data['poll_id']][$data['id']]['option_id'] = $data['option_id'];
-                    $this->optionVotes[$data['poll_id']][$data['login']] = $data['option_id'];
-                    // Count poll votes
-                    if (isset($this->pollsVotesCount[$data['poll_id']])) {
-                        $this->pollsVotesCount[$data['poll_id']] = $this->pollsVotesCount[$data['poll_id']] + 1;
-                    } else {
-                        $this->pollsVotesCount[$data['poll_id']] = 1;
-                    }
-                    // Count votes by options
-                    if (isset($this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']])) {
-                        $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] + 1;
-                    } else {
-                        $this->pollsOptionVotesCount[$data['poll_id']][$data['option_id']] = 1;
-                    }
+                    $this->pollsVotes[$data['poll_id']]['id'][$data['login']] = $data['id'];
+                    $this->pollsVotes[$data['poll_id']]['option_id'][$data['login']] = $data['option_id'];
+                    $this->pollsVotes[$data['poll_id']]['date'][$data['login']] = $data['date'];
                 }
+                // Count poll votes
+                    $this->pollsVotesCount[$data['poll_id']] = count($this->pollsVotes[$data['poll_id']]['id']);
+                // Count votes by options
+                    $this->pollsOptionVotesCount[$data['poll_id']] = array_count_values($this->pollsVotes[$data['poll_id']]['option_id']);
             }
         }
     }
@@ -576,7 +560,6 @@ class Polls {
 
             $result.= show_window($window, $table);
         }
-
 
         return ($result);
     }
@@ -908,8 +891,12 @@ class Polls {
                         $options.= ' ' . wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, web_icon_create());
                     }
                 }
-
-                $votes = (isset($this->pollsVotesCount[$poll_id])) ? $this->pollsVotesCount[$poll_id] : 0;
+                if (isset($this->pollsVotesCount[$poll_id])) {
+                    $votes = $this->pollsVotesCount[$poll_id];
+                    $votes.= ' ' . wf_Link('?module=report_polls&action=show_poll_votes&poll_id=' . $poll_id, web_icon_search());
+                } else {
+                    $votes = 0;
+                }
 
                 $data[] = $poll_id;
                 $data[] = $poll['title'];
