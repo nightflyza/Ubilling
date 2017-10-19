@@ -821,6 +821,9 @@ class Polls {
 
         if (cfr('POLLSCONFIG') AND @$_GET['action'] != 'create_poll') {
             $result.= wf_Link(self::URL_ME . '&action=create_poll', wf_img('skins/add_icon.png') . ' ' . __('Create poll'), false, 'ubButton') . ' ';
+        }
+
+        if (cfr('POLLSREPORT') AND @$_GET['action'] != 'create_poll') {
             $result.= wf_Link('index.php?module=report_polls', wf_img('skins/icon_star.gif') . ' ' . __('Show votes result'), false, 'ubButton') . ' ';
         }
 
@@ -858,7 +861,7 @@ class Polls {
      * @return string
      */
     public function renderAvaiblePolls() {
-        $columns = array('ID', 'Poll title', 'Status', 'Start date', 'End date', 'Votes', 'Options', 'Admin');
+        $columns = array('ID', 'Poll title', 'Status', 'Start date', 'End date', 'Number of votes', 'Number of options', 'Admin');
         if (cfr('POLLSCONFIG')) {
             $columns[] = 'Actions';
         }
