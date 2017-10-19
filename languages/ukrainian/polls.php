@@ -34,3 +34,5 @@ $lang['def']['Disabled'] = 'Вимкнений';
 $lang['def']['Not yet started'] = 'Ще не почалось';
 $lang['def']['Finished'] = 'Закінчено';
 $lang['def']['In progress'] = 'Йде голосування';
+$lang['def']['Option'] = 'Варіант';
+$lang['def']['Add new field'] = 'Додати нове поле';
