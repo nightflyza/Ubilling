@@ -9,6 +9,13 @@ class PollsReport extends Polls {
      */
     protected $alladdress = array();
 
+    /**
+     * returns the number of all users 
+     *
+     * @var string
+     */
+    protected $numberAllUsers = '';
+
     const URL_REPORT = '?module=report_polls';
 
     public function __construct() {
@@ -16,6 +23,7 @@ class PollsReport extends Polls {
         $this->initCache();
         $this->setPollId();
         $this->loadAdminsName();
+        $this->getFulladdress();
         $this->loadAvaiblePollsCached();
         $this->loadPollsOptionsCached();
         $this->loadPollsVotesCached();
@@ -28,6 +36,16 @@ class PollsReport extends Polls {
      */
     protected function getFulladdress() {
         $this->alladdress = zb_AddressGetFulladdresslistCached();
+        $this->numberAllUsers = count($this->alladdress);
+    }
+
+    /**
+     * Loads the number of all users 
+     * 
+     * @return string
+     */
+    protected function getNumberAllUsers() {
+        $this->numberAllUsers = count($this->alladdress);
     }
 
     /**
@@ -37,10 +55,9 @@ class PollsReport extends Polls {
      */
     protected function draw3DPie($poll_id) {
         // Create parametr for Number of voters
+        $this->getNumberAllUsers();
         $params_users = array();
-        $query = "SELECT COUNT(1) AS `count` FROM `users`";
-        $all_users = simple_query($query);
-        $params_users[__('All users')] = $all_users['count'];
+        $params_users[__('All users')] = $this->numberAllUsers;
         $params_users[__('Voted Users')] =  $this->pollsVotesCount[$poll_id];
 
         // Create parametr for votes
@@ -113,7 +130,6 @@ class PollsReport extends Polls {
                         $opt_arr = array_keys($this->pollsVotes[$this->poll_id]['option_id'], $option_id);
 
                         if ( ! empty($opt_arr) ) {
-                            $this->getFulladdress();
                             foreach ($opt_arr as $login) {
                                 $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
 
@@ -157,7 +173,7 @@ class PollsReport extends Polls {
             $window = __('ID') . ': ' . $poll_id;
             $window.= ', ' . __('Title') . ': ' . $this->pollsAvaible[$poll_id]['title'];
             $window.= ', ' . __('Status') . ': ' . $this->renderPollStatus($poll_id);
-            $window.= ', ' . __('Actions') . ': ' . wf_Link(self::URL_REPORT . '&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon(__('Result')));
+            $window.= ', ' . __('Actions') . ': ' . wf_Link(self::URL_REPORT . '&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon('View poll results'));
             $columns = array('ID', 'Options', 'Number of votes', 'Visual', 'Actions');
             $opts = '"order": [[ 0, "asc" ]]';
             $loader = wf_JqDtLoader($columns, self::URL_REPORT . '&ajaxavaiblevotes=true&poll_id=' . $poll_id, false, 'Option', 100, $opts);
@@ -229,7 +245,6 @@ class PollsReport extends Polls {
      * @return void
      */
     public function ajaxPollVotes() {
-        $this->getFulladdress();
 
         $json = new wf_JqDtHelper();
         if(isset($this->pollsAvaible[$this->poll_id])) {
