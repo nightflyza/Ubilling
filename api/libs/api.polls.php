@@ -548,7 +548,6 @@ class Polls {
             $cells.= wf_TableCell(__('Admin'));
             $rows = wf_TableRow($cells, 'row1');
 
-
             $window = @$this->poll_id . ' - ' . @$this->pollsAvaible[$this->poll_id]['title'];
             $cells = wf_TableCell($this->renderPollStatus($this->poll_id));
             $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['start_date']);
@@ -571,6 +570,7 @@ class Polls {
      */
     public function renderFormPoll() {
         $result = '';
+
         // Preset start date and time 
         if (isset($this->pollsAvaible[$this->poll_id])) {
             $poll_action = 'editpoll';
@@ -591,7 +591,6 @@ class Polls {
             $poll_status = true;
             $post_submit = 'Create';
         }
-
 
         $cells = wf_TableCell(__('Poll title'));
         $cells.= wf_TableCell(wf_TextInput($poll_action  . '[title]', '', $poll_name, false, '27'));
@@ -635,9 +634,11 @@ class Polls {
             } else {
                 $result.= $this->messages->getStyledMessage(__('You have not created any options yet'), 'info');
             }
+
             $result.= $this->renderPollData();
+
         } else {
-                $result.= $this->messages->getStyledMessage(__('This poll does not exist'), 'error');
+            $result.= $this->messages->getStyledMessage(__('This poll does not exist'), 'error');
         }
 
         return ($result);
