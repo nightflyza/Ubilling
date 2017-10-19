@@ -1,7 +1,7 @@
 <?php
 $this->registerModule($module, 'main', __('Polls'), 'Pautina', 
-            array('POLLS' => __('right to use polls'),
-                  'POLLSCONFIG' => __('right create, chage and delete poll'),
+            array('POLLS' => __('Right to use polls'),
+                  'POLLSCONFIG' => __('Right create, change and delete poll'),
 ));
 
 ?>
