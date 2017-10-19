@@ -29,7 +29,7 @@ if ($altcfg['POLLS_ENABLED']) {
                         if (wf_CheckPost(array('editpoll'))) {
                             show_window('', $polls->controlPoll($_POST['editpoll']));
                         }
-                        show_window(__('Edit poll'), $polls->renderFormPoll());
+                        show_window(__('Setting up polling'), $polls->renderFormPoll());
                     }
                     // create or edit poll options
                     if ($_GET['action'] == 'polloptions') {
@@ -46,9 +46,9 @@ if ($altcfg['POLLS_ENABLED']) {
                     show_error(__('Access denied'));
                 }
         } elseif (wf_CheckGet(array('show_options'))) {
-                show_window(__('Preview poll form'), $polls->renderPreviewPollOption());
+                show_window(__('Preliminary form of voting'), $polls->renderPreviewPollOption());
         } else {
-            show_window(__('Avaible polls'), $polls->renderAvaiblePolls());
+            show_window(__('Available polls'), $polls->renderAvaiblePolls());
         }
     } else {
         show_error(__('Permission denied'));
