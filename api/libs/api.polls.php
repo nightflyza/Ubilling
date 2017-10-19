@@ -524,7 +524,7 @@ class Polls {
             if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_inactive.gif') . ' ' . __('Disabled');
             } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
-                $result = wf_img('skins/yellow_led.png') . ' '.  __('Not started yet');
+                $result = wf_img('skins/yellow_led.png') . ' '.  __('Not yet started');
             } elseif (mktime() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
             } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
@@ -634,7 +634,7 @@ class Polls {
                 }
                 $result.= wf_Form("", "POST", $inputs, 'glamour polls');
             } else {
-                $result.= $this->messages->getStyledMessage(__('You have not created any options yet'), 'info');
+                $result.= $this->messages->getStyledMessage(__('You have not created any answer options yet'), 'info');
             }
 
             $result.= $this->renderPollData();
@@ -718,7 +718,7 @@ class Polls {
         if ( ! empty($poll_options)) {
             // Count options
             if (count($poll_options) < 2) {
-                $message_warn = $this->messages->getStyledMessage(__('The number of options can not be less than two'), 'warning');
+                $message_warn = $this->messages->getStyledMessage(__('The number of options cannot be less than two'), 'warning');
             }
             // Check for empty options value
             if (array_intersect($poll_options, array(''))) {
@@ -731,7 +731,7 @@ class Polls {
                 rcms_redirect(self::URL_ME . '&show_options=true&poll_id=' . $this->poll_id);
             }
         } else {
-            $result.= $this->messages->getStyledMessage(__('Poll options cannot be empty '), 'warning');
+            $result.= $this->messages->getStyledMessage(__('Poll options cannot be empty'), 'warning');
         }
 
         $result.= $message_warn;
@@ -824,19 +824,19 @@ class Polls {
         }
 
         if (cfr('POLLSREPORT') AND @$_GET['action'] != 'create_poll') {
-            $result.= wf_Link('index.php?module=report_polls', wf_img('skins/icon_star.gif') . ' ' . __('Show votes result'), false, 'ubButton') . ' ';
+            $result.= wf_Link('index.php?module=report_polls', wf_img('skins/icon_star.gif') . ' ' . __('Show voting results'), false, 'ubButton') . ' ';
         }
 
         if (cfr('POLLSCONFIG') AND @$_GET['action'] == 'polloptions' OR (cfr('POLLSCONFIG') AND wf_CheckGet(array('show_options'))) AND isset($this->pollsAvaible[$this->poll_id])) {
-            $result.= wf_Link(self::URL_ME . '&action=edit_poll&poll_id=' . $this->poll_id, wf_img('skins/icon_extended.png') . ' ' . __('Config poll'), false, 'ubButton') . ' ';
+            $result.= wf_Link(self::URL_ME . '&action=edit_poll&poll_id=' . $this->poll_id, wf_img('skins/icon_extended.png') . ' ' . __('Configure Poll'), false, 'ubButton') . ' ';
         }
 
         if (cfr('POLLSCONFIG') AND (@$_GET['action'] == 'edit_poll' OR wf_CheckGet(array('show_options'))) AND isset($this->pollsAvaible[$this->poll_id])) {
-            $result.= wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $this->poll_id, wf_img('skins/icon_edit.gif') . ' ' . __('Edit options'), false, 'ubButton') . ' ';
+            $result.= wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $this->poll_id, wf_img('skins/icon_edit.gif') . ' ' . __('Edit answer options'), false, 'ubButton') . ' ';
         }
 
         if (cfr('POLLSCONFIG') AND wf_CheckGet(array('action')) AND $_GET['action'] != 'create_poll' AND isset($this->pollsAvaible[$this->poll_id])) {
-            $result.= wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $this->poll_id, wf_img('skins/icon_eye.gif') . ' ' . __('Show preview poll form'), false, 'ubButton') . ' ';
+            $result.= wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $this->poll_id, wf_img('skins/icon_eye.gif') . ' ' . __('Show preliminary voting form'), false, 'ubButton') . ' ';
         }
 
         return ($result);
@@ -866,7 +866,7 @@ class Polls {
             $columns[] = 'Actions';
         }
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxavaiblepolls=true', false, 'Polls', 100, $opts);
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&ajaxavaiblepolls=true', false, 'polls', 100, $opts);
         return ($result);
     }
 
@@ -883,23 +883,23 @@ class Polls {
                 $acts = '';
                 if (cfr('POLLSCONFIG')) {
                     $acts.= wf_JSAlert(self::URL_ME . '&action=delete_poll&poll_id=' . $poll_id, web_delete_icon(), 'If you delete this poll, you will delete all data including voting results') . ' ';
-                    $acts.= wf_JSAlert(self::URL_ME . '&action=edit_poll&poll_id=' . $poll_id, web_edit_icon(), 'Are you serious') . ' ';
+                    $acts.= wf_JSAlert(self::URL_ME . '&action=edit_poll&poll_id=' . $poll_id, web_icon_extended('Configure Poll'), 'Are you serious') . ' ';
                 }
                 if (isset($this->pollsOptionsCount[$poll_id])) {
                     $options = $this->pollsOptionsCount[$poll_id];
-                    $options.= ' ' . wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $poll_id, web_icon_search());
+                    $options.= ' ' . wf_Link(self::URL_ME . '&show_options=true&poll_id=' . $poll_id, web_icon_search('Show preliminary voting form'));
                     if (cfr('POLLSCONFIG')) {
-                        $options.= wf_JSAlert(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, ' ' . web_edit_icon(), 'Are you serious') . ' ';
+                        $options.= wf_JSAlert(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, ' ' . web_edit_icon('Edit answer options'), 'Are you serious') . ' ';
                     }
                 } else {
                     $options = 0;
                     if (cfr('POLLSCONFIG')) {
-                        $options.= ' ' . wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, web_icon_create());
+                        $options.= ' ' . wf_Link(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id, web_icon_create('Create answer options'));
                     }
                 }
                 if (isset($this->pollsVotesCount[$poll_id])) {
                     $votes = $this->pollsVotesCount[$poll_id];
-                    $votes.= ' ' . wf_Link('?module=report_polls&action=show_poll_votes&poll_id=' . $poll_id, web_icon_search());
+                    $votes.= ' ' . wf_Link('?module=report_polls&action=show_poll_votes&poll_id=' . $poll_id, web_icon_search('View poll results'));
                 } else {
                     $votes = 0;
                 }
