@@ -899,7 +899,7 @@ class Polls {
                 }
                 if (isset($this->pollsVotesCount[$poll_id])) {
                     $votes = $this->pollsVotesCount[$poll_id];
-                    $votes.= ' ' . wf_Link('?module=report_polls&action=show_poll_votes&poll_id=' . $poll_id, web_icon_search('View poll results'));
+                    $votes.= ' ' . wf_Link('?module=report_polls&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon('View poll results'));
                 } else {
                     $votes = 0;
                 }
