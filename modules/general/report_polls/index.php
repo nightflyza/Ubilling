@@ -16,7 +16,7 @@ if ($altcfg['POLLS_ENABLED']) {
     }
 
     //show polls control panel
-    show_window('', $pollsReport->panel());
+    show_window(__('Polls results'), $pollsReport->panel());
 
         // show form for create poll
         if (wf_CheckGet(array('action'))) {
