@@ -74,19 +74,21 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
-        if ($altCfg['SWITCHES_EXTENDED']) {
-            $swlinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
-        }
 
-        if (!wf_CheckGet(array('timemachine'))) {
-            $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
-        } else {
-            $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), false, 'ubButton');
-        }
 
         if (cfr('SWITCHESEDIT')) {
-            $swlinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            $toolsLinks = '';
+            $toolsLinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            if ($altCfg['SWITCHES_EXTENDED']) {
+                $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+            }
+            $swlinks.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
         }
+
+
+
 
         if ($altCfg['SWYMAP_ENABLED']) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -135,6 +137,7 @@ if (cfr('SWITCHES')) {
                 }
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
+                show_window('', wf_BackLink('?module=switches', __('Back')));
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
                 show_window(__('Dead switches top'), web_DeadSwitchesTop());
                 show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);

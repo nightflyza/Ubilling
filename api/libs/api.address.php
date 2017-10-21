@@ -11,7 +11,7 @@
  */
 function zb_AddressCleanAddressCache() {
     $cache = new UbillingCache();
-    $cache->delete('fulladdresslistcache.dat');
+    $cache->delete('FULLADDRESSLISTCACHE');
 }
 
 /**
@@ -466,7 +466,7 @@ function zb_AddressGetAptAllDataByBuild($buildid) {
  * @return string
  */
 function zb_UserGetFullAddress($login) {
-    $alladdress = zb_AddressGetFulladdresslist();
+    $alladdress = zb_AddressGetFulladdresslistCached();
     @$address = $alladdress[$login];
     return ($address);
 }
@@ -1113,12 +1113,10 @@ function zb_AddressGetFulladdresslist() {
 function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
-///////////// cache options
-    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'];
-    ;
+    $cacheTime = $alterconf['ADDRESS_CACHE_TIME']*60; // in minutes!!!!
     $result = '';
     $cache = new UbillingCache();
-    $result = $cache->getCallback('fulladdresslistcache.dat', function () {
+    $result = $cache->getCallback('FULLADDRESSLISTCACHE', function () {
         return (zb_AddressGetFulladdresslist());
     }, $cacheTime);
 

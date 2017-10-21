@@ -1922,3 +1922,11 @@ CREATE TABLE IF NOT EXISTS `wcpeusers` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- 0.8.6
+ALTER TABLE `salary_jobs` ADD INDEX(`taskid`);
+
+ALTER TABLE `wh_out` ADD INDEX(`desttype`);
+
+ALTER TABLE `wh_out` ADD INDEX(`destparam`); 

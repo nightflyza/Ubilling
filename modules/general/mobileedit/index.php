@@ -18,7 +18,7 @@ if (cfr('MOBILE')) {
 // Edit form construct
         $fieldnames = array('fieldname1' => __('Current mobile'), 'fieldname2' => __('New mobile'));
         $fieldkey = 'newmobile';
-        $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile);
+        $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile, 'mobile');
         $form.=web_UserControls($login);
 
         show_window(__('Edit mobile'), $form);

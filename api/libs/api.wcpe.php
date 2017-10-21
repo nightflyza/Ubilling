@@ -99,7 +99,7 @@ class WifiCPE {
      * @return void
      */
     protected function loadAps() {
-        $query = "SELECT * from `switches` WHERE `desc` LIKE '%AP%';";
+        $query = "SELECT * from `switches` WHERE `desc` LIKE '%AP%' ORDER BY `location` ASC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {

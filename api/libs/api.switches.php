@@ -361,7 +361,14 @@ function web_SwitchEditForm($switchid) {
     $editinputs.= wf_TextInput('editsnmp', 'SNMP community', $switchdata['snmp'], true, 20);
     $editinputs.= wf_TextInput('editsnmpwrite', 'SNMP write community', $switchdata['snmpwrite'], true, 20);
     if ($altCfg['SWITCHES_EXTENDED']) {
-        $editinputs.= wf_TextInput('editswid', 'Switch ID', $switchdata['swid'], true, 20);
+        if ((!empty($switchdata['swid'])) AND ( $altCfg['MACVEN_ENABLED'])) {
+            $macVenControl = wf_AjaxLink('?module=macvendor&mac=' . $switchdata['swid'] . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), 'swvendorcontainer', false, '');
+            $swvendorStyle='style="text-align: left; font-size:150%;  font-weight: bold;"';
+            $rightContainer.= wf_tag('div', false, '', 'id="swvendorcontainer"'.$swvendorStyle) . '' . wf_tag('div', true);
+        } else {
+            $macVenControl = '';
+        }
+        $editinputs.= wf_TextInput('editswid', __('Switch ID') . ' (MAC)' . $macVenControl, $switchdata['swid'], true, 20);
     }
     $editinputs.= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
@@ -381,9 +388,9 @@ function web_SwitchEditForm($switchid) {
         $rightContainer.= wf_AjaxLoader();
         $rightContainer.= wf_AjaxContainer('icmppingcontainer');
     }
-
-    $cells = wf_TableCell($mainForm,'','','valign="top"');
-    $cells.= wf_TableCell($rightContainer,'','','valign="top"');
+    
+    $cells = wf_TableCell($mainForm, '50%', '', 'valign="top"');
+    $cells.= wf_TableCell($rightContainer, '', '', 'valign="top"');
     $rows = wf_TableRow($cells);
     $result.=wf_TableBody($rows, '100%', 0, '');
     $result.=wf_CleanDiv();

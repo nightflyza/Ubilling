@@ -164,21 +164,23 @@ if (cfr('TASKMAN')) {
              * Salary accounting actions
              */
             if ($altCfg['SALARY_ENABLED']) {
-                $salary = new Salary();
                 //salary job deletion
                 if (wf_CheckGet(array('deletejobid'))) {
+                    $salary = new Salary($_GET['edittask']);
                     $salary->deleteJob($_GET['deletejobid']);
                     rcms_redirect($salary::URL_TS . $_GET['edittask']);
                 }
 
                 //salary job editing
                 if (wf_CheckPost(array('editsalaryjobid', 'editsalaryemployeeid', 'editsalaryjobtypeid'))) {
+                    $salary = new Salary($_GET['edittask']);
                     $salary->jobEdit($_POST['editsalaryjobid'], $_POST['editsalaryemployeeid'], $_POST['editsalaryjobtypeid'], $_POST['editsalaryfactor'], $_POST['editsalaryoverprice'], $_POST['editsalarynotes']);
                     rcms_redirect($salary::URL_TS . $_GET['edittask']);
                 }
 
                 //salary job creation
                 if (wf_CheckPost(array('newsalarytaskid', 'newsalaryemployeeid', 'newsalaryjobtypeid'))) {
+                    $salary = new Salary($_GET['edittask']);
                     $salary->createSalaryJob($_POST['newsalarytaskid'], $_POST['newsalaryemployeeid'], $_POST['newsalaryjobtypeid'], $_POST['newsalaryfactor'], $_POST['newsalaryoverprice'], $_POST['newsalarynotes']);
                     rcms_redirect($salary::URL_TS . $_GET['edittask']);
                 }

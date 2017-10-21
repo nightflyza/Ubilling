@@ -135,8 +135,16 @@ class Warehouse {
     const URL_RESERVE = 'reserve=true';
     const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
 
-    public function __construct() {
+    /**
+     * Creates new warehouse instance
+     * 
+     * @param type $taskid
+     * 
+     * @return void
+     */
+    public function __construct($taskid = '') {
         $this->loadAltCfg();
+        $this->loadOutOperations($taskid);
         $this->setUnitTypes();
         $this->setOutDests();
         $this->setSup();
@@ -147,10 +155,11 @@ class Warehouse {
         $this->loadItemTypes();
         $this->loadStorages();
         $this->loadContractors();
-        $this->loadInOperations();
-        $this->loadOutOperations();
-        $this->loadReserve();
-        $this->loadReserveHistory();
+        if (empty($taskid)) {
+            $this->loadReserve();
+            $this->loadReserveHistory();
+            $this->loadInOperations();
+        }
     }
 
     /**
@@ -312,10 +321,14 @@ class Warehouse {
     /**
      * Loads existing outcoming operations from database
      * 
+     * @param int $taskid existing taskId
+     * 
      * @return void
      */
-    protected function loadOutOperations() {
-        $query = "SELECT * from `wh_out`";
+    protected function loadOutOperations($taskid = '') {
+        $taskid = vf($taskid, 3);
+        $where = (!empty($taskid)) ? "WHERE `desttype`='task' AND `destparam`='" . $taskid . "'" : '';
+        $query = "SELECT * from `wh_out` " . $where . ";";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -2425,12 +2438,7 @@ class Warehouse {
         $tmpArr = array();
         $sum = 0;
         if (!empty($this->allOutcoming)) {
-            foreach ($this->allOutcoming as $io => $each) {
-                if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
-                    $tmpArr[$each['id']] = $each;
-                }
-            }
-
+            $tmpArr = $this->allOutcoming;
             if (!empty($tmpArr)) {
                 $cells = wf_TableCell(__('Date'));
                 $cells.= wf_TableCell(__('Warehouse storage'));

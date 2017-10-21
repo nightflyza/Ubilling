@@ -1494,16 +1494,16 @@ class UkvSystem {
         return ($result);
     }
 
-    /*
-     * extract ajax data for JQuery data tables
+    /**
+     * Extracts ajax data for JQuery data tables
+     * 
+     * @return void
      */
-
     public function ajaxUsers() {
         global $ubillingConfig;
         $altcfg = $ubillingConfig->getAlter();
+        $json = new wf_JqDtHelper();
 
-        $result = '{ 
-                  "aaData": [ ';
         if (!empty($this->users)) {
             foreach ($this->users as $io => $each) {
 
@@ -1519,32 +1519,25 @@ class UkvSystem {
                 } else {
                     $city = '';
                 }
-
 //activity flag
                 $activity = ($each['active']) ? web_bool_led($each['active']) . ' ' . __('Yes') : web_bool_led($each['active']) . ' ' . __('No');
                 $activity = str_replace('"', '', $activity);
-
 //profile link
                 $profileLink = wf_Link(self::URL_USERS_PROFILE . $each['id'], web_profile_icon(), false) . ' ';
-                $profileLink = str_replace('"', '', $profileLink);
-                $profileLink = str_replace("\n", '', $profileLink);
+//building data array
+                $data[] = $profileLink . $city . $each['street'] . ' ' . $each['build'] . $apt;
+                $data[] = $each['realname'];
+                $data[] = $each['contract'];
+                $data[] = @$this->tariffs[$each['tariffid']]['tariffname'];
+                $data[] = $activity;
+                $data[] = $each['cash'];
 
-
-                $result.='
-                    [
-                    "' . $profileLink . $city . $each['street'] . ' ' . $each['build'] . $apt . '",
-                    "' . $each['realname'] . '",
-                    "' . $each['contract'] . '",
-                    "' . @$this->tariffs[$each['tariffid']]['tariffname'] . '",
-                    "' . $activity . '",
-                    "' . $each['cash'] . '"
-                    ],';
+                $json->addRow($data);
+                unset($data);
             }
-            $result = substr($result, 0, -1);
         }
-        $result.='] 
-        }';
-        die($result);
+
+        $json->getJson();
     }
 
     /**

@@ -7,8 +7,7 @@ if (cfr('CARDS')) {
 
         if (isset($_POST['card_create'])) {
             $cards = zb_CardGenerate($_POST['card_create']);
-            $generated = '<textarea cols="80" rows="20">' . $cards . '</textarea>';
-            show_window(__('Cards generated'), $generated);
+            show_window('', wf_modalOpened(__('Cards generated'), $cards, '500', '600'));
         }
 
         //cards print
@@ -40,6 +39,8 @@ if (cfr('CARDS')) {
             rcms_redirect("?module=cards");
         }
 
+        // Check cards for dublicate
+        show_window(__('There are duplicate serial numbers of cards'), zb_GetCardDublicate());
 
         show_window(__('Cards generation'), web_CardsGenerateForm());
         show_window(__('Create print card'), wf_Link("?module=printcards&action=setting", web_edit_icon().' '.__('Edit'), true, 'ubButton'));

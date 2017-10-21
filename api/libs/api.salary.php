@@ -103,16 +103,25 @@ class Salary {
     const URL_LTR = 'ltreport=true';
     const URL_TSHEETS = 'timesheets=true';
 
-    public function __construct() {
+    /**
+     * Creates new Salary instance
+     * 
+     * @param int $taskid Existing taskId for jobs loading
+     * 
+     * @return void
+     */
+    public function __construct($taskid = '') {
         $this->setUnitTypes();
         $this->loadEmployee();
         $this->loadEmployeeRaw();
         $this->loadJobtypes();
         $this->loadJobprices();
         $this->loadWages();
-        $this->loadSalaryJobs();
+        $this->loadSalaryJobs($taskid);
         $this->loadPaid();
-        $this->loadTimesheets();
+        if (empty($taskid)) {
+            $this->loadTimesheets();
+        }
     }
 
     /**
@@ -451,10 +460,14 @@ class Salary {
     /**
      * Loads all available salary jobs from database
      * 
+     * @param int $taskid existing task ID for jobs loading
+     * 
      * @return void
      */
-    protected function loadSalaryJobs() {
-        $query = "SELECT * from `salary_jobs` ORDER BY `id` ASC";
+    protected function loadSalaryJobs($taskid = '') {
+        $taskid = vf($taskid, 3);
+        $where = (!empty($taskid)) ? "WHERE `taskid`='" . $taskid . "'" : '';
+        $query = "SELECT * from `salary_jobs` " . $where . " ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {

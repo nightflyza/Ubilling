@@ -442,6 +442,9 @@ class AdminAnnouncements {
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
         $this->loadAcquaintedStats();
+        $adminNames = ts_GetAllEmployeeLoginsCached();
+        $adminNames = unserialize($adminNames);
+
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
                 $cells = wf_TableCell($each['id']);
@@ -454,7 +457,8 @@ class AdminAnnouncements {
                         $acCells.= wf_TableCell(__('Date'));
                         $acRows = wf_TableRow($acCells, 'row1');
                         foreach ($this->acStats[$each['id']] as $eachAdmLogin => $eachAc) {
-                            $acCells = wf_TableCell($eachAdmLogin);
+                            $adminLabel = (isset($adminNames[$eachAdmLogin])) ? $adminNames[$eachAdmLogin] : $eachAdmLogin;
+                            $acCells = wf_TableCell($adminLabel);
                             $acCells.= wf_TableCell($eachAc);
                             $acRows.= wf_TableRow($acCells, 'row3');
                         }
