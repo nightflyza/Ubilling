@@ -31,7 +31,7 @@ class Polls {
     protected $pollsAvaible = array();
 
     /**
-     * Contains all polls  options as poll_id => array (id => [text])
+     * Contains all polls options as poll_id => array (id => [text])
      *
      * @var array
      */
