@@ -14,3 +14,5 @@ $lang['def']['No one voted on this poll yet'] = 'Никто еще не голо
 $lang['def']['Number of voted users'] = 'Количество голосовавших пользователей';
 $lang['def']['Voted Users'] = 'Проголосовавшие пользователи';
 $lang['def']['votes'] = 'голосов';
+$lang['def']['You did not select the search parameter'] = 'Вы не указали параметр поиска';
+$lang['def']['Search polls'] = 'Поиск опросов';
