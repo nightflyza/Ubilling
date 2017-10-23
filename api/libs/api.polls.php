@@ -268,8 +268,9 @@ class Polls {
      * @return array
      */
     protected function loadAvaiblePollsCached() {
-        $polls_arr = $this->cache->getCallback('POLLS', function() {
-                    return ($this->loadAvaiblePolls());
+        $obj = $this;
+        $polls_arr = $this->cache->getCallback('POLLS', function() use $obj {
+                    return ($obj->loadAvaiblePolls());
                     }, $this->cacheTime);
         if ( ! empty($polls_arr)) {
             foreach ($polls_arr as $key => $data) {
