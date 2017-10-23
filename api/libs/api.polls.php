@@ -269,7 +269,7 @@ class Polls {
      */
     protected function loadAvaiblePollsCached() {
         $obj = $this;
-        $polls_arr = $this->cache->getCallback('POLLS', function() use $obj {
+        $polls_arr = $this->cache->getCallback('POLLS', function() use ($obj) {
                     return ($obj->loadAvaiblePolls());
                     }, $this->cacheTime);
         if ( ! empty($polls_arr)) {
