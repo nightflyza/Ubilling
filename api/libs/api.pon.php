@@ -1080,7 +1080,13 @@ class PONizer {
         $models = array();
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
-                $models[$each['id']] = $each['modelname'];
+                if (@$this->altCfg['ONUMODELS_FILTER']) {
+                    if (ispos($each['modelname'], 'ONU')) {
+                        $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                    }
+                } else {
+                    $models[$each['id']] = $each['modelname'];
+                }
             }
         }
 
@@ -1114,7 +1120,13 @@ class PONizer {
         $models = array();
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
-                $models[$each['id']] = $each['modelname'];
+                if (@$this->altCfg['ONUMODELS_FILTER']) {
+                    if (ispos($each['modelname'], 'ONU')) {
+                        $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                    }
+                } else {
+                    $models[$each['id']] = $each['modelname'];
+                }
             }
         }
 
@@ -1208,7 +1220,13 @@ class PONizer {
             $models = array();
             if (!empty($this->allModelsData)) {
                 foreach ($this->allModelsData as $io => $each) {
-                    $models[$each['id']] = $each['modelname'];
+                    if (@$this->altCfg['ONUMODELS_FILTER']) {
+                        if (ispos($each['modelname'], 'ONU')) {
+                            $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                        }
+                    } else {
+                        $models[$each['id']] = $each['modelname'];
+                    }
                 }
             }
 
