@@ -289,7 +289,7 @@ class Polls {
      * 
      * @return array
      */
-    protected function loadAvaiblePolls() {
+    public function loadAvaiblePolls() {
         $query = "SELECT * FROM `polls` ORDER BY `id` ASC";
         $result = simple_queryall($query);
         return ($result);
@@ -302,8 +302,9 @@ class Polls {
      * @return array pollsOptionsCount
      */
     protected function loadPollsOptionsCached() {
-        $option_arr = $this->cache->getCallback('POLLS_OPTIONS', function() {
-                    return ($this->loadPollsOptions());
+        $obj=$this;
+        $option_arr = $this->cache->getCallback('POLLS_OPTIONS', function() use ($obj) {
+                    return ($obj->loadPollsOptions());
                     }, $this->cacheTime);
         if ( ! empty($option_arr)) {
             foreach ($option_arr as $data) {
@@ -321,7 +322,7 @@ class Polls {
      * @return array pollsOptions
      * @return array pollsOptionsCount
      */
-    protected function loadPollsOptions() {
+    public function loadPollsOptions() {
         $query = "SELECT * FROM `polls_options` ORDER BY `id` ASC";
         $result = simple_queryall($query);
         return ($result);
@@ -356,8 +357,9 @@ class Polls {
         if (isset($this->pollsAvaible[$poll_id])) {
             // Check for needed cache by poll_id
             $this->pollsVotesCacheInfoClean($poll_id);
-            $votes_arr = $this->cache->getCallback('POLL_' . $poll_id . '_VOTES', function() use ($poll_id) {
-                        return ($this->loadPollsVotes($poll_id));
+            $obj=$this;
+            $votes_arr = $this->cache->getCallback('POLL_' . $poll_id . '_VOTES', function() use ($poll_id,$obj) {
+                        return ($obj->loadPollsVotes($poll_id));
                         }, $this->cacheTime);
             if ( ! empty($votes_arr)) {
                 foreach ($votes_arr as $data) {
@@ -378,7 +380,7 @@ class Polls {
      * 
      * @return array polls_votes
      */
-    protected function loadPollsVotes($poll_id) {
+    public function loadPollsVotes($poll_id) {
         $query = "SELECT * FROM `polls_votes` WHERE `poll_id` = '" . $poll_id . "'";
         $result = simple_queryall($query);
         return ($result);
