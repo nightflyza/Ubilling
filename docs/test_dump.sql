@@ -1960,3 +1960,12 @@ CREATE TABLE IF NOT EXISTS `polls_votes` (
   UNIQUE KEY `login_poll` (`poll_id`,`login`) USING BTREE,
   UNIQUE KEY `login_poll_option` (`option_id`,`poll_id`,`login`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `zbsannhist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `annid` int(11) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `annid` (`annid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
