@@ -57,7 +57,11 @@ if ($altCfg['PON_ENABLED']) {
         //force OLT polling
         if (wf_CheckGet(array('forcepoll'))) {
             $pon->oltDevicesPolling(true);
-            rcms_redirect('?module=ponizer&unknownonulist=true');
+            if (wf_CheckGet(array('uol'))) {
+                rcms_redirect('?module=ponizer&unknownonulist=true');
+            } else {
+                rcms_redirect('?module=ponizer');
+            }
         }
 
 
