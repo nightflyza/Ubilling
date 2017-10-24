@@ -100,6 +100,7 @@ class Polls {
      * @return string
      */
     public function renderVoitingForm() {
+        $result = '';
         $avaible_poll = $this->loadPollForVoiting();
         if ($avaible_poll) {
             $option_data = $this->loadPollOptoins($avaible_poll);
