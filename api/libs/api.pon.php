@@ -1082,7 +1082,7 @@ class PONizer {
             foreach ($this->allModelsData as $io => $each) {
                 if (@$this->altCfg['ONUMODELS_FILTER']) {
                     if (ispos($each['modelname'], 'ONU')) {
-                        $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                        $models[$each['id']] = $each['modelname'];
                     }
                 } else {
                     $models[$each['id']] = $each['modelname'];
@@ -1122,7 +1122,7 @@ class PONizer {
             foreach ($this->allModelsData as $io => $each) {
                 if (@$this->altCfg['ONUMODELS_FILTER']) {
                     if (ispos($each['modelname'], 'ONU')) {
-                        $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                        $models[$each['id']] = $each['modelname'];
                     }
                 } else {
                     $models[$each['id']] = $each['modelname'];
@@ -1222,7 +1222,7 @@ class PONizer {
                 foreach ($this->allModelsData as $io => $each) {
                     if (@$this->altCfg['ONUMODELS_FILTER']) {
                         if (ispos($each['modelname'], 'ONU')) {
-                            $models[$each['id']] = str_replace('ONU', '', $each['modelname']);
+                            $models[$each['id']] = $each['modelname'];
                         }
                     } else {
                         $models[$each['id']] = $each['modelname'];
