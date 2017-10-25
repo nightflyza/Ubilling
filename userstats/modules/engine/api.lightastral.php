@@ -740,6 +740,59 @@ $(function() {
 }
 
 /**
+ * Returns new opened modal window with some content
+ * 
+ * @param string $title modal window title
+ * @param string $content modal window content
+ * @param string $width modal window width 
+ * @param string $height modal window height
+ * @return string
+ *  
+ */
+function la_modalOpened($title, $content, $width = '', $height = '') {
+
+    $wid = la_inputid();
+
+//setting auto width if not specified
+    if ($width == '') {
+        $width = '600';
+    }
+
+//setting auto width if not specified
+    if ($height == '') {
+        $height = '400';
+    }
+
+    $dialog = '
+<script type="text/javascript">
+$(function() {
+		$( "#dialog-modal_' . $wid . '" ).dialog({
+			autoOpen: true,
+			width: ' . $width . ',
+                        height: ' . $height . ',
+			modal: true,
+                        show: "drop",
+			hide: "fold"
+		});
+
+		$( "#opener_' . $wid . '" ).click(function() {
+			$( "#dialog-modal_' . $wid . '" ).dialog( "open" );
+                      	return false;
+		});
+	});
+</script>
+
+<div id="dialog-modal_' . $wid . '" title="' . $title . '" style="display:none; width:1px; height:1px;">
+	<p>
+        ' . $content . '
+        </p>
+</div>
+';
+
+    return($dialog);
+}
+
+/**
  * Returns JS confirmation url 
  * 
  * @param string $url URL if confirmed
