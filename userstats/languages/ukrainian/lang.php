@@ -344,6 +344,13 @@ $lang['def']['Ping'] = 'Пінг';
 $lang['def']['Jitter'] = 'Джиттер';
 $lang['def']['Start'] = 'Розпочати';
 $lang['def']['Abort'] = 'Перервати';
-
+$lang['def']['Polls'] = 'Опитування';
+$lang['def']['My answers to polls'] = 'Мої відповіді на опитування';
+$lang['def']['Start date poll'] = 'Дата початку опитування';
+$lang['def']['End date poll'] = 'Дата завершення опитування';
+$lang['def']['Title'] = 'Заголовок';
+$lang['def']['Answer'] = 'Відповідь';
+$lang['def']['Voting date'] = 'Дата голосування';
+$lang['def']['You have not voted yet'] = 'Ви поки ще не голосували';
 
 ?>
