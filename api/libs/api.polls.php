@@ -116,7 +116,7 @@ class Polls {
                                 $("div#add_field_area").append(\' \
                                                                 <div id="add\'+telnum+\'" class="add"> \
                                                                 <label>' . __($label) . ' №\'+telnum+\'</label> \
-                                                                <input type="text" width="' . $width . '" name="' . $input_name . '[]" id="' . $input_name . '"  value="' . $value . '"/> \
+                                                                <input type="text" width="' . $width . '" name="' . $input_name . '[]" id="' . $input_name . '"  value="' . htmlspecialchars($value) . '"/> \
                                                                 <div class="deletebutton" onclick="deleteField(\'+telnum+\');"></div> \
                                                                 </div> \
                                                             \');
@@ -553,7 +553,7 @@ class Polls {
             $cells.= wf_TableCell(__('Admin'));
             $rows = wf_TableRow($cells, 'row1');
 
-            $window = @$this->poll_id . ' - ' . @$this->pollsAvaible[$this->poll_id]['title'];
+            $window = @$this->poll_id . ' - ' . @htmlspecialchars($this->pollsAvaible[$this->poll_id]['title']);
             $cells = wf_TableCell($this->renderPollStatus($this->poll_id));
             $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['start_date']);
             $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['end_date']);
@@ -598,7 +598,7 @@ class Polls {
         }
 
         $cells = wf_TableCell(__('Poll title'));
-        $cells.= wf_TableCell(wf_TextInput($poll_action  . '[title]', '', $poll_name, false, '27'));
+        $cells.= wf_TableCell(wf_TextInput($poll_action  . '[title]', '', htmlspecialchars($poll_name), false, '27'));
         $rows = wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Start date'));
@@ -774,7 +774,7 @@ class Polls {
                     $form.= '
                             <div id="add' . $n . '" class="add">
                                 <label>' . __($label) . ' №' . $n . '</label>
-                                <input type="text" width="' . $input_width . '" name="' . $input_name . '[' . $opt_id . ']" id="' . $input_name . '" value="' . $text . '"/>';
+                                <input type="text" width="' . $input_width . '" name="' . $input_name . '[' . $opt_id . ']" id="' . $input_name . '" value="' . htmlspecialchars($text) . '"/>';
                             if ($n >= 3 ) {
                                 $form.= '<div class="deletebutton" onclick="if(!confirm(\'' . __('Be careful! If you delete the option, you also delete the poll results by this option.') . '\')) {return false;} deleteField(\'' . $n . '\');"></div>';
                             }
@@ -786,11 +786,11 @@ class Polls {
              $form.= '
                                 <div id="add1" class="add">
                                     <label>' . __($label) . ' №1</label>
-                                    <input type="text" width="' . $input_width . '" name="' . $input_name . '[]" id="' . $input_name . '" value="' . $value . '"/>
+                                    <input type="text" width="' . $input_width . '" name="' . $input_name . '[]" id="' . $input_name . '" value="' . htmlspecialchars($value) . '"/>
                                 </div>
                                 <div id="add2" class="add">
                                     <label>' . __($label) . ' №2</label>
-                                    <input type="text" width="' . $input_width . '" name="' . $input_name . '[]" id="' . $input_name . '" value="' . $value . '"/>
+                                    <input type="text" width="' . $input_width . '" name="' . $input_name . '[]" id="' . $input_name . '" value="' . htmlspecialchars($value) . '"/>
                                 </div>';
             }
              $form.= '
@@ -908,7 +908,7 @@ class Polls {
                 }
 
                 $data[] = $poll_id;
-                $data[] = $poll['title'];
+                $data[] = htmlspecialchars($poll['title']);
                 $data[] = $this->renderPollStatus($poll_id);
                 $data[] = $poll['start_date'];
                 $data[] = $poll['end_date'];
