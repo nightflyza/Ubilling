@@ -168,7 +168,7 @@ class Polls {
 
             $result = la_TableBody($rows, '100%', '');
         } else {
-            $result = __('You have not yet responded to polls');
+            $result = __('You have not voted yet');
         }
         return ($result);
     }
