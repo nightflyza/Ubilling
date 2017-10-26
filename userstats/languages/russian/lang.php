@@ -350,6 +350,7 @@ $lang['def']['End date poll'] = 'Дата завершения опроса';
 $lang['def']['Title'] = 'Заголовок';
 $lang['def']['Answer'] = 'Ответ';
 $lang['def']['Voting date'] = 'Дата голосования';
-$lang['def']['You have not voted yet'] = 'Вы пока еще не голосовали';
+$lang['def']['You have not yet responded to polls'] = 'Вы еще не ответчали на опросы';
+$lang['def']['Voite'] = 'Голосовать';
 
 ?>

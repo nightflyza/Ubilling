@@ -313,7 +313,7 @@ class PollsReport extends Polls {
             foreach ($this->pollsOptions[$this->poll_id] as $id => $options) {
                 if (isset($this->pollsOptionVotesCount[$this->poll_id][$id])) {
                     $votes = $this->pollsOptionVotesCount[$this->poll_id][$id];
-                    $act = ' ' . wf_Link(self::URL_REPORT . '&action=show_option_votes&poll_id=' . $this->poll_id . '&option_id=' . $id, web_icon_search());
+                    $act = ' ' . wf_Link(self::URL_REPORT . '&action=show_option_votes&poll_id=' . $this->poll_id . '&option_id=' . $id, web_icon_search(__('Show voters')));
                 } else {
                     $votes = 0;
                     $act = '';
