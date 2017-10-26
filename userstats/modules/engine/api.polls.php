@@ -151,8 +151,8 @@ class Polls {
         $voites_data = $this->loadUserVoites();
         if ($voites_data) {
             $cells = la_TableCell(__('Title'));
-            $cells.= la_TableCell(__('Start date'));
-            $cells.= la_TableCell(__('End date'));
+            $cells.= la_TableCell(__('Start date poll'));
+            $cells.= la_TableCell(__('End date poll'));
             $cells.= la_TableCell(__('Answer'));
             $cells.= la_TableCell(__('Voting date'));
             $rows = la_TableRow($cells, 'row1');
@@ -168,7 +168,7 @@ class Polls {
 
             $result = la_TableBody($rows, '100%', '');
         } else {
-            $result = __('You have not voted yet');
+            $result = __('You have not yet responded to polls');
         }
         return ($result);
     }

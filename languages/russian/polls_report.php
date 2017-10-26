@@ -16,3 +16,4 @@ $lang['def']['Voted Users'] = 'Проголосовавшие пользоват
 $lang['def']['votes'] = 'голосов';
 $lang['def']['You did not select the search parameter'] = 'Вы не указали параметр поиска';
 $lang['def']['Search polls'] = 'Поиск опросов';
+$lang['def']['Show voters'] = 'Показать проголосовавших';

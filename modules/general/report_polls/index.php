@@ -33,6 +33,6 @@ if ($altcfg['POLLS_ENABLED']) {
         show_error(__('Permission denied'));
     }
 } else {
-    show_error(__('Polls now disabled'));
+    show_error(__('This module is disabled'));
 }
 ?>
