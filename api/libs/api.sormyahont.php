@@ -71,6 +71,7 @@ class SormYahont {
      */
     public function __construct() {
         $this->loadAlter();
+        $this->setOptions();
         $this->loadUsersData();
         $this->loadContractDates();
         $this->loadPassportData();
@@ -86,6 +87,15 @@ class SormYahont {
     protected function loadAlter() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Sets some object config-based options if required
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        //nothing yet here
     }
 
     /**
@@ -114,6 +124,17 @@ class SormYahont {
      */
     protected function loadPassportData() {
         $this->AllPassportData = zb_UserPassportDataGetAll();
+    }
+
+    /**
+     * Little workaround for future multiple branches support
+     * 
+     * @param string $userLogin
+     * 
+     * @return int
+     */
+    protected function getUserBranchId($userLogin) {
+        return ($this->branchId);
     }
 
     /**
@@ -180,7 +201,7 @@ class SormYahont {
                     $userState = 0;
                 }
                 $dataTmp = array(
-                    $this->branchId, //default branch
+                    $this->getUserBranchId($userLogin), //default branch
                     $userLogin, // login
                     $each['ip'], // ip
                     $each['email'], // email
@@ -197,7 +218,7 @@ class SormYahont {
                     @$this->AllPassportData[$userLogin]['birthdate'], // birthdate
                     1, //single string passport data
                     //unsctruct passport data below
-                    @$this->AllPassportData[$userLogin]['passportnum'].' '.@$this->AllPassportData[$userLogin]['passportdate'] .' '.@$this->AllPassportData[$userLogin]['passportwho'],
+                    @$this->AllPassportData[$userLogin]['passportnum'] . ' ' . @$this->AllPassportData[$userLogin]['passportdate'] . ' ' . @$this->AllPassportData[$userLogin]['passportwho'],
                     1, // i guess 1 is passport
                     '', //empty user bank
                     '', //empty bank account
@@ -216,7 +237,123 @@ class SormYahont {
                 $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
-        //$result=  $this->changeCharset($result);
+        return ($result);
+    }
+
+    /**
+     * Returns user services data squense 4.2
+     * 
+     * @return string
+     */
+    public function getServicesData() {
+        $result = '';
+        if (!empty($this->allUsersData)) {
+            foreach ($this->allUsersData as $io => $each) {
+                $userLogin = $each['login'];
+                $stgData = $this->allUsers[$userLogin];
+                $userContract = $each['contract'];
+                $userContractDate = @$this->allContractDates[$userContract];
+                $dataTmp = array(
+                    $this->getUserBranchId($userLogin), //default branch
+                    $userLogin, // login
+                    $userContract, //contract number
+                    1, //using something like service ID
+                    $userContractDate, //contract date
+                    '', //using empty value as service deactivation date
+                    0, // using empty service custom parameters
+                );
+                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Banks transactons data squense 6.1 returns empty data because no mechanics for detecting it
+     * 
+     * @return string
+     */
+    public function getBankTransactions() {
+        $result = '';
+        return ($result);
+    }
+
+    /**
+     * Payment cards usage data squense 6.2
+     * 
+     * @return string
+     */
+    public function getPaycardsTransactions() {
+        $result = '';
+        $query = "SELECT * from `cardbank` WHERE `usedlogin`!='';";
+        $allCards = simple_queryall($query);
+        if (!empty($allCards)) {
+            foreach ($allCards as $io => $each) {
+                $userLogin = $each['usedlogin'];
+                //not showing card payments for users that not exists anymore
+                if (isset($this->allUsersData[$userLogin])) {
+                    $userData = $this->allUsersData[$userLogin];
+                    $userContract = $userData['contract'];
+
+                    $dataTmp = array(
+                        $this->getUserBranchId($userLogin), //default branch ID
+                        $userContract, //user contract
+                        $userData['ip'], //user IP
+                        $each['usedate'], //card usage aka payment date
+                        $each['part'] . $each['serial'], //card part and number
+                        $each['cash'] // card price
+                    );
+                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns existing OpenPays transactions data squense 6.3
+     * 
+     * @return string
+     */
+    public function getOpenPaysTransactions() {
+        $result = '';
+        //is openpayz used on this host?
+        if (zb_CheckTableExists('op_transactions')) {
+            $allPayIds = array();
+            $queryPayIds = "SELECT * from `op_customers`";
+            $allPayIdsTmp = simple_queryall($queryPayIds);
+            //payment IDs preprocessing
+            if (!empty($allPayIdsTmp)) {
+                foreach ($allPayIdsTmp as $io => $each) {
+                    $allPayIds[$each['virtualid']] = $each['realid'];
+                }
+            }
+            //transactions processing
+            $query = "SELECT * from `op_transactions`";
+            $allTransactions = simple_queryall($query);
+            if (!empty($allTransactions)) {
+                foreach ($allTransactions as $io => $each) {
+                    //detecting user login by its PaymentID
+                    if (isset($allPayIds[$each['customerid']])) {
+                        $userLogin = $allPayIds[$each['customerid']];
+                        //not showing transactions for users that not exists anymore
+                        if (isset($this->allUsersData[$userLogin])) {
+                            $userData = $this->allUsersData[$userLogin];
+                            $dataTmp = array(
+                                $this->getUserBranchId($userLogin), //user branch ID
+                                $userData['contract'], // user contract number
+                                $each['date'], //transaction processing aka payment date
+                                $each['paysys'] . ' ' . $each['hash'], //using payment system name + hash as terminal ID
+                                '', //we dont know anything about terminal number
+                                '', //and nothing about its address
+                                $each['summ'], //but we know transaction summ
+                            );
+                            $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                        }
+                    }
+                }
+            }
+        }
         return ($result);
     }
 
