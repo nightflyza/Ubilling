@@ -360,7 +360,7 @@ class SormYahont {
         if (!empty($this->allUsersData)) {
             foreach ($this->allUsersData as $io => $each) {
                 $userLogin = $each['login'];
-                $stgData = $this->allUsers[$userLogin];
+                $stgData = @$this->allUsers[$userLogin];
                 $userContract = $each['contract'];
                 $userContractDate = @$this->allContractDates[$userContract];
                 $dataTmp = array(
