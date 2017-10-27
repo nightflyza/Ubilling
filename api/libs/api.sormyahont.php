@@ -149,13 +149,14 @@ class SormYahont {
      * @return void
      */
     protected function setOptions() {
-        $this->ispName = 'ОтортенТелеком';
-        $this->ispCountry = 'Россия';
-        $this->ispRegion = 'Свердловская область';
-        $this->ispDistrict = 'Ивдельский';
-        $this->ispCity = 'Холат-Сяхыл';
-        $this->ispStreet = 'Дятлова';
-        $this->ispBuildNum = '13';
+        //setting ISP location options
+        $this->ispName = @$this->altCfg['SORM_ISPNAME'];
+        $this->ispCountry = @$this->altCfg['SORM_ISPCOUNTRY'];
+        $this->ispRegion = @$this->altCfg['SORM_ISPREGION'];
+        $this->ispDistrict = @$this->altCfg['SORM_ISPDISTRICT'];
+        $this->ispCity = @$this->altCfg['SORM_ISPCITY'];
+        $this->ispStreet = @$this->altCfg['SORM_ISPSTREET'];
+        $this->ispBuildNum = @$this->altCfg['SORM_ISPBUILD'];
     }
 
     /**
