@@ -4,5 +4,5 @@
 error_reporting(E_ALL);
 
 $sorm= new SormYahont();
-
+debarr($sorm->getUserData());
 ?>
