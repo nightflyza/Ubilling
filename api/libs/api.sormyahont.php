@@ -541,6 +541,12 @@ class SormYahont {
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
+                /**
+                 * Когда я с ними - я перестаю умирать
+                 * У них открытые руки и цветные слова
+                 * Они дышат травой и им на всё наплевать
+                 * А майор идёт их уничтожать
+                 */
                 $dataTmp = array(
                     $this->branchId, //default branch id
                     $each['nasip'], // NAS IP
@@ -559,6 +565,98 @@ class SormYahont {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Returns available services list aka 7.2
+     * 
+     * @return string
+     */
+    public function getServicesList() {
+        $result = '';
+        $dataTmp = array(
+            $this->branchId, // branch id
+            1, //serviceID
+            'Internet', //service internal name
+            '', //start date
+            '', //end date
+            __('Internet'), //localised service name
+        );
+        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        return ($result);
+    }
+
+    /**
+     * Payment types directory aka 7.3
+     * 
+     * @return string
+     */
+    public function getPaymentTypesList() {
+        $result = '';
+        $all = zb_CashGetAllCashTypes();
+        if (!empty($all)) {
+            foreach ($all as $cashTypeId => $cashTypeName) {
+                $dataTmp = array(
+                    $this->branchId, //branch ID
+                    $cashTypeId, // payment type id
+                    '', //type start date
+                    '', //type end date
+                    __($cashTypeName) //type name localised
+                );
+                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns available IP pools directory aka 7.4
+     * 
+     * @return string
+     */
+    public function getIpPoolsList() {
+        $result = '';
+        $query = "SELECT * from `networks`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $ipSegs = explode('/', $each['desc']);
+                if (!empty($ipSegs)) {
+                    $dataTmp = array(
+                        $this->branchId, //branch id
+                        'Users IP pool', // ip pool purpose
+                        $ipSegs[0], //IP pool network address
+                        $ipSegs[1], //IP pool network CIDR mask
+                        '01.01.1909', //start date
+                        '', //end date
+                    );
+                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns document types list aka 7.5
+     * 
+     * @return string
+     */
+    public function getDocsTypesList() {
+        $result = '';
+        $dataTmp = array(
+            $this->branchId, //branch id
+            1, // document type
+            '', //start date
+            '', //end date
+            __('Passport data') //document type name
+        );
+        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        return ($result);
+    }
+    
+    public function getBranchesList() {
+        
     }
 
 }
