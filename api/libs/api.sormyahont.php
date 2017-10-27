@@ -119,6 +119,11 @@ class SormYahont {
     const ENCLOSURE = '"';
 
     /**
+     * Describes path for exporting output data
+     */
+    const PATH_EXPORT = 'content/documents/sorm/';
+
+    /**
      * Creates new SormYahont instance
      *
      * @return void 
@@ -654,9 +659,42 @@ class SormYahont {
         $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
         return ($result);
     }
-    
+
+    /**
+     * Returns branches directory aka 7.8
+     * 
+     * @return string
+     */
     public function getBranchesList() {
-        
+        $result = '';
+        $dataTmp = array(
+            $this->branchId, //branch id
+            '', //start date
+            '', //end date
+            $this->ispName //Branch name
+        );
+        $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+        return ($result);
+    }
+
+    /**
+     * Saves all output data to some path
+     * 
+     * @return void
+     */
+    public function saveAllDataCsv() {
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.8-branches.csv', $this->changeCharset($this->getBranchesList()));
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.5-doctypes.csv', $this->changeCharset($this->getDocsTypesList()));
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.4-ip_numbering_plan.csv', $this->changeCharset($this->getIpPoolsList()));
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.3-pay_types.csv', $this->changeCharset($this->getPaymentTypesList()));
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.2-supplement_services.csv', $this->changeCharset($this->getServicesList()));
+        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.1-gates.csv', $this->changeCharset($this->getNasData()));
+        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.7-balance-fillup.csv', $this->changeCharset($this->getPaymentsSummary()));
+        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.4-service-center.csv', $this->changeCharset($this->getCashPayments()));
+        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.3-public-terminal.csv', $this->changeCharset($this->getOpenPayzTransactions()));
+        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.2-express-card.csv', $this->changeCharset($this->getPaycardsTransactions()));
+        file_put_contents(self::PATH_EXPORT . 'abonents/' . '4.2-services.csv', $this->changeCharset($this->getServicesData()));
+        file_put_contents(self::PATH_EXPORT . 'abonents/' . '4.1-abonents.csv', $this->changeCharset($this->getUserData()));
     }
 
 }
