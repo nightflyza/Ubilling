@@ -214,9 +214,15 @@ class SormYahont {
                     '', //using empty value as service deactivation date
                     0, // by default home user, may be we can detect corporative users (1) if CORPS_ENABLED
                     1, //single string user data fields
+                    '', //empty struct realname data for 3 fields , using type 1
+                    '',
+                    '',
                     $each['realname'], //realname as single string
                     @$this->AllPassportData[$userLogin]['birthdate'], // birthdate
                     1, //single string passport data
+                    '', //empty struct passport data for 3 fields, using type 1
+                    '',
+                    '',
                     //unsctruct passport data below
                     @$this->AllPassportData[$userLogin]['passportnum'] . ' ' . @$this->AllPassportData[$userLogin]['passportdate'] . ' ' . @$this->AllPassportData[$userLogin]['passportwho'],
                     1, // i guess 1 is passport
@@ -230,8 +236,26 @@ class SormYahont {
                     '', //empty corp bank name
                     '', //empty corp bank account
                     1, // single string address data
+                    '', //empty struct address 9 fields, using type 1
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
                     $each['fulladress'], //single string address
-                    1, //single string address
+                    1, //single string device address
+                    '', //empty 9 fields for struct device address
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
                     $each['fulladress'], //using user address as device address
                 );
                 $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
