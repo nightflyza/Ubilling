@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 $sorm = new SormYahont();
 
+show_window('debug 6.7', $sorm->getPaymentsSummary());
 show_window('debug 6.4', $sorm->getCashPayments());
 show_window('debug 6.3', $sorm->getOpenPayzTransactions());
 show_window('debug 6.2', $sorm->getPaycardsTransactions());

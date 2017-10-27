@@ -45,6 +45,11 @@ class SormYahont {
     protected $branchId = 1;
 
     /**
+     * Export date format
+     */
+    const DATE_FORMAT = 'd.m.Y H:i:s';
+
+    /**
      * Ubilling database charset
      */
     const IN_CHARSET = 'utf-8';
@@ -150,6 +155,22 @@ class SormYahont {
     }
 
     /**
+     * Casts date in required format
+     * 
+     * @param string $date
+     * 
+     * @return string
+     */
+    protected function formatDate($date) {
+        $result = '';
+        if (!empty($date)) {
+            $timestamp = strtotime($date);
+            $result = date(self::DATE_FORMAT, $timestamp);
+        }
+        return ($result);
+    }
+
+    /**
      * Converts single dimension array into CSV string data
      * 
      * @param array $fields
@@ -207,10 +228,10 @@ class SormYahont {
                     $each['email'], // email
                     $each['mobile'], // phone
                     $each['mac'], // mac
-                    $userContractDate, //contract date
+                    $this->formatDate($userContractDate), //contract date
                     $userContract, //contract number
                     $userState, //user state
-                    $userContractDate, //using contract date as service activation date
+                    $this->formatDate($userContractDate), //using contract date as service activation date
                     '', //using empty value as service deactivation date
                     0, // by default home user, may be we can detect corporative users (1) if CORPS_ENABLED
                     1, //single string user data fields
@@ -219,7 +240,7 @@ class SormYahont {
                     '', // patronymic
                     '', // surname
                     $each['realname'], //realname as single string
-                    @$this->AllPassportData[$userLogin]['birthdate'], // birthdate
+                    $this->formatDate(@$this->AllPassportData[$userLogin]['birthdate']), // birthdate
                     1, //single string passport data
                     //empty struct passport data for 3 fields, using type 1
                     '', // passport series
@@ -286,7 +307,7 @@ class SormYahont {
                     $userLogin, // login
                     $userContract, //contract number
                     1, //using something like service ID
-                    $userContractDate, //contract date
+                    $this->formatDate($userContractDate), //contract date
                     '', //using empty value as service deactivation date
                     '', // using empty service custom parameters
                 );
@@ -327,7 +348,7 @@ class SormYahont {
                         $this->getUserBranchId($userLogin), //default branch ID
                         $userContract, //user contract
                         $userData['ip'], //user IP
-                        $each['usedate'], //card usage aka payment date
+                        $this->formatDate($each['usedate']), //card usage aka payment date
                         $each['part'] . $each['serial'], //card part and number
                         $each['cash'] // card price
                     );
@@ -370,7 +391,7 @@ class SormYahont {
                             $dataTmp = array(
                                 $this->getUserBranchId($userLogin), //user branch ID
                                 $userData['contract'], // user contract number
-                                $each['date'], //transaction processing aka payment date
+                                $this->formatDate($each['date']), //transaction processing aka payment date
                                 $each['paysys'] . ' ' . $each['hash'], //using payment system name + hash as terminal ID
                                 '', //we dont know anything about terminal number
                                 '', //and nothing about its address
@@ -404,7 +425,7 @@ class SormYahont {
                         $this->getUserBranchId($userLogin), //user branch ID
                         $userData['contract'], //user contract number
                         $userData['ip'], //user IP address
-                        $each['date'], //payment date
+                        $this->formatDate($each['date']), //payment date
                         'cashbox', // its cash payment point
                         //6 empty fields for cashbox address 
                         '', // country
@@ -414,6 +435,37 @@ class SormYahont {
                         '', // street
                         '', //build num
                         $each['summ'], // payment sum
+                    );
+                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns data about payments summary aka data squense 6.7
+     * 
+     * @return string
+     */
+    public function getPaymentsSummary() {
+        $result = '';
+        $query = "SELECT * from `payments` WHERE  `summ`>0;";
+        $allPayments = simple_queryall($query);
+        if (!empty($allPayments)) {
+            foreach ($allPayments as $io => $each) {
+                $userLogin = $each['login'];
+                //no export payments for users that not exists anymore
+                if (isset($this->allUsersData[$userLogin])) {
+                    $userData = $this->allUsersData[$userLogin];
+                    $dataTmp = array(
+                        $this->getUserBranchId($userLogin), //user branch ID
+                        $each['cashtypeid'], //cash type id
+                        $userData['contract'], //user contract number
+                        $userData['ip'], //user IP address
+                        $this->formatDate($each['date']), //payment date
+                        $each['summ'], // payment sum
+                        $each['note'], // payment notes
                     );
                     $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
