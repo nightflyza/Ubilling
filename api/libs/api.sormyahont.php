@@ -45,6 +45,55 @@ class SormYahont {
     protected $branchId = 1;
 
     /**
+     * Contains ISP name
+     *
+     * @var string
+     */
+    protected $ispName = '';
+
+    /**
+     * Contains ISP location country
+     *
+     * @var string
+     */
+    protected $ispCountry = '';
+
+    /**
+     * Contains ISP location region
+     *
+     * @var string
+     */
+    protected $ispRegion = '';
+
+    /**
+     * Contains ISP location district
+     *
+     * @var string
+     */
+    protected $ispDistrict = '';
+
+    /**
+     * Contains ISP location city
+     *
+     * @var string
+     */
+    protected $ispCity = '';
+
+    /**
+     * Contains ISP location street
+     *
+     * @var string
+     */
+    protected $ispStreet = '';
+
+    /**
+     * Contains ISP location build number
+     *
+     * @var string
+     */
+    protected $ispBuildNum = '';
+
+    /**
      * Export date format
      */
     const DATE_FORMAT = 'd.m.Y H:i:s';
@@ -100,7 +149,13 @@ class SormYahont {
      * @return void
      */
     protected function setOptions() {
-        //nothing yet here
+        $this->ispName = 'ОтортенТелеком';
+        $this->ispCountry = 'Россия';
+        $this->ispRegion = 'Свердловская область';
+        $this->ispDistrict = 'Ивдельский';
+        $this->ispCity = 'Холат-Сяхыл';
+        $this->ispStreet = 'Дятлова';
+        $this->ispBuildNum = '13';
     }
 
     /**
@@ -428,12 +483,12 @@ class SormYahont {
                         $this->formatDate($each['date']), //payment date
                         'cashbox', // its cash payment point
                         //6 empty fields for cashbox address 
-                        '', // country
-                        '', // region
-                        '', // district
-                        '', // city name
-                        '', // street
-                        '', //build num
+                        $this->ispCountry, // country
+                        $this->ispRegion, // region
+                        $this->ispDistrict, // district
+                        $this->ispCity, // city name
+                        $this->ispStreet, // street
+                        $this->ispBuildNum, //build num
                         $each['summ'], // payment sum
                     );
                     $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
@@ -469,6 +524,37 @@ class SormYahont {
                     );
                     $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns available NAS servers list aka gates as data squense 7.1
+     * 
+     * @return string
+     */
+    public function getNasData() {
+        $result = '';
+        $query = "SELECT * from `nas`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $dataTmp = array(
+                    $this->branchId, //default branch id
+                    $each['nasip'], // NAS IP
+                    '', // we dont know when NAS start working    
+                    '', // and guesss what? we think that NAS still works
+                    $each['nasname'], //using NAS name as description
+                    $this->ispCountry, //location country
+                    $this->ispRegion, // location region
+                    $this->ispDistrict, //location district
+                    $this->ispCity, //location city
+                    $this->ispStreet, //location street
+                    $this->ispBuildNum, //location build
+                    7, // NAS type AAA
+                );
+                $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
         }
         return ($result);
