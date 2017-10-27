@@ -214,15 +214,17 @@ class SormYahont {
                     '', //using empty value as service deactivation date
                     0, // by default home user, may be we can detect corporative users (1) if CORPS_ENABLED
                     1, //single string user data fields
-                    '', //empty struct realname data for 3 fields , using type 1
-                    '',
-                    '',
+                    //empty struct realname data for 3 fields , using type 1
+                    '', // first name
+                    '', // patronymic
+                    '', // surname
                     $each['realname'], //realname as single string
                     @$this->AllPassportData[$userLogin]['birthdate'], // birthdate
                     1, //single string passport data
-                    '', //empty struct passport data for 3 fields, using type 1
-                    '',
-                    '',
+                    //empty struct passport data for 3 fields, using type 1
+                    '', // passport series
+                    '', // passport number
+                    '', // when and who applied
                     //unsctruct passport data below
                     @$this->AllPassportData[$userLogin]['passportnum'] . ' ' . @$this->AllPassportData[$userLogin]['passportdate'] . ' ' . @$this->AllPassportData[$userLogin]['passportwho'],
                     1, // i guess 1 is passport
@@ -236,26 +238,28 @@ class SormYahont {
                     '', //empty corp bank name
                     '', //empty corp bank account
                     1, // single string address data
-                    '', //empty struct address 9 fields, using type 1
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
+                    //empty struct address 9 fields, using type 1
+                    '', // postal index aka zip
+                    '', // country
+                    '', // region
+                    '', // district
+                    '', // city name
+                    '', // street
+                    '', // build num
+                    '', // housing
+                    '', // apartment
                     $each['fulladress'], //single string address
                     1, //single string device address
-                    '', //empty 9 fields for struct device address
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
+                    //empty 9 fields for struct device address
+                    '', // postal index aka zip
+                    '', // country
+                    '', // region
+                    '', // district
+                    '', // city name
+                    '', // street
+                    '', // build num
+                    '', // housing
+                    '', // apt
                     $each['fulladress'], //using user address as device address
                 );
                 $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
@@ -284,7 +288,7 @@ class SormYahont {
                     1, //using something like service ID
                     $userContractDate, //contract date
                     '', //using empty value as service deactivation date
-                    0, // using empty service custom parameters
+                    '', // using empty service custom parameters
                 );
                 $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
             }
@@ -339,7 +343,7 @@ class SormYahont {
      * 
      * @return string
      */
-    public function getOpenPaysTransactions() {
+    public function getOpenPayzTransactions() {
         $result = '';
         //is openpayz used on this host?
         if (zb_CheckTableExists('op_transactions')) {
@@ -375,6 +379,43 @@ class SormYahont {
                             $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                         }
                     }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns data squense 6.4 for users cash payments
+     * 
+     * @return string
+     */
+    public function getCashPayments() {
+        $result = '';
+        $query = "SELECT * from `payments` WHERE `cashtypeid`='1'  AND `summ`>0;";
+        $allPayments = simple_queryall($query);
+        if (!empty($allPayments)) {
+            foreach ($allPayments as $io => $each) {
+                $userLogin = $each['login'];
+                //no export payments for users that not exists anymore
+                if (isset($this->allUsersData[$userLogin])) {
+                    $userData = $this->allUsersData[$userLogin];
+                    $dataTmp = array(
+                        $this->getUserBranchId($userLogin), //user branch ID
+                        $userData['contract'], //user contract number
+                        $userData['ip'], //user IP address
+                        $each['date'], //payment date
+                        'cashbox', // its cash payment point
+                        //6 empty fields for cashbox address 
+                        '', // country
+                        '', // region
+                        '', // district
+                        '', // city name
+                        '', // street
+                        '', //build num
+                        $each['summ'], // payment sum
+                    );
+                    $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
                 }
             }
         }
