@@ -1370,6 +1370,11 @@ class PONizer {
             if (!empty($availOnuFdbCache)) {
                 $result.=wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }
+            if ($this->altCfg['ONUREG_ZTE']) {
+                $result .= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
+                $result .= wf_link('?module=zteunreg', wf_img('skins/check.png') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
+            }
+
         } else {
             $result.=wf_BackLink(self::URL_ME);
             $result.= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
