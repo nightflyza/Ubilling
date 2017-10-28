@@ -33,6 +33,13 @@ class ZbsAnnouncements {
      */
     protected $adminData = array();
 
+    /**
+     * Contains acquainted users history log as id=>data
+     *
+     * @var array
+     */
+    protected $history = array();
+
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
     public function __construct() {
@@ -40,16 +47,25 @@ class ZbsAnnouncements {
     }
 
     /**
-     * loads all existing announcements into private data property
+     * loads all existing announcements/history into private data property
      * 
      * @return void
      */
     protected function loadData() {
+        //loading announcements data
         $query = "SELECT * from `zbsannouncements` ORDER by `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->data[$each['id']] = $each;
+            }
+        }
+        //loading acquainted data
+        $query = "SELECT * from `zbsannhist`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->history[$each['id']] = $each;
             }
         }
     }
@@ -67,6 +83,8 @@ class ZbsAnnouncements {
             $query = "DELETE from `zbsannouncements` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register("ANNOUNCEMENT DELETE [" . $id . "]");
+            $queryHistory = "DELETE from `zbsannhist` WHERE `annid`='" . $id . "';";
+            nr_query($queryHistory);
         } else {
             throw new Exception(self::EX_ID_NO_EXIST);
         }
@@ -142,6 +160,25 @@ class ZbsAnnouncements {
     }
 
     /**
+     * Returns users count which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return int
+     */
+    protected function getAcquaintedUsersCount($id) {
+        $result = 0;
+        if (!empty($this->history)) {
+            foreach ($this->history as $io => $each) {
+                if ($each['annid'] == $id) {
+                    $result++;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * renders list of existing announcements by private data prop
      * 
      * @return string
@@ -150,6 +187,7 @@ class ZbsAnnouncements {
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Public'));
         $cells.= wf_TableCell(__('Type'));
+        $cells.= wf_TableCell(__('Acquainted'));
         $cells.= wf_TableCell(__('Title'));
         $cells.= wf_TableCell(__('Text'));
         $cells.= wf_TableCell(__('Actions'));
@@ -160,6 +198,7 @@ class ZbsAnnouncements {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 $cells.= wf_TableCell($each['type']);
+                $cells.= wf_TableCell($this->getAcquaintedUsersCount($each['id']));
                 $cells.= wf_TableCell(strip_tags($each['title']));
                 if (strlen($each['text']) > 100) {
                     $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
