@@ -291,6 +291,8 @@ STREETS_ALIAS_AUTOGEN=TRIGGER|New streets alias autogeneration
 NASMON_ENABLED=TRIGGER|Is NAS monitoring enabled
 WIFICPE_ENABLED=TRIGGER|Is client side wifi equipment accounting enabled
 RESETHARD=TRIGGER|Hard reset is enabled
+SORM_ENABLED=TRIGGER|SORM integration enabled
+POLLS_ENABLED=TRIGGER|Polls enabled
 CHAPTEREND_BEH=true
 
 
@@ -319,4 +321,7 @@ ONUAUTO_CONFIG_DESCRIBE=TRIGGER|ONU describe from vlans control module
 ONUAUTO_USERREG=TRIGGER|Is PON ONU auto assign on user register enabled
 SIGNAL_IN_PROFILE=TRIGGER|Show ONU signal in profile
 ONUAUTO_CONFIG=TRIGGER|Set pvid on onu copper port
+ONUMODELS_FILTER=TRIGGER|Use only device models with ONU string
+ONUREG_ZTE=TRIGGER|Is ONU register module is enabled
+ONU_MASTER_ENABLED=TRIGGER|Is ONU master module is enabled
 CHAPTEREND_PON=true
