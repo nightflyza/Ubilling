@@ -205,11 +205,12 @@ class UbillingTelegram {
     public function getBotContacts() {
         $result = array();
         $updatesRaw = $this->getUpdatesRaw();
+        //debarr($updatesRaw);
         if (!empty($updatesRaw)) {
             if (isset($updatesRaw['result'])) {
                 if (!empty($updatesRaw['result'])) {
                     foreach ($updatesRaw['result'] as $io => $each) {
-                        //debarr($each);
+                        //direct user message
                         if (isset($each['message'])) {
                             if (isset($each['message']['from'])) {
                                 if (isset($each['message']['from']['id'])) {
@@ -220,7 +221,21 @@ class UbillingTelegram {
                                 }
                             }
                         }
-
+                        //supergroup messages
+                        if (isset($each['message'])) {
+                            if (isset($each['message']['chat'])) {
+                                
+                                if (isset($each['message']['chat']['type'])) {
+                                    if ($each['message']['chat']['type'] = 'supergroup') {
+                                        $groupData = $each['message']['chat'];
+                                        $result[$groupData['id']]['chatid'] = $groupData['id'];
+                                        $result[$groupData['id']]['name'] = @$groupData['username'];
+                                        $result[$groupData['id']]['type'] = 'supergroup';
+                                    }
+                                }
+                            }
+                        }
+                        //channel message
                         if (isset($each['channel_post'])) {
                             if (isset($each['channel_post']['chat'])) {
                                 if (isset($each['channel_post']['chat']['id'])) {
