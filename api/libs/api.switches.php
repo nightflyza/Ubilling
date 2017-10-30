@@ -368,7 +368,7 @@ function web_SwitchEditForm($switchid) {
         } else {
             $macVenControl = '';
         }
-        $editinputs.= wf_TextInput('editswid', __('Switch ID') . ' (MAC)' . $macVenControl, $switchdata['swid'], true, 20);
+        $editinputs.= wf_TextInput('editswid', __('Switch ID') . ' (MAC) ' . $macVenControl, $switchdata['swid'], true, 20);
     }
     $editinputs.= wf_TextInput('editgeo', 'Geo location', $switchdata['geo'], true, 20, 'geo');
     if (!empty($switchdata['parentid'])) {
