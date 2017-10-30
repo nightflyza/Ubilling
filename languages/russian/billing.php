@@ -2692,8 +2692,9 @@ $lang['def']['Polls enabled'] = 'Опросы включены';
 $lang['def']['Use only device models with ONU string'] = 'Использовать только модели устройств со строкой ONU';
 $lang['def']['Is ONU register module is enabled'] = 'Модуль регистрации ONU включен';
 $lang['def']['Is ONU master module is enabled'] = 'Главный модуль ONU включен';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Entries'] = 'Записей';
+$lang['def']['Key'] = 'Ключ';
+$lang['def']['Data'] = 'Данные';
 $lang['def'][''] = '';
 
 
