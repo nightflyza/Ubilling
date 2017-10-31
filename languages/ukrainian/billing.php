@@ -2711,5 +2711,8 @@ $lang['def']['Is ONU master module is enabled'] = 'Головний модуль
 $lang['def']['Entries'] = 'Записів';
 $lang['def']['Key'] = 'Ключ';
 $lang['def']['Data'] = 'Дані';
+$lang['def']['The mobile number format can be'] = 'Формат мобільного номера може бути';
+$lang['def']['The format of geographic data can be'] = 'Формат географічних даних може бути';
+$lang['def']['The financial input format can be'] = 'Формат введення фінансів може бути';
 
 ?>
