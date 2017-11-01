@@ -36,3 +36,5 @@ $lang['def']['Finished'] = 'Завершен';
 $lang['def']['In progress'] = 'Идет голосование';
 $lang['def']['Option'] = 'Вариант';
 $lang['def']['Add new field'] = 'Добавить новое поле';
+$lang['def']['Voting'] = 'Голосуют';
+$lang['def']['Vote'] = 'Голосовать';

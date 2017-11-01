@@ -351,6 +351,6 @@ $lang['def']['Title'] = 'Заголовок';
 $lang['def']['Answer'] = 'Ответ';
 $lang['def']['Voting date'] = 'Дата голосования';
 $lang['def']['You have not yet responded to polls'] = 'Вы еще не ответчали на опросы';
-$lang['def']['Voite'] = 'Голосовать';
+$lang['def']['Vote'] = 'Голосовать';
 
 ?>

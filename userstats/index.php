@@ -58,10 +58,10 @@ if ($user_ip) {
         // load poll form
         if ($us_config['POLLS_ENABLED']) {
             $poll = new Polls($user_login);
-            if (la_CheckPost(array('voice', 'poll_id'))) {
-                $poll->createUserVoiceOnDB(vf($_POST['voice'], 3), vf($_POST['poll_id'], 3));
+            if (la_CheckPost(array('vote', 'poll_id'))) {
+                $poll->createUserVoteOnDB(vf($_POST['vote'], 3), vf($_POST['poll_id'], 3));
             }
-            show_window('', $poll->renderVoitingForm());
+            show_window('', $poll->renderVotingForm());
         }
         //bottom intro
         if (isset($us_config['INTRO_MODE'])) {
