@@ -40,10 +40,30 @@ class ZbsAnnouncements {
      */
     protected $history = array();
 
+    /**
+     * Contains all users address data
+     *
+     * @var array
+     */
+    protected $allAddress = array();
+
+    /**
+     * Contains all users realname data
+     *
+     * @var array
+     */
+    protected $allRealNames = array();
+
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
+    /**
+     * Creates new object instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadData();
+        $this->loadUsersData();
     }
 
     /**
@@ -68,6 +88,16 @@ class ZbsAnnouncements {
                 $this->history[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Loads users address and realname data for further usage
+     * 
+     * @return void
+     */
+    protected function loadUsersData() {
+        $this->allAddress = zb_AddressGetFulladdresslistCached();
+        $this->allRealNames = zb_UserGetAllRealnames();
     }
 
     /**
@@ -179,6 +209,53 @@ class ZbsAnnouncements {
     }
 
     /**
+     * Returns users data which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return array
+     */
+    protected function getAcquaintedUsersData($id) {
+        $result = array();
+        if (!empty($this->history)) {
+            foreach ($this->history as $io => $each) {
+                if ($each['annid'] == $id) {
+                    $result[] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of users which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return string
+     */
+    protected function renderAcquaintedUsers($id) {
+        $result = '';
+        $viewsData = $this->getAcquaintedUsersData($id);
+        if (!empty($viewsData)) {
+            $cells = wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Date'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($viewsData as $io => $each) {
+                $cells = wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login']));
+                $cells.= wf_TableCell(@$this->allAddress[$each['login']]);
+                $cells.= wf_TableCell(@$this->allRealNames[$each['login']]);
+                $cells.= wf_TableCell($each['date']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        return ($result);
+    }
+
+    /**
      * renders list of existing announcements by private data prop
      * 
      * @return string
@@ -195,10 +272,18 @@ class ZbsAnnouncements {
 
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
+                $viewsCount = $this->getAcquaintedUsersCount($each['id']);
+                $viewsData = '';
+                //announcement view stats
+                if ($viewsCount > 0) {
+                    $viewsData = wf_modalAuto($viewsCount, __('Acquainted'), $this->renderAcquaintedUsers($each['id']));
+                } else {
+                    $viewsData = '0';
+                }
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 $cells.= wf_TableCell($each['type']);
-                $cells.= wf_TableCell($this->getAcquaintedUsersCount($each['id']));
+                $cells.= wf_TableCell($viewsData);
                 $cells.= wf_TableCell(strip_tags($each['title']));
                 if (strlen($each['text']) > 100) {
                     $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
