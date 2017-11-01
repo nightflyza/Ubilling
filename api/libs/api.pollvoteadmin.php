@@ -23,7 +23,7 @@ class PollVoteAdmin {
     }
 
     /**
-     * gets poll that user not voited yet
+     * gets poll that user not voted yet
      * 
      * @return string
      */
@@ -102,10 +102,10 @@ class PollVoteAdmin {
                 }
                 $inputs.= wf_HiddenInput('poll_id', $avaible_poll);
                 $inputs.= wf_tag('br');
-                $inputs.= wf_Submit('Voite');
+                $inputs.= wf_Submit('Vote');
                 $form = wf_Form("", "POST", $inputs, 'glamour');
 
-                $result = wf_modalOpened($poll_data['title'], $form, '800', '600');
+                $result = wf_modalOpened($poll_data['title'], $form, '600', '400');
             }
         }
         return ($result);
