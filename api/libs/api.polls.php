@@ -24,7 +24,7 @@ class Polls {
     protected $adminsName = array();
 
     /**
-     * Contains all polls as id => array (title, enabled, start_date, end_date, params,[admin])
+     * Contains all polls as id => array (title, enabled, start_date, end_date, params, admin, voting)
      *
      * @var array
      */
@@ -280,6 +280,7 @@ class Polls {
                 $this->pollsAvaible[$data['id']]['end_date'] = $data['end_date'];
                 $this->pollsAvaible[$data['id']]['params'] = $data['params'];
                 $this->pollsAvaible[$data['id']]['admin'] = $data['admin'];
+                $this->pollsAvaible[$data['id']]['voting'] = $data['voting'];
             }
         }
     }
@@ -389,13 +390,13 @@ class Polls {
     /**
      * Create poll on database
      * 
-     * @param int $title, $status, $startDateTime, $endDateTime, $endDateTime, $parametr = ''
+     * @param int $title, $status, $startDateTime, $endDateTime, $endDateTime, $parametr = '', $voting = ''
      * @return void
      */
-    protected function createPoll($title, $status, $startDateTime, $endDateTime, $parametr = '') {
+    protected function createPoll($title, $status, $startDateTime, $endDateTime, $parametr = '', $voting = 'Users') {
         $poll_id = '';
-        $query = "INSERT INTO `polls` (`id`, `title`, `enabled`, `start_date`, `end_date`, `params`, `admin`)
-                  VALUES (NULL, '" . mysql_real_escape_string($title) . "', '" . $status . "', '" . $startDateTime . "', '" . $endDateTime . "', '" . mysql_real_escape_string($parametr) . "', '" . mysql_real_escape_string($this->myLogin) . "')";
+        $query = "INSERT INTO `polls` (`id`, `title`, `enabled`, `start_date`, `end_date`, `params`, `admin`, `voting`)
+                  VALUES (NULL, '" . mysql_real_escape_string($title) . "', '" . $status . "', '" . $startDateTime . "', '" . $endDateTime . "', '" . mysql_real_escape_string($parametr) . "', '" . mysql_real_escape_string($this->myLogin) . "', '" . mysql_real_escape_string($voting) . "')";
         nr_query($query);
         $query_poll_id = "SELECT LAST_INSERT_ID() as id";
         $poll_id = simple_query($query_poll_id);
@@ -550,6 +551,7 @@ class Polls {
             $cells = wf_TableCell(__('Status'));
             $cells.= wf_TableCell(__('Start date'));
             $cells.= wf_TableCell(__('End date'));
+            $cells.= wf_TableCell(__('Voting'));
             $cells.= wf_TableCell(__('Admin'));
             $rows = wf_TableRow($cells, 'row1');
 
@@ -557,6 +559,7 @@ class Polls {
             $cells = wf_TableCell($this->renderPollStatus($this->poll_id));
             $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['start_date']);
             $cells.= wf_TableCell($this->pollsAvaible[$this->poll_id]['end_date']);
+            $cells.= wf_TableCell(__($this->pollsAvaible[$this->poll_id]['voting']));
             $cells.= wf_TableCell($this->initAdminName($this->pollsAvaible[$this->poll_id]['admin']));
             $rows.= wf_TableRow($cells, 'row4');
 
@@ -585,15 +588,18 @@ class Polls {
             $end_date = date("Y-m-d", strtotime($this->pollsAvaible[$this->poll_id]['end_date']));
             $end_time = date("H:i", strtotime($this->pollsAvaible[$this->poll_id]['end_date']));
             $poll_status = $this->pollsAvaible[$this->poll_id]['enabled'];
+            $voting = __($this->pollsAvaible[$this->poll_id]['voting']);
             $post_submit = 'Save';
         } else {
             $poll_action = 'createpoll';
+            $param_can_voting = array('Users' => __('Users'), 'Employee' => __('Employee'));
             $poll_name = '';
             $start_date = date("Y-m-d");
             $start_time = date("H:i");
             $end_date = '';
             $end_time = '';
             $poll_status = true;
+            $voting = wf_Selector($poll_action  . '[voting]', $param_can_voting, '', '',  false);
             $post_submit = 'Create';
         }
 
@@ -608,9 +614,13 @@ class Polls {
         $cells = wf_TableCell(__('End date'));
         $cells.= wf_TableCell(wf_DatePickerPreset($poll_action  . '[enddate]', $end_date) . wf_TimePickerPreset($poll_action  . '[endtime]', $end_time, '', false));
         $rows.= wf_TableRow($cells, 'row2');
-        
+
         $cells = wf_TableCell(__('Enabled'));
         $cells.= wf_TableCell(wf_CheckInput($poll_action  . '[enabled]', '', false, $poll_status));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('Voting'));
+        $cells.= wf_TableCell($voting);
         $rows.= wf_TableRow($cells, 'row2');
 
         $rows.= wf_TableRow(wf_TableCell(wf_Submit($post_submit)));
@@ -688,9 +698,12 @@ class Polls {
             // Check poll status enabled
             $status = (isset($polls_data['enabled'])) ? 1 : 0;
 
+            // Set who voting on this poll
+            $voting = (isset($polls_data['voting'])) ? $polls_data['voting'] : '';
+
             // Check that we dont have warning message and create poll
             if (empty($message_warn) and @$_POST['createpoll']) {
-                $poll_id = $this->createPoll($name, $status, $startDateTime, $endDateTime, $parametr = '');
+                $poll_id = $this->createPoll($name, $status, $startDateTime, $endDateTime, $parametr = '', $voting);
                 // Check that we create poll, get his $poll_id and redirect to create variants
                 if ($poll_id) {
                     rcms_redirect(self::URL_ME . '&action=polloptions&poll_id=' . $poll_id);
@@ -864,7 +877,7 @@ class Polls {
      * @return string
      */
     public function renderAvaiblePolls() {
-        $columns = array('ID', 'Poll title', 'Status', 'Start date', 'End date', 'Number of votes', 'Number of options', 'Admin');
+        $columns = array('ID', 'Poll title', 'Status', 'Start date', 'End date', 'Number of votes', 'Number of options', 'Voting', 'Admin');
         if (cfr('POLLSCONFIG')) {
             $columns[] = 'Actions';
         }
@@ -914,8 +927,9 @@ class Polls {
                 $data[] = $poll['end_date'];
                 $data[] = $votes;
                 $data[] = $options;
+                $data[] = __($poll['voting']);
                 $data[] = $this->initAdminName($poll['admin']);
-                
+
                 if (cfr('POLLSCONFIG')) {
                     $data[] = $acts;
                 }
