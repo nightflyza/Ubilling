@@ -61,7 +61,7 @@ if ($user_ip) {
             if (la_CheckPost(array('voice', 'poll_id'))) {
                 $poll->createUserVoiceOnDB(vf($_POST['voice'], 3), vf($_POST['poll_id'], 3));
             }
-            show_window('', $poll->renderVoitingForm());
+            show_window('', $poll->renderVotingForm());
         }
         //bottom intro
         if (isset($us_config['INTRO_MODE'])) {

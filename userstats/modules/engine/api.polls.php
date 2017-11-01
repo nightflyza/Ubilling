@@ -17,7 +17,7 @@ class Polls {
     }
 
     /**
-     * gets poll that user not voited yet
+     * gets poll that user not voted yet
      * 
      * @return string
      */
@@ -79,11 +79,11 @@ class Polls {
     }
 
     /**
-     * Load users voites
+     * Load users votes
      * 
      * @return string
      */
-    protected function loadUserVoites() {
+    protected function loadUserVotes() {
         $result = array();
         $query = "SELECT `title`,`start_date`,`end_date`,`text`,`date` 
                 FROM `polls_votes` 
@@ -100,7 +100,7 @@ class Polls {
      * 
      * @return string
      */
-    public function renderVoitingForm() {
+    public function renderVotingForm() {
         $result = '';
         $avaible_poll = $this->loadPollForVoiting();
         if ($avaible_poll) {
@@ -113,7 +113,7 @@ class Polls {
                 }
                 $inputs.= la_HiddenInput('poll_id', $avaible_poll);
                 $inputs.= la_tag('br');
-                $inputs.= la_Submit('Voite');
+                $inputs.= la_Submit('Vote');
                 $form = la_Form("", "POST", $inputs, 'glamour');
 
                 $result = la_modalOpened($poll_data['title'], $form);
@@ -143,14 +143,14 @@ class Polls {
     }
 
     /**
-     * Load user voites
+     * Load user votes
      * 
      * @return void
      */
-    public function renderUserVoites() {
+    public function renderUserVotes() {
         $result = '';
-        $voites_data = $this->loadUserVoites();
-        if ($voites_data) {
+        $votes_data = $this->loadUserVotes();
+        if ($votes_data) {
             $cells = la_TableCell(__('Title'));
             $cells.= la_TableCell(__('Start date poll'));
             $cells.= la_TableCell(__('End date poll'));
@@ -158,7 +158,7 @@ class Polls {
             $cells.= la_TableCell(__('Voting date'));
             $rows = la_TableRow($cells, 'row1');
 
-            foreach ($voites_data as $value) {
+            foreach ($votes_data as $value) {
                 $cells = la_TableCell($value['title']);
                 $cells.= la_TableCell($value['start_date']);
                 $cells.= la_TableCell($value['end_date']);
