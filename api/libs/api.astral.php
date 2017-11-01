@@ -77,7 +77,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     // We will verify that we correctly enter data by input type
     $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
     $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
-    $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"': $pattern;
+    $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
@@ -1178,7 +1178,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false) {
  * @return string
  *  
  */
-function wf_FullCalendar($data) {
+function wf_FullCalendar($data, $options = '') {
 
     $elementid = wf_InputId();
 
@@ -1205,7 +1205,7 @@ function wf_FullCalendar($data) {
                         displayEventTime: false,
                         height: 'auto',
                         contentHeight: 'auto',
-                        
+                        " . $options . "
                         monthNamesShort: [
                         '" . rcms_date_localise('Jan') . "',
                         '" . rcms_date_localise('Feb') . "',

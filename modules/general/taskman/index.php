@@ -3,6 +3,15 @@
 if (cfr('TASKMAN')) {
     $altCfg = $ubillingConfig->getAlter();
 
+    //fullcalendar default display options
+    $fullCalendarOpts = '';
+    if (isset($altCfg['TASKMAN_DEFAULT_VIEW'])) {
+        if (!empty($altCfg['TASKMAN_DEFAULT_VIEW'])) {
+            $fullCalendarOpts = "defaultView: '" . $altCfg['TASKMAN_DEFAULT_VIEW'] . "',";
+        }
+    }
+
+
     //if someone creates new task
     if (isset($_POST['createtask'])) {
         if (wf_CheckPost(array('newstartdate', 'newtaskaddress', 'newtaskphone'))) {
@@ -127,7 +136,7 @@ if (cfr('TASKMAN')) {
                     //custom jobtypes color styling
                     $customJobColorStyle = ts_GetAllJobtypesColorStyles();
                     //show full calendar view
-                    show_window('', $customJobColorStyle . wf_FullCalendar($showtasks));
+                    show_window('', $customJobColorStyle . wf_FullCalendar($showtasks, $fullCalendarOpts));
                 } else {
                     show_window(__('Show late'), ts_ShowLate());
                 }
