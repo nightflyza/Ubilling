@@ -29,7 +29,6 @@ class PollsReport extends Polls {
      */
     protected function getFulladdress() {
         $this->alladdress = zb_AddressGetFulladdresslistCached();
-        $this->numberAllUsers = count($this->alladdress);
     }
 
     /**
@@ -50,7 +49,7 @@ class PollsReport extends Polls {
     protected function draw3DPie($poll_id) {
         // Create parametr for Number of voters
         $params_users = array();
-        $params_users[__('All users')] = $this->getNumberAllUsers();
+        ($this->pollsAvaible[$poll_id]['voting'] == 'Users') ? $params_users[__('All users')] = $this->getNumberAllUsers() : $params_users[__('Total existing employees')] = count($this->adminsName);
         $params_users[__('Voted Users')] =  $this->pollsVotesCount[$poll_id];
 
         // Create parametr for votes
@@ -95,6 +94,7 @@ class PollsReport extends Polls {
         foreach ($this->pollsOptions as $poll_id => $poll_opt) {
             $param_selector_polls[$poll_id] = $this->pollsAvaible[$poll_id]['title'];
         }
+        $param_can_voting = array('Users' => __('Users'), 'Employee' => __('Employee'));
 
         $cells = wf_TableCell(__('Poll'));
         $cells.= wf_TableCell(wf_RadioInput('polls_search[search_by]', '', 'poll_id', false));
@@ -109,6 +109,11 @@ class PollsReport extends Polls {
         $cells = wf_TableCell(__('Status'));
         $cells.= wf_TableCell(wf_RadioInput('polls_search[search_by]', '', 'status', false, false));
         $cells.= wf_TableCell(wf_Selector('polls_search[status]', $param_selector_status, '', '',  false));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('Voting'));
+        $cells.= wf_TableCell(wf_RadioInput('polls_search[search_by]', '', 'voting', false, false));
+        $cells.= wf_TableCell(wf_Selector('polls_search[voting]', $param_can_voting, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
@@ -150,6 +155,9 @@ class PollsReport extends Polls {
             } elseif ($search_data['status'] == 'progress') {
                 $where = " WHERE `polls`.`enabled` = '1' AND `start_date` < '" . date("Y-m-d H:i:s"). "' AND `end_date` > '" . date("Y-m-d H:i:s"). "'";
             }
+        }
+        if ($search_data['search_by'] == 'voting') {
+            $where = " WHERE `polls`.`voting` = '" . $search_data['voting'] . "'";
         }
         if ($where) {
             $get_result = simple_queryall($query . $where . " ORDER BY `polls_id` ASC");
@@ -200,6 +208,7 @@ class PollsReport extends Polls {
                         $window = __('ID') . ': ' . $poll_id;
                         $window.= ', ' . __('Title') . ': ' . $this->pollsAvaible[$poll_id]['title'];
                         $window.= ', ' . __('Status') . ': ' . $this->renderPollStatus($poll_id);
+                        $window.= ', ' . __('Voting') . ': ' . __($this->pollsAvaible[$poll_id]['voting']);
                         $window.= ', ' . __('Actions') . ': ' . wf_Link(self::URL_REPORT . '&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon('View poll results'));
                         $columns = array('ID', 'Options', 'Number of votes', 'Visual', 'Actions');
                         $opts = '"order": [[ 0, "asc" ]]';
@@ -228,9 +237,9 @@ class PollsReport extends Polls {
             $result.= $this->renderPollData($this->poll_id);
 
             $cells = wf_TableCell(__('ID'));
-            $cells = wf_TableCell(__('Date'));
+            $cells.= wf_TableCell(__('Date'));
             $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
+            ($this->pollsAvaible[$this->poll_id]['voting'] == 'Users') ? $cells.= wf_TableCell(__('Address')) : '';
             $rows = wf_TableRow($cells, 'row2');
 
             // Check that we get option_id and array optionVotes have this option
@@ -243,11 +252,17 @@ class PollsReport extends Polls {
 
                         if ( ! empty($opt_arr) ) {
                             foreach ($opt_arr as $login) {
-                                $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
 
-                                $cells = wf_TableCell($this->pollsVotes[$this->poll_id]['date'][$login]);
-                                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, $login, false));
-                                $cells.= wf_TableCell($address);
+                                $cells = wf_TableCell($this->pollsVotes[$this->poll_id]['id'][$login]);
+                                $cells.= wf_TableCell($this->pollsVotes[$this->poll_id]['date'][$login]);
+
+                                if ($this->pollsAvaible[$this->poll_id]['voting'] == 'Users') {
+                                    $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, $login, false));
+                                    $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
+                                    $cells.= wf_TableCell($address);
+                                } else {
+                                    $cells.= wf_TableCell($this->initAdminName($login));
+                                }
                                 $rows.= wf_TableRow($cells, 'row3');
                             }
 
@@ -290,6 +305,7 @@ class PollsReport extends Polls {
                 $window = __('ID') . ': ' . $poll_id;
                 $window.= ', ' . __('Title') . ': ' . $this->pollsAvaible[$poll_id]['title'];
                 $window.= ', ' . __('Status') . ': ' . $this->renderPollStatus($poll_id);
+                $window.= ', ' . __('Voting') . ': ' . __($this->pollsAvaible[$poll_id]['voting']);
                 $window.= ', ' . __('Actions') . ': ' . wf_Link(self::URL_REPORT . '&action=show_poll_votes&poll_id=' . $poll_id, web_stats_icon('View poll results'));
                 $columns = array('ID', 'Options', 'Number of votes', 'Visual', 'Actions');
                 $opts = '"order": [[ 0, "asc" ]]';
@@ -345,7 +361,7 @@ class PollsReport extends Polls {
             if (isset($this->pollsVotes[$this->poll_id])) {
                 $result.= $this->renderPollData($this->poll_id);
                 $result.= $this->draw3DPie($this->poll_id);
-                $columns = array('ID', 'Option', 'Date', 'User', 'Address');
+                $columns = ($this->pollsAvaible[$this->poll_id]['voting'] == 'Users') ? array('ID', 'Option', 'Date', 'User', 'Address') : array('ID', 'Option', 'Date', 'Worker');
                 $opts = '"order": [[ 0, "desc" ]]';
                 $result = show_window(__('Poll results'), wf_JqDtLoader($columns, self::URL_REPORT . '&ajaxapollvotes=true&poll_id=' . $this->poll_id, false, 'votes', 100, $opts));
             } else {
@@ -368,13 +384,18 @@ class PollsReport extends Polls {
         if(isset($this->pollsAvaible[$this->poll_id])) {
 
             foreach ($this->pollsVotes[$this->poll_id]['id'] as $login => $value) {
-                $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
 
                 $data[] = $value;
                 $data[] = $this->pollsOptions[$this->poll_id][$this->pollsVotes[$this->poll_id]['option_id'][$login]];
                 $data[] = $this->pollsVotes[$this->poll_id]['date'][$login];
-                $data[] = wf_Link('?module=userprofile&username=' . $login, $login, false);
-                $data[] = $address;
+
+                if ($this->pollsAvaible[$this->poll_id]['voting'] == 'Users') {
+                    $data[] = wf_Link('?module=userprofile&username=' . $login, $login, false);
+                    $address = (isset($this->alladdress[$login])) ? $this->alladdress[$login] : '';
+                    $data[] = $address;
+                } else {
+                    $data[] = $this->initAdminName($login);
+                }
 
                 $json->addRow($data);
                 unset($data);
