@@ -29,6 +29,7 @@ class Polls {
                 . "AND `enabled` = '1' "
                 . "AND `start_date` <= '" . $date . "' "
                 . "AND `end_date` >= '" . $date . "' "
+                . "AND `voting` = 'Users' "
                 . "LIMIT 1";
         $result_q = simple_query($query);
         if ($result_q) {
