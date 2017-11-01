@@ -9,7 +9,7 @@ if ($usConfig['POLLS_ENABLED']) {
     
     $poll = new Polls($user_login);
     
-    show_window(__('My answers to polls'), $poll->renderUserVoites());
+    show_window(__('My answers to polls'), $poll->renderUserVotes());
 } else {
     show_window(__('Sorry'), __('This module is disabled'));
 }
