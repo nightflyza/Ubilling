@@ -441,10 +441,10 @@ class UbillingTaskbar {
         if (isset($this->altCfg['POLLS_ENABLED'])) {
             if ($this->altCfg['POLLS_ENABLED']) {
                 $poll = new PollVoteAdmin();
-                if (wf_CheckPost(array('voice', 'poll_id'))) {
-                    $poll->createAdminVoiceOnDB(vf($_POST['voice'], 3), vf($_POST['poll_id'], 3));
+                if (wf_CheckPost(array('vote', 'poll_id'))) {
+                    $poll->createAdminVoteOnDB(vf($_POST['vote'], 3), vf($_POST['poll_id'], 3));
                 }
-                $result.= $poll->renderVoitingForm();
+                $result.= $poll->renderVotingForm();
             }
         }
         return ($result);

@@ -109,7 +109,7 @@ class Polls {
                 $inputs = '';
                 $poll_data = $this->getPollData($avaible_poll);
                 foreach ($option_data[$avaible_poll] as $id => $option) {
-                    $inputs.= la_RadioInput('voice', $option, $id, true);
+                    $inputs.= la_RadioInput('vote', $option, $id, true);
                 }
                 $inputs.= la_HiddenInput('poll_id', $avaible_poll);
                 $inputs.= la_tag('br');
@@ -123,11 +123,11 @@ class Polls {
     }
 
     /**
-     * Add user's voice to the database
+     * Add user's vote to the database
      * 
      * @param type $option_id, $poll_id
      */
-    public function createUserVoiceOnDB($option_id, $poll_id) {
+    public function createUserVoteOnDB($option_id, $poll_id) {
         $check_query = "SELECT 1 FROM `polls_options` 
                         LEFT JOIN `polls` ON (`polls_options`.`poll_id` = `polls`.`id`) 
                         WHERE `poll_id` NOT IN (SELECT `poll_id` FROM `polls_votes` WHERE `login` = '" . $this->userLogin . "') 
