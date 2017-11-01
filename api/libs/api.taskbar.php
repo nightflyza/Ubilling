@@ -432,6 +432,25 @@ class UbillingTaskbar {
     }
 
     /**
+     * Renders administrators voting poll form
+     * 
+     * @return string
+     */
+    protected function loadPollVoteAdmin() {
+        $result = '';
+        if (isset($this->altCfg['POLLS_ENABLED'])) {
+            if ($this->altCfg['POLLS_ENABLED']) {
+                $poll = new PollVoteAdmin();
+                if (wf_CheckPost(array('voice', 'poll_id'))) {
+                    $poll->createAdminVoiceOnDB(vf($_POST['voice'], 3), vf($_POST['poll_id'], 3));
+                }
+                $result.= $poll->renderVoitingForm();
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns rendered taskbar elements and services content
      * 
      * @return string
@@ -447,6 +466,7 @@ class UbillingTaskbar {
         $result.=$this->renderResizeForm();
         $result.=$this->loadStickyNotes();
         $result.=$this->loadAnnouncements();
+        $result.=$this->loadPollVoteAdmin();
         $this->loadUbim();
         return ($result);
     }
