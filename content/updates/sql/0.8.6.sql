@@ -42,3 +42,5 @@ CREATE TABLE IF NOT EXISTS `zbsannhist` (
   PRIMARY KEY (`id`),
   KEY `annid` (`annid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `vservices` ADD `fee_charge_always` TINYINT(1) NOT NULL DEFAULT 1;
