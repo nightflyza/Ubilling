@@ -342,15 +342,15 @@ function zb_FlushAllUserTags($login) {
  * @param string $cashtype
  * @param int  $priority
  */
-function zb_VserviceCreate($tagid, $price, $cashtype, $priority) {
+function zb_VserviceCreate($tagid, $price, $cashtype, $priority, $feechargealways) {
     $tagid = vf($tagid, 3);
     $price = vf($price);
     $cashtype = vf($cashtype);
     $priority = vf($priority, 3);
-    $query = "INSERT INTO `vservices` (`id` , `tagid` , `price` , `cashtype` , `priority`)
-              VALUES (NULL , '" . $tagid . "', '" . $price . "', '" . $cashtype . "', '" . $priority . "');";
+    $query = "INSERT INTO `vservices` (`id` , `tagid` , `price` , `cashtype` , `priority`, `fee_charge_always`)
+              VALUES (NULL , '" . $tagid . "', '" . $price . "', '" . $cashtype . "', '" . $priority . "', '" . $feechargealways . "');";
     nr_query($query);
-    log_register("CREATE VSERVICE [" . $tagid . '] `' . $price . '` [' . $cashtype . '] `' . $priority . '`');
+    log_register("CREATE VSERVICE [" . $tagid . '] `' . $price . '` [' . $cashtype . '] `' . $priority . '` [' . $feechargealways . '] `');
 }
 
 /**
@@ -417,11 +417,13 @@ function zb_VservicesGetAllNamesLabeled() {
  * @return string
  */
 function web_VserviceAddForm() {
+    //$FeeIsChargedAlways = false;
     $serviceFeeTypes = array('stargazer' => __('stargazer user cash'), 'virtual' => __('virtual services cash'));
     $inputs = stg_tagid_selector() . wf_tag('br');
     $inputs.= wf_Selector('newcashtype', $serviceFeeTypes, __('Cash type'), '', true);
     $inputs.= web_priority_selector() . wf_tag('br');
     $inputs.= wf_TextInput('newfee', __('Fee'), '', true, '5');
+    $inputs.= wf_CheckInput('feechargealways', __('Always charge fee, even if balance cash < 0'), true, false);
     $inputs.= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
     return($form);
@@ -453,15 +455,17 @@ function web_VserviceEditForm($vserviceid) {
             $priorities[$i] = $i;
         }
 
+        $FeeIsChargedAlways = ($serviceData['fee_charge_always'] == 1) ? true : false;
 
         $inputs = wf_Selector('edittagid', $allTags, __('Tag'), $serviceData['tagid'], true);
         $inputs.= wf_Selector('editcashtype', $serviceFeeTypes, __('Cash type'), $serviceData['cashtype'], true);
         $inputs.= wf_Selector('editpriority', $priorities, __('Priority'), $serviceData['priority'], true);
         $inputs.= wf_TextInput('editfee', __('Fee'), $serviceData['price'], true, '5');
+        $inputs.= wf_CheckInput('editfeechargealways', __('Always charge fee, even if balance cash < 0'), true, $FeeIsChargedAlways);
         $inputs.= wf_Submit(__('Save'));
 
         $form = wf_Form("", 'POST', $inputs, 'glamour');
-        $form.=wf_BackLink('?module=vservices');
+        $form.= wf_BackLink('?module=vservices');
         return($form);
     } else {
         throw new Exception('NOT_EXISTING_VSERVICE_ID');
@@ -484,13 +488,15 @@ function web_VservicesShow() {
         'Tag',
         'Fee',
         'Cash type',
-        'Priority'
+        'Priority',
+        'Always charge fee'
     );
     $keys = array('id',
         'tagid',
         'price',
         'cashtype',
-        'priority'
+        'priority',
+        'fee_charge_always'
     );
     show_window(__('Virtual services'), web_GridEditorVservices($titles, $keys, $allvservices, 'vservices', true, true));
     if (!empty($alltagtypes)) {
@@ -652,6 +658,7 @@ function web_VservicesSelector() {
  * @return void
  */
 function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen = true) {
+    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $frozenUsers = array();
     $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
     if ($debug) {
@@ -713,21 +720,27 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
                         print (">>processing cashtype:" . $eachservice['cashtype'] . "\n");
                     }
                     if ($eachservice['cashtype'] == 'virtual') {
+                        $current_cash = zb_VserviceCashGet($eachuser['login']);
+                        $FeeChargeAllowed = ($current_cash < 0 && $eachservice['fee_charge_always'] == 0) ? false : true;
+
                         if ($debug) {
-                            $current_cash = zb_VserviceCashGet($eachuser['login']);
                             print(">>current cash:" . $current_cash . "\n");
                         }
-                        if ($debug != 2) {
+
+                        if ($debug != 2 && $FeeChargeAllowed) {
                             zb_VserviceCashFee($eachuser['login'], $eachservice['price'], $eachservice['id']);
                         }
                     }
                     if ($eachservice['cashtype'] == 'stargazer') {
+                        $current_cash = zb_UserGetStargazerData($eachuser['login']);
+                        $current_cash = $current_cash['Cash'];
+                        $FeeChargeAllowed = ($current_cash < 0 && $eachservice['fee_charge_always'] == 0) ? false : true;
+
                         if ($debug) {
-                            $current_cash = zb_UserGetStargazerData($eachuser['login']);
-                            $current_cash = $current_cash['Cash'];
                             print(">>current cash:" . $current_cash . "\n");
                         }
-                        if ($debug != 2) {
+
+                        if ($debug != 2 && $FeeChargeAllowed) {
                             $fee = "-" . $eachservice['price'];
                             if ($log_payment) {
                                 $method = 'add';
