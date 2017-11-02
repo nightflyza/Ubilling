@@ -29,11 +29,13 @@ class PollVoteAdmin {
      * @return bool
      */
     protected function checkBaseAvail() {
-        $query_check = "SHOW COLUMNS FROM `polls` WHERE FIELD = 'voting'";
-        $result_check = simple_query($query_check);
-        if (! $result_check) {
-            $query = "ALTER TABLE `polls` ADD `voting` VARCHAR(255) NOT NULL DEFAULT 'Users'";
-            nr_query($query);
+        if (version_compare(file_get_contents("RELEASE"), "0.8.5", ">")) {
+            $query_check = "SHOW COLUMNS FROM `polls` WHERE FIELD = 'voting'";
+            $result_check = simple_query($query_check);
+            if (! $result_check) {
+                $query = "ALTER TABLE `polls` ADD `voting` VARCHAR(255) NOT NULL DEFAULT 'Users'";
+                nr_query($query);
+            }
         }
     }
 
