@@ -371,6 +371,29 @@ if (cfr('REPORTSIGNUP')) {
         show_window(__('Tariffs report'), $result);
     }
 
+    /**
+     * 
+     * @param int $year
+     * 
+     * @return string
+     */
+    function web_SignupsShowAilveStats($year) {
+        $result='';
+        $aliveTotal=0;
+        $deadTotal=0;
+        $year = vf($year, 3);
+        if (!empty($year)) {
+            $query = "SELECT * from `userreg` WHERE `date` LIKE '" . $year . "-%';";
+            $all=  simple_queryall($query);
+            if (!empty($all)) {
+                foreach ($all as $io=>$eachReg) {
+                    debarr($eachReg);
+                }
+            }
+        }
+        return ($result);
+    }
+
     if (!isset($_POST['yearsel'])) {
         $year = curyear();
     } else {
@@ -384,6 +407,7 @@ if (cfr('REPORTSIGNUP')) {
 
     web_SignupsShowToday();
     show_window(__('Year'), $yearform);
+    deb(web_SignupsShowAilveStats($year));
     web_SignupsGraphYear($year);
     web_SignupGraph();
     if ($altercfg['CEMETERY_ENABLED']) {
