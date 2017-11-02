@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `polls` (
   `end_date` datetime DEFAULT '0000-00-00 00:00:00',
   `params` text NOT NULL,
   `admin` varchar(255) NOT NULL DEFAULT '',
+  `voting` VARCHAR(255) NOT NULL DEFAULT 'Users',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
