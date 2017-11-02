@@ -89,7 +89,7 @@ class PollVoteAdmin {
      * 
      * @return string
      */
-    public function renderVoitingForm() {
+    public function renderVotingForm() {
         $result = '';
         $avaible_poll = $this->loadPollForVoiting();
         if ($avaible_poll) {
@@ -98,7 +98,7 @@ class PollVoteAdmin {
                 $inputs = '';
                 $poll_data = $this->getPollData($avaible_poll);
                 foreach ($option_data[$avaible_poll] as $id => $option) {
-                    $inputs.= wf_RadioInput('voice', $option, $id, true);
+                    $inputs.= wf_RadioInput('vote', $option, $id, true);
                 }
                 $inputs.= wf_HiddenInput('poll_id', $avaible_poll);
                 $inputs.= wf_tag('br');
@@ -112,11 +112,11 @@ class PollVoteAdmin {
     }
 
     /**
-     * Add user's voice to the database
+     * Add user's vote to the database
      * 
      * @param type $option_id, $poll_id
      */
-    public function createAdminVoiceOnDB($option_id, $poll_id) {
+    public function createAdminVoteOnDB($option_id, $poll_id) {
         $check_query = "SELECT 1 FROM `polls_options` 
                         LEFT JOIN `polls` ON (`polls_options`.`poll_id` = `polls`.`id`) 
                         WHERE `poll_id` NOT IN (SELECT `poll_id` FROM `polls_votes` WHERE `login` = '" . $this->myLogin . "') 
