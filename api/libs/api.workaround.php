@@ -1952,9 +1952,13 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
                 if (array_key_exists($eachkey, $eachdata)) {
                     if ($eachkey == 'tagid') {
                         @$tagname = $alltagnames[$eachdata['tagid']];
-                        $cells.=wf_TableCell($tagname);
+                        $cells.= wf_TableCell($tagname);
                     } else {
-                        $cells.=wf_TableCell($eachdata[$eachkey]);
+                        if ($eachkey == 'fee_charge_always') {
+                            $cells.= wf_TableCell(web_bool_led($eachdata[$eachkey]));
+                        } else {
+                            $cells.= wf_TableCell($eachdata[$eachkey]);
+                        }
                     }
                 }
             }
