@@ -661,6 +661,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $frozenUsers = array();
     $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
+    $allUserData=  zb_UserGetAllStargazerDataAssoc();
     if ($debug) {
         print (">>" . curdatetime() . "\n");
         print (">>Searching virtual services\n");
@@ -732,8 +733,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
                         }
                     }
                     if ($eachservice['cashtype'] == 'stargazer') {
-                        $current_cash = zb_UserGetStargazerData($eachuser['login']);
-                        $current_cash = $current_cash['Cash'];
+                        $current_cash = $allUserData[$eachuser['login']]['Cash'];
                         $FeeChargeAllowed = ($current_cash < 0 && $eachservice['fee_charge_always'] == 0) ? false : true;
 
                         if ($debug) {
@@ -749,6 +749,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
                             }
                             if ($charge_frozen) {
                                 zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
+                                $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                             } else {
                                 if (isset($frozenUsers[$eachuser['login']])) {
                                     if ($debug) {
@@ -756,6 +757,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
                                     }
                                 } else {
                                     zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
+                                    $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                                 }
                             }
                         }
