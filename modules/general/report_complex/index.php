@@ -17,16 +17,21 @@ if (cfr('REPORTCOMPLEX')) {
         const CPL_COUNT_EX = 'WRONG_PARAM_COUNT';
 
         public function __construct() {
-            //loads report specific options 
-            $this->loadConfig();
+            //loads report specific options
+            try {
+                $this->loadConfig();
+            } catch(Exception $err) {
+                show_error($err->getMessage());
+            }
+
             //load actual data by users with complex services
             $this->loadData();
         }
 
         /*
          * loads report specific options from alter config to private props masks & cfields
-         * 
-         * @return void 
+         *
+         * @return void
          */
 
         private function loadConfig() {
@@ -67,7 +72,7 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * get all users with complex service tariffs
-         * 
+         *
          * @return void
          */
 
@@ -82,20 +87,23 @@ if (cfr('REPORTCOMPLEX')) {
             if (!empty($alldata)) {
                 $this->data = $alldata;
             }
-            //loading complex service contracts
-            $queryContracts = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['contract'] . "'";
-            $allContracts = simple_queryall($queryContracts);
-            if (!empty($allContracts)) {
-                foreach ($allContracts as $ia => $eachContract) {
-                    $this->contracts[$eachContract['login']] = $eachContract['content'];
+
+            if ( !empty($this->cfields) ) {
+                //loading complex service contracts
+                $queryContracts = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['contract'] . "'";
+                $allContracts = simple_queryall($queryContracts);
+                if (!empty($allContracts)) {
+                    foreach ($allContracts as $ia => $eachContract) {
+                        $this->contracts[$eachContract['login']] = $eachContract['content'];
+                    }
                 }
-            }
-            //loading complex services activity flags
-            $queryActive = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['active'] . "'";
-            $allActive = simple_queryall($queryActive);
-            if (!empty($allActive)) {
-                foreach ($allActive as $ib => $eachActive) {
-                    $this->actives[$eachActive['login']] = $eachActive['content'];
+                //loading complex services activity flags
+                $queryActive = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['active'] . "'";
+                $allActive = simple_queryall($queryActive);
+                if (!empty($allActive)) {
+                    foreach ($allActive as $ib => $eachActive) {
+                        $this->actives[$eachActive['login']] = $eachActive['content'];
+                    }
                 }
             }
 
@@ -113,7 +121,7 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * returns private propert data
-         * 
+         *
          * @return array
          */
 
@@ -146,9 +154,9 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * renders all users report by existing private data props
-         * 
+         *
          * @param $cutdata - bool cutting profile links and leds, for printing
-         * 
+         *
          * @return string
          */
 
@@ -211,9 +219,9 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * renders debtors users report by existing private data props
-         * 
+         *
          * @param $cutdata - bool cutting profile links and leds, for printing
-         * 
+         *
          * @return string
          */
 
@@ -279,9 +287,9 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * renders anti-debtors users report by existing private data props
-         * 
+         *
          * @param $cutdata - bool cutting profile links and leds, for printing
-         * 
+         *
          * @return string
          */
 
@@ -345,7 +353,7 @@ if (cfr('REPORTCOMPLEX')) {
 
         /*
          * Shows navigation panel for reports
-         * 
+         *
          */
 
         public function panel() {
@@ -361,7 +369,7 @@ if (cfr('REPORTCOMPLEX')) {
     class ReportComplexNM extends ReportComplex {
         /*
          * get all users with  with complex services from the next month
-         * 
+         *
          * @return void
          */
 
@@ -376,20 +384,23 @@ if (cfr('REPORTCOMPLEX')) {
             if (!empty($alldata)) {
                 $this->data = $alldata;
             }
-            //loading complex service contracts
-            $queryContracts = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['contract'] . "'";
-            $allContracts = simple_queryall($queryContracts);
-            if (!empty($allContracts)) {
-                foreach ($allContracts as $ia => $eachContract) {
-                    $this->contracts[$eachContract['login']] = $eachContract['content'];
+
+            if ( !empty($this->cfields) ) {
+                //loading complex service contracts
+                $queryContracts = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['contract'] . "'";
+                $allContracts = simple_queryall($queryContracts);
+                if (!empty($allContracts)) {
+                    foreach ($allContracts as $ia => $eachContract) {
+                        $this->contracts[$eachContract['login']] = $eachContract['content'];
+                    }
                 }
-            }
-            //loading complex services activity flags
-            $queryActive = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['active'] . "'";
-            $allActive = simple_queryall($queryActive);
-            if (!empty($allActive)) {
-                foreach ($allActive as $ib => $eachActive) {
-                    $this->actives[$eachActive['login']] = $eachActive['content'];
+                //loading complex services activity flags
+                $queryActive = "SELECT `login`,`content` from `cfitems` WHERE `typeid`='" . $this->cfields['active'] . "'";
+                $allActive = simple_queryall($queryActive);
+                if (!empty($allActive)) {
+                    foreach ($allActive as $ib => $eachActive) {
+                        $this->actives[$eachActive['login']] = $eachActive['content'];
+                    }
                 }
             }
         }
