@@ -21,6 +21,7 @@ if (cfr('REPORTSIGNUP')) {
      * returns array like $month_num=>$signup_count
      * 
      * @param int $year
+     * 
      * @return array
      */
     function zb_SignupsGetCountYear($year) {
@@ -58,6 +59,7 @@ if (cfr('REPORTSIGNUP')) {
     function web_SignupsGraphYear($year) {
         global $ubillingConfig;
         $altCfg = $ubillingConfig->getAlter();
+        $cache = new UbillingCache();
         $cemeteryEnabled = (@$altCfg['CEMETERY_ENABLED']) ? true : false;
         if ($cemeteryEnabled) {
             $cemetery = new Cemetery();
@@ -95,8 +97,19 @@ if (cfr('REPORTSIGNUP')) {
             $tablerows.=wf_TableRow($tablecells, 'row3');
         }
 
+
+
+        $aliveStats = $cache->getCallback('SIGALIVESTATS_' . $year, function () use ($year) {
+            return (zb_SignupsGetAilveStats($year));
+        }, 86400); //cached for 1 day
+
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
-        $result.= wf_tag('b', false) . __('Total') . ': ' . $totalcount . wf_tag('b', true);
+        $result.= wf_tag('b', false) . __('Total users registered') . ': ' . $totalcount . wf_tag('b', true);
+        if ($totalcount > 0) {
+            $result.=wf_tag('br');
+            $result.= ' ' . $aliveStats['alive'] . ' ' . __('of them remain active');
+            $result.= ' ' . __('and') . ' ' . $aliveStats['dead'] . ' ' . __('now is dead') . ' (' . zb_PercentValue($aliveStats['total'], $aliveStats['dead']) . '%)';
+        }
         show_window(__('User signups by year') . ' ' . $year, $result);
     }
 
@@ -372,25 +385,61 @@ if (cfr('REPORTSIGNUP')) {
     }
 
     /**
+     * Check is user active right now?
+     * 
+     * @param array $userData
+     * 
+     * @return bool
+     */
+    function zb_SignupCheckIsUserActive($userData) {
+        $result = false;
+        if (!empty($userData)) {
+            if (($userData['Cash'] >= '-' . $userData['Credit']) AND ( $userData['AlwaysOnline'] == 1) AND ( $userData['Passive'] == 0) AND ( $userData['Down'] == 0)) {
+                $result = true;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * 
      * @param int $year
      * 
-     * @return string
+     * @return array => alive/dead/total
      */
-    function web_SignupsShowAilveStats($year) {
-        $result='';
-        $aliveTotal=0;
-        $deadTotal=0;
+    function zb_SignupsGetAilveStats($year) {
+        $result = array();
+        $aliveTotal = 0;
+        $deadTotal = 0;
         $year = vf($year, 3);
+        $allUsersData = array();
+        $allUsersData = zb_UserGetAllStargazerDataAssoc();
         if (!empty($year)) {
             $query = "SELECT * from `userreg` WHERE `date` LIKE '" . $year . "-%';";
-            $all=  simple_queryall($query);
+            $all = simple_queryall($query);
             if (!empty($all)) {
-                foreach ($all as $io=>$eachReg) {
-                    debarr($eachReg);
+                foreach ($all as $io => $eachReg) {
+                    //is user deleted?
+                    if (isset($allUsersData[$eachReg['login']])) {
+                        $userData = $allUsersData[$eachReg['login']];
+                        if (zb_SignupCheckIsUserActive($userData)) {
+                            $aliveTotal++;
+                        } else {
+                            $deadTotal++;
+                        }
+                    } else {
+                        //he is dead if deleted, yeah
+                        $deadTotal++;
+                    }
                 }
             }
         }
+
+
+        //forming results
+        $result['alive'] = $aliveTotal;
+        $result['dead'] = $deadTotal;
+        $result['total'] = $aliveTotal + $deadTotal;
         return ($result);
     }
 
@@ -407,7 +456,6 @@ if (cfr('REPORTSIGNUP')) {
 
     web_SignupsShowToday();
     show_window(__('Year'), $yearform);
-    deb(web_SignupsShowAilveStats($year));
     web_SignupsGraphYear($year);
     web_SignupGraph();
     if ($altercfg['CEMETERY_ENABLED']) {

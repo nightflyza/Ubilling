@@ -2698,10 +2698,13 @@ $lang['def']['Data'] = 'Данные';
 $lang['def']['The mobile number format can be'] = 'Формат мобильного номера может быть';
 $lang['def']['The format of geographic data can be'] = 'Формат географических данных может быть';
 $lang['def']['The financial input format can be'] = 'Формат ввода финансов может быть';
-$lang['def'][''] = '';
-
-//rev 5813
 $lang['def']['Always charge fee, even if balance cash < 0'] = 'Всегда снимать стоимость услуги, даже если баланс пользователя < 0';
 $lang['def']['Always charge fee'] = 'Всегда снимать стоимость услуги';
+$lang['def']['Total users registered'] = 'Всего зарегистрировано пользователей';
+$lang['def']['of them remain active'] = 'из них остаются активными';
+$lang['def']['now is dead'] = 'сейчас мертвы';
+$lang['def']['and'] = 'и';
+$lang['def'][''] = '';
+
 
 ?>

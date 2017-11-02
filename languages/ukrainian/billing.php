@@ -2714,9 +2714,11 @@ $lang['def']['Data'] = 'Дані';
 $lang['def']['The mobile number format can be'] = 'Формат мобільного номера може бути';
 $lang['def']['The format of geographic data can be'] = 'Формат географічних даних може бути';
 $lang['def']['The financial input format can be'] = 'Формат введення фінансів може бути';
-
-//rev 5813
-$lang['def']['Always charge fee, even if balance cash < 0'] = 'ЗАвжди знімати вартість послуги, навіть якщо баланс користувача < 0';
+$lang['def']['Always charge fee, even if balance cash < 0'] = 'Завжди знімати вартість послуги, навіть якщо баланс користувача < 0';
 $lang['def']['Always charge fee'] = 'Завжди знімати вартість послуги';
+$lang['def']['Total users registered'] = 'Всього зареєстровано користувачів';
+$lang['def']['of them remain active'] = 'з них залишаються активними';
+$lang['def']['now is dead'] = 'зараз мертві';
+$lang['def']['and'] = 'і';
 
 ?>
