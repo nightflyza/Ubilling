@@ -11,6 +11,7 @@ class PollVoteAdmin {
     
     public function __construct() {
         $this->setLogin();
+        $this->checkBaseAvail();
     }
 
      /**
@@ -20,6 +21,20 @@ class PollVoteAdmin {
      */
     protected function setLogin() {
         $this->myLogin = whoami();
+    }
+
+    /**
+     * Must prevent update troubles and make billing usable between 0.8.5 and 0.8.6 releases
+     * 
+     * @return bool
+     */
+    protected function checkBaseAvail() {
+        $query_check = "SHOW COLUMNS FROM `polls` WHERE FIELD = 'voting'";
+        $result_check = simple_query($query_check);
+        if (! $result_check) {
+            $query = "ALTER TABLE `polls` ADD `voting` VARCHAR(255) NOT NULL DEFAULT 'Users'";
+            nr_query($query);
+        }
     }
 
     /**
