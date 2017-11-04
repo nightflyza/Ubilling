@@ -81,6 +81,7 @@ if (cfr('USERREG')) {
                 $newuser_data['onumodelid'] = $_POST['onumodelid'];
                 $newuser_data['onuip'] = wf_CheckPost(array('onuipproposal')) ? $_POST['IP'] : $_POST['onuip'];
                 $newuser_data['onumac'] = $_POST['onumac'];
+                $newuser_data['onuserial'] = $_POST['onuserial'];
             }
             zb_UserRegister($newuser_data);
             //release db lock

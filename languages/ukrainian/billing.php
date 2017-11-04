@@ -2720,5 +2720,5 @@ $lang['def']['Total users registered'] = 'Всього зареєстрован�
 $lang['def']['of them remain active'] = 'з них залишаються активними';
 $lang['def']['now is dead'] = 'зараз мертві';
 $lang['def']['and'] = 'і';
-
+$lang['def']['ONU serial'] = 'Серійний номер ONU';
 ?>

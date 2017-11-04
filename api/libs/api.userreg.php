@@ -564,9 +564,20 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('td', false);
         $form.= wf_tag('input', false, '', 'type="text" name="onuip" value="" ');
         $form.= wf_CheckInput('onuipproposal', __('Make ONU IP same as subscriber IP'), false, false);
+        $form.= wf_tag('script', false, '', 'type="text/javascript"');
+        $form.= '$(\'[name = onuipproposal]\').change(function(){                            
+                    if ( $(this).is(\':checked\') ) {
+                        $(\'[name = onuip]\').attr("readonly", "readonly");
+                        $(\'[name = onuip]\').css(\'background-color\', \'#CECECE\')
+                    } else {
+                        $(\'[name = onuip]\').removeAttr("readonly");               
+                        $(\'[name = onuip]\').css(\'background-color\', \'#FFFFFF\') 
+                    }                            
+                });';
+        $form.= wf_tag('script', true);
         $form.= wf_tag('td', true);
         $form.= wf_tag('td', false);
-        $form.=__('IP ONU');
+        $form.=__('ONU IP');
         $form.= wf_tag('td', true);
         $form.= wf_tag('tr', true);
 
@@ -575,7 +586,16 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('input', false, '', 'type="text" name="onumac" value="" ');
         $form.= wf_tag('td', true);
         $form.= wf_tag('td', false);
-        $form.=__('MAC ONU') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.=__('ONU MAC') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('tr', true);
+
+        $form.= wf_tag('tr', false, 'row3');
+        $form.= wf_tag('td', false);
+        $form.= wf_tag('input', false, '', 'type="text" name="onuserial" value="" ');
+        $form.= wf_tag('td', true);
+        $form.= wf_tag('td', false);
+        $form.=__('ONU serial') . wf_tag('sup') . '*' . wf_tag('sup', true);
         $form.= wf_tag('td', true);
         $form.= wf_tag('tr', true);
 
@@ -703,6 +723,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $ONUModelID = $user_data['onumodelid'];
         $ONUIP = $user_data['onuip'];
         $ONUMAC = $user_data['onumac'];
+        $ONUSerial = $user_data['onuserial'];
         $NeedONUAssignment = !empty($ONUMAC);
     }
 
@@ -848,7 +869,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
             $PONAPIObject = new PONizer();
 
             if ($PONAPIObject->checkMacUnique($ONUMAC)) {
-                $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, '', $login);
+                $PONAPIObject->onuCreate($ONUModelID, $OLTID, $ONUIP, $ONUMAC, $ONUSerial, $login);
             } else {
                 $ONUID = $PONAPIObject->getONUIDByMAC($ONUMAC);
                 $PONAPIObject->onuAssign($ONUID, $login);
