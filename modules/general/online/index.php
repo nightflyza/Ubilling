@@ -173,6 +173,7 @@ if ($system->checkForRight('ONLINE')) {
 	"bDeferRender": true,
         "bJQueryUI": true,
         "pagingType": "full_numbers",
+        "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "'.__('All').'"]],
         "bStateSave": ' . $saveState . '
 
                 } );
