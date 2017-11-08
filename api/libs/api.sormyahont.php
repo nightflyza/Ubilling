@@ -156,6 +156,7 @@ class SormYahont {
     protected function setOptions() {
         //setting ISP location options
         $this->ispName = @$this->altCfg['SORM_ISPNAME'];
+        $this->branchId=@$this->altCfg['SORM_BRANCHID'];
         $this->ispCountry = @$this->altCfg['SORM_ISPCOUNTRY'];
         $this->ispRegion = @$this->altCfg['SORM_ISPREGION'];
         $this->ispDistrict = @$this->altCfg['SORM_ISPDISTRICT'];
@@ -555,7 +556,7 @@ class SormYahont {
                 $dataTmp = array(
                     $this->branchId, //default branch id
                     $each['nasip'], // NAS IP
-                    '', // we dont know when NAS start working    
+                    '01.01.2017 00:00:00', // we dont know when NAS start working    
                     '', // and guesss what? we think that NAS still works
                     $each['nasname'], //using NAS name as description
                     $this->ispCountry, //location country
@@ -604,7 +605,7 @@ class SormYahont {
                 $dataTmp = array(
                     $this->branchId, //branch ID
                     $cashTypeId, // payment type id
-                    '', //type start date
+                    '01.01.2017 00:00:00', //type start date
                     '', //type end date
                     __($cashTypeName) //type name localised
                 );
@@ -632,7 +633,7 @@ class SormYahont {
                         'Users IP pool', // ip pool purpose
                         $ipSegs[0], //IP pool network address
                         $ipSegs[1], //IP pool network CIDR mask
-                        '01.01.1909', //start date
+                        '01.01.2017 00:00:00', //start date
                         '', //end date
                     );
                     $result.= $this->arrayToCsv($dataTmp, self::DELIMITER, self::ENCLOSURE, true) . PHP_EOL;
@@ -652,7 +653,7 @@ class SormYahont {
         $dataTmp = array(
             $this->branchId, //branch id
             1, // document type
-            '', //start date
+            '01.01.2017 00:00:00', //start date
             '', //end date
             __('Passport data') //document type name
         );
@@ -683,16 +684,18 @@ class SormYahont {
      * @return void
      */
     public function saveAllDataCsv() {
-        file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.8-branches.csv', $this->changeCharset($this->getBranchesList()));
+        //telephony only
+        //file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.8-branches.csv', $this->changeCharset($this->getBranchesList()));
         file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.5-doctypes.csv', $this->changeCharset($this->getDocsTypesList()));
         file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.4-ip_numbering_plan.csv', $this->changeCharset($this->getIpPoolsList()));
         file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.3-pay_types.csv', $this->changeCharset($this->getPaymentTypesList()));
         file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.2-supplement_services.csv', $this->changeCharset($this->getServicesList()));
         file_put_contents(self::PATH_EXPORT . 'dictionaries/' . '7.1-gates.csv', $this->changeCharset($this->getNasData()));
         file_put_contents(self::PATH_EXPORT . 'payments/' . '6.7-balance-fillup.csv', $this->changeCharset($this->getPaymentsSummary()));
-        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.4-service-center.csv', $this->changeCharset($this->getCashPayments()));
-        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.3-public-terminal.csv', $this->changeCharset($this->getOpenPayzTransactions()));
-        file_put_contents(self::PATH_EXPORT . 'payments/' . '6.2-express-card.csv', $this->changeCharset($this->getPaycardsTransactions()));
+        //not required if fillup used
+        //file_put_contents(self::PATH_EXPORT . 'payments/' . '6.4-service-center.csv', $this->changeCharset($this->getCashPayments()));
+        //file_put_contents(self::PATH_EXPORT . 'payments/' . '6.3-public-terminal.csv', $this->changeCharset($this->getOpenPayzTransactions()));
+        //file_put_contents(self::PATH_EXPORT . 'payments/' . '6.2-express-card.csv', $this->changeCharset($this->getPaycardsTransactions()));
         file_put_contents(self::PATH_EXPORT . 'abonents/' . '4.2-services.csv', $this->changeCharset($this->getServicesData()));
         file_put_contents(self::PATH_EXPORT . 'abonents/' . '4.1-abonents.csv', $this->changeCharset($this->getUserData()));
     }
