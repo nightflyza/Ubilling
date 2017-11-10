@@ -246,7 +246,7 @@ class OnuDescribe {
                         'type' => 'i',
                         'value' => '1'
                     );
-                    $checkResult = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $describeData);
+                    $checkResult = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $describeData);
                     $checkResult .= $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $snmpData['onu']['DESCRIPTION'] . '.' . $eponInt . '.' . $decMacOnu, FALSE);
                     if (!empty($checkResult)) {
                         return $checkResult;
@@ -284,7 +284,7 @@ class OnuDescribe {
                             'type' => 'i',
                             'value' => '1'
                         );
-                        $checkResult = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $describeData);
+                        $checkResult = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $describeData);
                         $checkResult .= $this->snmp->walk($this->oltData['ip'], $this->oltData['snmp'], $snmpData['onu']['DESCRIPTION'] . '.' . $eponInt . '.' . $decMacOnu, FALSE);
                         if (!empty($checkResult)) {
                             return $checkResult;
