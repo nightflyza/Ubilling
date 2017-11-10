@@ -579,17 +579,17 @@ class PONizer {
      * 
      * @return void
      */
-    protected function signalParseZteGpon($oltid, $sigIndex, $snIndex, $snmpTemplate) {
+    protected function signalParseGpon($oltid, $sigIndex, $snIndex, $snmpTemplate) {
         $oltid = vf($oltid, 3);
         $sigTmp = array();
-        $macTmp = array();
         $result = array();
         $curDate = curdatetime();
 
-        //signal index preprocessing
+//signal index preprocessing
         if ((!empty($sigIndex)) AND ( !empty($snIndex))) {
             foreach ($sigIndex as $devIndex => $eachsig) {
                 $signalRaw = $eachsig; // signal level
+                $signalRaw = str_replace('"', '', $signalRaw);
 
                 if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
                     $signalRaw = 'Offline';
@@ -600,11 +600,10 @@ class PONizer {
                         }
                     }
                 }
-                $signalRaw = str_replace('"', '', $signalRaw);
                 $sigTmp[$devIndex] = $signalRaw;
             }
 
-            //mac index preprocessing
+//mac index preprocessing
             foreach ($snIndex as $devIndex => $eachSn) {
                 $snRaw = $eachSn; //serial
                 $snRaw = str_replace(' ', ':', $snRaw);
@@ -612,13 +611,13 @@ class PONizer {
                 $snTmp[$devIndex] = $snRaw;
             }
 
-            //storing results
+//storing results
             if (!empty($snTmp)) {
                 foreach ($snTmp as $devId => $eachSn) {
                     if (isset($sigTmp[$devId])) {
                         $signal = $sigTmp[$devId];
                         $result[$eachSn] = $signal;
-                        //signal history filling
+//signal history filling
                         $historyFile = self::ONUSIG_PATH . md5($eachSn);
                         if ($signal == 'Offline') {
                             $signal = -9000; //over 9000 offline signal level :P
@@ -631,6 +630,26 @@ class PONizer {
                 $result = serialize($result);
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
             }
+        }
+    }
+
+    protected function distanceParseGpon($oltid, $distIndex, $snIndex) {
+        $oltid = vf($oltid, 3);
+        $distTmp = array();
+        $onuTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+//distance index preprocessing
+        if (!empty($distIndex) AND ! empty($snIndex)) {
+            foreach ($snIndex as $io => $eachsn) {
+                if (isset($distIndex[$io])) {
+                    $distance = $distIndex[$io];
+                    $result[$eachsn] = $distance;
+                }
+            }
+            $result = serialize($result);
+            file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
         }
     }
 
@@ -739,10 +758,11 @@ class PONizer {
                             }
                             $this->signalParseZte($oltid, $sigIndexTmp, $macIndexTmp, $this->snmpTemplates[$oltModelId]['signal']);
                         }
-                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON') {
-                            $snIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SNINDEX'];
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON' or $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
+                            $template = $this->snmpTemplates[$oltModelId]['signal'];
+                            $snIndexOID = $template['SNINDEX'];
                             $snIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $snIndexOID, self::SNMPCACHE);
-                            $snIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SNVALUE'], '', $snIndex);
+                            $snIndex = str_replace($template['SNVALUE'], '', $snIndex);
                             $snIndex = str_replace($snIndexOID . '.', '', $snIndex);
                             $snIndex = trim($snIndex);
                             $snIndex = explodeRows($snIndex);
@@ -755,34 +775,73 @@ class PONizer {
                                         $naturalIndex = trim($explodeIndex[0]);
                                         $tmpSn = trim($explodeIndex[1]);
                                         $tmpSn = explode(" ", $tmpSn);
-                                        $naturalSn = $this->HexToString($tmpSn[0]);
-                                        $naturalSn.= $this->HexToString($tmpSn[1]);
-                                        $naturalSn.= $this->HexToString($tmpSn[2]);
-                                        $naturalSn.= $this->HexToString($tmpSn[3]);
-                                        $naturalSn.= $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
+                                        $check = trim($tmpSn[0]);
+                                        if ($check == 'STRING:') {
+                                            $tmpSn = bin2hex($tmpSn[1]);
+                                            $tmp[0] = $tmpSn[0] . $tmpSn[1];
+                                            $tmp[1] = $tmpSn[2] . $tmpSn[3];
+                                            $tmp[2] = $tmpSn[4] . $tmpSn[5];
+                                            $tmp[3] = $tmpSn[6] . $tmpSn[7];
+                                            $tmp[4] = $tmpSn[8] . $tmpSn[9] . $tmpSn[10] . $tmpSn[11] . $tmpSn[12] . $tmpSn[13] . $tmpSn[14] . $tmpSn[15];
+                                            if (!isset($tmpSn[12])) {
+                                                print_r($tmpSn);
+                                                echo '<br />';
+                                            }
+                                            $tmpSn = $tmp;
+                                        } else {
+                                            $tmp[0] = $tmpSn[0];
+                                            $tmp[1] = $tmpSn[1];
+                                            $tmp[2] = $tmpSn[2];
+                                            $tmp[3] = $tmpSn[3];
+                                            $tmp[4] = $tmpSn[4] . $tmpSn[5] . $tmpSn[6] . $tmpSn[7];
+                                            $tmpSn = $tmp;
+                                        }
+                                        if ($template['SNMODE'] == 'STRING') {
+                                            $naturalSn = $this->HexToString($tmpSn[0]);
+                                            $naturalSn .= $this->HexToString($tmpSn[1]);
+                                            $naturalSn .= $this->HexToString($tmpSn[2]);
+                                            $naturalSn .= $this->HexToString($tmpSn[3]);
+                                            $naturalSn .= $tmpSn[4];
+                                        }
+                                        if ($template['SNMODE'] == 'PURE') {
+                                            $naturalSn = implode('', $tmpSn);
+                                        }
+
                                         $snIndexTmp[$naturalIndex] = $naturalSn;
                                     }
                                 }
                             }
 
-
-                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
+                            $sigIndexOID = $template['SIGINDEX'];
                             $sigIndexTmp = array();
                             if (!empty($snIndexTmp)) {
                                 foreach ($snIndexTmp as $ioIndex => $eachSn) {
                                     $tmpSig = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID . $ioIndex, self::SNMPCACHE);
-                                    $sigIndex = str_replace($sigIndexOID . '.', '', $tmpSig);
-                                    $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
-                                    $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'], '', $sigIndex);
+                                    $sigIndex = str_replace($sigIndexOID, '', $tmpSig);
+                                    $sigIndex = str_replace($template['SIGVALUE'], '', $sigIndex);
                                     $explodeSig = explode('=', $sigIndex);
                                     $naturalIndex = trim($explodeSig[0]);
                                     if (isset($explodeSig[1])) {
                                         $naturalSig = trim($explodeSig[1]);
                                         $sigIndexTmp[$naturalIndex] = $naturalSig;
                                     }
+                                    if (isset($template['DISTANCE'])) {
+                                        $tmpDist = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $template['DISTANCE'] . $ioIndex, self::SNMPCACHE);
+                                        $distIndex = str_replace($template['DISTANCE'], '', $tmpDist);
+                                        $distIndex = str_replace($template['DISTVALUE'], '', $distIndex);
+                                        $explodeDist = explode('=', $distIndex);
+                                        $naturalIndex = trim($explodeDist[0]);
+                                        if (isset($explodeDist[1])) {
+                                            $naturalDist = trim($explodeDist[1]);
+                                            $distIndexTmp[$naturalIndex] = $naturalDist;
+                                        }
+                                    }
                                 }
                             }
-                            $this->signalParseZteGpon($oltid, $sigIndexTmp, $snIndexTmp, $this->snmpTemplates[$oltModelId]['signal']);
+                            $this->signalParseGpon($oltid, $sigIndexTmp, $snIndexTmp, $template);
+                            if (isset($template['DISTANCE'])) {
+                                $this->distanceParseGpon($oltid, $distIndexTmp, $snIndexTmp);
+                            }
                         }
                     }
                 }
@@ -1091,18 +1150,18 @@ class PONizer {
         }
 
         $inputs = wf_HiddenInput('createnewonu', 'true');
-        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
-        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+        $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, '', true);
+        $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
         if (@$this->altCfg['PON_ONUIPASIF']) {
             $ipFieldLabel = __('Interface');
         } else {
             $ipFieldLabel = __('IP');
         }
-        $inputs.= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
-        $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
-        $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
-        $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_TextInput('newip', $ipFieldLabel, '', true, 20);
+        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, '', true, 20);
+        $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+        $inputs .= wf_TextInput('newlogin', __('Login'), '', true, 20);
+        $inputs .= wf_Submit(__('Create'));
 
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -1131,13 +1190,13 @@ class PONizer {
         }
 
         $inputs = wf_HiddenInput('createnewonu', 'true');
-        $inputs.= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
-        $inputs.= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
-        $inputs.= wf_TextInput('newip', __('IP'), '', true, 20);
-        $inputs.= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20);
-        $inputs.= wf_TextInput('newserial', __('Serial number'), '', true, 20);
-        $inputs.= wf_TextInput('newlogin', __('Login'), '', true, 20);
-        $inputs.= wf_Submit(__('Create'));
+        $inputs .= wf_Selector('newoltid', $this->allOltDevices, __('OLT device') . $this->sup, $oltId, true);
+        $inputs .= wf_Selector('newonumodelid', $models, __('ONU model') . $this->sup, '', true);
+        $inputs .= wf_TextInput('newip', __('IP'), '', true, 20);
+        $inputs .= wf_TextInput('newmac', __('MAC') . $this->sup, $onuMac, true, 20);
+        $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
+        $inputs .= wf_TextInput('newlogin', __('Login'), '', true, 20);
+        $inputs .= wf_Submit(__('Create'));
         $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
         return ($result);
     }
@@ -1152,7 +1211,7 @@ class PONizer {
         if ($this->altCfg['MACVEN_ENABLED']) {
             if (!empty($mac)) {
                 $vendorframe = wf_tag('iframe', false, '', 'src="?module=macvendor&mac=' . $mac . '" width="360" height="160" frameborder="0"');
-                $vendorframe.= wf_tag('iframe', true);
+                $vendorframe .= wf_tag('iframe', true);
                 $result = wf_modalAuto(wf_img('skins/macven.gif', __('Device vendor')), __('Device vendor'), $vendorframe, '');
             }
         }
@@ -1185,22 +1244,22 @@ class PONizer {
 
         //user data
         $cells = wf_TableCell(__('Real Name'), '30%', 'row2');
-        $cells.= wf_TableCell($userRealname);
+        $cells .= wf_TableCell($userRealname);
         $rows = wf_TableRow($cells, 'row3');
         $cells = wf_TableCell(__('Full address'), '30%', 'row2');
-        $cells.= wf_TableCell($userAddress);
-        $rows.= wf_TableRow($cells, 'row3');
-        $result.= wf_TableBody($rows, '100%', 0, '');
-        $result.= wf_delimiter();
+        $cells .= wf_TableCell($userAddress);
+        $rows .= wf_TableRow($cells, 'row3');
+        $result .= wf_TableBody($rows, '100%', 0, '');
+        $result .= wf_delimiter();
 
         $inputs = wf_HiddenInput('assignonulogin', $login);
-        $inputs.= wf_Selector('assignonuid', $params, __('ONU'), '', false);
-        $inputs.= wf_Submit(__('Save'));
-        $result.= wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs .= wf_Selector('assignonuid', $params, __('ONU'), '', false);
+        $inputs .= wf_Submit(__('Save'));
+        $result .= wf_Form('', 'POST', $inputs, 'glamour');
 
-        $result.= wf_CleanDiv();
-        $result.= wf_delimiter();
-        $result.= web_UserControls($login);
+        $result .= wf_CleanDiv();
+        $result .= wf_delimiter();
+        $result .= web_UserControls($login);
         return ($result);
     }
 
@@ -1231,29 +1290,29 @@ class PONizer {
             }
 
             $inputs = wf_HiddenInput('editonu', $onuId);
-            $inputs.= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
-            $inputs.= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
+            $inputs .= wf_Selector('editoltid', $this->allOltDevices, __('OLT device') . $this->sup, $this->allOnu[$onuId]['oltid'], true);
+            $inputs .= wf_Selector('editonumodelid', $models, __('ONU model') . $this->sup, $this->allOnu[$onuId]['onumodelid'], true);
             if (@$this->altCfg['PON_ONUIPASIF']) {
                 $ipFieldLabel = __('Interface');
             } else {
                 $ipFieldLabel = __('IP');
             }
-            $inputs.= wf_TextInput('editip', $ipFieldLabel, $this->allOnu[$onuId]['ip'], true, 20);
-            $inputs.= wf_TextInput('editmac', __('MAC') . $this->sup . ' ' . $this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
-            $inputs.= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
-            $inputs.= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
-            $inputs.= wf_Submit(__('Save'));
+            $inputs .= wf_TextInput('editip', $ipFieldLabel, $this->allOnu[$onuId]['ip'], true, 20);
+            $inputs .= wf_TextInput('editmac', __('MAC') . $this->sup . ' ' . $this->getSearchmacControl($this->allOnu[$onuId]['mac']), $this->allOnu[$onuId]['mac'], true, 20);
+            $inputs .= wf_TextInput('editserial', __('Serial number'), $this->allOnu[$onuId]['serial'], true, 20);
+            $inputs .= wf_TextInput('editlogin', __('Login'), $this->allOnu[$onuId]['login'], true, 20);
+            $inputs .= wf_Submit(__('Save'));
 
 
             $result = wf_Form('', 'POST', $inputs, 'glamour');
-            $result.= wf_CleanDiv();
-            $result.= wf_delimiter();
+            $result .= wf_CleanDiv();
+            $result .= wf_delimiter();
 
-            $result.= wf_BackLink(self::URL_ME);
+            $result .= wf_BackLink(self::URL_ME);
             if (!empty($this->allOnu[$onuId]['login'])) {
-                $result.= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
+                $result .= wf_Link('?module=userprofile&username=' . $this->allOnu[$onuId]['login'], wf_img('skins/icon_user.gif') . ' ' . __('User profile'), false, 'ubButton');
             }
-            $result.= wf_JSAlertStyled(self::URL_ME . '&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
+            $result .= wf_JSAlertStyled(self::URL_ME . '&deleteonu=' . $onuId, web_delete_icon() . ' ' . __('Delete'), $messages->getDeleteAlert(), 'ubButton');
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
@@ -1263,9 +1322,9 @@ class PONizer {
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
-            $result.=wf_delimiter();
-            $result.=wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
-            $result.=$adcomments->renderComments($onuId);
+            $result .= wf_delimiter();
+            $result .= wf_tag('h3') . __('Additional comments') . wf_tag('h3', true);
+            $result .= $adcomments->renderComments($onuId);
         }
 
         return ($result);
@@ -1300,7 +1359,7 @@ class PONizer {
                     $rawData = shell_exec($getMonthDataCmd);
                     //commented due performance issues with 1 minute OLT polling.
                     //$rawData = file_get_contents($historyKey);
-                    $result.=wf_delimiter();
+                    $result .= wf_delimiter();
                     //$result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
                     //current day signal levels
                     $todaySignal = '';
@@ -1310,16 +1369,16 @@ class PONizer {
                         if (!empty($todayTmp)) {
                             foreach ($todayTmp as $io => $each) {
                                 if (ispos($each, $curdate)) {
-                                    $todaySignal.=$each . "\n";
+                                    $todaySignal .= $each . "\n";
                                 }
                             }
                         }
                     }
-                    $result.= __('Today');
-                    $result.= wf_tag('div', false, '', '');
-                    $result.= wf_Graph($todaySignal, '800', '300', false);
-                    $result.= wf_tag('div', true);
-                    $result.= wf_tag('br');
+                    $result .= __('Today');
+                    $result .= wf_tag('div', false, '', '');
+                    $result .= wf_Graph($todaySignal, '800', '300', false);
+                    $result .= wf_tag('div', true);
+                    $result .= wf_tag('br');
 
                     //current month signal levels
                     $monthSignal = '';
@@ -1329,22 +1388,22 @@ class PONizer {
                         if (!empty($monthTmp)) {
                             foreach ($monthTmp as $io => $each) {
                                 if (ispos($each, $curmonth)) {
-                                    $monthSignal.=$each . "\n";
+                                    $monthSignal .= $each . "\n";
                                 }
                             }
                         }
                     }
-                    $result.= __('Month');
-                    $result.= wf_tag('div', false, '', '');
-                    $result.= wf_Graph($monthSignal, '800', '300', false);
-                    $result.= wf_tag('div', true);
-                    $result.= wf_tag('br');
+                    $result .= __('Month');
+                    $result .= wf_tag('div', false, '', '');
+                    $result .= wf_Graph($monthSignal, '800', '300', false);
+                    $result .= wf_tag('div', true);
+                    $result .= wf_tag('br');
 
                     //all time signal history
-                    $result.= __('All time');
-                    $result.= wf_tag('div', false, '', '');
-                    $result.= wf_GraphCSV($historyKey, '800', '300', false);
-                    $result.= wf_tag('div', true);
+                    $result .= __('All time');
+                    $result .= wf_tag('div', false, '', '');
+                    $result .= wf_GraphCSV($historyKey, '800', '300', false);
+                    $result .= wf_tag('div', true);
                 }
             }
         }
@@ -1359,27 +1418,26 @@ class PONizer {
     public function controls() {
         $result = '';
         if (!wf_CheckGet(array('unknownonulist'))) {
-            $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Register new ONU'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
+            $result .= wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Register new ONU'), __('Create') . ' ' . __('ONU'), $this->onuCreateForm(), 'ubButton') . ' ';
             $availOnuCache = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
-            $result.= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+            $result .= wf_Link(self::URL_ME . '&forcepoll=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
             if (!empty($availOnuCache)) {
-                $result.=wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&unknownonulist=true', wf_img('skins/question.png') . ' ' . __('Unknown ONU'), false, 'ubButton');
             }
 
             $availOnuFdbCache = rcms_scandir(self::FDBCACHE_PATH, '*_' . self::FDBCACHE_EXT);
             if (!empty($availOnuFdbCache)) {
-                $result.=wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $result .= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
                 $result .= wf_link('?module=zteunreg', wf_img('skins/check.png') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
             }
-
         } else {
-            $result.=wf_BackLink(self::URL_ME);
-            $result.= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
+            $result .= wf_BackLink(self::URL_ME);
+            $result .= wf_Link(self::URL_ME . '&forcepoll=true&uol=true', wf_img('skins/refresh.gif') . ' ' . __('Force query'), false, 'ubButton');
         }
-        $result.=wf_delimiter();
+        $result .= wf_delimiter();
         return ($result);
     }
 
@@ -1391,7 +1449,7 @@ class PONizer {
      */
     public function loadonuSignalHistory($onuId) {
         $result = '';
-        $result.= show_window(__('ONU signal history'), $this->onuSignalHistory($onuId));
+        $result .= show_window(__('ONU signal history'), $this->onuSignalHistory($onuId));
         return ($result);
     }
 
@@ -1460,10 +1518,10 @@ class PONizer {
      */
     public function renderOnuFdbCache() {
         $result = wf_BackLink(self::URL_ME);
-        $result.=wf_delimiter();
+        $result .= wf_delimiter();
         $columns = array('OLT', 'ONU', 'ID', 'Vlan', 'MAC', 'Address', 'Real Name', 'Tariff');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result.= wf_JqDtLoader($columns, self::URL_ME . '&fdbcachelist=true&ajaxfdblist=true', false, 'ONU', 100, $opts);
+        $result .= wf_JqDtLoader($columns, self::URL_ME . '&fdbcachelist=true&ajaxfdblist=true', false, 'ONU', 100, $opts);
         return ($result);
     }
 
@@ -1653,7 +1711,7 @@ class PONizer {
 
                 $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
 
-                $actLinks.= ' ' . $indicatorIcon;
+                $actLinks .= ' ' . $indicatorIcon;
 
 
                 //coloring signal
