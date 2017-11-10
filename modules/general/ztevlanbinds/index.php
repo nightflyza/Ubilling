@@ -10,7 +10,7 @@ if (@$altcfg['ONUREG_ZTE']) {
         if (!empty($avidity)) {
             if (isset($_POST[$avidity['P']['JAI']])) {
                 $avidity_a = $avidity['M']['PAI'];
-                die($register->$avidity_a($_POST[$avidity['P']['JAI']], $_GET[$avidity['EAI']]));
+                die($register->$avidity_a($_POST[$avidity['P']['JAI']], $_GET[$avidity['P']['EAI']]));
             }
 
             $avidity_b = $avidity['M']['LAI'];
