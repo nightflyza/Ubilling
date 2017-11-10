@@ -157,7 +157,7 @@ class OnuReboot {
                 $ifIndex = trim(str_replace(array($ifIndexOid, 'INTEGER:'), '', $ifIndexFull));
                 if (!empty($ifIndex)) {
                     $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
-                    $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $reloadData);
+                    $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $reloadData);
                     return true;
                 }
             }
@@ -177,7 +177,7 @@ class OnuReboot {
                     if (!empty($searchArray) and isset($searchArray[$macOnu])) {
                         $ifIndex = $searchArray[$macOnu];
                         $reloadData[] = array('oid' => $snmpData['onu']['RELOAD'] . '.' . $ifIndex, 'type' => 'i', 'value' => '0');
-                        $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmp'], $reloadData);
+                        $result = $this->snmp->set($this->oltData['ip'], $this->oltData['snmpwrite'], $reloadData);
                         return true;
                     }
                 }

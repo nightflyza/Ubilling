@@ -7,9 +7,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
             $VlanGen = new VlanGen;
             $login = $_GET['username'];
             $cur_vlan = $VlanGen->GetVlan($login);
-            $reboot = new RebootOnu($login);
-            $describe = new DescribeOnu($login);
-            $onuDescription = $describe->GetOnuDescription();
             $form = wf_Link("?module=vlan_mac_history&username=" . $login . "&vlan=" . $cur_vlan, __('Users MAC and VLAN history'), false, 'ubButton');
             show_window(__('Actions'), $form);
 
@@ -35,13 +32,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                 if ($altcfg['ONUAUTO_CONFIG']) {
                     show_window('', $VlanGen->ChangeOnOnuForm());
                 }
-                if ($altcfg['ONUAUTO_CONFIG_REBOOT']) {
-                    show_window('', $reboot->RebootForm());
-                }
-                if ($altcfg['ONUAUTO_CONFIG_DESCRIBE']) {
-                    show_window('', $describe->DescribeForm($login));
-                }
-
                 if (isset($_POST['ChangeVlanOnPort'])) {
                     $obj = new AutoConfigurator;
                     $set = $obj->ChangePvid($login, $cur_vlan);
@@ -54,23 +44,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                     $onuconfig = new OnuConfigurator();
                     $onu_cfg = $onuconfig->ChangeOnuPvid($login, $cur_vlan);
                     show_success($onu_cfg);
-                }
-                if (isset($_POST['RebootOnu'])) {
-                    $rebootResult = $reboot->RebootOnu();
-                    if ($rebootResult) {
-                        show_success('DONE');
-                    } else {
-                        show_error('ONU NOT FOUND');
-                    }
-                }
-
-                if (isset($_POST['DescribeOnu'])) {
-                    $describeResult = $describe->DescribeOnu($_POST['onuDescription']);
-                    if (!empty($describeResult)) {
-                        show_success($describeResult);
-                    } else {
-                        show_error('Unsuccessful');
-                    }
                 }
             }
             show_window('', web_UserControls($login));
