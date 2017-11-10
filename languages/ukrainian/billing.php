@@ -2721,4 +2721,6 @@ $lang['def']['of them remain active'] = 'з них залишаються акт
 $lang['def']['now is dead'] = 'зараз мертві';
 $lang['def']['and'] = 'і';
 $lang['def']['ONU serial'] = 'Серійний номер ONU';
+$lang['def']['expect path'] = 'Шлях до expect';
+$lang['def']['tail path'] = 'Шлях до tail';
 ?>
