@@ -930,7 +930,7 @@ class OnuRegister {
                         }
                         $actionLinks = wf_Link(self::UNREG_ACT_URL . $ip . '&interface=' . $interface . $identifier . $macOnu . '&type=' . $eachType, wf_img('skins/add_icon.png', __('Register')), false);
                         $tablecells .= wf_TableCell($actionLinks);
-                        $tablerows .= wf_TableRow($tablecells, 'row1');
+                        $tablerows .= wf_TableRow($tablecells, 'row3');
                     }
                 }
             }
