@@ -105,11 +105,26 @@ class OnuRegister {
     protected $GponCards = array('GPFA' => 4, 'GPFAE' => 4, 'GTGO' => 8, 'GTGH' => 16, 'GTGHG' => 16);
 
     /**
+     * Greed placeholder
+     *
+     * @var object
+     */
+    protected $greed = '';
+
+    /**
+     * Avidity runtime placeholder
+     *
+     * @var array
+     */
+    protected $avidity = '';
+
+    /**
      * Base class construction.
      * 
      * @return void
      */
     public function __construct() {
+        $this->initGreed();
         $this->loadAllZTEOlt();
         $this->loadAllSwLogin();
         $this->loadZTECards();
@@ -136,6 +151,25 @@ class OnuRegister {
                 $this->onuModels[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Initializes greed mechanics
+     * 
+     * @return void
+     */
+    protected function initGreed() {
+        $this->greed = new Avarice();
+        $this->avidity = $this->greed->runtime('ZTE');
+    }
+
+    /**
+     * Returns current runtime
+     * 
+     * @return array
+     */
+    public function getAvidity() {
+        return ($this->avidity);
     }
 
     /**
@@ -334,24 +368,9 @@ class OnuRegister {
         if (!empty($cards)) {
             $this->ponArray = array();
             $this->onuArray = array();
+            $inherit = @$this->avidity['Z']['LSD'];
             foreach ($cards as $index => $value) {
-                $ports = $value['ports'];
-                $cardName = $value['description'];
-                $chasis = $value['chasis'];
-                $id = self::PORT_ID_START + (65536 * ($index - 1));
-                for ($port = 1; $port <= $ports; $port++) {
-                    $this->ponArray[$this->correctInt($cardName) . $chasis . "/" . $index . "/" . $port] = $id;
-                    $id += 256;
-                }
-                $onu_id = self::ONU_ID_START + (524288 * ($index - 1));
-                for ($port = 1; $port <= $ports; $port++) {
-                    $tmp_id = $onu_id;
-                    for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
-                        $this->onuArray[$this->correctInt($cardName) . $chasis . "/" . $index . "/" . $port][$onu_num] = $tmp_id;
-                        $tmp_id += 256;
-                    }
-                    $onu_id += 65536;
-                }
+                eval($inherit);
             }
         }
     }
@@ -480,7 +499,7 @@ class OnuRegister {
         $card = mysql_real_escape_string($card);
         $query = 'INSERT INTO `' . self::CARDS_TABLE . '` (`id`, `swid`, `slot_number`, `card_name`, `chasis_number`) VALUE (NULL, "' . $swid . '", "' . $slot . '", "' . $card . '", "' . $chasis . '")';
         nr_query($query);
-        log_register("Registered new card. OLT ID: " . $swid . "Slot: `" . $slot . "`. Card name: `" . $card . "`.");
+        log_register("ZTE Registered new card. OLT ID: " . $swid . "Slot: `" . $slot . "`. Card name: `" . $card . "`.");
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
         return true;
     }
@@ -500,7 +519,7 @@ class OnuRegister {
         $card = mysql_real_escape_string($card);
         $query = 'UPDATE ' . self::CARDS_TABLE . ' SET `card_name` = "' . $card . '" WHERE `swid` = "' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
-        log_register("Edited card. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Card name: `" . $card . "`.");
+        log_register("ZTE Edited card. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Card name: `" . $card . "`.");
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
 
@@ -517,7 +536,7 @@ class OnuRegister {
         $slot = vf($slot, 3);
         $query = 'DELETE FROM `' . self::CARDS_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '"';
         nr_query($query);
-        log_register("Deleted card. OLT ID: " . $swid . ". Slot: `" . $slot . "`");
+        log_register("ZTE Deleted card. OLT ID: " . $swid . ". Slot: `" . $slot . "`");
         rcms_redirect(self::MODULE_URL_EDIT_CARD . $swid);
     }
 
@@ -547,7 +566,7 @@ class OnuRegister {
         $vlan = vf($vlan, 3);
         $query = 'INSERT INTO `' . self::BIND_TABLE . '` (`id`, `swid`, `slot_number`, `port_number`, `vlan`) VALUE (NULL, "' . $swid . '", "' . $slot . '", "' . $port . '", "' . $vlan . '")';
         nr_query($query);
-        log_register("Created new vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+        log_register("ZTE Created new vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -566,7 +585,7 @@ class OnuRegister {
         $port = vf($port, 3);
         $query = 'DELETE FROM `' . self::BIND_TABLE . '` WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` = "' . $port . '"';
         nr_query($query);
-        log_register("Deleted vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`.");
+        log_register("ZTE Deleted vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`.");
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -587,7 +606,7 @@ class OnuRegister {
         $vlan = vf($vlan, 3);
         $query = 'UPDATE `' . self::BIND_TABLE . '` SET `vlan` = "' . $vlan . '" WHERE `swid` ="' . $swid . '" AND `slot_number` = "' . $slot . '" AND `port_number` ="' . $port . '"';
         nr_query($query);
-        log_register("Edited vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
+        log_register("ZTE Edited vlan bind. OLT ID: " . $swid . ". Slot: `" . $slot . "`. Port: `" . $port . "`. VLAN: `" . $vlan . "`");
         rcms_redirect(self::MODULE_URL_EDIT_BIND . $swid);
     }
 
@@ -610,7 +629,7 @@ class OnuRegister {
                 $actionLinks = wf_Link(self::MODULE_URL_EDIT_CARD . $eachOlt['id'], wf_img('skins/chasis.png', __('Edit cards')), false);
                 $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $eachOlt['id'], wf_img('skins/bind.png', __('Edit VLAN bindings')), false);
                 $tablecells .= wf_TableCell($actionLinks);
-                $tablerows .= wf_TableRow($tablecells, 'row1');
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -641,7 +660,7 @@ class OnuRegister {
                 $actionLinks = wf_Link(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), false);
                 $actionLinks .= wf_Link(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), false);
                 $tablecells .= wf_TableCell($actionLinks);
-                $tablerows .= wf_TableRow($tablecells, 'row1');
+                $tablerows .= wf_TableRow($tablecells, 'row3');
             }
         }
         $result = wf_TableBody($tablerows, '100%', '0', 'sortable');
@@ -845,7 +864,7 @@ class OnuRegister {
                     $actionLinks = wf_Link(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), false);
                     $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), false);
                     $tablecells .= wf_TableCell($actionLinks);
-                    $tablerows .= wf_TableRow($tablecells, 'row1');
+                    $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
             }
         }
