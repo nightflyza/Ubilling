@@ -119,12 +119,20 @@ class OnuRegister {
     protected $avidity = '';
 
     /**
+     * System messages helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    /**
      * Base class construction.
      * 
      * @return void
      */
     public function __construct() {
         $this->initGreed();
+        $this->initMessages();
         $this->loadAllZTEOlt();
         $this->loadAllSwLogin();
         $this->loadZTECards();
@@ -133,11 +141,23 @@ class OnuRegister {
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
     }
 
-    //data loader functions section
-
+    /**
+     * data loader functions section
+     * 
+     * @return void
+     */
     protected function loadConfig() {
         global $ubillingConfig;
         $this->billingCfg = $ubillingConfig->getBilling();
+    }
+
+    /**
+     * Initializes system message helper object instance
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -657,8 +677,8 @@ class OnuRegister {
                 $tablecells .= wf_TableCell($eachCard['chasis_number']);
                 $tablecells .= wf_TableCell($eachCard['slot_number']);
                 $tablecells .= wf_TableCell($eachCard['card_name']);
-                $actionLinks = wf_Link(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), false);
-                $actionLinks .= wf_Link(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), false);
+                $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
+                $actionLinks.= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
@@ -861,8 +881,8 @@ class OnuRegister {
                     $tablecells .= wf_TableCell($eachBind['slot_number']);
                     $tablecells .= wf_TableCell($eachBind['port_number']);
                     $tablecells .= wf_TableCell($eachBind['vlan']);
-                    $actionLinks = wf_Link(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), false);
-                    $actionLinks .= wf_Link(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), false);
+                    $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&edit=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'] . '&vlan=' . $eachBind['vlan'], web_edit_icon(), $this->messages->getEditAlert());
+                    $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_BIND . $swid . '&delete=true&slot_number=' . $eachBind['slot_number'] . '&port_number=' . $eachBind['port_number'], web_delete_icon(), $this->messages->getDeleteAlert());
                     $tablecells .= wf_TableCell($actionLinks);
                     $tablerows .= wf_TableRow($tablecells, 'row3');
                 }
