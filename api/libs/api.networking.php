@@ -788,7 +788,7 @@ function multinet_get_service_networkid($service_id) {
 
 // проверка IP по маске
 function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
-    return (ip2long($user_ip)>=ip2long($ip_begin) && ip2long($user_ip)<=ip2long($ip_end));
+    return (ip2long($user_ip) >= ip2long($ip_begin) && ip2long($user_ip) <= ip2long($ip_end));
 }
 
 function stg_convert_size($fs) {
@@ -1353,6 +1353,34 @@ function zb_ExtractMacAddress($data) {
         $result = $matches[0];
     }
     return ($result);
+}
+
+/**
+ * Converts IP to integer value
+ * 
+ * @param string $src
+ * 
+ * @return int
+ */
+function ip2int($src) {
+    $t = explode('.', $src);
+    return count($t) != 4 ? 0 : 256 * (256 * ((float) $t[0] * 256 + (float) $t[1]) + (float) $t[2]) + (float) $t[3];
+}
+
+/**
+ * Converts integer into IP
+ * 
+ * @param int $src
+ * 
+ * @return string
+ */
+function int2ip($src) {
+    $s1 = (int) ($src / 256);
+    $i1 = $src - 256 * $s1;
+    $src = (int) ($s1 / 256);
+    $i2 = $s1 - 256 * $src;
+    $s1 = (int) ($src / 256);
+    return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
 ?>
