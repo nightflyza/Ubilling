@@ -583,8 +583,8 @@ function multinet_cidr2mask($mask_bits) {
         return("0.0.0.0");
     $host_bits = 32 - $mask_bits;
     $num_hosts = pow(2, $host_bits) - 1;
-    $netmask = ip2long("255.255.255.255") - $num_hosts;
-    return long2ip($netmask);
+    $netmask = ip2int("255.255.255.255") - $num_hosts;
+    return int2ip($netmask);
 }
 
 function multinet_rebuild_globalconf() {
@@ -639,7 +639,7 @@ function multinet_rebuild_globalconf() {
             $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
             $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
             $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
-            $templatedata['{ROUTERS}'] = long2ip(ip2long($templatedata['{STARTIP}']) + 1);
+            $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
             $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
             $dhcpdata = dhcp_get_data_by_netid($eachnet['netid']);
             if (isset($dhcpdata['confname'])) {
@@ -733,10 +733,10 @@ function multinet_change_mac($ip, $newmac) {
 }
 
 function multinet_expand_network($first_ip, $last_ip) {
-    $first = ip2long($first_ip);
-    $last = ip2long($last_ip);
+    $first = ip2int($first_ip);
+    $last = ip2int($last_ip);
     for ($i = $first; $i <= $last; $i++) {
-        $totalnet[] = long2ip($i);
+        $totalnet[] = int2ip($i);
     }
     if (!empty($totalnet)) {
         //$filterednet = preg_grep("/\b\.([2-9]|[0-9]\d|1[0-9]\d|2[0-4]\d|25[0-4])$\b/", $totalnet);
@@ -788,7 +788,7 @@ function multinet_get_service_networkid($service_id) {
 
 // проверка IP по маске
 function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
-    return (ip2long($user_ip) >= ip2long($ip_begin) && ip2long($user_ip) <= ip2long($ip_end));
+    return (ip2int($user_ip) >= ip2int($ip_begin) && ip2int($user_ip) <= ip2int($ip_end));
 }
 
 function stg_convert_size($fs) {

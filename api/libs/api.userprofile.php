@@ -424,7 +424,7 @@ class UserProfile {
         if ($this->alterCfg['OPENPAYZ_REALID']) {
             $this->paymentid = zb_PaymentIDGet($this->login);
         } else {
-            $this->paymentid = ip2long($this->userdata['IP']);
+            $this->paymentid = ip2int($this->userdata['IP']);
         }
     }
 

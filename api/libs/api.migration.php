@@ -117,7 +117,7 @@ class mikbill {
     }
 
     protected function cidr_match($ip, $network, $cidr) {
-	if ((ip2long($ip) & ~((1 << (32 - $cidr)) - 1) ) == ip2long($network)) {
+	if ((ip2int($ip) & ~((1 << (32 - $cidr)) - 1) ) == ip2int($network)) {
 	    return true;
 	}
 	return false;

@@ -2762,7 +2762,7 @@ function web_UserArrayShower($usersarr) {
             $tablecells = wf_TableCell($profilelink);
             $tablecells.=wf_TableCell(@$alladdress[$eachlogin]);
             $tablecells.=wf_TableCell(@$allrealnames[$eachlogin]);
-            $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2long(@$alluserips[$eachlogin]) . '"');
+            $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
             $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
             if ($alterconf['ONLINE_LAT']) {
                 if (isset($alluserlat[$eachlogin])) {

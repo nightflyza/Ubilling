@@ -37,7 +37,7 @@ if (cfr('TURBOSMS')) {
            $all = simple_queryall($query);
            if (!empty($all)) {
                foreach ($all as $io=>$each) {
-                   $result[$each['login']] = ip2long($each['IP']);
+                   $result[$each['login']] = ip2int($each['IP']);
                }
            }
        }

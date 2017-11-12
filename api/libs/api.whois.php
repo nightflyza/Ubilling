@@ -183,7 +183,7 @@ class UbillingWhois {
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('IP range'), '', 'row2');
             if ((!empty($this->ispData->ip_range_start)) AND ( !empty($this->ispData->ip_range_end))) {
-                $ipRange = long2ip($this->ispData->ip_range_start) . ' - ' . long2ip($this->ispData->ip_range_end);
+                $ipRange = int2ip($this->ispData->ip_range_start) . ' - ' . int2ip($this->ispData->ip_range_end);
             } else {
                 $ipRange = '';
             }

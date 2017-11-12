@@ -104,7 +104,7 @@ if (cfr('SWITCHESEDIT')) {
             list($ip, $mask) = explode('/', $cidr);
             $maskBinStr = str_repeat("1", $mask) . str_repeat("0", 32 - $mask);      //net mask binary string
             $inverseMaskBinStr = str_repeat("0", $mask) . str_repeat("1", 32 - $mask); //inverse mask
-            $ipLong = ip2long($ip);
+            $ipLong = ip2int($ip);
             $ipMaskLong = bindec($maskBinStr);
             $inverseIpMaskLong = bindec($inverseMaskBinStr);
             $netWork = $ipLong & $ipMaskLong;
@@ -124,7 +124,7 @@ if (cfr('SWITCHESEDIT')) {
             $ips = array();
             $range = $this->getIpRange($cidr);
             for ($ip = $range['firstIP']; $ip <= $range['lastIP']; $ip++) {
-                $ips[] = long2ip($ip);
+                $ips[] = int2ip($ip);
             }
             return $ips;
         }

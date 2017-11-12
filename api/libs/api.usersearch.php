@@ -117,7 +117,7 @@ function zb_UserSearchFields($query, $searchtype) {
         if ($altercfg['OPENPAYZ_REALID']) {
             $query = "SELECT `realid` AS `login` from `op_customers` WHERE `virtualid`='" . $query . "'";
         } else {
-            $query = "SELECT `login` from `users` WHERE `IP` = '" . long2ip($query) . "'";
+            $query = "SELECT `login` from `users` WHERE `IP` = '" . int2ip($query) . "'";
         }
     }
 

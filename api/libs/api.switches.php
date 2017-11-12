@@ -889,7 +889,7 @@ function web_SwitchesShow() {
             }
 
             $tablecells = wf_TableCell($eachswitch['id']);
-            $tablecells.= wf_TableCell($eachswitch['ip'], '', '', 'sorttable_customkey="' . ip2long($eachswitch['ip']) . '"');
+            $tablecells.= wf_TableCell($eachswitch['ip'], '', '', 'sorttable_customkey="' . ip2int($eachswitch['ip']) . '"');
             $tablecells.= wf_TableCell($eachswitch['location']);
             $tablecells.= wf_TableCell($aliveled, '', '', 'sorttable_customkey="' . $aliveflag . '"');
             $tablecells.= wf_TableCell(@$modelnames[$eachswitch['modelid']]);

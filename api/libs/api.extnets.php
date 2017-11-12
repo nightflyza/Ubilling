@@ -34,7 +34,7 @@ class ExtNets {
      */
     protected function v4CIDRtoMask($cidr) {
     $cidr = explode('/', $cidr);
-    return array($cidr[0], long2ip(-1 << (32 - (int)$cidr[1])));
+    return array($cidr[0], int2ip(-1 << (32 - (int)$cidr[1])));
     } 
     
     /**
@@ -224,20 +224,20 @@ class ExtNets {
                 //select last broadcast +1
                 foreach ($this->pools as $io=>$each) {
                     if ($each['netid']==$netid) {
-                        $curNetPools[$each['id']]=ip2long($each['broadcast'])+1;
+                        $curNetPools[$each['id']]=ip2int($each['broadcast'])+1;
                     }
                 } 
             } else {
                  //network start IP
-                $curNetPools[0]=ip2long($this->networks[$netid]['startip']);
+                $curNetPools[0]=ip2int($this->networks[$netid]['startip']);
             }
             
             if (empty($curNetPools)) {
                 //network start IP
-                $curNetPools[0]=ip2long($this->networks[$netid]['startip']);
+                $curNetPools[0]=ip2int($this->networks[$netid]['startip']);
             }
             $result=max($curNetPools);
-            $result=  long2ip($result);
+            $result=  int2ip($result);
         }
         return ($result);
     }
@@ -281,13 +281,13 @@ class ExtNets {
         nr_query($query);
         $newPoolId=  simple_get_lastid('netextpools');
         log_register("POOL CREATE [".$newPoolId."] `".$pool."/".$netmask."`");
-        $newGw=  long2ip(ip2long($pool)+1);
-        $newBroadcast=long2ip(ip2long($pool)+($this->cidrOffsets[$netmask]-1));
+        $newGw=  int2ip(ip2int($pool)+1);
+        $newBroadcast=int2ip(ip2int($pool)+($this->cidrOffsets[$netmask]-1));
         simple_update_field('netextpools', 'gw', $newGw, "WHERE `id`='".$newPoolId."';");
         simple_update_field('netextpools', 'broadcast', $newBroadcast, "WHERE `id`='".$newPoolId."';");
         //creating ips list for pool
-        $newIpsStart=  long2ip(ip2long($newGw)+1);
-        $newIpsEnd=  long2ip(ip2long($newBroadcast)-1);
+        $newIpsStart=  int2ip(ip2int($newGw)+1);
+        $newIpsEnd=  int2ip(ip2int($newBroadcast)-1);
         $this->ipsCreate($newPoolId, $newIpsStart, $newIpsEnd);
         
     }
@@ -371,12 +371,12 @@ class ExtNets {
      */
     protected function ipsCreate($poolid,$begin,$end) {
         $poolid=vf($poolid,3);
-        $begin=  ip2long($begin);
-        $end= ip2long($end);
+        $begin=  ip2int($begin);
+        $end= ip2int($end);
             //valid ips ugly check
             if ($begin<=$end) {
                 for ($i=$begin;$i<=$end;$i++) {
-                    $newIp=  long2ip($i);
+                    $newIp=  int2ip($i);
                     $query="INSERT INTO `netextips` "
                          . "(`id`, `poolid`, `ip`, `nas`, `iface`, `mac`, `switchid`, `port`, `vlan`) "
                          . "VALUES (NULL, '".$poolid."', '".$newIp."', NULL, NULL, NULL, NULL, NULL, NULL); ";
@@ -385,7 +385,7 @@ class ExtNets {
                
             }
         
-       log_register("POOL [".$poolid."] IPS CREATE RANGE `".long2ip($begin)."-".long2ip($end)."` ");
+       log_register("POOL [".$poolid."] IPS CREATE RANGE `".int2ip($begin)."-".int2ip($end)."` ");
     }
     
     
