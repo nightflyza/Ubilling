@@ -11,8 +11,8 @@ $tmp = array();
 $c = 0;
 switch ($type) {
     case 'long':
-        $start = ip2int($start);
-        $end = ip2int($end);
+        $start = ip2long($start);
+        $end = ip2long($end);
         break;
     case 'int':
         $start = ip2int($start);
@@ -25,7 +25,7 @@ for ($i = $start; $i < $end; $i++) {
 
     switch ($type) {
         case 'long':
-            $tmp[$c]['ip'] = int2ip($i);
+            $tmp[$c]['ip'] = long2ip($i);
             $tmp[$c]['value'] = $i;
             break;
         case 'int':
