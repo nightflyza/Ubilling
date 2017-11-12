@@ -3,11 +3,18 @@
 class UbillingUpdateManager {
 
     /**
-     * Systema alter.ini config as key=>value
+     * System alter.ini config as key=>value
      *
      * @var array
      */
     protected $altCfg = array();
+
+    /**
+     * System billing.ini config as key=>value
+     *
+     * @var array 
+     */
+    protected $billCfg = array();
 
     /**
      * System mysql.ini config as key=>value
@@ -44,6 +51,13 @@ class UbillingUpdateManager {
      */
     protected $configFileNames = array();
 
+    /**
+     * system sudo path
+     *
+     * @var string
+     */
+    protected $sudoPath = '/usr/local/bin/sudo';
+
     const DUMPS_PATH = 'content/updates/sql/';
     const CONFIGS_PATH = 'content/updates/configs/';
     const URL_ME = '?module=updatemanager';
@@ -56,6 +70,7 @@ class UbillingUpdateManager {
      */
     public function __construct() {
         $this->loadSystemConfigs();
+        $this->setOptions();
         $this->initMessages();
         $this->setConfigFilenames();
         $this->loadDumps();
@@ -73,7 +88,19 @@ class UbillingUpdateManager {
     protected function loadSystemConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->billCfg = $ubillingConfig->getBilling();
         $this->mySqlCfg = rcms_parse_ini_file(CONFIG_PATH . 'mysql.ini');
+    }
+
+    /**
+     * Sets all required options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        if (!empty($this->billCfg)) {
+            $this->sudoPath = $this->billCfg['SUDO'];
+        }
     }
 
     /**
@@ -310,6 +337,18 @@ class UbillingUpdateManager {
     }
 
     /**
+     * Changes access rights for some path to be writable
+     * 
+     * @param string $path
+     *
+     * @return void
+     */
+    protected function fixAccessRights($path) {
+        $command = $this->sudoPath . ' chmod -R 777 ' . $path;
+        shell_exec($command);
+    }
+
+    /**
      * Renders interface and applies new options to some config files
      * 
      * @param string $release
@@ -326,8 +365,10 @@ class UbillingUpdateManager {
             if (!empty($releaseData)) {
                 foreach ($releaseData as $configId => $configOptions) {
                     @$configName = $this->configFileNames[$configId];
+                    $canUpdate = false;
                     if (!empty($configName)) {
                         if (file_exists($configName)) {
+
                             $currentConfigOptions = rcms_parse_ini_file($configName);
                             $result.=$this->messages->getStyledMessage(__('Existing config file') . ': ' . $configName, 'success');
                             //some logging
@@ -335,8 +376,26 @@ class UbillingUpdateManager {
                                 //Initial line break and update header
                                 $configUpdateHeader = "\n";
                                 $configUpdateHeader.=';release ' . $release . ' update' . "\n";
-                                file_put_contents($configName, $configUpdateHeader, FILE_APPEND);
-                                log_register('UPDMGR APPLY CONFIG `' . $configId . '` RELEASE `' . $release . '`');
+                                if (is_writable($configName)) {
+                                    $canUpdate = true;
+                                } else {
+                                    $canUpdate = false;
+                                    $result.=$this->messages->getStyledMessage(__('Permission denied') . ': ' . $configName . '.', 'error');
+                                    $result.=$this->messages->getStyledMessage(__('Trying to set write permissions for') . ' ' . $configName . ' ' . __('to fix this issue') . '.', 'warning');
+                                    $this->fixAccessRights($configName);
+                                    if (is_writable($configName)) {
+                                        $canUpdate = true;
+                                        $result.=$this->messages->getStyledMessage(__('Success! Config file') . ' ' . $configName . ' ' . __('now is writable') . '.', 'success');
+                                    } else {
+                                        $canUpdate = false;
+                                        $result.=$this->messages->getStyledMessage(__('Seems like we failed with making this file writable') . '.', 'error');
+                                    }
+                                }
+                                //now real put update header
+                                if ($canUpdate) {
+                                    file_put_contents($configName, $configUpdateHeader, FILE_APPEND);
+                                    log_register('UPDMGR APPLY CONFIG `' . $configId . '` RELEASE `' . $release . '`');
+                                }
                             }
                             if (!empty($configOptions)) {
                                 foreach ($configOptions as $optionName => $optionContent) {
@@ -345,9 +404,13 @@ class UbillingUpdateManager {
                                         $result.=$this->messages->getStyledMessage(__('New option') . ': ' . $optionName . ' ' . __('will be added with value') . ' ' . $optionContent, 'info');
                                         if (wf_CheckPost(array('applyconfigoptions', 'applyconfirm'))) {
                                             $saveOptions = $optionName . '=' . $optionContent . "\n";
-                                            file_put_contents($configName, $saveOptions, FILE_APPEND);
-                                            $result.=$this->messages->getStyledMessage(__('Option added') . ': ' . $optionName . '= ' . $optionContent, 'success');
-                                            $newOptsCount--;
+                                            if (is_writable($configName)) {
+                                                file_put_contents($configName, $saveOptions, FILE_APPEND);
+                                                $result.=$this->messages->getStyledMessage(__('Option added') . ': ' . $optionName . '= ' . $optionContent, 'success');
+                                                $newOptsCount--;
+                                            } else {
+                                                $result.=$this->messages->getStyledMessage(__('New option') . ' ' . $optionName . ' ' . __('not created') . '. ' . __('Permission denied') . '.', 'error');
+                                            }
                                         }
                                     } else {
                                         $result.=$this->messages->getStyledMessage(__('Option already exists, will be ignored') . ': ' . $optionName, 'warning');

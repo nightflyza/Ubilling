@@ -2723,4 +2723,15 @@ $lang['def']['and'] = 'і';
 $lang['def']['ONU serial'] = 'Серійний номер ONU';
 $lang['def']['expect path'] = 'Шлях до expect';
 $lang['def']['tail path'] = 'Шлях до tail';
+
+//rev 5866
+$lang['def']['not created'] = 'не створено';
+$lang['def']['Trying to set write permissions for'] = 'Намагаємось встановити права на запис для';
+$lang['def']['to fix this issue'] = 'щоб виправити цю проблему';
+$lang['def']['Success! Config file'] = 'Вдалось! Файл конфігурації';
+$lang['def']['now is writable'] = 'тепер доступний для запису';
+$lang['def']['Seems like we failed with making this file writable'] = 'Схоже, що нам не вдалось зробити цей файл доступним для запису';
+
+
+
 ?>
