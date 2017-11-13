@@ -2731,7 +2731,8 @@ $lang['def']['to fix this issue'] = 'щоб виправити цю пробле
 $lang['def']['Success! Config file'] = 'Вдалось! Файл конфігурації';
 $lang['def']['now is writable'] = 'тепер доступний для запису';
 $lang['def']['Seems like we failed with making this file writable'] = 'Схоже, що нам не вдалось зробити цей файл доступним для запису';
-
+$lang['def']['Use this Ubilling serial for license keys purchase'] = 'Використовуйте цей серійний номер Ubilling для придбання ключів ліцензій';
+$lang['def']['License key'] = 'Ключ ліцензії';
 
 
 ?>

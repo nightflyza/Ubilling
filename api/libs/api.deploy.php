@@ -9,7 +9,6 @@
  * 
  * @return void
  */
-
 function zb_DeployConfigOption($path, $option, $value) {
     if (file_exists($path)) {
         $currentData = rcms_parse_ini_file($path);
@@ -36,7 +35,6 @@ function zb_DeployConfigOption($path, $option, $value) {
  * 
  * @return void
  */
-
 function zb_DeployConfigOptionOverride($path, $option, $value) {
     if (file_exists($path)) {
         $currentData = rcms_parse_ini_file($path);
@@ -62,7 +60,6 @@ function zb_DeployConfigOptionOverride($path, $option, $value) {
  * 
  * @return void
  */
-
 function zb_DeployConfigCreate($path) {
     if (file_exists($path)) {
         show_window(__('Warning'), __('Config already exists - skipping'));
@@ -105,7 +102,6 @@ class Avarice {
      * 
      * @return binary
      */
-
     protected function xoror($data, $key) {
         $result = '';
         for ($i = 0; $i < strlen($data);) {
@@ -124,7 +120,6 @@ class Avarice {
      * 
      * @return string
      */
-
     protected function pack($data) {
         $data = base64_encode($data);
         return ($data);
@@ -138,7 +133,6 @@ class Avarice {
      * 
      * @return string
      */
-
     protected function unpack($data) {
         $data = base64_decode($data);
         return ($data);
@@ -149,7 +143,6 @@ class Avarice {
      * 
      * @return void
      */
-
     protected function load() {
         if (!empty($this->serial)) {
             $query = "SELECT * from `ubstorage` WHERE `key` LIKE 'AVLICENSE_%'";
@@ -187,7 +180,6 @@ class Avarice {
      * 
      * @return void
      */
-
     protected function getSerial() {
         $hostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
         $hostid = simple_query($hostid_q);
@@ -205,7 +197,6 @@ class Avarice {
      * 
      * @return bool
      */
-
     protected function check($module) {
         if (!empty($module)) {
             if (isset($this->data[$module])) {
@@ -221,7 +212,6 @@ class Avarice {
      * 
      * @return array
      */
-
     public function runtime($module) {
         $result = array();
         if ($this->check($module)) {
@@ -235,7 +225,6 @@ class Avarice {
      * 
      * @return array
      */
-
     public function getLicenseKeys() {
         return ($this->raw);
     }
@@ -247,7 +236,6 @@ class Avarice {
      * 
      * @return bool
      */
-
     protected function checkLicenseValidity($key) {
         @$key = $this->unpack($key);
         @$key = $this->xoror($key, $this->serial);
@@ -258,7 +246,7 @@ class Avarice {
             return (false);
         }
     }
-    
+
     /**
      * public function that deletes key from database
      * 
@@ -267,12 +255,12 @@ class Avarice {
      * @return void
      */
     public function deleteKey($keyname) {
-        $keyname=  mysql_real_escape_string($keyname);
-        $query="DELETE from `ubstorage` WHERE `key` = '".$keyname."';";
+        $keyname = mysql_real_escape_string($keyname);
+        $query = "DELETE from `ubstorage` WHERE `key` = '" . $keyname . "';";
         nr_query($query);
-        log_register("AVARICE DELETE KEY `".$keyname.'`');
+        log_register("AVARICE DELETE KEY `" . $keyname . '`');
     }
-    
+
     /**
      * installs new license key
      * 
@@ -281,33 +269,32 @@ class Avarice {
      * @return bool
      */
     public function createKey($key) {
-        $key=  mysql_real_escape_string($key);
+        $key = mysql_real_escape_string($key);
         if ($this->checkLicenseValidity($key)) {
-            $keyname='AVLICENSE_'.  zb_rand_string('8');
-            $query="INSERT INTO `ubstorage` (`id`, `key`, `value`) VALUES (NULL, '".$keyname."', '".$key."');";
+            $keyname = 'AVLICENSE_' . zb_rand_string('8');
+            $query = "INSERT INTO `ubstorage` (`id`, `key`, `value`) VALUES (NULL, '" . $keyname . "', '" . $key . "');";
             nr_query($query);
-            log_register("AVARICE INSTALL KEY `".$keyname.'`');
+            log_register("AVARICE INSTALL KEY `" . $keyname . '`');
             return(true);
         } else {
             log_register("AVARICE TRY INSTALL WRONG KEY");
             return (false);
         }
     }
-    
+
     /**
      * updates existing license key
      */
-    public function updateKey($index,$key) {
+    public function updateKey($index, $key) {
         if ($this->checkLicenseValidity($key)) {
-            simple_update_field('ubstorage', 'value', $key, "WHERE `key`='".$index."'");
-            log_register("AVARICE UPDATE KEY `".$index.'`');
+            simple_update_field('ubstorage', 'value', $key, "WHERE `key`='" . $index . "'");
+            log_register("AVARICE UPDATE KEY `" . $index . '`');
             return(true);
         } else {
             log_register("AVARICE TRY UPDATE WRONG KEY");
             return (false);
         }
     }
-    
 
 }
 
@@ -316,43 +303,42 @@ class Avarice {
  * 
  * @return void
  */
-  function zb_LicenseLister() {
-      $avarice=new Avarice();
-      $all=$avarice->getLicenseKeys();
-      
-      
-      $cells=  wf_TableCell(__('Module'));
-      $cells.= wf_TableCell(__('Actions'));
-      $rows= wf_TableRow($cells, 'row1');
-              
-      if (!empty($all)) {
-          foreach ($all as $io=>$each) {
-              //construct edit form
-              $editinputs= wf_HiddenInput('editdbkey', $each['KEY']);
-              $editinputs.=  wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
-              $editinputs.= wf_Submit(__('Save'));
-              $editform= wf_Form("", 'POST', $editinputs, 'glamour');
-              $editcontrol=  wf_modal(web_edit_icon(), __('Edit').' '.$each['MODULE'], $editform, '', '500', '300');
-              //construct deletion controls
-              $deletecontrol=  wf_JSAlert('?module=licensekeys&licensedelete='.$each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
-                      
-              $cells=  wf_TableCell($each['MODULE']);
-              $cells.= wf_TableCell($deletecontrol.' '.$editcontrol);
-              $rows.= wf_TableRow($cells, 'row3');
-          }
-         
-      }
-      
-      
-      //constructing license creation form
-              $addinputs=  wf_TextArea('createlicense', '', '', true, '50x10');
-              $addinputs.= wf_Submit(__('Save'));
-              $addform= wf_Form("", 'POST', $addinputs, 'glamour');
-              $addcontrol=  wf_modal(wf_img('skins/icon_add.gif').' '.__('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
-              
-              $result=  wf_TableBody($rows, '100%', 0, '');
-              $result.= $addcontrol;
-     show_window(__('Installed license keys'),$result);
-  }
+function zb_LicenseLister() {
+    $avarice = new Avarice();
+    $all = $avarice->getLicenseKeys();
+
+
+    $cells = wf_TableCell(__('License key'));
+    $cells.= wf_TableCell(__('Actions'));
+    $rows = wf_TableRow($cells, 'row1');
+
+    if (!empty($all)) {
+        foreach ($all as $io => $each) {
+            //construct edit form
+            $editinputs = wf_HiddenInput('editdbkey', $each['KEY']);
+            $editinputs.= wf_TextArea('editlicense', '', $each['LICENSE'], true, '50x10');
+            $editinputs.= wf_Submit(__('Save'));
+            $editform = wf_Form("", 'POST', $editinputs, 'glamour');
+            $editcontrol = wf_modal(web_edit_icon(), __('Edit') . ' ' . $each['MODULE'], $editform, '', '500', '300');
+            //construct deletion controls
+            $deletecontrol = wf_JSAlert('?module=licensekeys&licensedelete=' . $each['KEY'], web_delete_icon(), __('Removing this may lead to irreparable results'));
+
+            $cells = wf_TableCell($each['MODULE']);
+            $cells.= wf_TableCell($deletecontrol . ' ' . $editcontrol);
+            $rows.= wf_TableRow($cells, 'row3');
+        }
+    }
+
+
+    //constructing license creation form
+    $addinputs = wf_TextArea('createlicense', '', '', true, '50x10');
+    $addinputs.= wf_Submit(__('Save'));
+    $addform = wf_Form("", 'POST', $addinputs, 'glamour');
+    $addcontrol = wf_modal(wf_img('skins/icon_add.gif') . ' ' . __('Install license key'), __('Install license key'), $addform, 'ubButton', '500', '300');
+
+    $result = wf_TableBody($rows, '100%', 0, '');
+    $result.= $addcontrol;
+    show_window(__('Installed license keys'), $result);
+}
 
 ?>
