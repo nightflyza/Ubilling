@@ -40,7 +40,10 @@ if (cfr('ANNIHILATION')) {
         //delete user from branch
         if (@$alter_conf['BRANCHES_ENABLED']) {
             $branchObj = new UbillingBranches();
-            $branchObj->userDeleteBranch($login);
+            $userBranch = $branchObj->userGetBranch($login);
+            if (!empty($userBranch)) {
+                $branchObj->userDeleteBranch($login);
+            }
         }
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
