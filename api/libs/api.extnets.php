@@ -31,7 +31,7 @@ class ExtNets {
      */
     protected function v4CIDRtoMask($cidr) {
         $cidr = explode('/', $cidr);
-        return array($cidr[0], int2long(-1 << (32 - (int) $cidr[1])));
+        return array($cidr[0], long2ip(-1 << (32 - (int) $cidr[1])));
     }
 
     /**
