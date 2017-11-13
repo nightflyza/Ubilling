@@ -1430,8 +1430,14 @@ class PONizer {
                 $result .= wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }
             if ($this->altCfg['ONUREG_ZTE']) {
-                $result .= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
-                $result .= wf_link('?module=zteunreg', wf_img('skins/check.png') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
+                $zteControls = '';
+                if (cfr('ONUREGZTE')) {
+                    $zteControls.= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
+                }
+                if (cfr('ZTEVLANBINDS')) {
+                    $zteControls .= wf_link('?module=zteunreg', wf_img('skins/check.png') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
+                }
+                $result.=wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
             }
         } else {
             $result .= wf_BackLink(self::URL_ME);
