@@ -220,17 +220,35 @@ function ub_SwitchModelDelete($modelid) {
  * 
  * @param string $name Input element name
  * @param string $label Input element label
+ * @param int $currentSwitchId switch for whom this widget showed
  * 
  * @return string
  */
-function web_SwitchUplinkSelector($name, $label = '', $selected = '') {
+function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '') {
     $tmpArr = array('' => '-');
 
     $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
+        //checks for preventing loops
+        $alllinks = array();
+        $tmpSwitches = zb_SwitchesGetAll();
+        if (!empty($tmpSwitches)) {
+            //transform array to id=>switchdata
+            foreach ($tmpSwitches as $io => $each) {
+                $allswitches[$each['id']] = $each;
+            }
+
+            //making id=>parentid array
+            foreach ($tmpSwitches as $io => $each) {
+                $alllinks[$each['id']] = $each['parentid'];
+            }
+        }
+
         foreach ($allswitches as $io => $each) {
-            $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
+            if ((sm_CheckLoop($alllinks, $currentSwitchId, $each['id'])) AND ( $each['id'] != $currentSwitchId)) {
+                $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
+            }
         }
     }
 
@@ -363,8 +381,8 @@ function web_SwitchEditForm($switchid) {
     if ($altCfg['SWITCHES_EXTENDED']) {
         if ((!empty($switchdata['swid'])) AND ( $altCfg['MACVEN_ENABLED'])) {
             $macVenControl = wf_AjaxLink('?module=macvendor&mac=' . $switchdata['swid'] . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), 'swvendorcontainer', false, '');
-            $swvendorStyle='style="text-align: left; font-size:150%;  font-weight: bold;"';
-            $rightContainer.= wf_tag('div', false, '', 'id="swvendorcontainer"'.$swvendorStyle) . '' . wf_tag('div', true);
+            $swvendorStyle = 'style="text-align: left; font-size:150%;  font-weight: bold;"';
+            $rightContainer.= wf_tag('div', false, '', 'id="swvendorcontainer"' . $swvendorStyle) . '' . wf_tag('div', true);
         } else {
             $macVenControl = '';
         }
@@ -376,7 +394,7 @@ function web_SwitchEditForm($switchid) {
     } else {
         $uplinkSwitchLabel = __('Uplink switch');
     }
-    $editinputs.= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid']);
+    $editinputs.= web_SwitchUplinkSelector('editparentid', $uplinkSwitchLabel, $switchdata['parentid'], $switchid);
     $editinputs.= wf_tag('br');
 
     $editinputs.= wf_Submit('Save');
@@ -388,7 +406,7 @@ function web_SwitchEditForm($switchid) {
         $rightContainer.= wf_AjaxLoader();
         $rightContainer.= wf_AjaxContainer('icmppingcontainer');
     }
-    
+
     $cells = wf_TableCell($mainForm, '50%', '', 'valign="top"');
     $cells.= wf_TableCell($rightContainer, '', '', 'valign="top"');
     $rows = wf_TableRow($cells);

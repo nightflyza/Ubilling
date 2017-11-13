@@ -33,6 +33,30 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 }
 
 /**
+ * Checks is loop possible after setting for switchId something as parent device
+ * 
+ * @param array $alllinks
+ * @param int $switchId
+ * @param int $setParent
+ * 
+ * @return bool
+ */
+function sm_CheckLoop($alllinks, $switchId, $setParent) {
+    $result = false;
+    $tmpArr = array();
+    if (!empty($switchId)) {
+        if (sm_MapIsLinked($alllinks, $setParent, $switchId)) {
+            $result = false;
+        } else {
+            $result = true;
+        }
+    } else {
+        $result = true;
+    }
+    return ($result);
+}
+
+/**
  * Returns full map of switch links
  * 
  * @param int $traceid switch ID to trace uplinks

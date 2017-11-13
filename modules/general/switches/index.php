@@ -166,7 +166,23 @@ if (cfr('SWITCHES')) {
                 }
                 simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
                 if ($_POST['editparentid'] != $switchid) {
-                    simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+                    //checks for preventing loops
+                    $alllinks = array();
+                    $tmpSwitches = zb_SwitchesGetAll();
+                    if (!empty($tmpSwitches)) {
+                        //transform array to id=>switchdata
+                        foreach ($tmpSwitches as $io => $each) {
+                            $allswitches[$each['id']] = $each;
+                        }
+
+                        //making id=>parentid array
+                        foreach ($tmpSwitches as $io => $each) {
+                            $alllinks[$each['id']] = $each['parentid'];
+                        }
+                    }
+                    if (sm_CheckLoop($alllinks, $switchid, $_POST['editparentid'])) {
+                        simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+                    }
                 }
                 log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
                 rcms_redirect("?module=switches&edit=" . $switchid);
