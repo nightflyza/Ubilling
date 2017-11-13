@@ -37,6 +37,11 @@ if (cfr('ANNIHILATION')) {
         if (@$alter_conf['VLANGEN_SUPPORT']) {
             vlan_delete_host($login);
         }
+        //delete user from branch
+        if (@$alter_conf['BRANCHES_ENABLED']) {
+            $branchObj = new UbillingBranches();
+            $branchObj->userDeleteBranch($login);
+        }
         multinet_delete_host($user_ip);
         multinet_rebuild_all_handlers();
         //destroy stargazer user
