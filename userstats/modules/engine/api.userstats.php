@@ -1239,7 +1239,9 @@ function zbs_UserTraffStats($login) {
         foreach ($alldirs as $io => $eachdir) {
             $query_prev = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "`,`month`,`year`,`cash` from `stat` WHERE `login`='" . $login . "' ORDER BY `year`,`month`";
             $allprevmonth = simple_queryall($query_prev);
-            $allprevmonth = array_reverse($allprevmonth);
+            if (!empty($allprevmonth)) {
+                $allprevmonth = array_reverse($allprevmonth);
+            }
 
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
