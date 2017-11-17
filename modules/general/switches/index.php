@@ -150,66 +150,68 @@ if (cfr('SWITCHES')) {
         //editing switch form
         $switchid = vf($_GET['edit'], 3);
         $switchdata = zb_SwitchGetData($switchid);
+        if (!empty($switchdata)) {
 
+            //if someone edit switch 
+            if (wf_CheckPost(array('editmodel'))) {
+                if (cfr('SWITCHESEDIT')) {
+                    simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
+                    if ($altCfg['SWITCHES_EXTENDED']) {
+                        simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
+                    }
+                    simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
+                    if ($_POST['editparentid'] != $switchid) {
+                        //checks for preventing loops
+                        $alllinks = array();
+                        $tmpSwitches = zb_SwitchesGetAll();
+                        if (!empty($tmpSwitches)) {
+                            //transform array to id=>switchdata
+                            foreach ($tmpSwitches as $io => $each) {
+                                $allswitches[$each['id']] = $each;
+                            }
 
-        //if someone edit switch 
-        if (wf_CheckPost(array('editmodel'))) {
-            if (cfr('SWITCHESEDIT')) {
-                simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
-                if ($altCfg['SWITCHES_EXTENDED']) {
-                    simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
-                }
-                simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
-                if ($_POST['editparentid'] != $switchid) {
-                    //checks for preventing loops
-                    $alllinks = array();
-                    $tmpSwitches = zb_SwitchesGetAll();
-                    if (!empty($tmpSwitches)) {
-                        //transform array to id=>switchdata
-                        foreach ($tmpSwitches as $io => $each) {
-                            $allswitches[$each['id']] = $each;
+                            //making id=>parentid array
+                            foreach ($tmpSwitches as $io => $each) {
+                                $alllinks[$each['id']] = $each['parentid'];
+                            }
                         }
-
-                        //making id=>parentid array
-                        foreach ($tmpSwitches as $io => $each) {
-                            $alllinks[$each['id']] = $each['parentid'];
+                        if (sm_CheckLoop($alllinks, $switchid, $_POST['editparentid'])) {
+                            simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
                         }
                     }
-                    if (sm_CheckLoop($alllinks, $switchid, $_POST['editparentid'])) {
-                        simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
-                    }
+                    log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
+                    rcms_redirect("?module=switches&edit=" . $switchid);
+                } else {
+                    show_error(__('Access denied'));
                 }
-                log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
-                rcms_redirect("?module=switches&edit=" . $switchid);
-            } else {
-                show_error(__('Access denied'));
             }
-        }
 
-        //render switch edit form (aka switch profile)
-        show_window(__('Edit switch'), web_SwitchEditForm($switchid));
-        //minimap container
-        if ($altCfg['SWYMAP_ENABLED']) {
-            if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
-                show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
+            //render switch edit form (aka switch profile)
+            show_window(__('Edit switch'), web_SwitchEditForm($switchid));
+            //minimap container
+            if ($altCfg['SWYMAP_ENABLED']) {
+                if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
+                    show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
+                }
             }
+
+            //downlinks list
+            web_SwitchDownlinksList($switchid);
+
+
+            //additional comments engine
+            if ($altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('SWITCHES');
+                show_window(__('Additional comments'), $adcomments->renderComments($switchid));
+            }
+        } else {
+            show_error(__('Strange exeption') . ': SWITCHID_NOT_EXISTS');
         }
-
-        //downlinks list
-        web_SwitchDownlinksList($switchid);
-
-
-        //additional comments engine
-        if ($altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('SWITCHES');
-            show_window(__('Additional comments'), $adcomments->renderComments($switchid));
-        }
-
 
         show_window('', wf_BackLink('?module=switches', 'Back', true, 'ubButton'));
     }
