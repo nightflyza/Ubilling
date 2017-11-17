@@ -964,6 +964,7 @@ function zbs_UserShowProfile($login) {
     $phone = zbs_UserGetPhone($login);
     $passive = $userdata['Passive'];
     $down = $userdata['Down'];
+    $userpassword = $userdata['Password'];
     $skinPath = zbs_GetCurrentSkinPath($us_config);
     $iconsPath = $skinPath . 'iconz/';
 
@@ -1004,13 +1005,6 @@ function zbs_UserShowProfile($login) {
         $down_state = ' + ' . __('Disabled');
     } else {
         $down_state = '';
-    }
-
-    //hiding passwords
-    if ($us_config['PASSWORDSHIDE']) {
-        $userpassword = str_repeat('*', 8);
-    } else {
-        $userpassword = $userdata['Password'];
     }
 
     //payment id handling
@@ -1071,16 +1065,19 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell(@$allrealnames[$login]);
     $profile.= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Login'), '', 'row1');
-    $profile.= la_TableCell($login);
-    $profile.= la_tag('tr', true);
+    if (!@$us_config['LOGINHIDE']) {
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Login'), '', 'row1');
+        $profile.= la_TableCell($login);
+        $profile.= la_tag('tr', true);
+    }
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Password'), '', 'row1');
-    $profile.= la_TableCell($userpassword);
-    $profile.= la_tag('tr', true);
-
+    if (!@$us_config['PASSWORDSHIDE']) {
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Password'), '', 'row1');
+        $profile.= la_TableCell($userpassword);
+        $profile.= la_tag('tr', true);
+    }
     $profile.= la_tag('tr');
     $profile.= la_TableCell(__('IP'), '', 'row1');
     $profile.= la_TableCell($userdata['IP']);
