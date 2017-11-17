@@ -226,17 +226,25 @@ function ub_SwitchModelDelete($modelid) {
  */
 function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSwitchId = '') {
     $tmpArr = array('' => '-');
-
+    $validSwitches = array();
+    $allswitchesRaw = array();
     $query = "SELECT * from `switches` WHERE `desc` NOT LIKE '%NP%' AND `geo` != '' ORDER BY `location` ASC;";
     $allswitches = simple_queryall($query);
     if (!empty($allswitches)) {
+        foreach ($allswitches as $io => $each) {
+            //switches with geo and without NP
+            $validSwitches[$each['id']] = $each;
+        }
+    }
+
+    if (!empty($allswitches)) {
         //checks for preventing loops
         $alllinks = array();
-        $tmpSwitches = zb_SwitchesGetAll();
+        $tmpSwitches = zb_SwitchesGetAll("ORDER BY `location` ASC");
         if (!empty($tmpSwitches)) {
-            //transform array to id=>switchdata
             foreach ($tmpSwitches as $io => $each) {
-                $allswitches[$each['id']] = $each;
+                //transform array to id=>switchdata
+                $allswitchesRaw[$each['id']] = $each;
             }
 
             //making id=>parentid array
@@ -245,9 +253,11 @@ function web_SwitchUplinkSelector($name, $label = '', $selected = '', $currentSw
             }
         }
 
-        foreach ($allswitches as $io => $each) {
+        foreach ($allswitchesRaw as $io => $each) {
             if ((sm_CheckLoop($alllinks, $currentSwitchId, $each['id'])) AND ( $each['id'] != $currentSwitchId)) {
-                $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
+                if (isset($validSwitches[$each['id']])) {
+                    $tmpArr[$each['id']] = $each['location'] . ' - ' . $each['ip'];
+                }
             }
         }
     }
@@ -459,10 +469,15 @@ function web_SwitchEditForm($switchid) {
 /**
  * Returns array of all available switches with its full data
  * 
+ * @param string $order
+ * 
  * @return array
  */
-function zb_SwitchesGetAll() {
-    $query = 'SELECT * FROM `switches` ORDER BY `id` DESC';
+function zb_SwitchesGetAll($order = '') {
+    if (empty($order)) {
+        $order = 'ORDER BY `id` DESC';
+    }
+    $query = 'SELECT * FROM `switches` ' . $order . ';';
     $allswitches = simple_queryall($query);
     return ($allswitches);
 }
