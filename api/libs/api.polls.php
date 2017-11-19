@@ -525,13 +525,13 @@ class Polls {
         $poll_id = ($poll_id) ? $poll_id : $this->poll_id;
 
         if (isset($this->pollsAvaible[$poll_id])) {
-            if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+            if ($this->pollsAvaible[$poll_id]['enabled'] == 0 AND time() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_inactive.gif') . ' ' . __('Disabled');
-            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
+            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND time() < strtotime($this->pollsAvaible[$poll_id]['start_date'])) {
                 $result = wf_img('skins/yellow_led.png') . ' '.  __('Not yet started');
-            } elseif (mktime() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+            } elseif (time() > strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_active2.gif') . ' ' . __('Finished');
-            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND mktime() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND mktime() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
+            } elseif ($this->pollsAvaible[$poll_id]['enabled'] AND time() > strtotime($this->pollsAvaible[$poll_id]['start_date']) AND time() < strtotime($this->pollsAvaible[$poll_id]['end_date'])) {
                 $result = wf_img('skins/icon_active.gif') . ' ' . __('In progress');
             }
         }
