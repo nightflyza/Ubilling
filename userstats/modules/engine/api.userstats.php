@@ -242,7 +242,12 @@ function zbs_LangSelector() {
             $inputs = la_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
             $inputs.= la_tag('option', false, '', 'value="-"') . __('Language') . la_tag('option', true);
             foreach ($allangs as $eachlang) {
-                $eachlangid = file_get_contents("languages/" . $eachlang . "/langid.txt");
+                $langIdPath = 'languages/' . $eachlang . '/langid.txt';
+                if (file_exists($langIdPath)) {
+                    $eachlangid = file_get_contents($langIdPath);
+                } else {
+                    $eachlangid = $eachlang;
+                }
                 $inputs.= la_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . la_tag('option', true);
             }
             $inputs.=la_tag('select', true);
