@@ -923,7 +923,9 @@ class UbillingBranches {
                     if (isset($allUserData[$login])) {
                         $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
                         $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
-                        if ($alter_conf['FAST_CASH_LINK']) $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#profileending', web_cash_icon()) . ' ';
+                        if ($this->altCfg['FAST_CASH_LINK']) {
+                            $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#profileending', web_cash_icon()) . ' ';
+                        }
                         @$userAddress = $allAddress[$login];
                         @$userRealName = $allRealNames[$login];
                         $activeFlag = ($allUserData[$login]['Cash'] >= -$allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
