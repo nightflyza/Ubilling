@@ -2,8 +2,8 @@
 $lang['def']['Home'] = 'Principal';
 $lang['def']['User stats'] = 'Estado de usuario';
 $lang['def']['Payments'] = 'El pago';
-$lang['def']['Traffic'] = 'El trafíco;
-$lang['def']['User profile'] = 'Perfil del usuario;
+$lang['def']['Traffic'] = 'El trafíco';
+$lang['def']['User profile'] = 'Perfil del usuario';
 $lang['def']['Address'] = 'Direccíon';
 $lang['def']['Real name'] = 'Nombre y apellido';
 $lang['def']['Login'] = 'Login';
