@@ -1,0 +1,17 @@
+<html>
+<head>
+<title>WavPlayer - flash wav/au player for arbitrary samplerate and PCM/G711 codecs</title>
+<script src="embed/domready.js"></script>
+<script src="embed/swfobject.js"></script>
+<script src="embed/tinywav.js"></script>
+</head>
+<body bgcolor="#dddddd">
+
+<button onclick="try{window.TinyWav.Enqueue(['test.WAV', 'test.gsm']);}catch(E){alert(E)}">Put test.WAV and test.gsm in list</button><br/>
+<button onclick="try{window.TinyWav.Play(['test.WAV'])}catch(E){alert(E)}">Play test.WAV in order</button><br/>
+<button onclick="try{window.TinyWav.Play('test.gsm')}catch(E){alert(E)}">Play test.gsm right now</button><br/>
+<button onclick="try{window.TinyWav.Pause()}catch(E){alert(E)}">Pause playback</button><br/>
+<button onclick="try{window.TinyWav.Resume()}catch(E){alert(E)}">Continue playback</button></br>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<html>
+<head><title>Debug WavPlayer</title>
+<script>
+function getPlayer(pid) {
+	var obj = document.getElementById(pid);
+	if (obj.doPlay) return obj;
+	for(i=0; i<obj.childNodes.length; i++) {
+		var child = obj.childNodes[i];
+		if (child.tagName == "EMBED") return child;
+	}
+}
+function doPlay(fname) {
+	var player = getPlayer('haxe');
+	player.doPlay(fname,0.01);
+}
+function doStop() {
+	var player = getPlayer('haxe');
+	player.doStop();
+}
+function setVolume(v) {
+	var player = getPlayer('haxe');
+	log("setVolume("+player.setVolume(v)+")<br/>");
+}
+function setPan(p) {
+	var player = getPlayer('haxe');
+	log("setPan("+player.setPan(p)+")<br/>");
+}
+function log(str) {
+	var log = document.getElementById('jsLog');
+	log.innerHTML += str+"<br/>";
+}
+function Handler(event, arg1, arg2) {
+	log("Got event ["+event+"]("+arg1+", "+arg2+")");
+}
+function init() {
+	setTimeout(function() {
+		var player = getPlayer('haxe');
+		log("Init events (ver="+player.getVersion()+")");
+		log("Event(*) = "+player.attachHandler('*', "Handler"));
+	}, 1000);
+}
+</script>
+</head>
+<body bgcolor="#dddddd" onload="init()">
+<a href="javascript:doPlay()">doPlay()</a>
+<a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
+<a href="javascript:doPlay('test.wav')">doPlay('test.wav')</a>
+<a href="javascript:doPlay('test2.wav')">doPlay('test2.wav')</a>
+<a href="javascript:doPlay('test.au')">doPlay('test.au')</a>
+<a href="javascript:doPlay('hl-78003330781-5627.au')">doPlay('hl-78003330781-5627.au')</a>
+<a href="javascript:doStop()">doStop()</a><br/>
+<input id='file' /><a href="javascript:doPlay(document.getElementById('file').value)">Play by filename</a>
+<br />
+<a href="javascript:setVolume(5.0)">Volume 500%</a>
+<a href="javascript:setVolume(2.0)">Volume 200%</a>
+<a href="javascript:setVolume(1.0)">Volume 100%</a>
+<a href="javascript:setVolume(0.5)">Volume 50%</a>
+<a href="javascript:setVolume(0.1)">Volume 10%</a>
+<a href="javascript:setVolume(0.0)">Volume 0% (mute)</a>
+<br />
+<a href="javascript:setPan(0.0)">Balance: center</a>
+<a href="javascript:setPan(-1.0)">Balance: left</a>
+<a href="javascript:setPan(1.0)">Balance: right</a>
+<div id="jsLog" style="border:1px solid red"></div>
+<br/>
+
+<object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+		width="1200"
+	height="400"
+	id="haxe"
+	align="middle">
+<param name="movie" value="wavplayer-debug.swf?gui=full&h=40&w=400&sound=test.au&3"/>
+<param name="allowScriptAccess" value="always" />
+<param name="quality" value="high" />
+<param name="scale" value="noscale" />
+<param name="salign" value="lt" />
+<param name="bgcolor" value="#ffffff"/>
+<embed src="wavplayer-debug.swf?gui=full&h=40&w=400&sound=test.au&4"
+	   bgcolor="#ffffff"
+	   width="1200"
+	   height="4000"
+	   name="haxe"
+	   quality="high"
+	   align="middle"
+	   scale="noscale"
+	   allowScriptAccess="always"
+	   type="application/x-shockwave-flash"
+	   pluginspage="http://www.macromedia.com/go/getflashplayer"
+/>
+</object>
+</body>
+</html>
