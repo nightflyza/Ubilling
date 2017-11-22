@@ -9,6 +9,8 @@ class Telepathy {
     protected $alladdress = array();
     protected $allrealnames = array();
     protected $allsurnames = array();
+    protected $allMobiles = array();
+    protected $allPhones = array();
     protected $caseSensitive = false;
     protected $cachedAddress = true;
     protected $citiesAddress = false;
@@ -61,6 +63,27 @@ class Telepathy {
      */
     protected function loadRealnames() {
         $this->allrealnames = zb_UserGetAllRealnames();
+    }
+
+    /**
+     * Loads all existing phone data into protected props for further usage
+     * 
+     * @return void
+     */
+    public function usePhones() {
+        $allPhoneData = zb_UserGetAllPhoneData();
+        if (!empty($allPhoneData)) {
+            foreach ($allPhoneData as $login => $each) {
+                $cleanMobile = vf($each['mobile'], 3);
+                if (!empty($cleanMobile)) {
+                    $this->allMobiles[$cleanMobile] = $login;
+                }
+                $cleanPhone = vf($each['phone'], 3);
+                if (!empty($cleanPhone)) {
+                    $this->allPhones[$cleanPhone] = $login;
+                }
+            }
+        }
     }
 
     /**
@@ -189,6 +212,37 @@ class Telepathy {
         } else {
             return(false);
         }
+    }
+
+    /**
+     * Get user login by some phone number
+     * 
+     * @param string $phoneNumber
+     * @param bool $onlyMobile
+     * 
+     * @return string
+     */
+    public function getByPhone($phoneNumber, $onlyMobile = false) {
+        $result = '';
+        if (!$onlyMobile) {
+            if (!empty($this->allPhones)) {
+                foreach ($this->allPhones as $baseNumber => $userLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                        $result = $userLogin;
+                    }
+                }
+            }
+        }
+
+        if (!empty($this->allMobiles)) {
+            foreach ($this->allMobiles as $baseNumber => $userLogin) {
+                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                    $result = $userLogin;
+                    return ($result);
+                }
+            }
+        }
+        return ($result);
     }
 
 }

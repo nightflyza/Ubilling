@@ -122,7 +122,7 @@ Event.domReady.add(function() {
 	document.body.appendChild(Player);
 	var vars = {}; var params = {'scale': 'noscale', 'bgcolor': '#FFFFFF'};
 	//swfobject.embedSWF("wavplayer-debug.swf?gui=none", "TinyWavBlock", "600", "300", "10.0.32.18", "embed/expressInstall.swf", vars, params, params);
-	swfobject.embedSWF("wavplayer.swf?gui=none", "TinyWavBlock", "1", "1", "10.0.32.18", "embed/expressInstall.swf", vars, params, params);
+	swfobject.embedSWF("modules/jsc/wavplay/wavplayer.swf?gui=none", "TinyWavBlock", "1", "1", "10.0.32.18", "modules/jsc/wavplay/embed/expressInstall.swf", vars, params, params);
 	window.TinyWav.init();
 });
 

@@ -2733,6 +2733,12 @@ $lang['def']['now is writable'] = 'тепер доступний для запи
 $lang['def']['Seems like we failed with making this file writable'] = 'Схоже, що нам не вдалось зробити цей файл доступним для запису';
 $lang['def']['Use this Ubilling serial for license keys purchase'] = 'Використовуйте цей серійний номер Ubilling для придбання ключів ліцензій';
 $lang['def']['License key'] = 'Ключ ліцензії';
-
+$lang['def']['Calls records'] = 'Записи розмов';
+$lang['def']['Play'] = 'Грати';
+$lang['def']['Pause'] = 'Пауза';
+$lang['def']['Continue'] = 'Продовжити';
+$lang['def']['right to use askozia monitor'] = 'Право використовувати Askozia monitor';
+$lang['def']['Askozia calls records'] = 'Записи розмов Askozia';
+$lang['def']['Askozia monitor'] = 'Askozia монітор';
 
 ?>
