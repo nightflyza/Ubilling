@@ -4366,7 +4366,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
     $inputs.= wf_Submit(__('Save'));
 
-    $form = wf_Form("", 'POST', $inputs, 'glamour');
+    $form = wf_Form('?module=userprofile&username=' . $login, 'POST', $inputs, 'glamour');
     $form.=$creditNote;
 
     $result = wf_modal($controlIcon, __('Change') . ' ' . __('credit limit'), $form, '', '500', '180');
