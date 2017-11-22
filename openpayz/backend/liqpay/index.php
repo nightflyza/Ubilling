@@ -37,7 +37,7 @@ function lq_PricesForm() {
            $i=0;
             foreach ($pricesRaw as $eachPrice) {
              $selected = ($i==0) ?'CHECKED' : '' ;
-             $result.= '<input type="radio" name="amount" value="' . $eachPrice . '" ' . $selected . '> ' . $eachPrice . ' ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
+             $result.= '<input type="radio" name="amount" value="' . trim($eachPrice) . '" ' . $selected . '> ' . trim($eachPrice) . ' ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
              $i++;
             }
         }
@@ -63,7 +63,7 @@ function lq_PaymentForm($customer_id) {
     $signature = $liqConf['SIGNATURE'];
     $method = $liqConf['METHOD'];
     $currency = $liqConf['CURRENCY'];
-    $summ = $_POST['amount'];
+    $summ = trim($_POST['amount']);
     $resultUrl = $liqConf['RESULT_URL'];
     $serverUrl = $liqConf['SERVER_URL'];
     $session = lq_SessionGen();
