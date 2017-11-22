@@ -164,7 +164,7 @@ class WhyDoYouCall {
                         if ($each['13'] < 86400) {
                             //not answered call
                             if (ispos($each[14], 'NO ANSWER') OR ( ispos($each[7], 'VoiceMail'))) {
-                                if (!ispos($each[16], 'outbound')) {
+                                if (!ispos($each[16], 'out')) {
                                     //excluding internal numbers
                                     if (strlen((string) $incomingNumber) > 3) {
                                         $unansweredCalls[$incomingNumber] = $each;
@@ -191,7 +191,7 @@ class WhyDoYouCall {
                             }
 
                             //outcoming call success - deleting form unanswered, adding it to recalled cache
-                            if (ispos($each[16], 'outbound')) {
+                            if (ispos($each[16], 'out')) {
                                 if (ispos($each[14], 'ANSWERED')) {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);

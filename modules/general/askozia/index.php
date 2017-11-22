@@ -238,7 +238,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $sessionTimeStats.=$startTime;
                     $sessionTimeStats.=wf_tag('abbr', true);
                     $callDirection = '';
-                    if ($each[16] == 'outbound') {
+                    if (ispos($each['16'], 'out')) {
                         $toNumber = $each[2];
                         $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
                     } else {

@@ -659,7 +659,7 @@ class ExistentialHorse {
                     if (!empty($normalCalls)) {
                         unset($normalCalls[0]);
                         foreach ($normalCalls as $io => $each) {
-                            if ($each[16] != 'outbound') {
+                            if (!ispos($each[16], 'out')) {
                                 $startTime = explode(' ', $each[9]);
                                 @$startTime = $startTime[1];
                                 //only working time
