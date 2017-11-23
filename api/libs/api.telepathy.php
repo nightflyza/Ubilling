@@ -7,6 +7,13 @@
 class Telepathy {
 
     /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all available user address
      *
      * @var array
@@ -33,6 +40,13 @@ class Telepathy {
      * @var array
      */
     protected $allMobiles = array();
+
+    /**
+     * Contains all available additional user mobiles
+     *
+     * @var array
+     */
+    protected $allExtMobiles = array();
 
     /**
      * Contains all available user phones
@@ -75,6 +89,7 @@ class Telepathy {
         $this->caseSensitive = $caseSensitive;
         $this->cachedAddress = $cachedAddress;
         $this->citiesAddress = $citiesAddress;
+        $this->loadConfig();
         $this->loadAddress();
 
         if (!$this->caseSensitive) {
@@ -83,6 +98,18 @@ class Telepathy {
         if (!empty($this->alladdress)) {
             $this->alladdress = array_flip($this->alladdress);
         }
+    }
+
+    /**
+     * Loads system alter.ini config into protected property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -124,9 +151,21 @@ class Telepathy {
                 if (!empty($cleanMobile)) {
                     $this->allMobiles[$cleanMobile] = $login;
                 }
+
                 $cleanPhone = vf($each['phone'], 3);
                 if (!empty($cleanPhone)) {
                     $this->allPhones[$cleanPhone] = $login;
+                }
+            }
+        }
+        //additional mobiles loading if enabled
+        if ($this->altCfg['MOBILES_EXT']) {
+            $extMob = new MobilesExt();
+            $allExtTmp = $extMob->getAllMobilesUsers();
+            if (!empty($allExtTmp)) {
+                foreach ($allExtTmp as $eachExtMobile => $login) {
+                    $cleanExtMobile = vf($eachExtMobile, 3);
+                    $this->allExtMobiles[$cleanExtMobile] = $login;
                 }
             }
         }
@@ -270,12 +309,26 @@ class Telepathy {
      */
     public function getByPhone($phoneNumber, $onlyMobile = false) {
         $result = '';
+        /**
+         * Come with us speeding through the night
+         * As fast as any bird in flight
+         * Silhouettes against the Mother Moon
+         * We will be there
+         */
         if (!$onlyMobile) {
             if (!empty($this->allPhones)) {
                 foreach ($this->allPhones as $baseNumber => $userLogin) {
                     if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
                     }
+                }
+            }
+        }
+
+        if (!empty($this->allExtMobiles)) {
+            foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
+                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                    $result = $userLogin;
                 }
             }
         }

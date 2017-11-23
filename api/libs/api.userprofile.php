@@ -1174,6 +1174,35 @@ class UserProfile {
     }
 
     /**
+     * Renders additional user mobile numbers
+     * 
+     * @return string
+     */
+    protected function getMobilesExtControl() {
+        $result = '';
+        if (isset($this->alterCfg['MOBILES_EXT'])) {
+            if ($this->alterCfg['MOBILES_EXT']) {
+                $extMob = new MobilesExt();
+                $allExtRaw = $extMob->getUserMobiles($this->login);
+                $allExt = array();
+                if (!empty($allExtRaw)) {
+                    foreach ($allExtRaw as $io => $each) {
+                        $allExt[] = $each['mobile'];
+                    }
+                }
+
+                if (!empty($allExt)) {
+                    $additionalNumbers = implode(', ', $allExt);
+                } else {
+                    $additionalNumbers = '';
+                }
+                $result.=$this->addRow(__('Additional mobile'), $additionalNumbers);
+            }
+        }
+        return ($result);
+    }
+
+    /**
       Брат, братан, братишка Когда меня отпустит?
      */
 
@@ -1229,6 +1258,8 @@ class UserProfile {
         $profile.= $this->addRow(__('Phone'), $this->phone);
 //and mobile data rows
         $profile.= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
+//additional mobile data
+        $profile.= $this->getMobilesExtControl();
 //Email data row
         $profile.= $this->addRow(__('Email'), $this->mail);
 //payment ID data

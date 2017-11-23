@@ -33,6 +33,7 @@ HIGHLIGHT_IMPORTANT=TRIGGER|Highlight important user fields in profile
 CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
 VLAN_ONLINE_IN_PROFILE=TRIGGER|Detect online in profile enabled
 DEALWITHIT_IN_PROFILE=TRIGGER|Delayed per-user actions profile indication
+MOBILES_EXT=TRIGGER|Additional mobile numbers enabled
 CHAPTEREND_PROFILE=true
 
 CHAPTER_LOOK=Look&Feel
