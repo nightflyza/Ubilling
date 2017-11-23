@@ -6,15 +6,61 @@
 
 class Telepathy {
 
+    /**
+     * Contains all available user address
+     *
+     * @var array
+     */
     protected $alladdress = array();
+
+    /**
+     * Contains all available users realnames
+     *
+     * @var array
+     */
     protected $allrealnames = array();
+
+    /**
+     * Contains preprocessed users surnames
+     *
+     * @var array
+     */
     protected $allsurnames = array();
+
+    /**
+     * Contains all available user mobiles
+     *
+     * @var array
+     */
     protected $allMobiles = array();
+
+    /**
+     * Contains all available user phones
+     *
+     * @var array
+     */
     protected $allPhones = array();
+
+    /**
+     * Case sensitivity flag
+     *
+     * @var bool
+     */
     protected $caseSensitive = false;
+
+    /**
+     * Cached address usage flag
+     *
+     * @var bool
+     */
     protected $cachedAddress = true;
+
+    /**
+     * City display flag
+     *
+     * @var array
+     */
     protected $citiesAddress = false;
-    protected $useraddress = '';
 
     /**
      * Creates new telepathy instance
