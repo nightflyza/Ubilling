@@ -10,11 +10,18 @@ class WhyDoYouCall {
     protected $altCfg = array();
 
     /**
-     * Contains array of available user phones as phonenumber=>login
+     * Telepathy object placeholder
      *
-     * @var array
+     * @var object
      */
-    protected $phoneBase = array();
+    protected $telepathy = array();
+
+    /**
+     * Contains only mobile flag mapped from WDYC_ONLY_MOBILE config option
+     *
+     * @var bool
+     */
+    protected $onlyMobileFlag = false;
 
     /**
      * Askozia PBX web-interface URL
@@ -81,6 +88,7 @@ class WhyDoYouCall {
     public function __construct() {
         $this->loadConfig();
         $this->initMessages();
+        $this->initTelepathy();
     }
 
     /**
@@ -98,6 +106,12 @@ class WhyDoYouCall {
             $this->askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
         }
+
+        if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
+            $this->onlyMobileFlag = false;
+        } else {
+            $this->onlyMobileFlag = true;
+        }
     }
 
     /**
@@ -107,6 +121,11 @@ class WhyDoYouCall {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    protected function initTelepathy() {
+        $this->telepathy = new Telepathy();
+        $this->telepathy->usePhones();
     }
 
     /**
@@ -269,31 +288,6 @@ class WhyDoYouCall {
     }
 
     /**
-     * Loads and prepares all existing users phones
-     * 
-     * @return void
-     */
-    protected function loadPhonebase() {
-        $query = "SELECT * from `phones`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $cleanMobile = vf($each['mobile'], 3);
-                $cleanPhone = vf($each['phone'], 3);
-                if (!empty($cleanMobile)) {
-                    $this->phoneBase[$cleanMobile] = $each['login'];
-                }
-
-                if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
-                    if (!empty($cleanPhone)) {
-                        $this->phoneBase[$cleanPhone] = $each['login'];
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Trys to detect user login by phone number
      * 
      * @param string $phoneNumber
@@ -301,15 +295,7 @@ class WhyDoYouCall {
      * @return string
      */
     protected function userLoginTelepathy($phoneNumber) {
-        $result = '';
-        if (!empty($this->phoneBase)) {
-            foreach ($this->phoneBase as $baseNumber => $userLogin) {
-                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
-                    $result = $userLogin;
-                    return ($result);
-                }
-            }
-        }
+        $result = $this->telepathy->getByPhone($phoneNumber, $this->onlyMobileFlag);
         return ($result);
     }
 
@@ -336,7 +322,6 @@ class WhyDoYouCall {
      */
     public function renderMissedCallsReport() {
         $result = '';
-        $this->loadPhonebase();
         $this->allUserNames = zb_UserGetAllRealnames();
         $this->allUserAddress = zb_AddressGetFulladdresslistCached();
 
