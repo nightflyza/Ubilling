@@ -2740,5 +2740,6 @@ $lang['def']['Continue'] = 'Продовжити';
 $lang['def']['right to use askozia monitor'] = 'Право використовувати Askozia monitor';
 $lang['def']['Askozia calls records'] = 'Записи розмов Askozia';
 $lang['def']['Askozia monitor'] = 'Askozia монітор';
+$lang['def']['Additional mobile phones'] = 'Додаткові номери стільникових';
 
 ?>

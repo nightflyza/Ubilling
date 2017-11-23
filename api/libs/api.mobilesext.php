@@ -165,6 +165,28 @@ class MobilesExt {
     }
 
     /**
+     * Renders additional mobile edit form
+     * 
+     * @param int $mobileId
+     * 
+     * @return string
+     */
+    protected function renderEditForm($mobileId) {
+        $result = '';
+        $mobileId = vf($mobileId, 3);
+        if (isset($this->allMobiles[$mobileId])) {
+            $mobileData = $this->allMobiles[$mobileId];
+            $inputs = wf_HiddenInput('editmobileextid', $mobileId);
+            $inputs.= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', 'mobile');
+            $inputs.= wf_TextInput('editmobileextnotes', __('Notes'), $mobileData['notes'], true, '40');
+            $inputs.= wf_Submit(__('Save'));
+            $result.= wf_Form('', 'POST', $inputs, 'glamour');
+            $result.=wf_CleanDiv();
+        }
+        return ($result);
+    }
+
+    /**
      * Returns list of all user additional mobiles with required controls
      * 
      * @param string $login
@@ -182,11 +204,36 @@ class MobilesExt {
             foreach ($userMobiles as $io => $each) {
                 $cells = wf_TableCell($each['mobile']);
                 $cells.= wf_TableCell($each['notes']);
-                $actLinks = wf_JSAlert(self::URL_ME . '&username=' . $login . '&deleteext=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlert(self::URL_ME . '&username=' . $login . '&deleteext=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . $each['mobile'], $this->renderEditForm($each['id']));
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns all available additional mobiles data as id=>data
+     * 
+     * @return array
+     */
+    public function getAllMobiles() {
+        return ($this->allMobiles);
+    }
+
+    /**
+     * Returns all additional mobiles data as mobile=>login
+     * 
+     * @return array
+     */
+    public function getAllMobilesUsers() {
+        $result = array();
+        if (!empty($this->allMobiles)) {
+            foreach ($this->allMobiles as $io => $each) {
+                $result[$each['mobile']] = $each['login'];
+            }
         }
         return ($result);
     }

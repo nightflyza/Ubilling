@@ -2724,6 +2724,8 @@ $lang['def']['Continue'] = 'Продолжить';
 $lang['def']['right to use askozia monitor'] = 'Право использовать Askozia monitor';
 $lang['def']['Askozia calls records'] = 'Записи разговоров Askozia';
 $lang['def']['Askozia monitor'] = 'Askozia монитор';
+$lang['def']['Additional mobile phones'] = 'Дополнительные номера мобильных';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

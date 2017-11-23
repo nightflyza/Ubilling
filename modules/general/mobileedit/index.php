@@ -34,9 +34,15 @@ if (cfr('MOBILE')) {
                     rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
                 }
 
-                //existing additoinal mobile deletion
+                //existing additional mobile deletion
                 if (wf_CheckGet(array('deleteext'))) {
                     $extMobiles->deleteUserMobile($_GET['deleteext']);
+                    rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
+                }
+
+                //updating existing additional mobile number
+                if (wf_CheckPost(array('editmobileextid', 'editmobileextnumber'))) {
+                    $extMobiles->updateUserMobile($_POST['editmobileextid'], $_POST['editmobileextnumber'], $_POST['editmobileextnotes']);
                     rcms_redirect($extMobiles::URL_ME . '&username=' . $login);
                 }
                 $extCreateForm = $extMobiles->renderCreateForm($login);
