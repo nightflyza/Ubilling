@@ -701,6 +701,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $portTable = $snmp->walk($ip, $community, $tlpOid, true);
                     }
 
+                    if ($deviceFdbMode == 'tlp2210') {
+                        $tlpOid = '.1.3.6.1.4.1.11863.1.1.19.2.3.2.2.1.3';
+                        $portTable = $snmp->walk($ip, $community, $tlpOid, true);
+                    }
+
                     //foxgate lazy parsing
                     if ($deviceFdbMode == 'flp') {
                         $flpOid = '.1.3.6.1.2.1.17.7.1.2.3.1.2';
@@ -717,7 +722,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $portData = sp_SnmpParseFdbDl($portTable);
                         }
 
-                        if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428')) {
+                        if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428') OR ( $deviceFdbMode == 'tlp2210')) {
                             //more exotic tplink parser
                             $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
                         }
