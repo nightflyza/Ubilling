@@ -505,6 +505,82 @@ class PONizer {
     }
 
     /**
+     * Performs signal preprocessing for sig/mac index arrays and stores it into cache
+     * 
+     * @param int   $oltid
+     * @param array $sigIndex
+     * @param array $macIndex
+     * @param array $snmpTemplate
+     * 
+     * @return void
+     */
+    public function signalParseStels($oltid, $sigIndex, $macIndex, $snmpTemplate) {
+        $oltid = vf($oltid, 3);
+        $sigTmp = array();
+        $macTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+        $plasticIndexSig = 0;
+        $plasticIndexMac = 0;
+        //signal index preprocessing
+        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
+            foreach ($sigIndex as $io => $eachsig) {
+                $line = explode('=', $eachsig);
+                //signal is present
+                if (isset($line[1])) {
+                    $signalRaw = trim($line[1]); // signal level
+                    $plasticIndexSig++; // device index just increment because we have no way to transform .1.3 to 1.769
+                    if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
+                        $signalRaw = 'Offline';
+                    } else {
+                        if ($snmpTemplate['OFFSETMODE'] == 'logm') {
+                            if ($snmpTemplate['OFFSET']) {
+                                $signalRaw = round(10 * log10($signalRaw) - $snmpTemplate['OFFSET'], 2);
+                            }
+                        }
+                    }
+                    $sigTmp[$plasticIndexSig] = $signalRaw;
+                }
+            }
+
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $plasticIndexMac++;
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$plasticIndexMac] = $macRaw;
+                }
+            }
+
+
+
+            //storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($sigTmp[$devId])) {
+                        $signal = $sigTmp[$devId];
+                        $result[$eachMac] = $signal;
+                        //signal history filling
+                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
+                        if ($signal == 'Offline') {
+                            $signal = -9000; //over 9000 offline signal level :P
+                        }
+                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+                    }
+                }
+                $result = serialize($result);
+
+                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache for ZTE OLT
      * 
      * @param int   $oltid
@@ -718,6 +794,23 @@ class PONizer {
                                 }
                             }
                         }
+                        // Stels FDXXXX  devices polling
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
+                            $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
+                            $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
+                            $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
+                            $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
+                            $sigIndex = explodeRows($sigIndex);
+
+                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
+                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+
+                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
+                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+                            $macIndex = explodeRows($macIndex);
+                            $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+                        }
+                        
                         //ZTE devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE') {
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
