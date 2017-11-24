@@ -2,8 +2,25 @@
 
 class DynamicShaper {
 
+    /**
+     * Contains all tariffs names array
+     *
+     * @var array
+     */
     protected $allTariffs = array();
+
+    /**
+     * Contains all tariffs speeds as tariffname=>speeddown/speedup
+     *
+     * @var array
+     */
     protected $allSpeeds = array();
+
+    /**
+     * Contains prepeared data for tariff speed selector
+     *
+     * @var array
+     */
     protected $selectorParams = array();
 
     public function __construct() {
@@ -84,7 +101,7 @@ class DynamicShaper {
         if (!empty($allrules)) {
             foreach ($allrules as $io => $eachrule) {
                 $rowClass = (isset($allTariffs[$eachrule['tariff']])) ? 'row3' : 'sigdeleteduser';
-                $tariffControl = (cfr('TARIFFSPEED')) ? wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'].' ', false) : $eachrule['tariff'];
+                $tariffControl = (cfr('TARIFFSPEED')) ? wf_Link('?module=tariffspeeds&tariff=' . $eachrule['tariff'], $eachrule['tariff'] . ' ', false) : $eachrule['tariff'];
 
                 $cells = wf_TableCell($eachrule['id']);
                 $cells.= wf_TableCell($tariffControl);
