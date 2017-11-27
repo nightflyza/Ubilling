@@ -435,9 +435,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $crows = wf_TableRow($ccells, 'row1');
                 foreach ($controlStats as $io => $each) {
                     $ccells = wf_TableCell(zb_AskoziaGetNumAlias($io));
-                    $ccells.= wf_TableCell($each['answered'] + $each['noanswer']);
+                    $ccells.= wf_TableCell(@$each['answered'] + $each['noanswer']);
                     $ccells.= wf_TableCell(zb_AskoziaFormatTime($each['time']));
-                    $ccells.= wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
+                    $ccells.= @wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
                     $crows.= wf_TableRow($ccells, 'row3');
                 }
             }
