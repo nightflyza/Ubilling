@@ -140,7 +140,7 @@ class WhyDoYouCall {
         if ((!empty($this->askoziaUrl)) AND ( !empty($this->askoziaLogin)) AND ( !empty($this->askoziaPassword))) {
             $callsTmp = array();
             $normalCalls = array();
-
+            $incomeTimes = array();
             $fields = array(
                 'extension_number' => 'all',
                 'cdr_filter' => 'incomingoutgoing',
@@ -179,6 +179,7 @@ class WhyDoYouCall {
                         @$startTime = $startTime[1];
                         $incomingNumber = $each[1];
                         $destinationNumber = $each[2];
+                        $incomeTimes[$incomingNumber] = $each[9];
                         //calls with less then 24 hours duration
                         if ($each['13'] < 86400) {
                             //not answered call
@@ -220,6 +221,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
                                             $recalledCalls[$destinationNumber]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$destinationNumber]);
+                                            }
+                                            $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
                                         }
                                     }
                                     $uglyHack = '38' . $destinationNumber; //lol
@@ -231,6 +236,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
                                             $recalledCalls[$uglyHack]['count'] = 1;
+                                            if (isset($incomeTimes[$uglyHack])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$uglyHack]);
+                                            }
+                                            $recalledCalls[$uglyHack]['trytime'] = $reactionTime;
                                         }
                                     }
                                 } else {
@@ -242,6 +251,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
                                             $recalledCalls[$destinationNumber]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$destinationNumber]);
+                                            }
+                                            $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
                                         }
                                     }
                                     $uglyHack = '38' . $destinationNumber;
@@ -252,6 +265,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
                                             $recalledCalls[$uglyHack]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$uglyHack]);
+                                            }
+                                            $recalledCalls[$uglyHack]['trytime'] = $reactionTime;
                                         }
                                     }
                                 }
@@ -382,6 +399,7 @@ class WhyDoYouCall {
                     $totalCount = 0;
                     $cells = wf_TableCell(__('Number'));
                     $cells.= wf_TableCell(__('Number of attempts to call'));
+                    $cells.= wf_TableCell(__('Reaction time'));
                     $cells.= wf_TableCell(__('Talk time'));
                     $cells.= wf_TableCell(__('Status'));
                     $cells.= wf_TableCell(__('User'));
@@ -403,6 +421,7 @@ class WhyDoYouCall {
                         $callStatusFlag = ($callTime > 0) ? 1 : 0;
                         $cells = wf_TableCell(wf_tag('strong') . $number . wf_tag('strong', true));
                         $cells.= wf_TableCell($callData['count']);
+                        $cells.= wf_TableCell(zb_formatTime($callData['trytime']));
                         $cells.= wf_TableCell($callTimeFormated, '', '', 'sorttable_customkey="' . $callTime . '"');
                         $cells.= wf_TableCell($callStatus, '', '', 'sorttable_customkey="' . $callStatusFlag . '"');
                         $cells.= wf_TableCell($profileLink);
