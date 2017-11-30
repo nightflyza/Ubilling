@@ -2727,6 +2727,10 @@ $lang['def']['Askozia monitor'] = 'Askozia монитор';
 $lang['def']['Additional mobile phones'] = 'Дополнительные номера мобильных';
 $lang['def']['Additional mobile'] = 'Дополнительный мобильный';
 $lang['def']['Additional mobile numbers enabled'] = 'Дополнительные номера мобильных влючены';
+$lang['def']['Reaction time'] = 'Время реакции';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

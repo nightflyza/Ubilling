@@ -2743,5 +2743,6 @@ $lang['def']['Askozia monitor'] = 'Askozia монітор';
 $lang['def']['Additional mobile phones'] = 'Додаткові номери стільникових';
 $lang['def']['Additional mobile'] = 'Додатковий стільниковий';
 $lang['def']['Additional mobile numbers enabled'] = 'Додаткові номера стільникових увімкнено';
+$lang['def']['Reaction time'] = 'Час реакції';
 
 ?>
