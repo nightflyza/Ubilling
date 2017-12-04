@@ -242,6 +242,8 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_TextInput('summ', __('Search by payment sum'), '', true, '10');
         $inputs.= wf_CheckInput('type_payidenc', '', false, false);
         $inputs.= wf_TextInput('payidenc', __('IDENC'), '', true, '10');
+        $inputs.= wf_CheckInput('type_summgreater', '', false, false);
+        $inputs.= wf_TextInput('paysummgreater', __('Payment summ greater then'), '', true, '10');
         $inputs.= wf_CheckInput('type_cashtype', '', false, false);
         $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
         $inputs.= wf_CheckInput('type_cashier', '', false, false);
@@ -401,7 +403,7 @@ if (cfr('PAYFIND')) {
         if (!empty($csvdata)) {
             $csvSaveName = 'exports/payfind_' . zb_rand_string(8) . '.csv';
             $csvSaveNameEnc = base64_encode($csvSaveName);
-            $csvdata = iconv('utf-8', 'windows-1251', $csvdata);
+            @$csvdata = iconv('utf-8', 'windows-1251', $csvdata);
             file_put_contents($csvSaveName, $csvdata);
             $csvDownloadLink = wf_Link('?module=payfind&downloadcsv=' . $csvSaveNameEnc, wf_img('skins/excel.gif', __('Export')), false);
         } else {
@@ -538,6 +540,11 @@ if (cfr('PAYFIND')) {
         $payidenc = vf($_POST['payidenc']);
         $payidNormal = zb_NumUnEncode($payidenc);
         $markers.="AND `id`='" . $payidNormal . "' ";
+    }
+
+    //summ is greater search
+    if (wf_CheckPost(array('type_summgreater', 'paysummgreater'))) {
+        $markers.="AND `summ` > " . mysql_real_escape_string($_POST['paysummgreater']) . " ";
     }
 
     //executing search

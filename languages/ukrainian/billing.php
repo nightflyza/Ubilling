@@ -2744,5 +2744,6 @@ $lang['def']['Additional mobile phones'] = 'Додаткові номери ст
 $lang['def']['Additional mobile'] = 'Додатковий стільниковий';
 $lang['def']['Additional mobile numbers enabled'] = 'Додаткові номера стільникових увімкнено';
 $lang['def']['Reaction time'] = 'Час реакції';
+$lang['def']['Payment summ greater then'] = 'Сума оплати більша ніж';
 
 ?>
