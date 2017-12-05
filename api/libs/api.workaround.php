@@ -439,7 +439,7 @@ function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
  * 
  * @return string
  */
-function web_CashTypeSelector() {
+function web_CashTypeSelector($CashType = '') {
     $allcashtypes = zb_CashGetAlltypes();
     $cashtypes = array();
     if (!empty($allcashtypes)) {
@@ -453,7 +453,9 @@ function web_CashTypeSelector() {
             $defaultCashtype = 'NOP';
         }
 
-        $selector = wf_Selector('cashtype', $cashtypes, '', $defaultCashtype, false);
+        $selectCashType = (!empty($CashType)) ? $CashType : $defaultCashtype;
+
+        $selector = wf_Selector('cashtype', $cashtypes, '', $selectCashType, false);
     }
 
     return($selector);
@@ -1227,17 +1229,38 @@ function web_PaymentEditForm($paymentData) {
     if (!empty($paymentData)) {
         $paymentTimestamp = strtotime($paymentData['date']);
         $paymentDate = date("Y-m-d", $paymentTimestamp);
-        $paymentTime = date("H:i:s", $paymentTimestamp);
+        $paymentDataBase = serialize($paymentData);
+        $paymentDataBase = base64_encode($paymentDataBase);
 
-        $inputs = __('New date') . ' ';
-        $inputs.='<!--ugly hack to prevent datepicker autoopen -->';
+        $inputs ='<!--ugly hack to prevent datepicker autoopen -->';
         $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
         $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
-        $inputs.= wf_DatePickerPreset('newpaymentdate', $paymentDate);
-        $inputs.= wf_HiddenInput('oldpaymentdate', $paymentDate);
-        $inputs.= wf_HiddenInput('oldpaymenttime', $paymentTime);
-        $inputs.= wf_Submit(__('Save'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs.= wf_HiddenInput('paymentdata', $paymentDataBase);
+
+        $cells = wf_TableCell(__('New date'), '', 'row2');
+        $cells.= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
+        $rows = wf_TableRow($cells);
+
+        if ($paymentData['admin'] != 'external' AND $paymentData['admin'] != 'openpayz' AND $paymentData['admin'] != 'guest') {
+            $cells = wf_TableCell(__('Payment type'), '', 'row2');
+            $cells.= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
+            $rows.= wf_TableRow($cells);
+            $cells = wf_TableCell(__('Payment notes'), '', 'row2');
+            $cells.= wf_TableCell(wf_TextInput('paymentnote', '', $paymentData['note'], false, 40), '', 'row3');
+            $rows.= wf_TableRow($cells);
+        } else {
+            $inputs.= wf_HiddenInput('cashtype', $paymentData['cashtypeid']);
+            $inputs.= wf_HiddenInput('paymentnote', $paymentData['note']);
+        }
+
+        $table = wf_TableBody($rows, '100%', 0, '');
+        $table.= wf_Submit(__('Save'));
+
+        $form = $inputs;
+        $form.= wf_Form('', 'POST', $table, '');
+        $form.= wf_delimiter();
+ 
+        $result = wf_Form('', 'POST', $form, 'glamour');
     }
     return ($result);
 }
@@ -1292,10 +1315,6 @@ function web_PaymentsByUser($login) {
 
     if (!empty($allpayments)) {
         foreach ($allpayments as $eachpayment) {
-            if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
-                $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
-            }
-
             //hightlight of today payments
             if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
                 if (ispos($eachpayment['date'], $curdate)) {
@@ -1327,6 +1346,10 @@ function web_PaymentsByUser($login) {
                 $editControls = wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '') . ' &nbsp; ';
             } else {
                 $editControls = '';
+            }
+
+            if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
+                $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
 
             $cells = wf_TableCell($eachpayment['id']);
