@@ -201,7 +201,7 @@ class IpayMasterPass {
     public function InitWidgetSession($user_id) {
         $result = '';
         $userMobile = $this->getPhoneByCustomerId($user_id);
-        $userMobile=vf($userMobile);
+        $userMobile = vf($userMobile);
         $request = '{
         "request": {
         "auth": {
