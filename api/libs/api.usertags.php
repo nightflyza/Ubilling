@@ -108,6 +108,8 @@ function stg_delete_tagtype($tagid) {
     $query = "DELETE from `tagtypes` WHERE `id`='" . $tagid . "'";
     nr_query($query);
     log_register('TAGTYPE DELETE [' . $tagid . ']');
+    $query = "UPDATE `employee` SET `tagid` = NULL WHERE `employee`.`tagid` = '" . $tagid . "'";
+    nr_query($query);
 }
 
 /**
