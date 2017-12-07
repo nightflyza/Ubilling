@@ -192,6 +192,33 @@ class IpayMasterPass {
     }
 
     /**
+     * Make phone format as 380xxxxxxxxxx
+     * 
+     * @param string $mobile
+     * 
+     * @return string
+     */
+    protected function normalizePhoneFormat($mobile) {
+        $mobile = vf($mobile, 3);
+        $len = strlen($mobile);
+        //all is ok
+        if ($len != 12) {
+            switch ($len) {
+                case 11:
+                    $mobile = '3' . $mobile;
+                    break;
+                case 10:
+                    $mobile = '38' . $mobile;
+                    break;
+                case 9:
+                    $mobile = '380' . $mobile;
+                    break;
+            }
+        }
+        return ($mobile);
+    }
+
+    /**
      * Returns widget session for some user and mobile
      * 
      * @param string $user_id
@@ -201,7 +228,7 @@ class IpayMasterPass {
     public function InitWidgetSession($user_id) {
         $result = '';
         $userMobile = $this->getPhoneByCustomerId($user_id);
-        $userMobile = vf($userMobile);
+        $userMobile = $this->normalizePhoneFormat($userMobile);
         $request = '{
         "request": {
         "auth": {
