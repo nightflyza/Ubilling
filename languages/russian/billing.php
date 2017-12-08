@@ -2729,7 +2729,7 @@ $lang['def']['Additional mobile'] = 'Дополнительный мобильн
 $lang['def']['Additional mobile numbers enabled'] = 'Дополнительные номера мобильных влючены';
 $lang['def']['Reaction time'] = 'Время реакции';
 $lang['def']['Payment summ greater then'] = 'Сумма платежа больше чем';
-$lang['def'][''] = '';
+$lang['def']['Missing registered UKV user with complex tariff'] = 'Отсутствует зарегистрированный пользователь УКВ с комплексным тарифом';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

@@ -2594,15 +2594,19 @@ class UkvSystem {
             if (!empty($allComplexUsers)) {
                 foreach ($allComplexUsers as $io => $eachComplexUser) {
                     if (($eachComplexUser['Cash'] < -$eachComplexUser['Credit']) AND ( @$complexActive[$eachComplexUser['login']])) {
-                        $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
-                        if (isset($this->users[$ukvUserId])) {
-                            $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
-                            $ukvUserData = $this->users[$ukvUserId];
-                            $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
-                            $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
-                            $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
-                            $summDebt = $summDebt + $eachComplexUser['Cash'];
-                            $counter++;
+                        if (isset($complexContracts[$eachComplexUser['login']])) {
+                            $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
+                            if (isset($this->users[$ukvUserId])) {
+                                $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
+                                $ukvUserData = $this->users[$ukvUserId];
+                                $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
+                                $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
+                                $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
+                                $summDebt = $summDebt + $eachComplexUser['Cash'];
+                                $counter++;
+                            }
+                        } else {
+                            $result.=$this->messages->getStyledMessage(__('Missing registered UKV user with complex tariff') . ': ' . $eachComplexUser['login'], 'error');
                         }
                     }
                 }
