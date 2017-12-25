@@ -61,7 +61,7 @@ if (cfr('UKV')) {
         //users registration
         if (wf_CheckGet(array('users', 'register'))) {
             if (wf_CheckPost(array('userregisterprocessing'))) {
-                if (wf_CheckPost(array('uregcity', 'uregstreet', 'uregbuild'))) {
+                if (wf_CheckPost(array('citysel', 'streetsel', 'buildsel'))) {
                     //all needed fields is filled - processin registration
                     $createdUserId = $ukv->userCreate();
                     rcms_redirect(UkvSystem::URL_USERS_PROFILE . $createdUserId);

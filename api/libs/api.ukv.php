@@ -763,17 +763,70 @@ class UkvSystem {
      * @return string
      */
     public function userRegisterForm() {
-        $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $inputs = '';
-        $inputs = wf_HiddenInput('userregisterprocessing', 'true');
-        $inputs.= wf_Selector('uregcity', $this->cities, __('City') . $sup, '', true);
-        $inputs.= wf_Selector('uregstreet', $this->streets, __('Street') . $sup, '', true);
-        $inputs.= wf_TextInput('uregbuild', __('Build') . $sup, '', true, '5');
-        $inputs.= wf_TextInput('uregapt', __('Apartment'), '', true, '4');
-        $inputs.= wf_delimiter();
-        $inputs.=wf_Submit(__('Let register that user'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
-        return ($result);
+        $aptsel = '';
+
+        if (!isset($_POST['citysel'])) {
+            $citysel = web_CitySelectorAc(); // onChange="this.form.submit();
+            $streetsel = '';
+        } else {
+            $citydata = zb_AddressGetCityData($_POST['citysel']);
+            $citysel = $citydata['cityname'] . wf_HiddenInput('citysel', $citydata['id']);
+            $streetsel = web_StreetSelectorAc($citydata['id']);
+        }
+
+        if (isset($_POST['streetsel'])) {
+            $streetdata = zb_AddressGetStreetData($_POST['streetsel']);
+            $streetsel = $streetdata['streetname'] . wf_HiddenInput('streetsel', $streetdata['id']);
+            $buildsel = web_BuildSelectorAc($_POST['streetsel']);
+        } else {
+            $buildsel = '';
+        }
+
+        if (isset($_POST['buildsel'])) {
+            $submit_btn = '';
+            $builddata = zb_AddressGetBuildData($_POST['buildsel']);
+            $buildsel = $builddata['buildnum'] . wf_HiddenInput('buildsel', $builddata['id']);
+            $aptsel = wf_TextInput('uregapt', __('Apartment'), '', true, '4');
+
+            $submit_btn.= wf_HiddenInput('userregisterprocessing', 'true');
+            $submit_btn.= wf_tag('tr', false, 'row3');
+            $submit_btn.= wf_tag('td', false);
+            $submit_btn.= wf_Submit(__('Let register that user'));
+            $submit_btn.= wf_tag('td', true);
+            $submit_btn.= wf_tag('td', false);
+            $submit_btn.= wf_tag('td', true);
+            $submit_btn.= wf_tag('tr', true);
+        } else {
+            $submit_btn = '';
+        }
+
+
+        $formInputs = wf_tag('tr', false, 'row3');
+        $formInputs.= wf_tag('td', false, '', 'width="50%"') . $citysel . wf_tag('td', true);
+        $formInputs.= wf_tag('td', false) . __('City') . wf_tag('td', true);
+        $formInputs.= wf_tag('tr', true);
+
+        $formInputs.= wf_tag('tr', false, 'row3');
+        $formInputs.= wf_tag('td', false) . $streetsel . wf_tag('td', true);
+        $formInputs.= wf_tag('td', false) . __('Street') . wf_tag('td', true);
+        $formInputs.= wf_tag('tr', true);
+
+        $formInputs.= wf_tag('tr', false, 'row3');
+        $formInputs.= wf_tag('td', false) . $buildsel . wf_tag('td', true);
+        $formInputs.= wf_tag('td', false) . __('Build') . wf_tag('td', true);
+        $formInputs.= wf_tag('tr', true);
+
+        $formInputs.= wf_tag('tr', false, 'row3');
+        $formInputs.= wf_tag('td', false) . $aptsel . wf_tag('td', true);
+        $formInputs.= wf_tag('td', false) . __('Apartment') . wf_tag('td', true);
+        $formInputs.= wf_tag('tr', true);
+        $formInputs.= $submit_btn;
+
+        $formData = wf_Form('', 'POST', $formInputs);
+        $form = wf_TableBody($formData, '100%', '0', 'glamour');
+        $form.= wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
+
+        return($form);
     }
 
     /**
@@ -1166,17 +1219,20 @@ class UkvSystem {
      * @return void
      */
     protected function userPostRegSave($userId) {
+        $citydata = zb_AddressGetCityData($_POST['citysel']);
+        $streetdata = zb_AddressGetStreetData($_POST['streetsel']);
+        $builddata = zb_AddressGetBuildData($_POST['buildsel']);
         $whereReg = "WHERE `id` = '" . $userId . "';";
-        simple_update_field('ukv_users', 'city', $_POST['uregcity'], $whereReg);
-        log_register('UKV USER ((' . $userId . ')) CHANGE CITY `' . $_POST['uregcity'] . '`');
+        simple_update_field('ukv_users', 'city', $citydata['cityname'] , $whereReg);
+        log_register('UKV USER ((' . $userId . ')) CHANGE CITY `' . $citydata['cityname'] . '`');
 
-        simple_update_field('ukv_users', 'street', $_POST['uregstreet'], $whereReg);
-        log_register('UKV USER ((' . $userId . ')) CHANGE STREET `' . $_POST['uregstreet'] . '`');
+        simple_update_field('ukv_users', 'street', $streetdata['streetname'] , $whereReg);
+        log_register('UKV USER ((' . $userId . ')) CHANGE STREET `' . $streetdata['streetname'] . '`');
 
 
-        $newBuild = $this->filterStringData($_POST['uregbuild']);
+        $newBuild = $this->filterStringData($builddata['buildnum']);
         simple_update_field('ukv_users', 'build', $newBuild, $whereReg);
-        log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $_POST['uregbuild'] . '`');
+        log_register('UKV USER ((' . $userId . ')) CHANGE BUILD `' . $builddata['buildnum'] . '`');
 
         $newApt = (!empty($_POST['uregapt'])) ? $_POST['uregapt'] : 0;
         $newApt = $this->filterStringData($newApt);
