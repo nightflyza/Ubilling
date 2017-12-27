@@ -21,22 +21,62 @@
           <div style="clear:both;"></div>
         ';
     return ($form);
-    }
+  }
     
     function bs_UploadFileForm() {
-    $uploadinputs=wf_HiddenInput('upload','true');
-    $uploadinputs.=__('File').' <input id="fileselector" type="file" name="filename" size="10" /><br>';
-    $uploadinputs.=wf_Submit('Upload');
-    $uploadform=bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
-    return ($uploadform);
+        $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        $dbf_enabled = stripos($alterconf['BS_FILETYPE'], 'dbf');
+        $dbf_st_delim = $alterconf['BS_DBF_ST_DELIM'];
+        $dbf_end_delim = $alterconf['BS_DBF_END_DELIM'];
+
+        $uploadinputs = wf_tag('table', false, 'glamour', 'width="70%" border="0" cellpadding="10"');
+        $uploadinputs.= wf_tag('tr', false, 'row3');
+        $uploadinputs.= wf_tag('td', false, '', 'width="50%"');
+        $uploadinputs.= wf_HiddenInput('upload','true');
+        $uploadinputs.= __('File') . '&nbsp&nbsp' . ' <input id="fileselector" type="file" name="filename" size="10" /><br/><br/>';
+        $uploadinputs.= wf_tag('td', true);
+
+        if ($dbf_enabled) {
+            $uploadinputs .= wf_tag('td', false, '', 'width="10%"');
+            $uploadinputs .= _('Filetype') . '&nbsp&nbsp' . wf_Selector('filetypes', ['txt', 'dbf'], '', 'txt', true);
+            $uploadinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+            $uploadinputs .= '$(\'[name = filetypes]\').change(function(){                            
+                            if ( $(this).find("option:selected").text() === "dbf" ) {
+                                $(\'#startdelim\').removeAttr("readonly");
+                                $(\'#enddelim\').removeAttr("readonly");
+                                $(\'#startdelim\').css(\'background-color\', \'#FFFFFF\')
+                                $(\'#enddelim\').css(\'background-color\', \'#FFFFFF\')
+                            } else {
+                                $(\'#startdelim\').attr("readonly", "readonly");
+                                $(\'#enddelim\').attr("readonly", "readonly");
+                                $(\'#startdelim\').css(\'background-color\', \'#CECECE\')
+                                $(\'#enddelim\').css(\'background-color\', \'#CECECE\')
+                            }                            
+                        });';
+            $uploadinputs .= wf_tag('script', true);
+            $uploadinputs .= wf_tag('td', true);
+            $uploadinputs .= wf_tag('td', false, '', 'width="30%"');
+            $uploadinputs .= _('Start delimiter') . wf_tag('input', false, '', 'type="text" readonly id="startdelim" value="' . $dbf_st_delim .'" ') . wf_delimiter();
+            $uploadinputs .= _('End delimiter') . wf_tag('input', false, '', 'type="text" readonly id="enddelim" value="' . $dbf_end_delim .'" ');
+            $uploadinputs .= wf_tag('td', true);
+        }
+        $uploadinputs.= wf_tag('td', false, '', 'width="20%"');
+        $uploadinputs.= wf_Submit('Upload');
+        $uploadinputs.= wf_tag('td', true);
+        $uploadinputs.= wf_tag('table', true);
+
+        $uploadform = bs_UploadFormBody('', 'POST', $uploadinputs, 'glamour');
+
+        return ($uploadform);
     }
     
  function bs_UploadFile() {
+   $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
    $timestamp=time();
    //путь сохранения
    $uploaddir = DATA_PATH.'banksta/';
    //белый лист расширений
-   $allowedExtensions = array("txt"); 
+   $allowedExtensions = array($alterconf['BS_FILETYPE']);
    //по умолчанию надеемся на худшее
    $result=false;
    
@@ -61,18 +101,18 @@
 
 function bs_FilePush($filename,$rawdata) {
     $filename=vf($filename);
-    $rawdata=mysql_real_escape_string($rawdata);
-    $query="INSERT INTO `bankstaraw` (
+    $rawdata = mysql_real_escape_string($rawdata);
+    $query = "INSERT INTO `bankstaraw` (
             `id` ,
             `filename` ,
             `rawdata`
             )
             VALUES (
-            NULL , '".$filename."', '".$rawdata."'
+            NULL , '" . $filename . "', '" . $rawdata . "'
             );
             ";
     nr_query($query);
-    $lastid=  simple_get_lastid('bankstaraw');
+    $lastid = simple_get_lastid('bankstaraw');
     return ($lastid);
 }
 
@@ -110,7 +150,7 @@ function bs_ParseRaw($rawid) {
     $summ_offset=$options[4];
     $delimiter=$options[0];
     
-    $date=  curdatetime();
+    $date=curdatetime();
     $rawdata_q="SELECT `rawdata` from `bankstaraw` WHERE `id`='".$rawid."'";
     $rawdata=simple_query($rawdata_q);
     $rawdata=$rawdata['rawdata'];

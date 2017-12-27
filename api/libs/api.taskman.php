@@ -9,7 +9,7 @@
  */
 function em_TagSelector($name, $label = '', $selected = '', $br = false) {
     $alltypes = stg_get_alltagnames();
-    $allltags = array('' => '-');
+    $allltags = array('NULL' => '-');
     if (!empty($alltypes)) {
         foreach ($alltypes as $io => $eachtype) {
             $allltags[$io] = $eachtype . " (" . $io . ")";
@@ -147,7 +147,7 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
-              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', '" . $tagid . "'); ";
+              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . "); ";
     nr_query($query);
     log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
 }
