@@ -113,12 +113,19 @@ if (!extension_loaded('mysql')) {
      * @param string $field
      * @param string $value
      * @param string $where
+     * @param bool $NoQuotesAroundValue
      */
-    function simple_update_field($tablename, $field, $value, $where = '') {
+    function simple_update_field($tablename, $field, $value, $where = '', $NoQuotesAroundValue = false) {
         $tablename = loginDB_real_escape_string($tablename);
         $value = loginDB_real_escape_string($value);
         $field = loginDB_real_escape_string($field);
-        $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = '" . $value . "' " . $where . "";
+
+        if ($NoQuotesAroundValue) {
+            $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = " . $value . " " . $where . "";
+        } else {
+            $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = '" . $value . "' " . $where . "";
+        }
+
         nr_query($query);
     }
 
@@ -365,12 +372,19 @@ if (!extension_loaded('mysql')) {
      * @param string $field
      * @param string $value
      * @param string $where
+     * @param bool $NoQuotesAroundValue
      */
-    function simple_update_field($tablename, $field, $value, $where = '') {
+    function simple_update_field($tablename, $field, $value, $where = '', $NoQuotesAroundValue = false) {
         $tablename = mysql_real_escape_string($tablename);
         $value = mysql_real_escape_string($value);
         $field = mysql_real_escape_string($field);
-        $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = '" . $value . "' " . $where . "";
+
+        if ($NoQuotesAroundValue) {
+            $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = " . $value . " " . $where . "";
+        } else {
+            $query = "UPDATE `" . $tablename . "` SET `" . $field . "` = '" . $value . "' " . $where . "";
+        }
+
         nr_query($query);
     }
 
