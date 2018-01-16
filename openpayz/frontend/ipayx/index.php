@@ -64,6 +64,7 @@ $xml = $_POST['xml'];
 if (!empty($xml)) {
     $xml = str_replace('\"', '"', $xml);
     $rawXml = xml2array($xml);
+
     if (!empty($rawXml)) {
         if (isset($rawXml['payment'])) {
             if (isset($rawXml['payment']['status'])) {
@@ -76,6 +77,10 @@ if (!empty($xml)) {
                     if (!empty($transactionInfoRaw)) {
                         $transactionInfo = json_decode($transactionInfoRaw);
                         $customerId = $transactionInfo->acc;
+                        //очевидно для платежей прилетающих с черджера другой формат данных о транзакции
+                        if (empty($customerId)) {
+                            $customerId = $transactionInfo->step_1->acc;
+                        }
                         if (!empty($customerId)) {
                             $allCustomers = op_CustomersGetAll();
                             //а есть ли такой пользователь?
@@ -93,6 +98,8 @@ if (!empty($xml)) {
                             } else {
                                 ipay_reportError('UNKNOWN USER');
                             }
+                        } else {
+                            ipay_reportError('CANT PARSE USER');
                         }
                     } else {
                         ipay_reportError('EMPTY TRANSACTION INFO');
