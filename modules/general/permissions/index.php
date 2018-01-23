@@ -220,7 +220,7 @@ if (cfr('PERMISSIONS')) {
 
 
         //rights grid
-        $CheckLabelCaption = ($reginputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($reginputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('reginputsnames', $reginputsnames);
         $label = wf_tag('h3') . __('Users registration') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('reginputscheck', __($CheckLabelCaption), true, $reginputsallchecked);
@@ -233,7 +233,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=reginputscheck]\').change( {InputNamesList : $(\'input[name=reginputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -241,7 +241,7 @@ if (cfr('PERMISSIONS')) {
         $tablecells = wf_TableCell($label . $reginputs, '', '', 'valign="top"');
 
 
-        $CheckLabelCaption = ($sysinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($sysinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('sysinputsnames', $sysinputsnames);
         $label = wf_tag('h3') . __('System settings') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('sysinputscheck', __($CheckLabelCaption), true, $sysinputsallchecked);
@@ -254,7 +254,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=sysinputscheck]\').change( {InputNamesList : $(\'input[name=sysinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -263,7 +263,7 @@ if (cfr('PERMISSIONS')) {
         $tablerows = wf_TableRow($tablecells);
 
 
-        $CheckLabelCaption = ($repinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($repinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('repinputsnames', $repinputsnames);
         $label = wf_tag('h3') . __('Reports') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('repinputscheck', __($CheckLabelCaption), true, $repinputsallchecked);
@@ -276,7 +276,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=repinputscheck]\').change( {InputNamesList : $(\'input[name=repinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -284,7 +284,7 @@ if (cfr('PERMISSIONS')) {
         $tablecells = wf_TableCell($label . $repinputs, '', '', 'valign="top"');
 
 
-        $CheckLabelCaption = ($fininputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($fininputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('fininputsnames', $fininputsnames);
         $label = wf_tag('h3') . __('Financial management') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('fininputscheck', __($CheckLabelCaption), true, $fininputsallchecked);
@@ -297,7 +297,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=fininputscheck]\').change( {InputNamesList : $(\'input[name=fininputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -306,7 +306,7 @@ if (cfr('PERMISSIONS')) {
         $tablerows .= wf_TableRow($tablecells);
 
 
-        $CheckLabelCaption = ($catvinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($catvinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('catvinputsnames', $catvinputsnames);
         $label = wf_tag('h3') . __('CaTV') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('catvinputscheck', __($CheckLabelCaption), true, $catvinputsallchecked);
@@ -319,7 +319,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=catvinputscheck]\').change( {InputNamesList : $(\'input[name=catvinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -327,7 +327,7 @@ if (cfr('PERMISSIONS')) {
         $tablecells = wf_TableCell($label . $catvinputs, '', '', 'valign="top"');
 
 
-        $CheckLabelCaption = ($geoinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($geoinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('geoinputsnames', $geoinputsnames);
         $label = wf_tag('h3') . __('Geography') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('geoinputscheck', __($CheckLabelCaption), true, $geoinputsallchecked);
@@ -336,7 +336,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=geoinputscheck]\').change( {InputNamesList : $(\'input[name=geoinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -345,7 +345,7 @@ if (cfr('PERMISSIONS')) {
         $tablerows .= wf_TableRow($tablecells);
 
 
-        $CheckLabelCaption = ($miscinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($miscinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('miscinputsnames', $miscinputsnames);
         $label = wf_tag('h3') . __('Misc rights') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('miscinputscheck', __($CheckLabelCaption), true, $miscinputsallchecked);
@@ -354,7 +354,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=miscinputscheck]\').change( {InputNamesList : $(\'input[name=miscinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';
@@ -362,7 +362,7 @@ if (cfr('PERMISSIONS')) {
         $tablecells = wf_TableCell($label . $miscinputs, '', '', 'valign="top"');
 
 
-        $CheckLabelCaption = ($branchesinputsallchecked) ? 'Uncheck all' : 'Check all';
+        $CheckLabelCaption = ($branchesinputsallchecked) ? __('Uncheck all') : __('Check all');
         $inputs .= wf_HiddenInput('branchesinputsnames', $branchesinputsnames);
         $label = wf_tag('h3') . __('Branches') . '&emsp;&emsp;&emsp;&emsp;';
         $label .= wf_CheckInput('branchesinputscheck', __($CheckLabelCaption), true, $branchesinputsallchecked);
@@ -371,7 +371,7 @@ if (cfr('PERMISSIONS')) {
         $label .= '$(\'[name=branchesinputscheck]\').change( {InputNamesList : $(\'input[name=branchesinputsnames]\').val(), CheckVal : false},
                                                           function(EventObject) {
                                                                 EventObject.data.CheckVal = $(this).is(\':checked\');
-                                                                var LabelText = (EventObject.data.CheckVal) ? \'Uncheck all\' : \'Check all\';
+                                                                var LabelText = (EventObject.data.CheckVal) ? \''.__('Uncheck all').'\' : \''.__('Check all').'\';
                                                                 $("label[for=\'"+$(this).attr("id")+"\']").html(LabelText);
                                                                 checkThemAll(EventObject.data.InputNamesList, EventObject.data.CheckVal); 
                                                           } );';

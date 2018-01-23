@@ -2747,4 +2747,8 @@ $lang['def']['Reaction time'] = 'Час реакції';
 $lang['def']['Payment summ greater then'] = 'Сума оплати більша ніж';
 $lang['def']['Missing registered UKV user with complex tariff'] = 'Відсутній зареєстрований користувач УКВ з комплексним тарифом';
 
+//rev 5924
+$lang['def']['Check all'] = 'Відмітити все';
+$lang['def']['Uncheck all'] = 'Зняти виділення';
+
 ?>

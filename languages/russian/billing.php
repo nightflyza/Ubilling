@@ -2730,8 +2730,14 @@ $lang['def']['Additional mobile numbers enabled'] = 'Дополнительны�
 $lang['def']['Reaction time'] = 'Время реакции';
 $lang['def']['Payment summ greater then'] = 'Сумма платежа больше чем';
 $lang['def']['Missing registered UKV user with complex tariff'] = 'Отсутствует зарегистрированный пользователь УКВ с комплексным тарифом';
+
+//rev 5924
+$lang['def']['Check all'] = 'Выделить все';
+$lang['def']['Uncheck all'] = 'Снять выделение';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
-
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 ?>
