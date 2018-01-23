@@ -19,6 +19,7 @@ function replyCheck($state) {
                     <desc>' . $checkText . '</desc>
                     <datetime>' . date("Y-m-d\TH:i:s") . '</datetime>
                     <salt></salt>
+                    </response>
                ';
     $result = trim($result);
     return ($result);
