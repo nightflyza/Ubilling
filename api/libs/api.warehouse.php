@@ -669,7 +669,7 @@ class Warehouse {
                 $data[] = $operationType;
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = @$this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = @$this->allEmployee[$each['employeeid']];
                 $data[] = $administratorName;
@@ -1516,7 +1516,7 @@ class Warehouse {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
@@ -1741,7 +1741,7 @@ class Warehouse {
                     }
 
                     $data[] = @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']];
-                    $data[] = @$this->allItemTypeNames[$itemtypeid];
+                    $data[] = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeid, @$this->allItemTypeNames[$itemtypeid]);
                     $data[] = $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']];
                     $data[] = $actLink;
                     $json->addRow($data);
@@ -1849,7 +1849,7 @@ class Warehouse {
                 $data[] = $this->outDests[$each['desttype']] . $this->outDestControl($each['desttype'], $each['destparam']);
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
@@ -2175,7 +2175,7 @@ class Warehouse {
                 if ($count > 0) {
                     $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
                     $data[] = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
-                    $data[] = $this->allItemTypeNames[$itemtypeId];
+                    $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, $this->allItemTypeNames[$itemtypeId]);
                     $data[] = $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
                     $data[] = $actLink;
                     $json->addRow($data);
