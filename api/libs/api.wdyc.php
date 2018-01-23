@@ -175,6 +175,10 @@ class WhyDoYouCall {
                 if (!empty($normalCalls)) {
                     unset($normalCalls[0]);
                     foreach ($normalCalls as $io => $each) {
+                        //Askozia CFE fix
+                        if (sizeof($each) > 25) {
+                            array_splice($each, 3, 1);
+                        }
                         $startTime = explode(' ', $each[9]);
                         @$startTime = $startTime[1];
                         $incomingNumber = $each[1];

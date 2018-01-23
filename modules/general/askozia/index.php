@@ -145,6 +145,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
      * @return void
      */
     function zb_AskoziaParseCallHistory($data) {
+        /**
+         *  D            A
+         * Жизнь дерьмо
+         * F#        G
+         * Возненавидь любя
+         * D           A
+         * Всем смертям назло
+         * F#        G
+         * Убей себя сам
+         */
         global $altcfg;
         $debugFlag = false;
         $answeredFlag = true;
@@ -226,6 +236,10 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             foreach ($normalData as $io => $each) {
                 //fix parsing for askozia 2.2.8
                 if ($each[0] != 'accountcode') {
+                    //Askozia CFE fix
+                    if (sizeof($each) > 25) {
+                        array_splice($each,3,1);
+                    }
                     $callsCounter++;
                     $debugData = wf_tag('pre') . print_r($each, true) . wf_tag('pre', true);
 
