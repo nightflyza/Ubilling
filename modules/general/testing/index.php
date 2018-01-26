@@ -13,11 +13,21 @@ class SMSZilla {
     protected $templates = array();
 
     /**
+     * System message helper placeholder
+     *
+     * @var object
+     */
+    protected $messages = '';
+
+    const URL_ME = '?module=testing';
+
+    /**
      * Creates new SMSZilla instance
      * 
      * @return void
      */
     public function __construct() {
+        $this->initMessages();
         $this->loadTemplates();
     }
 
@@ -34,6 +44,15 @@ class SMSZilla {
                 $this->templates[$each['id']] = $each;
             }
         }
+    }
+
+    /**
+     * Inits system messages helper into protected prop
+     * 
+     * @return void
+     */
+    protected function initMessages() {
+        $this->messages = new UbillingMessageHelper();
     }
 
     /**
@@ -104,11 +123,123 @@ class SMSZilla {
      * @return string
      */
     public function renderTemplateCreateForm() {
-        $result='';
+        $result = '';
+        $inputs = wf_TextInput('newtemplatename', __('Name'), '', true, '40');
+        $inputs.=__('Template') . wf_tag('br');
+        $inputs.= wf_TextArea('newtemplatetext', '', '', true, '45x5');
+        $inputs.= wf_Submit(__('Create'));
+        $result = wf_Form(self::URL_ME . '&templates=true', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders existing template edit form
+     * 
+     * @param int $templateId
+     * 
+     * @return string
+     */
+    public function renderTemplateEditForm($templateId) {
+        $templateId = vf($templateId, 3);
+        $result = '';
+        if (isset($this->templates[$templateId])) {
+            $templateData = $this->templates[$templateId];
+            $inputs = wf_HiddenInput('edittemplateid', $templateId);
+            $inputs.= wf_TextInput('edittemplatename', __('Name'), $templateData['name'], true, '40');
+            $inputs.=__('Template') . wf_tag('br');
+            $inputs.= wf_TextArea('edittemplatetext', '', $templateData['text'], true, '45x5');
+            $templateSize = strlen($templateData['text']);
+            $inputs.=__('Text size') . ' ~' . $templateSize . wf_tag('br');
+            $inputs.= wf_Submit(__('Save'));
+            $result = wf_Form(self::URL_ME . '&templates=true&edittemplate=' . $templateId, 'POST', $inputs, 'glamour');
+        } else {
+            $result = $this->messages->getStyledMessage(__('Something went wrong') . ': TEMPLATE_ID_NOT_EXISTS', 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders existing templates list with some controls
+     * 
+     * @return string
+     */
+    public function renderTemplatesList() {
+        $result = '';
+        if (!empty($this->templates)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.=wf_TableCell(__('Name'));
+            $cells.=wf_TableCell(__('Text'));
+            $cells.=wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->templates as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.=wf_TableCell($each['name']);
+                $cells.=wf_TableCell($each['text']);
+                $actLinks = wf_JSAlert(self::URL_ME . '&templates=true&deletetemplate=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_JSAlert(self::URL_ME . '&templates=true&edittemplate=' . $each['id'], web_edit_icon(), $this->messages->getEditAlert());
+
+                $cells.=wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row5');
+            }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result = $this->messages->getStyledMessage(__('No existing templates available'), 'warning');
+        }
+        return ($result);
+    }
+
+    public function panel() {
+        $result = '';
+        $result.=wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), true, 'ubButton') . ' ';
+        if (wf_CheckGet(array('templates'))) {
+            $result.=wf_tag('br');
+            $result.=wf_BackLink(self::URL_ME . '&templates=true') . ' ';
+            $result.=wf_modalAuto(web_icon_create() . ' ' . __('Create new template'), __('Create new template'), $this->renderTemplateCreateForm(), 'ubButton');
+        }
         return ($result);
     }
 
 }
 
 $smszilla = new SMSZilla();
+
+deb($smszilla->panel());
+
+//templates management
+if (wf_CheckGet(array('templates'))) {
+//creating new template
+    if (wf_CheckPost(array('newtemplatename', 'newtemplatetext'))) {
+        $smszilla->createTemplate($_POST['newtemplatename'], $_POST['newtemplatetext']);
+        rcms_redirect($smszilla::URL_ME . '&templates=true');
+    }
+
+//deleting existing template
+    if (wf_CheckGet(array('deletetemplate'))) {
+        $templateDeletionResult = $smszilla->deleteTemplate($_GET['deletetemplate']);
+        if (empty($templateDeletionResult)) {
+            rcms_redirect($smszilla::URL_ME . '&templates=true');
+        } else {
+            show_error($templateDeletionResult);
+        }
+    }
+
+//editing existing template
+    if (wf_CheckGet(array('edittemplate'))) {
+        //save changes to database
+        if (wf_CheckPost(array('edittemplateid', 'edittemplatename', 'edittemplatetext'))) {
+            $templateEditingResult = $smszilla->saveTemplate($_POST['edittemplateid'], $_POST['edittemplatename'], $_POST['edittemplatetext']);
+            if (empty($templateEditingResult)) {
+                rcms_redirect($smszilla::URL_ME . '&templates=true&edittemplate=' . $_POST['edittemplateid']);
+            } else {
+                show_error($templateEditingResult);
+            }
+        }
+        show_window(__('Edit template'), $smszilla->renderTemplateEditForm($_GET['edittemplate']));
+    }
+
+
+    show_window(__('Available templates'), $smszilla->renderTemplatesList());
+}
 ?>
