@@ -89,7 +89,6 @@ include('api/libs/api.email.php');
 include('api/libs/api.exhorse.php');
 include('api/libs/api.telegram.php');
 include('api/libs/api.senddog.php');
-include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
 include('api/libs/api.asterisk.php');
 include('api/libs/api.policedog.php');
@@ -114,6 +113,7 @@ include('api/libs/api.onuregister.php');
 include('api/libs/api.onureboot.php');
 include('api/libs/api.onudescribe.php');
 include('api/libs/api.onumaster.php');
+include('api/libs/api.smszilla.php');
 
 /*
  * Initial class creation
