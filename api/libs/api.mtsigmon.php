@@ -220,6 +220,12 @@ class MTsigmon {
                 $ubnt_shift = 1;
             }
 
+            // For Ligowave DLB 2-90
+            if ($tmpSnmp === "$oid = ") {
+                $oid = '.1.3.6.1.4.1.32750.3.10.1.3.2.1.5.5';
+                $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
+            }
+
             if (!empty($tmpSnmp) and ( $tmpSnmp !== "$oid = ")) {
                 $explodeData = explodeRows($tmpSnmp);
                 if (!empty($explodeData)) {
