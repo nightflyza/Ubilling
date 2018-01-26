@@ -195,8 +195,11 @@ class SMSZilla {
         $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), true, 'ubButton') . ' ';
         if (wf_CheckGet(array('templates'))) {
             $result.=wf_tag('br');
-            $result.=wf_BackLink(self::URL_ME . '&templates=true') . ' ';
-            $result.=wf_modalAuto(web_icon_create() . ' ' . __('Create new template'), __('Create new template'), $this->renderTemplateCreateForm(), 'ubButton');
+            if (wf_CheckGet(array('edittemplate'))) {
+                $result.=wf_BackLink(self::URL_ME . '&templates=true') . ' ';
+            } else {
+                $result.=wf_modalAuto(web_icon_create() . ' ' . __('Create new template'), __('Create new template'), $this->renderTemplateCreateForm(), 'ubButton');
+            }
         }
         return ($result);
     }
@@ -205,7 +208,8 @@ class SMSZilla {
 
 $smszilla = new SMSZilla();
 
-deb($smszilla->panel());
+//rendering module control panel
+show_window('', $smszilla->panel());
 
 //templates management
 if (wf_CheckGet(array('templates'))) {
@@ -237,9 +241,8 @@ if (wf_CheckGet(array('templates'))) {
             }
         }
         show_window(__('Edit template'), $smszilla->renderTemplateEditForm($_GET['edittemplate']));
+    } else {
+        show_window(__('Available templates'), $smszilla->renderTemplatesList());
     }
-
-
-    show_window(__('Available templates'), $smszilla->renderTemplatesList());
 }
 ?>
