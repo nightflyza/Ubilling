@@ -168,17 +168,24 @@ class MTsigmon {
      * Performs available MT devices polling. Use only in remote API.
      * 
      * @param bool $quiet
-     * 
+     * @param string $apid
+     *
      * @return void
      */
-    public function MTDevicesPolling($quiet = false) {
+    public function MTDevicesPolling($quiet = false, $apid = '') {
         if (!empty($this->allMTDevices)) {
-            foreach ($this->allMTDevices as $mtid => $each) {
-                if (!$quiet) {
-                    print('POLLING:' . $mtid . ' ' . $each . "\n");
+            if (empty($apid)) {
+                foreach ($this->allMTDevices as $mtid => $each) {
+                    if (!$quiet) {
+                        print('POLLING:' . $mtid . ' ' . $each . "\n");
+                    }
+
+                    $this->deviceQuery($mtid);
                 }
-                $this->deviceQuery($mtid);
+            } else {
+                $this->deviceQuery($apid);
             }
+
             // Set cache for Device fdb table
             if (empty($this->userLogin) or ( !empty($this->userLogin) and empty($this->userSwitch))) {
                 $this->cache->set(self::CACHE_PREFIX . 'MTID_UMAC', $this->deviceIdUsersMac, $this->cacheTime);
@@ -320,7 +327,25 @@ class MTsigmon {
         } else {
             $result.= $this->messages->getStyledMessage(__('Devices are not polled yet'), 'warning');
         }
-        $result.= wf_delimiter();
+
+        $result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $result .= 'function APIndividualRefresh(APID, JQAjaxTab) {                        
+                        $.ajax({
+                            type: "GET",
+                            url: "?module=mtsigmon",
+                            data: {IndividualRefresh:true, apid:APID},
+                            success: function(result) {
+                                        if ($.type(JQAjaxTab) === \'string\') {
+                                            $("#"+JQAjaxTab).DataTable().ajax.reload();
+                                        } else {
+                                            $(JQAjaxTab).DataTable().ajax.reload();
+                                        }
+                                     }
+                        });
+                    };';
+        $result .= wf_tag('script', true);
+
+        $result .= wf_delimiter();
 
         return ($result);
     }
@@ -360,7 +385,25 @@ class MTsigmon {
                     }
                 }
                                 
-                $result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
+                //$result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
+                //$refresh_button = wf_Link(self::URL_ME . '&forcepoll=true&apid=' . $MTId, wf_img('skins/refresh.gif'), false)
+
+                $AjaxURLStr = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
+                $JQDTId     = 'jqdt_' . md5($AjaxURLStr);
+                $APIDStr    = "APID" . $MTId;
+
+                $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $APIDStr . '" title="' . __('Refresh data for this AP') . '"');
+                $refresh_button .= wf_img('skins/refresh.gif');
+                $refresh_button .= wf_tag('a', true);
+                $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
+                $refresh_button .= '$(\'#' . $APIDStr . '\').click(function(evt) {
+                                        APIndividualRefresh(' . $MTId . ', ' . $JQDTId . ');                                        
+                                        evt.preventDefault();
+                                        return false;                
+                                    });';
+                $refresh_button .= wf_tag('script', true);
+
+                $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . wf_img('skins/wifi.png') . '&nbsp&nbsp' . __(@$eachMT), wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts));
             }
         } else {
             $result.= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));

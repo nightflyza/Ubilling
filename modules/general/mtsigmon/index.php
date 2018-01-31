@@ -9,26 +9,29 @@ if (cfr('MTSIGMON')) {
 
         $sigmon = new MTsigmon();
 
-        // force MT polling
-        if (wf_CheckGet(array('forcepoll'))) {
-            $sigmon->MTDevicesPolling(true);
-            if (wf_CheckGet(array('username'))) {
-                 rcms_redirect($sigmon::URL_ME . '&username='. vf($_GET['username']));
-            } else {
-                rcms_redirect($sigmon::URL_ME);
+        if (wf_CheckGet(array('IndividualRefresh', 'apid'))) {
+            $sigmon->MTDevicesPolling(false, vf($_GET['apid'], 3));
+        } else {
+            // force MT polling
+            if (wf_CheckGet(array('forcepoll'))) {
+                $sigmon->MTDevicesPolling(true);
+
+                if (wf_CheckGet(array('username'))) {
+                    rcms_redirect($sigmon::URL_ME . '&username=' . vf($_GET['username']));
+                } else {
+                    rcms_redirect($sigmon::URL_ME);
+                }
             }
+
+            // getting MT json data for list
+            if (wf_CheckGet(array('ajaxmt', 'mtid'))) {
+                $sigmon->renderMTsigmonList(vf($_GET['mtid'], 3));
+            }
+
+            // rendering availavle MT LIST
+            show_window(__('Mikrotik signal monitor'), $sigmon->controls());
+            $sigmon->renderMTList();
         }
-
-        // getting MT json data for list
-        if (wf_CheckGet(array('ajaxmt', 'mtid'))) {
-            $sigmon->renderMTsigmonList(vf($_GET['mtid'], 3));
-        }
-
-        // rendering availavle MT LIST
-        show_window(__('Mikrotik signal monitor'), $sigmon->controls());
-        $sigmon->renderMTList();
-
-
     } else {
         show_error(__('This module disabled'));
     }

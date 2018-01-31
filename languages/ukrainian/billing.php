@@ -2750,5 +2750,5 @@ $lang['def']['Missing registered UKV user with complex tariff'] = 'Відсут�
 //rev 5924
 $lang['def']['Check all'] = 'Відмітити все';
 $lang['def']['Uncheck all'] = 'Зняти виділення';
-
+$lang['def']['Refresh data for this AP'] = 'Оновити дані для цієї БС';
 ?>
