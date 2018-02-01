@@ -1965,42 +1965,42 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
- 		$(document).ready(function() {
-                 
-		$(\'#' . $tableId . '\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __($objects) . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __($objects) . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
+ 		$(document).ready(function() {                 
+            
+            $(\'#' . $tableId . '\').dataTable( {
+                "oLanguage": {
+                        "sLengthMenu": "' . __('Show') . ' _MENU_",
+                        "sZeroRecords": "' . __('Nothing found') . '",
+                        "sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __($objects) . '",
+                        "sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __($objects) . '",
+                        "sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
                         "sSearch":       "' . __('Search') . '",
                         "sProcessing":   "' . __('Processing') . '...",
                         "oPaginate": {
-                        "sFirst": "' . __('First') . '",
-                        "sPrevious": "' . __('Previous') . '",
-                        "sNext": "' . __('Next') . '",
-                        "sLast": "' . __('Last') . '"
-                    },
-		},
-        
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": ' . $saveState . ',
-        "iDisplayLength": ' . $rowsCount . ',
-        "sAjaxSource": \'' . $ajaxUrl . '\',
-	"bDeferRender": true,
-        "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "'.__('All').'"]],
-        ' . $opts . '
-        "bJQueryUI": true
-                } );
+                            "sFirst": "' . __('First') . '",
+                            "sPrevious": "' . __('Previous') . '",
+                            "sNext": "' . __('Next') . '",
+                            "sLast": "' . __('Last') . '"
+                        },
+                },
+            
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bSort": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "bProcessing": true,
+                "bStateSave": ' . $saveState . ',
+                "iDisplayLength": ' . $rowsCount . ',
+                "sAjaxSource": \'' . $ajaxUrl . '\',
+                "bDeferRender": true,
+                "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "'.__('All').'"]],
+                ' . $opts . '
+                "bJQueryUI": true
+            } );
               
-		}  );
+		} );
                 
           ';
     $jq_dt.=wf_tag('script', true);
