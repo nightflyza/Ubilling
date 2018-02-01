@@ -376,18 +376,15 @@ class MTsigmon {
                 if (! empty($MTsigmonData)) {
                     foreach ($MTsigmonData as $eachmac => $eachsig) {
                         if (strpos($eachsig, '/') !== false) {
-                            $columns[5] = __('Signal') . ' RX / TX (' . __('dBm') . ')';
+                            $columns[6] = __('Signal') . ' RX / TX (' . __('dBm') . ')';
                         } else {
-                            $columns[5] = __('Signal') . ' (' . __('dBm') . ')';
+                            $columns[6] = __('Signal') . ' (' . __('dBm') . ')';
                         }
 
                         break;
                     }
                 }
                                 
-                //$result .= show_window(wf_img('skins/wifi.png') . ' ' . __(@$eachMT), wf_JqDtLoader($columns, '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '', false, __('results'), 100, $opts));
-                //$refresh_button = wf_Link(self::URL_ME . '&forcepoll=true&apid=' . $MTId, wf_img('skins/refresh.gif'), false)
-
                 $AjaxURLStr = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
                 $JQDTId     = 'jqdt_' . md5($AjaxURLStr);
                 $APIDStr    = "APID" . $MTId;
