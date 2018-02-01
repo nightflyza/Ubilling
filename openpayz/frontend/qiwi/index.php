@@ -63,12 +63,15 @@ function qiwi_BadReply($hash, $errorCode = 5) {
         case 5:
             $comment = 'The subscriber has gone to Bobruisk...';
             break;
+        case 300:
+            $comment = 'Duplicate transaction';
+            break;
     }
     $result = '
                         <?xml version="1.0" encoding="UTF-8"?>
                         <response>
                         <osmp_txn_id>' . $hash . '</osmp_txn_id>
-                        <result>5</result>
+                        <result>' . $errorCode . '</result>
                         <comment>' . $comment . '</comment>
                         </response>
                         ';

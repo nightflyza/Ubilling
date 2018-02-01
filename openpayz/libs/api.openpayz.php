@@ -107,6 +107,11 @@ function xml2array($contents, $get_attributes = 1, $priority = 'tag') {
     if (!$xml_values)
         return; //Hmm...
 
+
+
+
+
+
         
 //Initializations
     $xml_array = array();
@@ -304,17 +309,27 @@ function op_HandleMail($body) {
 /**
  * Performs processing of all unprocessed transctions with required handlers
  * 
+ * @param bool $force - Use the force, Luke!
+ * 
  * @return void
  */
-function op_ProcessHandlers() {
+function op_ProcessHandlers($force = false) {
     $opconfig = op_LoadConfig();
-    $unprocessed = op_TransactionGetNotProcessed();
-    if (!empty($unprocessed)) {
-        $mailbody = '';
-        foreach ($unprocessed as $io => $eachtransaction) {
-            // mail notify 
-            if ($opconfig['SEND_MAIL']) {
-                $mailbody.="
+
+    if (($force == true) OR ( !@$opconfig['OP_HIGHLOAD_ENABLE'])) {
+        $realProcessing = true; //do some real work?
+    } else {
+        $realProcessing = false;
+    }
+
+    if ($realProcessing) {
+        $unprocessed = op_TransactionGetNotProcessed();
+        if (!empty($unprocessed)) {
+            $mailbody = '';
+            foreach ($unprocessed as $io => $eachtransaction) {
+                // mail notify 
+                if ($opconfig['SEND_MAIL']) {
+                    $mailbody.="
 ===\n
 id: " . $eachtransaction['id'] . " \n    
 date: " . $eachtransaction['date'] . " \n    
@@ -324,18 +339,19 @@ paysys: " . $eachtransaction['paysys'] . " \n
 hash: " . $eachtransaction['hash'] . " \n    
 ===\n\n
 ";
+                }
+                // stargazer direct payments
+                if ($opconfig['STG_DIRECT']) {
+                    //$customerid=vf($eachtransaction['customerid'],3);
+                    $customerid = $eachtransaction['customerid'];
+                    op_HandleStg($customerid, $eachtransaction['summ'], $eachtransaction['paysys']);
+                    op_TransactionSetProcessed($eachtransaction['id']);
+                }
             }
-            // stargazer direct payments
-            if ($opconfig['STG_DIRECT']) {
-                //$customerid=vf($eachtransaction['customerid'],3);
-                $customerid = $eachtransaction['customerid'];
-                op_HandleStg($customerid, $eachtransaction['summ'], $eachtransaction['paysys']);
-                op_TransactionSetProcessed($eachtransaction['id']);
+            //send mail notify
+            if ($opconfig['SEND_MAIL']) {
+                op_HandleMail($mailbody);
             }
-        }
-        //send mail notify
-        if ($opconfig['SEND_MAIL']) {
-            op_HandleMail($mailbody);
         }
     }
 }
