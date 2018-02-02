@@ -3,6 +3,41 @@
 class SMSZilla {
 
     /**
+     * System alter.ini config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Contains all of available tariffs data as tariffname=>data
+     *
+     * @var array
+     */
+    protected $allTariffs = array();
+
+    /**
+     * Contains available cities as cityid=>data
+     *
+     * @var array
+     */
+    protected $allCities = array();
+
+    /**
+     * Contains data of all available Internet users as login=>data
+     *
+     * @var array
+     */
+    protected $allUserData = array();
+
+    /**
+     * Contains available tag types as id=>name
+     *
+     * @var array
+     */
+    protected $allTagTypes = array();
+
+    /**
      * Contains available templates as id=>data
      *
      * @var array
@@ -16,6 +51,13 @@ class SMSZilla {
      */
     protected $messages = '';
 
+    /**
+     * Available filter types
+     *
+     * @var array
+     */
+    protected $filterTypes = array();
+
     const URL_ME = '?module=smszilla';
 
     /**
@@ -25,7 +67,79 @@ class SMSZilla {
      */
     public function __construct() {
         $this->initMessages();
+        $this->loadAlter();
+        $this->setOptions();
+        $this->loadCities();
+        $this->loadUsers();
+        $this->loadTagTypes();
+        $this->loadTariffs();
         $this->loadTemplates();
+    }
+
+    /**
+     * Loads system alter config into private property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Loads all existing Internet users from database
+     * 
+     * @return void
+     */
+    protected function loadUsers() {
+        $this->allUserData = zb_UserGetAllDataCache();
+    }
+
+    /**
+     * Loads existing tariffs from database into protected property for further usage
+     * 
+     * @return void
+     */
+    protected function loadTariffs() {
+        $query = "SELECT * from `tariffs`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTariffs[$each['name']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing cities from database
+     * 
+     * @return void
+     */
+    protected function loadCities() {
+        $query = "SELECT * from `city`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allCities[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads existing tag types from database
+     * 
+     * @return void
+     */
+    protected function loadTagTypes() {
+        $query = "SELECT * from `tagtypes`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allTagTypes[$each['id']] = $each['tagname'];
+            }
+        }
     }
 
     /**
@@ -50,6 +164,21 @@ class SMSZilla {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Sets all necessary options
+     * 
+     * @return void
+     */
+    protected function setOptions() {
+        $this->filterTypes = array(
+            self::URL_ME . '&filters=true&newfilterdirection=none' => __('No'),
+            self::URL_ME . '&filters=true&newfilterdirection=login' => __('Login'),
+            self::URL_ME . '&filters=true&newfilterdirection=ukv' => __('UKV'),
+            self::URL_ME . '&filters=true&newfilterdirection=employee' => __('Employee'),
+            self::URL_ME . '&filters=true&newfilterdirection=numlist' => __('Numbers list')
+        );
     }
 
     /**
@@ -185,11 +314,17 @@ class SMSZilla {
         return ($result);
     }
 
+    /**
+     * Renders default module control panel
+     * 
+     * @return string
+     */
     public function panel() {
         $result = '';
         $result.=wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), true, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&filters=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), true, 'ubButton') . ' ';
         if (wf_CheckGet(array('templates'))) {
             $result.=wf_tag('br');
             if (wf_CheckGet(array('edittemplate'))) {
@@ -199,6 +334,130 @@ class SMSZilla {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Renders filter creation form
+     * 
+     * @return string
+     */
+    public function renderFilterCreateForm() {
+        $result = '';
+
+
+
+        $result.=wf_AjaxLoader();
+        $inputs = wf_AjaxContainer('inputscontainer', '', $this->catchAjRequest(true));
+
+
+
+        $result.= wf_Form(self::URL_ME . '&filters=true', 'POST', $inputs, 'glamour');
+
+        return ($result);
+    }
+
+    /**
+     * Returns ajax inputs of required type
+     * 
+     * @return string
+     */
+    public function catchAjRequest($remote = false) {
+        $inputs = '';
+        $direction = 'none';
+        if (wf_CheckGet(array('newfilterdirection'))) {
+            $direction = vf($_GET['newfilterdirection']);
+        }
+
+        $citiesParams = array('' => __('Any'));
+        if (!empty($this->allCities)) {
+            foreach ($this->allCities as $io => $each) {
+                $citiesParams[$each['cityname']] = $each['cityname'];
+            }
+        }
+
+        $tagsParams = array('' => __('-'));
+        if (!empty($this->allTagTypes)) {
+            foreach ($this->allTagTypes as $io => $each) {
+                $tagsParams[$io] = $each;
+            }
+        }
+
+        $tariffParams = array('' => __('Any'));
+        if (!empty($this->allTariffs)) {
+            foreach ($this->allTariffs as $io => $each) {
+                $tariffParams[$each['name']] = $each['name'];
+            }
+        }
+
+        $ukvTariffParams = array('' => __('Any'));
+
+        $numListParams = array('' => '-');
+
+        $nasParams = array('' => __('Any'));
+
+        $branchParams = array('' => __('Any'));
+
+        $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), '', true);
+
+
+        if ($direction != 'none') {
+            $inputs.= wf_HiddenInput('newfilterdirection', $direction);
+            $inputs.= wf_TextInput('newfiltername', __('Fiter name'), '', true, '30');
+
+
+            if (($direction == 'login') OR ( $direction == 'ukv')) {
+                $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
+            }
+
+            if (($direction == 'login') OR ( $direction == 'ukv')) {
+                $inputs.= wf_TextInput('newfilteraddress', __('Address contains') . ' ' . __('(separator - comma)'), '', true, '40');
+            }
+
+            if (($direction == 'login')) {
+                $inputs.= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
+                $inputs.= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
+            }
+
+            if ($direction == 'ukv') {
+                $inputs.=wf_Selector('newfilterukvtariff', $ukvTariffParams, __('User have tariff'), '', true, false);
+                $inputs.= wf_CheckInput('newfilterukvactive', __('User is active'), true, false);
+            }
+
+            if (($direction == 'login') OR ( $direction == 'ukv')) {
+                $inputs.= wf_TextInput('newfiltercashgreater', __('Balance is greater than'), '', true, '5');
+                $inputs.= wf_TextInput('newfiltercashlesser', __('Balance is less than'), '', true, '5');
+                $inputs.=wf_Selector('newfiltertags', $tagsParams, __('User have tag assigned'), '', true, false);
+            }
+
+
+            if (($direction == 'login')) {
+                $inputs.= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
+                $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
+                $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, false);
+                $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
+                $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
+                $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
+                $inputs.=wf_Selector('newfilternas', $nasParams, __('NAS'), '', true, false);
+                $inputs.=wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
+            }
+
+            if (($direction == 'numlist')) {
+                $inputs.=wf_Selector('newfilternumlist', $numListParams, __('Numbers list'), '', true, false);
+            }
+
+            if ($direction == 'employee') {
+                $inputs.= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, false);
+            }
+
+            $inputs.=wf_tag('br');
+            $inputs.=wf_Submit(__('Create'));
+        }
+
+        if (!$remote) {
+            die($inputs);
+        } else {
+            return ($inputs);
+        }
     }
 
 }

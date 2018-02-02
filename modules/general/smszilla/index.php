@@ -7,45 +7,54 @@ if (cfr('SMSZILLA')) {
         set_time_limit(0);
 
 
-$smszilla = new SMSZilla();
+        $smszilla = new SMSZilla();
 
 //rendering module control panel
-show_window('', $smszilla->panel());
+        show_window('', $smszilla->panel());
 
 //templates management
-if (wf_CheckGet(array('templates'))) {
+        if (wf_CheckGet(array('templates'))) {
 //creating new template
-    if (wf_CheckPost(array('newtemplatename', 'newtemplatetext'))) {
-        $smszilla->createTemplate($_POST['newtemplatename'], $_POST['newtemplatetext']);
-        rcms_redirect($smszilla::URL_ME . '&templates=true');
-    }
+            if (wf_CheckPost(array('newtemplatename', 'newtemplatetext'))) {
+                $smszilla->createTemplate($_POST['newtemplatename'], $_POST['newtemplatetext']);
+                rcms_redirect($smszilla::URL_ME . '&templates=true');
+            }
 
 //deleting existing template
-    if (wf_CheckGet(array('deletetemplate'))) {
-        $templateDeletionResult = $smszilla->deleteTemplate($_GET['deletetemplate']);
-        if (empty($templateDeletionResult)) {
-            rcms_redirect($smszilla::URL_ME . '&templates=true');
-        } else {
-            show_error($templateDeletionResult);
-        }
-    }
+            if (wf_CheckGet(array('deletetemplate'))) {
+                $templateDeletionResult = $smszilla->deleteTemplate($_GET['deletetemplate']);
+                if (empty($templateDeletionResult)) {
+                    rcms_redirect($smszilla::URL_ME . '&templates=true');
+                } else {
+                    show_error($templateDeletionResult);
+                }
+            }
 
 //editing existing template
-    if (wf_CheckGet(array('edittemplate'))) {
-        //save changes to database
-        if (wf_CheckPost(array('edittemplateid', 'edittemplatename', 'edittemplatetext'))) {
-            $templateEditingResult = $smszilla->saveTemplate($_POST['edittemplateid'], $_POST['edittemplatename'], $_POST['edittemplatetext']);
-            if (empty($templateEditingResult)) {
-                rcms_redirect($smszilla::URL_ME . '&templates=true&edittemplate=' . $_POST['edittemplateid']);
+            if (wf_CheckGet(array('edittemplate'))) {
+                //save changes to database
+                if (wf_CheckPost(array('edittemplateid', 'edittemplatename', 'edittemplatetext'))) {
+                    $templateEditingResult = $smszilla->saveTemplate($_POST['edittemplateid'], $_POST['edittemplatename'], $_POST['edittemplatetext']);
+                    if (empty($templateEditingResult)) {
+                        rcms_redirect($smszilla::URL_ME . '&templates=true&edittemplate=' . $_POST['edittemplateid']);
+                    } else {
+                        show_error($templateEditingResult);
+                    }
+                }
+                show_window(__('Edit template'), $smszilla->renderTemplateEditForm($_GET['edittemplate']));
             } else {
-                show_error($templateEditingResult);
+                show_window(__('Available templates'), $smszilla->renderTemplatesList());
             }
         }
-        show_window(__('Edit template'), $smszilla->renderTemplateEditForm($_GET['edittemplate']));
-    } else {
-        show_window(__('Available templates'), $smszilla->renderTemplatesList());
-    }
-}
+
+//filters management
+        if (wf_CheckGet(array('filters'))) {
+            if (wf_CheckGet(array('newfilterdirection'))) {
+                $smszilla->catchAjRequest();
+            }
+            show_window(__('New filter creation'),$smszilla->renderFilterCreateForm()); 
+            
+        }
     } else {
         show_window(__('Error'), __('This module is disabled'));
     }
