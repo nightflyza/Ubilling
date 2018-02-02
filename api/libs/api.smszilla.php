@@ -45,6 +45,13 @@ class SMSZilla {
     protected $templates = array();
 
     /**
+     * Contains available filters
+     *
+     * @var array
+     */
+    protected $filters = array();
+
+    /**
      * System message helper placeholder
      *
      * @var object
@@ -74,6 +81,7 @@ class SMSZilla {
         $this->loadTagTypes();
         $this->loadTariffs();
         $this->loadTemplates();
+        $this->loadFilters();
     }
 
     /**
@@ -343,16 +351,9 @@ class SMSZilla {
      */
     public function renderFilterCreateForm() {
         $result = '';
-
-
-
         $result.=wf_AjaxLoader();
         $inputs = wf_AjaxContainer('inputscontainer', '', $this->catchAjRequest(true));
-
-
-
         $result.= wf_Form(self::URL_ME . '&filters=true', 'POST', $inputs, 'glamour');
-
         return ($result);
     }
 
@@ -398,12 +399,11 @@ class SMSZilla {
         $branchParams = array('' => __('Any'));
 
         $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), '', true);
-
+        $inputs.= wf_tag('br');
 
         if ($direction != 'none') {
             $inputs.= wf_HiddenInput('newfilterdirection', $direction);
-            $inputs.= wf_TextInput('newfiltername', __('Fiter name'), '', true, '30');
-
+            $inputs.= wf_TextInput('newfiltername', __('Fiter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
                 $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
@@ -415,6 +415,7 @@ class SMSZilla {
 
             if (($direction == 'login')) {
                 $inputs.= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
+                $inputs.= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
                 $inputs.= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
             }
 
@@ -433,7 +434,7 @@ class SMSZilla {
             if (($direction == 'login')) {
                 $inputs.= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
                 $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
-                $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, false);
+                $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
                 $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
                 $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
@@ -443,6 +444,7 @@ class SMSZilla {
 
             if (($direction == 'numlist')) {
                 $inputs.=wf_Selector('newfilternumlist', $numListParams, __('Numbers list'), '', true, false);
+                $inputs.=wf_TextInput('newfilternumcontain', __('Notes contains'), '', true, '20');
             }
 
             if ($direction == 'employee') {
@@ -451,12 +453,62 @@ class SMSZilla {
 
             $inputs.=wf_tag('br');
             $inputs.=wf_Submit(__('Create'));
+        } else {
+            $inputs.=__('Please select SMS direction');
         }
 
         if (!$remote) {
             die($inputs);
         } else {
             return ($inputs);
+        }
+    }
+
+    /**
+     * Creates new filter in database
+     * 
+     * @return void/string
+     */
+    public function createFilter() {
+        $result = '';
+        if (wf_CheckPost(array('newfilterdirection'))) {
+            $filterName = $_POST['newfiltername'];
+            $filterNameF = mysql_real_escape_string($filterName);
+            if (!empty($filterNameF)) {
+                $filterParams = array();
+                foreach ($_POST as $io => $each) {
+                    if (ispos($io, 'newfilter')) {
+                        $filterParams[$io] = $each;
+                    }
+                }
+                if (!empty($filterParams)) {
+                    $filterParams = json_encode($filterParams);
+                    $filterParams = mysql_real_escape_string($filterParams);
+                    $query = "INSERT INTO `smz_filters` (`id`,`name`,`filters`) VALUES ";
+                    $query.="(NULL,'" . $filterNameF . "','" . $filterParams . "');";
+                    nr_query($query);
+                    $newId = simple_get_lastid('smz_filters');
+                    log_register('SMSZILLA FILTER CREATE [' . $newId . '] `' . $filterName . '`');
+                }
+            } else {
+                $result = __('Something went wrong') . ': EX_FILTER_NAME_EMPTY';
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Loads existing filters from database
+     * 
+     * @return void
+     */
+    protected function loadFilters() {
+        $query = "SELECT * from `smz_filters`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->filters[$each['id']] = $each;
+            }
         }
     }
 

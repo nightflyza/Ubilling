@@ -49,8 +49,18 @@ if (cfr('SMSZILLA')) {
 
 //filters management
         if (wf_CheckGet(array('filters'))) {
+            //rendering ajax inputs reply
             if (wf_CheckGet(array('newfilterdirection'))) {
                 $smszilla->catchAjRequest();
+            }
+            //creatin new filter
+            if (wf_CheckPost(array('newfilterdirection'))) {
+                $creationResult=$smszilla->createFilter();
+                if (empty($creationResult)) {
+                    rcms_redirect($smszilla::URL_ME . '&filters=true');
+                } else {
+                    show_error($creationResult);
+                }
             }
             show_window(__('New filter creation'),$smszilla->renderFilterCreateForm()); 
             

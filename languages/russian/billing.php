@@ -2736,8 +2736,36 @@ $lang['def']['Check all'] = 'Выделить все';
 $lang['def']['Uncheck all'] = 'Снять выделение';
 $lang['def']['Refresh data for this AP'] = 'Обновить данные для этой БС';
 $lang['def']['Users which already have associated internet account'] = 'Пользователи, с уже присвоенными учетными записями интернета';
+$lang['def']['Templates'] = 'Шаблоны';
+$lang['def']['Filters'] = 'Фильтры';
+$lang['def']['Numbers lists'] = 'Списки номеров';
+$lang['def']['Available templates'] = 'Шаблоны в наличии';
+$lang['def']['No existing templates available'] = 'Нету существующих шаблонов';
+$lang['def']['New filter creation'] = 'Создание нового фильтра';
+$lang['def']['SMS direction'] = 'Направление SMS';
+$lang['def']['Fiter name'] = 'Имя фильтра';
+$lang['def']['Address contains'] = 'Адрес содержит';
+$lang['def']['Login contains'] = 'Логин содержит';
+$lang['def']['Balance is enought less than days'] = 'Баланса достаточно меньше чем на (дней)';
+$lang['def']['User have tariff'] = 'Пользователю присвоен тариф';
+$lang['def']['User is active'] = 'Пользователь активен';
+$lang['def']['Balance is greater than'] = 'Баланс больше чем (денег)';
+$lang['def']['Balance is less than'] = 'Баланс меньше чем (денег)';
+$lang['def']['User have tag assigned'] = 'Пользователю присвоен тег';
+$lang['def']['User is frozen'] = 'Пользователь заморожен';
+$lang['def']['User is down'] = 'Пользователь отключен';
+$lang['def']['User is AlwaysOnline'] = 'Пользователь ВсегдаОнлайн';
+$lang['def']['User have no tariff assigned'] = 'Пользователю не присвоен тариф';
+$lang['def']['Use additional mobiles'] = 'Использовать дополнительные мобилки';
+$lang['def']['Numbers list'] = 'Список номеров';
+$lang['def']['Employee is active'] = 'Работник активен';
+$lang['def']['Please select SMS direction'] = 'Пожалуйста, выберите направление SMS';
+$lang['def']['Notes contains'] = 'Примечание содержит';
+$lang['def']['Balance is not enough for the next month'] = 'Баланса не достаточно на следующий месяц';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
+
+
 ?>
