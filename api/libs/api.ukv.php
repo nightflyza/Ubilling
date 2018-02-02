@@ -1223,10 +1223,10 @@ class UkvSystem {
         $streetdata = zb_AddressGetStreetData($_POST['streetsel']);
         $builddata = zb_AddressGetBuildData($_POST['buildsel']);
         $whereReg = "WHERE `id` = '" . $userId . "';";
-        simple_update_field('ukv_users', 'city', $citydata['cityname'] , $whereReg);
+        simple_update_field('ukv_users', 'city', $citydata['cityname'], $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE CITY `' . $citydata['cityname'] . '`');
 
-        simple_update_field('ukv_users', 'street', $streetdata['streetname'] , $whereReg);
+        simple_update_field('ukv_users', 'street', $streetdata['streetname'], $whereReg);
         log_register('UKV USER ((' . $userId . ')) CHANGE STREET `' . $streetdata['streetname'] . '`');
 
 
@@ -3524,6 +3524,25 @@ class UkvSystem {
     }
 
     /**
+     * Renders users stats with assigned internet account
+     * 
+     * @return string
+     */
+    protected function renderInetAssignStats() {
+        $result = '';
+        $count = 0;
+        if (!empty($this->users)) {
+            foreach ($this->users as $io => $each) {
+                if (!empty($each['inetlogin'])) {
+                    $count++;
+                }
+            }
+        }
+        $result = $this->messages->getStyledMessage(__('Users which already have associated internet account').': '.  wf_tag('b').$count.  wf_tag('b',true), 'info');
+        return ($result);
+    }
+
+    /**
      * Renders complex users assign forms or something like that.
      * 
      * @return void
@@ -3533,6 +3552,7 @@ class UkvSystem {
         $ukvContracts = array();
         $inetContracts = array();
         $contractCfId = '';
+        $result = '';
 
 //updating inet login if required
         if (wf_CheckPost(array('assignComplexLogin', 'assignComplexUkvId'))) {
@@ -3639,7 +3659,8 @@ class UkvSystem {
                 }
             }
 
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+            $result.=$this->renderInetAssignStats().  wf_tag('br');
+            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
             show_window(__('Assign UKV users to complex profiles'), $result);
         }
     }
