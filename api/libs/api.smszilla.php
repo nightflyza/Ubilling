@@ -72,6 +72,20 @@ class SMSZilla {
      */
     protected $filteredEntities = array();
 
+    /**
+     * FundsFlow object placeholder
+     *
+     * @var object
+     */
+    protected $fundsFlow = '';
+
+    /**
+     * Contains tags for users
+     *
+     * @var array
+     */
+    protected $inetTags = array();
+
     const URL_ME = '?module=smszilla';
 
     /**
@@ -89,6 +103,8 @@ class SMSZilla {
         $this->loadTariffs();
         $this->loadTemplates();
         $this->loadFilters();
+        $this->initFundsFlow();
+        $this->loadInetTags();
     }
 
     /**
@@ -173,12 +189,37 @@ class SMSZilla {
     }
 
     /**
+     * Loads array of all tagtypes set to users
+     * 
+     * @return void
+     */
+    protected function loadInetTags() {
+        $query = "SELECT * from `tags`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->inetTags[$each['login']][] = $each['tagid'];
+            }
+        }
+    }
+
+    /**
      * Inits system messages helper into protected prop
      * 
      * @return void
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits funds flow object instance
+     * 
+     * @return void
+     */
+    protected function initFundsFlow() {
+        $this->fundsFlow = new FundsFlow();
+        $this->fundsFlow->runDataLoders();
     }
 
     /**
@@ -417,7 +458,7 @@ class SMSZilla {
             }
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
-                $inputs.= wf_TextInput('newfilteraddress', __('Address contains') . ' ' . __('(separator - comma)'), '', true, '40');
+                $inputs.= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
             }
 
             if (($direction == 'login')) {
@@ -537,7 +578,7 @@ class SMSZilla {
                 $actLinks = wf_JSAlert(self::URL_ME . '&filters=true&deletefilterid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks.= wf_modalAuto(web_icon_search(), __('Preview'), wf_tag('pre') . print_r(json_decode($each['filters'], true), true) . wf_tag('pre', true));
                 $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
@@ -612,18 +653,19 @@ class SMSZilla {
                 $direction = $filterData['newfilterdirection'];
                 switch ($direction) {
                     case 'login':
-                        foreach ($this->allUserData as $userLogin => $eachUser) {
-                            foreach ($filterData as $eachFilter => $eachFilterParam) {
-                                if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
-                                    $filterMethodName = str_replace('new', '', $eachFilter);
-                                    if (method_exists($this, $filterMethodName)) {
-                                        $this->$filterMethodName($direction, $eachUser, $eachFilterParam);
-                                    } else {
-                                        $unknownFilters[$filterMethodName] = $filterMethodName;
-                                    }
+                        $this->filteredEntities = $this->allUserData;
+
+                        foreach ($filterData as $eachFilter => $eachFilterParam) {
+                            if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
+                                $filterMethodName = str_replace('new', '', $eachFilter);
+                                if (method_exists($this, $filterMethodName)) {
+                                    $this->$filterMethodName($direction, $eachFilterParam);
+                                } else {
+                                    show_error(__('Something went wrong') . ': UNKNOWN_FILTER_METHOD ' . $filterMethodName);
                                 }
                             }
                         }
+
 
 
                         break;
@@ -637,21 +679,30 @@ class SMSZilla {
 
                         break;
                 }
-
-                debarr($unknownFilters);
             }
         }
-        debarr($this->filteredEntities);
+        //debarr($this->filteredEntities);
+        deb(sizeof($this->filteredEntities));
         return ($result);
     }
 
-    protected function filtercity($direction, $entity, $param) {
+    /**
+     * City filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercity($direction, $param) {
         if (!empty($param)) {
-            if (!empty($entity)) {
+            if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'login':
-                        if ($entity['cityname'] == $param) {
-                            $this->filteredEntities[$entity['login']] = $entity;
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cityname'] != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
                         }
                         break;
                 }
@@ -659,21 +710,230 @@ class SMSZilla {
         }
     }
 
-    protected function filteraddress($direction, $entity, $param) {
-        
+    /**
+     * Address filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filteraddress($direction, $param) {
         if (!empty($param)) {
-            if (!empty($entity)) {
-                $explodedParams = explode(',', $param);
+            if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'login':
-                        foreach ($explodedParams as $io => $each) {
-                            $search = trim($each);
-                            if (ispos($entity['fulladress'], $search)) {
-                                $this->filteredEntities[$entity['login']] = $entity;
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['fulladress'], $search)) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Login filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterlogin($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['login'], $search)) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Month cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashmonth($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $daysLeft = $this->fundsFlow->getOnlineLeftCountFast($entity['login']);
+                            if ($daysLeft > 0) {
+                                $curMonthDays = date("t");
+                                $curDate = date("j");
+                                $expr = ($curMonthDays - $curDate) + 30;
+                                if ($daysLeft > $expr) {
+                                    unset($this->filteredEntities[$entity['login']]);
+                                }
                             } else {
-//                                if (isset($this->filteredEntities[$entity['login']])) {
-//                                    unset($this->filteredEntities[$entity['login']]);
-//                                }
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Days less cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashdays($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $daysLeft = $this->fundsFlow->getOnlineLeftCountFast($entity['login']);
+                            if ($daysLeft > 0) {
+                                if ($daysLeft > $param) {
+                                    unset($this->filteredEntities[$entity['login']]);
+                                }
+                            } else {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Greater cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashgreater($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] < $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Lesser cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashlesser($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] > $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks is user have some tag assigned
+     * 
+     * @param string $login
+     * @param int $tagId
+     * 
+     * @return bool
+     */
+    protected function checkInetTagId($login, $tagId) {
+        $result = false;
+        if (isset($this->inetTags[$login])) {
+            if (!empty($this->inetTags[$login])) {
+                foreach ($this->inetTags[$login] as $io => $each) {
+                    if ($each == $tagId) {
+                        $result = true;
+                        return ($result);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Tags filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtertags($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!$this->checkInetTagId($entity['login'], $param)) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * AlwaysOnline filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterao($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['AlwaysOnline'] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
                             }
                         }
                         break;
