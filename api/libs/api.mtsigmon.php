@@ -405,8 +405,7 @@ class MTsigmon {
                                   wf_img('skins/wifi.png') . wf_tag('a', true);
 
                 // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
-                $QickAPsArray   = [-9999 => ''] + $this->allMTDevices;
-
+                $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
 
                 $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $APIDStr . '" title="' . __('Refresh data for this AP') . '"');
                 $refresh_button .= wf_img('skins/refresh.gif');
