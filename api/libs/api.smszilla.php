@@ -66,6 +66,13 @@ class SMSZilla {
     protected $filterTypes = array();
 
     /**
+     * Current run entities type
+     *
+     * @var strings
+     */
+    protected $entitiesType = '';
+
+    /**
      * Contains entities that passed full filter set
      *
      * @var array
@@ -136,6 +143,13 @@ class SMSZilla {
     protected $employee = array();
 
     /**
+     * UKV enabled flag
+     *
+     * @var bool
+     */
+    protected $ukvFlag = false;
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -159,7 +173,6 @@ class SMSZilla {
         $this->loadTariffs();
         $this->loadTemplates();
         $this->loadFilters();
-        $this->initFundsFlow();
         $this->loadInetTags();
         $this->loadUkvTags();
         $this->loadEmployee();
@@ -211,7 +224,9 @@ class SMSZilla {
      * @return void
      */
     protected function initUKV() {
-        $this->ukv = new UkvSystem();
+        if ($this->ukvFlag) {
+            $this->ukv = new UkvSystem();
+        }
     }
 
     /**
@@ -369,6 +384,8 @@ class SMSZilla {
             self::URL_ME . '&filters=true&newfilterdirection=employee' => __('Employee'),
             self::URL_ME . '&filters=true&newfilterdirection=numlist' => __('Numbers list')
         );
+
+        $this->ukvFlag = ($this->altCfg['UKV_ENABLED']) ? true : false;
     }
 
     /**
@@ -573,10 +590,12 @@ class SMSZilla {
         }
 
         $ukvTariffParams = array('' => __('Any'));
-        $ukvfTariffsAvail = $this->ukv->getTariffs();
-        if (!empty($ukvfTariffsAvail)) {
-            foreach ($ukvfTariffsAvail as $io => $each) {
-                $ukvTariffParams[$each['id']] = $each['tariffname'];
+        if ($this->ukvFlag) {
+            $ukvfTariffsAvail = $this->ukv->getTariffs();
+            if (!empty($ukvfTariffsAvail)) {
+                foreach ($ukvfTariffsAvail as $io => $each) {
+                    $ukvTariffParams[$each['id']] = $each['tariffname'];
+                }
             }
         }
 
@@ -641,7 +660,7 @@ class SMSZilla {
 
             if ($direction == 'employee') {
                 $inputs.= wf_TextInput('newfilteremployeeappointment', __('Appointment'), '', true, '30');
-                $inputs.= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, false);
+                $inputs.= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, true);
             }
 
             $inputs.=wf_tag('br');
@@ -842,18 +861,21 @@ class SMSZilla {
             $filterData = json_decode($filterData, true);
             if (isset($filterData['newfilterdirection'])) {
                 $direction = $filterData['newfilterdirection'];
+                $this->entitiesType = $direction;
                 switch ($direction) {
                     case 'login':
                         $this->filteredEntities = $this->allUserData;
                         break;
                     case 'ukv':
-                        $this->filteredEntities = $this->ukv->getUsers();
+                        if ($this->ukvFlag) {
+                            $this->filteredEntities = $this->ukv->getUsers();
+                        }
                         break;
                     case 'employee':
                         $this->filteredEntities = $this->employee;
                         break;
                     case 'numlist':
-
+                        // TODO
                         break;
                 }
 
@@ -869,7 +891,7 @@ class SMSZilla {
                 }
             }
         }
-        //  debarr($this->filteredEntities);
+
         deb(sizeof($this->filteredEntities));
         return ($result);
     }
@@ -975,6 +997,10 @@ class SMSZilla {
     protected function filtercashmonth($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
+                //init slow funds flow object if required
+                if (empty($this->fundsFlow)) {
+                    $this->initFundsFlow();
+                }
                 switch ($direction) {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
@@ -1007,6 +1033,10 @@ class SMSZilla {
     protected function filtercashdays($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
+                //init slow funds flow object if required
+                if (empty($this->fundsFlow)) {
+                    $this->initFundsFlow();
+                }
                 switch ($direction) {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
