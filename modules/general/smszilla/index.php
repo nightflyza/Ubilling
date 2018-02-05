@@ -55,15 +55,32 @@ if (cfr('SMSZILLA')) {
             }
             //creatin new filter
             if (wf_CheckPost(array('newfilterdirection'))) {
-                $creationResult=$smszilla->createFilter();
+                $creationResult = $smszilla->createFilter();
                 if (empty($creationResult)) {
                     rcms_redirect($smszilla::URL_ME . '&filters=true');
                 } else {
                     show_error($creationResult);
                 }
             }
-            show_window(__('New filter creation'),$smszilla->renderFilterCreateForm()); 
-            
+            //filter deletion
+            if (wf_CheckGet(array('deletefilterid'))) {
+                $filterDeletionResult = $smszilla->deleteFilter($_GET['deletefilterid']);
+                if (empty($filterDeletionResult)) {
+                    rcms_redirect($smszilla::URL_ME . '&filters=true');
+                } else {
+                    show_error($filterDeletionResult);
+                }
+            }
+            show_window(__('New filter creation'), $smszilla->renderFilterCreateForm());
+            show_window(__('Available filters'), $smszilla->renderFiltersList());
+        }
+
+//sending forms, etc
+        if (wf_CheckGet(array('sending'))) {
+            show_window(__('SMS sending'), $smszilla->renderSendingForm());
+            if (wf_CheckPost(array('sendingtemplateid', 'sendingfilterid'))) {
+                debarr($smszilla->filtersPreprocessing($_POST['sendingfilterid']));
+            }
         }
     } else {
         show_window(__('Error'), __('This module is disabled'));

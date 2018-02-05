@@ -65,6 +65,13 @@ class SMSZilla {
      */
     protected $filterTypes = array();
 
+    /**
+     * Contains entities that passed full filter set
+     *
+     * @var array
+     */
+    protected $filteredEntities = array();
+
     const URL_ME = '?module=smszilla';
 
     /**
@@ -508,6 +515,169 @@ class SMSZilla {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->filters[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Renders available filters list
+     * 
+     * @return string
+     */
+    public function renderFiltersList() {
+        $result = '';
+        if (!empty($this->filters)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->filters as $io => $each) {
+                $cells = wf_TableCell($each['id']);
+                $cells.= wf_TableCell($each['name']);
+                $actLinks = wf_JSAlert(self::URL_ME . '&filters=true&deletefilterid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_modalAuto(web_icon_search(), __('Preview'), wf_tag('pre') . print_r(json_decode($each['filters'], true), true) . wf_tag('pre', true));
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.= $this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes existing filter from database
+     * 
+     * @param int $filterId
+     * 
+     * @return void/string
+     */
+    public function deleteFilter($filterId) {
+        $result = '';
+        $filterId = vf($filterId, 3);
+        if (isset($this->filters[$filterId])) {
+            $query = "DELETE FROM `smz_filters` WHERE `id`='" . $filterId . "';";
+            nr_query($query);
+            log_register('SMSZILLA FILTER DELETE [' . $filterId . ']');
+        } else {
+            $result = __('Something went wrong') . ': : FILTER_ID_NOT_EXISTS';
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders template and filters selection form
+     * 
+     * @return string
+     */
+    public function renderSendingForm() {
+        $result = '';
+        if ((!empty($this->templates)) AND ( !empty($this->filters))) {
+            $templatesParams = array();
+            foreach ($this->templates as $io => $each) {
+                $templatesParams[$each['id']] = $each['name'];
+            }
+
+            $filterParams = array();
+            foreach ($this->filters as $io => $each) {
+                $filterParams[$each['id']] = $each['name'];
+            }
+
+            $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), '', false) . ' ';
+            $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), '', false);
+            $inputs.= wf_Submit(__('Preview'));
+
+            $result.=wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('No existing templates or filters available'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs draft filter entities preprocessing
+     * 
+     * @param int $filterId
+     * 
+     * @return string
+     */
+    public function filtersPreprocessing($filterId) {
+        $result = array();
+        $unknownFilters = array();
+        if (isset($this->filters[$filterId])) {
+            $filterData = $this->filters[$filterId]['filters'];
+            $filterData = json_decode($filterData, true);
+            if (isset($filterData['newfilterdirection'])) {
+                $direction = $filterData['newfilterdirection'];
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->allUserData as $userLogin => $eachUser) {
+                            foreach ($filterData as $eachFilter => $eachFilterParam) {
+                                if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
+                                    $filterMethodName = str_replace('new', '', $eachFilter);
+                                    if (method_exists($this, $filterMethodName)) {
+                                        $this->$filterMethodName($direction, $eachUser, $eachFilterParam);
+                                    } else {
+                                        $unknownFilters[$filterMethodName] = $filterMethodName;
+                                    }
+                                }
+                            }
+                        }
+
+
+                        break;
+                    case 'ukv':
+
+                        break;
+                    case 'employee':
+
+                        break;
+                    case 'numlist':
+
+                        break;
+                }
+
+                debarr($unknownFilters);
+            }
+        }
+        debarr($this->filteredEntities);
+        return ($result);
+    }
+
+    protected function filtercity($direction, $entity, $param) {
+        if (!empty($param)) {
+            if (!empty($entity)) {
+                switch ($direction) {
+                    case 'login':
+                        if ($entity['cityname'] == $param) {
+                            $this->filteredEntities[$entity['login']] = $entity;
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    protected function filteraddress($direction, $entity, $param) {
+        
+        if (!empty($param)) {
+            if (!empty($entity)) {
+                $explodedParams = explode(',', $param);
+                switch ($direction) {
+                    case 'login':
+                        foreach ($explodedParams as $io => $each) {
+                            $search = trim($each);
+                            if (ispos($entity['fulladress'], $search)) {
+                                $this->filteredEntities[$entity['login']] = $entity;
+                            } else {
+//                                if (isset($this->filteredEntities[$entity['login']])) {
+//                                    unset($this->filteredEntities[$entity['login']]);
+//                                }
+                            }
+                        }
+                        break;
+                }
             }
         }
     }

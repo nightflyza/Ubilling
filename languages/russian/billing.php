@@ -2762,8 +2762,8 @@ $lang['def']['Employee is active'] = 'Работник активен';
 $lang['def']['Please select SMS direction'] = 'Пожалуйста, выберите направление SMS';
 $lang['def']['Notes contains'] = 'Примечание содержит';
 $lang['def']['Balance is not enough for the next month'] = 'Баланса не достаточно на следующий месяц';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Available filters'] = 'Существующие фильтры';
+$lang['def']['No existing templates or filters available'] = 'Нету существующих шаблонов или фильтров';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
