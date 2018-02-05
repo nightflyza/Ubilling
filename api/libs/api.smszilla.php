@@ -80,11 +80,18 @@ class SMSZilla {
     protected $fundsFlow = '';
 
     /**
-     * Contains tags for users
+     * Contains tags for internet users
      *
      * @var array
      */
     protected $inetTags = array();
+
+    /**
+     * Contains tags for UKV users
+     *
+     * @var array
+     */
+    protected $ukvTags = array();
 
     /**
      * Contains all users and their down state as login=>state
@@ -98,7 +105,7 @@ class SMSZilla {
      *
      * @var bool
      */
-    protected $useCache = false;
+    protected $useCache = true;
 
     /**
      * SMS abstraction layer placeholder
@@ -113,6 +120,20 @@ class SMSZilla {
      * @var object
      */
     protected $branches = '';
+
+    /**
+     * UKV object placeholder
+     *
+     * @var object
+     */
+    protected $ukv = '';
+
+    /**
+     * Contains available employee list
+     *
+     * @var array
+     */
+    protected $employee = array();
 
     /**
      * Base module URL
@@ -132,6 +153,7 @@ class SMSZilla {
         $this->loadCities();
         $this->loadUsers();
         $this->loadDownUsers();
+        $this->initUKV();
         $this->initBranches();
         $this->loadTagTypes();
         $this->loadTariffs();
@@ -139,6 +161,8 @@ class SMSZilla {
         $this->loadFilters();
         $this->initFundsFlow();
         $this->loadInetTags();
+        $this->loadUkvTags();
+        $this->loadEmployee();
     }
 
     /**
@@ -179,6 +203,15 @@ class SMSZilla {
                 $this->downUsers[$each['login']] = $each['Down'];
             }
         }
+    }
+
+    /**
+     * Inits UKV object instance
+     * 
+     * @return void
+     */
+    protected function initUKV() {
+        $this->ukv = new UkvSystem();
     }
 
     /**
@@ -257,6 +290,36 @@ class SMSZilla {
     }
 
     /**
+     * Loads array of all tagtypes set to users
+     * 
+     * @return void
+     */
+    protected function loadUkvTags() {
+        $query = "SELECT * from `ukv_tags`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->ukvTags[$each['userid']][] = $each['tagtypeid'];
+            }
+        }
+    }
+
+    /**
+     * Loads available employee from database
+     * 
+     * @return void
+     */
+    protected function loadEmployee() {
+        $query = "SELECT * from `employee`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->employee[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
      * Inits system messages helper into protected prop
      * 
      * @return void
@@ -301,7 +364,7 @@ class SMSZilla {
     protected function setOptions() {
         $this->filterTypes = array(
             self::URL_ME . '&filters=true&newfilterdirection=none' => __('No'),
-            self::URL_ME . '&filters=true&newfilterdirection=login' => __('Login'),
+            self::URL_ME . '&filters=true&newfilterdirection=login' => __('Internet'),
             self::URL_ME . '&filters=true&newfilterdirection=ukv' => __('UKV'),
             self::URL_ME . '&filters=true&newfilterdirection=employee' => __('Employee'),
             self::URL_ME . '&filters=true&newfilterdirection=numlist' => __('Numbers list')
@@ -451,7 +514,7 @@ class SMSZilla {
         $result.=wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&filters=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), true, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), true, 'ubButton') . ' ';
         if (wf_CheckGet(array('templates'))) {
             $result.=wf_tag('br');
             if (wf_CheckGet(array('edittemplate'))) {
@@ -510,10 +573,14 @@ class SMSZilla {
         }
 
         $ukvTariffParams = array('' => __('Any'));
+        $ukvfTariffsAvail = $this->ukv->getTariffs();
+        if (!empty($ukvfTariffsAvail)) {
+            foreach ($ukvfTariffsAvail as $io => $each) {
+                $ukvTariffParams[$each['id']] = $each['tariffname'];
+            }
+        }
 
         $numListParams = array('' => '-');
-
-        $nasParams = array('' => __('Any'));
 
         $branchParams = array('' => __('Any'));
         $availBranches = $this->branches->getBranchesAvailable();
@@ -523,7 +590,8 @@ class SMSZilla {
             }
         }
 
-        $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), '', true);
+
+        $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), self::URL_ME . '&filters=true&newfilterdirection=' . $direction, true);
         $inputs.= wf_tag('br');
 
         if ($direction != 'none') {
@@ -563,7 +631,6 @@ class SMSZilla {
                 $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
                 $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
-                $inputs.=wf_Selector('newfilternas', $nasParams, __('NAS'), '', true, false);
                 $inputs.=wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
             }
 
@@ -573,6 +640,7 @@ class SMSZilla {
             }
 
             if ($direction == 'employee') {
+                $inputs.= wf_TextInput('newfilteremployeeappointment', __('Appointment'), '', true, '30');
                 $inputs.= wf_CheckInput('newfilteremployeeactive', __('Employee is active'), true, false);
             }
 
@@ -685,6 +753,52 @@ class SMSZilla {
     }
 
     /**
+     * Checks have user some tag assigned
+     * 
+     * @param string $login
+     * @param int $tagId
+     * 
+     * @return bool
+     */
+    protected function checkInetTagId($login, $tagId) {
+        $result = false;
+        if (isset($this->inetTags[$login])) {
+            if (!empty($this->inetTags[$login])) {
+                foreach ($this->inetTags[$login] as $io => $each) {
+                    if ($each == $tagId) {
+                        $result = true;
+                        return ($result);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks have UKV user some tag assigned
+     * 
+     * @param int $userid
+     * @param int $tagId
+     * 
+     * @return bool
+     */
+    protected function checkUkvTagId($userid, $tagId) {
+        $result = false;
+        if (isset($this->ukvTags[$userid])) {
+            if (!empty($this->ukvTags[$userid])) {
+                foreach ($this->ukvTags[$userid] as $io => $each) {
+                    if ($each == $tagId) {
+                        $result = true;
+                        return ($result);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders template and filters selection form
      * 
      * @return string
@@ -731,34 +845,31 @@ class SMSZilla {
                 switch ($direction) {
                     case 'login':
                         $this->filteredEntities = $this->allUserData;
-
-                        foreach ($filterData as $eachFilter => $eachFilterParam) {
-                            if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
-                                $filterMethodName = str_replace('new', '', $eachFilter);
-                                if (method_exists($this, $filterMethodName)) {
-                                    $this->$filterMethodName($direction, $eachFilterParam);
-                                } else {
-                                    show_error(__('Something went wrong') . ': UNKNOWN_FILTER_METHOD ' . $filterMethodName);
-                                }
-                            }
-                        }
-
-
-
                         break;
                     case 'ukv':
-
+                        $this->filteredEntities = $this->ukv->getUsers();
                         break;
                     case 'employee':
-
+                        $this->filteredEntities = $this->employee;
                         break;
                     case 'numlist':
 
                         break;
                 }
+
+                foreach ($filterData as $eachFilter => $eachFilterParam) {
+                    if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
+                        $filterMethodName = str_replace('new', '', $eachFilter);
+                        if (method_exists($this, $filterMethodName)) {
+                            $this->$filterMethodName($direction, $eachFilterParam);
+                        } else {
+                            show_error(__('Something went wrong') . ': UNKNOWN_FILTER_METHOD ' . $filterMethodName);
+                        }
+                    }
+                }
             }
         }
-        //debarr($this->filteredEntities);
+        //  debarr($this->filteredEntities);
         deb(sizeof($this->filteredEntities));
         return ($result);
     }
@@ -779,6 +890,13 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['cityname'] != $param) {
                                 unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['city'] != $param) {
+                                unset($this->filteredEntities[$entity['id']]);
                             }
                         }
                         break;
@@ -804,6 +922,15 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if (!ispos($entity['fulladress'], $search)) {
                                 unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $userAddress = $this->ukv->userGetFullAddress($entity['id']);
+                            if (!ispos($userAddress, $search)) {
+                                unset($this->filteredEntities[$entity['id']]);
                             }
                         }
                         break;
@@ -917,6 +1044,13 @@ class SMSZilla {
                             }
                         }
                         break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] < $param) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -941,32 +1075,16 @@ class SMSZilla {
                             }
                         }
                         break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] > $param) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
                 }
             }
         }
-    }
-
-    /**
-     * Checks is user have some tag assigned
-     * 
-     * @param string $login
-     * @param int $tagId
-     * 
-     * @return bool
-     */
-    protected function checkInetTagId($login, $tagId) {
-        $result = false;
-        if (isset($this->inetTags[$login])) {
-            if (!empty($this->inetTags[$login])) {
-                foreach ($this->inetTags[$login] as $io => $each) {
-                    if ($each == $tagId) {
-                        $result = true;
-                        return ($result);
-                    }
-                }
-            }
-        }
-        return ($result);
     }
 
     /**
@@ -985,6 +1103,13 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if (!$this->checkInetTagId($entity['login'], $param)) {
                                 unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!$this->checkUkvTagId($entity['id'], $param)) {
+                                unset($this->filteredEntities[$entity['id']]);
                             }
                         }
                         break;
@@ -1129,6 +1254,103 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Tariff'] != '*_NO_TARIFF_*') {
                                 unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * UKV tariff users filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterukvtariff($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['tariffid'] != $param) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * UKV activity filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterukvactive($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['active'] != '1') {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Employee appointment filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filteremployeeappointment($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'employee':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['appointment'], $search)) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Employee activity filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filteremployeeactive($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'employee':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['active'] != '1') {
+                                unset($this->filteredEntities[$entity['id']]);
                             }
                         }
                         break;

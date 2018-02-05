@@ -1329,6 +1329,26 @@ class UkvSystem {
     }
 
     /**
+     * Returns array of available UKV tariffs
+     * 
+     * @return array
+     */
+    public function getTariffs() {
+        $result = $this->tariffs;
+        return ($result);
+    }
+
+    /**
+     * Returns array of available UKV users
+     * 
+     * @return array
+     */
+    public function getUsers() {
+        $result = $this->users;
+        return ($result);
+    }
+
+    /**
      * Returns tag html preprocessed body
      * 
      * @param int $id
@@ -3538,7 +3558,7 @@ class UkvSystem {
                 }
             }
         }
-        $result = $this->messages->getStyledMessage(__('Users which already have associated internet account').': '.  wf_tag('b').$count.  wf_tag('b',true), 'info');
+        $result = $this->messages->getStyledMessage(__('Users which already have associated internet account') . ': ' . wf_tag('b') . $count . wf_tag('b', true), 'info');
         return ($result);
     }
 
@@ -3659,7 +3679,7 @@ class UkvSystem {
                 }
             }
 
-            $result.=$this->renderInetAssignStats().  wf_tag('br');
+            $result.=$this->renderInetAssignStats() . wf_tag('br');
             $result.= wf_TableBody($rows, '100%', 0, 'sortable');
             show_window(__('Assign UKV users to complex profiles'), $result);
         }
