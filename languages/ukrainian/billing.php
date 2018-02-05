@@ -978,14 +978,14 @@ $lang['def']['Difference'] = 'Різниця';
 $lang['def']['The network that you are trying to remove - contains live users. We can not afford to do so with them.'] = 'Мережа, котру ви намагаєтесь видалити, містить живих користувачів. Ми не можемо дозволити так вчинити з ними';
 $lang['def']['Signal'] = 'Сигнал';
 $lang['def']['Empty reply received'] = 'Запит повернув порожній результат';
-$lang['def']['Mikrotik signal monitor'] = 'Моніторинг сигналу на Mikrotik';
+$lang['def']['Wireless APs signal monitor'] = 'Моніторинг сигналу бездротових БС';
 $lang['def']['This module disabled'] = 'Цей модуль зараз відключено';
 $lang['def']['Available signup requests'] = 'Заявки на підключення в наявності';
 $lang['def']['Signup request'] = 'Заявка на підключення';
 $lang['def']['signup requests expected processing'] = 'Заявок на підключення очікують обробки';
 $lang['def']['right to manage signup requests'] = 'Право переглядати заявки на підключення';
-$lang['def']['right to use Mikrotik signal monitor'] = 'Право користуватись моніторингом сигналу Mikrotik';
-$lang['def']['MikroTik signal monitor enabled'] = 'Моніторинг сигналу MikroTik';
+$lang['def']['right to use Wireless APs signal monitor'] = 'Право користуватись моніторингом сигналу бездротових БС';
+$lang['def']['Wireless APs signal monitor enabled'] = 'Моніторинг сигналу бездротових БС';
 $lang['def']['Signup requests service enabled'] = 'Сервіс прийому заявок на підключення';
 
 
@@ -1849,7 +1849,7 @@ $lang['def']['right to personalize global menu'] = 'Право персонал�
 $lang['def']['Personalize menu'] = 'Персоналізувати меню';
 $lang['def']['Selfcredits'] = 'Самокредитування';
 $lang['def']['Fast access'] = 'Швидкий доступ';
-$lang['def']['Mikrotik AP signals'] = 'Сигнал БС Mikrotik';
+$lang['def']['Wireless APs signal levels'] = 'Рівні сигналу на БС';
 
 //rev 4112
 $lang['def']['Edit map'] = 'Редагувати карту';
@@ -2778,5 +2778,6 @@ $lang['def']['Employee is active'] = 'Працівник активний';
 $lang['def']['Please select SMS direction'] = 'Будь ласка, виберіть керунок SMS';
 $lang['def']['Notes contains'] = 'Примітки містять';
 $lang['def']['Balance is not enough for the next month'] = 'Баланса не вистачить на наступний місяць';
+$lang['def']['Go to AP'] = 'Перейти до БС';
 
 ?>
