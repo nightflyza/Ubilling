@@ -907,6 +907,21 @@ class UbillingBranches {
     }
 
     /**
+     * Returns array of available branches as branchid=>branchname
+     * 
+     * @return array
+     */
+    public function getBranchesAvailable() {
+        $result = array();
+        if (!empty($this->branches)) {
+            foreach ($this->branches as $io => $each) {
+                $result[$each['id']] = $each['name'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Builds and renders users list JSON data
      * 
      * @return void

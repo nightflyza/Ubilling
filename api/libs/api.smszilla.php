@@ -101,6 +101,20 @@ class SMSZilla {
     protected $useCache = false;
 
     /**
+     * SMS abstraction layer placeholder
+     *
+     * @var object
+     */
+    protected $sms = '';
+
+    /**
+     * Branches object placeholder
+     *
+     * @var object
+     */
+    protected $branches = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -114,9 +128,11 @@ class SMSZilla {
         $this->initMessages();
         $this->loadAlter();
         $this->setOptions();
+        $this->initSMS();
         $this->loadCities();
         $this->loadUsers();
         $this->loadDownUsers();
+        $this->initBranches();
         $this->loadTagTypes();
         $this->loadTariffs();
         $this->loadTemplates();
@@ -247,6 +263,24 @@ class SMSZilla {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Inits SMS queue abstraction layer
+     * 
+     * @return void
+     */
+    protected function initSMS() {
+        $this->sms = new UbillingSMS();
+    }
+
+    /**
+     * Branches initalization
+     * 
+     * @return void
+     */
+    protected function initBranches() {
+        $this->branches = new UbillingBranches();
     }
 
     /**
@@ -482,6 +516,12 @@ class SMSZilla {
         $nasParams = array('' => __('Any'));
 
         $branchParams = array('' => __('Any'));
+        $availBranches = $this->branches->getBranchesAvailable();
+        if (!empty($availBranches)) {
+            foreach ($availBranches as $io => $each) {
+                $branchParams[$io] = $each;
+            }
+        }
 
         $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), '', true);
         $inputs.= wf_tag('br');
@@ -1040,6 +1080,54 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Tariff'] != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Branch filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterbranch($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($this->branches->userGetBranch($entity['login']) != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * No tariff users filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternotariff($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Tariff'] != '*_NO_TARIFF_*') {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
