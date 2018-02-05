@@ -75,10 +75,21 @@ class MTsigmon {
      */
     protected $messages = '';
 
+    /**
+     * Contains value of MTSIGMON_QUICK_AP_LINKS from alter.ini
+     *
+     * @var bool
+     */
+    protected $EnableQuickAPLinks = false;
+
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
 
     public function __construct() {
+        $ubillingConfig = new UbillingConfig();
+        $alter_config = $ubillingConfig->getAlter();
+        $this->EnableQuickAPLinks = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
+
         $this->LoadUsersData();
         $this->initCache();
         if (wf_CheckGet(array('username'))) {
@@ -385,9 +396,16 @@ class MTsigmon {
                     }
                 }
                                 
-                $AjaxURLStr = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
-                $JQDTId     = 'jqdt_' . md5($AjaxURLStr);
-                $APIDStr    = "APID" . $MTId;
+                $AjaxURLStr     = '' . self::URL_ME . '&ajaxmt=true&mtid=' . $MTId . '';
+                $JQDTId         = 'jqdt_' . md5($AjaxURLStr);
+                $APIDStr        = 'APID' . $MTId;
+                $QuickAPDDLName = 'QuickAPDDL_' . wf_InputId();
+                $QuickAPLinkID  = 'QuickAPLinkID_' . wf_InputId();
+                $QuickAPLink    = wf_tag('a', false, '', 'id="' . $QuickAPLinkID . '" href="#' . $MTId . '"') .
+                                  wf_img('skins/wifi.png') . wf_tag('a', true);
+
+                // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
+                $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
 
                 $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $APIDStr . '" title="' . __('Refresh data for this AP') . '"');
                 $refresh_button .= wf_img('skins/refresh.gif');
@@ -400,7 +418,25 @@ class MTsigmon {
                                     });';
                 $refresh_button .= wf_tag('script', true);
 
-                $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . wf_img('skins/wifi.png') . '&nbsp&nbsp' . __(@$eachMT), wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts));
+                if ($this->EnableQuickAPLinks) {
+                    $QuickAPLinkInput =  wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
+                                        '&nbsp&nbsp' . wf_Selector($QuickAPDDLName, $QickAPsArray, '', '', true) .
+                                        wf_tag('script', false, '', 'type="text/javascript"') .
+                                        '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
+                                                            var LinkIDObjFromVal = $(\'a[href="#\'+$(this).val()+\'"]\');                                            
+                                                            //$(\'body,html\').animate( { scrollTop: $(LinkIDObjFromVal).offset().top - 30 }, 4500 );
+                                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                                       });' .
+                                        wf_tag('script', true) .
+                                        wf_tag('div', true);
+                } else {$QuickAPLinkInput = '';}
+
+                $result .= show_window( $refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickAPLink . '&nbsp&nbsp' .
+                                        __(@$eachMT), wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts) .
+                                        $QuickAPLinkInput
+
+                );
             }
         } else {
             $result.= show_window('', $this->messages->getStyledMessage(__('No devices for signal monitoring found'), 'warning'));
