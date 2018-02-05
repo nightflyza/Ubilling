@@ -94,6 +94,13 @@ class SMSZilla {
     protected $downUsers = array();
 
     /**
+     * Caching flag
+     *
+     * @var bool
+     */
+    protected $useCache = false;
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -136,7 +143,11 @@ class SMSZilla {
      * @return void
      */
     protected function loadUsers() {
-        $this->allUserData = zb_UserGetAllDataCache();
+        if ($this->useCache) {
+            $this->allUserData = zb_UserGetAllDataCache();
+        } else {
+            $this->allUserData = zb_UserGetAllData();
+        }
     }
 
     /**
