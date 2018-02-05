@@ -86,6 +86,16 @@ class SMSZilla {
      */
     protected $inetTags = array();
 
+    /**
+     * Contains all users and their down state as login=>state
+     *
+     * @var array
+     */
+    protected $downUsers = array();
+
+    /**
+     * Base module URL
+     */
     const URL_ME = '?module=smszilla';
 
     /**
@@ -99,6 +109,7 @@ class SMSZilla {
         $this->setOptions();
         $this->loadCities();
         $this->loadUsers();
+        $this->loadDownUsers();
         $this->loadTagTypes();
         $this->loadTariffs();
         $this->loadTemplates();
@@ -126,6 +137,21 @@ class SMSZilla {
      */
     protected function loadUsers() {
         $this->allUserData = zb_UserGetAllDataCache();
+    }
+
+    /**
+     * Loads available users down states into separate property
+     * 
+     * @return void
+     */
+    protected function loadDownUsers() {
+        $query = "SELECT `login`,`Down` from `users`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->downUsers[$each['login']] = $each['Down'];
+            }
+        }
     }
 
     /**
@@ -835,7 +861,7 @@ class SMSZilla {
                 switch ($direction) {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
-                            if ($entity['cash'] < $param) {
+                            if ($entity['Cash'] < $param) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
@@ -859,7 +885,7 @@ class SMSZilla {
                 switch ($direction) {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
-                            if ($entity['cash'] > $param) {
+                            if ($entity['Cash'] > $param) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
@@ -905,7 +931,6 @@ class SMSZilla {
             if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'login':
-                        $search = trim($param);
                         foreach ($this->filteredEntities as $io => $entity) {
                             if (!$this->checkInetTagId($entity['login'], $param)) {
                                 unset($this->filteredEntities[$entity['login']]);
@@ -930,9 +955,80 @@ class SMSZilla {
             if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'login':
-                        $search = trim($param);
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['AlwaysOnline'] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Passive filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterpassive($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Passive'] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Down filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterdown($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($this->downUsers[$entity['login']] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Tariff filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtertariff($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Tariff'] != $param) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
