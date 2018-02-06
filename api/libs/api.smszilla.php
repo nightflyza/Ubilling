@@ -157,6 +157,20 @@ class SMSZilla {
     protected $employee = array();
 
     /**
+     * Extended mobiles phonebase usage flag
+     *
+     * @var bool
+     */
+    protected $useExtMobiles = false;
+
+    /**
+     * Extended mobiles object placeholder
+     *
+     * @var object
+     */
+    protected $extMobiles = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -840,6 +854,7 @@ class SMSZilla {
 
             $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), '', false) . ' ';
             $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), '', false);
+            $inputs.= wf_HiddenInput('sendingpreset', zb_rand_string(8));
             $inputs.= wf_Submit(__('Preview'));
 
             $result.=wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
@@ -850,13 +865,107 @@ class SMSZilla {
     }
 
     /**
+     * Normalizes mobile number to +380 format. 
+     * May be not acceptable for countries other than Ukraine.
+     * 
+     * @param string $mobile
+     * 
+     * @return string/void on error
+     */
+    protected function normalizePhoneFormat($mobile) {
+        $mobile = vf($mobile, 3);
+        $len = strlen($mobile);
+        //all is ok
+        if ($len != 12) {
+            switch ($len) {
+                case 11:
+                    $mobile = '3' . $mobile;
+                    break;
+                case 10:
+                    $mobile = '38' . $mobile;
+                    break;
+                case 9:
+                    $mobile = '380' . $mobile;
+                    break;
+            }
+        }
+
+        $newLen = strlen($mobile);
+        if ($newLen == 12) {
+            $mobile = '+' . $mobile;
+        } else {
+            $mobile = '';
+        }
+
+
+        return ($mobile);
+    }
+
+    /**
+     * Extract mobile numbers from filtered entities array
+     * 
+     * @return array
+     */
+    protected function extractEntitiesNumbers() {
+        $result = array();
+        if (!empty($this->filteredEntities)) {
+            switch ($this->entitiesType) {
+                case 'login':
+                    if ($this->useExtMobiles) {
+                        $this->extMobiles = new MobilesExt();
+                    }
+                    foreach ($this->filteredEntities as $io => $each) {
+                        $userLogin = $each['login'];
+                        $primaryMobile = $this->normalizePhoneFormat($each['mobile']);
+                        if (!empty($primaryMobile)) {
+                            $result[$userLogin][] = $primaryMobile;
+                        }
+
+                        if ($this->useExtMobiles) {
+                            $userExtMobiles = $this->extMobiles->getUserMobiles($userLogin);
+                            if (!empty($userExtMobiles)) {
+                                foreach ($userExtMobiles as $ia => $eachExt) {
+                                    $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
+                                    if (!empty($additionalMobile)) {
+                                        $result[$userLogin][] = $additionalMobile;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case 'ukv':
+                    foreach ($this->filteredEntities as $io => $each) {
+                        $userPrimaryMobile = $this->normalizePhoneFormat($each['mobile']);
+                        if (!empty($userPrimaryMobile)) {
+                            $result[$each['id']] = $userPrimaryMobile;
+                        }
+                    }
+                    break;
+
+                case 'employee':
+                    foreach ($this->filteredEntities as $io => $each) {
+                        $employeeMobile = $this->normalizePhoneFormat($each['mobile']);
+                        if (!empty($employeeMobile)) {
+                            $result[$each['id']] = $employeeMobile;
+                        }
+                    }
+                    break;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Performs draft filter entities preprocessing
      * 
      * @param int $filterId
+     * @param string $presetId
      * 
      * @return string
      */
-    public function filtersPreprocessing($filterId) {
+    public function filtersPreprocessing($filterId, $presetId) {
         $result = array();
         $unknownFilters = array();
         if (isset($this->filters[$filterId])) {
@@ -893,7 +1002,14 @@ class SMSZilla {
             }
         }
 
-        deb(sizeof($this->filteredEntities));
+        if ((!empty($this->filteredEntities)) AND ( !empty($this->entitiesType))) {
+
+            deb(sizeof($this->filteredEntities));
+            debarr($this->extractEntitiesNumbers());
+        } else {
+            show_warning(__('Nothing found'));
+        }
+
         return ($result);
     }
 
@@ -1417,6 +1533,18 @@ class SMSZilla {
                 }
             }
         }
+    }
+
+    /**
+     * Just sets ext mobiles extraction flag
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterextmobiles($direction, $param) {
+        $this->useExtMobiles = true;
     }
 
 }

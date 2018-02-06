@@ -78,8 +78,8 @@ if (cfr('SMSZILLA')) {
 //sending forms, etc
         if (wf_CheckGet(array('sending'))) {
             show_window(__('SMS sending'), $smszilla->renderSendingForm());
-            if (wf_CheckPost(array('sendingtemplateid', 'sendingfilterid'))) {
-                $smszilla->filtersPreprocessing($_POST['sendingfilterid']);
+            if (wf_CheckPost(array('sendingtemplateid', 'sendingfilterid','sendingpreset'))) {
+                $smszilla->filtersPreprocessing($_POST['sendingfilterid'],$_POST['sendingpreset']);
             }
         }
     } else {
