@@ -136,10 +136,10 @@ class PoliceDog {
      */
     public function panel() {
         $result = '';
-        $result.=wf_modalAuto(web_icon_create() . ' ' . __('Upload new MACs'), __('Upload new MACs'), $this->renderUploadForm(), 'ubButton');
-        $result.=wf_Link(self::URL_ME, wf_img('skins/undone_icon.png') . ' ' . __('Wanted MAC database'), false, 'ubButton');
-        $result.=wf_Link(self::URL_ME . '&show=fastscan', wf_img('skins/icon_search_small.gif') . ' ' . __('Fast scan'), false, 'ubButton');
-        $result.=wf_Link(self::URL_ME . '&show=deepscan', wf_img('skins/track_icon.png') . ' ' . __('Deep scan'), false, 'ubButton');
+        $result.= wf_modalAuto(web_icon_create() . ' ' . __('Upload new MACs'), __('Upload new MACs'), $this->renderUploadForm(), 'ubButton');
+        $result.= wf_Link(self::URL_ME, wf_img('skins/undone_icon.png') . ' ' . __('Wanted MAC database'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&show=fastscan', wf_img('skins/icon_search_small.gif') . ' ' . __('Fast scan'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&show=deepscan', wf_img('skins/track_icon.png') . ' ' . __('Deep scan'), false, 'ubButton');
         return ($result);
     }
 
@@ -152,9 +152,9 @@ class PoliceDog {
         $result = '';
         $inputs = __('One MAC address per line') . wf_tag('br');
         $inputs.= wf_TextArea('newmacupload', '', '', true, '50x10');
-        $inputs.=wf_TextInput('newnotes', __('Notes'), '', true, '40');
-        $inputs.=wf_Submit(__('Upload'));
-        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs.= wf_TextInput('newnotes', __('Notes'), '', true, '40');
+        $inputs.= wf_Submit(__('Upload'));
+        $result.= wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
     }
 
@@ -167,7 +167,7 @@ class PoliceDog {
         $result = '';
         $columns = array(__('ID'), __('Date'), __('MAC'), __('Notes'), __('Actions'));
         $opts = '"order": [[ 0, "desc" ]]';
-        $result.=wf_JqDtLoader($columns, self::URL_ME . '&show=ajwlist', false, __('MAC'), 50, $opts);
+        $result.= wf_JqDtLoader($columns, self::URL_ME . '&show=ajwlist', false, __('MAC'), 50, $opts);
         return ($result);
     }
 
@@ -245,10 +245,10 @@ class PoliceDog {
                                     nr_query($query);
                                     $count++;
                                 } else {
-                                    $result.=$this->messages->getStyledMessage(__('MAC duplicate') . ': ' . $insertMac, 'warning');
+                                    $result.= $this->messages->getStyledMessage(__('MAC duplicate') . ': ' . $insertMac, 'warning');
                                 }
                             } else {
-                                $result.=$this->messages->getStyledMessage(__('This MAC have wrong format') . ': ' . $insertMac, 'error');
+                                $result.= $this->messages->getStyledMessage(__('This MAC have wrong format') . ': ' . $insertMac, 'error');
                             }
                         }
                     }
@@ -292,7 +292,7 @@ class PoliceDog {
                     $detectedLogin = $this->usersMacs[$eachmac];
                     if ($this->isNotAlertedYet($eachmac)) {
                         $query = "INSERT INTO `policedogalerts` (`id`,`date`,`mac`,`login`) VALUES ";
-                        $query.="(NULL, '" . $curDate . "', '" . $eachmac . "', '" . $detectedLogin . "');";
+                        $query.= "(NULL, '" . $curDate . "', '" . $eachmac . "', '" . $detectedLogin . "');";
                         nr_query($query);
                         log_register('POLICEDOG MAC `' . $eachmac . '` ALERT `' . $detectedLogin . '`');
                     }
@@ -367,7 +367,7 @@ class PoliceDog {
                 foreach ($this->allMacs as $eachmac => $eachId) {
                     if (isset($this->usersMacs[$eachmac])) {
                         if (!isset($nethostsAlertsTmp[$eachmac])) {
-                            $nethostsAlerts.=$this->messages->getStyledMessage(__('Wanted MAC assigned to user') . ': ' . $eachmac, 'error');
+                            $nethostsAlerts.= $this->messages->getStyledMessage(__('Wanted MAC assigned to user') . ': ' . $eachmac, 'error');
                             $nethostsAlertsTmp[$eachmac] = $eachmac;
                         }
                     }
@@ -442,9 +442,9 @@ class PoliceDog {
             }
 
             if (!empty($fdbAlerts)) {
-                $result.=$fdbAlerts;
+                $result.= $fdbAlerts;
             } else {
-                $result.=$this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
+                $result.= $this->messages->getStyledMessage(__('No wanted MAC in FDB cache detected'), 'success');
             }
 
             //weblogs assigns parsing
@@ -458,7 +458,7 @@ class PoliceDog {
                     if (!empty($macExtract)) {
                         if (isset($this->allMacs[$macExtract])) {
                             if (!isset($logAlertsTmp[$macExtract])) {
-                                $logAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
+                                $logAlerts.= $this->messages->getStyledMessage(__('Wanted MAC occurs in event logs') . ': ' . $macExtract, 'error');
                                 $logAlertsTmp[$macExtract] = $macExtract;
                             }
                         }
@@ -468,7 +468,7 @@ class PoliceDog {
             if (!empty($logAlerts)) {
                 $result.=$logAlerts;
             } else {
-                $result.=$this->messages->getStyledMessage(__('No wanted MAC in event logs detected'), 'success');
+                $result.= $this->messages->getStyledMessage(__('No wanted MAC in event logs detected'), 'success');
             }
 
             //PON devices processing
@@ -482,16 +482,16 @@ class PoliceDog {
                         $eachPonMac = $eachPonMac['mac'];
                         if (isset($this->allMacs[$eachPonMac])) {
                             if (!isset($ponAlertsTmp[$eachPonMac])) {
-                                $ponAlerts.=$this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
+                                $ponAlerts.= $this->messages->getStyledMessage(__('Wanted MAC occurs in PON ONU devices') . ': ' . $eachPonMac, 'error');
                                 $ponAlertsTmp[$eachPonMac] = $eachPonMac;
                             }
                         }
                     }
                 }
                 if (!empty($ponAlerts)) {
-                    $result.=$ponAlerts;
+                    $result.= $ponAlerts;
                 } else {
-                    $result.=$this->messages->getStyledMessage(__('No wanted MAC in PON ONU  devices detected'), 'success');
+                    $result.= $this->messages->getStyledMessage(__('No wanted MAC in PON ONU  devices detected'), 'success');
                 }
             }
         } else {
