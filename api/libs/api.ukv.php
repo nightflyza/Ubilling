@@ -2590,6 +2590,116 @@ class UkvSystem {
     }
 
     /**
+     * Returns array of available debtors
+     * 
+     * @return array
+     */
+    public function getDebtors() {
+        $result = array();
+        $debtorsArr = array();
+        $result = '';
+        $counter = 0;
+        $summDebt = 0;
+        if ($this->altCfg['COMPLEX_ENABLED']) {
+            $complexFlag = true;
+            $inetAddress = zb_AddressGetFulladdresslistCached();
+            $inetRealnames = zb_UserGetAllRealnames();
+            $complexCfIds = $this->altCfg['COMPLEX_CFIDS'];
+            $complexCfIds = explode(',', $complexCfIds);
+            $complexContractCf = $complexCfIds[0];
+            $complexActiveCf = $complexCfIds[1];
+            $complexMasksTmp = $this->altCfg['COMPLEX_MASKS'];
+            $complexMasksTmp = explode(',', $complexMasksTmp);
+            $complexContracts = array();
+            $complexActive = array();
+            $inetCableseals = array();
+
+            if (!empty($complexMasksTmp)) {
+                foreach ($complexMasksTmp as $io => $each) {
+                    $complexMasks[$each] = $each;
+                }
+            }
+            $allComplexUsers = array(); //login=>userdata
+            if (!empty($complexMasks)) {
+                $allUsersRaw = zb_UserGetAllStargazerDataAssoc();
+                if (!empty($allUsersRaw)) {
+                    foreach ($allUsersRaw as $userLogin => $eachUser) {
+                        foreach ($complexMasks as $ia => $eachComplexMask) {
+                            if (ispos($eachUser['Tariff'], $eachComplexMask)) {
+                                $allComplexUsers[$userLogin] = $eachUser;
+                            }
+                        }
+                    }
+                }
+            }
+
+//getting complex active and contract fields
+            $query_complex = "SELECT * from `cfitems`";
+            $cfRaw = simple_queryall($query_complex);
+            if (!empty($cfRaw)) {
+                foreach ($cfRaw as $io => $eachCf) {
+                    if ($eachCf['typeid'] == $complexContractCf) {
+                        $complexContracts[$eachCf['login']] = $eachCf['content'];
+                    }
+
+                    if ($eachCf['typeid'] == $complexActiveCf) {
+                        $complexActive[$eachCf['login']] = $eachCf['content'];
+                    }
+                }
+            }
+        } else {
+            $complexFlag = false;
+        }
+        if (!empty($this->users)) {
+            foreach ($this->users as $ix => $eachUser) {
+                $userTariff = $eachUser['tariffid'];
+                $tariffPrice = (isset($this->tariffs[$userTariff]['price'])) ? $this->tariffs[$userTariff]['price'] : 0;
+                $debtMaxLimit = '-' . ($tariffPrice * $this->debtLimit);
+                if (($eachUser['cash'] <= $debtMaxLimit) AND ( $eachUser['active'] == 1) AND ( $tariffPrice != 0)) {
+                    $debtorsArr[$eachUser['street']][$eachUser['id']] = $eachUser;
+                    $debtorsArr[$eachUser['street']][$eachUser['id']]['usertype'] = 'ukv';
+                    $counter++;
+                }
+            }
+        }
+
+
+//complex processing
+        if ($complexFlag) {
+            $userStreets = zb_AddressGetStreetUsers();
+            if (!empty($allComplexUsers)) {
+                foreach ($allComplexUsers as $io => $eachComplexUser) {
+                    if (($eachComplexUser['Cash'] < -$eachComplexUser['Credit']) AND ( @$complexActive[$eachComplexUser['login']])) {
+                        if (isset($complexContracts[$eachComplexUser['login']])) {
+                            $ukvUserId = $this->userGetByContract($complexContracts[$eachComplexUser['login']]);
+                            if (isset($this->users[$ukvUserId])) {
+                                $userStreet = (isset($userStreets[$eachComplexUser['login']])) ? $userStreets[$eachComplexUser['login']] : __('Unknown');
+                                $ukvUserData = $this->users[$ukvUserId];
+                                $debtorsArr[$userStreet][$ukvUserId] = $ukvUserData;
+                                $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
+                                $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
+                            }
+                        } 
+                    }
+                }
+            }
+        }
+
+        
+
+        if (!empty($debtorsArr)) {
+            foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
+                if (!empty($eachDebtorStreet)) {
+                    foreach ($eachDebtorStreet as $ia => $eachDebtor) {
+                        $result[$eachDebtor['id']]=$eachDebtor['id'];
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * renders debtors report
      * 
      * @return void

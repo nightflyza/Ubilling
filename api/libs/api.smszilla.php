@@ -136,18 +136,25 @@ class SMSZilla {
     protected $ukv = '';
 
     /**
+     * UKV debtors once loading flag
+     *
+     * @var bool
+     */
+    protected $ukvDebtorsLoaded = false;
+
+    /**
+     * Available UKV debtors
+     *
+     * @var string
+     */
+    protected $ukvDebtors = array();
+
+    /**
      * Contains available employee list
      *
      * @var array
      */
     protected $employee = array();
-
-    /**
-     * UKV enabled flag
-     *
-     * @var bool
-     */
-    protected $ukvFlag = false;
 
     /**
      * Base module URL
@@ -224,9 +231,7 @@ class SMSZilla {
      * @return void
      */
     protected function initUKV() {
-        if ($this->ukvFlag) {
-            $this->ukv = new UkvSystem();
-        }
+        $this->ukv = new UkvSystem();
     }
 
     /**
@@ -384,8 +389,6 @@ class SMSZilla {
             self::URL_ME . '&filters=true&newfilterdirection=employee' => __('Employee'),
             self::URL_ME . '&filters=true&newfilterdirection=numlist' => __('Numbers list')
         );
-
-        $this->ukvFlag = ($this->altCfg['UKV_ENABLED']) ? true : false;
     }
 
     /**
@@ -590,14 +593,13 @@ class SMSZilla {
         }
 
         $ukvTariffParams = array('' => __('Any'));
-        if ($this->ukvFlag) {
-            $ukvfTariffsAvail = $this->ukv->getTariffs();
-            if (!empty($ukvfTariffsAvail)) {
-                foreach ($ukvfTariffsAvail as $io => $each) {
-                    $ukvTariffParams[$each['id']] = $each['tariffname'];
-                }
+        $ukvfTariffsAvail = $this->ukv->getTariffs();
+        if (!empty($ukvfTariffsAvail)) {
+            foreach ($ukvfTariffsAvail as $io => $each) {
+                $ukvTariffParams[$each['id']] = $each['tariffname'];
             }
         }
+
 
         $numListParams = array('' => '-');
 
@@ -633,6 +635,7 @@ class SMSZilla {
 
             if ($direction == 'ukv') {
                 $inputs.=wf_Selector('newfilterukvtariff', $ukvTariffParams, __('User have tariff'), '', true, false);
+                $inputs.= wf_CheckInput('newfilterukvdebtor', __('Debtors'), true, false);
                 $inputs.= wf_CheckInput('newfilterukvactive', __('User is active'), true, false);
             }
 
@@ -867,9 +870,7 @@ class SMSZilla {
                         $this->filteredEntities = $this->allUserData;
                         break;
                     case 'ukv':
-                        if ($this->ukvFlag) {
-                            $this->filteredEntities = $this->ukv->getUsers();
-                        }
+                        $this->filteredEntities = $this->ukv->getUsers();
                         break;
                     case 'employee':
                         $this->filteredEntities = $this->employee;
@@ -1380,6 +1381,35 @@ class SMSZilla {
                     case 'employee':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['active'] != '1') {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * UKV debtors filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterukvdebtor($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'ukv':
+                        //one time debtors loading on filter run
+                        if (!$this->ukvDebtorsLoaded) {
+                            $this->ukvDebtors = $this->ukv->getDebtors();
+                            $this->ukvDebtorsLoaded = true;
+                        }
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!isset($this->ukvDebtors[$entity['id']])) {
                                 unset($this->filteredEntities[$entity['id']]);
                             }
                         }
