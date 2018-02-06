@@ -29,7 +29,7 @@ if (cfr('MTSIGMON')) {
             }
 
             // rendering availavle MT LIST
-            show_window(__('Mikrotik signal monitor'), $sigmon->controls());
+            show_window(__('Wireless APs signal monitor'), $sigmon->controls());
             $sigmon->renderMTList();
         }
     } else {
