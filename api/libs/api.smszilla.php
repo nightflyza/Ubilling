@@ -889,6 +889,7 @@ class SMSZilla {
         //saving previous selectors state
         $curTemplateId = (wf_CheckPost(array('sendingtemplateid'))) ? $_POST['sendingtemplateid'] : '';
         $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
+        $curVisualFlag = (wf_CheckPost(array('sendingvisualfilters'))) ? true : false;
 
         if ((!empty($this->templates)) AND ( !empty($this->filters))) {
             $templatesParams = array();
@@ -904,7 +905,7 @@ class SMSZilla {
 
             $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), $curTemplateId, false) . ' ';
             $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), $curFilterId, false) . ' ';
-            $inputs.= wf_CheckInput('sendingvisualfilters', __('Visual'), false, true) . ' ';
+            $inputs.= wf_CheckInput('sendingvisualfilters', __('Visual'), false, $curVisualFlag) . ' ';
             $inputs.= wf_CheckInput('sendingperform', __('Perform real sending'), false, false) . ' ';
 
             $inputs.= wf_Submit(__('Send SMS'));
