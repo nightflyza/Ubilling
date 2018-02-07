@@ -2766,9 +2766,15 @@ $lang['def']['Available filters'] = 'Существующие фильтры';
 $lang['def']['No existing templates or filters available'] = 'Нету существующих шаблонов или фильтров';
 $lang['def']['Filter'] = 'Фильтр';
 $lang['def']['Go to AP'] = 'Перейти к БС';
+$lang['def']['Perform real sending'] = 'Выполнить реальную рассылку';
+$lang['def']['Filters workflow visualization'] = 'Визуализация работы фильтров';
+$lang['def']['Entities count'] = 'Количество сущностей';
+$lang['def']['Numbers extracted'] = 'Номеров извлечено';
+$lang['def']['Entities filtered'] = 'Сущностей отфильровано';
+$lang['def']['At begining'] = 'В начале';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-$lang['def'][''] = '';
+
 
 
 ?>

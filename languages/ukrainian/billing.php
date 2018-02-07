@@ -2782,5 +2782,11 @@ $lang['def']['Available filters'] = 'Існуючі фільтри';
 $lang['def']['No existing templates or filters available'] = 'Немає існуючих шаблонів чи фільтрів';
 $lang['def']['Filter'] = 'Фільтр';
 $lang['def']['Go to AP'] = 'Перейти до БС';
+$lang['def']['Perform real sending'] = 'Виконати реальне розсилання';
+$lang['def']['Filters workflow visualization'] = 'Візуалізація роботи фільтрів';
+$lang['def']['Entities count'] = 'Кількість сутностей';
+$lang['def']['Numbers extracted'] = 'Номерів видобуто';
+$lang['def']['Entities filtered'] = 'Сутностей відфільтровано';
+$lang['def']['At begining'] = 'На початку';
 
 ?>

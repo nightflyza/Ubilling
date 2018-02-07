@@ -66,6 +66,13 @@ class SMSZilla {
     protected $filterTypes = array();
 
     /**
+     * Contains available filters names
+     *
+     * @var array
+     */
+    protected $filterNames = array();
+
+    /**
      * Current run entities type
      *
      * @var strings
@@ -78,6 +85,13 @@ class SMSZilla {
      * @var array
      */
     protected $filteredEntities = array();
+
+    /**
+     * Contains filtered numbers extracted from filtered entities
+     *
+     * @var array
+     */
+    protected $filteredNumbers = array();
 
     /**
      * FundsFlow object placeholder
@@ -169,6 +183,13 @@ class SMSZilla {
      * @var object
      */
     protected $extMobiles = '';
+
+    /**
+     * Contains filters workflow stats as name=>count
+     *
+     * @var array
+     */
+    protected $filterStats = array();
 
     /**
      * Base module URL
@@ -403,6 +424,29 @@ class SMSZilla {
             self::URL_ME . '&filters=true&newfilterdirection=employee' => __('Employee'),
             self::URL_ME . '&filters=true&newfilterdirection=numlist' => __('Numbers list')
         );
+
+        $this->filterNames = array(
+            'atstart' => 'At begining',
+            'filteraddress' => 'Address contains',
+            'filterao' => 'User is AlwaysOnline',
+            'filterbranch' => 'Branch',
+            'filtercashdays' => 'Balance is enought less than days',
+            'filtercashgreater' => 'Balance is greater than',
+            'filtercashlesser' => 'Balance is less than',
+            'filtercashmonth' => 'Balance is not enough for the next month',
+            'filtercity' => 'City',
+            'filterdown' => 'User is down',
+            'filteremployeeactive' => 'Employee is active',
+            'filteremployeeappointment' => 'Appointment',
+            'filterextmobiles' => 'Use additional mobiles',
+            'filterlogin' => 'Login contains',
+            'filternotariff' => 'User have no tariff assigned',
+            'filterpassive' => 'User is frozen',
+            'filtertags' => 'User have tag assigned',
+            'filtertariff' => 'User have tariff',
+            'filterukvactive' => 'User is active',
+            'filterukvdebtor' => 'Debtors',
+            'filterukvtariff' => 'User have tariff');
     }
 
     /**
@@ -841,6 +885,11 @@ class SMSZilla {
      */
     public function renderSendingForm() {
         $result = '';
+
+        //saving previous selectors state
+        $curTemplateId = (wf_CheckPost(array('sendingtemplateid'))) ? $_POST['sendingtemplateid'] : '';
+        $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
+
         if ((!empty($this->templates)) AND ( !empty($this->filters))) {
             $templatesParams = array();
             foreach ($this->templates as $io => $each) {
@@ -852,10 +901,13 @@ class SMSZilla {
                 $filterParams[$each['id']] = $each['name'];
             }
 
-            $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), '', false) . ' ';
-            $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), '', false);
-            $inputs.= wf_HiddenInput('sendingpreset', zb_rand_string(8));
-            $inputs.= wf_Submit(__('Preview'));
+
+            $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), $curTemplateId, false) . ' ';
+            $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), $curFilterId, false) . ' ';
+            $inputs.= wf_CheckInput('sendingvisualfilters', __('Visual'), false, true) . ' ';
+            $inputs.= wf_CheckInput('sendingperform', __('Perform real sending'), false, false) . ' ';
+
+            $inputs.= wf_Submit(__('Send SMS'));
 
             $result.=wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
         } else {
@@ -904,10 +956,10 @@ class SMSZilla {
     /**
      * Extract mobile numbers from filtered entities array
      * 
-     * @return array
+     * @return void
      */
     protected function extractEntitiesNumbers() {
-        $result = array();
+
         if (!empty($this->filteredEntities)) {
             switch ($this->entitiesType) {
                 case 'login':
@@ -918,7 +970,7 @@ class SMSZilla {
                         $userLogin = $each['login'];
                         $primaryMobile = $this->normalizePhoneFormat($each['mobile']);
                         if (!empty($primaryMobile)) {
-                            $result[$userLogin][] = $primaryMobile;
+                            $this->filteredNumbers[$userLogin][] = $primaryMobile;
                         }
 
                         if ($this->useExtMobiles) {
@@ -927,7 +979,7 @@ class SMSZilla {
                                 foreach ($userExtMobiles as $ia => $eachExt) {
                                     $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
                                     if (!empty($additionalMobile)) {
-                                        $result[$userLogin][] = $additionalMobile;
+                                        $this->filteredNumbers[$userLogin][] = $additionalMobile;
                                     }
                                 }
                             }
@@ -939,7 +991,7 @@ class SMSZilla {
                     foreach ($this->filteredEntities as $io => $each) {
                         $userPrimaryMobile = $this->normalizePhoneFormat($each['mobile']);
                         if (!empty($userPrimaryMobile)) {
-                            $result[$each['id']] = $userPrimaryMobile;
+                            $this->filteredNumbers[$each['id']] = $userPrimaryMobile;
                         }
                     }
                     break;
@@ -948,11 +1000,52 @@ class SMSZilla {
                     foreach ($this->filteredEntities as $io => $each) {
                         $employeeMobile = $this->normalizePhoneFormat($each['mobile']);
                         if (!empty($employeeMobile)) {
-                            $result[$each['id']] = $employeeMobile;
+                            $this->filteredNumbers[$each['id']] = $employeeMobile;
                         }
                     }
                     break;
             }
+        }
+    }
+
+    /**
+     * Saves each filter workflow stats
+     * 
+     * @param string $filterName
+     * @param int $entityCount
+     * 
+     * @return void
+     */
+    protected function saveFilterStats($filterName, $entityCount) {
+        $this->filterStats[$filterName] = $entityCount;
+    }
+
+    protected function renderFilterStats() {
+        $result = '';
+        $params = array();
+        $params[] = array(__('Filter'), __('Entities count'));
+
+        $chartsOptions = "
+            'focusTarget': 'category',
+                        'hAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'vAxis': {
+                        'color': 'none',
+                            'baselineColor': 'none',
+                    },
+                        'curveType': 'function',
+                        'pointSize': 5,
+                        'crosshair': {
+                        trigger: 'none'
+                    },";
+        if (!empty($this->filterStats)) {
+            foreach ($this->filterStats as $filterName => $entityCount) {
+                $filterNormalName = (isset($this->filterNames[$filterName])) ? __($this->filterNames[$filterName]) : $filterName;
+                $params[] = array($filterNormalName, $entityCount);
+            }
+            $result.=wf_gchartsLine($params, __('Filters'), '100%', '300px', $chartsOptions);
         }
         return ($result);
     }
@@ -961,11 +1054,10 @@ class SMSZilla {
      * Performs draft filter entities preprocessing
      * 
      * @param int $filterId
-     * @param string $presetId
      * 
      * @return string
      */
-    public function filtersPreprocessing($filterId, $presetId) {
+    public function filtersPreprocessing($filterId) {
         $result = array();
         $unknownFilters = array();
         if (isset($this->filters[$filterId])) {
@@ -989,11 +1081,18 @@ class SMSZilla {
                         break;
                 }
 
+                //setting base entities count
+                $this->saveFilterStats('atstart', sizeof($this->filteredEntities));
+
                 foreach ($filterData as $eachFilter => $eachFilterParam) {
                     if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
                         $filterMethodName = str_replace('new', '', $eachFilter);
                         if (method_exists($this, $filterMethodName)) {
                             $this->$filterMethodName($direction, $eachFilterParam);
+                            //saving filter stats
+                            if (!empty($eachFilterParam)) {
+                                $this->saveFilterStats($filterMethodName, sizeof($this->filteredEntities));
+                            }
                         } else {
                             show_error(__('Something went wrong') . ': UNKNOWN_FILTER_METHOD ' . $filterMethodName);
                         }
@@ -1003,9 +1102,11 @@ class SMSZilla {
         }
 
         if ((!empty($this->filteredEntities)) AND ( !empty($this->entitiesType))) {
-
-            deb(sizeof($this->filteredEntities));
-            debarr($this->extractEntitiesNumbers());
+            if (wf_CheckPost(array('sendingvisualfilters'))) {
+                show_window(__('Filters workflow visualization'), $this->renderFilterStats());
+            }
+            $this->extractEntitiesNumbers();
+            show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . sizeof($this->filteredNumbers), 'info'));
         } else {
             show_warning(__('Nothing found'));
         }
