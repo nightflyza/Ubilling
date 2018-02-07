@@ -471,33 +471,5 @@ function zb_UserSearchTypeLocalize($searchtype, $query = '') {
 
     return ($result);
 }
-function RemoveMacAddressSeparator($mac, $separator = array(':', '-', '.' )){
-  return str_replace($separator, '', $mac);
-}
 
-function AddMacAddressSeparator($mac, $separator = ':'){
-  $result = '';
-    while (strlen($mac) > 0)
-      {
-          $sub = substr($mac, 0, 2);
-          $result .= $sub . $separator;
-          $mac = substr($mac, 2, strlen($mac));
-    }
-
-       // remove trailing colon
-     $result = substr($result, 0, strlen($result) - 1);
-}
-
-function AddMacSeparator($mac, $separator = ':'){
-  return join($separator, str_split($mac, 2));
-}
-
-function IsMacValid($mac){
-  return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
-}
-
-function IsMacAddressValid($mac){
-  $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
-    return $validator->isValid($mac);
-}
 ?>
