@@ -20,7 +20,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs.=wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'MAC', 'mac', true);
-    $fieldinputs.=wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
+    if ($altCf['PON_ENABLED']) {
+        $fieldinputs.=wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
+    }
     if ($altCf['SWITCHES_EXTENDED']) {
         $fieldinputs.=wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
     }
@@ -96,7 +98,7 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `ip` IN (SELECT `ip` FROM `nethosts` WHERE `option` LIKE '" . $mask . $query . $mask . "')";
     }
-    if ($searchtype == 'onumac') {
+    if ($altCf['PON_ENABLED'] AND $searchtype == 'onumac') {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `pononu` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
     }
