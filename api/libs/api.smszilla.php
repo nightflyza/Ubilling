@@ -891,7 +891,7 @@ class SMSZilla {
         $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
         $curVisualFlag = (wf_CheckPost(array('sendingvisualfilters'))) ? true : false;
 
-        if ((!empty($this->templates)) AND ( !empty($this->filters))) {
+        if (!(empty($this->templates)) AND ( !empty($this->filters))) {
             $templatesParams = array();
             foreach ($this->templates as $io => $each) {
                 $templatesParams[$each['id']] = $each['name'];
