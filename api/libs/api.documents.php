@@ -620,9 +620,9 @@ class ProfileDocuments {
      * 
      * @return array
      */
-    public function getAllUsersDocumentsThisYear() {
+    public function getAllUsersDocuments($currentYear = false) {
         $result = array();
-        $where = "WHERE `date` LIKE '" . date("Y-") . "%'";
+        $where = ($currentYear) ? "WHERE `date` LIKE '" . date("Y-") . "%'" : '';
         $query = "SELECT * from `docxdocuments` " . $where . " ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -718,7 +718,7 @@ class ProfileDocuments {
         $allAddress = zb_AddressGetFulladdresslistCached();
 
         $calendarData = '';
-        $yearDocuments = $this->getAllUsersDocumentsThisYear();
+        $yearDocuments = $this->getAllUsersDocuments();
         if (!empty($yearDocuments)) {
             foreach ($yearDocuments as $io => $each) {
                 $timestamp = strtotime($each['date']);
