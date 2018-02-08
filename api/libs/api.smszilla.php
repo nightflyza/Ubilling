@@ -195,6 +195,11 @@ class SMSZilla {
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
+    
+    /**
+     * Contains SMS Pool saving path
+     */
+    const POOL_PATH='./exports/';
 
     /**
      * Creates new SMSZilla instance
@@ -1108,11 +1113,26 @@ class SMSZilla {
             }
             $this->extractEntitiesNumbers();
             show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . sizeof($this->filteredNumbers), 'info'));
+            $this->generateSmsPool($filterId);
         } else {
             show_warning(__('Nothing found'));
         }
 
         return ($result);
+    }
+
+    protected function generateSmsPool($filterId) {
+        $json=new wf_JqDtHelper();
+        $data=array();
+        if (!empty($this->filteredNumbers)) {
+            switch ($io) {
+                case 'login':
+                    foreach ($this->filteredNumbers as $io => $each) {
+                        
+                    }
+                    break;
+            }
+        }
     }
 
     /**
