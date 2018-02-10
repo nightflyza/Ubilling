@@ -195,11 +195,11 @@ class SMSZilla {
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
-    
+
     /**
      * Contains SMS Pool saving path
      */
-    const POOL_PATH='./exports/';
+    const POOL_PATH = './exports/';
 
     /**
      * Creates new SMSZilla instance
@@ -895,6 +895,7 @@ class SMSZilla {
         $curTemplateId = (wf_CheckPost(array('sendingtemplateid'))) ? $_POST['sendingtemplateid'] : '';
         $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
         $curVisualFlag = (wf_CheckPost(array('sendingvisualfilters'))) ? true : false;
+        $curTranslitFlag = (wf_CheckPost(array('forcetranslit'))) ? true : false;
 
         if (!(empty($this->templates)) AND ( !empty($this->filters))) {
             $templatesParams = array();
@@ -911,6 +912,7 @@ class SMSZilla {
             $inputs = wf_Selector('sendingtemplateid', $templatesParams, __('Template'), $curTemplateId, false) . ' ';
             $inputs.= wf_Selector('sendingfilterid', $filterParams, __('Filter'), $curFilterId, false) . ' ';
             $inputs.= wf_CheckInput('sendingvisualfilters', __('Visual'), false, $curVisualFlag) . ' ';
+            $inputs.= wf_CheckInput('forcetranslit', __('Forced transliteration'), false, $curTranslitFlag) . ' ';
             $inputs.= wf_CheckInput('sendingperform', __('Perform real sending'), false, false) . ' ';
 
             $inputs.= wf_Submit(__('Send SMS'));
@@ -1060,10 +1062,11 @@ class SMSZilla {
      * Performs draft filter entities preprocessing
      * 
      * @param int $filterId
+     * @param int $templateId
      * 
      * @return string
      */
-    public function filtersPreprocessing($filterId) {
+    public function filtersPreprocessing($filterId, $templateId) {
         $result = array();
         $unknownFilters = array();
         if (isset($this->filters[$filterId])) {
@@ -1113,7 +1116,8 @@ class SMSZilla {
             }
             $this->extractEntitiesNumbers();
             show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . sizeof($this->filteredNumbers), 'info'));
-            $this->generateSmsPool($filterId);
+            $this->generateSmsPool($filterId, $templateId);
+            show_window(__('Preview'), $this->renderSmsPoolPreviewContainer($filterId, $templateId));
         } else {
             show_warning(__('Nothing found'));
         }
@@ -1121,17 +1125,108 @@ class SMSZilla {
         return ($result);
     }
 
-    protected function generateSmsPool($filterId) {
-        $json=new wf_JqDtHelper();
-        $data=array();
+    /**
+     * Renders SMS pool preview container
+     * 
+     * @param int $filterId
+     * @param int $templateId
+     * 
+     * @return string
+     */
+    protected function renderSmsPoolPreviewContainer($filterId, $templateId) {
+        $result = '';
+        $columns = array('SMS direction', 'Mobile', 'Text');
+        $result = wf_JqDtLoader($columns, self::URL_ME . '&sending=true&ajpreview=true&filterid=' . $filterId . '&templateid=' . $templateId, false, __('SMS'), 100);
+        return ($result);
+    }
+
+    /**
+     * Renders previously cached preview JSON data
+     * 
+     * @param int $filterId
+     * @param int $templateId
+     * 
+     * @return void
+     */
+    public function ajaxPreviewReply($filterId, $templateId) {
+        $result = '';
+        $previewCacheName = self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId;
+        if (file_exists($previewCacheName)) {
+            die(file_get_contents($previewCacheName));
+        } else {
+            $reply = array('aaData' => array());
+            die(json_encode($reply));
+        }
+    }
+
+    /**
+     * 
+     * @param type $filterId
+     * @param type $templateId
+     * 
+     * @return void
+     */
+    protected function generateSmsPool($filterId, $templateId) {
+        $json = new wf_JqDtHelper();
+        $data = array();
+        $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
+        $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
+
         if (!empty($this->filteredNumbers)) {
-            switch ($io) {
+            switch ($this->entitiesType) {
                 case 'login':
-                    foreach ($this->filteredNumbers as $io => $each) {
-                        
+                    foreach ($this->filteredNumbers as $entityId => $numbers) {
+                        if (!empty($numbers)) {
+                            foreach ($numbers as $io => $eachNumber) {
+                                $userLogin = $entityId;
+                                $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $this->filteredEntities[$userLogin]['fulladress']);
+
+                                $messageText = $this->templates[$templateId]['text'];
+                                if ($forceTranslit) {
+                                    $messageText = zb_TranslitString($messageText);
+                                }
+
+                                $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
+                                $data[] = $eachNumber;
+                                $data[] = $messageText;
+                                $json->addRow($data);
+                                unset($data);
+
+                                //pushing some messages into queue
+                                if ($realSending) {
+                                    $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA');
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case 'ukv':
+                    foreach ($this->filteredNumbers as $entityId => $number) {
+                        if (!empty($number)) {
+                            $userId = $entityId;
+                            $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
+                            $messageText = $this->templates[$templateId]['text'];
+                            if ($forceTranslit) {
+                                $messageText = zb_TranslitString($messageText);
+                            }
+
+                            $data[] = $userLink . ' ';
+                            $data[] = $number;
+                            $data[] = $messageText;
+                            $json->addRow($data);
+                            unset($data);
+
+                            //pushing some messages into queue
+                            if ($realSending) {
+                                $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                            }
+                        }
                     }
                     break;
             }
+            //saving preview data
+            file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
         }
     }
 

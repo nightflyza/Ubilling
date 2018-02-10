@@ -1995,7 +1995,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "iDisplayLength": ' . $rowsCount . ',
                 "sAjaxSource": \'' . $ajaxUrl . '\',
                 "bDeferRender": true,
-                "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "'.__('All').'"]],
+                "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
                 ' . $opts . '
                 "bJQueryUI": true
             } );
@@ -2245,6 +2245,15 @@ class wf_JqDtHelper {
      */
     public function getJson() {
         die($this->renderJson());
+    }
+
+    /**
+     * Extracts rendered JSON data from object
+     * 
+     * @return string
+     */
+    public function extractJson() {
+        return ($this->renderJson());
     }
 
     /**
