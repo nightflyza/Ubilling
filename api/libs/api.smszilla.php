@@ -192,20 +192,6 @@ class SMSZilla {
     protected $filterStats = array();
 
     /**
-     * Contains templating data for all internet users
-     *
-     * @var array
-     */
-    protected $inetTemplatesData = array();
-
-    /**
-     * System caching object placeholder
-     *
-     * @var object
-     */
-    protected $cache = '';
-
-    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -215,10 +201,6 @@ class SMSZilla {
      */
     const POOL_PATH = './exports/';
 
-    /**
-     * Contains templating data caching time (so, slow...)
-     */
-    const TEMPLATING_CACHE_TIME = '3600';
 
     /**
      * Creates new SMSZilla instance
@@ -230,11 +212,9 @@ class SMSZilla {
         $this->loadAlter();
         $this->setOptions();
         $this->initSMS();
-        $this->initCache();
         $this->loadCities();
         $this->loadUsers();
         $this->loadDownUsers();
-        $this->loadTemplatingData();
         $this->initUKV();
         $this->initBranches();
         $this->loadTagTypes();
@@ -271,31 +251,7 @@ class SMSZilla {
         }
     }
 
-    /**
-     * Inits system cache object for further usage
-     * 
-     * @return void
-     */
-    protected function initCache() {
-        $this->cache = new UbillingCache();
-    }
-
-    /**
-     * Loads internet users templating data
-     * 
-     * @return void
-     */
-    protected function loadTemplatingData() {
-        if ($this->useCache) {
-            $this->inetTemplatesData = $this->cache->get('SMZ_INETTEMPLATESDATA', self::TEMPLATING_CACHE_TIME);
-            if (empty($this->inetTemplatesData)) {
-                $this->inetTemplatesData = zb_TemplateGetAllUserData();
-                $this->cache->set('SMZ_INETTEMPLATESDATA', $this->inetTemplatesData, self::TEMPLATING_CACHE_TIME);
-            }
-        } else {
-            $this->inetTemplatesData = zb_TemplateGetAllUserData();
-        }
-    }
+ 
 
     /**
      * Loads available users down states into separate property
@@ -938,7 +894,7 @@ class SMSZilla {
     public function renderSendingForm() {
         $result = '';
 
-        //saving previous selectors state
+//saving previous selectors state
         $curTemplateId = (wf_CheckPost(array('sendingtemplateid'))) ? $_POST['sendingtemplateid'] : '';
         $curFilterId = (wf_CheckPost(array('sendingfilterid'))) ? $_POST['sendingfilterid'] : '';
         $curVisualFlag = (wf_CheckPost(array('sendingvisualfilters'))) ? true : false;
@@ -982,7 +938,7 @@ class SMSZilla {
     protected function normalizePhoneFormat($mobile) {
         $mobile = vf($mobile, 3);
         $len = strlen($mobile);
-        //all is ok
+//all is ok
         if ($len != 12) {
             switch ($len) {
                 case 11:
@@ -1133,11 +1089,11 @@ class SMSZilla {
                         $this->filteredEntities = $this->employee;
                         break;
                     case 'numlist':
-                        // TODO
+// TODO
                         break;
                 }
 
-                //setting base entities count
+//setting base entities count
                 $this->saveFilterStats('atstart', sizeof($this->filteredEntities));
 
                 foreach ($filterData as $eachFilter => $eachFilterParam) {
@@ -1145,7 +1101,7 @@ class SMSZilla {
                         $filterMethodName = str_replace('new', '', $eachFilter);
                         if (method_exists($this, $filterMethodName)) {
                             $this->$filterMethodName($direction, $eachFilterParam);
-                            //saving filter stats
+//saving filter stats
                             if (!empty($eachFilterParam)) {
                                 $this->saveFilterStats($filterMethodName, sizeof($this->filteredEntities));
                             }
@@ -1221,7 +1177,20 @@ class SMSZilla {
         $result = $this->templates[$templateId]['text'];
         switch ($this->entitiesType) {
             case 'login':
-                $result = zb_TemplateReplace($entity, $result, $this->inetTemplatesData);
+                $result = str_ireplace('{LOGIN}', $this->allUserData[$entity]['login'], $result);
+                $result = str_ireplace('{REALNAME}', $this->allUserData[$entity]['realname'], $result);
+                $result = str_ireplace('{TARIFF}', $this->allUserData[$entity]['Tariff'], $result);
+                $result = str_ireplace('{CREDIT}', $this->allUserData[$entity]['Credit'], $result);
+                $result = str_ireplace('{CASH}', $this->allUserData[$entity]['Cash'], $result);
+                $result = str_ireplace('{ROUNDCASH}', round($this->allUserData[$entity]['Cash'], 2), $result);
+                $result = str_ireplace('{IP}', $this->allUserData[$entity]['ip'], $result);
+                $result = str_ireplace('{MAC}', $this->allUserData[$entity]['mac'], $result);
+                $result = str_ireplace('{FULLADDRESS}', $this->allUserData[$entity]['fulladress'], $result);
+                $result = str_ireplace('{PHONE}', $this->allUserData[$entity]['phone'], $result);
+                $result = str_ireplace('{MOBILE}', $this->allUserData[$entity]['mobile'], $result);
+                $result = str_ireplace('{CONTRACT}', $this->allUserData[$entity]['contract'], $result);
+                $result = str_ireplace('{EMAIL}', $this->allUserData[$entity]['email'], $result);
+                $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 break;
         }
         if ($forceTranslit) {
@@ -1261,7 +1230,7 @@ class SMSZilla {
                                 $json->addRow($data);
                                 unset($data);
 
-                                //pushing some messages into queue
+//pushing some messages into queue
                                 if ($realSending) {
                                     $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA');
                                 }
@@ -1284,7 +1253,7 @@ class SMSZilla {
                             $json->addRow($data);
                             unset($data);
 
-                            //pushing some messages into queue
+//pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
                             }
@@ -1306,7 +1275,7 @@ class SMSZilla {
                             $json->addRow($data);
                             unset($data);
 
-                            //pushing some messages into queue
+//pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
                             }
@@ -1314,7 +1283,7 @@ class SMSZilla {
                     }
                     break;
             }
-            //saving preview data
+//saving preview data
             file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
         }
     }
@@ -1420,7 +1389,7 @@ class SMSZilla {
     protected function filtercashmonth($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
-                //init slow funds flow object if required
+//init slow funds flow object if required
                 if (empty($this->fundsFlow)) {
                     $this->initFundsFlow();
                 }
@@ -1456,7 +1425,7 @@ class SMSZilla {
     protected function filtercashdays($direction, $param) {
         if (!empty($param)) {
             if (!empty($this->filteredEntities)) {
-                //init slow funds flow object if required
+//init slow funds flow object if required
                 if (empty($this->fundsFlow)) {
                     $this->initFundsFlow();
                 }
@@ -1825,7 +1794,7 @@ class SMSZilla {
             if (!empty($this->filteredEntities)) {
                 switch ($direction) {
                     case 'ukv':
-                        //one time debtors loading on filter run
+//one time debtors loading on filter run
                         if (!$this->ukvDebtorsLoaded) {
                             $this->ukvDebtors = $this->ukv->getDebtors();
                             $this->ukvDebtorsLoaded = true;
