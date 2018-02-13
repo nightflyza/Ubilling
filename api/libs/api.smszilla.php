@@ -192,6 +192,20 @@ class SMSZilla {
     protected $filterStats = array();
 
     /**
+     * Contains templating data for all internet users
+     *
+     * @var array
+     */
+    protected $inetTemplatesData = array();
+
+    /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -200,6 +214,11 @@ class SMSZilla {
      * Contains SMS Pool saving path
      */
     const POOL_PATH = './exports/';
+
+    /**
+     * Contains templating data caching time (so, slow...)
+     */
+    const TEMPLATING_CACHE_TIME = '3600';
 
     /**
      * Creates new SMSZilla instance
@@ -211,9 +230,11 @@ class SMSZilla {
         $this->loadAlter();
         $this->setOptions();
         $this->initSMS();
+        $this->initCache();
         $this->loadCities();
         $this->loadUsers();
         $this->loadDownUsers();
+        $this->loadTemplatingData();
         $this->initUKV();
         $this->initBranches();
         $this->loadTagTypes();
@@ -247,6 +268,32 @@ class SMSZilla {
             $this->allUserData = zb_UserGetAllDataCache();
         } else {
             $this->allUserData = zb_UserGetAllData();
+        }
+    }
+
+    /**
+     * Inits system cache object for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
+     * Loads internet users templating data
+     * 
+     * @return void
+     */
+    protected function loadTemplatingData() {
+        if ($this->useCache) {
+            $this->inetTemplatesData = $this->cache->get('SMZ_INETTEMPLATESDATA', self::TEMPLATING_CACHE_TIME);
+            if (empty($this->inetTemplatesData)) {
+                $this->inetTemplatesData = zb_TemplateGetAllUserData();
+                $this->cache->set('SMZ_INETTEMPLATESDATA', $this->inetTemplatesData, self::TEMPLATING_CACHE_TIME);
+            }
+        } else {
+            $this->inetTemplatesData = zb_TemplateGetAllUserData();
         }
     }
 
@@ -1135,7 +1182,7 @@ class SMSZilla {
      */
     protected function renderSmsPoolPreviewContainer($filterId, $templateId) {
         $result = '';
-        $columns = array('SMS direction', 'Mobile', 'Text');
+        $columns = array('SMS direction', 'Mobile', 'Text', 'Size');
         $result = wf_JqDtLoader($columns, self::URL_ME . '&sending=true&ajpreview=true&filterid=' . $filterId . '&templateid=' . $templateId, false, __('SMS'), 100);
         return ($result);
     }
@@ -1170,7 +1217,13 @@ class SMSZilla {
      */
     protected function generateSmsText($templateId, $entity, $forceTranslit) {
         $result = '';
+
         $result = $this->templates[$templateId]['text'];
+        switch ($this->entitiesType) {
+            case 'login':
+                $result = zb_TemplateReplace($entity, $result, $this->inetTemplatesData);
+                break;
+        }
         if ($forceTranslit) {
             $result = zb_TranslitString($result);
         }
@@ -1204,6 +1257,7 @@ class SMSZilla {
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
                                 $data[] = $messageText;
+                                $data[] = strlen($messageText);
                                 $json->addRow($data);
                                 unset($data);
 
@@ -1221,11 +1275,12 @@ class SMSZilla {
                         if (!empty($number)) {
                             $userId = $entityId;
                             $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
-                            $messageText = $this->generateSmsText($templateId, $userLogin, $forceTranslit);
+                            $messageText = $this->generateSmsText($templateId, $userId, $forceTranslit);
 
                             $data[] = $userLink;
                             $data[] = $number;
                             $data[] = $messageText;
+                            $data[] = strlen($messageText);
                             $json->addRow($data);
                             unset($data);
 
@@ -1247,6 +1302,7 @@ class SMSZilla {
                             $data[] = $employeeLink;
                             $data[] = $number;
                             $data[] = $messageText;
+                            $data[] = strlen($messageText);
                             $json->addRow($data);
                             unset($data);
 
