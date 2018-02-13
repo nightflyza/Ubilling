@@ -1160,6 +1160,24 @@ class SMSZilla {
     }
 
     /**
+     * Generates SMS text for sending/preview
+     * 
+     * @param int $templateId
+     * @param array $entity
+     * @param bool $forceTranslit
+     * 
+     * @return strings
+     */
+    protected function generateSmsText($templateId, $entity, $forceTranslit) {
+        $result = '';
+        $result = $this->templates[$templateId]['text'];
+        if ($forceTranslit) {
+            $result = zb_TranslitString($result);
+        }
+        return ($result);
+    }
+
+    /**
      * 
      * @param type $filterId
      * @param type $templateId
@@ -1181,10 +1199,7 @@ class SMSZilla {
                                 $userLogin = $entityId;
                                 $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $this->filteredEntities[$userLogin]['fulladress']);
 
-                                $messageText = $this->templates[$templateId]['text'];
-                                if ($forceTranslit) {
-                                    $messageText = zb_TranslitString($messageText);
-                                }
+                                $messageText = $this->generateSmsText($templateId, $userLogin, $forceTranslit);
 
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
@@ -1206,12 +1221,30 @@ class SMSZilla {
                         if (!empty($number)) {
                             $userId = $entityId;
                             $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
-                            $messageText = $this->templates[$templateId]['text'];
-                            if ($forceTranslit) {
-                                $messageText = zb_TranslitString($messageText);
-                            }
+                            $messageText = $this->generateSmsText($templateId, $userLogin, $forceTranslit);
 
-                            $data[] = $userLink . ' ';
+                            $data[] = $userLink;
+                            $data[] = $number;
+                            $data[] = $messageText;
+                            $json->addRow($data);
+                            unset($data);
+
+                            //pushing some messages into queue
+                            if ($realSending) {
+                                $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                            }
+                        }
+                    }
+                    break;
+
+                case 'employee':
+                    foreach ($this->filteredNumbers as $entityId => $number) {
+                        if (!empty($number)) {
+                            $employeeId = $entityId;
+                            $employeeLink = wf_Link('?module=employee&edit=' . $employeeId, web_profile_icon() . ' ' . $this->employee[$employeeId]['name']);
+                            $messageText = $this->generateSmsText($templateId, $employeeId, $forceTranslit);
+
+                            $data[] = $employeeLink;
                             $data[] = $number;
                             $data[] = $messageText;
                             $json->addRow($data);
