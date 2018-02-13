@@ -2772,7 +2772,7 @@ $lang['def']['Entities count'] = 'Количество сущностей';
 $lang['def']['Numbers extracted'] = 'Номеров извлечено';
 $lang['def']['Entities filtered'] = 'Сущностей отфильровано';
 $lang['def']['At begining'] = 'В начале';
-$lang['def'][''] = '';
+$lang['def']['SMSZilla requires SendDog'] = 'SMSZilla требует собаку-посылаку для работы';
 $lang['def'][''] = '';
 
 

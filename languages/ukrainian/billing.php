@@ -2788,5 +2788,6 @@ $lang['def']['Entities count'] = 'Кількість сутностей';
 $lang['def']['Numbers extracted'] = 'Номерів видобуто';
 $lang['def']['Entities filtered'] = 'Сутностей відфільтровано';
 $lang['def']['At begining'] = 'На початку';
+$lang['def']['SMSZilla requires SendDog'] = 'SMSZilla для роботи потребує собаку-посилаку';
 
 ?>
