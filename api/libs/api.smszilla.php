@@ -432,6 +432,8 @@ class SMSZilla {
 
         $this->filterNames = array(
             'atstart' => 'At begining',
+            'filterdirection' => 'SMS direction',
+            'filtername' => 'Filter name',
             'filteraddress' => 'Address contains',
             'filterao' => 'User is AlwaysOnline',
             'filterbranch' => 'Branch',
@@ -682,7 +684,7 @@ class SMSZilla {
 
         if ($direction != 'none') {
             $inputs.= wf_HiddenInput('newfilterdirection', $direction);
-            $inputs.= wf_TextInput('newfiltername', __('Fiter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
+            $inputs.= wf_TextInput('newfiltername', __('Filter name') . wf_tag('sup') . '*' . wf_tag('sup', true), '', true, '30');
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
                 $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
@@ -795,6 +797,36 @@ class SMSZilla {
     }
 
     /**
+     * Renders existing filter preview
+     * 
+     * @param string $filters
+     * 
+     * @return string
+     */
+    protected function renderFilterPreview($filters) {
+        $result = '';
+        if (!empty($filters)) {
+            $unpack = json_decode($filters, true);
+            if (!empty($unpack)) {
+                $cells = wf_TableCell(__('Filter'));
+                $cells.= wf_TableCell(__('Parameter'));
+                $rows = wf_TableRow($cells, 'row1');
+                foreach ($unpack as $io => $each) {
+                    $filterName = str_replace('new', '', $io);
+                    if (isset($this->filterNames[$filterName])) {
+                        $filterName = __($this->filterNames[$filterName]);
+                    }
+                    $cells = wf_TableCell($filterName);
+                    $cells.= wf_TableCell($each);
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+                $result.= wf_TableBody($rows, '100%', 0, '');
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders available filters list
      * 
      * @return string
@@ -810,7 +842,7 @@ class SMSZilla {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['name']);
                 $actLinks = wf_JSAlert(self::URL_ME . '&filters=true&deletefilterid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
-                $actLinks.= wf_modalAuto(web_icon_search(), __('Preview'), wf_tag('pre') . print_r(json_decode($each['filters'], true), true) . wf_tag('pre', true));
+                $actLinks.= wf_modalAuto(web_icon_search(), __('Preview'), $this->renderFilterPreview($each['filters']));
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
@@ -1206,7 +1238,7 @@ class SMSZilla {
                 break;
         }
         if ($forceTranslit) {
-            $result = zb_TranslitString($result,true);
+            $result = zb_TranslitString($result, true);
         }
         return ($result);
     }
