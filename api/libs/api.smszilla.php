@@ -203,7 +203,7 @@ class SMSZilla {
      *      
      * @var int
      */
-    protected $smsLenLimit = 140;
+    protected $smsLenLimit = 160;
 
     /**
      * Base module URL
@@ -572,7 +572,7 @@ class SMSZilla {
             $inputs.= wf_TextInput('edittemplatename', __('Name'), $templateData['name'], true, '40');
             $inputs.=__('Template') . wf_tag('br');
             $inputs.= wf_TextArea('edittemplatetext', '', $templateData['text'], true, '45x5');
-            $templateSize = strlen($templateData['text']);
+            $templateSize = mb_strlen($templateData['text'], 'utf-8');
             $inputs.=__('Text size') . ' ~' . $templateSize . wf_tag('br');
             $inputs.= wf_Submit(__('Save'));
             $result = wf_Form(self::URL_ME . '&templates=true&edittemplate=' . $templateId, 'POST', $inputs, 'glamour');
@@ -1268,6 +1268,20 @@ class SMSZilla {
     }
 
     /**
+     * Returns nearest sending SMS count for multibyte encodings
+     * 
+     * @param string $messageText
+     * 
+     * @return int
+     */
+    protected function getSmsCount($textLen) {
+        $result = 0;
+        $result = ceil($textLen / $this->smsLenLimit);
+        return ($result);
+    }
+
+    /**
+     * Generates SMS pool for preview rendering or further sending
      * 
      * @param type $filterId
      * @param type $templateId
@@ -1279,6 +1293,12 @@ class SMSZilla {
         $data = array();
         $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
         $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
+        //changing nearest SMS bytes limit
+        if ($forceTranslit) {
+            $this->smsLenLimit = 160;
+        } else {
+            $this->smsLenLimit = 70;
+        }
 
         if (!empty($this->filteredNumbers)) {
             switch ($this->entitiesType) {
@@ -1290,8 +1310,8 @@ class SMSZilla {
                                 $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $this->filteredEntities[$userLogin]['fulladress']);
 
                                 $messageText = $this->generateSmsText($templateId, $userLogin, $forceTranslit);
-                                $textLen = strlen($messageText);
-                                $smsCount = round($textLen / $this->smsLenLimit,1);
+                                $textLen = mb_strlen($messageText, 'utf-8');
+                                $smsCount = $this->getSmsCount($textLen);
 
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
@@ -1316,11 +1336,14 @@ class SMSZilla {
                             $userId = $entityId;
                             $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
                             $messageText = $this->generateSmsText($templateId, $userId, $forceTranslit);
+                            $textLen = mb_strlen($messageText, 'utf-8');
+                            $smsCount = $this->getSmsCount($textLen);
 
                             $data[] = $userLink . ' ' . $this->filteredEntities[$userId]['realname'];
                             $data[] = $number;
                             $data[] = $messageText;
-                            $data[] = strlen($messageText);
+                            $data[] = $textLen;
+                            $data[] = $smsCount;
                             $json->addRow($data);
                             unset($data);
 
@@ -1338,11 +1361,14 @@ class SMSZilla {
                             $employeeId = $entityId;
                             $employeeLink = wf_Link('?module=employee&edit=' . $employeeId, web_profile_icon() . ' ' . $this->employee[$employeeId]['name']);
                             $messageText = $this->generateSmsText($templateId, $employeeId, $forceTranslit);
+                            $textLen = mb_strlen($messageText, 'utf-8');
+                            $smsCount = $this->getSmsCount($textLen);
 
                             $data[] = $employeeLink;
                             $data[] = $number;
                             $data[] = $messageText;
-                            $data[] = strlen($messageText);
+                            $data[] = $textLen;
+                            $data[] = $smsCount;
                             $json->addRow($data);
                             unset($data);
 
