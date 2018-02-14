@@ -201,7 +201,6 @@ class SMSZilla {
      */
     const POOL_PATH = './exports/';
 
-
     /**
      * Creates new SMSZilla instance
      * 
@@ -250,8 +249,6 @@ class SMSZilla {
             $this->allUserData = zb_UserGetAllData();
         }
     }
-
- 
 
     /**
      * Loads available users down states into separate property
@@ -454,7 +451,9 @@ class SMSZilla {
             'filtertariff' => 'User have tariff',
             'filterukvactive' => 'User is active',
             'filterukvdebtor' => 'Debtors',
-            'filterukvtariff' => 'User have tariff');
+            'filterukvtariff' => 'User have tariff',
+            'filterrealname' => 'Real Name contains'
+        );
     }
 
     /**
@@ -687,11 +686,13 @@ class SMSZilla {
 
             if (($direction == 'login') OR ( $direction == 'ukv')) {
                 $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
-            }
-
-            if (($direction == 'login') OR ( $direction == 'ukv')) {
                 $inputs.= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
             }
+            
+            if (($direction == 'login') OR ( $direction == 'ukv') OR ( $direction == 'employee')) {
+            $inputs.= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
+            }
+
 
             if (($direction == 'login')) {
                 $inputs.= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
@@ -1192,6 +1193,22 @@ class SMSZilla {
                 $result = str_ireplace('{EMAIL}', $this->allUserData[$entity]['email'], $result);
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 break;
+            case 'ukv':
+                $result = str_ireplace('{LOGIN}', $this->allUserData[$entity]['login'], $result);
+                $result = str_ireplace('{REALNAME}', $this->allUserData[$entity]['realname'], $result);
+                $result = str_ireplace('{TARIFF}', $this->allUserData[$entity]['Tariff'], $result);
+                $result = str_ireplace('{CREDIT}', $this->allUserData[$entity]['Credit'], $result);
+                $result = str_ireplace('{CASH}', $this->allUserData[$entity]['Cash'], $result);
+                $result = str_ireplace('{ROUNDCASH}', round($this->allUserData[$entity]['Cash'], 2), $result);
+                $result = str_ireplace('{IP}', $this->allUserData[$entity]['ip'], $result);
+                $result = str_ireplace('{MAC}', $this->allUserData[$entity]['mac'], $result);
+                $result = str_ireplace('{FULLADDRESS}', $this->allUserData[$entity]['fulladress'], $result);
+                $result = str_ireplace('{PHONE}', $this->allUserData[$entity]['phone'], $result);
+                $result = str_ireplace('{MOBILE}', $this->allUserData[$entity]['mobile'], $result);
+                $result = str_ireplace('{CONTRACT}', $this->allUserData[$entity]['contract'], $result);
+                $result = str_ireplace('{EMAIL}', $this->allUserData[$entity]['email'], $result);
+                $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
+                break;
         }
         if ($forceTranslit) {
             $result = zb_TranslitString($result);
@@ -1246,7 +1263,7 @@ class SMSZilla {
                             $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
                             $messageText = $this->generateSmsText($templateId, $userId, $forceTranslit);
 
-                            $data[] = $userLink;
+                            $data[] = $userLink . ' ' . $this->ukv->userGetRealName($userId);
                             $data[] = $number;
                             $data[] = $messageText;
                             $data[] = strlen($messageText);
@@ -1820,6 +1837,48 @@ class SMSZilla {
      */
     protected function filterextmobiles($direction, $param) {
         $this->useExtMobiles = true;
+    }
+
+    /**
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterrealname($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['realname'], $search)) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $userRealName = $entity['realname'];
+                            if (!ispos($userRealName, $search)) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                    case 'employee':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $employeeRealName = $this->filteredEntities[$entity['id']]['name'];
+                            if (!ispos($employeeRealName, $search)) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
     }
 
 }

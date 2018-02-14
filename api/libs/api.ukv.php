@@ -703,6 +703,21 @@ class UkvSystem {
     }
 
     /**
+     * Returns real name field for some user
+     * 
+     * @param int $userid
+     * 
+     * @return string
+     */
+    public function userGetRealName($userid) {
+        $result = '';
+        if (isset($this->users[$userid])) {
+            $result = $this->users[$userid]['realname'];
+        }
+        return ($result);
+    }
+
+    /**
      * Returns existing tariff name by tariffid
      * 
      * @param int  $tariffid
@@ -2679,19 +2694,19 @@ class UkvSystem {
                                 $debtorsArr[$userStreet][$ukvUserId]['usertype'] = 'inet';
                                 $debtorsArr[$userStreet][$ukvUserId]['cash'] = $eachComplexUser['Cash'];
                             }
-                        } 
+                        }
                     }
                 }
             }
         }
 
-        
+
 
         if (!empty($debtorsArr)) {
             foreach ($debtorsArr as $streetName => $eachDebtorStreet) {
                 if (!empty($eachDebtorStreet)) {
                     foreach ($eachDebtorStreet as $ia => $eachDebtor) {
-                        $result[$eachDebtor['id']]=$eachDebtor['id'];
+                        $result[$eachDebtor['id']] = $eachDebtor['id'];
                     }
                 }
             }
