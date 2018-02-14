@@ -199,6 +199,13 @@ class SMSZilla {
     protected $filterStats = array();
 
     /**
+     * Contains maximum chars limit for one SMS
+     *      
+     * @var int
+     */
+    protected $smsLenLimit = 140;
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -1188,7 +1195,7 @@ class SMSZilla {
      */
     protected function renderSmsPoolPreviewContainer($filterId, $templateId) {
         $result = '';
-        $columns = array('SMS direction', 'Mobile', 'Text', 'Size');
+        $columns = array('SMS direction', 'Mobile', 'Text', 'Size', __('Count') . ' ' . 'SMS');
         $result = wf_JqDtLoader($columns, self::URL_ME . '&sending=true&ajpreview=true&filterid=' . $filterId . '&templateid=' . $templateId, false, __('SMS'), 100);
         return ($result);
     }
@@ -1283,11 +1290,14 @@ class SMSZilla {
                                 $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $this->filteredEntities[$userLogin]['fulladress']);
 
                                 $messageText = $this->generateSmsText($templateId, $userLogin, $forceTranslit);
+                                $textLen = strlen($messageText);
+                                $smsCount = round($textLen / $this->smsLenLimit,1);
 
                                 $data[] = $userLink . ' ' . $this->filteredEntities[$userLogin]['realname'];
                                 $data[] = $eachNumber;
                                 $data[] = $messageText;
-                                $data[] = strlen($messageText);
+                                $data[] = $textLen;
+                                $data[] = $smsCount;
                                 $json->addRow($data);
                                 unset($data);
 
