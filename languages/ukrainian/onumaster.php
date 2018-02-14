@@ -3,7 +3,7 @@
 $lang['def']['Edit OLT Cards'] = 'Редагувати карту';
 $lang['def']['Check for unauthenticated ONU/ONT'] = 'Перевірити на нявність незареєстрованих ONU/ONT';
 $lang['def']['Register ONU/ONT'] = 'Зареєструвати ONU/ONT';
-$lang['def']['right to register ONU/ONT'] = 'право реєструвати ONU/ONT';
+$lang['def']['right to register ONU/ONT'] = 'Право реєструвати ONU/ONT';
 $lang['def']['ZTE VLAN Binds'] = 'Закріплені VLAN-и';
 $lang['def']['right to bind vlan to ZTE pon ports'] = 'право закріпляти VLAN-и на ZTE пон портах';
 $lang['def']['Create new card'] = 'Створити карту';

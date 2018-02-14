@@ -1152,7 +1152,16 @@ class SMSZilla {
 
 //setting base entities count
                 $this->saveFilterStats('atstart', sizeof($this->filteredEntities));
-
+                /**
+                 * Move in, now move out
+                 * Hands up, now hands down
+                 * Back up, back up
+                 * Tell me what you're gonna do now
+                 * Breath in, now breath out
+                 * Hands up, now hands down
+                 * Back up, back up
+                 * Tell me what you're gonna do now
+                 */
                 foreach ($filterData as $eachFilter => $eachFilterParam) {
                     if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
                         $filterMethodName = str_replace('new', '', $eachFilter);

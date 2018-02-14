@@ -90,6 +90,11 @@ if (cfr('SMSZILLA')) {
                     $smszilla->filtersPreprocessing($_POST['sendingfilterid'], $_POST['sendingtemplateid']);
                 }
             }
+
+//numbers lists management
+            if (wf_CheckGet(array('numlists'))) {
+                deb('TODO');
+            }
         } else {
             show_error(__('This module is disabled'));
         }

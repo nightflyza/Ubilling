@@ -2775,6 +2775,9 @@ $lang['def']['At begining'] = 'В начале';
 $lang['def']['SMSZilla requires SendDog'] = 'SMSZilla требует собаку-посылаку для работы';
 $lang['def']['contains'] = 'содержит';
 $lang['def']['Real Name contains'] = 'Ф.И.О. содержит';
+$lang['def']['right to use SMSZilla atomic breath'] = 'Право использовать атомное дыхание SMSZill-ы';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
