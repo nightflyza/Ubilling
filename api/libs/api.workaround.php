@@ -1232,7 +1232,7 @@ function web_PaymentEditForm($paymentData) {
         $paymentDataBase = serialize($paymentData);
         $paymentDataBase = base64_encode($paymentDataBase);
 
-        $inputs ='<!--ugly hack to prevent datepicker autoopen -->';
+        $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
         $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
         $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
         $inputs.= wf_HiddenInput('paymentdata', $paymentDataBase);
@@ -1259,7 +1259,7 @@ function web_PaymentEditForm($paymentData) {
         $form = $inputs;
         $form.= wf_Form('', 'POST', $table, '');
         $form.= wf_delimiter();
- 
+
         $result = wf_Form('', 'POST', $form, 'glamour');
     }
     return ($result);
@@ -3616,48 +3616,93 @@ function zb_DBCleanupAutoClean() {
  * UTF8-safe translit function
  * 
  * @param $string  string to be transliterated
+ * @param $bool Save case state
+ * 
  * @return string
  */
-function zb_TranslitString($string) {
-    $replace = array(
-        "'" => "",
-        "`" => "",
-        "а" => "a", "А" => "a",
-        "б" => "b", "Б" => "b",
-        "в" => "v", "В" => "v",
-        "г" => "g", "Г" => "g",
-        "д" => "d", "Д" => "d",
-        "е" => "e", "Е" => "e",
-        "ж" => "zh", "Ж" => "zh",
-        "з" => "z", "З" => "z",
-        "и" => "i", "И" => "i",
-        "й" => "y", "Й" => "y",
-        "к" => "k", "К" => "k",
-        "л" => "l", "Л" => "l",
-        "м" => "m", "М" => "m",
-        "н" => "n", "Н" => "n",
-        "о" => "o", "О" => "o",
-        "п" => "p", "П" => "p",
-        "р" => "r", "Р" => "r",
-        "с" => "s", "С" => "s",
-        "т" => "t", "Т" => "t",
-        "у" => "u", "У" => "u",
-        "ф" => "f", "Ф" => "f",
-        "х" => "h", "Х" => "h",
-        "ц" => "c", "Ц" => "c",
-        "ч" => "ch", "Ч" => "ch",
-        "ш" => "sh", "Ш" => "sh",
-        "щ" => "sch", "Щ" => "sch",
-        "ъ" => "", "Ъ" => "",
-        "ы" => "y", "Ы" => "y",
-        "ь" => "", "Ь" => "",
-        "э" => "e", "Э" => "e",
-        "ю" => "yu", "Ю" => "yu",
-        "я" => "ya", "Я" => "ya",
-        "і" => "i", "І" => "i",
-        "ї" => "yi", "Ї" => "yi",
-        "є" => "e", "Є" => "e"
-    );
+function zb_TranslitString($string, $caseSensetive = false) {
+
+    if ($caseSensetive) {
+        $replace = array(
+            "'" => "",
+            "`" => "",
+            "а" => "a", "А" => "A",
+            "б" => "b", "Б" => "B",
+            "в" => "v", "В" => "V",
+            "г" => "g", "Г" => "G",
+            "д" => "d", "Д" => "D",
+            "е" => "e", "Е" => "E",
+            "ж" => "zh", "Ж" => "Zh",
+            "з" => "z", "З" => "Z",
+            "и" => "i", "И" => "I",
+            "й" => "y", "Й" => "Y",
+            "к" => "k", "К" => "K",
+            "л" => "l", "Л" => "L",
+            "м" => "m", "М" => "M",
+            "н" => "n", "Н" => "N",
+            "о" => "o", "О" => "O",
+            "п" => "p", "П" => "P",
+            "р" => "r", "Р" => "R",
+            "с" => "s", "С" => "S",
+            "т" => "t", "Т" => "T",
+            "у" => "u", "У" => "U",
+            "ф" => "f", "Ф" => "F",
+            "х" => "h", "Х" => "H",
+            "ц" => "c", "Ц" => "C",
+            "ч" => "ch", "Ч" => "Ch",
+            "ш" => "sh", "Ш" => "Sh",
+            "щ" => "sch", "Щ" => "Sch",
+            "ъ" => "", "Ъ" => "",
+            "ы" => "y", "Ы" => "Y",
+            "ь" => "", "Ь" => "",
+            "э" => "e", "Э" => "E",
+            "ю" => "yu", "Ю" => "Yu",
+            "я" => "ya", "Я" => "Ya",
+            "і" => "i", "І" => "I",
+            "ї" => "yi", "Ї" => "Yi",
+            "є" => "e", "Є" => "E"
+        );
+    } else {
+        $replace = array(
+            "'" => "",
+            "`" => "",
+            "а" => "a", "А" => "a",
+            "б" => "b", "Б" => "b",
+            "в" => "v", "В" => "v",
+            "г" => "g", "Г" => "g",
+            "д" => "d", "Д" => "d",
+            "е" => "e", "Е" => "e",
+            "ж" => "zh", "Ж" => "zh",
+            "з" => "z", "З" => "z",
+            "и" => "i", "И" => "i",
+            "й" => "y", "Й" => "y",
+            "к" => "k", "К" => "k",
+            "л" => "l", "Л" => "l",
+            "м" => "m", "М" => "m",
+            "н" => "n", "Н" => "n",
+            "о" => "o", "О" => "o",
+            "п" => "p", "П" => "p",
+            "р" => "r", "Р" => "r",
+            "с" => "s", "С" => "s",
+            "т" => "t", "Т" => "t",
+            "у" => "u", "У" => "u",
+            "ф" => "f", "Ф" => "f",
+            "х" => "h", "Х" => "h",
+            "ц" => "c", "Ц" => "c",
+            "ч" => "ch", "Ч" => "ch",
+            "ш" => "sh", "Ш" => "sh",
+            "щ" => "sch", "Щ" => "sch",
+            "ъ" => "", "Ъ" => "",
+            "ы" => "y", "Ы" => "y",
+            "ь" => "", "Ь" => "",
+            "э" => "e", "Э" => "e",
+            "ю" => "yu", "Ю" => "yu",
+            "я" => "ya", "Я" => "ya",
+            "і" => "i", "І" => "i",
+            "ї" => "yi", "Ї" => "yi",
+            "є" => "e", "Є" => "e"
+        );
+    }
     return $str = iconv("UTF-8", "UTF-8//IGNORE", strtr($string, $replace));
 }
 

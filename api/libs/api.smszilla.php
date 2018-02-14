@@ -688,9 +688,9 @@ class SMSZilla {
                 $inputs.=wf_Selector('newfiltercity', $citiesParams, __('City'), '', true, false);
                 $inputs.= wf_TextInput('newfilteraddress', __('Address contains'), '', true, '40');
             }
-            
+
             if (($direction == 'login') OR ( $direction == 'ukv') OR ( $direction == 'employee')) {
-            $inputs.= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
+                $inputs.= wf_TextInput('newfilterrealname', __('Real Name') . ' ' . __('contains'), '', true, '30');
             }
 
 
@@ -1178,40 +1178,35 @@ class SMSZilla {
         $result = $this->templates[$templateId]['text'];
         switch ($this->entitiesType) {
             case 'login':
-                $result = str_ireplace('{LOGIN}', $this->allUserData[$entity]['login'], $result);
-                $result = str_ireplace('{REALNAME}', $this->allUserData[$entity]['realname'], $result);
-                $result = str_ireplace('{TARIFF}', $this->allUserData[$entity]['Tariff'], $result);
-                $result = str_ireplace('{CREDIT}', $this->allUserData[$entity]['Credit'], $result);
-                $result = str_ireplace('{CASH}', $this->allUserData[$entity]['Cash'], $result);
-                $result = str_ireplace('{ROUNDCASH}', round($this->allUserData[$entity]['Cash'], 2), $result);
-                $result = str_ireplace('{IP}', $this->allUserData[$entity]['ip'], $result);
-                $result = str_ireplace('{MAC}', $this->allUserData[$entity]['mac'], $result);
-                $result = str_ireplace('{FULLADDRESS}', $this->allUserData[$entity]['fulladress'], $result);
-                $result = str_ireplace('{PHONE}', $this->allUserData[$entity]['phone'], $result);
-                $result = str_ireplace('{MOBILE}', $this->allUserData[$entity]['mobile'], $result);
-                $result = str_ireplace('{CONTRACT}', $this->allUserData[$entity]['contract'], $result);
-                $result = str_ireplace('{EMAIL}', $this->allUserData[$entity]['email'], $result);
+                $result = str_ireplace('{LOGIN}', $this->filteredEntities[$entity]['login'], $result);
+                $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
+                $result = str_ireplace('{TARIFF}', $this->filteredEntities[$entity]['Tariff'], $result);
+                $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
+                $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
+                $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['Cash'], 2), $result);
+                $result = str_ireplace('{IP}', $this->filteredEntities[$entity]['ip'], $result);
+                $result = str_ireplace('{MAC}', $this->filteredEntities[$entity]['mac'], $result);
+                $result = str_ireplace('{FULLADDRESS}', $this->filteredEntities[$entity]['fulladress'], $result);
+                $result = str_ireplace('{PHONE}', $this->filteredEntities[$entity]['phone'], $result);
+                $result = str_ireplace('{MOBILE}', $this->filteredEntities[$entity]['mobile'], $result);
+                $result = str_ireplace('{CONTRACT}', $this->filteredEntities[$entity]['contract'], $result);
+                $result = str_ireplace('{EMAIL}', $this->filteredEntities[$entity]['email'], $result);
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 break;
             case 'ukv':
-                $result = str_ireplace('{LOGIN}', $this->allUserData[$entity]['login'], $result);
-                $result = str_ireplace('{REALNAME}', $this->allUserData[$entity]['realname'], $result);
-                $result = str_ireplace('{TARIFF}', $this->allUserData[$entity]['Tariff'], $result);
-                $result = str_ireplace('{CREDIT}', $this->allUserData[$entity]['Credit'], $result);
-                $result = str_ireplace('{CASH}', $this->allUserData[$entity]['Cash'], $result);
-                $result = str_ireplace('{ROUNDCASH}', round($this->allUserData[$entity]['Cash'], 2), $result);
-                $result = str_ireplace('{IP}', $this->allUserData[$entity]['ip'], $result);
-                $result = str_ireplace('{MAC}', $this->allUserData[$entity]['mac'], $result);
-                $result = str_ireplace('{FULLADDRESS}', $this->allUserData[$entity]['fulladress'], $result);
-                $result = str_ireplace('{PHONE}', $this->allUserData[$entity]['phone'], $result);
-                $result = str_ireplace('{MOBILE}', $this->allUserData[$entity]['mobile'], $result);
-                $result = str_ireplace('{CONTRACT}', $this->allUserData[$entity]['contract'], $result);
-                $result = str_ireplace('{EMAIL}', $this->allUserData[$entity]['email'], $result);
+                $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
+                $result = str_ireplace('{TARIFF}', $this->ukv->tariffGetName($this->filteredEntities[$entity]['tariffid']), $result);
+                $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['cash'], $result);
+                $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['cash'], 2), $result);
+                $result = str_ireplace('{FULLADDRESS}', $this->ukv->userGetFullAddress($entity), $result);
+                $result = str_ireplace('{PHONE}', $this->filteredEntities[$entity]['phone'], $result);
+                $result = str_ireplace('{MOBILE}', $this->filteredEntities[$entity]['mobile'], $result);
+                $result = str_ireplace('{CONTRACT}', $this->filteredEntities[$entity]['contract'], $result);
                 $result = str_ireplace('{CURDATE}', date("Y-m-d"), $result);
                 break;
         }
         if ($forceTranslit) {
-            $result = zb_TranslitString($result);
+            $result = zb_TranslitString($result,true);
         }
         return ($result);
     }
@@ -1263,7 +1258,7 @@ class SMSZilla {
                             $userLink = wf_Link('?module=ukv&users=true&showuser=' . $userId, web_profile_icon() . ' ' . $this->ukv->userGetFullAddress($userId));
                             $messageText = $this->generateSmsText($templateId, $userId, $forceTranslit);
 
-                            $data[] = $userLink . ' ' . $this->ukv->userGetRealName($userId);
+                            $data[] = $userLink . ' ' . $this->filteredEntities[$userId]['realname'];
                             $data[] = $number;
                             $data[] = $messageText;
                             $data[] = strlen($messageText);
