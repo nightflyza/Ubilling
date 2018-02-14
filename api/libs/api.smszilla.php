@@ -73,6 +73,13 @@ class SMSZilla {
     protected $filterNames = array();
 
     /**
+     * Contains available direction names
+     *
+     * @var array
+     */
+    protected $directionNames = array();
+
+    /**
      * Current run entities type
      *
      * @var strings
@@ -455,6 +462,13 @@ class SMSZilla {
             'filterukvdebtor' => 'Debtors',
             'filterukvtariff' => 'User have tariff',
             'filterrealname' => 'Real Name contains'
+        );
+
+        $this->directionNames = array(
+            'login' => 'Internet',
+            'ukv' => 'UKV',
+            'employee' => 'Employee',
+            'numlist' => 'Numbers list'
         );
     }
 
@@ -941,7 +955,10 @@ class SMSZilla {
 
             $filterParams = array();
             foreach ($this->filters as $io => $each) {
-                $filterParams[$each['id']] = $each['name'];
+                $filterUnpack = json_decode($each['filters'], true);
+                $filterDirection = $filterUnpack['newfilterdirection'];
+                $filterDirection = $this->directionNames[$filterDirection];
+                $filterParams[$each['id']] = __($filterDirection) . ' ⇒ ' . $each['name'];
             }
 
 
