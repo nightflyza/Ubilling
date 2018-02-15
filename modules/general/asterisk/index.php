@@ -2,7 +2,7 @@
 $altcfg = $ubillingConfig->getAlter();
 
 if ($altcfg['ASTERISK_ENABLED']) {
-    $asterisk = new Asterisk();
+    $asterisk = new Asterisk($altcfg);
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
         // Profile:
