@@ -63,6 +63,12 @@ if ($altCfg['PON_ENABLED']) {
                 rcms_redirect('?module=ponizer');
             }
         }
+        
+        //force single OLT polling
+        if (wf_CheckGet(array('forceoltidpoll'))) {
+            $pon->pollOltSignal($_GET['forceoltidpoll']);
+             rcms_redirect('?module=ponizer');
+        }
 
 
         if (!wf_CheckGet(array('editonu'))) {

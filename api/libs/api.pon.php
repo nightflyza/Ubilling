@@ -736,7 +736,7 @@ class PONizer {
      * 
      * @return void
      */
-    protected function pollOltSignal($oltid) {
+    public function pollOltSignal($oltid) {
         $oltid = vf($oltid, 3);
         if (isset($this->allOltDevices[$oltid])) {
             if (isset($this->allOltSnmp[$oltid])) {
@@ -810,7 +810,7 @@ class PONizer {
                             $macIndex = explodeRows($macIndex);
                             $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
                         }
-                        
+
                         //ZTE devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE') {
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
@@ -1592,7 +1592,8 @@ class PONizer {
 
         $result = '';
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
-            $result .= show_window(__(@$eachOltData), wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
+            $oltControls = wf_Link(self::URL_ME . '&forceoltidpoll=' . $oltId, wf_img_sized('skins/refresh.gif', __('Force query'), '12'));
+            $result .= show_window($oltControls . ' ' . @$eachOltData, wf_JqDtLoader($columns, '?module=ponizer&ajaxonu=true&oltid=' . $oltId . '', false, 'ONU', 100, $opts));
         }
         return ($result);
     }
@@ -1996,8 +1997,8 @@ class PONizer {
                                     @$userRealName = $allRealnames[$userLogin];
                                     @$userTariff = $allUserTariffs[$userLogin];
                                     $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . $userAddress) : '';
-                                    $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) : '';
-                                    $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) : '';
+                                    $oltCheck = (!$this->checkOnuOLTid($onuMac, $oltId)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong OLT')) . ' ' . __('Oh no') : '';
+                                    $userCheck = (!$this->checkOnuUserAssign($onuRealId, $userLogin)) ? ' ' . wf_img('skins/createtask.gif', __('Wrong associated user')) . ' ' . __('Oh no') : '';
 
                                     $data[] = $oltDesc . $oltCheck;
                                     $data[] = $onuMac;
