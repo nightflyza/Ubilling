@@ -59,11 +59,11 @@ class Asterisk {
     protected $cacheTime = ''; //month by default
 
     /**
-     * Global parametr from alter.ini
+     * System alter.ini config as key=>value
      *
      * @var array
      */
-    protected $altcfg = array();
+    protected $altCfg = array();
 
     // Database's vars:
     private $connected;
@@ -71,13 +71,25 @@ class Asterisk {
 
     const URL_ME = '?module=asterisk';
     const CACHE_PATH = 'exports/';
-    public function __construct ($altconfig) {
+    public function __construct () {
+        $this->loadAlter();
         $this->initMessages();
         $this->AsteriskLoadConf();
         $this->AsteriskLoadNumAliases();
         $this->AsteriskConnectDB();
         $this->initCache();
-        $this->altcfg = $altconfig;
+    }
+
+    /**
+     * Loads system alter config into private property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -448,6 +460,12 @@ class Asterisk {
                 $result = $login;
             } elseif ($param == "swstatus") {
                 $result = $this->AsteriskGetSWStatus($login);
+            } elseif ($param == "realname") {
+                $this->AsteriskGetUserAllRealnames();
+                $realname = @$this->allrealnames[$login];
+                $realname = preg_replace('/[^a-zа-яё\d ]+/iu','',$realname);
+                $realname = zb_TranslitString($realname, TRUE);
+                $result = $login . "-" . $realname;
             } else {
                 $result = 'ERROR: MISTAKE PARAMETR';
             }
@@ -517,7 +535,7 @@ class Asterisk {
                     $result_a[substr($data['content'], -10)] = $data['login'];
                 }
             }
-            if ($this->altcfg['MOBILES_EXT']) {
+            if ($this->altCfg['MOBILES_EXT']) {
                 $query_mobileext = "SELECT `login`,`mobile` as `mobileext` FROM `mobileext`";
                 $result_me = simple_queryall($query_mobileext);
                 foreach ($result_me as $data) {
