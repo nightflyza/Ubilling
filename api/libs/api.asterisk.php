@@ -463,7 +463,7 @@ class Asterisk {
             } elseif ($param == "realname") {
                 $this->AsteriskGetUserAllRealnames();
                 $realname = @$this->allrealnames[$login];
-                $realname = preg_replace('/[^a-zа-яё\d ]+/iu','',$realname);
+                $realname = preg_replace('/[^a-zA-Zа-яА-Я0-9ё\d ]+/iu','',$realname);
                 $realname = zb_TranslitString($realname, TRUE);
                 $result = $login . "-" . $realname;
             } else {
