@@ -943,3 +943,47 @@ div.dhtml_menu div.vert_menu a.active:hover
     background-color: #ee1515;
     color: #fafafa;
 }
+
+.spoiler {
+    border: 1px solid #9BA0AF;
+    width: 98%;
+    margin: 15px auto;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #ffffff;
+}
+
+.spoiler_title {
+    background: #F1F1F4 url(../images/secondary_bar.png) repeat-x;
+    -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px; -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px; border-top-right-radius: 5px;
+    cursor: pointer;
+}
+
+.spoiler_title h3 {
+    color: #1F1F20 !important;
+    font-size: 13px !important;
+    margin: 0 20px !important;
+    float: left;
+}
+
+.spoiler_link, .spoiler_link:hover {
+    color: #000 !important;
+    font-size: 13px;
+    text-decoration: none;
+    margin-right: 1%;
+    margin-top: 8px;
+    margin-bottom: 11px;
+    text-align: right;
+    width: 100%;
+    float: right;
+}
+
+.clearfix::after {
+    content: " ";
+    display: block;
+    height: 0;
+    clear: both;
+}

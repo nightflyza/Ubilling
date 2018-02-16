@@ -183,6 +183,22 @@ class WifiCPE {
     }
 
     /**
+     * Returns CPE ID from database if record with CPEMAC found or false if not
+     *
+     * @param string $CPEMAC
+     * @return bool/int
+     */
+    public function getCPEIDByMAC($CPEMAC) {
+        if ( empty($this->allCPE) or empty($CPEMAC) ) {return false;}
+
+        $query = "SELECT * from `wcpedevices` WHERE `mac` = '" . strtolower($CPEMAC) . "';";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+           return $all[0]['id'];
+        } else {return false;}
+    }
+
+    /**
      * Creates new CPE in database
      * 
      * @param int $modelId
@@ -195,12 +211,13 @@ class WifiCPE {
      * 
      * @return void/string on error
      */
-    public function createCPE($modelId, $ip, $mac, $location, $bridgeMode = false, $uplinkApId, $geo) {
+    public function createCPE($modelId, $ip, $mac, $snmp, $location, $bridgeMode = false, $uplinkApId, $geo) {
         $result = '';
         $modelId = vf($modelId, 3);
         $ipF = mysql_real_escape_string($ip);
         $mac = strtolower_utf8($mac);
         $macF = mysql_real_escape_string($mac);
+        $snmpF = mysql_real_escape_string($snmp);
         $loactionF = mysql_real_escape_string($location);
         $bridgeMode = ($bridgeMode) ? 1 : 0;
         $uplinkApId = vf($uplinkApId, 3);
@@ -213,8 +230,8 @@ class WifiCPE {
                 $macCheckFlag = check_mac_format($macF);
             }
             if ($macCheckFlag) {
-                $query = "INSERT INTO `wcpedevices` (`id`, `modelid`, `ip`, `mac`, `location`, `bridge`, `uplinkapid`, `uplinkcpeid`, `geo`) "
-                        . "VALUES (NULL, '" . $modelId . "', '" . $ipF . "', '" . $macF . "', '" . $loactionF . "', '" . $bridgeMode . "', '" . $uplinkApId . "', NULL, '" . $geoF . "');";
+                $query = "INSERT INTO `wcpedevices` (`id`, `modelid`, `ip`, `mac`, `snmp`, `location`, `bridge`, `uplinkapid`, `uplinkcpeid`, `geo`) "
+                        . "VALUES (NULL, '" . $modelId . "', '" . $ipF . "', '" . $macF . "', '" . $snmpF . "', '" . $loactionF . "', '" . $bridgeMode . "', '" . $uplinkApId . "', NULL, '" . $geoF . "');";
                 nr_query($query);
                 $newId = simple_get_lastid('wcpedevices');
                 log_register('WCPE CREATE [' . $newId . ']');
@@ -319,7 +336,7 @@ class WifiCPE {
      * 
      * @return string
      */
-    public function renderCPECreateForm($userLogin = '') {
+    public function renderCPECreateForm($userLogin = '', $CPEMAC = '', $CPEIP = '', $APID = '') {
         $result = '';
         if (!empty($this->deviceModels)) {
             $apTmp = array('' => __('No'));
@@ -333,14 +350,41 @@ class WifiCPE {
             $inputs = wf_HiddenInput('createnewcpe', 'true');
             $inputs.= wf_Selector('newcpemodelid', $this->deviceModels, __('Model'), '', true);
             $inputs.= wf_CheckInput('newcpebridge', __('Bridge mode'), true, false);
-            $inputs.= wf_TextInput('newcpeip', __('IP'), '', true, 15);
-            $inputs.= wf_TextInput('newcpemac', __('MAC'), '', true, 15);
+            $inputs.= wf_TextInput('newcpeip', __('IP'), $CPEIP, true, 15);
+            $inputs.= wf_TextInput('newcpemac', __('MAC'), $CPEMAC, true, 15);
+            $inputs.= wf_TextInput('newcpesnmp', __('SNMP community'), '', true, 15);
             $inputs.= wf_TextInput('newcpelocation', __('Location'), '', true, 25);
             $inputs.= wf_TextInput('newcpegeo', __('Geo location'), '', true, 25);
-            $inputs.= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), '', true);
+            $inputs.= wf_Selector('newcpeuplinkapid', $apTmp, __('Connected to AP'), $APID, true);
+
             if (!empty($userLogin)) {
+                $TmpBlockID = 'UsrLogin_' . wf_InputId();
                 $inputs.=wf_HiddenInput('assignoncreate', $userLogin);
-                $inputs.=__('Assign user WiFi equipment') . ': ' . $userLogin;
+                $inputs.= wf_tag('br', true);
+                $inputs.= wf_tag('span', false, '__UsrAssignBlock', 'id="' . $TmpBlockID . '"');
+                $inputs.=__('Assign WiFi equipment to user') . ':  ';
+                $inputs.=wf_tag('b', false);
+                $inputs.= $userLogin . '&nbsp&nbsp';
+                $inputs.=wf_tag('b', true);
+
+                $TmpLnkID = 'DelUsrLogin_' . wf_InputId();
+                $inputs.= wf_tag('script', false, '', 'type="text/javascript"');
+                $inputs.= '$(function() {
+                                $(\'#' . $TmpLnkID . '\').click(function(evt) {                            
+                                    $("[name=assignoncreate]").val("");
+                                    $(\'#' . $TmpBlockID . '\').html("' . __('Do not assign WiFi equipment to any user') . '");
+                                    evt.preventDefault();
+                                    return false;
+                                });
+                            });
+                          ';
+                $inputs.= wf_tag('script', true);
+
+                $inputs.= wf_tag('a', false, '__UsrDelAssignButton','id="' . $TmpLnkID . '" href="#" style="vertical-align: sub;"');
+                $inputs.= web_delete_icon();
+                $inputs.= wf_tag('a', true);
+                $inputs.= wf_tag('span', true);
+                $inputs.= wf_tag('br', true);
             }
             $inputs.=wf_tag('br');
             $inputs.= wf_Submit(__('Create'));
@@ -365,7 +409,7 @@ class WifiCPE {
             $assignPostfix = '';
         }
         if (!empty($this->allCPE)) {
-            $columns = array('ID', 'Model', 'IP', 'MAC', 'Location', 'Geo location', 'Connected to AP', 'Bridge mode', 'Actions');
+            $columns = array('ID', 'Model', 'IP', 'MAC', 'SNMP community', 'Location', 'Geo location', 'Connected to AP', 'Bridge mode', 'Actions');
             $opts = '"order": [[ 0, "desc" ]]';
             $result = wf_JqDtLoader($columns, self::URL_ME . '&ajcpelist=true' . $assignPostfix, false, __('CPE'), 100, $opts);
         } else {
@@ -387,6 +431,7 @@ class WifiCPE {
                 $data[] = @$this->deviceModels[$each['modelid']];
                 $data[] = $each['ip'];
                 $data[] = $each['mac'];
+                $data[] = $each['snmp'];
                 $data[] = $each['location'];
                 $data[] = $each['geo'];
                 if (isset($this->allSSids[$each['uplinkapid']])) {
@@ -502,6 +547,7 @@ class WifiCPE {
                     $inputs.= wf_CheckInput('editcpebridge', __('Bridge mode'), true, $cpeData['bridge']);
                     $inputs.= wf_TextInput('editcpeip', __('IP'), $cpeData['ip'], true, 15);
                     $inputs.= wf_TextInput('editcpemac', __('MAC'), $cpeData['mac'], true, 15);
+                    $inputs.= wf_TextInput('editcpesnmp', __('SNMP community'), $cpeData['snmp'], true, 15);
                     $inputs.= wf_TextInput('editcpelocation', __('Location'), $cpeData['location'], true, 25);
                     $inputs.= wf_TextInput('editcpegeo', __('Geo location'), $cpeData['geo'], true, 25);
                     $inputs.= wf_Selector('editcpeuplinkapid', $apTmp, __('Connected to AP'), $cpeData['uplinkapid'], true);
@@ -576,6 +622,12 @@ class WifiCPE {
                     } else {
                         $result.=$this->messages->getStyledMessage(__('This MAC have wrong format') . ' ' . $clearMac, 'error');
                     }
+                }
+
+                //SNMP community change
+                if ($_POST['editcpesnmp'] != $cpeData['snmp']) {
+                    simple_update_field('wcpedevices', 'snmp', $_POST['editcpesnmp'], $where);
+                    log_register('WCPE [' . $cpeId . '] CHANGE SNMP COMMUNITY `' . $_POST['editcpesnmp'] . '`');
                 }
 
                 //location changing
@@ -750,11 +802,74 @@ class WifiCPE {
      */
     protected function renderCPEAssignControl($userLogin) {
         $result = '';
-        $result.=wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true) . wf_tag('br');
-        $result.= wf_Link(self::URL_ME . '&userassign=' . $userLogin, wf_img('skins/icon_link.gif') . ' ' . __('Assign user WiFi equipment'), false, 'ubButton').' ';
-        $createForm = $this->renderCPECreateForm($userLogin);
-        $result.= wf_modalAuto(web_icon_create() . ' ' . __('Create new CPE'), __('Create new CPE'), $createForm, 'ubButton');
-        $result.=wf_tag('br');
+        $result.=wf_tag('br') . wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true) . wf_tag('br');
+        $result.= wf_Link(self::URL_ME . '&userassign=' . $userLogin, wf_img('skins/icon_link.gif') . ' ' . __('Assign WiFi equipment to user'), false, 'ubButton') . '&nbsp';
+
+        //$createForm = $this->renderCPECreateForm($userLogin);
+        //$result.= wf_modalAuto(web_icon_create() . ' ' . __('Create new CPE'), __('Create new CPE'), $createForm, 'ubButton');
+
+        $LnkID = wf_InputId();
+        // the line below HAS to be commented to create "CPE create&assign form" dynamically
+        $result.=wf_modalAutoForm(__('Create new CPE'), '', 'dialog-modal_' . $LnkID, 'body_dialog-modal_' . $LnkID);
+        $result.= wf_tag('a', false, 'ubButton', 'id="' . $LnkID  . '" href="#"');
+        $result.= web_icon_create() . ' ' . __('Create new CPE');
+        $result.= wf_tag('a', true);
+        $result.= wf_tag('script', false, '', 'type="text/javascript"');
+
+
+        // just an example for creating delegated JS event bindings for dynamically created objects that aren't exist on the page yet
+        // this particular example is for "DelUserAssignment" button("red cross" near user's login) on "CPE create&assign form"
+        // it's needed when the "CPE create&assign form" is created DYNAMICALLY
+        // it's located here, 'cause this part of page already exists on the moment of "CPE create&assign form" creation
+        // we're binding event to class name ".UsrDelAssignButton" here, 'cause it's ID we will never know from here - it simply does not exists yet
+        // so, be sure to add that class to your control when you create it
+        //
+        /* $result.= '
+                    $(document).on("click", ".__UsrDelAssignButton", function() {
+                            alert(\'lalala\');
+                            return false;
+                    });
+                    ';  */
+
+
+        // below is an example of how to create "CPE create&assign form" dynamically
+       /* $result.=  '
+                    $(\'#' . $LnkID . '\').click(function(evt) {
+                        $.ajax({
+                            type: "GET",
+                            url: "' . self::URL_ME . '",
+                            data: {renderCreateForm:true, renderDynamically:true, userLogin:"' . $userLogin . '", ModalWID:"dialog-modal_' . $LnkID . '", ModalWBID:"body_dialog-modal_' . $LnkID .'"},
+                            success: function(result) {
+                                        $(document.body).append(result);
+                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                     }
+                        });
+
+                        evt.preventDefault();
+                        return false;
+                    });
+                    ';  */
+
+        $result.=  '                    
+                    $(\'#' . $LnkID . '\').click(function(evt) {
+                        $.ajax({
+                            type: "GET",
+                            url: "' . self::URL_ME . '",                              
+                            data: {renderCreateForm:true, userLogin:"' . $userLogin . '"},
+                            success: function(result) {                                        
+                                        $(\'#body_dialog-modal_' . $LnkID . '\').html(result);
+                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");                                 
+                                     }
+                        });
+                        
+                        evt.preventDefault();
+                        return false;
+                    });
+                    ';
+        $result.= wf_tag('script', true);
+        $result.= wf_delimiter();
+        //$result.=wf_tag('br');
+
         return ($result);
     }
 
@@ -776,12 +891,16 @@ class WifiCPE {
             if (isset($this->allCPE[$assignedCpeId])) {
                 $assignedCpeData = $this->allCPE[$assignedCpeId];
                 if (!empty($assignedCpeData)) {
+                    $SigMon = new MTsigmon();
+                    $CPESNMPCommunity = ( empty($assignedCpeData['snmp']) ) ? 'public' : $assignedCpeData['snmp'];
+
                     $actLinks = '';
                     $telepathySup = wf_tag('abbr', false, '', 'title="' . __('Taken from the user, because the router mode is used') . '"') . '(?)' . wf_tag('abbr', true);
                     $telepathySup = ' ' . wf_tag('sup') . $telepathySup . wf_tag('sup', true);
-                    $result.=wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true);
+                    $result .= wf_tag('br', true) . wf_tag('b') . __('Users WiFi equipment') . wf_tag('b', true);
                     $cpeModel = $this->deviceModels[$assignedCpeData['modelid']];
                     $cpeBridge = $assignedCpeData['bridge'];
+
                     $cpeIp = $assignedCpeData['ip'];
                     if ((empty($cpeIp)) AND ( !$cpeBridge)) {
                         $cpeIp = $allUserData[$userLogin]['ip'] . $telepathySup;
@@ -791,6 +910,44 @@ class WifiCPE {
                     if ((empty($cpeMac)) AND ( !$cpeBridge)) {
                         $cpeMac = $allUserData[$userLogin]['mac'] . $telepathySup;
                     }
+
+                    $LastPollDateCPE = '';
+                    $SignalLevelLabelCPE = '';
+                    $RefreshButtonCPE = '';
+                    $SignalDataArray = $SigMon->getCPESignalData($assignedCpeData['mac'], 0, $assignedCpeData['ip'], $CPESNMPCommunity, false, false);
+
+                    $LastPollDateCPE = ( empty($SignalDataArray[0]) ) ? __('Device is not polled yet') : __('Cache state at time') . ':  ' . $SignalDataArray[0];
+                    $SignalLevelLabelCPE = $SignalDataArray[1];
+
+                    $RefreshButtonCPE = wf_tag('a', false, '', 'href="#" id="CPESigUpd1" title="' . __('Refresh data for this CPE') . '"');
+                    $RefreshButtonCPE .= wf_img('skins/refresh.gif');
+                    $RefreshButtonCPE .= wf_tag('a', true);
+                    $RefreshButtonCPE .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $RefreshButtonCPE .= '$(\'#CPESigUpd1\').click(function(evt) {                                                   
+                                                CPESignalRefresh("' . $assignedCpeData['mac'] . '", "' . $assignedCpeData['ip'] . '", "public");                                        
+                                                evt.preventDefault();
+                                                return false;
+                                            });';
+                    $RefreshButtonCPE .= wf_tag('script', true);
+
+                    $LastPollDateAP = '';
+                    $SignalLevelLabelAP = '';
+                    $RefreshButtonAP = '';
+                    $SignalDataArray = $SigMon->getCPESignalData($assignedCpeData['mac'], $this->allAP[$assignedCpeData['uplinkapid']], '', '', true, false);
+
+                    $LastPollDateAP = ( empty($SignalDataArray[0]) ) ? __('Device is not polled yet') : __('Cache state at time') . ':  ' . $SignalDataArray[0];
+                    $SignalLevelLabelAP = $SignalDataArray[1];
+
+                    $RefreshButtonAP = wf_tag('a', false, '', 'href="#" id="APSigUpd1" title="' . __('Refresh data for this AP') . '"');
+                    $RefreshButtonAP .= wf_img('skins/refresh.gif');
+                    $RefreshButtonAP .= wf_tag('a', true);
+                    $RefreshButtonAP .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $RefreshButtonAP .= '$(\'#APSigUpd1\').click(function(evt) {                                                    
+                                                APSignalRefresh("' . $this->allAP[$assignedCpeData['uplinkapid']]['id'] . '", "' . $assignedCpeData['mac'] . '");                                        
+                                                evt.preventDefault();
+                                                return false;                
+                                            });';
+                    $RefreshButtonAP .= wf_tag('script', true);
 
                     $cpeLocation = $assignedCpeData['location'];
                     if ((empty($cpeLocation)) AND ( !$cpeBridge)) {
@@ -808,12 +965,16 @@ class WifiCPE {
                     $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                     $cpeLink = wf_Link(self::URL_ME . '&editcpeid=' . $assignedCpeId, web_edit_icon(__('Show') . ' ' . __('CPE')), false, '');
 
+                    $cpeWebIfaceLink  = wf_tag('a', false, '', 'href="http://' . $cpeIp . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $cpeWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                    $cpeWebIfaceLink .= wf_tag('a', true);
+
                     $cells = wf_TableCell(__('Model'), '20%', 'row2');
-                    $cells.= wf_TableCell($cpeModel . ' ' . $cpeLink);
+                    $cells.= wf_TableCell($cpeModel . '&nbsp&nbsp&nbsp' . $cpeLink);
                     $rows = wf_TableRow($cells, 'row3');
 
                     $cells = wf_TableCell(__('IP'), '20%', 'row2');
-                    $cells.= wf_TableCell($cpeIp);
+                    $cells.= wf_TableCell($cpeIp . '&nbsp&nbsp&nbsp' . $cpeWebIfaceLink);
                     $rows.= wf_TableRow($cells, 'row3');
 
                     $cells = wf_TableCell(__('MAC'), '20%', 'row2');
@@ -835,6 +996,11 @@ class WifiCPE {
                     if (!empty($assignedCpeData['uplinkapid'])) {
                         if (isset($this->allAP[$assignedCpeData['uplinkapid']])) {
                             $apLabel = $this->allAP[$assignedCpeData['uplinkapid']]['ip'];
+
+                            $apWebIfaceLink  = wf_tag('a', false, '', 'href="http://' . $this->allAP[$assignedCpeData['uplinkapid']]['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                            $apWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                            $apWebIfaceLink .= wf_tag('a', true);
+
                             if (isset($this->allSSids[$assignedCpeData['uplinkapid']])) {
                                 $apLabel.=' - ' . $this->allSSids[$assignedCpeData['uplinkapid']];
                             } else {
@@ -842,7 +1008,7 @@ class WifiCPE {
                             }
                             $apLink = wf_Link('?module=switches&edit=' . $assignedCpeData['uplinkapid'], web_edit_icon(__('Navigate to AP')), false, '');
                             $cells = wf_TableCell(__('Connected to AP'), '20%', 'row2');
-                            $cells.= wf_TableCell($apLabel . ' ' . $apLink);
+                            $cells.= wf_TableCell($apLabel . '&nbsp&nbsp&nbsp' . $apLink . '&nbsp&nbsp&nbsp' . $apWebIfaceLink);
                             $rows.= wf_TableRow($cells, 'row3');
                         }
                     } else {
@@ -851,7 +1017,164 @@ class WifiCPE {
                         $rows.= wf_TableRow($cells, 'row3');
                     }
 
+                    $cells = wf_TableCell(__('Signal level on AP'), '20%', 'row2');
+                    $cells.= wf_TableCell($SignalLevelLabelAP, '55%', '', 'id="APSignal1"');
+                    $cells.= wf_TableCell($RefreshButtonAP);
+                    $cells.= wf_TableCell($LastPollDateAP, '25%', '', 'id="APSignalPollDT1"');
+                    $rows.= wf_TableRow($cells, 'row3');
+
+                    $cells = wf_TableCell(__('Signal level on CPE'), '20%', 'row2');
+                    $cells.= wf_TableCell($SignalLevelLabelCPE, '55%', '', 'id="CPESignal1"');
+                    $cells.= wf_TableCell($RefreshButtonCPE);
+                    $cells.= wf_TableCell($LastPollDateCPE, '25%', '', 'id="CPESignalPollDT1"');
+                    $rows.= wf_TableRow($cells, 'row3');
+
                     $result.= wf_TableBody($rows, '100%', 0, '');
+
+                    $SignalGraphAP  = $SigMon->renderSignalGraphs($cpeMac, true, true, false, true, true);
+                    $SignalGraphCPE = $SigMon->renderSignalGraphs($cpeMac, false, true, false, true, true);
+                    $SignalGraphs = '';
+
+                    $GraphRefreshAPButton = wf_tag('a', false, '', 'href="#" id="APGraphUpd1" style="vertical-align: sub;" title="' . __('Refresh') . ' ' . __('data') .  '"');
+                    $GraphRefreshAPButton .= wf_img('skins/refresh.gif');
+                    $GraphRefreshAPButton .= wf_tag('a', true);
+                    $GraphRefreshAPButton .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $GraphRefreshAPButton .= '$(\'#APGraphUpd1\').click(function(evt) {
+                                                evt.stopImmediatePropagation();
+                                                //alert($(this).parent().attr("id"));
+                                                if ( $(this).parent().attr("id") == \'NoAPDataBlck1\' ) {                                                    
+                                                    SignalGraphRefresh("' . $cpeMac . '", true, true, false, true, true, true);
+                                                } else {                                                    
+                                                    SignalGraphRefresh("' . $cpeMac . '", true, true, false, true, true, false);
+                                                }
+                                                evt.preventDefault();
+                                                return false;                
+                                            });';
+                    $GraphRefreshAPButton .= wf_tag('script', true);
+
+                    $GraphRefreshCPEButton = wf_tag('a', false, '', 'href="#" id="CPEGraphUpd1" style="vertical-align: sub;" title="' . __('Refresh') . ' ' . __('data') .  '"');
+                    $GraphRefreshCPEButton .= wf_img('skins/refresh.gif');
+                    $GraphRefreshCPEButton .= wf_tag('a', true);
+                    $GraphRefreshCPEButton .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $GraphRefreshCPEButton .= '$(\'#CPEGraphUpd1\').click(function(evt) {
+                                                evt.stopImmediatePropagation();
+                                                if ( $(this).parent().attr("id") == \'NoCPEDataBlck1\' ) {
+                                                    SignalGraphRefresh("' . $cpeMac . '", false, true, false, true, true, true);
+                                                } else {
+                                                    SignalGraphRefresh("' . $cpeMac . '", false, true, false, true, true, false);
+                                                }                                        
+                                                evt.preventDefault();
+                                                return false;                
+                                            });';
+                    $GraphRefreshCPEButton .= wf_tag('script', true);
+
+                    if (!empty($SignalGraphAP)) {
+                        $SignalGraphs .= wf_Spoiler($SignalGraphAP, $GraphRefreshAPButton . '&nbsp&nbsp' . __('Signal data from AP'), true, '', '', '', '', 'style="margin: 10px auto; display: table;"');
+                    } else {
+                        $SignalGraphs .= wf_tag('div', false, '', 'id="NoAPDataBlck1" style="margin: 10px auto; display: table; font-size: 14px; font-weight: 600;"');
+                        $SignalGraphs .= __('No data from AP yet') . ' - ';
+                        $SignalGraphs .= $GraphRefreshAPButton;
+                        $SignalGraphs .= wf_tag('div', true);
+                    }
+
+                    if (!empty($SignalGraphCPE)) {
+                        $SignalGraphs .= wf_Spoiler($SignalGraphCPE, $GraphRefreshCPEButton . '&nbsp&nbsp' . __('Signal data from CPE'), true, '', '', '', '', 'style="margin: 10px auto; display: table;"');
+                    } else {
+                        $SignalGraphs .= wf_tag('div', false, '', 'id="NoCPEDataBlck1" style="margin: 10px auto; display: table; font-size: 14px; font-weight: 600;"');
+                        $SignalGraphs .= __('No data from CPE yet') . ' - ';
+                        $SignalGraphs .= $GraphRefreshCPEButton;
+                        $SignalGraphs .= wf_tag('div', true);
+                    }
+
+                    $result.= wf_Spoiler($SignalGraphs, __('Signal levels history graphs'), true);
+
+                    $result.= wf_tag('script', false, '', 'type="text/javascript"');
+                    $result.= '
+                                function CPESignalRefresh(MACCPE, IPCPE, CMCPE) {                                    
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "?module=mtsigmon",
+                                        data: {IndividualRefresh:true, cpeMAC:MACCPE, cpeIP:IPCPE, cpeCommunity:CMCPE},
+                                        success: function(result) {                                            
+                                            try {
+                                                var jsonObj = $.parseJSON(result);
+                                                $(\'#CPESignal1\').html(jsonObj.SignalLevel);
+                                                $(\'#CPESignalPollDT1\').html("' . __('Cache state at time') . ':  " + ' . 'jsonObj.LastPollDate);                                                
+                                            } catch (e) {
+                                               return false;
+                                            }
+                                        }
+                                    });
+                                }
+                                
+                                function APSignalRefresh(APID, MACCPE) {                        
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "?module=mtsigmon",
+                                        data: {IndividualRefresh:true, apid:APID, cpeMAC:MACCPE},
+                                        success: function(result) {
+                                            try {
+                                                var jsonObj = $.parseJSON(result);
+                                                $(\'#APSignal1\').html(jsonObj.SignalLevel);
+                                                $(\'#APSignalPollDT1\').html("' . __('Cache state at time') . ':  " + ' . 'jsonObj.LastPollDate);
+                                            } catch (e) {
+                                               return false;
+                                            }
+                                        }
+                                    });
+                                };
+                                
+                                function SignalGraphRefresh(CPEMAC, FromAP = false, ShowTitle = false, ShowXLabel = false, ShowYLabel = false, ShowRangeSelector = false, ReturnInSpoiler = false) {                        
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "?module=mtsigmon",
+                                        data: { IndividualRefresh:true, 
+                                                getGraphs:true,
+                                                cpeMAC:CPEMAC,
+                                                fromAP:FromAP,
+                                                showTitle:ShowTitle,
+                                                showXLabel:ShowXLabel,
+                                                showYLabel:ShowYLabel,
+                                                showRangeSelector:ShowRangeSelector,
+                                                returnInSpoiler:ReturnInSpoiler
+                                              },
+                                        success: function(result) {                                            
+                                            if (empty(result)) {return false;}
+                                            
+                                            if (FromAP) {
+                                                if (ReturnInSpoiler) {
+                                                    $(\'#NoAPDataBlck1\').replaceWith(result);
+                                                } else {
+                                                    $(\'#APGraphUpd1\').parentsUntil(".spoiler").next(".spoiler_body").html(result);
+                                                }
+                                            } else {
+                                                if (ReturnInSpoiler) {
+                                                    $(\'#NoCPEDataBlck1\').replaceWith(result);
+                                                } else {                                                    
+                                                    $(\'#CPEGraphUpd1\').parentsUntil(".spoiler").next(".spoiler_body").html(result);
+                                                }
+                                            }
+                                        }
+                                    });
+                                };
+                                                                
+                                function empty (mixed_var) {
+                                 // version: 909.322
+                                 // discuss at: http://phpjs.org/functions/empty
+                                 var key;
+                                 if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+                                  return true;
+                                 }
+                                 if (typeof mixed_var == \'object\') {
+                                  for (key in mixed_var) {
+                                   return false;
+                                  }
+                                  return true;
+                                 }
+                                 return false;
+                                }
+                                ';
+                    $result.= wf_tag('script', true);
                 }
             } else {
                 $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $assignedCpeId . ']', 'error');
