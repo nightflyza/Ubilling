@@ -14,7 +14,7 @@ if (cfr('WCPE')) {
 //creating new CPE
         if (wf_CheckPost(array('createnewcpe', 'newcpemodelid'))) {
             $newCpeBridge = (wf_CheckPost(array('newcpebridge'))) ? true : false;
-            $creationResult = $wcpe->createCPE($_POST['newcpemodelid'], $_POST['newcpeip'], $_POST['newcpemac'], $_POST['newcpelocation'], $newCpeBridge, $_POST['newcpeuplinkapid'], $_POST['newcpegeo']);
+            $creationResult = $wcpe->createCPE($_POST['newcpemodelid'], $_POST['newcpeip'], $_POST['newcpemac'], $_POST['newcpesnmp'], $_POST['newcpelocation'], $newCpeBridge, $_POST['newcpeuplinkapid'], $_POST['newcpegeo']);
             if (empty($creationResult)) {
                 $newCreatedCpeId = simple_get_lastid('wcpedevices');
                 if (wf_CheckPost(array('assignoncreate'))) {
@@ -92,6 +92,15 @@ if (cfr('WCPE')) {
             //map rendering here
             show_window('', $wcpe->panel());
             show_window(__('Map'), $wcpe->renderDevicesMap());
+        }
+
+        if (wf_CheckGet(array('renderCreateForm'))) {
+            if (wf_CheckGet(array('renderDynamically')) && wf_getBoolFromVar($_GET['renderDynamically'], true)) {
+                $CPECreateForm = $wcpe->renderCPECreateForm($_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID']);
+                die(wf_modalAutoForm(__('Create new CPE'), $CPECreateForm, $_GET['ModalWID'], $_GET['ModalWBID'], true));
+            } else {
+                die($wcpe->renderCPECreateForm($_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID']));
+            }
         }
     } else {
         show_error(__('This module is disabled'));

@@ -2667,7 +2667,7 @@ $lang['def']['Some users is assigned to this CPE'] = 'Какие-то польз
 $lang['def']['Users WiFi equipment'] = 'Пользовательское WiFi оборудование';
 $lang['def']['Navigate to AP'] = 'Перейти к AP';
 $lang['def']['Taken from the user, because the router mode is used'] = 'Показаны пользовательские, поскольку используется режим роутера и не заполнены иные';
-$lang['def']['Assign user WiFi equipment'] = 'Присвоить пользователю WiFi оборудование';
+$lang['def']['Assign WiFi equipment to user'] = 'Присвоить WiFi оборудование пользователю';
 $lang['def']['right to control WiFi CPE'] = 'Право управлять пользовательским WiFi оборудованием';
 $lang['def']['WiFi equipment'] = 'WiFi оборудование';
 $lang['def']['Devices are not polled yet'] = 'Устройства еще не опрошены';
@@ -2777,11 +2777,21 @@ $lang['def']['contains'] = 'содержит';
 $lang['def']['Real Name contains'] = 'Ф.И.О. содержит';
 $lang['def']['right to use SMSZilla atomic breath'] = 'Право использовать атомное дыхание SMSZill-ы';
 $lang['def']['Oh no'] = 'Божечки кошечки';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-
-
-
+$lang['def']['Signal level on AP'] = 'Уровень сигнала на AP';
+$lang['def']['Signal level on CPE'] = 'Уровень сигнала на CPE';
+$lang['def']['Refresh data for this CPE'] = 'Обновить данные для данной CPE';
+$lang['def']['Signal levels history graphs'] = 'Графики истории уровней сигнала';
+$lang['def']['Signal data from AP'] = 'Данные уровней сигнала с AP';
+$lang['def']['Signal data from CPE'] = 'Данные уровней сигнала с CPE';
+$lang['def']['Monthly graph'] = 'График за месяц';
+$lang['def']['All time graph'] = 'График за все время';
+$lang['def']['Do not assign WiFi equipment to any user'] = 'Не присваивать WiFi оборудование какому-либо пользователю';
+$lang['def']['Device is not polled yet'] = 'Устройство еще не опрашивалось';
+$lang['def']['No data from AP yet'] = 'Данных с AP еще нет';
+$lang['def']['No data from CPE yet'] = 'Данных с CPE еще нет';
+$lang['def']['Update'] = 'Обновить';
+$lang['def']['Refresh'] = 'Обновить';
+$lang['def']['Data'] = 'Данные';
+$lang['def']['data'] = 'данные';
 
 ?>
