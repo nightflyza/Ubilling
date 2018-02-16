@@ -655,6 +655,38 @@ function wf_CheckGet($params) {
 }
 
 /**
+ * Returns boolean representation of variable like boolval() in PHP 5.5+
+ * but also can check if variable contains strings 'true' and 'false'
+ * and return appropriate value
+ *
+ * @param mixed $Variable
+ * @param bool $CheckAsTrueFalseStr
+ *
+ * @return bool
+ */
+function wf_getBoolFromVar($Variable, $CheckAsTrueFalseStr = false) {
+    if ( isset($Variable) ) {
+        if ( empty($Variable) ) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    if( $CheckAsTrueFalseStr) {
+        if (strtolower($Variable) === 'true' || strtolower($Variable) === '1') {
+            return true;
+        }
+
+        if (strtolower($Variable) === 'false' || strtolower($Variable) === '0') {
+            return false;
+        }
+    } else {
+        return !!$Variable;
+    }
+}
+
+/**
  * Construct HTML table row element
  * 
  * @param string $cells table row cells
@@ -973,6 +1005,55 @@ $(function() {
 ';
 
     return($dialog);
+}
+
+/**
+ * Returns link that calls new modal window with automatic dimensions by inner content and without "opener" object
+ *
+ * @param string $Title
+ * @param string $Content
+ * @param string $WindowID
+ * @param string $WindowBodyID
+ * @param bool $DestroyOnClose
+ *
+ * @return string
+ */
+function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', $DestroyOnClose = false) {
+    $WID  = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
+    $WBID = (empty($WindowBodyID)) ? 'body_dialog-modal_' . wf_inputid() : $WindowBodyID;
+
+    $DestroyParams = '';
+    if ($DestroyOnClose) {
+        $DestroyParams = ', 
+                            close: function(event, ui) { 
+                                $(\'#' . $WID . '\').dialog("destroy");
+                                $(\'#' . $WID . '\').remove();
+                                $(\'#script_' . $WID . '\').remove();
+                          }
+                         ';
+    }
+
+    $Dialog = wf_tag('script', false, '', 'type="text/javascript" id="script_' . $WID . '"');
+    $Dialog .= ' 
+                $(function() {   
+                    $(\'#' . $WID . '\').dialog({
+                        autoOpen: false,
+                        width: \'auto\',
+                        height: \'auto\',
+                        modal: true,
+                        show: "drop",
+                        hide: "fold"' . $DestroyParams . '
+                    });
+                });
+                ';
+    $Dialog .= wf_tag('script', true);
+    $Dialog .= '
+                <div id="' . $WID . '" title="' . $Title . '" style="display:none; width:1px; height:1px;">
+	                <p id="' . $WBID . '">' . $Content . '</p>                
+                </div>
+                ';
+
+    return $Dialog;
 }
 
 /**
@@ -1522,7 +1603,7 @@ $(function() {
  * 
  * @return string
  */
-function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
+function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
     $data = trim($data);
@@ -1539,14 +1620,19 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
         }
         $cleandata = mb_substr($cleandata, 0, -2, 'utf-8');
     }
-
+    //style="width: 98%; "
     $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
     $result.= wf_tag('script', false, '', 'type="text/javascript"');
     $result.= $objectId . ' = new Dygraph(';
     $result.= 'document.getElementById("' . $randomId . '"),' . "\n";
     $result.= $cleandata;
 
-    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+    $result.= ', {  errorBars: ' . $errorbars;
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle .'\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel .'\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel .'\'' : '';
+    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result.=   ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -1564,7 +1650,7 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
  * 
  * @return string
  */
-function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false) {
+function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
 
@@ -1580,7 +1666,12 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result.= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
 
 
-    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+    $result.= ', {  errorBars: ' . $errorbars;
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle .'\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel .'\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel .'\'' : '';
+    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result.=   ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -2196,6 +2287,73 @@ function wf_BackLink($url, $title = '', $br = false, $class = 'ubButton') {
 function wf_FormDisabler() {
     $result = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/form-disabler.js"') . wf_tag('script', true);
     return ($result);
+}
+
+/**
+ * Returns spoiler control with specified options
+ *
+ * @param string $Content
+ * @param string $Title
+ * @param bool $Closed
+ * @param string $SpoilerID
+ * @param string $OuterDivClass
+ * @param string $OuterDivOptions
+ * @param string $InnerDivClass
+ * @param string $InnerDivOptions
+ *
+ * @return string
+ */
+function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $OuterDivClass = '', $OuterDivOptions = '', $InnerDivClass = '', $InnerDivOptions = '') {
+    if ( empty($SpoilerID ) ) { $SpoilerID = 'spoiler_' . wf_InputId(); }
+    $SpoilerLnkID   = 'lnk_' .  wf_InputId();
+    $SpoilerBodyID  = 'spbody_' .  wf_InputId();
+    $SpoilerStateID = 'spstate_' . wf_InputId();
+    $SpoilerState   = ($Closed) ? '▼' : '▲';
+
+    //$ubngStrPos = strpos(CUR_SKIN_PATH, 'ubng');
+
+    $OuterDivClass   = 'spoiler clearfix ' . $OuterDivClass;
+    $OuterDivOptions = ' id="' . $SpoilerID . '" ' . $OuterDivOptions;
+
+    $InnerDivClass   = 'spoiler_body ' . $InnerDivClass;
+    $InnerDivOptions = ' id="' . $SpoilerBodyID . '" ' . $InnerDivOptions;
+
+    $Result = wf_tag('div', false, $OuterDivClass, $OuterDivOptions);
+        $Result .= wf_tag('div', false, 'spoiler_title clearfix');
+            //$Result .= '<a id="' . $SpoilerLnkID . '" class="spoiler_link" href="#">';
+            $Result .= '<span id="' . $SpoilerLnkID . '" class="spoiler_link">';
+            $Result .= wf_tag('h3', false, '', '');
+                $Result .= $Title;
+            $Result .= wf_tag('h3', true);
+            //$Result .= $SpoilerState . '</a>' . "\n";
+            $Result .= '<span id="'. $SpoilerStateID . '">' . $SpoilerState . '</span>';
+            $Result .= '</span>' . "\n";
+            $Result .= wf_tag('div', true);
+            $Result .= wf_tag('div', false, $InnerDivClass, $InnerDivOptions);
+            $Result .= $Content;
+        $Result .= wf_tag('div', true);
+    $Result .= wf_tag('div', true);
+
+    $Result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $Result .= '$(\'#' . $SpoilerLnkID . '\').click(function() {
+                    $(\'#' . $SpoilerBodyID . '\').toggleClass("spoiler_closed");
+                    
+                    if ( $(\'#' . $SpoilerBodyID . '\').hasClass("spoiler_closed") ) {
+                        $(\'#' . $SpoilerBodyID . '\').slideUp(\'50\');
+                        $(\'#' . $SpoilerStateID . '\').html(\'▼\');                        
+                    } else {
+                        $(\'#' . $SpoilerBodyID . '\').slideDown(\'50\');
+                        $(\'#' . $SpoilerStateID . '\').html(\'▲\');
+                    }
+                    
+                    return false;
+                });';
+
+    //$Result .= ($Closed) ? '$(\'#' . $SpoilerBodyID . '\').css("display", "none").toggleClass("spoiler_closed");' : '';
+    $Result .= ($Closed) ? '$(\'#' . $SpoilerBodyID . '\').slideUp(\'50\').toggleClass("spoiler_closed");' : '';
+    $Result .= wf_tag('script', true);
+
+    return $Result;
 }
 
 /**

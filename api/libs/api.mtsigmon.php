@@ -82,12 +82,21 @@ class MTsigmon {
      */
     protected $EnableQuickAPLinks = false;
 
+    /**
+     * Placeholder for UbillingConfig object instance
+     *
+     * @var object
+     */
+    protected $ubillingConfig = null;
+
+
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
+    const CPE_SIG_PATH = 'content/documents/wifi_cpe_sig_hist/';
 
     public function __construct() {
-        $ubillingConfig = new UbillingConfig();
-        $alter_config = $ubillingConfig->getAlter();
+        $this->ubillingConfig = new UbillingConfig();
+        $alter_config = $this->ubillingConfig->getAlter();
         $this->EnableQuickAPLinks = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
 
         $this->LoadUsersData();
@@ -206,17 +215,156 @@ class MTsigmon {
     }
 
     /**
+     * Performs getting string representation of AP/CPE devices signal levels from cache.
+     * Can re-poll the devices, before taking data from cache, to get the most fresh values.
+     * IP and SNMP community for AP is taken from APs dictionary.
+     * For an individual CPE - IP and SNMP community must be given as a parameter
+     *
+     * @param string $WiFiCPEMAC
+     * @param string $WiFiAPID
+     * @param string $WiFiCPEIP
+     * @param string $WiFiCPECommunity
+     * @param bool $GetFromAP
+     * @param bool $Repoll
+     *
+     * @return string
+    */
+    public function getCPESignalData($WiFiCPEMAC, $WiFiAPID = '', $WiFiCPEIP = '', $WiFiCPECommunity = 'public', $GetFromAP = false, $Repoll = false) {
+        if ( empty($WiFiCPEMAC) or (empty($WiFiAPID) and empty($WiFiCPEIP)) ) {
+            return array();
+        }
+
+        $BillCfg = $this->ubillingConfig->getBilling();
+
+        if ($GetFromAP) {
+            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
+
+            if ($Repoll and !empty($WiFiAPID)) { $this->MTDevicesPolling(false, $WiFiAPID); }
+
+        } else {
+            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
+
+            if ($Repoll and !empty($WiFiCPEIP)) { $this->deviceQuery(0, $WiFiCPEIP, $WiFiCPEMAC, $WiFiCPECommunity); }
+        }
+
+        if (file_exists($HistoryFile)) {
+            //$GREPString = ( empty($GREPBy) ) ? '' : ' | ' . $BillCfg['GREP'] . ' ' . $GREPBy;
+            //$RawDataLastLine = strstr(shell_exec($GetDataCmd), "\n", true);
+
+            $GetDataCmd = $BillCfg['TAIL'] . ' -n 1 ' . $HistoryFile;
+            $RawDataLastLine = shell_exec($GetDataCmd);
+            $LastLineArray = explode(',', trim($RawDataLastLine));
+
+            $LastPollDate = $LastLineArray[0];
+            $SignalRX = $LastLineArray[1];
+            $SignalTX = (empty($LastLineArray[2])) ? '' : ' / ' . $LastLineArray[2];
+            $SignalLevel = $SignalRX . $SignalTX;
+
+            if ($SignalLevel < -79) {
+                $SignalLevel = wf_tag('font', false, '', 'color="#900000" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
+            } elseif ($SignalLevel > -80 and $SignalLevel < -74) {
+                $SignalLevel = wf_tag('font', false, '', 'color="#FF5500" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
+            } else {
+                $SignalLevel = wf_tag('font', false, '', 'color="#006600" style="font-weight: 700"') . $SignalLevel. wf_tag('font', true);
+            }
+
+            //return ( wf_CheckGet(array('cpeMAC')) ) ? array("LastPollDate" => $LastPollDate, "SignalLevel" => $SignalLevel) : array($LastPollDate, $SignalLevel);
+            return ( $Repoll ) ? array("LastPollDate" => $LastPollDate, "SignalLevel" => $SignalLevel) : array($LastPollDate, $SignalLevel);
+        }
+    }
+
+    /**
+     * Renders signal graphs for specified CPE if there are some history data already
+     * Returns ready-to-use piece of HTML
+     *
+     * @param string $WiFiCPEMAC
+     * @param bool $FromAP
+     * @param bool $ShowTitle
+     * @param bool $ShowXLabel
+     * @param bool $ShowYLabel
+     * @param bool $ShowRangeSelector
+     * @return string
+     */
+    public function renderSignalGraphs ($WiFiCPEMAC, $FromAP = false, $ShowTitle = false, $ShowXLabel = false, $ShowYLabel = false, $ShowRangeSelector = false) {
+        $result = '';
+        $BillCfg = $this->ubillingConfig->getBilling();
+
+        if ($FromAP) {
+            // get signal data on AP for this CPE
+            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
+        } else {
+            // get signal data for this CPE itself
+            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
+        }
+
+        if (file_exists($HistoryFile )) {
+            $curdate = curdate();
+            $curmonth = curmonth() . '-';
+            $getMonthDataCmd = $BillCfg['CAT'] . ' ' . $HistoryFile . ' | ' . $BillCfg['GREP'] . ' ' . $curmonth;
+            $rawData = shell_exec($getMonthDataCmd);
+            $result .= wf_delimiter();
+
+            $todaySignal = '';
+            if (!empty($rawData)) {
+                $todayTmp = explodeRows($rawData);
+                if (!empty($todayTmp)) {
+                    //$todaySignal = 'Date, Signal,' . "\n";
+
+                    foreach ($todayTmp as $io => $each) {
+                        if (ispos($each, $curdate)) {
+                            $todaySignal .= $each . "\n";
+                        }
+                    }
+                }
+            }
+
+            $GraphTitle  = ($ShowTitle)  ? __('Today') : '';
+            $GraphXLabel = ($ShowXLabel) ? __('Time') : '';
+            $GraphYLabel = ($ShowYLabel) ? __('Signal') : '';
+            $result .= wf_Graph($todaySignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            $result .= wf_delimiter(2);
+
+            //current month signal levels
+            $monthSignal = '';
+            $curmonth = curmonth();
+            if (!empty($rawData)) {
+                $monthTmp = explodeRows($rawData);
+                if (!empty($monthTmp)) {
+                    foreach ($monthTmp as $io => $each) {
+                        if (ispos($each, $curmonth)) {
+                            $monthSignal .= $each . "\n";
+                        }
+                    }
+                }
+            }
+
+            $GraphTitle  = ($ShowTitle)  ? __('Monthly graph') : '';
+            $GraphXLabel = ($ShowXLabel) ? __('Date') : '';
+            $result .= wf_Graph($monthSignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            $result .= wf_delimiter(2);
+
+            //all time signal history
+            $GraphTitle  = ($ShowTitle)  ? __('All time graph') : '';
+            $result .= wf_GraphCSV($HistoryFile, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            $result .= wf_delimiter();
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns array of MAC=>Signal data for some MikroTik/UBNT device
      * 
      * @param string $ip
      * @param string $community
      * @return array
      */
-    protected function deviceQuery($mtid) {
-        if (isset($this->allMTSnmp[$mtid]['community'])) {
-            $ip = $this->allMTSnmp[$mtid]['ip'];
-            $community = $this->allMTSnmp[$mtid]['community'];
-            $oid = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
+    protected function deviceQuery($mtid, $WiFiCPEIP = '', $WiFiCPEMAC = '', $WiFiCPECommunity = 'public') {
+        if ( isset($this->allMTSnmp[$mtid]['community']) or (!empty($WiFiCPEIP) and !empty($WiFiCPEMAC)) ) {
+            $ip = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['ip'] : $WiFiCPEIP;
+            $community = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['community'] : $WiFiCPECommunity;
+
+            $oid  = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
             $oid2 = '.1.3.6.1.4.1.14988.1.1.1.2.1.19';  // - TX Signal Strength
             $mask_mac = false;
             $ubnt_shift = 0;
@@ -268,6 +416,7 @@ class MTsigmon {
                 }
             }
 
+            $rssi  = '';
             $rssi2 = '';
             $TXoid = '';
 
@@ -303,16 +452,25 @@ class MTsigmon {
                             $rssi2 = ' / ' . $rssi2;
                         }
 
-                        $result[$mac] = $rssi . $rssi2;
-                        $result_fdb[] = $mac;
+                        if ( empty($WiFiCPEIP) ) {
+                            $result[$mac] = $rssi . $rssi2;
+                            $result_fdb[] = $mac;
+
+                            $HistoryFile = self::CPE_SIG_PATH . md5($mac) . '_AP';
+                        } else { $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE'; }
+
+                        file_put_contents($HistoryFile, curdatetime() . ',' . $rssi . ',' . mb_substr($rssi2, 3) . "\n", FILE_APPEND);
                     }
                 }
             }
-            if ($this->userLogin and $this->userSwitch) {
-                $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
-            } else {
-                $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
-                $this->deviceIdUsersMac[$mtid] = $result_fdb;
+
+            if ( empty($WiFiCPEIP) ) {
+                if ($this->userLogin and $this->userSwitch) {
+                    $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
+                } else {
+                    $this->cache->set(self::CACHE_PREFIX . $mtid, $result, $this->cacheTime);
+                    $this->deviceIdUsersMac[$mtid] = $result_fdb;
+                }
             }
         }
     }
@@ -353,7 +511,19 @@ class MTsigmon {
                                         }
                                      }
                         });
-                    };';
+                    };
+                    ';
+
+        // making an event binding for "DelUserAssignment" button("red cross" near user's login) on "CPE create&assign form"
+        // to be able to create "CPE create&assign form" dynamically and not to put it's content to every "Create CPE" button in JqDt tables
+        // creating of "CPE create&assign form" dynamically reduces the amount of text and page weight dramatically
+        $result.= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
+                            $("[name=assignoncreate]").val("");
+                            $(\'.__UsrAssignBlock\').html("' . __('Do not assign WiFi equipment to any user') . '");
+                            evt.preventDefault();
+                            return false;
+                    });
+                    ';
         $result .= wf_tag('script', true);
 
         $result .= wf_delimiter();
@@ -377,6 +547,8 @@ class MTsigmon {
         $columns[] = ('IP');
         $columns[] = ('MAC');
         $columns[] = __('Signal') . ' (' . __('dBm') . ')';
+        $columns[] = __('Actions');
+
         if (empty($this->allMTDevices) and ! empty($this->userLogin) and empty($this->userSwitch)) {
             $result.= show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
         } elseif (!empty($this->allMTDevices) and ! empty($this->userLogin) and ! empty($this->userSwitch)) {
@@ -456,6 +628,9 @@ class MTsigmon {
         $json = new wf_JqDtHelper();
         if (!empty($MTsigmonData)) {
             $data = array();
+            $WCPE = new WifiCPE();
+            $URL_WCPE = '?module=wcpe';
+
             foreach ($MTsigmonData as $eachmac => $eachsig) {
                 //signal coloring
                 if ($eachsig < -79) {
@@ -477,9 +652,50 @@ class MTsigmon {
                 }
                 
                 $userLink = $login ? wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . ' ' . @$this->allUserData[$login]['login'] . '', false) : '';
+                $userLogin = $login ? @$this->allUserData[$login]['login'] : '';
                 $userRealnames = $login ? @$this->allUserData[$login]['realname'] : '';
                 $userTariff = $login ? @$this->allUserData[$login]['Tariff'] : '';
                 $userIP = $login ? @$this->allUserData[$login]['ip'] : '';
+
+                // check if CPE with such MAC exists and create appropriate control
+                $WCPEID = $WCPE->getCPEIDByMAC($eachmac);
+                if ( !empty($WCPEID) ) {
+                    $ActionLnk =  wf_link($URL_WCPE . '&editcpeid=' . $WCPEID, web_edit_icon());
+                } else {
+                    //$createForm = $WCPE->renderCPECreateForm($userLogin, $eachmac, $userIP, $MTid);
+                    //$ActionLnk = wf_modalAuto(web_icon_create(), '', $createForm, '');
+                    $LnkID      = wf_InputId();
+                    $ActionLnk  = wf_tag('a', false, '', 'id="' . $LnkID  . '" href="#" title="' . __('Create new CPE') . '"');
+                    $ActionLnk .= web_icon_create();
+                    $ActionLnk .= wf_tag('a', true);
+                    $ActionLnk .= wf_tag('script', false, '', 'type="text/javascript"');
+                    $ActionLnk .=  '
+                                    $(\'#' . $LnkID . '\').click(function(evt) {
+                                        $.ajax({
+                                            type: "GET",
+                                            url: "' . $URL_WCPE . '",
+                                            data: { 
+                                                    renderCreateForm:true, 
+                                                    renderDynamically:true, 
+                                                    userLogin:"' . $userLogin . '", 
+                                                    wcpeMAC:"' . $eachmac . '",
+                                                    wcpeIP:"' . $userIP . '",
+                                                    wcpeAPID:"' . $MTid . '",
+                                                    ModalWID:"dialog-modal_' . $LnkID . '", 
+                                                    ModalWBID:"body_dialog-modal_' . $LnkID .'"
+                                                   },
+                                            success: function(result) {
+                                                        $(document.body).append(result);
+                                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                                     }
+                                        });
+                
+                                        evt.preventDefault();
+                                        return false;
+                                    });
+                                  ';
+                    $ActionLnk .= wf_tag('script', true);
+                }
 
                 $data[] = $userLink;
                 $data[] = $hlStart . @$this->allUserData[$login]['fulladress'] . $hlEnd;
@@ -488,6 +704,8 @@ class MTsigmon {
                 $data[] = $hlStart . $userIP . $hlEnd;
                 $data[] = $hlStart . $eachmac . $hlEnd;
                 $data[] = $displaysig;
+                $data[] = $ActionLnk;
+
                 $json->addRow($data);
                 unset($data);
             }
