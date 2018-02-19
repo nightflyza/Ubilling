@@ -213,6 +213,20 @@ class SMSZilla {
     protected $smsLenLimit = 160;
 
     /**
+     * Contains all numbers lists names
+     *
+     * @var array
+     */
+    protected $allNumListsNames = array();
+
+    /**
+     * Contains all numbers lists numbers
+     *
+     * @var array
+     */
+    protected $allNumListsNumbers = array();
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -241,6 +255,7 @@ class SMSZilla {
         $this->loadTariffs();
         $this->loadTemplates();
         $this->loadFilters();
+        $this->loadNumLists();
         $this->loadInetTags();
         $this->loadUkvTags();
         $this->loadEmployee();
@@ -616,6 +631,111 @@ class SMSZilla {
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result = $this->messages->getStyledMessage(__('No existing templates available'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Loads existing numberlists from database
+     * 
+     * @return void
+     */
+    protected function loadNumLists() {
+        $query = "SELECT * from `smz_lists`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allNumListsNames[$each['id']] = $each['name'];
+            }
+        }
+
+        $query = "SELECT * from `smz_lists`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allNumListsNumbers[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Renders numlist creation form
+     * 
+     * @return string
+     */
+    public function renderNumListCreateForm() {
+        $result = '';
+        $inputs = wf_TextInput('newnumlistname', __('Name'), '', false, 20) . ' ';
+        $inputs.= wf_Submit(__('Create'));
+        $result.= wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders numlist list with some controls
+     * 
+     * @return string
+     */
+    public function renderNumListsList() {
+        $result = '';
+        if (!empty($this->allNumListsNames)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->allNumListsNames as $io => $each) {
+                $cells = wf_TableCell($io);
+                $cells.= wf_TableCell($each);
+                $actLinks = wf_JSAlert(self::URL_ME . '&numlists=true&deletenumlistid=' . $io, web_delete_icon(), $this->messages->getDeleteAlert());
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
+        }
+        $result.=wf_tag('br');
+        $result.=$this->renderNumListCreateForm();
+        return ($result);
+    }
+
+    /**
+     * Creates new numbers list in database
+     * 
+     * @param string $name
+     * 
+     * @return void/string on error
+     */
+    public function createNumList($name) {
+        $result = '';
+        $nameF = mysql_real_escape_string($name);
+        if (!empty($nameF)) {
+            $query = "INSERT INTO `smz_lists` (`id`,`name`) VALUES ";
+            $query.="(NULL,'" . $nameF . "');";
+            nr_query($query);
+            $newId = simple_get_lastid('smz_lists');
+            log_register('SMSZILLA NUMLIST CREATE [' . $newId . '] `' . $name . '`');
+        } else {
+            $result = __('Oh no') . ': EX_EMPTY_NUMLIST_NAME';
+        }
+    }
+
+    /**
+     * Creates new numbers list in database
+     * 
+     * @param string $name
+     * 
+     * @return void/string on error
+     */
+    public function deleteNumList($numlistId) {
+        $numlistId = vf($numlistId, 3);
+        $result = '';
+        if (isset($this->allNumListsNames[$numlistId])) {
+            $query = "DELETE FROM `smz_lists` WHERE `id`='" . $numlistId . "';";
+            nr_query($query);
+            log_register('SMSZILLA NUMLIST DELETE [' . $numlistId . ']');
+        } else {
+            $result = __('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
         }
         return ($result);
     }

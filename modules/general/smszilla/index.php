@@ -93,7 +93,25 @@ if (cfr('SMSZILLA')) {
 
 //numbers lists management
             if (wf_CheckGet(array('numlists'))) {
-                deb('TODO');
+                //creating new numbers list
+                if (wf_CheckPost(array('newnumlistname'))) {
+                    $numListCreationResult = $smszilla->createNumList($_POST['newnumlistname']);
+                    if (empty($numListCreationResult)) {
+                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                    } else {
+                        show_error($numListCreationResult);
+                    }
+                }
+                if (wf_CheckGet(array('deletenumlistid'))) {
+                    $numListDeletionResult = $smszilla->deleteNumList($_GET['deletenumlistid']);
+                    if (empty($numListDeletionResult)) {
+                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                    } else {
+                        show_error($numListDeletionResult);
+                    }
+                }
+
+                show_window(__('Numbers lists'), $smszilla->renderNumListsList());
             }
         } else {
             show_error(__('This module is disabled'));
