@@ -17,6 +17,13 @@ class SMSZilla {
     protected $allTariffs = array();
 
     /**
+     * Contains available internet tariffs prices
+     *
+     * @var array
+     */
+    protected $allTariffPrices = array();
+
+    /**
      * Contains available cities as cityid=>data
      *
      * @var array
@@ -299,6 +306,7 @@ class SMSZilla {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allTariffs[$each['name']] = $each;
+                $this->allTariffPrices[$each['name']] = $each['Fee'];
             }
         }
     }
@@ -1246,6 +1254,7 @@ class SMSZilla {
                 $result = str_ireplace('{LOGIN}', $this->filteredEntities[$entity]['login'], $result);
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->filteredEntities[$entity]['Tariff'], $result);
+                $result = str_ireplace('{TARIFFPRICE}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
                 $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['Cash'], 2), $result);
