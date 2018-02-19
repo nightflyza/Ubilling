@@ -102,6 +102,8 @@ if (cfr('SMSZILLA')) {
                         show_error($numListCreationResult);
                     }
                 }
+
+                //deleting numlist
                 if (wf_CheckGet(array('deletenumlistid'))) {
                     $numListDeletionResult = $smszilla->deleteNumList($_GET['deletenumlistid']);
                     if (empty($numListDeletionResult)) {
@@ -111,7 +113,18 @@ if (cfr('SMSZILLA')) {
                     }
                 }
 
+                //uploading numbers database
+                if (wf_CheckPost(array('uploadnumlistnumbers', 'newnumslistid'))) {
+                    $smszilla->catchFileUpload();
+                }
+                //rendering ajax reply with numbers list data
+                if (wf_CheckGet(array('ajnums'))) {
+                    $smszilla->ajaxNumbersReply();
+                }
+
                 show_window(__('Numbers lists'), $smszilla->renderNumListsList());
+                show_window(__('Upload'), $smszilla->uploadNumListNumbers());
+                show_window(__('Available numbers'), $smszilla->renderNumsContainer());
             }
         } else {
             show_error(__('This module is disabled'));

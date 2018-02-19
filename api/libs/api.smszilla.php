@@ -237,6 +237,11 @@ class SMSZilla {
     const POOL_PATH = './exports/';
 
     /**
+     * Contains temp files upload path
+     */
+    const UPLOAD_PATH = './exports/';
+
+    /**
      * Creates new SMSZilla instance
      * 
      * @return void
@@ -491,7 +496,9 @@ class SMSZilla {
             'filterukvactive' => 'User is active',
             'filterukvdebtor' => 'Debtors',
             'filterukvtariff' => 'User have tariff',
-            'filterrealname' => 'Real Name contains'
+            'filterrealname' => 'Real Name contains',
+            'filternumlist' => 'Numbers list',
+            'filternumcontain' => 'Notes contains'
         );
 
         $this->directionNames = array(
@@ -649,7 +656,7 @@ class SMSZilla {
             }
         }
 
-        $query = "SELECT * from `smz_lists`";
+        $query = "SELECT * from `smz_nums`";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -734,10 +741,146 @@ class SMSZilla {
             $query = "DELETE FROM `smz_lists` WHERE `id`='" . $numlistId . "';";
             nr_query($query);
             log_register('SMSZILLA NUMLIST DELETE [' . $numlistId . ']');
+            $query = "DELETE FROM `smz_nums` WHERE `numid`='" . $numlistId . "';";
+            nr_query($query);
+            log_register('SMSZILLA NUMLIST FLUSH [' . $numlistId . ']');
         } else {
             $result = __('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
         }
         return ($result);
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function uploadNumListNumbers() {
+        $result = '';
+        if (!empty($this->allNumListsNames)) {
+            $result.= wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
+            $result.= wf_HiddenInput('uploadnumlistnumbers', 'true');
+            $result.=wf_Selector('newnumslistid', $this->allNumListsNames, __('Numbers list'), '', false);
+            $result.= wf_tag('input', false, '', 'id="fileselector" type="file" name="smznumlistcsv"');
+            $result.=wf_Submit('Upload');
+            $result.=wf_tag('form', true);
+            $result.=wf_CleanDiv();
+        } else {
+            $result.=$this->messages->getStyledMessage(__('No existing numbers lists available'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Catches file upload
+     * 
+     * @return string
+     */
+    public function catchFileUpload() {
+        $result = '';
+        $numListId = $_POST['newnumslistid'];
+        $allowedExtensions = array("csv", "txt");
+        $fileAccepted = true;
+        foreach ($_FILES as $file) {
+            if ($file['tmp_name'] > '') {
+                if (@!in_array(end(explode(".", strtolower($file['name']))), $allowedExtensions)) {
+                    $fileAccepted = false;
+                }
+            }
+        }
+
+        if ($fileAccepted) {
+            $newFilename = zb_rand_string(6) . '_smz_nums.dat';
+            $newSavePath = self::UPLOAD_PATH . $newFilename;
+            move_uploaded_file($_FILES['smznumlistcsv']['tmp_name'], $newSavePath);
+            if (file_exists($newSavePath)) {
+                $uploadResult = $this->messages->getStyledMessage(__('Upload complete'), 'success');
+                $result = $newFilename;
+            } else {
+                $uploadResult = $this->messages->getStyledMessage(__('Upload failed'), 'error');
+            }
+        } else {
+            $uploadResult = $this->messages->getStyledMessage(__('Upload failed') . ': EX_WRONG_EXTENSION', 'error');
+        }
+
+        show_window('', $uploadResult);
+        if ($result) {
+            $this->preprocessNumList($result, $numListId);
+        }
+        return ($result);
+    }
+
+    /**
+     * Opens and inserts into database some numbers list data
+     * 
+     * @param string $fileName
+     * @param int $numlistId
+     * 
+     * @return string
+     */
+    protected function preprocessNumList($fileName, $numlistId) {
+        $result = '';
+        $numlistId = vf($numlistId, 3);
+        $count = 0;
+        if (file_exists(self::UPLOAD_PATH . $fileName)) {
+            $fileRawData = file_get_contents(self::UPLOAD_PATH . $fileName);
+            if (!empty($fileRawData)) {
+                $fileRawData = explodeRows($fileRawData);
+                if (!empty($fileRawData)) {
+                    foreach ($fileRawData as $io => $line) {
+                        if (!empty($line)) {
+                            $lineExploded = explode(';', $line);
+                            $newNumber = $this->normalizePhoneFormat($lineExploded[0]);
+                            $newNumber = mysql_real_escape_string($newNumber);
+                            $newNotes = '';
+                            unset($lineExploded[0]);
+                            foreach ($lineExploded as $ia => $nts) {
+                                $newNotes.=$nts . ' ';
+                            }
+                            $newNotes = trim($newNotes);
+                            $newNotes = mysql_real_escape_string($newNotes);
+                            $query = "INSERT INTO `smz_nums` (`id`,`numid`,`mobile`,`notes`) VALUES ";
+                            $query.="(NULL,'" . $numlistId . "','" . $newNumber . "','" . $newNotes . "');";
+                            nr_query($query);
+                            $count++;
+                        }
+                    }
+                    log_register('SMSZILLA NUMLIST UPLOAD [' . $numlistId . '] COUNT `' . $count . '`');
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders numbers list mobiles container
+     * 
+     * @return string
+     */
+    public function renderNumsContainer() {
+        $result = '';
+        $columns = array('ID', 'Numbers list', 'Mobile', 'Notes');
+        $result.=wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100);
+        return ($result);
+    }
+
+    /**
+     * Renders numbers list ajax data tables reply
+     * 
+     * @return void
+     */
+    public function ajaxNumbersReply() {
+        $json = new wf_JqDtHelper();
+        if (!empty($this->allNumListsNumbers)) {
+            foreach ($this->allNumListsNumbers as $io => $each) {
+                $data[] = $each['id'];
+                $data[] = @$this->allNumListsNames[$each['numid']];
+                $data[] = $each['mobile'];
+                $data[] = $each['notes'];
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+        $json->getJson();
     }
 
     /**
@@ -817,7 +960,8 @@ class SMSZilla {
         }
 
 
-        $numListParams = array('' => '-');
+        $numListParams = $this->allNumListsNames;
+
 
         $branchParams = array('' => __('Any'));
         $availBranches = $this->branches->getBranchesAvailable();
@@ -1200,6 +1344,14 @@ class SMSZilla {
                         }
                     }
                     break;
+                case 'numlist':
+                    foreach ($this->filteredEntities as $io => $each) {
+                        $numlistMobile = $this->normalizePhoneFormat($each['mobile']);
+                        if (!empty($numlistMobile)) {
+                            $this->filteredNumbers[$each['id']] = $numlistMobile;
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -1274,7 +1426,7 @@ class SMSZilla {
                         $this->filteredEntities = $this->employee;
                         break;
                     case 'numlist':
-// TODO
+                        $this->filteredEntities = $this->allNumListsNumbers;
                         break;
                 }
 
@@ -1503,6 +1655,29 @@ class SMSZilla {
                             $smsCount = $this->getSmsCount($textLen);
 
                             $data[] = $employeeLink;
+                            $data[] = $number;
+                            $data[] = $messageText;
+                            $data[] = $textLen;
+                            $data[] = $smsCount;
+                            $json->addRow($data);
+                            unset($data);
+
+//pushing some messages into queue
+                            if ($realSending) {
+                                $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                            }
+                        }
+                    }
+                    break;
+                case 'numlist':
+                    foreach ($this->filteredNumbers as $entityId => $number) {
+                        if (!empty($number)) {
+                            $numId = $entityId;
+                            $messageText = $this->generateSmsText($templateId, $numId, $forceTranslit);
+                            $textLen = mb_strlen($messageText, 'utf-8');
+                            $smsCount = $this->getSmsCount($textLen);
+
+                            $data[] = $this->allNumListsNumbers[$numId]['notes'];
                             $data[] = $number;
                             $data[] = $messageText;
                             $data[] = $textLen;
@@ -1934,6 +2109,54 @@ class SMSZilla {
                     case 'ukv':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['tariffid'] != $param) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Numlist ID filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternumlist($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'numlist':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['numid'] != $param) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Numlist notes filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternumcontain($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'numlist':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['notes'], $param)) {
                                 unset($this->filteredEntities[$entity['id']]);
                             }
                         }
