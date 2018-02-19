@@ -755,11 +755,13 @@ class PONizer {
 
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
-
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+
                             $macIndex = explodeRows($macIndex);
+
                             $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+
 
                             //ONU distance polling for bdcom devices
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {

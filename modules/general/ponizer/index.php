@@ -1,6 +1,7 @@
 <?php
 
 $altCfg = $ubillingConfig->getAlter();
+set_time_limit(0);
 
 if ($altCfg['PON_ENABLED']) {
     if (cfr('PON')) {
