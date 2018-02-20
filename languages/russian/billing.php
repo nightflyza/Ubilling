@@ -2793,5 +2793,11 @@ $lang['def']['Update'] = 'Обновить';
 $lang['def']['Refresh'] = 'Обновить';
 $lang['def']['Data'] = 'Данные';
 $lang['def']['data'] = 'данные';
+$lang['def']['Available numbers database'] = 'Базы номеров в наличии';
+$lang['def']['Excludes'] = 'Исключения';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
+
 
 ?>

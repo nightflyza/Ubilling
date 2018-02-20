@@ -679,6 +679,41 @@ class SMSZilla {
     }
 
     /**
+     * Renders numeric list editing form
+     * 
+     * @param int $numlistId
+     * 
+     * @return string
+     */
+    public function renderNumListEditForm($numlistId) {
+        $result = '';
+        $numlistId = vf($numlistId, 3);
+        if (isset($this->allNumListsNames[$numlistId])) {
+            $inputs = wf_HiddenInput('editnumlistid', $numlistId);
+            $inputs.= wf_TextInput('editnumlistname', __('Name'), $this->allNumListsNames[$numlistId], true, '20');
+            $inputs.=wf_Submit(__('Save'));
+            $result.=wf_Form(self::URL_ME . '&numlists=true', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves numlist name changes into database
+     * 
+     * @param int $numlistId
+     * @param string $numlistName
+     * 
+     * @return void
+     */
+    public function saveNumList($numlistId, $numlistName) {
+        $numlistId = vf($numlistId, 3);
+        if (isset($this->allNumListsNames[$numlistId])) {
+            simple_update_field('smz_lists', 'name', $numlistName, "WHERE `id`='" . $numlistId . "';");
+            log_register('SMSZILLA NUMLIST CHANGE [' . $numlistId . '] `' . $numlistName . '`');
+        }
+    }
+
+    /**
      * Renders numlist list with some controls
      * 
      * @return string
@@ -693,7 +728,8 @@ class SMSZilla {
             foreach ($this->allNumListsNames as $io => $each) {
                 $cells = wf_TableCell($io);
                 $cells.= wf_TableCell($each);
-                $actLinks = wf_JSAlert(self::URL_ME . '&numlists=true&deletenumlistid=' . $io, web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlert(self::URL_ME . '&numlists=true&deletenumlistid=' . $io, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_JSAlert(self::URL_ME . '&numlists=true&editnumlistid=' . $io, web_edit_icon(), $this->messages->getEditAlert());
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -893,7 +929,8 @@ class SMSZilla {
         $result.=wf_Link(self::URL_ME . '&sending=true', wf_img('skins/icon_sms_micro.gif') . ' ' . __('SMS sending'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&templates=true', wf_img('skins/icon_template.png') . ' ' . __('Templates'), false, 'ubButton') . ' ';
         $result.=wf_Link(self::URL_ME . '&filters=true', web_icon_extended() . ' ' . __('Filters'), false, 'ubButton') . ' ';
-        $result.=wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), true, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&numlists=true', wf_img('skins/icon_mobile.gif') . ' ' . __('Numbers lists'), false, 'ubButton') . ' ';
+        $result.=wf_Link(self::URL_ME . '&excludes=true', wf_img('skins/icon_deleterow.png') . ' ' . __('Excludes'), true, 'ubButton') . ' ';
         if (wf_CheckGet(array('templates'))) {
             $result.=wf_tag('br');
             if (wf_CheckGet(array('edittemplate'))) {
@@ -1252,6 +1289,9 @@ class SMSZilla {
             $result.=wf_Form(self::URL_ME . '&sending=true', 'POST', $inputs, 'glamour');
         } else {
             $result.=$this->messages->getStyledMessage(__('No existing templates or filters available'), 'warning');
+            $result.=wf_CleanDiv();
+            $result.=wf_delimiter();
+            $result.=wf_tag('center') . wf_img('skins/gojiracry.jpg') . wf_tag('center', true);
         }
         return ($result);
     }

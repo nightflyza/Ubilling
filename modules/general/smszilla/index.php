@@ -122,9 +122,22 @@ if (cfr('SMSZILLA')) {
                     $smszilla->ajaxNumbersReply();
                 }
 
-                show_window(__('Numbers lists'), $smszilla->renderNumListsList());
-                show_window(__('Upload'), $smszilla->uploadNumListNumbers());
-                show_window(__('Available numbers'), $smszilla->renderNumsContainer());
+                //editing existing numlist
+                if (wf_CheckPost(array('editnumlistid', 'editnumlistname'))) {
+                    $smszilla->saveNumList($_POST['editnumlistid'], $_POST['editnumlistname']);
+                    rcms_redirect($smszilla::URL_ME . '&numlists=true&editnumlistid=' . $_POST['editnumlistid']);
+                }
+
+                if (wf_CheckGet(array('editnumlistid'))) {
+                    //existing numlist edit forms
+                    show_window('', wf_BackLink($smszilla::URL_ME . '&numlists=true'));
+                    show_window(__('Edit'), $smszilla->renderNumListEditForm($_GET['editnumlistid']));
+                } else {
+                    //rendering numlists
+                    show_window(__('Numbers lists'), $smszilla->renderNumListsList());
+                    show_window(__('Upload'), $smszilla->uploadNumListNumbers());
+                    show_window(__('Available numbers database'), $smszilla->renderNumsContainer());
+                }
             }
         } else {
             show_error(__('This module is disabled'));
