@@ -227,7 +227,7 @@ class SMSZilla {
     protected $allNumListsNumbers = array();
 
     /**
-     * Contains excludes numbers
+     * Contains excludes numbers as mobile=>id
      *
      * @var array
      */
@@ -698,11 +698,13 @@ class SMSZilla {
     public function createExclude($mobileNum) {
         $mobileNumF = mysql_real_escape_string($mobileNum);
         if (!empty($mobileNumF)) {
-            $query = "INSERT INTO `smz_excl` (`id`,`mobile`) VALUES ";
-            $query.="(NULL,'" . $mobileNumF . "');";
-            nr_query($query);
-            $newId = simple_get_lastid('smz_excl');
-            log_register('SMSZILLA EXCLUDE CREATE [' . $newId . '] `' . $mobileNum . '`');
+            if (!isset($this->excludeNumbers[$mobileNumF])) {
+                $query = "INSERT INTO `smz_excl` (`id`,`mobile`) VALUES ";
+                $query.="(NULL,'" . $mobileNumF . "');";
+                nr_query($query);
+                $newId = simple_get_lastid('smz_excl');
+                log_register('SMSZILLA EXCLUDE CREATE [' . $newId . '] `' . $mobileNum . '`');
+            }
         }
     }
 
@@ -989,9 +991,9 @@ class SMSZilla {
             foreach ($this->excludeNumbers as $io => $each) {
                 $cells = wf_TableCell($each);
                 $cells.= wf_TableCell($io);
-                $actLinks = wf_JSAlertStyled(self::URL_ME . '&excludes=true&deleteexclnumid='.$each, web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlertStyled(self::URL_ME . '&excludes=true&deleteexclnumid=' . $each, web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
             $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
@@ -1443,7 +1445,7 @@ class SMSZilla {
                     foreach ($this->filteredEntities as $io => $each) {
                         $userLogin = $each['login'];
                         $primaryMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if (!empty($primaryMobile)) {
+                        if ((!empty($primaryMobile) AND ( !isset($this->excludeNumbers[$primaryMobile])))) {
                             $this->filteredNumbers[$userLogin][] = $primaryMobile;
                         }
 
@@ -1452,7 +1454,7 @@ class SMSZilla {
                             if (!empty($userExtMobiles)) {
                                 foreach ($userExtMobiles as $ia => $eachExt) {
                                     $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
-                                    if (!empty($additionalMobile)) {
+                                    if ((!empty($additionalMobile)) AND ( !isset($this->excludeNumbers[$additionalMobile]))) {
                                         $this->filteredNumbers[$userLogin][] = $additionalMobile;
                                     }
                                 }
@@ -1464,7 +1466,7 @@ class SMSZilla {
                 case 'ukv':
                     foreach ($this->filteredEntities as $io => $each) {
                         $userPrimaryMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if (!empty($userPrimaryMobile)) {
+                        if ((!empty($userPrimaryMobile)) AND ( !isset($this->excludeNumbers[$userPrimaryMobile]))) {
                             $this->filteredNumbers[$each['id']] = $userPrimaryMobile;
                         }
                     }
@@ -1473,7 +1475,7 @@ class SMSZilla {
                 case 'employee':
                     foreach ($this->filteredEntities as $io => $each) {
                         $employeeMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if (!empty($employeeMobile)) {
+                        if ((!empty($employeeMobile) AND ( !isset($this->excludeNumbers[$employeeMobile])))) {
                             $this->filteredNumbers[$each['id']] = $employeeMobile;
                         }
                     }
@@ -1481,7 +1483,7 @@ class SMSZilla {
                 case 'numlist':
                     foreach ($this->filteredEntities as $io => $each) {
                         $numlistMobile = $this->normalizePhoneFormat($each['mobile']);
-                        if (!empty($numlistMobile)) {
+                        if ((!empty($numlistMobile) AND ( !isset($this->excludeNumbers[$numlistMobile])))) {
                             $this->filteredNumbers[$each['id']] = $numlistMobile;
                         }
                     }
@@ -1502,6 +1504,11 @@ class SMSZilla {
         $this->filterStats[$filterName] = $entityCount;
     }
 
+    /**
+     * Renders some filtered processing stats and charts
+     * 
+     * @return string
+     */
     protected function renderFilterStats() {
         $result = '';
         $params = array();
