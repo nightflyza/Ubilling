@@ -2795,7 +2795,7 @@ $lang['def']['Data'] = 'Данные';
 $lang['def']['data'] = 'данные';
 $lang['def']['Available numbers database'] = 'Базы номеров в наличии';
 $lang['def']['Excludes'] = 'Исключения';
-$lang['def'][''] = '';
+$lang['def']['No existing numbers lists available'] = 'Нету существующих списков номеров';
 $lang['def'][''] = '';
 
 

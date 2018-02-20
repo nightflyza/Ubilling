@@ -128,6 +128,22 @@ if (cfr('SMSZILLA')) {
                     rcms_redirect($smszilla::URL_ME . '&numlists=true&editnumlistid=' . $_POST['editnumlistid']);
                 }
 
+                //deleting some single number
+                if (wf_CheckGet(array('deletenumid'))) {
+                    $smszilla->deleteNumlistNumber($_GET['deletenumid']);
+                    rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                }
+
+                //creating single number
+                if (wf_CheckPost(array('newsinglenumlistid', 'newsinglenumlistmobile'))) {
+                    $singNumCreationResult = $smszilla->createNumlistSingleNumber($_POST['newsinglenumlistid'], $_POST['newsinglenumlistmobile'], @$_POST['newsinglenumlistnotes']);
+                    if (empty($singNumCreationResult)) {
+                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                    } else {
+                        show_error($singNumCreationResult);
+                    }
+                }
+
                 if (wf_CheckGet(array('editnumlistid'))) {
                     //existing numlist edit forms
                     show_window('', wf_BackLink($smszilla::URL_ME . '&numlists=true'));
@@ -135,12 +151,13 @@ if (cfr('SMSZILLA')) {
                 } else {
                     //rendering numlists
                     show_window(__('Numbers lists'), $smszilla->renderNumListsList());
-                    show_window(__('Upload'), $smszilla->uploadNumListNumbers());
+                    show_window(__('Upload'), $smszilla->uploadNumListNumbersForm());
+                    show_window(__('Add'), $smszilla->createNumListNumberForm());
                     show_window(__('Available numbers database'), $smszilla->renderNumsContainer());
                 }
             }
 
-            //sending forms, etc
+            //per-number excludes
             if (wf_CheckGet(array('excludes'))) {
                 //creating new excludes
                 if (wf_CheckPost(array('newexcludenumber'))) {
@@ -152,7 +169,7 @@ if (cfr('SMSZILLA')) {
                     $smszilla->deleteExlude($_GET['deleteexclnumid']);
                     rcms_redirect($smszilla::URL_ME . '&excludes=true');
                 }
-                
+
                 //list available exluded numbers base and some forms
                 show_window(__('Create'), $smszilla->renderExcludeCreateForm());
                 show_window(__('Excludes'), $smszilla->renderExcludeNumsList());

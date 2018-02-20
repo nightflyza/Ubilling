@@ -2811,5 +2811,6 @@ $lang['def']['Data'] = 'Дані';
 $lang['def']['data'] = 'дані';
 $lang['def']['Available numbers database'] = 'Існуючі бази номерів';
 $lang['def']['Excludes'] = 'Виключення';
+$lang['def']['No existing numbers lists available'] = 'Немає існуючих списків номерів';
 
 ?>

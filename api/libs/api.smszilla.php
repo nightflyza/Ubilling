@@ -234,6 +234,13 @@ class SMSZilla {
     protected $excludeNumbers = array();
 
     /**
+     * Contains supported macro list for short help
+     *
+     * @var array
+     */
+    protected $supportedMacro = array();
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -515,6 +522,22 @@ class SMSZilla {
             'employee' => 'Employee',
             'numlist' => 'Numbers list'
         );
+
+        $this->supportedMacro = array('{LOGIN}',
+            '{REALNAME}',
+            '{TARIFF}',
+            '{TARIFFPRICE}',
+            '{CREDIT}',
+            '{CASH}',
+            '{ROUNDCASH}',
+            '{IP}',
+            '{MAC}',
+            '{FULLADDRESS}',
+            '{PHONE}',
+            '{MOBILE}',
+            '{CONTRACT}',
+            '{EMAIL}',
+            '{CURDATE}');
     }
 
     /**
@@ -590,7 +613,27 @@ class SMSZilla {
         $inputs.=__('Template') . wf_tag('br');
         $inputs.= wf_TextArea('newtemplatetext', '', '', true, '45x5');
         $inputs.= wf_Submit(__('Create'));
-        $result = wf_Form(self::URL_ME . '&templates=true', 'POST', $inputs, 'glamour');
+        $form = wf_Form(self::URL_ME . '&templates=true', 'POST', $inputs, 'glamour');
+        $cells = wf_TableCell($form, '50%', '', 'valign="top"');
+        $cells.= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
+        $rows = wf_TableRow($cells);
+        $result.=wf_TableBody($rows, '100%', 0);
+        return ($result);
+    }
+
+    /**
+     * Renders supported templating macro short help
+     * 
+     * @return string
+     */
+    protected function renderMacroHelp() {
+        $result = '';
+        if (!empty($this->supportedMacro)) {
+            $result.=wf_tag('b') . __('Available macroses') . wf_tag('b', true) . wf_tag('br');
+            foreach ($this->supportedMacro as $io => $each) {
+                $result.=$each . wf_tag('br');
+            }
+        }
         return ($result);
     }
 
@@ -613,7 +656,12 @@ class SMSZilla {
             $templateSize = mb_strlen($templateData['text'], 'utf-8');
             $inputs.=__('Text size') . ' ~' . $templateSize . wf_tag('br');
             $inputs.= wf_Submit(__('Save'));
-            $result = wf_Form(self::URL_ME . '&templates=true&edittemplate=' . $templateId, 'POST', $inputs, 'glamour');
+            $form = wf_Form(self::URL_ME . '&templates=true&edittemplate=' . $templateId, 'POST', $inputs, 'glamour');
+
+            $cells = wf_TableCell($form, '50%', '', 'valign="top"');
+            $cells.= wf_TableCell($this->renderMacroHelp(), '', '', 'valign="top"');
+            $rows = wf_TableRow($cells);
+            $result.=wf_TableBody($rows, '100%', 0);
         } else {
             $result = $this->messages->getStyledMessage(__('Something went wrong') . ': TEMPLATE_ID_NOT_EXISTS', 'error');
         }
@@ -844,10 +892,28 @@ class SMSZilla {
     }
 
     /**
+     * Renders form for single number addition to number list
      * 
      * @return string
      */
-    public function uploadNumListNumbers() {
+    public function createNumListNumberForm() {
+        $result = '';
+        if (!empty($this->allNumListsNames)) {
+            $inputs = wf_Selector('newsinglenumlistid', $this->allNumListsNames, __('Numbers list'), '', false);
+            $inputs.= wf_TextInput('newsinglenumlistmobile', __('Mobile'), '', false, 15, 'mobile');
+            $inputs.= wf_TextInput('newsinglenumlistnotes', __('Notes'), '', false, 30);
+            $inputs.= wf_Submit(__('Add'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders upload form for some mobile data
+     * 
+     * @return string
+     */
+    public function uploadNumListNumbersForm() {
         $result = '';
         if (!empty($this->allNumListsNames)) {
             $result.= wf_tag('form', false, 'glamour', 'action="" enctype="multipart/form-data" method="POST"');
@@ -859,6 +925,32 @@ class SMSZilla {
             $result.=wf_CleanDiv();
         } else {
             $result.=$this->messages->getStyledMessage(__('No existing numbers lists available'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new numlist phone record in database
+     * 
+     * @param int $numlistId
+     * @param string $mobile
+     * @param string $notes
+     * 
+     * @return void/string on error
+     */
+    public function createNumlistSingleNumber($numlistId, $mobile, $notes) {
+        $result = '';
+        $numlistId = vf($numlistId, 3);
+        if (isset($this->allNumListsNames[$numlistId])) {
+            $mobileF = mysql_real_escape_string($mobile);
+            $notes = mysql_real_escape_string($notes);
+            $query = "INSERT INTO `smz_nums` (`id`,`numid`,`mobile`,`notes`) VALUES ";
+            $query.="(NULL, '" . $numlistId . "','" . $mobileF . "','" . $notes . "');";
+            nr_query($query);
+            $newId = simple_get_lastid('smz_nums');
+            log_register('SMSZILLA NUMLISTNUM CREATE [' . $numlistId . '] MOBILE  `' . $mobile . '`');
+        } else {
+            $result.=__('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
         }
         return ($result);
     }
@@ -937,7 +1029,7 @@ class SMSZilla {
                             $count++;
                         }
                     }
-                    log_register('SMSZILLA NUMLIST UPLOAD [' . $numlistId . '] COUNT `' . $count . '`');
+                    log_register('SMSZILLA NUMLISTNUM UPLOAD [' . $numlistId . '] COUNT `' . $count . '`');
                 }
             }
         }
@@ -951,7 +1043,7 @@ class SMSZilla {
      */
     public function renderNumsContainer() {
         $result = '';
-        $columns = array('ID', 'Numbers list', 'Mobile', 'Notes');
+        $columns = array('ID', 'Numbers list', 'Mobile', 'Notes', 'Actions');
         $result.=wf_JqDtLoader($columns, self::URL_ME . '&numlists=true&ajnums=true', false, __('Mobile'), 100);
         return ($result);
     }
@@ -969,11 +1061,29 @@ class SMSZilla {
                 $data[] = @$this->allNumListsNames[$each['numid']];
                 $data[] = $each['mobile'];
                 $data[] = $each['notes'];
+                $actLinks = wf_JSAlertStyled(self::URL_ME . '&numlists=true&deletenumid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Delete some single numlist mobile number from database
+     * 
+     * @param int $numId
+     * 
+     * @return void
+     */
+    public function deleteNumlistNumber($numId) {
+        $numId = vf($numId, 3);
+        if (isset($this->allNumListsNumbers[$numId])) {
+            $query = "DELETE from `smz_nums` WHERE `id`='" . $numId . "';";
+            nr_query($query);
+            log_register('SMSZILLA NUMLISTNUM DELETE [' . $numId . ']');
+        }
     }
 
     /**
