@@ -139,6 +139,24 @@ if (cfr('SMSZILLA')) {
                     show_window(__('Available numbers database'), $smszilla->renderNumsContainer());
                 }
             }
+
+            //sending forms, etc
+            if (wf_CheckGet(array('excludes'))) {
+                //creating new excludes
+                if (wf_CheckPost(array('newexcludenumber'))) {
+                    $smszilla->createExclude($_POST['newexcludenumber']);
+                    rcms_redirect($smszilla::URL_ME . '&excludes=true');
+                }
+                //deleting existing exclude
+                if (wf_CheckGet(array('deleteexclnumid'))) {
+                    $smszilla->deleteExlude($_GET['deleteexclnumid']);
+                    rcms_redirect($smszilla::URL_ME . '&excludes=true');
+                }
+                
+                //list available exluded numbers base and some forms
+                show_window(__('Create'), $smszilla->renderExcludeCreateForm());
+                show_window(__('Excludes'), $smszilla->renderExcludeNumsList());
+            }
         } else {
             show_error(__('This module is disabled'));
         }

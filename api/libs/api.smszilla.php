@@ -227,6 +227,13 @@ class SMSZilla {
     protected $allNumListsNumbers = array();
 
     /**
+     * Contains excludes numbers
+     *
+     * @var array
+     */
+    protected $excludeNumbers = array();
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -261,6 +268,7 @@ class SMSZilla {
         $this->loadTemplates();
         $this->loadFilters();
         $this->loadNumLists();
+        $this->loadExcludedNumbers();
         $this->loadInetTags();
         $this->loadUkvTags();
         $this->loadEmployee();
@@ -666,6 +674,53 @@ class SMSZilla {
     }
 
     /**
+     * Loads existing excluded numbers from database
+     * 
+     * @return void
+     */
+    protected function loadExcludedNumbers() {
+        $query = "SELECT * from `smz_excl`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->excludeNumbers[$each['mobile']] = $each['id'];
+            }
+        }
+    }
+
+    /**
+     * Creates new mobile exclude in database
+     * 
+     * @param string $mobileNum
+     * 
+     * @return void
+     */
+    public function createExclude($mobileNum) {
+        $mobileNumF = mysql_real_escape_string($mobileNum);
+        if (!empty($mobileNumF)) {
+            $query = "INSERT INTO `smz_excl` (`id`,`mobile`) VALUES ";
+            $query.="(NULL,'" . $mobileNumF . "');";
+            nr_query($query);
+            $newId = simple_get_lastid('smz_excl');
+            log_register('SMSZILLA EXCLUDE CREATE [' . $newId . '] `' . $mobileNum . '`');
+        }
+    }
+
+    /**
+     * Deletes existing excluded number from database
+     * 
+     * @param int $excludeId
+     * 
+     * @return void
+     */
+    public function deleteExlude($excludeId) {
+        $excludeId = vf($excludeId, 3);
+        $query = "DELETE from `smz_excl` WHERE `id`='" . $excludeId . "';";
+        nr_query($query);
+        log_register('SMSZILLA EXCLUDE DELETE [' . $excludeId . ']');
+    }
+
+    /**
      * Renders numlist creation form
      * 
      * @return string
@@ -917,6 +972,45 @@ class SMSZilla {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Renders existing excludes list with some controls
+     * 
+     * @return string
+     */
+    public function renderExcludeNumsList() {
+        $result = '';
+        if (!empty($this->excludeNumbers)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Mobile'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($this->excludeNumbers as $io => $each) {
+                $cells = wf_TableCell($each);
+                $cells.= wf_TableCell($io);
+                $actLinks = wf_JSAlertStyled(self::URL_ME . '&excludes=true&deleteexclnumid='.$each, web_delete_icon(), $this->messages->getDeleteAlert());
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Oh no') . ': ' . __('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders exclude number creation form
+     * 
+     * @return string
+     */
+    public function renderExcludeCreateForm() {
+        $result = '';
+        $inputs = wf_TextInput('newexcludenumber', __('Mobile'), '', false, '20', 'mobile');
+        $inputs.= wf_Submit(__('Create'));
+        $result.=wf_Form(self::URL_ME . '&excludes=true', 'POST', $inputs, 'glamour');
+        return ($result);
     }
 
     /**
