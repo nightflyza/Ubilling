@@ -12,6 +12,7 @@ class remoteLdapBase {
 
     const USER_CREATE = '/create_user';
     const USER_GROUP='/add_member';
+    const USER_GROUP_DEL='/remove_member';
     const USER_DEL = '/remove_user';
     const USER_PASSWD = '/change_passwd';
 
@@ -54,7 +55,13 @@ class remoteLdapBase {
             $tmpArr = json_decode($rawData, true);
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each);
+                    shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $io);
+                    $userGroups=  json_decode($each);
+                    if (!empty($userGroups)) {
+                        foreach ($userGroups as $eachGroup) {
+                            shell_exec(dirname(__FILE__) . self::USER_GROUP_DEL. ' ' . $io.' '.$eachGroup);
+                        }
+                    }
                 }
             }
         }

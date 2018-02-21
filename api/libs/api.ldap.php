@@ -146,6 +146,26 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Check is user login unique or not?
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
+    protected function isUserUnique($login) {
+        $login = trim($login);
+        $result = true;
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['login'] == $login) {
+                    $result = false;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Creates new user in database
      * 
      * @param string $login
@@ -156,13 +176,15 @@ class UbillingLDAPManager {
      */
     public function createUser($login, $password, $groups) {
         $loginF = mysql_real_escape_string($login);
-        $passwordF = mysql_real_escape_string($password);
-        $groupsList = json_encode($groups);
-        $query = "INSERT INTO `ldap_users` (`id`,`login`,`password`,`groups`,`changed`) VALUES ";
-        $query.="(NULL,'" . $loginF . "','" . $passwordF . "','" . $groupsList . "','1');";
-        nr_query($query);
-        $newId = simple_get_lastid('ldap_users');
-        log_register('LDAPMGR USER CREATE `' . $login . '` [' . $newId . ']');
+        if ($this->isUserUnique($loginF)) {
+            $passwordF = mysql_real_escape_string($password);
+            $groupsList = json_encode($groups);
+            $query = "INSERT INTO `ldap_users` (`id`,`login`,`password`,`groups`,`changed`) VALUES ";
+            $query.="(NULL,'" . $loginF . "','" . $passwordF . "','" . $groupsList . "','1');";
+            nr_query($query);
+            $newId = simple_get_lastid('ldap_users');
+            log_register('LDAPMGR USER CREATE `' . $login . '` [' . $newId . ']');
+        }
     }
 
     /**
@@ -194,8 +216,12 @@ class UbillingLDAPManager {
             $query = "DELETE from `ldap_users` WHERE `id`='" . $userId . "';";
             nr_query($query);
             //placing user to remote deletion queue
-            $keyName = 'LDAPDELETEQ_' . zb_rand_string(8);
-            zb_StorageSet($keyName, $userData['login']);
+            $rndKey = zb_rand_string(8);
+            $keyName = 'LDAPDELETEQ_' . $rndKey;
+            $deleteEntry['login'] = $userData['login'];
+            $deleteEntry['groups'] = $userData['groups'];
+            $deleteEntry = json_encode($deleteEntry);
+            zb_StorageSet($keyName, $deleteEntry);
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
         }
@@ -275,8 +301,9 @@ class UbillingLDAPManager {
         if (!empty($queueKeys)) {
             foreach ($queueKeys as $io => $each) {
                 if (isset($each['key'])) {
-                    $userLogin = zb_StorageGet($each['key']);
-                    $tmpArr[] = $userLogin;
+                    $rawData = zb_StorageGet($each['key']);
+                    $rawData = json_decode($rawData, true);
+                    $tmpArr[$rawData['login']] = $rawData['groups'];
                     zb_StorageDelete($each['key']);
                 }
             }
