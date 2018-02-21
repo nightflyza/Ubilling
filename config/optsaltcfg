@@ -231,6 +231,7 @@ DSHAPER_ENABLED=TRIGGER|Dynamic shaper is enabled
 BURST_ENABLED=TRIGGER|Tariffs burst support
 WATCHDOG_ENABLED=TRIGGER|Watchdog enabled
 SENDDOG_ENABLED=TRIGGER|Is SendDog enabled
+SMSZILLA_ENABLED=TRIGGER|Is SMSZilla enabled
 AUTOFREEZE_CASH_LIMIT=VARCHAR|Autofreezing cash limit
 SCREP_ENABLED=TRIGGER|Self credit report
 COMPLEX_ENABLED=TRIGGER|Complex services enabled
@@ -294,6 +295,7 @@ WIFICPE_ENABLED=TRIGGER|Is client side wifi equipment accounting enabled
 RESETHARD=TRIGGER|Hard reset is enabled
 SORM_ENABLED=TRIGGER|SORM integration enabled
 POLLS_ENABLED=TRIGGER|Polls enabled
+LDAPMGR_ENABLED=TRIGGER|Is LDAP manager enabled
 CHAPTEREND_BEH=true
 
 

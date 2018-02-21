@@ -2799,7 +2799,12 @@ $lang['def']['No existing numbers lists available'] = 'Нету существу
 $lang['def']['LDAP manager'] = 'Управление LDAP';
 $lang['def']['Groups'] = 'Группы';
 $lang['def']['No existing groups available'] = 'Нету существующих групп';
-$lang['def'][''] = '';
+$lang['def']['right control LDAP users'] = 'Право управлять пользователями LDAP';
+$lang['def']['Is LDAP manager enabled']='Включено ли управление пользователями LDAP';
+$lang['def']['Is SMSZilla enabled']='Включена ли SMSZilla';
+$lang['def']['']='';
+$lang['def']['']='';
+
 
 
 

@@ -2815,5 +2815,8 @@ $lang['def']['No existing numbers lists available'] = 'Немає існуючи
 $lang['def']['LDAP manager'] = 'Керування LDAP';
 $lang['def']['Groups'] = 'Группи';
 $lang['def']['No existing groups available'] = 'Немає існуючих груп';
+$lang['def']['right control LDAP users'] = 'Право керувати користувачами LDAP';
+$lang['def']['Is LDAP manager enabled']='Керування користувачами LDAP увімкнено';
+$lang['def']['Is SMSZilla enabled']='SMSZilla увімкнена';
 
 ?>
