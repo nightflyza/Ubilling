@@ -2818,5 +2818,8 @@ $lang['def']['No existing groups available'] = 'Немає існуючих гр
 $lang['def']['right control LDAP users'] = 'Право керувати користувачами LDAP';
 $lang['def']['Is LDAP manager enabled']='Керування користувачами LDAP увімкнено';
 $lang['def']['Is SMSZilla enabled']='SMSZilla увімкнена';
+$lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправляти на іншу сторінку. Закрити форму по завершенню операції.';
+$lang['def']['Reload page after action'] = 'Оновити сторінку по завершенню операції';
+
 
 ?>
