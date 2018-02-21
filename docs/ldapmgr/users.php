@@ -10,7 +10,8 @@ class remoteLdapBase {
     protected $apiKey = '';
     protected $urlInterface = '';
 
-    const USER_CREATE = '/add_member';
+    const USER_CREATE = '/create_user';
+    const USER_GROUP='/add_member';
     const USER_DEL = '/remove_user';
     const USER_PASSWD = '/change_passwd';
 
@@ -37,7 +38,7 @@ class remoteLdapBase {
                     shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['login']);
                     if (!empty($userGroups)) {
                         foreach ($userGroups as $ia => $eachGroup) {
-                            shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['login'] . ' ' . $eachGroup);
+                            shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $each['login'] . ' ' . $eachGroup);
                         }
                     }
                 }
