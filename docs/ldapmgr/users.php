@@ -11,7 +11,7 @@ class remoteLdapBase {
     protected $urlInterface = '';
 
     const USER_CREATE = '/add_member';
-    const USER_DEL = '/remove_member';
+    const USER_DEL = '/remove_user';
     const USER_PASSWD = '/change_passwd';
 
     public function __construct($apiUrl, $apiKey) {
