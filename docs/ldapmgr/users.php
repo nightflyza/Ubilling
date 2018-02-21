@@ -36,7 +36,8 @@ class remoteLdapBase {
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
                     $userGroups = json_decode($each['groups'], true);
-                    shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['login'] . ' ' . $each['password']);
+                    $createResult=shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['login'] . ' ' . $each['password']);
+                    print($createResult);
                     if (!empty($userGroups)) {
                         foreach ($userGroups as $ia => $eachGroup) {
                             shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $each['login'] . ' ' . $eachGroup);
@@ -55,7 +56,8 @@ class remoteLdapBase {
             $tmpArr = json_decode($rawData, true);
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $io);
+                    $deleteResult=shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $io);
+                    print($deleteResult);
                     $userGroups = json_decode($each);
                     if (!empty($userGroups)) {
                         foreach ($userGroups as $eachGroup) {
