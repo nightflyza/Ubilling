@@ -367,7 +367,8 @@ class UbillingLDAPManager {
             foreach ($this->allUsers as $io => $each) {
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell($each['login']);
-                $cells.= wf_TableCell($each['password']);
+                $userPass = (cfr('ROOT')) ? $each['password'] : __('Hidden');
+                $cells.= wf_TableCell($userPass);
                 $cells.= wf_TableCell($this->previewGroups($each['groups']));
                 $cells.= wf_TableCell(web_bool_led($each['changed']));
                 $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
