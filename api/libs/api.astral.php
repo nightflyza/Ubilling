@@ -24,10 +24,14 @@ function wf_InputId() {
  * @param  string $inputs inputs string to include
  * @param  string $class  class for form
  * @param  string $legend form legend
+ * @param  string $CtrlID
+ *
  * @return  string
  *
  */
-function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
+function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '') {
+    $FrmID = ( (empty($CtrlID)) ? 'Form_' . wf_InputId() : $CtrlID );
+
     if ($class != '') {
         $form_class = ' class="' . $class . '" ';
     } else {
@@ -40,7 +44,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
     }
 
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . '>
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . 'id="' . $FrmID . '">
          ' . $form_legend . '
         ' . $inputs . '
         </form>
@@ -212,11 +216,16 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
  * @param string  $label text label for input
  * @param bool    $br append new line
  * @param bool    $checked is checked?
+ * @param string  $CtrlID
+ * @param string  $CtrlClass
+ *
  * @return  string
  *
  */
-function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
-    $inputid = wf_InputId();
+function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlID = '', $CtrlClass = '') {
+    $inputid = ( (empty($CtrlID)) ? 'ChkBox_' . wf_InputId() : $CtrlID );
+    $inputClass = ( (empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
+
     if ($br) {
         $newline = '<br>';
     } else {
@@ -227,7 +236,7 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
     } else {
         $check = '';
     }
-    $result = '<input type="checkbox" id="' . $inputid . '" name="' . $name . '" ' . $check . ' />';
+    $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' />';
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
@@ -275,11 +284,17 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
  *
  * @param string  $name name of element
  * @param string  $value value for input
+ * @param string  $CtrlID
+ * @param string  $CtrlClass
+ *
  * @return  string
  *
  */
-function wf_HiddenInput($name, $value = '') {
-    $result = '<input type="hidden" name="' . $name . '" value="' . $value . '">';
+function wf_HiddenInput($name, $value = '', $CtrlID = '', $CtrlClass = '') {
+    $HiddenID = ( (empty($CtrlID)) ? 'Hidden_' . wf_InputId() : $CtrlID );
+    $Hiddenclass = ( (empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
+
+    $result = '<input type="hidden" name="' . $name . '" value="' . $value . '" id="' . $HiddenID . '"' . $Hiddenclass . '>';
     return ($result);
 }
 
@@ -287,16 +302,20 @@ function wf_HiddenInput($name, $value = '') {
  * Return submit web form element
  *
  * @param string  $value text label for button
+ * @param  string $CtrlID
+ *
  * @return string
  *
  */
-function wf_Submit($value) {
-    $result = '<input type="submit" value="' . __($value) . '">';
+function wf_Submit($value, $CtrlID = '') {
+    $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
+    $result = '<input type="submit" value="' . __($value) . '" id="' . $SubmitID . '">';
     return ($result);
 }
 
-function wf_SubmitClassed($value, $class = '', $name = '', $caption = '') {
-    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '">';
+function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '') {
+    $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
+    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '">';
     $result.= $caption;
     $result.= '</button>';
     return ($result);

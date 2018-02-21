@@ -20,6 +20,7 @@ if (cfr('WCPE')) {
                 if (wf_CheckPost(array('assignoncreate'))) {
                     $assignCreateResult = $wcpe->assignCPEUser($newCreatedCpeId, $_POST['assignoncreate']);
                 }
+
                 rcms_redirect($wcpe::URL_ME . '&editcpeid=' . $newCreatedCpeId);
             } else {
                 show_window(__('Something went wrong'), $creationResult);
@@ -96,10 +97,18 @@ if (cfr('WCPE')) {
 
         if (wf_CheckGet(array('renderCreateForm'))) {
             if (wf_CheckGet(array('renderDynamically')) && wf_getBoolFromVar($_GET['renderDynamically'], true)) {
-                $CPECreateForm = $wcpe->renderCPECreateForm($_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID']);
+                $CPECreateForm = $wcpe->renderCPECreateForm($_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID'],
+                                                            wf_getBoolFromVar($_GET['renderedOutside'], true),
+                                                            wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
+                                                            $_GET['ActionCtrlID'], $_GET['ModalWID']
+                                                            );
                 die(wf_modalAutoForm(__('Create new CPE'), $CPECreateForm, $_GET['ModalWID'], $_GET['ModalWBID'], true));
             } else {
-                die($wcpe->renderCPECreateForm($_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID']));
+                die($wcpe->renderCPECreateForm( $_GET['userLogin'], $_GET['wcpeMAC'], $_GET['wcpeIP'], $_GET['wcpeAPID'],
+                                                wf_getBoolFromVar($_GET['renderedOutside'], true),
+                                                wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
+                                                $_GET['ActionCtrlID'], $_GET['ModalWID']
+                                              ));
             }
         }
     } else {

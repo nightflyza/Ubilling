@@ -35,8 +35,12 @@ if (cfr('MTSIGMON')) {
                     if ( empty($SignalGraph)) {die();}
 
                     if ( wf_CheckGet(array('returnInSpoiler')) && wf_getBoolFromVar($_GET['returnInSpoiler'], true)) {
+                        $WCPE = new WifiCPE();
                         $SpoilerTitle = ($getDataFromAP) ? __('Signal data from AP') : __('Signal data from CPE');
-                        $SignalGraph = wf_Spoiler($SignalGraph, $SpoilerTitle, false, '', '', '', '', 'style="margin: 10px auto; display: table;"');;
+                        $GraphContainerID = ( ($getDataFromAP) ? 'SpoilerCPE_' : 'SpoilerAP_') . wf_InputId();
+                        $GraphContainerSelector = '#' . $GraphContainerID . ' .spoiler_body';
+                        $GraphRefreshButton = $WCPE->getAPCPEGraphRefreshButton($_GET['cpeMAC'], $GraphContainerSelector, $getDataFromAP, false);
+                        $SignalGraph = wf_Spoiler($SignalGraph, $GraphRefreshButton . '&nbsp&nbsp' . $SpoilerTitle, false, $GraphContainerID, '', '', '', 'style="margin: 10px auto; display: table;"');;
                     }
 
                     die($SignalGraph);

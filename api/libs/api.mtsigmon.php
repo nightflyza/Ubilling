@@ -89,6 +89,12 @@ class MTsigmon {
      */
     protected $ubillingConfig = null;
 
+    /**
+     * Is WCPE module enabled?
+     *
+     * @var bool
+     */
+    protected $WCPEEnabled = false;
 
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
@@ -98,6 +104,7 @@ class MTsigmon {
         $this->ubillingConfig = new UbillingConfig();
         $alter_config = $this->ubillingConfig->getAlter();
         $this->EnableQuickAPLinks = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
+        $this->WCPEEnabled = $alter_config['WIFICPE_ENABLED'];
 
         $this->LoadUsersData();
         $this->initCache();
@@ -292,6 +299,7 @@ class MTsigmon {
         if ($FromAP) {
             // get signal data on AP for this CPE
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
+            $HistoryFileMonth = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP_month';
         } else {
             // get signal data for this CPE itself
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
@@ -308,8 +316,6 @@ class MTsigmon {
             if (!empty($rawData)) {
                 $todayTmp = explodeRows($rawData);
                 if (!empty($todayTmp)) {
-                    //$todaySignal = 'Date, Signal,' . "\n";
-
                     foreach ($todayTmp as $io => $each) {
                         if (ispos($each, $curdate)) {
                             $todaySignal .= $each . "\n";
@@ -340,7 +346,13 @@ class MTsigmon {
 
             $GraphTitle  = ($ShowTitle)  ? __('Monthly graph') : '';
             $GraphXLabel = ($ShowXLabel) ? __('Date') : '';
-            $result .= wf_Graph($monthSignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            if ($FromAP) {
+                file_put_contents($HistoryFileMonth, $monthSignal);
+                $result .= wf_GraphCSV($HistoryFileMonth, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            } else {
+                $result .= wf_Graph($monthSignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
+            }
+
             $result .= wf_delimiter(2);
 
             //all time signal history
@@ -523,7 +535,33 @@ class MTsigmon {
                             evt.preventDefault();
                             return false;
                     });
+                    
                     ';
+
+        // making an event binding for "CPE create&assign form" 'Submit' action to be able to create "CPE create&assign form" dynamically
+        $result .= '$(document).on("submit", ".__CPEAssignAndCreateForm", function(evt) {                        
+                            evt.preventDefault();                            
+                            
+                            //var FrmAction = \'"\' + $(".__CPEAssignAndCreateForm").attr("action") + \'"\';                            
+                            var FrmAction = $(".__CPEAssignAndCreateForm").attr("action");
+                            //alert(FrmAction);
+                            if ( $(".__CPEAACFormNoRedirChck").is(\':checked\') ) {                                                            
+                                $.ajax({
+                                    type: "POST",
+                                    url: FrmAction,
+                                    data: $(".__CPEAssignAndCreateForm").serialize(),
+                                    success: function() {
+                                                if ( $(".__CPEAACFormPageReloadChck").is(\':checked\') ) { location.reload(); }
+                                                
+                                                $( \'#\'+$(".__CPEAACFormReplaceCtrlID").val() ).replaceWith(\'' . web_ok_icon() . '\');                                                
+                                                $( \'#\'+$(".__CPEAACFormModalWindowID").val() ).dialog("close");
+                                            }
+                                });
+                            } else {                                
+                                $(this).submit();
+                            }
+                        });
+                        ';
         $result .= wf_tag('script', true);
 
         $result .= wf_delimiter();
@@ -547,7 +585,8 @@ class MTsigmon {
         $columns[] = ('IP');
         $columns[] = ('MAC');
         $columns[] = __('Signal') . ' (' . __('dBm') . ')';
-        $columns[] = __('Actions');
+
+        if ($this->WCPEEnabled) { $columns[] = __('Actions'); }
 
         if (empty($this->allMTDevices) and ! empty($this->userLogin) and empty($this->userSwitch)) {
             $result.= show_window('', $this->messages->getStyledMessage(__('User MAC not found on devises'), 'warning'));
@@ -628,8 +667,6 @@ class MTsigmon {
         $json = new wf_JqDtHelper();
         if (!empty($MTsigmonData)) {
             $data = array();
-            $WCPE = new WifiCPE();
-            $URL_WCPE = '?module=wcpe';
 
             foreach ($MTsigmonData as $eachmac => $eachsig) {
                 //signal coloring
@@ -657,44 +694,48 @@ class MTsigmon {
                 $userTariff = $login ? @$this->allUserData[$login]['Tariff'] : '';
                 $userIP = $login ? @$this->allUserData[$login]['ip'] : '';
 
-                // check if CPE with such MAC exists and create appropriate control
-                $WCPEID = $WCPE->getCPEIDByMAC($eachmac);
-                if ( !empty($WCPEID) ) {
-                    $ActionLnk =  wf_link($URL_WCPE . '&editcpeid=' . $WCPEID, web_edit_icon());
-                } else {
-                    //$createForm = $WCPE->renderCPECreateForm($userLogin, $eachmac, $userIP, $MTid);
-                    //$ActionLnk = wf_modalAuto(web_icon_create(), '', $createForm, '');
-                    $LnkID      = wf_InputId();
-                    $ActionLnk  = wf_tag('a', false, '', 'id="' . $LnkID  . '" href="#" title="' . __('Create new CPE') . '"');
-                    $ActionLnk .= web_icon_create();
-                    $ActionLnk .= wf_tag('a', true);
-                    $ActionLnk .= wf_tag('script', false, '', 'type="text/javascript"');
-                    $ActionLnk .=  '
-                                    $(\'#' . $LnkID . '\').click(function(evt) {
-                                        $.ajax({
-                                            type: "GET",
-                                            url: "' . $URL_WCPE . '",
-                                            data: { 
-                                                    renderCreateForm:true, 
-                                                    renderDynamically:true, 
-                                                    userLogin:"' . $userLogin . '", 
-                                                    wcpeMAC:"' . $eachmac . '",
-                                                    wcpeIP:"' . $userIP . '",
-                                                    wcpeAPID:"' . $MTid . '",
-                                                    ModalWID:"dialog-modal_' . $LnkID . '", 
-                                                    ModalWBID:"body_dialog-modal_' . $LnkID .'"
-                                                   },
-                                            success: function(result) {
-                                                        $(document.body).append(result);
-                                                        $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
-                                                     }
+                if ($this->WCPEEnabled) {
+                    $WCPE = new WifiCPE();
+
+                    // check if CPE with such MAC exists and create appropriate control
+                    $WCPEID = $WCPE->getCPEIDByMAC($eachmac);
+                    if (!empty($WCPEID)) {
+                        $ActionLnk = wf_link($WCPE::URL_ME . '&editcpeid=' . $WCPEID, web_edit_icon());
+                    } else {
+                        $LnkID = wf_InputId();
+                        $ActionLnk = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Create new CPE') . '"');
+                        $ActionLnk .= web_icon_create();
+                        $ActionLnk .= wf_tag('a', true);
+                        $ActionLnk .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $ActionLnk .= '
+                                        $(\'#' . $LnkID . '\').click(function(evt) {
+                                            $.ajax({
+                                                type: "GET",
+                                                url: "' . $WCPE::URL_ME . '",
+                                                data: { 
+                                                        renderCreateForm:true,
+                                                        renderDynamically:true, 
+                                                        renderedOutside:true,
+                                                        userLogin:"' . $userLogin . '", 
+                                                        wcpeMAC:"' . $eachmac . '",
+                                                        wcpeIP:"' . $userIP . '",
+                                                        wcpeAPID:"' . $MTid . '",                                                        
+                                                        ModalWID:"dialog-modal_' . $LnkID . '", 
+                                                        ModalWBID:"body_dialog-modal_' . $LnkID . '",
+                                                        ActionCtrlID:"' . $LnkID . '"
+                                                       },
+                                                success: function(result) {
+                                                            $(document.body).append(result);
+                                                            $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                                         }
+                                            });
+                    
+                                            evt.preventDefault();
+                                            return false;
                                         });
-                
-                                        evt.preventDefault();
-                                        return false;
-                                    });
-                                  ';
-                    $ActionLnk .= wf_tag('script', true);
+                                      ';
+                        $ActionLnk .= wf_tag('script', true);
+                    }
                 }
 
                 $data[] = $userLink;
@@ -704,7 +745,8 @@ class MTsigmon {
                 $data[] = $hlStart . $userIP . $hlEnd;
                 $data[] = $hlStart . $eachmac . $hlEnd;
                 $data[] = $displaysig;
-                $data[] = $ActionLnk;
+
+                if ($this->WCPEEnabled) { $data[] = $ActionLnk; }
 
                 $json->addRow($data);
                 unset($data);
