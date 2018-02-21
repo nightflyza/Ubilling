@@ -114,6 +114,7 @@ include('api/libs/api.onureboot.php');
 include('api/libs/api.onudescribe.php');
 include('api/libs/api.onumaster.php');
 include('api/libs/api.smszilla.php');
+include('api/libs/api.ldap.php');
 
 /*
  * Initial class creation
@@ -130,5 +131,5 @@ if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl = new UbillingBranches();
     $branchControl->accessControl();
 }
-    
+
 include('api/api.autolader.php');

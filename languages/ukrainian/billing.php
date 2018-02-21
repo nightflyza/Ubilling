@@ -2812,5 +2812,8 @@ $lang['def']['data'] = 'дані';
 $lang['def']['Available numbers database'] = 'Існуючі бази номерів';
 $lang['def']['Excludes'] = 'Виключення';
 $lang['def']['No existing numbers lists available'] = 'Немає існуючих списків номерів';
+$lang['def']['LDAP manager'] = 'Керування LDAP';
+$lang['def']['Groups'] = 'Группи';
+$lang['def']['No existing groups available'] = 'Немає існуючих груп';
 
 ?>

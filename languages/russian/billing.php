@@ -2796,6 +2796,9 @@ $lang['def']['data'] = 'данные';
 $lang['def']['Available numbers database'] = 'Базы номеров в наличии';
 $lang['def']['Excludes'] = 'Исключения';
 $lang['def']['No existing numbers lists available'] = 'Нету существующих списков номеров';
+$lang['def']['LDAP manager'] = 'Управление LDAP';
+$lang['def']['Groups'] = 'Группы';
+$lang['def']['No existing groups available'] = 'Нету существующих групп';
 $lang['def'][''] = '';
 
 
