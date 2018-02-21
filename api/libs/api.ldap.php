@@ -166,6 +166,20 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Sets user as already processed
+     * 
+     * @param int $userId
+     * 
+     * @return void
+     */
+    public function setProcessed($userId) {
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            simple_update_field('ldap_users', 'changed', 0, "WHERE `id`='" . $userId . "'");
+        }
+    }
+
+    /**
      * Deletes some existing user from database
      * 
      * @param int $userId
@@ -176,8 +190,12 @@ class UbillingLDAPManager {
         $result = '';
         $userId = vf($userId, 3);
         if (isset($this->allUsers[$userId])) {
+            $userData = $this->allUsers[$userId];
             $query = "DELETE from `ldap_users` WHERE `id`='" . $userId . "';";
             nr_query($query);
+            //placing user to remote deletion queue
+            $keyName = 'LDAPDELETEQ_' . zb_rand_string(8);
+            zb_StorageSet($keyName, $userData['login']);
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
         }
@@ -200,6 +218,7 @@ class UbillingLDAPManager {
             $inputs = wf_TextInput('newldapuserlogin', __('Login'), '', true, 20);
             $inputs.= wf_TextInput('newldapuserpassword', __('Password'), '', true, 20);
             $inputs.=$groupsInputs;
+            $inputs.=wf_tag('br');
             $inputs.= wf_Submit(__('Create'));
             $result.=wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
         } else {
@@ -224,6 +243,46 @@ class UbillingLDAPManager {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Renders JSON data for users that needs replication to local LDAP database
+     * 
+     * @return void
+     */
+    public function getChangedUsers() {
+        $tmpArr = array();
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $each) {
+                if ($each['changed']) {
+                    $tmpArr[] = $each;
+                    $this->setProcessed($each['id']);
+                }
+            }
+        }
+        $result = json_encode($tmpArr);
+        die($result);
+    }
+
+    /**
+     * Renders JSON data for users that requires remote deletion
+     * 
+     * @return void
+     */
+    public function getDeletedUsers() {
+        $tmpArr = array();
+        $queueKeys = zb_StorageFindKeys('LDAPDELETEQ_');
+        if (!empty($queueKeys)) {
+            foreach ($queueKeys as $io => $each) {
+                if (isset($each['key'])) {
+                    $userLogin = zb_StorageGet($each['key']);
+                    $tmpArr[] = $userLogin;
+                    zb_StorageDelete($each['key']);
+                }
+            }
+        }
+        $result = json_encode($tmpArr);
+        die($result);
     }
 
     /**

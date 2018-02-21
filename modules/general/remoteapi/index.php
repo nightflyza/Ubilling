@@ -813,6 +813,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //NAS monitoring periodic polling
                     if ($_GET['action'] == 'nasmon') {
                         if ($alterconf['NASMON_ENABLED']) {
                             $nasMon = new NasMon();
@@ -820,6 +821,23 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('OK: NASMON');
                         } else {
                             die('ERROR: NASMON DISABLED');
+                        }
+                    }
+
+                    //LDAP Mgr users export
+                    if ($_GET['action'] == 'ldapmgr') {
+                        if ($alterconf['LDAPMGR_ENABLED']) {
+                            $ldapMgr = new UbillingLDAPManager();
+                            if (isset($_GET['param'])) {
+                                if ($_GET['param'] == 'changedusers') {
+                                    $ldapMgr->getChangedUsers();
+                                }
+                                if ($_GET['param'] == 'deletedusers') {
+                                    $ldapMgr->getDeletedUsers();
+                                }
+                            }
+                        } else {
+                            die('ERROR: LDAPMGR DISABLED');
                         }
                     }
 
@@ -860,15 +878,15 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:MTSIGMON_DISABLED');
                         }
                     }
-                    
+
                     //SORM Yahont csv data regeneration
-                    if ($_GET['action']=='sormcast') {
+                    if ($_GET['action'] == 'sormcast') {
                         if ($alterconf['SORM_ENABLED']) {
                             $sorm = new SormYahont();
                             $sorm->saveAllDataCsv();
                             die('OK:SORMCAST');
                         } else {
-                             die('ERROR:SORM_DISABLED');
+                            die('ERROR:SORM_DISABLED');
                         }
                     }
 
