@@ -1,0 +1,2 @@
+dn: uid={LOGIN},{PEOPLE_OU}
+changetype: delete
