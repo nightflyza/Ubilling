@@ -689,8 +689,11 @@ class WifiCPE {
                         $result .= $this->getSignalRefreshJS();
                         $result .= $this->getGraphRefreshJS();
                         $result .= wf_tag('script', true);
-                    }
 
+                        if (!empty($cpeData['uplinkapid'])) {
+                            $result .= $SigMon->getAPEssentialData($cpeData['uplinkapid'], true, true, true);
+                        }
+                    }
 
                     if ( !empty($cpeData['ip']) ) {
                         $cpeWebIfaceLink = wf_tag('a', false, 'ubButton', 'href="http://' . $cpeData['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
@@ -1062,7 +1065,7 @@ class WifiCPE {
                     $cpeBridge = $assignedCpeData['bridge'];
 
                     $cpeIp = $assignedCpeData['ip'];
-                    $cpeIPLabel = $cpeIp;
+                    $cpeIpLabel = $cpeIp;
                     if ((empty($cpeIp)) AND ( !$cpeBridge)) {
                         $cpeIp = $allUserData[$userLogin]['ip'];
                         $cpeIpLabel = $cpeIp. $telepathySup;
@@ -1089,9 +1092,11 @@ class WifiCPE {
                     }
 
 
-                    $APSigLvlCells = '';
-                    $CPESigLvlCells = '';
-                    $SignalGraphsBlock = '';
+                    $APSysInfo          = '';
+                    $APSigLvlCells      = '';
+                    $CPESigLvlCells     = '';
+                    $SignalGraphsBlock  = '';
+
                     if ($this->SigmonEnabled) {
                         $SigMon = new MTsigmon();
                         $CtrlID = wf_InputId();
@@ -1163,6 +1168,8 @@ class WifiCPE {
                         $SignalGraphsBlock .= $this->getSignalRefreshJS();
                         $SignalGraphsBlock .= $this->getGraphRefreshJS();
                         $SignalGraphsBlock .= wf_tag('script', true);
+
+                        $APSysInfo = $SigMon->getAPEssentialData($this->allAP[$assignedCpeData['uplinkapid']]['id'], true, true, true);
                     }
 
 
@@ -1226,6 +1233,7 @@ class WifiCPE {
 
                     $result.= wf_TableBody($rows, '100%', 0, '');
 
+                    $result .= $APSysInfo;
                     $result .= $SignalGraphsBlock;
 
                 }

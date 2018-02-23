@@ -2820,6 +2820,13 @@ $lang['def']['Is LDAP manager enabled']='Керування користувач
 $lang['def']['Is SMSZilla enabled']='SMSZilla увімкнена';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправляти на іншу сторінку. Закрити форму по завершенню операції.';
 $lang['def']['Reload page after action'] = 'Оновити сторінку по завершенню операції';
+$lang['def']['System AP info'] = 'Системна информація про БС';
+$lang['def']['System description'] = 'Опис девайсу';
+$lang['def']['System name'] = 'Найменування девайсу';
+$lang['def']['Frequency'] = 'Частота';
+$lang['def']['Band/channel width'] = 'Band/ширина каналу';
+$lang['def']['CPU load'] = 'Завантаження CPU';
+$lang['def']['Get system info for this AP'] = 'Отримати системну информацію о БС';
 
 
 ?>
