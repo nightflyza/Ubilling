@@ -2804,5 +2804,15 @@ $lang['def']['Is LDAP manager enabled']='Включено ли управлен�
 $lang['def']['Is SMSZilla enabled']='Включена ли SMSZilla';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправлять на другую страницу. Закрыть форму по завершению операции.';
 $lang['def']['Reload page after action'] = 'Обновить страницу по завершению операции';
+$lang['def']['System AP info'] = 'Системная информация о БС';
+$lang['def']['System description'] = 'Описание устройства';
+$lang['def']['System name'] = 'Имя устройства';
+$lang['def']['Frequency'] = 'Частота';
+$lang['def']['Band/channel width'] = 'Band/ширина канала';
+$lang['def']['CPU load'] = 'Загрузка CPU';
+$lang['def']['Get system info for this AP'] = 'Получить системную информацию о БС';
+
+
+
 
 ?>

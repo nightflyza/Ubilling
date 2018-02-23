@@ -778,10 +778,11 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
  * @param string $width width of cell element
  * @param string $border table border width
  * @param string $class table cell class
+ * @param string $options table additional options
  * @return string
  *  
  */
-function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
+function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options = '') {
     if ($width != '') {
         $tablewidth = 'width="' . $width . '"';
     } else {
@@ -800,7 +801,7 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
     }
 
     $result = '
-        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' >
+        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' ' . $options . ' >
             ' . $rows . '
         </table>
         ';
