@@ -12,7 +12,7 @@ if (cfr('MTSIGMON')) {
         if ( wf_CheckGet(array('IndividualRefresh')) && wf_getBoolFromVar($_GET['IndividualRefresh'], true) ) {
             if ( wf_CheckGet(array('apid')) and !wf_CheckGet(array('cpeMAC')) ) { $sigmon->MTDevicesPolling(false, vf($_GET['apid'], 3)); }
 
-            if ( wf_CheckGet('GetAPInfo') && wf_getBoolFromVar($_GET['GetAPInfo'], true) && wf_CheckGet(array('apid')) ) {
+            if ( wf_CheckGet(array('GetAPInfo')) && wf_getBoolFromVar($_GET['GetAPInfo'], true) && wf_CheckGet(array('apid')) ) {
                 $APInfoData = $sigmon->getAPEssentialData($_GET['apid'], true, true);
                 die($APInfoData);
             }
