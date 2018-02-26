@@ -239,6 +239,20 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Renders password editing form
+     * 
+     * @return string
+     */
+    protected function renderUserPasswordForm($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            //TODO
+        }
+        return ($result);
+    }
+
+    /**
      * Renders user creation form
      * 
      * @return string
