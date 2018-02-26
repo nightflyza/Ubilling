@@ -21,48 +21,40 @@ class remoteLdapBase {
         $this->apiKey = $apiKey;
         if ((!empty($this->apiKey)) AND ( !empty($this->apiUrl))) {
             $this->urlInterface = $this->apiUrl . '?module=remoteapi&key=' . $this->apiKey . '&action=ldapmgr&param=';
-            $this->getChangedUsersData();
-            $this->getDeletedUsersData();
+            $this->getQueueData();
         } else {
             die('Error reading config file' . "\n");
         }
     }
 
-    protected function getChangedUsersData() {
+    protected function getQueueData() {
         $result = array();
-        $rawData = file_get_contents($this->urlInterface . 'changedusers');
+        $rawData = file_get_contents($this->urlInterface . 'queue');
         if (!empty($rawData)) {
             $tmpArr = json_decode($rawData, true);
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    $userGroups = json_decode($each['groups'], true);
-                    $createResult=shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['login'] . ' ' . $each['password']);
-                    print($createResult);
-                    if (!empty($userGroups)) {
-                        foreach ($userGroups as $ia => $eachGroup) {
-                            shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $each['login'] . ' ' . $eachGroup);
-                        }
-                    }
-                }
-            }
-        }
-        return ($result);
-    }
-
-    protected function getDeletedUsersData() {
-        $result = array();
-        $rawData = file_get_contents($this->urlInterface . 'deletedusers');
-        if (!empty($rawData)) {
-            $tmpArr = json_decode($rawData, true);
-            if (!empty($tmpArr)) {
-                foreach ($tmpArr as $io => $each) {
-                    $deleteResult=shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $io);
-                    print($deleteResult);
-                    $userGroups = json_decode($each);
-                    if (!empty($userGroups)) {
-                        foreach ($userGroups as $eachGroup) {
-                            shell_exec(dirname(__FILE__) . self::USER_GROUP_DEL . ' ' . $io . ' ' . $eachGroup);
-                        }
+                    switch ($each['task']) {
+                        case 'userdelete':
+                            shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param']);
+                            break;
+                        case 'usercreate':
+                            shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param'] . ' fakepassword');
+                            break;
+                        case 'userpassword':
+                            $passParam = json_decode($each['param'],true);
+                            shell_exec(dirname(__FILE__) . self::USER_PASSWD . ' ' . $passParam['login'] . ' ' . $passParam['password']);
+                            break;
+                        case 'usergroups':
+                            $groupParam = json_decode($each['param'],true);
+                            $userLogin = $groupParam['login'];
+                            $userGroups = $groupParam['groups'];
+                            if (!empty($userGroups)) {
+                                foreach ($userGroups as $ia => $eachGroup) {
+                                    shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $userLogin . ' ' . $eachGroup);
+                                }
+                            }
+                            break;
                     }
                 }
             }

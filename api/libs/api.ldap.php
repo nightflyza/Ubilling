@@ -182,6 +182,19 @@ class UbillingLDAPManager {
             $query = "INSERT INTO `ldap_users` (`id`,`login`,`password`,`groups`,`changed`) VALUES ";
             $query.="(NULL,'" . $loginF . "','" . $passwordF . "','" . $groupsList . "','1');";
             nr_query($query);
+            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+            $query.="(NULL,'usercreate','" . $loginF . "');";
+            nr_query($query);
+            $passParam = array('login' => $loginF, 'password' => $passwordF);
+            $passParam = json_encode($passParam);
+            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+            $query.="(NULL,'userpassword','" . $passParam . "');";
+            nr_query($query);
+            $taskGroups = array('login' => $loginF, 'groups' => $groups);
+            $taskGroups = json_encode($taskGroups);
+            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+            $query.="(NULL,'usergroups','" . $taskGroups . "');";
+            nr_query($query);
             $newId = simple_get_lastid('ldap_users');
             log_register('LDAPMGR USER CREATE `' . $login . '` [' . $newId . ']');
         }
@@ -215,13 +228,10 @@ class UbillingLDAPManager {
             $userData = $this->allUsers[$userId];
             $query = "DELETE from `ldap_users` WHERE `id`='" . $userId . "';";
             nr_query($query);
-            //placing user to remote deletion queue
-            $rndKey = zb_rand_string(8);
-            $keyName = 'LDAPDELETEQ_' . $rndKey;
-            $deleteEntry['login'] = $userData['login'];
-            $deleteEntry['groups'] = $userData['groups'];
-            $deleteEntry = json_encode($deleteEntry);
-            zb_StorageSet($keyName, $deleteEntry);
+            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+            $query.="(NULL,'userdelete','" . $userData['login'] . "');";
+            nr_query($query);
+            log_register('LDAPMGR USER DELETE `' . $userData['login'] . '` [' . $userId . ']');
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
         }
@@ -272,44 +282,27 @@ class UbillingLDAPManager {
     }
 
     /**
-     * Renders JSON data for users that needs replication to local LDAP database
+     * Flushes processed queue in database
      * 
      * @return void
      */
-    public function getChangedUsers() {
-        $tmpArr = array();
-        if (!empty($this->allUsers)) {
-            foreach ($this->allUsers as $io => $each) {
-                if ($each['changed']) {
-                    $tmpArr[] = $each;
-                    $this->setProcessed($each['id']);
-                }
-            }
-        }
-        $result = json_encode($tmpArr);
-        die($result);
+    protected function flushQueue() {
+        $query = "TRUNCATE TABLE `ldap_queue`;";
+        nr_query($query);
     }
 
     /**
-     * Renders JSON data for users that requires remote deletion
+     * Returns current unprocessed tasks queue
      * 
      * @return void
      */
-    public function getDeletedUsers() {
-        $tmpArr = array();
-        $queueKeys = zb_StorageFindKeys('LDAPDELETEQ_');
-        if (!empty($queueKeys)) {
-            foreach ($queueKeys as $io => $each) {
-                if (isset($each['key'])) {
-                    $rawData = zb_StorageGet($each['key']);
-                    $rawData = json_decode($rawData, true);
-                    $tmpArr[$rawData['login']] = $rawData['groups'];
-                    zb_StorageDelete($each['key']);
-                }
-            }
-        }
-        $result = json_encode($tmpArr);
-        die($result);
+    public function getQueue() {
+        $query = "SELECT * from `ldap_queue` ORDER BY `id` ASC";
+        $queue = simple_queryall($query);
+        $queue = json_encode($queue);
+        print($queue);
+        $this->flushQueue();
+        die();
     }
 
     /**
@@ -321,7 +314,7 @@ class UbillingLDAPManager {
         $result = '';
         if (!wf_CheckGet(array('groups'))) {
             $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Users registration'), __('Users registration'), $this->renderUserCreateForm(), 'ubButton') . ' ';
-            $result.= wf_Link(self::URL_ME . '&groups=true', web_icon_extended() . ' ' . __('Groups'), false, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&groups = true', web_icon_extended() . ' ' . __('Groups'), false, 'ubButton');
         } else {
             $result.=wf_BackLink(self::URL_ME) . ' ';
             $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->renderGroupCreateFrom(), 'ubButton');
@@ -361,7 +354,6 @@ class UbillingLDAPManager {
             $cells.= wf_TableCell(__('Login'));
             $cells.= wf_TableCell(__('Password'));
             $cells.= wf_TableCell(__('Groups'));
-            $cells.= wf_TableCell(__('Changed'));
             $cells.= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allUsers as $io => $each) {
@@ -370,7 +362,6 @@ class UbillingLDAPManager {
                 $userPass = __('Hidden');
                 $cells.= wf_TableCell($userPass);
                 $cells.= wf_TableCell($this->previewGroups($each['groups']));
-                $cells.= wf_TableCell(web_bool_led($each['changed']));
                 $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $cells.= wf_TableCell($actLinks);
 
