@@ -1834,6 +1834,7 @@ class SMSZilla {
         $data = array();
         $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
         $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
+        $sendCounter = 0;
         //changing nearest SMS bytes limit
         if ($forceTranslit) {
             $this->smsLenLimit = 160;
@@ -1865,6 +1866,7 @@ class SMSZilla {
 //pushing some messages into queue
                                 if ($realSending) {
                                     $this->sms->sendSMS($eachNumber, $messageText, false, 'SMSZILLA');
+                                    $sendCounter++;
                                 }
                             }
                         }
@@ -1891,6 +1893,7 @@ class SMSZilla {
 //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                                $sendCounter++;
                             }
                         }
                     }
@@ -1916,6 +1919,7 @@ class SMSZilla {
 //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                                $sendCounter++;
                             }
                         }
                     }
@@ -1939,10 +1943,15 @@ class SMSZilla {
 //pushing some messages into queue
                             if ($realSending) {
                                 $this->sms->sendSMS($number, $messageText, false, 'SMSZILLA');
+                                $sendCounter++;
                             }
                         }
                     }
                     break;
+            }
+//logging if SMS really sent
+            if ($realSending) {
+                log_register('SMSZILLA SENDING TEMPLATE [' . $templateId . '] FILTER [' . $filterId . '] COUNT `' . $sendCounter . '`');
             }
 //saving preview data
             file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
