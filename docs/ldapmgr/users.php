@@ -27,6 +27,19 @@ class remoteLdapBase {
         }
     }
 
+    protected function log($event, $data = '') {
+        $filename = dirname(__FILE__) . '/ldapmgr.log';
+        if (file_exists($filename)) {
+            if (is_writable($filename)) {
+                $curtime = date("Y-m-d H:i:s");
+                file_put_contents($filename, $curtime . ' ' . $event . "\n", FILE_APPEND);
+                if (!empty($data)) {
+                    file_put_contents($filename, $data . "\n");
+                }
+            }
+        }
+    }
+
     protected function getQueueData() {
         $result = array();
         $rawData = file_get_contents($this->urlInterface . 'queue');
@@ -36,22 +49,26 @@ class remoteLdapBase {
                 foreach ($tmpArr as $io => $each) {
                     switch ($each['task']) {
                         case 'userdelete':
-                            shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param']);
+                            $delResult = shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param']);
+                            $this->log('USERDELETE: ' . $each['param'], $delResult);
                             break;
                         case 'usercreate':
-                            shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param'] . ' fakepassword');
+                            $createResult = shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param'] . ' fakepassword');
+                            $this->log('USERCREATE: ' . $each['param'], $createResult);
                             break;
                         case 'userpassword':
-                            $passParam = json_decode($each['param'],true);
-                            shell_exec(dirname(__FILE__) . self::USER_PASSWD . ' ' . $passParam['login'] . ' ' . $passParam['password']);
+                            $passParam = json_decode($each['param'], true);
+                            $passResult = shell_exec(dirname(__FILE__) . self::USER_PASSWD . ' ' . $passParam['login'] . ' ' . $passParam['password']);
+                            $this->log('USERPASS: ' . $passParam['login'], $passResult);
                             break;
                         case 'usergroups':
-                            $groupParam = json_decode($each['param'],true);
+                            $groupParam = json_decode($each['param'], true);
                             $userLogin = $groupParam['login'];
                             $userGroups = $groupParam['groups'];
                             if (!empty($userGroups)) {
                                 foreach ($userGroups as $ia => $eachGroup) {
-                                    shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $userLogin . ' ' . $eachGroup);
+                                    $groupResult = shell_exec(dirname(__FILE__) . self::USER_GROUP . ' ' . $userLogin . ' ' . $eachGroup);
+                                    $this->log('USERGROUP: ' . $userLogin . '->' . $eachGroup, $groupResult);
                                 }
                             }
                             break;

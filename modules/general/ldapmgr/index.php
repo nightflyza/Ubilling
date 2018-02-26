@@ -21,6 +21,16 @@ if (@$altCfg['LDAPMGR_ENABLED']) {
                 show_error($deletionResult);
             }
         }
+
+//user password editing
+        if (wf_CheckPost(array('passchid', 'passchpass'))) {
+            $passChResult = $ldapMgr->changeUserPassword($_POST['passchid'], $_POST['passchpass']);
+            if (empty($passChResult)) {
+                rcms_redirect($ldapMgr::URL_ME);
+            } else {
+                show_error($passChResult);
+            }
+        }
 //render some interface and controls
         show_window('', $ldapMgr->panel());
         if (!wf_CheckGet(array('groups'))) {

@@ -182,35 +182,15 @@ class UbillingLDAPManager {
             $query = "INSERT INTO `ldap_users` (`id`,`login`,`password`,`groups`,`changed`) VALUES ";
             $query.="(NULL,'" . $loginF . "','" . $passwordF . "','" . $groupsList . "','1');";
             nr_query($query);
-            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
-            $query.="(NULL,'usercreate','" . $loginF . "');";
-            nr_query($query);
-            $passParam = array('login' => $loginF, 'password' => $passwordF);
+            $this->pushQueue('usercreate', $login);
+            $passParam = array('login' => $login, 'password' => $password);
             $passParam = json_encode($passParam);
-            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
-            $query.="(NULL,'userpassword','" . $passParam . "');";
-            nr_query($query);
-            $taskGroups = array('login' => $loginF, 'groups' => $groups);
+            $this->pushQueue('userpassword', $passParam);
+            $taskGroups = array('login' => $login, 'groups' => $groups);
             $taskGroups = json_encode($taskGroups);
-            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
-            $query.="(NULL,'usergroups','" . $taskGroups . "');";
-            nr_query($query);
+            $this->pushQueue('usergroups', $taskGroups);
             $newId = simple_get_lastid('ldap_users');
             log_register('LDAPMGR USER CREATE `' . $login . '` [' . $newId . ']');
-        }
-    }
-
-    /**
-     * Sets user as already processed
-     * 
-     * @param int $userId
-     * 
-     * @return void
-     */
-    public function setProcessed($userId) {
-        $userId = vf($userId, 3);
-        if (isset($this->allUsers[$userId])) {
-            simple_update_field('ldap_users', 'changed', 0, "WHERE `id`='" . $userId . "'");
         }
     }
 
@@ -228,9 +208,7 @@ class UbillingLDAPManager {
             $userData = $this->allUsers[$userId];
             $query = "DELETE from `ldap_users` WHERE `id`='" . $userId . "';";
             nr_query($query);
-            $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
-            $query.="(NULL,'userdelete','" . $userData['login'] . "');";
-            nr_query($query);
+            $this->pushQueue('userdelete', $userData['login']);
             log_register('LDAPMGR USER DELETE `' . $userData['login'] . '` [' . $userId . ']');
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
@@ -247,7 +225,54 @@ class UbillingLDAPManager {
         $result = '';
         $userId = vf($userId, 3);
         if (isset($this->allUsers[$userId])) {
-            //TODO
+            $userData = $this->allUsers[$userId];
+            $inputs = wf_HiddenInput('passchid', $userId);
+            $inputs.= wf_TextInput('passchpass', __('Password'), $userData['password'], false, 10);
+            $inputs.=wf_Submit(__('Save'));
+            $result.=wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Pushes some task for queue
+     * 
+     * @param string $task
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function pushQueue($task, $param) {
+        $task = mysql_real_escape_string($task);
+        $param = mysql_real_escape_string($param);
+        $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+        $query.="(NULL,'" . $task . "','" . $param . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Changes user password and stores this into queue
+     * 
+     * @param int $userId
+     * @param string $newPassword
+     * 
+     * @return void/string on error
+     */
+    public function changeUserPassword($userId, $newPassword) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $userData = $this->allUsers[$userId];
+            $login = $userData['login'];
+            if ($userData['password'] != $newPassword) {
+                simple_update_field('ldap_users', 'password', $newPassword, "WHERE `id`='" . $userId . "'");
+                $passParam = array('login' => $login, 'password' => $newPassword);
+                $passParam = json_encode($passParam);
+                $this->pushQueue('userpassword', $passParam);
+                log_register('LDAPMGR USER PASSWORD `' . $login . '` [' . $userId . ']');
+            }
+        } else {
+            $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
         }
         return ($result);
     }
@@ -377,6 +402,7 @@ class UbillingLDAPManager {
                 $cells.= wf_TableCell($userPass);
                 $cells.= wf_TableCell($this->previewGroups($each['groups']));
                 $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks.= wf_modalAuto(wf_img('skins/icon_key.gif', __('Password')), __('Password'), $this->renderUserPasswordForm($each['id']));
                 $cells.= wf_TableCell($actLinks);
 
                 $rows.= wf_TableRow($cells, 'row5');
