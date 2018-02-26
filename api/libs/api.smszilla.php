@@ -199,6 +199,13 @@ class SMSZilla {
     protected $extMobiles = '';
 
     /**
+     * Contains count of extended mobiles if they are extracted
+     *
+     * @var int
+     */
+    protected $extMobilesCount = 0;
+
+    /**
      * Contains filters workflow stats as name=>count
      *
      * @var array
@@ -1566,6 +1573,7 @@ class SMSZilla {
                                     $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
                                     if ((!empty($additionalMobile)) AND ( !isset($this->excludeNumbers[$additionalMobile]))) {
                                         $this->filteredNumbers[$userLogin][] = $additionalMobile;
+                                        $this->extMobilesCount++;
                                     }
                                 }
                             }
@@ -1715,7 +1723,7 @@ class SMSZilla {
                 show_window(__('Filters workflow visualization'), $this->renderFilterStats());
             }
             $this->extractEntitiesNumbers();
-            show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . sizeof($this->filteredNumbers), 'info'));
+            show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . (sizeof($this->filteredNumbers) + $this->extMobilesCount), 'info'));
             $this->generateSmsPool($filterId, $templateId);
             show_window(__('Preview'), $this->renderSmsPoolPreviewContainer($filterId, $templateId));
         } else {
