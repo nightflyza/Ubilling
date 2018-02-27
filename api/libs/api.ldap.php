@@ -100,9 +100,13 @@ class UbillingLDAPManager {
         $result = '';
         $groupId = vf($groupId, 3);
         if (isset($this->allGroups[$groupId])) {
-            $query = "DELETE FROM `ldap_groups` WHERE `id`='" . $groupId . "';";
-            nr_query($query);
-            log_register('LDAPMGR GROUP DELETE  [' . $groupId . ']');
+            if (!$this->isGroupProtected($groupId)) {
+                $query = "DELETE FROM `ldap_groups` WHERE `id`='" . $groupId . "';";
+                nr_query($query);
+                log_register('LDAPMGR GROUP DELETE  [' . $groupId . ']');
+            } else {
+                $result.=__('Something went wrong') . ': EX_GROUPID_USED_BY_SOMEONE';
+            }
         } else {
             $result.=__('Something went wrong') . ': EX_GROUPID_NOT_EXISTS';
         }
@@ -162,6 +166,27 @@ class UbillingLDAPManager {
             foreach ($this->allUsers as $io => $each) {
                 if ($each['login'] == $login) {
                     $result = false;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Check is group protected from deletion?
+     * 
+     * @param int $groupId
+     * 
+     * @return bool
+     */
+    protected function isGroupProtected($groupId) {
+        $result = false;
+        $groupId = vf($groupId, 3);
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $eachUser) {
+                $userGroups = json_decode($eachUser['groups'], true);
+                if (isset($userGroups[$groupId])) {
+                    $result = true;
                 }
             }
         }
@@ -449,7 +474,7 @@ class UbillingLDAPManager {
         $result = '';
         if (!wf_CheckGet(array('groups'))) {
             $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Users registration'), __('Users registration'), $this->renderUserCreateForm(), 'ubButton') . ' ';
-            $result.= wf_Link(self::URL_ME . '&groups = true', web_icon_extended() . ' ' . __('Groups'), false, 'ubButton');
+            $result.= wf_Link(self::URL_ME . '&groups=true', web_icon_extended() . ' ' . __('Groups'), false, 'ubButton');
         } else {
             $result.=wf_BackLink(self::URL_ME) . ' ';
             $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->renderGroupCreateFrom(), 'ubButton');
