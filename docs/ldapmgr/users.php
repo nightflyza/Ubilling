@@ -72,6 +72,17 @@ class remoteLdapBase {
                                 }
                             }
                             break;
+                        case 'usergroupsremove':
+                            $groupParam = json_decode($each['param'], true);
+                            $userLogin = $groupParam['login'];
+                            $userGroups = $groupParam['groups'];
+                            if (!empty($userGroups)) {
+                                foreach ($userGroups as $ia => $eachGroup) {
+                                    $groupDelResult = shell_exec(dirname(__FILE__) . self::USER_GROUP_DEL . ' ' . $userLogin . ' ' . $eachGroup);
+                                    $this->log('USERGROUPDEL: ' . $userLogin . '->' . $eachGroup, $groupDelResult);
+                                }
+                            }
+                            break;
                     }
                 }
             }

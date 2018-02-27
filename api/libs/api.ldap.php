@@ -25,6 +25,9 @@ class UbillingLDAPManager {
 
     const URL_ME = '?module=ldapmgr';
 
+    /**
+     * Even if you can forget, you can't erase the past. Kenzo Tenma.
+     */
     public function __construct() {
         $this->initMessages();
         $this->loadUsers();
@@ -195,6 +198,70 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Changes user groups
+     * 
+     * @param int $userId
+     * @param array $newGroups
+     * 
+     * @return void
+     */
+    public function changeGroups($userId, $newGroups) {
+        $userId = vf($userId, 3);
+        $pushGroups = array();
+        $removeGroups = array();
+        if (isset($this->allUsers[$userId])) {
+            $userData = $this->allUsers[$userId];
+            $userLogin = $userData['login'];
+            $oldGroups = json_decode($userData['groups'], true);
+            if (!empty($newGroups)) {
+                //checking for new groups
+                foreach ($newGroups as $newGroupId => $newGroupName) {
+                    if (!isset($oldGroups[$newGroupId])) {
+                        $pushGroups[$newGroupId] = $newGroupName;
+                    }
+                }
+            }
+
+            //checking for removed groups
+            if (!empty($oldGroups)) {
+                foreach ($oldGroups as $oldGroupId => $oldGroupName) {
+                    if (!isset($newGroups[$oldGroupId])) {
+                        $removeGroups[$oldGroupId] = $oldGroupName;
+                    }
+                }
+            }
+
+            //is some changes available?
+            if ((!empty($pushGroups)) OR ( !empty($removeGroups))) {
+                //saving new groups into user profile
+                simple_update_field('ldap_users', 'groups', json_encode($newGroups), "WHERE `id`='" . $userId . "'");
+                log_register('LDAPMGR USER GROUPS CHANGED `' . $userLogin . '` [' . $userId . ']');
+
+                //adding some new groups
+                if (!empty($pushGroups)) {
+                    $taskGroups = array('login' => $userLogin, 'groups' => $pushGroups);
+                    $taskGroups = json_encode($taskGroups);
+                    $this->pushQueue('usergroups', $taskGroups);
+                }
+
+                //deleting removed groups
+                if (!empty($removeGroups)) {
+                    $taskGroups = array('login' => $userLogin, 'groups' => $removeGroups);
+                    $taskGroups = json_encode($taskGroups);
+                    $this->pushQueue('usergroupsremove', $taskGroups);
+                }
+
+                /**
+                 * Jugemu jugemu gokou no surikire
+                 * Kaijari suigyo no suigyoumatsu
+                 * Unraimatsu fuuraimatsu
+                 * Kuuneru tokoro ni sumu tokoro
+                 */
+            }
+        }
+    }
+
+    /**
      * Deletes some existing user from database
      * 
      * @param int $userId
@@ -235,6 +302,35 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Renders user groups editing form
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserGroupsForm($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $groupsInputs = '';
+            $userData = $this->allUsers[$userId];
+            $currentGroups = json_decode($userData['groups'], true);
+            if (!empty($this->allGroups)) {
+                foreach ($this->allGroups as $io => $each) {
+                    $checkFlag = (isset($currentGroups[$io])) ? true : false;
+                    $groupsInputs.=wf_CheckInput('ldapusergroup_' . $io, $each, true, $checkFlag);
+                }
+            }
+            $inputs = wf_HiddenInput('chusergroupsuserid', $userId);
+            $inputs.= $groupsInputs;
+            $inputs.=wf_delimiter();
+            $inputs.=wf_Submit(__('Save'));
+            $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
      * Pushes some task for queue
      * 
      * @param string $task
@@ -269,7 +365,7 @@ class UbillingLDAPManager {
                 $passParam = array('login' => $login, 'password' => $newPassword);
                 $passParam = json_encode($passParam);
                 $this->pushQueue('userpassword', $passParam);
-                log_register('LDAPMGR USER PASSWORD `' . $login . '` [' . $userId . ']');
+                log_register('LDAPMGR USER PASSWORD CHANGED `' . $login . '` [' . $userId . ']');
             }
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
@@ -401,8 +497,9 @@ class UbillingLDAPManager {
                 $userPass = __('Hidden');
                 $cells.= wf_TableCell($userPass);
                 $cells.= wf_TableCell($this->previewGroups($each['groups']));
-                $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $actLinks.= wf_modalAuto(wf_img('skins/icon_key.gif', __('Password')), __('Password'), $this->renderUserPasswordForm($each['id']));
+                $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_modalAuto(wf_img('skins/icon_key.gif', __('Password')), __('Password'), $this->renderUserPasswordForm($each['id'])) . ' ';
+                $actLinks.=wf_modalAuto(web_icon_extended(__('Groups')), __('Groups'), $this->renderUserGroupsForm($each['id']));
                 $cells.= wf_TableCell($actLinks);
 
                 $rows.= wf_TableRow($cells, 'row5');

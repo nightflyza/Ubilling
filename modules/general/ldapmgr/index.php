@@ -31,6 +31,12 @@ if (@$altCfg['LDAPMGR_ENABLED']) {
                 show_error($passChResult);
             }
         }
+//user groups editing
+        if (wf_CheckPost(array('chusergroupsuserid'))) {
+            $changeUserGroups = $ldapMgr->catchNewUserGroups();
+            $ldapMgr->changeGroups($_POST['chusergroupsuserid'], $changeUserGroups);
+            rcms_redirect($ldapMgr::URL_ME);
+        }
 //render some interface and controls
         show_window('', $ldapMgr->panel());
         if (!wf_CheckGet(array('groups'))) {
