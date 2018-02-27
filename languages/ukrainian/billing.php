@@ -2827,6 +2827,7 @@ $lang['def']['Frequency'] = 'Частота';
 $lang['def']['Band/channel width'] = 'Band/ширина каналу';
 $lang['def']['CPU load'] = 'Завантаження CPU';
 $lang['def']['Get system info for this AP'] = 'Отримати системну информацію о БС';
+$lang['def']['Text size'] = 'Довжина тексту';
 
 
 ?>
