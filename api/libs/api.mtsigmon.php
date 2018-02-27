@@ -83,28 +83,37 @@ class MTsigmon {
     protected $EnableQuickAPLinks = false;
 
     /**
+     * Contains value of MTSIGMON_CPE_AUTOPOLL from alter.ini
+     *
+     * @var bool
+     */
+    protected $EnableCPEAutoPoll = false;
+
+    /**
+     * Is WCPE module enabled? Contains value of WIFICPE_ENABLED from alter.ini
+     *
+     * @var bool
+     */
+    protected $WCPEEnabled = false;
+
+    /**
      * Placeholder for UbillingConfig object instance
      *
      * @var object
      */
     protected $ubillingConfig = null;
 
-    /**
-     * Is WCPE module enabled?
-     *
-     * @var bool
-     */
-    protected $WCPEEnabled = false;
 
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
     const CPE_SIG_PATH = 'content/documents/wifi_cpe_sig_hist/';
 
     public function __construct() {
-        $this->ubillingConfig = new UbillingConfig();
-        $alter_config = $this->ubillingConfig->getAlter();
-        $this->EnableQuickAPLinks = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
-        $this->WCPEEnabled = $alter_config['WIFICPE_ENABLED'];
+        $this->ubillingConfig       = new UbillingConfig();
+        $alter_config               = $this->ubillingConfig->getAlter();
+        $this->EnableQuickAPLinks   = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
+        $this->EnableCPEAutoPoll    = ( empty($alter_config['MTSIGMON_CPE_AUTOPOLL']) ) ? false : true;
+        $this->WCPEEnabled          = ( empty($alter_config['WIFICPE_ENABLED']) ) ? false : true;
 
         $this->LoadUsersData();
         $this->initCache();
@@ -219,6 +228,17 @@ class MTsigmon {
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
+
+        if ($this->EnableCPEAutoPoll && $this->WCPEEnabled) {
+            $WCPE = new WifiCPE();
+            $AllCPEs = $WCPE->getAllCPE();
+
+            if ( !empty($AllCPEs) ) {
+                foreach ($AllCPEs as $io => $each) {
+                    $this->deviceQuery(0, $each['ip'], $each['mac'], $each['snmp']);
+                }
+            }
+        }
     }
 
     /**
@@ -234,7 +254,7 @@ class MTsigmon {
      * @param bool $GetFromAP
      * @param bool $Repoll
      *
-     * @return string
+     * @return array
     */
     public function getCPESignalData($WiFiCPEMAC, $WiFiAPID = '', $WiFiCPEIP = '', $WiFiCPECommunity = 'public', $GetFromAP = false, $Repoll = false) {
         if ( empty($WiFiCPEMAC) or (empty($WiFiAPID) and empty($WiFiCPEIP)) ) {
@@ -492,7 +512,7 @@ class MTsigmon {
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
                     if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
-                        $APMAC = getMACFromSNMPStr($tmpSNMP);
+                        $APMAC = $this->getMACFromSNMPStr($tmpSNMP);
 
                         $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.4';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
@@ -530,64 +550,64 @@ class MTsigmon {
             }
 
             if ($ReturnHTML) {
-                $rows   = '';
-                $result = '';
+                $APInfoRows   = '';
+                $APInfoHTML = '';
 
                 if ( !empty($APSysDescr) ) {
                     $cells = wf_TableCell(__('System description'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysDescr);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APSysName) ) {
                     $cells = wf_TableCell(__('System name'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysName);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APUptime) ) {
                     $cells = wf_TableCell(__('Uptime'), '20%', 'row2');
                     $cells .= wf_TableCell($APUptime);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APSSID) ) {
                     $cells = wf_TableCell(__('SSID'), '20%', 'row2');
                     $cells .= wf_TableCell($APSSID);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APFreq) ) {
                     $cells = wf_TableCell(__('Frequency'), '20%', 'row2');
                     $cells .= wf_TableCell($APFreq . ' MHz');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APBandChWidth) ) {
                     $cells = wf_TableCell(__('Band/channel width'), '20%', 'row2');
                     $cells .= wf_TableCell($APBandChWidth . ' MHz');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($MTikCPULoad) ) {
                     $cells = wf_TableCell(__('CPU load'), '20%', 'row2');
                     $cells .= wf_TableCell($MTikCPULoad . '%');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APMAC) ) {
                     $cells = wf_TableCell(__('MAC address'), '20%', 'row2');
                     $cells .= wf_TableCell($APMAC);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result = wf_TableBody($rows, '88%', 0, '', 'style="margin: 0 auto;"');
+                $APInfoHTML = wf_TableBody($APInfoRows, '88%', 0, '', 'style="margin: 0 auto;"');
 
                 if ($ReturnInSpoiler) {
-                    $result = wf_Spoiler($result, __('System AP info'), $SpoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
+                    $APInfoHTML = wf_Spoiler($APInfoHTML, __('System AP info'), $SpoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
                 }
 
-                return $result;
+                return $APInfoHTML;
             } else {
                 $SNMPDataArray = array( 'APSysDescr'     => $APSysDescr,
                                         'APUptime'       => $APUptime,
@@ -1022,14 +1042,24 @@ class MTsigmon {
 
                 if ($this->WCPEEnabled) {
                     $WCPE = new WifiCPE();
+                    $ActionLnk = '';
 
                     // check if CPE with such MAC exists and create appropriate control
                     $WCPEID = $WCPE->getCPEIDByMAC($eachmac);
                     if (!empty($WCPEID)) {
-                        $ActionLnk = wf_link($WCPE::URL_ME . '&editcpeid=' . $WCPEID, web_edit_icon());
+                        $WCPEDATA = $WCPE->getCPEData($WCPEID);
+
+                        if ( !empty($WCPEDATA) && !empty($WCPEDATA['ip']) ) {
+                            $cpeWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $WCPEDATA['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                            $cpeWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                            $cpeWebIfaceLink .= wf_tag('a', true);
+                            $ActionLnk .= $cpeWebIfaceLink . '&nbsp';
+                        }
+
+                        $ActionLnk .= wf_link($WCPE::URL_ME . '&editcpeid=' . $WCPEID, web_edit_icon());
                     } else {
                         $LnkID = wf_InputId();
-                        $ActionLnk = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Create new CPE') . '"');
+                        $ActionLnk .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Create new CPE') . '"');
                         $ActionLnk .= web_icon_create();
                         $ActionLnk .= wf_tag('a', true);
                         $ActionLnk .= wf_tag('script', false, '', 'type="text/javascript"');
