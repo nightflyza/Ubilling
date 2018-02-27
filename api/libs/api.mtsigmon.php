@@ -83,28 +83,37 @@ class MTsigmon {
     protected $EnableQuickAPLinks = false;
 
     /**
+     * Contains value of MTSIGMON_CPE_AUTOPOLL from alter.ini
+     *
+     * @var bool
+     */
+    protected $EnableCPEAutoPoll = false;
+
+    /**
+     * Is WCPE module enabled? Contains value of WIFICPE_ENABLED from alter.ini
+     *
+     * @var bool
+     */
+    protected $WCPEEnabled = false;
+
+    /**
      * Placeholder for UbillingConfig object instance
      *
      * @var object
      */
     protected $ubillingConfig = null;
 
-    /**
-     * Is WCPE module enabled?
-     *
-     * @var bool
-     */
-    protected $WCPEEnabled = false;
 
     const URL_ME = '?module=mtsigmon';
     const CACHE_PREFIX = 'MTSIGMON_';
     const CPE_SIG_PATH = 'content/documents/wifi_cpe_sig_hist/';
 
     public function __construct() {
-        $this->ubillingConfig = new UbillingConfig();
-        $alter_config = $this->ubillingConfig->getAlter();
-        $this->EnableQuickAPLinks = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
-        $this->WCPEEnabled = $alter_config['WIFICPE_ENABLED'];
+        $this->ubillingConfig       = new UbillingConfig();
+        $alter_config               = $this->ubillingConfig->getAlter();
+        $this->EnableQuickAPLinks   = ( empty($alter_config['MTSIGMON_QUICK_AP_LINKS']) ) ? false : true;
+        $this->EnableCPEAutoPoll    = ( empty($alter_config['MTSIGMON_CPE_AUTOPOLL']) ) ? false : true;
+        $this->WCPEEnabled          = ( empty($alter_config['WIFICPE_ENABLED']) ) ? false : true;
 
         $this->LoadUsersData();
         $this->initCache();
@@ -219,6 +228,17 @@ class MTsigmon {
                 $this->cache->set(self::CACHE_PREFIX . 'DATE', date("Y-m-d H:i:s"), $this->cacheTime);
             }
         }
+
+        if ($this->EnableCPEAutoPoll && $this->WCPEEnabled) {
+            $WCPE = new WifiCPE();
+            $AllCPEs = $WCPE->getAllCPE();
+
+            if ( !empty($AllCPEs) ) {
+                foreach ($AllCPEs as $io => $each) {
+                    $this->deviceQuery(0, $each['ip'], $each['mac'], $each['snmp']);
+                }
+            }
+        }
     }
 
     /**
@@ -234,7 +254,7 @@ class MTsigmon {
      * @param bool $GetFromAP
      * @param bool $Repoll
      *
-     * @return string
+     * @return array
     */
     public function getCPESignalData($WiFiCPEMAC, $WiFiAPID = '', $WiFiCPEIP = '', $WiFiCPECommunity = 'public', $GetFromAP = false, $Repoll = false) {
         if ( empty($WiFiCPEMAC) or (empty($WiFiAPID) and empty($WiFiCPEIP)) ) {
@@ -1022,14 +1042,24 @@ class MTsigmon {
 
                 if ($this->WCPEEnabled) {
                     $WCPE = new WifiCPE();
+                    $ActionLnk = '';
 
                     // check if CPE with such MAC exists and create appropriate control
                     $WCPEID = $WCPE->getCPEIDByMAC($eachmac);
                     if (!empty($WCPEID)) {
-                        $ActionLnk = wf_link($WCPE::URL_ME . '&editcpeid=' . $WCPEID, web_edit_icon());
+                        $WCPEDATA = $WCPE->getCPEData($WCPEID);
+
+                        if ( !empty($WCPEDATA) && !empty($WCPEDATA['ip']) ) {
+                            $cpeWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $WCPEDATA['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                            $cpeWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                            $cpeWebIfaceLink .= wf_tag('a', true);
+                            $ActionLnk .= $cpeWebIfaceLink . '&nbsp';
+                        }
+
+                        $ActionLnk .= wf_link($WCPE::URL_ME . '&editcpeid=' . $WCPEID, web_edit_icon());
                     } else {
                         $LnkID = wf_InputId();
-                        $ActionLnk = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Create new CPE') . '"');
+                        $ActionLnk .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Create new CPE') . '"');
                         $ActionLnk .= web_icon_create();
                         $ActionLnk .= wf_tag('a', true);
                         $ActionLnk .= wf_tag('script', false, '', 'type="text/javascript"');
