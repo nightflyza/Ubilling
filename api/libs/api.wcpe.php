@@ -1210,7 +1210,6 @@ class WifiCPE {
                         $APSysInfo = $SigMon->getAPEssentialData($this->allAP[$assignedCpeData['uplinkapid']]['id'], true, true, true);
                     }
 
-
                     $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
                     $cpeLink = wf_Link(self::URL_ME . '&editcpeid=' . $assignedCpeId, web_edit_icon(__('Show') . ' ' . __('CPE')), false, '');
 
@@ -1273,7 +1272,6 @@ class WifiCPE {
 
                     $result .= $APSysInfo;
                     $result .= $SignalGraphsBlock;
-
                 }
             } else {
                 $result.=$this->messages->getStyledMessage(__('Strange exeption') . ': CPEID_NOT_EXISTS [' . $assignedCpeId . ']', 'error');

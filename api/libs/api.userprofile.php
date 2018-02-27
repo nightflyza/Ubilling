@@ -1155,6 +1155,7 @@ class UserProfile {
      */
     protected function getUserCpeControls() {
         $result = '';
+
         if ($this->alterCfg['WIFICPE_ENABLED']) {
             $wcpeFlag = true;
             if (isset($this->alterCfg['WIFICPE_TARIFFMASK'])) {
@@ -1170,6 +1171,7 @@ class UserProfile {
                 $result.=$wcpe->renderCpeUserControls($this->login, $this->AllUserData);
             }
         }
+
         return ($result);
     }
 
@@ -1231,7 +1233,6 @@ class UserProfile {
         $profile.= wf_tag('td', false, '', 'valign="top"');
         $profile.= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //main profile data
         $profile.= wf_tag('tbody', false);
-
 
 //address row and controls
         if (!$this->alterCfg['CITY_DISPLAY']) {
@@ -1311,7 +1312,6 @@ class UserProfile {
 //User notes row
         $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
 
-
         $profile.= wf_tag('tbody', true);
         $profile.= wf_tag('table', true);
         $profile.= wf_tag('td', true); //end of main profile container 
@@ -1349,7 +1349,6 @@ class UserProfile {
 
 //Profile ending anchor for addcash links scroll
         $profile.= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
-
 
         return($profile);
     }

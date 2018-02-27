@@ -512,7 +512,7 @@ class MTsigmon {
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
 
                     if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
-                        $APMAC = getMACFromSNMPStr($tmpSNMP);
+                        $APMAC = $this->getMACFromSNMPStr($tmpSNMP);
 
                         $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.4';
                         $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
@@ -550,64 +550,64 @@ class MTsigmon {
             }
 
             if ($ReturnHTML) {
-                $rows   = '';
-                $result = '';
+                $APInfoRows   = '';
+                $APInfoHTML = '';
 
                 if ( !empty($APSysDescr) ) {
                     $cells = wf_TableCell(__('System description'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysDescr);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APSysName) ) {
                     $cells = wf_TableCell(__('System name'), '20%', 'row2');
                     $cells .= wf_TableCell($APSysName);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APUptime) ) {
                     $cells = wf_TableCell(__('Uptime'), '20%', 'row2');
                     $cells .= wf_TableCell($APUptime);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APSSID) ) {
                     $cells = wf_TableCell(__('SSID'), '20%', 'row2');
                     $cells .= wf_TableCell($APSSID);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APFreq) ) {
                     $cells = wf_TableCell(__('Frequency'), '20%', 'row2');
                     $cells .= wf_TableCell($APFreq . ' MHz');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APBandChWidth) ) {
                     $cells = wf_TableCell(__('Band/channel width'), '20%', 'row2');
                     $cells .= wf_TableCell($APBandChWidth . ' MHz');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($MTikCPULoad) ) {
                     $cells = wf_TableCell(__('CPU load'), '20%', 'row2');
                     $cells .= wf_TableCell($MTikCPULoad . '%');
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
                 if ( !empty($APMAC) ) {
                     $cells = wf_TableCell(__('MAC address'), '20%', 'row2');
                     $cells .= wf_TableCell($APMAC);
-                    $rows  .= wf_TableRow($cells, 'row3');
+                    $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                $result = wf_TableBody($rows, '88%', 0, '', 'style="margin: 0 auto;"');
+                $APInfoHTML = wf_TableBody($APInfoRows, '88%', 0, '', 'style="margin: 0 auto;"');
 
                 if ($ReturnInSpoiler) {
-                    $result = wf_Spoiler($result, __('System AP info'), $SpoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
+                    $APInfoHTML = wf_Spoiler($APInfoHTML, __('System AP info'), $SpoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
                 }
 
-                return $result;
+                return $APInfoHTML;
             } else {
                 $SNMPDataArray = array( 'APSysDescr'     => $APSysDescr,
                                         'APUptime'       => $APUptime,
