@@ -191,10 +191,20 @@ class WifiCPE {
         $this->deviceModels = zb_SwitchModelsGetAllTag();
     }
 
+
+    public function getAllCPE() {
+        if ( empty($this->allCPE) ) {
+            $this->loadCPEs();
+        }
+
+        return $this->allCPE;
+    }
+
     /**
      * Returns CPE ID from database if record with CPEMAC found or false if not
      *
      * @param string $CPEMAC
+     *
      * @return bool/int
      */
     public function getCPEIDByMAC($CPEMAC) {
@@ -204,6 +214,23 @@ class WifiCPE {
         $all = simple_queryall($query);
         if (!empty($all)) {
            return $all[0]['id'];
+        } else {return false;}
+    }
+
+    /**
+     * Returns array with all CPE data from database if record with CPEID found or false if not
+     *
+     * @param $CPEID
+     *
+     * @return array|bool
+     */
+    public function getCPEData($CPEID) {
+        if ( empty($this->allCPE) or empty($CPEID) ) {return false;}
+
+        $query = "SELECT * from `wcpedevices` WHERE `id` = " . $CPEID . ";";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            return $all[0];
         } else {return false;}
     }
 
@@ -499,12 +526,23 @@ class WifiCPE {
                 }
                 $data[] = $apLabel;
                 $data[] = web_bool_led($each['bridge']);
+
+                $actLinks = '';
+
+                if ( !empty($each['ip'])) {
+                    $cpeWebIfaceLink = wf_tag('a', false, '', 'href="http://' . $each['ip'] . '" target="_blank" title="' . __('Go to the web interface') . '"');
+                    $cpeWebIfaceLink .= wf_img('skins/ymaps/network.png');
+                    $cpeWebIfaceLink .= wf_tag('a', true);
+                    $actLinks .= $cpeWebIfaceLink . '&nbsp';
+                }
+
                 if (empty($userLogin)) {
-                    $actLinks = wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                    $actLinks .= wf_JSAlert(self::URL_ME . '&deletecpeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                     $actLinks .= wf_link(self::URL_ME . '&editcpeid=' . $each['id'], web_edit_icon('Edit'));
                 } else {
                     $actLinks = wf_link(self::URL_ME . '&newcpeassign=' . $each['id'] . '&assignuslo=' . $userLogin, web_icon_create('Assign'));
                 }
+
                 $data[] = $actLinks;
                 $json->addRow($data);
                 unset($data);
