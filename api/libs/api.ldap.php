@@ -319,7 +319,7 @@ class UbillingLDAPManager {
         if (isset($this->allUsers[$userId])) {
             $userData = $this->allUsers[$userId];
             $inputs = wf_HiddenInput('passchid', $userId);
-            $inputs.= wf_TextInput('passchpass', __('Password'), $userData['password'], false, 10);
+            $inputs.= wf_PasswordInput('passchpass', __('Password'), $userData['password'], false, 15);
             $inputs.=wf_Submit(__('Save'));
             $result.=wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
         }
