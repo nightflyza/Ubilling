@@ -1138,10 +1138,11 @@ class WifiCPE {
                     if ($this->SigmonEnabled) {
                         $SigMon = new MTsigmon();
                         $CtrlID = wf_InputId();
+                        $APID = ( empty($this->allAP) ) ? 0 : $this->allAP[$assignedCpeData['uplinkapid']]['id'];
 
                         $APSignalContainerID = 'APSignal_' . $CtrlID;
                         $APPollDTContainerID = 'APSignalPollDT_' . $CtrlID;
-                        $APSignalControls = $this->getAPCPESignalControls($cpeMac, '#' . $APSignalContainerID, '#' . $APPollDTContainerID, $this->allAP[$assignedCpeData['uplinkapid']]['id']);
+                        $APSignalControls = $this->getAPCPESignalControls($cpeMac, '#' . $APSignalContainerID, '#' . $APPollDTContainerID, $APID);
 
                         $LastPollDateAP = $APSignalControls['LastPollDate'];
                         $SignalLevelLabelAP = $APSignalControls['SignalLevelLabel'];
@@ -1207,7 +1208,7 @@ class WifiCPE {
                         $SignalGraphsBlock .= $this->getGraphRefreshJS();
                         $SignalGraphsBlock .= wf_tag('script', true);
 
-                        $APSysInfo = $SigMon->getAPEssentialData($this->allAP[$assignedCpeData['uplinkapid']]['id'], true, true, true);
+                        $APSysInfo = $SigMon->getAPEssentialData($APID, true, true, true);
                     }
 
                     $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
@@ -1408,8 +1409,8 @@ class WifiCPE {
             $LnkTitle = __('Refresh data for this AP');
         }
 
-        $LastPollDate = (empty($SignalDataArray[0])) ? __('Device is not polled yet') : __('Cache state at time') . ':  ' . $SignalDataArray[0];
-        $SignalLevelLabel = $SignalDataArray[1];
+        $LastPollDate     = (empty($SignalDataArray[0])) ? __('Device is not polled yet') : __('Cache state at time') . ':  ' . $SignalDataArray[0];
+        $SignalLevelLabel = (empty($SignalDataArray[1])) ? '' : $SignalDataArray[1];
 
         $RefreshButton = wf_tag('a', false, '', 'href="#" id="' . $LnkID . '" title="' . $LnkTitle . '"');
         $RefreshButton .= wf_img('skins/refresh.gif');
