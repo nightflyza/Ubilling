@@ -34,7 +34,7 @@ class remoteLdapBase {
                 $curtime = date("Y-m-d H:i:s");
                 file_put_contents($filename, $curtime . ' ' . $event . "\n", FILE_APPEND);
                 if (!empty($data)) {
-                    file_put_contents($filename, $data . "\n");
+                    file_put_contents($filename, $data . "\n", FILE_APPEND);
                 }
             }
         }
@@ -53,7 +53,7 @@ class remoteLdapBase {
                             $this->log('USERDELETE: ' . $each['param'], $delResult);
                             break;
                         case 'usercreate':
-                            $createResult = shell_exec(dirname(__FILE__) . self::USER_DEL . ' ' . $each['param'] . ' fakepassword');
+                            $createResult = shell_exec(dirname(__FILE__) . self::USER_CREATE . ' ' . $each['param'] . ' fakepassword');
                             $this->log('USERCREATE: ' . $each['param'], $createResult);
                             break;
                         case 'userpassword':
