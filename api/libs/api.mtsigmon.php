@@ -601,7 +601,7 @@ class MTsigmon {
                     $APInfoRows .= wf_TableRow($cells, 'row3');
                 }
 
-                $APInfoHTML = wf_TableBody($APInfoRows, '88%', 0, '', 'style="margin: 0 auto;"');
+                $APInfoHTML = ( empty($APInfoRows) ) ? '' : wf_TableBody($APInfoRows, '88%', 0, '', 'style="margin: 0 auto;"');
 
                 if ($ReturnInSpoiler) {
                     $APInfoHTML = wf_Spoiler($APInfoHTML, __('System AP info'), $SpoilerClosed, '', '', '', '', 'style="margin: 10px auto;"');
