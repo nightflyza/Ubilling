@@ -73,7 +73,7 @@ class WatchDog {
 
         //init mail class
         $this->initEmail();
-        
+
         //init telegram class
         $this->initTelegram();
     }
@@ -253,6 +253,18 @@ class WatchDog {
                         $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "ICMPPING");
+                    }
+
+                    break;
+                //do the system icmp ping three times with hope of some result
+                case 'hopeping':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $result = zb_PingICMPHope($this->taskData[$taskID]['param']);
+                        $storeValue = ($result) ? 'true' : 'false';
+                        $this->setOldValue($taskID, $storeValue);
+                        $this->setCurValue($taskID, $storeValue);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "HOPEPING");
                     }
 
                     break;
@@ -745,7 +757,6 @@ class WatchDogInterface {
         $cells.= wf_TableCell(__('Actions'));
         $cells.= wf_TableCell(__('Manage'));
         $rows = wf_TableRow($cells, 'row1');
-        $lighter = 'onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $eachtask) {
@@ -764,7 +775,7 @@ class WatchDogInterface {
                 $controls.= wf_JSAlert('?module=watchdog&edit=' . $eachtask['id'], web_edit_icon(), __('Are you serious'));
 
                 $cells.= wf_TableCell($controls);
-                $rows.=wf_tag('tr', false, 'row3', $lighter);
+                $rows.=wf_tag('tr', false, 'row5');
                 $rows.=$cells;
                 $rows.=wf_tag('tr', true);
             }
@@ -784,6 +795,7 @@ class WatchDogInterface {
         $checktypes = array(
             'icmpping' => 'icmpping',
             'tcpping' => 'tcpping',
+            'hopeping' => 'hopeping',
             'script' => 'script',
             'getusertraff' => 'getusertraff',
             'fileexists' => 'fileexists'
@@ -833,6 +845,7 @@ class WatchDogInterface {
         $checktypes = array(
             'icmpping' => 'icmpping',
             'tcpping' => 'tcpping',
+            'hopeping' => 'hopeping',
             'script' => 'script',
             'getusertraff' => 'getusertraff',
             'fileexists' => 'fileexists'
@@ -967,7 +980,7 @@ class WatchDogInterface {
     public function panel() {
         $createWindow = $this->newTaskForm();
         $settingsWindow = $this->settingsForm();
-        $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton', '400', '300');
+        $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton');
         $result.= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');

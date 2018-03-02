@@ -1,6 +1,6 @@
 <?php
 if(cfr('WATCHDOG')) {
-   $altercfg=  rcms_parse_ini_file(CONFIG_PATH."alter.ini");
+   $altercfg=  $ubillingConfig->getAlter();
    if ($altercfg['WATCHDOG_ENABLED']) {
    $interface=new WatchDogInterface();
    $interface->loadAllTasks();
