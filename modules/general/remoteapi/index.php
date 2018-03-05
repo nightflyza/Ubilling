@@ -829,11 +829,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['LDAPMGR_ENABLED']) {
                             $ldapMgr = new UbillingLDAPManager();
                             if (isset($_GET['param'])) {
-                                if ($_GET['param'] == 'changedusers') {
-                                    $ldapMgr->getChangedUsers();
-                                }
-                                if ($_GET['param'] == 'deletedusers') {
-                                    $ldapMgr->getDeletedUsers();
+                                if ($_GET['param'] == 'queue') {
+                                    $ldapMgr->getQueue();
                                 }
                             }
                         } else {

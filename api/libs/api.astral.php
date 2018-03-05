@@ -569,7 +569,7 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false) {
 function wf_YearSelector($name, $label = '', $br = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 10;
+    $count = 11;
     if ($br) {
         $newline = '<br>';
     } else {
@@ -602,7 +602,7 @@ function wf_YearSelector($name, $label = '', $br = false) {
 function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '', $allTime = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 10;
+    $count = 11;
     $selected = '';
 
     if ($br) {
@@ -778,10 +778,11 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
  * @param string $width width of cell element
  * @param string $border table border width
  * @param string $class table cell class
+ * @param string $options table additional options
  * @return string
  *  
  */
-function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
+function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options = '') {
     if ($width != '') {
         $tablewidth = 'width="' . $width . '"';
     } else {
@@ -800,7 +801,7 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
     }
 
     $result = '
-        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' >
+        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' ' . $options . ' >
             ' . $rows . '
         </table>
         ';

@@ -2804,5 +2804,20 @@ $lang['def']['Is LDAP manager enabled']='Включено ли управлен�
 $lang['def']['Is SMSZilla enabled']='Включена ли SMSZilla';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправлять на другую страницу. Закрыть форму по завершению операции.';
 $lang['def']['Reload page after action'] = 'Обновить страницу по завершению операции';
+$lang['def']['System AP info'] = 'Системная информация о БС';
+$lang['def']['System description'] = 'Описание устройства';
+$lang['def']['System name'] = 'Имя устройства';
+$lang['def']['Frequency'] = 'Частота';
+$lang['def']['Band/channel width'] = 'Band/ширина канала';
+$lang['def']['CPU load'] = 'Загрузка CPU';
+$lang['def']['Get system info for this AP'] = 'Получить системную информацию о БС';
+$lang['def']['Text size'] = 'Длина текста';
+$lang['def']['Quick links for fast navigation in Wireless APs signal monitor enabled'] = 'Быстрая навигация по модулю мониторинга беспроводных БС включена';
+$lang['def']['CPEs autopolling is enabled'] = 'Автоматический опрос абонентских беспроводных CPE включен';
+$lang['def']['Is client side wifi equipment accounting enabled'] = 'Учет абонентских беспроводных CPE включен';
+
+
+
+
 
 ?>

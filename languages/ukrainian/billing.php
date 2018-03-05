@@ -2820,6 +2820,16 @@ $lang['def']['Is LDAP manager enabled']='Керування користувач
 $lang['def']['Is SMSZilla enabled']='SMSZilla увімкнена';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправляти на іншу сторінку. Закрити форму по завершенню операції.';
 $lang['def']['Reload page after action'] = 'Оновити сторінку по завершенню операції';
-
+$lang['def']['System AP info'] = 'Системна информація про БС';
+$lang['def']['System description'] = 'Опис девайсу';
+$lang['def']['System name'] = 'Найменування девайсу';
+$lang['def']['Frequency'] = 'Частота';
+$lang['def']['Band/channel width'] = 'Band/ширина каналу';
+$lang['def']['CPU load'] = 'Завантаження CPU';
+$lang['def']['Get system info for this AP'] = 'Отримати системну информацію о БС';
+$lang['def']['Text size'] = 'Довжина тексту';
+$lang['def']['Quick links for fast navigation in Wireless APs signal monitor enabled'] = 'Швидка навігація по модулю мониторингу бездротових БС включена';
+$lang['def']['CPEs autopolling is enabled'] = 'Автоматичне опитування абонентських бездротових CPE включено';
+$lang['def']['Is client side wifi equipment accounting enabled'] = 'Облік абонентських бездротових CPE включено';
 
 ?>

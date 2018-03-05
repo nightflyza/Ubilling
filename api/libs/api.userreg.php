@@ -331,9 +331,14 @@ function zb_RegLoginProposal($cityalias, $streetalias, $buildnum, $apt, $ip_prop
             $result = zb_rand_string(10);
         }
 
-        //8 random digits
+        // 8 random digits
         if ($type == 'RANDOM8') {
             $result = zb_rand_digits(8);
+        }
+
+        // 4 random digits - yeah, shoot that fucking leg
+        if ($type == 'RANDOM4') {
+            $result = zb_rand_digits();
         }
 
         // just random string as login

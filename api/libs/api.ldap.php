@@ -25,6 +25,9 @@ class UbillingLDAPManager {
 
     const URL_ME = '?module=ldapmgr';
 
+    /**
+     * Even if you can forget, you can't erase the past. Kenzo Tenma.
+     */
     public function __construct() {
         $this->initMessages();
         $this->loadUsers();
@@ -97,9 +100,13 @@ class UbillingLDAPManager {
         $result = '';
         $groupId = vf($groupId, 3);
         if (isset($this->allGroups[$groupId])) {
-            $query = "DELETE FROM `ldap_groups` WHERE `id`='" . $groupId . "';";
-            nr_query($query);
-            log_register('LDAPMGR GROUP DELETE  [' . $groupId . ']');
+            if (!$this->isGroupProtected($groupId)) {
+                $query = "DELETE FROM `ldap_groups` WHERE `id`='" . $groupId . "';";
+                nr_query($query);
+                log_register('LDAPMGR GROUP DELETE  [' . $groupId . ']');
+            } else {
+                $result.=__('Something went wrong') . ': EX_GROUPID_USED_BY_SOMEONE';
+            }
         } else {
             $result.=__('Something went wrong') . ': EX_GROUPID_NOT_EXISTS';
         }
@@ -166,6 +173,27 @@ class UbillingLDAPManager {
     }
 
     /**
+     * Check is group protected from deletion?
+     * 
+     * @param int $groupId
+     * 
+     * @return bool
+     */
+    protected function isGroupProtected($groupId) {
+        $result = false;
+        $groupId = vf($groupId, 3);
+        if (!empty($this->allUsers)) {
+            foreach ($this->allUsers as $io => $eachUser) {
+                $userGroups = json_decode($eachUser['groups'], true);
+                if (isset($userGroups[$groupId])) {
+                    $result = true;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Creates new user in database
      * 
      * @param string $login
@@ -182,22 +210,79 @@ class UbillingLDAPManager {
             $query = "INSERT INTO `ldap_users` (`id`,`login`,`password`,`groups`,`changed`) VALUES ";
             $query.="(NULL,'" . $loginF . "','" . $passwordF . "','" . $groupsList . "','1');";
             nr_query($query);
+            $this->pushQueue('usercreate', $login);
+            $passParam = array('login' => $login, 'password' => $password);
+            $passParam = json_encode($passParam);
+            $this->pushQueue('userpassword', $passParam);
+            $taskGroups = array('login' => $login, 'groups' => $groups);
+            $taskGroups = json_encode($taskGroups);
+            $this->pushQueue('usergroups', $taskGroups);
             $newId = simple_get_lastid('ldap_users');
             log_register('LDAPMGR USER CREATE `' . $login . '` [' . $newId . ']');
         }
     }
 
     /**
-     * Sets user as already processed
+     * Changes user groups
      * 
      * @param int $userId
+     * @param array $newGroups
      * 
      * @return void
      */
-    public function setProcessed($userId) {
+    public function changeGroups($userId, $newGroups) {
         $userId = vf($userId, 3);
+        $pushGroups = array();
+        $removeGroups = array();
         if (isset($this->allUsers[$userId])) {
-            simple_update_field('ldap_users', 'changed', 0, "WHERE `id`='" . $userId . "'");
+            $userData = $this->allUsers[$userId];
+            $userLogin = $userData['login'];
+            $oldGroups = json_decode($userData['groups'], true);
+            if (!empty($newGroups)) {
+                //checking for new groups
+                foreach ($newGroups as $newGroupId => $newGroupName) {
+                    if (!isset($oldGroups[$newGroupId])) {
+                        $pushGroups[$newGroupId] = $newGroupName;
+                    }
+                }
+            }
+
+            //checking for removed groups
+            if (!empty($oldGroups)) {
+                foreach ($oldGroups as $oldGroupId => $oldGroupName) {
+                    if (!isset($newGroups[$oldGroupId])) {
+                        $removeGroups[$oldGroupId] = $oldGroupName;
+                    }
+                }
+            }
+
+            //is some changes available?
+            if ((!empty($pushGroups)) OR ( !empty($removeGroups))) {
+                //saving new groups into user profile
+                simple_update_field('ldap_users', 'groups', json_encode($newGroups), "WHERE `id`='" . $userId . "'");
+                log_register('LDAPMGR USER GROUPS CHANGED `' . $userLogin . '` [' . $userId . ']');
+
+                //adding some new groups
+                if (!empty($pushGroups)) {
+                    $taskGroups = array('login' => $userLogin, 'groups' => $pushGroups);
+                    $taskGroups = json_encode($taskGroups);
+                    $this->pushQueue('usergroups', $taskGroups);
+                }
+
+                //deleting removed groups
+                if (!empty($removeGroups)) {
+                    $taskGroups = array('login' => $userLogin, 'groups' => $removeGroups);
+                    $taskGroups = json_encode($taskGroups);
+                    $this->pushQueue('usergroupsremove', $taskGroups);
+                }
+
+                /**
+                 * Jugemu jugemu gokou no surikire
+                 * Kaijari suigyo no suigyoumatsu
+                 * Unraimatsu fuuraimatsu
+                 * Kuuneru tokoro ni sumu tokoro
+                 */
+            }
         }
     }
 
@@ -215,13 +300,98 @@ class UbillingLDAPManager {
             $userData = $this->allUsers[$userId];
             $query = "DELETE from `ldap_users` WHERE `id`='" . $userId . "';";
             nr_query($query);
-            //placing user to remote deletion queue
-            $rndKey = zb_rand_string(8);
-            $keyName = 'LDAPDELETEQ_' . $rndKey;
-            $deleteEntry['login'] = $userData['login'];
-            $deleteEntry['groups'] = $userData['groups'];
-            $deleteEntry = json_encode($deleteEntry);
-            zb_StorageSet($keyName, $deleteEntry);
+            $this->pushQueue('userdelete', $userData['login']);
+            log_register('LDAPMGR USER DELETE `' . $userData['login'] . '` [' . $userId . ']');
+        } else {
+            $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders password editing form
+     * 
+     * @return string
+     */
+    protected function renderUserPasswordForm($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $userData = $this->allUsers[$userId];
+            $inputs = wf_HiddenInput('passchid', $userId);
+            $inputs.= wf_PasswordInput('passchpass', __('Password'), $userData['password'], false, 15);
+            $inputs.=wf_Submit(__('Save'));
+            $result.=wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders user groups editing form
+     * 
+     * @param int $userId
+     * 
+     * @return string
+     */
+    protected function renderUserGroupsForm($userId) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $groupsInputs = '';
+            $userData = $this->allUsers[$userId];
+            $currentGroups = json_decode($userData['groups'], true);
+            if (!empty($this->allGroups)) {
+                foreach ($this->allGroups as $io => $each) {
+                    $checkFlag = (isset($currentGroups[$io])) ? true : false;
+                    $groupsInputs.=wf_CheckInput('ldapusergroup_' . $io, $each, true, $checkFlag);
+                }
+            }
+            $inputs = wf_HiddenInput('chusergroupsuserid', $userId);
+            $inputs.= $groupsInputs;
+            $inputs.=wf_delimiter();
+            $inputs.=wf_Submit(__('Save'));
+            $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Pushes some task for queue
+     * 
+     * @param string $task
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function pushQueue($task, $param) {
+        $task = mysql_real_escape_string($task);
+        $param = mysql_real_escape_string($param);
+        $query = "INSERT INTO `ldap_queue` (`id`,`task`,`param`) VALUES ";
+        $query.="(NULL,'" . $task . "','" . $param . "');";
+        nr_query($query);
+    }
+
+    /**
+     * Changes user password and stores this into queue
+     * 
+     * @param int $userId
+     * @param string $newPassword
+     * 
+     * @return void/string on error
+     */
+    public function changeUserPassword($userId, $newPassword) {
+        $result = '';
+        $userId = vf($userId, 3);
+        if (isset($this->allUsers[$userId])) {
+            $userData = $this->allUsers[$userId];
+            $login = $userData['login'];
+            if ($userData['password'] != $newPassword) {
+                simple_update_field('ldap_users', 'password', $newPassword, "WHERE `id`='" . $userId . "'");
+                $passParam = array('login' => $login, 'password' => $newPassword);
+                $passParam = json_encode($passParam);
+                $this->pushQueue('userpassword', $passParam);
+                log_register('LDAPMGR USER PASSWORD CHANGED `' . $login . '` [' . $userId . ']');
+            }
         } else {
             $result = __('Something went wrong') . ': EX_USERID_NOT_EXISTS';
         }
@@ -272,44 +442,27 @@ class UbillingLDAPManager {
     }
 
     /**
-     * Renders JSON data for users that needs replication to local LDAP database
+     * Flushes processed queue in database
      * 
      * @return void
      */
-    public function getChangedUsers() {
-        $tmpArr = array();
-        if (!empty($this->allUsers)) {
-            foreach ($this->allUsers as $io => $each) {
-                if ($each['changed']) {
-                    $tmpArr[] = $each;
-                    $this->setProcessed($each['id']);
-                }
-            }
-        }
-        $result = json_encode($tmpArr);
-        die($result);
+    protected function flushQueue() {
+        $query = "TRUNCATE TABLE `ldap_queue`;";
+        nr_query($query);
     }
 
     /**
-     * Renders JSON data for users that requires remote deletion
+     * Returns current unprocessed tasks queue
      * 
      * @return void
      */
-    public function getDeletedUsers() {
-        $tmpArr = array();
-        $queueKeys = zb_StorageFindKeys('LDAPDELETEQ_');
-        if (!empty($queueKeys)) {
-            foreach ($queueKeys as $io => $each) {
-                if (isset($each['key'])) {
-                    $rawData = zb_StorageGet($each['key']);
-                    $rawData = json_decode($rawData, true);
-                    $tmpArr[$rawData['login']] = $rawData['groups'];
-                    zb_StorageDelete($each['key']);
-                }
-            }
-        }
-        $result = json_encode($tmpArr);
-        die($result);
+    public function getQueue() {
+        $query = "SELECT * from `ldap_queue` ORDER BY `id` ASC";
+        $queue = simple_queryall($query);
+        $queue = json_encode($queue);
+        print($queue);
+        $this->flushQueue();
+        die();
     }
 
     /**
@@ -361,7 +514,6 @@ class UbillingLDAPManager {
             $cells.= wf_TableCell(__('Login'));
             $cells.= wf_TableCell(__('Password'));
             $cells.= wf_TableCell(__('Groups'));
-            $cells.= wf_TableCell(__('Changed'));
             $cells.= wf_TableCell(__('Actions'));
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allUsers as $io => $each) {
@@ -370,8 +522,9 @@ class UbillingLDAPManager {
                 $userPass = __('Hidden');
                 $cells.= wf_TableCell($userPass);
                 $cells.= wf_TableCell($this->previewGroups($each['groups']));
-                $cells.= wf_TableCell(web_bool_led($each['changed']));
-                $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actLinks = wf_JSAlert(self::URL_ME . '&deleteuserid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_modalAuto(wf_img('skins/icon_key.gif', __('Password')), __('Password'), $this->renderUserPasswordForm($each['id'])) . ' ';
+                $actLinks.=wf_modalAuto(web_icon_extended(__('Groups')), __('Groups'), $this->renderUserGroupsForm($each['id']));
                 $cells.= wf_TableCell($actLinks);
 
                 $rows.= wf_TableRow($cells, 'row5');

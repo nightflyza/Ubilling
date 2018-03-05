@@ -832,15 +832,22 @@ function zb_PrintCheckGetDayNum($payid, $paymentdate) {
  * @param int $paymentid
  * @return string
  */
-function zb_PrintCheck($paymentid) {
+function zb_PrintCheck($paymentid, $realpaymentId = false) {
     $paymentdata = zb_PaymentGetData($paymentid);
     $login = $paymentdata['login'];
+    $userData = zb_UserGetAllData($login);
+    $userData = $userData[$login];
     $templatebody = zb_PrintCheckLoadTemplate();
-    $allfioz = zb_UserGetAllRealnames();
     $alladdress = zb_AddressGetFullCityaddresslist();
     $useraddress = $alladdress[$login];
+
     $agent_data = zb_AgentAssignedGetDataFast($login, $useraddress);
     $cassnames = zb_PrintCheckLoadCassNames();
+    if ($realpaymentId) {
+        $userPaymentId = zb_PaymentIDGet($login);
+    } else {
+        $userPaymentId = ip2int($userData['ip']);
+    }
     $cday = date("d");
     $cmonth = date("m");
     $month_array = months_array();
@@ -850,11 +857,11 @@ function zb_PrintCheck($paymentid) {
     //forming template data
     @$templatedata['{PAYID}'] = $paymentdata['id'];
     @$templatedata['{PAYIDENC}'] = zb_NumEncode($paymentdata['id']);
-    ;
+    @$templatedata['{PAYMENTID}'] = $userPaymentId;
     @$templatedata['{PAYDATE}'] = $paymentdata['date'];
     @$templatedata['{PAYSUMM}'] = $paymentdata['summ'];
     @$templatedata['{PAYSUMM_LIT}'] = $morph->sum2str($paymentdata['summ']); // omg omg omg 
-    @$templatedata['{REALNAME}'] = $allfioz[$login];
+    @$templatedata['{REALNAME}'] = $userData['realname'];
     @$templatedata['{BUHNAME}'] = 'а відки я знаю?';
     @$templatedata['{CASNAME}'] = $cassnames[whoami()];
     @$templatedata['{PAYTARGET}'] = 'Оплата за послуги / ' . $paymentdata['date'];

@@ -3,7 +3,7 @@
 if ( cfr('PRINTCHECK') ) {
     if ( isset($_GET['paymentid']) ) {
         $paymentid = $_GET['paymentid'];
-        $alter = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
+        $alter = $ubillingConfig->getAlter();
         if ( !empty($alter['DOCX_SUPPORT']) && !empty($alter['DOCX_CHECK']) ) {
             $morph=new UBMorph();
             @$payment = zb_PaymentGetData($paymentid); // id, date, summ...
@@ -79,7 +79,7 @@ if ( cfr('PRINTCHECK') ) {
                     break;
             }
         } else {
-            print(zb_PrintCheck($paymentid));
+            print(zb_PrintCheck($paymentid,$alter['OPENPAYZ_REALID']));
             die();
         }
     }
