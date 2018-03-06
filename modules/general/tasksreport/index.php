@@ -625,13 +625,15 @@ if (cfr('TASKREPORT')) {
                                 }
                             }
 
-                            $cells = wf_TableCell(__('Warehouse item types'));
+                            $cells = wf_TableCell(__('Category'));
+                            $cells.= wf_TableCell(__('Warehouse item types'));
                             $cells.= wf_TableCell(__('Count'));
                             $cells.= wf_TableCell(__('Money'));
                             $rows = wf_TableRow($cells, 'row1');
 
                             foreach ($warehouseSignupStats as $io => $each) {
-                                $cells = wf_TableCell($this->warehouse->itemtypeGetName($io));
+                                $cells= wf_TableCell($this->warehouse->itemtypeGetCategory($io));
+                                $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
                                 $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
                                 $cells.= wf_TableCell($each['price']);
                                 $rows.= wf_TableRow($cells, 'row3');

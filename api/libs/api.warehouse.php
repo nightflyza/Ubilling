@@ -1085,6 +1085,20 @@ class Warehouse {
         $result = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
         return ($result);
     }
+    
+     /**
+     * Returns item type count unit
+     * 
+     * @param int $itemtypeId
+     * 
+     * @return string
+     */
+    public function itemtypeGetCategory($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        $result = @$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
+        return ($result);
+    }
 
     /**
      * Returns storage creation form
