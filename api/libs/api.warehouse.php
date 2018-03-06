@@ -1073,6 +1073,20 @@ class Warehouse {
     }
 
     /**
+     * Returns item type count unit
+     * 
+     * @param int $itemtypeId
+     * 
+     * @return string
+     */
+    public function itemtypeGetUnit($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        $result = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+        return ($result);
+    }
+
+    /**
      * Returns storage creation form
      * 
      * @return string
@@ -2490,27 +2504,28 @@ class Warehouse {
      * 
      * @param int $taskid
      * 
-     * @return float
+     * @return array sum=>float & items=>data
      */
     public function taskMaterialsSpentPrice($taskid) {
         $taskid = vf($taskid, 3);
-        $result = '';
-        $tmpArr = array();
+        $result = array();
         $sum = 0;
         if (!empty($this->allOutcoming)) {
             foreach ($this->allOutcoming as $io => $each) {
                 if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
-                    $tmpArr[$each['id']] = $each;
+                    $sum = $sum + ($each['price'] * $each['count']);
+                    $result['items'][] = $each;
                 }
             }
 
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    $sum = $sum + ($each['price'] * $each['count']);
+                    
                 }
             }
         }
-        $result = $sum;
+        $result['sum'] = $sum;
+
         return ($result);
     }
 
