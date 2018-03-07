@@ -780,10 +780,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                  */
                                 if (!empty($detectedLogin)) {
                                     $askCache = new UbillingCache();
-                                    $userData = $askCache->get('STGDATAASSOC', 3600);
+                                    $userData = $askCache->get('ASKUSERDATA', 3600);
                                     if (empty($userData)) {
-                                        $userData = zb_UserGetAllStargazerDataAssoc();
-                                        $askCache->set('STGDATAASSOC', $userData, 3600);
+                                        $userData = array();
+                                        $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline` from `users`");
+                                        if (!empty($userDataRaw)) {
+                                            foreach ($userDataRaw as $io => $each) {
+                                                $userData[$each['login']] = $each;
+                                            }
+                                        }
+                                        $askCache->set('ASKUSERDATA', $userData, 3600);
                                     }
                                     if (isset($userData[$detectedLogin])) {
                                         $userData = $userData[$detectedLogin];
