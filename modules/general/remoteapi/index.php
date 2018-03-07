@@ -793,7 +793,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     }
                                     if (isset($userData[$detectedLogin])) {
                                         $userData = $userData[$detectedLogin];
-                                        if ($userData['Cash'] > '-' . $userData['Credit']) {
+                                        if ($userData['Cash'] >= '-' . $userData['Credit']) {
                                             $askReply = '1';
                                         } else {
                                             $askReply = '2';
