@@ -763,6 +763,50 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //askozia number telepathy
+                    if ($_GET['action'] == 'askozianum') {
+                        if ($alterconf['ASKOZIA_ENABLED']) {
+                            if (isset($_GET['param'])) {
+                                $number = $_GET['param'];
+                                $askTelepathy = new Telepathy(false, true, false, true);
+                                $askTelepathy->usePhones();
+                                $detectedLogin = $askTelepathy->getByPhone($number, true, true);
+                                $askReply = '0';
+                                /**
+                                 * 0 - user not found
+                                 * 1 - user found and have positive balance
+                                 * 2 - user found and have negative balance
+                                 * 3 - user found and accoun is frozen or something like that
+                                 */
+                                if (!empty($detectedLogin)) {
+                                    $askCache = new UbillingCache();
+                                    $userData = $askCache->get('STGDATAASSOC', 3600);
+                                    if (empty($userData)) {
+                                        $userData = zb_UserGetAllStargazerDataAssoc();
+                                        $askCache->set('STGDATAASSOC', $userData, 3600);
+                                    }
+                                    if (isset($userData[$detectedLogin])) {
+                                        $userData = $userData[$detectedLogin];
+                                        if ($userData['Cash'] > '-' . $userData['Credit']) {
+                                            $askReply = '1';
+                                        } else {
+                                            $askReply = '2';
+                                        }
+                                        if (($userData['Passive'] == 1) OR ( $userData['Down'] == 1) OR ( $userData['AlwaysOnline'] == 0)) {
+                                            $askReply = '3';
+                                        }
+                                    }
+                                }
+
+                                die($askReply);
+                            } else {
+                                die('ERROR: EMPTY PARAM');
+                            }
+                        } else {
+                            die('ERROR: ASKOIZA DISABLED');
+                        }
+                    }
+
                     //why do you call stats collecting
                     if ($_GET['action'] == 'whydoyoucallstats') {
                         if ($alterconf['ASKOZIA_ENABLED']) {

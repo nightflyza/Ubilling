@@ -224,7 +224,13 @@ function pb_IsHashUnique($ophash) {
 	}
 }
 
-//substr find
+/**
+ * Checks for substring in string
+ * 
+ * @param string $string
+ * @param string $search
+ * @return bool
+ */
 function ispos($string,$search) {
       if (strpos($string,$search)===false) {
         return(false);
