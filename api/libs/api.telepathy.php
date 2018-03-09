@@ -391,6 +391,7 @@ class Telepathy {
      * 
      * @param string $phoneNumber
      * @param bool $onlyMobile
+     * @param bool $normalizeMobile
      * 
      * @return string
      */

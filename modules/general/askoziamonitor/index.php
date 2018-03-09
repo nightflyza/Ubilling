@@ -129,8 +129,8 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         $callDirection = ($explodedFile[0] == 'in') ? self::ICON_PATH . 'incoming.png' : self::ICON_PATH . 'outgoing.png';
                         //unfinished calls
                         if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
-                            $userLogin = $telepathy->getByPhone($callingNumber, $this->onlyMobileFlag);
-
+                            //here onlyMobile flag used for mobile normalizing too
+                            $userLogin = $telepathy->getByPhone($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
                             $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                             $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                             $cleanDate = $newDateString;
