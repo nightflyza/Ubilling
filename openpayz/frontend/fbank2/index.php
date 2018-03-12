@@ -315,7 +315,7 @@ if (!empty($rawXml)) {
 
             if ($transactionDate) {
                 $hashClean = mysql_real_escape_string($transactionDataRaw['Payment']['OrderId']);
-                $hash = 'EP_' . $hashClean;
+                $hash = 'FB_' . $hashClean;
                 $summ = mysql_real_escape_string($transactionDataRaw['Payment']['Amount']);
                 $paymentCustomerId = mysql_real_escape_string($transactionDataRaw['Payment']['Account']);
 
