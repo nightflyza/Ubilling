@@ -529,7 +529,10 @@ class PONizer {
                 //signal is present
                 if (isset($line[1])) {
                     $signalRaw = trim($line[1]); // signal level
-                    $plasticIndexSig++; // device index just increment because we have no way to transform .1.3 to 1.769
+                    $signalOnuPort = str_replace($snmpTemplate['SIGINDEX'], '', $line[0]);
+                    $signalOnuPort = explode('.', $signalOnuPort);
+                    $plasticIndexSig = trim($signalOnuPort[1]);
+                    $plasticIndexSig = ($plasticIndexSig * 256) + 1; // realy shitty index
                     if ($signalRaw == $snmpTemplate['DOWNVALUE']) {
                         $signalRaw = 'Offline';
                     } else {
@@ -550,7 +553,9 @@ class PONizer {
                 //mac is present
                 if (isset($line[1])) {
                     $macRaw = trim($line[1]); //mac address
-                    $plasticIndexMac++;
+                    $macOnuPort = str_replace($snmpTemplate['MACINDEX'], '', $line[0]);
+                    $macOnuPort = explode('.', $macOnuPort);
+                    $plasticIndexMac = trim($macOnuPort[1]);
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
                     $macTmp[$plasticIndexMac] = $macRaw;
@@ -576,6 +581,134 @@ class PONizer {
                 $result = serialize($result);
 
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+            }
+        }
+    }
+
+    /**
+     * Parses & stores in cache OLT ONU distances
+     * 
+     * @param int $oltid
+     * @param array $distIndex
+     * @param array $onuIndex
+     * 
+     * @return void
+     */
+    protected function distanceParseStels($oltid, $distIndex, $onuIndex) {
+        $oltid = vf($oltid, 3);
+        $distTmp = array();
+        $onuTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+        //distance index preprocessing
+        if ((!empty($distIndex)) AND ( !empty($onuIndex))) {
+            foreach ($distIndex as $io => $eachdist) {
+                $line = explode('=', $eachdist);
+                //distance is present
+                if (isset($line[1])) {
+                    $distanceRaw = trim($line[1]); // distance
+                    $devIndex = $line[0];
+                    $devIndex = explode('.', $devIndex);
+                    $devIndex = trim($devIndex[1]);
+                    $devIndex = (($devIndex * 256) + 1);
+                    if ($distanceRaw == 0) {
+                        // $distanceRaw = ''; //not sure about this
+                    }
+                    $distTmp[$devIndex] = $distanceRaw;
+                }
+            }
+
+
+
+            //mac index preprocessing
+            foreach ($onuIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]);
+                    $devIndex = explode('.', $devIndex);
+                    $devIndex = $devIndex[1];
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $onuTmp[$devIndex] = $macRaw;
+                }
+            }
+
+
+            //storing results
+            if (!empty($onuTmp)) {
+                foreach ($onuTmp as $devId => $eachMac) {
+                    if (isset($distTmp[$devId])) {
+                        $distance = $distTmp[$devId];
+                        $result[$eachMac] = $distance;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::DISTCACHE_PATH . $oltid . '_' . self::DISTCACHE_EXT, $result);
+                $onuTmp = serialize($onuTmp);
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $onuTmp);
+            }
+        }
+    }
+
+    /**
+     * Parses & stores in cache OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $intIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function interfaceParseStels($oltid, $intIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $intTmp = array();
+        $macTmp = array();
+        $result = array();
+
+        //distance index preprocessing
+        if ((!empty($intIndex)) AND ( !empty($macIndex))) {
+            foreach ($intIndex as $io => $eachint) {
+                $line = explode('=', $eachint);
+                //distance is present
+                if (isset($line[1])) {
+                     // distance
+                    $devIndex = trim($line[0]); // device index
+                    $devIndex= explode('.', $devIndex);
+                    $interfaceRaw = $devIndex[0].':'.$devIndex[1];
+                    $devIndex=($devIndex[1]*256)+1;
+                    $intTmp[$devIndex] = $interfaceRaw;
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $devIndex=  explode('.', $devIndex);
+                    $devIndex=$devIndex[1];
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $macTmp[$devIndex] = $macRaw;
+                    
+                }
+            }
+
+            //storing results
+            if (!empty($macTmp)) {
+                foreach ($macTmp as $devId => $eachMac) {
+                    if (isset($intTmp[$devId])) {
+                        $inteface = $intTmp[$devId];
+                        $result[$eachMac] = $inteface;
+                    }
+                }
+                $result = serialize($result);
+                file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
             }
         }
     }
@@ -811,6 +944,28 @@ class PONizer {
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
                             $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+                            //ONU distance polling for stels devices
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
+                                        $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
+                                        $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
+                                        $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
+                                        $distIndex = explodeRows($distIndex);
+
+                                        $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                        $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
+                                        $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
+                                        $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
+                                        $onuIndex = explodeRows($onuIndex);
+                                        $this->distanceParseStels($oltid, $distIndex, $onuIndex);
+
+                                        //use same data for ONU interface caching
+                                        $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+                                    }
+                                }
+                            }
                         }
 
                         //ZTE devices polling
