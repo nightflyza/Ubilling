@@ -2832,4 +2832,7 @@ $lang['def']['Quick links for fast navigation in Wireless APs signal monitor ena
 $lang['def']['CPEs autopolling is enabled'] = 'Автоматичне опитування абонентських бездротових CPE включено';
 $lang['def']['Is client side wifi equipment accounting enabled'] = 'Облік абонентських бездротових CPE включено';
 
+//rev 6027
+$lang['def']['Some of numbers which calls us today'] = 'Деякі номери, котрі нам нині телефонували';
+
 ?>

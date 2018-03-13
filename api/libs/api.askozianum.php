@@ -138,6 +138,34 @@ class AskoziaNum {
     }
 
     /**
+     * Returns parsed calls log
+     * 
+     * @return array
+     */
+    public function parseLog() {
+        $result = array();
+        if (file_exists(self::LOG_PATH)) {
+            $rawData = file_get_contents(self::LOG_PATH);
+            $rawData = explodeRows($rawData);
+            $count = 0;
+            if (!empty($rawData)) {
+                foreach ($rawData as $io => $line) {
+                    if (!empty($line)) {
+                        $line = explode(' ', $line);
+                        $result[$count]['date'] = $line[0];
+                        $result[$count]['time'] = $line[1];
+                        $result[$count]['number'] = $line[3];
+                        $result[$count]['reply'] = $line[5];
+                        $result[$count]['login'] = @$line[7];
+                        $count++;
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders reply for Askozia external AGI application
      * 
      * @return void
