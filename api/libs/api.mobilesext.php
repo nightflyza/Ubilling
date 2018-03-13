@@ -261,7 +261,7 @@ class MobilesExt {
                             //is this really unknown number?
                             $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
                             if (empty($detectedLogin)) {
-                                $numsTmp[$each['number']] = $each['number'];
+                                $numsTmp[$each['number']] = $each['time'].' - '.$each['number'];
                             }
                         }
                     }
@@ -270,7 +270,6 @@ class MobilesExt {
 
             //new extmobile form rendering
             if (!empty($numsTmp)) {
-                $numsTmp=  array_reverse($numsTmp);
                 if (!empty($login)) {
                     $inputs = wf_HiddenInput('newmobileextlogin', $login);
                     $inputs.= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '',false);
