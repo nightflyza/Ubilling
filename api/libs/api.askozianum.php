@@ -24,6 +24,11 @@ class AskoziaNum {
     protected $number = '';
 
     /**
+     * Userdata caching time in seconds
+     */
+    const CACHE_TIME = 3600;
+
+    /**
      * Log path
      */
     const LOG_PATH = 'content/documents/askozianum.log';
@@ -105,7 +110,7 @@ class AskoziaNum {
 
         if (!empty($detectedLogin)) {
 
-            $userData = $this->cache->get('ASKUSERDATA', 3600);
+            $userData = $this->cache->get('ASKUSERDATA', self::CACHE_TIME);
             if (empty($userData)) {
                 $userData = array();
                 $userDataRaw = simple_queryall("SELECT `login`,`Cash`,`Credit`,`Passive`,`Down`,`AlwaysOnline` from `users`");
@@ -114,7 +119,7 @@ class AskoziaNum {
                         $userData[$each['login']] = $each;
                     }
                 }
-                $this->cache->set('ASKUSERDATA', $userData, 3600);
+                $this->cache->set('ASKUSERDATA', $userData, self::CACHE_TIME);
             }
             if (isset($userData[$detectedLogin])) {
                 $userData = $userData[$detectedLogin];
