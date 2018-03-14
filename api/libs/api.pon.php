@@ -291,7 +291,6 @@ class PONizer {
                 }
             }
 
-
             //storing results
             if (!empty($onuTmp)) {
                 foreach ($onuTmp as $devId => $eachMac) {
@@ -581,17 +580,19 @@ class PONizer {
                 $result = serialize($result);
 
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, serialize($macTmp));
             }
         }
     }
 
+
     /**
      * Parses & stores in cache OLT ONU distances
-     * 
+     *
      * @param int $oltid
      * @param array $distIndex
      * @param array $onuIndex
-     * 
+     *
      * @return void
      */
     protected function distanceParseStels($oltid, $distIndex, $onuIndex) {
@@ -695,7 +696,7 @@ class PONizer {
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
                     $macTmp[$devIndex] = $macRaw;
-                    
+
                 }
             }
 
@@ -712,6 +713,108 @@ class PONizer {
             }
         }
     }
+
+    /**
+     * Performs signal preprocessing for sig/mac index arrays and stores it into cache
+     *
+     * @param int   $oltid
+     * @param array $sigIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    public function signalParseVSOL($oltid, $sigIndex, $macIndex) {
+        $ONUsModulesTemps    = array();
+        $ONUsModulesVoltages = array();
+        $ONUsModulesCurrents = array();
+        $ONUsSignals         = array();
+        $ONUsMACs            = array();
+        $result              = array();
+        $curDate             = curdatetime();
+        $oltid               = vf($oltid, 3);
+
+        //signal index preprocessing
+        if ((!empty($sigIndex)) AND ( !empty($macIndex))) {
+            foreach ($sigIndex as $io => $eachsig) {
+                $line = explode('=', $eachsig);
+
+                //signal is present
+                if (isset($line[0])) {
+                    $tmpOIDPiece = substr(trim($line[0]), 0, 6);
+                    $tmpONUNumber = substr(trim($line[0]), -1);
+
+                    // just because we can't(I dunno why - honestly) just query the
+                    // .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.6.1. and .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.7.1. OIDs
+                    // cause it's simply returns NOTHING - we need to take a start from the higher tree point - .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.
+                    // and then we can extract all necessary values
+
+                    switch ($tmpOIDPiece) {
+                        case '1.3.1.':
+                            $ONUsModulesTemps[$tmpONUNumber] = trim($line[1]);      // may be we'll show this somewhere in future
+                            break;
+
+                        case '1.4.1.':
+                            $ONUsModulesVoltages[$tmpONUNumber] = trim($line[1]);   // may be we'll show this somewhere in future
+                            break;
+
+                        case '1.5.1.':
+                            $ONUsModulesCurrents[$tmpONUNumber] = trim($line[1]);   // may be we'll show this somewhere in future
+                            break;
+
+                        case '1.6.1.':
+                            $SignalRaw = trim($line[1]);
+                            $ONUsSignals[$tmpONUNumber]['SignalTXRaw'] = $SignalRaw;
+                            $ONUsSignals[$tmpONUNumber]['SignalTXdBm'] = trim( substr( stristr( stristr( stristr($SignalRaw, '(' ), ')', true ), 'dBm', true ), 1) );
+                            break;
+
+                        case '1.7.1.':
+                            $SignalRaw = trim($line[1]);
+                            $ONUsSignals[$tmpONUNumber]['SignalRXRaw'] = $SignalRaw;
+                            $ONUsSignals[$tmpONUNumber]['SignalRXdBm'] = trim( substr( stristr( stristr( stristr($SignalRaw, '(' ), ')', true ), 'dBm', true ), 1) );
+                            break;
+                    }
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($macIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (!empty($line[0])) {
+                    $ONUsMACs[trim($line[0])] = str_replace('"', '', trim($line[1])); //mac address
+                }
+            }
+
+            //storing results
+            if (!empty($ONUsMACs)) {
+                foreach ($ONUsMACs as $devId => $eachMac) {
+                    if (isset($ONUsSignals[$devId])) {
+                        //signal history filling
+                        $historyFile = self::ONUSIG_PATH . md5($eachMac);
+                        $signal = $ONUsSignals[$devId]['SignalTXdBm'] . ',' . $ONUsSignals[$devId]['SignalRXdBm'];
+
+                        if ($signal == ',') {
+                            $signal = 'Offline';
+                        }
+
+                        $result[$eachMac] = $signal;
+
+                        if (empty($signal) OR $signal == 'Offline') {
+                            $signal = -9000; //over 9000 offline signal level :P
+                        }
+
+                        file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
+                    }
+                }
+
+                $result     = serialize($result);
+                $ONUsMACs   = serialize($ONUsMACs);
+                file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
+                file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $ONUsMACs);
+            }
+        }
+    }
+
 
     /**
      * Performs signal preprocessing for sig/mac index arrays and stores it into cache for ZTE OLT
@@ -878,6 +981,7 @@ class PONizer {
                 $oltIp = $this->allOltSnmp[$oltid]['ip'];
                 if (isset($this->snmpTemplates[$oltModelId])) {
                     if (isset($this->snmpTemplates[$oltModelId]['signal'])) {
+
                         // BDCOM/Eltex devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'BDCOM') {
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
@@ -890,7 +994,6 @@ class PONizer {
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
-
                             $macIndex = explodeRows($macIndex);
 
                             $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
@@ -929,8 +1032,11 @@ class PONizer {
                                 }
                             }
                         }
-                        // Stels FDXXXX  devices polling
-                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
+
+                        // Stels FDXXXX  or V-Solution 1600D devices polling
+                        if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD'
+                            OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
+
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
                             $sigIndex = str_replace($sigIndexOID . '.', '', $sigIndex);
@@ -939,34 +1045,37 @@ class PONizer {
 
                             $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
                             $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
-
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
-                            $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
-                            //ONU distance polling for stels devices
-                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
-                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
-                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
-                                        $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
-                                        $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
-                                        $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
-                                        $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
-                                        $distIndex = explodeRows($distIndex);
 
-                                        $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
-                                        $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
-                                        $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
-                                        $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
-                                        $onuIndex = explodeRows($onuIndex);
-                                        $this->distanceParseStels($oltid, $distIndex, $onuIndex);
+                            if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD') {
+                                $this->signalParseStels($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+                                //ONU distance polling for stels devices
+                                if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                    if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                            $distIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
+                                            $distIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $distIndexOid, self::SNMPCACHE);
+                                            $distIndex = str_replace($distIndexOid . '.', '', $distIndex);
+                                            $distIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DISTVALUE'], '', $distIndex);
+                                            $distIndex = explodeRows($distIndex);
 
-                                        //use same data for ONU interface caching
-                                        $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+                                            $onuIndexOid = $this->snmpTemplates[$oltModelId]['misc']['ONUINDEX'];
+                                            $onuIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $onuIndexOid, self::SNMPCACHE);
+                                            $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
+                                            $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
+                                            $onuIndex = explodeRows($onuIndex);
+                                            $this->distanceParseStels($oltid, $distIndex, $onuIndex);
+
+                                            //use same data for ONU interface caching
+                                            $this->interfaceParseStels($oltid, $sigIndex, $macIndex);
+                                        }
                                     }
                                 }
+                            } else {
+                                $this->signalParseVSOL($oltid, $sigIndex, $macIndex);
                             }
-                        }
 
                         //ZTE devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE') {
@@ -1008,6 +1117,7 @@ class PONizer {
                             }
                             $this->signalParseZte($oltid, $sigIndexTmp, $macIndexTmp, $this->snmpTemplates[$oltModelId]['signal']);
                         }
+
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON' or $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
                             $template = $this->snmpTemplates[$oltModelId]['signal'];
                             $snIndexOID = $template['SNINDEX'];
