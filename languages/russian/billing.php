@@ -2816,6 +2816,8 @@ $lang['def']['Quick links for fast navigation in Wireless APs signal monitor ena
 $lang['def']['CPEs autopolling is enabled'] = 'Автоматический опрос абонентских беспроводных CPE включен';
 $lang['def']['Is client side wifi equipment accounting enabled'] = 'Учет абонентских беспроводных CPE включен';
 
+//rev 6027
+$lang['def']['Some of numbers which calls us today'] = 'Некоторые номера, которые нам сегодня звонили';
 
 
 

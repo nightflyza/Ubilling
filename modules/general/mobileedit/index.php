@@ -48,6 +48,10 @@ if (cfr('MOBILE')) {
                 $extCreateForm = $extMobiles->renderCreateForm($login);
                 $extList = $extMobiles->renderUserMobilesList($login);
                 show_window(__('Additional mobile phones'), $extList . $extCreateForm);
+
+                if ($altCfg['ASKOZIA_ENABLED']) {
+                    $extMobiles->fastAskoziaAttachForm($login);
+                }
             }
         }
         //User back to profile controls

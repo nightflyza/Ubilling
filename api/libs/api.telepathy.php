@@ -70,6 +70,13 @@ class Telepathy {
     protected $cachedAddress = true;
 
     /**
+     * Use phones caching or not?
+     *
+     * @var bool
+     */
+    protected $cachedPhones = false;
+
+    /**
      * City display flag
      *
      * @var array
@@ -77,19 +84,34 @@ class Telepathy {
     protected $citiesAddress = false;
 
     /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Contains phone data caching time in seconds
+     */
+    const PHONE_CACHE_TIME = 86400;
+
+    /**
      * Creates new telepathy instance
      * 
      * @param bool $caseSensitive
      * @param bool $cachedAddress
      * @param bool $citiesAddress
+     * @param bool $cachedPhones
      * 
      * @return void
      */
-    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false) {
+    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false, $cachedPhones = false) {
         $this->caseSensitive = $caseSensitive;
         $this->cachedAddress = $cachedAddress;
         $this->citiesAddress = $citiesAddress;
+        $this->cachedPhones = $cachedPhones;
         $this->loadConfig();
+        $this->initCache();
         $this->loadAddress();
 
         if (!$this->caseSensitive) {
@@ -110,6 +132,15 @@ class Telepathy {
     protected function loadConfig() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Inits system cache
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -139,12 +170,57 @@ class Telepathy {
     }
 
     /**
+     * Normalizes mobile number to +380 format. 
+     * May be not acceptable for countries other than Ukraine.
+     * 
+     * @param string $mobile
+     * 
+     * @return string/void on error
+     */
+    protected function normalizePhoneFormat($mobile) {
+        $mobile = vf($mobile, 3);
+        $len = strlen($mobile);
+//all is ok
+        if ($len != 12) {
+            switch ($len) {
+                case 11:
+                    $mobile = '3' . $mobile;
+                    break;
+                case 10:
+                    $mobile = '38' . $mobile;
+                    break;
+                case 9:
+                    $mobile = '380' . $mobile;
+                    break;
+            }
+        }
+
+        $newLen = strlen($mobile);
+        if ($newLen == 12) {
+            $mobile = '+' . $mobile;
+        } else {
+            $mobile = '';
+        }
+
+
+        return ($mobile);
+    }
+
+    /**
      * Loads all existing phone data into protected props for further usage
      * 
      * @return void
      */
     public function usePhones() {
-        $allPhoneData = zb_UserGetAllPhoneData();
+        if ($this->cachedPhones) {
+            $allPhoneData = $this->cache->get('PHONEDATA', self::PHONE_CACHE_TIME);
+            if (empty($allPhoneData)) {
+                $allPhoneData = zb_UserGetAllPhoneData();
+                $this->cache->set('PHONEDATA', $allPhoneData, self::PHONE_CACHE_TIME);
+            }
+        } else {
+            $allPhoneData = zb_UserGetAllPhoneData();
+        }
         if (!empty($allPhoneData)) {
             foreach ($allPhoneData as $login => $each) {
                 $cleanMobile = vf($each['mobile'], 3);
@@ -160,8 +236,19 @@ class Telepathy {
         }
         //additional mobiles loading if enabled
         if ($this->altCfg['MOBILES_EXT']) {
-            $extMob = new MobilesExt();
-            $allExtTmp = $extMob->getAllMobilesUsers();
+
+            if ($this->cachedPhones) {
+                $allExtTmp = $this->cache->get('EXTMOBILES', self::PHONE_CACHE_TIME);
+                if (empty($allExtTmp)) {
+                    $extMob = new MobilesExt();
+                    $allExtTmp = $extMob->getAllMobilesUsers();
+                    $this->cache->set('EXTMOBILES', $allExtTmp, self::PHONE_CACHE_TIME);
+                }
+            } else {
+                $extMob = new MobilesExt();
+                $allExtTmp = $extMob->getAllMobilesUsers();
+            }
+
             if (!empty($allExtTmp)) {
                 foreach ($allExtTmp as $eachExtMobile => $login) {
                     $cleanExtMobile = vf($eachExtMobile, 3);
@@ -304,10 +391,11 @@ class Telepathy {
      * 
      * @param string $phoneNumber
      * @param bool $onlyMobile
+     * @param bool $normalizeMobile
      * 
      * @return string
      */
-    public function getByPhone($phoneNumber, $onlyMobile = false) {
+    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
         $result = '';
         /**
          * Come with us speeding through the night
@@ -315,29 +403,32 @@ class Telepathy {
          * Silhouettes against the Mother Moon
          * We will be there
          */
-        if (!$onlyMobile) {
-            if (!empty($this->allPhones)) {
-                foreach ($this->allPhones as $baseNumber => $userLogin) {
+        $phoneNumber = ($normalizeMobile) ? $this->normalizePhoneFormat($phoneNumber) : $phoneNumber;
+        if (!empty($phoneNumber)) {
+            if (!$onlyMobile) {
+                if (!empty($this->allPhones)) {
+                    foreach ($this->allPhones as $baseNumber => $userLogin) {
+                        if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                            $result = $userLogin;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($this->allExtMobiles)) {
+                foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
                     if (ispos((string) $phoneNumber, (string) $baseNumber)) {
                         $result = $userLogin;
                     }
                 }
             }
-        }
 
-        if (!empty($this->allExtMobiles)) {
-            foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
-                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
-                    $result = $userLogin;
-                }
-            }
-        }
-
-        if (!empty($this->allMobiles)) {
-            foreach ($this->allMobiles as $baseNumber => $userLogin) {
-                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
-                    $result = $userLogin;
-                    return ($result);
+            if (!empty($this->allMobiles)) {
+                foreach ($this->allMobiles as $baseNumber => $userLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                        $result = $userLogin;
+                        return ($result);
+                    }
                 }
             }
         }

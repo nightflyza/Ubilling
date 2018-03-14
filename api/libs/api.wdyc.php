@@ -316,7 +316,7 @@ class WhyDoYouCall {
      * @return string
      */
     protected function userLoginTelepathy($phoneNumber) {
-        $result = $this->telepathy->getByPhone($phoneNumber, $this->onlyMobileFlag);
+        $result = $this->telepathy->getByPhone($phoneNumber, $this->onlyMobileFlag, $this->onlyMobileFlag); //here only mobile flag is used for number normalization
         return ($result);
     }
 

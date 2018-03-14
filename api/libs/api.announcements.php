@@ -546,7 +546,7 @@ class AdminAnnouncements {
             if (!empty($this->data[$id]['title'])) {
                 $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
             }
-            $previewtext = strip_tags($this->data[$id]['text']);
+            $previewtext = $this->data[$id]['text'];
             $result.= nl2br($previewtext);
             $result.=wf_delimiter();
         }
@@ -620,7 +620,7 @@ class AdminAnnouncements {
     public function createForm() {
         $inputs = wf_TextInput('newtitle', __('Title'), '', true, 40);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $inputs.= __('Text') . $sup . wf_tag('br');
+        $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
         $inputs.= wf_TextArea('newtext', '', '', true, '60x10');
         $inputs.= wf_delimiter();
         $inputs.= wf_Submit(__('Create'));
@@ -643,7 +643,7 @@ class AdminAnnouncements {
         if (isset($this->data[$id])) {
             $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-            $inputs.= __('Text') . $sup . wf_tag('br');
+            $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
             $inputs.= wf_TextArea('edittext', '', $this->data[$id]['text'], true, '60x10');
             $inputs.= wf_delimiter();
             $inputs.= wf_Submit(__('Save'));

@@ -560,6 +560,7 @@ function zb_SwitchModelsGetAllTag() {
  * Returns result of fast icmp ping
  * 
  * @param string $ip devide IP to ping
+ * 
  * @return bool
  */
 function zb_PingICMP($ip) {
@@ -576,16 +577,23 @@ function zb_PingICMP($ip) {
 }
 
 /**
- * Returns web led indicator for some device with fast ICMP ping
+ * Returns result of slow icmp ping with some retries count
  * 
- * @param string $ip device ip to check
- * @return string
+ * @param string $ip devide IP to ping
+ * @param int $retries number of retries to check host
+ * 
+ * @return bool
  */
-function zb_SwitchAlive($ip) {
-    if (zb_PingICMP($ip)) {
-        $result = web_green_led();
-    } else {
-        $result = web_red_led();
+function zb_PingICMPHope($ip, $retries = 3) {
+    $result = false;
+    $count = 0;
+    for ($count = 0; $count < $retries; $count++) {
+        deb($count);
+        if (zb_PingICMP($ip)) {
+            deb('true');
+            $result=true;
+            break;
+        }
     }
     return ($result);
 }

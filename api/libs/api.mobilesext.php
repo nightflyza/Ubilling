@@ -238,4 +238,49 @@ class MobilesExt {
         return ($result);
     }
 
+    /**
+     * Renders fast ext mobile add form
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    public function fastAskoziaAttachForm($login) {
+        $result = '';
+        $askNum = new AskoziaNum();
+        $askoziaLog = $askNum->parseLog();
+        $telepathy = new Telepathy(false, true, false, false);
+        $telepathy->usePhones();
+        if (!empty($askoziaLog)) {
+            $numsTmp = array();
+            $curdate = curdate();
+            foreach ($askoziaLog as $io => $each) {
+                if ($each['date'] == $curdate) {
+                    if ((empty($each['login'])) AND ( $each['reply'] == 0)) {
+                        if (!empty($each['number'])) {
+                            //is this really unknown number?
+                            $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
+                            if (empty($detectedLogin)) {
+                                $numsTmp[$each['number']] = $each['time'].' - '.$each['number'];
+                            }
+                        }
+                    }
+                }
+            }
+
+            //new extmobile form rendering
+            if (!empty($numsTmp)) {
+                if (!empty($login)) {
+                    $inputs = wf_HiddenInput('newmobileextlogin', $login);
+                    $inputs.= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '',false);
+                    $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
+                    $inputs.= wf_Submit(__('Create'));
+                    $result.= wf_Form('', 'POST', $inputs, 'glamour');
+                    $result.=wf_CleanDiv();
+                }
+                show_window(__('Some of numbers which calls us today'), $result);
+            }
+        }
+    }
+
 }

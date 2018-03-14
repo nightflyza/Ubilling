@@ -449,6 +449,7 @@ if (cfr('TASKREPORT')) {
                 $tasksSummary = array();
                 $warehouseSpent = 0;
                 $salarySpent = 0;
+                $signupMaterialsSpent = array();
 
                 if (!empty($this->allTasks)) {
                     $cells = wf_TableCell('№');
@@ -507,7 +508,14 @@ if (cfr('TASKREPORT')) {
                         $cells.= wf_TableCell($styleStart . $this->jobtypes[$each['jobtype']]['jobname'] . $styleEnd);
                         if ($this->warehouseFlag OR $this->salaryFlag) {
                             if ($this->warehouseFlag) {
-                                $warehouseSpent = $this->warehouse->taskMaterialsSpentPrice($each['id']);
+                                $warehouseSpentRaw = $this->warehouse->taskMaterialsSpentPrice($each['id']);
+                                //saving materials spent on signups only
+                                if (isset($this->signupJobtypeId[$each['jobtype']])) {
+                                    if (isset($warehouseSpentRaw['items'])) {
+                                        $signupMaterialsSpent[] = $warehouseSpentRaw['items'];
+                                    }
+                                }
+                                $warehouseSpent = $warehouseSpentRaw['sum'];
                             }
                             if ($this->salaryFlag) {
                                 $salarySpent = $this->salary->getTaskPrice($each['id']);
@@ -558,7 +566,6 @@ if (cfr('TASKREPORT')) {
                         $count++;
                     }
 
-
                     $result = wf_TableBody($rows, '100%', 0, 'sortable');
                     $result.= wf_tag('br');
 
@@ -600,6 +607,43 @@ if (cfr('TASKREPORT')) {
 
                         $result.= wf_TableBody($rows, '100%', 0, 'sortable');
                         $result.= wf_tag('br');
+
+                        //signup warehouse items spent summary stats
+                        if (!empty($signupMaterialsSpent)) {
+                            $warehouseSignupStats = array();
+                            foreach ($signupMaterialsSpent as $io => $flow) {
+                                if (!empty($flow)) {
+                                    foreach ($flow as $ia => $each) {
+                                        if (isset($warehouseSignupStats[$each['itemtypeid']])) {
+                                            $warehouseSignupStats[$each['itemtypeid']]['count']+=$each['count'];
+                                            $warehouseSignupStats[$each['itemtypeid']]['price']+=$each['price'] * $each['count'];
+                                        } else {
+                                            $warehouseSignupStats[$each['itemtypeid']]['count'] = $each['count'];
+                                            $warehouseSignupStats[$each['itemtypeid']]['price'] = $each['price'] * $each['count'];
+                                        }
+                                    }
+                                }
+                            }
+
+                            $cells = wf_TableCell(__('Category'));
+                            $cells.= wf_TableCell(__('Warehouse item types'));
+                            $cells.= wf_TableCell(__('Count'));
+                            $cells.= wf_TableCell(__('Money'));
+                            $rows = wf_TableRow($cells, 'row1');
+
+                            foreach ($warehouseSignupStats as $io => $each) {
+                                $cells= wf_TableCell($this->warehouse->itemtypeGetCategory($io));
+                                $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
+                                $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
+                                $cells.= wf_TableCell($each['price']);
+                                $rows.= wf_TableRow($cells, 'row3');
+                            }
+
+
+                            $result.=wf_tag('b') . __('Total spent materials for signups') . wf_tag('b', true);
+                            $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                            $result.= wf_tag('br');
+                        }
 
                         //appending totals counters
                         $cells = wf_TableCell(__('Counter'));

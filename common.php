@@ -24,10 +24,10 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '12');
-if(is_file(RCMS_ROOT_PATH . '_nightly.txt')) define('RCMS_VERSION_SUFFIX', '-svn'); else define('RCMS_VERSION_SUFFIX', '');
+define('RCMS_VERSION_C', '13');
+if(is_file(RCMS_ROOT_PATH . 'CURRENT')) define('RCMS_VERSION_SUFFIX', '-git'); else define('RCMS_VERSION_SUFFIX', '');
 define('RCMS_LINK', 'http://reloadcms.com/main/');
-define('RCMS_COPYRIGHT', '&copy; 2017');
+define('RCMS_COPYRIGHT', '&copy; 2018');
 define('RCMS_POWERED', '<a href="' . RCMS_LINK . '">RCMS Framework</a>');
 
 // Main paths

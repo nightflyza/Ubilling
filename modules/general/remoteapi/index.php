@@ -763,6 +763,22 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //askozia number telepathy
+                    if ($_GET['action'] == 'askozianum') {
+                        if ($alterconf['ASKOZIA_ENABLED']) {
+                            if (isset($_GET['param'])) {
+                                $number = $_GET['param'];
+                                $askNum = new AskoziaNum();
+                                $askNum->setNumber($number);
+                                $askNum->renderReply();
+                            } else {
+                                die('ERROR: EMPTY PARAM');
+                            }
+                        } else {
+                            die('ERROR: ASKOIZA DISABLED');
+                        }
+                    }
+
                     //why do you call stats collecting
                     if ($_GET['action'] == 'whydoyoucallstats') {
                         if ($alterconf['ASKOZIA_ENABLED']) {
