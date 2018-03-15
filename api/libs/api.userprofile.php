@@ -1198,7 +1198,8 @@ class UserProfile {
                 } else {
                     $additionalNumbers = '';
                 }
-                $result.=$this->addRow(__('Additional mobile'), $additionalNumbers);
+                $fastLinkControl = (cfr('MOBILE')) ? wf_Link('?module=mobileedit&username=' . $this->login, wf_img_sized('skins/add_icon.png', __('Add new'), '10', '10'), false) : '';
+                $result.=$this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
             }
         }
         return ($result);
