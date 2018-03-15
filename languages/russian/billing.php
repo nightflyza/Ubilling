@@ -2818,7 +2818,7 @@ $lang['def']['Is client side wifi equipment accounting enabled'] = 'Учет а�
 
 //rev 6027
 $lang['def']['Some of numbers which calls us today'] = 'Некоторые номера, которые нам сегодня звонили';
-
+$lang['def']['Cache cleanup'] = 'Очистить кэш';
 
 
 

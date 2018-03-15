@@ -461,9 +461,7 @@ class Telepathy {
         } else {
             $detectedLogin = $this->getByPhone($phoneNumber, $onlyMobile, $normalizeMobile);
             $result=$detectedLogin;
-//            if (!empty($detectedLogin)) {
                 $this->phoneTelepathyCache[$phoneNumber] = $detectedLogin;
-//            }
         }
         return ($result);
     }
@@ -475,6 +473,16 @@ class Telepathy {
      */
     public function savePhoneTelepathyCache() {
         $this->cache->set('PHONETELEPATHY', $this->phoneTelepathyCache, self::PHONE_CACHE_TIME);
+    }
+    
+    /**
+     * Cleans phone telepathy cache
+     * 
+     * @return void
+     */
+    public function flushPhoneTelepathyCache() {
+        $this->cache->delete('PHONETELEPATHY');
+        
     }
 
 }
