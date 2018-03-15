@@ -331,3 +331,5 @@ $lang['def']['Answer'] = 'Respuesta';
 $lang['def']['Voting date'] = 'La fecha de la votación';
 $lang['def']['You have not yet responded to polls'] = 'Ud todavía no ha respondido a las encuestas'; 
 $lang['def']['Vote'] = 'Votar';
+
+$lang['def']['Additional mobile'] = 'Móvil opcional';

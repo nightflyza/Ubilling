@@ -354,4 +354,6 @@ $lang['def']['Voting date'] = 'Дата голосування';
 $lang['def']['You have not yet responded to polls'] = 'Ви ще не відповіли на опитування';
 $lang['def']['Vote'] = 'Голосувати';
 
+$lang['def']['Additional mobile'] = 'Додатковий стільниковий';
+
 ?>

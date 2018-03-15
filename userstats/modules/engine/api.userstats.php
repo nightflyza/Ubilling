@@ -1098,6 +1098,14 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell($mobile);
     $profile.= la_tag('tr', true);
 
+    if (@$us_config['SHOW_EXT_MOBILES']) {
+        $mobilesExt=new UserstatsMobilesExt($login);
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Additional mobile'), '', 'row1');
+        $profile.= la_TableCell($mobilesExt->renderUserMobiles());
+        $profile.= la_tag('tr', true);
+    }
+
     $profile.= la_tag('tr');
     $profile.= la_TableCell(__('Email'), '', 'row1');
     $profile.= la_TableCell($email);

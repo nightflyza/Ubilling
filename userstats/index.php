@@ -9,8 +9,9 @@ include('modules/engine/api.userstats.php');
 include('modules/engine/api.agents.php');
 include('modules/engine/api.megogo.php');
 include('modules/engine/api.polls.php');
+include('modules/engine/api.extmobiles.php');
 
-// ACTIONS HANDER:
+// ACTIONS HANDLING:
 $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
