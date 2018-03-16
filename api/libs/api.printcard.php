@@ -144,9 +144,9 @@ function web_GenerateImages($ids) {
 
     foreach ($cards as $card) {
         $printCardData = $printCardDataFormat;
-        $printCardData['number']['text'] = str_replace('{number}', $card['serial'], $printCardData['number']['text']);
-        $printCardData['serial']['text'] = str_replace('{serial}', $card['part'], $printCardData['serial']['text']);
-        $printCardData['rating']['text'] = str_replace('{sum}', $card['cash'], $printCardData['rating']['text']);
+        $printCardData['number']['text'] = str_replace('{number}', $card['serial'], @$printCardData['number']['text']);
+        $printCardData['serial']['text'] = str_replace('{serial}', $card['part'], @$printCardData['serial']['text']);
+        $printCardData['rating']['text'] = str_replace('{sum}', $card['cash'], @$printCardData['rating']['text']);
 
         $filePath = sprintf('content/documents/card_print/tmp/%s.jpg', $card['serial']);
         $generateCard = new GenerateCard(IMG_CARD);
