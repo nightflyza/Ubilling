@@ -318,8 +318,8 @@ class MTsigmon {
 
         if ($FromAP) {
             // get signal data on AP for this CPE
-            $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
-            $HistoryFileMonth = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP_month';
+            $HistoryFile        = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP';
+            $HistoryFileMonth   = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_AP_month';
         } else {
             // get signal data for this CPE itself
             $HistoryFile = self::CPE_SIG_PATH . md5($WiFiCPEMAC) . '_CPE';
@@ -815,7 +815,7 @@ class MTsigmon {
         }
 
         $result .= wf_tag('script', false, '', 'type="text/javascript"');
-        $result .= 'function APIndividualRefresh(APID, JQAjaxTab) {                        
+        $result .= 'function APIndividualRefresh(APID, JQAjaxTab, RefreshButtonSelector) {                        
                         $.ajax({
                             type: "GET",
                             url: "' . self::URL_ME . '",
@@ -825,6 +825,12 @@ class MTsigmon {
                                             $("#"+JQAjaxTab).DataTable().ajax.reload();
                                         } else {
                                             $(JQAjaxTab).DataTable().ajax.reload();
+                                        }
+                                        
+                                        if ($.type(RefreshButtonSelector) === \'string\') {
+                                            $("#"+RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        } else {
+                                            $(RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
                                         }
                                      }
                         });
@@ -863,13 +869,13 @@ class MTsigmon {
                     ';
 
         // making an event binding for "CPE create&assign form" 'Submit' action to be able to create "CPE create&assign form" dynamically
-        $result .= '$(document).on("submit", ".__CPEAssignAndCreateForm", function(evt) {                        
-                            evt.preventDefault();                            
-                            
+        $result .= '$(document).on("submit", ".__CPEAssignAndCreateForm", function(evt) {
                             //var FrmAction = \'"\' + $(".__CPEAssignAndCreateForm").attr("action") + \'"\';                            
                             var FrmAction = $(".__CPEAssignAndCreateForm").attr("action");
-                            //alert(FrmAction);
-                            if ( $(".__CPEAACFormNoRedirChck").is(\':checked\') ) {                                                            
+                            
+                            if ( $(".__CPEAACFormNoRedirChck").is(\':checked\') ) {
+                                evt.preventDefault();
+                                
                                 $.ajax({
                                     type: "POST",
                                     url: FrmAction,
@@ -881,8 +887,6 @@ class MTsigmon {
                                                 $( \'#\'+$(".__CPEAACFormModalWindowID").val() ).dialog("close");
                                             }
                                 });
-                            } else {                                
-                                $(this).submit();
                             }
                         });
                         ';
@@ -969,7 +973,8 @@ class MTsigmon {
                 $refresh_button .= wf_tag('a', true);
                 $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
                 $refresh_button .= '$(\'#' . $APIDStr . '\').click(function(evt) {
-                                        APIndividualRefresh(' . $MTId . ', ' . $JQDTId . ');                                        
+                                        $(\'img\', this).addClass("image_rotate");
+                                        APIndividualRefresh(' . $MTId . ', ' . $JQDTId . ', ' . $APIDStr . ');                                        
                                         evt.preventDefault();
                                         return false;                
                                     });';

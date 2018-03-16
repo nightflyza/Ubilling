@@ -2819,6 +2819,11 @@ $lang['def']['Is client side wifi equipment accounting enabled'] = 'Учет а�
 //rev 6027
 $lang['def']['Some of numbers which calls us today'] = 'Некоторые номера, которые нам сегодня звонили';
 $lang['def']['Cache cleanup'] = 'Очистить кэш';
+$lang['def']['Go to OLT'] = 'Перейти к OLT';
+$lang['def']['Refresh data for this OLT'] = 'Обновить данные для этой OLT';
+$lang['def']['Last dereg reason'] = 'Причина последней дерегистрации';
+
+
 
 
 
