@@ -2834,5 +2834,6 @@ $lang['def']['Is client side wifi equipment accounting enabled'] = 'Облік �
 
 //rev 6027
 $lang['def']['Some of numbers which calls us today'] = 'Деякі номери, котрі нам нині телефонували';
+$lang['def']['Cache cleanup'] = 'Очистити кеш';
 
 ?>

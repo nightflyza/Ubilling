@@ -91,6 +91,13 @@ class Telepathy {
     protected $cache = '';
 
     /**
+     * Contains users previously detected by phone number as number=>login
+     *
+     * @var array
+     */
+    protected $phoneTelepathyCache = array();
+
+    /**
      * Contains phone data caching time in seconds
      */
     const PHONE_CACHE_TIME = 86400;
@@ -212,6 +219,9 @@ class Telepathy {
      * @return void
      */
     public function usePhones() {
+        //init previously detected phones cache
+        $this->phoneTelepathyCache = $this->cache->get('PHONETELEPATHY', self::PHONE_CACHE_TIME);
+        //loading user phones data
         if ($this->cachedPhones) {
             $allPhoneData = $this->cache->get('PHONEDATA', self::PHONE_CACHE_TIME);
             if (empty($allPhoneData)) {
@@ -433,6 +443,46 @@ class Telepathy {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Get user login by some phone number. After all calls you must finalize cache with savePhoneTelepathyCache().
+     * 
+     * @param string $phoneNumber
+     * @param bool $onlyMobile
+     * @param bool $normalizeMobile
+     * 
+     * @return string
+     */
+    public function getByPhoneFast($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
+        $result = '';
+        if (isset($this->phoneTelepathyCache[$phoneNumber])) {
+            $result = $this->phoneTelepathyCache[$phoneNumber];
+        } else {
+            $detectedLogin = $this->getByPhone($phoneNumber, $onlyMobile, $normalizeMobile);
+            $result=$detectedLogin;
+                $this->phoneTelepathyCache[$phoneNumber] = $detectedLogin;
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves previously detected by phone logins cache
+     * 
+     * @return void
+     */
+    public function savePhoneTelepathyCache() {
+        $this->cache->set('PHONETELEPATHY', $this->phoneTelepathyCache, self::PHONE_CACHE_TIME);
+    }
+    
+    /**
+     * Cleans phone telepathy cache
+     * 
+     * @return void
+     */
+    public function flushPhoneTelepathyCache() {
+        $this->cache->delete('PHONETELEPATHY');
+        
     }
 
 }

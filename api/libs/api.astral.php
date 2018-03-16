@@ -293,7 +293,13 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
 function wf_HiddenInput($name, $value = '', $CtrlID = '', $CtrlClass = '') {
     $HiddenID = ( (empty($CtrlID)) ? 'Hidden_' . wf_InputId() : $CtrlID );
     $Hiddenclass = ( (empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
-
+    /**
+     * Call me by my astral name
+     * Breeding fear through wordless tounge
+     * Heavenly thirst - unspeakable pain
+     * Emptied from all human motion
+     * Confront the faceless wrath
+     */
     $result = '<input type="hidden" name="' . $name . '" value="' . $value . '" id="' . $HiddenID . '"' . $Hiddenclass . '>';
     return ($result);
 }
@@ -684,15 +690,15 @@ function wf_CheckGet($params) {
  * @return bool
  */
 function wf_getBoolFromVar($Variable, $CheckAsTrueFalseStr = false) {
-    if ( isset($Variable) ) {
-        if ( empty($Variable) ) {
+    if (isset($Variable)) {
+        if (empty($Variable)) {
             return false;
         }
     } else {
         return false;
     }
 
-    if( $CheckAsTrueFalseStr) {
+    if ($CheckAsTrueFalseStr) {
         if (strtolower($Variable) === 'true' || strtolower($Variable) === '1') {
             return true;
         }
@@ -1039,7 +1045,7 @@ $(function() {
  * @return string
  */
 function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', $DestroyOnClose = false) {
-    $WID  = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
+    $WID = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
     $WBID = (empty($WindowBodyID)) ? 'body_dialog-modal_' . wf_inputid() : $WindowBodyID;
 
     $DestroyParams = '';
@@ -1648,11 +1654,11 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $G
     $result.= $cleandata;
 
     $result.= ', {  errorBars: ' . $errorbars;
-    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle .'\'' : '';
-    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel .'\'' : '';
-    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel .'\'' : '';
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
     $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
-    $result.=   ' }' . "\n";
+    $result.= ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -1687,11 +1693,11 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
 
 
     $result.= ', {  errorBars: ' . $errorbars;
-    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle .'\'' : '';
-    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel .'\'' : '';
-    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel .'\'' : '';
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
     $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
-    $result.=   ' }' . "\n";
+    $result.= ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -2324,34 +2330,36 @@ function wf_FormDisabler() {
  * @return string
  */
 function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $OuterDivClass = '', $OuterDivOptions = '', $InnerDivClass = '', $InnerDivOptions = '') {
-    if ( empty($SpoilerID ) ) { $SpoilerID = 'spoiler_' . wf_InputId(); }
-    $SpoilerLnkID   = 'lnk_' .  wf_InputId();
-    $SpoilerBodyID  = 'spbody_' .  wf_InputId();
+    if (empty($SpoilerID)) {
+        $SpoilerID = 'spoiler_' . wf_InputId();
+    }
+    $SpoilerLnkID = 'lnk_' . wf_InputId();
+    $SpoilerBodyID = 'spbody_' . wf_InputId();
     $SpoilerStateID = 'spstate_' . wf_InputId();
-    $SpoilerState   = ($Closed) ? '▼' : '▲';
+    $SpoilerState = ($Closed) ? '▼' : '▲';
 
     //$ubngStrPos = strpos(CUR_SKIN_PATH, 'ubng');
 
-    $OuterDivClass   = 'spoiler clearfix ' . $OuterDivClass;
+    $OuterDivClass = 'spoiler clearfix ' . $OuterDivClass;
     $OuterDivOptions = ' id="' . $SpoilerID . '" ' . $OuterDivOptions;
 
-    $InnerDivClass   = 'spoiler_body ' . $InnerDivClass;
+    $InnerDivClass = 'spoiler_body ' . $InnerDivClass;
     $InnerDivOptions = ' id="' . $SpoilerBodyID . '" ' . $InnerDivOptions;
 
     $Result = wf_tag('div', false, $OuterDivClass, $OuterDivOptions);
-        $Result .= wf_tag('div', false, 'spoiler_title clearfix');
-            //$Result .= '<a id="' . $SpoilerLnkID . '" class="spoiler_link" href="#">';
-            $Result .= '<span id="' . $SpoilerLnkID . '" class="spoiler_link">';
-            $Result .= wf_tag('h3', false, '', '');
-                $Result .= $Title;
-            $Result .= wf_tag('h3', true);
-            //$Result .= $SpoilerState . '</a>' . "\n";
-            $Result .= '<span id="'. $SpoilerStateID . '">' . $SpoilerState . '</span>';
-            $Result .= '</span>' . "\n";
-            $Result .= wf_tag('div', true);
-            $Result .= wf_tag('div', false, $InnerDivClass, $InnerDivOptions);
-            $Result .= $Content;
-        $Result .= wf_tag('div', true);
+    $Result .= wf_tag('div', false, 'spoiler_title clearfix');
+    //$Result .= '<a id="' . $SpoilerLnkID . '" class="spoiler_link" href="#">';
+    $Result .= '<span id="' . $SpoilerLnkID . '" class="spoiler_link">';
+    $Result .= wf_tag('h3', false, '', '');
+    $Result .= $Title;
+    $Result .= wf_tag('h3', true);
+    //$Result .= $SpoilerState . '</a>' . "\n";
+    $Result .= '<span id="' . $SpoilerStateID . '">' . $SpoilerState . '</span>';
+    $Result .= '</span>' . "\n";
+    $Result .= wf_tag('div', true);
+    $Result .= wf_tag('div', false, $InnerDivClass, $InnerDivOptions);
+    $Result .= $Content;
+    $Result .= wf_tag('div', true);
     $Result .= wf_tag('div', true);
 
     $Result .= wf_tag('script', false, '', 'type="text/javascript"');

@@ -120,6 +120,12 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $telepathy = new Telepathy(false, true);
                 $telepathy->usePhones();
                 if (!empty($allVoiceFiles)) {
+                    /**
+                     * Fuck a fucking placement, I don't need you motherfuckers
+                     * I'ma get it on my own before I get on your production
+                     * 'Cause you fucking pieces of shit don't show no motherfucking love to me
+                     * I see right through your guise, you try and hide but you can't run from me
+                     */
                     foreach ($allVoiceFiles as $io => $each) {
                         $fileName = $each;
                         $explodedFile = explode('_', $fileName);
@@ -130,7 +136,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         //unfinished calls
                         if ((!ispos($cleanDate, 'in')) AND ( !ispos($cleanDate, 'out'))) {
                             //here onlyMobile flag used for mobile normalizing too
-                            $userLogin = $telepathy->getByPhone($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
+                            $userLogin = $telepathy->getByPhoneFast($callingNumber, $this->onlyMobileFlag, $this->onlyMobileFlag);
                             $userLink = (!empty($userLogin)) ? wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin]) . ' ' . @$allRealnames[$userLogin] : '';
                             $newDateString = date_format(date_create_from_format('Y-m-d-H-i-s', $cleanDate), 'Y-m-d H:i:s');
                             $cleanDate = $newDateString;
@@ -146,6 +152,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         }
                     }
                 }
+                $telepathy->savePhoneTelepathyCache();
                 $json->getJson();
             }
 
@@ -185,13 +192,26 @@ if ($altcfg['ASKOZIA_ENABLED']) {
 
         $askMon = new AskoziaMonitor();
 
+
+        //catching voice record download
         $askMon->catchFileDownload();
+
+        //rendering ajax datatables data
         if (wf_CheckGet(array('ajax'))) {
             $loginFilter = (wf_CheckGet(array('loginfilter'))) ? $_GET['loginfilter'] : '';
             $askMon->jsonCallsList($loginFilter);
         }
 
-        show_window(__('Askozia calls records'), $askMon->initPlayer() . $askMon->renderCallsList());
+        //manual cache cleanup
+        if (wf_CheckGet(array('cleantelepathycache'))) {
+            $telepathy = new Telepathy(false, true, false, true);
+            $telepathy->usePhones();
+            $telepathy->flushPhoneTelepathyCache();
+            rcms_redirect($askMon::URL_ME);
+        }
+
+        $windowControls = wf_Link($askMon::URL_ME . '&cleantelepathycache=true', wf_img('skins/icon_cleanup.png', __('Cache cleanup')), false);
+        show_window(__('Askozia calls records') . ' ' . $windowControls, $askMon->initPlayer() . $askMon->renderCallsList());
     } else {
         show_error(__('Permission denied'));
     }
