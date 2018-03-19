@@ -456,9 +456,9 @@ class WifiCPE {
             $result .= wf_tag('script', false, '', 'type="text/javascript"');
             $result .= '
                         $(\'#' . $FormID . '\').submit(function(evt) {
-                            evt.preventDefault();                            
-                            
-                            if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {                                
+                            if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {
+                                evt.preventDefault();
+                                
                                 $.ajax({
                                     type: "POST",
                                     url: "' . self::URL_ME . '",
@@ -469,8 +469,6 @@ class WifiCPE {
                                                 $( \'#\'+$(\'#' . $HiddenModalID . '\').val() ).dialog("close");
                                             }
                                 });
-                            } else {                                
-                                $(this).submit();
                             }
                         });
                         ';
