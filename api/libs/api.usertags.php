@@ -110,6 +110,9 @@ function stg_delete_tagtype($tagid) {
     log_register('TAGTYPE DELETE [' . $tagid . ']');
     $query = "UPDATE `employee` SET `tagid` = NULL WHERE `employee`.`tagid` = '" . $tagid . "'";
     nr_query($query);
+    $query = "DELETE from `tags` WHERE `tagid`='" . $tagid . "';";
+    nr_query($query);
+    log_register('TAGTYPE FLUSH [' . $tagid . ']');
 }
 
 /**
@@ -663,7 +666,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
     $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
     $frozenUsers = array();
     $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
-    $allUserData=  zb_UserGetAllStargazerDataAssoc();
+    $allUserData = zb_UserGetAllStargazerDataAssoc();
     if ($debug) {
         print (">>" . curdatetime() . "\n");
         print (">>Searching virtual services\n");
