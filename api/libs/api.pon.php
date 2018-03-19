@@ -121,6 +121,13 @@ class PONizer {
      */
     protected $OLTIndividualRepollAJAX = false;
 
+    /**
+     * Is PON signal history charts spoiler initially closed?
+     *
+     * @var bool
+     */
+    protected $ONUChartsSpoilerClosed = false;
+
 
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
@@ -151,6 +158,7 @@ class PONizer {
 
         $this->EnableQuickOLTLinks = ( empty($this->altCfg['PON_QUICK_OLT_LINKS']) ) ? false : true;
         $this->OLTIndividualRepollAJAX = ( empty($this->altCfg['PON_OLT_INDIVIDUAL_REPOLL_AJAX']) ) ? false : true;
+        $this->ONUChartsSpoilerClosed = ( empty($this->altCfg['PON_ONU_CHARTS_SPOILER_CLOSED']) ) ? false : true;
     }
 
     /**
@@ -2169,7 +2177,7 @@ class PONizer {
         $result = $this->onuSignalHistory($onuId, true, true, true, true);
 
         if ($ReturnInSpoiler) {
-            $result = wf_Spoiler($result, __('Signal levels history graphs'), true, '', '', '', '', 'style="margin: 10px auto; display: table;"');
+            $result = wf_Spoiler($result, __('Signal levels history graphs'), $this->ONUChartsSpoilerClosed, '', '', '', '', 'style="margin: 10px auto; display: table;"');
         }
 
         $result = show_window(__('ONU signal history'), $result);
@@ -2454,6 +2462,7 @@ class PONizer {
                                                         renderCreateForm:true,
                                                         renderDynamically:true, 
                                                         renderedOutside:true,
+                                                        reloadPageAfterDone:false,
                                                         userLogin:"' . $userLogin . '",
                                                         userIP:"' . $userIP . '",                                                         
                                                         onumac:"' . $onuMac . '",                                                        
