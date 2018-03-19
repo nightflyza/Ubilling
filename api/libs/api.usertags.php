@@ -64,7 +64,7 @@ function stg_show_tagtypes() {
             $cells.= wf_TableCell($eachtype['tagsize']);
             $cells.= wf_TableCell($eachtype['tagname']);
             $cells.= wf_TableCell($actions);
-            $rows.= wf_TableRow($cells, 'row3');
+            $rows.= wf_TableRow($cells, 'row5');
         }
     }
 
