@@ -2,10 +2,39 @@
 
 class TagCloud {
 
+    /**
+     * Contains all tagged users
+     *
+     * @var array
+     */
     protected $alltags = array();
+
+    /**
+     * Contains user tags data as id=>data login/tagid
+     *
+     * @var array
+     */
     protected $usertags = array();
+
+    /**
+     * Contains available tagnames as id=>name
+     *
+     * @var array
+     */
     protected $allnames = array();
+
+    /**
+     * Contains tags power based on assigns count as id=>power
+     *
+     * @var array
+     */
     protected $tagspower = array();
+
+    /**
+     * Contains users with no tags assigned
+     *
+     * @var array
+     */
     protected $notags = array();
 
     const URL_ME = '?module=tagcloud';
@@ -18,7 +47,6 @@ class TagCloud {
         $this->loadTagNames();
         $this->loadUserTags();
         $this->tagPowerPreprocessing();
-        
     }
 
     /**
@@ -242,7 +270,7 @@ class TagCloud {
             }
         }
         $result = web_UserArrayShower($userarr);
-        show_window($this->allnames[$tagid], $result);
+        show_window(__('Tag') . ': ' . @$this->allnames[$tagid], $result);
     }
 
     /**
@@ -317,4 +345,5 @@ class TagCloud {
     }
 
 }
+
 ?>
