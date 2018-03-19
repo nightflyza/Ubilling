@@ -2835,5 +2835,8 @@ $lang['def']['Is client side wifi equipment accounting enabled'] = 'Облік �
 //rev 6027
 $lang['def']['Some of numbers which calls us today'] = 'Деякі номери, котрі нам нині телефонували';
 $lang['def']['Cache cleanup'] = 'Очистити кеш';
+$lang['def']['Go to OLT'] = 'Перейти до OLT';
+$lang['def']['Refresh data for this OLT'] = 'Оновити дані для даного OLT';
+$lang['def']['Last dereg reason'] = 'Причина останньої дереєстрації';
 
 ?>

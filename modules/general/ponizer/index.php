@@ -27,8 +27,9 @@ if ($altCfg['PON_ENABLED']) {
         if (wf_CheckPost(array('createnewonu', 'newoltid', 'newmac'))) {
             $onuCreateResult = $pon->onuCreate($_POST['newonumodelid'], $_POST['newoltid'], $_POST['newip'], $_POST['newmac'], $_POST['newserial'], $_POST['newlogin']);
             if ($onuCreateResult) {
+                $newCreatedONUId = simple_get_lastid('pononu');
                 multinet_rebuild_all_handlers();
-                rcms_redirect('?module=ponizer');
+                rcms_redirect('?module=ponizer&editonu=' . $newCreatedONUId);
             } else {
                 show_error(__('This MAC have wrong format'));
             }
@@ -68,7 +69,10 @@ if ($altCfg['PON_ENABLED']) {
         //force single OLT polling
         if (wf_CheckGet(array('forceoltidpoll'))) {
             $pon->pollOltSignal($_GET['forceoltidpoll']);
-             rcms_redirect('?module=ponizer');
+
+            if ( !wf_CheckGet(array('IndividualRefresh')) OR !wf_getBoolFromVar($_GET['IndividualRefresh'], true) ) {
+                rcms_redirect('?module=ponizer');
+            }
         }
 
 
@@ -110,7 +114,25 @@ if ($altCfg['PON_ENABLED']) {
             //show ONU editing interface
             show_window(__('Edit'), $pon->onuEditForm($_GET['editonu']));
             show_window(__('ONU FDB'), $pon->renderOltFdbList($_GET['editonu']));
-            $pon->loadonuSignalHistory($_GET['editonu']);
+            $pon->loadonuSignalHistory($_GET['editonu'], true);
+        }
+
+        if (wf_CheckGet(array('renderCreateForm'))) {
+            if (wf_CheckGet(array('renderDynamically')) && wf_getBoolFromVar($_GET['renderDynamically'], true)) {
+                $CPECreateForm = $pon->onuRegisterForm( $_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'],
+                                                        wf_getBoolFromVar($_GET['renderedOutside'], true),
+                                                        wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
+                                                        $_GET['ActionCtrlID'], $_GET['ModalWID']
+                                                       );
+                die(wf_modalAutoForm(__('Register new ONU'), $CPECreateForm, $_GET['ModalWID'], $_GET['ModalWBID'], true));
+            } else {
+                die($pon->onuRegisterForm(  $_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'],
+                                            wf_getBoolFromVar($_GET['renderedOutside'], true),
+                                            wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
+                                            $_GET['ActionCtrlID'], $_GET['ModalWID']
+                                         )
+                );
+            }
         }
     } else {
         show_error(__('You cant control this module'));
