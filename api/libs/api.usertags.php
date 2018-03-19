@@ -62,7 +62,7 @@ function stg_show_tagtypes() {
             $cells = wf_TableCell($eachtype['id']);
             $cells.= wf_TableCell(wf_tag('font', false, '', 'color="' . $eachtagcolor . '"') . $eachtagcolor . wf_tag('font', true));
             $cells.= wf_TableCell($eachtype['tagsize']);
-            $cells.= wf_TableCell($eachtype['tagname']);
+            $cells.= wf_TableCell(wf_Link('?module=tagcloud&tagid=' . $eachtype['id'], $eachtype['tagname']));
             $cells.= wf_TableCell($actions);
             $rows.= wf_TableRow($cells, 'row5');
         }
