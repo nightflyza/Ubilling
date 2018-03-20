@@ -2231,31 +2231,30 @@ class PONizer {
         $result = '';
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
-
             $AjaxURLStr      = '' . self::URL_ME . '&ajaxonu=true&oltid=' . $oltId . '';
             $JQDTId          = 'jqdt_' . md5($AjaxURLStr);
             $OLTIDStr        = 'OLTID_' . $oltId;
             $InfoButtonID    = 'InfID_' . $oltId;
             $InfoBlockID     = 'InfBlck_' . $oltId;
+            $QuickOLTLinkID  = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
-            $QuickOLTLinkID  = 'QuickOLTLinkID_' . wf_InputId();
-            $QuickOLTLink    = wf_tag('a', false, '', 'id="' . $QuickOLTLinkID . '" href="#' . $oltId . '"') .
-                              wf_img('skins/menuicons/switches.png') . wf_tag('a', true);
+            $QuickOLTLink    =  wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
+                                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             // to prevent changing the keys order of $this->allOLTDevices we are using "+" opreator and not all those "array_merge" and so on
             $QickOLTsArray   = array(-9999 => '') + $this->allOltDevices;
 
             if ($this->EnableQuickOLTLinks) {
-                $QuickOLTLinkInput =  wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
-                    wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                    '&nbsp&nbsp' . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                    wf_tag('script', false, '', 'type="text/javascript"') .
-                    '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {                                            
-                                                                var LinkIDObjFromVal = $(\'a[href="#\'+$(this).val()+\'"]\');
-                                                                $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
-                                                           });' .
-                    wf_tag('script', true) .
-                    wf_tag('div', true);
+                $QuickOLTLinkInput =    wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                                        '&nbsp&nbsp' . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                                        wf_tag('script', false, '', 'type="text/javascript"') .
+                                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                                            var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
+                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                        });' .
+                                        wf_tag('script', true) .
+                                        wf_tag('div', true);
             } else {$QuickOLTLinkInput = '';}
 
             if ($this->OLTIndividualRepollAJAX) {
