@@ -214,6 +214,11 @@ class WhyDoYouCall {
                                 }
                             }
 
+                            //Unknown numbers not require recall
+                            if (ispos($incomingNumber, 'Unknown')) {
+                                unset($unansweredCalls[$incomingNumber]);
+                            }
+
                             //outcoming call success - deleting form unanswered, adding it to recalled cache
                             if (ispos($each[16], 'out')) {
                                 if (ispos($each[14], 'ANSWERED')) {
