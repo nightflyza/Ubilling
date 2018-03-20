@@ -942,10 +942,11 @@ class MTsigmon {
                 $APIDStr        = 'APID_' . $MTId;
                 $InfoButtonID   = 'InfID_' . $MTId;
                 $InfoBlockID    = 'InfBlck_' . $MTId;
+                $QuickAPLinkID  = 'QuickAPLinkID_' . $MTId;
                 $QuickAPDDLName = 'QuickAPDDL_' . wf_InputId();
-                $QuickAPLinkID  = 'QuickAPLinkID_' . wf_InputId();
-                $QuickAPLink    = wf_tag('a', false, '', 'id="' . $QuickAPLinkID . '" href="#' . $MTId . '"') .
-                                  wf_img('skins/wifi.png') . wf_tag('a', true);
+                $QuickAPLink    =   wf_tag('span', false, '', 'id="' . $QuickAPLinkID . '"') .
+                                    wf_img('skins/wifi.png') . wf_tag('span', true);
+
 
                 // to prevent changing the keys order of $this->allMTDevices we are using "+" opreator and not all those "array_merge" and so on
                 $QickAPsArray   = array(-9999 => '') + $this->allMTDevices;
@@ -981,15 +982,16 @@ class MTsigmon {
                 $refresh_button .= wf_tag('script', true);
 
                 if ($this->EnableQuickAPLinks) {
-                    $QuickAPLinkInput =  wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                    $QuickAPLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
                                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to AP') . wf_tag('font', true) .
                                         '&nbsp&nbsp' . wf_Selector($QuickAPDDLName, $QickAPsArray, '', '', true) .
                                         wf_tag('script', false, '', 'type="text/javascript"') .
                                         '$(\'[name="' . $QuickAPDDLName . '"]\').change(function(evt) {                                            
-                                                            var LinkIDObjFromVal = $(\'a[href="#\'+$(this).val()+\'"]\');                                            
-                                                            //$(\'body,html\').animate( { scrollTop: $(LinkIDObjFromVal).offset().top - 30 }, 4500 );
-                                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
-                                                       });' .
+                                            //var LinkIDObjFromVal = $(\'a[href="#\'+$(this).val()+\'"]\');                                            
+                                            //$(\'body,html\').animate( { scrollTop: $(LinkIDObjFromVal).offset().top - 30 }, 4500 );
+                                            var LinkIDObjFromVal = $(\'#QuickAPLinkID_\'+$(this).val());
+                                            $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
+                                        });' .
                                         wf_tag('script', true) .
                                         wf_tag('div', true);
                 } else {$QuickAPLinkInput = '';}
