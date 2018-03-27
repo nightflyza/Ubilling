@@ -348,6 +348,117 @@ class PONizer {
         }
     }
 
+
+    /**
+     * Parses & stores in cache OLT ONU dereg reaesons
+     *
+     * @param int $oltid
+     * @param array $distIndex
+     * @param array $onuIndex
+     *
+     * @return void
+     */
+    protected function lastDeregParseBd($oltid, $deregIndex, $onuIndex) {
+        $oltid = vf($oltid, 3);
+        $deregTmp = array();
+        $onuTmp = array();
+        $result = array();
+        $curDate = curdatetime();
+
+        //dereg index preprocessing
+        if ((!empty($deregIndex)) AND ( !empty($onuIndex))) {
+            foreach ($deregIndex as $io => $eachdereg) {
+                $line = explode('=', $eachdereg);
+
+                //dereg is present
+                if (isset($line[1])) {
+                    $deregRaw = trim($line[1]); // dereg
+                    $devIndex = trim($line[0]); // device index
+
+                    switch ($deregRaw) {
+                        case 2:
+                            $TxtColor = '"#00B20E"';
+                            $tmpONULastDeregReasonStr = 'Normal';
+                            break;
+
+                        case 3:
+                            $TxtColor = '"#F80000"';
+                            $tmpONULastDeregReasonStr = 'MPCP down';
+                            break;
+
+                        case 4:
+                            $TxtColor = '"#F80000"';
+                            $tmpONULastDeregReasonStr = 'OAM down';
+                            break;
+
+                        case 5:
+                            $TxtColor = '"#6500FF"';
+                            $tmpONULastDeregReasonStr = 'Firmware download';
+                            break;
+
+                        case 6:
+                            $TxtColor = '"#F80000"';
+                            $tmpONULastDeregReasonStr = 'Illegal MAC';
+                            break;
+
+                        case 7:
+                            $TxtColor = '"#FF4400"';
+                            $tmpONULastDeregReasonStr = 'LLID admin down';
+                            break;
+
+                        case 8:
+                            $TxtColor = '"#F80000"';
+                            $tmpONULastDeregReasonStr = 'Wire down';
+                            break;
+
+                        case 9:
+                            $TxtColor = '"#6500FF"';
+                            $tmpONULastDeregReasonStr = 'Power off';
+                            break;
+
+                        default:
+                            $TxtColor = '"#000000"';
+                            $tmpONULastDeregReasonStr = 'Unknown';
+                            break;
+                    }
+
+                    $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
+                                                $tmpONULastDeregReasonStr .
+                                                wf_tag('font', true);
+
+                    $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
+                }
+            }
+
+            //mac index preprocessing
+            foreach ($onuIndex as $io => $eachmac) {
+                $line = explode('=', $eachmac);
+                //mac is present
+                if (isset($line[1])) {
+                    $macRaw = trim($line[1]); //mac address
+                    $devIndex = trim($line[0]); //device index
+                    $macRaw = str_replace(' ', ':', $macRaw);
+                    $macRaw = strtolower($macRaw);
+                    $onuTmp[$devIndex] = $macRaw;
+                }
+            }
+
+            //storing results
+            if (!empty($onuTmp)) {
+                foreach ($onuTmp as $devId => $eachMac) {
+                    if (isset($deregTmp[$devId])) {
+                        $lastDereg = $deregTmp[$devId];
+                        $result[$eachMac] = $lastDereg;
+                    }
+                }
+
+                $result = serialize($result);
+                file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
+            }
+        }
+    }
+
+
     /**
      * Parses & stores in cache OLT ONU interfaces
      *
@@ -538,6 +649,7 @@ class PONizer {
                         file_put_contents($historyFile, $curDate . ',' . $signal . "\n", FILE_APPEND);
                     }
                 }
+
                 $result = serialize($result);
                 file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
             }
@@ -981,12 +1093,12 @@ class PONizer {
 
                 switch ($tmpONULastDeregReason) {
                     case 0:
-                        $TxtColor = '"#900000"';
+                        $TxtColor = '"#F80000"';
                         $tmpONULastDeregReasonStr = 'Wire down';
                         break;
 
                     case 1:
-                        $TxtColor = '\"#FF5500\"';
+                        $TxtColor = '"#FF4400"';
                         $tmpONULastDeregReasonStr = 'Power off';
                         break;
 
@@ -1197,7 +1309,6 @@ class PONizer {
                             $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
                             $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
                             $macIndex = explodeRows($macIndex);
-
                             $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
 
 
@@ -1217,6 +1328,13 @@ class PONizer {
                                         $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                         $onuIndex = explodeRows($onuIndex);
                                         $this->distanceParseBd($oltid, $distIndex, $onuIndex);
+
+                                        $deregIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
+                                        $deregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $deregIndexOid, self::SNMPCACHE);
+                                        $deregIndex = str_replace($deregIndexOid . '.', '', $deregIndex);
+                                        $deregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $deregIndex);
+                                        $deregIndex = explodeRows($deregIndex);
+                                        $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
 
                                         $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
                                         $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
