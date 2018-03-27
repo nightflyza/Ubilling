@@ -128,7 +128,6 @@ class PONizer {
      */
     protected $ONUChartsSpoilerClosed = false;
 
-
     const SIGCACHE_PATH = 'exports/';
     const SIGCACHE_EXT = 'OLTSIGNALS';
     const DISTCACHE_PATH = 'exports/';
@@ -348,7 +347,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Parses & stores in cache OLT ONU dereg reaesons
      *
@@ -423,8 +421,8 @@ class PONizer {
                     }
 
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                                                $tmpONULastDeregReasonStr .
-                                                wf_tag('font', true);
+                            $tmpONULastDeregReasonStr .
+                            wf_tag('font', true);
 
                     $deregTmp[$devIndex] = $tmpONULastDeregReasonStr;
                 }
@@ -457,7 +455,6 @@ class PONizer {
             }
         }
     }
-
 
     /**
      * Parses & stores in cache OLT ONU interfaces
@@ -738,7 +735,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Parses & stores in cache OLT ONU distances
      *
@@ -828,11 +824,11 @@ class PONizer {
                 $line = explode('=', $eachint);
                 //distance is present
                 if (isset($line[1])) {
-                     // distance
+                    // distance
                     $devIndex = trim($line[0]); // device index
-                    $devIndex= explode('.', $devIndex);
-                    $interfaceRaw = $devIndex[0].':'.$devIndex[1];
-                    $devIndex=($devIndex[1]*256)+1;
+                    $devIndex = explode('.', $devIndex);
+                    $interfaceRaw = $devIndex[0] . ':' . $devIndex[1];
+                    $devIndex = ($devIndex[1] * 256) + 1;
                     $intTmp[$devIndex] = $interfaceRaw;
                 }
             }
@@ -844,12 +840,11 @@ class PONizer {
                 if (isset($line[1])) {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
-                    $devIndex=  explode('.', $devIndex);
-                    $devIndex=$devIndex[1];
+                    $devIndex = explode('.', $devIndex);
+                    $devIndex = $devIndex[1];
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
                     $macTmp[$devIndex] = $macRaw;
-
                 }
             }
 
@@ -867,7 +862,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Processes V-SOLUTION OLT MAC adresses and returns them in array: LLID=>MAC
      *
@@ -876,10 +870,10 @@ class PONizer {
      *
      * @return array
      */
-    protected function macParseVSOL ($macIndex, $snmpTemplate) {
+    protected function macParseVSOL($macIndex, $snmpTemplate) {
         $ONUsMACs = array();
 
-        if ( !empty($macIndex) ) {
+        if (!empty($macIndex)) {
             //mac index preprocessing
             foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
@@ -893,7 +887,7 @@ class PONizer {
                 }
 
                 //mac is present
-                if (!empty($tmpONUPortLLID) AND !empty($tmpONUMAC)) {
+                if (!empty($tmpONUPortLLID) AND ! empty($tmpONUMAC)) {
                     $ONUsMACs[$tmpONUPortLLID] = $tmpONUMAC;
                 }
             }
@@ -912,13 +906,13 @@ class PONizer {
      * @return void
      */
     protected function signalParseVSOL($oltid, $sigIndex, $macIndexProcessed) {
-        $ONUsModulesTemps    = array();
+        $ONUsModulesTemps = array();
         $ONUsModulesVoltages = array();
         $ONUsModulesCurrents = array();
-        $ONUsSignals         = array();
-        $result              = array();
-        $curDate             = curdatetime();
-        $oltid               = vf($oltid, 3);
+        $ONUsSignals = array();
+        $result = array();
+        $curDate = curdatetime();
+        $oltid = vf($oltid, 3);
 
         //signal index preprocessing
         if ((!empty($sigIndex)) AND ( !empty($macIndexProcessed))) {
@@ -927,8 +921,8 @@ class PONizer {
 
                 //signal is present
                 if (isset($line[0])) {
-                    $tmpOIDParamaterPiece   = substr(trim($line[0]), 0, 1);
-                    $tmpONUPortLLID         = substr(trim($line[0]), -3);
+                    $tmpOIDParamaterPiece = substr(trim($line[0]), 0, 1);
+                    $tmpONUPortLLID = substr(trim($line[0]), -3);
 
                     // just because we can't(I dunno why - honestly) just query the
                     // .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.6 and .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.7 OIDs
@@ -952,13 +946,13 @@ class PONizer {
                         case '6':
                             $SignalRaw = trim($line[1]);
                             $ONUsSignals[$tmpONUPortLLID]['SignalTXRaw'] = $SignalRaw;
-                            $ONUsSignals[$tmpONUPortLLID]['SignalTXdBm'] = trim( substr( stristr( stristr( stristr($SignalRaw, '(' ), ')', true ), 'dBm', true ), 1) );
+                            $ONUsSignals[$tmpONUPortLLID]['SignalTXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
                             break;
 
                         case '7':
                             $SignalRaw = trim($line[1]);
                             $ONUsSignals[$tmpONUPortLLID]['SignalRXRaw'] = $SignalRaw;
-                            $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim( substr( stristr( stristr( stristr($SignalRaw, '(' ), ')', true ), 'dBm', true ), 1) );
+                            $ONUsSignals[$tmpONUPortLLID]['SignalRXdBm'] = trim(substr(stristr(stristr(stristr($SignalRaw, '('), ')', true), 'dBm', true), 1));
                             break;
                     }
                 }
@@ -970,10 +964,10 @@ class PONizer {
                     //signal history filling
                     $historyFile = self::ONUSIG_PATH . md5($eachMac);
 
-                    /*$signal = $ONUsSignals[$devId]['SignalTXdBm'] . ',' . $ONUsSignals[$devId]['SignalRXdBm'];
-                    if ($signal == ',') {
-                        $signal = 'Offline';
-                    }*/
+                    /* $signal = $ONUsSignals[$devId]['SignalTXdBm'] . ',' . $ONUsSignals[$devId]['SignalRXdBm'];
+                      if ($signal == ',') {
+                      $signal = 'Offline';
+                      } */
 
                     $signal = $ONUsSignals[$devId]['SignalRXdBm'];
                     $result[$eachMac] = $signal;
@@ -986,13 +980,12 @@ class PONizer {
                 }
             }
 
-            $result             = serialize($result);
-            $macIndexProcessed  = serialize($macIndexProcessed);
+            $result = serialize($result);
+            $macIndexProcessed = serialize($macIndexProcessed);
             file_put_contents(self::SIGCACHE_PATH . $oltid . '_' . self::SIGCACHE_EXT, $result);
             file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macIndexProcessed);
         }
     }
-
 
     /**
      * Performs distance preprocessing for distance/mac index arrays and stores it into cache
@@ -1005,7 +998,7 @@ class PONizer {
         $ONUDistances = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND !empty($DistIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($DistIndex)) {
             //last dereg index preprocessing
             foreach ($DistIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
@@ -1028,7 +1021,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Performs interface preprocessing for interface/mac index arrays and stores it into cache
      *
@@ -1040,15 +1032,17 @@ class PONizer {
         $ONUIfaces = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND !empty($IfaceIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($IfaceIndex)) {
             //last dereg index preprocessing
             foreach ($IfaceIndex as $io => $eachRow) {
-                if ( empty($eachRow) ) { continue; }
+                if (empty($eachRow)) {
+                    continue;
+                }
 
-                $line = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '',  $eachRow));
+                $line = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $eachRow));
 
                 $tmpONUPortLLID = trim($line[0]);
-                $tmpONUIface    = trim($line[1]);
+                $tmpONUIface = trim($line[1]);
 
                 $ONUIfaces[$tmpONUPortLLID] = $tmpONUIface;
             }
@@ -1057,10 +1051,10 @@ class PONizer {
             foreach ($macIndexProcessed as $devId => $eachMac) {
                 $tPONIfaceNum = substr($devId, 0, 1);
 
-                if ( array_key_exists($tPONIfaceNum, $ONUIfaces) ) {
-                    $tPONIfaceStr = $ONUIfaces[$tPONIfaceNum] . ' / ' . str_replace('.', ':',$devId);
+                if (array_key_exists($tPONIfaceNum, $ONUIfaces)) {
+                    $tPONIfaceStr = $ONUIfaces[$tPONIfaceNum] . ' / ' . str_replace('.', ':', $devId);
                 } else {
-                    $tPONIfaceStr = str_replace('.', ':',$devId);
+                    $tPONIfaceStr = str_replace('.', ':', $devId);
                 }
 
                 $result[$eachMac] = $tPONIfaceStr;
@@ -1080,16 +1074,16 @@ class PONizer {
      * @param $snmpTemplate
      */
     protected function lastDeregParseVSOL($oltid, $LastDeregIndex, $macIndexProcessed) {
-        $ONUDeRegs  = array();
-        $result     = array();
+        $ONUDeRegs = array();
+        $result = array();
 
-        if(!empty($macIndexProcessed) AND !empty($LastDeregIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($LastDeregIndex)) {
             //last dereg index preprocessing
             foreach ($LastDeregIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
 
-                $tmpONUPortLLID         = trim($line[0]);
-                $tmpONULastDeregReason  = intval(trim($line[1]));
+                $tmpONUPortLLID = trim($line[0]);
+                $tmpONULastDeregReason = intval(trim($line[1]));
 
                 switch ($tmpONULastDeregReason) {
                     case 0:
@@ -1110,8 +1104,8 @@ class PONizer {
 
                 if (!empty($tmpONUPortLLID)) {
                     $tmpONULastDeregReasonStr = wf_tag('font', false, '', 'color=' . $TxtColor . '') .
-                                                $tmpONULastDeregReasonStr .
-                                                wf_tag('font', true);
+                            $tmpONULastDeregReasonStr .
+                            wf_tag('font', true);
 
                     $ONUDeRegs[$tmpONUPortLLID] = $tmpONULastDeregReasonStr;
                 }
@@ -1126,7 +1120,6 @@ class PONizer {
 
             $result = serialize($result);
             file_put_contents(self::DEREGCACHE_PATH . $oltid . '_' . self::DEREGCACHE_EXT, $result);
-
         }
     }
 
@@ -1329,12 +1322,14 @@ class PONizer {
                                         $onuIndex = explodeRows($onuIndex);
                                         $this->distanceParseBd($oltid, $distIndex, $onuIndex);
 
-                                        $deregIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
-                                        $deregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $deregIndexOid, self::SNMPCACHE);
-                                        $deregIndex = str_replace($deregIndexOid . '.', '', $deregIndex);
-                                        $deregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $deregIndex);
-                                        $deregIndex = explodeRows($deregIndex);
-                                        $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                                        $deregIndexOid = @$this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
+                                        if (!empty($deregIndexOid)) {
+                                            $deregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $deregIndexOid, self::SNMPCACHE);
+                                            $deregIndex = str_replace($deregIndexOid . '.', '', $deregIndex);
+                                            $deregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $deregIndex);
+                                            $deregIndex = explodeRows($deregIndex);
+                                            $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                                        }
 
                                         $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
                                         $intIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $intIndexOid, self::SNMPCACHE);
@@ -1355,7 +1350,7 @@ class PONizer {
 
                         // Stels FDXXXX or V-Solution 1600D devices polling
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'STELSFD'
-                            OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
+                                OR $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'VSOL') {
 
                             $sigIndexOID = $this->snmpTemplates[$oltModelId]['signal']['SIGINDEX'];
                             $sigIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $sigIndexOID, self::SNMPCACHE);
@@ -1396,7 +1391,7 @@ class PONizer {
                             } else {
                                 $VSOLMACsProcessed = $this->macParseVSOL($macIndex, $this->snmpTemplates[$oltModelId]);
 
-                                if ( !empty($VSOLMACsProcessed) ) {
+                                if (!empty($VSOLMACsProcessed)) {
                                     $this->signalParseVSOL($oltid, $sigIndex, $VSOLMACsProcessed);
 
                                     $distIndexOID = $this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'];
@@ -1886,9 +1881,7 @@ class PONizer {
      *
      * @return string
      */
-    public function onuRegisterForm($oltId, $onuMac, $UserLogin = '', $UserIP = '',
-                                    $RenderedOutside = false, $PageReloadAfterDone = false,
-                                    $CtrlIDToReplaceAfterDone = '', $ModalWindowID = '') {
+    public function onuRegisterForm($oltId, $onuMac, $UserLogin = '', $UserIP = '', $RenderedOutside = false, $PageReloadAfterDone = false, $CtrlIDToReplaceAfterDone = '', $ModalWindowID = '') {
         $models = array();
         if (!empty($this->allModelsData)) {
             foreach ($this->allModelsData as $io => $each) {
@@ -1910,11 +1903,11 @@ class PONizer {
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20);
 
-        /*$inputs .= wf_Submit(__('Create'));
-        $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour');*/
+        /* $inputs .= wf_Submit(__('Create'));
+          $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour'); */
 
-        $NoRedirChkID = 'NoRedirChk_' .wf_InputId();
-        $ReloadChkID = 'ReloadChk_' .wf_InputId();
+        $NoRedirChkID = 'NoRedirChk_' . wf_InputId();
+        $ReloadChkID = 'ReloadChk_' . wf_InputId();
         $SubmitID = 'Submit_' . wf_InputId();
         $FormID = 'Form_' . wf_InputId();
         $HiddenReplID = 'ReplaceCtrlID_' . wf_InputId();
@@ -2101,14 +2094,14 @@ class PONizer {
             //not empty MAC
             if ($this->allOnu[$onuId]['mac']) {
                 if (file_exists(self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']))) {
-                    $historyKey         = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']);
-                    $historyKeyMonth    = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']) . '_month';
+                    $historyKey = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']);
+                    $historyKeyMonth = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['mac']) . '_month';
                 } elseif (file_exists(self::ONUSIG_PATH . md5($this->allOnu[$onuId]['serial']))) {
-                    $historyKey         = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['serial']);
-                    $historyKeyMonth    = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['serial']) . '_month';
+                    $historyKey = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['serial']);
+                    $historyKeyMonth = self::ONUSIG_PATH . md5($this->allOnu[$onuId]['serial']) . '_month';
                 } else {
-                    $historyKey         = '';
-                    $historyKeyMonth    = '';
+                    $historyKey = '';
+                    $historyKeyMonth = '';
                 }
                 if (!empty($historyKey)) {
                     $curdate = curdate();
@@ -2133,7 +2126,7 @@ class PONizer {
                         }
                     }
 
-                    $GraphTitle  = ($ShowTitle)  ? __('Today') : '';
+                    $GraphTitle = ($ShowTitle) ? __('Today') : '';
                     $GraphXLabel = ($ShowXLabel) ? __('Time') : '';
                     $GraphYLabel = ($ShowYLabel) ? __('Signal') : '';
                     $result .= wf_Graph($todaySignal, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
@@ -2153,14 +2146,14 @@ class PONizer {
                         }
                     }
 
-                    $GraphTitle  = ($ShowTitle)  ? __('Monthly graph') : '';
+                    $GraphTitle = ($ShowTitle) ? __('Monthly graph') : '';
                     $GraphXLabel = ($ShowXLabel) ? __('Date') : '';
                     file_put_contents($historyKeyMonth, $monthSignal);
                     $result .= wf_GraphCSV($historyKeyMonth, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter(2);
 
                     //all time signal history
-                    $GraphTitle  = ($ShowTitle)  ? __('All time graph') : '';
+                    $GraphTitle = ($ShowTitle) ? __('All time graph') : '';
                     $result .= wf_GraphCSV($historyKey, '800', '300', false, $GraphTitle, $GraphXLabel, $GraphYLabel, $ShowRangeSelector);
                     $result .= wf_delimiter();
                 }
@@ -2308,12 +2301,12 @@ class PONizer {
      * @return string
      */
     public function renderOnuList() {
-        $distCacheAvail      = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
-        $intCacheAvail       = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
         $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
 
-        $distCacheAvail      = !empty($distCacheAvail) ? true : false;
-        $intCacheAvail       = !empty($intCacheAvail) ? true : false;
+        $distCacheAvail = !empty($distCacheAvail) ? true : false;
+        $intCacheAvail = !empty($intCacheAvail) ? true : false;
         $lastDeregCacheAvail = !empty($lastDeregCacheAvail) ? true : false;
 
         $columns = array('ID');
@@ -2349,31 +2342,33 @@ class PONizer {
         $result = '';
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
-            $AjaxURLStr      = '' . self::URL_ME . '&ajaxonu=true&oltid=' . $oltId . '';
-            $JQDTId          = 'jqdt_' . md5($AjaxURLStr);
-            $OLTIDStr        = 'OLTID_' . $oltId;
-            $InfoButtonID    = 'InfID_' . $oltId;
-            $InfoBlockID     = 'InfBlck_' . $oltId;
-            $QuickOLTLinkID  = 'QuickOLTLinkID_' . $oltId;
+            $AjaxURLStr = '' . self::URL_ME . '&ajaxonu=true&oltid=' . $oltId . '';
+            $JQDTId = 'jqdt_' . md5($AjaxURLStr);
+            $OLTIDStr = 'OLTID_' . $oltId;
+            $InfoButtonID = 'InfID_' . $oltId;
+            $InfoBlockID = 'InfBlck_' . $oltId;
+            $QuickOLTLinkID = 'QuickOLTLinkID_' . $oltId;
             $QuickOLTDDLName = 'QuickOLTDDL_' . wf_InputId();
-            $QuickOLTLink    =  wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
-                                wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
+            $QuickOLTLink = wf_tag('span', false, '', 'id="' . $QuickOLTLinkID . '"') .
+                    wf_img('skins/menuicons/switches.png') . wf_tag('span', true);
 
             // to prevent changing the keys order of $this->allOLTDevices we are using "+" opreator and not all those "array_merge" and so on
-            $QickOLTsArray   = array(-9999 => '') + $this->allOltDevices;
+            $QickOLTsArray = array(-9999 => '') + $this->allOltDevices;
 
             if ($this->EnableQuickOLTLinks) {
-                $QuickOLTLinkInput =    wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
-                                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                                        '&nbsp&nbsp' . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
-                                        wf_tag('script', false, '', 'type="text/javascript"') .
-                                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
+                $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
+                        wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
+                        '&nbsp&nbsp' . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_tag('script', false, '', 'type="text/javascript"') .
+                        '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
                                             $(\'body,html\').scrollTop( $(LinkIDObjFromVal).offset().top - 25 );
                                         });' .
-                                        wf_tag('script', true) .
-                                        wf_tag('div', true);
-            } else {$QuickOLTLinkInput = '';}
+                        wf_tag('script', true) .
+                        wf_tag('div', true);
+            } else {
+                $QuickOLTLinkInput = '';
+            }
 
             if ($this->OLTIndividualRepollAJAX) {
                 $refresh_button = wf_tag('a', false, '', 'href="#" id="' . $OLTIDStr . '" title="' . __('Refresh data for this OLT') . '"');
@@ -2391,10 +2386,9 @@ class PONizer {
                 $refresh_button = wf_Link(self::URL_ME . '&forceoltidpoll=' . $oltId, wf_img('skins/refresh.gif', __('Refresh data for this OLT')));
             }
 
-            $result .= show_window( $refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickOLTLink . '&nbsp&nbsp' . @$eachOltData,
-                                    wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
-                                    $QuickOLTLinkInput
-                       );
+            $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickOLTLink . '&nbsp&nbsp' . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
+                    $QuickOLTLinkInput
+            );
         }
         return ($result);
     }
@@ -2564,7 +2558,7 @@ class PONizer {
                     $userIP = $login ? @$allUserData[$login]['ip'] : '';
 
                     //$actControls = wf_Link(self::URL_ME . '&unknownonulist=true&fastreg=true&oltid=' . $oltId . '&onumac=' . $onuMac, wf_img('skins/add_icon.png', __('Register')));
-                    $LnkID      = wf_InputId();
+                    $LnkID = wf_InputId();
 
                     $actControls = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Register new ONU') . '"');
                     $actControls .= web_icon_create();
@@ -2733,7 +2727,9 @@ class PONizer {
                 if ($lastDeregCacheAvail) {
                     if ($ONUIsOffline) {
                         $data[] = @$this->lastDeregCache[$each['mac']];
-                    } else {$data[] = '';}
+                    } else {
+                        $data[] = '';
+                    }
                 }
 
                 $data[] = $userLink;
