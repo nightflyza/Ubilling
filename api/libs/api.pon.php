@@ -1322,8 +1322,9 @@ class PONizer {
                                         $onuIndex = explodeRows($onuIndex);
                                         $this->distanceParseBd($oltid, $distIndex, $onuIndex);
 
-                                        $deregIndexOid = @$this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
-                                        if (!empty($deregIndexOid)) {
+
+                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                            $deregIndexOid = $this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'];
                                             $deregIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $deregIndexOid, self::SNMPCACHE);
                                             $deregIndex = str_replace($deregIndexOid . '.', '', $deregIndex);
                                             $deregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $deregIndex);
