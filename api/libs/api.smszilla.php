@@ -199,6 +199,13 @@ class SMSZilla {
     protected $extMobiles = '';
 
     /**
+     * Contains available internet users paymentIDs
+     *
+     * @var array
+     */
+    protected $opCustomers = array();
+
+    /**
      * Contains count of extended mobiles if they are extracted
      *
      * @var int
@@ -248,6 +255,13 @@ class SMSZilla {
     protected $supportedMacro = array();
 
     /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=smszilla';
@@ -271,9 +285,11 @@ class SMSZilla {
         $this->initMessages();
         $this->loadAlter();
         $this->setOptions();
+        $this->initCache();
         $this->initSMS();
         $this->loadCities();
         $this->loadUsers();
+        $this->loadOpCustomers();
         $this->loadDownUsers();
         $this->initUKV();
         $this->initBranches();
@@ -311,6 +327,48 @@ class SMSZilla {
         } else {
             $this->allUserData = zb_UserGetAllData();
         }
+    }
+
+    /**
+     * Sets up OpenPayz paymentIDs array for further usage
+     * 
+     * @return void
+     */
+    protected function loadOpCustomers() {
+        if ($this->useCache) {
+            $this->opCustomers = $this->cache->get('OP_CUSTOMERS', 86400);
+            if (empty($this->opCustomers)) {
+                $this->opCustomers = $this->getOpenPayzCustomers();
+                $this->cache->set('OP_CUSTOMERS', $this->opCustomers, 86400);
+            }
+        } else {
+            $this->opCustomers = $this->getOpenPayzCustomers();
+        }
+    }
+
+    /**
+     * Returns list of OpenPayz customers as login=>paymentid
+     * 
+     * @return array
+     */
+    protected function getOpenPayzCustomers() {
+        $result = array();
+        if ($this->altCfg['OPENPAYZ_REALID']) {
+            $query = "SELECT `realid`,`virtualid` from `op_customers`";
+            $allcustomers = simple_queryall($query);
+            if (!empty($allcustomers)) {
+                foreach ($allcustomers as $io => $eachcustomer) {
+                    $result[$eachcustomer['realid']] = $eachcustomer['virtualid'];
+                }
+            }
+        } else {
+            if (!empty($this->allUserData)) {
+                foreach ($this->allUserData as $io => $each) {
+                    $result[$each['login']] = ip2int($each['ip']);
+                }
+            }
+        }
+        return ($result);
     }
 
     /**
@@ -453,6 +511,15 @@ class SMSZilla {
     }
 
     /**
+     * Inits system caching object into protected prop
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
      * Inits SMS queue abstraction layer
      * 
      * @return void
@@ -534,6 +601,7 @@ class SMSZilla {
             '{REALNAME}',
             '{TARIFF}',
             '{TARIFFPRICE}',
+            '{PAYMENTID}',
             '{CREDIT}',
             '{CASH}',
             '{ROUNDCASH}',
@@ -1786,6 +1854,7 @@ class SMSZilla {
                 $result = str_ireplace('{REALNAME}', $this->filteredEntities[$entity]['realname'], $result);
                 $result = str_ireplace('{TARIFF}', $this->filteredEntities[$entity]['Tariff'], $result);
                 $result = str_ireplace('{TARIFFPRICE}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']], $result);
+                $result = str_ireplace('{PAYMENTID}', @$this->opCustomers[$this->filteredEntities[$entity]['login']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
                 $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['Cash'], 2), $result);
