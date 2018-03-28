@@ -457,6 +457,34 @@ class PONizer {
     }
 
     /**
+     * Parses & stores in cache ZTE OLT ONU interfaces
+     *
+     * @param int $oltid
+     * @param array $intIndex
+     * @param array $macIndex
+     *
+     * @return void
+     */
+    protected function interfaceParseZTE($oltid, $intIndex, $macIndex) {
+        $oltid = vf($oltid, 3);
+        $result = array();
+
+//storing results
+
+        foreach ($macIndex as $ioIndex => $eachMac) {
+            if (isset($intIndex[$ioIndex])) {
+                $eachMac = strtolower($eachMac);
+                $eachMac = explode(" ", $eachMac);
+                $eachMac = implode(":", $eachMac);
+                $inteface = $intIndex[$ioIndex];
+                $result[$eachMac] = $inteface;
+            }
+        }
+        $result = serialize($result);
+        file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+    }
+
+    /**
      * Parses & stores in cache OLT ONU interfaces
      *
      * @param int $oltid
@@ -1463,6 +1491,25 @@ class PONizer {
                                 }
                             }
                             $this->signalParseZte($oltid, $sigIndexTmp, $macIndexTmp, $this->snmpTemplates[$oltModelId]['signal']);
+
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET'])) {
+                                    $onu_id_start = 805830912;
+                                    $intIndex = array();
+                                    for ($card = $this->snmpTemplates[$oltModelId]['misc']['CARDOFFSET']; $card <= 20; $card++) {
+                                        $onu_id = $onu_id_start + (524288 * ($card - 1));
+                                        for ($port = 1; $port <= 16; $port++) {
+                                            $tmp_id = $onu_id;
+                                            for ($onu_num = 1; $onu_num <= 64; $onu_num++) {
+                                                $intIndex[$tmp_id] = 'epon-onu_' . $card . "/" . $port . ':' . $onu_num;
+                                                $tmp_id += 256;
+                                            }
+                                            $onu_id += 65536;
+                                        }
+                                    }
+                                    $this->interfaceParseZTE($oltid, $intIndex, $macIndexTmp);
+                                }
+                            }
                         }
 
                         if ($this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'ZTE_GPON' or $this->snmpTemplates[$oltModelId]['signal']['SIGNALMODE'] == 'HUAWEI_GPON') {
@@ -1914,12 +1961,12 @@ class PONizer {
         $HiddenReplID = 'ReplaceCtrlID_' . wf_InputId();
         $HiddenModalID = 'ModalWindowID_' . wf_InputId();
 
-        $inputs.=wf_tag('br');
-        $inputs.= ( ($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '' );
-        $inputs.= ( ($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '' );
+        $inputs .= wf_tag('br');
+        $inputs .= ( ($RenderedOutside) ? wf_CheckInput('NoRedirect', __('Do not redirect anywhere: just add & close'), true, true, $NoRedirChkID, '__ONUAACFormNoRedirChck') : '' );
+        $inputs .= ( ($PageReloadAfterDone) ? wf_CheckInput('', __('Reload page after action'), true, true, $ReloadChkID, '__ONUAACFormPageReloadChck') : '' );
 
-        $inputs.=wf_tag('br');
-        $inputs.= wf_Submit(__('Create'), $SubmitID);
+        $inputs .= wf_tag('br');
+        $inputs .= wf_Submit(__('Create'), $SubmitID);
 
         $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour __ONUAssignAndCreateForm', '', $FormID);
 
@@ -2185,12 +2232,12 @@ class PONizer {
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
                 if (cfr('ONUREGZTE')) {
-                    $zteControls.= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
+                    $zteControls .= wf_link('?module=ztevlanbinds', wf_img('skins/register.png') . ' ' . __('Edit OLT Cards'), false, 'ubButton');
                 }
                 if (cfr('ZTEVLANBINDS')) {
                     $zteControls .= wf_link('?module=zteunreg', wf_img('skins/check.png') . ' ' . __('Check for unauthenticated ONU/ONT'), false, 'ubButton');
                 }
-                $result.=wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
+                $result .= wf_modalAuto(web_icon_extended() . ' ' . __('ZTE'), __('ZTE'), $zteControls, 'ubButton');
             }
         } else {
             $result .= wf_BackLink(self::URL_ME);
@@ -2242,7 +2289,7 @@ class PONizer {
         // making an event binding for "DelUserAssignment" button("red cross" near user's login) on "ONU create&assign form"
         // to be able to create "ONU create&assign form" dynamically and not to put it's content to every "Create ONU" button in JqDt tables
         // creating of "ONU create&assign form" dynamically reduces the amount of text and page weight dramatically
-        $result.= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
+        $result .= '$(document).on("click", ".__UsrDelAssignButton", function(evt) {
                             $("[name=assignoncreate]").val("");
                             $(\'.__UsrAssignBlock\').html("' . __('Do not assign WiFi equipment to any user') . '");
                             evt.preventDefault();
@@ -2722,7 +2769,11 @@ class PONizer {
                 $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
 
                 if ($distCacheAvail) {
-                    $data[] = @$this->distanceCache[$each['mac']];
+                    if (isset($this->distanceCache[$each['mac']])) {
+                        $data[] = @$this->distanceCache[$each['mac']];
+                    } else {
+                        $data[] = @$this->distanceCache[$each['serial']];
+                    }
                 }
 
                 if ($lastDeregCacheAvail) {
