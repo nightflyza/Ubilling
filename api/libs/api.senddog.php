@@ -582,10 +582,7 @@ class SendDog {
      */
     protected function turbosmsPushMessages() {
         $sign = $this->safeEscapeString($this->settings['TSMS_SIGN']);
-        //time shift settings
-        $timezone = '2';
-        $tz_offset = (2 - $timezone) * 3600;
-        $date = date("Y-m-d H:i:s", time() + $tz_offset);
+        $date = date("Y-m-d H:i:s");
 
         $allSmsQueue = $this->smsQueue->getQueueData();
         if (!empty($allSmsQueue)) {
