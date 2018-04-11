@@ -3492,8 +3492,8 @@ function zb_DBStatsRenderContainer() {
     $messages = new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', __('Database stats'), 'dbscontainer', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Database stats'), 'dbscontainer', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
     $result.= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
@@ -4701,6 +4701,8 @@ function web_MemCachedRenderStats() {
     $result = '';
     $memcachedHost = 'localhost';
     $memcachedPort = 11211;
+    $cacheEfficiency = '';
+
     if (isset($altCfg['MEMCACHED_SERVER'])) {
         $memcachedHost = $altCfg['MEMCACHED_SERVER'];
     }
@@ -4722,10 +4724,21 @@ function web_MemCachedRenderStats() {
                 $cells.= wf_TableCell($each);
                 $rows.= wf_TableRow($cells, 'row3');
             }
+
+
+            //cache efficiency calc
+            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) AND ( isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
+                $cacheHits = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'];
+                $cacheMisses = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses'];
+                $cacheTotal = $cacheHits + $cacheMisses;
+                $messages = new UbillingMessageHelper();
+                $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
+            }
         }
     }
 
-    $result = wf_TableBody($rows, '100%', 0, '');
+    $result.= wf_TableBody($rows, '100%', 0, '');
+    $result.=$cacheEfficiency;
     return ($result);
 }
 
@@ -4901,15 +4914,15 @@ function zb_ListCacheInformRenderContainer() {
     $messages = new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', wf_img('skins/icon_cache.png') . ' ' . __('Cache information'), 'cachconteiner', false, 'ubButton');
     if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
     }
     if ($alterconf['UBCACHE_STORAGE'] == 'redis') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
     }
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', wf_img('skins/shovel.png') . ' ' . __('Cache data'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', wf_img('skins/icon_cleanup.png') . ' ' . __('Clear all cache'), 'cachconteiner', true, 'ubButton');
     $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b', true), 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);

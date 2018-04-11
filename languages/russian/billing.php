@@ -2822,6 +2822,7 @@ $lang['def']['Cache cleanup'] = 'Очистить кэш';
 $lang['def']['Go to OLT'] = 'Перейти к OLT';
 $lang['def']['Refresh data for this OLT'] = 'Обновить данные для этой OLT';
 $lang['def']['Last dereg reason'] = 'Причина последней дерегистрации';
+$lang['def']['Cache efficiency'] = 'Эффективность кеша';
 
 
 
