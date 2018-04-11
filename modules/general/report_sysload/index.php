@@ -75,7 +75,7 @@ if (cfr('SYSLOAD')) {
     if (!empty($monit_url)) {
         if (file_exists($monit_url . '/index.php')) {
             $monitCode = wf_tag('iframe', false, '', 'src="' . $monit_url . '" width="1000" height="500" frameborder="0"') . wf_tag('iframe', true);
-            $sysInfoData.= wf_modalAuto(__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
+            $sysInfoData.= wf_modalAuto(wf_img('skins/snmp.png').' '.__('phpSysInfo'), __('System health with phpSysInfo'), $monitCode, 'ubButton');
         } else {
             //installing phpsysinfo
             if (wf_CheckGet(array('phpsysinfoinstall'))) {

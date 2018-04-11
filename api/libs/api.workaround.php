@@ -4752,6 +4752,7 @@ function web_RedisRenderStats() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $result = '';
+    $cacheEfficiency = '';
     $redisHost = 'localhost';
     $redisdPort = 6379;
     if (isset($altCfg['REDIS_SERVER'])) {
@@ -4772,8 +4773,18 @@ function web_RedisRenderStats() {
             $cells.= wf_TableCell($value);
             $rows.= wf_TableRow($cells, 'row3');
         }
+        
+         //cache efficiency calc
+            if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
+                $cacheHits = $rawStats['keyspace_hits'];
+                $cacheMisses = $rawStats['keyspace_misses'];
+                $cacheTotal = $cacheHits + $cacheMisses;
+                $messages = new UbillingMessageHelper();
+                $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
+            }
     }
-    $result = wf_TableBody($rows, '100%', 0, '');
+    $result.= wf_TableBody($rows, '100%', 0, '');
+    $result.= $cacheEfficiency;
     return ($result);
 }
 
