@@ -81,6 +81,7 @@ if (cfr('SWITCHES')) {
             $toolsLinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
             $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
             if ($altCfg['SWITCHES_EXTENDED']) {
                 $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
             }

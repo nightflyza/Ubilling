@@ -33,6 +33,33 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 }
 
 /**
+ * Returns array of switch parent switches with himself
+ * 
+ * @param array $alllinks all switches links
+ * @param int $traceid switch name to trace
+ * 
+ * @return array
+ */
+function zb_SwitchGetParents($alllinks, $traceid) {
+    $road = array();
+    $road[] = $traceid;
+    $x = $traceid;
+
+
+    while (!empty($x)) {
+        foreach ($alllinks as $id => $parentid) {
+            if ($x == $id) {
+                $road[] = $parentid;
+                $x = $parentid;
+            }
+        }
+    }
+
+    $result = $road;
+    return ($result);
+}
+
+/**
  * Checks is loop possible after setting for switchId something as parent device
  * 
  * @param array $alllinks
