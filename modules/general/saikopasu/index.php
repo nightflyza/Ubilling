@@ -62,7 +62,7 @@ if (cfr('SWITCHESEDIT')) {
                     if (isset($allSwitches[$each['parentid']])) {
                         $traceId = $each['id'];
                         if (!empty($traceId)) {
-                            $psychoPower[$traceId] = sizeof(zb_SwitchGetParents($alllinks, $traceId)) - 1; // minus self
+                            $psychoPower[$traceId] = sizeof(zb_SwitchGetParents($alllinks, $traceId)) - 2; // minus self and last
                         }
                     }
                 } else {
@@ -95,7 +95,7 @@ if (cfr('SWITCHESEDIT')) {
     $columns = array('ID', 'IP', 'Location', 'Model', 'Description', 'Psycho-Pass', 'Actions');
     $opts = '"order": [[ 5, "desc" ]]';
 
-    $backControl = wf_BackLink('?module=switches').  wf_delimiter();
+    $backControl = wf_BackLink('?module=switches') . wf_delimiter();
     show_window(__('Switches') . ': ' . __('Psycho-Pass'), $backControl . wf_JqDtLoader($columns, '?module=saikopasu&ajax=true', false, 'Switches', 100, $opts));
 } else {
     show_error('Access denied');
