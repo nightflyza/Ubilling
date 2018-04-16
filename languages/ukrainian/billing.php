@@ -2816,8 +2816,8 @@ $lang['def']['LDAP manager'] = 'Керування LDAP';
 $lang['def']['Groups'] = 'Группи';
 $lang['def']['No existing groups available'] = 'Немає існуючих груп';
 $lang['def']['right control LDAP users'] = 'Право керувати користувачами LDAP';
-$lang['def']['Is LDAP manager enabled']='Керування користувачами LDAP увімкнено';
-$lang['def']['Is SMSZilla enabled']='SMSZilla увімкнена';
+$lang['def']['Is LDAP manager enabled'] = 'Керування користувачами LDAP увімкнено';
+$lang['def']['Is SMSZilla enabled'] = 'SMSZilla увімкнена';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправляти на іншу сторінку. Закрити форму по завершенню операції.';
 $lang['def']['Reload page after action'] = 'Оновити сторінку по завершенню операції';
 $lang['def']['System AP info'] = 'Системна информація про БС';
@@ -2840,5 +2840,6 @@ $lang['def']['Refresh data for this OLT'] = 'Оновити дані для да
 $lang['def']['Last dereg reason'] = 'Причина останньої дереєстрації';
 $lang['def']['Cache efficiency'] = 'Ефективність кешу';
 $lang['def']['Psycho-Pass'] = 'Психо-паспорт';
-
+$lang['def']['Scan for free IPs'] = 'Пошук вільних IP';
+$lang['def']['Free IPs'] = 'Вільні IP';
 ?>

@@ -26,6 +26,13 @@ if (cfr('SWITCHESEDIT')) {
         protected $scanIps = array();
 
         /**
+         * Contains array of available network CIDR masks
+         *
+         * @var array
+         */
+        protected $availMasks = array();
+
+        /**
          * System messages helper placeholder
          *
          * @var object
@@ -38,6 +45,7 @@ if (cfr('SWITCHESEDIT')) {
          * @return void
          */
         public function __construct() {
+            $this->availMasks = array(29 => 29, 28 => 28, 27 => 27, 26 => 26, 25 => 25, 24 => 24, 23 => 23, 22 => 22, 21 => 21, 20 => 20, 19 => 19, 18 => 18);
             $this->initMessages();
             $this->loadSwitches();
         }
@@ -85,10 +93,25 @@ if (cfr('SWITCHESEDIT')) {
              */
             $curNet = (wf_CheckPost(array('searchnetdevs'))) ? $_POST['searchnetdevs'] : '';
             $curCidr = (wf_CheckPost(array('searchnetcidr'))) ? $_POST['searchnetcidr'] : '';
-            $availMasks = array(29 => 29, 28 => 28, 27 => 27, 26 => 26, 25 => 25, 24 => 24, 23 => 23, 22 => 22, 21 => 21, 20 => 20, 19 => 19, 18 => 18);
             $inputs = wf_TextInput('searchnetdevs', __('Network') . ' /', $curNet, false, 20);
-            $inputs.= wf_Selector('searchnetcidr', $availMasks, __('CIDR'), $curCidr, false);
+            $inputs.= wf_Selector('searchnetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
             $inputs.= wf_Submit(__('Search'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+            return ($result);
+        }
+
+        /**
+         * Renders search form
+         * 
+         * @return string
+         */
+        public function renderFormFree() {
+            $result = '';
+            $curNet = (wf_CheckPost(array('freenetdevs'))) ? $_POST['freenetdevs'] : '';
+            $curCidr = (wf_CheckPost(array('freecidr'))) ? $_POST['freenetcidr'] : '';
+            $inputs = wf_TextInput('freenetdevs', __('Network') . ' /', $curNet, false, 20);
+            $inputs.= wf_Selector('freenetcidr', $this->availMasks, __('CIDR'), $curCidr, false);
+            $inputs.= wf_Submit(__('Show'));
             $result.=wf_Form('', 'POST', $inputs, 'glamour');
             return ($result);
         }
@@ -175,15 +198,63 @@ if (cfr('SWITCHESEDIT')) {
             return ($result);
         }
 
+        /**
+         * Returns list of free IPs not used in some network by switch devicess
+         * 
+         * @return string
+         */
+        public function lookupFreeIPs() {
+            $result = '';
+            $tmpArr = array();
+            if (!empty($this->scanIps)) {
+                foreach ($this->scanIps as $io => $eachIp) {
+                    if (!isset($this->allSwitchesIp[$eachIp])) {
+                        $tmpArr[] = $eachIp;
+                    }
+                }
+            }
+
+            if (!empty($tmpArr)) {
+                $cells = wf_TableCell(__('IP'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($tmpArr as $io => $each) {
+                    $cells = wf_TableCell($each, '', '', 'sorttable_customkey="' . ip2int($each) . '"');
+                    $rows.= wf_TableRow($cells, 'row5');
+                }
+
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Nothing found'), 'warning');
+            }
+            return ($result);
+        }
+
     }
 
     $scan = new SwitchScan();
+
+    //rendering of some interface
     show_window('', wf_BackLink('?module=switches'));
     show_window(__('Scan for unknown devices'), $scan->renderForm());
+    show_window(__('Scan for free IPs'), $scan->renderFormFree());
+
+
+    //searching for unknown devices
     if (wf_CheckPost(array('searchnetdevs', 'searchnetcidr'))) {
         $extractResult = $scan->extractIpData($_POST['searchnetdevs'], $_POST['searchnetcidr']);
         if (empty($extractResult)) {
             show_window(__('Search results'), $scan->searchDevices());
+        } else {
+            show_error($extractResult);
+        }
+    }
+
+    //looking for some freee IPs
+    if (wf_CheckPost(array('freenetdevs', 'freenetcidr'))) {
+        $extractResult = $scan->extractIpData($_POST['freenetdevs'], $_POST['freenetcidr']);
+        if (empty($extractResult)) {
+            show_window(__('Free IPs'), $scan->lookupFreeIPs());
         } else {
             show_error($extractResult);
         }

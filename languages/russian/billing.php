@@ -2824,6 +2824,10 @@ $lang['def']['Refresh data for this OLT'] = 'Обновить данные дл�
 $lang['def']['Last dereg reason'] = 'Причина последней дерегистрации';
 $lang['def']['Cache efficiency'] = 'Эффективность кеша';
 $lang['def']['Psycho-Pass'] = 'Психо-паспорт';
+$lang['def']['Scan for free IPs'] = 'Поиск свободных IP';
+$lang['def']['Free IPs'] = 'Свободные IP';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 
 
