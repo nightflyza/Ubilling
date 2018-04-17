@@ -129,11 +129,11 @@ if (cfr('SALARY')) {
                         $printLink.= web_icon_print();
                         $printLink.= wf_tag('a', true);
                         $reportTitle.=$printLink;
-                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid']));
+                        show_window($reportTitle, $salary->payrollRenderSearch($_POST['prdatefrom'], $_POST['prdateto'], $_POST['premployeeid'],$_POST['prjobtypeid']));
                     } else {
                         //multiple employee report
                         $reportTitle = __('Payroll') . ': ' . __('All') . ' ' . __('Employee') . ' ' . __('from') . ' ' . $_POST['prdatefrom'] . ' ' . __('to') . ' ' . $_POST['prdateto'];
-                        show_window($reportTitle, $salary->payrollRenderSearchDate($_POST['prdatefrom'], $_POST['prdateto']));
+                        show_window($reportTitle, $salary->payrollRenderSearchDate($_POST['prdatefrom'], $_POST['prdateto'], $_POST['prjobtypeid']));
                     }
                 }
                 show_window('', wf_BackLink($salary::URL_ME));
