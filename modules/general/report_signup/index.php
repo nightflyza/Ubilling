@@ -136,7 +136,7 @@ if (cfr('REPORTSIGNUP')) {
         $result = '';
         $result.=wf_BackLink('?module=report_signup');
         $result.=wf_delimiter();
-        
+
         if (!empty($aliveStats)) {
             if (!empty($aliveStats['deadlogins'])) {
 
@@ -173,7 +173,8 @@ if (cfr('REPORTSIGNUP')) {
                     $cells.= wf_TableCell(@$userData['ip']);
                     $cells.= wf_TableCell(@$userData['Tariff']);
                     $actFlag = ($userData['Cash'] >= -$userData['Credit']) ? web_bool_led(true) : web_bool_led(false);
-                    $cells.= wf_TableCell($actFlag);
+                    $freezeFlag = ($userData['Passive']) ? ' ' . wf_img('skins/icon_passive.gif') : '';
+                    $cells.= wf_TableCell($actFlag . $freezeFlag);
                     $cells.= wf_TableCell($userData['Cash']);
                     $cells.= wf_TableCell($userData['Credit']);
                     $cells.= wf_TableCell($userData['mobile'] . ' ' . $userData['phone'] . ' ' . $userExtMobiles);
@@ -184,7 +185,7 @@ if (cfr('REPORTSIGNUP')) {
             }
         }
 
-        show_window(__('Inactive').' '.$year, $result);
+        show_window(__('Inactive') . ' ' . $year, $result);
     }
 
     /**
