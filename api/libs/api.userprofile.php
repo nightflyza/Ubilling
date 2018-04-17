@@ -972,8 +972,8 @@ class UserProfile {
                                 $userMobile = str_replace($prefix, '', $userMobile);
                                 $userMobile = $prefix . $userMobile;
                             }
-
-                            $sendInputs = wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
+                            $sendInputs = '';
+                            $sendInputs.= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
                             $sendInputs.= wf_TextArea('neweasysmstext', '', '', true, '40x5');
                             $sendInputs.= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
                             $sendInputs.= wf_tag('br');
