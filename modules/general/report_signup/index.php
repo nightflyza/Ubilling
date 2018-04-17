@@ -173,7 +173,7 @@ if (cfr('REPORTSIGNUP')) {
                     $cells.= wf_TableCell(@$userData['ip']);
                     $cells.= wf_TableCell(@$userData['Tariff']);
                     $actFlag = ($userData['Cash'] >= -$userData['Credit']) ? web_bool_led(true) : web_bool_led(false);
-                    $freezeFlag = ($userData['Passive']) ? ' ' . wf_img('skins/icon_passive.gif') : '';
+                    $freezeFlag = ($userData['Passive']) ? ' ' . wf_img('skins/icon_passive.gif',__('User is frozen')) : '';
                     $cells.= wf_TableCell($actFlag . $freezeFlag);
                     $cells.= wf_TableCell($userData['Cash']);
                     $cells.= wf_TableCell($userData['Credit']);
