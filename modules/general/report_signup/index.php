@@ -132,7 +132,7 @@ if (cfr('REPORTSIGNUP')) {
             return (zb_SignupsGetAilveStats($year));
         }, 86400); //cached for 1 day
         $allUserData = zb_UserGetAllDataCache();
-
+        $deadCount = 0;
         $result = '';
         $result.=wf_BackLink('?module=report_signup');
         $result.=wf_delimiter();
@@ -173,15 +173,17 @@ if (cfr('REPORTSIGNUP')) {
                     $cells.= wf_TableCell(@$userData['ip']);
                     $cells.= wf_TableCell(@$userData['Tariff']);
                     $actFlag = ($userData['Cash'] >= -$userData['Credit']) ? web_bool_led(true) : web_bool_led(false);
-                    $freezeFlag = ($userData['Passive']) ? ' ' . wf_img('skins/icon_passive.gif',__('User is frozen')) : '';
+                    $freezeFlag = ($userData['Passive']) ? ' ' . wf_img('skins/icon_passive.gif', __('User is frozen')) : '';
                     $cells.= wf_TableCell($actFlag . $freezeFlag);
                     $cells.= wf_TableCell($userData['Cash']);
                     $cells.= wf_TableCell($userData['Credit']);
                     $cells.= wf_TableCell($userData['mobile'] . ' ' . $userData['phone'] . ' ' . $userExtMobiles);
                     $rows.= wf_TableRow($cells, 'row5');
+                    $deadCount++;
                 }
 
                 $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                $result.= __('Total').': '.$deadCount;
             }
         }
 
