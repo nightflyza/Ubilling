@@ -2826,9 +2826,15 @@ $lang['def']['Cache efficiency'] = 'Эффективность кеша';
 $lang['def']['Psycho-Pass'] = 'Психо-паспорт';
 $lang['def']['Scan for free IPs'] = 'Поиск свободных IP';
 $lang['def']['Free IPs'] = 'Свободные IP';
+$lang['def']['Press space to play'] = 'Нажмите пробел для старта';
+$lang['def']['score'] = 'счет';
+$lang['def']['rows'] = 'ряды';
+$lang['def']['Procrastination helper'] = 'Помощник прокрастинации';
+$lang['def']['right to procrastinate'] = 'Право быть героем прокрастинации';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 
 

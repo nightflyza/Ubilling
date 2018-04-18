@@ -2842,4 +2842,10 @@ $lang['def']['Cache efficiency'] = 'Ефективність кешу';
 $lang['def']['Psycho-Pass'] = 'Психо-паспорт';
 $lang['def']['Scan for free IPs'] = 'Пошук вільних IP';
 $lang['def']['Free IPs'] = 'Вільні IP';
+$lang['def']['Press space to play'] = 'Натисніть пробіл аби почати';
+$lang['def']['score'] = 'рахунок';
+$lang['def']['rows'] = 'ряди';
+$lang['def']['Procrastination helper'] = 'Помічник прокрастинації';
+$lang['def']['right to procrastinate'] = 'Право бути героєм прокрастинації';
+
 ?>
