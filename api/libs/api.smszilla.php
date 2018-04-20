@@ -571,6 +571,9 @@ class SMSZilla {
             'filtercashdays' => 'Balance is enought less than days',
             'filtercashgreater' => 'Balance is greater than',
             'filtercashlesser' => 'Balance is less than',
+            'filtercashlesszero' => 'Balance is less than zero',
+            'filtercashzero' => 'Balance is zero',
+            'filtercreditset' => 'User have credit',
             'filtercashmonth' => 'Balance is not enough for the next month',
             'filtercity' => 'City',
             'filterdown' => 'User is down',
@@ -578,6 +581,7 @@ class SMSZilla {
             'filteremployeeappointment' => 'Appointment',
             'filterextmobiles' => 'Use additional mobiles',
             'filterlogin' => 'Login contains',
+            'filterip' => 'IP contains',
             'filternotariff' => 'User have no tariff assigned',
             'filterpassive' => 'User is frozen',
             'filtertags' => 'User have tag assigned',
@@ -1309,6 +1313,7 @@ class SMSZilla {
 
             if (($direction == 'login')) {
                 $inputs.= wf_TextInput('newfilterlogin', __('Login contains'), '', true, '20');
+                $inputs.= wf_TextInput('newfilterip', __('IP contains'), '', true, '20');
                 $inputs.= wf_CheckInput('newfiltercashmonth', __('Balance is not enough for the next month'), true, false);
                 $inputs.= wf_TextInput('newfiltercashdays', __('Balance is enought less than days'), '', true, '5');
             }
@@ -1322,11 +1327,14 @@ class SMSZilla {
             if (($direction == 'login') OR ( $direction == 'ukv')) {
                 $inputs.= wf_TextInput('newfiltercashgreater', __('Balance is greater than'), '', true, '5');
                 $inputs.= wf_TextInput('newfiltercashlesser', __('Balance is less than'), '', true, '5');
+                $inputs.= wf_CheckInput('newfiltercashlesszero', __('Balance is less than zero'), true, false);
+                $inputs.= wf_CheckInput('newfiltercashzero', __('Balance is zero'), true, false);
                 $inputs.=wf_Selector('newfiltertags', $tagsParams, __('User have tag assigned'), '', true, false);
             }
 
 
             if (($direction == 'login')) {
+                $inputs.= wf_CheckInput('newfiltercreditset', __('User have credit'), true, false);
                 $inputs.= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
                 $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
                 $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
@@ -2030,9 +2038,9 @@ class SMSZilla {
             if ($realSending) {
                 log_register('SMSZILLA SENDING TEMPLATE [' . $templateId . '] FILTER [' . $filterId . '] COUNT `' . $sendCounter . '`');
             }
-//saving preview data
-            file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
         }
+        //saving preview data
+        file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
     }
 
     /**
@@ -2116,6 +2124,31 @@ class SMSZilla {
                         $search = trim($param);
                         foreach ($this->filteredEntities as $io => $entity) {
                             if (!ispos($entity['login'], $search)) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * IP substring filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterip($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        $search = trim($param);
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!ispos($entity['ip'], $search)) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }
@@ -2248,6 +2281,92 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['cash'] > $param) {
                                 unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Lesser zero cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashlesszero($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Cash'] >= 0) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] >= 0) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Zero cash filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercashzero($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Cash'] != 0) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                    case 'ukv':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['cash'] != 0) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Credit filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filtercreditset($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Credit'] == 0) {
+                                unset($this->filteredEntities[$entity['login']]);
                             }
                         }
                         break;

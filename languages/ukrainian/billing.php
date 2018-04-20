@@ -2848,4 +2848,11 @@ $lang['def']['rows'] = 'ряди';
 $lang['def']['Procrastination helper'] = 'Помічник прокрастинації';
 $lang['def']['right to procrastinate'] = 'Право бути героєм прокрастинації';
 
+//rev 6056
+$lang['def']['IP contains'] = 'IP містить';
+$lang['def']['Balance is zero'] = 'Баланс нульовий';
+$lang['def']['User have credit'] = 'Встановлено кредит';
+$lang['def']['Balance is less than zero'] = 'Баланс менший за нуль';
+
+
 ?>

@@ -2831,8 +2831,12 @@ $lang['def']['score'] = 'счет';
 $lang['def']['rows'] = 'ряды';
 $lang['def']['Procrastination helper'] = 'Помощник прокрастинации';
 $lang['def']['right to procrastinate'] = 'Право быть героем прокрастинации';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+
+//rev 6056
+$lang['def']['IP contains'] = 'IP содержит';
+$lang['def']['Balance is zero'] = 'Баланс нулевой';
+$lang['def']['User have credit'] = 'Установлен кредит';
+$lang['def']['Balance is less than zero'] = 'Баланс меньше нуля';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
