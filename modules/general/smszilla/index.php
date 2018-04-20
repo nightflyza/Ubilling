@@ -2,8 +2,9 @@
 
 if (cfr('SMSZILLA')) {
     $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['SENDDOG_ENABLED']) {
-        if ($altCfg['SMSZILLA_ENABLED']) {
+
+    if ($altCfg['SMSZILLA_ENABLED']) {
+        if ($altCfg['SENDDOG_ENABLED']) {
             //may be to slow :(
             set_time_limit(0);
 
@@ -175,10 +176,10 @@ if (cfr('SMSZILLA')) {
                 show_window(__('Excludes'), $smszilla->renderExcludeNumsList());
             }
         } else {
-            show_error(__('This module is disabled'));
+            show_error(__('SMSZilla requires SendDog'));
         }
     } else {
-        show_error(__('SMSZilla requires SendDog'));
+        show_error(__('This module is disabled'));
     }
 } else {
     show_error(__('Access denied'));
