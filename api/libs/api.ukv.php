@@ -1283,7 +1283,11 @@ class UkvSystem {
         if (!empty($this->allUserTags)) {
             foreach ($this->allUserTags as $io => $eachtag) {
                 if ($eachtag['userid'] == $userid) {
-                    $paramsDelTmp[$eachtag['id']] = @$this->allTagtypes[$eachtag['tagtypeid']]['tagname'];
+                    if (isset($this->allTagtypes[$eachtag['tagtypeid']])) {
+                        $paramsDelTmp[$eachtag['id']] = $this->allTagtypes[$eachtag['tagtypeid']]['tagname'];
+                    } else {
+                        $paramsDelTmp[$eachtag['id']] = __('Deleted') . ': ' . $eachtag['tagtypeid'];
+                    }
                 }
             }
         }
@@ -1373,6 +1377,7 @@ class UkvSystem {
      */
     protected function getTagBody($id, $power = false) {
         $powerTmp = array();
+        $result = '';
         if ($power) {
             foreach ($this->allUserTags as $io => $each) {
                 if (isset($powerTmp[$each['tagtypeid']])) {
@@ -1387,12 +1392,15 @@ class UkvSystem {
             $powerSup = '';
         }
         $tagbody = $this->getTagParams($id);
-        $renderPower = ($power) ? $tagPower : $tagbody['tagsize'];
-
-        $result = wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $renderPower . '"');
-        $result.= wf_tag('a', false, '', 'href="' . self::URL_REPORTS_MGMT . 'reportTagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . $powerSup . wf_tag('a', true);
-        $result.= wf_tag('font', true);
-        $result.='&nbsp;';
+        if (!empty($tagbody)) {
+            $renderPower = ($power) ? $tagPower : $tagbody['tagsize'];
+            $result = wf_tag('font', false, '', 'color="' . $tagbody['tagcolor'] . '" size="' . $renderPower . '"');
+            $result.= wf_tag('a', false, '', 'href="' . self::URL_REPORTS_MGMT . 'reportTagcloud&tagid=' . $id . '" style="color: ' . $tagbody['tagcolor'] . ';"') . $tagbody['tagname'] . $powerSup . wf_tag('a', true);
+            $result.= wf_tag('font', true);
+            $result.='&nbsp;';
+        } else {
+            $result.=__('Deleted') . ': ' . $id . '&nbsp;';
+        }
         return($result);
     }
 
