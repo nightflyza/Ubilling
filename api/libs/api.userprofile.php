@@ -455,12 +455,12 @@ class UserProfile {
      * 
      * @return string
      */
-    protected function addRow($header, $data, $highlight = false) {
+    protected function addRow($header, $data, $highlight = false, $cellwidth = self::MAIN_ROW_HEADER_WIDTH) {
         if ($highlight) {
-            $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, self::MAIN_ROW_HEADER_WIDTH, 'row2');
+            $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, $cellwidth, 'row2');
             $cells.= wf_TableCell($this->highlightStart . $data . $this->highlightEnd, '', 'row3');
         } else {
-            $cells = wf_TableCell($header, self::MAIN_ROW_HEADER_WIDTH, 'row2');
+            $cells = wf_TableCell($header, $cellwidth, 'row2');
             $cells.= wf_TableCell($data, '', 'row3');
         }
         $result = wf_TableRow($cells);
@@ -1205,6 +1205,7 @@ class UserProfile {
         return ($result);
     }
 
+
     /**
       Брат, братан, братишка Когда меня отпустит?
      */
@@ -1304,6 +1305,23 @@ class UserProfile {
         $profile.=$this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
 //Frozen aka passive flag row
         $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
+
+        if ( isset($this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) && $this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED'] ) {
+            $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $this->userdata['login'] . "';";
+            $FrozenAll = simple_queryall($FrozenAllQuery);
+
+            if (!empty($FrozenAll)) {
+                foreach ($FrozenAll as $usr => $usrlogin) {
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
+                }
+            }
+        }
+
 //Disable aka Down flag row
         $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 //Deal with it available tasks notification
