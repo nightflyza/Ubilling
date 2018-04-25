@@ -2853,6 +2853,16 @@ $lang['def']['IP contains'] = 'IP містить';
 $lang['def']['Balance is zero'] = 'Баланс нульовий';
 $lang['def']['User have credit'] = 'Встановлено кредит';
 $lang['def']['Balance is less than zero'] = 'Баланс менший за нуль';
-
-
+$lang['def']['Freeze days charge enabled'] = 'Обмеження кількості днів заморозки ввімкнено';
+$lang['def']['Freeze days initial amount'] = 'Початкова кількість днів заморозки доступних для використання';
+$lang['def']['Workdays initial amount to restore freeze days amount'] = 'Початкова кількість днів які треба відпрацювати для відновлення днів заморозки';
+$lang['def']['Freeze days total amount'] = 'Загальна кількість днів заморозки';
+$lang['def']['Freeze days used'] = 'Кількість використанних днів заморозки';
+$lang['def']['Freeze days available'] = 'Кількість днів заморозки доступних для використання';
+$lang['def']['Workdays amount to restore freeze days'] = 'Кількість днів які треба відпрацювати для відновлення днів заморозки';
+$lang['def']['Days worked after freeze days used up'] = 'Кількість вже відпрацьованих днів після вичерпання днів заморозки';
+$lang['def']['Workdays left to restore'] = 'Кількість днів які залишилось відпрацювати для відновлення днів заморозки';
+$lang['def']['Changing freeze status is unavailable: total amount of freeze days used up'] = 'Зміна статусу заморозки недоступна: кількість днів заморозки вичерпано';
+$lang['def']['Ajax OLT data refresh'] = 'Оновлення даних для OLT через AJAX ввімкнено';
+$lang['def']['OLT quick links enabled'] = 'Швидкий перехід між OLT ввімкнено';
 ?>

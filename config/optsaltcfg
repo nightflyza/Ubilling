@@ -298,6 +298,9 @@ RESETHARD=TRIGGER|Hard reset is enabled
 SORM_ENABLED=TRIGGER|SORM integration enabled
 POLLS_ENABLED=TRIGGER|Polls enabled
 LDAPMGR_ENABLED=TRIGGER|Is LDAP manager enabled
+FREEZE_DAYS_CHARGE_ENABLED=TRIGGER|Freeze days charge enabled
+FREEZE_DAYS_INITIAL_AMOUNT=VARCHAR|Freeze days initial amount
+FREEZE_DAYS_WORK_TO_RESTORE=VARCHAR|Workdays initial amount to restore freeze days amount
 CHAPTEREND_BEH=true
 
 
@@ -329,4 +332,6 @@ ONUAUTO_CONFIG=TRIGGER|Set pvid on onu copper port
 ONUMODELS_FILTER=TRIGGER|Use only device models with ONU string
 ONUREG_ZTE=TRIGGER|Is ONU register module is enabled
 ONU_MASTER_ENABLED=TRIGGER|Is ONU master module is enabled
+PON_OLT_INDIVIDUAL_REPOLL_AJAX=TRIGGER|Ajax OLT data refresh
+PON_QUICK_OLT_LINKS=TRIGGER|OLT quick links enabled
 CHAPTEREND_PON=true
