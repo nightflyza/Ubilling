@@ -1205,7 +1205,6 @@ class UserProfile {
         return ($result);
     }
 
-
     /**
       Брат, братан, братишка Когда меня отпустит?
      */
@@ -1304,9 +1303,11 @@ class UserProfile {
 //Detail stats flag row
         $profile.=$this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
 //Frozen aka passive flag row
-        $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
+        //passive time detection
+        $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')' : '';
+        $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
 
-        if ( isset($this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) && $this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED'] ) {
+        if (isset($this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) && $this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) {
             $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $this->userdata['login'] . "';";
             $FrozenAll = simple_queryall($FrozenAllQuery);
 
