@@ -451,11 +451,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                             if ( !empty($AllFrozenNotInCountTab) ) {
                                 foreach ($AllFrozenNotInCountTab as $usr => $eachlogin) {
-                                    if ( $eachlogin['login'] == '63ap0_6g8g' ) {
-                                        $TmpQuery = "INSERT INTO `frozen_charge_days` (`login`, `freeze_days_amount`, `work_days_restore`)
-                                                                          VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
-                                        nr_query($TmpQuery);
-                                    }
+                                    $TmpQuery = "INSERT INTO `frozen_charge_days` (`login`, `freeze_days_amount`, `work_days_restore`)
+                                                                      VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
+                                    nr_query($TmpQuery);
                                 }
                             }
 
