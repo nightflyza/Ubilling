@@ -1588,7 +1588,13 @@ class UkvSystem {
      * @return string
      */
     public function renderUsers() {
-        $columns = array('Full address', 'Real Name', 'Contract', 'Tariff', 'Connected', 'Cash');
+        global $ubillingConfig;
+        $altcfg = $ubillingConfig->getAlter();
+        $columns = array('Full address', 'Real Name', 'Contract', 'Tariff', 'Connected');
+        if ($altcfg['UKV_SHOW_REG_DATA']) {
+            $columns[] = 'User contract date';
+        }
+        $columns[] = 'Cash';
         $result = wf_JqDtLoader($columns, self::URL_USERS_AJAX_SOURCE, false, 'users', 50);
         return ($result);
     }
@@ -1629,6 +1635,7 @@ class UkvSystem {
                 $data[] = $each['contract'];
                 $data[] = @$this->tariffs[$each['tariffid']]['tariffname'];
                 $data[] = $activity;
+                $data[] = $each['regdate'];
                 $data[] = $each['cash'];
 
                 $json->addRow($data);
