@@ -96,7 +96,7 @@ class RouterOS {
                 $length |= 0xC00000;
                 $length = chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
                 break;
-            case ( length < 0x10000000 ):
+            case ( $length < 0x10000000 ):
                 $length |= 0xE0000000;
                 $length = chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
                 break;
@@ -150,23 +150,23 @@ class RouterOS {
         while ( true ) {
             $byte = ord(fread($this->socket, 1));
             $length = 0;
-            if ( $byte & 128 ) {
-                if ( ($byte & 192) == 128 ) {
-                    $length = ( ($byte & 63) << 8 ) + ord(fread($this->socket, 1));
+            if ($byte & 128) {
+                if (($byte & 192) == 128) {
+                    $length = (($byte & 63) << 8) + ord(fread($this->socket, 1));
                 } else {
-                    if ( ($byte & 224) == 192 ) {
-                        $length = ( ($byte & 31) << 8 ) + ord(fread($this->socket, 1));
-                        $length = ( $length << 8 ) + ord(fread($this->socket, 1));
+                    if (($byte & 224) == 192) {
+                        $length = (($byte & 31) << 8) + ord(fread($this->socket, 1));
+                        $length = ($length << 8) + ord(fread($this->socket, 1));
                     } else {
-                        if ( ($byte & 240) == 224 ) {
-                            $length = ( ($byte & 15) << 8 ) + ord(fread($this->socket, 1));
-                            $length = ( $length << 8 ) + ord(fread($this->socket, 1));
-                            $length = ( $length << 8 ) + ord(fread($this->socket, 1));
+                        if (($byte & 240) == 224) {
+                            $length = (($byte & 15) << 8) + ord(fread($this->socket, 1));
+                            $length = ($length << 8) + ord(fread($this->socket, 1));
+                            $length = ($length << 8) + ord(fread($this->socket, 1));
                         } else {
                             $length = ord(fread($this->socket, 1));
-                            $length = ( $length << 8 ) + ord(fread($this->socket, 1));
-                            $length = ( $length << 8 ) + ord(fread($this->socket, 1));
-                            $length = ( $length << 8 ) + ord(fread($this->socket, 1));
+                            $length = ($length << 8) + ord(fread($this->socket, 1));
+                            $length = ($length << 8) + ord(fread($this->socket, 1));
+                            $length = ($length << 8) + ord(fread($this->socket, 1));
                         }
                     }
                 }
@@ -174,27 +174,30 @@ class RouterOS {
 
             $_ = null;
 
-            if ( $length > 0 ) {
+            if ($length > 0) {
                 $retlen = 0;
-                while ( $retlen < $length ) {
+
+                while ($retlen < $length) {
                     $toread = $length - $retlen;
                     $_ .= fread($this->socket, $toread);
                     $retlen = strlen($_);
                 }
+
                 $response[] = $_;
                 $this->debug('>>> [' . $retlen . '/' . $length . '] bytes read.');
             }
-            if ( $_ == '!done' ) {
-                $_done = true;
-            }
+
+            if ($_ == '!done') {$_done = true;}
+
             $status = socket_get_status($this->socket);
-            if ( $length > 0 ) {
-                $this->debug('>>> [' . $length . ', ' . $status['unread_bytes'] . ']' . $_);
-            }
+
+            if ($length > 0) {$this->debug('>>> [' . $length . ', ' . $status['unread_bytes'] . ']' . $_);}
+
             if ((!$this->connected && !$status['unread_bytes']) || ($this->connected && !$status['unread_bytes'] && $_done)) {
                 break;
             }
         }
+
         return ( $parse_response ) ? $this->parse_response($response) : $response;
     }
 
@@ -208,19 +211,22 @@ class RouterOS {
     public function write($command, $param = true) {
         if ( $command ) {
             $data = explode('\n', $command);
+
             foreach ( $data as $cmd ) {
                 $cmd = trim($cmd);
                 fwrite($this->socket, $this->encode_length(strlen($cmd)) . $cmd);
                 $this->debug('<<< [' . strlen($cmd) . '] ' . $cmd);
             }
+
             $type = gettype($param);
             switch ( $type)  {
                 case 'integer':
                     fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param)) . '.tag=' . $param . chr(0));
                     $this->debug('<<< [' . strlen('.tag=' . $param) . '] .tag=' . $param);
                     break;
+
                 case 'boolean':
-                    fwrite($this->socket, ($param ? chr(0) : null));
+                    fwrite($this->socket, ($param ? chr(0) : ''));
                     break;
             }
         }
@@ -250,7 +256,7 @@ class RouterOS {
                     $el = '=' . $key . '=' . $value;
                     break;
             }
-            $this->write($el, ($i++ == --$count));
+            $this->write($el, ($i++ == $count - 1));
         }
         return $this->read();
     }

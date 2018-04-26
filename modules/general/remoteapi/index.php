@@ -440,42 +440,43 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      * running freeze days charge if FREEZE_DAYS_CHARGE_ENABLED
                      */
                     if ($_GET['action'] == 'freezedayscharge') {
-                        if (isset($alterconf['FREEZE_DAYS_CHARGE_ENABLED']) && $alterconf['FREEZE_DAYS_CHARGE_ENABLED']) {
-                            $FreezeDaysInitAmnt = $alterconf['FREEZE_DAYS_INITIAL_AMOUNT'];
-                            $WrkDaysToRestoreFrzDaysInitAmnt = $alterconf['FREEZE_DAYS_WORK_TO_RESTORE'];
+                        if ( isset($alterconf['FREEZE_DAYS_CHARGE_ENABLED']) && $alterconf['FREEZE_DAYS_CHARGE_ENABLED'] ) {
+                            $FreezeDaysInitAmnt                = $alterconf['FREEZE_DAYS_INITIAL_AMOUNT'];
+                            $WrkDaysToRestoreFrzDaysInitAmnt   = $alterconf['FREEZE_DAYS_WORK_TO_RESTORE'];
 
                             $TmpQuery = "SELECT `users`.`login` FROM `users` 
-                                            LEFT JOIN `frozen_charge_days` ON `frozen_charge_days`.`login` = `users`.`login`
+                                              LEFT JOIN `frozen_charge_days` ON `frozen_charge_days`.`login` = `users`.`login`
                                             WHERE `users`.`Passive`='1' AND `frozen_charge_days`.`login` IS NULL;";
                             $AllFrozenNotInCountTab = simple_queryall($TmpQuery);
 
-                            if (!empty($AllFrozenNotInCountTab)) {
+                            if ( !empty($AllFrozenNotInCountTab) ) {
                                 foreach ($AllFrozenNotInCountTab as $usr => $eachlogin) {
                                     $TmpQuery = "INSERT INTO `frozen_charge_days` (`login`, `freeze_days_amount`, `work_days_restore`)
-                                                VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
+                                                              VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
                                     nr_query($TmpQuery);
                                 }
                             }
 
                             $FrozenAllQuery = "SELECT `frozen_charge_days`.`*`, `users`.`Passive`, `users`.`Down`, `users`.`Credit`, `users`.`Cash` 
                                                   FROM `frozen_charge_days`
-                                                  LEFT JOIN `users` ON `frozen_charge_days`.`login` = `users`.`login`;";
+                                                    LEFT JOIN `users` ON `frozen_charge_days`.`login` = `users`.`login`;";
                             $FrozenAll = simple_queryall($FrozenAllQuery);
 
                             if (!empty($FrozenAll)) {
                                 $UsrPassive = 0;
+                                $FrozenToPocess = count($FrozenAll);
 
                                 foreach ($FrozenAll as $usr => $eachlogin) {
-                                    $UsrLogin = $eachlogin['login'];
+                                    $UsrLogin   = $eachlogin['login'];
                                     $UsrPassive = $eachlogin['Passive'];
-                                    $UsrDown = $eachlogin['Down'];
-                                    $UsrCredit = $eachlogin['Credit'];
-                                    $UsrCash = $eachlogin['Cash'];
+                                    $UsrDown    = $eachlogin['Down'];
+                                    $UsrCredit  = $eachlogin['Credit'];
+                                    $UsrCash    = $eachlogin['Cash'];
 
-                                    $FrzDaysAmount = $eachlogin['freeze_days_amount'];
-                                    $FrzDaysUsed = $eachlogin['freeze_days_used'];
-                                    $DaysWorked = $eachlogin['days_worked'];
-                                    $WrkDaysToRestoreFrzDays = $eachlogin['work_days_restore'];
+                                    $FrzDaysAmount              = $eachlogin['freeze_days_amount'];
+                                    $FrzDaysUsed                = $eachlogin['freeze_days_used'];
+                                    $DaysWorked                 = $eachlogin['days_worked'];
+                                    $WrkDaysToRestoreFrzDays    = $eachlogin['work_days_restore'];
 
                                     if ($UsrPassive) {
                                         $FrzDaysUsed++;
@@ -486,11 +487,11 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                         simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
                                     } else {
-                                        if (($FrzDaysUsed >= $FrzDaysAmount) && ($UsrCash < '-' . $UsrCredit) && !$UsrDown) {
+                                        if ( ($FrzDaysUsed >= $FrzDaysAmount) && ($UsrCash < '-' . $UsrCredit) && !$UsrDown ) {
                                             $DaysWorked++;
 
                                             if ($DaysWorked >= $WrkDaysToRestoreFrzDays) {
-                                                $DaysWorked = 0;
+                                                $DaysWorked  = 0;
                                                 $FrzDaysUsed = 0;
 
                                                 simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
@@ -501,10 +502,10 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                     }
                                 }
 
-                                die('OK:FREEZE_DAYS_CHARGE_NO_USERS');
-                            }
+                                log_register('FREEZE DAYS CHARGE done to `' . $FrozenToPocess . '` users');
+                                die('OK:FREEZE_DAYS_CHARGE');
 
-                            die('OK:FREEZE_DAYS_CHARGE');
+                            } else { die('OK:FREEZE_DAYS_CHARGE_NO_USERS'); }
                         }
                     }
 
@@ -974,6 +975,71 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('OK:SORMCAST');
                         } else {
                             die('ERROR:SORM_DISABLED');
+                        }
+                    }
+
+
+                    if ($_GET['action'] == 'mikrotikdnshaper') {
+                        if ($alterconf['DSHAPER_ENABLED']) {
+                            $Now = date('H:i:s');
+
+                            $DNDataQuery = "SELECT  `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
+                                                    `speeds`.`speeddown`, `speeds`.`speedup`,  `speeds`.`burstdownload`, `speeds`.`burstupload`, `speeds`.`bursttimedownload`, `speeds`.`burstimetupload`, 
+                                                    `dshpt`.`threshold1`, `dshpt`.`threshold2`, `dshpt`.`speed` 
+                                              FROM  (
+                                                      SELECT `users`.`login`, `users`.`ip`, `users`.`Tariff`, `nh`.`netid` 
+                                                          FROM `users` 
+                                                            LEFT JOIN `nethosts` AS `nh` ON `users`.`ip` = `nh`.`ip`
+                                                          WHERE !`users`.`Down` AND !( `users`.`Cash` < -(`users`.`Credit`) )
+                                                    ) AS `usr_nh` 
+                                                LEFT JOIN `nas` ON `usr_nh`.`netid` = `nas`.`netid`
+                                                LEFT JOIN `dshape_time` AS `dshpt` ON `usr_nh`.`Tariff` = `dshpt`.`tariff`
+                                                LEFT JOIN `speeds` ON `usr_nh`.`Tariff` = `speeds`.`tariff`
+                                              WHERE `nas`.`nastype` = 'mikrotik' AND `dshpt`.`speed` IS NOT NULL AND '" . $Now . "' BETWEEN `dshpt`.`threshold1` AND `dshpt`.`threshold2`;";
+
+                            $DNData = simple_queryall($DNDataQuery);
+
+                            if ( !empty($DNData) ) {
+                                $UsersCnt = count($DNData);
+                                $RouterOSAPI = new RouterOS();
+
+                                foreach ($DNData as $eachrow => $eachlogin) {
+                                    $MTikNasOpts = base64_decode($eachlogin['options']);
+                                    $MTikNasOpts = unserialize($MTikNasOpts);
+
+                                    $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password']);
+
+                                    if ($RouterOSAPI->connected) {
+                                        if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
+                                            $Template = array(  '.id' => '',
+                                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
+                                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
+                                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
+                                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                                             );
+                                        } else {
+                                            $Template = array(  '.id' => '',
+                                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
+                                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                                             );
+                                        }
+
+                                        $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
+
+                                        if (!empty($Entries)) {
+                                            foreach ($Entries as $Entry) {
+                                                $Template['.id'] = $Entry['.id'];
+                                                $MTikReply = $RouterOSAPI->command('/queue/simple/set', $Template);
+                                            }
+                                        }
+
+                                        log_register('MT_DN_SHAPER done to `' . $UsersCnt . '` users');
+                                        die('OK:MT_DN_SHAPER');
+                                    }
+                                }
+                            } else {die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');}
                         }
                     }
 
