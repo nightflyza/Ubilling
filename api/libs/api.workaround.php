@@ -4773,15 +4773,15 @@ function web_RedisRenderStats() {
             $cells.= wf_TableCell($value);
             $rows.= wf_TableRow($cells, 'row3');
         }
-        
-         //cache efficiency calc
-            if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
-                $cacheHits = $rawStats['keyspace_hits'];
-                $cacheMisses = $rawStats['keyspace_misses'];
-                $cacheTotal = $cacheHits + $cacheMisses;
-                $messages = new UbillingMessageHelper();
-                $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
-            }
+
+        //cache efficiency calc
+        if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
+            $cacheHits = $rawStats['keyspace_hits'];
+            $cacheMisses = $rawStats['keyspace_misses'];
+            $cacheTotal = $cacheHits + $cacheMisses;
+            $messages = new UbillingMessageHelper();
+            $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
+        }
     }
     $result.= wf_TableBody($rows, '100%', 0, '');
     $result.= $cacheEfficiency;
@@ -4854,6 +4854,7 @@ function zb_isTimeBetween($fromTime, $toTime, $checkTime, $seconds = false) {
  */
 function zb_formatTime($seconds) {
     $init = $seconds;
+    $days = floor($seconds / 86400);
     $hours = floor($seconds / 3600);
     $minutes = floor(($seconds / 60) % 60);
     $seconds = $seconds % 60;
@@ -4868,8 +4869,13 @@ function zb_formatTime($seconds) {
             $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         }
     } else {
-        //more than hour
-        $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        if ($init < 86400) {
+            //more than hour
+            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        } else {
+            $hoursLeft = $hours - ($days * 24);
+            $result = $days . ' ' . __('days') . ' ' . $hoursLeft . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        }
     }
     return ($result);
 }
