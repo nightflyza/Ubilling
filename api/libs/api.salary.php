@@ -915,11 +915,12 @@ class Salary {
         $fromDate = (wf_CheckPost(array('prdatefrom'))) ? $_POST['prdatefrom'] : curdate();
         $toDate = (wf_CheckPost(array('prdateto'))) ? $_POST['prdateto'] : curdate();
         $currentEmployee = (wf_CheckPost(array('premployeeid'))) ? $_POST['premployeeid'] : '';
+        $currentJobTypeId = (wf_CheckPost(array('prjobtypeid'))) ? $_POST['prjobtypeid'] : '';
 
         $inputs = wf_DatePickerPreset('prdatefrom', $fromDate, true) . ' ';
         $inputs.= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
         $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
-        $inputs.= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), '', false, false);
+        $inputs.= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), $currentJobTypeId, false, false);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -974,10 +975,10 @@ class Salary {
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
-                        $chartData[$jobName] ++;
+                        $chartData[$jobName] +=$each['factor'];
                         $chartDataCash[$jobName] = $chartDataCash[$jobName] + $jobPrice;
                     } else {
-                        $chartData[$jobName] = 1;
+                        $chartData[$jobName] = $each['factor'];
                         $chartDataCash[$jobName] = $jobPrice;
                     }
                 }
