@@ -2865,4 +2865,11 @@ $lang['def']['Workdays left to restore'] = 'Кількість днів які �
 $lang['def']['Changing freeze status is unavailable: total amount of freeze days used up'] = 'Зміна статусу заморозки недоступна: кількість днів заморозки вичерпано';
 $lang['def']['Ajax OLT data refresh'] = 'Оновлення даних для OLT через AJAX ввімкнено';
 $lang['def']['OLT quick links enabled'] = 'Швидкий перехід між OLT ввімкнено';
+$lang['def']['No reaction percent'] = 'Дзвініків без реакції';
+$lang['def']['Relationships with the universe'] = 'Взаємовідносини з всесвітом';
+$lang['def']['Tickets'] = 'Тікети';
+$lang['def']['Helpdesk tickets'] = 'Тікети хелпдеску';
+$lang['def']['Tasks'] = 'Задачі';
+$lang['def']['Undone'] = 'Не виконано';
+
 ?>

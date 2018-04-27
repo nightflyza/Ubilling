@@ -2077,3 +2077,14 @@ CREATE TABLE IF NOT EXISTS `frozen_charge_days` (
   PRIMARY KEY (`id`),
   UNIQUE KEY (`login`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `wdycinfo` ADD `totaltrytime` INT NULL DEFAULT NULL; 
+
+ALTER TABLE `exhorse` ADD `a_recallunsuccess` DOUBLE NULL DEFAULT NULL ,
+ ADD `a_recalltrytime` INT NULL DEFAULT NULL ,
+ ADD `e_deadswintervals` INT NULL DEFAULT NULL ,
+ ADD `t_sigreq` INT NULL DEFAULT NULL ,
+ ADD `t_tickets` INT NULL DEFAULT NULL ,
+ ADD `t_tasks` INT NULL DEFAULT NULL ,
+ ADD `t_capabtotal` INT NULL DEFAULT NULL ,
+ ADD `t_capabundone` INT NULL DEFAULT NULL ;

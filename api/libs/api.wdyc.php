@@ -459,6 +459,7 @@ class WhyDoYouCall {
         $missedCallsCount = 0;
         $recallsCount = 0;
         $unsuccCount = 0;
+        $totalTryTime = 0;
         $missedCallsNumbers = '';
         //missed calls stats
         if (file_exists(self::CACHE_FILE)) {
@@ -485,13 +486,17 @@ class WhyDoYouCall {
                         if ($callData['time'] == 0) {
                             $unsuccCount++;
                         }
+
+                        if (isset($callData['trytime'])) {
+                            $totalTryTime = $totalTryTime + $callData['trytime'];
+                        }
                     }
                 }
             }
         }
         $missedCallsNumbers = mysql_real_escape_string($missedCallsNumbers);
-        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`) VALUES "
-                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "');";
+        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`,`totaltrytime`) VALUES "
+                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "','" . $totalTryTime . "');";
         nr_query($query);
     }
 
@@ -531,6 +536,7 @@ class WhyDoYouCall {
         $totalRecalls = 0;
         $totalUnsucc = 0;
         $totalCalls = 0;
+        $totalReactTime = 0;
 
         $result.= $this->statsDateForm($year, $month);
 
@@ -553,7 +559,7 @@ class WhyDoYouCall {
                     },";
 
         $jqDtOpts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Phones');
+        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Reaction time', 'Phones');
 
         $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
         $all = simple_queryall($query);
@@ -563,6 +569,7 @@ class WhyDoYouCall {
                 $totalMissed += $each['missedcount'];
                 $totalRecalls += $each['recallscount'];
                 $totalUnsucc += $each['unsucccount'];
+                $totalReactTime+=$each['totaltrytime'];
             }
 
             $totalCalls+=$totalMissed + $totalRecalls + $totalUnsucc;
@@ -571,7 +578,9 @@ class WhyDoYouCall {
             $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
             $result.= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
             $result.= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
-            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%';
+            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%' . wf_tag('br');
+            $reactTimeStat = (!empty($totalReactTime)) ? zb_formatTime($totalReactTime / ($totalRecalls + $totalUnsucc)) : __('No');
+            $result.= __('Reaction time') . ' - ' . $reactTimeStat;
             $result.= wf_tag('br');
             $result.= wf_tag('br');
             $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
@@ -637,6 +646,8 @@ class WhyDoYouCall {
                 $data[] = $this->colorMissed($each['missedcount']);
                 $data[] = $each['recallscount'];
                 $data[] = $each['unsucccount'];
+                $reactTime = (!empty($each['totaltrytime'])) ? zb_formatTime(($each['totaltrytime'] / ($each['recallscount'] + $each['unsucccount']))) : '-';
+                $data[] = $reactTime;
                 $data[] = $this->cutString($each['missednumbers'], 45);
                 $json->addRow($data);
                 unset($data);

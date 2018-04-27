@@ -3790,18 +3790,19 @@ function zb_AnalyticsSigReqGetCountYear($year) {
 }
 
 /**
- * Returns array of tickets recieved during the year
+ * Returns array of tickets recieved during the year or month, or something else
  * 
- * @param int $year
- * @return array
+ * @param int $datefilter - format like "year" or "year-month" or "year-month-day"
+ * 
+ * @return array as month=>count
  */
-function zb_AnalyticsTicketingGetCountYear($year) {
-    $year = vf($year, 3);
+function zb_AnalyticsTicketingGetCountYear($datefilter) {
+    $datefilter = mysql_real_escape_string($datefilter);
     $months = months_array();
     $result = array();
     $tmpArr = array();
 
-    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%' AND `from` != 'NULL';";
+    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $datefilter . "-%' AND `from` != 'NULL';";
 
     $all = simple_queryall($query);
     if (!empty($all)) {
