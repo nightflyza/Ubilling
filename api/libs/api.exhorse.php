@@ -725,6 +725,7 @@ class ExistentialHorse {
                         $totalReactTime+=$each['totaltrytime'];
                     }
                 }
+                $totalCalls=$totalRecalls+$totalMissed;
                 $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc));
                 $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
             }

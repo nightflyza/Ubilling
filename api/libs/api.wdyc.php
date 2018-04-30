@@ -572,7 +572,7 @@ class WhyDoYouCall {
                 $totalReactTime+=$each['totaltrytime'];
             }
 
-            $totalCalls+=$totalMissed + $totalRecalls + $totalUnsucc;
+            $totalCalls+=$totalMissed + $totalRecalls;
             $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
             $result.= wf_tag('strong') . __('Total') . ': ' . wf_tag('strong', true) . wf_tag('br');
             $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
