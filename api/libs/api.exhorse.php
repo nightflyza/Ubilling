@@ -725,7 +725,7 @@ class ExistentialHorse {
                         $totalReactTime+=$each['totaltrytime'];
                     }
                 }
-                $totalCalls=$totalRecalls+$totalMissed;
+                $totalCalls = $totalRecalls + $totalMissed;
                 $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc));
                 $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
             }
@@ -1278,6 +1278,18 @@ class ExistentialHorse {
             }
             $result.=wf_TableBody($rows, '100%', 0, '');
             if ($chartsFlag) {
+                //deleting NULL values ugly hack
+                if (!empty($universeChartData)) {
+                    foreach ($universeChartData as $io => $each) {
+                        if (!empty($each)) {
+                            foreach ($each as $ia => $val) {
+                                if ($val == NULL) {
+                                    $universeChartData[$io][$ia] = 0;
+                                }
+                            }
+                        }
+                    }
+                }
                 $result.=wf_gchartsLine($universeChartData, __('Relationships with the universe'), '100%', '300px', $chartsOptions);
             }
 
