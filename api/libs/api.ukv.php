@@ -4125,6 +4125,7 @@ class UkvSystem {
         $addressTmp = array();
         $contractsTmp = array();
         $problemUsers = array();
+        $problemComplex = array();
 
         $problemTypes = array(
             'addressdup' => __('Address duplicate'),
@@ -4132,9 +4133,63 @@ class UkvSystem {
             'addressempty' => __('Empty address'),
             'contractempty' => __('Empty contract'),
             'notariff' => __('No tariff'),
+            'noukvuser' => __('Missing registered UKV user with complex tariff')
         );
 
         if (!empty($this->users)) {
+
+            if ($this->altCfg['COMPLEX_ENABLED']) {
+                $complexFlag = true;
+                $inetAddress = zb_AddressGetFulladdresslistCached();
+                $inetRealnames = zb_UserGetAllRealnames();
+                $complexCfIds = $this->altCfg['COMPLEX_CFIDS'];
+                $complexCfIds = explode(',', $complexCfIds);
+                $complexContractCf = $complexCfIds[0];
+                $complexActiveCf = $complexCfIds[1];
+                $complexMasksTmp = $this->altCfg['COMPLEX_MASKS'];
+                $complexMasksTmp = explode(',', $complexMasksTmp);
+                $complexContracts = array();
+                $complexActive = array();
+                $inetCableseals = array();
+
+                if (!empty($complexMasksTmp)) {
+                    foreach ($complexMasksTmp as $io => $each) {
+                        $complexMasks[$each] = $each;
+                    }
+                }
+                $allComplexUsers = array(); //login=>userdata
+                if (!empty($complexMasks)) {
+                    $allUsersRaw = zb_UserGetAllStargazerDataAssoc();
+                    if (!empty($allUsersRaw)) {
+                        foreach ($allUsersRaw as $userLogin => $eachUser) {
+                            foreach ($complexMasks as $ia => $eachComplexMask) {
+                                if (ispos($eachUser['Tariff'], $eachComplexMask)) {
+                                    $allComplexUsers[$userLogin] = $eachUser;
+                                }
+                            }
+                        }
+                    }
+                }
+
+//getting complex active and contract fields
+                $query_complex = "SELECT * from `cfitems`";
+                $cfRaw = simple_queryall($query_complex);
+                if (!empty($cfRaw)) {
+                    foreach ($cfRaw as $io => $eachCf) {
+                        if ($eachCf['typeid'] == $complexContractCf) {
+                            $complexContracts[$eachCf['login']] = $eachCf['content'];
+                        }
+
+                        if ($eachCf['typeid'] == $complexActiveCf) {
+                            $complexActive[$eachCf['login']] = $eachCf['content'];
+                        }
+                    }
+                }
+            } else {
+                $complexFlag = false;
+            }
+
+
             foreach ($this->users as $io => $eachUser) {
                 //unique address
                 $userAddress = $this->userGetFullAddress($eachUser['id']);
@@ -4183,6 +4238,19 @@ class UkvSystem {
                 }
             }
 
+            //complex processing
+            if ($complexFlag) {
+                $userStreets = zb_AddressGetStreetUsers();
+                if (!empty($allComplexUsers)) {
+                    foreach ($allComplexUsers as $io => $eachComplexUser) {
+                        if (!isset($complexContracts[$eachComplexUser['login']])) {
+                            $problemComplex[$eachComplexUser['login']]['login'] = $eachComplexUser['login'];
+                            $problemComplex[$eachComplexUser['login']]['type'] = 'noukvuser';
+                        }
+                    }
+                }
+            }
+
             if (!empty($problemUsers)) {
                 $cells = wf_TableCell(__('ID'));
                 $cells.= wf_TableCell(__('Contract'));
@@ -4195,7 +4263,7 @@ class UkvSystem {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($problemUsers as $io => $each) {
-                    $cells = wf_TableCell($each['id']);
+                    $cells = wf_TableCell(wf_Link(self::URL_USERS_PROFILE . $each['id'], web_profile_icon() . ' ' . $each['id']));
                     $cells.= wf_TableCell($each['contract']);
                     $cells.= wf_TableCell($this->userGetFullAddress($each['id']));
                     $cells.= wf_TableCell($each['realname']);
@@ -4206,12 +4274,38 @@ class UkvSystem {
                     $rows.= wf_TableRow($cells, 'row3');
                 }
 
-                $result = wf_TableBody($rows, '100%', 0, 'sortable');
+                $result.= wf_TableBody($rows, '100%', 0, 'sortable');
             } else {
-                $result = $this->messages->getStyledMessage(__('Nothing found'), 'success');
+                $result.= $this->messages->getStyledMessage(__('Nothing found'), 'success');
+            }
+
+            if ($complexFlag) {
+                if (!empty($problemComplex)) {
+                    $cells = wf_TableCell(__('Login'));
+                    $cells.= wf_TableCell(__('Full address'));
+                    $cells.= wf_TableCell(__('Real Name'));
+                    $cells.= wf_TableCell(__('Tariff'));
+                    $cells.= wf_TableCell(__('Cash'));
+                    $cells.= wf_TableCell(__('Active'));
+                    $cells.= wf_TableCell(__('Type'));
+                    $rows = wf_TableRow($cells, 'row1');
+
+                    foreach ($problemComplex as $io => $each) {
+                        $cells = wf_TableCell(wf_Link(self::URL_INET_USER_PROFILE . $each['login'], web_profile_icon() . ' ' . $each['login']));
+                        $cells.= wf_TableCell(@$inetAddress[$each['login']]);
+                        $cells.= wf_TableCell(@$inetRealnames[$each['login']]);
+                        $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Tariff']);
+                        $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Cash']);
+                        $cells.= wf_TableCell(web_bool_led($complexActive[$each['login']]));
+                        $cells.= wf_TableCell(@$problemTypes[$each['type']]);
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+                    $result.=wf_tag('br');
+                    $result.= wf_TableBody($rows, '100%', 0, 'sortable');
+                }
             }
         } else {
-            $result = $this->messages->getStyledMessage(__('Any users found'), 'warning');
+            $result.= $this->messages->getStyledMessage(__('Any users found'), 'warning');
         }
         show_window(__('Integrity control'), $result);
     }
