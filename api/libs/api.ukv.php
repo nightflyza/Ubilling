@@ -1635,7 +1635,9 @@ class UkvSystem {
                 $data[] = $each['contract'];
                 $data[] = @$this->tariffs[$each['tariffid']]['tariffname'];
                 $data[] = $activity;
-                $data[] = $each['regdate'];
+                if ($altcfg['UKV_SHOW_REG_DATA']) {
+                    $data[] = $each['regdate'];
+                }
                 $data[] = $each['cash'];
 
                 $json->addRow($data);
