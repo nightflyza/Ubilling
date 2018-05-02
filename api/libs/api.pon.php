@@ -1957,9 +1957,6 @@ class PONizer {
         $inputs .= wf_TextInput('newserial', __('Serial number'), '', true, 20);
         $inputs .= wf_TextInput('newlogin', __('Login'), $UserLogin, true, 20);
 
-        /* $inputs .= wf_Submit(__('Create'));
-          $result = wf_Form(self::URL_ME, 'POST', $inputs, 'glamour'); */
-
         $NoRedirChkID = 'NoRedirChk_' . wf_InputId();
         $ReloadChkID = 'ReloadChk_' . wf_InputId();
         $SubmitID = 'Submit_' . wf_InputId();
