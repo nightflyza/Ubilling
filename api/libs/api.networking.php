@@ -242,29 +242,37 @@ function multinet_get_services() {
     return ($result);
 }
 
-
+/**
+ * Returns services selector control
+ * 
+ * @global object $ubillingConfig
+ * @global object $branchControl
+ * 
+ * @return string
+ */
 function multinet_service_selector() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $tmpArr = array();
     if ($altCfg['BRANCHES_ENABLED']) {
         global $branchControl;
         $branchControl->loadServices();
     }
 
     $allservices = multinet_get_services();
-    $result = '<select name="serviceselect">';
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             if ($altCfg['BRANCHES_ENABLED']) {
                 if ($branchControl->isMyService($eachservice['id'])) {
-                    $result.='<option value="' . $eachservice['id'] . '">' . $eachservice['desc'] . '</option>';
+                    $tmpArr[$eachservice['id']] = $eachservice['desc'];
                 }
             } else {
-                $result.='<option value="' . $eachservice['id'] . '">' . $eachservice['desc'] . '</option>';
+                $tmpArr[$eachservice['id']] = $eachservice['desc'];
             }
         }
     }
-    $result.='</select>';
+
+    $result = wf_Selector('serviceselect', $tmpArr, '', '', false, false);
     return ($result);
 }
 
