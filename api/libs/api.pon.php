@@ -2115,9 +2115,7 @@ class PONizer {
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
-
-        //Signal history chart
-        //$result.=$this->onuSignalHistory($onuId);
+   
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
@@ -2159,10 +2157,7 @@ class PONizer {
                     $curmonth = curmonth() . '-';
                     $getMonthDataCmd = $billCfg['CAT'] . ' ' . $historyKey . ' | ' . $billCfg['GREP'] . ' ' . $curmonth;
                     $rawData = shell_exec($getMonthDataCmd);
-                    //commented due performance issues with 1 minute OLT polling.
-                    //$rawData = file_get_contents($historyKey);
                     $result .= wf_delimiter();
-                    //$result.= wf_tag('h2') . __('ONU signal history') . wf_tag('h2', true);
                     //current day signal levels
                     $todaySignal = '';
 
@@ -2607,8 +2602,6 @@ class PONizer {
                     $userRealnames = $login ? @$allUserData[$login]['realname'] : '';
                     $userTariff = $login ? @$allUserData[$login]['Tariff'] : '';
                     $userIP = $login ? @$allUserData[$login]['ip'] : '';
-
-                    //$actControls = wf_Link(self::URL_ME . '&unknownonulist=true&fastreg=true&oltid=' . $oltId . '&onumac=' . $onuMac, wf_img('skins/add_icon.png', __('Register')));
                     $LnkID = wf_InputId();
 
                     $actControls = wf_tag('a', false, '', 'id="' . $LnkID . '" href="#" title="' . __('Register new ONU') . '"');
