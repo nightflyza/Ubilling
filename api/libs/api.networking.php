@@ -1,22 +1,27 @@
 <?php
 
+/**
+ * Renders list of available networks
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
 function multinet_show_available_networks() {
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
-// Выбираем все сети
     $query = "SELECT * from `networks`";
     $networks = simple_queryall($query);
-// Заголовок таблицы
     $cells = wf_TableCell(__('ID'));
     $cells .= wf_TableCell(__('First IP'));
     $cells .= wf_TableCell(__('Last IP'));
     $cells .= wf_TableCell(__('Network/CIDR'));
     $cells .= wf_TableCell(__('Network type'));
-    if ($alter['FREERADIUS_ENABLED'])
+    if ($alter['FREERADIUS_ENABLED']) {
         $cells .= wf_TableCell(__('Use Radius'));
+    }
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
-// Содержимое таблицы
     if (!empty($networks)) {
         foreach ($networks as $network) {
             $cells = wf_TableCell($network['id']);
@@ -24,25 +29,35 @@ function multinet_show_available_networks() {
             $cells .= wf_TableCell($network['endip']);
             $cells .= wf_TableCell($network['desc']);
             $cells .= wf_TableCell($network['nettype']);
-            if ($alter['FREERADIUS_ENABLED'])
+            if ($alter['FREERADIUS_ENABLED']) {
                 $cells .= wf_TableCell(web_bool_led($network['use_radius']));
+            }
             $actions = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
-            if ($alter['FREERADIUS_ENABLED'] && $network['use_radius'])
+            if ($alter['FREERADIUS_ENABLED'] && $network['use_radius']) {
                 $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
+            }
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
-// Результат - таблица
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-// Отображаем результат
     show_window(__('Networks'), $result);
 }
 
+/**
+ * Renders network editing form
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function multinet_show_neteditform($netid) {
-    $netid = vf($netid);
-    $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $netid = vf($netid, 3);
+    $altcfg = $ubillingConfig->getAlter();
     $netdata = multinet_get_network_params($netid);
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
@@ -66,67 +81,76 @@ function multinet_show_neteditform($netid) {
     show_window(__('Edit'), $form);
 }
 
+/**
+ * Renders service editing form
+ * 
+ * @param int $serviceid
+ * 
+ * @return void
+ */
 function multinet_show_serviceeditform($serviceid) {
-    $serviceid = vf($serviceid);
+    $serviceid = vf($serviceid, 3);
     $servicedata = multinet_get_service_params($serviceid);
-    $form = '
-        <form action="" method="POST" class="glamour">
-        <input type="hidden" name="serviceedit" value="true">
-        ' . multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . ' <br>
-        <input type="text" name="editservicename" size="15" value="' . $servicedata['desc'] . '"> ' . __('Service description') . '<sup>*</sup> <br>
-        <input type="submit" value="' . __('Save') . '">
-        </form>
-         <div style="clear:both;"></div>
-        ';
+    $inputs = wf_HiddenInput('serviceedit', 'true');
+    $inputs.= multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . wf_tag('br');
+    $inputs.=wf_TextInput('editservicename', __('Service description') . wf_tag('sup') . '*' . wf_tag('sup', true), $servicedata['desc'], true, 15);
+    $inputs.= wf_Submit(__('Save'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
     $form.=wf_BackLink('?module=multinet');
-
     show_window(__('Edit'), $form);
 }
 
+/**
+ * Deletes some host from nethosts by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return void
+ */
 function multinet_delete_host($ip) {
-//$ip=mysql_real_escape_string($ip);
     $query = "DELETE from `nethosts` WHERE `ip`='" . $ip . "'";
     nr_query($query);
     log_register("DELETE MultiNetHost " . $ip);
 }
 
-function multinet_show_network_delete_form() {
-    $allnets = multinet_get_all_networks();
-    if (!empty($allnets)) {
-        $form = '
-        <form method="POST" action="" class="row3">
-        <input type="hidden" name="deletenet" value="true">
-        ' . multinet_network_selector() . '
-        <input type="submit" value="' . __('Delete') . '">
-        </form>
-        ';
-        show_window(__('Delete network'), $form);
-    }
-}
-
+/**
+ * Returns networks selector control
+ * 
+ * @param int $currentnetid
+ * 
+ * @return string
+ */
 function multinet_network_selector($currentnetid = '') {
     $allnetworks = multinet_get_all_networks();
-    $result = '<select name="networkselect">';
+    $tmpArr = array();
     if (!empty($allnetworks)) {
         foreach ($allnetworks as $io => $eachnetwork) {
-            if ($currentnetid == $eachnetwork['id']) {
-                $flag = 'SELECTED';
-            } else {
-                $flag = '';
-            }
-            $result.='<option value="' . $eachnetwork['id'] . '" ' . $flag . '>' . $eachnetwork['desc'] . '</option>';
+            $tmpArr[$eachnetwork['id']] = $eachnetwork['desc'];
         }
     }
-    $result.='</select>';
+
+    $result = wf_Selector('networkselect', $tmpArr, '', $currentnetid, false);
     return ($result);
 }
 
+/**
+ * Returns unprocessed array of available networks with their data
+ * 
+ * @return array
+ */
 function multinet_get_all_networks() {
     $query = "SELECT * from `networks`";
     $result = simple_queryall($query);
     return($result);
 }
 
+/**
+ * Returns selector of available networks types
+ * 
+ * @param string $curnettype
+ * 
+ * @return string
+ */
 function multinet_nettype_selector($curnettype = '') {
     $params = array(
         'dhcpstatic' => 'DHCP static hosts',
@@ -145,8 +169,16 @@ function multinet_nettype_selector($curnettype = '') {
     return ($result);
 }
 
-function multinet_show_networks_form() {
-    $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+/**
+ * Renders network creation form
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function multinet_show_networks_create_form() {
+    global $ubillingConfig;
+    $altcfg = $ubillingConfig->getAlter();
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
 
@@ -168,6 +200,11 @@ function multinet_show_networks_form() {
     show_window(__('Add network'), $form);
 }
 
+/**
+ * Renders available services list with some controls
+ * 
+ * @return void
+ */
 function multinet_show_available_services() {
     $allservices = multinet_get_services();
 
@@ -180,15 +217,11 @@ function multinet_show_available_services() {
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             $netdesc = multinet_get_network_params($eachservice['netid']);
-
-
             $tablecells = wf_TableCell($eachservice['id']);
             $tablecells.= wf_TableCell($netdesc['desc']);
             $tablecells.= wf_TableCell($eachservice['desc']);
-
             $actionlinks = wf_JSAlert('?module=multinet&deleteservice=' . $eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actionlinks.= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
-
             $tablecells.= wf_TableCell($actionlinks);
             $tablerows.= wf_TableRow($tablecells, 'row3');
         }
@@ -198,25 +231,17 @@ function multinet_show_available_services() {
     show_window(__('Services'), $result);
 }
 
+/**
+ * Returns array of available services
+ * 
+ * @return array
+ */
 function multinet_get_services() {
     $query = "SELECT * from `services` ORDER BY `id`";
     $result = simple_queryall($query);
     return ($result);
 }
 
-function multinet_show_service_delete_form() {
-    $allservices = multinet_get_services();
-    if (!empty($allservices)) {
-        $form = '
-        <form method="POST" action="" class="row3">
-        <input type="hidden" name="servicedelete" value="true">
-        ' . multinet_service_selector() . '
-        <input type="submit" value="' . __('Delete') . '">
-        </form>
-        ';
-        show_window(__('Delete service'), $form);
-    }
-}
 
 function multinet_service_selector() {
     global $ubillingConfig;
@@ -1383,33 +1408,32 @@ function int2ip($src) {
     return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
-function RemoveMacAddressSeparator($mac, $separator = array(':', '-', '.' )){
-  return str_replace($separator, '', $mac);
+function RemoveMacAddressSeparator($mac, $separator = array(':', '-', '.')) {
+    return str_replace($separator, '', $mac);
 }
 
-function AddMacAddressSeparator($mac, $separator = ':'){
-  $result = '';
-    while (strlen($mac) > 0)
-      {
-          $sub = substr($mac, 0, 2);
-          $result .= $sub . $separator;
-          $mac = substr($mac, 2, strlen($mac));
+function AddMacAddressSeparator($mac, $separator = ':') {
+    $result = '';
+    while (strlen($mac) > 0) {
+        $sub = substr($mac, 0, 2);
+        $result .= $sub . $separator;
+        $mac = substr($mac, 2, strlen($mac));
     }
 
-       // remove trailing colon
-     $result = substr($result, 0, strlen($result) - 1);
+    // remove trailing colon
+    $result = substr($result, 0, strlen($result) - 1);
 }
 
-function AddMacSeparator($mac, $separator = ':'){
-  return join($separator, str_split($mac, 2));
+function AddMacSeparator($mac, $separator = ':') {
+    return join($separator, str_split($mac, 2));
 }
 
-function IsMacValid($mac){
-  return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
+function IsMacValid($mac) {
+    return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
 }
 
-function IsMacAddressValid($mac){
-  $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
+function IsMacAddressValid($mac) {
+    $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
     return $validator->isValid($mac);
 }
 
