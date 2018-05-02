@@ -145,6 +145,11 @@ class PONizer {
     const SNMPPORT = 161;
     const ONUSIG_PATH = 'content/documents/onusig/';
 
+    /**
+     * Creates new PONizer object instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->loadOltDevices();
@@ -719,7 +724,7 @@ class PONizer {
                             }
                         }
                     }
-                    $sigTmp[$plasticIndexSig] = $signalRaw;
+                    $sigTmp[$signalOnuPort[0] . ':' . $plasticIndexSig] = $signalRaw;
                 }
             }
 
@@ -735,7 +740,7 @@ class PONizer {
                     $plasticIndexMac = trim($macOnuPort[1]);
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
-                    $macTmp[$plasticIndexMac] = $macRaw;
+                    $macTmp[$macOnuPort[0] . ':' . $plasticIndexMac] = $macRaw;
                 }
             }
 
@@ -788,12 +793,10 @@ class PONizer {
                     $distanceRaw = trim($line[1]); // distance
                     $devIndex = $line[0];
                     $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
                     $devIndex = trim($devIndex[1]);
                     $devIndex = (($devIndex * 256) + 1);
-                    if ($distanceRaw == 0) {
-                        // $distanceRaw = ''; //not sure about this
-                    }
-                    $distTmp[$devIndex] = $distanceRaw;
+                    $distTmp[$portIndex . ':' . $devIndex] = $distanceRaw;
                 }
             }
 
@@ -807,10 +810,11 @@ class PONizer {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]);
                     $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
                     $devIndex = $devIndex[1];
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
-                    $onuTmp[$devIndex] = $macRaw;
+                    $onuTmp[$portIndex . ':' . $devIndex] = $macRaw;
                 }
             }
 
@@ -855,9 +859,10 @@ class PONizer {
                     // distance
                     $devIndex = trim($line[0]); // device index
                     $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
                     $interfaceRaw = $devIndex[0] . ':' . $devIndex[1];
                     $devIndex = ($devIndex[1] * 256) + 1;
-                    $intTmp[$devIndex] = $interfaceRaw;
+                    $intTmp[$portIndex . ':' . $devIndex] = $interfaceRaw;
                 }
             }
 
@@ -869,10 +874,11 @@ class PONizer {
                     $macRaw = trim($line[1]); //mac address
                     $devIndex = trim($line[0]); //device index
                     $devIndex = explode('.', $devIndex);
+                    $portIndex = trim($devIndex[0]);
                     $devIndex = $devIndex[1];
                     $macRaw = str_replace(' ', ':', $macRaw);
                     $macRaw = strtolower($macRaw);
-                    $macTmp[$devIndex] = $macRaw;
+                    $macTmp[$portIndex . ':' . $devIndex] = $macRaw;
                 }
             }
 
