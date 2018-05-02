@@ -1883,4 +1883,19 @@ function zbs_IntroLoadText() {
     return ($result);
 }
 
+/**
+ * Loads current freeze days charge data for user
+ *
+ * @param $login
+ *
+ * @return array
+ */
+function zbs_getFreezeDaysChargeData($login) {
+    $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $login . "';";
+    $FrozenAll      = simple_queryall($FrozenAllQuery);
+
+    return $FrozenAll;
+}
+
+
 ?>
