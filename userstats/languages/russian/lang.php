@@ -355,5 +355,15 @@ $lang['def']['Vote'] = 'Голосовать';
 
 $lang['def']['Additional mobile'] = 'Дополнительный мобильный';
 
+$lang['def']['Freeze days charge enabled'] = 'Ограничение количества дней заморозки включено';
+$lang['def']['Freeze days initial amount'] = 'Начальное количество дней заморозки';
+$lang['def']['Workdays initial amount to restore freeze days amount'] = 'Начальное количество дней которые нужно отработать для восстановления дней заморозки';
+$lang['def']['Freeze days total amount'] = 'Общее количество дней заморозки';
+$lang['def']['Freeze days used'] = 'Количество использованных дней заморозки';
+$lang['def']['Freeze days available'] = 'Количество имеющихся для использования дней заморозки';
+$lang['def']['Workdays amount to restore freeze days'] = 'Количество дней которые нужно отработать для восстановления дней заморозки';
+$lang['def']['Days worked after freeze days used up'] = 'Количество уже отработаных дней после исчерпания дней заморозки';
+$lang['def']['Workdays left to restore'] = 'Количество дней которое осталось отработать для восстановления дней заморозки';
+$lang['def']['Changing freeze status is unavailable: total amount of freeze days used up'] = 'Изменение статуса заморозки недоступно: количество имеющихся дней заморозки исчерпано';
 
 ?>
