@@ -2024,7 +2024,7 @@ function web_NasAddForm() {
 
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
     $inputs.= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
-    $inputs.= wf_TextInput('newnasip', __('IP'), '', true);
+    $inputs.= wf_TextInput('newnasip', __('IP'), '', true,'15','ip');
     $inputs.= wf_TextInput('newnasname', __('NAS name'), '', true);
     $inputs.= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
     $inputs.= wf_Submit(__('Create'));
