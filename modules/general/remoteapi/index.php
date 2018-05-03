@@ -440,16 +440,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                      * running freeze days charge if FREEZE_DAYS_CHARGE_ENABLED
                      */
                     if ($_GET['action'] == 'freezedayscharge') {
-                        if ( isset($alterconf['FREEZE_DAYS_CHARGE_ENABLED']) && $alterconf['FREEZE_DAYS_CHARGE_ENABLED'] ) {
-                            $FreezeDaysInitAmnt                = $alterconf['FREEZE_DAYS_INITIAL_AMOUNT'];
-                            $WrkDaysToRestoreFrzDaysInitAmnt   = $alterconf['FREEZE_DAYS_WORK_TO_RESTORE'];
+                        if (isset($alterconf['FREEZE_DAYS_CHARGE_ENABLED']) && $alterconf['FREEZE_DAYS_CHARGE_ENABLED']) {
+                            $FreezeDaysInitAmnt = $alterconf['FREEZE_DAYS_INITIAL_AMOUNT'];
+                            $WrkDaysToRestoreFrzDaysInitAmnt = $alterconf['FREEZE_DAYS_WORK_TO_RESTORE'];
 
                             $TmpQuery = "SELECT `users`.`login` FROM `users` 
                                               LEFT JOIN `frozen_charge_days` ON `frozen_charge_days`.`login` = `users`.`login`
                                             WHERE `users`.`Passive`='1' AND `frozen_charge_days`.`login` IS NULL;";
                             $AllFrozenNotInCountTab = simple_queryall($TmpQuery);
 
-                            if ( !empty($AllFrozenNotInCountTab) ) {
+                            if (!empty($AllFrozenNotInCountTab)) {
                                 foreach ($AllFrozenNotInCountTab as $usr => $eachlogin) {
                                     $TmpQuery = "INSERT INTO `frozen_charge_days` (`login`, `freeze_days_amount`, `work_days_restore`)
                                                               VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
@@ -467,16 +467,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 $FrozenToPocess = count($FrozenAll);
 
                                 foreach ($FrozenAll as $usr => $eachlogin) {
-                                    $UsrLogin   = $eachlogin['login'];
+                                    $UsrLogin = $eachlogin['login'];
                                     $UsrPassive = $eachlogin['Passive'];
-                                    $UsrDown    = $eachlogin['Down'];
-                                    $UsrCredit  = $eachlogin['Credit'];
-                                    $UsrCash    = $eachlogin['Cash'];
+                                    $UsrDown = $eachlogin['Down'];
+                                    $UsrCredit = $eachlogin['Credit'];
+                                    $UsrCash = $eachlogin['Cash'];
 
-                                    $FrzDaysAmount              = $eachlogin['freeze_days_amount'];
-                                    $FrzDaysUsed                = $eachlogin['freeze_days_used'];
-                                    $DaysWorked                 = $eachlogin['days_worked'];
-                                    $WrkDaysToRestoreFrzDays    = $eachlogin['work_days_restore'];
+                                    $FrzDaysAmount = $eachlogin['freeze_days_amount'];
+                                    $FrzDaysUsed = $eachlogin['freeze_days_used'];
+                                    $DaysWorked = $eachlogin['days_worked'];
+                                    $WrkDaysToRestoreFrzDays = $eachlogin['work_days_restore'];
 
                                     if ($UsrPassive) {
                                         $FrzDaysUsed++;
@@ -487,11 +487,11 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                         simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
                                     } else {
-                                        if ( ($FrzDaysUsed >= $FrzDaysAmount) && ($UsrCash < '-' . $UsrCredit) && !$UsrDown ) {
+                                        if (($FrzDaysUsed >= $FrzDaysAmount) && ($UsrCash < '-' . $UsrCredit) && !$UsrDown) {
                                             $DaysWorked++;
 
                                             if ($DaysWorked >= $WrkDaysToRestoreFrzDays) {
-                                                $DaysWorked  = 0;
+                                                $DaysWorked = 0;
                                                 $FrzDaysUsed = 0;
 
                                                 simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
@@ -504,8 +504,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                 log_register('FREEZE DAYS CHARGE done to `' . $FrozenToPocess . '` users');
                                 die('OK:FREEZE_DAYS_CHARGE');
-
-                            } else { die('OK:FREEZE_DAYS_CHARGE_NO_USERS'); }
+                            } else {
+                                die('OK:FREEZE_DAYS_CHARGE_NO_USERS');
+                            }
                         }
                     }
 
@@ -978,7 +979,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-
+                    //MikroTik dynamic shaper
                     if ($_GET['action'] == 'mikrotikdnshaper') {
                         if ($alterconf['DSHAPER_ENABLED']) {
                             $Now = date('H:i:s');
@@ -999,7 +1000,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                             $DNData = simple_queryall($DNDataQuery);
 
-                            if ( !empty($DNData) ) {
+                            if (!empty($DNData)) {
                                 $UsersCnt = count($DNData);
                                 $RouterOSAPI = new RouterOS();
 
@@ -1011,19 +1012,19 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
 
                                     if ($RouterOSAPI->connected) {
                                         if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
-                                            $Template = array(  '.id' => '',
-                                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
-                                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
-                                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
-                                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                                             );
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
                                         } else {
-                                            $Template = array(  '.id' => '',
-                                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
-                                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
-                                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
-                                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                                             );
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
                                         }
 
                                         $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
@@ -1039,7 +1040,22 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                         die('OK:MT_DN_SHAPER');
                                     }
                                 }
-                            } else {die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');}
+                            } else {
+                                die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');
+                            }
+                        }
+                    }
+
+                    //associated agent data
+                    if ($_GET['action'] == 'getagentdata') {
+                        if (isset($_GET['param'])) {
+                            $userLogin = $_GET['param'];
+                            $allUserAddress = zb_AddressGetFulladdresslistCached();
+                            $userAddress = $allUserAddress[$userLogin];
+                            $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
+                            die(json_encode($agentData));
+                        } else {
+                            die('ERROR:NO_LOGIN_PARAM');
                         }
                     }
 
