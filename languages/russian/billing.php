@@ -2855,6 +2855,11 @@ $lang['def']['Tickets'] = 'Тикеты';
 $lang['def']['Helpdesk tickets'] = 'Тикеты хелпдеска';
 $lang['def']['Tasks'] = 'Задачи';
 $lang['def']['Undone'] = 'Не выполнено';
+$lang['def']['Including salary tax rates'] = 'Включая налоги на зарплаты';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 
 ?>

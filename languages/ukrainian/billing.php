@@ -2871,5 +2871,6 @@ $lang['def']['Tickets'] = 'Тікети';
 $lang['def']['Helpdesk tickets'] = 'Тікети хелпдеску';
 $lang['def']['Tasks'] = 'Задачі';
 $lang['def']['Undone'] = 'Не виконано';
+$lang['def']['Including salary tax rates'] = 'Включаючи податки на заробітну платню';
 
 ?>

@@ -154,6 +154,13 @@ if (cfr('TASKREPORT')) {
             protected $tagTypes = array();
 
             /**
+             * Salary tax rates multiplier
+             *
+             * @var float
+             */
+            protected $salaryMultiplier = 0;
+
+            /**
              * Contains basic URL for task editing
              */
             const URL_TASK = '?module=taskman&edittask=';
@@ -227,6 +234,10 @@ if (cfr('TASKREPORT')) {
                 if ($this->altCfg['TASKREPORT_NOTESTAGIDS']) {
                     $notesTagidsTmp = explode(',', $this->altCfg['TASKREPORT_NOTESTAGIDS']);
                     $this->notesTagids = array_flip($notesTagidsTmp);
+                }
+
+                if (isset($this->altCfg['TASKREPORT_SALARY_MULTIPLIER'])) {
+                    $this->salaryMultiplier = $this->altCfg['TASKREPORT_SALARY_MULTIPLIER'];
                 }
             }
 
@@ -518,7 +529,11 @@ if (cfr('TASKREPORT')) {
                                 $warehouseSpent = $warehouseSpentRaw['sum'];
                             }
                             if ($this->salaryFlag) {
-                                $salarySpent = $this->salary->getTaskPrice($each['id']);
+                                if ($this->salaryMultiplier) {
+                                    $salarySpent = $this->salary->getTaskPrice($each['id']) * $this->salaryMultiplier;
+                                } else {
+                                    $salarySpent = $this->salary->getTaskPrice($each['id']);
+                                }
                             }
                             $cells.= wf_TableCell(($warehouseSpent + $salarySpent));
                         }
@@ -632,7 +647,7 @@ if (cfr('TASKREPORT')) {
                             $rows = wf_TableRow($cells, 'row1');
 
                             foreach ($warehouseSignupStats as $io => $each) {
-                                $cells= wf_TableCell($this->warehouse->itemtypeGetCategory($io));
+                                $cells = wf_TableCell($this->warehouse->itemtypeGetCategory($io));
                                 $cells.= wf_TableCell($this->warehouse->itemtypeGetName($io));
                                 $cells.= wf_TableCell($each['count'] . ' ' . $this->warehouse->itemtypeGetUnit($io));
                                 $cells.= wf_TableCell($each['price']);
@@ -676,6 +691,9 @@ if (cfr('TASKREPORT')) {
                         $rows.= wf_TableRow($cells, 'row3');
 
                         $result.= wf_TableBody($rows, '50%', 0, 'sortable');
+                        if ($this->salaryMultiplier) {
+                            $result.=__('Including salary tax rates');
+                        }
                     }
                 } else {
                     $result = $this->messages->getStyledMessage(__('Nothing found'), 'info');
