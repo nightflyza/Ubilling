@@ -87,7 +87,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     // For this pattern exclude cidr /31
     $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"'  : $pattern;
     $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
-    $pattern = ($pattern == 'email') ? 'pattern="^([\w\._]+)@([\w\._]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
+    $pattern = ($pattern == 'email') ? 'pattern="^([\w\._]+)@([\w\._]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
 
     $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
