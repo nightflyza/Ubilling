@@ -64,10 +64,10 @@ function multinet_show_neteditform($netid) {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('netedit', 'true');
-    $inputs.= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20');
-    $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20');
+    $inputs.= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
+    $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
     $inputs.= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20');
+    $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
     if ($altcfg['FREERADIUS_ENABLED']) {
         $inputs.= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
     } else {
@@ -184,10 +184,10 @@ function multinet_show_networks_create_form() {
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('addnet', 'true');
-    $inputs.= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20');
-    $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20');
+    $inputs.= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
+    $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
     $inputs.= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20');
+    $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
     if ($altcfg['FREERADIUS_ENABLED']) {
         $inputs.= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
         $inputs.= wf_tag('br');
@@ -276,44 +276,52 @@ function multinet_service_selector() {
     return ($result);
 }
 
+/**
+ * Renders network service creation form
+ * 
+ * @return void
+ */
 function multinet_show_service_add_form() {
-    $form = '
-        <form action="" method="POST" class="glamour">
-        <input type="hidden" name="serviceadd" value="true">
-        ' . multinet_network_selector() . ' ' . __('Service network') . ' <br>
-        <input type="text" name="servicename" size="15"> ' . __('Service description') . '<sup>*</sup> <br>
-        <input type="submit" value="' . __('Add') . '">
-        </form>
-        <div style="clear:both;"></div>
-        ';
-
+    $inputs = wf_HiddenInput('serviceadd', 'true');
+    $inputs.= multinet_network_selector() . ' ' . __('Service network') . wf_tag('br');
+    $inputs.= wf_TextInput('servicename', __('Service description'), '', true, 15);
+    $inputs.= wf_Submit(__('Create'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Add service'), $form);
 }
 
+/**
+ * Creates new multinet network in database
+ * 
+ * @param string $desc
+ * @param string $firstip
+ * @param string $lastip
+ * @param string $nettype
+ * @param int $use_radius
+ * 
+ * @return void
+ */
 function multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius) {
     $desc = mysql_real_escape_string($desc);
     $firstip = vf($firstip);
     $lastip = vf($lastip);
     $nettype = vf($nettype);
-    $query = " INSERT INTO `networks` (
-    `id`,
-    `desc`,
-    `startip`,
-    `endip`,
-    `nettype`,
-    `use_radius`
-    )
-    VALUES (
-    NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '" . $use_radius . "'
-    )
-    ";
+    $query = "INSERT INTO `networks` (`id`, `desc`, `startip`, `endip`, `nettype`, `use_radius` ) VALUES
+              (NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '" . $use_radius . "');";
     nr_query($query);
     log_register('ADD MultiNetNet `' . $desc . '`');
 }
 
+/**
+ * Checks is network used by some network hosts or not
+ * 
+ * @param int $network_id
+ * 
+ * @return bool
+ */
 function multinet_network_is_used($network_id) {
     $network_id = vf($network_id, 3);
-    $query = "SELECT * from `nethosts` WHERE `netid`='" . $network_id . "'";
+    $query = "SELECT `id` from `nethosts` WHERE `netid`='" . $network_id . "'";
     $allhosts = simple_query($query);
     if (!empty($allhosts)) {
         return (true);
@@ -322,6 +330,13 @@ function multinet_network_is_used($network_id) {
     }
 }
 
+/**
+ * Deletes some multinet network from database
+ * 
+ * @param type $network_id
+ * 
+ * @return void
+ */
 function multinet_delete_network($network_id) {
     $network_id = vf($network_id, 3);
     $query = "DELETE FROM `networks` WHERE `id`='" . $network_id . "'";
@@ -329,31 +344,57 @@ function multinet_delete_network($network_id) {
     log_register('DELETE MultiNetNet [' . $network_id . ']');
 }
 
+/**
+ * Creates new network service in database
+ * 
+ * @param int $net
+ * @param string $desc
+ * 
+ * @return void
+ */
 function multinet_add_service($net, $desc) {
-    $query = "INSERT INTO `services` (
-        `id`,
-        `netid`,
-        `desc` )
-        VALUES (
-        NULL, '" . $net . "', '" . $desc . "'
-        )
-        ";
+    $net = vf($net, 3);
+    $desc = mysql_real_escape_string($desc);
+    $query = "INSERT INTO `services` (`id`,`netid`,`desc` ) VALUES (NULL, '" . $net . "', '" . $desc . "');";
     nr_query($query);
-    log_register('ADD MultiNetNetService ' . $desc);
+    log_register('ADD MultiNetNetService `' . $desc . '`');
 }
 
+/**
+ * Returns array of existing network parameters
+ * 
+ * @param int $network_id
+ * 
+ * @return array
+ */
 function multinet_get_network_params($network_id) {
+    $network_id = vf($network_id, 3);
     $query = 'SELECT * from `networks` WHERE `id`="' . $network_id . '"';
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Returns array of existing service parameters
+ * 
+ * @param int $serviceid
+ * 
+ * @return array
+ */
 function multinet_get_service_params($serviceid) {
+    $serviceid = vf($serviceid, 3);
     $query = 'SELECT * from `services` WHERE `id`="' . $serviceid . '"';
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Deletes existing network service from database
+ * 
+ * @param int $service_id
+ * 
+ * @return void
+ */
 function multinet_delete_service($service_id) {
     $service_id = vf($service_id, 3);
     $query = "DELETE FROM `services` WHERE `id`='" . $service_id . "'";
@@ -361,18 +402,39 @@ function multinet_delete_service($service_id) {
     log_register('DELETE MultiNetService [' . $service_id . ']');
 }
 
+/**
+ * Returns list of all existing dhcp-oriented networks
+ * 
+ * @return array
+ */
 function multinet_get_dhcp_networks() {
     $query = "SELECT * from `networks` where `nettype` LIKE 'dhcp%'";
     $alldhcps = simple_queryall($query);
     return($alldhcps);
 }
 
+/**
+ * Returns dhcp handler data by network ID
+ * 
+ * @param int $netid
+ * 
+ * @return array
+ */
 function dhcp_get_data_by_netid($netid) {
+    $netid = vf($netid, 3);
     $query = "SELECT * from `dhcp` where `netid`='" . $netid . "'";
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Rebuilds dhcp subnet config with some static hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_static($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
 // check haz it .conf name or not?
@@ -391,14 +453,20 @@ function handle_dhcp_rebuild_static($netid, $confname) {
             }
 
             file_put_contents($confpath, $result);
-//deb('REWRITED NOT EMPTY:'.$confpath);
         } else {
             file_put_contents($confpath, $result);
-//deb('REWRITED EMPTY:'.$confpath);
         }
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -435,14 +503,20 @@ function handle_dhcp_rebuild_option82($netid, $confname) {
             }
 
             file_put_contents($confpath, $result);
-//deb('REWRITED NOT EMPTY:'.$confpath);
         } else {
             file_put_contents($confpath, $result);
-//deb('REWRITED EMPTY:'.$confpath);
         }
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 VPU hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -486,6 +560,14 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 bdcom hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -531,6 +613,14 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 zte hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_zte($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -574,6 +664,13 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Generates some static ppp secrets file
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function handle_ppp_rebuild_static($netid) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     $confpath = 'multinet/ppp.' . $netid . '.static';
@@ -589,6 +686,13 @@ function handle_ppp_rebuild_static($netid) {
     file_put_contents($confpath, $result);
 }
 
+/**
+ * Generates dynamic ppp secrets file
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function handle_ppp_rebuild_dynamic($netid) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     $confpath = 'multinet/ppp.' . $netid . '.dynamic';
@@ -603,7 +707,14 @@ function handle_ppp_rebuild_dynamic($netid) {
     }
     file_put_contents($confpath, $result);
 }
-
+/**
+ * Returns template with replaced macro
+ * 
+ * @param string $templatebody
+ * @param array $templatedata
+ * 
+ * @return string
+ */
 function multinet_ParseTemplate($templatebody, $templatedata) {
     foreach ($templatedata as $field => $data) {
         $templatebody = str_ireplace($field, $data, $templatebody);
