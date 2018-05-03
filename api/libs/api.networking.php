@@ -707,6 +707,7 @@ function handle_ppp_rebuild_dynamic($netid) {
     }
     file_put_contents($confpath, $result);
 }
+
 /**
  * Returns template with replaced macro
  * 
@@ -722,6 +723,13 @@ function multinet_ParseTemplate($templatebody, $templatedata) {
     return($templatebody);
 }
 
+/**
+ * Converts CIDR mask into decimal like 24 => 255.255.255.0
+ * 
+ * @param int $mask_bits
+ * 
+ * @return string 
+ */
 function multinet_cidr2mask($mask_bits) {
     if ($mask_bits > 31 || $mask_bits < 0)
         return("0.0.0.0");
@@ -731,6 +739,13 @@ function multinet_cidr2mask($mask_bits) {
     return int2ip($netmask);
 }
 
+/**
+ * Rebuilds dhcp global config file
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
 function multinet_rebuild_globalconf() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
@@ -851,23 +866,31 @@ function multinet_rebuild_all_handlers() {
 //debarr(dhcp_get_data_by_netid(5));
 }
 
+/**
+ * Creates new network host in database
+ * 
+ * @param int $netid
+ * @param string $ip
+ * @param string $mac
+ * @param string $option
+ * 
+ * @return void
+ */
 function multinet_add_host($netid, $ip, $mac = 'NULL', $option = 'NULL') {
-    $query = "
-    INSERT INTO `nethosts` (
-`id` ,
-`ip` ,
-`mac` ,
-`netid` ,
-`option`
-)
-VALUES (
-NULL , '" . $ip . "', '" . $mac . "', '" . $netid . "', '" . $option . "'
-);
-";
+    $query = "INSERT INTO `nethosts` (`id` ,`ip` ,`mac` ,`netid` ,`option`) VALUES
+             (NULL , '" . $ip . "', '" . $mac . "', '" . $netid . "', '" . $option . "');";
     nr_query($query);
-    log_register("ADD MultiNetHost " . $ip);
+    log_register("ADD MultiNetHost `" . $ip . '`');
 }
 
+/**
+ * Changes existing network host MAC address by host IP
+ * 
+ * @param string $ip
+ * @param string $newmac
+ * 
+ * @return void
+ */
 function multinet_change_mac($ip, $newmac) {
     $newmac = strtolower($newmac);
     $query = "UPDATE `nethosts` SET `mac` = '" . $newmac . "' WHERE `ip` = '" . $ip . "' ;";
@@ -876,6 +899,15 @@ function multinet_change_mac($ip, $newmac) {
     zb_UserGetAllDataCacheClean();
 }
 
+/**
+ * Extracts all IPs between another two. 
+ * Preserving broadcasts, net address and first IP for NAS.
+ * 
+ * @param string $first_ip
+ * @param string $last_ip
+ * 
+ * @return array
+ */
 function multinet_expand_network($first_ip, $last_ip) {
     $first = ip2int($first_ip);
     $last = ip2int($last_ip);
@@ -883,10 +915,8 @@ function multinet_expand_network($first_ip, $last_ip) {
         $totalnet[] = int2ip($i);
     }
     if (!empty($totalnet)) {
-        //$filterednet = preg_grep("/\b\.([2-9]|[0-9]\d|1[0-9]\d|2[0-4]\d|25[0-4])$\b/", $totalnet);
         foreach ($totalnet as $eachip) {
             if (preg_match("#\.(0|1|255)$#", $eachip)) {
-//preg_match("#(0|1|255)$#", $eachip)
                 unset($eachip);
             }
             if (isset($eachip)) {
@@ -897,6 +927,15 @@ function multinet_expand_network($first_ip, $last_ip) {
     return($filterednet);
 }
 
+/**
+ * Returns all free and unused IP addresses for some network ID
+ * 
+ * @param type $table
+ * @param type $field
+ * @param type $network_id
+ * 
+ * @return array
+ */
 function multinet_get_all_free_ip($table, $field, $network_id) {
     $network_spec = multinet_get_network_params($network_id);
     $first_ip = $network_spec['startip'];
@@ -916,12 +955,28 @@ function multinet_get_all_free_ip($table, $field, $network_id) {
     return($free_ip_pool);
 }
 
+/**
+ * Returns first free and unused IP for some network ID
+ * 
+ * @param string $table
+ * @param string $field
+ * @param int $network_id
+ * 
+ * @return string
+ */
 function multinet_get_next_freeip($table, $field, $network_id) {
     $all_free_ips = multinet_get_all_free_ip($table, $field, $network_id);
     $temp = array_keys($all_free_ips);
     return(@$all_free_ips[$temp[0]]);
 }
 
+/**
+ * Returns network ID by associated service ID
+ * 
+ * @param int $service_id
+ * 
+ * @return int
+ */
 function multinet_get_service_networkid($service_id) {
     $service_id = vf($service_id);
     $query = "SELECT `netid` from `services` WHERE `id`='" . $service_id . "'";
@@ -930,11 +985,28 @@ function multinet_get_service_networkid($service_id) {
     return($service_network);
 }
 
-// проверка IP по маске
+/**
+ * Checks is some IP between another two
+ * 
+ * @param string $user_ip
+ * @param string $ip_begin
+ * @param string $ip_end
+ * 
+ * @return bool
+ */
 function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
     return (ip2int($user_ip) >= ip2int($ip_begin) && ip2int($user_ip) <= ip2int($ip_end));
 }
 
+/**
+ * Converts bytes into human-readable values like Kb, Mb, Gb...
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param int $fs
+ * 
+ * @return string
+ */
 function stg_convert_size($fs) {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
@@ -977,7 +1049,13 @@ function stg_convert_size($fs) {
     }
 }
 
-// convert to only Gb, speedup mode
+/**
+ * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()
+ * 
+ * @param int $fs
+ * 
+ * @return string
+ */
 function zb_TraffToGb($fs) {
     $fs = round($fs / 1073741824, 2) . " Gb";
     return ($fs);
@@ -1009,6 +1087,19 @@ function zb_TariffGetAllSpeeds() {
     return($result);
 }
 
+/**
+ * Creates new tariff speed record in database
+ * 
+ * @param type $tariff
+ * @param type $speeddown
+ * @param type $speedup
+ * @param type $burstdownload
+ * @param type $burstupload
+ * @param type $bursttimedownload
+ * @param type $burstimetupload
+ * 
+ * @return void
+ */
 function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = '', $burstupload = '', $bursttimedownload = '', $burstimetupload = '') {
     $tariff = mysql_real_escape_string($tariff);
     $speeddown = vf($speeddown);
@@ -1017,23 +1108,19 @@ function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = ''
     $burstupload = vf($burstupload);
     $bursttimedownload = vf($bursttimedownload);
     $burstimetupload = vf($burstimetupload);
-    $query = "INSERT INTO `speeds` (
-    `id` ,
-    `tariff` ,
-    `speeddown` ,
-    `speedup` ,
-    `burstdownload` ,
-    `burstupload` ,
-    `bursttimedownload` ,
-    `burstimetupload`
-     )
-        VALUES (
-        NULL , '" . $tariff . "', '" . $speeddown . "', '" . $speedup . "', '" . $burstdownload . "', '" . $burstupload . "', '" . $bursttimedownload . "', '" . $burstimetupload . "'
-        );";
+    $query = "INSERT INTO `speeds` (`id` , `tariff` , `speeddown` , `speedup` , `burstdownload` , `burstupload` , `bursttimedownload` , `burstimetupload`) VALUES
+    (NULL , '" . $tariff . "', '" . $speeddown . "', '" . $speedup . "', '" . $burstdownload . "', '" . $burstupload . "', '" . $bursttimedownload . "', '" . $burstimetupload . "');";
     nr_query($query);
     log_register('CREATE TariffSpeed `' . $tariff . '` ' . $speeddown . ' ' . $speedup . ' ' . $burstdownload . ' ' . $burstupload . ' ' . $bursttimedownload . ' ' . $burstimetupload);
 }
 
+/**
+ * Deletes tariff speed from database
+ * 
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function zb_TariffDeleteSpeed($tariff) {
     $tariff = mysql_real_escape_string($tariff);
     $query = "DELETE from `speeds` where `tariff`='" . $tariff . "'";
@@ -1041,6 +1128,11 @@ function zb_TariffDeleteSpeed($tariff) {
     log_register('DELETE TariffSpeed `' . $tariff . '`');
 }
 
+/**
+ * Returns array of tariff-based signup prices as tariff=>price
+ * 
+ * @return array
+ */
 function zb_TariffGetAllSignupPrices() {
     $query = "SELECT * FROM `signup_prices_tariffs`";
     $results = simple_queryall($query);
@@ -1053,18 +1145,40 @@ function zb_TariffGetAllSignupPrices() {
     return ($return);
 }
 
+/**
+ * Creates new tariff-based signup price in database
+ * 
+ * @param string $tariff
+ * @param float $price
+ * 
+ * @return void
+ */
 function zb_TariffCreateSignupPrice($tariff, $price) {
     $query = "INSERT INTO `signup_prices_tariffs` (`tariff`, `price`) VALUES ('" . $tariff . "', '" . $price . "')";
     nr_query($query);
     log_register('CREATE TariffSignupPrice ' . $tariff . ' ' . $price);
 }
 
+/**
+ * Deletes tariff-based signup price from database
+ * 
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function zb_TariffDeleteSignupPrice($tariff) {
     $query = "DELETE FROM `signup_prices_tariffs` WHERE `tariff` = '" . $tariff . "'";
     nr_query($query);
     log_register('DELETE TariffSignupPrice ' . $tariff);
 }
 
+/**
+ * Returns network host MAC address by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return string
+ */
 function zb_MultinetGetMAC($ip) {
     $query = "SELECT `mac` from `nethosts` WHERE `ip`='" . $ip . "'";
     $result = simple_query($query);
@@ -1072,93 +1186,129 @@ function zb_MultinetGetMAC($ip) {
     return($result);
 }
 
+/**
+ * Returns user IP addres by its login
+ * 
+ * @param string $login
+ * 
+ * @return string
+ */
 function zb_UserGetIP($login) {
     $userdata = zb_UserGetStargazerData($login);
     $userip = $userdata['IP'];
     return ($userip);
 }
 
+/**
+ * Returns array of all available traffic directions
+ * 
+ * @return array
+ */
 function zb_DirectionsGetAll() {
     $query = "SELECT * from `directions`";
     $allrules = simple_queryall($query);
     return ($allrules);
 }
 
+/**
+ * Deletes existing traffic direction from database
+ * 
+ * @param int $directionid
+ * 
+ * @return void
+ */
 function zb_DirectionDelete($directionid) {
-    $directionid = vf($directionid);
+    $directionid = vf($directionid, 3);
     $query = "DELETE FROM `directions` WHERE `id`='" . $directionid . "'";
     nr_query($query);
-    log_register("DELETE TrafficClass " . $directionid);
+    log_register('DELETE TrafficClass [' . $directionid . ']');
     rcms_redirect("?module=rules");
 }
 
+/**
+ * Returns traffic direction data
+ * 
+ * @param int $directionid
+ *  
+ * @return array
+ */
 function zb_DirectionGetData($directionid) {
-    $directionid = vf($directionid);
+    $directionid = vf($directionid, 3);
     $query = "SELECT * from `directions` WHERE `id`='" . $directionid . "'";
     $data = simple_query($query);
     return($data);
 }
 
+/**
+ * Creates new traffic direction in database
+ * 
+ * @param int $rulenumber
+ * @param string $rulename
+ * 
+ * @return void
+ */
 function zb_DirectionAdd($rulenumber, $rulename) {
     $rulenumber = vf($rulenumber);
     $rulename = mysql_real_escape_string($rulename);
-    $query = "
-          INSERT INTO `directions` (
-                        `id` ,
-                        `rulenumber` ,
-                        `rulename`
-                        )
-                        VALUES (
-                        NULL , '" . $rulenumber . "', '" . $rulename . "'
-                        ); ";
+    $query = "INSERT INTO `directions` (`id` , `rulenumber` , `rulename`) VALUES
+        (NULL , '" . $rulenumber . "', '" . $rulename . "');";
     nr_query($query);
-    log_register("ADD TrafficClass " . $rulenumber . ' ' . $rulename);
+    log_register("ADD TrafficClass `" . $rulenumber . '` `' . $rulename . '`');
 }
 
+/**
+ * Creates new NAS in database
+ * 
+ * @param int $netid
+ * @param string $nasip
+ * @param string $nasname
+ * @param string $nastype
+ * @param string $bandw
+ * 
+ * @return void
+ */
 function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
-    $netid = vf($netid);
+    $netid = vf($netid, 3);
     $nasname = mysql_real_escape_string($nasname);
     $nastype = vf($nastype);
     $bandw = mysql_real_escape_string($bandw);
     $nasip = mysql_real_escape_string($nasip);
-    $query = "
-            INSERT INTO `nas` (
-            `id` ,
-            `netid` ,
-            `nasip` ,
-            `nasname` ,
-            `nastype` ,
-            `bandw`
-            )
-            VALUES (
-            NULL ,
-            '" . $netid . "',
-            '" . $nasip . "',
-            '" . $nasname . "',
-            '" . $nastype . "',
-            '" . $bandw . "'
-           );";
+    $query = "INSERT INTO `nas` (`id` ,`netid` , `nasip` , `nasname` , `nastype` , `bandw`) VALUES
+              (NULL , '" . $netid . "', '" . $nasip . "', '" . $nasname . "',  '" . $nastype . "', '" . $bandw . "' );";
     nr_query($query);
-    log_register("NAS ADD" . $nasip);
+    log_register('NAS ADD `' . $nasip . '`');
 }
 
+/**
+ * Returns all available NAS data
+ * 
+ * @return array
+ */
 function zb_NasGetAllData() {
     $query = "SELECT * from `nas`";
     $allnas = simple_queryall($query);
     return($allnas);
 }
 
+/**
+ * Returns some existing NAS parameters
+ * 
+ * @param int $nasid
+ * 
+ * @return array
+ */
 function zb_NasGetData($nasid) {
-    $nasid = vf($nasid);
+    $nasid = vf($nasid, 3);
     $query = "SELECT * from `nas` WHERE `id`='" . $nasid . "'";
     $result = simple_query($query);
     return($result);
 }
 
 /**
- * Gets NAS'es IP-address, using id:
+ * Gets NAS IP-address, using its id
  * 
- * @param  integer $nasid  NAS'es id
+ * @param int $nasid
+ * 
  * @return string  
  */
 function zb_NasGetIpById($nasid) {
@@ -1169,13 +1319,12 @@ function zb_NasGetIpById($nasid) {
 }
 
 /**
- * 
  * Decodes and unserializes data from base64 encoding
  * 
  * @param   int     $nasid  NAS'es id to update options
  * @param   array   $data   Options
- * @return  array           Options
  * 
+ * @return  array           Options
  */
 function zb_NasOptionsGet($nasid) {
     $result = array();
@@ -1192,13 +1341,25 @@ function zb_NasOptionsGet($nasid) {
     return $result;
 }
 
+/**
+ * Deletes NAS from database
+ * 
+ * @param int $nasid
+ * 
+ * @return void
+ */
 function zb_NasDelete($nasid) {
-    $nasid = vf($nasid);
+    $nasid = vf($nasid, 3);
     $query = "DELETE from `nas` WHERE `id`='" . $nasid . "'";
     nr_query($query);
-    log_register("NAS DELETE" . $nasid);
+    log_register('NAS DELETE [' . $nasid . ']');
 }
 
+/**
+ * Saves rscriptd NAS servers config and sends HUP signal to stargazer
+ * 
+ * @return void
+ */
 function zb_NasConfigSave() {
     $ub_conf = rcms_parse_ini_file(CONFIG_PATH . "billing.ini");
     $query = "SELECT * from `nas` WHERE `nastype`='rscriptd'";
@@ -1220,6 +1381,11 @@ function zb_NasConfigSave() {
     }
 }
 
+/**
+ * Restarts ISC-DHCPD server
+ * 
+ * @return void
+ */
 function multinet_RestartDhcp() {
     $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
     $sudo = $config['SUDO'];
@@ -1229,14 +1395,28 @@ function multinet_RestartDhcp() {
     log_register("RESTART DHCPD");
 }
 
+/**
+ * Returns NAS id by associated network ID
+ * 
+ * @param int $netid
+ * 
+ * @return int
+ */
 function zb_NasGetByNet($netid) {
-    $netid = vf($netid);
+    $netid = vf($netid, 3);
     $query = "SELECT `id` from `nas` WHERE `netid`='" . $netid . "'";
     $nasid = simple_query($query);
     $nasid = $nasid['id'];
     return($nasid);
 }
 
+/**
+ * Returns network ID by some IP address
+ * 
+ * @param string $ip
+ * 
+ * @return int
+ */
 function zb_NetworkGetByIp($ip) {
     $allnets = multinet_get_all_networks();
     if (!empty($allnets)) {
@@ -1257,8 +1437,9 @@ function zb_NetworkGetByIp($ip) {
 /**
  * Gets the Bandwidthd URL by user's IP address from database
  * 
- * @param   str     $ip     User's IP address
- * @return  str             Bandwidthd URL
+ * @param   string     $ip     User's IP address
+ * 
+ * @return  string    Bandwidthd URL
  */
 function zb_BandwidthdGetUrl($ip) {
     $netid = zb_NetworkGetByIp($ip);
@@ -1275,8 +1456,9 @@ function zb_BandwidthdGetUrl($ip) {
 /**
  * Generates ghaph images links:
  * 
- * @param   str    $ip      User's IP address, for whitch links are generated
- * @return  array           Graph links
+ * @param   string      $ip      User's IP address, for whitch links are generated
+ * 
+ * @return  array       Graph links
  */
 function zb_BandwidthdGenLinks($ip) {
     $bandwidthd_url = zb_BandwidthdGetUrl($ip);
@@ -1315,11 +1497,25 @@ function zb_BandwidthdGenLinks($ip) {
     return($urls);
 }
 
+/**
+ * Returns exploded array of some multi-lined strings
+ * 
+ * @param string $data
+ * 
+ * @return array
+ */
 function explodeRows($data) {
     $result = explode("\n", $data);
     return ($result);
 }
 
+/**
+ * Returns new unknown MAC addresses parsed from NMLEASES in some table-view
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
 function zb_NewMacShow() {
     global $ubillingConfig;
     $billing_config = $ubillingConfig->getBilling();
@@ -1329,9 +1525,8 @@ function zb_NewMacShow() {
     $cat = $billing_config['CAT'];
     $grep = $billing_config['GREP'];
     $tail = $billing_config['TAIL'];
-    $alter_conf = parse_ini_file(CONFIG_PATH . 'alter.ini');
-    $leases = $alter_conf['NMLEASES'];
-    $leasemark = $alter_conf['NMLEASEMARK'];
+    $leases = $alter_config['NMLEASES'];
+    $leasemark = $alter_config['NMLEASEMARK'];
     $command = $sudo . ' ' . $cat . ' ' . $leases . ' | ' . $grep . ' "' . $leasemark . '" | ' . $tail . ' -n 200';
     $rawdata = shell_exec($command);
     $allusedMacs = zb_getAllUsedMac();
@@ -1395,7 +1590,13 @@ function zb_NewMacShow() {
     return($result);
 }
 
-//check is mac unused?
+/**
+ * Checks is MAC unused by someone?
+ * 
+ * @param string $mac
+ * 
+ * @return bool 
+ */
 function multinet_mac_free($mac) {
     $query = "SELECT `id` from `nethosts` WHERE `mac`='" . $mac . "'";
     $res = simple_query($query);
@@ -1406,7 +1607,11 @@ function multinet_mac_free($mac) {
     }
 }
 
-//get all used MAC addresses from database
+/**
+ * Returns all used MAC addresses from database
+ * 
+ * @return array
+ */
 function zb_getAllUsedMac() {
     $query = "SELECT `ip`,`mac` from `nethosts`";
     $all = simple_queryall($query);
@@ -1419,7 +1624,14 @@ function zb_getAllUsedMac() {
     return ($result);
 }
 
-//check is mac unused by full list
+/**
+ * Checks is MAC unused by full list of used MACs
+ * 
+ * @param string $mac
+ * @param array $allused
+ * 
+ * @return bool
+ */
 function zb_checkMacFree($mac, $allused) {
     $mac = strtolower($mac);
     if (isset($allused[$mac])) {
@@ -1429,7 +1641,13 @@ function zb_checkMacFree($mac, $allused) {
     }
 }
 
-//check mac for valid format   
+/**
+ * Check mac for valid format
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
 function check_mac_format($mac) {
     $mask = '/^[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}$/i';
 //really shitty mac
@@ -1444,7 +1662,11 @@ function check_mac_format($mac) {
     }
 }
 
-//get all userips and netids
+/**
+ * Returns list of all network hosts networks as IPs => netid
+ * 
+ * @return array
+ */
 function zb_UserGetNetidsAll() {
     $query = "SELECT * from `nethosts`";
     $result = array();
@@ -1457,6 +1679,11 @@ function zb_UserGetNetidsAll() {
     return ($result);
 }
 
+/**
+ * Sends SIGHUP signal to stargazer
+ * 
+ * @return void
+ */
 function zb_StargazerSIGHUP() {
     $ub_conf = rcms_parse_ini_file(CONFIG_PATH . "billing.ini");
     if ($ub_conf['STGNASHUP']) {
@@ -1527,30 +1754,48 @@ function int2ip($src) {
     return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
 }
 
+/**
+ * Removes some separator from MAC address
+ * 
+ * @param string $mac
+ * @param string $separator
+ * 
+ * @return string
+ */
 function RemoveMacAddressSeparator($mac, $separator = array(':', '-', '.')) {
     return str_replace($separator, '', $mac);
 }
 
-function AddMacAddressSeparator($mac, $separator = ':') {
-    $result = '';
-    while (strlen($mac) > 0) {
-        $sub = substr($mac, 0, 2);
-        $result .= $sub . $separator;
-        $mac = substr($mac, 2, strlen($mac));
-    }
-
-    // remove trailing colon
-    $result = substr($result, 0, strlen($result) - 1);
-}
-
+/**
+ * Adds some MAC separator into MAC
+ * 
+ * @param string $mac
+ * @param string $separator
+ * 
+ * @return string
+ */
 function AddMacSeparator($mac, $separator = ':') {
     return join($separator, str_split($mac, 2));
 }
 
+/**
+ * Yet another MAC format validator. Use check_mac_format() in real life.
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
 function IsMacValid($mac) {
     return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
 }
 
+/**
+ * And Another MAC format validator. I rly dont know what for. Use check_mac_format() in real life. 
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
 function IsMacAddressValid($mac) {
     $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
     return $validator->isValid($mac);
