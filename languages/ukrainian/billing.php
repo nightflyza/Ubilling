@@ -2872,5 +2872,10 @@ $lang['def']['Helpdesk tickets'] = 'Тікети хелпдеску';
 $lang['def']['Tasks'] = 'Задачі';
 $lang['def']['Undone'] = 'Не виконано';
 $lang['def']['Including salary tax rates'] = 'Включаючи податки на заробітну платню';
+$lang['def']['The IP address format can be'] = 'Формат IP-адреси може бути';
+$lang['def']['The format of IP address with mask can be'] = 'Формат IP-адреси з маскою може бути';
+$lang['def']['and the mask can not be /31'] = 'і маска не може бути /31';
+$lang['def']['This field can only contain digits'] = 'Це поле може містити тільки цифри';
+$lang['def']['This field can only contain email address'] = 'Це поле може містити тільки адресу електронної пошти';
 
 ?>
