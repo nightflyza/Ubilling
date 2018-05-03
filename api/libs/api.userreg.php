@@ -500,7 +500,8 @@ function web_UserRegFormNetData($newuser_data) {
 
     $form.= wf_tag('tr', false, 'row3');
     $form.= wf_tag('td', false);
-    $form.= wf_tag('input', false, '', 'type="text" name="IP" value="' . $ip_proposal . '" ' . $modifier);
+    $ipPattern = 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"';
+    $form.= wf_tag('input', false, '', 'type="text" name="IP" value="' . $ip_proposal . '" ' . $ipPattern . ' ' . $modifier);
     $form.= wf_tag('td', true);
     $form.= wf_tag('td', false);
     $form.=__('IP');
