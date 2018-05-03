@@ -194,7 +194,7 @@ function multinet_show_networks_create_form() {
     } else {
         $inputs.=wf_HiddenInput('use_radius', '0');
     }
-    $inputs.= wf_Submit(__('Add'));
+    $inputs.= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
 
     show_window(__('Add network'), $form);
