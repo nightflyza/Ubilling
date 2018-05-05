@@ -83,7 +83,8 @@ class DealWithIt {
      * @rerutn void
      */
     protected function setActionNames() {
-        $this->actionNames = ['noaction'     => '-',
+        $this->actionNames = array(
+            'noaction'    => '-',
             'addcash'      => __('Add cash'),
             'corrcash'     => __('Correct saldo'),
             'setcash'      => __('Set cash'),
@@ -100,7 +101,7 @@ class DealWithIt {
             'undown'       => __('Enable user'),
             'ao'           => __('Enable AlwaysOnline'),
             'unao'         => __('Disable AlwaysOnline')
-            ];
+        );
     }
 
     /**
@@ -826,12 +827,10 @@ class DealWithIt {
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
 
-        /*
         $cells = wf_TableCell(__('Status'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
-        */
 
         $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
 
