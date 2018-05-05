@@ -30,7 +30,7 @@ if (@$altcfg['ONUREG_ZTE']) {
                     show_window(__('List of installed cards'), $register->$avidity_g($_GET[$avidity['P']['EAC']]));
                 }
                 if (isset($_GET[$avidity['P']['KILL']])) {
-                    $avarice_c = $avidity['P']['MOTHERFUCKER'];
+                    $avarice_c = $avidity['M']['MOTHERFUCKER'];
                     $register->$avarice_c($_GET[$avidity['P']['EAC']], $_GET['slot_number']);
                 }
                 if (isset($_GET[$avidity['P']['HAI']])) {
