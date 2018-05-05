@@ -874,13 +874,40 @@ class DealWithIt {
                 }
             }
         }
-        // Search login by status
+        // Search login by Tariff
         if (isset($search_field['tariff']) and $search_field['tariff'] == 'on') {
             $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . vf($_POST['dealwithit_search']['tariff']) . "'";
             $data_tariff = simple_queryall($query);
             if (!empty($data_tariff)) {
                 foreach ($data_tariff as $login) {
                     $result[] = $login['login'];
+                }
+            }
+        }
+        // Search login by status
+        if (isset($search_field['user_status']) and $search_field['user_status'] == 'on') {
+            $need_status = $_POST['dealwithit_search']['user_status'];
+            if (!empty($need_status)) {
+                switch ($need_status) {
+                    case 'active':
+                        $where = "`Down` ='0'";
+                        break;
+                    case 'AlwaysOnline':
+                        $where = "`AlwaysOnline` ='1'";
+                        break;
+                    case 'inactive':
+                        $where = "`Down` ='1'";
+                        break;
+                    case 'frozen':
+                        $where = "`Passive` ='1'";
+                        break;
+                }
+                $query = "SELECT `login` FROM `users` WHERE " . $where;
+                $data_status = simple_queryall($query);
+                if (!empty($data_status)) {
+                    foreach ($data_status as $login) {
+                        $result[] = $login['login'];
+                    }
                 }
             }
         }
