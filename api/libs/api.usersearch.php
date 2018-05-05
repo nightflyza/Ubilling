@@ -156,7 +156,7 @@ function zb_UserSearchFields($query, $searchtype) {
  * @param string $query
  * @return string
  */
-function zb_UserSearchAllFields($query) {
+function zb_UserSearchAllFields($query, $render = true) {
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
         $searh_data_array = zb_UserGetAllDataCache();
@@ -168,7 +168,11 @@ function zb_UserSearchAllFields($query) {
                 $allfoundlogins[] = $login;
             }
         }
-        $result = web_UserArrayShower($allfoundlogins);
+        if ($render) {
+            $result = web_UserArrayShower($allfoundlogins);
+        } else {
+            $result = $allfoundlogins;
+        }
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('At least 3 characters are required for search'), 'info');
