@@ -83,25 +83,24 @@ class DealWithIt {
      * @rerutn void
      */
     protected function setActionNames() {
-        $this->actionNames = array(
-            'noaction' => '-',
-            'addcash' => __('Add cash'),
-            'corrcash' => __('Correct saldo'),
-            'setcash' => __('Set cash'),
-            'credit' => __('Change') . ' ' . __('credit'),
+        $this->actionNames = ['noaction'     => '-',
+            'addcash'      => __('Add cash'),
+            'corrcash'     => __('Correct saldo'),
+            'setcash'      => __('Set cash'),
+            'credit'       => __('Change') . ' ' . __('credit'),
             'creditexpire' => __('Change') . ' ' . __('credit expire date'),
             'tariffchange' => __('Change') . ' ' . __('tariff'),
-            'tagadd' => __('Add tag'),
-            'tagdel' => __('Delete tag'),
-            'freeze' => __('Freeze user'),
-            'unfreeze' => __('Unfreeze user'),
-            'reset' => __('User reset'),
-            'setspeed' => __('Change speed override'),
-            'down' => __('Set user down'),
-            'undown' => __('Enable user'),
-            'ao' => __('Enable AlwaysOnline'),
-            'unao' => __('Disable AlwaysOnline')
-        );
+            'tagadd'       => __('Add tag'),
+            'tagdel'       => __('Delete tag'),
+            'freeze'       => __('Freeze user'),
+            'unfreeze'     => __('Unfreeze user'),
+            'reset'        => __('User reset'),
+            'setspeed'     => __('Change speed override'),
+            'down'         => __('Set user down'),
+            'undown'       => __('Enable user'),
+            'ao'           => __('Enable AlwaysOnline'),
+            'unao'         => __('Disable AlwaysOnline')
+            ];
     }
 
     /**
@@ -111,22 +110,22 @@ class DealWithIt {
      */
     protected function setActionIcons() {
         $this->actionIcons = array(
-            'addcash' => 'skins/icon_dollar.gif',
-            'corrcash' => 'skins/icon_dollar.gif',
-            'setcash' => 'skins/icon_dollar.gif',
-            'credit' => 'skins/icon_credit.gif',
+            'addcash'      => 'skins/icon_dollar.gif',
+            'corrcash'     => 'skins/icon_dollar.gif',
+            'setcash'      => 'skins/icon_dollar.gif',
+            'credit'       => 'skins/icon_credit.gif',
             'creditexpire' => 'skins/icon_calendar.gif',
             'tariffchange' => 'skins/icon_tariff.gif',
-            'tagadd' => 'skins/tagiconsmall.png',
-            'tagdel' => 'skins/tagiconsmall.png',
-            'freeze' => 'skins/icon_passive.gif',
-            'unfreeze' => 'skins/icon_passive.gif',
-            'reset' => 'skins/refresh.gif',
-            'setspeed' => 'skins/icon_speed.gif',
-            'down' => 'skins/icon_down.gif',
-            'undown' => 'skins/icon_down.gif',
-            'ao' => 'skins/icon_online.gif',
-            'unao' => 'skins/icon_online.gif'
+            'tagadd'       => 'skins/tagiconsmall.png',
+            'tagdel'       => 'skins/tagiconsmall.png',
+            'freeze'       => 'skins/icon_passive.gif',
+            'unfreeze'     => 'skins/icon_passive.gif',
+            'reset'        => 'skins/refresh.gif',
+            'setspeed'     => 'skins/icon_speed.gif',
+            'down'         => 'skins/icon_down.gif',
+            'undown'       => 'skins/icon_down.gif',
+            'ao'           => 'skins/icon_online.gif',
+            'unao'         => 'skins/icon_online.gif'
         );
     }
 
@@ -137,23 +136,23 @@ class DealWithIt {
      */
     protected function setActionsURL() {
         $this->actions = array(
-            self::URL_ME . '&ajinput=noaction' => $this->actionNames['noaction'],
-            self::URL_ME . '&ajinput=addcash' => $this->actionNames['addcash'],
-            self::URL_ME . '&ajinput=corrcash' => $this->actionNames['corrcash'],
-            self::URL_ME . '&ajinput=setcash' => $this->actionNames['setcash'],
-            self::URL_ME . '&ajinput=credit' => $this->actionNames['credit'],
+            self::URL_ME . '&ajinput=noaction'     => $this->actionNames['noaction'],
+            self::URL_ME . '&ajinput=addcash'      => $this->actionNames['addcash'],
+            self::URL_ME . '&ajinput=corrcash'     => $this->actionNames['corrcash'],
+            self::URL_ME . '&ajinput=setcash'      => $this->actionNames['setcash'],
+            self::URL_ME . '&ajinput=credit'       => $this->actionNames['credit'],
             self::URL_ME . '&ajinput=creditexpire' => $this->actionNames['creditexpire'],
             self::URL_ME . '&ajinput=tariffchange' => $this->actionNames['tariffchange'],
-            self::URL_ME . '&ajinput=tagadd' => $this->actionNames['tagadd'],
-            self::URL_ME . '&ajinput=tagdel' => $this->actionNames['tagdel'],
-            self::URL_ME . '&ajinput=freeze' => $this->actionNames['freeze'],
-            self::URL_ME . '&ajinput=unfreeze' => $this->actionNames['unfreeze'],
-            self::URL_ME . '&ajinput=reset' => $this->actionNames['reset'],
-            self::URL_ME . '&ajinput=setspeed' => $this->actionNames['setspeed'],
-            self::URL_ME . '&ajinput=down' => $this->actionNames['down'],
-            self::URL_ME . '&ajinput=undown' => $this->actionNames['undown'],
-            self::URL_ME . '&ajinput=ao' => $this->actionNames['ao'],
-            self::URL_ME . '&ajinput=unao' => $this->actionNames['unao']
+            self::URL_ME . '&ajinput=tagadd'       => $this->actionNames['tagadd'],
+            self::URL_ME . '&ajinput=tagdel'       => $this->actionNames['tagdel'],
+            self::URL_ME . '&ajinput=freeze'       => $this->actionNames['freeze'],
+            self::URL_ME . '&ajinput=unfreeze'     => $this->actionNames['unfreeze'],
+            self::URL_ME . '&ajinput=reset'        => $this->actionNames['reset'],
+            self::URL_ME . '&ajinput=setspeed'     => $this->actionNames['setspeed'],
+            self::URL_ME . '&ajinput=down'         => $this->actionNames['down'],
+            self::URL_ME . '&ajinput=undown'       => $this->actionNames['undown'],
+            self::URL_ME . '&ajinput=ao'           => $this->actionNames['ao'],
+            self::URL_ME . '&ajinput=unao'         => $this->actionNames['unao']
         );
     }
 
@@ -198,7 +197,7 @@ class DealWithIt {
         $paramF = mysql_real_escape_string($param);
         $noteF = mysql_real_escape_string($note);
         $query = "INSERT INTO `dealwithit` (`id`,`date`,`login`,`action`,`param`,`note`) VALUES";
-        $query.="(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
+        $query.= "(NULL,'" . $dateF . "','" . $loginF . "','" . $actionF . "','" . $paramF . "','" . $noteF . "');";
         nr_query($query);
         $newId = simple_get_lastid('dealwithit');
         $this->logTask($newId, $dateF, $loginF, $actionF, $paramF, $noteF, false);
@@ -538,7 +537,7 @@ class DealWithIt {
         $tmpArr = array();
         $allRealNames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
-        $query="SELECT * from `dealwithithist` ORDER by `id` DESC";
+        $query = "SELECT * from `dealwithithist` ORDER by `id` DESC";
         $allTasksHistory=  simple_queryall($query);
         
         if (!empty($allTasksHistory)) {
@@ -705,6 +704,189 @@ class DealWithIt {
                 }
             }
         }
+    }
+
+     /**
+     * Returns user profile fileds search form
+     * 
+     * @return string
+     */
+     public function renderDealWithItControl() {
+        $messages = new UbillingMessageHelper();
+        $controls = wf_Link('?module=report_dealwithit', wf_img('skins/dealwithitsmall.png') . ' ' . __('Available Held jobs for all users'), false, 'ubButton');
+        $controls.= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+        $result = show_window('', $controls);
+        $result.= show_window(__('User search'), $this->renderUsersSearchForm());
+        if (wf_CheckPost(array('dealwithit_search')) and isset($_POST['dealwithit_search']['search_by'])) {
+
+            $logins = $this->SearchUsers($_POST['dealwithit_search']);
+            if (!empty($logins)) {
+                show_window(__('Create new task'), $this->renderUsersSearchResults($logins));
+            } else {
+                show_window('', $messages->getStyledMessage(__('Query returned empty result'), 'info'));
+            }
+
+        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by'])) {
+            show_error(__('No request parameters set'));
+        }
+
+        return($result);
+    }
+
+     /**
+     * Returns user profile fileds search form
+     * 
+     * @return string
+     */
+     protected function renderUsersSearchResults($logins) {
+        $result = '';
+
+        if (!empty($logins)) {
+
+            $cells = wf_TableCell(__('ID'));
+            $cells.= wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Real name'));
+            $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
+            $rows = wf_TableRow($cells, 'row1');
+
+            $id = '1';
+            $allRealNames = zb_UserGetAllRealnames();
+            $allAddress = zb_AddressGetFulladdresslistCached();
+
+             foreach ($logins as $login) {
+                $cells = wf_TableCell($id);
+                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
+                $cells.= wf_TableCell(@$allAddress[$login]);
+                $cells.= wf_TableCell(@$allRealNames[$login]);
+                $cells.= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
+                $rows.= wf_TableRow($cells, 'row3');
+                $id++;
+             }
+
+            $result.= wf_AjaxLoader();
+
+            $inputs = wf_HiddenInput('newschedloginsarr', true);
+            $inputs.= wf_DatePickerPreset('newscheddate', curdate(), true) . ' ' . __('Target date') . wf_tag('br');
+            $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
+            $inputs.= wf_AjaxContainer('ajparamcontainer');
+            $inputs.= wf_tag('br');
+            $inputs.= wf_TableBody($rows, '100%', 0, 'sortable');
+
+            $result.= wf_Form('', 'POST', $inputs, '');
+
+        }
+
+        return($result);
+    }
+
+    /**
+     * Returns search form
+     * 
+     * @return void
+     */
+    protected function renderUsersSearchForm() {
+
+        $allcity = array();
+        $tmpCity = zb_AddressGetCityAllData();
+
+        if (!empty($tmpCity)) {
+            foreach ($tmpCity as $io => $each) {
+                $allcity[$each['id']] = $each['cityname'];
+            }
+        }
+        $param_selector_status = array(
+                                        '',
+                                        'active'       => __('Active'),
+                                        'AlwaysOnline' => __('Always Online'),
+                                        'inactive'     => __('Inactive'),
+                                        'frozen'       => __('Frozen'),
+                                        );
+        $alltariffs = zb_TariffsGetAll();
+        $tariffs_options = array();
+
+        if (!empty($alltariffs)) {
+            foreach ($alltariffs as $io => $eachtariff) {
+                $tariffs_options[$eachtariff['name']] = $eachtariff['name'];
+            }
+        }
+
+        $cells = wf_TableCell(__('All fields'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][all_fields]', '', false));
+        $cells.= wf_TableCell(wf_TextInput('dealwithit_search[all_fields]', '', '', false));
+        $rows = wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('City'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][city_id]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[city_id]', $allcity, '', '', false));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('Tariff'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tariff]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '',  false));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        /*
+        $cells = wf_TableCell(__('Status'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '',  false));
+        $rows.= wf_TableRow($cells, 'row2');
+        */
+
+        $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+
+        $form = wf_TableBody($rows, '', 0);
+        $result = wf_Form("", "POST", $form, 'glamour');
+
+        return ($result);
+    }
+
+     /**
+     * Returns search form
+     * 
+     * @return void
+     */
+    protected function SearchUsers(array $dealwithit_search) {
+
+        $result = array();
+        $search_field = $_POST['dealwithit_search']['search_by'];
+
+        // Search login by all fields
+        if (isset($search_field['all_fields']) and $search_field['all_fields'] == 'on') {
+            $data_fileds = zb_UserSearchAllFields($_POST['dealwithit_search']['all_fields'], false);
+            if (!empty($data_fileds) and is_array($data_fileds)) {
+                foreach ($data_fileds as $login) {
+                    $result[] = $login;
+                }
+            }
+        }
+        // Search login by City
+        if (isset($search_field['city_id']) and $search_field['city_id'] == 'on') {
+            // И шо я только курю
+            $query = "SELECT `login` FROM `street` LEFT JOIN city ON street.cityid=city.id
+                        LEFT JOIN build ON build.streetid=street.id
+                        LEFT JOIN apt ON apt.buildid=build.id
+                        RIGHT JOIN address ON address.aptid=apt.id
+                        WHERE cityid = '" . vf($_POST['dealwithit_search']['city_id'], 3) . "'";
+            $data_city = simple_queryall($query);
+            if (!empty($data_city)) {
+                foreach ($data_city as $login) {
+                    $result[] = $login['login'];
+                }
+            }
+        }
+        // Search login by status
+        if (isset($search_field['tariff']) and $search_field['tariff'] == 'on') {
+            $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . vf($_POST['dealwithit_search']['tariff']) . "'";
+            $data_tariff = simple_queryall($query);
+            if (!empty($data_tariff)) {
+                foreach ($data_tariff as $login) {
+                    $result[] = $login['login'];
+                }
+            }
+        }
+
+        return ($result);
     }
 
 }
