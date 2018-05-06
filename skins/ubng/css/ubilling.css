@@ -289,8 +289,9 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .ubButton:active {
-    position:relative;
-    top:1px;
+    // commented due android FF issues
+    /* position:relative;
+    top:1px; */
 }
 
 .ubButton:visited {
