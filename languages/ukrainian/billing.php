@@ -2884,5 +2884,6 @@ $lang['def']['File ub.sql not found'] = 'Файл ub.sql не знайдено';
 $lang['def']['Database user '] = 'Користувач БД';
 $lang['def']['Database host '] = 'Адреса БД';
 $lang['def']['Tariff period'] = 'Період тарифікації';
+$lang['def']['We have found some non unique IP addresses and excluded duplicates from processing'] = 'Мы знайшли неунікальні записи та виключили їх з обробки';
 
 ?>

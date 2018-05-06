@@ -150,6 +150,8 @@ class mikbill {
         $new_city_data = array();
         $new_street_data = array();
         $new_house_data = array();
+        $allIP = array();
+        $duplicateIP = array();
 
 // sql queries to find needed data
         $users = $beggar['INF']['users'];
@@ -217,68 +219,79 @@ class mikbill {
             $user_arr[$login]['entrance'] = $io['porch'];
             $user_arr[$login]['floor'] = $io['floor'];
             $user_arr[$login]['freeze'] = 0;
-        }
-
-        foreach ($freezed_data as $eachuser => $io) {
-            $login = strtolower($io[$beggar['DAT']['login']]);
-            $login = str_replace('-', '', $login);
-            $login = trim($login);
-            $user_arr[$login][$login_point] = $login; //0
-            $user_arr[$login][$password_point] = $io[$beggar['DAT']['password']]; //1
-            $user_arr[$login][$grid_point] = $io[$beggar['DAT']['grid']];  //2
-            $user_arr[$login][$ip_point] = $io['local_ip']; //3
-            $user_arr[$login][$mac_point] = $io[$beggar['DAT']['mac']]; //4
-            $user_arr[$login][$cash_point] = $io[$beggar['DAT']['cash']]; //5
-            $user_arr[$login][$down_point] = $io[$beggar['DAT']['down']]; //6
-            $user_arr[$login][$realname_point] = $io[$beggar['DAT']['realname']];  //7
-            foreach ($tariffs_data as $eachtariff => $ia) {
-                if ($io[$grid_point] == $ia[$beggar['DAT']['grid']]) {
-                    $user_arr[$login][$tariff_point] = $ia[$beggar['DAT']['tariff']]; //8
-                    $user_arr[$login][$speed_point] = $ia[$beggar['DAT']['speed']]; //9
-                }
-            }
-            $user_arr[$login][$beggar['INF']['id']] = $beggar['UDATA'] + $j++;  //10
-            $user_arr[$login][$phone_point] = $io[$beggar['DAT']['phone']]; //11
-            $user_arr[$login][$mobile_point] = $io[$beggar['DAT']['mobile']]; //12
-            $user_arr[$login][$address_point] = $io[$beggar['DAT']['address']]; //13
-            $user_arr[$login]['buildid'] = $io['houseid'];
-            $user_arr[$login]['aptnum'] = $io['app'];
-            $user_arr[$login]['note'] = $io['prim'];
-            $user_arr[$login]['credit'] = $io['credit'];
-            $user_arr[$login]['entrance'] = $io['porch'];
-            $user_arr[$login]['floor'] = $io['floor'];
-            $user_arr[$login]['freeze'] = 1;
+            $allIP[$io['local_ip']] = $login;
         }
 
         foreach ($blocked_data as $eachuser => $io) {
             $login = strtolower($io[$beggar['DAT']['login']]);
             $login = str_replace('-', '', $login);
             $login = trim($login);
-            $user_arr[$login][$login_point] = $login; //0
-            $user_arr[$login][$password_point] = $io[$beggar['DAT']['password']]; //1
-            $user_arr[$login][$grid_point] = $io[$beggar['DAT']['grid']];  //2
-            $user_arr[$login][$ip_point] = $io['local_ip']; //3
-            $user_arr[$login][$mac_point] = $io[$beggar['DAT']['mac']]; //4
-            $user_arr[$login][$cash_point] = $io[$beggar['DAT']['cash']]; //5
-            $user_arr[$login][$down_point] = 1; //6
-            $user_arr[$login][$realname_point] = $io[$beggar['DAT']['realname']];  //7
-            foreach ($tariffs_data as $eachtariff => $ia) {
-                if ($io[$grid_point] == $ia[$beggar['DAT']['grid']]) {
-                    $user_arr[$login][$tariff_point] = $ia[$beggar['DAT']['tariff']]; //8
-                    $user_arr[$login][$speed_point] = $ia[$beggar['DAT']['speed']]; //9
+            if (!isset($allIP[$io['local_ip']])) {
+                $user_arr[$login][$login_point] = $login; //0
+                $user_arr[$login][$password_point] = $io[$beggar['DAT']['password']]; //1
+                $user_arr[$login][$grid_point] = $io[$beggar['DAT']['grid']];  //2
+                $user_arr[$login][$ip_point] = $io['local_ip']; //3
+                $user_arr[$login][$mac_point] = $io[$beggar['DAT']['mac']]; //4
+                $user_arr[$login][$cash_point] = $io[$beggar['DAT']['cash']]; //5
+                $user_arr[$login][$down_point] = 1; //6
+                $user_arr[$login][$realname_point] = $io[$beggar['DAT']['realname']];  //7
+                foreach ($tariffs_data as $eachtariff => $ia) {
+                    if ($io[$grid_point] == $ia[$beggar['DAT']['grid']]) {
+                        $user_arr[$login][$tariff_point] = $ia[$beggar['DAT']['tariff']]; //8
+                        $user_arr[$login][$speed_point] = $ia[$beggar['DAT']['speed']]; //9
+                    }
                 }
+                $user_arr[$login][$beggar['INF']['id']] = $beggar['UDATA'] + $j++;  //10
+                $user_arr[$login][$phone_point] = $io[$beggar['DAT']['phone']]; //11
+                $user_arr[$login][$mobile_point] = $io[$beggar['DAT']['mobile']]; //12
+                $user_arr[$login][$address_point] = $io[$beggar['DAT']['address']]; //13
+                $user_arr[$login]['buildid'] = $io['houseid'];
+                $user_arr[$login]['aptnum'] = $io['app'];
+                $user_arr[$login]['note'] = $io['prim'];
+                $user_arr[$login]['credit'] = $io['credit'];
+                $user_arr[$login]['entrance'] = $io['porch'];
+                $user_arr[$login]['floor'] = $io['floor'];
+                $user_arr[$login]['freeze'] = 1;
+                $allIP[$io['local_ip']] = $login;
+            } else {
+                $duplicateIP[$login] = $allIP[$io['local_ip']];
             }
-            $user_arr[$login][$beggar['INF']['id']] = $beggar['UDATA'] + $j++;  //10
-            $user_arr[$login][$phone_point] = $io[$beggar['DAT']['phone']]; //11
-            $user_arr[$login][$mobile_point] = $io[$beggar['DAT']['mobile']]; //12
-            $user_arr[$login][$address_point] = $io[$beggar['DAT']['address']]; //13
-            $user_arr[$login]['buildid'] = $io['houseid'];
-            $user_arr[$login]['aptnum'] = $io['app'];
-            $user_arr[$login]['note'] = $io['prim'];
-            $user_arr[$login]['credit'] = $io['credit'];
-            $user_arr[$login]['entrance'] = $io['porch'];
-            $user_arr[$login]['floor'] = $io['floor'];
-            $user_arr[$login]['freeze'] = 1;
+        }
+
+        foreach ($freezed_data as $eachuser => $io) {
+            $login = strtolower($io[$beggar['DAT']['login']]);
+            $login = str_replace('-', '', $login);
+            $login = trim($login);
+            if (!isset($allIP[$io['local_ip']])) {
+                $user_arr[$login][$login_point] = $login; //0
+                $user_arr[$login][$password_point] = $io[$beggar['DAT']['password']]; //1
+                $user_arr[$login][$grid_point] = $io[$beggar['DAT']['grid']];  //2
+                $user_arr[$login][$ip_point] = $io['local_ip']; //3
+                $user_arr[$login][$mac_point] = $io[$beggar['DAT']['mac']]; //4
+                $user_arr[$login][$cash_point] = $io[$beggar['DAT']['cash']]; //5
+                $user_arr[$login][$down_point] = $io[$beggar['DAT']['down']]; //6
+                $user_arr[$login][$realname_point] = $io[$beggar['DAT']['realname']];  //7
+                foreach ($tariffs_data as $eachtariff => $ia) {
+                    if ($io[$grid_point] == $ia[$beggar['DAT']['grid']]) {
+                        $user_arr[$login][$tariff_point] = $ia[$beggar['DAT']['tariff']]; //8
+                        $user_arr[$login][$speed_point] = $ia[$beggar['DAT']['speed']]; //9
+                    }
+                }
+                $user_arr[$login][$beggar['INF']['id']] = $beggar['UDATA'] + $j++;  //10
+                $user_arr[$login][$phone_point] = $io[$beggar['DAT']['phone']]; //11
+                $user_arr[$login][$mobile_point] = $io[$beggar['DAT']['mobile']]; //12
+                $user_arr[$login][$address_point] = $io[$beggar['DAT']['address']]; //13
+                $user_arr[$login]['buildid'] = $io['houseid'];
+                $user_arr[$login]['aptnum'] = $io['app'];
+                $user_arr[$login]['note'] = $io['prim'];
+                $user_arr[$login]['credit'] = $io['credit'];
+                $user_arr[$login]['entrance'] = $io['porch'];
+                $user_arr[$login]['floor'] = $io['floor'];
+                $user_arr[$login]['freeze'] = 1;
+                $allIP[$io['local_ip']] = $io['local_ip'];
+            } else {
+                $duplicateIP[$login] = $allIP[$io['local_ip']];
+            }
         }
 
         $val = array_keys($user_arr);
@@ -572,6 +585,8 @@ class mikbill {
             }
         }
         fpc_end($beggar['DUMP'], "address");
+
+        return $duplicateIP;
     }
 
 }
