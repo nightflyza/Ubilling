@@ -45,6 +45,8 @@ class mikbill {
         $inputs .= wf_TextInput('db_host', __('Database host'), '', true, 20);
         $inputs .= wf_TextInput('db_name', __('Database name'), 'mikbill', true, 20);
         $inputs .= wf_Selector('tariff_period', $period, __('Tariff period'), '', true);
+        $inputs .= wf_RadioInput('login_as_pass', __('Do not use login as password'), 'no', true, true);
+        $inputs .= wf_RadioInput('login_as_pass', __('Use login as password'), 'yes', true);
         $inputs .= wf_delimiter();
 
         $inputs .= wf_Submit(__('Send'));
@@ -132,7 +134,7 @@ class mikbill {
         return false;
     }
 
-    function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period) {
+    function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period, $login_as_pass) {
 
         $beggar = $this->greed->runtime('MIKMIGR');
 
@@ -287,7 +289,11 @@ class mikbill {
         fpc_start($beggar['DUMP'], "users");
         foreach ($user_arr as $eachUser => $io) {
             $login = $io[$login_point];
-            $password = $io[$password_point];
+            if ($login_as_pass == 'yes') {
+                $password = $io[$login_point];
+            } else {
+                $password = $io[$password_point];
+            }
             $ip = $io[$ip_point];
             $cash = $io[$cash_point];
             $down = $io[$down_point];
