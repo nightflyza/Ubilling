@@ -998,6 +998,7 @@ class OnuRegister {
         $this->loadCalculatedData($swid, $type);
         $LastID = 1;
         $result = '';
+        $ExistID = array();
         if (!empty($this->allSwLogin) and isset($this->allSwLogin[$swid])) {
             $oltData = $this->allSwLogin[$swid];
             $swlogin = $oltData['swlogin'];
@@ -1011,8 +1012,7 @@ class OnuRegister {
                 if ($type == 'EPON') {
                     $add_mac = $onuIdentifier;
                     $onuIdentifierRaw = explode(":", $onuIdentifier);
-                    $onuIdentifier = $onuIdentifierRaw[0] . $onuIdentifierRaw[1] . '.' . $onuIdentifierRaw[2] . $onuIdentifierRaw[3] . '.' . $onuIdentifierRaw[4] . $onuIdentifierRaw[5];
-                    $ExistID = array();
+                    $onuIdentifier = $onuIdentifierRaw[0] . $onuIdentifierRaw[1] . '.' . $onuIdentifierRaw[2] . $onuIdentifierRaw[3] . '.' . $onuIdentifierRaw[4] . $onuIdentifierRaw[5];                    
                     foreach ($this->onuArray[$ponInterface] as $eachOnuNumber => $eachOnuID) {
                         $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                         if (!empty($check)) {
