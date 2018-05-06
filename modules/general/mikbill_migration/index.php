@@ -10,10 +10,20 @@ if (cfr('MIKMIGR')) {
         }
         if (file_exists($beggar['DUMP'])) {
 
-            show_window('', $mik->web_MikbillMigrationNetworksForm());
-            $converts = array('db_user', 'db_pass', 'db_host', 'db_name', 'tariff_period', 'login_as_pass');
+            show_window('', $mik->web_MikbillMigrationNetworksForm());            
+            $converts = array('db_user', 'db_pass', 'db_host', 'db_name', 'tariff_period');
             if (wf_CheckPost($converts)) {
-                $result = $mik->ConvertMikBill($_POST['db_user'], $_POST['db_pass'], $_POST['db_host'], $_POST['db_name'], $_POST['tariff_period'], $_POST['login_as_pass']);
+                if(isset($_POST['login_as_pass'])) {
+                    $login_ap = true;
+                } else {
+                    $login_ap = false;
+                }
+                if(isset($_POST['contract_as_uid'])) {
+                    $contract_au = true;
+                } else {
+                    $contract_au = false;
+                }
+                $result = $mik->ConvertMikBill($_POST['db_user'], $_POST['db_pass'], $_POST['db_host'], $_POST['db_name'], $_POST['tariff_period'], $login_ap, $contract_au);
                 if (empty($result)) {
                     rcms_redirect("?module=mikbill_migration&success=1");
                 } else {

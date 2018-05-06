@@ -45,8 +45,8 @@ class mikbill {
         $inputs .= wf_TextInput('db_host', __('Database host'), '', true, 20);
         $inputs .= wf_TextInput('db_name', __('Database name'), 'mikbill', true, 20);
         $inputs .= wf_Selector('tariff_period', $period, __('Tariff period'), '', true);
-        $inputs .= wf_RadioInput('login_as_pass', __('Do not use login as password'), 'no', true, true);
-        $inputs .= wf_RadioInput('login_as_pass', __('Use login as password'), 'yes', true);
+        $inputs .= wf_CheckInput('login_as_pass', __('Use login as password'), true, false);
+        $inputs .= wf_CheckInput('contract_as_uid', __('Use contract same as UID'), true, false);
         $inputs .= wf_delimiter();
 
         $inputs .= wf_Submit(__('Send'));
@@ -134,7 +134,7 @@ class mikbill {
         return false;
     }
 
-    function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period, $login_as_pass) {
+    function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period, $login_as_pass, $contract_as_uid) {
 
         $beggar = $this->greed->runtime('MIKMIGR');
 
@@ -219,6 +219,7 @@ class mikbill {
             $user_arr[$login]['entrance'] = $io['porch'];
             $user_arr[$login]['floor'] = $io['floor'];
             $user_arr[$login]['freeze'] = 0;
+            $user_arr[$login]['uid'] = $io['uid'];
             $allIP[$io['local_ip']] = $login;
         }
 
@@ -252,6 +253,7 @@ class mikbill {
                 $user_arr[$login]['entrance'] = $io['porch'];
                 $user_arr[$login]['floor'] = $io['floor'];
                 $user_arr[$login]['freeze'] = 1;
+                $user_arr[$login]['uid'] = $io['uid'];
                 $allIP[$io['local_ip']] = $login;
             } else {
                 $duplicateIP[$login] = $allIP[$io['local_ip']];
@@ -288,6 +290,7 @@ class mikbill {
                 $user_arr[$login]['entrance'] = $io['porch'];
                 $user_arr[$login]['floor'] = $io['floor'];
                 $user_arr[$login]['freeze'] = 1;
+                $user_arr[$login]['uid'] = $io['uid'];
                 $allIP[$io['local_ip']] = $io['local_ip'];
             } else {
                 $duplicateIP[$login] = $allIP[$io['local_ip']];
@@ -302,7 +305,7 @@ class mikbill {
         fpc_start($beggar['DUMP'], "users");
         foreach ($user_arr as $eachUser => $io) {
             $login = $io[$login_point];
-            if ($login_as_pass == 'yes') {
+            if ($login_as_pass) {
                 $password = $io[$login_point];
             } else {
                 $password = $io[$password_point];
@@ -343,12 +346,17 @@ class mikbill {
         fpc_start($beggar['DUMP'], "contracts");
         foreach ($user_arr as $eachUser => $io) {
             $login = $io[$login_point];
+            if($contract_as_uid) {
+                $contract = $io['uid'];
+            } else {
+                $contract = $login;
+            }
             $id = $io[$beggar['INF']['id']];
             if ($i < ($user_count - 1)) {
-                file_put_contents($beggar['DUMP'], "($id, '" . $login . "', '" . $login . "'),\n", FILE_APPEND);
+                file_put_contents($beggar['DUMP'], "($id, '" . $login . "', '" . $contract . "'),\n", FILE_APPEND);
                 $i += $beggar['UDATA'];
             } else {
-                file_put_contents($beggar['DUMP'], "($id, '" . $login . "', '" . $login . "');\n", FILE_APPEND);
+                file_put_contents($beggar['DUMP'], "($id, '" . $login . "', '" . $contract . "');\n", FILE_APPEND);
             }
         }
         fpc_end($beggar['DUMP'], "contracts");

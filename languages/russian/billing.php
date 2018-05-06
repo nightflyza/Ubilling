@@ -2861,7 +2861,6 @@ $lang['def']['The format of IP address with mask can be'] = 'Формат IP-а�
 $lang['def']['and the mask can not be /31'] = 'и маска не может быть /31';
 $lang['def']['This field can only contain digits'] = 'Это поле может содержать только цифры';
 $lang['def']['This field can only contain email address'] = 'Это поле может содержать только адрес электронной почты';
-$lang['def']['Do not use login as password'] = 'Не использовать логин как пароль';
 $lang['def']['Use login as password'] = 'Использовать логин как пароль';
 $lang['def']['SQL dump was generated. You can find it in billing/content/backups/sql/ub.sql.'] = 'SQL дамп был сгенерирован. Вы можете его найти в billing/content/backups/sql/ub.sql';
 $lang['def']['File ub.sql not found'] = 'Файл ub.sql не найден';
@@ -2869,7 +2868,7 @@ $lang['def']['Database user '] = 'Пользователь БД';
 $lang['def']['Database host '] = 'Адрес БД';
 $lang['def']['Tariff period'] = 'Период тарификации';
 $lang['def']['We have found some non unique IP addresses and excluded duplicates from processing'] = 'Мы нашли неуникальные записи и исключили их из обработки';
-$lang['def'][''] = '';
+$lang['def']['Use contract same as UID'] = 'Использовать UID как номер договора';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
