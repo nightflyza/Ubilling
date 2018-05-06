@@ -685,8 +685,9 @@ table.sortable.id tbody tr::before {
 }
 
 .ubButton:active {
-    position:relative;
-    top:1px;
+     // commented due android FF issues
+    /* position:relative;
+    top:1px; */
 }        
 
 
