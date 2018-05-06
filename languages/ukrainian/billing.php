@@ -2877,5 +2877,12 @@ $lang['def']['The format of IP address with mask can be'] = 'Формат IP-а�
 $lang['def']['and the mask can not be /31'] = 'і маска не може бути /31';
 $lang['def']['This field can only contain digits'] = 'Це поле може містити тільки цифри';
 $lang['def']['This field can only contain email address'] = 'Це поле може містити тільки адресу електронної пошти';
+$lang['def']['Do not use login as password'] = 'Не використовувати логін як пароль';
+$lang['def']['Use login as password'] = 'Використовувати логін як пароль';
+$lang['def']['SQL dump was generated. You can find it in billing/content/backups/sql/ub.sql.'] = 'SQL дамп був сформований. Вы зможете його знайти в billing/content/backups/sql/ub.sql';
+$lang['def']['File ub.sql not found'] = 'Файл ub.sql не знайдено';
+$lang['def']['Database user '] = 'Користувач БД';
+$lang['def']['Database host '] = 'Адреса БД';
+$lang['def']['Tariff period'] = 'Період тарифікації';
 
 ?>
