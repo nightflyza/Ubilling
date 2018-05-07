@@ -467,6 +467,169 @@ class DealWithIt {
     }
 
     /**
+     * 
+     * @return void/error notice
+     */
+    public function catchCreateMassRequest() {
+        $result = '';
+        if (wf_CheckPost(array('newschedloginsarr', 'newschedaction', 'newscheddate'))) {
+            if (!empty($_POST['_logins'])) {
+            $date = $_POST['newscheddate'];
+            $action = $_POST['newschedaction'];
+            $param = $_POST['newschedparam'];
+            $note = $_POST['newschednote'];
+            $logins = array_keys($_POST['_logins']);
+                if (zb_checkDate($date)) {
+                    switch ($action) {
+                        //this action types requires non empty parameter
+                        case 'addcash':
+                            if ($param) {
+                                if (zb_checkMoney($param)) {
+                                    foreach ($logins as $login) {
+                                        $this->createTask($date, $login, $action, $param, $note);
+                                    }
+                                } else {
+                                    $result = __('Wrong format of a sum of money to pay');
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'corrcash':
+                            if ($param) {
+                                if (zb_checkMoney($param)) {
+                                    foreach ($logins as $login) {
+                                        $this->createTask($date, $login, $action, $param, $note);
+                                    }
+                                } else {
+                                    $result = __('Wrong format of a sum of money to pay');
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'setcash':
+                            if ($param) {
+                                if (zb_checkMoney($param)) {
+                                    foreach ($logins as $login) {
+                                        $this->createTask($date, $login, $action, $param, $note);
+                                    }
+                                } else {
+                                    $result = __('Wrong format of a sum of money to pay');
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'credit':
+                            if ($param >= 0) {
+                                if (zb_checkMoney($param)) {
+                                    foreach ($logins as $login) {
+                                        $this->createTask($date, $login, $action, $param, $note);
+                                    }
+                                } else {
+                                    $result = __('Wrong format of a sum of money to pay');
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'creditexpire':
+                            if ($param) {
+                                if (zb_checkDate($param)) {
+                                    foreach ($logins as $login) {
+                                        $this->createTask($date, $login, $action, $param, $note);
+                                    }
+                                } else {
+                                    $result = __('Wrong date format');
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'tariffchange':
+                            if ($param) {
+                                foreach ($logins as $login) {
+                                    $this->createTask($date, $login, $action, $param, $note);
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'tagadd':
+                            if ($param) {
+                                foreach ($logins as $login) {
+                                    $this->createTask($date, $login, $action, $param, $note);
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        case 'tagdel':
+                            if ($param) {
+                                foreach ($logins as $login) {
+                                    $this->createTask($date, $login, $action, $param, $note);
+                                }
+                            } else {
+                                $result = __('No all of required fields is filled');
+                            }
+                            break;
+                        //for this task types parameter may be empty
+                        case 'freeze':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'unfreeze':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'reset':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'setspeed':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'down':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'undown':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'ao':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                        case 'unao':
+                            foreach ($logins as $login) {
+                                $this->createTask($date, $login, $action, $param, $note);
+                            }
+                            break;
+                    }
+                } else {
+                    $result = __('Wrong date format');
+                }
+            } else {
+                $result = __('Вы ничего не выбрали');
+            }
+        } else {
+            $result = __('Something went wrong');
+        }
+
+        return ($result);
+    }
+
+    /**
      * Renders available tasks list with controls
      * 
      * @param sring $login
@@ -843,7 +1006,7 @@ class DealWithIt {
      /**
      * Returns search form
      * 
-     * @return void
+     * @return array 
      */
     protected function SearchUsers(array $dealwithit_search) {
 
@@ -910,6 +1073,10 @@ class DealWithIt {
                     }
                 }
             }
+        }
+        // Delete duplicates that come from more that one selected opions
+        if (!empty($result)) {
+            $result = array_unique($result);
         }
 
         return ($result);

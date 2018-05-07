@@ -27,11 +27,20 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
 
 
             show_window('', web_UserControls($login));
+        } elseif (wf_CheckPost(array('newschedloginsarr'))) {
+            $createMassResult = $dealWithIt->catchCreateMassRequest();
+            if ($createMassResult) {
+                show_error($createMassResult);
+                $dealWithIt->renderDealWithItControl();
+            } else {
+                rcms_redirect('?module=report_dealwithit');
+            }
         } else {
             if (wf_CheckGet(array('ajinput'))) {
                 $dealWithIt->catchAjRequest();
             } else {
-                show_error(__('Something went wrong') . ': EX_GET_NO_USERNAME');
+                //show_error(__('Something went wrong') . ': EX_GET_NO_USERNAME');
+                $dealWithIt->renderDealWithItControl();
             }
         }
     } else {
