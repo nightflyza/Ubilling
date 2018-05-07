@@ -18,10 +18,13 @@ define('PBX_REQUEST_MODE', 'raw');
 //(Да-да, ложите туда запрос и смотрите в браузере как на него отвечает фронтенд)
 define('PBX_DEBUG_MODE', 0);
 
+//Использовать ли внешний кодификатор контрагентов из agentcodes.ini?
+define('PBX_USE_AGENTCODES', 0);
+
 //URL вашего работающего Ubilling
 define('API_URL', 'http://jesus.ctv/dev/ubilling/');
 //И его серийный номер
-define('API_KEY', 'UBxxxxxxxxxxxxxx');
+define('API_KEY', 'UBxxxxxxxxxx');
 
 //Текст уведомлений и екзепшнов
 define('ISP_SERVICE_NAME', 'Интернет'); // Наименование услуги
@@ -319,10 +322,21 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
         if (!empty($agentData)) {
             $agentData = json_decode($agentData, true);
             if (!empty($agentData)) {
+                $agentCode = '';
+                $agentsOverrides = parse_ini_file('agentcodes.ini');
+                if (PBX_USE_AGENTCODES) {
+                    if (isset($agentsOverrides[$agentData['id']])) {
+                        $agentCode = $agentsOverrides[$agentData['id']];
+                    } else {
+                        $agentCode = $agentData['id'];
+                    }
+                } else {
+                    $agentCode = $agentData['id'];
+                }
                 $companyData = '
                         <CompanyInfo>
                          <CompanyInfo mfo="' . $agentData['bankcode'] . '" okpo="' . $agentData['edrpo'] . '" account="' . $agentData['bankacc'] . '" >
-                         <CompanyCode>' . $agentData['id'] . '</CompanyCode>
+                         <CompanyCode>' . $agentCode . '</CompanyCode>
                          <CompanyName>' . $agentData['contrname'] . '</CompanyName>
                         </CompanyInfo>
                         ';
