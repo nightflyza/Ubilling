@@ -260,50 +260,7 @@ function pbx_AddressGetFulladdresslist() {
     return($result);
 }
 
-/**
- * Returns presearch reply
- *
- * @return string
- */
-function pbx_ReplyPresearch($customerid) {
-    $allcustomers = op_CustomersGetAll();
 
-    if (isset($allcustomers[$customerid])) {
-        $customerLogin = $allcustomers[$customerid];
-        $allrealnames = pbx_UserGetAllRealnames();
-
-        //normal search reply
-        $templateOk = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Presearch">
-                <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="PayersTable">
-                <Headers>
-                <Header name="fio"/>
-                <Header name="ls"/>
-                </Headers>
-                <Columns>
-                <Column>
-                 <Element>' . @$allrealnames[$customerLogin] . '</Element>
-                </Column>
-                <Column>
-                 <Element>' . $customerid . '</Element>
-                </Column>
-                </Columns>
-                </Data>
-                </Transfer>';
-        $result = $templateOk;
-    } else {
-        //search fail reply template
-        $templateFail = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                    <Transfer xmlns="http://debt.privatbank.ua/Transfer" interface="Debt" action="Presearch">
-                    <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ErrorInfo" code="99">
-                     <Message>' . PBX_EX_NOT_FOUND . '</Message>
-                    </Data>
-                    </Transfer>';
-        $result = $templateFail;
-    }
-    $result = trim($result);
-    return ($result);
-}
 
 /**
  * Returns search reply
@@ -334,11 +291,10 @@ function pbx_ReplySearch($customerid, $UsrBalanceDecimals = -1) {
                     $agentCode = $agentData['id'];
                 }
                 $companyData = '
-                        <CompanyInfo>
                          <CompanyInfo mfo="' . $agentData['bankcode'] . '" okpo="' . $agentData['edrpo'] . '" account="' . $agentData['bankacc'] . '" >
-                         <CompanyCode>' . $agentCode . '</CompanyCode>
-                         <CompanyName>' . $agentData['contrname'] . '</CompanyName>
-                        </CompanyInfo>
+                           <CompanyCode>' . $agentCode . '</CompanyCode>
+                           <CompanyName>' . $agentData['contrname'] . '</CompanyName>
+                         </CompanyInfo>
                         ';
             } else {
                 die('ERROR:WRONG_API_CONNECTION');
@@ -516,17 +472,6 @@ if (!PBX_DEBUG_MODE) {
 if (!empty($xmlRequest)) {
     $xmlParse = xml2array($xmlRequest);
     if (!empty($xmlParse)) {
-
-
-        // Presearch action handling (deprecated?)
-        if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
-            if ($xmlParse['Transfer']['Data']['Unit_attr']['name'] == 'ls') {
-                if (isset($xmlParse['Transfer']['Data']['Unit_attr']['value'])) {
-                    $customerid = vf($xmlParse['Transfer']['Data']['Unit_attr']['value'], 3);
-                    die(pbx_ReplyPresearch($customerid));
-                }
-            }
-        }
 
         // Main search
         if (isset($xmlParse['Transfer']['Data']['Unit_attr']['name'])) {
