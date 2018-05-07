@@ -879,6 +879,7 @@ class DealWithIt {
         $messages = new UbillingMessageHelper();
         $controls = wf_Link('?module=report_dealwithit', wf_img('skins/dealwithitsmall.png') . ' ' . __('Available Held jobs for all users'), false, 'ubButton');
         $controls.= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
+
         $result = show_window('', $controls);
         $result.= show_window(__('User search'), $this->renderUsersSearchForm());
         if (wf_CheckPost(array('dealwithit_search')) and isset($_POST['dealwithit_search']['search_by'])) {
@@ -966,12 +967,22 @@ class DealWithIt {
                                         'inactive'     => __('Inactive'),
                                         'frozen'       => __('Frozen'),
                                         );
+        // Load tariffs
         $alltariffs = zb_TariffsGetAll();
         $tariffs_options = array();
 
         if (!empty($alltariffs)) {
             foreach ($alltariffs as $io => $eachtariff) {
                 $tariffs_options[$eachtariff['name']] = $eachtariff['name'];
+            }
+        }
+        // Load services
+        $allservices = multinet_get_services();
+        $services_options = array();
+
+        if (!empty($allservices)) {
+            foreach ($allservices as $io => $eachservice) {
+                $services_options[$eachservice['netid']] = $eachservice['desc'];
             }
         }
 
@@ -993,6 +1004,11 @@ class DealWithIt {
         $cells = wf_TableCell(__('Status'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '',  false));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('Services'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][services]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
@@ -1071,6 +1087,16 @@ class DealWithIt {
                     foreach ($data_status as $login) {
                         $result[] = $login['login'];
                     }
+                }
+            }
+        }
+        // Search login by Services
+        if (isset($search_field['services']) and $search_field['services'] == 'on') {
+            $query = "SELECT `login` FROM `users` INNER JOIN `nethosts` USING (`ip`) WHERE `nethosts`.`netid` = '" . vf($_POST['dealwithit_search']['services']) . "'";
+            $data_services = simple_queryall($query);
+            if (!empty($data_services)) {
+                foreach ($data_services as $login) {
+                    $result[] = $login['login'];
                 }
             }
         }
