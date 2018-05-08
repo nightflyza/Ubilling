@@ -1011,6 +1011,16 @@ class DealWithIt {
                 $services_options[$eachservice['netid']] = $eachservice['desc'];
             }
         }
+        // Load tags
+        $query_alltags = "SELECT `id`,`tagname` FROM `tagtypes`";
+        $alltags = simple_queryall($query_alltags);
+        $tags_options = array();
+
+        if (!empty($alltags)) {
+            foreach ($alltags as $io => $eachtad) {
+                $tags_options[$eachtad['id']] = $eachtad['tagname'];
+            }
+        }
 
         $cells = wf_TableCell(__('All fields'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][all_fields]', '', false));
@@ -1035,6 +1045,11 @@ class DealWithIt {
         $cells = wf_TableCell(__('Services'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][services]', '', false));
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '',  false));
+        $rows.= wf_TableRow($cells, 'row2');
+
+        $cells = wf_TableCell(__('Tags'));
+        $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tags]', '', false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
@@ -1118,7 +1133,7 @@ class DealWithIt {
         }
         // Search login by Services
         if (isset($search_field['services']) and $search_field['services'] == 'on') {
-            $query = "SELECT `login` FROM `users` INNER JOIN `nethosts` USING (`ip`) WHERE `nethosts`.`netid` = '" . vf($_POST['dealwithit_search']['services']) . "'";
+            $query = "SELECT `login` FROM `users` INNER JOIN `nethosts` USING (`ip`) WHERE `nethosts`.`netid` = '" . vf($_POST['dealwithit_search']['services'], 3) . "'";
             $data_services = simple_queryall($query);
             if (!empty($data_services)) {
                 foreach ($data_services as $login) {
@@ -1142,8 +1157,17 @@ class DealWithIt {
                 }
             }
         }
-
-        // Delete duplicates that come from more that one selected opions
+        // Search login by Tag
+        if (isset($search_field['tags']) and $search_field['tags'] == 'on') {
+            $query = "SELECT `login` from `tags` WHERE `tagid`='" . vf($_POST['dealwithit_search']['tags'], 3) . "'";
+            $data_tags = simple_queryall($query);
+            if (!empty($data_tags)) {
+                foreach ($data_tags as $login) {
+                    $result[] = $login['login'];
+                }
+            }
+        }
+        // Delete duplicates that come from more that one selected options
         if (!empty($result)) {
             $result = array_unique($result);
 

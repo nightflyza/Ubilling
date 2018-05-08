@@ -153,7 +153,7 @@ function zb_UserSearchFields($query, $searchtype) {
 /**
  * Returns user profile search results by all fields
  * 
- * @param string $query
+ * @param string $query, $render
  * @return string
  */
 function zb_UserSearchAllFields($query, $render = true) {
