@@ -229,9 +229,9 @@ class DealWithIt {
      */
     public function renderCreateForm($login) {
         $result = '';
-        $result.=wf_AjaxLoader();
+        $result.= wf_AjaxLoader();
         $inputs = wf_HiddenInput('newschedlogin', $login);
-        $inputs.= wf_DatePickerPreset('newscheddate', curdate(), true) . ' ' . __('Target date') . wf_tag('br');
+        $inputs.= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
         $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
         $inputs.= wf_AjaxContainer('ajparamcontainer');
 
@@ -620,7 +620,7 @@ class DealWithIt {
                     $result = __('Wrong date format');
                 }
             } else {
-                $result = __('Вы ничего не выбрали');
+                $result = __('You did not select any user');
             }
         } else {
             $result = __('Something went wrong');
@@ -702,7 +702,7 @@ class DealWithIt {
         $allRealNames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
         $query = "SELECT * from `dealwithithist` ORDER by `id` DESC";
-        $allTasksHistory=  simple_queryall($query);
+        $allTasksHistory = simple_queryall($query);
         
         if (!empty($allTasksHistory)) {
             foreach ($allTasksHistory as $io => $each) {
@@ -912,18 +912,44 @@ class DealWithIt {
             $cells.= wf_TableCell(__('Login'));
             $cells.= wf_TableCell(__('Address'));
             $cells.= wf_TableCell(__('Real name'));
+            $cells.= wf_TableCell(__('IP'));
+            $cells.= wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Held jobs for this user'));
+
             $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
             $rows = wf_TableRow($cells, 'row1');
 
             $id = '1';
             $allRealNames = zb_UserGetAllRealnames();
             $allAddress = zb_AddressGetFulladdresslistCached();
+            $alluserips = zb_UserGetAllIPs();
+            $alltariffs = zb_TariffsGetAllUsers();
+
+            if (!empty($this->allTasks)) {
+                $tmpArr = array();
+                foreach ($this->allTasks as $io => $each) {
+                    $login = $each['login'];
+                        $tmpArr[$login][] = $each['action'];
+                }
+            }
 
              foreach ($logins as $login) {
                 $cells = wf_TableCell($id);
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
                 $cells.= wf_TableCell(@$allAddress[$login]);
                 $cells.= wf_TableCell(@$allRealNames[$login]);
+                $cells.= wf_TableCell(@$alluserips[$login]);
+                $cells.= wf_TableCell(@$alltariffs[$login]);
+                if (isset($tmpArr[$login])) {
+                    $cells_temp = '';
+                    foreach ($tmpArr[$login] as $task) {
+                        $actionIcon = (isset($this->actionIcons[$task])) ? wf_img_sized($this->actionIcons[$task], $this->actionNames[$task], '12', '12') . ' ' : '';
+                        $cells_temp.= $actionIcon . $this->actionNames[$task] . wf_tag('br');
+                    }
+                    $cells.= wf_TableCell($cells_temp);
+                } else {
+                    $cells.= wf_TableCell('');
+                }
                 $cells.= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
                 $rows.= wf_TableRow($cells, 'row3');
                 $id++;
@@ -932,7 +958,7 @@ class DealWithIt {
             $result.= wf_AjaxLoader();
 
             $inputs = wf_HiddenInput('newschedloginsarr', true);
-            $inputs.= wf_DatePickerPreset('newscheddate', curdate(), true) . ' ' . __('Target date') . wf_tag('br');
+            $inputs.= wf_DatePickerPreset('newscheddate', date('Y-m-d', strtotime('+1 day')), true) . ' ' . __('Target date') . wf_tag('br');
             $inputs.= wf_AjaxSelectorAC('ajparamcontainer', $this->actions, __('Task'), '', true);
             $inputs.= wf_AjaxContainer('ajparamcontainer');
             $inputs.= wf_tag('br');
@@ -1055,7 +1081,7 @@ class DealWithIt {
         }
         // Search login by Tariff
         if (isset($search_field['tariff']) and $search_field['tariff'] == 'on') {
-            $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . vf($_POST['dealwithit_search']['tariff']) . "'";
+            $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . $_POST['dealwithit_search']['tariff'] . "'";
             $data_tariff = simple_queryall($query);
             if (!empty($data_tariff)) {
                 foreach ($data_tariff as $login) {
@@ -1069,7 +1095,7 @@ class DealWithIt {
             if (!empty($need_status)) {
                 switch ($need_status) {
                     case 'active':
-                        $where = "`Down` ='0'";
+                        $where = "`Cash` >= -`Credit`  ";
                         break;
                     case 'AlwaysOnline':
                         $where = "`AlwaysOnline` ='1'";
