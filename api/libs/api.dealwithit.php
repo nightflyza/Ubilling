@@ -914,6 +914,9 @@ class DealWithIt {
             $cells.= wf_TableCell(__('Real name'));
             $cells.= wf_TableCell(__('IP'));
             $cells.= wf_TableCell(__('Tariff'));
+            $cells.= wf_TableCell(__('Active'));
+            $cells.= wf_TableCell(__('Balance'));
+            $cells.= wf_TableCell(__('Credit'));
             $cells.= wf_TableCell(__('Held jobs for this user'));
 
             $cells.= wf_TableCell(wf_CheckInput('check', '', false, false), '', 'sorttable_nosort');
@@ -922,8 +925,19 @@ class DealWithIt {
             $id = '1';
             $allRealNames = zb_UserGetAllRealnames();
             $allAddress = zb_AddressGetFulladdresslistCached();
-            $alluserips = zb_UserGetAllIPs();
-            $alltariffs = zb_TariffsGetAllUsers();
+
+            $quary_user_data = "SELECT `login`,`Cash`,`Credit`,`Passive`,`Tariff`,`IP` from `users`";
+            $user_data = simple_queryall($quary_user_data);
+            $user_data_arr = array();
+            if (!empty($user_data)) {
+                foreach ($user_data as $logindata) {
+                    $user_data_arr[$logindata['login']]['Cash'] = $logindata['Cash'];
+                    $user_data_arr[$logindata['login']]['Credit'] = $logindata['Credit'];
+                    $user_data_arr[$logindata['login']]['Passive'] = $logindata['Passive'];
+                    $user_data_arr[$logindata['login']]['Tariff'] = $logindata['Tariff'];
+                    $user_data_arr[$logindata['login']]['ip'] = $logindata['IP'];
+                }
+            }
 
             if (!empty($this->allTasks)) {
                 $tmpArr = array();
@@ -934,12 +948,28 @@ class DealWithIt {
             }
 
              foreach ($logins as $login) {
+                //finance check
+                $cash = $user_data_arr[$login]['Cash'];
+                $credit = $user_data_arr[$login]['Credit'];
+                $passive = $user_data_arr[$login]['Passive'];
+                $tariff = $user_data_arr[$login]['Tariff'];
+                $ip = $user_data_arr[$login]['ip'];
+                // Display user status
+                $act = '<img src=skins/icon_active.gif>' . __('Yes');
+                if ($cash < '-' . $credit) {
+                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
+                }
+                $act.= $passive ? '<br> <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+
                 $cells = wf_TableCell($id);
                 $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $login, web_profile_icon() . $login, false, ''));
                 $cells.= wf_TableCell(@$allAddress[$login]);
                 $cells.= wf_TableCell(@$allRealNames[$login]);
-                $cells.= wf_TableCell(@$alluserips[$login]);
-                $cells.= wf_TableCell(@$alltariffs[$login]);
+                $cells.= wf_TableCell($ip);
+                $cells.= wf_TableCell($tariff);
+                $cells.= wf_TableCell($act);
+                $cells.= wf_TableCell($cash);
+                $cells.= wf_TableCell($credit);
                 if (isset($tmpArr[$login])) {
                     $cells_temp = '';
                     foreach ($tmpArr[$login] as $task) {
@@ -1070,15 +1100,6 @@ class DealWithIt {
         $result = array();
         $search_field = $_POST['dealwithit_search']['search_by'];
 
-        // Search login by all fields
-        if (isset($search_field['all_fields']) and $search_field['all_fields'] == 'on') {
-            $data_fileds = zb_UserSearchAllFields($_POST['dealwithit_search']['all_fields'], false);
-            if (!empty($data_fileds) and is_array($data_fileds)) {
-                foreach ($data_fileds as $login) {
-                    $result[] = $login;
-                }
-            }
-        }
         // Search login by City
         if (isset($search_field['city_id']) and $search_field['city_id'] == 'on') {
             // И шо я только курю
@@ -1154,6 +1175,15 @@ class DealWithIt {
                         $deadUsers[] = $eachDead['login'];
                     }
                     $result = array_diff($result, $deadUsers);
+                }
+            }
+        }
+        // Search login by all fields
+        if (isset($search_field['all_fields']) and $search_field['all_fields'] == 'on') {
+            $data_fileds = zb_UserSearchAllFields($_POST['dealwithit_search']['all_fields'], false);
+            if (!empty($data_fileds) and is_array($data_fileds)) {
+                foreach ($data_fileds as $login) {
+                    $result[] = $login;
                 }
             }
         }
