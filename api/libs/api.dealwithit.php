@@ -968,7 +968,7 @@ class DealWithIt {
 
         }
 
-        return($result);
+        return ($result);
     }
 
     /**
@@ -1126,9 +1126,27 @@ class DealWithIt {
                 }
             }
         }
+        // hide dead users array
+        // This should be here, because below we will work with tags, among which may be buried users
+        if (!empty($result) and $this->altCfg['DEAD_HIDE']) {
+            if (!empty($this->altCfg['DEAD_TAGID'])) {
+                $deadUsers = array();
+                $tagDead = vf($this->altCfg['DEAD_TAGID'], 3);
+                $query_dead = "SELECT `login` from `tags` WHERE `tagid`='" . $tagDead . "'";
+                $alldead = simple_queryall($query_dead);
+                if (!empty($alldead)) {
+                    foreach ($alldead as $idead => $eachDead) {
+                        $deadUsers[] = $eachDead['login'];
+                    }
+                    $result = array_diff($result, $deadUsers);
+                }
+            }
+        }
+
         // Delete duplicates that come from more that one selected opions
         if (!empty($result)) {
             $result = array_unique($result);
+
         }
 
         return ($result);
