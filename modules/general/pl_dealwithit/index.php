@@ -25,7 +25,6 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
             show_window(__('Create new task'), $dealWithIt->renderCreateForm($login));
             show_window(__('Held jobs for this user'), $dealWithIt->renderTasksList($login));
 
-
             show_window('', web_UserControls($login));
         } elseif (wf_CheckPost(array('newschedloginsarr'))) {
             $createMassResult = $dealWithIt->catchCreateMassRequest();
