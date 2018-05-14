@@ -132,35 +132,36 @@ function web_MigrationPreprocessing($filename,$delimiter,$encoding) {
             $rowNumArr[$i]=$i;
         }
         
-        $login_arr=$rowNumArr+array('RANDOM'=>__('Generate Random'));
-        $password_arr=$rowNumArr+array('RANDOM'=>__('Generate Random'));
-        $ip_arr=$rowNumArr;
-        $mac_arr=$rowNumArr+array('RANDOM'=>__('Generate Random'));
-        $tariff_arr=$rowNumArr;
-        $cash_arr=$rowNumArr;
-        $credit_arr=$rowNumArr+array('ZERO'=>__('Set to zero'));
-        $creditex_arr=$rowNumArr+array('NONE'=>__('Set to none'));
+        $login_arr          = $rowNumArr + array('RANDOM'=>__('Generate Random'));
+        $password_arr       = $rowNumArr + array('RANDOM'=>__('Generate Random'));
+        $ip_arr             = $rowNumArr;
+        $mac_arr            = $rowNumArr + array('RANDOM'=>__('Generate Random'));
+        $tariff_arr         = $rowNumArr;
+        $cash_arr           = $rowNumArr;
+        $credit_arr         = $rowNumArr + array('ZERO'=>__('Set to zero'));
+        $creditex_arr       = $rowNumArr + array('NONE'=>__('Set to none'));
         /*Start ADD*/
-        $city_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $street_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $build_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $apt_entrance_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $apt_floor_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $apt_apt_arr=$rowNumArr+array('NONE'=>__('Set to none'));
+        $city_arr           = $rowNumArr + array('NONE'=>__('Set to none'));
+        $street_arr         = $rowNumArr + array('NONE'=>__('Set to none'));
+        $build_arr          = $rowNumArr + array('NONE'=>__('Set to none'));
+        $apt_entrance_arr   = $rowNumArr + array('NONE'=>__('Set to none'));
+        $apt_floor_arr      = $rowNumArr + array('NONE'=>__('Set to none'));
+        $apt_apt_arr        = $rowNumArr + array('NONE'=>__('Set to none'));
         /*End ADD*/
-        $phone_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $mobile_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $email_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $address_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $realname_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $contract_arr=$rowNumArr+array('NONE'=>__('Set to none'));
-        $ao_arr=$rowNumArr+array('AO_1'=>__('AlwaysOnline=1'));
-        $down_arr=$rowNumArr+array('DOWN_0'=>__('Down=0'));
-        $passive_arr=$rowNumArr+array('PASSIVE_0'=>__('Passive=0'));
-        $regtype_arr=array('PHP'=>'Show PHP Script','SQL'=>'Show SQL dump','UB'=>'Ubilling live register');
+        $phone_arr          = $rowNumArr + array('NONE'=>__('Set to none'));
+        $mobile_arr         = $rowNumArr + array('NONE'=>__('Set to none'));
+        $email_arr          = $rowNumArr + array('NONE'=>__('Set to none'));
+        $address_arr        = $rowNumArr + array('NONE'=>__('Set to none'));
+        $realname_arr       = $rowNumArr + array('NONE'=>__('Set to none'));
+        $contract_arr       = $rowNumArr + array('NONE'=>__('Set to none'));
+        $contract_d_arr     = $rowNumArr + array('NONE'=>__('Set to none'));
+        $ao_arr             = $rowNumArr + array('AO_1'=>__('AlwaysOnline=1'));
+        $down_arr           = $rowNumArr + array('DOWN_0'=>__('Down=0'));
+        $passive_arr        = $rowNumArr + array('PASSIVE_0'=>__('Passive=0'));
+        $regtype_arr        = array('PHP'=>'Show PHP Script','SQL'=>'Show SQL dump','UB'=>'Ubilling live register');
         
         //data column setting form
-        $inputs=  wf_Selector('login_col', $login_arr, __('User login'), '0', true);
+        $inputs=   wf_Selector('login_col', $login_arr, __('User login'), '0', true);
         $inputs.=  wf_Selector('password_col', $password_arr, __('User password'), '1', true);
         $inputs.=  wf_Selector('ip_col', $ip_arr, __('User IP'), '2', true);
         $inputs.=  wf_Selector('mac_col', $mac_arr, __('User MAC'), '3', true);
@@ -182,13 +183,15 @@ function web_MigrationPreprocessing($filename,$delimiter,$encoding) {
         $inputs.=  wf_Selector('address_col', $address_arr, __('User address'), '17', true);
         $inputs.=  wf_Selector('realname_col', $realname_arr, __('User realname'), '18', true);
         $inputs.=  wf_Selector('contract_col', $contract_arr, __('User contract'), '19', true);
-        $inputs.=  wf_Selector('ao_col', $ao_arr, __('User AlwaysOnline state'), '20', true);
-        $inputs.=  wf_Selector('down_col', $down_arr, __('User Down state'), '21', true);
-        $inputs.=  wf_Selector('passive_col', $passive_arr, __('User Passive state'), '22', true);
-        $inputs.=  wf_Selector('regtype', $regtype_arr, __('User registration mode'), '23', true);
-        $inputs.= multinet_network_selector().__('Target network').  wf_delimiter();
-        $inputs.= wf_HiddenInput('import_rawdata', base64_encode(serialize($parsed_data)));
-        $inputs.=wf_Submit('Save this column pointers and continue import');
+        $inputs.=  wf_Selector('contract_d_col', $contract_d_arr, __('User contract date'), '20', true);
+        $inputs.=  wf_Selector('ao_col', $ao_arr, __('User AlwaysOnline state'), '21', true);
+        $inputs.=  wf_Selector('down_col', $down_arr, __('User Down state'), '22', true);
+        $inputs.=  wf_Selector('passive_col', $passive_arr, __('User Passive state'), '23', true);
+        $inputs.=  wf_Selector('regtype', $regtype_arr, __('User registration mode'), '24', true);
+        $inputs.=  multinet_network_selector().__('Target network').  wf_delimiter();
+        $inputs.=  wf_HiddenInput('import_rawdata', base64_encode(serialize($parsed_data)));
+        $inputs.=  wf_Submit('Save this column pointers and continue import');
+
         $colform=  wf_Form("?module=migration2&setpointers=true", 'POST', $inputs, 'glamour');
         show_window(__('Select data columns and their values'),$colform);
         
@@ -225,10 +228,12 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
     $cells.=  wf_TableCell('[address]');
     $cells.=  wf_TableCell('[realname]');
     $cells.=  wf_TableCell('[contract]');
+    $cells.=  wf_TableCell('[contract_d]');
     $cells.=  wf_TableCell('[ao]');
     $cells.=  wf_TableCell('[down]');
     $cells.=  wf_TableCell('[passive]');
-    $rows=wf_TableRow($cells, 'row1');
+
+    $rows=    wf_TableRow($cells, 'row1');
     
     $regdata=array();
     $i=0;
@@ -366,7 +371,14 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
         $contract='';
     }
     $cells.=  wf_TableCell($contract);
-    
+
+    if ($import_opts['contract_d_col']!='NONE') {
+        $contract_d=$eachrow[$import_opts['contract_d_col']];
+    } else {
+        $contract_d='';
+    }
+    $cells.=  wf_TableCell($contract_d);
+
     if ($import_opts['ao_col']!='AO_1') {
         $ao=$eachrow[$import_opts['ao_col']];
     } else {
@@ -412,6 +424,7 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
     $regdata[$login]['address']=$address;
     $regdata[$login]['realname']=$realname;
     $regdata[$login]['contract']=$contract;
+    $regdata[$login]['contract_d']=$contract_d;
     $regdata[$login]['ao']=$ao;
     $regdata[$login]['down']=$down;
     $regdata[$login]['passive']=$passive;
@@ -425,7 +438,15 @@ function web_MigrationPrepare($import_rawdata,$import_opts) {
     show_window(__('All correct').'?',$preparse);
     
     $inputs=  wf_Link('?module=migration2', 'No I want to try another import settings', false, 'ubButton');
-    $inputs.= wf_Link('?module=migration2&setpointers=true&goregister=ok', 'Yes proceed registeration of this users', false, 'ubButton');
+    $inputs.= wf_Link('?module=migration2&setpointers=true&goregister=ok', 'Yes, proceed registeration of this users', false, 'ubButton');
+    $inputs.= wf_delimiter();
+    $inputs.= wf_tag('h3', false, '', 'style="color: red; background-color: #F5F5DC"');
+    $inputs.= 'Creating occupancy(cities, streets, buildings, addresses, etc) for new users avialable ONLY for "Ubilling live register" user registration mode. ';
+    $inputs.= 'Nevertheless this feature has to be used with GREAT CARE and for your OWN RISK';
+    $inputs.= wf_tag('h3', true);
+    $inputs.= wf_Link('?module=migration2&setpointers=true&goregister=ok&create_accupancy=yes',
+                     'Yes, proceed registeration of this users and create occupancy if not exists.', false, 'ubButton');
+
     show_window('', $inputs);
 }
 
@@ -472,7 +493,8 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
           /*End ADD*/
           'address_col'=>  $_POST['address_col'],
           'realname_col'=>  $_POST['realname_col'], 
-          'contract_col'=>  $_POST['contract_col'], 
+          'contract_col'=>  $_POST['contract_col'],
+          'contract_d_col'=>  $_POST['contract_d_col'],
           'ao_col'=>  $_POST['ao_col'],
           'down_col'=>  $_POST['down_col'],
           'passive_col'=>  $_POST['passive_col'],
@@ -494,12 +516,101 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
         web_MigrationPrepare($import_rawdata, $import_opts);
         
     } else {
+        $CreateOccupancy = ( wf_CheckGet(array('create_accupancy')) ) ? true : false;
+
         //register imported users
         $regdata_raw=  zb_StorageGet('IMPORT_REGDATA');
         $regdata=  unserialize(base64_decode($regdata_raw));
         $querybuff='';
+
         if (!empty($regdata)) {
-            
+            $iopts = unserialize(base64_decode($import_opts));
+            $RegAddrs = array();
+
+            if ($CreateOccupancy && $iopts['regtype'] == 'UB') {
+                // getting unique cities and streets names with buildings
+                foreach ($regdata as $io => $user) {
+                    $tmpRegCity = $user['city'];
+                    $tmpRegStreet = $user['street'];
+                    $tmpRegBuilding = $user['build'];
+
+                    if (!array_key_exists($tmpRegCity, $RegAddrs)) {
+                        $RegAddrs[$tmpRegCity] = array();
+                    }
+
+                    if (!array_key_exists($tmpRegStreet, $RegAddrs[$tmpRegCity])) {
+                        $RegAddrs[$tmpRegCity][$tmpRegStreet] = array();
+                    }
+
+                    if (!in_array($tmpRegBuilding, $RegAddrs[$tmpRegCity][$tmpRegStreet])) {
+                        $RegAddrs[$tmpRegCity][$tmpRegStreet][$tmpRegBuilding] = array('id' => '');
+                    }
+                }
+
+                if ( !empty($RegAddrs) ) {
+                    foreach ($RegAddrs as $tCity => $CityData) {
+                        $CityWasJustCreated = false;
+
+                        $tmpQuery = "SELECT  * FROM `city` WHERE LOWER(`cityname`) = '" . mb_strtolower($tCity) . "';";
+                        $tmpResult = simple_queryall($tmpQuery);
+
+                        if (!empty($tmpResult)) {
+                            $tCityID = $tmpResult[0]['id'];
+                        } else {
+                            zb_AddressCreateCity($tCity, '');
+                            $tCityID = simple_get_lastid('city');
+                            $CityWasJustCreated = true;
+                        }
+
+                        foreach ($CityData as $tStreet => $tBuilds) {
+                            $StreetWasJustCreated = false;
+                            $NeedCreateStreet = true;
+
+                            // if city was not just created - let's check, maybe there is such street in DB already
+                            if (!$CityWasJustCreated) {
+                                $tmpQuery = "SELECT * FROM `street` WHERE `cityid` = '" . $tCityID . "' AND LOWER(`streetname`) = '" . mb_strtolower($tStreet) . "';";
+                                $tmpResult = simple_queryall($tmpQuery);
+
+                                if (!empty($tmpResult)) {
+                                    $tStreetID = $tmpResult[0]['id'];
+                                    $NeedCreateStreet = false;
+                                }
+                            }
+
+                            if ($NeedCreateStreet) {
+                                zb_AddressCreateStreet($tCityID, $tStreet, '');
+                                $tStreetID = simple_get_lastid('street');
+                                $StreetWasJustCreated = true;
+                            }
+
+                            foreach ($tBuilds as $tBuild => $tID) {
+                                $NeedCreateBuilding = true;
+
+                                // if street was not just created - let's check, maybe there is such building in DB already
+                                if (!$StreetWasJustCreated) {
+                                    $tmpQuery = "SELECT * FROM `build` WHERE `streetid` = '" . $tStreetID . "' AND LOWER(`buildnum`) = '" . mb_strtolower($tBuild) . "';";
+                                    $tmpResult = simple_queryall($tmpQuery);
+
+                                    if (!empty($tmpResult)) {
+                                        $tBuildingID = $tmpResult[0]['id'];
+                                        $NeedCreateBuilding = false;
+                                    }
+                                }
+
+                                if ($NeedCreateBuilding) {
+                                    zb_AddressCreateBuild($tStreetID, $tBuild);
+                                    $tBuildingID = simple_get_lastid('build');
+                                }
+
+                                $RegAddrs[$tCity][$tStreet][$tBuild]['id'] = $tBuildingID;
+                            }
+                        }
+                    }
+                }
+            }
+
+            file_put_contents('reg_addr', print_r($RegAddrs, true));
+
     /*START ADD*/
     $buffer="";
     $buffer.='function InArray(&$Array,$Value)
@@ -517,17 +628,18 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
 }
 '."\n";
     /*END ADD*/
-    foreach ($regdata as $io=>$user) {
-    debarr($user);
-    //typical register of each user
-    $login=vf($user['login']);
-    $password=vf($user['password']);
-    $ip=$user['ip'];
-    $iopts=  unserialize(base64_decode($import_opts));
-    $netid=$iopts['netid'];
+
+    foreach ($regdata as $io => $user) {
+        debarr($user);
+        //typical register of each user
+        $login=vf($user['login']);
+        $password=vf($user['password']);
+        $ip=$user['ip'];
+        $iopts=  unserialize(base64_decode($import_opts));
+        $netid=$iopts['netid'];
+
     /*START ADD*/
-    if ($iopts['regtype']=='PHP')
-    {
+    if ($iopts['regtype']=='PHP') {
 	$SQL['city_id']="SELECT `id` FROM `city` WHERE `cityname`= '".$user['city']."'";
 	$SQL['city_add']="INSERT INTO  `city` (`id` ,`cityname` ,`cityalias`) VALUES (NULL ,  '".$user['city']."',  '".translit($user['city'])."');";
 	$buffer.='$city_id=0;'."\n";
@@ -598,6 +710,7 @@ VALUES ('".$login."','".$password."','".$user['passive']."','".$user['down']."',
 	$SQL['realname']="INSERT INTO `realname` (`id`,`login`,`realname`)  VALUES (NULL, '".$login."','".$user['realname']."');";
 	$SQL['phones']="INSERT INTO `phones` (`id`,`login`,`phone`,`mobile`)  VALUES (NULL, '".$login."','".$user['phone']."','".$user['mobile']."');";
 	$SQL['contracts']="INSERT INTO `contracts` (`id`,`login`,`contract`)  VALUES (NULL, '".$login."','".$user['contract']."');";
+    $SQL['contracts_d']="INSERT INTO `contractdates` (`id`,`contract`,`date`) VALUES (NULL , '" . $user['contract'] . "', '" . $user['contract_d'] . "');";
 	$SQL['emails']="INSERT INTO `emails` (`id`,`login`,`email`)  VALUES (NULL, '".$login."','".$user['email']."');";
 	$SQL['userspeeds']="INSERT INTO `userspeeds` (`id`,`login`,`speed`)  VALUES (NULL, '".$login."','0');";
 	$SQL['notes']="INSERT INTO `notes` (`id`,`login`,`note`)  VALUES ('', '".$login."','".$user['address']."');";
@@ -637,7 +750,14 @@ VALUES ('".$login."','".$password."','".$user['passive']."','".$user['down']."',
     exit;
 }';
 	$buffer.="\n";
-	
+
+    $buffer.='$result = mysql_query("'.$SQL['contracts_d'].'");'."\n";
+    $buffer.='if (!$result) {
+    echo \'Query[contracts_d] error with '.$login.': \' . mysql_error();
+    exit;
+}';
+    $buffer.="\n";
+
 	$buffer.='$result = mysql_query("'.$SQL['emails'].'");'."\n";
 	$buffer.='if (!$result) {
     echo \'Query[emails] error with '.$login.': \' . mysql_error();
@@ -660,32 +780,60 @@ VALUES ('".$login."','".$password."','".$user['passive']."','".$user['down']."',
 	$buffer.="\n";
     }
     /*END ADD*/
-    //Ubilling normal registration mode
-    if ($iopts['regtype']=='UB') {
-    $billing->createuser($login);
-    log_register("StgUser REGISTER ".$login);
-    $billing->setpassword($login,$password);
-    log_register("StgUser PASSWORD ".$password);
-    $billing->setip($login,$ip);
-    log_register("StgUser IP ".$ip);
-    multinet_add_host($netid, $ip);
-    zb_UserCreateRealName($login, $user['realname']);
-    zb_UserCreatePhone($login, $user['phone'], $user['mobile']);
-    zb_UserCreateContract($login, $user['contract']);
-    zb_UserCreateEmail($login, $user['email']);
-    zb_UserCreateSpeedOverride($login, 0);
-    multinet_change_mac($ip, $user['mac']);
-    multinet_rebuild_all_handlers();
-    $billing->setao($login,$user['ao']);
-    $dstat=1;
-    $billing->setdstat($login,$dstat);
-    $billing->setdown($login,$user['down']);
-    $billing->setpassive($login,$user['passive']);
-    $billing->settariff($login,$user['tariff']);
-    $billing->setcredit($login,$user['credit']);
-    $billing->setcash($login,$user['cash']);
-    zb_UserCreateNotes($login, $user['address']);
-    } 
+
+        //Ubilling normal registration mode
+        if ($iopts['regtype']=='UB') {
+            $billing->createuser($login);
+            log_register("StgUser REGISTER ".$login);
+            $billing->setpassword($login,$password);
+            log_register("StgUser PASSWORD ".$password);
+            $billing->setip($login,$ip);
+            log_register("StgUser IP ".$ip);
+            multinet_add_host($netid, $ip);
+            zb_UserCreateRealName($login, $user['realname']);
+            zb_UserCreatePhone($login, $user['phone'], $user['mobile']);
+            zb_UserCreateContract($login, $user['contract']);
+            zb_UserContractDateCreate($user['contract'], date('Y-m-d', strtotime($user['contract_d'])));
+            zb_UserCreateEmail($login, $user['email']);
+            zb_UserCreateSpeedOverride($login, 0);
+            multinet_change_mac($ip, $user['mac']);
+            multinet_rebuild_all_handlers();
+            $billing->setao($login,$user['ao']);
+            $dstat=1;
+            $billing->setdstat($login,$dstat);
+            $billing->setdown($login,$user['down']);
+            $billing->setpassive($login,$user['passive']);
+            $billing->settariff($login,$user['tariff']);
+            $billing->setcredit($login,$user['credit']);
+            $billing->setcash($login,$user['cash']);
+
+            $NoOccupancyCreated = true;
+
+            if ($CreateOccupancy) {
+                $tmpRegCity         = $user['city'];
+                $tmpRegStreet       = $user['street'];
+                $tmpRegBuilding     = $user['build'];
+                $tmpRegAptEntrance  = $user['apt_entrance'];
+                $tmpRegAptFloor     = $user['apt_floor'];
+                $tmpRegApt          = $user['apt_apt'];
+                $tBuildingID        = '';
+
+                // try to get build ID from $RegAddrs array which was processed earlier
+                // and create araptment and address for the user
+                if ( !empty($RegAddrs) ) {
+                    if (isset($RegAddrs[$tmpRegCity][$tmpRegStreet][$tmpRegBuilding]['id'])) {
+                        $tBuildingID = $RegAddrs[$tmpRegCity][$tmpRegStreet][$tmpRegBuilding]['id'];
+
+                        zb_AddressCreateApartment($tBuildingID, $tmpRegAptEntrance, $tmpRegAptFloor, $tmpRegApt);
+                        $tAptID = simple_get_lastid('apt');
+                        zb_AddressCreateAddress($login, $tAptID);
+                        $NoOccupancyCreated = false;
+                    }
+                }
+            }
+
+            if ($NoOccupancyCreated) { zb_UserCreateNotes($login, $user['address']); }
+        }
     
     
     if ($iopts['regtype']=='SQL') {
