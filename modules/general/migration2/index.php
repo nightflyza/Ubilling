@@ -609,7 +609,7 @@ if(!wf_CheckPost(array('uploaduserbase'))) {
                 }
             }
 
-            file_put_contents('reg_addr', print_r($RegAddrs, true));
+
 
     /*START ADD*/
     $buffer="";
