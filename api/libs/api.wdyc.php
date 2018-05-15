@@ -221,6 +221,7 @@ class WhyDoYouCall {
 
                             //outcoming call success - deleting form unanswered, adding it to recalled cache
                             if (ispos($each[16], 'out')) {
+                                $reactionTime=0;
                                 if (ispos($each[14], 'ANSWERED')) {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);
