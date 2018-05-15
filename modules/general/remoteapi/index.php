@@ -1051,7 +1051,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if (isset($_GET['param'])) {
                             $userLogin = $_GET['param'];
                             $allUserAddress = zb_AddressGetFulladdresslistCached();
-                            $userAddress = $allUserAddress[$userLogin];
+                            $userAddress = @$allUserAddress[$userLogin];
                             $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
                             die(json_encode($agentData));
                         } else {
