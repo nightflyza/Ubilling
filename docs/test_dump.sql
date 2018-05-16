@@ -2088,3 +2088,5 @@ ALTER TABLE `exhorse` ADD `a_recallunsuccess` DOUBLE NULL DEFAULT NULL ,
  ADD `t_tasks` INT NULL DEFAULT NULL ,
  ADD `t_capabtotal` INT NULL DEFAULT NULL ,
  ADD `t_capabundone` INT NULL DEFAULT NULL ;
+ 
+ALTER TABLE `nethosts` ADD UNIQUE `net-ip` (`netid`, `ip`);
