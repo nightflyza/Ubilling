@@ -88,8 +88,9 @@ function int2ip($src) {
  * @return array
  */
 function xml2array($contents, $get_attributes = 1, $priority = 'tag') {
-    if (!$contents)
+    if (!$contents) {
         return array();
+    }
 
     if (!function_exists('xml_parser_create')) {
         print "'xml_parser_create()' function not found!";
@@ -104,15 +105,9 @@ function xml2array($contents, $get_attributes = 1, $priority = 'tag') {
     xml_parse_into_struct($parser, trim($contents), $xml_values);
     xml_parser_free($parser);
 
-    if (!$xml_values)
+    if (!$xml_values) {
         return; //Hmm...
-
-
-
-
-
-
-        
+    }
 //Initializations
     $xml_array = array();
     $parents = array();
