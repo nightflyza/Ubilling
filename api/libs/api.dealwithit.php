@@ -38,6 +38,13 @@ class DealWithIt {
     protected $actions = array();
 
     /**
+     * Contains admns Name as admin_login => admin_name
+     *
+     * @var array
+     */
+    protected $adminsName = array();
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=pl_dealwithit';
@@ -48,6 +55,7 @@ class DealWithIt {
         $this->setActionIcons();
         $this->setActionsURL();
         $this->loadTasks();
+        $this->loadAdminsName();
     }
 
     /**
@@ -155,6 +163,34 @@ class DealWithIt {
             self::URL_ME . '&ajinput=ao'           => $this->actionNames['ao'],
             self::URL_ME . '&ajinput=unao'         => $this->actionNames['unao']
         );
+    }
+
+    /**
+     * Loads admis Name
+     * 
+     * @return void
+     */
+    protected function loadAdminsName() {
+        @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+        if ( ! empty($employeeLogins)) {
+            foreach ($employeeLogins as $login => $name){
+                $this->adminsName[$login] = $name;
+            }
+        }
+    }
+
+    /**
+     * Init admin Name
+     * 
+     * @param string $admin
+     * @return void
+     */
+    protected function initAdminName($admin) {
+        $result = '';
+        if ( ! empty($admin)) {
+            $result = (isset($this->adminsName[$admin])) ? $this->adminsName[$admin] : $admin;
+        }
+        return ($result);
     }
 
     /**
@@ -695,15 +731,14 @@ class DealWithIt {
      * 
      * @return string
      */
-    public function renderTasksHistory() {
-        $result = '';
-        $messages = new UbillingMessageHelper();
+    public function AjaxDataTasksHistory() {
         $tmpArr = array();
         $allRealNames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
         $query = "SELECT * from `dealwithithist` ORDER by `id` DESC";
         $allTasksHistory = simple_queryall($query);
-        
+        $json = new wf_JqDtHelper();
+
         if (!empty($allTasksHistory)) {
             foreach ($allTasksHistory as $io => $each) {
                 $tmpArr[$io] = $each;
@@ -711,41 +746,42 @@ class DealWithIt {
         }
 
         if (!empty($tmpArr)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Changed'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Task'));
-            $cells.= wf_TableCell(__('Parameter'));
-            $cells.= wf_TableCell(__('Notes'));
-            $cells.= wf_TableCell(__('Done'));
-            $cells.= wf_TableCell(__('Admin'));
-
-            $rows = wf_TableRow($cells, 'row1');
-
             foreach ($tmpArr as $io => $each) {
                 $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
-                $cells = wf_TableCell($each['originalid']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['mtime']);
-                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
-                $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                $cells.= wf_TableCell($actionIcon . $this->actionNames[$each['action']]);
-                $cells.= wf_TableCell($each['param']);
-                $cells.= wf_TableCell($each['note']);
-                $cells.= wf_TableCell(web_bool_led($each['done']));
-                $cells.= wf_TableCell($each['admin']);
+                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
 
-                $rows.= wf_TableRow($cells, 'row5');
+                $data[] = $each['originalid'];
+                $data[] = $each['date'];
+                $data[] = $each['mtime'];
+                $data[] = $profileLink;
+                $data[] = @$allAddress[$each['login']];
+                $data[] = @$allRealNames[$each['login']];
+                $data[] = $actionIcon . $this->actionNames[$each['action']];
+                $data[] = $each['param'];
+                $data[] = $each['note'];
+                $data[] = web_bool_led($each['done']);
+                $data[] = $this->initAdminName($each['admin']);
+                $json->addRow($data);
+                unset($data);
             }
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        } else {
-            $result = $messages->getStyledMessage(__('Nothing found'), 'info');
+
         }
 
+        $json->getJson();
+    }
+
+    /**
+     * Returns container of succefull UHW usages
+     * 
+     * @param string $searchLogin
+     * 
+     * @return string
+     */
+    public function renderTasksHistoryAjax() {
+        $result = '';
+        $columns = array('ID', 'Date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, '?module=report_dealwithit&history=true&ajax=true', false, 'users', 100, $opts);
         return ($result);
     }
 

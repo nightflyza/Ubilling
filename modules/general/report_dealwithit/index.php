@@ -9,7 +9,11 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
         $controls.= wf_Link('?module=pl_dealwithit', wf_img('skins/icon_dealwithit_cron.png') . ' ' . __('Bulk creation of tasks'), false, 'ubButton');
         show_window('', $controls);
         if (wf_CheckGet(array('history'))) {
-            show_window(__('Scheduler history'),$dealWithIt->renderTasksHistory());
+            //json reply
+            if (wf_CheckGet(array('ajax'))) {
+                $dealWithIt->AjaxDataTasksHistory();
+            }
+            show_window(__('Scheduler history'),$dealWithIt->renderTasksHistoryAjax());
         } else {
             show_window(__('Available Held jobs for all users'), $dealWithIt->renderTasksList());
         }
