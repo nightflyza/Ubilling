@@ -666,18 +666,18 @@ class DealWithIt {
     }
 
     /**
-     * Renders available tasks list with controls
+     * Renders available tasks data list
      * 
      * @param sring $login
      * 
      * @return string
      */
-    public function renderTasksList($login = '') {
-        $result = '';
+    public function AjaxDataTasksList($login = '') {
         $messages = new UbillingMessageHelper();
         $tmpArr = array();
         $allRealNames = zb_UserGetAllRealnames();
         $allAddress = zb_AddressGetFulladdresslistCached();
+        $json = new wf_JqDtHelper();
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
@@ -692,43 +692,45 @@ class DealWithIt {
         }
 
         if (!empty($tmpArr)) {
-            $cells = wf_TableCell(__('ID'));
-            $cells.= wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Login'));
-            $cells.= wf_TableCell(__('Address'));
-            $cells.= wf_TableCell(__('Real Name'));
-            $cells.= wf_TableCell(__('Task'));
-            $cells.= wf_TableCell(__('Parameter'));
-            $cells.= wf_TableCell(__('Notes'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
 
             foreach ($tmpArr as $io => $each) {
                 $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
-                $cells = wf_TableCell($each['id']);
-                $cells.= wf_TableCell($each['date']);
-                $cells.= wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, ''));
-                $cells.= wf_TableCell(@$allAddress[$each['login']]);
-                $cells.= wf_TableCell(@$allRealNames[$each['login']]);
-                $cells.= wf_TableCell($actionIcon . $this->actionNames[$each['action']]);
-                $cells.= wf_TableCell($each['param']);
-                $cells.= wf_TableCell($each['note']);
+                $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
                 $taskControls = wf_JSAlert(self::URL_ME . '&username=' . $each['login'] . '&deletetaskid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
-                $cells.= wf_TableCell($taskControls);
-                $rows.= wf_TableRow($cells, 'row5');
+
+                $data[] = $each['id'];
+                $data[] = $each['date'];
+                $data[] = $profileLink;
+                $data[] = @$allAddress[$each['login']];
+                $data[] = @$allRealNames[$each['login']];
+                $data[] = $actionIcon . $this->actionNames[$each['action']];
+                $data[] = $each['param'];
+                $data[] = $each['note'];
+                $data[] = $taskControls;
+                $json->addRow($data);
+                unset($data);
             }
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
-        } else {
-            $result = $messages->getStyledMessage(__('Nothing found'), 'info');
         }
 
+        $json->getJson();
+    }
+
+    /**
+     * Returns container of tasks list
+     *
+     * @return string
+     */
+    public function renderTasksListAjax() {
+        $result = '';
+        $columns = array('ID', 'Date', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Actions');
+        $opts = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, '?module=report_dealwithit&ajax=true', false, 'Tasks', 100, $opts);
         return ($result);
     }
 
     /**
-     * Renders available tasks list with controls
-     * 
-     * 
+     * Renders available tasks data
+     *
      * @return string
      */
     public function AjaxDataTasksHistory() {
@@ -771,17 +773,15 @@ class DealWithIt {
     }
 
     /**
-     * Returns container of succefull UHW usages
-     * 
-     * @param string $searchLogin
-     * 
+     * Returns container of tasks
+     *
      * @return string
      */
     public function renderTasksHistoryAjax() {
         $result = '';
         $columns = array('ID', 'Date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, '?module=report_dealwithit&history=true&ajax=true', false, 'users', 100, $opts);
+        $result = wf_JqDtLoader($columns, '?module=report_dealwithit&history=true&ajax=true', false, 'Tasks', 100, $opts);
         return ($result);
     }
 
