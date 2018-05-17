@@ -20,6 +20,13 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
 
+        $hp_mode = $alter_conf['ONLINE_HP_MODE'];
+
+        $ShowContractField = false;
+        if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD'] ) {
+            $ShowContractField = true;
+        }
+
         //alternate center styling
         $alternateStyle = '';
         if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
@@ -30,8 +37,9 @@ if ($system->checkForRight('ONLINE')) {
 
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
-             null,
-                null,
+             null, ' .
+                ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -42,8 +50,9 @@ if ($system->checkForRight('ONLINE')) {
             ';
         } else {
             $columnFilters = '
-             null,
-                null,
+             null, ' .
+                ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -52,6 +61,7 @@ if ($system->checkForRight('ONLINE')) {
                 null
             ';
         }
+
         $dtcode = '
        		<script type="text/javascript" charset="utf-8">
                 
@@ -194,6 +204,7 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_tag('thead', false);
         $result.= wf_tag('tr', false, 'row2');
         $result.= wf_TableCell(__('Full address'));
+        $result.= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
         $result.= wf_TableCell(__('Real Name'));
         $result.= wf_TableCell(__('IP'));
         $result.= wf_TableCell(__('Tariff'));
@@ -213,15 +224,15 @@ if ($system->checkForRight('ONLINE')) {
 
     /**
      * Renders json data for large databases. Not using json_encode & manual json assembly to minimaze execution time.
-     * 
+     *
      * @global array $alter_conf
-     * 
+     *
      * @return string
      */
     function zb_AjaxOnlineDataSourceFast() {
         global $alter_conf;
 
-        $query = "SELECT * from `users`";
+        $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
@@ -252,7 +263,6 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
-
 
 
 
@@ -308,7 +318,7 @@ if ($system->checkForRight('ONLINE')) {
                     $result.='
      [
      "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress . '",
-     
+           
          "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
          "' . $eachuser['IP'] . '",
          "' . $eachuser['Tariff'] . '",
@@ -323,7 +333,7 @@ if ($system->checkForRight('ONLINE')) {
                         $result.='
                  [
                  "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
-
+                     
                      "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
                      "' . $eachuser['IP'] . '",
                      "' . $eachuser['Tariff'] . '",
@@ -339,13 +349,12 @@ if ($system->checkForRight('ONLINE')) {
         }
 
         $result = substr($result, 0, -1);
-
-
         $result.='
     
     ]
     }
         ';
+
         return($result);
     }
 
@@ -356,15 +365,52 @@ if ($system->checkForRight('ONLINE')) {
 
     /**
      * Renders json data for user list
-     * 
+     *
      * @global array $alter_conf
-     * 
+     *
      * @return string
      */
     function zb_AjaxOnlineDataSourceSafe() {
 
         global $alter_conf;
-        $query = "SELECT * from `users`";
+        $allcontracts       = array();
+        $allcontractdates   = array();
+
+        $ShowContractField  = false;
+        $ShowContractDate   = false;
+        if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD'] ) {
+            $ShowContractField = true;
+
+            if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_DATE']) && $alter_conf['ONLINE_SHOW_CONTRACT_DATE'] ) {
+                $ShowContractDate = true;
+            }
+        }
+
+        if ($ShowContractField) {
+            if ($ShowContractDate) {
+                $query = "SELECT `contracts`.*, `contractdates`.`date` AS `contractdate` 
+                                        FROM `contracts`                                     
+                                        LEFT JOIN `contractdates` ON `contractdates`.`contract` = `contracts`.`contract`;   
+                          ";
+            } else {
+                $query = "SELECT * FROM `contracts`;";
+            }
+
+            $tmpContracts = simple_queryall($query);
+
+            if (!empty($tmpContracts)) {
+                foreach ($tmpContracts as $io => $eachcontract) {
+                    $allcontracts[$eachcontract['login']] = $eachcontract['contract'];
+
+                    if ($ShowContractDate) {
+                        $allcontractdates[$eachcontract['login']] = $eachcontract['contractdate'];
+                    }
+                }
+            }
+
+        }
+
+        $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
@@ -437,6 +483,11 @@ if ($system->checkForRight('ONLINE')) {
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
+
+                    if ($ShowContractField) {
+                        $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
+                    }
+
                     $jsonItem[] = @$fioz[$eachuser['login']];
                     $jsonItem[] = $eachuser['IP'];
                     $jsonItem[] = $eachuser['Tariff'];
@@ -452,6 +503,11 @@ if ($system->checkForRight('ONLINE')) {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $jsonItem = array();
                         $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
+
+                        if ($ShowContractField) {
+                            $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
+                        }
+
                         $jsonItem[] = @$fioz[$eachuser['login']];
                         $jsonItem[] = $eachuser['IP'];
                         $jsonItem[] = $eachuser['Tariff'];
@@ -467,6 +523,7 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
+
         $result = array("aaData" => $jsonAAData);
         return(json_encode($result));
     }
@@ -481,7 +538,7 @@ if ($system->checkForRight('ONLINE')) {
 
             //fast with caching, for huge databases.
             if ($hp_mode == 2) {
-                $defaultJsonCacheTime = 600;
+                $defaultJsonCacheTime = 10;
                 $onlineJsonCache = new UbillingCache();
                 $fastJsonReply = $onlineJsonCache->getCallback('HPONLINEJSON', function () {
                     return (zb_AjaxOnlineDataSourceFast());
