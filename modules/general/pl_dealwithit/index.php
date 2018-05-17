@@ -23,7 +23,11 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
             }
             //displaying interface parts
             show_window(__('Create new task'), $dealWithIt->renderCreateForm($login));
-            show_window(__('Held jobs for this user'), $dealWithIt->renderTasksList($login));
+            //json reply
+            if (wf_CheckGet(array('ajax'))) {
+                $dealWithIt->AjaxDataTasksList($login);
+            }
+            show_window(__('Held jobs for this user'), $dealWithIt->renderTasksListAjax($login));
 
             show_window('', web_UserControls($login));
         } elseif (wf_CheckPost(array('newschedloginsarr'))) {
