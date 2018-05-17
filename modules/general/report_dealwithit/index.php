@@ -15,7 +15,11 @@ if ($altCfg['DEALWITHIT_ENABLED']) {
             }
             show_window(__('Scheduler history'),$dealWithIt->renderTasksHistoryAjax());
         } else {
-            show_window(__('Available Held jobs for all users'), $dealWithIt->renderTasksList());
+            //json reply
+            if (wf_CheckGet(array('ajax'))) {
+                $dealWithIt->AjaxDataTasksList();
+            }
+            show_window(__('Available Held jobs for all users'), $dealWithIt->renderTasksListAjax());
         }
     } else {
         show_error(__('Access denied'));
