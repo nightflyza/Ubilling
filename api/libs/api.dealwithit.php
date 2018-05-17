@@ -720,11 +720,12 @@ class DealWithIt {
      *
      * @return string
      */
-    public function renderTasksListAjax() {
+    public function renderTasksListAjax($login = '') {
         $result = '';
         $columns = array('ID', 'Date', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
-        $result = wf_JqDtLoader($columns, '?module=report_dealwithit&ajax=true', false, 'Tasks', 100, $opts);
+        $module_link = (empty($login)) ? '?module=report_dealwithit&ajax=true' : '?module=pl_dealwithit&ajax=true&username=' . $login;
+        $result = wf_JqDtLoader($columns, $module_link, false, 'Tasks', 100, $opts);
         return ($result);
     }
 
