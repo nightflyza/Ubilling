@@ -538,7 +538,7 @@ if ($system->checkForRight('ONLINE')) {
 
             //fast with caching, for huge databases.
             if ($hp_mode == 2) {
-                $defaultJsonCacheTime = 10;
+                $defaultJsonCacheTime = 600;
                 $onlineJsonCache = new UbillingCache();
                 $fastJsonReply = $onlineJsonCache->getCallback('HPONLINEJSON', function () {
                     return (zb_AjaxOnlineDataSourceFast());
