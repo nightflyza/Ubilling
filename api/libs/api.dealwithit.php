@@ -928,7 +928,9 @@ class DealWithIt {
                 show_window('', $messages->getStyledMessage(__('Query returned empty result'), 'info'));
             }
 
-        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by'])) {
+        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by']) and isset($_POST['dealwithit_search']['exclude'])) {
+            show_error(__('The search parameter is not selected. No, what to exclude from the request'));
+        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by']) and !isset($_POST['dealwithit_search']['exclude'])) {
             show_error(__('No request parameters set'));
         }
 
@@ -1089,10 +1091,14 @@ class DealWithIt {
             }
         }
 
+        // Рисуем форму, которая включает в запрос пользователей
+        $cells = wf_TableCell(wf_tag('b') . __('Include in search query') . wf_tag('b'), '', '', 'colspan="3"');
+        $rows = wf_TableRow($cells, 'row2');
+
         $cells = wf_TableCell(__('All fields'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][all_fields]', '', false));
         $cells.= wf_TableCell(wf_TextInput('dealwithit_search[all_fields]', '', '', false));
-        $rows = wf_TableRow($cells, 'row2');
+        $rows.= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('City'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][city_id]', '', false));
@@ -1119,9 +1125,44 @@ class DealWithIt {
         $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '',  false));
         $rows.= wf_TableRow($cells, 'row2');
 
-        $rows.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+        // Рисуем форму, которая исключает из запроса пользователей
+        $cells_ex = wf_TableCell(wf_tag('b') . __('Exclude from search query') . wf_tag('/b'), '', '', 'colspan="3"');
+        $rows_ex = wf_TableRow($cells_ex, 'row2');
 
-        $form = wf_TableBody($rows, '', 0);
+        $cells_ex = wf_TableCell(__('All fields'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_all_fields]', '', false));
+        $cells_ex.= wf_TableCell(wf_TextInput('dealwithit_search[ex_all_fields]', '', '', false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('City'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_city_id]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_city_id]', $allcity, '', '', false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Tariff'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '',  false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Status'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_user_status]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_user_status]', $param_selector_status, '', '',  false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Services'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_services]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_services]', $services_options, '', '',  false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $cells_ex = wf_TableCell(__('Tags'));
+        $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tags]', '', false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '',  false));
+        $rows_ex.= wf_TableRow($cells_ex, 'row2');
+
+        $rows_ex.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
+
+        $form = wf_TableBody($rows, '', 0, '', 'style="float: left; padding-right: 20px;"');
+        $form.= wf_TableBody($rows_ex, '', 0, '', 'style="float: left;"');
         $result = wf_Form("", "POST", $form, 'glamour');
 
         return ($result);
@@ -1135,7 +1176,9 @@ class DealWithIt {
     protected function SearchUsers(array $dealwithit_search) {
 
         $result = array();
+        $result_exclude = array();
         $search_field = $_POST['dealwithit_search']['search_by'];
+        $exclude_field = @$_POST['dealwithit_search']['exclude'];
 
         // Search login by City
         if (isset($search_field['city_id']) and $search_field['city_id'] == 'on') {
@@ -1234,6 +1277,112 @@ class DealWithIt {
                 }
             }
         }
+
+        // Исключаем из запроса пользователей
+        // Начинаем заполнять массив исключения
+        // Exclude login from request by City
+        if (isset($exclude_field['ex_city_id']) and $exclude_field['ex_city_id'] == 'on') {
+            // И шо я только курю уже дважды
+            $query = "SELECT `login` FROM `street` LEFT JOIN city ON street.cityid=city.id
+                        LEFT JOIN build ON build.streetid=street.id
+                        LEFT JOIN apt ON apt.buildid=build.id
+                        RIGHT JOIN address ON address.aptid=apt.id
+                        WHERE cityid = '" . vf($_POST['dealwithit_search']['ex_city_id'], 3) . "'";
+            $data_city = simple_queryall($query);
+            if (!empty($data_city)) {
+                foreach ($data_city as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+        //  Exclude login from request by Tariff
+        if (isset($exclude_field['ex_tariff']) and $exclude_field['ex_tariff'] == 'on') {
+            $query = "SELECT `login` FROM `users` WHERE `Tariff` = '" . $_POST['dealwithit_search']['ex_tariff'] . "'";
+            $data_tariff = simple_queryall($query);
+            if (!empty($data_tariff)) {
+                foreach ($data_tariff as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+        // Exclude login from request by status
+        if (isset($exclude_field['ex_user_status']) and $exclude_field['ex_user_status'] == 'on') {
+            $need_status_exclude = $_POST['dealwithit_search']['ex_user_status'];
+            if (!empty($need_status_exclude)) {
+                switch ($need_status_exclude) {
+                    case 'active':
+                        $where = "`Cash` >= -`Credit`  ";
+                        break;
+                    case 'AlwaysOnline':
+                        $where = "`AlwaysOnline` ='1'";
+                        break;
+                    case 'inactive':
+                        $where = "`Down` ='1'";
+                        break;
+                    case 'frozen':
+                        $where = "`Passive` ='1'";
+                        break;
+                }
+                $query_exclude = "SELECT `login` FROM `users` WHERE " . $where;
+                $data_status_exclude = simple_queryall($query_exclude);
+                if (!empty($data_status_exclude)) {
+                    foreach ($data_status_exclude as $login) {
+                        $result_exclude[] = $login['login'];
+                    }
+                }
+            }
+        }
+        // Exclude login from request by Services
+        if (isset($exclude_field['ex_services']) and $exclude_field['ex_services'] == 'on') {
+            $query_exclude = "SELECT `login` FROM `users` INNER JOIN `nethosts` USING (`ip`) WHERE `nethosts`.`netid` = '" . vf($_POST['dealwithit_search']['ex_services'], 3) . "'";
+            $data_services_exclude = simple_queryall($query_exclude);
+            if (!empty($data_services_exclude)) {
+                foreach ($data_services_exclude as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+        // Exclude dead users array
+        // This should be here, because below we will work with tags, among which may be buried users
+        if (!empty($result_exclude) and $this->altCfg['DEAD_HIDE']) {
+            if (!empty($this->altCfg['DEAD_TAGID'])) {
+                $deadUsers = array();
+                $tagDead = vf($this->altCfg['DEAD_TAGID'], 3);
+                $query_dead = "SELECT `login` from `tags` WHERE `tagid`='" . $tagDead . "'";
+                $alldead = simple_queryall($query_dead);
+                if (!empty($alldead)) {
+                    foreach ($alldead as $idead => $eachDead) {
+                        $deadUsers[] = $eachDead['login'];
+                    }
+                    $result_exclude = array_diff($result_exclude, $deadUsers);
+                }
+            }
+        }
+        // Exclude login from request by all fields
+        if (isset($exclude_field['ex_all_fields']) and $exclude_field['ex_all_fields'] == 'on') {
+            $data_fileds_exclude = zb_UserSearchAllFields($_POST['dealwithit_search']['ex_all_fields'], false);
+            if (!empty($data_fileds_exclude) and is_array($data_fileds_exclude)) {
+                foreach ($data_fileds_exclude as $login) {
+                    $result_exclude[] = $login;
+                }
+            }
+        }
+        // Exclude login from request by Tag
+        if (isset($exclude_field['ex_tags']) and $exclude_field['ex_tags'] == 'on') {
+            $query_exclude = "SELECT `login` from `tags` WHERE `tagid`='" . vf($_POST['dealwithit_search']['ex_tags'], 3) . "'";
+            $data_tags_exclude = simple_queryall($query_exclude);
+            if (!empty($data_tags_exclude)) {
+                foreach ($data_tags_exclude as $login) {
+                    $result_exclude[] = $login['login'];
+                }
+            }
+        }
+
+        // Сам прцоцесс исключения пользователей из результатов поиска
+        if (!empty($result) and !empty($result_exclude)) {
+            $result = array_diff($result, $result_exclude);
+        }
+
         // Delete duplicates that come from more that one selected options
         if (!empty($result)) {
             $result = array_unique($result);
