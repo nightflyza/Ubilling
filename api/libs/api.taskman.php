@@ -1316,7 +1316,8 @@ function ts_FlushSMSData($taskid) {
  * @return void
  */
 function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $altercfg = $ubillingConfig->getAlter();
     $curdate = curdatetime();
     $admin = whoami();
     $address = str_replace('\'', '`', $address);
@@ -1325,11 +1326,13 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $login = mysql_real_escape_string($login);
     $phone = mysql_real_escape_string($phone);
     $startdate = mysql_real_escape_string($startdate);
-    $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
+    $jobSendTime = date("H:i", strtotime($curdate));
 
     if (!empty($starttime)) {
+        $starttimeRaw = $starttime;
         $starttime = "'" . mysql_real_escape_string($starttime) . "'";
     } else {
+        $starttimeRaw = '';
         $starttime = 'NULL';
     }
     $jobtypeid = vf($jobtypeid, 3);
@@ -1356,6 +1359,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
             $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
+            $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
             $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
                 $UserIpMAC = zb_UserGetAllData($login);
@@ -1479,6 +1483,7 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
+    $starttimeRaw = (!empty($starttime)) ? $starttime : '';
     $starttime = (!empty($starttime)) ? "'" . date("H:i:s", strtotime(mysql_real_escape_string($starttime))) . "'" : 'NULL';
 
     $address = str_replace('\'', '`', $address);
@@ -1488,7 +1493,6 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
     $org_taskdata = ts_GetTaskData($taskid);
-    $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
 
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
     nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //That shit for preventing quotes. Dont touch this.
@@ -1517,7 +1521,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
         $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
         $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
-        $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
+        $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
         if (!empty($login)) {
             $UserIpMAC = zb_UserGetAllData($login);
 
