@@ -241,8 +241,8 @@ if ($system->checkForRight('ONLINE')) {
         $ucount = 0;
         $deadUsers = array();
         $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
-        $filterChars = array('\'', '"');
-        $filterReplaces = array('`', '``');
+        $filterChars = array('\'', '"','\\');
+        $filterReplaces = array('`', '``','/');
 
         //hide dead users array
         if ($alter_conf['DEAD_HIDE']) {
@@ -540,6 +540,7 @@ if ($system->checkForRight('ONLINE')) {
     } else {
         show_window(__('Users online'), renderUserListContainer());
     }
-} else
+} else {
     show_error(__('Access denied'));
+}
 ?>
