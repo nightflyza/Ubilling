@@ -4296,7 +4296,7 @@ class UkvSystem {
                         $cells.= wf_TableCell(@$inetRealnames[$each['login']]);
                         $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Tariff']);
                         $cells.= wf_TableCell(@$allUsersRaw[$each['login']]['Cash']);
-                        $cells.= wf_TableCell(web_bool_led($complexActive[$each['login']]));
+                        $cells.= wf_TableCell(web_bool_led(@$complexActive[$each['login']]));
                         $cells.= wf_TableCell(@$problemTypes[$each['type']]);
                         $rows.= wf_TableRow($cells, 'row3');
                     }
