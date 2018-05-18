@@ -1,9 +1,5 @@
 <?php
 
-//
-//  signup reporting API
-//
-
 /**
  * Base signup requests handling class
  */
@@ -90,6 +86,7 @@ class SignupRequests {
                 $profileLink = (!empty($loginDetect)) ? ' ' . wf_Link('?module=userprofile&username=' . $loginDetect, web_profile_icon()) : '';
                 $jsonItem[] = $reqaddr . $profileLink;
                 $jsonItem[] = $eachreq['realname'];
+                $jsonItem[] = $eachreq['phone'];
 
                 if ($this->altcfg['ADCOMMENTS_ENABLED']) {
                     $commIndicator = ' ' . $adcomments->getCommentsIndicator($eachreq['id']);
@@ -122,7 +119,7 @@ class SignupRequests {
             $confControl = '';
         }
         $viewControl = wf_Link('?module=sigreq&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
-        $columns = array(__('ID'), __('Date'), __('IP'), __('Full address'), __('Real Name'), __('Processed'), __('Actions'));
+        $columns = array(__('ID'), __('Date'), __('IP'), __('Full address'), __('Real Name'),__('Phone'), __('Processed'), __('Actions'));
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Signup requests'), 100, $opts);
 
