@@ -223,142 +223,13 @@ if ($system->checkForRight('ONLINE')) {
     }
 
     /**
-     * Renders json data for large databases. Not using json_encode & manual json and HTML assembly to minimaze execution time.
-     *
-     * @global array $alter_conf
-     *
-     * @return string
-     */
-    function zb_AjaxOnlineDataSourceFast() {
-        global $alter_conf;
-
-        $query = "SELECT * FROM `users`";
-        $query_fio = "SELECT * from `realname`";
-        $allusers = simple_queryall($query);
-        $allfioz = simple_queryall($query_fio);
-        $fioz = zb_UserGetAllRealnames();
-        $detect_address = zb_AddressGetFulladdresslistCached();
-        $ucount = 0;
-        $deadUsers = array();
-        $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
-        $filterChars = array('\'', '"','\\');
-        $filterReplaces = array('`', '``','/');
-
-        //hide dead users array
-        if ($alter_conf['DEAD_HIDE']) {
-            if (!empty($alter_conf['DEAD_TAGID'])) {
-                $tagDead = vf($alter_conf['DEAD_TAGID'], 3);
-                $query_dead = "SELECT `login`,`tagid` from `tags` WHERE `tagid`='" . $tagDead . "'";
-                $alldead = simple_queryall($query_dead);
-                if (!empty($alldead)) {
-                    foreach ($alldead as $idead => $eachDead) {
-                        $deadUsers[$eachDead['login']] = $eachDead['tagid'];
-                    }
-                }
-            }
-        }
-
-        $result = '{';
-        $result.='
-       "aaData": [
-  ';
-        if (!empty($allusers)) {
-            $totalusers = sizeof($allusers);
-            foreach ($allusers as $io => $eachuser) {
-                $tinet = 0;
-                $ucount++;
-                $cash = $eachuser['Cash'];
-                $credit = $eachuser['Credit'];
-
-                for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
-                    $dc = 'D' . $classcounter . '';
-                    $uc = 'U' . $classcounter . '';
-                    $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
-                }
-
-                $act = '<img src=skins/icon_active.gif>' . __('Yes');
-                //finance check
-                if ($cash < '-' . $credit) {
-                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
-                }
-                if ($displayFreezeFlag) {
-                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
-                }
-                //online activity check
-                if ($alter_conf['DN_ONLINE_DETECT']) {
-                    $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
-                    if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
-                        $onlineFlag = '"<img src=skins/icon_star.gif> ' . __('Yes') . '",';
-                    }
-                } else {
-                    $onlineFlag = '';
-                }
-
-                @$clearuseraddress = $detect_address[$eachuser['login']];
-                $clearuseraddress = trim($clearuseraddress);
-                $clearuseraddress = str_replace($filterChars, $filterReplaces, $clearuseraddress);
-
-
-                @$clearRealName = $fioz[$eachuser['login']];
-                $clearRealName = trim($clearRealName);
-                $clearRealName = str_replace($filterChars, $filterReplaces, $clearRealName);
-
-                if (!$alter_conf['DEAD_HIDE']) {
-                    $result.='
-     [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $clearuseraddress . '",
-           
-         "' . $clearRealName . '",
-         "' . $eachuser['IP'] . '",
-         "' . $eachuser['Tariff'] . '",
-         "' . $act . '",
-         ' . $onlineFlag . '    
-         "' . zb_TraffToGb($tinet) . '",
-         "' . round($eachuser['Cash'], 2) . '",
-         "' . round($eachuser['Credit'], 2) . '"
-         ],';
-                } else {
-                    if (!isset($deadUsers[$eachuser['login']])) {
-                        $result.='
-                 [
-                 "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $clearuseraddress . '",
-                     
-                     "' . $fioz[$eachuser['login']] . '",
-                     "' . $eachuser['IP'] . '",
-                     "' . $eachuser['Tariff'] . '",
-                     "' . $act . '",
-                     ' . $onlineFlag . '   
-                     "' . zb_TraffToGb($tinet) . '",
-                     "' . round($eachuser['Cash'], 2) . '",
-                     "' . round($eachuser['Credit'], 2) . '"
-                     ],';
-                    }
-                }
-            }
-        }
-
-        $result = substr($result, 0, -1);
-        $result.='
-    
-    ]
-    }
-        ';
-        /**
-          Мир тебя не полюбил и не полюбит никогда
-          И что бы ты не делал, ведь будет так всегда
-         */
-        return($result);
-    }
-
-    /**
-     * Renders json data for user list
+     * Renders json data for user list. Manual HTML assebly instead of astral calls - for performance reasons.
      *
      * @global array $alter_conf
      *
      * @return string
      */
     function zb_AjaxOnlineDataSourceSafe() {
-
         global $alter_conf;
         $allcontracts = array();
         $allcontractdates = array();
@@ -509,7 +380,15 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
-
+        /**
+          Prevail, the time has come
+          Crush the enemy, one by one
+          Prevail, like a venomous snake
+          Ready to strike and dominate
+          Prevail, we conquer as one
+          Pound the enemy, 'till it's done
+          Prevail!
+         */
         $result = array("aaData" => $jsonAAData);
         return(json_encode($result));
     }
@@ -527,7 +406,7 @@ if ($system->checkForRight('ONLINE')) {
                 $defaultJsonCacheTime = 600;
                 $onlineJsonCache = new UbillingCache();
                 $fastJsonReply = $onlineJsonCache->getCallback('HPONLINEJSON', function () {
-                    return (zb_AjaxOnlineDataSourceFast());
+                    return (zb_AjaxOnlineDataSourceSafe());
                 }, $defaultJsonCacheTime);
                 die($fastJsonReply);
             }
