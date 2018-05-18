@@ -485,7 +485,7 @@ if ($system->checkForRight('ONLINE')) {
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
 
                     if ($ShowContractField) {
-                        $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
+                        $jsonItem[] = @$allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '' );
                     }
 
                     $jsonItem[] = @$fioz[$eachuser['login']];
