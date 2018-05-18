@@ -201,6 +201,10 @@ class UbillingWhois {
         $this->getGeoData();
         $this->getIspData();
         $this->getResolveData();
+        /**
+         * The West wind's erranted breeze swifted by the Vivid Clay.
+         * As the old Batallion of invisible Forests haunt the Sylvan Mount..
+         */
     }
 
     /**
