@@ -23,7 +23,7 @@ if ($system->checkForRight('ONLINE')) {
         $hp_mode = $alter_conf['ONLINE_HP_MODE'];
 
         $ShowContractField = false;
-        if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD'] ) {
+        if (isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) {
             $ShowContractField = true;
         }
 
@@ -38,8 +38,8 @@ if ($system->checkForRight('ONLINE')) {
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
              null, ' .
-                ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
-                ' null,
+                    ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                    ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -51,8 +51,8 @@ if ($system->checkForRight('ONLINE')) {
         } else {
             $columnFilters = '
              null, ' .
-                ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
-                ' null,
+                    ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                    ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -183,7 +183,7 @@ if ($system->checkForRight('ONLINE')) {
 	"bDeferRender": true,
         "bJQueryUI": true,
         "pagingType": "full_numbers",
-        "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "'.__('All').'"]],
+        "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
         "bStateSave": ' . $saveState . '
 
                 } );
@@ -223,7 +223,7 @@ if ($system->checkForRight('ONLINE')) {
     }
 
     /**
-     * Renders json data for large databases. Not using json_encode & manual json assembly to minimaze execution time.
+     * Renders json data for large databases. Not using json_encode & manual json and HTML assembly to minimaze execution time.
      *
      * @global array $alter_conf
      *
@@ -241,14 +241,8 @@ if ($system->checkForRight('ONLINE')) {
         $ucount = 0;
         $deadUsers = array();
         $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
-
-        //alternate view of online module
-        $addrDelimiter = '';
-        if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
-            if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
-                $addrDelimiter = wf_tag('br');
-            }
-        }
+        $filterChars = array('\'', '"');
+        $filterReplaces = array('`', '``');
 
         //hide dead users array
         if ($alter_conf['DEAD_HIDE']) {
@@ -263,8 +257,6 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
-
-
 
         $result = '{';
         $result.='
@@ -304,22 +296,19 @@ if ($system->checkForRight('ONLINE')) {
 
                 @$clearuseraddress = $detect_address[$eachuser['login']];
                 $clearuseraddress = trim($clearuseraddress);
-                $clearuseraddress = str_replace("'", '`', $clearuseraddress);
-                $clearuseraddress = mysql_real_escape_string($clearuseraddress);
+                $clearuseraddress = str_replace($filterChars, $filterReplaces, $clearuseraddress);
 
-                //additional finance links
-                if ($alter_conf['FAST_CASH_LINK']) {
-                    $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#profileending><img src=skins/icon_dollar.gif border=0></a> ';
-                } else {
-                    $fastcashlink = '';
-                }
+
+                @$clearRealName = $fioz[$eachuser['login']];
+                $clearRealName = trim($clearRealName);
+                $clearRealName = str_replace($filterChars, $filterReplaces, $clearRealName);
 
                 if (!$alter_conf['DEAD_HIDE']) {
                     $result.='
      [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress . '",
+     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $clearuseraddress . '",
            
-         "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
+         "' . $clearRealName . '",
          "' . $eachuser['IP'] . '",
          "' . $eachuser['Tariff'] . '",
          "' . $act . '",
@@ -332,9 +321,9 @@ if ($system->checkForRight('ONLINE')) {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $result.='
                  [
-                 "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
+                 "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $clearuseraddress . '",
                      
-                     "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
+                     "' . $fioz[$eachuser['login']] . '",
                      "' . $eachuser['IP'] . '",
                      "' . $eachuser['Tariff'] . '",
                      "' . $act . '",
@@ -354,14 +343,12 @@ if ($system->checkForRight('ONLINE')) {
     ]
     }
         ';
-
+        /**
+          Мир тебя не полюбил и не полюбит никогда
+          И что бы ты не делал, ведь будет так всегда
+         */
         return($result);
     }
-
-    /**
-      Мир тебя не полюбил и не полюбит никогда
-      И что бы ты не делал, ведь будет так всегда
-     */
 
     /**
      * Renders json data for user list
@@ -373,15 +360,15 @@ if ($system->checkForRight('ONLINE')) {
     function zb_AjaxOnlineDataSourceSafe() {
 
         global $alter_conf;
-        $allcontracts       = array();
-        $allcontractdates   = array();
+        $allcontracts = array();
+        $allcontractdates = array();
 
-        $ShowContractField  = false;
-        $ShowContractDate   = false;
-        if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD'] ) {
+        $ShowContractField = false;
+        $ShowContractDate = false;
+        if (isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) {
             $ShowContractField = true;
 
-            if ( isset($alter_conf['ONLINE_SHOW_CONTRACT_DATE']) && $alter_conf['ONLINE_SHOW_CONTRACT_DATE'] ) {
+            if (isset($alter_conf['ONLINE_SHOW_CONTRACT_DATE']) && $alter_conf['ONLINE_SHOW_CONTRACT_DATE']) {
                 $ShowContractDate = true;
             }
         }
@@ -407,7 +394,6 @@ if ($system->checkForRight('ONLINE')) {
                     }
                 }
             }
-
         }
 
         $query = "SELECT * FROM `users`";
