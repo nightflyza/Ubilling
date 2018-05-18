@@ -38,6 +38,46 @@ class UbillingWhois {
     protected $ispData = array();
 
     /**
+     * Current instance IP reverse DNS lookup
+     *
+     * @var string
+     */
+    protected $resolveData = '';
+
+    /**
+     * System cache object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Contains cached geo data as ip=>data
+     *
+     * @var array
+     */
+    protected $cachedGeoData = array();
+
+    /**
+     * Contains cached isp data as ip=>data
+     *
+     * @var array
+     */
+    protected $cachedIspData = array();
+
+    /**
+     * Contains cached reverse DNS lookups data as ip=>hostname
+     *
+     * @var array
+     */
+    protected $cachedResolveData = array();
+
+    /**
+     * Data caching timeout
+     */
+    const CACHE_TIMEOUT = 2592000;
+
+    /**
      * Some URLs for requesting of IP data
      */
     const URL_GEO = 'http://api.2ip.ua/geo.json?ip=';
@@ -57,6 +97,7 @@ class UbillingWhois {
             throw new Exception("EX_EMPTY_IP");
         }
 
+        $this->initCache();
         $this->loadIpData();
         $this->preprocessLoadedData();
     }
@@ -73,13 +114,36 @@ class UbillingWhois {
     }
 
     /**
+     * Creates new cache instance for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
+    }
+
+    /**
      * Requests geo data by remote API
      * 
      * @return void
      */
     protected function getGeoData() {
-        $request = self::URL_GEO . $this->ip;
-        $this->geoDataRaw = file_get_contents($request);
+        $this->cachedGeoData = $this->cache->get('WHOIS_GEO', self::CACHE_TIMEOUT);
+        if (!empty($this->cachedGeoData)) {
+            if (isset($this->cachedGeoData[$this->ip])) {
+                $this->geoDataRaw = $this->cachedGeoData[$this->ip];
+            } else {
+                $request = self::URL_GEO . $this->ip;
+                $this->geoDataRaw = file_get_contents($request);
+                $this->cachedGeoData[$this->ip] = $this->geoDataRaw;
+                $this->cache->set('WHOIS_GEO', $this->cachedGeoData, self::CACHE_TIMEOUT);
+            }
+        } else {
+            $request = self::URL_GEO . $this->ip;
+            $this->geoDataRaw = file_get_contents($request);
+            $this->cachedGeoData[$this->ip] = $this->geoDataRaw;
+            $this->cache->set('WHOIS_GEO', $this->cachedGeoData, self::CACHE_TIMEOUT);
+        }
     }
 
     /**
@@ -88,8 +152,44 @@ class UbillingWhois {
      * @return void
      */
     protected function getIspData() {
-        $request = self::URL_ISP . $this->ip;
-        $this->ispDataRaw = file_get_contents($request);
+        $this->cachedIspData = $this->cache->get('WHOIS_ISP', self::CACHE_TIMEOUT);
+        if (!empty($this->cachedIspData)) {
+            if (isset($this->cachedIspData[$this->ip])) {
+                $this->ispDataRaw = $this->cachedIspData[$this->ip];
+            } else {
+                $request = self::URL_ISP . $this->ip;
+                $this->ispDataRaw = file_get_contents($request);
+                $this->cachedIspData[$this->ip] = $this->ispDataRaw;
+                $this->cache->set('WHOIS_ISP', $this->cachedIspData, self::CACHE_TIMEOUT);
+            }
+        } else {
+            $request = self::URL_ISP . $this->ip;
+            $this->ispDataRaw = file_get_contents($request);
+            $this->cachedIspData[$this->ip] = $this->ispDataRaw;
+            $this->cache->set('WHOIS_ISP', $this->cachedIspData, self::CACHE_TIMEOUT);
+        }
+    }
+
+    /**
+     * Requests reverse DNS lookup for some IP
+     * 
+     * @return
+     */
+    protected function getResolveData() {
+        $this->cachedResolveData = $this->cache->get('RESOLVE', self::CACHE_TIMEOUT);
+        if (!empty($this->cachedResolveData)) {
+            if (isset($this->cachedResolveData[$this->ip])) {
+                $this->resolveData = $this->cachedResolveData[$this->ip];
+            } else {
+                $this->resolveData = gethostbyaddr($this->ip);
+                $this->cachedResolveData[$this->ip] = $this->resolveData;
+                $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
+            }
+        } else {
+            $this->resolveData = gethostbyaddr($this->ip);
+            $this->cachedResolveData[$this->ip] = $this->resolveData;
+            $this->cache->set('RESOLVE', $this->cachedResolveData, self::CACHE_TIMEOUT);
+        }
     }
 
     /**
@@ -100,6 +200,7 @@ class UbillingWhois {
     protected function loadIpData() {
         $this->getGeoData();
         $this->getIspData();
+        $this->getResolveData();
     }
 
     /**
@@ -125,6 +226,7 @@ class UbillingWhois {
     public function dumpData() {
         debarr($this->ispData);
         debarr($this->geoData);
+        debarr($this->resolveData);
     }
 
     /**
@@ -139,7 +241,7 @@ class UbillingWhois {
         if ((!empty($this->geoData->latitude)) AND ( !empty($this->geoData->longitude))) {
             global $ubillingConfig;
             $ymconf = $ubillingConfig->getYmaps();
-            
+
             $result = wf_tag('div', false, '', 'id="ubmap" style="width: 100%; height:400px;"');
             $result.=wf_tag('div', true);
             $placemarks = sm_MapAddMark($this->geoData->latitude . ',' . $this->geoData->longitude);
@@ -164,6 +266,9 @@ class UbillingWhois {
 
             $cells = wf_TableCell(__('IP'), '', 'row2');
             $cells.= wf_TableCell($this->ispData->ip);
+            $rows.=wf_TableRow($cells, 'row3');
+            $cells = wf_TableCell(__('Reverse DNS'), '', 'row2');
+            $cells.= wf_TableCell($this->resolveData);
             $rows.=wf_TableRow($cells, 'row3');
             $cells = wf_TableCell(__('RIPE name'), '', 'row2');
             $cells.= wf_TableCell(@$this->ispData->name_ripe);
