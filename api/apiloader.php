@@ -115,6 +115,7 @@ include('api/libs/api.onudescribe.php');
 include('api/libs/api.onumaster.php');
 include('api/libs/api.smszilla.php');
 include('api/libs/api.ldap.php');
+include('api/libs/api.multigen.php');
 
 /*
  * Initial class creation
