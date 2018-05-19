@@ -4,4 +4,7 @@
 error_reporting(E_ALL);
 
 
+$mg=new MultiGen();
+debarr($mg);
+
 ?>
