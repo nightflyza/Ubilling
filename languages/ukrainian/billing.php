@@ -2886,5 +2886,6 @@ $lang['def']['Tariff period'] = 'Період тарифікації';
 $lang['def']['We have found some non unique IP addresses and excluded duplicates from processing'] = 'Мы знайшли неунікальні записи та виключили їх з обробки';
 $lang['def']['Use contract same as UID'] = 'Використовувати UID як номер договору';
 $lang['def']['Resolve hostnames'] = 'Визначити хостнейми';
+$lang['def']['Not found'] = 'Не знайдено';
 
 ?>

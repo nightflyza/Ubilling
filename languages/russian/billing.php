@@ -2870,6 +2870,7 @@ $lang['def']['Tariff period'] = 'Период тарификации';
 $lang['def']['We have found some non unique IP addresses and excluded duplicates from processing'] = 'Мы нашли неуникальные записи и исключили их из обработки';
 $lang['def']['Use contract same as UID'] = 'Использовать UID как номер договора';
 $lang['def']['Resolve hostnames'] = 'Определить хостнеймы';
+$lang['def']['Not found'] = 'Не найден';
 $lang['def'][''] = '';
 
 

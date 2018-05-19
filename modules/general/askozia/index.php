@@ -238,7 +238,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 if ($each[0] != 'accountcode') {
                     //Askozia CFE fix
                     if (sizeof($each) > 25) {
-                        array_splice($each,3,1);
+                        array_splice($each, 3, 1);
                     }
                     $callsCounter++;
                     $debugData = wf_tag('pre') . print_r($each, true) . wf_tag('pre', true);
@@ -828,6 +828,83 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Renders numlog stats if it exists
+     * 
+     * @return void
+     */
+    function zb_AskoziaRenderNumLog() {
+        global $ubillingConfig;
+        $billCfg = $ubillingConfig->getBilling();
+        $logPath = AskoziaNum::LOG_PATH;
+        $catPath = $billCfg['CAT'];
+        $grepPath = $billCfg['GREP'];
+        $replyOffset = 5;
+        $numberOffset = 2;
+        $loginOffset = 7;
+        $replyCount = 0;
+        $replyStats = array();
+        $replyNames = array(
+            0 => __('Not found'),
+            1 => __('Active'),
+            2 => __('Debt'),
+            3 => __('Frozen')
+        );
+
+        $result = '';
+        if (file_exists($logPath)) {
+            if (!wf_CheckPost(array('numyear', 'nummonth'))) {
+                $curYear = curyear();
+                $curMonth = date("m");
+            } else {
+                $curYear = vf($_POST['numyear'], 3);
+                $curMonth = vf($_POST['nummonth'], 3);
+            }
+            $parseDate = $curYear . '-' . $curMonth;
+
+            $dateInputs = wf_YearSelectorPreset('numyear', __('Year'), false, $curYear) . ' ';
+            $dateInputs.= wf_MonthSelector('nummonth', __('Month'), $curMonth, false) . ' ';
+            $dateInputs.= wf_Submit(__('Show'));
+            $result.=wf_Form('', 'POST', $dateInputs, 'glamour');
+
+            $rawLog = shell_exec($catPath . ' ' . $logPath . ' | ' . $grepPath . ' ' . $parseDate . '-');
+            if (!empty($rawLog)) {
+                $rawLog = explodeRows($rawLog);
+                if (!empty($rawLog)) {
+                    foreach ($rawLog as $io => $each) {
+                        if (!empty($each)) {
+                            $line = explode(' ', $each);
+                            $callReply = $line[$replyOffset];
+                            if (isset($replyStats[$callReply])) {
+                                $replyStats[$callReply] ++;
+                            } else {
+                                $replyStats[$callReply] = 1;
+                            }
+                            $replyCount++;
+                        }
+                    }
+
+                    if (!empty($replyStats)) {
+                        $cells = wf_TableCell(__('Reply'));
+                        $cells.=wf_TableCell(__('Count'));
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($replyStats as $replyCode => $callsCount) {
+                            $cells = wf_TableCell($replyNames[$replyCode]);
+                            $cells.=wf_TableCell($callsCount);
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                        $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                        $result.=__('Total') . ': ' . $replyCount;
+                    }
+                }
+            }
+
+            if (filesize($logPath) > 10) {
+                show_window(__('Stats') . ' AskoziaNum ' . $curYear . '-' . $curMonth, $result);
+            }
+        }
+    }
+
     if (cfr('ASKOZIA')) {
 
 //loading askozia config
@@ -895,6 +972,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
     } else {
         if (!wf_CheckGet(array('config'))) {
             zb_AskoziaGetCurrentStatus();
+            zb_AskoziaRenderNumLog();
         }
     }
 } else {
