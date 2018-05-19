@@ -128,7 +128,9 @@ class UbillingDHCP {
     public function renderPanel() {
         $result = '';
         $result.=wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Add DHCP network'), __('Add DHCP network'), $this->addForm(), 'ubButton') . ' ';
+        $result.= wf_Link('?module=dhcplog', wf_img('skins/log_icon_small.png') . ' ' . __('View log'), false, 'ubButton') . ' ';
         $result.= wf_Link(self::URL_ME . '&restartserver=true', wf_img('skins/refresh.gif') . ' ' . __('Restart DHCP server'), false, 'ubButton');
+
         return ($result);
     }
 

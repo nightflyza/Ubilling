@@ -2887,5 +2887,6 @@ $lang['def']['We have found some non unique IP addresses and excluded duplicates
 $lang['def']['Use contract same as UID'] = 'Використовувати UID як номер договору';
 $lang['def']['Resolve hostnames'] = 'Визначити хостнейми';
 $lang['def']['Not found'] = 'Не знайдено';
+$lang['def']['View log'] = 'Перегляд журналу';
 
 ?>

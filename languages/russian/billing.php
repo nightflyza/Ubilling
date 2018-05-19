@@ -2871,6 +2871,7 @@ $lang['def']['We have found some non unique IP addresses and excluded duplicates
 $lang['def']['Use contract same as UID'] = 'Использовать UID как номер договора';
 $lang['def']['Resolve hostnames'] = 'Определить хостнеймы';
 $lang['def']['Not found'] = 'Не найден';
+$lang['def']['View log'] = 'Просмотр лога';
 $lang['def'][''] = '';
 
 
