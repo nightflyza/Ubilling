@@ -1927,6 +1927,10 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                                     $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
                                 }
                             }
+
+                            if ($altCfg['MULTIGEN_ENABLED']) {
+                                $actions .= wf_Link('?module=multigen&editnasoptions=' . $data['id'], web_icon_settings(__('Configure Multigen NAS')));
+                            }
                             $cells .= wf_TableCell($data[$key]);
                             break;
                         default:
@@ -2024,7 +2028,7 @@ function web_NasAddForm() {
 
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
     $inputs.= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
-    $inputs.= wf_TextInput('newnasip', __('IP'), '', true,'15','ip');
+    $inputs.= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
     $inputs.= wf_TextInput('newnasname', __('NAS name'), '', true);
     $inputs.= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
     $inputs.= wf_Submit(__('Create'));
