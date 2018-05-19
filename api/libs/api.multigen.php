@@ -24,6 +24,13 @@ class MultiGen {
     protected $allNas = array();
 
     /**
+     * Contains array of NASes served networks as netid=>nas
+     *
+     * @var array
+     */
+    protected $networkNases = array();
+
+    /**
      * Contains available nethosts as ip=>data
      *
      * @var array
@@ -85,6 +92,7 @@ class MultiGen {
         if (!empty($nasesRaw)) {
             foreach ($nasesRaw as $io => $each) {
                 $this->allNas[$each['id']] = $each;
+                $this->networkNases[$each['netid']] = $each['id'];
             }
         }
     }
@@ -100,7 +108,7 @@ class MultiGen {
         if (!empty($nethostsRaw)) {
             foreach ($nethostsRaw as $io => $each) {
                 $this->allNetHosts[$each['ip']] = $each;
-                $this->nethostsNetworks[$each['ip']]=$each['netid'];
+                $this->nethostsNetworks[$each['ip']] = $each['netid'];
             }
         }
     }
