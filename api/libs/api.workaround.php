@@ -484,7 +484,7 @@ function zb_CheckTableExists($tablename) {
  * @param float   $tariff_price
  * @return string
  */
-function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $tariff_price = '') {
+function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $tariff_price = '', $userrealname = '') {
     global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
@@ -525,6 +525,12 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $cells = wf_TableCell(__('User'), '', 'row2');
     $cells.= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
+
+    if ( !empty($userrealname) ) {
+        $cells = wf_TableCell('', '', 'row2');
+        $cells.= wf_TableCell($userrealname, '', 'row3');
+        $rows.= wf_TableRow($cells);
+    }
 
     $cells = wf_TableCell($field1, '', 'row2');
     $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true), '', 'row3');

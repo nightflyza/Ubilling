@@ -447,6 +447,24 @@ class UserProfile {
     }
 
     /**
+     * returns private realname property to external scope
+     *
+     * @return array
+     */
+    public function extractUserRealName(){
+        return ($this->realname);
+    }
+
+    /**
+     * returns private contract property to external scope
+     *
+     * @return array
+     */
+    public function extractUserContract(){
+        return ($this->contract);
+    }
+
+    /**
      * returns prepared main profile body row with two data cells
      * 
      * @param string $header Header cell data that will be displayed left
