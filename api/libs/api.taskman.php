@@ -1344,7 +1344,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     if ($altercfg['SENDDOG_ENABLED']) {
         //SMS sending
         if (isset($_POST['newtasksendsms'])) {
-            $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+            $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttime;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
             if (!empty($smsDataRaw)) {
                 $smsData = serialize($smsDataRaw);
@@ -1506,7 +1506,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $smsData = 'NULL';
     //SMS sending
     if (isset($_POST['changetasksendsms'])) {
-        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttime;
         $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
         if (!empty($smsDataRaw)) {
             $smsData = serialize($smsDataRaw);

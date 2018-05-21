@@ -132,11 +132,12 @@ class MessagesQueue {
     protected function telegramPreview($data) {
         $result = '';
         if (!empty($data)) {
+            $messageText = nl2br($data['message']);
             $dataCells = wf_TableCell(__('Chat ID'), '', 'row2');
             $dataCells.= wf_TableCell($data['chatid']);
             $dataRows = wf_TableRow($dataCells, 'row3');
-            $dataCells = wf_TableCell(__('Message'), '', 'row2');
-            $dataCells.= wf_TableCell($data['message']);
+            $dataCells = wf_TableCell(__('Message'), '', 'row2','valign="top"');
+            $dataCells.= wf_TableCell($messageText);
             $dataRows.= wf_TableRow($dataCells, 'row3');
             $result = wf_TableBody($dataRows, '100%', '0', 'glamour');
         }
