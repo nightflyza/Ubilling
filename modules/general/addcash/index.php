@@ -39,6 +39,7 @@ if (cfr('CASH')) {
         $user_data = $profile->extractUserData();
         $current_balance = $user_data['Cash'];
         $useraddress = $profile->extractUserAddress() . ' (' . $login . ')';
+        $userrealname = $profile->extractUserRealName() . ' (' . $profile->extractUserContract() . ')';
 
         // Edit money form construct:
         $user_tariff = $user_data['Tariff'];
@@ -48,7 +49,7 @@ if (cfr('CASH')) {
 
         $form = '';
         $form.= wf_FormDisabler();
-        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price);
+        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
         
 
 
