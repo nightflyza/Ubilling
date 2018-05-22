@@ -956,7 +956,7 @@ class PONizer {
                 //signal is present
                 if (isset($line[0])) {
                     $tmpOIDParamaterPiece = substr(trim($line[0]), 0, 1);
-                    $tmpONUPortLLID = substr(trim($line[0]), -3);
+                    $tmpONUPortLLID = substr(trim($line[0]), 2);
 
                     // just because we can't(I dunno why - honestly) just query the
                     // .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.6 and .1.3.6.1.4.1.37950.1.1.5.12.2.1.8.1.7 OIDs
