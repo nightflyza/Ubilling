@@ -3,6 +3,8 @@ DEVICE=Dlink-DES-3226S
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="25,26"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

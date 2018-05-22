@@ -2,7 +2,8 @@
 DEVICE="Foxgate S6208-S1"
 FDB=true
 FDB_IGNORE_PORTS=9
-
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

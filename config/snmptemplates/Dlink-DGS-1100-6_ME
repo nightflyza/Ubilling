@@ -4,6 +4,8 @@ DEVICE=DGS-1100-6_ME
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="6"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

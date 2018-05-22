@@ -4,6 +4,8 @@ DEVICE=Dlink-3200-10
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="9,10"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"
