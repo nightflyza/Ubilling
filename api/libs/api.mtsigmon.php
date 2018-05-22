@@ -403,12 +403,14 @@ class MTsigmon {
  * .1.3.6.1.4.1.14988.1.1.1.3.1.4       - AP ssid
  * .1.3.6.1.4.1.14988.1.1.1.3.1.7       - AP freq
  * .1.3.6.1.4.1.14988.1.1.1.3.1.8       - AP band
+ * .1.3.6.1.2.1.2.2.1.6.1               - AP wireless MAC
  *
  *
  * Ubiquity b/g/n AirOS version >= 5.6
  * .1.3.6.1.4.1.41112.1.4.1.1.4       - AP freq
  * .1.3.6.1.4.1.41112.1.4.5.1.2       - AP ssid
  * .1.3.6.1.4.1.41112.1.4.5.1.14      - AP channel width
+ * .1.2.840.10036.1.1.1.1.5           - AP wireless MAC
  *
  *
  * Ubiquity b/g
@@ -491,6 +493,11 @@ class MTsigmon {
                 $tmpOID = '.1.3.6.1.2.1.25.3.3.1.2.1';
                 $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
                 $MTikCPULoad = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+
+                // Device MAC for Mikrotik
+                $tmpOID = '.1.3.6.1.2.1.2.2.1.6.1';
+                $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
+                $APMAC = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : $this->getMACFromSNMPStr($tmpSNMP);
             } else {
         // now suppose it's Ubnt AirOS version >= 5.6
                 $tmpOID = '.1.3.6.1.4.1.41112.1.4.1.1.4';
@@ -506,6 +513,12 @@ class MTsigmon {
                     $tmpOID = '.1.3.6.1.4.1.41112.1.4.5.1.14';
                     $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
                     $APBandChWidth = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : trim(substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
+
+                    // Device MAC for Loco M2
+                    $tmpOID = '.1.2.840.10036.1.1.1.1.5';
+                    $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
+                    $APMAC = (empty($tmpSNMP) && $tmpSNMP === "$tmpOID = ") ? '' : $this->getMACFromSNMPStr($tmpSNMP);
+
                 } else {
         // now suppose it's Ligowave DLB
                     $tmpOID = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
@@ -541,7 +554,16 @@ class MTsigmon {
                             $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
                             $APBandChWidth = ( empty($tmpSNMP) && $tmpSNMP === "$tmpOID = " ) ? '' : trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) );
                         } else {
-                        //    WHAT A HELL ARE YOU?!
+                             // Device MAC for UBNT
+
+                            $tmpOID = '.1.2.840.10036.1.1.1.1.5';
+                            $tmpSNMP = $this->snmp->walk($APIP, $APCommunity, $tmpOID, false);
+
+                            if ( !empty($tmpSNMP) && $tmpSNMP !== "$tmpOID = " ) {
+                                $APMAC = $this->getMACFromSNMPStr($tmpSNMP);
+                            } else {
+                            //    WHAT A HELL ARE YOU?!
+                            }
                         }
                     }
 
@@ -627,6 +649,10 @@ class MTsigmon {
 
     /**
      * Returns MAC in 'XX:XX:XX:XX:XX:XX' format from something like this: '.1.3.6.1.2.1.2.2.1.6.1 = Hex-STRING: E4 8D 8C 27 2F 7B'
+     * or
+     * Returns MAC in 'XX:XX:XX:XX:XX:XX' format from something like this: '.1.2.840.10036.1.1.1.1.5 = STRING: "00:27:22:90:11:AE"'
+     * or
+     * Returns MAC in 'XX:XX:XX:XX:XX:XX' format from something like this: '.1.3.6.1.2.1.2.2.1.6.1 = STRING: 0:c:42:da:af:4'
      *
      * @param $SNMPString
      *
@@ -636,12 +662,14 @@ class MTsigmon {
         $APMAC = '';
         $MACDelimiter = ( empty($MACDelimiter)) ? ':' : $MACDelimiter;
 
-        $tmpArray = explode(': ', $SNMPString);
-        if ( isset($tmpArray[1]) ) {
-            $tmpArray = explode(' ', $tmpArray[1]);
+        $tmpOidDataArray = explode(': ', $SNMPString);
+        if ( isset($tmpOidDataArray[1]) ) {
+            $tmpData = trim($tmpOidDataArray[1]);
+            $tmpData = preg_replace('/"/', '', $tmpData);
+            $tmpDataArray = preg_split('/[\s:]+/', $tmpData); // alternative for function explode for two and more parametrs
 
-            if ( isset($tmpArray[0]) ) {
-                $APMAC = trim(implode($MACDelimiter, array_pop($tmpArray)), $MACDelimiter);
+            if (count($tmpDataArray) == 6) {
+                $APMAC = vsprintf('%02s' . $MACDelimiter . '%02s' . $MACDelimiter . '%02s' . $MACDelimiter . '%02s' . $MACDelimiter . '%02s' . $MACDelimiter . '%02s', $tmpDataArray);
             }
         }
 
@@ -665,6 +693,7 @@ class MTsigmon {
 
             $oid  = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
             $oid2 = '.1.3.6.1.4.1.14988.1.1.1.2.1.19';  // - TX Signal Strength
+            $oid3 = '.1.2.840.10036.1.1.1.1.5';        // - MAC adress of Device WLAN interface
             $mask_mac = false;
             $ubnt_shift = 0;
             $result = array();
@@ -677,6 +706,7 @@ class MTsigmon {
             $this->snmp->setMode('native');
             $tmpSnmp  = $this->snmp->walk($ip, $community, $oid, false);
             $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
+            $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
             // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
             // in AirOS 5.6 and newer
@@ -702,6 +732,33 @@ class MTsigmon {
                 $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
             }*/
 
+            $APMAC = '';
+            // Check and write MAC adress of Device WLAN interface
+            // For AirOS 5.6 and newer
+            if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
+            } else {
+                // For Ligowave DLB
+                $oid3 = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
+                $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
+
+                if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                    $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
+                } else {
+                    // For Mikrotik
+                    $oid3 = '.1.3.6.1.2.1.2.2.1.6.1';
+                    $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
+
+                    if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                        $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
+                    }
+                }
+            }
+
+            // Write Device MAC address to file
+            if (!empty($APMAC)) {
+                file_put_contents('exports/' . $ip . '_MAC', strtolower($APMAC));
+            }
 
             if (!empty($tmpSnmp) and ( $tmpSnmp !== "$oid = ")) {
                 $explodeData = explodeRows($tmpSnmp);
