@@ -838,7 +838,7 @@ function web_SwitchesShow() {
                         $switchesGeo = zb_SwitchesGetAllGeo();
                     }
                     //ajax container
-                    $ajaxResult.=wf_tag('div', false, '', 'id="switchping"');
+                    $ajaxResult.= wf_tag('div', false, '', 'id="switchping"');
 
                     foreach ($deadarr as $ip => $switch) {
                         if ($alterconf['SWYMAP_ENABLED']) {
@@ -1011,7 +1011,7 @@ function web_SwitchesShow() {
 function web_SwitchesRenderList() {
     $result = '';
     $summaryCache = 'exports/switchcounterssummary.dat';
-    $columns = array('ID', 'IP', 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+    $columns = array('ID', 'IP', 'MAC', 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
     $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
     if (file_exists($summaryCache)) {
@@ -1085,8 +1085,18 @@ function zb_SwitchesRenderAjaxList() {
                 }
             }
 
+            $deviceMac = '';
+            $deviceMacCache = 'exports/' . $eachswitch['ip'] . '_MAC';
+            if (file_exists($deviceMacCache)) {
+                $deviceMac = file_get_contents($deviceMacCache);
+                if (!empty($deviceMac) and $deviceMac != $eachswitch['swid']) {
+                    $deviceMac = $deviceMac . ' ' . wf_img('skins/createtask.gif', __('MAC mismatch')) . ' ' . __('Oh no');
+                }
+            }
+
             $jsonItem[] = $eachswitch['id'];
             $jsonItem[] = $eachswitch['ip'];
+            $jsonItem[] = $deviceMac;
             $jsonItem[] = $eachswitch['location'];
             $jsonItem[] = $aliveled;
             $jsonItem[] = @$modelnames[$eachswitch['modelid']];
