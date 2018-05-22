@@ -4,6 +4,8 @@ DEVICE=Dlink-DES-3200-18
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="17,18"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

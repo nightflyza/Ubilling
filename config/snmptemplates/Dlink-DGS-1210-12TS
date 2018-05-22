@@ -3,6 +3,8 @@ DEVICE=Dlink-DGS-1210-12TS
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="10"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

@@ -3,6 +3,8 @@ DEVICE=Dlink-DGS-1500-20
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="17,18,19,20"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

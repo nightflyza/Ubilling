@@ -3,6 +3,8 @@ DEVICE="Foxgate S6424-S2C2"
 FDB=true
 FDB_MODE=default
 FDB_IGNORE_PORTS="28"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

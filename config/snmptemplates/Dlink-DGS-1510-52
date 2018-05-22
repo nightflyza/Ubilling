@@ -3,6 +3,8 @@ DEVICE=Dlink-DGS-1510-52
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS=
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"
