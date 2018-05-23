@@ -650,6 +650,17 @@ function zb_AddressGetAptData($login) {
 }
 
 /**
+ * Returns all address login to apt bindings data
+ * 
+ * @return array
+ */
+function zb_AddressGetAddressAllData() {
+    $query = "SELECT * from `address`";
+    $result = simple_queryall($query);
+    return ($result);
+}
+
+/**
  * Returns some apartment data by its ID
  * 
  * @param int $aptid
