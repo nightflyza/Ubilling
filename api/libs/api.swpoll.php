@@ -818,7 +818,6 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 if ($deviceMACMode == 'default') {
                     //default for many D-link HP JunOS
                     $MacOfDevice = $snmp->walk($ip, $community, '.1.0.8802.1.1.2.1.3.2.0', true);
-                    print($MacOfDevice);
                 } else {
                     /* Need Tests
                     if ($deviceMACMode == 'dlp') {
