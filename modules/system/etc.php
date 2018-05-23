@@ -81,7 +81,7 @@ function rcms_redirect($url, $header = false) {
     if ($header) {
         @header('Location: ' . $url);
     } else {
-        echo '<script language="javascript">document.location.href="' . $url . '";</script>';
+        print('<script language="javascript">document.location.href="' . $url . '";</script>');
     }
 }
 
