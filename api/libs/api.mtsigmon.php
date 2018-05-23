@@ -690,6 +690,8 @@ class MTsigmon {
         if ( isset($this->allMTSnmp[$mtid]['community']) or (!empty($WiFiCPEIP) and !empty($WiFiCPEMAC)) ) {
             $ip = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['ip'] : $WiFiCPEIP;
             $community = ( empty($WiFiCPEIP) ) ? $this->allMTSnmp[$mtid]['community'] : $WiFiCPECommunity;
+            global $ubillingConfig;
+            $alterCfg = $ubillingConfig->getAlter();
 
             $oid  = '.1.3.6.1.4.1.14988.1.1.1.2.1.3';    // - RX Signal Strength
             $oid2 = '.1.3.6.1.4.1.14988.1.1.1.2.1.19';  // - TX Signal Strength
@@ -732,32 +734,34 @@ class MTsigmon {
                 $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
             }*/
 
-            $APMAC = '';
-            // Check and write MAC adress of Device WLAN interface
-            // For AirOS 5.6 and newer
-            if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
-                $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
-            } else {
-                // For Ligowave DLB
-                $oid3 = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
-                $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
-
+            if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM']) {
+                $APMAC = '';
+                // Check and write MAC adress of Device WLAN interface
+                // For AirOS 5.6 and newer
                 if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
                     $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
                 } else {
-                    // For Mikrotik
-                    $oid3 = '.1.3.6.1.2.1.2.2.1.6.1';
+                    // For Ligowave DLB
+                    $oid3 = '.1.3.6.1.4.1.32750.3.10.1.2.1.1.1';
                     $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
                     if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
                         $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
+                    } else {
+                        // For Mikrotik
+                        $oid3 = '.1.3.6.1.2.1.2.2.1.6.1';
+                        $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
+
+                        if (!empty($tmpSnmp3) && $tmpSnmp3 !== "$oid3 = " ) {
+                            $APMAC = $this->getMACFromSNMPStr($tmpSnmp3);
+                        }
                     }
                 }
-            }
 
-            // Write Device MAC address to file
-            if (!empty($APMAC)) {
-                file_put_contents('exports/' . $ip . '_MAC', strtolower($APMAC));
+                // Write Device MAC address to file
+                if (!empty($APMAC)) {
+                    file_put_contents('exports/' . $ip . '_MAC', strtolower($APMAC));
+                }
             }
 
             if (!empty($tmpSnmp) and ( $tmpSnmp !== "$oid = ")) {
