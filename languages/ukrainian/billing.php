@@ -2889,8 +2889,10 @@ $lang['def']['Resolve hostnames'] = 'Визначити хостнейми';
 $lang['def']['Not found'] = 'Не знайдено';
 $lang['def']['View log'] = 'Перегляд журналу';
 $lang['def']['Districts'] = 'Райони';
+$lang['def']['District'] = 'Район';
 $lang['def']['Districts directory'] = 'Довідник районів';
 $lang['def']['Right to manage districts'] = 'Право керувати районами';
 $lang['def']['Receiving and displaying the MAC address of the devices by the SNMP is enabled'] = 'Отримання і відображення MAC-адреси пристроїв за допомогою SNMP включено';
+$lang['def']['Places'] = 'Місця';
 
 ?>

@@ -2873,10 +2873,11 @@ $lang['def']['Resolve hostnames'] = 'Определить хостнеймы';
 $lang['def']['Not found'] = 'Не найден';
 $lang['def']['View log'] = 'Просмотр лога';
 $lang['def']['Districts'] = 'Районы';
+$lang['def']['District'] = 'Район';
 $lang['def']['Districts directory'] = 'Справочник районов';
 $lang['def']['Right to manage districts'] = 'Право управлять районами';
 $lang['def']['Receiving and displaying the MAC address of the devices by the SNMP is enabled'] = 'Получение и отображение MAC-адреса устройств с помощью SNMP включено';
-$lang['def'][''] = '';
+$lang['def']['Places'] = 'Места';
 $lang['def'][''] = '';
 
 

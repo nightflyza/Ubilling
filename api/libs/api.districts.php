@@ -10,6 +10,13 @@ class Districts {
     protected $allDistricts = array();
 
     /**
+     * Contains array of available districts data as id=>data
+     *
+     * @var array
+     */
+    protected $allDistrictData = array();
+
+    /**
      * Contains available cities as id=>data
      *
      * @var array
@@ -61,14 +68,17 @@ class Districts {
      * 
      * @return void
      */
-    public function __construct() {
+    public function __construct($fullLoaders = false) {
         $this->initMessages();
         $this->loadDistricts();
-        $this->loadCityData();
-        $this->loadStreetData();
-        $this->loadBuildData();
-        $this->loadAptData();
-        $this->loadAddressData();
+        if ($fullLoaders) {
+            $this->loadDistrictData();
+            $this->loadCityData();
+            $this->loadStreetData();
+            $this->loadBuildData();
+            $this->loadAptData();
+            $this->loadAddressData();
+        }
     }
 
     /**
@@ -91,6 +101,21 @@ class Districts {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->allDistricts[$each['id']] = $each['name'];
+            }
+        }
+    }
+
+    /**
+     * Loads existing districts data from database
+     * 
+     * @return void
+     */
+    protected function loadDistrictData() {
+        $query = "SELECT * from `districtdata`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->allDistrictData[$each['id']] = $each;
             }
         }
     }
@@ -224,6 +249,8 @@ class Districts {
             $districtName = $this->allDistricts[$districtId];
             $query = "DELETE FROM `districtnames` WHERE `id`='" . $districtId . "';";
             nr_query($query);
+            $query = "DELETE FROM `districtdata` WHERE `districtid`='" . $districtId . "';";
+            nr_query($query);
             log_register('DISTRICT DELETE [' . $districtId . '] `' . $districtName . '`');
         }
     }
@@ -301,8 +328,6 @@ class Districts {
     public function renderDistrictDataCreateForm($districtId) {
         $districtId = vf($districtId, 3);
         $result = '';
-        $result.=wf_BackLink(self::URL_ME);
-        $result.=wf_CleanDiv() . wf_delimiter();
         $inputs = '';
 
         if (!wf_CheckPost(array('citysel'))) {
@@ -344,14 +369,14 @@ class Districts {
                     $query = "INSERT INTO `districtdata` (`id`,`districtid`,`cityid`,`streetid`,`buildid`) VALUES "
                             . "(NULL,'" . $districtId . "','" . $cityId . "',NULL,NULL);";
                     nr_query($query);
-                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . ']');
+                    log_register('DISTRICT DATACREATE [' . $districtId . '] CITY [' . $cityId . ']');
                 }
                 //city with street
                 if ((!empty($streetId)) AND ( empty($buildsArr)) AND ( !empty($cityId))) {
                     $query = "INSERT INTO `districtdata` (`id`,`districtid`,`cityid`,`streetid`,`buildid`) VALUES "
                             . "(NULL,'" . $districtId . "','" . $cityId . "','" . $streetId . "',NULL);";
                     nr_query($query);
-                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . ']');
+                    log_register('DISTRICT DATACREATE [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . ']');
                 }
 
                 //city->street->build
@@ -363,9 +388,81 @@ class Districts {
                         nr_query($query);
                         $buildCount++;
                     }
-                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . '] BUILDCOUNT `' . $buildCount . '`');
+                    log_register('DISTRICT DATACREATE [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . '] BUILDCOUNT `' . $buildCount . '`');
                 }
             }
+        }
+    }
+
+    /**
+     * Returns district name by its ID
+     * 
+     * @param int $districtId
+     * 
+     * @return string
+     */
+    public function getDistrictName($districtId) {
+        $districtId = vf($districtId, 3);
+        $result = '';
+        if (isset($this->allDistricts[$districtId])) {
+            $result = $this->allDistricts[$districtId];
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders available district data with some controls
+     * 
+     * @param int $districtId
+     * 
+     * @return string
+     */
+    public function renderDistrictData($districtId) {
+        $districtId = vf($districtId, 3);
+        $result = '';
+        if (!empty($this->allDistrictData)) {
+            $cells = wf_TableCell(__('ID'));
+            $cells.=wf_TableCell(__('District'));
+            $cells.=wf_TableCell(__('City'));
+            $cells.=wf_TableCell(__('Street'));
+            $cells.=wf_TableCell(__('Build'));
+            $cells.=wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+
+            foreach ($this->allDistrictData as $io => $each) {
+                if ($each['districtid'] == $districtId) {
+                    $cells = wf_TableCell($each['id']);
+                    $cells.=wf_TableCell(@$this->allDistricts[$each['districtid']]);
+                    $cells.=wf_TableCell(@$this->allCities[$each['cityid']]['cityname']);
+                    $cells.=wf_TableCell(@$this->allStreets[$each['streetid']]['streetname']);
+                    $cells.=wf_TableCell(@$this->allBuilds[$each['buildid']]['buildnum']);
+                    $actLinks = wf_JSAlert(self::URL_ME . '&editdistrict=' . $districtId . '&deletedata=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.=wf_TableCell($actLinks);
+                    $rows.= wf_TableRow($cells, 'row5');
+                }
+            }
+
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes some district data row from database
+     * 
+     * @param int $dataId
+     * 
+     * @return void
+     */
+    public function deleteDistrictData($dataId) {
+        $dataId = vf($dataId, 3);
+        if (isset($this->allDistrictData[$dataId])) {
+            $districtId = $this->allDistrictData[$dataId]['districtid'];
+            $query = "DELETE from `districtdata` WHERE `id`='" . $dataId . "';";
+            nr_query($query);
+            log_register('DISTRICT DATADELETE [' . $districtId . '] DATAID [' . $dataId . ']');
         }
     }
 

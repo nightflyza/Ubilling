@@ -5,7 +5,7 @@ if (cfr('DISTRICTS')) {
     $altCfg = $ubillingConfig->getAlter();
 
     if ($altCfg['DISTRICTS_ENABLED']) {
-        $districts = new Districts();
+        $districts = new Districts(true);
 
         //new district creation
         if (wf_CheckPost(array('newdistrictname'))) {
@@ -37,8 +37,15 @@ if (cfr('DISTRICTS')) {
                     $districts->catchDistrictDataCreate();
                     rcms_redirect($districts::URL_ME . '&editdistrict=' . $_GET['editdistrict']);
                 }
+                //deleting some data row
+                if (wf_CheckGet(array('deletedata'))) {
+                    $districts->deleteDistrictData($_GET['deletedata']);
+                    rcms_redirect($districts::URL_ME . '&editdistrict=' . $_GET['editdistrict']);
+                }
                 //render create form
-                show_window(__('Add'), $districts->renderDistrictDataCreateForm($_GET['editdistrict']));
+                show_window('', wf_BackLink($districts::URL_ME));
+                show_window(__('District') . ': ' . $districts->getDistrictName($_GET['editdistrict']), $districts->renderDistrictDataCreateForm($_GET['editdistrict']));
+                show_window(__('Places'), $districts->renderDistrictData($_GET['editdistrict']));
             }
         }
     } else {
