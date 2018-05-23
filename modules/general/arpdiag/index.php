@@ -201,8 +201,8 @@ class ArpDiag {
         //normal user
         if (isset($allUserIps[$ip])) {
             if (isset($allUserIpMacs[$ip])) {
-                if (($allUserIpMacs[$ip] != $mac) AND (!empty($mac))) {
-                    $result = wf_img('skins/createtask.gif') . ' ' . __('MAC mismatch');
+                if (($allUserIpMacs[$ip] != $mac) AND ( !empty($mac))) {
+                    $result = wf_img('skins/createtask.gif', __('MAC mismatch')) . ' ' . __('Oh no');
                 } else {
                     $result = wf_img_sized('skins/icon_ok.gif', '', 10, 10) . ' ' . __('Ok');
                 }
@@ -221,7 +221,7 @@ class ArpDiag {
                     } else {
                         //switch already have mac
                         if ($mac != $allSwitchesIps[$ip]['mac']) {
-                            $result = wf_img('skins/createtask.gif') . ' ' . __('MAC mismatch');
+                            $result = wf_img('skins/createtask.gif', __('MAC mismatch')) . ' ' . __('Oh no');
                         } else {
                             $result = wf_img_sized('skins/icon_ok.gif', '', 10, 10) . ' ' . __('Normal');
                         }
