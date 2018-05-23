@@ -250,6 +250,7 @@ CAN_DELETE_PAYMENTS=VARCHAR|Administrator logins that can delete payments
 CAN_EDIT_PAYMENTS=VARCHAR|Administrator logins that can edit payments
 SIGNUP_PAYMENTS=TRIGGER|Signup payments managenent
 SIGNUP_TYPEID=VARCHAR|Signup cashtype id
+DISTRICTS_ENABLED=TRIGGER|Districts directory
 BUILD_EXTENDED=TRIGGER|Extended builds management
 BUILD_OWNERS=VARCHAR|Build ownership types
 BUILD_EXTOPTS=VARCHAR|Build extended max floors, max entrances

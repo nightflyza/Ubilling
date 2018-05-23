@@ -2872,6 +2872,10 @@ $lang['def']['Use contract same as UID'] = 'Использовать UID как 
 $lang['def']['Resolve hostnames'] = 'Определить хостнеймы';
 $lang['def']['Not found'] = 'Не найден';
 $lang['def']['View log'] = 'Просмотр лога';
+$lang['def']['Districts'] = 'Районы';
+$lang['def']['Districts directory'] = 'Справочник районов';
+$lang['def']['Right to manage districts'] = 'Право управлять районами';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 

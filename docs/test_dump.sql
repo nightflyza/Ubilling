@@ -2090,3 +2090,18 @@ ALTER TABLE `exhorse` ADD `a_recallunsuccess` DOUBLE NULL DEFAULT NULL ,
  ADD `t_capabundone` INT NULL DEFAULT NULL ;
  
 ALTER TABLE `nethosts` ADD UNIQUE `net-ip` (`netid`, `ip`);
+
+CREATE TABLE IF NOT EXISTS `districtnames` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `districtdata` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `districtid` int(11) NOT NULL,
+  `cityid` int(11) DEFAULT NULL,
+  `streetid` int(11) DEFAULT NULL,
+  `buildid` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
