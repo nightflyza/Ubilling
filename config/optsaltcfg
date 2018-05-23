@@ -285,6 +285,7 @@ UKV_ILLEGAL_TARIFFID=VARCHAR|UKV illegal users tariff id
 UKV_COMPLEX_TARIFFID=VARCHAR|UKV complex users tariff id
 UKV_SOCIAL_TARIFFID=VARCHAR|UKV socail service tariff id
 SWITCHES_EXTENDED=TRIGGER|RemoteID management for switches is enabled
+SWITCHES_SNMP_MAC_EXORCISM=TRIGGER|Receiving and displaying the MAC address of the devices by the SNMP is enabled
 WORKING_HOURS=VARCHAR|Tech support working hours
 TSUPPORT_API=TRIGGER|Support interface API
 TASKREPORT_ENABLED=TRIGGER|Tasks report enabled
