@@ -26,8 +26,21 @@ if (cfr('DISTRICTS')) {
         }
 
 
-        show_window(__('Districts'), $districts->renderDistrictsList());
-        show_window('', $districts->renderDistrictsCreateForm());
+        if (!wf_CheckGet(array('editdistrict'))) {
+            //main interface here
+            show_window(__('Districts'), $districts->renderDistrictsList());
+            show_window('', $districts->renderDistrictsCreateForm());
+        } else {
+            if (wf_CheckGet(array('editdistrict'))) {
+                //creating new district data
+                if (wf_CheckPost(array('citysel', 'allchoicesdone'))) {
+                    $districts->catchDistrictDataCreate();
+                    rcms_redirect($districts::URL_ME . '&editdistrict=' . $_GET['editdistrict']);
+                }
+                //render create form
+                show_window(__('Add'), $districts->renderDistrictDataCreateForm($_GET['editdistrict']));
+            }
+        }
     } else {
         show_error(__('This module is disabled'));
     }

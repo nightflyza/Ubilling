@@ -258,8 +258,9 @@ class Districts {
             foreach ($this->allDistricts as $io => $each) {
                 $cells = wf_TableCell($io);
                 $cells.= wf_TableCell($each);
-                $actLinks = wf_JSAlert(self::URL_ME . '&deletedistrict=' . $io, web_delete_icon(), $this->messages->getDeleteAlert());
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDistrictsEditForm($io));
+                $actLinks = wf_JSAlert(self::URL_ME . '&deletedistrict=' . $io, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDistrictsEditForm($io)) . ' ';
+                $actLinks.= wf_Link(self::URL_ME . '&editdistrict=' . $io, web_icon_extended(__('Settings')));
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
@@ -268,6 +269,104 @@ class Districts {
             $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return ($result);
+    }
+
+    /**
+     * Returns list of checkbox controls for some previously selected street
+     * 
+     * @param int $streetId
+     * 
+     * @return string
+     */
+    protected function getBuildForm($streetId) {
+        $streetId = vf($streetId, 3);
+        $result = '';
+        if (!empty($this->allBuilds)) {
+            foreach ($this->allBuilds as $io => $each) {
+                if ($each['streetid'] == $streetId) {
+                    $result.=wf_CheckInput('_addbuilds[' . $each['id'] . ']', $each['buildnum'], true, false);
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders new district data creation form
+     * 
+     * @param int $districtId
+     * 
+     * @return string
+     */
+    public function renderDistrictDataCreateForm($districtId) {
+        $districtId = vf($districtId, 3);
+        $result = '';
+        $result.=wf_BackLink(self::URL_ME);
+        $result.=wf_CleanDiv() . wf_delimiter();
+        $inputs = '';
+
+        if (!wf_CheckPost(array('citysel'))) {
+            $inputs.= web_CitySelectorAc() . wf_tag('br');
+        } else {
+            $inputs.= wf_img('skins/icon_ok.gif') . $this->allCities[$_POST['citysel']]['cityname'] . wf_tag('br');
+            $inputs.= wf_HiddenInput('citysel', $_POST['citysel']);
+            if (!wf_CheckPost(array('streetsel'))) {
+                $inputs.=web_StreetSelectorAc($_POST['citysel']) . wf_tag('br');
+            } else {
+                $inputs.= wf_img('skins/icon_ok.gif') . ' ' . @$this->allStreets[$_POST['streetsel']]['streetname'] . wf_tag('br');
+                $inputs.= wf_HiddenInput('streetsel', $_POST['streetsel']);
+                $inputs.=$this->getBuildForm($_POST['streetsel']);
+            }
+
+            $inputs.=wf_tag('hr');
+            $inputs.=wf_CheckInput('allchoicesdone', __('I`m ready'), true, false);
+            $inputs.=wf_Submit(__('Save'));
+        }
+
+        $result.=wf_Form(self::URL_ME . '&editdistrict=' . $districtId, 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Catches new district data creation request
+     * 
+     * @return void
+     */
+    public function catchDistrictDataCreate() {
+        if (wf_CheckGet(array('editdistrict'))) {
+            $districtId = vf($_GET['editdistrict'], 3);
+            if (wf_CheckPost(array('citysel'))) {
+                $cityId = vf($_POST['citysel'], 3);
+                $streetId = (wf_CheckPost(array('streetsel'))) ? vf($_POST['streetsel'], 3) : '';
+                $buildsArr = (wf_CheckPost(array('_addbuilds'))) ? $_POST['_addbuilds'] : array();
+                //only city
+                if ((empty($streetId)) AND ( empty($buildsArr)) AND ( !empty($cityId))) {
+                    $query = "INSERT INTO `districtdata` (`id`,`districtid`,`cityid`,`streetid`,`buildid`) VALUES "
+                            . "(NULL,'" . $districtId . "','" . $cityId . "',NULL,NULL);";
+                    nr_query($query);
+                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . ']');
+                }
+                //city with street
+                if ((!empty($streetId)) AND ( empty($buildsArr)) AND ( !empty($cityId))) {
+                    $query = "INSERT INTO `districtdata` (`id`,`districtid`,`cityid`,`streetid`,`buildid`) VALUES "
+                            . "(NULL,'" . $districtId . "','" . $cityId . "','" . $streetId . "',NULL);";
+                    nr_query($query);
+                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . ']');
+                }
+
+                //city->street->build
+                if ((!empty($streetId)) AND ( !empty($buildsArr)) AND ( !empty($cityId))) {
+                    $buildCount = 0;
+                    foreach ($buildsArr as $io => $each) {
+                        $query = "INSERT INTO `districtdata` (`id`,`districtid`,`cityid`,`streetid`,`buildid`) VALUES "
+                                . "(NULL,'" . $districtId . "','" . $cityId . "','" . $streetId . "','" . $io . "');";
+                        nr_query($query);
+                        $buildCount++;
+                    }
+                    log_register('DISTRICT ADD [' . $districtId . '] CITY [' . $cityId . '] STREET [' . $streetId . '] BUILDCOUNT `' . $buildCount . '`');
+                }
+            }
+        }
     }
 
 }
