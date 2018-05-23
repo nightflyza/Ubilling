@@ -2891,5 +2891,6 @@ $lang['def']['View log'] = 'Перегляд журналу';
 $lang['def']['Districts'] = 'Райони';
 $lang['def']['Districts directory'] = 'Довідник районів';
 $lang['def']['Right to manage districts'] = 'Право керувати районами';
+$lang['def']['Receiving and displaying the MAC address of the devices by the SNMP is enabled'] = 'Отримання і відображення MAC-адреси пристроїв за допомогою SNMP включено';
 
 ?>
