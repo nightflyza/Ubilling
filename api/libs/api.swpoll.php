@@ -811,7 +811,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
             //
             //parsing data of DEVICE MAC
             //
-                if ($deviceMAC == 'true') {
+            if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM'] and $deviceMAC == 'true') {
                 $MacOfDevice = '';
                 $snmp->setBackground(false); // need to process data with system + background
 

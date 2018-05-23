@@ -1010,8 +1010,14 @@ function web_SwitchesShow() {
  */
 function web_SwitchesRenderList() {
     $result = '';
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
     $summaryCache = 'exports/switchcounterssummary.dat';
-    $columns = array('ID', 'IP', 'MAC', 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
+    $columns = array('ID', 'IP');
+    if ($alterconf['SWITCHES_SNMP_MAC_EXORCISM']) {
+        $columns[] = ('MAC');
+    }
+    array_push($columns, 'Location', 'Active', 'Model', 'SNMP community', 'Geo location', 'Description', 'Actions');
     $opts = '"order": [[ 0, "desc" ]]';
     $result = wf_JqDtLoader($columns, '?module=switches&ajaxlist=true', false, __('Switch'), 100, $opts);
     if (file_exists($summaryCache)) {
@@ -1085,18 +1091,27 @@ function zb_SwitchesRenderAjaxList() {
                 }
             }
 
-            $deviceMac = '';
-            $deviceMacCache = 'exports/' . $eachswitch['ip'] . '_MAC';
-            if (file_exists($deviceMacCache)) {
-                $deviceMac = file_get_contents($deviceMacCache);
-                if (!empty($deviceMac) and $deviceMac != $eachswitch['swid']) {
-                    $deviceMac = $deviceMac . ' ' . wf_img('skins/createtask.gif', __('MAC mismatch')) . ' ' . __('Oh no');
-                }
-            }
-
             $jsonItem[] = $eachswitch['id'];
             $jsonItem[] = $eachswitch['ip'];
-            $jsonItem[] = $deviceMac;
+
+            if ($alterconf['SWITCHES_SNMP_MAC_EXORCISM']) {
+                $deviceMac = '';
+                $deviceMacCache = 'exports/' . $eachswitch['ip'] . '_MAC';
+
+                if (file_exists($deviceMacCache)) {
+                    $deviceMacData = file_get_contents($deviceMacCache);
+                    if (check_mac_format($deviceMacData)) {
+                        if ($alterconf['SWITCHES_EXTENDED'] and $deviceMacData != $eachswitch['swid']) {
+                            $deviceMac = $deviceMacData . ' ' . wf_img('skins/createtask.gif', __('MAC mismatch')) . ' ' . __('Oh no');
+                        } else {
+                            $deviceMac = $deviceMacData;
+                        }
+                    }
+                }
+
+                $jsonItem[] = $deviceMac;
+            }
+
             $jsonItem[] = $eachswitch['location'];
             $jsonItem[] = $aliveled;
             $jsonItem[] = @$modelnames[$eachswitch['modelid']];
