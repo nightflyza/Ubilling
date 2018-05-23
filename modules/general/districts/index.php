@@ -6,6 +6,7 @@ if (cfr('DISTRICTS')) {
 
     if ($altCfg['DISTRICTS_ENABLED']) {
         $districts=new Districts();
+        debarr($districts);
         
     } else {
         show_error(__('This module is disabled'));

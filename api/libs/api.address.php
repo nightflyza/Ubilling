@@ -446,6 +446,19 @@ function zb_AddressGetBuildAllDataByStreet($streetid) {
 }
 
 /**
+ * Returns all apartments data from database
+ * 
+ * @param int $buildid
+ * 
+ * @return array
+ */
+function zb_AddressGetAptAllData() {
+    $query = "SELECT * from `apt`";
+    $all_data = simple_queryall($query);
+    return($all_data);
+}
+
+/**
  * Returns all apartments data from some build
  * 
  * @param int $buildid
@@ -1113,7 +1126,7 @@ function zb_AddressGetFulladdresslist() {
 function zb_AddressGetFulladdresslistCached() {
     global $ubillingConfig;
     $alterconf = $ubillingConfig->getAlter();
-    $cacheTime = $alterconf['ADDRESS_CACHE_TIME']*60; // in minutes!!!!
+    $cacheTime = $alterconf['ADDRESS_CACHE_TIME'] * 60; // in minutes!!!!
     $result = '';
     $cache = new UbillingCache();
     $result = $cache->getCallback('FULLADDRESSLISTCACHE', function () {
