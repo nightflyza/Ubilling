@@ -2,8 +2,6 @@
 DEVICE="Foxgate S6208-S1"
 FDB=true
 FDB_IGNORE_PORTS=9
-MAC=true
-MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"
@@ -19,7 +17,6 @@ PARSER=sp_parse_zyportdesc
 NAME="Bytes TX"
 OIDS=".1.3.6.1.2.1.2.2.1.16.1,.1.3.6.1.2.1.2.2.1.16.2,.1.3.6.1.2.1.2.2.1.16.3,.1.3.6.1.2.1.2.2.1.16.4,.1.3.6.1.2.1.2.2.1.16.5,.1.3.6.1.2.1.2.2.1.16.6,.1.3.6.1.2.1.2.2.1.16.7,.1.3.6.1.2.1.2.2.1.16.8,.1.3.6.1.2.1.2.2.1.16.9"
 PARSER=sp_parse_zyportbytes
-
 
 [PORTRX]
 NAME="Bytes RX"
@@ -55,8 +52,6 @@ PARSER=sp_parse_zyportbytes
 NAME="Broadcast RX"
 OIDS=".1.3.6.1.2.1.31.1.1.1.3.1,.1.3.6.1.2.1.31.1.1.1.3.2,.1.3.6.1.2.1.31.1.1.1.3.3,.1.3.6.1.2.1.31.1.1.1.3.4,.1.3.6.1.2.1.31.1.1.1.3.5,.1.3.6.1.2.1.31.1.1.1.3.6,.1.3.6.1.2.1.31.1.1.1.3.7,.1.3.6.1.2.1.31.1.1.1.3.8,.1.3.6.1.2.1.31.1.1.1.3.9"
 PARSER=sp_parse_zyportbytes
-
-
 
 [UPTIME]
 NAME="Uptime"

@@ -1062,7 +1062,10 @@ function sn_SnmpParseDeviceMAC($data) {
         $device_mac_t = trim($device_mac_raw);
         if (!empty($device_mac_t)) {
             $device_mac = str_replace(" ", ":", $device_mac_t);
-            $result = strtolower($device_mac);
+            $result_temp = strtolower($device_mac);
+            if(check_mac_format($result_temp)) {
+                $result = $result_temp;
+            }
         }
     }
     return ($result);
