@@ -1,1 +1,3 @@
 *.cache.dat
+documents/wifi_cpe_sig_hist/*
+!documents/wifi_cpe_sig_hist/.htaccess
