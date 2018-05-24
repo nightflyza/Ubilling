@@ -267,6 +267,11 @@ class SMSZilla {
     const URL_ME = '?module=smszilla';
 
     /**
+     * Default macro help wiki URL
+     */
+    const URL_MACROHELP = 'http://wiki.ubilling.net.ua/doku.php?id=templating&#smszilla';
+
+    /**
      * Contains SMS Pool saving path
      */
     const POOL_PATH = './exports/';
@@ -715,6 +720,7 @@ class SMSZilla {
             foreach ($this->supportedMacro as $io => $each) {
                 $result.=wf_tag('b') . $io . wf_tag('b', true) . ' - ' . $each . wf_tag('br');
             }
+            $result.=wf_tag('br') . wf_Link(self::URL_MACROHELP, __('Details'));
         }
         return ($result);
     }
