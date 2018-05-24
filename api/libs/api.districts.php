@@ -533,13 +533,18 @@ class Districts {
                                         if (!empty($each['buildid'])) {
                                             if ($userBuildId == $each['buildid']) {
                                                 $result = true;
+                                                return ($result);
                                             } else {
                                                 $result = false;
                                             }
+                                        } else {
+                                            return ($result);
                                         }
                                     } else {
                                         $result = false;
                                     }
+                                } else {
+                                    return ($result);
                                 }
                             }
                         }
