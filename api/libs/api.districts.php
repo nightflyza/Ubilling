@@ -570,7 +570,7 @@ class Districts {
                         $data[] = @$this->allUserData[$login]['realname'];
                         $data[] = @$this->allUserData[$login]['ip'];
                         $data[] = @$this->allUserData[$login]['Tariff'];
-                        $actFlag = (@$this->allUserData[$login]['Cash'] >= '-' . @$this->allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                        $actFlag = (@$this->allUserData[$login]['Cash'] >= '-' . @$this->allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Active') : web_bool_led(false) . ' ' . __('Not really');
                         $data[] = $actFlag;
                         $data[] = @$this->allUserData[$login]['Cash'];
                         $data[] = @$this->allUserData[$login]['Credit'];

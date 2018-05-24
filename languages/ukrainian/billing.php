@@ -2898,5 +2898,6 @@ $lang['def']['Balance lack'] = 'Недостача балансу';
 $lang['def']['Cash rounded to cents'] = 'Баланс округлений до копійок';
 $lang['def']['number'] = 'номер';
 $lang['def']['User contract'] = 'Угода користувача';
+$lang['def']['Not really'] = 'Не дуже';
 
 ?>

@@ -2882,7 +2882,7 @@ $lang['def']['Balance lack'] = 'Нехватка на счету';
 $lang['def']['Cash rounded to cents'] = 'Баланс округленный до копеек';
 $lang['def']['number'] = 'номер';
 $lang['def']['User contract'] = 'Договор пользователя';
-$lang['def'][''] = '';
+$lang['def']['Not really'] = 'Не очень';
 $lang['def'][''] = '';
 
 
