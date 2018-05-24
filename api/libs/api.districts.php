@@ -59,6 +59,14 @@ class Districts {
     protected $allUserData = array();
 
     /**
+     * Flag that signalizes, how accurate we need to detect user ativity. 
+     * Based only on Cash>=Credit or use Freezing and AO states too, like exhorse.
+     *
+     * @var bool
+     */
+    protected $accurateActivityDetection = true;
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -504,6 +512,29 @@ class Districts {
     }
 
     /**
+     * Returns is user active or not. Customizable in future.
+     * 
+     * @param string $login
+     * 
+     * @return bool
+     */
+    protected function isUserActive($login) {
+        $result = false;
+        if (isset($this->allUserData[$login])) {
+            if ($this->accurateActivityDetection) {
+                if (($this->allUserData[$login]['Cash'] >= '-' . $this->allUserData[$login]['Credit']) AND ( $this->allUserData[$login]['Passive'] == 0) AND ( $this->allUserData[$login]['AlwaysOnline'] == 1)) {
+                    $result = true;
+                } else {
+                    $result = false;
+                }
+            } else {
+                $result = ($this->allUserData[$login]['Cash'] >= '-' . $this->allUserData[$login]['Credit']) ? true : false;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Checks is user in some district or not
      * 
      * @param string $login
@@ -575,7 +606,7 @@ class Districts {
                         $data[] = @$this->allUserData[$login]['realname'];
                         $data[] = @$this->allUserData[$login]['ip'];
                         $data[] = @$this->allUserData[$login]['Tariff'];
-                        $actFlag = (@$this->allUserData[$login]['Cash'] >= '-' . @$this->allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Active') : web_bool_led(false) . ' ' . __('Not really');
+                        $actFlag = ($this->isUserActive($login)) ? web_bool_led(true) . ' ' . __('Active') : web_bool_led(false) . ' ' . __('Not really');
                         $data[] = $actFlag;
                         $data[] = @$this->allUserData[$login]['Cash'];
                         $data[] = @$this->allUserData[$login]['Credit'];
