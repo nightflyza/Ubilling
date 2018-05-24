@@ -27,9 +27,18 @@ if (cfr('DISTRICTS')) {
 
 
         if (!wf_CheckGet(array('editdistrict'))) {
-            //main interface here
-            show_window(__('Districts'), $districts->renderDistrictsList());
-            show_window('', $districts->renderDistrictsCreateForm());
+            if (!wf_CheckGet(array('viewusers'))) {
+                //main interface here
+                show_window(__('Districts'), $districts->renderDistrictsList());
+                show_window('', $districts->renderDistrictsCreateForm());
+            } else {
+                //rendering district users report
+                if (wf_CheckGet(array('ajax'))) {
+                    $districts->renderDistrictUsersAjaxData($_GET['viewusers']);
+                }
+                show_window('', wf_BackLink($districts::URL_ME));
+                show_window(__('District') . ': ' . $districts->getDistrictName($_GET['viewusers']), $districts->renderDistrictUsersContainer($_GET['viewusers']));
+            }
         } else {
             if (wf_CheckGet(array('editdistrict'))) {
                 //creating new district data

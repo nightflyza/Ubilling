@@ -45,11 +45,18 @@ class Districts {
     protected $allApts = array();
 
     /**
-     * Contains available address data
+     * Contains available address data as login=>aptid
      *
      * @var array
      */
     protected $allAddress = array();
+
+    /**
+     * Contains available users data as login=>data
+     *
+     * @var array
+     */
+    protected $allUserData = array();
 
     /**
      * System message helper object placeholder
@@ -62,6 +69,11 @@ class Districts {
      * Base module URL
      */
     const URL_ME = '?module=districts';
+
+    /**
+     * User profile link
+     */
+    const URL_PROFILE = '?module=userprofile&username=';
 
     /**
      * Creates new districts instance
@@ -78,6 +90,7 @@ class Districts {
             $this->loadBuildData();
             $this->loadAptData();
             $this->loadAddressData();
+            $this->loadUserData();
         }
     }
 
@@ -185,9 +198,18 @@ class Districts {
         $tmpArr = zb_AddressGetAddressAllData();
         if (!empty($tmpArr)) {
             foreach ($tmpArr as $io => $each) {
-                $this->allAddress[$each['aptid']] = $each['login'];
+                $this->allAddress[$each['login']] = $each['aptid'];
             }
         }
+    }
+
+    /**
+     * Loads existing users data
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUserData = zb_UserGetAllDataCache();
     }
 
     /**
@@ -284,7 +306,8 @@ class Districts {
             $rows = wf_TableRow($cells, 'row1');
             foreach ($this->allDistricts as $io => $each) {
                 $cells = wf_TableCell($io);
-                $cells.= wf_TableCell($each);
+                $districtViewLink = wf_link(self::URL_ME . '&viewusers=' . $io, $each);
+                $cells.= wf_TableCell($districtViewLink);
                 $actLinks = wf_JSAlert(self::URL_ME . '&deletedistrict=' . $io, web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDistrictsEditForm($io)) . ' ';
                 $actLinks.= wf_Link(self::URL_ME . '&editdistrict=' . $io, web_icon_extended(__('Settings')));
@@ -466,5 +489,100 @@ class Districts {
         }
     }
 
+    /**
+     * Renders districts users report container
+     * 
+     * @param int $districtId
+     * 
+     * @return string
+     */
+    public function renderDistrictUsersContainer($districtId) {
+        $result = '';
+        $columns = array('Login', 'Address', 'Real Name', 'IP', 'Tariff', 'Active', 'Balance', 'Credit');
+        $result.=wf_JqDtLoader($columns, self::URL_ME . '&viewusers=' . $districtId . '&ajax=true', false, 'Users', 100);
+        return ($result);
+    }
+
+    /**
+     * Checks is user in some district or not
+     * 
+     * @param string $login
+     * @param int $districtId
+     * 
+     * @return bool
+     */
+    protected function isUserInDistrict($login, $districtId) {
+        $result = false;
+        if (isset($this->allAddress[$login])) {
+            if (isset($this->allDistricts[$districtId])) {
+                if (!empty($this->allDistrictData)) {
+                    $userAptId = $this->allAddress[$login];
+                    $userApt = $this->allApts[$userAptId];
+                    $userBuildId = $userApt['buildid'];
+                    $userBuild = $this->allBuilds[$userBuildId];
+                    $userStreetId = $userBuild['streetid'];
+                    $userStreet = $this->allStreets[$userStreetId];
+                    $userCityId = $userStreet['cityid'];
+                    foreach ($this->allDistrictData as $io => $each) {
+                        if ($each['districtid'] == $districtId) {
+                            if ($userCityId == $each['cityid']) {
+                                $result = true;
+                                if (!empty($each['streetid'])) {
+                                    if ($userStreetId == $each['streetid']) {
+                                        $result = true;
+                                        if (!empty($each['buildid'])) {
+                                            if ($userBuildId == $each['buildid']) {
+                                                $result = true;
+                                            } else {
+                                                $result = false;
+                                            }
+                                        }
+                                    } else {
+                                        $result = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders datatables report JSON data
+     * 
+     * @param int $districtId
+     * 
+     * @return void
+     */
+    public function renderDistrictUsersAjaxData($districtId) {
+        $districtId = vf($districtId, 3);
+        $json = new wf_JqDtHelper();
+        if (isset($this->allDistricts[$districtId])) {
+            if (!empty($this->allAddress)) {
+                foreach ($this->allAddress as $login => $aptId) {
+                    if ($this->isUserInDistrict($login, $districtId)) {
+                        $userLink = wf_Link(self::URL_PROFILE . $login, web_profile_icon() . ' ' . $login);
+                        $data[] = $userLink;
+                        $data[] = @$this->allUserData[$login]['fulladress'];
+                        $data[] = @$this->allUserData[$login]['realname'];
+                        $data[] = @$this->allUserData[$login]['ip'];
+                        $data[] = @$this->allUserData[$login]['Tariff'];
+                        $actFlag = (@$this->allUserData[$login]['Cash'] >= '-' . @$this->allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
+                        $data[] = $actFlag;
+                        $data[] = @$this->allUserData[$login]['Cash'];
+                        $data[] = @$this->allUserData[$login]['Credit'];
+                        $json->addRow($data);
+                        unset($data);
+                    }
+                }
+            }
+        }
+        $json->getJson();
+    }
+
 }
+
 ?>
