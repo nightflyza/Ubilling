@@ -2894,5 +2894,9 @@ $lang['def']['Districts directory'] = 'Довідник районів';
 $lang['def']['Right to manage districts'] = 'Право керувати районами';
 $lang['def']['Receiving and displaying the MAC address of the devices by the SNMP is enabled'] = 'Отримання і відображення MAC-адреси пристроїв за допомогою SNMP включено';
 $lang['def']['Places'] = 'Місця';
+$lang['def']['Balance lack'] = 'Недостача балансу';
+$lang['def']['Cash rounded to cents'] = 'Баланс округлений до копійок';
+$lang['def']['number'] = 'номер';
+$lang['def']['User contract'] = 'Угода користувача';
 
 ?>

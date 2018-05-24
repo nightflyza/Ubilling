@@ -601,22 +601,25 @@ class SMSZilla {
             'numlist' => 'Numbers list'
         );
 
-        $this->supportedMacro = array('{LOGIN}',
-            '{REALNAME}',
-            '{TARIFF}',
-            '{TARIFFPRICE}',
-            '{PAYMENTID}',
-            '{CREDIT}',
-            '{CASH}',
-            '{ROUNDCASH}',
-            '{IP}',
-            '{MAC}',
-            '{FULLADDRESS}',
-            '{PHONE}',
-            '{MOBILE}',
-            '{CONTRACT}',
-            '{EMAIL}',
-            '{CURDATE}');
+        $this->supportedMacro = array(
+            '{LOGIN}' => __('Login'),
+            '{REALNAME}' => __('Real Name'),
+            '{TARIFF}' => __('Tariff'),
+            '{TARIFFPRICE}' => __('Tariff fee'),
+            '{PAYMENTID}' => __('Payment ID'),
+            '{CREDIT}' => __('Credit'),
+            '{CASH}' => __('Balance'),
+            '{LACK}' => __('Balance lack'),
+            '{ROUNDCASH}' => __('Cash rounded to cents'),
+            '{IP}' => __('IP'),
+            '{MAC}' => __('MAC address'),
+            '{FULLADDRESS}' => __('Full address'),
+            '{PHONE}' => __('Phone') . ' ' . __('number'),
+            '{MOBILE}' => __('Mobile') . ' ' . __('number'),
+            '{CONTRACT}' => __('User contract'),
+            '{EMAIL}' => __('Email'),
+            '{CURDATE}' => __('Current date')
+        );
     }
 
     /**
@@ -708,9 +711,9 @@ class SMSZilla {
     protected function renderMacroHelp() {
         $result = '';
         if (!empty($this->supportedMacro)) {
-            $result.=wf_tag('b') . __('Available macroses') . wf_tag('b', true) . wf_tag('br');
+            $result.=wf_tag('strong') . __('Available macroses') . ':' . wf_tag('strong', true) . wf_delimiter();
             foreach ($this->supportedMacro as $io => $each) {
-                $result.=$each . wf_tag('br');
+                $result.=wf_tag('b') . $io . wf_tag('b', true) . ' - ' . $each . wf_tag('br');
             }
         }
         return ($result);
@@ -1865,6 +1868,7 @@ class SMSZilla {
                 $result = str_ireplace('{PAYMENTID}', @$this->opCustomers[$this->filteredEntities[$entity]['login']], $result);
                 $result = str_ireplace('{CREDIT}', $this->filteredEntities[$entity]['Credit'], $result);
                 $result = str_ireplace('{CASH}', $this->filteredEntities[$entity]['Cash'], $result);
+                $result = str_ireplace('{LACK}', @$this->allTariffPrices[$this->filteredEntities[$entity]['Tariff']] - $this->filteredEntities[$entity]['Cash'], $result);
                 $result = str_ireplace('{ROUNDCASH}', round($this->filteredEntities[$entity]['Cash'], 2), $result);
                 $result = str_ireplace('{IP}', $this->filteredEntities[$entity]['ip'], $result);
                 $result = str_ireplace('{MAC}', $this->filteredEntities[$entity]['mac'], $result);
