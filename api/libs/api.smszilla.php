@@ -157,6 +157,13 @@ class SMSZilla {
     protected $branches = '';
 
     /**
+     * Districts object placeholder
+     *
+     * @var object
+     */
+    protected $districts = '';
+
+    /**
      * UKV object placeholder
      *
      * @var object
@@ -298,6 +305,7 @@ class SMSZilla {
         $this->loadDownUsers();
         $this->initUKV();
         $this->initBranches();
+        $this->initDistricts();
         $this->loadTagTypes();
         $this->loadTariffs();
         $this->loadTemplates();
@@ -543,6 +551,15 @@ class SMSZilla {
     }
 
     /**
+     * Creates new districts instance
+     * 
+     * @return void
+     */
+    protected function initDistricts() {
+        $this->districts = new Districts(false);
+    }
+
+    /**
      * Inits funds flow object instance
      * 
      * @return void
@@ -596,7 +613,8 @@ class SMSZilla {
             'filterukvtariff' => 'User have tariff',
             'filterrealname' => 'Real Name contains',
             'filternumlist' => 'Numbers list',
-            'filternumcontain' => 'Notes contains'
+            'filternumcontain' => 'Notes contains',
+            'filterdistrict' => 'District'
         );
 
         $this->directionNames = array(
@@ -1303,6 +1321,10 @@ class SMSZilla {
         }
 
 
+        $districtsParams = array('' => __('Any'));
+        $districtsParams+=$this->districts->getDistricts();
+
+
         $inputs.=wf_AjaxSelectorAC('inputscontainer', $this->filterTypes, __('SMS direction'), self::URL_ME . '&filters=true&newfilterdirection=' . $direction, true);
         $inputs.= wf_tag('br');
 
@@ -1351,6 +1373,7 @@ class SMSZilla {
                 $inputs.= wf_CheckInput('newfilternotariff', __('User have no tariff assigned'), true, false);
                 $inputs.= wf_CheckInput('newfilterextmobiles', __('Use additional mobiles'), true, false);
                 $inputs.=wf_Selector('newfilterbranch', $branchParams, __('Branch'), '', true, false);
+                $inputs.=wf_Selector('newfilterdistrict', $districtsParams, __('District'), '', true, false);
             }
 
             if (($direction == 'numlist')) {
@@ -2527,6 +2550,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($this->branches->userGetBranch($entity['login']) != $param) {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Districts filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filterdistrict($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (!$this->districts->checkUserDistrictFast($entity['login'], $param)) {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }

@@ -81,6 +81,13 @@ class Districts {
     protected $cache = '';
 
     /**
+     * Contains previously cached login=>districts data
+     *
+     * @var array
+     */
+    protected $cachedData = array();
+
+    /**
      * Default caching timeout in seconds
      */
     const CACHE_TIME = 86400;
@@ -131,6 +138,7 @@ class Districts {
      */
     protected function initCache() {
         $this->cache = new UbillingCache();
+        $this->cachedData = $this->cache->get('DISTRICTS', self::CACHE_TIME);
     }
 
     /**
@@ -464,6 +472,15 @@ class Districts {
     }
 
     /**
+     * Returns array of available districts as id=>name
+     * 
+     * @return array
+     */
+    public function getDistricts() {
+        return ($this->allDistricts);
+    }
+
+    /**
      * Renders available district data with some controls
      * 
      * @param int $districtId
@@ -670,11 +687,29 @@ class Districts {
      * @return array
      */
     public function getUserDistrictsFast($login) {
-        $districtsCache = $this->cache->get('DISTRICTS', self::CACHE_TIME);
         $result = array();
-        if (!empty($districtsCache)) {
-            if (isset($districtsCache[$login])) {
-                $result = $districtsCache[$login];
+        if (!empty($this->cachedData)) {
+            if (isset($this->cachedData[$login])) {
+                $result = $this->cachedData[$login];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Check user district based on cached data
+     * 
+     * @param string $login
+     * @param int $districtId
+     * 
+     * @return bool
+     */
+    public function checkUserDistrictFast($login, $districtId) {
+        $result = false;
+        if (isset($this->cachedData[$login])) {
+            if (isset($this->cachedData[$login][$districtId])) {
+                $result = true;
+                deb($login.'->'.$districtId);
             }
         }
         return ($result);
