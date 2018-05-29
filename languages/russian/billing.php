@@ -2883,7 +2883,11 @@ $lang['def']['Cash rounded to cents'] = 'Баланс округленный д�
 $lang['def']['number'] = 'номер';
 $lang['def']['User contract'] = 'Договор пользователя';
 $lang['def']['Not really'] = 'Не очень';
+$lang['def']['Districts in user profile'] = 'Районы в профиле пользователя';
 $lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 
 
 

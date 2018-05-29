@@ -34,6 +34,7 @@ CONDET_IN_PROFILE=TRIGGER|Connection details in user profile
 VLAN_ONLINE_IN_PROFILE=TRIGGER|Detect online in profile enabled
 DEALWITHIT_IN_PROFILE=TRIGGER|Delayed per-user actions profile indication
 MOBILES_EXT=TRIGGER|Additional mobile numbers enabled
+DISRTICTS_IN_PROFILE=TRIGGER|Districts in user profile
 CHAPTEREND_PROFILE=true
 
 CHAPTER_LOOK=Look&Feel

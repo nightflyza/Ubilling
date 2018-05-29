@@ -451,7 +451,7 @@ class UserProfile {
      *
      * @return array
      */
-    public function extractUserRealName(){
+    public function extractUserRealName() {
         return ($this->realname);
     }
 
@@ -460,7 +460,7 @@ class UserProfile {
      *
      * @return array
      */
-    public function extractUserContract(){
+    public function extractUserContract() {
         return ($this->contract);
     }
 
@@ -552,9 +552,9 @@ class UserProfile {
      */
     protected function getUserPassword() {
         if ($this->alterCfg['PASSWORDSHIDE']) {
-            $result = __('Hidden');
+            $result = '';
         } else {
-            $result = $this->userdata['Password'];
+            $result = $this->addRow(__('Password'), $this->userdata['Password'], true);
         }
         return ($result);
     }
@@ -1224,6 +1224,52 @@ class UserProfile {
     }
 
     /**
+     * Returns cached user districts list row
+     * 
+     * @return string
+     */
+    protected function getDistrictControls() {
+        $result = '';
+        if (isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) {
+            if ($this->alterCfg['DISRTICTS_IN_PROFILE']) {
+                $districts = new Districts(false);
+                $result.=$this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns user contracts row
+     * 
+     * @return string
+     */
+    protected function getContractControls() {
+        $result = '';
+        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE'])) {
+            if (!$this->alterCfg['CONTRACT_PROFILE_HIDE']) {
+                $result = $this->addRow(__('Contract'), $this->contract, false);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns FreeMb profile row
+     * 
+     * @return string
+     */
+    protected function getFreeMbControls() {
+        $result = '';
+        if (isset($this->alterCfg['FREEMB_IN_PROFILE'])) {
+            if ($this->alterCfg['FREEMB_IN_PROFILE']) {
+                $result = $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
+            }
+        }
+        return ($result);
+    }
+
+    /**
       Брат, братан, братишка Когда меня отпустит?
      */
 
@@ -1262,10 +1308,12 @@ class UserProfile {
         $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
 //apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
+//user districts row
+        $profile.=$this->getDistrictControls();
 //realname row
         $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
 //contract row
-        $profile.= $this->addRow(__('Contract'), $this->contract, false);
+        $profile.= $this->getContractControls();
 //contract date row
         $profile.= $this->getContractDate();
 //assigned agents row
@@ -1289,7 +1337,7 @@ class UserProfile {
 //login row
         $profile.= $this->addRow(__('Login'), $this->userdata['login'], true);
 //password row
-        $profile.= $this->addRow(__('Password'), $this->getUserPassword(), true);
+        $profile.= $this->getUserPassword();
 //User IP data and extended networks controls if available
         $profile.= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
 //MAC address row
@@ -1311,7 +1359,7 @@ class UserProfile {
 //credit expire row
         $profile.= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
 //Prepayed traffic
-        $profile.= $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
+        $profile.= $this->getFreeMbControls();
 //finance activity row
         $profile.=$this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
 //DN online detection row
