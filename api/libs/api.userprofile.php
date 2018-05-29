@@ -1230,8 +1230,8 @@ class UserProfile {
      */
     protected function getDistrictControls() {
         $result = '';
-        if (isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) {
-            if ($this->alterCfg['DISRTICTS_IN_PROFILE']) {
+        if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) AND ( $this->alterCfg['DISTRICTS_ENABLED'])) {
+            if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) AND ( $this->alterCfg['DISRTICTS_IN_PROFILE'])) {
                 $districts = new Districts(false);
                 $result.=$this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
             }
