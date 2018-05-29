@@ -74,6 +74,18 @@ class Districts {
     protected $messages = '';
 
     /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Default caching timeout in seconds
+     */
+    const CACHE_TIME = 86400;
+
+    /**
      * Base module URL
      */
     const URL_ME = '?module=districts';
@@ -90,6 +102,7 @@ class Districts {
      */
     public function __construct($fullLoaders = false) {
         $this->initMessages();
+        $this->initCache();
         $this->loadDistricts();
         if ($fullLoaders) {
             $this->loadDistrictData();
@@ -109,6 +122,15 @@ class Districts {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Initalizes system caching object for further usage
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -617,6 +639,61 @@ class Districts {
             }
         }
         $json->getJson();
+    }
+
+    /**
+     * Fills districts cache for further fast usage
+     * 
+     * @return void
+     */
+    public function fillDistrictsCache() {
+        $tmpArr = array();
+        if (!empty($this->allDistricts)) {
+            if (!empty($this->allAddress)) {
+                foreach ($this->allAddress as $login => $aptId) {
+                    foreach ($this->allDistricts as $districtId => $districtName) {
+                        if ($this->isUserInDistrict($login, $districtId)) {
+                            $tmpArr[$login][$districtId] = $districtName;
+                        }
+                    }
+                }
+            }
+        }
+        $this->cache->set('DISTRICTS', $tmpArr, self::CACHE_TIME);
+    }
+
+    /**
+     * Returns some user districts array as id=>name from cache
+     * 
+     * @param string $login
+     * 
+     * @return array
+     */
+    public function getUserDistrictsFast($login) {
+        $districtsCache = $this->cache->get('DISTRICTS', self::CACHE_TIME);
+        $result = array();
+        if (!empty($districtsCache)) {
+            if (isset($districtsCache[$login])) {
+                $result = $districtsCache[$login];
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of user districts text list from cache
+     * 
+     * @param string $login
+     * 
+     * @return string
+     */
+    public function getUserDistrictsListFast($login) {
+        $result = '';
+        $userDistricts = $this->getUserDistrictsFast($login);
+        if (!empty($userDistricts)) {
+            $result.=implode(', ', $userDistricts);
+        }
+        return ($result);
     }
 
 }
