@@ -936,67 +936,67 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             $districts = new Districts(true);
                             $districts->fillDistrictsCache();
                             die('OK: DISTRICTSCACHE');
+                        } else {
+                            die('ERROR: DISTRICTS DISABLED');
                         }
-                    } else {
-                        die('ERROR: DISTRICTS DISABLED');
                     }
-                }
 
-                /*
-                 * Ubilling remote API for Asterisk and other CRM
-                 * -----------------------------
-                 * 
-                 * Format: /?module=remoteapi&key=[ubserial]&action=[action]&number=[+380XXXXXXXXX]&param=[parameter]
-                 * 
-                 * Avaible parameter: login, swstatus
-                 * 
-                 */
-                if ($_GET['action'] == 'asterisk') {
-                    if ($alterconf['ASTERISK_ENABLED']) {
-                        if (wf_CheckGet(array('number'))) {
-                            if (wf_CheckGet(array('param'))) {
-                                $asterisk = new Asterisk();
-                                $result = $asterisk->AsteriskGetInfoApi($_GET['number'], $_GET['param']);
-                                die($result);
+
+                    /*
+                     * Ubilling remote API for Asterisk and other CRM
+                     * -----------------------------
+                     * 
+                     * Format: /?module=remoteapi&key=[ubserial]&action=[action]&number=[+380XXXXXXXXX]&param=[parameter]
+                     * 
+                     * Avaible parameter: login, swstatus
+                     * 
+                     */
+                    if ($_GET['action'] == 'asterisk') {
+                        if ($alterconf['ASTERISK_ENABLED']) {
+                            if (wf_CheckGet(array('number'))) {
+                                if (wf_CheckGet(array('param'))) {
+                                    $asterisk = new Asterisk();
+                                    $result = $asterisk->AsteriskGetInfoApi($_GET['number'], $_GET['param']);
+                                    die($result);
+                                } else {
+                                    die('ERROR: NOT HAVE PARAMETR');
+                                }
                             } else {
-                                die('ERROR: NOT HAVE PARAMETR');
+                                die('ERROR: NOT HAVE NUMBER');
                             }
                         } else {
-                            die('ERROR: NOT HAVE NUMBER');
+                            die('ERROR: ASTERISK DISABLED');
                         }
-                    } else {
-                        die('ERROR: ASTERISK DISABLED');
                     }
-                }
 
-                // Load MIKROTIK and UBNT Signal data
-                if ($_GET['action'] == 'mtsigmonpoll') {
-                    if ($alterconf['MTSIGMON_ENABLED']) {
-                        $sigmon = new MTsigmon();
-                        $sigmon->MTDevicesPolling();
-                        die('OK:MTPOLL');
-                    } else {
-                        die('ERROR:MTSIGMON_DISABLED');
+                    // Load MIKROTIK and UBNT Signal data
+                    if ($_GET['action'] == 'mtsigmonpoll') {
+                        if ($alterconf['MTSIGMON_ENABLED']) {
+                            $sigmon = new MTsigmon();
+                            $sigmon->MTDevicesPolling();
+                            die('OK:MTPOLL');
+                        } else {
+                            die('ERROR:MTSIGMON_DISABLED');
+                        }
                     }
-                }
 
-                //SORM Yahont csv data regeneration
-                if ($_GET['action'] == 'sormcast') {
-                    if ($alterconf['SORM_ENABLED']) {
-                        $sorm = new SormYahont();
-                        $sorm->saveAllDataCsv();
-                        die('OK:SORMCAST');
-                    } else {
-                        die('ERROR:SORM_DISABLED');
+                    //SORM Yahont csv data regeneration
+                    if ($_GET['action'] == 'sormcast') {
+                        if ($alterconf['SORM_ENABLED']) {
+                            $sorm = new SormYahont();
+                            $sorm->saveAllDataCsv();
+                            die('OK:SORMCAST');
+                        } else {
+                            die('ERROR:SORM_DISABLED');
+                        }
                     }
-                }
 
-                //MikroTik dynamic shaper
-                if ($_GET['action'] == 'mikrotikdnshaper') {
-                    if ($alterconf['DSHAPER_ENABLED']) {
-                        $Now = date('H:i:s');
+                    //MikroTik dynamic shaper
+                    if ($_GET['action'] == 'mikrotikdnshaper') {
+                        if ($alterconf['DSHAPER_ENABLED']) {
+                            $Now = date('H:i:s');
 
-                        $DNDataQuery = "SELECT  `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
+                            $DNDataQuery = "SELECT  `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
                                                     `speeds`.`speeddown`, `speeds`.`speedup`,  `speeds`.`burstdownload`, `speeds`.`burstupload`, `speeds`.`bursttimedownload`, `speeds`.`burstimetupload`, 
                                                     `dshpt`.`threshold1`, `dshpt`.`threshold2`, `dshpt`.`speed` 
                                               FROM  (
@@ -1010,102 +1010,102 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                                 LEFT JOIN `speeds` ON `usr_nh`.`Tariff` = `speeds`.`tariff`
                                               WHERE `nas`.`nastype` = 'mikrotik' AND `dshpt`.`speed` IS NOT NULL AND '" . $Now . "' BETWEEN `dshpt`.`threshold1` AND `dshpt`.`threshold2`;";
 
-                        $DNData = simple_queryall($DNDataQuery);
+                            $DNData = simple_queryall($DNDataQuery);
 
-                        if (!empty($DNData)) {
-                            $UsersCnt = count($DNData);
-                            $RouterOSAPI = new RouterOS();
+                            if (!empty($DNData)) {
+                                $UsersCnt = count($DNData);
+                                $RouterOSAPI = new RouterOS();
 
-                            foreach ($DNData as $eachrow => $eachlogin) {
-                                $MTikNasOpts = base64_decode($eachlogin['options']);
-                                $MTikNasOpts = unserialize($MTikNasOpts);
+                                foreach ($DNData as $eachrow => $eachlogin) {
+                                    $MTikNasOpts = base64_decode($eachlogin['options']);
+                                    $MTikNasOpts = unserialize($MTikNasOpts);
 
-                                $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password']);
+                                    $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password']);
 
-                                if ($RouterOSAPI->connected) {
-                                    if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
-                                        $Template = array('.id' => '',
-                                            'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
-                                            'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
-                                            'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
-                                            'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                        );
-                                    } else {
-                                        $Template = array('.id' => '',
-                                            'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
-                                            'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
-                                            'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
-                                            'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
-                                        );
-                                    }
-
-                                    $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
-
-                                    if (!empty($Entries)) {
-                                        foreach ($Entries as $Entry) {
-                                            $Template['.id'] = $Entry['.id'];
-                                            $MTikReply = $RouterOSAPI->command('/queue/simple/set', $Template);
+                                    if ($RouterOSAPI->connected) {
+                                        if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
+                                        } else {
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
                                         }
-                                    }
 
-                                    log_register('MT_DN_SHAPER done to `' . $UsersCnt . '` users');
-                                    die('OK:MT_DN_SHAPER');
+                                        $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
+
+                                        if (!empty($Entries)) {
+                                            foreach ($Entries as $Entry) {
+                                                $Template['.id'] = $Entry['.id'];
+                                                $MTikReply = $RouterOSAPI->command('/queue/simple/set', $Template);
+                                            }
+                                        }
+
+                                        log_register('MT_DN_SHAPER done to `' . $UsersCnt . '` users');
+                                        die('OK:MT_DN_SHAPER');
+                                    }
                                 }
+                            } else {
+                                die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');
                             }
-                        } else {
-                            die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');
                         }
                     }
-                }
 
-                //associated agent data
-                if ($_GET['action'] == 'getagentdata') {
-                    if (isset($_GET['param'])) {
-                        $userLogin = $_GET['param'];
-                        $allUserAddress = zb_AddressGetFulladdresslistCached();
-                        $userAddress = @$allUserAddress[$userLogin];
-                        $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
-                        die(json_encode($agentData));
-                    } else {
-                        die('ERROR:NO_LOGIN_PARAM');
+                    //associated agent data
+                    if ($_GET['action'] == 'getagentdata') {
+                        if (isset($_GET['param'])) {
+                            $userLogin = $_GET['param'];
+                            $allUserAddress = zb_AddressGetFulladdresslistCached();
+                            $userAddress = @$allUserAddress[$userLogin];
+                            $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
+                            die(json_encode($agentData));
+                        } else {
+                            die('ERROR:NO_LOGIN_PARAM');
+                        }
                     }
+
+                    ////
+                    //// End of actions
+                    ////
+
+                    /*
+                     * Exeptions handling
+                     */
+                } else {
+                    die('ERROR:GET_NO_ACTION');
                 }
-
-                ////
-                //// End of actions
-                ////
-
-                /*
-                 * Exeptions handling
-                 */
             } else {
-                die('ERROR:GET_NO_ACTION');
+                die('ERROR:GET_WRONG_KEY');
             }
         } else {
-            die('ERROR:GET_WRONG_KEY');
+            die('ERROR:NO_UBSERIAL_EXISTS');
         }
     } else {
-        die('ERROR:NO_UBSERIAL_EXISTS');
-    }
-} else {
-    /*
-     * Ubilling instance identify handler
-     */
-    if (isset($_GET['action'])) {
-        if ($_GET['action'] == 'identify') {
-            $idhostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
-            $idhostid = simple_query($idhostid_q);
-            if (!empty($idhostid)) {
-                $idserial = $idhostid['value'];
-                die(substr($idserial, -4));
-            } else {
-                die('ERROR:NO_UB_SERIAL_GENERATED');
+        /*
+         * Ubilling instance identify handler
+         */
+        if (isset($_GET['action'])) {
+            if ($_GET['action'] == 'identify') {
+                $idhostid_q = "SELECT * from `ubstats` WHERE `key`='ubid'";
+                $idhostid = simple_query($idhostid_q);
+                if (!empty($idhostid)) {
+                    $idserial = $idhostid['value'];
+                    die(substr($idserial, -4));
+                } else {
+                    die('ERROR:NO_UB_SERIAL_GENERATED');
+                }
             }
+        } else {
+            die('ERROR:GET_NO_KEY');
         }
-    } else {
-        die('ERROR:GET_NO_KEY');
     }
-}
 } else {
     die('ERROR:API_DISABLED');
 }
