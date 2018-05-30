@@ -90,7 +90,7 @@ class Districts {
     /**
      * Default caching timeout in seconds
      */
-    const CACHE_TIME = 86400;
+    const CACHE_TIME = 3600;
 
     /**
      * Base module URL
