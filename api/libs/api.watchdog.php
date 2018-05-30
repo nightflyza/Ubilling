@@ -266,7 +266,6 @@ class WatchDog {
                     } else {
                         throw new Exception(self::PARAM_EX . "HOPEPING");
                     }
-
                     break;
                 //run some script    
                 case 'script':
@@ -326,6 +325,16 @@ class WatchDog {
                         $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "FILEEXISTS");
+                    }
+                    break;
+                //open helpdesk tickets count check    
+                case 'opentickets':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $result = zb_TicketsGetAllNewCount();
+                        $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "OPENTICKETS");
                     }
                     break;
             }
@@ -446,6 +455,16 @@ class WatchDog {
                     $emptyCheck = $this->doAction($taskID);
                     $emptyCheck = trim($emptyCheck);
                     if (empty($emptyCheck)) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
+                //not empty check
+                case 'notempty':
+                    $emptyCheck = $this->doAction($taskID);
+                    $emptyCheck = trim($emptyCheck);
+                    if (!empty($emptyCheck)) {
                         return (true);
                     } else {
                         return (false);
@@ -798,7 +817,8 @@ class WatchDogInterface {
             'hopeping' => 'hopeping',
             'script' => 'script',
             'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists'
+            'fileexists' => 'fileexists',
+            'opentickets' => 'opentickets'
         );
 
         $operators = array(
@@ -809,6 +829,7 @@ class WatchDogInterface {
             '>' => '>',
             '<' => '<',
             'empty' => 'empty',
+            'notempty' => 'notempty',
             'changed' => 'changed',
             'notchanged' => 'notchanged',
             'like' => 'like',
@@ -848,7 +869,8 @@ class WatchDogInterface {
             'hopeping' => 'hopeping',
             'script' => 'script',
             'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists'
+            'fileexists' => 'fileexists',
+            'opentickets' => 'opentickets'
         );
 
         $operators = array(
@@ -859,6 +881,7 @@ class WatchDogInterface {
             '>' => '>',
             '<' => '<',
             'empty' => 'empty',
+            'notempty' => 'notempty',
             'changed' => 'changed',
             'notchanged' => 'notchanged',
             'like' => 'like',
@@ -953,21 +976,8 @@ class WatchDogInterface {
             throw new Exception(self::TASKADD_EX);
         }
 
-
-        $query = "INSERT INTO `watchdog` (
-                `id` ,
-                `active` ,
-                `name` ,
-                `checktype` ,
-                `param` ,
-                `operator` ,
-                `condition` ,
-                `action` ,
-                `oldresult`
-                )
-                VALUES (
-                NULL , '" . $active . "', '" . $name . "', '" . $checktype . "', '" . $param . "', '" . $operator . "', '" . $condition . "', '" . $action . "', NULL
-                );";
+        $query = "INSERT INTO `watchdog` (`id` , `active` , `name` , `checktype` , `param` ,`operator` ,  `condition` ,`action` ,`oldresult`)
+                VALUES (NULL , '" . $active . "', '" . $name . "', '" . $checktype . "', '" . $param . "', '" . $operator . "', '" . $condition . "', '" . $action . "', NULL);";
         nr_query($query);
         log_register("WATCHDOG CREATE TASK `" . $name . "`");
     }
