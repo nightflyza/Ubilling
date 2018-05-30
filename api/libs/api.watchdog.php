@@ -421,7 +421,26 @@ class WatchDog {
                     } else {
                         return (false);
                     }
-
+                    break;
+                //boolean gt or equal
+                case '>=':
+                    $currentValue = $this->doAction($taskID);
+                    $currentValue = trim($currentValue);
+                    if ($currentValue >= $this->taskData[$taskID]['condition']) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
+                //boolean lt or equal   
+                case '<=':
+                    $currentValue = $this->doAction($taskID);
+                    $currentValue = trim($currentValue);
+                    if ($currentValue <= $this->taskData[$taskID]['condition']) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
                     break;
                 //changes against previous results    
                 case 'changed':
@@ -658,6 +677,20 @@ class WatchDogInterface {
      */
     protected $previousAlerts = array();
 
+    /**
+     * Contains available checktypes
+     *
+     * @var array
+     */
+    protected $checktypes = array();
+
+    /**
+     * Contains available operators
+     *
+     * @var array
+     */
+    protected $operators = array();
+
     const TASKID_EX = 'NO_REQUIRED_TASK_ID';
     const TASKADD_EX = 'MISSING_REQUIRED_OPTION';
 
@@ -748,6 +781,33 @@ class WatchDogInterface {
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
+
+        $this->checktypes = array(
+            'icmpping' => 'icmpping',
+            'tcpping' => 'tcpping',
+            'hopeping' => 'hopeping',
+            'script' => 'script',
+            'getusertraff' => 'getusertraff',
+            'fileexists' => 'fileexists',
+            'opentickets' => 'opentickets'
+        );
+
+        $this->operators = array(
+            '=true' => '=true',
+            '=false' => '=false',
+            '==' => '==',
+            '!=' => '!=',
+            '>' => '>',
+            '<' => '<',
+            '>=' => '>=',
+            '<=' => '<=',
+            'empty' => 'empty',
+            'notempty' => 'notempty',
+            'changed' => 'changed',
+            'notchanged' => 'notchanged',
+            'like' => 'like',
+            'notlike' => 'notlike'
+        );
     }
 
     /**
@@ -810,36 +870,10 @@ class WatchDogInterface {
      * @return string
      */
     public function newTaskForm() {
-
-        $checktypes = array(
-            'icmpping' => 'icmpping',
-            'tcpping' => 'tcpping',
-            'hopeping' => 'hopeping',
-            'script' => 'script',
-            'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists',
-            'opentickets' => 'opentickets'
-        );
-
-        $operators = array(
-            '=true' => '=true',
-            '=false' => '=false',
-            '==' => '==',
-            '!=' => '!=',
-            '>' => '>',
-            '<' => '<',
-            'empty' => 'empty',
-            'notempty' => 'notempty',
-            'changed' => 'changed',
-            'notchanged' => 'notchanged',
-            'like' => 'like',
-            'notlike' => 'notlike',
-        );
-
         $inputs = wf_TextInput('newname', __('Name'), '', true);
-        $inputs.= wf_Selector('newchecktype', $checktypes, __('Check type'), '', true);
+        $inputs.= wf_Selector('newchecktype', $this->checktypes, __('Check type'), '', true);
         $inputs.= wf_TextInput('newparam', __('Parameter'), '', true);
-        $inputs.= wf_Selector('newoperator', $operators, __('Operator'), '', true);
+        $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', true);
         $inputs.= wf_TextInput('newcondition', __('Condition'), '', true);
         $inputs.= wf_TextInput('newaction', __('Actions'), '', true);
         $inputs.=wf_CheckInput('newactive', __('Active'), true, true);
@@ -863,35 +897,10 @@ class WatchDogInterface {
             throw new Exception(self::TASKID_EX);
         }
 
-        $checktypes = array(
-            'icmpping' => 'icmpping',
-            'tcpping' => 'tcpping',
-            'hopeping' => 'hopeping',
-            'script' => 'script',
-            'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists',
-            'opentickets' => 'opentickets'
-        );
-
-        $operators = array(
-            '=true' => '=true',
-            '=false' => '=false',
-            '==' => '==',
-            '!=' => '!=',
-            '>' => '>',
-            '<' => '<',
-            'empty' => 'empty',
-            'notempty' => 'notempty',
-            'changed' => 'changed',
-            'notchanged' => 'notchanged',
-            'like' => 'like',
-            'notlike' => 'notlike'
-        );
-
         $inputs = wf_TextInput('editname', __('Name'), $this->allTasks[$taskID]['name'], true);
-        $inputs.= wf_Selector('editchecktype', $checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
+        $inputs.= wf_Selector('editchecktype', $this->checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
         $inputs.= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true);
-        $inputs.= wf_Selector('editoperator', $operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
+        $inputs.= wf_Selector('editoperator', $this->operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
         $inputs.= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true);
         $inputs.= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true);
         $inputs.= wf_CheckInput('editactive', __('Active'), true, $this->allTasks[$taskID]['active']);
