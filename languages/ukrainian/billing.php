@@ -2900,5 +2900,6 @@ $lang['def']['number'] = 'номер';
 $lang['def']['User contract'] = 'Угода користувача';
 $lang['def']['Not really'] = 'Не дуже';
 $lang['def']['Districts in user profile'] = 'Райони у профілі користувача';
-
+$lang['def']['Use SMSPILOT as default SMS service'] = 'Використовувати SMSPILOT як службу SMS за замовчуванням';
+$lang['def']['User API key for access SMSPILOT API'] = 'Користувацький ключ API для доступу до API SMSPILOT';
 ?>
