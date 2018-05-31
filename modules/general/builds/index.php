@@ -20,7 +20,6 @@ if (cfr('BUILDS')) {
                            zb_AddressCreateBuild($streetid, trim($_POST['newbuildnum']));
                            die();
                        } else {
-                           //show_error(__('The same build already exists'));
                            $messages = new UbillingMessageHelper();
                            $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $BuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
