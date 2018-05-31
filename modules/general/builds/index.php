@@ -14,18 +14,6 @@ if (cfr('BUILDS')) {
            if ($_GET['action']=='edit') {
                if (isset($_POST['newbuildnum'])) {
                    if (!empty($_POST['newbuildnum'])) {
-                       //check for exist of same build at this street
-                       /*$existingBuilds_raw=  zb_AddressGetBuildAllDataByStreet($streetid);
-                       $existingBuilds=array();
-
-                       if (!empty($existingBuilds_raw)) {
-                           foreach ($existingBuilds_raw as $ix=>$eachbuilddata) {
-                               $existingBuilds[]=  strtolower_utf8($eachbuilddata['buildnum']);
-                           }
-                       }*/
-
-                       //if (!in_array(strtolower_utf8($_POST['newbuildnum']), $existingBuilds)) {
-
                        $BuildID = checkBuildOnStreetExists($_POST['newbuildnum'], $streetid);
 
                        if (empty($BuildID)) {
@@ -38,10 +26,7 @@ if (cfr('BUILDS')) {
                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                        }
 
-                   } else {
-                       show_error(__('Empty building number'));
                    }
-
                }
 
                if ( wf_CheckGet(array('ajax')) ) {
@@ -50,18 +35,15 @@ if (cfr('BUILDS')) {
 
                $streetname = zb_AddressGetStreetData($streetid);
                $streetname = $streetname['streetname'];
-               //show_window(__('Add build'), web_BuildAddForm());
+
                show_window(__('Available buildings on street').' '.$streetname, web_BuildLister($streetid));
            }
 
            if ($_GET['action']=='delete') {
                if (!zb_AddressBuildProtected($_GET['buildid'])) {
                     zb_AddressDeleteBuild($_GET['buildid']);
-                    //rcms_redirect("?module=builds&action=edit&streetid=".$streetid);
                     die();
                } else {
-                   //show_window('', wf_BackLink("?module=builds&action=edit&streetid=".$streetid));
-                   //show_error(__('You can not delete a building if there are users of the apartment'));
                    $messages = new UbillingMessageHelper();
                    $errormes = $messages->getStyledMessage(__('You can not delete a building if there are users of the apartment'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                    die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
@@ -83,7 +65,6 @@ if (cfr('BUILDS')) {
                            simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='" . $buildid . "'");
 
                            log_register("CHANGE AddressBuild [" . $buildid . "] " .  mysql_real_escape_string(trim($_POST['editbuildnum'])));
-                           //rcms_redirect("?module=builds&action=edit&streetid=" . $streetid);
                            die();
                        } else {
                            $messages = new UbillingMessageHelper();

@@ -2907,7 +2907,7 @@ $lang['def']['Close form after operation'] = 'Закрити форму післ
 $lang['def']['Show all streets'] = 'Показати всі вулиці';
 $lang['def']['City with such name already exists with ID: '] = 'Місто з таким ім\'ям вже існує з ID: ';
 $lang['def']['Street with such name already exists in this city with ID: '] = 'Вулиця з таким ім\'ям вже існує в цьому місті з ID: ';
-$lang['def']['Build with such number already exists on this street with ID: '] = 'Будинок з таким номером вже існує на цій вулиці с ID: ';
+$lang['def']['Build with such number already exists on this street with ID: '] = 'Будинок з таким номером вже існує на цій вулиці з ID: ';
 $lang['def']['Add new build number'] = 'Додати новий номер будинку';
 $lang['def']['Back to builds on streets'] = 'Повернутись до будинків на вулицях';
 
