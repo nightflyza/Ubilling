@@ -2902,4 +2902,15 @@ $lang['def']['Not really'] = 'Не дуже';
 $lang['def']['Districts in user profile'] = 'Райони у профілі користувача';
 $lang['def']['Use SMSPILOT as default SMS service'] = 'Використовувати SMSPILOT як службу SMS за замовчуванням';
 $lang['def']['User API key for access SMSPILOT API'] = 'Користувацький ключ API для доступу до API SMSPILOT';
+$lang['def']['Mandatory field'] = 'Обов\'язкове поле';
+$lang['def']['Close form after operation'] = 'Закрити форму після завершення операції';
+$lang['def']['Show all streets'] = 'Показати всі вулиці';
+$lang['def']['City with such name already exists with ID: '] = 'Місто з таким ім\'ям вже існує з ID: ';
+$lang['def']['Street with such name already exists in this city with ID: '] = 'Вулиця з таким ім\'ям вже існує в цьому місті з ID: ';
+$lang['def']['Build with such number already exists on this street with ID: '] = 'Будинок з таким номером вже існує на цій вулиці с ID: ';
+$lang['def']['Add new build number'] = 'Додати новий номер будинку';
+$lang['def']['Back to builds on streets'] = 'Повернутись до будинків на вулицях';
+
+
+
 ?>
