@@ -2,55 +2,73 @@
 // check for right of current admin on this module
 if (cfr('CITY')) {
 
+
     if (isset($_POST['newcityname'])) {
         $newcityname=$_POST['newcityname'];
+
         if (isset($_POST['newcityalias'])) {
-        $newcityalias=$_POST['newcityalias'];
+            $newcityalias=$_POST['newcityalias'];
         } else {
-        $newcityalias='';
+            $newcityalias='';
         }
         
         if (!empty($newcityname)) {
-         zb_AddressCreateCity($newcityname, $newcityalias);
-         rcms_redirect('?module=city');
-        } else {
-            show_error(__('Empty city name'));
-        }
-    }
-    
-    if (isset($_GET['action'])) {
-        if (isset($_GET['cityid'])) {
-        $cityid=$_GET['cityid'];
+            $CityID = checkCityExists($newcityname);
 
-        if ($_GET['action']=='delete') {
-            if (!zb_AddressCityProtected($cityid)) {
-            zb_AddressDeleteCity($cityid);
-            rcms_redirect('?module=city');
+            if ( empty($CityID) ) {
+                zb_AddressCreateCity($newcityname, $newcityalias);
+                die();
             } else {
-                show_error(__('You can not just remove a city where there are streets and possibly survivors'));
-                show_window('', wf_BackLink('?module=city', __('Back'), true, 'ubButton'));
+                $messages = new UbillingMessageHelper();
+                $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $CityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
             }
         }
-        if ($_GET['action']=='edit') {
-            if (isset ($_POST['editcityname'])) {
-                if (!empty($_POST['editcityname'])) {
-                    zb_AddressChangeCityName($cityid, $_POST['editcityname']);
+    }
+
+    if (isset($_GET['action'])) {
+        if (isset($_GET['cityid'])) {
+            $cityid = $_GET['cityid'];
+
+            if ($_GET['action'] == 'delete') {
+                if (!zb_AddressCityProtected($cityid)) {
+                    zb_AddressDeleteCity($cityid);
+                    die();
+                } else {
+                    $messages = new UbillingMessageHelper();
+                    $errormes = $messages->getStyledMessage(__('You can not just remove a city where there are streets and possibly survivors'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                    die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
                 }
-                
-                zb_AddressChangeCityAlias($cityid, $_POST['editcityalias']);
-                rcms_redirect('?module=city');
-          }
-            show_window(__('Edit City'),web_CityEditForm($cityid));
-        }
+            }
+
+            if ($_GET['action'] == 'edit') {
+                if (isset ($_POST['editcityname'])) {
+                    if (!empty($_POST['editcityname'])) {
+                        $CityID = checkCityExists($_POST['editcityname']);
+
+                        if ( empty($CityID) ) {
+                            zb_AddressChangeCityName($cityid, $_POST['editcityname']);
+                        } else {
+                            $messages = new UbillingMessageHelper();
+                            $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $CityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                        }
+                    }
+
+                    zb_AddressChangeCityAlias($cityid, $_POST['editcityalias']);
+                    die();
+                } else {
+                    die(wf_modalAutoForm(__('Edit City'), web_CityEditForm($cityid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
+                }
+            }
         }
     }
-    // create form
-    if (!wf_CheckGet(array('action'))) {
-    show_window(__('Create new city'),web_CityCreateForm());
+
+    if ( wf_CheckGet(array('ajax')) ) {
+        renderCityJSON();
     }
-    //list
-    show_window(__('Available cities'),web_CityLister());
-    
+
+    show_window(__('Available cities'), web_CityLister());
 } else {
       show_error(__('You cant control this module'));
 }

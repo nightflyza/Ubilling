@@ -62,10 +62,12 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID =
  * @param  bool   $br append new line
  * @param  string $size input size
  * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email
+ * @param  string $class class of the element
+ *
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '') {
     $inputid = wf_InputId();
     //set size
     if ($size != '') {
@@ -89,7 +91,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'email') ? 'pattern="^([\w\._]+)@([\w\._]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
 
-    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
@@ -826,11 +828,17 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options =
  * @param string $url URL if confirmed
  * @param string $title link title
  * @param string $alerttext alert text
+ * @param string $functiontorun function name with parameters which must exist on a page
+ *
  * @return string
  *  
  */
-function wf_JSAlert($url, $title, $alerttext) {
-    $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+function wf_JSAlert($url, $title, $alerttext, $functiontorun = '') {
+    if ( empty($functiontorun) ) {
+        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+    } else {
+        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; return false; }" href="' . $url . '">' . $title . '</a>';
+    }
     return ($result);
 }
 
@@ -840,12 +848,20 @@ function wf_JSAlert($url, $title, $alerttext) {
  * @param string $url URL if confirmed
  * @param string $title link title
  * @param string $alerttext alert text
+ * @param string $functiontorun function name with parameters which must exist on a page
+ *
  * @return string
  *  
  */
-function wf_JSAlertStyled($url, $title, $alerttext, $class = '') {
+function wf_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun = '') {
     $class = (!empty($class)) ? 'class="' . $class . '"' : '';
-    $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+
+    if ( empty($functiontorun) ) {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    } else {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; }" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    }
+
     return ($result);
 }
 
@@ -948,7 +964,7 @@ function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height
         $width = '600';
     }
 
-//setting auto width if not specified
+//setting auto height if not specified
     if ($height == '') {
         $height = '400';
     }
@@ -1047,12 +1063,19 @@ $(function() {
  * @param string $WindowID
  * @param string $WindowBodyID
  * @param bool $DestroyOnClose
+ * @param string $AutoOpen
+ * @param string $Width
+ * @param string $Height
  *
  * @return string
  */
-function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', $DestroyOnClose = false) {
+function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', $DestroyOnClose = false, $AutoOpen = 'false', $Width = '', $Height = '') {
     $WID = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
     $WBID = (empty($WindowBodyID)) ? 'body_dialog-modal_' . wf_inputid() : $WindowBodyID;
+
+    if ( empty($Width) ) { $Width = "'auto'"; }
+
+    if ( empty($Height) ) { $Height = "'auto'"; }
 
     $DestroyParams = '';
     if ($DestroyOnClose) {
@@ -1069,9 +1092,9 @@ function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', 
     $Dialog .= ' 
                 $(function() {   
                     $(\'#' . $WID . '\').dialog({
-                        autoOpen: false,
-                        width: \'auto\',
-                        height: \'auto\',
+                        autoOpen: ' . $AutoOpen . ',
+                        width: ' . $Width . ',
+                        height: ' . $Height . ',
                         modal: true,
                         show: "drop",
                         hide: "fold"' . $DestroyParams . '
@@ -2388,6 +2411,35 @@ function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $Ou
     $Result .= wf_tag('script', true);
 
     return $Result;
+}
+
+/**
+ * Returns plain JS-code of 'empty' function to use for checking an empty value in JS code
+ *
+ * @return string
+ */
+function wf_JSEmptyFunc() {
+    $Result = '
+                function empty (mixed_var) {
+                    // version: 909.322
+                    // discuss at: http://phpjs.org/functions/empty
+                    
+                    var key;
+                    if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+                        return true;
+                    }
+                    
+                    if (typeof mixed_var == \'object\') {
+                        for (key in mixed_var) {
+                            return false;
+                        }                        
+                        return true;
+                    }                    
+                    return false;
+                }
+              ';
+
+    return ($Result);
 }
 
 /**

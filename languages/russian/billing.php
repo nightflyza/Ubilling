@@ -2886,7 +2886,17 @@ $lang['def']['Not really'] = 'Не очень';
 $lang['def']['Districts in user profile'] = 'Районы в профиле пользователя';
 $lang['def']['Use SMSPILOT as default SMS service'] = 'Использовать SMSPILOT как службу SMS по-умолчанию';
 $lang['def']['User API key for access SMSPILOT API'] = 'Пользовательский ключ API для доступа к API SMSPILOT';
-$lang['def'][''] = '';
+$lang['def']['Mandatory field'] = 'Обязательное поле';
+$lang['def']['Close form after operation'] = 'Закрыть форму после завершения операции';
+$lang['def']['Show all streets'] = 'Показать все улицы';
+$lang['def']['City with such name already exists with ID: '] = 'Город с таким именем уже существует с ID: ';
+$lang['def']['Street with such name already exists in this city with ID: '] = 'Улица с таким именем уже существует в этом городе с ID: ';
+$lang['def']['Build with such number already exists on this street with ID: '] = 'Дом с таким номером уже существует на этой улице с ID: ';
+$lang['def']['Add new build number'] = 'Добавить новый номер дома';
+$lang['def']['Back to builds on streets'] = 'Вернуться к домам на улицах';
+
+
+
 
 
 

@@ -147,12 +147,13 @@ class UbillingMessageHelper {
      * 
      * @param string $data text message for styling
      * @param string $style error, warning, info, success
+     * @param string $opts
      * 
      * @return string
      */
-    public function getStyledMessage($data, $style) {
+    public function getStyledMessage($data, $style, $opts = '') {
         $class = 'alert_' . $style;
-        $result = wf_tag('span', false, $class) . $data . wf_tag('span', true);
+        $result = wf_tag('span', false, $class, $opts) . $data . wf_tag('span', true);
         return ($result);
     }
 
