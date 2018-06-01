@@ -83,11 +83,13 @@ if (cfr('STREETS')) {
         }
     }
 
+    $FilterByCityID = ( wf_CheckGet(array('filterbycityid')) ) ? $_GET['filterbycityid'] : '';
+
     if ( wf_CheckGet(array('ajax')) ) {
-        renderStreetJSON($_GET['filterbycityid']);
+        renderStreetJSON($FilterByCityID);
     }
 
-    show_window(__('Available streets'), web_StreetLister($_GET['filterbycityid']));
+    show_window(__('Available streets'), web_StreetLister($FilterByCityID));
 } else {
     show_error(__('You cant control this module'));
 }
