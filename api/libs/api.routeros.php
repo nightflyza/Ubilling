@@ -147,6 +147,8 @@ class RouterOS {
      */
     public function read($parse_response = true) {
         $response = array();
+        $_ = '';
+
         while ( true ) {
             $byte = ord(fread($this->socket, 1));
             $length = 0;
@@ -172,10 +174,9 @@ class RouterOS {
                 }
             } else $length = $byte;
 
-            $_ = null;
-
             if ($length > 0) {
                 $retlen = 0;
+                $_ = '';
 
                 while ($retlen < $length) {
                     $toread = $length - $retlen;
@@ -187,13 +188,13 @@ class RouterOS {
                 $this->debug('>>> [' . $retlen . '/' . $length . '] bytes read.');
             }
 
-            if ($_ == '!done') {$_done = true;}
+            $_done = ($_ == '!done') ? true : false;
 
             $status = socket_get_status($this->socket);
 
             if ($length > 0) {$this->debug('>>> [' . $length . ', ' . $status['unread_bytes'] . ']' . $_);}
 
-            if ((!$this->connected && !$status['unread_bytes']) || ($this->connected && !$status['unread_bytes'] && $_done)) {
+            if ( (!$this->connected && !$status['unread_bytes']) || ($this->connected && !$status['unread_bytes'] && $_done) ) {
                 break;
             }
         }
