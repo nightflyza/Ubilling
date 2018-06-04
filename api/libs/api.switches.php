@@ -591,7 +591,7 @@ function zb_PingICMPHope($ip, $retries = 3) {
         deb($count);
         if (zb_PingICMP($ip)) {
             deb('true');
-            $result=true;
+            $result = true;
             break;
         }
     }
@@ -1597,6 +1597,18 @@ function zb_SwitchGetIdbyIP($ip) {
     if (!empty($raw)) {
         $result = $raw['id'];
     }
+    return ($result);
+}
+
+/**
+ * Returns switch profile link with some square brackets
+ * 
+ * @param int $switchId
+ * 
+ * @return string
+ */
+function web_SwitchProfileLink($switchId) {
+    $result = ' [' . trim(wf_Link('?module=switches&edit=' . $switchId, $switchId)) . '] ';
     return ($result);
 }
 
