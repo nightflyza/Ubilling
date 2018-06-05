@@ -611,7 +611,11 @@ function zb_VserviceCashFee($login, $fee, $vserviceid) {
     $login = vf($login);
     $fee = vf($fee);
     $balance = zb_VserviceCashGet($login);
-    $newcash = $balance - $fee;
+    if ($fee >= 0) {
+        $newcash = $balance - $fee;
+    } else {
+        $newcash = $balance + abs($fee);
+    }
     zb_VserviceCashSet($login, $newcash);
     zb_VserviceCashLog($login, $balance, $newcash, $vserviceid);
 }
@@ -662,91 +666,54 @@ function web_VservicesSelector() {
  * 
  * @return void
  */
-function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen = true) {
-    $alterconf = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
+    global $ubillingConfig;
+    $alterconf = $ubillingConfig->getAlter();
     $frozenUsers = array();
     $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
     $allUserData = zb_UserGetAllStargazerDataAssoc();
-    if ($debug) {
-        print (">>" . curdatetime() . "\n");
-        print (">>Searching virtual services\n");
-        print ($query_services . "\n");
-    }
+
     $allservices = simple_queryall($query_services);
     if (!empty($allservices)) {
-        if ($debug) {
-            print (">>Virtual services found!\n");
-            print_r($allservices);
-        }
-
-        if ($charge_frozen) {
-            if ($debug) {
-                print('>>Charge fee from frozen users too' . "\n");
-            }
-        } else {
-            if ($debug) {
-                print('>>Frozen users will be skipped' . "\n");
-            }
+        if (!$charge_frozen) {
             $frozen_query = "SELECT `login` from `users` WHERE `Passive`='1';";
-            if ($debug) {
-                print($frozen_query . "\n");
-            }
             $allFrozen = simple_queryall($frozen_query);
             if (!empty($allFrozen)) {
                 foreach ($allFrozen as $ioFrozen => $eachFrozen) {
                     $frozenUsers[$eachFrozen['login']] = $eachFrozen['login'];
                 }
-                if ($debug) {
-                    print_r($frozenUsers);
-                }
             }
         }
+
         foreach ($allservices as $io => $eachservice) {
             $users_query = "SELECT `login` from `tags` WHERE `tagid`='" . $eachservice['tagid'] . "'";
-            if ($debug) {
-                print (">>Searching users with this services\n");
-                print($users_query . "\n");
-            }
             $allusers = simple_queryall($users_query);
 
-
             if (!empty($allusers)) {
-                if ($debug) {
-                    print (">>Users found!\n");
-                    print_r($allusers);
-                }
-
                 foreach ($allusers as $io2 => $eachuser) {
-                    if ($debug) {
-                        print (">>Processing user:" . $eachuser['login'] . "\n");
-                    }
-                    if ($debug) {
-                        print (">>service:" . $eachservice['id'] . "\n");
-                        print (">>price:" . $eachservice['price'] . "\n");
-                        print (">>processing cashtype:" . $eachservice['cashtype'] . "\n");
-                    }
+                    //virtual cash charging (DEPRECATED)
                     if ($eachservice['cashtype'] == 'virtual') {
                         $current_cash = zb_VserviceCashGet($eachuser['login']);
-                        $FeeChargeAllowed = ($current_cash < 0 && $eachservice['fee_charge_always'] == 0) ? false : true;
+                        $FeeChargeAllowed = ($current_cash < 0 AND $eachservice['fee_charge_always'] == 0) ? false : true;
 
-                        if ($debug) {
-                            print(">>current cash:" . $current_cash . "\n");
-                        }
-
-                        if ($debug != 2 && $FeeChargeAllowed) {
+                        if ($FeeChargeAllowed) {
                             zb_VserviceCashFee($eachuser['login'], $eachservice['price'], $eachservice['id']);
                         }
                     }
+                    //stargazer balance charging
                     if ($eachservice['cashtype'] == 'stargazer') {
                         $current_cash = $allUserData[$eachuser['login']]['Cash'];
-                        $FeeChargeAllowed = ($current_cash < 0 && $eachservice['fee_charge_always'] == 0) ? false : true;
+                        $FeeChargeAllowed = ($current_cash < 0 AND $eachservice['fee_charge_always'] == 0) ? false : true;
 
-                        if ($debug) {
-                            print(">>current cash:" . $current_cash . "\n");
-                        }
-
-                        if ($debug != 2 && $FeeChargeAllowed) {
-                            $fee = "-" . $eachservice['price'];
+                        if ($FeeChargeAllowed) {
+                            $fee = $eachservice['price'];
+                            if ($fee >= 0) {
+                                //charge cash from user balance
+                                $fee = "-" . $eachservice['price'];
+                            } else {
+                                //add some cash to balance
+                                $fee = abs($eachservice['price']);
+                            }
                             if ($log_payment) {
                                 $method = 'add';
                             } else {
@@ -756,11 +723,7 @@ function zb_VservicesProcessAll($debug = 0, $log_payment = true, $charge_frozen 
                                 zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
                                 $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                             } else {
-                                if (isset($frozenUsers[$eachuser['login']])) {
-                                    if ($debug) {
-                                        print('>>user frozen - skipping him' . "\n");
-                                    }
-                                } else {
+                                if (!isset($frozenUsers[$eachuser['login']])) {
                                     zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
                                     $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                                 }

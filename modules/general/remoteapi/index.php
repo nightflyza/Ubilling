@@ -99,12 +99,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         } else {
                             $vservicesChargeFrozen = true;
                         }
-                        /* debug flags:
-                         * 0 - silent
-                         * 1 - with debug output
-                         * 2 - don`t touch any cash, just testing run
-                         */
-                        zb_VservicesProcessAll(1, true, $vservicesChargeFrozen);
+
+                        zb_VservicesProcessAll(true, $vservicesChargeFrozen);
                         log_register("REMOTEAPI VSERVICE_CHARGE_FEE");
                         die('OK:SERVICE_CHARGE_FEE');
                     }
