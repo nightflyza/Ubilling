@@ -333,3 +333,6 @@ $lang['def']['You have not yet responded to polls'] = 'Ud todavía no ha respond
 $lang['def']['Vote'] = 'Votar';
 
 $lang['def']['Additional mobile'] = 'Móvil opcional';
+
+$lang['def']['Terms'] = 'Condiciones';
+$lang['def']['Bonus'] = 'Prima';

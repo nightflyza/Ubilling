@@ -335,4 +335,8 @@ $lang['def']['Create new help request'] = 'ტექნიკური დახ
 
 $lang['def']['Additional mobile'] = 'სურვილისამებრ მობილური';
 
+$lang['def']['Terms'] = 'ვადები';
+$lang['def']['Bonus'] = 'ბონუსი';
+
+
 ?>

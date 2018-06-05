@@ -886,6 +886,7 @@ function zbs_getUserTags($login) {
  * 
  * @param string $login
  * @param string $currency
+ * 
  * @return string
  */
 function zbs_vservicesShow($login, $currency) {
@@ -907,12 +908,18 @@ function zbs_vservicesShow($login, $currency) {
                 $tagnames = zbs_getTagNames(); //tagid => name
 
                 $cells = la_TableCell(__('Service'));
-                $cells.= la_TableCell(__('Price'));
+                $cells.= la_TableCell(__('Terms'));
                 $rows = la_TableRow($cells, 'row1');
 
                 foreach ($userservices as $eachservicetagid => $dbid) {
+
+                    if ($allservices[$eachservicetagid] >= 0) {
+                        $servicePrice = __('Price').' '.@$allservices[$eachservicetagid] . ' ' . $currency;
+                    } else {
+                        $servicePrice = __('Bonus').' '.abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
+                    }
                     $cells = la_TableCell(@$tagnames[$eachservicetagid]);
-                    $cells.= la_TableCell(@$allservices[$eachservicetagid] . ' ' . $currency);
+                    $cells.= la_TableCell($servicePrice);
                     $rows.= la_TableRow($cells, 'row3');
                 }
 
@@ -1099,7 +1106,7 @@ function zbs_UserShowProfile($login) {
     $profile.= la_tag('tr', true);
 
     if (@$us_config['SHOW_EXT_MOBILES']) {
-        $mobilesExt=new UserstatsMobilesExt($login);
+        $mobilesExt = new UserstatsMobilesExt($login);
         $profile.= la_tag('tr');
         $profile.= la_TableCell(__('Additional mobile'), '', 'row1');
         $profile.= la_TableCell($mobilesExt->renderUserMobiles());
@@ -1892,10 +1899,9 @@ function zbs_IntroLoadText() {
  */
 function zbs_getFreezeDaysChargeData($login) {
     $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $login . "';";
-    $FrozenAll      = simple_queryall($FrozenAllQuery);
+    $FrozenAll = simple_queryall($FrozenAllQuery);
 
     return $FrozenAll;
 }
-
 
 ?>

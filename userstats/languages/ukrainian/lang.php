@@ -367,5 +367,7 @@ $lang['def']['Days worked after freeze days used up'] = 'Кількість вж
 $lang['def']['Workdays left to restore'] = 'Кількість днів які залишилось відпрацювати для відновлення днів заморозки';
 $lang['def']['Changing freeze status is unavailable: total amount of freeze days used up'] = 'Зміна статусу заморозки недоступна: кількість днів заморозки вичерпано';
 
+$lang['def']['Terms'] = 'Умови';
+$lang['def']['Bonus'] = 'Бонус';
 
 ?>
