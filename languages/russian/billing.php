@@ -2894,9 +2894,9 @@ $lang['def']['Street with such name already exists in this city with ID: '] = '�
 $lang['def']['Build with such number already exists on this street with ID: '] = 'Дом с таким номером уже существует на этой улице с ID: ';
 $lang['def']['Add new build number'] = 'Добавить новый номер дома';
 $lang['def']['Back to builds on streets'] = 'Вернуться к домам на улицах';
-$lang['def']['Because some of uplink switches deleted loop check is skipped'] = 'Поскольку в базе есть отсутствующие родительские свитчи - проверка связей не производится';
+$lang['def']['Because some of uplink switches deleted loop, check is skipped'] = 'Поскольку в базе есть отсутствующие родительские свитчи - проверка связей не производится';
 $lang['def']['Following switches have loops between'] = 'Взаимоотношения следующих свитчей могут произвести к петлям';
-$lang['def'][''] = '';
+$lang['def']['Because some of switches have itself as parent, check is skipped'] = 'Поскольку для некоторых свитчей родительским указан он сам - проверка связей не производится';
 $lang['def'][''] = '';
 
 

@@ -17,6 +17,8 @@ if (cfr('SWITCHESEDIT')) {
         $allLinks = array();
         $allIds = array();
         $allDeleted = array();
+        $selfLoop = array();
+
         $query = "SELECT * from `switches`";
         $all = simple_queryall($query);
 
@@ -31,6 +33,9 @@ if (cfr('SWITCHESEDIT')) {
             //filling alllinks array
             foreach ($all as $io => $each) {
                 $allLinks[$each['id']] = $each['parentid'];
+                if ($each['id'] == $each['parentid']) {
+                    $selfLoop[$each['id']] = $each['parentid'];
+                }
             }
 
             //filling registered ids array
@@ -62,42 +67,49 @@ if (cfr('SWITCHESEDIT')) {
             }
 
 
-
             ///checking uplinks switches possible loop
             if (empty($allDeleted)) {
-                $roads = array();
-                $failRoads = array();
-                if (!empty($allLinks)) {
-                    foreach ($allLinks as $id => $parentid) {
+                if (empty($selfLoop)) {
+                    $roads = array();
+                    $failRoads = array();
+                    if (!empty($allLinks)) {
+                        foreach ($allLinks as $id => $parentid) {
 
-                        $roads[$id][] = $parentid;
-                        $trace = $parentid;
-                        while (!empty($trace)) {
-                            if (isset($allLinks[$trace])) {
-                                if (!array_search($allLinks[$trace], $roads[$id])) {
-                                    $roads[$id][] = $allLinks[$trace];
-                                } else {
-                                    $failRoads[$id] = $allLinks[$trace];
-                                    $trace = '';
+                            $roads[$id][] = $parentid;
+                            $trace = $parentid;
+                            while (!empty($trace)) {
+                                if (isset($allLinks[$trace])) {
+                                    if ((!array_search($allLinks[$trace], $roads[$id]))) {
+                                        $roads[$id][] = $allLinks[$trace];
+                                    } else {
+                                        $failRoads[$id] = $allLinks[$trace];
+                                        $trace = '';
+                                    }
+
+                                    $trace = (isset($allLinks[$trace])) ? $allLinks[$trace] : '';
                                 }
-
-                                $trace = (isset($allLinks[$trace])) ? $allLinks[$trace] : '';
                             }
                         }
                     }
-                }
 
-                if (!empty($failRoads)) {
-                    $failRoads = array_flip($failRoads);
+                    if (!empty($failRoads)) {
+                        $failRoads = array_flip($failRoads);
+                        $resultLoop = '';
+                        foreach ($failRoads as $io => $each) {
+                            $resultLoop.=web_SwitchProfileLink($io);
+                        }
+
+                        $result.=$messages->getStyledMessage(__('Following switches have loops between') . ': ' . $resultLoop, 'error');
+                    }
+                } else {
                     $resultLoop = '';
-                    foreach ($failRoads as $io => $each) {
+                    foreach ($selfLoop as $io => $each) {
                         $resultLoop.=web_SwitchProfileLink($io);
                     }
-
-                    $result.=$messages->getStyledMessage(__('Following switches have loops between') . ': ' . $resultLoop, 'error');
+                    $result.=$messages->getStyledMessage(__('Because some of switches have itself as parent, check is skipped') . ': ' . $resultLoop, 'error');
                 }
             } else {
-                $result.=$messages->getStyledMessage(__('Because some of uplink switches deleted loop check is skipped'), 'error');
+                $result.=$messages->getStyledMessage(__('Because some of uplink switches deleted loop, check is skipped'), 'error');
             }
 
             return ($result);
