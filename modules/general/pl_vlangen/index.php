@@ -21,9 +21,6 @@ if ($altcfg['VLANGEN_SUPPORT']) {
                 rcms_redirect(VlanGen::MODULE_URL . "&username=" . $login);
             } else {
                 show_window(__('Current user Vlan'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $cur_vlan . wf_tag('h2', true) . '<br clear="both" />');
-                if ($altcfg['ONUAUTO_CONFIG_DESCRIBE']) {
-                    show_window(__('Current description'), wf_tag('h2', false, 'floatpanels', '') . ' ' . $onuDescription . wf_tag('h2', true) . '<br clear="both" />');
-                }
                 show_window('', $VlanGen->ChangeForm());
                 show_window('', wf_JSAlert(VlanGen::MODULE_URL . "&username=" . $login . "&DeleteVlanHost=true", $VlanGen->DeleteForm(), __('Removing this may lead to irreparable results')));
                 if ($altcfg['SWITCH_AUTOCONFIG']) {
