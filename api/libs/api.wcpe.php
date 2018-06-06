@@ -457,12 +457,13 @@ class WifiCPE {
             $result .= '
                         $(\'#' . $FormID . '\').submit(function(evt) {
                             if ( $(\'#' . $NoRedirChkID . '\').is(\':checked\') ) {
+                                var FrmData = $(\'#' . $FormID . '\').serialize();
                                 evt.preventDefault();
                                 
                                 $.ajax({
                                     type: "POST",
                                     url: "' . self::URL_ME . '",
-                                    data: $(\'#' . $FormID . '\').serialize(),
+                                    data: FrmData,
                                     success: function() {
                                                 if ( $(\'#' . $ReloadChkID . '\').is(\':checked\') ) { location.reload(); }
                                                 $( \'#\'+$(\'#' . $HiddenReplID . '\').val() ).replaceWith(\'' . web_ok_icon() . '\');
@@ -657,7 +658,7 @@ class WifiCPE {
 
                         $APSignalContainerID = 'APSignal_' . $CtrlID;
                         $APPollDTContainerID = 'APSignalPollDT_' . $CtrlID;
-                        $APSignalControls = $this->getAPCPESignalControls($cpeData['mac'], '#' . $APSignalContainerID, '#' . $APPollDTContainerID, $cpeData['uplinkapid']['id']);
+                        $APSignalControls = $this->getAPCPESignalControls($cpeData['mac'], '#' . $APSignalContainerID, '#' . $APPollDTContainerID, $cpeData['uplinkapid']);
 
                         $LastPollDateAP = $APSignalControls['LastPollDate'];
                         $SignalLevelLabelAP = $APSignalControls['SignalLevelLabel'];
@@ -1053,6 +1054,7 @@ class WifiCPE {
                                 userLogin:"' . $userLogin . '",
                                 wcpeMAC:"' . $userMAC . '",
                                 wcpeIP:"' . $userIP . '",
+                                wcpeAPID:"",
                                 ActionCtrlID:"' . $LnkID . '",
                                 ModalWID:"dialog-modal_' . $LnkID . '"
                             },
@@ -1090,6 +1092,7 @@ class WifiCPE {
             $assignedCpeId = $this->allAssigns[$assignId]['cpeid'];
             if (isset($this->allCPE[$assignedCpeId])) {
                 $assignedCpeData = $this->allCPE[$assignedCpeId];
+
                 if (!empty($assignedCpeData)) {
                     $CPESNMPCommunity = ( empty($assignedCpeData['snmp']) ) ? 'public' : $assignedCpeData['snmp'];
 
@@ -1493,9 +1496,9 @@ class WifiCPE {
                                     type: "GET",
                                     url: "?module=mtsigmon",
                                     data: {IndividualRefresh:true, cpeMAC:MACCPE, apid:APID, cpeIP:IPCPE, cpeCommunity:SNMPCCPE},
-                                    success: function(result) {                                            
-                                        try {
-                                            var jsonObj = $.parseJSON(result);
+                                    success: function(result) {
+                                        try {                                            
+                                            var jsonObj = $.parseJSON(result);                                            
                                             SignalContainerObj.html(jsonObj.SignalLevel);
                                             PollDateContainerObj.html("' . __('Cache state at time') . ':  " + ' . 'jsonObj.LastPollDate);                                                
                                         } catch (e) {
