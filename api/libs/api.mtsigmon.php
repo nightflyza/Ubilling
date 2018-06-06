@@ -710,8 +710,8 @@ class MTsigmon {
             $tmpSnmp2 = $this->snmp->walk($ip, $community, $oid2, false);
             $tmpSnmp3 = $this->snmp->walk($ip, $community, $oid3, false);
 
-            // Returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = '
-            // in AirOS 5.6 and newer
+            // If returned string '.1.3.6.1.4.1.14988.1.1.1.2.1.3 = ' - then:
+            // For AirOS 5.6 and newer
             if ($tmpSnmp === "$oid = ") {
                 $oid = '.1.3.6.1.4.1.41112.1.4.7.1.3.1';
                 $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
@@ -935,12 +935,13 @@ class MTsigmon {
                             var FrmAction = $(".__CPEAssignAndCreateForm").attr("action");
                             
                             if ( $(".__CPEAACFormNoRedirChck").is(\':checked\') ) {
+                                var FrmData = $(".__CPEAssignAndCreateForm").serialize();
                                 evt.preventDefault();
                                 
                                 $.ajax({
                                     type: "POST",
                                     url: FrmAction,
-                                    data: $(".__CPEAssignAndCreateForm").serialize(),
+                                    data: FrmData,
                                     success: function() {
                                                 if ( $(".__CPEAACFormPageReloadChck").is(\':checked\') ) { location.reload(); }
                                                 
@@ -1140,6 +1141,7 @@ class MTsigmon {
                                                         renderCreateForm:true,
                                                         renderDynamically:true, 
                                                         renderedOutside:true,
+                                                        reloadPageAfterDone:false,
                                                         userLogin:"' . $userLogin . '", 
                                                         wcpeMAC:"' . $eachmac . '",
                                                         wcpeIP:"' . $userIP . '",
