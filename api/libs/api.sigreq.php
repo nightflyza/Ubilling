@@ -114,12 +114,16 @@ class SignupRequests {
     public function renderList() {
         //check database configuration table
         if (zb_CheckTableExists('sigreqconf')) {
-            $confControl = wf_Link('?module=sigreq&settings=true', wf_img('skins/settings.png', __('Settings')), false) . ' ';
+            if (cfr('SIGREQCONF')) {
+                $confControl = wf_Link('?module=sigreq&settings=true', wf_img('skins/settings.png', __('Settings')), false) . ' ';
+            } else {
+                $confControl = '';
+            }
         } else {
             $confControl = '';
         }
         $viewControl = wf_Link('?module=sigreq&calendarview=true', wf_img('skins/icon_calendar.gif', __('As calendar')), false, '');
-        $columns = array(__('ID'), __('Date'), __('IP'), __('Full address'), __('Real Name'),__('Phone'), __('Processed'), __('Actions'));
+        $columns = array(__('ID'), __('Date'), __('IP'), __('Full address'), __('Real Name'), __('Phone'), __('Processed'), __('Actions'));
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, self::URL_ME . '&ajlist=true', false, __('Signup requests'), 100, $opts);
 
@@ -262,7 +266,11 @@ class SignupRequests {
             $actlinks.=wf_Link('?module=sigreq&requndone=' . $reqid, wf_img_sized('skins/icon_inactive.gif', '', '10') . ' ' . __('Open'), false, 'ubButton');
         }
 
-        $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $reqid, web_delete_icon(), $this->messages->getDeleteAlert());
+        if (cfr('SIGREQDELETE')) {
+            $deletelink = ' ' . wf_JSAlert("?module=sigreq&deletereq=" . $reqid, web_delete_icon(), $this->messages->getDeleteAlert());
+        } else {
+            $deletelink = '';
+        }
 
         show_window(__('Signup request') . ': ' . $reqid . $deletelink, $result);
         show_window('', $actlinks);

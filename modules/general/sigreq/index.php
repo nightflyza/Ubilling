@@ -1,8 +1,6 @@
 <?php
 
 if (cfr('SIGREQ')) {
-
-
     $alterconf = $ubillingConfig->getAlter();
     if ($alterconf['SIGREQ_ENABLED']) {
         //Main sigreq management
@@ -27,8 +25,13 @@ if (cfr('SIGREQ')) {
 
             //delete request
             if (isset($_GET['deletereq'])) {
-                $signups->deleteReq($_GET['deletereq']);
-                rcms_redirect("?module=sigreq");
+                if (cfr('SIGREQDELETE')) {
+                    $signups->deleteReq($_GET['deletereq']);
+                    rcms_redirect("?module=sigreq");
+                } else {
+                    show_error(__('Access denied'));
+                    log_register('SIGREQ DELETE RIGHTS FAIL [' . $_GET['deletereq'] . ']');
+                }
             }
 
             if (wf_CheckGet(array('showreq'))) {
@@ -52,8 +55,13 @@ if (cfr('SIGREQ')) {
 
             //save config request
             if (wf_CheckPost(array('changesettings'))) {
-                $signupConf->save();
-                rcms_redirect('?module=sigreq&settings=true');
+                if (cfr('SIGREQCONF')) {
+                    $signupConf->save();
+                    rcms_redirect('?module=sigreq&settings=true');
+                } else {
+                    show_error(__('Access denied'));
+                    log_register('SIGREQCONF RIGHTS FAIL');
+                }
             }
             show_window(__('Settings'), $signupConf->renderForm());
         }
