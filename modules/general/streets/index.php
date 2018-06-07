@@ -16,9 +16,9 @@ if (cfr('STREETS')) {
         }
 
         if (!empty($newstreetname)) {
-            $StreetID = checkStreetInCityExists($newstreetname, $newstreetcityid);
+            $FoundStreetID = checkStreetInCityExists($newstreetname, $newstreetcityid);
 
-            if ( empty($StreetID) ) {
+            if ( empty($FoundStreetID) ) {
                 //alias autogeneration
                 if (empty($newstreetalias)) {
                     if (isset($altCfg['STREETS_ALIAS_AUTOGEN'])) {
@@ -39,7 +39,7 @@ if (cfr('STREETS')) {
                 die();
             } else {
                 $messages = new UbillingMessageHelper();
-                $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $StreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                 die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
             }
         }
@@ -63,13 +63,13 @@ if (cfr('STREETS')) {
             if ($_GET['action'] == 'edit') {
                 if (isset($_POST['editstreetname'])) {
                     if (!empty($_POST['editstreetname'])) {
-                        $StreetID = checkStreetInCityExists($_POST['editstreetname'], $_GET['cityid']);
+                        $FoundStreetID = checkStreetInCityExists($_POST['editstreetname'], $_GET['cityid'], $streetid);
 
-                        if ( empty($StreetID) ) {
+                        if ( empty($FoundStreetID) ) {
                             zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
                         } else {
                             $messages = new UbillingMessageHelper();
-                            $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $StreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                            $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                             die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                         }
                     }
