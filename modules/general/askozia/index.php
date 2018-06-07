@@ -258,8 +258,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $sessionTimeStats.=$startTime;
                     $sessionTimeStats.=wf_tag('abbr', true);
                     $callDirection = '';
-                    if (ispos($each['3'], 'SIP-PROVIDER')) {
-                        $providerId = $each[3];
+                    if (ispos($each[4], 'SIP-PROVIDER')) {
+                        $providerId = explode('-', $each[4]);
+                        $providerId = $providerId[0] . $providerId[1] . $providerId[2];
                     } else {
                         $providerId = '';
                     }
