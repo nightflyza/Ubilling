@@ -1245,11 +1245,10 @@ class UserProfile {
      * @return string
      */
     protected function getContractControls() {
-        $result = '';
-        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE'])) {
-            if (!$this->alterCfg['CONTRACT_PROFILE_HIDE']) {
-                $result = $this->addRow(__('Contract'), $this->contract, false);
-            }
+        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE']) AND $this->alterCfg['CONTRACT_PROFILE_HIDE']) {
+            $result = '';
+        } else {
+            $result = $this->addRow(__('Contract'), $this->contract, false);
         }
         return ($result);
     }
