@@ -14,14 +14,14 @@ if (cfr('BUILDS')) {
            if ($_GET['action']=='edit') {
                if (isset($_POST['newbuildnum'])) {
                    if (!empty($_POST['newbuildnum'])) {
-                       $BuildID = checkBuildOnStreetExists($_POST['newbuildnum'], $streetid);
+                       $FoundBuildID = checkBuildOnStreetExists($_POST['newbuildnum'], $streetid);
 
-                       if (empty($BuildID)) {
+                       if (empty($FoundBuildID)) {
                            zb_AddressCreateBuild($streetid, trim($_POST['newbuildnum']));
                            die();
                        } else {
                            $messages = new UbillingMessageHelper();
-                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $BuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                        }
 
@@ -57,9 +57,9 @@ if (cfr('BUILDS')) {
                //build edit subroutine
                if (isset($_POST['editbuildnum'])) {
                    if (!empty($_POST['editbuildnum'])) {
-                       $BuildID = checkBuildOnStreetExists($_POST['editbuildnum'], $streetid);
+                       $FoundBuildID = checkBuildOnStreetExists($_POST['editbuildnum'], $streetid, $buildid);
 
-                       if (empty($BuildID)) {
+                       if (empty($FoundBuildID)) {
                            simple_update_field('build', 'buildnum', trim($_POST['editbuildnum']), "WHERE `id`='" . $buildid . "'");
                            simple_update_field('build', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editbuildgeo']), "WHERE `id`='" . $buildid . "'");
 
@@ -67,7 +67,7 @@ if (cfr('BUILDS')) {
                            die();
                        } else {
                            $messages = new UbillingMessageHelper();
-                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $BuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                           $errormes = $messages->getStyledMessage(__('Build with such number already exists on this street with ID: ') . $FoundBuildID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                        }
                    }

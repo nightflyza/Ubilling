@@ -13,14 +13,14 @@ if (cfr('CITY')) {
         }
         
         if (!empty($newcityname)) {
-            $CityID = checkCityExists($newcityname);
+            $FoundCityID = checkCityExists($newcityname);
 
-            if ( empty($CityID) ) {
+            if ( empty($FoundCityID) ) {
                 zb_AddressCreateCity($newcityname, $newcityalias);
                 die();
             } else {
                 $messages = new UbillingMessageHelper();
-                $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $CityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                 die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
             }
         }
@@ -44,13 +44,13 @@ if (cfr('CITY')) {
             if ($_GET['action'] == 'edit') {
                 if (isset ($_POST['editcityname'])) {
                     if (!empty($_POST['editcityname'])) {
-                        $CityID = checkCityExists($_POST['editcityname']);
+                        $FoundCityID = checkCityExists($_POST['editcityname'], $cityid);
 
-                        if ( empty($CityID) ) {
+                        if ( empty($FoundCityID) ) {
                             zb_AddressChangeCityName($cityid, $_POST['editcityname']);
                         } else {
                             $messages = new UbillingMessageHelper();
-                            $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $CityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                            $errormes = $messages->getStyledMessage(__('City with such name already exists with ID: ') . $FoundCityID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
                             die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
                         }
                     }

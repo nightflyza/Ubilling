@@ -859,7 +859,13 @@ function web_AptSelectorAc($buildid) {
  * @return string
  */
 function web_StreetCreateForm($FilterByCityId = '') {
-    $JQDTId = 'jqdt_' . md5('?module=streets&ajax=true');
+    if ( empty($FilterByCityId) ) {
+        $AjaxURLStr = '?module=streets&ajax=true';
+    } else {
+        $AjaxURLStr = '?module=streets&ajax=true&filterbycityid=' . $FilterByCityId;
+    }
+
+    $JQDTId = 'jqdt_' . md5($AjaxURLStr);
     $FormID = 'Form_' . wf_InputId();
     $CloseFrmChkID = 'CloseFrmChkID_' . wf_InputId();
     $ErrModalWID = wf_InputId();
@@ -1410,7 +1416,7 @@ function web_BuildEditForm($buildid, $streetid, $ModalWID) {
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
 
     $inputs = $streetname . " " . $builddata['buildnum'] . wf_tag('hr');
-    $inputs.= wf_TextInput('editbuildnum', 'Building number' . $sup, $builddata['buildnum'], true, '10', '', '__BuildEditName');
+    $inputs.= wf_TextInput('editbuildnum', __('Building number') . $sup, $builddata['buildnum'], true, '10', '', '__BuildEditName');
     $inputs.= wf_TextInput('editbuildgeo', 'Geo location', $builddata['geo'], true, '20', 'geo');
     $inputs.= wf_HiddenInput('', $ModalWID, '', '__BuildEditFormModalWindowID');
     $inputs.= wf_Submit('Save');
@@ -1995,11 +2001,19 @@ class BuildPassport {
  * Searches for city name in DB and returns it's ID if exists
  *
  * @param string $CityName
+ * @param string $ExcludeEditedCityID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkCityExists($CityName) {
-    $query = "SELECT `id` FROM `city` WHERE `cityname` = '" . $CityName . "';";
+function checkCityExists($CityName, $ExcludeEditedCityID = '') {
+    $CityName = trim($CityName);
+
+    if ( empty($ExcludeEditedCityID) ) {
+        $query = "SELECT `id` FROM `city` WHERE `cityname` = '" . $CityName . "';";
+    } else {
+        $query = "SELECT `id` FROM `city` WHERE `cityname` = '" . $CityName . "' AND `id` != '" . $ExcludeEditedCityID . "';";
+    }
+
     $result = simple_queryall($query);
 
     return ( empty($result) ) ? '' : $result[0]['id'];
@@ -2010,11 +2024,19 @@ function checkCityExists($CityName) {
  *
  * @param string $StreetName
  * @param string $CityID
+ * @param string $ExcludeEditedStreetID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkStreetInCityExists($StreetName, $CityID) {
-    $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "';";
+function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = '') {
+    $StreetName = trim($StreetName);
+
+    if ( empty($ExcludeEditedStreetID) ) {
+        $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "';";
+    } else {
+        $query = "SELECT `id` FROM `street` WHERE `streetname` = '" . $StreetName . "' AND `cityid` = '" . $CityID . "' AND `id` != '" . $ExcludeEditedStreetID . "';";
+    }
+
     $result = simple_queryall($query);
 
     return ( empty($result) ) ? '' : $result[0]['id'];
@@ -2025,11 +2047,19 @@ function checkStreetInCityExists($StreetName, $CityID) {
  *
  * @param string $BuildNumber
  * @param string $StreetID
+ * @param string $ExcludeEditedBuildID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkBuildOnStreetExists($BuildNumber, $StreetID) {
-    $query = "SELECT `id` FROM `build` WHERE `buildnum` = '" . $BuildNumber . "' AND `streetid` = '" . $StreetID . "';";
+function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID = '') {
+    $BuildNumber = trim($BuildNumber);
+
+    if ( empty($ExcludeEditedBuildID) ) {
+        $query = "SELECT `id` FROM `build` WHERE `buildnum` = '" . $BuildNumber . "' AND `streetid` = '" . $StreetID . "';";
+    } else {
+        $query = "SELECT `id` FROM `build` WHERE `buildnum` = '" . $BuildNumber . "' AND `streetid` = '" . $StreetID . "' AND `id` != '" . $ExcludeEditedBuildID . "';";
+    }
+
     $result = simple_queryall($query);
 
     return ( empty($result) ) ? '' : $result[0]['id'];
