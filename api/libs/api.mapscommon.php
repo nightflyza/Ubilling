@@ -357,7 +357,7 @@ function um_MapDrawBuilds() {
         foreach ($allbuilds as $io => $each) {
             $geo = mysql_real_escape_string($each['geo']);
             @$streetname = $streetData[$each['streetid']];
-            $title = wf_Link("?module=builds&action=editbuild&streetid=" . $each['streetid'] . "&buildid=" . $each['id'], $streetname . ' ' . $each['buildnum'], false);
+            $title = wf_Link("?module=builds&action=editbuild&frommaps=true&streetid=" . $each['streetid'] . "&buildid=" . $each['id'], $streetname . ' ' . $each['buildnum'], false);
 
             $content = '';
             $cells = wf_TableCell(__('apt.'));

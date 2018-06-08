@@ -54,6 +54,10 @@ if (cfr('BUILDS')) {
                $buildid=vf($_GET['buildid']);
                $streetid=vf($_GET['streetid']);
 
+               if ( wf_CheckGet(array('ajax')) ) {
+                   renderBuildsLiserJSON($streetid, $buildid);
+               }
+
                //build edit subroutine
                if (isset($_POST['editbuildnum'])) {
                    if (!empty($_POST['editbuildnum'])) {
@@ -74,7 +78,14 @@ if (cfr('BUILDS')) {
                }
 
                //construct edit form
-               die(wf_modalAutoForm(__('Edit').' '.__('Build'), web_BuildEditForm($buildid, $streetid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
+               if ( wf_CheckGet(array('frommaps'))) {
+                   $streetname = zb_AddressGetStreetData($streetid);
+                   $streetname = $streetname['streetname'];
+
+                   show_window(__('Available buildings on street').' '.$streetname, web_BuildLister($streetid, $buildid));
+               } else {
+                   die(wf_modalAutoForm(__('Edit') . ' ' . __('Build'), web_BuildEditForm($buildid, $streetid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
+               }
            }
         }
     }
