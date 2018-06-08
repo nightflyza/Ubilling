@@ -70,7 +70,13 @@ if (cfr('CAPAB')) {
                 if (wf_CheckGet(array('ajlist'))) {
                     die($capabilities->ajCapabList());
                 }
-                show_window(__('Available connection capabilities'), $capabilities->render());
+
+                if (wf_CheckGet(array('calendar'))) {
+                    show_window(__('Available connection capabilities'), $capabilities->renderCalendar());
+                } else {
+                    show_window(__('Available connection capabilities'), $capabilities->render());
+                }
+                
             }
         }
     } else {
