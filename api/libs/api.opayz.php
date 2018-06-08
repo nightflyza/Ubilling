@@ -87,6 +87,9 @@ class OpenPayz {
      * @return array
      */
     public function getCustomers() {
+        if (empty($this->allCustomers)) {
+            $this->loadCustomers();
+        }
         return ($this->allCustomers);
     }
 
@@ -364,6 +367,9 @@ class OpenPayz {
      */
     function transactionGetData($transactionid) {
         $result = array();
+        if (empty($this->allTransactions)) {
+            $this->loadTransactions();
+        }
         if (isset($this->allTransactions[$transactionid])) {
             $result = $this->allTransactions[$transactionid];
         }

@@ -2899,7 +2899,7 @@ $lang['def']['Following switches have loops between'] = 'Взаимоотнош�
 $lang['def']['Because some of switches have itself as parent, check is skipped'] = 'Поскольку для некоторых свитчей родительским указан он сам - проверка связей не производится';
 $lang['def']['right to delete signup requests'] = 'Право удалять заявки на подключение';
 $lang['def']['right to configure signup requests module'] = 'Право конфигурировать модуль заявок на подключения';
-$lang['def'][''] = '';
+$lang['def']['Already processed'] = 'Уже обработано';
 $lang['def'][''] = '';
 
 
