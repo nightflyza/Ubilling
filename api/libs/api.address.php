@@ -110,11 +110,11 @@ function zb_AddressListCityAllIds() {
 /**
  * Returns all available cities full data
  *
- * @param string $FilterByCityId
+ * @param int $FilterByCityId
  *
  * @return array
  */
-function zb_AddressGetCityAllData($FilterByCityId = '') {
+function zb_AddressGetCityAllData($FilterByCityId = 0) {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $order = (isset($altCfg['CITY_ORDER'])) ? $altCfg['CITY_ORDER'] : 'default';
@@ -457,8 +457,6 @@ function zb_AddressGetBuildAllDataByStreet($streetid) {
 /**
  * Returns all apartments data from database
  * 
- * @param int $buildid
- * 
  * @return array
  */
 function zb_AddressGetAptAllData() {
@@ -688,11 +686,11 @@ function zb_AddressGetAptDataById($aptid) {
 
 /**
  * Returns available cities selector
- * @param string $FilterByCityId
+ * @param int $FilterByCityId
  *
  * @return string
  */
-function web_CitySelector($FilterByCityId = '') {
+function web_CitySelector($FilterByCityId = 0) {
     $allcity = array();
 
     if ( empty($FilterByCityId) ) {
@@ -854,11 +852,11 @@ function web_AptSelectorAc($buildid) {
 /**
  * Returns street creation form
  *
- * @param string $FilterByCityId
+ * @param int $FilterByCityId
  *
  * @return string
  */
-function web_StreetCreateForm($FilterByCityId = '') {
+function web_StreetCreateForm($FilterByCityId = 0) {
     if ( empty($FilterByCityId) ) {
         $AjaxURLStr = '?module=streets&ajax=true';
     } else {
@@ -967,11 +965,11 @@ function web_StreetEditForm($streetid, $ModalWID) {
 /**
  * Returns available streets list with editing controls
  *
- * @param string $FilterByCityId
+ * @param int $FilterByCityId
  *
  * @return string
  */
-function web_StreetLister($FilterByCityId = '') {
+function web_StreetLister($FilterByCityId = 0) {
     $columns = array();
     $opts = '"order": [[ 0, "desc" ]]';
     $columns[] = (__('ID'));
@@ -1060,9 +1058,9 @@ function web_StreetLister($FilterByCityId = '') {
 /**
  * Renders JSON for streets JQDT
  *
- * @param string $FilterByCityId
+ * @param int $FilterByCityId
  */
-function renderStreetJSON($FilterByCityId = '') {
+function renderStreetJSON($FilterByCityId = 0) {
     if ( empty($FilterByCityId) ) {
         $allstreets = zb_AddressGetStreetAllData();
     } else {
@@ -1186,9 +1184,11 @@ function renderBuildsEditJSON() {
  * 
  * @global array $ubillingConfig
  * @param int $streetid
+ * @param int $AutoEditBuildID
+ *
  * @return string
  */
-function web_BuildLister($streetid) {
+function web_BuildLister($streetid, $AutoEditBuildID = 0) {
     $columns = array();
     $opts = '"order": [[ 0, "desc" ]]';
     $columns[] = (__('ID'));
@@ -1196,14 +1196,28 @@ function web_BuildLister($streetid) {
     $columns[] = (__('Geo location'));
     $columns[] = (__('Actions'));
 
-    $ErrorModalWID = wf_InputId();
-    $AjaxURLStr = '?module=builds&action=edit&streetid=' . $streetid . '&ajax=true';
-    $JQDTId = 'jqdt_' . md5($AjaxURLStr);
+    global $ubillingConfig;
+    $altcfg = $ubillingConfig->getAlter();
+    //build passport data processing
+    if ($altcfg['BUILD_EXTENDED']) {
+        $buildPassport = new BuildPassport();
+    }
 
-    $result  = wf_modalAuto(web_add_icon() . ' ' . __('Add new build number'), __('Add new build number'), web_BuildAddForm($streetid), 'ubButton') . ' ';
+    if ( empty($AutoEditBuildID) ) {
+        $AjaxURLStr = '?module=builds&action=edit&streetid=' . $streetid . '&ajax=true';
+    } else {
+        $opts = '"order": [[ 0, "desc" ]], "initComplete": function(settings, json) { $(\'#Link_' . $AutoEditBuildID . '\').click(); }';
+        $AjaxURLStr = '?module=builds&action=editbuild&streetid=' . $streetid . '&buildid=' . $AutoEditBuildID . '&ajax=true';
+    }
+
+    $JQDTId = 'jqdt_' . md5($AjaxURLStr);
+    $ErrorModalWID = wf_InputId();
+
+    $result = wf_modalAuto(web_add_icon() . ' ' . __('Add new build number'), __('Add new build number'), web_BuildAddForm($streetid), 'ubButton') . ' ';
     $result .= wf_Link('?module=builds', web_street_icon() . web_build_icon() . '&nbsp&nbsp' . __('Back to builds on streets'), false, 'ubButton');
     $result .= wf_delimiter();
     $result .= wf_JqDtLoader($columns, $AjaxURLStr, false, __('results'), 100, $opts);
+
     $result .= wf_tag('script', false, '', 'type="text/javascript"');
     $result .= '
                     // making an event binding for "Build edit form" Submit action to be able to create "Build edit form" dynamically                    
@@ -1234,8 +1248,8 @@ function web_BuildLister($streetid) {
                                                 $(document.body).append(result);                                                
                                                 $( \'#' . $ErrorModalWID . '\' ).dialog("open");                                                
                                             } else {
-                                                $(\'#' . $JQDTId . '\').DataTable().ajax.reload();
-                                                $( \'#\'+$(".__BuildEditFormModalWindowID").val() ).dialog("close");
+                                                $(\'#' . $JQDTId . '\').DataTable().ajax.reload();                                                
+                                                $( \'#\'+$(".__BuildEditFormModalWindowID").val() ).dialog("close");                                                
                                             }
                                         }
                             });                       
@@ -1267,9 +1281,11 @@ function web_BuildLister($streetid) {
 /**
  *
  * Renders JSON for builds lister JQDT
+ * @param int $streetid
+ * @param int $AutoEditBuildID
  *
  */
-function renderBuildsLiserJSON($streetid) {
+function renderBuildsLiserJSON($streetid, $AutoEditBuildID = 0) {
     global $ubillingConfig;
     $altcfg = $ubillingConfig->getAlter();
     $allbuilds = zb_AddressGetBuildAllDataByStreet($streetid);
@@ -1283,7 +1299,21 @@ function renderBuildsLiserJSON($streetid) {
         }
 
         foreach ($allbuilds as $io => $eachbuild) {
-            $LnkID = wf_InputId();
+            $ModalWID = wf_InputId();
+            $LnkID = 'Link_' . $eachbuild['id'];
+            $RedirToURL = '';
+
+            if ( !empty($AutoEditBuildID) ) {
+                $RedirToURL = '
+                    $(\'#dialog-modal_' . $ModalWID . '\').on( "dialogclose", function( event, ui ) {
+                        //window.location = location.protocol + \'//\' + location.host + location.pathname + \'?module=builds&action=edit&streetid=' . $streetid . '\'
+                        // using "replcae" method because it this case the page with URL ?module=builds&action=editbuild&streetid=streetid&buildid=AutoEditBuildID 
+                        // is not included in browser\'s history and when user clicks "Back" button in browser it lands up back to MAPS page
+                        window.location.replace(location.protocol + \'//\' + location.host + location.pathname + \'?module=builds&action=edit&streetid=' . $streetid . '\')
+                    });
+                    ';
+            }
+
             $Actions = wf_JSAlert('#', web_delete_icon(), 'Removing this may lead to irreparable results',
                     'deleteBuild(' . $eachbuild['id'] . ', \'?module=builds&streetid=' . $streetid . '\', \'delete\', \'' . wf_InputId() . '\')') . ' ';
             $Actions .= wf_tag('a', false, '', 'id="' . $LnkID . '" href="#"');
@@ -1299,12 +1329,13 @@ function renderBuildsLiserJSON($streetid) {
                                         action:"editbuild",
                                         streetid:"' . $streetid . '", 
                                         buildid:"' . $eachbuild['id'] . '",                                                                                                                
-                                        ModalWID:"dialog-modal_' . $LnkID . '", 
-                                        ModalWBID:"body_dialog-modal_' . $LnkID . '",                                                        
+                                        ModalWID:"dialog-modal_' . $ModalWID . '", 
+                                        ModalWBID:"body_dialog-modal_' . $ModalWID . '",                                                        
                                        },
                                 success: function(result) {
-                                            $(document.body).append(result);
-                                            $(\'#dialog-modal_' . $LnkID . '\').dialog("open");
+                                            $(document.body).append(result);                                            
+                                            $(\'#dialog-modal_' . $ModalWID . '\').dialog("open");
+                                            ' . $RedirToURL . '                                            
                                          }
                             });
     
@@ -1338,7 +1369,7 @@ function renderBuildsLiserJSON($streetid) {
 
 /**
  * Returns build creation form
- * 
+ * @param int $streetid
  * @return string
  */
 function web_BuildAddForm($streetid) {
@@ -1408,6 +1439,15 @@ function web_BuildAddForm($streetid) {
     return($form);
 }
 
+/**
+ * Returns edit form for buildings
+ *
+ * @param int $buildid
+ * @param int $streetid
+ * @param string $ModalWID
+ *
+ * @return string
+ */
 function web_BuildEditForm($buildid, $streetid, $ModalWID) {
     $FormID = 'Form_' . wf_InputId();
     $builddata=zb_AddressGetBuildData($buildid);
@@ -1908,7 +1948,6 @@ class BuildPassport {
      * @return string
      */
     public function renderEditForm($buildid) {
-
         $buildid = vf($buildid, 3);
 
         if (isset($this->data[$buildid])) {
@@ -1945,7 +1984,6 @@ class BuildPassport {
     protected function savePassport() {
         if (wf_CheckPost(array('savebuildpassport'))) {
             $buildid = vf($_POST['savebuildpassport'], 3);
-
             // Yep, im know - thats shitty solution. Need to refactor this later.
             $clean_query = "DELETE FROM `buildpassport` WHERE `buildid`='" . $buildid . "';";
             nr_query($clean_query);
@@ -2001,11 +2039,11 @@ class BuildPassport {
  * Searches for city name in DB and returns it's ID if exists
  *
  * @param string $CityName
- * @param string $ExcludeEditedCityID - if we edit something and want to find same record but with other ID
+ * @param int $ExcludeEditedCityID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkCityExists($CityName, $ExcludeEditedCityID = '') {
+function checkCityExists($CityName, $ExcludeEditedCityID = 0) {
     $CityName = trim($CityName);
 
     if ( empty($ExcludeEditedCityID) ) {
@@ -2024,11 +2062,11 @@ function checkCityExists($CityName, $ExcludeEditedCityID = '') {
  *
  * @param string $StreetName
  * @param string $CityID
- * @param string $ExcludeEditedStreetID - if we edit something and want to find same record but with other ID
+ * @param int $ExcludeEditedStreetID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = '') {
+function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 0) {
     $StreetName = trim($StreetName);
 
     if ( empty($ExcludeEditedStreetID) ) {
@@ -2047,11 +2085,11 @@ function checkStreetInCityExists($StreetName, $CityID, $ExcludeEditedStreetID = 
  *
  * @param string $BuildNumber
  * @param string $StreetID
- * @param string $ExcludeEditedBuildID - if we edit something and want to find same record but with other ID
+ * @param int $ExcludeEditedBuildID - if we edit something and want to find same record but with other ID
  *
  * @return string
  */
-function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID = '') {
+function checkBuildOnStreetExists($BuildNumber, $StreetID, $ExcludeEditedBuildID = 0) {
     $BuildNumber = trim($BuildNumber);
 
     if ( empty($ExcludeEditedBuildID) ) {
