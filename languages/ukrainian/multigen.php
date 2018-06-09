@@ -8,3 +8,5 @@ $lang['def']['Multigen'] = 'КупаГен';
 $lang['def']['NAS options'] = 'Опції NAS';
 $lang['def']['Username override'] = 'Перепризначення імені користувача';
 $lang['def']['NAS not exists'] = 'NAS не існує';
+$lang['def']['NAS attributes'] = 'Атрибути NAS';
+$lang['def']['not existing attribute'] = 'не існуючий атрибут';

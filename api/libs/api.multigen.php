@@ -45,7 +45,7 @@ class MultiGen {
     protected $nethostsNetworks = array();
 
     /**
-     * Contains list of available NAS attributes presets to generate
+     * Contains list of available NAS attributes presets to generate as id=>data
      *
      * @var array
      */
@@ -85,6 +85,13 @@ class MultiGen {
      * @var array
      */
     protected $operators = array();
+
+    /**
+     * Contains available reply scenarios
+     *
+     * @var array
+     */
+    protected $scenarios = array();
 
     /**
      * Contains basic module path
@@ -133,8 +140,28 @@ class MultiGen {
 
         $this->serviceTypes = array(
             'none' => __('No'),
-            'coa' => __('COA'),
-            'pod' => __('POD')
+            'coa' => __('CoA'),
+            'pod' => __('PoD')
+        );
+
+        $this->scenarios = array(
+            'check' => 'check',
+            'reply' => 'reply'
+        );
+
+        $this->operators = array(
+            '=' => '=',
+            ':=' => ':=',
+            '==' => '==',
+            '+=' => '+=',
+            '!=' => '!=',
+            '>' => '>',
+            '>=' => '>=',
+            '<=' => '<=',
+            '=~' => '=~',
+            '!~' => '!~',
+            '=*' => '=*',
+            '!*' => '!*',
         );
     }
 
@@ -279,6 +306,144 @@ class MultiGen {
                             . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "');";
                     nr_query($quyery);
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '`');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns list of attribute presets for some NAS
+     * 
+     * @param int $nasId
+     * 
+     * @return array
+     */
+    protected function getNasAttributes($nasId) {
+        $result = array();
+        if (!empty($this->nasAttributes)) {
+            foreach ($this->nasAttributes as $io => $each) {
+                if ($each['nasid'] == $nasId) {
+                    $result[$io] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Deletes some attribute preset
+     * 
+     * @param int $attributeId
+     * 
+     * @return void/string on error
+     */
+    public function deleteNasAttribute($attributeId) {
+        $result = '';
+        $attributeId = vf($attributeId, 3);
+        if (isset($this->nasAttributes[$attributeId])) {
+            $attributeData = $this->nasAttributes[$attributeId];
+            $query = "DELETE from `mg_nasattributes` WHERE `id`='" . $attributeId . "';";
+            nr_query($query);
+            log_register('MULTIGEN ATTRIBUTE `' . $attributeData['attribute'] . '` DELETE [' . $attributeId . ']');
+        } else {
+            $result.=__('Something went wrong') . ': ' . __('not existing attribute');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of available attributes for some NAS
+     * 
+     * @param int $nasId
+     * 
+     * @return string
+     */
+    public function renderNasAttributesList($nasId) {
+        $result = '';
+        $nasId = vf($nasId, 3);
+        if (isset($this->allNas[$nasId])) {
+            $currentAtrributes = $this->getNasAttributes($nasId);
+            if (!empty($currentAtrributes)) {
+                $cells = wf_TableCell(__('Scenario'));
+                $cells.= wf_TableCell(__('Attribute'));
+                $cells.=wf_TableCell(__('Operator'));
+                $cells.= wf_TableCell(__('Value'));
+                $cells.= wf_TableCell(__('Actions'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($currentAtrributes as $io => $each) {
+                    $cells = wf_TableCell($each['scenario']);
+                    $cells.= wf_TableCell($each['attribute']);
+                    $cells.=wf_TableCell($each['operator']);
+                    $cells.= wf_TableCell($each['content']);
+                    $attributeControls = wf_JSAlert(self::URL_ME . '&editnasoptions=' . $nasId . '&deleteattributeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $cells.= wf_TableCell($attributeControls);
+                    $rows.= wf_TableRow($cells, 'row5');
+                }
+
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders NAS attributes editing form
+     * 
+     * @param int $nasId
+     * 
+     * @return string
+     */
+    public function renderNasAttributesEditForm($nasId) {
+        $result = '';
+        $nasId = vf($nasId, 3);
+        if (isset($this->allNas[$nasId])) {
+            $inputs = wf_Selector('newscenario', $this->scenarios, __('Scenario'), '', false) . ' ';
+            $inputs.= wf_TextInput('newattribute', __('Attribute'), '', false, 20) . ' ';
+            $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', false) . ' ';
+            $inputs.= wf_TextInput('newcontent', __('Value'), '', false, 20) . ' ';
+            $inputs.= wf_HiddenInput('newattributenasid', $nasId);
+            $inputs.= wf_Submit(__('Create'));
+            //form assembly
+            $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new NAS attribute preset
+     * 
+     * 
+     * @return void/string on error
+     */
+    public function createNasAttribute() {
+        $result = '';
+        if (wf_CheckPost(array('newattributenasid'))) {
+            $nasId = vf($_POST['newattributenasid'], 3);
+            if (isset($this->allNas[$nasId])) {
+                if (wf_CheckPost(array('newscenario', 'newattribute', 'newoperator', 'newcontent'))) {
+                    $newScenario = $_POST['newscenario'];
+                    $newScenario_f = mysql_real_escape_string($newScenario);
+                    $newAttribute = $_POST['newattribute'];
+                    $newAttribute_f = mysql_real_escape_string($newAttribute);
+                    $newOperator = $_POST['newoperator'];
+                    $newOperator_f = mysql_real_escape_string($newOperator);
+                    $newContent = $_POST['newcontent'];
+                    $newContent_f = mysql_real_escape_string($newContent);
+
+                    $query = "INSERT INTO `mg_nasattributes` (`id`,`nasid`,`scenario`,`attribute`,`operator`,`content`) VALUES "
+                            . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
+                    nr_query($query);
+                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '`');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('NAS not exists');
