@@ -10,6 +10,20 @@ class MultiGen {
     protected $altCfg = array();
 
     /**
+     * Contains all stargazer user data
+     *
+     * @var array
+     */
+    protected $allUserData = array();
+
+    /**
+     * Contains existing users NAS bindings
+     *
+     * @var array
+     */
+    protected $userNases = array();
+
+    /**
      * Contains available networks as id=>data
      *
      * @var array
@@ -24,7 +38,7 @@ class MultiGen {
     protected $allNas = array();
 
     /**
-     * Contains array of NASes served networks as netid=>nas
+     * Contains array of NASes served networks as netid=>nasids array
      *
      * @var array
      */
@@ -99,6 +113,11 @@ class MultiGen {
     const URL_ME = '?module=multigen';
 
     /**
+     * Default scenario tables prefix
+     */
+    const SCENARIO_PREFIX = 'mg_';
+
+    /**
      * Creates new MultiGen instance
      * 
      * @return void
@@ -112,6 +131,8 @@ class MultiGen {
         $this->loadNasAttributes();
         $this->loadNasOptions();
         $this->loadNethosts();
+        $this->loadUserData();
+        $this->preprocessUserData();
     }
 
     /**
@@ -175,6 +196,34 @@ class MultiGen {
     }
 
     /**
+     * Loads all existing users data from database
+     * 
+     * @return void
+     */
+    protected function loadUserData() {
+        $this->allUserData = zb_UserGetAllData();
+    }
+
+    /**
+     * Prepares user to NAS bindings array
+     * 
+     * @return void
+     */
+    protected function preprocessUserData() {
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $io => $each) {
+                $userIP = $each['ip'];
+                if (isset($this->nethostsNetworks[$userIP])) {
+                    if (isset($this->networkNases[$this->nethostsNetworks[$userIP]])) {
+                        $userNases = $this->networkNases[$this->nethostsNetworks[$userIP]];
+                        $this->userNases[$each['login']] = $userNases;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Loads existing networks from database
      * 
      * @return void
@@ -198,7 +247,7 @@ class MultiGen {
         if (!empty($nasesRaw)) {
             foreach ($nasesRaw as $io => $each) {
                 $this->allNas[$each['id']] = $each;
-                $this->networkNases[$each['netid']] = $each['id'];
+                $this->networkNases[$each['netid']][$each['id']] = $each['id'];
             }
         }
     }
@@ -450,6 +499,50 @@ class MultiGen {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Performs generation of user attributes if their NAS requires it.
+     * 
+     * @return void
+     */
+    public function generateUserAttributes() {
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $io => $eachUser) {
+                if (isset($this->userNases[$eachUser['login']])) {
+                    $userNases = $this->userNases[$eachUser['login']];
+                    if (!empty($userNases)) {
+                        foreach ($userNases as $eachNasId) {
+                            $nasOptions = $this->nasOptions[$eachNasId];
+                            $userNameType=$nasOptions['usernametype'];
+                            //overriging username type if required
+                            switch ($userNameType) {
+                                case 'login':
+                                    $userName=$eachUser['login'];
+                                    break;
+                                case 'ip':
+                                    $userName=$eachUser['ip'];
+                                    break;
+                                case 'mac':
+                                    $userName=$eachUser['mac'];
+                                    break;
+                            }
+                            
+                            if (!empty($nasOptions)) {
+                                $nasAttributes = $this->getNasAttributes($eachNasId);
+                                if (!empty($nasAttributes)) {
+                                    foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
+                                        $scenario=$eachAttributeData['scenario'];
+                                        //TODO
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

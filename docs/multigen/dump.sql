@@ -45,18 +45,6 @@ CREATE TABLE  IF NOT EXISTS `mg_postauth` (
   PRIMARY KEY (`id`)
 ) ENGINE = INNODB;
 
-CREATE TABLE IF NOT EXISTS `mg_attributes` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `scenario` enum('check','reply') DEFAULT NULL,
-  `login` varchar(50) DEFAULT NULL,
-  `netid` int(11) unsigned DEFAULT NULL,
-  `nasip` int(15) unsigned DEFAULT NULL,
-  `Attribute` varchar(32) NOT NULL,
-  `op` varchar(2) NOT NULL,
-  `Value` varchar(253) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 CREATE OR REPLACE VIEW `mg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
 SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
