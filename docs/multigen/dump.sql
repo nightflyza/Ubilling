@@ -115,8 +115,8 @@ CREATE TABLE IF NOT EXISTS mg_usergroup (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS `mg_nasoptions` (
-  `id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `mg_nasattributes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `nasid` int(11) NOT NULL,
   `scenario` varchar(30) NOT NULL,
   `attribute` varchar(255) NOT NULL,
@@ -124,4 +124,14 @@ CREATE TABLE IF NOT EXISTS `mg_nasoptions` (
   `content` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`,`scenario`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `mg_nasoptions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nasid` int(11) NOT NULL,
+  `usernametype` varchar(30) NOT NULL,
+  `service` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `nasid` (`nasid`,`usernametype`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
