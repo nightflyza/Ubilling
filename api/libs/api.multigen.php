@@ -359,8 +359,9 @@ class MultiGen {
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
                         //TODO: think about this format for better performance of diff operations
-                        $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']] = $each['value'];
-                       // $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['operator'] = $each['op'];
+                        $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['name'] = $each['attribute'];
+                        $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['value'] = $each['value'];
+                        $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['op'] = $each['op'];
                     }
                 }
             }
@@ -664,7 +665,7 @@ class MultiGen {
         if (isset($this->currentAttributes[$scenario])) {
             if (isset($this->currentAttributes[$scenario][$userName])) {
                 if (isset($this->currentAttributes[$scenario][$userName][$attribute])) {
-                    if ($this->currentAttributes[$scenario][$userName][$attribute] == $value) {
+                    if ($this->currentAttributes[$scenario][$userName][$attribute]['value'] == $value) {
                         if ($this->currentAttributes[$scenario][$userName][$attribute]['op'] == $operator) {
                             $result = 1;
                         } else {
@@ -779,7 +780,7 @@ class MultiGen {
             }
         }
         
-        debarr($this->currentAttributes);
+       // debarr($this->currentAttributes);
     }
 
 }
