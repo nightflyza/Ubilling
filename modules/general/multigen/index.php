@@ -38,10 +38,14 @@ if (cfr('MULTIGEN')) {
             }
             //rendering basic options form
             show_window(__('NAS options'), $mg->renderNasOptionsEditForm($_GET['editnasoptions']));
-            //and attributes form
-            show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($_GET['editnasoptions']));
-            //listing of some existing attributes
-            show_window(__('NAS attributes'), $mg->renderNasAttributesList($_GET['editnasoptions']));
+            if ($mg->nasHaveOptions($_GET['editnasoptions'])) {
+                //and attributes form
+                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($_GET['editnasoptions']));
+                //listing of some existing attributes
+                show_window(__('NAS attributes'), $mg->renderNasAttributesList($_GET['editnasoptions']));
+            } else {
+                show_warning(__('Before setting up the attributes, you must set the base NAS options'));
+            }
         }
     } else {
         show_error(__('This module is disabled'));

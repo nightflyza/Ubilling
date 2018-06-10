@@ -116,6 +116,7 @@ class MultiGen {
      * Default scenario tables prefix
      */
     const SCENARIO_PREFIX = 'mg_';
+    
 
     /**
      * Creates new MultiGen instance
@@ -133,6 +134,7 @@ class MultiGen {
         $this->loadNethosts();
         $this->loadUserData();
         $this->preprocessUserData();
+        $this->loadScenarios();
     }
 
     /**
@@ -297,6 +299,17 @@ class MultiGen {
             }
         }
     }
+    
+    /**
+     * Loads existing scenarios attributes
+     * 
+     * @return void
+     */
+    protected function loadScenarios() {
+        if (!empty($this->scenarios)) {
+            
+        }
+    }
 
     /**
      * Renders NAS options editing form
@@ -309,14 +322,34 @@ class MultiGen {
         $result = '';
         $nasId = vf($nasId, 3);
         if (isset($this->allNas[$nasId])) {
+            $onlyActiveParams = array('1' => __('Yes'), '0' => __('No'));
             $inputs = wf_Selector('editnasusername', $this->usernameTypes, __('Username override'), @$this->nasOptions[$nasId]['usernametype'], false) . ' ';
             $inputs.= wf_Selector('editnasservice', $this->serviceTypes, __('Service'), @$this->nasOptions[$nasId]['service'], false) . ' ';
+            $inputs.=wf_Selector('editnasonlyactive', $onlyActiveParams, __('Only active users'), @$this->nasOptions[$nasId]['onlyactive'], false) . ' ';
             $inputs.= wf_HiddenInput('editnasid', $nasId);
             $inputs.=wf_Submit(__('Save'));
 
             $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Checks is NAS basically configured?
+     * 
+     * @param int $nasId
+     * 
+     * @return bool
+     */
+    public function nasHaveOptions($nasId) {
+        $result = false;
+        $nasId = vf($nasId, 3);
+        if (isset($this->allNas[$nasId])) {
+            if (isset($this->nasOptions[$nasId])) {
+                $result = true;
+            }
         }
         return ($result);
     }
@@ -333,6 +366,7 @@ class MultiGen {
             if (isset($this->allNas[$nasId])) {
                 $newUserName = $_POST['editnasusername'];
                 $newService = $_POST['editnasservice'];
+                $newOnlyActive = $_POST['editnasonlyactive'];
                 //some NAS options already exists
                 if (isset($this->nasOptions[$nasId])) {
                     $currentNasOptions = $this->nasOptions[$nasId];
@@ -347,14 +381,20 @@ class MultiGen {
                         simple_update_field('mg_nasoptions', 'service', $newService, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE SERVICE `' . $newService . '`');
                     }
+
+                    if ($currentNasOptions['onlyactive'] != $newOnlyActive) {
+                        simple_update_field('mg_nasoptions', 'onlyactive', $newOnlyActive, $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ONLYACTIVE `' . $newOnlyActive . '`');
+                    }
                 } else {
                     //new NAS options creation
                     $newUserName_f = mysql_real_escape_string($newUserName);
                     $newService_f = mysql_real_escape_string($newService);
-                    $quyery = "INSERT INTO `mg_nasoptions` (`id`,`nasid`,`usernametype`,`service`) VALUES "
-                            . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "');";
+                    $newOnlyActive_f = mysql_real_escape_string($newOnlyActive);
+                    $quyery = "INSERT INTO `mg_nasoptions` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`) VALUES "
+                            . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "');";
                     nr_query($quyery);
-                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '`');
+                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '`');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('NAS not exists');
@@ -514,27 +554,26 @@ class MultiGen {
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             $nasOptions = $this->nasOptions[$eachNasId];
-                            $userNameType=$nasOptions['usernametype'];
+                            $userNameType = $nasOptions['usernametype'];
                             //overriging username type if required
                             switch ($userNameType) {
                                 case 'login':
-                                    $userName=$eachUser['login'];
+                                    $userName = $eachUser['login'];
                                     break;
                                 case 'ip':
-                                    $userName=$eachUser['ip'];
+                                    $userName = $eachUser['ip'];
                                     break;
                                 case 'mac':
-                                    $userName=$eachUser['mac'];
+                                    $userName = $eachUser['mac'];
                                     break;
                             }
-                            
+
                             if (!empty($nasOptions)) {
                                 $nasAttributes = $this->getNasAttributes($eachNasId);
                                 if (!empty($nasAttributes)) {
                                     foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
-                                        $scenario=$eachAttributeData['scenario'];
+                                        $scenario = $eachAttributeData['scenario'];
                                         //TODO
-                                        
                                     }
                                 }
                             }

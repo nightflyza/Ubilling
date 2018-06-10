@@ -10,3 +10,5 @@ $lang['def']['Username override'] = 'Перепризначення імені �
 $lang['def']['NAS not exists'] = 'NAS не існує';
 $lang['def']['NAS attributes'] = 'Атрибути NAS';
 $lang['def']['not existing attribute'] = 'не існуючий атрибут';
+$lang['def']['Before setting up the attributes, you must set the base NAS options'] = 'Перед тим, як налаштовувати атрибути, ви повинні встановити базові опції NAS';
+$lang['def']['Only active users'] = 'Тільки активні користувачі';

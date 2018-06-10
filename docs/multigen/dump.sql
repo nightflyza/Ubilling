@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS `mg_nasoptions` (
   `nasid` int(11) NOT NULL,
   `usernametype` varchar(30) NOT NULL,
   `service` varchar(255) NOT NULL,
+  `onlyactive` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`,`usernametype`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
