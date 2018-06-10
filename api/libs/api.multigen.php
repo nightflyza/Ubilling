@@ -73,6 +73,13 @@ class MultiGen {
     protected $nasOptions = array();
 
     /**
+     * Contains previously loaded scenarios attributes as scenario=>username=>attributes
+     *
+     * @var array
+     */
+    protected $currentAttributes = array();
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -101,11 +108,25 @@ class MultiGen {
     protected $operators = array();
 
     /**
-     * Contains available reply scenarios
+     * Contains available reply scenarios as stringid=>name
      *
      * @var array
      */
     protected $scenarios = array();
+
+    /**
+     * User activity detection accuracy flag
+     *
+     * @var bool
+     */
+    protected $accurateUserActivity = true;
+
+    /**
+     * Is logging enabled may be exported from MULTIGEN_LOGGING option
+     *
+     * @var int
+     */
+    protected $logging = 0;
 
     /**
      * Contains basic module path
@@ -116,7 +137,16 @@ class MultiGen {
      * Default scenario tables prefix
      */
     const SCENARIO_PREFIX = 'mg_';
-    
+
+    /**
+     * Attributes generation logging option name
+     */
+    const OPTION_LOGGING = 'MULTIGEN_LOGGING';
+
+    /**
+     * log path
+     */
+    const LOG_PATH = 'exports/multigen.log';
 
     /**
      * Creates new MultiGen instance
@@ -155,6 +185,12 @@ class MultiGen {
      * @return void
      */
     protected function setOptions() {
+        if (isset($this->altCfg[self::OPTION_LOGGING])) {
+            if ($this->altCfg[self::OPTION_LOGGING]) {
+                $this->logging = $this->altCfg[self::OPTION_LOGGING];
+            }
+        }
+
         $this->usernameTypes = array(
             'login' => __('Login'),
             'ip' => __('IP'),
@@ -299,7 +335,7 @@ class MultiGen {
             }
         }
     }
-    
+
     /**
      * Loads existing scenarios attributes
      * 
@@ -307,7 +343,34 @@ class MultiGen {
      */
     protected function loadScenarios() {
         if (!empty($this->scenarios)) {
-            
+            foreach ($this->scenarios as $scenarioId => $scenarioName) {
+                $query = "SELECT * from `" . self::SCENARIO_PREFIX . $scenarioId . "`";
+                $all = simple_queryall($query);
+                if (!empty($all)) {
+                    foreach ($all as $io => $each) {
+                        //TODO: think about this format for better performance of diff operations
+                        $this->currentAttributes[$scenarioId][$each['username']] = $each;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Logs data if logging is enabled
+     * 
+     * @param string $data
+     * @param int $logLevel
+     * 
+     * @return void
+     */
+    protected function logEvent($data, $logLevel = 1) {
+        if ($this->logging) {
+            if ($this->logging >= $logLevel) {
+                $curDate = curdatetime();
+                $logData = $curDate . ' ' . $data . "\n";
+                file_put_contents(self::LOG_PATH, $logData, FILE_APPEND);
+            }
         }
     }
 
@@ -542,6 +605,31 @@ class MultiGen {
     }
 
     /**
+     * Checks is user active or not
+     * 
+     * @param string $userLogin
+     * 
+     * @return bool
+     */
+    protected function isUserActive($userLogin) {
+        $result = false;
+        if (isset($this->allUserData[$userLogin])) {
+            if ($this->accurateUserActivity) {
+                if ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) {
+                    if ($this->allUserData[$userLogin]['Passive'] == 0) {
+                        if ($this->allUserData[$userLogin]['AlwaysOnline'] == 1) {
+                            $result = true;
+                        }
+                    }
+                }
+            } else {
+                $result = ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) ? true : false;
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
@@ -549,16 +637,17 @@ class MultiGen {
     public function generateUserAttributes() {
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $io => $eachUser) {
-                if (isset($this->userNases[$eachUser['login']])) {
-                    $userNases = $this->userNases[$eachUser['login']];
+                $userLogin = $eachUser['login'];
+                if (isset($this->userNases[$userLogin])) {
+                    $userNases = $this->userNases[$userLogin];
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             $nasOptions = $this->nasOptions[$eachNasId];
                             $userNameType = $nasOptions['usernametype'];
-                            //overriging username type if required
+                            //overriding username type if required
                             switch ($userNameType) {
                                 case 'login':
-                                    $userName = $eachUser['login'];
+                                    $userName = $userLogin;
                                     break;
                                 case 'ip':
                                     $userName = $eachUser['ip'];
@@ -573,6 +662,11 @@ class MultiGen {
                                 if (!empty($nasAttributes)) {
                                     foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
                                         $scenario = $eachAttributeData['scenario'];
+                                        if ($nasOptions['onlyactive']) {
+                                            if ($this->isUserActive($userLogin)) {
+                                                deb($userLogin);
+                                            }
+                                        }
                                         //TODO
                                     }
                                 }

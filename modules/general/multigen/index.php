@@ -5,6 +5,8 @@ if (cfr('MULTIGEN')) {
     if ($altCfg['MULTIGEN_ENABLED']) {
 
         $mg = new MultiGen();
+       // debarr($mg);
+        $mg->generateUserAttributes();
 
         if (wf_CheckGet(array('editnasoptions'))) {
             //editing NAS options

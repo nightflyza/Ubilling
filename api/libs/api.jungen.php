@@ -226,10 +226,10 @@ class JunGen {
     }
 
     /**
-     * 
      * Logs data if logging is enabled
      * 
      * @param string $data
+     * @param int $logLevel
      * 
      * @return void
      */
