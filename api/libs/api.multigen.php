@@ -134,6 +134,16 @@ class MultiGen {
     const URL_ME = '?module=multigen';
 
     /**
+     * Default NAS options table name
+     */
+    const NAS_OPTIONS = 'mg_nasoptions';
+
+    /**
+     * Default NAS attributes templates table name
+     */
+    const NAS_ATTRIBUTES = 'mg_nasattributes';
+
+    /**
      * Default scenario tables prefix
      */
     const SCENARIO_PREFIX = 'mg_';
@@ -296,7 +306,7 @@ class MultiGen {
      * @return void
      */
     protected function loadNasAttributes() {
-        $query = "SELECT * from `mg_nasattributes`";
+        $query = "SELECT * from `" . self::NAS_ATTRIBUTES . "`";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -311,7 +321,7 @@ class MultiGen {
      * @return void
      */
     protected function loadNasOptions() {
-        $query = "SELECT * from `mg_nasoptions`";
+        $query = "SELECT * from `" . self::NAS_OPTIONS . "`";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -349,7 +359,8 @@ class MultiGen {
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
                         //TODO: think about this format for better performance of diff operations
-                        $this->currentAttributes[$scenarioId][$each['username']] = $each;
+                        $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']] = $each['value'];
+                       // $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['operator'] = $each['op'];
                     }
                 }
             }
@@ -436,17 +447,17 @@ class MultiGen {
                     $currentRecordId = $currentNasOptions['id'];
                     $where = "WHERE `id`='" . $currentRecordId . "'";
                     if ($currentNasOptions['usernametype'] != $newUserName) {
-                        simple_update_field('mg_nasoptions', 'usernametype', $newUserName, $where);
+                        simple_update_field(self::NAS_OPTIONS, 'usernametype', $newUserName, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE USERNAME `' . $newUserName . '`');
                     }
 
                     if ($currentNasOptions['service'] != $newService) {
-                        simple_update_field('mg_nasoptions', 'service', $newService, $where);
+                        simple_update_field(self::NAS_OPTIONS, 'service', $newService, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE SERVICE `' . $newService . '`');
                     }
 
                     if ($currentNasOptions['onlyactive'] != $newOnlyActive) {
-                        simple_update_field('mg_nasoptions', 'onlyactive', $newOnlyActive, $where);
+                        simple_update_field(self::NAS_OPTIONS, 'onlyactive', $newOnlyActive, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ONLYACTIVE `' . $newOnlyActive . '`');
                     }
                 } else {
@@ -454,7 +465,7 @@ class MultiGen {
                     $newUserName_f = mysql_real_escape_string($newUserName);
                     $newService_f = mysql_real_escape_string($newService);
                     $newOnlyActive_f = mysql_real_escape_string($newOnlyActive);
-                    $quyery = "INSERT INTO `mg_nasoptions` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`) VALUES "
+                    $quyery = "INSERT INTO `" . self::NAS_OPTIONS . "` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`) VALUES "
                             . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "');";
                     nr_query($quyery);
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '`');
@@ -497,7 +508,7 @@ class MultiGen {
         $attributeId = vf($attributeId, 3);
         if (isset($this->nasAttributes[$attributeId])) {
             $attributeData = $this->nasAttributes[$attributeId];
-            $query = "DELETE from `mg_nasattributes` WHERE `id`='" . $attributeId . "';";
+            $query = "DELETE from `" . self::NAS_ATTRIBUTES . "` WHERE `id`='" . $attributeId . "';";
             nr_query($query);
             log_register('MULTIGEN ATTRIBUTE `' . $attributeData['attribute'] . '` DELETE [' . $attributeId . ']');
         } else {
@@ -592,7 +603,7 @@ class MultiGen {
                     $newContent = $_POST['newcontent'];
                     $newContent_f = mysql_real_escape_string($newContent);
 
-                    $query = "INSERT INTO `mg_nasattributes` (`id`,`nasid`,`scenario`,`attribute`,`operator`,`content`) VALUES "
+                    $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`attribute`,`operator`,`content`) VALUES "
                             . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
                     nr_query($query);
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '`');
@@ -608,25 +619,106 @@ class MultiGen {
      * Checks is user active or not
      * 
      * @param string $userLogin
+     * @param bool $onlyActive
      * 
      * @return bool
      */
-    protected function isUserActive($userLogin) {
-        $result = false;
-        if (isset($this->allUserData[$userLogin])) {
-            if ($this->accurateUserActivity) {
-                if ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) {
-                    if ($this->allUserData[$userLogin]['Passive'] == 0) {
-                        if ($this->allUserData[$userLogin]['AlwaysOnline'] == 1) {
-                            $result = true;
+    protected function isUserActive($userLogin, $onlyActive) {
+        if ($onlyActive) {
+            //really check user activity
+            $result = false;
+            if (isset($this->allUserData[$userLogin])) {
+                if ($this->accurateUserActivity) {
+                    if ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) {
+                        if ($this->allUserData[$userLogin]['Passive'] == 0) {
+                            if ($this->allUserData[$userLogin]['AlwaysOnline'] == 1) {
+                                $result = true;
+                            }
                         }
                     }
+                } else {
+                    $result = ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) ? true : false;
                 }
-            } else {
-                $result = ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) ? true : false;
             }
+        } else {
+            //for this NAS users always will be active
+            $result = true;
         }
         return ($result);
+    }
+
+    /**
+     * Checks is some user attribute available in scenario and is not changed
+     * 
+     * @param string $scenario
+     * @param string $userLogin
+     * @param string $userName
+     * @param string $attribute
+     * @param string $operator
+     * @param string $value
+     * 
+     * @return int 0 - not exist / 1 - exists and not changed / -2 - changed
+     */
+    protected function checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $operator, $value) {
+        $result = 0;
+        if (isset($this->currentAttributes[$scenario])) {
+            if (isset($this->currentAttributes[$scenario][$userName])) {
+                if (isset($this->currentAttributes[$scenario][$userName][$attribute])) {
+                    if ($this->currentAttributes[$scenario][$userName][$attribute] == $value) {
+                        if ($this->currentAttributes[$scenario][$userName][$attribute]['op'] == $operator) {
+                            $result = 1;
+                        } else {
+                            $result = -2;
+                        }
+                    } else {
+                        $result = -2;
+                    }
+                } else {
+                    $result = 0;
+                }
+            } else {
+                $result = 0;
+            }
+        } else {
+            $result = 0;
+        }
+        $this->logEvent($userLogin . ' AS ' . $userName . ' SCENARIO ' . $scenario . ' TEST ' . $attribute . ' ' . $operator . ' ' . $value . ' RESULT ' . $result, 2);
+        return ($result);
+    }
+
+    /**
+     * Pushes some scenario attribute to database
+     * 
+     * @param string $scenario
+     * @param string $userLogin
+     * @param string $userName
+     * @param string $attribute
+     * @param string $op
+     * @param string $value
+     * 
+     * @return void
+     */
+    protected function createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value) {
+        $query = "INSERT INTO `" . self::SCENARIO_PREFIX . $scenario . "` (`id`,`username`,`attribute`,`op`,`value`) VALUES " .
+                "(NULL,'" . $userName . "','" . $attribute . "','" . $op . "','" . $value . "');";
+        nr_query($query);
+        $this->logEvent($userLogin . ' AS ' . $userName . ' SCENARIO ' . $scenario . ' CREATE ' . $attribute . ' ' . $op . ' ' . $value, 1);
+    }
+
+    /**
+     * Drops some reply attribute from database (required on value changes)
+     * 
+     * @param string $scenario
+     * @param string $userLogin
+     * @param string $userName
+     * @param string $attribute
+     * 
+     * @return void
+     */
+    protected function deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute) {
+        $query = "DELETE FROM `" . self::SCENARIO_PREFIX . $scenario . "` WHERE `username`='" . $userName . "' AND `attribute`='" . $attribute . "';";
+        nr_query($query);
+        $this->logEvent($userLogin . ' AS ' . $userName . ' SCENARIO ' . $scenario . ' DELETE ' . $attribute, 1);
     }
 
     /**
@@ -662,12 +754,22 @@ class MultiGen {
                                 if (!empty($nasAttributes)) {
                                     foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
                                         $scenario = $eachAttributeData['scenario'];
-                                        if ($nasOptions['onlyactive']) {
-                                            if ($this->isUserActive($userLogin)) {
-                                                deb($userLogin);
+                                        $onlyActive = $nasOptions['onlyactive'];
+                                        if ($this->isUserActive($userLogin, $onlyActive)) {
+                                            $attribute = $eachAttributeData['attribute'];
+                                            $op = $eachAttributeData['operator'];
+                                            $value = $eachAttributeData['content'];
+
+                                            $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                            if ($attributeCheck == -2) {
+                                                //dropping already changed attribute from this scenario
+                                                $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                                            }
+                                            if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                //creating new attribute with actual data
+                                                $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                             }
                                         }
-                                        //TODO
                                     }
                                 }
                             }
@@ -676,6 +778,8 @@ class MultiGen {
                 }
             }
         }
+        
+        debarr($this->currentAttributes);
     }
 
 }
