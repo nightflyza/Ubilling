@@ -115,6 +115,13 @@ class MultiGen {
     protected $scenarios = array();
 
     /**
+     * Contains NAS attributes regeneration stats as nasid=>scenario=>statsdata
+     *
+     * @var array
+     */
+    protected $scenarioStats = array();
+
+    /**
      * User activity detection accuracy flag
      *
      * @var bool
@@ -358,7 +365,6 @@ class MultiGen {
                 $all = simple_queryall($query);
                 if (!empty($all)) {
                     foreach ($all as $io => $each) {
-                        //TODO: think about this format for better performance of diff operations
                         $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['name'] = $each['attribute'];
                         $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['value'] = $each['value'];
                         $this->currentAttributes[$scenarioId][$each['username']][$each['attribute']]['op'] = $each['op'];
@@ -723,11 +729,28 @@ class MultiGen {
     }
 
     /**
+     * Writes attributes regeneration stats
+     * 
+     * @param int $nasId
+     * @param string $scenario
+     * @param string $attributeState
+     * 
+     * @return void
+     */
+    protected function writeScenarioStats($nasId, $scenario, $attributeState) {
+        if ((!isset($this->scenarioStats[$nasId])) OR ( !isset($this->scenarioStats[$nasId][$scenario])) OR ( !isset($this->scenarioStats[$nasId][$scenario][$attributeState]))) {
+            $this->scenarioStats[$nasId][$scenario][$attributeState] = 1;
+        } else {
+            $this->scenarioStats[$nasId][$scenario][$attributeState] ++;
+        }
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
      */
-    public function generateUserAttributes() {
+    public function generateNasAttributes() {
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $io => $eachUser) {
                 $userLogin = $eachUser['login'];
@@ -735,7 +758,7 @@ class MultiGen {
                     $userNases = $this->userNases[$userLogin];
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
-                            $nasOptions = $this->nasOptions[$eachNasId];
+                            @$nasOptions = $this->nasOptions[$eachNasId];
                             $userNameType = $nasOptions['usernametype'];
                             //overriding username type if required
                             switch ($userNameType) {
@@ -769,6 +792,12 @@ class MultiGen {
                                             if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
                                                 //creating new attribute with actual data
                                                 $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                $this->writeScenarioStats($eachNasId, $scenario, 'generated');
+                                            }
+
+                                            if ($attributeCheck == 1) {
+                                                //attribute exists and not changed
+                                                $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
                                             }
                                         }
                                     }
@@ -779,8 +808,68 @@ class MultiGen {
                 }
             }
         }
-        
-       // debarr($this->currentAttributes);
+    }
+
+    /**
+     * Returns NAS label as IP - name
+     * 
+     * @param int $nasId
+     * 
+     * @return string
+     */
+    public function getNaslabel($nasId) {
+        $result = '';
+        if (isset($this->allNas[$nasId])) {
+            $result.=$this->allNas[$nasId]['nasip'] . ' - ' . $this->allNas[$nasId]['nasname'];
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders some NAS attributes regeneration stats
+     * 
+     * @return strings
+     */
+    public function renderScenarioStats() {
+        $result = '';
+        $stateNames = array(
+            'skipped' => __('Attributes is unchanged and generation was skipped'),
+            'generated' => __('New or changed attributes generated')
+        );
+        if (!empty($this->scenarioStats)) {
+            foreach ($this->scenarioStats as $nasId => $scenario) {
+                $nasLabel = $this->getNaslabel($nasId);
+                $result.=$this->messages->getStyledMessage($nasLabel, 'success');
+                if (!empty($scenario)) {
+                    foreach ($scenario as $scenarioName => $counters) {
+                        if (!empty($counters)) {
+                            foreach ($counters as $eachState => $eachCount) {
+                                $result.=$this->messages->getStyledMessage(__(@$stateNames[$eachState]) . ': ' . $eachCount.' '.__('for scenario').' '.$scenarioName, 'info');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders NAS controls panel
+     * 
+     * @param int $nasId
+     * 
+     * @return string
+     */
+    public function nasControlPanel($nasId) {
+        $result = '';
+        $result.=wf_BackLink('?module=nas') . ' ';
+        if ($this->nasHaveOptions($nasId)) {
+            $result.=wf_AjaxLoader();
+            $result.=wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result.=wf_AjaxContainer('nascontrolajaxcontainer');
+        }
+        return ($result);
     }
 
 }

@@ -5,10 +5,9 @@ if (cfr('MULTIGEN')) {
     if ($altCfg['MULTIGEN_ENABLED']) {
 
         $mg = new MultiGen();
-       // debarr($mg);
-        $mg->generateUserAttributes();
 
         if (wf_CheckGet(array('editnasoptions'))) {
+            $editNasId = $_GET['editnasoptions'];
             //editing NAS options
             if (wf_CheckPost(array('editnasid'))) {
                 $nasOptionsSaveResult = $mg->saveNasOptions();
@@ -33,21 +32,29 @@ if (cfr('MULTIGEN')) {
             if (wf_CheckGet(array('deleteattributeid'))) {
                 $attributeDeletionResult = $mg->deleteNasAttribute($_GET['deleteattributeid']);
                 if (empty($attributeDeletionResult)) {
-                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $_GET['editnasoptions']);
+                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($attributeDeletionResult);
                 }
             }
+
+            //manual atrributes regeneration
+            if (wf_CheckGet(array('ajnasregen'))) {
+                $mg->generateNasAttributes();
+                die($mg->renderScenarioStats());
+            }
             //rendering basic options form
-            show_window(__('NAS options'), $mg->renderNasOptionsEditForm($_GET['editnasoptions']));
-            if ($mg->nasHaveOptions($_GET['editnasoptions'])) {
+            show_window(__('NAS options') . ' ' . $mg->getNaslabel($editNasId), $mg->renderNasOptionsEditForm($editNasId));
+            if ($mg->nasHaveOptions($editNasId)) {
                 //and attributes form
-                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($_GET['editnasoptions']));
+                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($editNasId));
                 //listing of some existing attributes
-                show_window(__('NAS attributes'), $mg->renderNasAttributesList($_GET['editnasoptions']));
+                show_window(__('NAS attributes'), $mg->renderNasAttributesList($editNasId));
             } else {
                 show_warning(__('Before setting up the attributes, you must set the base NAS options'));
             }
+            //rendering NAS control panel
+            show_window('', $mg->nasControlPanel($editNasId));
         }
     } else {
         show_error(__('This module is disabled'));

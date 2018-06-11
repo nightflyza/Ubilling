@@ -12,3 +12,6 @@ $lang['def']['NAS attributes'] = 'Атрибути NAS';
 $lang['def']['not existing attribute'] = 'не існуючий атрибут';
 $lang['def']['Before setting up the attributes, you must set the base NAS options'] = 'Перед тим, як налаштовувати атрибути, ви повинні встановити базові опції NAS';
 $lang['def']['Only active users'] = 'Тільки активні користувачі';
+$lang['def']['Attributes is unchanged and generation was skipped'] = 'Атрибути не змінились та находяться в актуальному стані, їх генерацію було пропущено';
+$lang['def']['New or changed attributes generated'] = 'Нові чи змінені атрибути було перегенеровано';
+$lang['def']['for scenario'] = 'для сценарію';
