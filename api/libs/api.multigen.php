@@ -17,6 +17,34 @@ class MultiGen {
     protected $allUserData = array();
 
     /**
+     * Contains all tariff speeds as tariffname=>speeddata(speeddown/speedup) Kbit/s
+     *
+     * @var array
+     */
+    protected $tariffSpeeds = array();
+
+    /**
+     * Contains user speed overrides as login=>override speed in Kbit/s
+     *
+     * @var array
+     */
+    protected $userSpeedOverrides = array();
+
+    /**
+     * Contains array of user switch assigns as login=>asigndata
+     *
+     * @var array
+     */
+    protected $userSwitchAssigns = array();
+
+    /**
+     * Contains array of available switches as id=>switchdata
+     *
+     * @var array
+     */
+    protected $allSwitches = array();
+
+    /**
      * Contains existing users NAS bindings
      *
      * @var array
@@ -180,7 +208,11 @@ class MultiGen {
         $this->loadNasOptions();
         $this->loadNethosts();
         $this->loadUserData();
+        $this->loadTariffSpeeds();
+        $this->loadUserSpeedOverrides();
         $this->preprocessUserData();
+        $this->loadSwitches();
+        $this->loadSwithchAssigns();
         $this->loadScenarios();
     }
 
@@ -257,6 +289,59 @@ class MultiGen {
      */
     protected function loadUserData() {
         $this->allUserData = zb_UserGetAllData();
+    }
+
+    /**
+     * Loads existing tariffs speeds from database
+     * 
+     * @return void
+     */
+    protected function loadTariffSpeeds() {
+        $this->tariffSpeeds = zb_TariffGetAllSpeeds();
+    }
+
+    /**
+     * Loads user speed overrides if they assigned for user
+     * 
+     * @return void
+     */
+    protected function loadUserSpeedOverrides() {
+        $speedOverrides_q = "SELECT * from `userspeeds` WHERE `speed` NOT LIKE '0';";
+        $rawOverrides = simple_queryall($speedOverrides_q);
+        if (!empty($rawOverrides)) {
+            foreach ($rawOverrides as $io => $each) {
+                $this->userSpeedOverrides[$each['login']] = $each['speed'];
+            }
+        }
+    }
+
+    /**
+     * Loads switch port assigns from database
+     * 
+     * @return void
+     */
+    protected function loadSwithchAssigns() {
+        $query = "SELECT * from `switchportassign`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->userSwitchAssigns[$each['login']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads all existing switches data from database
+     * 
+     * @return void
+     */
+    protected function loadSwitches() {
+        $switchesTmp = zb_SwitchesGetAll();
+        if (!empty($switchesTmp)) {
+            foreach ($switchesTmp as $io => $each) {
+                $this->allSwitches[$each['id']] = $each;
+            }
+        }
     }
 
     /**
@@ -525,6 +610,36 @@ class MultiGen {
     }
 
     /**
+     * Flushes all attributes for all scenarios
+     * 
+     * @return void
+     */
+    public function flushAllScenarios() {
+        if (!empty($this->scenarios)) {
+            foreach ($this->scenarios as $scenarioId => $scenarioName) {
+                $query = "TRUNCATE TABLE `" . self::SCENARIO_PREFIX . $scenarioId . "`;";
+                nr_query($query);
+                log_register('MULTIGEN FLUSH SCENARIO `' . $scenarioId . '`');
+            }
+        }
+    }
+
+    /**
+     * Renders list of flushed scenarios
+     * 
+     * @return string
+     */
+    public function renderFlushAllScenariosNotice() {
+        $result = '';
+        if (!empty($this->scenarios)) {
+            foreach ($this->scenarios as $scenarioId => $scenarioName) {
+                $result.=$this->messages->getStyledMessage(__('All attributes in scenario was deleted') . ': ' . $scenarioId, 'error');
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Renders list of available attributes for some NAS
      * 
      * @param int $nasId
@@ -549,7 +664,8 @@ class MultiGen {
                     $cells.= wf_TableCell($each['attribute']);
                     $cells.=wf_TableCell($each['operator']);
                     $cells.= wf_TableCell($each['content']);
-                    $attributeControls = wf_JSAlert(self::URL_ME . '&editnasoptions=' . $nasId . '&deleteattributeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert());
+                    $attributeControls = wf_JSAlert(self::URL_ME . '&editnasoptions=' . $nasId . '&deleteattributeid=' . $each['id'], web_delete_icon(), $this->messages->getDeleteAlert()) . ' ';
+                    $attributeControls.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderAttributeTemplateEditForm($each['id']));
                     $cells.= wf_TableCell($attributeControls);
                     $rows.= wf_TableRow($cells, 'row5');
                 }
@@ -565,13 +681,13 @@ class MultiGen {
     }
 
     /**
-     * Renders NAS attributes editing form
+     * Renders NAS attributes creation form
      * 
      * @param int $nasId
      * 
      * @return string
      */
-    public function renderNasAttributesEditForm($nasId) {
+    public function renderNasAttributesCreateForm($nasId) {
         $result = '';
         $nasId = vf($nasId, 3);
         if (isset($this->allNas[$nasId])) {
@@ -585,6 +701,34 @@ class MultiGen {
             $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders existing NAS attribute template editing forms
+     * 
+     * @param int $attributeId
+     * 
+     * @return string
+     */
+    public function renderAttributeTemplateEditForm($attributeId) {
+        $result = '';
+        $attributeId = vf($attributeId, 3);
+        if (isset($this->nasAttributes[$attributeId])) {
+            $attributeData = $this->nasAttributes[$attributeId];
+            $nasId = $attributeData['nasid'];
+            $inputs = wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
+            $inputs.= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
+            $inputs.= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
+            $inputs.= wf_TextInput('chcontent', __('Value'), $attributeData['content'], false, 20) . ' ';
+            $inputs.= wf_HiddenInput('chattributenasid', $nasId);
+            $inputs.= wf_HiddenInput('chattributeid', $attributeId);
+            $inputs.= wf_Submit(__('Save'));
+            //form assembly
+            $result.=wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_ATTRIBUTEID_NOT_EXIST', 'error');
         }
         return ($result);
     }
@@ -613,7 +757,39 @@ class MultiGen {
                     $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`attribute`,`operator`,`content`) VALUES "
                             . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
                     nr_query($query);
-                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '`');
+                    $newId = simple_get_lastid(self::NAS_ATTRIBUTES);
+                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '` ID [' . $newId . ']');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Creates new NAS attribute preset
+     * 
+     * 
+     * @return void/string on error
+     */
+    public function saveNasAttribute() {
+        $result = '';
+        if (wf_CheckPost(array('chattributenasid'))) {
+            $nasId = vf($_POST['chattributenasid'], 3);
+            if (isset($this->allNas[$nasId])) {
+                if (wf_CheckPost(array('chscenario', 'chattribute', 'choperator', 'chcontent'))) {
+                    $attributeId = vf($_POST['chattributeid'], 3);
+                    if (isset($this->nasAttributes[$attributeId])) {
+                        $where = "WHERE `id`='" . $attributeId . "';";
+                        simple_update_field(self::NAS_ATTRIBUTES, 'scenario', $_POST['chscenario'], $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $_POST['chattribute'], $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'operator', $_POST['choperator'], $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'content', $_POST['chcontent'], $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ATTRIBUTE [' . $attributeId . ']');
+                    } else {
+                        $result.=__('Something went wrong') . ': EX_ATTRIBUTE_NOT_EXIST';
+                    }
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('NAS not exists');
@@ -826,12 +1002,15 @@ class MultiGen {
      * Transforms mac from xx:xx:xx:xx:xx:xx format to XX-XX-XX-XX-XX-XX
      * 
      * @param string $mac
+     * @param bool $caps
      * 
      * @return string
      */
-    protected function transformMacMinusedCaps($mac) {
+    protected function transformMacMinused($mac, $caps = false) {
         $result = str_replace(':', '-', $mac);
-        $result = strtoupper($result);
+        if ($caps) {
+            $result = strtoupper($result);
+        }
         return ($result);
     }
 
@@ -844,6 +1023,43 @@ class MultiGen {
      */
     protected function transformCidrtoMask($cidr) {
         $result = long2ip(-1 << (32 - (int) $cidr));
+        return ($result);
+    }
+
+    /**
+     * Returns current user speeds including personal override in Kbit/s
+     * 
+     * @param string $userLogin
+     * 
+     * @return array as speeddown/speedup=>values
+     */
+    protected function getUserSpeeds($userLogin) {
+        $result = array('speeddown' => 0, 'speedup' => 0);
+        if (isset($this->allUserData[$userLogin])) {
+            $userTariff = $this->allUserData[$userLogin]['Tariff'];
+            if (isset($this->tariffSpeeds[$userTariff])) {
+                //basic tariff speed
+                $result = array('speeddown' => $this->tariffSpeeds[$userTariff]['speeddown'], 'speedup' => $this->tariffSpeeds[$userTariff]['speedup']);
+            }
+            if (isset($this->userSpeedOverrides[$userLogin])) {
+                //personal speed overrides
+                $result = array('speeddown' => $this->userSpeedOverrides[$userLogin], 'speedup' => $this->userSpeedOverrides[$userLogin]);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns speed transformed from kbit/s to bit/s by some offset
+     * 
+     * @param int $speed
+     * @param int $offset
+     * 
+     * @return int
+     */
+    protected function transformSpeedBits($speed, $offset = 1024) {
+        $result = $speed * $offset;
+
         return ($result);
     }
 
@@ -861,54 +1077,134 @@ class MultiGen {
             if (ispos($template, '{IP}')) {
                 $template = str_replace('{IP}', $this->allUserData[$userLogin]['ip'], $template);
             }
+
             if (ispos($template, '{MAC}')) {
                 $template = str_replace('{MAC}', $this->allUserData[$userLogin]['mac'], $template);
             }
-            if (ispos($template, '{MACDOT}')) {
-                $template = str_replace('{MACDOT}', $this->transformMacDotted($this->allUserData[$userLogin]['mac']), $template);
+
+            if (ispos($template, '{MACFDL}')) {
+                $template = str_replace('{MACFDL}', $this->transformMacDotted($this->allUserData[$userLogin]['mac']), $template);
             }
+
+            if (ispos($template, '{MACFML}')) {
+                $template = str_replace('{MACFML}', str_replace('.', '-', $this->transformMacDotted($this->allUserData[$userLogin]['mac'])), $template);
+            }
+
+            if (ispos($template, '{MACTMU}')) {
+                $template = str_replace('{MACTMU}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], true), $template);
+            }
+
+            if (ispos($template, '{MACTML}')) {
+                $template = str_replace('{MACTML}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], false), $template);
+            }
+
             if (ispos($template, '{LOGIN}')) {
                 $template = str_replace('{LOGIN}', $userLogin, $template);
             }
+
             if (ispos($template, '{USERNAME}')) {
                 $template = str_replace('{USERNAME}', $userName, $template);
             }
+
             if (ispos($template, '{PASSWORD}')) {
                 $template = str_replace('{PASSWORD}', $this->allUserData[$userLogin]['Password'], $template);
             }
+
             if (ispos($template, '{TARIFF}')) {
                 $template = str_replace('{TARIFF}', $this->allUserData[$userLogin]['Tariff'], $template);
             }
+
             if (ispos($template, '{NETID}')) {
                 $template = str_replace('{NETID}', $this->nethostsNetworks[$this->allUserData[$userLogin]['ip']], $template);
             }
+
             if (ispos($template, '{NETADDR}')) {
                 $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
                 $netDesc = $this->parseNetworkDesc($netDesc);
                 $netAddr = $netDesc['addr'];
                 $template = str_replace('{NETADDR}', $netAddr, $template);
             }
+
             if (ispos($template, '{NETCIDR}')) {
                 $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
                 $netDesc = $this->parseNetworkDesc($netDesc);
                 $netCidr = $netDesc['cidr'];
                 $template = str_replace('{NETCIDR}', $netCidr, $template);
             }
+
             if (ispos($template, '{NETSTART}')) {
                 $template = str_replace('{NETSTART}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['startip'], $template);
             }
+
             if (ispos($template, '{NETEND}')) {
                 $template = str_replace('{NETEND}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['endip'], $template);
             }
+
             if (ispos($template, '{NETDESC}')) {
                 $template = str_replace('{NETDESC}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'], $template);
             }
+
             if (ispos($template, '{NETMASK}')) {
                 $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
                 $netDesc = $this->parseNetworkDesc($netDesc);
                 $netCidr = $netDesc['cidr'];
                 $netMask = $this->transformCidrtoMask($netCidr);
                 $template = str_replace('{NETMASK}', $netMask, $template);
+            }
+
+            if (ispos($template, '{SPEEDDOWN}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedDown = $userSpeeds['speeddown'];
+                $template = str_replace('{SPEEDDOWN}', $speedDown, $template);
+            }
+
+            if (ispos($template, '{SPEEDUP}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedUp = $userSpeeds['speedup'];
+                $template = str_replace('{SPEEDUP}', $speedUp, $template);
+            }
+
+            if (ispos($template, '{SPEEDDOWNB}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1024);
+                $template = str_replace('{SPEEDDOWNB}', $speedDown, $template);
+            }
+
+            if (ispos($template, '{SPEEDUPB}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1024);
+                $template = str_replace('{SPEEDUPB}', $speedUp, $template);
+            }
+
+            if (ispos($template, '{SPEEDDOWNBD}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1000);
+                $template = str_replace('{SPEEDDOWNBD}', $speedDown, $template);
+            }
+
+            if (ispos($template, '{SPEEDUPBD}')) {
+                $userSpeeds = $this->getUserSpeeds($userLogin);
+                $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1000);
+                $template = str_replace('{SPEEDUPBD}', $speedUp, $template);
+            }
+
+            if (ispos($template, '{USERSWITCHIP}')) {
+                $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
+                $switchData = @$this->allSwitches[$userSwitchId];
+                $switchIp = @$switchData['ip'];
+                $template = str_replace('{USERSWITCHIP}', $switchIp, $template);
+            }
+
+            if (ispos($template, '{USERSWITCHPORT}')) {
+                $userSwitchPort = @$this->userSwitchAssigns[$userLogin]['port'];
+                $template = str_replace('{USERSWITCHPORT}', $userSwitchPort, $template);
+            }
+
+            if (ispos($template, '{USERSWITCHMAC}')) {
+                $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
+                $switchData = @$this->allSwitches[$userSwitchId];
+                $switchMac = @$switchData['swid'];
+                $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
             }
         }
 
@@ -1060,7 +1356,8 @@ class MultiGen {
         $result.=wf_BackLink('?module=nas') . ' ';
         if ($this->nasHaveOptions($nasId)) {
             $result.=wf_AjaxLoader();
-            $result.=wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result.= wf_AjaxLink(self::URL_ME . '&ajscenarioflush=true&editnasoptions=' . $nasId, wf_img('skins/skull.png') . ' ' . __('Flush all attributes in all scenarios'), 'nascontrolajaxcontainer', false, 'ubButton');
             $result.=wf_AjaxContainer('nascontrolajaxcontainer');
         }
         return ($result);

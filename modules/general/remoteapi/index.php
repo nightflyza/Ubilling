@@ -873,6 +873,17 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    // multigen attributes regeneration
+                    if ($_GET['action'] == 'multigen') {
+                        if ($alterconf['MULTIGEN_ENABLED']) {
+                            $multigen = new MultiGen();
+                            $multigen->generateNasAttributes();
+                            die('OK: MULTIGEN');
+                        } else {
+                            die('ERROR: MULTIGEN DISABLED');
+                        }
+                    }
+
                     //some juniper mx coa handling
                     if ($_GET['action'] == 'juncast') {
                         if ($alterconf['JUNGEN_ENABLED']) {

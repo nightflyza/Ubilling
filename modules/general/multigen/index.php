@@ -5,8 +5,7 @@ if (cfr('MULTIGEN')) {
     if ($altCfg['MULTIGEN_ENABLED']) {
 
         $mg = new MultiGen();
-        deb($mg->getAttributeValue('sometestuser', 'sometestuser', '{IP} {MAC} {LOGIN} {USERNAME} {PASSWORD} {TARIFF} {STATE} {NETID} {NETADDR} {NETCIDR} {NETSTART} {NETEND} {NETDESC} {NETMASK} {MACDOT}'));
-        
+
         if (wf_CheckGet(array('editnasoptions'))) {
             $editNasId = $_GET['editnasoptions'];
             //editing NAS options
@@ -29,6 +28,16 @@ if (cfr('MULTIGEN')) {
                 }
             }
 
+            //editing existing attribute template
+            if (wf_CheckPost(array('chattributenasid'))) {
+                $nasAttributeChangeResult = $mg->saveNasAttribute();
+                if (empty($nasAttributeChangeResult)) {
+                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $_POST['chattributenasid']);
+                } else {
+                    show_error($nasAttributeCreationResult);
+                }
+            }
+
             //deletion of existing attribute 
             if (wf_CheckGet(array('deleteattributeid'))) {
                 $attributeDeletionResult = $mg->deleteNasAttribute($_GET['deleteattributeid']);
@@ -44,11 +53,17 @@ if (cfr('MULTIGEN')) {
                 $mg->generateNasAttributes();
                 die($mg->renderScenarioStats());
             }
+
+            //flush all scenarios attributes
+            if (wf_CheckGet(array('ajscenarioflush'))) {
+                $mg->flushAllScenarios();
+                die($mg->renderFlushAllScenariosNotice());
+            }
             //rendering basic options form
             show_window(__('NAS options') . ': ' . $mg->getNaslabel($editNasId), $mg->renderNasOptionsEditForm($editNasId));
             if ($mg->nasHaveOptions($editNasId)) {
                 //and attributes form
-                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($editNasId));
+                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesCreateForm($editNasId));
                 //listing of some existing attributes
                 show_window(__('NAS attributes'), $mg->renderNasAttributesList($editNasId));
             } else {

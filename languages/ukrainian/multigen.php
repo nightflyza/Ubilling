@@ -16,3 +16,5 @@ $lang['def']['Attributes is unchanged and generation was skipped'] = 'Атриб
 $lang['def']['New or changed attributes generated'] = 'Нові чи змінені атрибути було перегенеровано';
 $lang['def']['for scenario'] = 'для сценарію';
 $lang['def']['Attributes was flushed due user inactivity'] = 'Атрибутів було видалено в наслідок неактивності користувача';
+$lang['def']['Flush all attributes in all scenarios'] = 'Очистити всі атрибути у всіх сценаріях';
+$lang['def']['All attributes in scenario was deleted'] = 'Було видалено атрибути зі сценарію';
