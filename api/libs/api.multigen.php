@@ -639,7 +639,9 @@ class MultiGen {
                     if ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) {
                         if ($this->allUserData[$userLogin]['Passive'] == 0) {
                             if ($this->allUserData[$userLogin]['AlwaysOnline'] == 1) {
-                                $result = true;
+                                if ($this->allUserData[$userLogin]['Down'] == 0) {
+                                    $result = true;
+                                }
                             }
                         }
                     }
@@ -746,6 +748,28 @@ class MultiGen {
     }
 
     /**
+     * Flushes buried user attributes if they are exists in database
+     * 
+     * @param int    $nasId
+     * @param string $scenario
+     * @param string $userLogin
+     * @param string $userName
+     * @param string $attribute
+     * 
+     * @return void
+     */
+    protected function flushBuriedUser($nasId, $scenario, $userLogin, $userName, $attribute) {
+        if (isset($this->currentAttributes[$scenario])) {
+            if (isset($this->currentAttributes[$scenario][$userName])) {
+                if (isset($this->currentAttributes[$scenario][$userName][$attribute])) {
+                    $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                    $this->writeScenarioStats($nasId, $scenario, 'buried');
+                }
+            }
+        }
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
@@ -779,8 +803,8 @@ class MultiGen {
                                     foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
                                         $scenario = $eachAttributeData['scenario'];
                                         $onlyActive = $nasOptions['onlyactive'];
+                                        $attribute = $eachAttributeData['attribute'];
                                         if ($this->isUserActive($userLogin, $onlyActive)) {
-                                            $attribute = $eachAttributeData['attribute'];
                                             $op = $eachAttributeData['operator'];
                                             $value = $eachAttributeData['content'];
 
@@ -799,6 +823,9 @@ class MultiGen {
                                                 //attribute exists and not changed
                                                 $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
                                             }
+                                        } else {
+                                            //flush some not-active user attributes if required
+                                            $this->flushBuriedUser($eachNasId,$scenario, $userLogin, $userName, $attribute);
                                         }
                                     }
                                 }
@@ -832,10 +859,7 @@ class MultiGen {
      */
     public function renderScenarioStats() {
         $result = '';
-        $stateNames = array(
-            'skipped' => __('Attributes is unchanged and generation was skipped'),
-            'generated' => __('New or changed attributes generated')
-        );
+
         if (!empty($this->scenarioStats)) {
             foreach ($this->scenarioStats as $nasId => $scenario) {
                 $nasLabel = $this->getNaslabel($nasId);
@@ -844,7 +868,25 @@ class MultiGen {
                     foreach ($scenario as $scenarioName => $counters) {
                         if (!empty($counters)) {
                             foreach ($counters as $eachState => $eachCount) {
-                                $result.=$this->messages->getStyledMessage(__(@$stateNames[$eachState]) . ': ' . $eachCount.' '.__('for scenario').' '.$scenarioName, 'info');
+                                switch ($eachState) {
+                                    case 'skipped':
+                                        $stateName = __('Attributes is unchanged and generation was skipped');
+                                        $stateStyle = 'info';
+                                        break;
+                                    case 'generated':
+                                        $stateName = __('New or changed attributes generated');
+                                        $stateStyle = 'warning';
+                                        break;
+                                    case 'buried':
+                                        $stateName = __('Attributes was flushed due user inactivity');
+                                        $stateStyle = 'warning';
+                                        break;
+                                    default :
+                                        $stateName = $eachState;
+                                        $stateStyle = 'info';
+                                        break;
+                                }
+                                $result.=$this->messages->getStyledMessage($stateName . ': ' . $eachCount . ' ' . __('for scenario') . ' ' . $scenarioName, $stateStyle);
                             }
                         }
                     }

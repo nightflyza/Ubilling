@@ -44,7 +44,7 @@ if (cfr('MULTIGEN')) {
                 die($mg->renderScenarioStats());
             }
             //rendering basic options form
-            show_window(__('NAS options') . ' ' . $mg->getNaslabel($editNasId), $mg->renderNasOptionsEditForm($editNasId));
+            show_window(__('NAS options') . ': ' . $mg->getNaslabel($editNasId), $mg->renderNasOptionsEditForm($editNasId));
             if ($mg->nasHaveOptions($editNasId)) {
                 //and attributes form
                 show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesEditForm($editNasId));
