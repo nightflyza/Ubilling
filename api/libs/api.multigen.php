@@ -169,19 +169,24 @@ class MultiGen {
     const URL_ME = '?module=multigen';
 
     /**
+     * Default radius clients table/view name
+     */
+    const CLIENTS = 'mlg_clients';
+
+    /**
      * Default NAS options table name
      */
-    const NAS_OPTIONS = 'mg_nasoptions';
+    const NAS_OPTIONS = 'mlg_nasoptions';
 
     /**
      * Default NAS attributes templates table name
      */
-    const NAS_ATTRIBUTES = 'mg_nasattributes';
+    const NAS_ATTRIBUTES = 'mlg_nasattributes';
 
     /**
      * Default scenario tables prefix
      */
-    const SCENARIO_PREFIX = 'mg_';
+    const SCENARIO_PREFIX = 'mlg_';
 
     /**
      * Attributes generation logging option name
@@ -202,12 +207,21 @@ class MultiGen {
         $this->loadConfigs();
         $this->setOptions();
         $this->initMessages();
-        $this->loadNetworks();
         $this->loadNases();
         $this->loadNasAttributes();
         $this->loadNasOptions();
-        $this->loadNethosts();
+    }
+
+    /**
+     * Loads huge amounts of data, required only for attributes generation
+     * 
+     * 
+     * @return void
+     */
+    protected function loadHugeRegenData() {
         $this->loadUserData();
+        $this->loadNethosts();
+        $this->loadNetworks();
         $this->loadTariffSpeeds();
         $this->loadUserSpeedOverrides();
         $this->preprocessUserData();
@@ -1222,11 +1236,16 @@ class MultiGen {
      * @return void
      */
     public function generateNasAttributes() {
+
+        //loading huge amount of required data
+        $this->loadHugeRegenData();
+
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $io => $eachUser) {
                 $userLogin = $eachUser['login'];
                 if (isset($this->userNases[$userLogin])) {
                     $userNases = $this->userNases[$userLogin];
+                    //$userNases=array(1=>1);
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
@@ -1372,7 +1391,7 @@ class MultiGen {
  */
 function web_MultigenListClients() {
     $result = __('Nothing found');
-    $query = "SELECT * from `mg_clients` GROUP BY `nasname`";
+    $query = "SELECT * from `" . MultiGen::CLIENTS . "` GROUP BY `nasname`";
     $all = simple_queryall($query);
     if (!empty($all)) {
         $cells = wf_TableCell(__('IP'));

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `mg_acct` (
+CREATE TABLE IF NOT EXISTS `mlg_acct` (
   `radacctid` bigint(21) NOT NULL AUTO_INCREMENT,
   `acctsessionid` varchar(64) NOT NULL DEFAULT '',
   `acctuniqueid` varchar(32) NOT NULL DEFAULT '',
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `mg_acct` (
   KEY `nasipaddress` (`nasipaddress`)
 ) ENGINE=InnoDB;
 
-CREATE TABLE  IF NOT EXISTS `mg_postauth` (
+CREATE TABLE  IF NOT EXISTS `mlg_postauth` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(64) NOT NULL default '',
   `pass` varchar(64) NOT NULL default '',
@@ -46,12 +46,12 @@ CREATE TABLE  IF NOT EXISTS `mg_postauth` (
 ) ENGINE = INNODB;
 
 
-CREATE OR REPLACE VIEW `mg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
+CREATE OR REPLACE VIEW `mlg_clients` (`nasname`, `shortname`, `type`, `ports`, `secret`, `server`, `community`, `description`) AS
 SELECT DISTINCT `nas`.`nasip`, `nas`.`nasname`, 'other', NULL, LEFT(MD5(INET_ATON(`nas`.`nasip`)), 12), NULL, `switches`.`snmp`, `switches`.`desc` FROM `nas`
      JOIN `networks` ON `networks`.`id` = `nas`.`netid`
 LEFT JOIN `switches` ON `switches`.`ip` = `nas`.`nasip`;
 
-CREATE TABLE IF NOT EXISTS `mg_check` (
+CREATE TABLE IF NOT EXISTS `mlg_check` (
   id int(11) unsigned NOT NULL auto_increment,
   username varchar(64) NOT NULL default '',
   attribute varchar(64)  NOT NULL default '',
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `mg_check` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS `mg_reply` (
+CREATE TABLE IF NOT EXISTS `mlg_reply` (
   id int(11) unsigned NOT NULL auto_increment,
   username varchar(64) NOT NULL default '',
   attribute varchar(64) NOT NULL default '',
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS mg_usergroup (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS `mg_nasattributes` (
+CREATE TABLE IF NOT EXISTS `mlg_nasattributes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nasid` int(11) NOT NULL,
   `scenario` varchar(30) NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `mg_nasattributes` (
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS `mg_nasoptions` (
+CREATE TABLE IF NOT EXISTS `mlg_nasoptions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nasid` int(11) NOT NULL,
   `usernametype` varchar(30) NOT NULL,
