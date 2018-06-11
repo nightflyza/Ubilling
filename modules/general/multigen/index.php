@@ -5,7 +5,8 @@ if (cfr('MULTIGEN')) {
     if ($altCfg['MULTIGEN_ENABLED']) {
 
         $mg = new MultiGen();
-
+        deb($mg->getAttributeValue('sometestuser', 'sometestuser', '{IP} {MAC} {LOGIN} {USERNAME} {PASSWORD} {TARIFF} {STATE} {NETID} {NETADDR} {NETCIDR} {NETSTART} {NETEND} {NETDESC} {NETMASK} {MACDOT}'));
+        
         if (wf_CheckGet(array('editnasoptions'))) {
             $editNasId = $_GET['editnasoptions'];
             //editing NAS options

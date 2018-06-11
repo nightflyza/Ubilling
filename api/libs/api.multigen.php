@@ -636,7 +636,7 @@ class MultiGen {
             $result = false;
             if (isset($this->allUserData[$userLogin])) {
                 if ($this->accurateUserActivity) {
-                    if ($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) {
+                    if ($this->allUserData[$userLogin]['Cash'] >= '-' . abs($this->allUserData[$userLogin]['Credit'])) {
                         if ($this->allUserData[$userLogin]['Passive'] == 0) {
                             if ($this->allUserData[$userLogin]['AlwaysOnline'] == 1) {
                                 if ($this->allUserData[$userLogin]['Down'] == 0) {
@@ -770,6 +770,157 @@ class MultiGen {
     }
 
     /**
+     * Returns user state as string
+     * 
+     * @param string $userLogin
+     * 
+     * @return string
+     */
+    protected function getUserStateString($userLogin) {
+        $result = '';
+        if (isset($this->allUserData[$userLogin])) {
+            if (($this->allUserData[$userLogin]['Cash'] >= '-' . $this->allUserData[$userLogin]['Credit']) AND ( $this->allUserData[$userLogin]['AlwaysOnline'] == 1)) {
+                $result = 'ON-LINE';
+            } else {
+                $result = 'OFF-LINE';
+            }
+            if ($this->allUserData[$userLogin]['Down']) {
+                $result = 'DOWN';
+            }
+            if ($this->allUserData[$userLogin]['Passive']) {
+                $result = 'PASSIVE';
+            }
+        } else {
+            $result = 'NOT-EXIST';
+        }
+        return ($result);
+    }
+
+    /**
+     * Parses network data to network address and network CIDR
+     * 
+     * @param string $netDesc
+     * 
+     * @return array
+     */
+    protected function parseNetworkDesc($netDesc) {
+        $result = array();
+        $netDesc = explode('/', $netDesc);
+        $result = array('addr' => $netDesc[0], 'cidr' => $netDesc[1]);
+        return ($result);
+    }
+
+    /**
+     * Transforms mac from xx:xx:xx:xx:xx:xx format to xxxx.xxxx.xxxx
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function transformMacDotted($mac) {
+        $result = implode(".", str_split(str_replace(":", "", $mac), 4));
+        return ($result);
+    }
+
+    /**
+     * Transforms mac from xx:xx:xx:xx:xx:xx format to XX-XX-XX-XX-XX-XX
+     * 
+     * @param string $mac
+     * 
+     * @return string
+     */
+    protected function transformMacMinusedCaps($mac) {
+        $result = str_replace(':', '-', $mac);
+        $result = strtoupper($result);
+        return ($result);
+    }
+
+    /**
+     * Transforms CIDR notation to xxx.xxx.xxx.xxx netmask
+     * 
+     * @param string $cidr - CIDR
+     * 
+     * @return string
+     */
+    protected function transformCidrtoMask($cidr) {
+        $result = long2ip(-1 << (32 - (int) $cidr));
+        return ($result);
+    }
+
+    /**
+     * Returns attribute templates value with replaced macro
+     * 
+     * @param string $userLogin
+     * @param string $userName
+     * @param string $template
+     * 
+     * @return string
+     */
+    public function getAttributeValue($userLogin, $userName, $template) {
+        if (isset($this->allUserData[$userLogin])) {
+            if (ispos($template, '{IP}')) {
+                $template = str_replace('{IP}', $this->allUserData[$userLogin]['ip'], $template);
+            }
+            if (ispos($template, '{MAC}')) {
+                $template = str_replace('{MAC}', $this->allUserData[$userLogin]['mac'], $template);
+            }
+            if (ispos($template, '{MACDOT}')) {
+                $template = str_replace('{MACDOT}', $this->transformMacDotted($this->allUserData[$userLogin]['mac']), $template);
+            }
+            if (ispos($template, '{LOGIN}')) {
+                $template = str_replace('{LOGIN}', $userLogin, $template);
+            }
+            if (ispos($template, '{USERNAME}')) {
+                $template = str_replace('{USERNAME}', $userName, $template);
+            }
+            if (ispos($template, '{PASSWORD}')) {
+                $template = str_replace('{PASSWORD}', $this->allUserData[$userLogin]['Password'], $template);
+            }
+            if (ispos($template, '{TARIFF}')) {
+                $template = str_replace('{TARIFF}', $this->allUserData[$userLogin]['Tariff'], $template);
+            }
+            if (ispos($template, '{NETID}')) {
+                $template = str_replace('{NETID}', $this->nethostsNetworks[$this->allUserData[$userLogin]['ip']], $template);
+            }
+            if (ispos($template, '{NETADDR}')) {
+                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                $netDesc = $this->parseNetworkDesc($netDesc);
+                $netAddr = $netDesc['addr'];
+                $template = str_replace('{NETADDR}', $netAddr, $template);
+            }
+            if (ispos($template, '{NETCIDR}')) {
+                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                $netDesc = $this->parseNetworkDesc($netDesc);
+                $netCidr = $netDesc['cidr'];
+                $template = str_replace('{NETCIDR}', $netCidr, $template);
+            }
+            if (ispos($template, '{NETSTART}')) {
+                $template = str_replace('{NETSTART}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['startip'], $template);
+            }
+            if (ispos($template, '{NETEND}')) {
+                $template = str_replace('{NETEND}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['endip'], $template);
+            }
+            if (ispos($template, '{NETDESC}')) {
+                $template = str_replace('{NETDESC}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'], $template);
+            }
+            if (ispos($template, '{NETMASK}')) {
+                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                $netDesc = $this->parseNetworkDesc($netDesc);
+                $netCidr = $netDesc['cidr'];
+                $netMask = $this->transformCidrtoMask($netCidr);
+                $template = str_replace('{NETMASK}', $netMask, $template);
+            }
+        }
+
+        if (ispos($template, '{STATE}')) {
+            $template = str_replace('{STATE}', $this->getUserStateString($userLogin), $template);
+        }
+
+        $result = $template;
+        return ($result);
+    }
+
+    /**
      * Performs generation of user attributes if their NAS requires it.
      * 
      * @return void
@@ -806,7 +957,8 @@ class MultiGen {
                                         $attribute = $eachAttributeData['attribute'];
                                         if ($this->isUserActive($userLogin, $onlyActive)) {
                                             $op = $eachAttributeData['operator'];
-                                            $value = $eachAttributeData['content'];
+                                            $template = $eachAttributeData['content'];
+                                            $value = $this->getAttributeValue($userLogin, $userName, $template);
 
                                             $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                             if ($attributeCheck == -2) {
@@ -825,7 +977,7 @@ class MultiGen {
                                             }
                                         } else {
                                             //flush some not-active user attributes if required
-                                            $this->flushBuriedUser($eachNasId,$scenario, $userLogin, $userName, $attribute);
+                                            $this->flushBuriedUser($eachNasId, $scenario, $userLogin, $userName, $attribute);
                                         }
                                     }
                                 }
@@ -886,7 +1038,7 @@ class MultiGen {
                                         $stateStyle = 'info';
                                         break;
                                 }
-                                $result.=$this->messages->getStyledMessage($stateName . ': ' . $eachCount . ' ' . __('for scenario') . ' ' . $scenarioName, $stateStyle);
+                                $result.=$this->messages->getStyledMessage($stateName . ' ' . __('for scenario') . ' ' . $scenarioName . ': ' . $eachCount, $stateStyle);
                             }
                         }
                     }
