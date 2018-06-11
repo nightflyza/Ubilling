@@ -1245,7 +1245,6 @@ class MultiGen {
                 $userLogin = $eachUser['login'];
                 if (isset($this->userNases[$userLogin])) {
                     $userNases = $this->userNases[$userLogin];
-                    //$userNases=array(1=>1);
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
