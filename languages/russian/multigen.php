@@ -18,6 +18,14 @@ $lang['def']['for scenario'] = 'для сценария';
 $lang['def']['Attributes was flushed due user inactivity'] = 'Атрибутов было удалено в следствии неактивности пользователя';
 $lang['def']['Flush all attributes in all scenarios'] = 'Очистить все атрибуты во всех сценариях';
 $lang['def']['All attributes in scenario was deleted'] = 'Были удалены все атрибуты из сценария';
+$lang['def']['Data loading time'] = 'Время загрузки даных';
+$lang['def']['Total time spent'] = 'Всего времени затрачено';
+$lang['def']['Total attributes processed'] = 'Всего атрибутов обработано';
+$lang['def']['attributes/sec'] = 'атрибутов/сек.';
+$lang['def']['Performance'] = 'Производительность';
+$lang['def']['brutto'] = 'брутто';
+$lang['def']['Attributes processing time'] = 'Время обработки атрибутов';
+$lang['def']['Memory used'] = 'Памяти использовано';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

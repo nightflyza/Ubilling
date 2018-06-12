@@ -150,6 +150,13 @@ class MultiGen {
     protected $scenarioStats = array();
 
     /**
+     * Contains performance timers and stats
+     * 
+     * @var array
+     */
+    protected $perfStats = array();
+
+    /**
      * User activity detection accuracy flag
      *
      * @var bool
@@ -213,8 +220,7 @@ class MultiGen {
     }
 
     /**
-     * Loads huge amounts of data, required only for attributes generation
-     * 
+     * Loads huge amounts of data, required only for attributes generation/processing
      * 
      * @return void
      */
@@ -938,6 +944,19 @@ class MultiGen {
     }
 
     /**
+     * Stores performance timing data for future stats
+     * 
+     * @return void
+     */
+    public function writePerformanceTimers($key) {
+        if (isset($this->perfStats[$key])) {
+            $this->perfStats[$key] = microtime(true) - $this->perfStats[$key];
+        } else {
+            $this->perfStats[$key] = microtime(true);
+        }
+    }
+
+    /**
      * Flushes buried user attributes if they are exists in database
      * 
      * @param int    $nasId
@@ -1087,147 +1106,166 @@ class MultiGen {
      * @return string
      */
     public function getAttributeValue($userLogin, $userName, $template) {
-        if (isset($this->allUserData[$userLogin])) {
-            if (ispos($template, '{IP}')) {
-                $template = str_replace('{IP}', $this->allUserData[$userLogin]['ip'], $template);
+        if (strpos($template, '{') !== false) {
+            //skipping templates with no macro inside
+            if (isset($this->allUserData[$userLogin])) {
+                if (strpos($template, '{IP}') !== false) {
+                    $template = str_replace('{IP}', $this->allUserData[$userLogin]['ip'], $template);
+                }
+
+                if (strpos($template, '{MAC}') !== false) {
+                    $template = str_replace('{MAC}', $this->allUserData[$userLogin]['mac'], $template);
+                }
+
+                if (strpos($template, '{MACFDL}') !== false) {
+                    $template = str_replace('{MACFDL}', $this->transformMacDotted($this->allUserData[$userLogin]['mac']), $template);
+                }
+
+                if (strpos($template, '{MACFML}') !== false) {
+                    $template = str_replace('{MACFML}', str_replace('.', '-', $this->transformMacDotted($this->allUserData[$userLogin]['mac'])), $template);
+                }
+
+                if (strpos($template, '{MACTMU}') !== false) {
+                    $template = str_replace('{MACTMU}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], true), $template);
+                }
+
+                if (strpos($template, '{MACTML}') !== false) {
+                    $template = str_replace('{MACTML}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], false), $template);
+                }
+
+                if (strpos($template, '{LOGIN}') !== false) {
+                    $template = str_replace('{LOGIN}', $userLogin, $template);
+                }
+
+                if (strpos($template, '{USERNAME}') !== false) {
+                    $template = str_replace('{USERNAME}', $userName, $template);
+                }
+
+                if (strpos($template, '{PASSWORD}') !== false) {
+                    $template = str_replace('{PASSWORD}', $this->allUserData[$userLogin]['Password'], $template);
+                }
+
+                if (strpos($template, '{TARIFF}') !== false) {
+                    $template = str_replace('{TARIFF}', $this->allUserData[$userLogin]['Tariff'], $template);
+                }
+
+                if (strpos($template, '{NETID}') !== false) {
+                    $template = str_replace('{NETID}', $this->nethostsNetworks[$this->allUserData[$userLogin]['ip']], $template);
+                }
+
+                if (strpos($template, '{NETADDR}') !== false) {
+                    $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                    $netDesc = $this->parseNetworkDesc($netDesc);
+                    $netAddr = $netDesc['addr'];
+                    $template = str_replace('{NETADDR}', $netAddr, $template);
+                }
+
+                if (strpos($template, '{NETCIDR}') !== false) {
+                    $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                    $netDesc = $this->parseNetworkDesc($netDesc);
+                    $netCidr = $netDesc['cidr'];
+                    $template = str_replace('{NETCIDR}', $netCidr, $template);
+                }
+
+                if (strpos($template, '{NETSTART}') !== false) {
+                    $template = str_replace('{NETSTART}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['startip'], $template);
+                }
+
+                if (strpos($template, '{NETEND}') !== false) {
+                    $template = str_replace('{NETEND}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['endip'], $template);
+                }
+
+                if (strpos($template, '{NETDESC}') !== false) {
+                    $template = str_replace('{NETDESC}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'], $template);
+                }
+
+                if (strpos($template, '{NETMASK}') !== false) {
+                    $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
+                    $netDesc = $this->parseNetworkDesc($netDesc);
+                    $netCidr = $netDesc['cidr'];
+                    $netMask = $this->transformCidrtoMask($netCidr);
+                    $template = str_replace('{NETMASK}', $netMask, $template);
+                }
+
+                if (strpos($template, '{SPEEDDOWN}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedDown = $userSpeeds['speeddown'];
+                    $template = str_replace('{SPEEDDOWN}', $speedDown, $template);
+                }
+
+                if (strpos($template, '{SPEEDUP}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedUp = $userSpeeds['speedup'];
+                    $template = str_replace('{SPEEDUP}', $speedUp, $template);
+                }
+
+                if (strpos($template, '{SPEEDDOWNB}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1024);
+                    $template = str_replace('{SPEEDDOWNB}', $speedDown, $template);
+                }
+
+                if (strpos($template, '{SPEEDUPB}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1024);
+                    $template = str_replace('{SPEEDUPB}', $speedUp, $template);
+                }
+
+                if (strpos($template, '{SPEEDDOWNBD}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1000);
+                    $template = str_replace('{SPEEDDOWNBD}', $speedDown, $template);
+                }
+
+                if (strpos($template, '{SPEEDUPBD}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1000);
+                    $template = str_replace('{SPEEDUPBD}', $speedUp, $template);
+                }
+
+                if (strpos($template, '{SPEEDDOWNBC}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1024) / 8;
+                    $template = str_replace('{SPEEDDOWNBC}', $speedDown, $template);
+                }
+
+                if (strpos($template, '{SPEEDUPBC}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1024) / 8;
+                    $template = str_replace('{SPEEDUPBC}', $speedUp, $template);
+                }
+
+                if (strpos($template, '{SPEEDMRL}') !== false) {
+                    $userSpeeds = $this->getUserSpeeds($userLogin);
+                    $template = str_replace('{SPEEDMRL}', $userSpeeds['speedup'] . 'k/' . $userSpeeds['speeddown'] . 'k', $template);
+                }
+
+                if (strpos($template, '{USERSWITCHIP}') !== false) {
+                    $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
+                    $switchData = @$this->allSwitches[$userSwitchId];
+                    $switchIp = @$switchData['ip'];
+                    $template = str_replace('{USERSWITCHIP}', $switchIp, $template);
+                }
+
+                if (strpos($template, '{USERSWITCHPORT}') !== false) {
+                    $userSwitchPort = @$this->userSwitchAssigns[$userLogin]['port'];
+                    $template = str_replace('{USERSWITCHPORT}', $userSwitchPort, $template);
+                }
+
+                if (strpos($template, '{USERSWITCHMAC}') !== false) {
+                    $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
+                    $switchData = @$this->allSwitches[$userSwitchId];
+                    $switchMac = @$switchData['swid'];
+                    $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
+                }
             }
 
-            if (ispos($template, '{MAC}')) {
-                $template = str_replace('{MAC}', $this->allUserData[$userLogin]['mac'], $template);
-            }
-
-            if (ispos($template, '{MACFDL}')) {
-                $template = str_replace('{MACFDL}', $this->transformMacDotted($this->allUserData[$userLogin]['mac']), $template);
-            }
-
-            if (ispos($template, '{MACFML}')) {
-                $template = str_replace('{MACFML}', str_replace('.', '-', $this->transformMacDotted($this->allUserData[$userLogin]['mac'])), $template);
-            }
-
-            if (ispos($template, '{MACTMU}')) {
-                $template = str_replace('{MACTMU}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], true), $template);
-            }
-
-            if (ispos($template, '{MACTML}')) {
-                $template = str_replace('{MACTML}', $this->transformMacMinused($this->allUserData[$userLogin]['mac'], false), $template);
-            }
-
-            if (ispos($template, '{LOGIN}')) {
-                $template = str_replace('{LOGIN}', $userLogin, $template);
-            }
-
-            if (ispos($template, '{USERNAME}')) {
-                $template = str_replace('{USERNAME}', $userName, $template);
-            }
-
-            if (ispos($template, '{PASSWORD}')) {
-                $template = str_replace('{PASSWORD}', $this->allUserData[$userLogin]['Password'], $template);
-            }
-
-            if (ispos($template, '{TARIFF}')) {
-                $template = str_replace('{TARIFF}', $this->allUserData[$userLogin]['Tariff'], $template);
-            }
-
-            if (ispos($template, '{NETID}')) {
-                $template = str_replace('{NETID}', $this->nethostsNetworks[$this->allUserData[$userLogin]['ip']], $template);
-            }
-
-            if (ispos($template, '{NETADDR}')) {
-                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
-                $netDesc = $this->parseNetworkDesc($netDesc);
-                $netAddr = $netDesc['addr'];
-                $template = str_replace('{NETADDR}', $netAddr, $template);
-            }
-
-            if (ispos($template, '{NETCIDR}')) {
-                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
-                $netDesc = $this->parseNetworkDesc($netDesc);
-                $netCidr = $netDesc['cidr'];
-                $template = str_replace('{NETCIDR}', $netCidr, $template);
-            }
-
-            if (ispos($template, '{NETSTART}')) {
-                $template = str_replace('{NETSTART}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['startip'], $template);
-            }
-
-            if (ispos($template, '{NETEND}')) {
-                $template = str_replace('{NETEND}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['endip'], $template);
-            }
-
-            if (ispos($template, '{NETDESC}')) {
-                $template = str_replace('{NETDESC}', $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'], $template);
-            }
-
-            if (ispos($template, '{NETMASK}')) {
-                $netDesc = $this->allNetworks[$this->nethostsNetworks[$this->allUserData[$userLogin]['ip']]]['desc'];
-                $netDesc = $this->parseNetworkDesc($netDesc);
-                $netCidr = $netDesc['cidr'];
-                $netMask = $this->transformCidrtoMask($netCidr);
-                $template = str_replace('{NETMASK}', $netMask, $template);
-            }
-
-            if (ispos($template, '{SPEEDDOWN}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedDown = $userSpeeds['speeddown'];
-                $template = str_replace('{SPEEDDOWN}', $speedDown, $template);
-            }
-
-            if (ispos($template, '{SPEEDUP}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedUp = $userSpeeds['speedup'];
-                $template = str_replace('{SPEEDUP}', $speedUp, $template);
-            }
-
-            if (ispos($template, '{SPEEDDOWNB}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1024);
-                $template = str_replace('{SPEEDDOWNB}', $speedDown, $template);
-            }
-
-            if (ispos($template, '{SPEEDUPB}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1024);
-                $template = str_replace('{SPEEDUPB}', $speedUp, $template);
-            }
-
-            if (ispos($template, '{SPEEDDOWNBD}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedDown = $this->transformSpeedBits($userSpeeds['speeddown'], 1000);
-                $template = str_replace('{SPEEDDOWNBD}', $speedDown, $template);
-            }
-
-            if (ispos($template, '{SPEEDUPBD}')) {
-                $userSpeeds = $this->getUserSpeeds($userLogin);
-                $speedUp = $this->transformSpeedBits($userSpeeds['speedup'], 1000);
-                $template = str_replace('{SPEEDUPBD}', $speedUp, $template);
-            }
-
-            if (ispos($template, '{USERSWITCHIP}')) {
-                $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
-                $switchData = @$this->allSwitches[$userSwitchId];
-                $switchIp = @$switchData['ip'];
-                $template = str_replace('{USERSWITCHIP}', $switchIp, $template);
-            }
-
-            if (ispos($template, '{USERSWITCHPORT}')) {
-                $userSwitchPort = @$this->userSwitchAssigns[$userLogin]['port'];
-                $template = str_replace('{USERSWITCHPORT}', $userSwitchPort, $template);
-            }
-
-            if (ispos($template, '{USERSWITCHMAC}')) {
-                $userSwitchId = @$this->userSwitchAssigns[$userLogin]['switchid'];
-                $switchData = @$this->allSwitches[$userSwitchId];
-                $switchMac = @$switchData['swid'];
-                $template = str_replace('{USERSWITCHMAC}', $switchMac, $template);
+            if (strpos($template, '{STATE}') !== false) {
+                $template = str_replace('{STATE}', $this->getUserStateString($userLogin), $template);
             }
         }
 
-        if (ispos($template, '{STATE}')) {
-            $template = str_replace('{STATE}', $this->getUserStateString($userLogin), $template);
-        }
-
-        $result = $template;
-        return ($result);
+        return ($template);
     }
 
     /**
@@ -1236,15 +1274,17 @@ class MultiGen {
      * @return void
      */
     public function generateNasAttributes() {
-
+        $this->writePerformanceTimers('genstart');
         //loading huge amount of required data
         $this->loadHugeRegenData();
-
+        $this->writePerformanceTimers('dataloaded');
         if (!empty($this->allUserData)) {
             foreach ($this->allUserData as $io => $eachUser) {
                 $userLogin = $eachUser['login'];
                 if (isset($this->userNases[$userLogin])) {
                     $userNases = $this->userNases[$userLogin];
+                    //for debug only
+                    //$userNases = array(1 => 1);
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
@@ -1301,6 +1341,7 @@ class MultiGen {
                 }
             }
         }
+        $this->writePerformanceTimers('genend');
     }
 
     /**
@@ -1325,7 +1366,7 @@ class MultiGen {
      */
     public function renderScenarioStats() {
         $result = '';
-
+        $totalAttributeCount = 0;
         if (!empty($this->scenarioStats)) {
             foreach ($this->scenarioStats as $nasId => $scenario) {
                 $nasLabel = $this->getNaslabel($nasId);
@@ -1352,12 +1393,36 @@ class MultiGen {
                                         $stateStyle = 'info';
                                         break;
                                 }
+                                $totalAttributeCount+=$eachCount;
                                 $result.=$this->messages->getStyledMessage($stateName . ' ' . __('for scenario') . ' ' . $scenarioName . ': ' . $eachCount, $stateStyle);
                             }
                         }
                     }
                 }
             }
+        }
+
+        if (!empty($this->perfStats)) {
+            $timeStats = '';
+            $perfStats = '';
+
+            $dataLloadingTime = $this->perfStats['dataloaded'] - $this->perfStats['genstart'];
+            $totalTime = $this->perfStats['genend'] - $this->perfStats['genstart'];
+            $timeStats.= __('Total time spent') . ': ' . round($totalTime, 2) . ' ' . __('sec.') . ' ';
+            $timeStats.= __('Data loading time') . ': ' . round($dataLloadingTime, 2) . ' ' . __('sec.') . ' ';
+            $timeStats.= __('Attributes processing time') . ': ' . round(($totalTime - $dataLloadingTime), 2) . ' ' . __('sec.') . ' ';
+            $timeStats.=__('Memory used') . ': ~' . stg_convert_size(memory_get_usage(true));
+
+            $perfStats.= __('Total attributes processed') . ': ' . $totalAttributeCount . ' ';
+            if ($totalTime >= 0.03) {
+                $perfStats.=__('Performance') . ': ' . round($totalAttributeCount / ($totalTime - $dataLloadingTime), 2) . ' ' . __('attributes/sec');
+                $perfStats.=' ( ' . round($totalAttributeCount / ($totalTime), 2) . ' ' . ' ' . __('brutto') . ')';
+            } else {
+                $perfStats.=__('Performance') . ': ' . wf_tag('b') . __('Black magic') . wf_tag('b', true);
+            }
+
+            $result.=$this->messages->getStyledMessage($timeStats, 'success');
+            $result.=$this->messages->getStyledMessage($perfStats, 'success');
         }
         return ($result);
     }
