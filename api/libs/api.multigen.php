@@ -1406,16 +1406,17 @@ class MultiGen {
             $timeStats = '';
             $perfStats = '';
 
-            $dataLloadingTime = $this->perfStats['dataloaded'] - $this->perfStats['genstart'];
+            $dataLoadingTime = $this->perfStats['dataloaded'] - $this->perfStats['genstart'];
             $totalTime = $this->perfStats['genend'] - $this->perfStats['genstart'];
             $timeStats.= __('Total time spent') . ': ' . round($totalTime, 2) . ' ' . __('sec.') . ' ';
-            $timeStats.= __('Data loading time') . ': ' . round($dataLloadingTime, 2) . ' ' . __('sec.') . ' ';
-            $timeStats.= __('Attributes processing time') . ': ' . round(($totalTime - $dataLloadingTime), 2) . ' ' . __('sec.') . ' ';
+            $timeStats.= __('Data loading time') . ': ' . round($dataLoadingTime, 2) . ' ' . __('sec.') . ' ';
+            $timeStats.= __('Attributes processing time') . ': ' . round(($totalTime - $dataLoadingTime), 2) . ' ' . __('sec.') . ' ';
             $timeStats.=__('Memory used') . ': ~' . stg_convert_size(memory_get_usage(true));
 
             $perfStats.= __('Total attributes processed') . ': ' . $totalAttributeCount . ' ';
-            if ($totalTime >= 0.03) {
-                $perfStats.=__('Performance') . ': ' . round($totalAttributeCount / ($totalTime - $dataLloadingTime), 2) . ' ' . __('attributes/sec');
+            if ($totalTime > 0) {
+                //preventing zero divisions
+                $perfStats.=__('Performance') . ': ' . round($totalAttributeCount / ($totalTime - $dataLoadingTime), 2) . ' ' . __('attributes/sec');
                 $perfStats.=' ( ' . round($totalAttributeCount / ($totalTime), 2) . ' ' . ' ' . __('brutto') . ')';
             } else {
                 $perfStats.=__('Performance') . ': ' . wf_tag('b') . __('Black magic') . wf_tag('b', true);
