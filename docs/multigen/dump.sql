@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `mlg_reply` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS mg_groupcheck (
+CREATE TABLE IF NOT EXISTS mlg_groupcheck (
   id int(11) unsigned NOT NULL auto_increment,
   groupname varchar(64) NOT NULL default '',
   attribute varchar(64)  NOT NULL default '',
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS mg_groupcheck (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS mg_groupreply (
+CREATE TABLE IF NOT EXISTS mlg_groupreply (
   id int(11) unsigned NOT NULL auto_increment,
   groupname varchar(64) NOT NULL default '',
   attribute varchar(64)  NOT NULL default '',
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS mg_groupreply (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 
-CREATE TABLE IF NOT EXISTS mg_usergroup (
+CREATE TABLE IF NOT EXISTS mlg_usergroup (
   username varchar(64) NOT NULL default '',
   groupname varchar(64) NOT NULL default '',
   priority int(11) NOT NULL default '1',
