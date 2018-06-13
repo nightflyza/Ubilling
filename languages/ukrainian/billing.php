@@ -2916,5 +2916,6 @@ $lang['def']['Because some of switches have itself as parent, check is skipped']
 $lang['def']['right to delete signup requests'] = 'Право видаляти заявки на підключення';
 $lang['def']['right to configure signup requests module'] = 'Право налаштовувати модуль заявок на підключення';
 $lang['def']['Already processed'] = 'Вже оброблено';
+$lang['def']['SMS for all of extracted numbers stored in sending queue'] = 'SMS для усіх видобутих номерів, було збережено до черги на відправлення';
 
 ?>

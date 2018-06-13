@@ -1854,14 +1854,10 @@ class SMSZilla {
 //setting base entities count
                 $this->saveFilterStats('atstart', sizeof($this->filteredEntities));
                 /**
-                 * Move in, now move out
-                 * Hands up, now hands down
-                 * Back up, back up
-                 * Tell me what you're gonna do now
-                 * Breath in, now breath out
-                 * Hands up, now hands down
-                 * Back up, back up
-                 * Tell me what you're gonna do now
+                 * Knowing that I pack your things up in lie
+                 * I guess I'll beware of love with a bite
+                 * Roll on, girl. Roll, roll to tomorrow
+                 * Rollin' on, girl without feeling tonight
                  */
                 foreach ($filterData as $eachFilter => $eachFilterParam) {
                     if ((ispos($eachFilter, 'newfilter')) AND ( $eachFilter != 'newfilterdirection') AND ( $eachFilter != 'newfiltername')) {
@@ -1885,7 +1881,12 @@ class SMSZilla {
                 show_window(__('Filters workflow visualization'), $this->renderFilterStats());
             }
             $this->extractEntitiesNumbers();
-            show_window('', $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . (sizeof($this->filteredNumbers) + $this->extMobilesCount), 'info'));
+            $sendingStats = $this->messages->getStyledMessage(__('Entities filtered') . ': ' . sizeof($this->filteredEntities) . ' ' . __('Numbers extracted') . ': ' . (sizeof($this->filteredNumbers) + $this->extMobilesCount), 'info');
+            if (wf_CheckPost(array('sendingperform'))) {
+                $sendingStats.=$this->messages->getStyledMessage(__('SMS for all of extracted numbers stored in sending queue'), 'success');
+            }
+            show_window('', $sendingStats);
+
             $this->generateSmsPool($filterId, $templateId);
             show_window(__('Preview'), $this->renderSmsPoolPreviewContainer($filterId, $templateId));
         } else {
