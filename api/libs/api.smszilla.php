@@ -234,6 +234,27 @@ class SMSZilla {
     protected $smsLenLimit = 160;
 
     /**
+     * Contains country code for target country
+     *
+     * @var string
+     */
+    protected $countryCode = '380';
+
+    /**
+     * Contains full number length for some country without +
+     *
+     * @var int
+     */
+    protected $mobileLen = 12;
+
+    /**
+     * Phone normalizer debugging flag
+     *
+     * @var bool
+     */
+    protected $normalizerDebug = false;
+
+    /**
      * Contains all numbers lists names
      *
      * @var array
@@ -643,6 +664,12 @@ class SMSZilla {
             '{EMAIL}' => __('Email'),
             '{CURDATE}' => __('Current date')
         );
+
+        if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
+            //custom countries number settings
+            $this->countryCode = vf($this->altCfg['SMSZILLA_COUNTRY_CODE'], 3);
+            $this->mobileLen = $this->altCfg['SMSZILLA_MOBILE_LEN'];
+        }
     }
 
     /**
@@ -1618,8 +1645,7 @@ class SMSZilla {
     }
 
     /**
-     * Normalizes mobile number to +380 format. 
-     * May be not acceptable for countries other than Ukraine.
+     * Normalizes mobile number to E164 phone format.
      * 
      * @param string $mobile
      * 
@@ -1627,30 +1653,58 @@ class SMSZilla {
      */
     protected function normalizePhoneFormat($mobile) {
         $mobile = vf($mobile, 3);
-        $len = strlen($mobile);
-//all is ok
-        if ($len != 12) {
-            switch ($len) {
-                case 11:
-                    $mobile = '3' . $mobile;
-                    break;
-                case 10:
-                    $mobile = '38' . $mobile;
-                    break;
-                case 9:
-                    $mobile = '380' . $mobile;
-                    break;
+        if (!empty($mobile)) {
+            $inputLen = strlen($mobile);
+            $codeLen = strlen($this->countryCode);
+
+            if ($inputLen < $this->mobileLen) {
+                //trying to append country code if number is not ok by default or too short
+                $mobileTmp = $mobile;
+                for ($i = 1; $i <= $codeLen; $i++) {
+                    $appendedLen = strlen($mobileTmp);
+                    if ($appendedLen < $this->mobileLen) {
+                        $appendCode = substr($this->countryCode, 0, $i);
+                        $mobileTmp = $appendCode . $mobile;
+                        $appendedLen = $appendedLen = strlen($mobileTmp);
+                        if ($this->normalizerDebug) {
+                            show_warning('Try to append: ' . $appendCode . ' to ' . $mobile . ' now len of (' . $mobileTmp . ') is ' . strlen($mobileTmp));
+                        }
+                        if ($appendedLen == $this->mobileLen) {
+                            $mobile = $mobileTmp;
+                            if ($this->normalizerDebug) {
+                                show_success('Yeah! now mobile normalized to ' . $mobile);
+                            }
+                        }
+                    } else {
+                        $mobile = $mobileTmp;
+                        if ($this->normalizerDebug) {
+                            show_success('Number len normalized: ' . $mobileTmp);
+                        }
+                    }
+                }
+            } else {
+                if ($this->normalizerDebug) {
+                    show_info('Number is ok by default: ' . $mobile);
+                }
+            }
+
+            //checking is number starting from full country code?
+            if (strpos($mobile, $this->countryCode) === false) {
+                if ($this->normalizerDebug) {
+                    show_error('Number doesnt start with ' . $this->countryCode . ': ' . $mobile);
+                }
+                $mobile = '';
+            }
+
+
+            //appending plus symbol due E164 standard
+            $newLen = strlen($mobile);
+            if ($newLen == $this->mobileLen) {
+                $mobile = '+' . $mobile;
+            } else {
+                $mobile = '';
             }
         }
-
-        $newLen = strlen($mobile);
-        if ($newLen == 12) {
-            $mobile = '+' . $mobile;
-        } else {
-            $mobile = '';
-        }
-
-
         return ($mobile);
     }
 
