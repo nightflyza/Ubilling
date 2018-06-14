@@ -636,7 +636,9 @@ class SMSZilla {
             'filterrealname' => 'Real Name contains',
             'filternumlist' => 'Numbers list',
             'filternumcontain' => 'Notes contains',
-            'filterdistrict' => 'District'
+            'filternumnotcontain' => 'Notes not contains',
+            'filternumnotouruser' => 'Is not our user',
+            'filterdistrict' => 'District',
         );
 
         $this->directionNames = array(
@@ -1408,6 +1410,8 @@ class SMSZilla {
             if (($direction == 'numlist')) {
                 $inputs.=wf_Selector('newfilternumlist', $numListParams, __('Numbers list'), '', true, false);
                 $inputs.=wf_TextInput('newfilternumcontain', __('Notes contains'), '', true, '20');
+                $inputs.=wf_TextInput('newfilternumnotcontain', __('Notes not contains'), '', true, '20');
+                $inputs.= wf_CheckInput('newfilternumnotouruser', __('Is not our user'), true, false);
             }
 
             if ($direction == 'employee') {
@@ -2737,7 +2741,7 @@ class SMSZilla {
     }
 
     /**
-     * Numlist notes filter
+     * Numlist notes contains filter
      * 
      * @param string $direction
      * @param string $param
@@ -2752,6 +2756,73 @@ class SMSZilla {
                         foreach ($this->filteredEntities as $io => $entity) {
                             if (!ispos($entity['notes'], $param)) {
                                 unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Numlist notes not contains filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternumnotcontain($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'numlist':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if (ispos($entity['notes'], $param)) {
+                                unset($this->filteredEntities[$entity['id']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Numlist not our user filter by mobile number
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternumnotouruser($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'numlist':
+                        $this->extMobiles = new MobilesExt();
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            $numlistMobile = $this->normalizePhoneFormat($entity['mobile']);
+                            if (!empty($this->allUserData)) {
+                                foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
+                                    //base numbers comparison
+                                    if (ispos($this->normalizePhoneFormat($eachUserData['mobile']), $numlistMobile)) {
+                                        unset($this->filteredEntities[$entity['id']]);
+                                    }
+                                    //check for additional mobile
+                                    $userExtMobiles = $this->extMobiles->getUserMobiles($eachUserLogin);
+                                    if (!empty($userExtMobiles)) {
+                                        foreach ($userExtMobiles as $ia => $eachExt) {
+                                            $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
+                                            if (!empty($additionalMobile)) {
+                                                if (ispos($this->normalizePhoneFormat($additionalMobile), $numlistMobile)) {
+                                                    unset($this->filteredEntities[$entity['id']]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         break;

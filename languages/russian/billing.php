@@ -2902,6 +2902,9 @@ $lang['def']['right to configure signup requests module'] = 'Право конф
 $lang['def']['Already processed'] = 'Уже обработано';
 $lang['def']['SMS for all of extracted numbers stored in sending queue'] = 'SMS для всех извлеченных номеров, были помещены в очередь на отправку';
 $lang['def']['User is not frozen'] = 'Пользователь не заморожен';
+$lang['def']['Notes not contains'] = 'Примечание не содержит';
+$lang['def']['Is not our user'] = 'Не является нашим пользователем';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
