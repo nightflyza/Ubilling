@@ -76,7 +76,7 @@ authorize {
 	#
 	#  See policy.conf for the definition of the filter_username policy.
 	#
-  	filter_username
+  	#filter_username
 
 	#
 	#  The preprocess module takes care of sanitizing some bizarre
