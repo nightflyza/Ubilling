@@ -26,3 +26,5 @@ $lang['def']['Performance'] = 'Продуктивність';
 $lang['def']['brutto'] = 'брутто';
 $lang['def']['Attributes processing time'] = 'Час обробки атрибутів';
 $lang['def']['Memory used'] = 'Пам`яті використано';
+$lang['def']['default'] = 'за замовчуванням';
+$lang['def']['JunOS like'] = 'аля JunOS';

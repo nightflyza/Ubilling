@@ -263,7 +263,8 @@ class MultiGen {
         $this->usernameTypes = array(
             'login' => __('Login'),
             'ip' => __('IP'),
-            'mac' => __('MAC')
+            'mac' => __('MAC') . ' ' . __('default'),
+            'macju' => __('MAC') . ' ' . __('JunOS like'),
         );
 
         $this->serviceTypes = array(
@@ -1300,8 +1301,11 @@ class MultiGen {
                                 case 'mac':
                                     $userName = $eachUser['mac'];
                                     break;
+                                case 'macju':
+                                    $userName = $this->transformMacDotted($eachUser['mac']);
+                                    break;
                             }
-
+                            
                             if (!empty($nasOptions)) {
                                 $nasAttributes = $this->getNasAttributes($eachNasId);
                                 if (!empty($nasAttributes)) {
