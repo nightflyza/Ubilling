@@ -3,32 +3,35 @@
 class simpleOverlay {
 
     protected $databaseDriver = '';
+    protected $databaseLink = '';
 
     public function __construct() {
         if (!extension_loaded('mysql')) {
-            $this->ddatabaseDriver = 'mysqli';
+            $this->databaseDriver = 'mysqli';
         } else {
             $this->databaseDriver = 'legacy';
         }
     }
 
-    public function connect($dbHost, $dbLogin, $dbPassword, $dbName) {
+    public function connect($db_host, $db_user, $db_pass, $db_name) {
 
         if ($this->databaseDriver == 'mysqli') {
-            $result = mysqli_connect($db_host, $db_pass, $db_pass, $db_name);
-            if (!$result) {
+            $this->databaseLink = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+            if (!$this->databaseLink) {
                 die("MySQL Connection error: " . mysqli_connect_error());
             }
+            mysqli_set_charset($this->databaseLink, 'utf8');
         }
         if ($this->databaseDriver == 'legacy') {
-            $result = mysql_connect($db_host, $db_user, $db_pass);
-            if (!$result) {
+            $this->databaseLink = mysql_connect($db_host, $db_user, $db_pass);
+            if (!$this->databaseLink) {
                 die("MySQL Connection error: " . mysql_error());
             }
             mysql_select_db($db_name);
+            mysql_set_charset('utf8');
         }
 
-        return $result;
+        return $this->databaseLink;
     }
 
     public function close($connection) {
@@ -44,11 +47,28 @@ class simpleOverlay {
     public function escapeString($string) {
 
         if ($this->databaseDriver == 'mysqli') {
-            return mysqli_real_escape_string($string);
+            return mysqli_real_escape_string($this->databaseLink, $string);
         }
         if ($this->databaseDriver == 'legacy') {
             return mysql_real_escape_string($string);
         }
+    }
+
+    public function simple_queryall($query) {
+        $result = array();
+        if ($this->databaseDriver == 'mysqli') {
+            $queried = mysqli_query($this->databaseLink, $query) or die('wrong data input: ' . $query);
+            while ($row = mysqli_fetch_assoc($queried)) {
+                $result[] = $row;
+            }
+        }
+        if ($this->databaseDriver == 'legacy') {
+            $queried = mysql_query($query) or die('wrong data input: ' . $query);
+            while ($row = mysql_fetch_assoc($queried)) {
+                $result[] = $row;
+            }
+        }
+        return($result);
     }
 
 }
@@ -60,34 +80,40 @@ class mikbill {
     public function __construct() {
         $this->greed = new Avarice();
         $this->dbLoader = new simpleOverlay();
+        ini_set('max_execution_time', 900);
     }
 
     public function translit($string) {
-        $converter = array(
-            'а' => 'a', 'б' => 'b', 'в' => 'v',
-            'г' => 'g', 'д' => 'd', 'е' => 'e',
-            'ё' => 'e', 'ж' => 'zh', 'з' => 'z',
-            'и' => 'i', 'й' => 'y', 'к' => 'k',
-            'л' => 'l', 'м' => 'm', 'н' => 'n',
-            'о' => 'o', 'п' => 'p', 'р' => 'r',
-            'с' => 's', 'т' => 't', 'у' => 'u',
-            'ф' => 'f', 'х' => 'h', 'ц' => 'c',
-            'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch',
-            'ь' => '', 'ы' => 'y', 'ъ' => '',
-            'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
-            'А' => 'A', 'Б' => 'B', 'В' => 'V',
-            'Г' => 'G', 'Д' => 'D', 'Е' => 'E',
-            'Ё' => 'E', 'Ж' => 'Zh', 'З' => 'Z',
-            'И' => 'I', 'Й' => 'Y', 'К' => 'K',
-            'Л' => 'L', 'М' => 'M', 'Н' => 'N',
-            'О' => 'O', 'П' => 'P', 'Р' => 'R',
-            'С' => 'S', 'Т' => 'T', 'У' => 'U',
-            'Ф' => 'F', 'Х' => 'H', 'Ц' => 'C',
-            'Ч' => 'Ch', 'Ш' => 'Sh', 'Щ' => 'Sch',
-            'Ь' => '', 'Ы' => 'Y', 'Ъ' => '',
-            'Э' => 'E', 'Ю' => 'Yu', 'Я' => 'Ya',
-        );
-        $result = strtr($string, $converter);
+
+        /*
+          $converter = array(
+          'а' => 'a', 'б' => 'b', 'в' => 'v',
+          'г' => 'g', 'д' => 'd', 'е' => 'e',
+          'ё' => 'e', 'ж' => 'zh', 'з' => 'z',
+          'и' => 'i', 'й' => 'y', 'к' => 'k',
+          'л' => 'l', 'м' => 'm', 'н' => 'n',
+          'о' => 'o', 'п' => 'p', 'р' => 'r',
+          'с' => 's', 'т' => 't', 'у' => 'u',
+          'ф' => 'f', 'х' => 'h', 'ц' => 'c',
+          'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch',
+          'ь' => '', 'ы' => 'y', 'ъ' => '',
+          'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
+          'А' => 'A', 'Б' => 'B', 'В' => 'V',
+          'Г' => 'G', 'Д' => 'D', 'Е' => 'E',
+          'Ё' => 'E', 'Ж' => 'Zh', 'З' => 'Z',
+          'И' => 'I', 'Й' => 'Y', 'К' => 'K',
+          'Л' => 'L', 'М' => 'M', 'Н' => 'N',
+          'О' => 'O', 'П' => 'P', 'Р' => 'R',
+          'С' => 'S', 'Т' => 'T', 'У' => 'U',
+          'Ф' => 'F', 'Х' => 'H', 'Ц' => 'C',
+          'Ч' => 'Ch', 'Ш' => 'Sh', 'Щ' => 'Sch',
+          'Ь' => '', 'Ы' => 'Y', 'Ъ' => '',
+          'Э' => 'E', 'Ю' => 'Yu', 'Я' => 'Ya',
+          );
+          $result = strtr($string, $converter);
+         * 
+         */
+        $result = zb_TranslitString($string);
         $result = str_replace(array(' ', '*'), '_', $result);
         return $result;
     }
@@ -196,7 +222,7 @@ class mikbill {
 
         $db_link = $this->dbLoader->connect($db_host, $db_user, $db_pass, $db_name);
 
-        eval($beggar['INF']['text']);
+        //eval($beggar['INF']['text']);
 
         $users_arr = array('');
         $i = 0;
@@ -217,15 +243,22 @@ class mikbill {
         $nets = "SELECT DISTINCT SUBSTRING_INDEX(local_ip,'.',3) AS `net` FROM `users`";
 
 //sql data
-        $users_data = simple_queryall($users);
-        $freezed_data = simple_queryall($freezed);
-        $blocked_data = simple_queryall($blocked);
-        $tariffs_data = simple_queryall($tariffs);
-        $city_data = simple_queryall($city);
-        $street_data = simple_queryall($street);
-        $houses_data = simple_queryall($houses);
-        $nets_data = simple_queryall($nets);
+        $users_data = $this->dbLoader->simple_queryall($users);
+        $freezed_data = $this->dbLoader->simple_queryall($freezed);
+        $blocked_data = $this->dbLoader->simple_queryall($blocked);
+        $tariffs_data = $this->dbLoader->simple_queryall($tariffs);
+        $city_data = $this->dbLoader->simple_queryall($city);
+        $street_data = $this->dbLoader->simple_queryall($street);
+        $houses_data = $this->dbLoader->simple_queryall($houses);
+        $nets_data = $this->dbLoader->simple_queryall($nets);
         $this->dbLoader->close($db_link);
+
+        if (!($db_config = @parse_ini_file('config/' . 'mysql.ini'))) {
+            print('Cannot load mysql configuration');
+            exit;
+        }
+
+        $this->dbLoader->connect($db_config['server'], $db_config['username'], $db_config['password'], $db_config['db']);
 
         $net_counts = count($nets_data);
         $login_point = $beggar['INF']['login'];
@@ -547,7 +580,7 @@ class mikbill {
         fpc_start($beggar['DUMP'], "notes");
         foreach ($user_arr as $each_user => $io) {
             $login = $io[$login_point];
-            $note = $this->dbLoader->escape($io['note']);
+            $note = $this->dbLoader->escapeString($io['note']);
             $j += $beggar['UDATA'];
             if ($i < ($user_count - 1)) {
                 file_put_contents($beggar['DUMP'], "($j, '" . $login . "', '" . $note . "'),\n", FILE_APPEND);
