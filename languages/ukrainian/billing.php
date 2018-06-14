@@ -2920,6 +2920,6 @@ $lang['def']['SMS for all of extracted numbers stored in sending queue'] = 'SMS 
 $lang['def']['User is not frozen'] = 'Користувача не заморожено';
 $lang['def']['Notes not contains'] = 'Примітки не містять';
 $lang['def']['Is not our user'] = 'Не є нашим користувачем';
-
+$lang['def']['deny tasks done date change'] = 'Заборонити змінювати дату завершення задач';
 
 ?>

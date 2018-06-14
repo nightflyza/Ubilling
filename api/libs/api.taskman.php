@@ -1778,7 +1778,12 @@ function ts_TaskChangeForm($taskid) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs.= wf_HiddenInput('change_admin', whoami());
-            $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
+            if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
+                //manual done date selection forbidden
+                $inputs.=wf_HiddenInput('editenddate', curdate());
+            } else {
+                $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
+            }
             $inputs.= wf_tag('br');
             $inputs.= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
             $inputs.= wf_tag('br');

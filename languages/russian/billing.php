@@ -2904,7 +2904,7 @@ $lang['def']['SMS for all of extracted numbers stored in sending queue'] = 'SMS 
 $lang['def']['User is not frozen'] = 'Пользователь не заморожен';
 $lang['def']['Notes not contains'] = 'Примечание не содержит';
 $lang['def']['Is not our user'] = 'Не является нашим пользователем';
-$lang['def'][''] = '';
+$lang['def']['deny tasks done date change'] = 'Запретить изменять дату завершения задачи';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
