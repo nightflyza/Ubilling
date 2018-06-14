@@ -627,6 +627,7 @@ class SMSZilla {
             'filterip' => 'IP contains',
             'filternotariff' => 'User have no tariff assigned',
             'filterpassive' => 'User is frozen',
+            'filternotpassive' => 'User is not frozen',
             'filtertags' => 'User have tag assigned',
             'filtertariff' => 'User have tariff',
             'filterukvactive' => 'User is active',
@@ -1394,6 +1395,7 @@ class SMSZilla {
             if (($direction == 'login')) {
                 $inputs.= wf_CheckInput('newfiltercreditset', __('User have credit'), true, false);
                 $inputs.= wf_CheckInput('newfilterpassive', __('User is frozen'), true, false);
+                $inputs.= wf_CheckInput('newfilternotpassive', __('User is not frozen'), true, false);
                 $inputs.= wf_CheckInput('newfilterdown', __('User is down'), true, false);
                 $inputs.= wf_CheckInput('newfilterao', __('User is AlwaysOnline'), true, true);
                 $inputs.=wf_Selector('newfiltertariff', $tariffParams, __('User have tariff'), '', true, false);
@@ -2533,6 +2535,30 @@ class SMSZilla {
                     case 'login':
                         foreach ($this->filteredEntities as $io => $entity) {
                             if ($entity['Passive'] != '1') {
+                                unset($this->filteredEntities[$entity['login']]);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Not passive filter
+     * 
+     * @param string $direction
+     * @param string $param
+     * 
+     * @return void
+     */
+    protected function filternotpassive($direction, $param) {
+        if (!empty($param)) {
+            if (!empty($this->filteredEntities)) {
+                switch ($direction) {
+                    case 'login':
+                        foreach ($this->filteredEntities as $io => $entity) {
+                            if ($entity['Passive'] != '0') {
                                 unset($this->filteredEntities[$entity['login']]);
                             }
                         }

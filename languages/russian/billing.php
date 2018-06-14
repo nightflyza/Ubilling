@@ -2901,7 +2901,7 @@ $lang['def']['right to delete signup requests'] = 'Право удалять з�
 $lang['def']['right to configure signup requests module'] = 'Право конфигурировать модуль заявок на подключения';
 $lang['def']['Already processed'] = 'Уже обработано';
 $lang['def']['SMS for all of extracted numbers stored in sending queue'] = 'SMS для всех извлеченных номеров, были помещены в очередь на отправку';
-$lang['def'][''] = '';
+$lang['def']['User is not frozen'] = 'Пользователь не заморожен';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
