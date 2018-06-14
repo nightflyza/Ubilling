@@ -39,8 +39,3 @@
 #
 #	You can include another `users' file with `$INCLUDE users.other'
 #
-
-
-DEFAULT Cleartext-Password := "mxBras"
-	Session-Timeout = 300,
-	Unisphere-Service-Activate:1 += unknown
