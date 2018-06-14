@@ -1,9 +1,65 @@
 <?php
 
+class simpleOverlay {
+
+    protected $databaseDriver = '';
+
+    public function __construct() {
+        if (!extension_loaded('mysql')) {
+            $this->ddatabaseDriver = 'mysqli';
+        } else {
+            $this->databaseDriver = 'legacy';
+        }
+    }
+
+    public function connect($dbHost, $dbLogin, $dbPassword, $dbName) {
+
+        if ($this->databaseDriver == 'mysqli') {
+            $result = mysqli_connect($db_host, $db_pass, $db_pass, $db_name);
+            if (!$result) {
+                die("MySQL Connection error: " . mysqli_connect_error());
+            }
+        }
+        if ($this->databaseDriver == 'legacy') {
+            $result = mysql_connect($db_host, $db_user, $db_pass);
+            if (!$result) {
+                die("MySQL Connection error: " . mysql_error());
+            }
+            mysql_select_db($db_name);
+        }
+
+        return $result;
+    }
+
+    public function close($connection) {
+
+        if ($this->databaseDriver == 'mysqli') {
+            mysqli_close($connection);
+        }
+        if ($this->databaseDriver == 'legacy') {
+            mysql_close($connection);
+        }
+    }
+
+    public function escapeString($string) {
+
+        if ($this->databaseDriver == 'mysqli') {
+            return mysqli_real_escape_string($string);
+        }
+        if ($this->databaseDriver == 'legacy') {
+            return mysql_real_escape_string($string);
+        }
+    }
+
+}
+
 class mikbill {
+
+    protected $dbLoader = '';
 
     public function __construct() {
         $this->greed = new Avarice();
+        $this->dbLoader = new simpleOverlay();
     }
 
     public function translit($string) {
@@ -134,15 +190,12 @@ class mikbill {
         return false;
     }
 
-    function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period, $login_as_pass, $contract_as_uid) {
+    public function ConvertMikBill($db_user, $db_pass, $db_host, $db_name, $tariff_period, $login_as_pass, $contract_as_uid) {
 
         $beggar = $this->greed->runtime('MIKMIGR');
 
-        $db_link = mysql_connect($db_host, $db_user, $db_pass);
-        if (!$db_link) {
-            die('MYSQL Connection error: ' . mysql_error());
-        }
-        mysql_select_db($db_name);
+        $db_link = $this->dbLoader->connect($db_host, $db_user, $db_pass, $db_name);
+
         eval($beggar['INF']['text']);
 
         $users_arr = array('');
@@ -172,7 +225,7 @@ class mikbill {
         $street_data = simple_queryall($street);
         $houses_data = simple_queryall($houses);
         $nets_data = simple_queryall($nets);
-        mysql_close($db_link);
+        $this->dbLoader->close($db_link);
 
         $net_counts = count($nets_data);
         $login_point = $beggar['INF']['login'];
@@ -346,7 +399,7 @@ class mikbill {
         fpc_start($beggar['DUMP'], "contracts");
         foreach ($user_arr as $eachUser => $io) {
             $login = $io[$login_point];
-            if($contract_as_uid) {
+            if ($contract_as_uid) {
                 $contract = $io['uid'];
             } else {
                 $contract = $login;
@@ -494,7 +547,7 @@ class mikbill {
         fpc_start($beggar['DUMP'], "notes");
         foreach ($user_arr as $each_user => $io) {
             $login = $io[$login_point];
-            $note = mysql_real_escape_string($io['note']);
+            $note = $this->dbLoader->escape($io['note']);
             $j += $beggar['UDATA'];
             if ($i < ($user_count - 1)) {
                 file_put_contents($beggar['DUMP'], "($j, '" . $login . "', '" . $note . "'),\n", FILE_APPEND);
