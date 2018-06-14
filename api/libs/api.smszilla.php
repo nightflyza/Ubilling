@@ -2802,6 +2802,7 @@ class SMSZilla {
                 switch ($direction) {
                     case 'numlist':
                         $this->extMobiles = new MobilesExt();
+                        
                         foreach ($this->filteredEntities as $io => $entity) {
                             $numlistMobile = $this->normalizePhoneFormat($entity['mobile']);
                             if (!empty($this->allUserData)) {
@@ -2809,6 +2810,7 @@ class SMSZilla {
                                     //base numbers comparison
                                     if (ispos($this->normalizePhoneFormat($eachUserData['mobile']), $numlistMobile)) {
                                         unset($this->filteredEntities[$entity['id']]);
+                                        break;
                                     }
                                     //check for additional mobile
                                     $userExtMobiles = $this->extMobiles->getUserMobiles($eachUserLogin);
@@ -2818,6 +2820,7 @@ class SMSZilla {
                                             if (!empty($additionalMobile)) {
                                                 if (ispos($this->normalizePhoneFormat($additionalMobile), $numlistMobile)) {
                                                     unset($this->filteredEntities[$entity['id']]);
+                                                    break;
                                                 }
                                             }
                                         }
