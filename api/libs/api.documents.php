@@ -376,9 +376,9 @@ class ProfileDocuments {
     /**
      * register uploaded template into database
      * 
-     * @param $path string            path to template file
-     * @param $displayname string     template display name
-     * @param $public      int        is template accesible from userstats
+     * @param string $path             path to template file
+     * @param string $displayname      template display name
+     * @param int $public         is template accesible from userstats
      * 
      * @return void
      */
@@ -397,7 +397,7 @@ class ProfileDocuments {
     /**
      * unregister existing document template
      * 
-     * @param $id int   existing template id
+     * @param int $id  existing template id
      * 
      * @return void
      */
@@ -588,9 +588,9 @@ class ProfileDocuments {
     /**
      * register generated document in database
      * 
-     * @param $login - current user login
-     * @param $templateid - existing template ID
-     * @param $path path to file in storage
+     * @param string $login - current user login
+     * @param int $templateid - existing template ID
+     * @param string $path path to file in storage
      * 
      * @return void
      */
@@ -620,7 +620,7 @@ class ProfileDocuments {
     /**
      * kills document in database
      * 
-     * @param $documentid - existing document ID
+     * @param int $documentid - existing document ID
      * 
      * @return void
      */
@@ -635,7 +635,7 @@ class ProfileDocuments {
     /**
      * loads user documents from database
      * 
-     * @param $login user login to search public docs
+     * @param string $login user login to search public docs
      * 
      * @return void
      */
@@ -651,6 +651,8 @@ class ProfileDocuments {
 
     /**
      * loads all user generated documents from database
+     * 
+     * @param string $date
      * 
      * @return void
      */
@@ -669,6 +671,8 @@ class ProfileDocuments {
 
     /**
      * gets all user generated documents from database by this year
+     * 
+     * $param bool $currentYear
      * 
      * @return array
      */
