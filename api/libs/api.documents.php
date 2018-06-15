@@ -6,21 +6,69 @@
 
 class ProfileDocuments {
 
+    /**
+     * Contains available document templates as id=>data
+     *
+     * @var array
+     */
     protected $templates = array();
+
+    /**
+     * Contains current instance user login
+     *
+     * @var string
+     */
     protected $userLogin = '';
+
+    /**
+     * Contains available users data
+     *
+     * @var array
+     */
     protected $userData = array();
+
+    /**
+     * Conteins associated agents data for current user  as key=>value
+     *
+     * @var array
+     */
     protected $userAgentData = array();
+
+    /**
+     * Contains some custom fields data
+     *
+     * @var array
+     */
     protected $customFields = array();
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altcfg = array();
+
+    /**
+     * Contains user documents as id=>data
+     *
+     * @var array
+     */
     protected $userDocuments = array();
+
+    /**
+     * Contains all users documents array as id=>data
+     *
+     * @var array
+     */
     protected $allUserDocuments = array();
 
     const TEMPLATES_PATH = 'content/documents/pl_docx/';
     const DOCUMENTS_PATH = 'content/documents/pl_cache/';
 
     public function __construct() {
+        global $ubillingConfig;
         $this->loadTemplates();
-        $this->altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        $this->altcfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -40,7 +88,8 @@ class ProfileDocuments {
 
     /**
      * Sets user login
-     * @param $login existing users login
+     * 
+     * @param string $login existing users login
      * 
      * @return void
      */
@@ -471,6 +520,8 @@ class ProfileDocuments {
             }
         }
         $inputs.= wf_HiddenInput('customfields', 'true');
+        $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
+        $inputs.= wf_CheckInput('savedocaspublic', $publicLabel, true, false);
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -548,6 +599,7 @@ class ProfileDocuments {
         $templateid = vf($templateid, 3);
         $path = mysql_real_escape_string($path);
         $date = date("Y-m-d H:i:s");
+        $publicState = wf_CheckPost(array('savedocaspublic')) ? 1 : 0;
 
         $query = "
             INSERT INTO `docxdocuments` (
@@ -559,7 +611,7 @@ class ProfileDocuments {
                 `path`
                 )
                 VALUES (
-                NULL , '" . $date . "', '" . $login . "', '0', '" . $templateid . "', '" . $path . "'
+                NULL , '" . $date . "', '" . $login . "', '" . $publicState . "', '" . $templateid . "', '" . $path . "'
                 );
             ";
         nr_query($query);
@@ -634,6 +686,44 @@ class ProfileDocuments {
     }
 
     /**
+     * Renders document edit form, which allows to change document public visibility
+     * 
+     * @param int $documentId
+     * 
+     * @return string
+     */
+    protected function renderDocumentEditForm($documentId) {
+        $result = '';
+        if (isset($this->userDocuments[$documentId])) {
+            $currentDocumentData = $this->userDocuments[$documentId];
+            $inputs = wf_HiddenInput('chvisdocumentid', $documentId);
+            $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
+            $inputs.= wf_CheckInput('chdocumentpublic', $publicLabel, true, $currentDocumentData['public']);
+            $inputs.=wf_tag('br');
+            $inputs.=wf_Submit(__('Save'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves document visibility if this required
+     * 
+     * @return void
+     */
+    public function saveDocumentVisibility() {
+        if (wf_CheckPost(array('chvisdocumentid'))) {
+            $documentId = $_POST['chvisdocumentid'];
+            if (isset($this->userDocuments[$documentId])) {
+                $newPublicState = (wf_CheckPost(array('chdocumentpublic'))) ? 1 : 0;
+                $where = "WHERE `id`='" . $documentId . "';";
+                simple_update_field('docxdocuments', 'public', $newPublicState, $where);
+                log_register('PLDOCS CHANGE DOCUMENT [' . $documentId . '] PUBLIC `' . $newPublicState . '`');
+            }
+        }
+    }
+
+    /**
      * Renders previously generated user documents 
      * 
      * @return string
@@ -656,7 +746,8 @@ class ProfileDocuments {
                 $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
                 $downloadLink = wf_Link('?module=pl_documents&username=' . $this->userLogin . '&documentdownload=' . $each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
-                $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious'));
+                $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious')) . ' ';
+                $actionLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDocumentEditForm($each['id']));
                 $cells.= wf_TableCell($actionLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }

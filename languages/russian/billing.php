@@ -2905,6 +2905,8 @@ $lang['def']['User is not frozen'] = 'Пользователь не заморо
 $lang['def']['Notes not contains'] = 'Примечание не содержит';
 $lang['def']['Is not our user'] = 'Не является нашим пользователем';
 $lang['def']['deny tasks done date change'] = 'Запретить изменять дату завершения задачи';
+$lang['def']['users can download it themselves'] = 'пользователи могут скачивать его самостоятельно';
+$lang['def']['Save this document as public'] = 'Сохранить этот документ как публичный';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

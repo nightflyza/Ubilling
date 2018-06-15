@@ -134,8 +134,16 @@ if (cfr('PLDOCS')) {
                 rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
             }
 
-            //showing user personal documents
+
+
+            //loading current user documents data
             $documents->loadUserDocuments($documents->getLogin());
+            //document visibility editing
+            if (wf_CheckPost(array('chvisdocumentid'))) {
+                $documents->saveDocumentVisibility();
+                rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
+            }
+            //showing user personal documents
             show_window(__('Previously generated documents for this user'), $documents->renderUserDocuments());
         }
 
