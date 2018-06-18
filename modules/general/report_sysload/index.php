@@ -18,6 +18,10 @@ if (cfr('SYSLOAD')) {
     if (wf_CheckGet(array('ajaxdbcheck'))) {
         die(zb_DBCheckRender());
     }
+    //database fix
+    if (wf_CheckGet(array('dbrepairtable'))) {
+       die(zb_DBRepairTable($_GET['dbrepairtable']));
+    }
     //database stats
     if (wf_CheckGet(array('ajaxdbstats'))) {
         die(zb_DBStatsRender());

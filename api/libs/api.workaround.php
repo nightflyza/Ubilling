@@ -526,7 +526,7 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $cells.= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
 
-    if ( !empty($userrealname) ) {
+    if (!empty($userrealname)) {
         $cells = wf_TableCell('', '', 'row2');
         $cells.= wf_TableCell($userrealname, '', 'row3');
         $rows.= wf_TableRow($cells);
@@ -3506,6 +3506,7 @@ function zb_DBStatsRenderContainer() {
     $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
     $result.= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result.=wf_tag('br');
+    $result.=wf_AjaxContainer('dbrepaircontainer');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
     return ($result);
 }
@@ -3528,6 +3529,26 @@ function zb_DBCheckTable($tablename) {
 }
 
 /**
+ * Trys to repair corrupted database table
+ * 
+ * @param string $tableName
+ * 
+ * @return string 
+ */
+function zb_DBRepairTable($tableName) {
+    $tableNameF = mysql_real_escape_string($tableName);
+    $query = "REPAIR TABLE `" . $tableNameF . "`;";
+    nr_query($query);
+    log_register('DATABASE TABLE `' . $tableName . '` REPAIRED');
+
+    $messages = new UbillingMessageHelper();
+    $repairResult_q = "CHECK TABLE `" . $tableNameF . "`";
+    $repairResult = simple_query($repairResult_q);
+    $result = $messages->getStyledMessage(__('Database table') . ' `' . $tableName . '` ' . __('was repaired') . '. ' . __('Now table status is') . ' "' . $repairResult['Msg_text'] . '"', 'success');
+    return ($result);
+}
+
+/**
  * Returns current database info in human readable view and table check
  * 
  * @return string
@@ -3540,7 +3561,12 @@ function zb_DBCheckRender() {
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['name']);
-            $cells.= wf_TableCell(zb_DBCheckTable($each['name']));
+            $tableStatus = zb_DBCheckTable($each['name']);
+            $fixControl = '';
+            if ($tableStatus != 'OK') {
+                $fixControl = ' ' . wf_AjaxLink('?module=report_sysload&dbrepairtable=' . $each['name'], wf_img('skins/icon_repair.gif', __('Fix')), 'dbrepaircontainer');
+            }
+            $cells.= wf_TableCell($tableStatus . $fixControl);
             $rows.= wf_TableRow($cells, 'row3');
         }
     }

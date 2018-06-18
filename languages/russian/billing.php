@@ -2907,6 +2907,9 @@ $lang['def']['Is not our user'] = 'Не является нашим пользо
 $lang['def']['deny tasks done date change'] = 'Запретить изменять дату завершения задачи';
 $lang['def']['users can download it themselves'] = 'пользователи могут скачивать его самостоятельно';
 $lang['def']['Save this document as public'] = 'Сохранить этот документ как публичный';
+$lang['def']['Database table'] = 'Таблица БД';
+$lang['def']['was repaired'] = 'была починена';
+$lang['def']['Now table status is'] = 'Теперь состояние таблицы';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

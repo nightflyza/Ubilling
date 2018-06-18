@@ -2923,5 +2923,8 @@ $lang['def']['Is not our user'] = 'Не є нашим користувачем';
 $lang['def']['deny tasks done date change'] = 'Заборонити змінювати дату завершення задач';
 $lang['def']['users can download it themselves'] = 'користувачі можуть завантажувати його самостійно';
 $lang['def']['Save this document as public'] = 'Зберегти цей документ як публічний';
+$lang['def']['Database table'] = 'Таблиця БД';
+$lang['def']['was repaired'] = 'была відрихтована';
+$lang['def']['Now table status is'] = 'Тепер стан таблиці';
 
 ?>
