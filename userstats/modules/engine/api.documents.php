@@ -237,6 +237,19 @@ class UsProfileDocuments {
     }
 
     /**
+     * Returns list of public document templates
+     * 
+     * @return int
+     */
+    public function getPublicTemplatesCount() {
+        $result = 0;
+        if (!empty($this->templates)) {
+            $result = sizeof($this->templates);
+        }
+        return ($result);
+    }
+
+    /**
      * returns available templates list
      * 
      * @return string
