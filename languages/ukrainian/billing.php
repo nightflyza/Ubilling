@@ -2924,7 +2924,7 @@ $lang['def']['deny tasks done date change'] = 'Заборонити змінюв
 $lang['def']['users can download it themselves'] = 'користувачі можуть завантажувати його самостійно';
 $lang['def']['Save this document as public'] = 'Зберегти цей документ як публічний';
 $lang['def']['Database table'] = 'Таблиця БД';
-$lang['def']['was repaired'] = 'была відрихтована';
+$lang['def']['was repaired'] = 'була відрихтована';
 $lang['def']['Now table status is'] = 'Тепер стан таблиці';
 
 ?>
