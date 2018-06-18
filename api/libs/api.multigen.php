@@ -157,6 +157,20 @@ class MultiGen {
     protected $perfStats = array();
 
     /**
+     * Contains interesting fields from database acct table
+     *
+     * @var array
+     */
+    protected $acctFieldsRequired = array();
+
+    /**
+     * Contains preloaded user accounting data
+     *
+     * @var array
+     */
+    protected $userAcctData = array();
+
+    /**
      * User activity detection accuracy flag
      *
      * @var bool
@@ -189,6 +203,11 @@ class MultiGen {
      * Default NAS attributes templates table name
      */
     const NAS_ATTRIBUTES = 'mlg_nasattributes';
+
+    /**
+     * Default accounting table name
+     */
+    const NAS_ACCT = 'mlg_acct';
 
     /**
      * Default scenario tables prefix
@@ -291,6 +310,19 @@ class MultiGen {
             '!~' => '!~',
             '=*' => '=*',
             '!*' => '!*',
+        );
+
+        $this->acctFieldsRequired = array(
+            'acctsessionid',
+            'username',
+            'nasipaddress',
+            'nasportid',
+            'acctstarttime',
+            'acctstoptime',
+            'acctinputoctets',
+            'acctoutputoctets',
+            'framedipaddress',
+            'acctterminatecause'
         );
     }
 
@@ -478,6 +510,37 @@ class MultiGen {
                 }
             }
         }
+    }
+
+    /**
+     * Loading some accounting data from database
+     * 
+     * @return void
+     */
+    protected function loadAcctData() {
+        $fieldsList = implode(', ', $this->acctFieldsRequired);
+        if (wf_CheckGet(array('datefrom', 'dateto'))) {
+            $searchDateFrom = mysql_real_escape_string($_GET['datefrom']);
+            $searchDateTo = mysql_real_escape_string($_GET['dateto']);
+        } else {
+            $curTime = time();
+            $dayAgo = $curTime - 86400;
+            $dayAgo = date("Y-m-d", $dayAgo);
+            $dayTomorrow = $curTime + 86400;
+            $dayTomorrow = date("Y-m-d", $dayTomorrow);
+            $searchDateFrom = $dayAgo;
+            $searchDateTo = $dayTomorrow;
+        }
+
+        if (wf_CheckGet(array('showunfinished'))) {
+            $unfQueryfilter = "OR `acctstoptime` IS NULL ";
+        } else {
+            $unfQueryfilter = '';
+        }
+
+        $query = "SELECT " . $fieldsList . " FROM `" . self::NAS_ACCT . "` WHERE `acctstarttime` BETWEEN '" . $searchDateFrom . "' AND '" . $searchDateTo . "'"
+                . " " . $unfQueryfilter . "  ORDER BY `radacctid` DESC ;";
+        $this->userAcctData = simple_queryall($query);
     }
 
     /**
@@ -1305,7 +1368,7 @@ class MultiGen {
                                     $userName = $this->transformMacDotted($eachUser['mac']);
                                     break;
                             }
-                            
+
                             if (!empty($nasOptions)) {
                                 $nasAttributes = $this->getNasAttributes($eachNasId);
                                 if (!empty($nasAttributes)) {
@@ -1449,6 +1512,187 @@ class MultiGen {
             $result.=wf_AjaxContainer('nascontrolajaxcontainer');
         }
         return ($result);
+    }
+
+    /**
+     * Renders controls for acct date search
+     * 
+     * @return string
+     */
+    public function renderDateSerachControls() {
+        $result = '';
+        $curTime = time();
+        $dayAgo = $curTime - 86400;
+        $dayAgo = date("Y-m-d", $dayAgo);
+        $dayTomorrow = $curTime + 86400;
+        $dayTomorrow = date("Y-m-d", $dayTomorrow);
+        $preDateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : $dayAgo;
+        $preDateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : $dayTomorrow;
+        $unfinishedFlag = (wf_CheckPost(array('showunfinished'))) ? true : false;
+
+        $inputs = wf_DatePickerPreset('datefrom', $preDateFrom, false);
+        $inputs.= wf_DatePickerPreset('dateto', $preDateTo, false);
+        $inputs.= wf_CheckInput('showunfinished', __('Show unfinished'), false, $unfinishedFlag);
+        $inputs.= wf_Submit(__('Show'));
+        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    /**
+     * Renders preloaded accounting data into JSON
+     * 
+     * @return void
+     */
+    public function renderAcctStatsAjlist() {
+        $result = '';
+        $totalCount = 0;
+        $json = new wf_JqDtHelper();
+
+        $this->loadAcctData();
+        if (!empty($this->userAcctData)) {
+            foreach ($this->userAcctData as $io => $each) {
+                $fc = '';
+                $efc = wf_tag('font', true);
+                if (!empty($each['acctstoptime'])) {
+                    $startTime = strtotime($each['acctstarttime']);
+                    $endTime = strtotime($each['acctstoptime']);
+                    $timeOffsetRaw = $endTime - $startTime;
+                    $timeOffset = zb_formatTime($timeOffsetRaw);
+                } else {
+                    $timeOffset = '';
+                    $timeOffsetRaw = '';
+                }
+
+                //some coloring
+                if (empty($each['acctstoptime'])) {
+                    $fc = wf_tag('font', false, '', 'color="#ff6600"');
+                } else {
+                    $fc = wf_tag('font', false, '', 'color="#005304"');
+                }
+
+
+                $data[] = $fc . $each['acctsessionid'] . $efc;
+                $data[] = $each['username'];
+                $data[] = $each['nasipaddress'];
+                $data[] = $each['nasportid'];
+                $data[] = $each['acctstarttime'];
+                $data[] = $each['acctstoptime'];
+                $data[] = stg_convert_size($each['acctinputoctets']);
+                $data[] = stg_convert_size($each['acctoutputoctets']);
+                $data[] = $each['framedipaddress'];
+                $data[] = $each['acctterminatecause'];
+                $data[] = $timeOffset;
+
+
+                $json->addRow($data);
+                unset($data);
+            }
+        }
+
+        $json->getJson();
+    }
+
+    /**
+     * Renders multigen acoounting stats container
+     * 
+     * @return string
+     */
+    public function renderAcctStatsContainer() {
+        $result = '';
+        $columns = array('acctsessionid', 'username', 'nasipaddress', 'nasportid', 'acctstarttime', 'acctstoptime', 'acctinputoctets', 'acctoutputoctets', 'framedipaddress', 'acctterminatecause', 'Time');
+
+        if (wf_CheckPost(array('datefrom', 'dateto'))) {
+            $searchDateFrom = mysql_real_escape_string($_POST['datefrom']);
+            $searchDateTo = mysql_real_escape_string($_POST['dateto']);
+        } else {
+            $curTime = time();
+            $dayAgo = $curTime - 86400;
+            $dayAgo = date("Y-m-d", $dayAgo);
+            $dayTomorrow = $curTime + 86400;
+            $dayTomorrow = date("Y-m-d", $dayTomorrow);
+            $searchDateFrom = $dayAgo;
+            $searchDateTo = $dayTomorrow;
+        }
+
+        if (wf_CheckPost(array('showunfinished'))) {
+            $unfinishedFlag = "&showunfinished=true";
+        } else {
+            $unfinishedFlag = '';
+        }
+
+        $ajUrl = self::URL_ME . '&ajacct=true&datefrom=' . $searchDateFrom . '&dateto=' . $searchDateTo . $unfinishedFlag;
+        $options = '"order": [[ 0, "desc" ]]';
+        $result = wf_JqDtLoader($columns, $ajUrl, false, __('sessions'), 50, $options);
+        return ($result);
+    }
+
+    /**
+     * Renders multigen logs control
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return string
+     */
+    function renderLogControl() {
+        global $ubillingConfig;
+        $result = '';
+        $logData = array();
+        $renderData = '';
+        $rows = '';
+        $recordsLimit = 200;
+        $prevTime = '';
+        $curTimeTime = '';
+        $diffTime = '';
+
+        if (file_exists(self::LOG_PATH)) {
+            $billCfg = $ubillingConfig->getBilling();
+            $tailCmd = $billCfg['TAIL'];
+            $runCmd = $tailCmd . ' -n ' . $recordsLimit . ' ' . self::LOG_PATH;
+            $rawResult = shell_exec($runCmd);
+            $renderData.= __('Showing') . ' ' . $recordsLimit . ' ' . __('last events') . wf_tag('br');
+            $renderData.= wf_Link(self::URL_ME . '&dlmultigenlog=true', wf_img('skins/icon_download.png', __('Download')) . ' ' . __('Download full log'), true);
+
+            if (!empty($rawResult)) {
+                $logData = explodeRows($rawResult);
+                $logData = array_reverse($logData); //from new to old list
+                if (!empty($logData)) {
+
+
+                    $cells = wf_TableCell(__('Date'));
+                    $cells.= wf_TableCell(__('Event'));
+                    $rows.=wf_TableRow($cells, 'row1');
+
+                    foreach ($logData as $io => $each) {
+                        if (!empty($each)) {
+
+                            $eachEntry = explode(' ', $each);
+                            $cells = wf_TableCell($eachEntry[0] . ' ' . $eachEntry[1]);
+                            $cells.= wf_TableCell(str_replace(($eachEntry[0] . ' ' . $eachEntry[1]), '', $each));
+                            $rows.=wf_TableRow($cells, 'row3');
+                        }
+                    }
+                    $renderData.= wf_TableBody($rows, '100%', 0, 'sortable');
+                }
+            } else {
+                $renderData.= $this->messages->getStyledMessage(__('Nothing found'), 'warning');
+            }
+
+            $result = wf_modal(wf_img('skins/log_icon_small.png', __('Attributes regeneration log')), __('Attributes regeneration log'), $renderData, '', '1280', '600');
+        }
+        return ($result);
+    }
+
+    /**
+     * Performs downloading of log
+     * 
+     * @return void
+     */
+    public function logDownload() {
+        if (file_exists(self::LOG_PATH)) {
+            zb_DownloadFile(self::LOG_PATH);
+        } else {
+            show_error(__('Something went wrong') . ': EX_FILE_NOT_FOUND ' . self::LOG_PATH);
+        }
     }
 
 }

@@ -28,3 +28,4 @@ $lang['def']['Attributes processing time'] = 'Час обробки атрибу
 $lang['def']['Memory used'] = 'Пам`яті використано';
 $lang['def']['default'] = 'за замовчуванням';
 $lang['def']['JunOS like'] = 'аля JunOS';
+$lang['def']['Multigen NAS sessions stats'] = 'Статистика сессій NAS КупаГен';

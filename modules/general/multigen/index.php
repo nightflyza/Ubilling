@@ -71,6 +71,17 @@ if (cfr('MULTIGEN')) {
             }
             //rendering NAS control panel
             show_window('', $mg->nasControlPanel($editNasId));
+        } else {
+            //render some accounting stats
+            if (wf_CheckGet(array('dlmultigenlog'))) {
+                $mg->logDownload();
+            }
+            
+            if (wf_CheckGet(array('ajacct'))) {
+                $mg->renderAcctStatsAjList();
+            }
+            $dateFormControls = $mg->renderDateSerachControls();
+            show_window(__('Multigen NAS sessions stats') . ' ' . $mg->renderLogControl(), $dateFormControls . $mg->renderAcctStatsContainer());
         }
     } else {
         show_error(__('This module is disabled'));
