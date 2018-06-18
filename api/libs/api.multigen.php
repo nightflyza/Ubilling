@@ -1638,7 +1638,9 @@ class MultiGen {
             $result.=wf_AjaxLoader();
             $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
             $result.= wf_AjaxLink(self::URL_ME . '&ajscenarioflush=true&editnasoptions=' . $nasId, wf_img('skins/skull.png') . ' ' . __('Flush all attributes in all scenarios'), 'nascontrolajaxcontainer', false, 'ubButton');
-            $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Service'), __('Service'), $this->renderNasServicesEditForm($nasId), 'ubButton');
+            if ($this->nasOptions[$nasId]['service'] != 'none') {
+                $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Service'), __('Service'), $this->renderNasServicesEditForm($nasId), 'ubButton');
+            }
             $result.=wf_AjaxContainer('nascontrolajaxcontainer');
         }
         return ($result);
