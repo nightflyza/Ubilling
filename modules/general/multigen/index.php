@@ -4,25 +4,35 @@ if (cfr('MULTIGEN')) {
     $altCfg = $ubillingConfig->getAlter();
     if ($altCfg['MULTIGEN_ENABLED']) {
 
-        $mg = new MultiGen();
+        $multigen = new MultiGen();
 
         if (wf_CheckGet(array('editnasoptions'))) {
             $editNasId = $_GET['editnasoptions'];
             //editing NAS options
             if (wf_CheckPost(array('editnasid'))) {
-                $nasOptionsSaveResult = $mg->saveNasOptions();
+                $nasOptionsSaveResult = $multigen->saveNasOptions();
                 if (empty($nasOptionsSaveResult)) {
-                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $_POST['editnasid']);
+                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($nasOptionsSaveResult);
                 }
             }
 
+            //editing NAS services templates
+            if (wf_CheckPost(array('newnasservicesid'))) {
+                $nasServicesSaveResult = $multigen->saveNasServices();
+                if (empty($nasServicesSaveResult)) {
+                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                } else {
+                    show_error($nasServicesSaveResult);
+                }
+            }
+
             //creating some attributes
             if (wf_CheckPost(array('newattributenasid'))) {
-                $nasAttributeCreationResult = $mg->createNasAttribute();
+                $nasAttributeCreationResult = $multigen->createNasAttribute();
                 if (empty($nasAttributeCreationResult)) {
-                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $_POST['newattributenasid']);
+                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $_POST['newattributenasid']);
                 } else {
                     show_error($nasAttributeCreationResult);
                 }
@@ -30,9 +40,9 @@ if (cfr('MULTIGEN')) {
 
             //editing existing attribute template
             if (wf_CheckPost(array('chattributenasid'))) {
-                $nasAttributeChangeResult = $mg->saveNasAttribute();
+                $nasAttributeChangeResult = $multigen->saveNasAttribute();
                 if (empty($nasAttributeChangeResult)) {
-                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $_POST['chattributenasid']);
+                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $_POST['chattributenasid']);
                 } else {
                     show_error($nasAttributeCreationResult);
                 }
@@ -40,9 +50,9 @@ if (cfr('MULTIGEN')) {
 
             //deletion of existing attribute 
             if (wf_CheckGet(array('deleteattributeid'))) {
-                $attributeDeletionResult = $mg->deleteNasAttribute($_GET['deleteattributeid']);
+                $attributeDeletionResult = $multigen->deleteNasAttribute($_GET['deleteattributeid']);
                 if (empty($attributeDeletionResult)) {
-                    rcms_redirect($mg::URL_ME . '&editnasoptions=' . $editNasId);
+                    rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
                 } else {
                     show_error($attributeDeletionResult);
                 }
@@ -50,38 +60,38 @@ if (cfr('MULTIGEN')) {
 
             //manual atrributes regeneration
             if (wf_CheckGet(array('ajnasregen'))) {
-                $mg->generateNasAttributes();
-                die($mg->renderScenarioStats());
+                $multigen->generateNasAttributes();
+                die($multigen->renderScenarioStats());
             }
 
             //flush all scenarios attributes
             if (wf_CheckGet(array('ajscenarioflush'))) {
-                $mg->flushAllScenarios();
-                die($mg->renderFlushAllScenariosNotice());
+                $multigen->flushAllScenarios();
+                die($multigen->renderFlushAllScenariosNotice());
             }
             //rendering basic options form
-            show_window(__('NAS options') . ': ' . $mg->getNaslabel($editNasId), $mg->renderNasOptionsEditForm($editNasId));
-            if ($mg->nasHaveOptions($editNasId)) {
+            show_window(__('NAS options') . ': ' . $multigen->getNaslabel($editNasId), $multigen->renderNasOptionsEditForm($editNasId));
+            if ($multigen->nasHaveOptions($editNasId)) {
                 //and attributes form
-                show_window(__('Adding of RADIUS-attribute'), $mg->renderNasAttributesCreateForm($editNasId));
+                show_window(__('Adding of RADIUS-attribute'), $multigen->renderNasAttributesCreateForm($editNasId));
                 //listing of some existing attributes
-                show_window(__('NAS attributes'), $mg->renderNasAttributesList($editNasId));
+                show_window(__('NAS attributes'), $multigen->renderNasAttributesList($editNasId));
             } else {
                 show_warning(__('Before setting up the attributes, you must set the base NAS options'));
             }
             //rendering NAS control panel
-            show_window('', $mg->nasControlPanel($editNasId));
+            show_window('', $multigen->nasControlPanel($editNasId));
         } else {
             //render some accounting stats
             if (wf_CheckGet(array('dlmultigenlog'))) {
-                $mg->logDownload();
+                $multigen->logDownload();
             }
-            
+
             if (wf_CheckGet(array('ajacct'))) {
-                $mg->renderAcctStatsAjList();
+                $multigen->renderAcctStatsAjList();
             }
-            $dateFormControls = $mg->renderDateSerachControls();
-            show_window(__('Multigen NAS sessions stats') . ' ' . $mg->renderLogControl(), $dateFormControls . $mg->renderAcctStatsContainer());
+            $dateFormControls = $multigen->renderDateSerachControls();
+            show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
         }
     } else {
         show_error(__('This module is disabled'));

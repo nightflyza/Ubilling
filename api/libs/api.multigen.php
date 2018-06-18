@@ -171,6 +171,13 @@ class MultiGen {
     protected $userAcctData = array();
 
     /**
+     * Contains NAS services templates as nasid=>services data
+     *
+     * @var array
+     */
+    protected $services = array();
+
+    /**
      * User activity detection accuracy flag
      *
      * @var bool
@@ -200,6 +207,11 @@ class MultiGen {
     const NAS_OPTIONS = 'mlg_nasoptions';
 
     /**
+     * Default services templates table name
+     */
+    const NAS_SERVICES = 'mlg_services';
+
+    /**
      * Default NAS attributes templates table name
      */
     const NAS_ATTRIBUTES = 'mlg_nasattributes';
@@ -225,6 +237,11 @@ class MultiGen {
     const LOG_PATH = 'exports/multigen.log';
 
     /**
+     * Contains default path to PoD scripts queue
+     */
+    const POD_PATH = 'content/documents/pod_queue';
+
+    /**
      * Creates new MultiGen instance
      * 
      * @return void
@@ -236,6 +253,7 @@ class MultiGen {
         $this->loadNases();
         $this->loadNasAttributes();
         $this->loadNasOptions();
+        $this->loadNasServices();
     }
 
     /**
@@ -476,6 +494,21 @@ class MultiGen {
     }
 
     /**
+     * Loads NAS services presets
+     * 
+     * @return void
+     */
+    protected function loadNasServices() {
+        $query = "SELECT * from `" . self::NAS_SERVICES . "`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->services[$each['nasid']] = $each;
+            }
+        }
+    }
+
+    /**
      * Loads existing nethosts from database
      * 
      * @return void
@@ -645,6 +678,57 @@ class MultiGen {
                             . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "');";
                     nr_query($quyery);
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '`');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('NAS not exists');
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves NAS services templates
+     * 
+     * @return void/string on error
+     */
+    public function saveNasServices() {
+        $result = '';
+        if (wf_CheckPost(array('newnasservicesid'))) {
+            $nasId = vf($_POST['newnasservicesid'], 3);
+            if (isset($this->allNas[$nasId])) {
+                $newPod = $_POST['newnasservicepod'];
+                $newCoaConnect = $_POST['newnasservicecoaconnect'];
+                $newCoaDisconnect = $_POST['newnasservicecoadisconnect'];
+                //some NAS services already exists
+                if (isset($this->services[$nasId])) {
+                    $currentNasServices = $this->services[$nasId];
+                    $currentRecordId = $currentNasServices['id'];
+                    $where = "WHERE `id`='" . $currentRecordId . "'";
+                    //update pod script template
+                    if ($currentNasServices['pod'] != $newPod) {
+                        simple_update_field(self::NAS_SERVICES, 'pod', $newPod, $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE SERVICE POD');
+                    }
+                    //update coa connect script template
+                    if ($currentNasServices['coaconnect'] != $newCoaConnect) {
+                        simple_update_field(self::NAS_SERVICES, 'coaconnect', $newCoaConnect, $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE SERVICE COACONNECT');
+                    }
+
+                    //update coa disconnect script template
+                    if ($currentNasServices['coadisconnect'] != $newCoaDisconnect) {
+                        simple_update_field(self::NAS_SERVICES, 'coadisconnect', $newCoaDisconnect, $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE SERVICE COADISCONNECT');
+                    }
+                } else {
+                    //new NAS services creation
+                    $newPod_f = mysql_real_escape_string($newPod);
+                    $newCoaConnect_f = mysql_real_escape_string($newCoaConnect);
+                    $newCoaDisconnect_f = mysql_real_escape_string($newCoaDisconnect);
+                    $quyery = "INSERT INTO `" . self::NAS_SERVICES . "` (`id`,`nasid`,`pod`,`coaconnect`,`coadisconnect`) VALUES "
+                            . "(NULL,'" . $nasId . "','" . $newPod_f . "','" . $newCoaConnect_f . "','" . $newCoaDisconnect_f . "');";
+                    nr_query($quyery);
+                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE  SERVICES');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('NAS not exists');
@@ -1353,6 +1437,7 @@ class MultiGen {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
                             $userNameType = $nasOptions['usernametype'];
+                            $userConnectedState = 0; //fast workaround for testing PoD
                             //overriding username type if required
                             switch ($userNameType) {
                                 case 'login':
@@ -1390,15 +1475,33 @@ class MultiGen {
                                                 //creating new attribute with actual data
                                                 $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                 $this->writeScenarioStats($eachNasId, $scenario, 'generated');
+                                                $userConnectedState = 1;
                                             }
 
                                             if ($attributeCheck == 1) {
                                                 //attribute exists and not changed
                                                 $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                                $userConnectedState = 1;
                                             }
                                         } else {
                                             //flush some not-active user attributes if required
                                             $this->flushBuriedUser($eachNasId, $scenario, $userLogin, $userName, $attribute);
+                                            $userConnectedState = 0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            //processing Per-NAS services
+                            if ($nasOptions['service'] != 'none') {
+                                $nasServices = @$this->services[$eachNasId];
+                                if (!empty($nasServices)) {
+                                    if ($nasOptions['service'] == 'pod') {
+                                        if (!empty($nasServices['pod'])) {
+                                            if (!$userConnectedState) {
+                                                $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
+                                                $this->savePodQueue($newPodContent);
+                                            }
                                         }
                                     }
                                 }
@@ -1407,8 +1510,34 @@ class MultiGen {
                     }
                 }
             }
+            //run PoD queue
+            $this->runPodQueue();
         }
         $this->writePerformanceTimers('genend');
+    }
+
+    /**
+     * Saves data to PoD queue for furtner run
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    protected function savePodQueue($data) {
+        file_put_contents(self::POD_PATH, $data, FILE_APPEND);
+    }
+
+    /**
+     * Runs PoD queue if not empty and flushes after it
+     * 
+     * @return void
+     */
+    protected function runPodQueue() {
+        if (file_exists(self::POD_PATH)) {
+            chmod(self::POD_PATH, 0755);
+            shell_exec(self::POD_PATH);
+            file_put_contents(self::POD_PATH, '');
+        }
     }
 
     /**
@@ -1509,7 +1638,36 @@ class MultiGen {
             $result.=wf_AjaxLoader();
             $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
             $result.= wf_AjaxLink(self::URL_ME . '&ajscenarioflush=true&editnasoptions=' . $nasId, wf_img('skins/skull.png') . ' ' . __('Flush all attributes in all scenarios'), 'nascontrolajaxcontainer', false, 'ubButton');
+            $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Service'), __('Service'), $this->renderNasServicesEditForm($nasId), 'ubButton');
             $result.=wf_AjaxContainer('nascontrolajaxcontainer');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns NAS services editing form
+     * 
+     * @param int $nasId
+     * 
+     * @return string
+     */
+    protected function renderNasServicesEditForm($nasId) {
+        $result = '';
+        $nasId = vf($nasId, 3);
+        if ($this->nasHaveOptions($nasId)) {
+            $nasOptions = $this->nasOptions[$nasId];
+            if ($nasOptions['service'] != 'none') {
+                $nasServices = @$this->services[$nasId];
+                $inputs = wf_HiddenInput('newnasservicesid', $nasId);
+                $inputs.=__('PoD') . wf_tag('br');
+                $inputs.= wf_TextArea('newnasservicepod', '', @$nasServices['pod'], true, '90x2');
+                $inputs.=__('CoA Connect') . wf_tag('br');
+                $inputs.= wf_TextArea('newnasservicecoaconnect', '', @$nasServices['coaconnect'], true, '90x2');
+                $inputs.=__('CoA Disconnect') . wf_tag('br');
+                $inputs.= wf_TextArea('newnasservicecoadisconnect', '', @$nasServices['coadisconnect'], true, '90x2');
+                $inputs.= wf_Submit(__('Save'));
+                $result.= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
+            }
         }
         return ($result);
     }

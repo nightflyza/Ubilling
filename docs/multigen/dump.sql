@@ -124,3 +124,13 @@ CREATE TABLE IF NOT EXISTS `mlg_nasoptions` (
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`,`usernametype`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `mlg_services` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nasid` int(11) NOT NULL,
+  `pod` TEXT default NULL,
+  `coaconnect` TEXT default NULL,
+  `coadisconnect` TEXT default NULL,
+  PRIMARY KEY (`id`),
+  KEY `nasid` (`nasid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
