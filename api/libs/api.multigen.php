@@ -1535,7 +1535,7 @@ class MultiGen {
     protected function runPodQueue() {
         if (file_exists(self::POD_PATH)) {
             chmod(self::POD_PATH, 0755);
-            shell_exec(self::POD_PATH);
+            shell_exec(self::POD_PATH . '&');
             file_put_contents(self::POD_PATH, '');
         }
     }
