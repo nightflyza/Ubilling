@@ -1,7 +1,5 @@
 <?php
-$altcfg = $ubillingConfig->getAlter();
-
-if ($altcfg['POLLS_ENABLED']) {
+if ($ubillingConfig->getAlterParam('POLLS_ENABLED')) {
     if (cfr('POLLS')) {
     $polls = new Polls();
 
@@ -56,5 +54,4 @@ if ($altcfg['POLLS_ENABLED']) {
 } else {
     show_error(__('This module is disabled'));
 }
-
 ?>

@@ -1,19 +1,17 @@
 <?php
-$altcfg = $ubillingConfig->getAlter();
-
-if ($altcfg['ASTERISK_ENABLED']) {
+if ($ubillingConfig->getAlterParam('ASTERISK_ENABLED')) {
     $asterisk = new Asterisk();
     if (isset($_GET['username'])) {
         $user_login = vf($_GET['username']);
         // Profile:
         $profile = new UserProfile($user_login);
         show_window(__('User profile'), $profile->render());
-        if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
+        if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED') and isset($_GET['addComments'])) {
             $adcomments = new ADcomments('ASTERISK');
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }
     } elseif (isset($_GET['AsteriskWindow']) and ! wf_CheckPost(array('datefrom', 'dateto'))) {
-        if ($altcfg['ADCOMMENTS_ENABLED'] and isset($_GET['addComments'])) {
+        if ($ubillingConfig->getAlterParam('ADCOMMENTS_ENABLED') and isset($_GET['addComments'])) {
             $adcomments = new ADcomments('ASTERISK');
             show_window(__('Additional comments'), $adcomments->renderComments($_GET['addComments']));
         }

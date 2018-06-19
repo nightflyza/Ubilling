@@ -1,12 +1,8 @@
 <?php
-
-if (cfr('UKV')) {
-    $altcfg = $ubillingConfig->getAlter();
-    if ($altcfg['UKV_ENABLED']) {
-
+if ($ubillingConfig->getAlterParam('UKV_ENABLED')) {
+    if (cfr('UKV')) {
 
         set_time_limit(0);
-
 
         //creating base system object
         $ukv = new UkvSystem();
@@ -19,7 +15,6 @@ if (cfr('UKV')) {
         if (wf_CheckGet(array('ajax'))) {
             $ukv->ajaxUsers();
         }
-
 
         /*
          * some views here
@@ -218,9 +213,9 @@ if (cfr('UKV')) {
             }
         }
     } else {
-        show_error(__('This module is disabled'));
+        show_error(__('Permission denied'));
     }
 } else {
-    show_error(__('Access denied'));
+    show_error(__('This module is disabled'));
 }
 ?>
