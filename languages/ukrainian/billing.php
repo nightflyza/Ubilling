@@ -2926,5 +2926,5 @@ $lang['def']['Save this document as public'] = 'Зберегти цей доку
 $lang['def']['Database table'] = 'Таблиця БД';
 $lang['def']['was repaired'] = 'була відрихтована';
 $lang['def']['Now table status is'] = 'Тепер стан таблиці';
-
+$lang['def']['Use new connection mode (for RouterOS 6.43 and higher)'] = 'Використовувати новий метод підключення (для RouterOS 6.43 і вище)';
 ?>

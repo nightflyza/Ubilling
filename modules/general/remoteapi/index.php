@@ -1026,8 +1026,9 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                                 foreach ($DNData as $eachrow => $eachlogin) {
                                     $MTikNasOpts = base64_decode($eachlogin['options']);
                                     $MTikNasOpts = unserialize($MTikNasOpts);
+                                    $UseNewConnType = ( isset($MTikNasOpts['use_new_conn_mode']) && $MTikNasOpts['use_new_conn_mode'] ) ? true : false;
 
-                                    $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password']);
+                                    $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password'], $UseNewConnType);
 
                                     if ($RouterOSAPI->connected) {
                                         if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
