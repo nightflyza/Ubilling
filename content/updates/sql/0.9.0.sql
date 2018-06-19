@@ -36,3 +36,5 @@ CREATE TABLE IF NOT EXISTS `districtdata` (
   `buildid` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `userreg` ADD INDEX `login` (`login`);
