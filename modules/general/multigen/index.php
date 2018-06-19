@@ -1,7 +1,6 @@
 <?php
-
-if (cfr('MULTIGEN')) {
-    if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
+if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
+    if (cfr('MULTIGEN')) {
 
         $multigen = new MultiGen();
 
@@ -93,9 +92,9 @@ if (cfr('MULTIGEN')) {
             show_window(__('Multigen NAS sessions stats') . ' ' . $multigen->renderLogControl(), $dateFormControls . $multigen->renderAcctStatsContainer());
         }
     } else {
-        show_error(__('This module is disabled'));
+        show_error(__('Access denied'));
     }
 } else {
-    show_error(__('Access denied'));
+    show_error(__('This module is disabled'));
 }
 ?>
