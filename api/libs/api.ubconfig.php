@@ -36,6 +36,16 @@ class UbillingConfig {
     }
 
     /**
+     * getter some parameter from alterCfg
+     *
+     * @return parametr from alter.ini or FALSE if parameter not defined
+     */
+    public function getAlterParam($param = false) {
+        return ($param and isset($this->alterCfg[$param]))
+            ? $this->alterCfg[$param] : false ;
+    }
+
+    /**
      * loads system wide billing.ini to private alterCfg prop
      * 
      * @return void

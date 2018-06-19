@@ -1,8 +1,7 @@
 <?php
 
 if (cfr('MULTIGEN')) {
-    $altCfg = $ubillingConfig->getAlter();
-    if ($altCfg['MULTIGEN_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
 
         $multigen = new MultiGen();
 
