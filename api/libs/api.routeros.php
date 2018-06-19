@@ -37,7 +37,7 @@ class RouterOS {
      * @param   string  $password   Password
      * @return  boolean $this->connected
      */
-    public function connect($hostname, $username, $password) {
+    public function connect($hostname, $username, $password, $UseNewConnMode = false) {
         // Connect to device:
         for ( $attempt = 1; $attempt <= self::ATTEMPTS; $attempt++ ) {
             $this->connected = false;
@@ -45,18 +45,31 @@ class RouterOS {
             $this->socket = @fsockopen($hostname, self::PORT, $this->error_num, $this->error_str, self::TIMEOUT);
             if ( $this->socket ) {
                 socket_set_timeout($this->socket, self::TIMEOUT);
-                $this->write('/login');
-                $response = $this->read(false);
-                if ( isset($response[0]) && $response[0] == '!done' ) {
-                    if ( preg_match_all('/[^=]+/i', $response[1], $matches) ) {
-                        if ( $matches[0][0] == 'ret' && strlen($matches[0][1]) == 32 ) {
-                            $this->write('/login', false);
-                            $this->write('=name=' . $username, false);
-                            $this->write('=response=00' . md5(chr(0) . $password . pack('H*', $matches[0][1])));
-                            $response = $this->read(false);
-                            if ( $response[0] == '!done' ) {
-                                $this->connected = true;
-                                break;
+
+                if ($UseNewConnMode) {
+                    $this->write('/login', false);
+                    $this->write('=name=' . $username, false);
+                    $this->write('=password=' . $password);
+
+                    $response = $this->read(false);
+                    if ($response[0] == '!done') {
+                        $this->connected = true;
+                        break;
+                    }
+                } else {
+                    $this->write('/login');
+                    $response = $this->read(false);
+                    if (isset($response[0]) && $response[0] == '!done') {
+                        if (preg_match_all('/[^=]+/i', $response[1], $matches)) {
+                            if ($matches[0][0] == 'ret' && strlen($matches[0][1]) == 32) {
+                                $this->write('/login', false);
+                                $this->write('=name=' . $username, false);
+                                $this->write('=response=00' . md5(chr(0) . $password . pack('H*', $matches[0][1])));
+                                $response = $this->read(false);
+                                if ($response[0] == '!done') {
+                                    $this->connected = true;
+                                    break;
+                                }
                             }
                         }
                     }
