@@ -69,18 +69,31 @@
                 $this->log->message(__CLASS__, 'Connection attempt #' . $ATTEMPT . ' to ' . $this->parameters['ip'] . ':' . $this->config['api_port'] . '...', "api");
                 if ( $this->socket = @fsockopen($this->parameters['ip'], $this->config['api_port'], $this->error_no, $this->error_str, $this->config['timeout']) ) {
                     socket_set_timeout($this->socket, $this->config['timeout']);
-                    $this->write('/login');
-                    $RESPONSE = $this->read(FALSE);
-                    if ( $RESPONSE[0] == '!done' ) {
-                        if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
-                            if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
-                                $this->write('/login', FALSE);
-                                $this->write('=name=' . $this->options['username'], FALSE);
-                                $this->write('=response=00' . md5(chr(0) . $this->options['password'] . pack('H*', $MATCHES[0][1])));
-                                $RESPONSE = $this->read(FALSE);
-                                if ( $RESPONSE[0] == '!done' ) {
-                                    $this->connected = TRUE;
-                                    break;
+
+                    if ( isset($this->options['use_new_conn_mode']) && $this->options['use_new_conn_mode'] ) {
+                        $this->write('/login', FALSE);
+                        $this->write('=name=' . $this->options['username'], FALSE);
+                        $this->write('=password=' . $this->options['password']);
+
+                        $RESPONSE = $this->read(FALSE);
+                        if ($RESPONSE[0] == '!done') {
+                            $this->connected = TRUE;
+                            break;
+                        }
+                    } else {
+                        $this->write('/login');
+                        $RESPONSE = $this->read(FALSE);
+                        if ( $RESPONSE[0] == '!done' ) {
+                            if ( preg_match_all('/[^=]+/i', $RESPONSE[1], $MATCHES) ) {
+                                if ( $MATCHES[0][0] == 'ret' && strlen($MATCHES[0][1]) == 32 ) {
+                                    $this->write('/login', FALSE);
+                                    $this->write('=name=' . $this->options['username'], FALSE);
+                                    $this->write('=response=00' . md5(chr(0) . $this->options['password'] . pack('H*', $MATCHES[0][1])));
+                                    $RESPONSE = $this->read(FALSE);
+                                    if ( $RESPONSE[0] == '!done' ) {
+                                        $this->connected = TRUE;
+                                        break;
+                                    }
                                 }
                             }
                         }
