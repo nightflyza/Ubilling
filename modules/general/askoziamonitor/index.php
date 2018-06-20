@@ -189,7 +189,8 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
         }
-
+        
+        set_time_limit(0);
         $askMon = new AskoziaMonitor();
 
 
