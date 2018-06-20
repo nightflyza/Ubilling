@@ -192,6 +192,13 @@ class MultiGen {
     protected $logging = 0;
 
     /**
+     * Contains default echo path
+     *
+     * @var string
+     */
+    protected $echoPath = '/bin/echo';
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -1535,8 +1542,9 @@ class MultiGen {
     protected function runPodQueue() {
         if (file_exists(self::POD_PATH)) {
             chmod(self::POD_PATH, 0755);
-            shell_exec(self::POD_PATH . '&');
-            file_put_contents(self::POD_PATH, '');
+            $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
+            $this->savePodQueue($podQueueCleanup);
+            shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
         }
     }
 
