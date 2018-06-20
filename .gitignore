@@ -1,3 +1,4 @@
+!.gitignore
 !.htaccess
 !/content/reports/paytest.report
 !/content/reports/testme.report
@@ -7,7 +8,7 @@
 /content/documents/card_print/tmp/
 /content/documents/photostorage/*
 /content/documents/vols/*
-content/documents/pod_queue
+/content/documents/pod_queue
 /content/logs/*
 /content/reports/*
 /content/users/*
