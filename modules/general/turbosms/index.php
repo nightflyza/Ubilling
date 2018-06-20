@@ -37,7 +37,7 @@ if (cfr('TURBOSMS')) {
            $all = simple_queryall($query);
            if (!empty($all)) {
                foreach ($all as $io=>$each) {
-                   $result[$each['login']] = ip2long($each['IP']);
+                   $result[$each['login']] = ip2int($each['IP']);
                }
            }
        }
@@ -105,9 +105,9 @@ if (cfr('TURBOSMS')) {
             $TsmsDB->open() or die($TsmsDB->error());
             $result = array();
             $TsmsDB->query('SET NAMES utf8;');
-            $result = $TsmsDB->query($query);
-            if (! is_bool($result)) {
-                while ($row = $result->fetchassoc()) {
+            $TsmsDB->query($query);
+            if (stripos($query, 'INSERT ') === FALSE) {
+                while ($row = $TsmsDB->fetchassoc()) {
                     $result[] = $row;
                 }
             }

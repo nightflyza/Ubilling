@@ -1922,3 +1922,188 @@ CREATE TABLE IF NOT EXISTS `wcpeusers` (
   `login` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+-- 0.8.6
+ALTER TABLE `salary_jobs` ADD INDEX(`taskid`);
+
+ALTER TABLE `wh_out` ADD INDEX(`desttype`);
+
+ALTER TABLE `wh_out` ADD INDEX(`destparam`); 
+
+CREATE TABLE IF NOT EXISTS `polls` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL DEFAULT '',
+  `enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `start_date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `end_date` datetime DEFAULT '0000-00-00 00:00:00',
+  `params` text NOT NULL,
+  `admin` varchar(255) NOT NULL DEFAULT '',
+  `voting` VARCHAR(255) NOT NULL DEFAULT 'Users',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `polls_options` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `poll_id` int(11) NOT NULL DEFAULT '0',
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `poll_id` (`id`,`poll_id`) USING BTREE
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `polls_votes` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `option_id` int(11) NOT NULL DEFAULT '0',
+  `poll_id` int(11) NOT NULL DEFAULT '0',
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `login_poll` (`poll_id`,`login`) USING BTREE,
+  UNIQUE KEY `login_poll_option` (`option_id`,`poll_id`,`login`) USING BTREE
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `zbsannhist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `annid` int(11) NOT NULL,
+  `login` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `annid` (`annid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `vservices` ADD `fee_charge_always` TINYINT(1) NOT NULL DEFAULT 1;
+
+CREATE TABLE IF NOT EXISTS `zte_cards` (
+`id` INT NOT NULL AUTO_INCREMENT, 
+`swid` INT NOT NULL, 
+`slot_number` INT NOT NULL, 
+`card_name` VARCHAR(5) NOT NULL, 
+PRIMARY KEY (`id`), 
+KEY (`swid`) )
+ENGINE = MyISAM DEFAULT CHARSET=UTF8;
+ 
+CREATE TABLE IF NOT EXISTS `zte_vlan_bind` (
+`id` INT NOT NULL AUTO_INCREMENT,
+`swid` INT NOT NULL,
+`slot_number` INT NOT NULL,
+`port_number` INT(2) NOT NULL,
+`vlan` INT(4) NOT NULL,
+PRIMARY KEY (`id`),
+KEY (`swid`) )
+ENGINE = MyISAM DEFAULT CHARSET=UTF8;
+ 
+ALTER TABLE `zte_cards` ADD COLUMN `chasis_number` INT (1) NOT NULL;
+
+-- 0.8.7 update
+CREATE TABLE IF NOT EXISTS `mobileext` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(64) NOT NULL,
+  `mobile` varchar(64) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`,`mobile`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+-- 0.8.8 update
+CREATE TABLE IF NOT EXISTS `smz_templates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `text` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+CREATE TABLE IF NOT EXISTS `smz_filters` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `filters` TEXT NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `smz_lists` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `smz_nums` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `numid` int(11) NOT NULL,
+  `mobile` varchar(40) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `smz_excl` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mobile` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `ldap_users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `groups` TEXT DEFAULT NULL,
+  `changed` TINYINT(1)  NOT NULL ,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `ldap_groups` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `ldap_queue` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `task` varchar(255) NOT NULL,
+  `param` TEXT DEFAULT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+
+ALTER TABLE `wcpedevices` ADD `snmp` VARCHAR(45) NULL DEFAULT NULL AFTER `mac`;
+
+-- 0.9.0 update
+
+CREATE TABLE IF NOT EXISTS `frozen_charge_days` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `freeze_days_amount` smallint(3) NOT NULL DEFAULT 0,
+  `freeze_days_used`  smallint(3) NOT NULL DEFAULT 0,
+  `work_days_restore` smallint(3) NOT NULL DEFAULT 0,
+  `days_worked` smallint(3) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`login`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+ALTER TABLE `wdycinfo` ADD `totaltrytime` INT NULL DEFAULT NULL; 
+
+ALTER TABLE `exhorse` ADD `a_recallunsuccess` DOUBLE NULL DEFAULT NULL ,
+ ADD `a_recalltrytime` INT NULL DEFAULT NULL ,
+ ADD `e_deadswintervals` INT NULL DEFAULT NULL ,
+ ADD `t_sigreq` INT NULL DEFAULT NULL ,
+ ADD `t_tickets` INT NULL DEFAULT NULL ,
+ ADD `t_tasks` INT NULL DEFAULT NULL ,
+ ADD `t_capabtotal` INT NULL DEFAULT NULL ,
+ ADD `t_capabundone` INT NULL DEFAULT NULL ;
+ 
+ALTER TABLE `nethosts` ADD UNIQUE `net-ip` (`netid`, `ip`);
+
+CREATE TABLE IF NOT EXISTS `districtnames` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+CREATE TABLE IF NOT EXISTS `districtdata` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `districtid` int(11) NOT NULL,
+  `cityid` int(11) DEFAULT NULL,
+  `streetid` int(11) DEFAULT NULL,
+  `buildid` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+ALTER TABLE `userreg` ADD INDEX `login` (`login`);

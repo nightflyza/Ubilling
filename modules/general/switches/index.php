@@ -74,19 +74,22 @@ if (cfr('SWITCHES')) {
         }
 
         $swlinks.=wf_Link('?module=switches&forcereping=true', wf_img('skins/refresh.gif') . ' ' . __('Force ping'), false, 'ubButton');
-        if ($altCfg['SWITCHES_EXTENDED']) {
-            $swlinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
-        }
 
-        if (!wf_CheckGet(array('timemachine'))) {
-            $swlinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
-        } else {
-            $swlinks.=wf_Link('?module=switches', wf_img('skins/ymaps/switchdir.png') . ' ' . __('Available switches'), false, 'ubButton');
-        }
 
         if (cfr('SWITCHESEDIT')) {
-            $swlinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            $toolsLinks = '';
+            $toolsLinks.=wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=switchintegrity', wf_img('skins/integrity.png') . ' ' . __('Integrity check'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=switchscan', web_icon_search() . ' ' . __('Scan for unknown devices'), false, 'ubButton');
+            $toolsLinks.=wf_Link('?module=saikopasu', wf_img('skins/icon_passport.gif') . ' ' . __('Psycho-Pass'), false, 'ubButton');
+            if ($altCfg['SWITCHES_EXTENDED']) {
+                $toolsLinks.=wf_Link('?module=switchid', wf_img('skins/swid.png') . ' ' . __('Switch ID'), false, 'ubButton');
+            }
+            $swlinks.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $toolsLinks, 'ubButton');
         }
+
+
+
 
         if ($altCfg['SWYMAP_ENABLED']) {
             $swlinks.=wf_Link('?module=switchmap', wf_img('skins/ymaps/network.png') . ' ' . __('Switches map'), false, 'ubButton');
@@ -135,6 +138,7 @@ if (cfr('SWITCHES')) {
                 }
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
+                show_window('', wf_BackLink('?module=switches', __('Back')));
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
                 show_window(__('Dead switches top'), web_DeadSwitchesTop());
                 show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);
@@ -147,50 +151,68 @@ if (cfr('SWITCHES')) {
         //editing switch form
         $switchid = vf($_GET['edit'], 3);
         $switchdata = zb_SwitchGetData($switchid);
+        if (!empty($switchdata)) {
 
+            //if someone edit switch 
+            if (wf_CheckPost(array('editmodel'))) {
+                if (cfr('SWITCHESEDIT')) {
+                    simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
+                    simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
+                    if ($altCfg['SWITCHES_EXTENDED']) {
+                        simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
+                    }
+                    simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
+                    if ($_POST['editparentid'] != $switchid) {
+                        //checks for preventing loops
+                        $alllinks = array();
+                        $tmpSwitches = zb_SwitchesGetAll();
+                        if (!empty($tmpSwitches)) {
+                            //transform array to id=>switchdata
+                            foreach ($tmpSwitches as $io => $each) {
+                                $allswitches[$each['id']] = $each;
+                            }
 
-        //if someone edit switch 
-        if (wf_CheckPost(array('editmodel'))) {
-            if (cfr('SWITCHESEDIT')) {
-                simple_update_field('switches', 'modelid', $_POST['editmodel'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'ip', $_POST['editip'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'location', $_POST['editlocation'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'desc', $_POST['editdesc'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'snmp', $_POST['editsnmp'], "WHERE `id`='" . $switchid . "'");
-                simple_update_field('switches', 'snmpwrite', $_POST['editsnmpwrite'], "WHERE `id`='" . $switchid . "'");
-                if ($altCfg['SWITCHES_EXTENDED']) {
-                    simple_update_field('switches', 'swid', $_POST['editswid'], "WHERE `id`='" . $switchid . "'");
+                            //making id=>parentid array
+                            foreach ($tmpSwitches as $io => $each) {
+                                $alllinks[$each['id']] = $each['parentid'];
+                            }
+                        }
+                        if (sm_CheckLoop($alllinks, $switchid, $_POST['editparentid'])) {
+                            simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+                        }
+                    }
+                    log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
+                    rcms_redirect("?module=switches&edit=" . $switchid);
+                } else {
+                    show_error(__('Access denied'));
                 }
-                simple_update_field('switches', 'geo', preg_replace('/[^-?0-9\.,]/i', '', $_POST['editgeo']), "WHERE `id`='" . $switchid . "'");
-                if ($_POST['editparentid'] != $switchid) {
-                    simple_update_field('switches', 'parentid', $_POST['editparentid'], "WHERE `id`='" . $switchid . "'");
+            }
+
+            //render switch edit form (aka switch profile)
+            show_window(__('Edit switch'), web_SwitchEditForm($switchid));
+            //minimap container
+            if ($altCfg['SWYMAP_ENABLED']) {
+                if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
+                    show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
                 }
-                log_register('SWITCH CHANGE [' . $switchid . ']' . ' IP ' . $_POST['editip'] . " LOC `" . $_POST['editlocation'] . "`");
-                rcms_redirect("?module=switches&edit=" . $switchid);
-            } else {
-                show_error(__('Access denied'));
             }
-        }
 
-        //render switch edit form (aka switch profile)
-        show_window(__('Edit switch'), web_SwitchEditForm($switchid));
-        //minimap container
-        if ($altCfg['SWYMAP_ENABLED']) {
-            if ((!empty($switchdata['geo'])) AND ( !wf_CheckPost(array('editmodel')))) {
-                show_window(__('Mini-map'), wf_delimiter() . web_SwitchMiniMap($switchdata));
+            //downlinks list
+            web_SwitchDownlinksList($switchid);
+
+
+            //additional comments engine
+            if ($altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('SWITCHES');
+                show_window(__('Additional comments'), $adcomments->renderComments($switchid));
             }
+        } else {
+            show_error(__('Strange exeption') . ': SWITCHID_NOT_EXISTS');
         }
-
-        //downlinks list
-        web_SwitchDownlinksList($switchid);
-
-
-        //additional comments engine
-        if ($altCfg['ADCOMMENTS_ENABLED']) {
-            $adcomments = new ADcomments('SWITCHES');
-            show_window(__('Additional comments'), $adcomments->renderComments($switchid));
-        }
-
 
         show_window('', wf_BackLink('?module=switches', 'Back', true, 'ubButton'));
     }

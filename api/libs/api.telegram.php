@@ -126,12 +126,32 @@ class UbillingTelegram {
     /**
      * Returns raw updates array
      * 
+     * @param int $offset
+     * @param int $limit
+     * @param int $timeout
+     * 
      * @return array
+     * 
+     * @throws Exception
      */
-    protected function getUpdatesRaw() {
+    protected function getUpdatesRaw($offset = '', $limit = '', $timeout = '') {
         $result = array();
+        $timeout = vf($timeout, 3);
+        $limit = vf($limit, 3);
+        $offset = mysql_real_escape_string($offset);
+
+        $timeout = (!empty($timeout)) ? $timeout : 0; //default timeout in seconds is 0
+        $limit = (!empty($limit)) ? $limit : 100; //defult limit is 100
+        /**
+         * Identifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. 
+         * By default, updates starting with the earliest unconfirmed update are returned. An update is considered confirmed as soon as getUpdates is 
+         * called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from
+         * the end of the updates queue. All previous updates will forgotten.
+         */
+        $offset = (!empty($offset)) ? '&offset=' . $offset : '';
         if (!empty($this->botToken)) {
-            $url = self::URL_API . $this->botToken . '/getUpdates';
+            $options = '?timeout=' . $timeout . '&limit=' . $limit . $offset;
+            $url = self::URL_API . $this->botToken . '/getUpdates' . $options;
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -163,21 +183,48 @@ class UbillingTelegram {
                     $allUpdates = $rawUpdates['result'];
                     foreach ($allUpdates as $io => $each) {
                         if (isset($each['message'])) {
-                            $messageData = $each['message'];
-                            if (isset($messageData['message_id'])) {
-                                $messageId = $messageData['message_id'];
-                                $result[$messageId]['id'] = $messageId;
-                                $result[$messageId]['date'] = date("Y-m-d H:i:s", $messageData['date']);
-                                $result[$messageId]['chatid'] = $messageData['from']['id'];
-                                $result[$messageId]['from'] = @$messageData['from']['username'];
-                                $result[$messageId]['text'] = @$messageData['text'];
-                                $result[$messageId]['type'] = 'user';
+                            if (isset($each['message']['chat'])) {
+                                if (isset($each['message']['chat']['type'])) {
+                                    $messageData = $each['message'];
+                                    if ($messageData['chat']['type'] == 'private') {
+                                        //direct message
+                                        if (isset($messageData['message_id'])) {
+                                            $messageId = $messageData['message_id'];
+                                            $result[$messageId]['id'] = $messageId;
+                                            $result[$messageId]['date'] = date("Y-m-d H:i:s", $messageData['date']);
+                                            $result[$messageId]['chatid'] = $messageData['from']['id'];
+                                            $result[$messageId]['from'] = @$messageData['from']['username'];
+                                            $result[$messageId]['text'] = @$messageData['text'];
+                                            $result[$messageId]['type'] = 'user';
+                                            $result[$messageId]['chanid'] = '';
+                                            $result[$messageId]['channame'] = '';
+                                            $result[$messageId]['updateid'] = @$each['update_id'];
+                                        }
+                                    }
+
+                                    //supergroup message
+                                    if ($messageData['chat']['type'] == 'supergroup') {
+                                        if (isset($messageData['message_id'])) {
+                                            $messageId = $messageData['message_id'];
+                                            $result[$messageId]['id'] = $messageId;
+                                            $result[$messageId]['date'] = date("Y-m-d H:i:s", $messageData['date']);
+                                            $result[$messageId]['chatid'] = $messageData['from']['id'];
+                                            $result[$messageId]['from'] = @$messageData['from']['username'];
+                                            $result[$messageId]['text'] = @$messageData['text'];
+                                            $result[$messageId]['type'] = 'supergroup';
+                                            $result[$messageId]['chanid'] = $messageData['chat']['id'];
+                                            $result[$messageId]['channame'] = $messageData['chat']['username'];
+                                            $result[$messageId]['updateid'] = '';
+                                            $result[$messageId]['updateid'] = @$each['update_id'];
+                                        }
+                                    }
+                                }
                             }
                         }
 
+                        //channel message
                         if (isset($each['channel_post'])) {
                             $messageData = $each['channel_post'];
-
                             if (isset($messageData['message_id'])) {
                                 $messageId = $messageData['message_id'];
                                 $result[$messageId]['id'] = $messageId;
@@ -205,11 +252,12 @@ class UbillingTelegram {
     public function getBotContacts() {
         $result = array();
         $updatesRaw = $this->getUpdatesRaw();
+        //debarr($updatesRaw);
         if (!empty($updatesRaw)) {
             if (isset($updatesRaw['result'])) {
                 if (!empty($updatesRaw['result'])) {
                     foreach ($updatesRaw['result'] as $io => $each) {
-                        //debarr($each);
+                        //direct user message
                         if (isset($each['message'])) {
                             if (isset($each['message']['from'])) {
                                 if (isset($each['message']['from']['id'])) {
@@ -220,7 +268,21 @@ class UbillingTelegram {
                                 }
                             }
                         }
+                        //supergroup messages
+                        if (isset($each['message'])) {
+                            if (isset($each['message']['chat'])) {
 
+                                if (isset($each['message']['chat']['type'])) {
+                                    if ($each['message']['chat']['type'] = 'supergroup') {
+                                        $groupData = $each['message']['chat'];
+                                        $result[$groupData['id']]['chatid'] = $groupData['id'];
+                                        $result[$groupData['id']]['name'] = @$groupData['username'];
+                                        $result[$groupData['id']]['type'] = 'supergroup';
+                                    }
+                                }
+                            }
+                        }
+                        //channel message
                         if (isset($each['channel_post'])) {
                             if (isset($each['channel_post']['chat'])) {
                                 if (isset($each['channel_post']['chat']['id'])) {

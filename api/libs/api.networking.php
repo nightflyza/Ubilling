@@ -1,22 +1,27 @@
 <?php
 
+/**
+ * Renders list of available networks
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
 function multinet_show_available_networks() {
     global $ubillingConfig;
     $alter = $ubillingConfig->getAlter();
-// Выбираем все сети
     $query = "SELECT * from `networks`";
     $networks = simple_queryall($query);
-// Заголовок таблицы
     $cells = wf_TableCell(__('ID'));
     $cells .= wf_TableCell(__('First IP'));
     $cells .= wf_TableCell(__('Last IP'));
     $cells .= wf_TableCell(__('Network/CIDR'));
     $cells .= wf_TableCell(__('Network type'));
-    if ($alter['FREERADIUS_ENABLED'])
+    if ($alter['FREERADIUS_ENABLED']) {
         $cells .= wf_TableCell(__('Use Radius'));
+    }
     $cells .= wf_TableCell(__('Actions'));
     $rows = wf_TableRow($cells, 'row1');
-// Содержимое таблицы
     if (!empty($networks)) {
         foreach ($networks as $network) {
             $cells = wf_TableCell($network['id']);
@@ -24,35 +29,45 @@ function multinet_show_available_networks() {
             $cells .= wf_TableCell($network['endip']);
             $cells .= wf_TableCell($network['desc']);
             $cells .= wf_TableCell($network['nettype']);
-            if ($alter['FREERADIUS_ENABLED'])
+            if ($alter['FREERADIUS_ENABLED']) {
                 $cells .= wf_TableCell(web_bool_led($network['use_radius']));
+            }
             $actions = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
-            if ($alter['FREERADIUS_ENABLED'] && $network['use_radius'])
+            if ($alter['FREERADIUS_ENABLED'] && $network['use_radius']) {
                 $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
+            }
             $cells .= wf_TableCell($actions);
             $rows .= wf_TableRow($cells, 'row3');
         }
     }
-// Результат - таблица
     $result = wf_TableBody($rows, '100%', '0', 'sortable');
-// Отображаем результат
     show_window(__('Networks'), $result);
 }
 
+/**
+ * Renders network editing form
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function multinet_show_neteditform($netid) {
-    $netid = vf($netid);
-    $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $netid = vf($netid, 3);
+    $altcfg = $ubillingConfig->getAlter();
     $netdata = multinet_get_network_params($netid);
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('netedit', 'true');
-    $inputs.= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20');
-    $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20');
+    $inputs.= wf_TextInput('editstartip', __('First IP') . $sup, $netdata['startip'], true, '20', 'ip');
+    $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
     $inputs.= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20');
+    $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
     if ($altcfg['FREERADIUS_ENABLED']) {
         $inputs.= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
     } else {
@@ -66,67 +81,76 @@ function multinet_show_neteditform($netid) {
     show_window(__('Edit'), $form);
 }
 
+/**
+ * Renders service editing form
+ * 
+ * @param int $serviceid
+ * 
+ * @return void
+ */
 function multinet_show_serviceeditform($serviceid) {
-    $serviceid = vf($serviceid);
+    $serviceid = vf($serviceid, 3);
     $servicedata = multinet_get_service_params($serviceid);
-    $form = '
-        <form action="" method="POST" class="glamour">
-        <input type="hidden" name="serviceedit" value="true">
-        ' . multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . ' <br>
-        <input type="text" name="editservicename" size="15" value="' . $servicedata['desc'] . '"> ' . __('Service description') . '<sup>*</sup> <br>
-        <input type="submit" value="' . __('Save') . '">
-        </form>
-         <div style="clear:both;"></div>
-        ';
+    $inputs = wf_HiddenInput('serviceedit', 'true');
+    $inputs.= multinet_network_selector($servicedata['netid']) . ' ' . __('Service network') . wf_tag('br');
+    $inputs.=wf_TextInput('editservicename', __('Service description') . wf_tag('sup') . '*' . wf_tag('sup', true), $servicedata['desc'], true, 15);
+    $inputs.= wf_Submit(__('Save'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
     $form.=wf_BackLink('?module=multinet');
-
     show_window(__('Edit'), $form);
 }
 
+/**
+ * Deletes some host from nethosts by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return void
+ */
 function multinet_delete_host($ip) {
-//$ip=mysql_real_escape_string($ip);
     $query = "DELETE from `nethosts` WHERE `ip`='" . $ip . "'";
     nr_query($query);
     log_register("DELETE MultiNetHost " . $ip);
 }
 
-function multinet_show_network_delete_form() {
-    $allnets = multinet_get_all_networks();
-    if (!empty($allnets)) {
-        $form = '
-        <form method="POST" action="" class="row3">
-        <input type="hidden" name="deletenet" value="true">
-        ' . multinet_network_selector() . '
-        <input type="submit" value="' . __('Delete') . '">
-        </form>
-        ';
-        show_window(__('Delete network'), $form);
-    }
-}
-
+/**
+ * Returns networks selector control
+ * 
+ * @param int $currentnetid
+ * 
+ * @return string
+ */
 function multinet_network_selector($currentnetid = '') {
     $allnetworks = multinet_get_all_networks();
-    $result = '<select name="networkselect">';
+    $tmpArr = array();
     if (!empty($allnetworks)) {
         foreach ($allnetworks as $io => $eachnetwork) {
-            if ($currentnetid == $eachnetwork['id']) {
-                $flag = 'SELECTED';
-            } else {
-                $flag = '';
-            }
-            $result.='<option value="' . $eachnetwork['id'] . '" ' . $flag . '>' . $eachnetwork['desc'] . '</option>';
+            $tmpArr[$eachnetwork['id']] = $eachnetwork['desc'];
         }
     }
-    $result.='</select>';
+
+    $result = wf_Selector('networkselect', $tmpArr, '', $currentnetid, false);
     return ($result);
 }
 
+/**
+ * Returns unprocessed array of available networks with their data
+ * 
+ * @return array
+ */
 function multinet_get_all_networks() {
     $query = "SELECT * from `networks`";
     $result = simple_queryall($query);
     return($result);
 }
 
+/**
+ * Returns selector of available networks types
+ * 
+ * @param string $curnettype
+ * 
+ * @return string
+ */
 function multinet_nettype_selector($curnettype = '') {
     $params = array(
         'dhcpstatic' => 'DHCP static hosts',
@@ -145,29 +169,42 @@ function multinet_nettype_selector($curnettype = '') {
     return ($result);
 }
 
-function multinet_show_networks_form() {
-    $altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+/**
+ * Renders network creation form
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
+function multinet_show_networks_create_form() {
+    global $ubillingConfig;
+    $altcfg = $ubillingConfig->getAlter();
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
 
     $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
     $inputs = wf_HiddenInput('addnet', 'true');
-    $inputs.= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20');
-    $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20');
+    $inputs.= wf_TextInput('firstip', __('First IP') . $sup, '', true, '20', 'ip');
+    $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
     $inputs.= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
-    $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20');
+    $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
     if ($altcfg['FREERADIUS_ENABLED']) {
         $inputs.= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
         $inputs.= wf_tag('br');
     } else {
         $inputs.=wf_HiddenInput('use_radius', '0');
     }
-    $inputs.= wf_Submit(__('Add'));
+    $inputs.= wf_Submit(__('Create'));
     $form = wf_Form("", 'POST', $inputs, 'glamour');
 
     show_window(__('Add network'), $form);
 }
 
+/**
+ * Renders available services list with some controls
+ * 
+ * @return void
+ */
 function multinet_show_available_services() {
     $allservices = multinet_get_services();
 
@@ -180,15 +217,11 @@ function multinet_show_available_services() {
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             $netdesc = multinet_get_network_params($eachservice['netid']);
-
-
             $tablecells = wf_TableCell($eachservice['id']);
             $tablecells.= wf_TableCell($netdesc['desc']);
             $tablecells.= wf_TableCell($eachservice['desc']);
-
             $actionlinks = wf_JSAlert('?module=multinet&deleteservice=' . $eachservice['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actionlinks.= wf_JSAlert('?module=multinet&editservice=' . $eachservice['id'], web_edit_icon(), 'Are you serious');
-
             $tablecells.= wf_TableCell($actionlinks);
             $tablerows.= wf_TableRow($tablecells, 'row3');
         }
@@ -198,89 +231,97 @@ function multinet_show_available_services() {
     show_window(__('Services'), $result);
 }
 
+/**
+ * Returns array of available services
+ * 
+ * @return array
+ */
 function multinet_get_services() {
     $query = "SELECT * from `services` ORDER BY `id`";
     $result = simple_queryall($query);
     return ($result);
 }
 
-function multinet_show_service_delete_form() {
-    $allservices = multinet_get_services();
-    if (!empty($allservices)) {
-        $form = '
-        <form method="POST" action="" class="row3">
-        <input type="hidden" name="servicedelete" value="true">
-        ' . multinet_service_selector() . '
-        <input type="submit" value="' . __('Delete') . '">
-        </form>
-        ';
-        show_window(__('Delete service'), $form);
-    }
-}
-
+/**
+ * Returns services selector control
+ * 
+ * @global object $ubillingConfig
+ * @global object $branchControl
+ * 
+ * @return string
+ */
 function multinet_service_selector() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
+    $tmpArr = array();
     if ($altCfg['BRANCHES_ENABLED']) {
         global $branchControl;
         $branchControl->loadServices();
     }
 
     $allservices = multinet_get_services();
-    $result = '<select name="serviceselect">';
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
             if ($altCfg['BRANCHES_ENABLED']) {
                 if ($branchControl->isMyService($eachservice['id'])) {
-                    $result.='<option value="' . $eachservice['id'] . '">' . $eachservice['desc'] . '</option>';
+                    $tmpArr[$eachservice['id']] = $eachservice['desc'];
                 }
             } else {
-                $result.='<option value="' . $eachservice['id'] . '">' . $eachservice['desc'] . '</option>';
+                $tmpArr[$eachservice['id']] = $eachservice['desc'];
             }
         }
     }
-    $result.='</select>';
+
+    $result = wf_Selector('serviceselect', $tmpArr, '', '', false, false);
     return ($result);
 }
 
+/**
+ * Renders network service creation form
+ * 
+ * @return void
+ */
 function multinet_show_service_add_form() {
-    $form = '
-        <form action="" method="POST" class="glamour">
-        <input type="hidden" name="serviceadd" value="true">
-        ' . multinet_network_selector() . ' ' . __('Service network') . ' <br>
-        <input type="text" name="servicename" size="15"> ' . __('Service description') . '<sup>*</sup> <br>
-        <input type="submit" value="' . __('Add') . '">
-        </form>
-        <div style="clear:both;"></div>
-        ';
-
+    $inputs = wf_HiddenInput('serviceadd', 'true');
+    $inputs.= multinet_network_selector() . ' ' . __('Service network') . wf_tag('br');
+    $inputs.= wf_TextInput('servicename', __('Service description'), '', true, 15);
+    $inputs.= wf_Submit(__('Create'));
+    $form = wf_Form('', 'POST', $inputs, 'glamour');
     show_window(__('Add service'), $form);
 }
 
+/**
+ * Creates new multinet network in database
+ * 
+ * @param string $desc
+ * @param string $firstip
+ * @param string $lastip
+ * @param string $nettype
+ * @param int $use_radius
+ * 
+ * @return void
+ */
 function multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius) {
     $desc = mysql_real_escape_string($desc);
     $firstip = vf($firstip);
     $lastip = vf($lastip);
     $nettype = vf($nettype);
-    $query = " INSERT INTO `networks` (
-    `id`,
-    `desc`,
-    `startip`,
-    `endip`,
-    `nettype`,
-    `use_radius`
-    )
-    VALUES (
-    NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '" . $use_radius . "'
-    )
-    ";
+    $query = "INSERT INTO `networks` (`id`, `desc`, `startip`, `endip`, `nettype`, `use_radius` ) VALUES
+              (NULL, '" . $desc . "', '" . $firstip . "', '" . $lastip . "', '" . $nettype . "', '" . $use_radius . "');";
     nr_query($query);
     log_register('ADD MultiNetNet `' . $desc . '`');
 }
 
+/**
+ * Checks is network used by some network hosts or not
+ * 
+ * @param int $network_id
+ * 
+ * @return bool
+ */
 function multinet_network_is_used($network_id) {
     $network_id = vf($network_id, 3);
-    $query = "SELECT * from `nethosts` WHERE `netid`='" . $network_id . "'";
+    $query = "SELECT `id` from `nethosts` WHERE `netid`='" . $network_id . "'";
     $allhosts = simple_query($query);
     if (!empty($allhosts)) {
         return (true);
@@ -289,6 +330,13 @@ function multinet_network_is_used($network_id) {
     }
 }
 
+/**
+ * Deletes some multinet network from database
+ * 
+ * @param type $network_id
+ * 
+ * @return void
+ */
 function multinet_delete_network($network_id) {
     $network_id = vf($network_id, 3);
     $query = "DELETE FROM `networks` WHERE `id`='" . $network_id . "'";
@@ -296,31 +344,57 @@ function multinet_delete_network($network_id) {
     log_register('DELETE MultiNetNet [' . $network_id . ']');
 }
 
+/**
+ * Creates new network service in database
+ * 
+ * @param int $net
+ * @param string $desc
+ * 
+ * @return void
+ */
 function multinet_add_service($net, $desc) {
-    $query = "INSERT INTO `services` (
-        `id`,
-        `netid`,
-        `desc` )
-        VALUES (
-        NULL, '" . $net . "', '" . $desc . "'
-        )
-        ";
+    $net = vf($net, 3);
+    $desc = mysql_real_escape_string($desc);
+    $query = "INSERT INTO `services` (`id`,`netid`,`desc` ) VALUES (NULL, '" . $net . "', '" . $desc . "');";
     nr_query($query);
-    log_register('ADD MultiNetNetService ' . $desc);
+    log_register('ADD MultiNetNetService `' . $desc . '`');
 }
 
+/**
+ * Returns array of existing network parameters
+ * 
+ * @param int $network_id
+ * 
+ * @return array
+ */
 function multinet_get_network_params($network_id) {
+    $network_id = vf($network_id, 3);
     $query = 'SELECT * from `networks` WHERE `id`="' . $network_id . '"';
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Returns array of existing service parameters
+ * 
+ * @param int $serviceid
+ * 
+ * @return array
+ */
 function multinet_get_service_params($serviceid) {
+    $serviceid = vf($serviceid, 3);
     $query = 'SELECT * from `services` WHERE `id`="' . $serviceid . '"';
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Deletes existing network service from database
+ * 
+ * @param int $service_id
+ * 
+ * @return void
+ */
 function multinet_delete_service($service_id) {
     $service_id = vf($service_id, 3);
     $query = "DELETE FROM `services` WHERE `id`='" . $service_id . "'";
@@ -328,18 +402,39 @@ function multinet_delete_service($service_id) {
     log_register('DELETE MultiNetService [' . $service_id . ']');
 }
 
+/**
+ * Returns list of all existing dhcp-oriented networks
+ * 
+ * @return array
+ */
 function multinet_get_dhcp_networks() {
     $query = "SELECT * from `networks` where `nettype` LIKE 'dhcp%'";
     $alldhcps = simple_queryall($query);
     return($alldhcps);
 }
 
+/**
+ * Returns dhcp handler data by network ID
+ * 
+ * @param int $netid
+ * 
+ * @return array
+ */
 function dhcp_get_data_by_netid($netid) {
+    $netid = vf($netid, 3);
     $query = "SELECT * from `dhcp` where `netid`='" . $netid . "'";
     $result = simple_query($query);
     return($result);
 }
 
+/**
+ * Rebuilds dhcp subnet config with some static hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_static($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
 // check haz it .conf name or not?
@@ -358,14 +453,20 @@ function handle_dhcp_rebuild_static($netid, $confname) {
             }
 
             file_put_contents($confpath, $result);
-//deb('REWRITED NOT EMPTY:'.$confpath);
         } else {
             file_put_contents($confpath, $result);
-//deb('REWRITED EMPTY:'.$confpath);
         }
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -402,14 +503,20 @@ function handle_dhcp_rebuild_option82($netid, $confname) {
             }
 
             file_put_contents($confpath, $result);
-//deb('REWRITED NOT EMPTY:'.$confpath);
         } else {
             file_put_contents($confpath, $result);
-//deb('REWRITED EMPTY:'.$confpath);
         }
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 VPU hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -453,6 +560,14 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 bdcom hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_bdcom($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -498,6 +613,14 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Rebuilds dhcp subnet config with option82 zte hosts
+ * 
+ * @param int $netid
+ * @param string $confname
+ * 
+ * @return void
+ */
 function handle_dhcp_rebuild_option82_zte($netid, $confname) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     if (!empty($confname)) {
@@ -541,6 +664,13 @@ allow members of "{HOSTNAME}";
     }
 }
 
+/**
+ * Generates some static ppp secrets file
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function handle_ppp_rebuild_static($netid) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     $confpath = 'multinet/ppp.' . $netid . '.static';
@@ -556,6 +686,13 @@ function handle_ppp_rebuild_static($netid) {
     file_put_contents($confpath, $result);
 }
 
+/**
+ * Generates dynamic ppp secrets file
+ * 
+ * @param int $netid
+ * 
+ * @return void
+ */
 function handle_ppp_rebuild_dynamic($netid) {
     $query = "SELECT * from `nethosts` WHERE `netid`='" . $netid . "'";
     $confpath = 'multinet/ppp.' . $netid . '.dynamic';
@@ -571,6 +708,14 @@ function handle_ppp_rebuild_dynamic($netid) {
     file_put_contents($confpath, $result);
 }
 
+/**
+ * Returns template with replaced macro
+ * 
+ * @param string $templatebody
+ * @param array $templatedata
+ * 
+ * @return string
+ */
 function multinet_ParseTemplate($templatebody, $templatedata) {
     foreach ($templatedata as $field => $data) {
         $templatebody = str_ireplace($field, $data, $templatebody);
@@ -578,15 +723,29 @@ function multinet_ParseTemplate($templatebody, $templatedata) {
     return($templatebody);
 }
 
+/**
+ * Converts CIDR mask into decimal like 24 => 255.255.255.0
+ * 
+ * @param int $mask_bits
+ * 
+ * @return string 
+ */
 function multinet_cidr2mask($mask_bits) {
     if ($mask_bits > 31 || $mask_bits < 0)
         return("0.0.0.0");
     $host_bits = 32 - $mask_bits;
     $num_hosts = pow(2, $host_bits) - 1;
-    $netmask = ip2long("255.255.255.255") - $num_hosts;
-    return long2ip($netmask);
+    $netmask = ip2int("255.255.255.255") - $num_hosts;
+    return int2ip($netmask);
 }
 
+/**
+ * Rebuilds dhcp global config file
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return void
+ */
 function multinet_rebuild_globalconf() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
@@ -639,7 +798,7 @@ function multinet_rebuild_globalconf() {
             $templatedata['{CIDR}'] = explode('/', $netdata['desc']);
             $templatedata['{NETWORK}'] = $templatedata['{CIDR}'][0];
             $templatedata['{CIDR}'] = $templatedata['{CIDR}'][1];
-            $templatedata['{ROUTERS}'] = long2ip(ip2long($templatedata['{STARTIP}']) + 1);
+            $templatedata['{ROUTERS}'] = int2ip(ip2int($templatedata['{STARTIP}']) + 1);
             $templatedata['{MASK}'] = multinet_cidr2mask($templatedata['{CIDR}']);
             $dhcpdata = dhcp_get_data_by_netid($eachnet['netid']);
             if (isset($dhcpdata['confname'])) {
@@ -707,23 +866,31 @@ function multinet_rebuild_all_handlers() {
 //debarr(dhcp_get_data_by_netid(5));
 }
 
+/**
+ * Creates new network host in database
+ * 
+ * @param int $netid
+ * @param string $ip
+ * @param string $mac
+ * @param string $option
+ * 
+ * @return void
+ */
 function multinet_add_host($netid, $ip, $mac = 'NULL', $option = 'NULL') {
-    $query = "
-    INSERT INTO `nethosts` (
-`id` ,
-`ip` ,
-`mac` ,
-`netid` ,
-`option`
-)
-VALUES (
-NULL , '" . $ip . "', '" . $mac . "', '" . $netid . "', '" . $option . "'
-);
-";
+    $query = "INSERT INTO `nethosts` (`id` ,`ip` ,`mac` ,`netid` ,`option`) VALUES
+             (NULL , '" . $ip . "', '" . $mac . "', '" . $netid . "', '" . $option . "');";
     nr_query($query);
-    log_register("ADD MultiNetHost " . $ip);
+    log_register("ADD MultiNetHost `" . $ip . '`');
 }
 
+/**
+ * Changes existing network host MAC address by host IP
+ * 
+ * @param string $ip
+ * @param string $newmac
+ * 
+ * @return void
+ */
 function multinet_change_mac($ip, $newmac) {
     $newmac = strtolower($newmac);
     $query = "UPDATE `nethosts` SET `mac` = '" . $newmac . "' WHERE `ip` = '" . $ip . "' ;";
@@ -732,17 +899,24 @@ function multinet_change_mac($ip, $newmac) {
     zb_UserGetAllDataCacheClean();
 }
 
+/**
+ * Extracts all IPs between another two. 
+ * Preserving broadcasts, net address and first IP for NAS.
+ * 
+ * @param string $first_ip
+ * @param string $last_ip
+ * 
+ * @return array
+ */
 function multinet_expand_network($first_ip, $last_ip) {
-    $first = ip2long($first_ip);
-    $last = ip2long($last_ip);
+    $first = ip2int($first_ip);
+    $last = ip2int($last_ip);
     for ($i = $first; $i <= $last; $i++) {
-        $totalnet[] = long2ip($i);
+        $totalnet[] = int2ip($i);
     }
     if (!empty($totalnet)) {
-        //$filterednet = preg_grep("/\b\.([2-9]|[0-9]\d|1[0-9]\d|2[0-4]\d|25[0-4])$\b/", $totalnet);
         foreach ($totalnet as $eachip) {
             if (preg_match("#\.(0|1|255)$#", $eachip)) {
-//preg_match("#(0|1|255)$#", $eachip)
                 unset($eachip);
             }
             if (isset($eachip)) {
@@ -753,6 +927,15 @@ function multinet_expand_network($first_ip, $last_ip) {
     return($filterednet);
 }
 
+/**
+ * Returns all free and unused IP addresses for some network ID
+ * 
+ * @param type $table
+ * @param type $field
+ * @param type $network_id
+ * 
+ * @return array
+ */
 function multinet_get_all_free_ip($table, $field, $network_id) {
     $network_spec = multinet_get_network_params($network_id);
     $first_ip = $network_spec['startip'];
@@ -772,12 +955,28 @@ function multinet_get_all_free_ip($table, $field, $network_id) {
     return($free_ip_pool);
 }
 
+/**
+ * Returns first free and unused IP for some network ID
+ * 
+ * @param string $table
+ * @param string $field
+ * @param int $network_id
+ * 
+ * @return string
+ */
 function multinet_get_next_freeip($table, $field, $network_id) {
     $all_free_ips = multinet_get_all_free_ip($table, $field, $network_id);
     $temp = array_keys($all_free_ips);
     return(@$all_free_ips[$temp[0]]);
 }
 
+/**
+ * Returns network ID by associated service ID
+ * 
+ * @param int $service_id
+ * 
+ * @return int
+ */
 function multinet_get_service_networkid($service_id) {
     $service_id = vf($service_id);
     $query = "SELECT `netid` from `services` WHERE `id`='" . $service_id . "'";
@@ -786,11 +985,28 @@ function multinet_get_service_networkid($service_id) {
     return($service_network);
 }
 
-// проверка IP по маске
+/**
+ * Checks is some IP between another two
+ * 
+ * @param string $user_ip
+ * @param string $ip_begin
+ * @param string $ip_end
+ * 
+ * @return bool
+ */
 function multinet_checkIP($user_ip, $ip_begin, $ip_end) {
-    return (ip2long($user_ip)>=ip2long($ip_begin) && ip2long($user_ip)<=ip2long($ip_end));
+    return (ip2int($user_ip) >= ip2int($ip_begin) && ip2int($user_ip) <= ip2int($ip_end));
 }
 
+/**
+ * Converts bytes into human-readable values like Kb, Mb, Gb...
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @param int $fs
+ * 
+ * @return string
+ */
 function stg_convert_size($fs) {
     global $ubillingConfig;
     $alter_conf = $ubillingConfig->getAlter();
@@ -833,7 +1049,13 @@ function stg_convert_size($fs) {
     }
 }
 
-// convert to only Gb, speedup mode
+/**
+ * Convert bytes to human-readable Gb values. Much faster than stg_convert_size()
+ * 
+ * @param int $fs
+ * 
+ * @return string
+ */
 function zb_TraffToGb($fs) {
     $fs = round($fs / 1073741824, 2) . " Gb";
     return ($fs);
@@ -865,6 +1087,19 @@ function zb_TariffGetAllSpeeds() {
     return($result);
 }
 
+/**
+ * Creates new tariff speed record in database
+ * 
+ * @param type $tariff
+ * @param type $speeddown
+ * @param type $speedup
+ * @param type $burstdownload
+ * @param type $burstupload
+ * @param type $bursttimedownload
+ * @param type $burstimetupload
+ * 
+ * @return void
+ */
 function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = '', $burstupload = '', $bursttimedownload = '', $burstimetupload = '') {
     $tariff = mysql_real_escape_string($tariff);
     $speeddown = vf($speeddown);
@@ -873,23 +1108,19 @@ function zb_TariffCreateSpeed($tariff, $speeddown, $speedup, $burstdownload = ''
     $burstupload = vf($burstupload);
     $bursttimedownload = vf($bursttimedownload);
     $burstimetupload = vf($burstimetupload);
-    $query = "INSERT INTO `speeds` (
-    `id` ,
-    `tariff` ,
-    `speeddown` ,
-    `speedup` ,
-    `burstdownload` ,
-    `burstupload` ,
-    `bursttimedownload` ,
-    `burstimetupload`
-     )
-        VALUES (
-        NULL , '" . $tariff . "', '" . $speeddown . "', '" . $speedup . "', '" . $burstdownload . "', '" . $burstupload . "', '" . $bursttimedownload . "', '" . $burstimetupload . "'
-        );";
+    $query = "INSERT INTO `speeds` (`id` , `tariff` , `speeddown` , `speedup` , `burstdownload` , `burstupload` , `bursttimedownload` , `burstimetupload`) VALUES
+    (NULL , '" . $tariff . "', '" . $speeddown . "', '" . $speedup . "', '" . $burstdownload . "', '" . $burstupload . "', '" . $bursttimedownload . "', '" . $burstimetupload . "');";
     nr_query($query);
     log_register('CREATE TariffSpeed `' . $tariff . '` ' . $speeddown . ' ' . $speedup . ' ' . $burstdownload . ' ' . $burstupload . ' ' . $bursttimedownload . ' ' . $burstimetupload);
 }
 
+/**
+ * Deletes tariff speed from database
+ * 
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function zb_TariffDeleteSpeed($tariff) {
     $tariff = mysql_real_escape_string($tariff);
     $query = "DELETE from `speeds` where `tariff`='" . $tariff . "'";
@@ -897,6 +1128,11 @@ function zb_TariffDeleteSpeed($tariff) {
     log_register('DELETE TariffSpeed `' . $tariff . '`');
 }
 
+/**
+ * Returns array of tariff-based signup prices as tariff=>price
+ * 
+ * @return array
+ */
 function zb_TariffGetAllSignupPrices() {
     $query = "SELECT * FROM `signup_prices_tariffs`";
     $results = simple_queryall($query);
@@ -909,18 +1145,40 @@ function zb_TariffGetAllSignupPrices() {
     return ($return);
 }
 
+/**
+ * Creates new tariff-based signup price in database
+ * 
+ * @param string $tariff
+ * @param float $price
+ * 
+ * @return void
+ */
 function zb_TariffCreateSignupPrice($tariff, $price) {
     $query = "INSERT INTO `signup_prices_tariffs` (`tariff`, `price`) VALUES ('" . $tariff . "', '" . $price . "')";
     nr_query($query);
     log_register('CREATE TariffSignupPrice ' . $tariff . ' ' . $price);
 }
 
+/**
+ * Deletes tariff-based signup price from database
+ * 
+ * @param string $tariff
+ * 
+ * @return void
+ */
 function zb_TariffDeleteSignupPrice($tariff) {
     $query = "DELETE FROM `signup_prices_tariffs` WHERE `tariff` = '" . $tariff . "'";
     nr_query($query);
     log_register('DELETE TariffSignupPrice ' . $tariff);
 }
 
+/**
+ * Returns network host MAC address by its IP
+ * 
+ * @param string $ip
+ * 
+ * @return string
+ */
 function zb_MultinetGetMAC($ip) {
     $query = "SELECT `mac` from `nethosts` WHERE `ip`='" . $ip . "'";
     $result = simple_query($query);
@@ -928,93 +1186,129 @@ function zb_MultinetGetMAC($ip) {
     return($result);
 }
 
+/**
+ * Returns user IP addres by its login
+ * 
+ * @param string $login
+ * 
+ * @return string
+ */
 function zb_UserGetIP($login) {
     $userdata = zb_UserGetStargazerData($login);
     $userip = $userdata['IP'];
     return ($userip);
 }
 
+/**
+ * Returns array of all available traffic directions
+ * 
+ * @return array
+ */
 function zb_DirectionsGetAll() {
     $query = "SELECT * from `directions`";
     $allrules = simple_queryall($query);
     return ($allrules);
 }
 
+/**
+ * Deletes existing traffic direction from database
+ * 
+ * @param int $directionid
+ * 
+ * @return void
+ */
 function zb_DirectionDelete($directionid) {
-    $directionid = vf($directionid);
+    $directionid = vf($directionid, 3);
     $query = "DELETE FROM `directions` WHERE `id`='" . $directionid . "'";
     nr_query($query);
-    log_register("DELETE TrafficClass " . $directionid);
+    log_register('DELETE TrafficClass [' . $directionid . ']');
     rcms_redirect("?module=rules");
 }
 
+/**
+ * Returns traffic direction data
+ * 
+ * @param int $directionid
+ *  
+ * @return array
+ */
 function zb_DirectionGetData($directionid) {
-    $directionid = vf($directionid);
+    $directionid = vf($directionid, 3);
     $query = "SELECT * from `directions` WHERE `id`='" . $directionid . "'";
     $data = simple_query($query);
     return($data);
 }
 
+/**
+ * Creates new traffic direction in database
+ * 
+ * @param int $rulenumber
+ * @param string $rulename
+ * 
+ * @return void
+ */
 function zb_DirectionAdd($rulenumber, $rulename) {
     $rulenumber = vf($rulenumber);
     $rulename = mysql_real_escape_string($rulename);
-    $query = "
-          INSERT INTO `directions` (
-                        `id` ,
-                        `rulenumber` ,
-                        `rulename`
-                        )
-                        VALUES (
-                        NULL , '" . $rulenumber . "', '" . $rulename . "'
-                        ); ";
+    $query = "INSERT INTO `directions` (`id` , `rulenumber` , `rulename`) VALUES
+        (NULL , '" . $rulenumber . "', '" . $rulename . "');";
     nr_query($query);
-    log_register("ADD TrafficClass " . $rulenumber . ' ' . $rulename);
+    log_register("ADD TrafficClass `" . $rulenumber . '` `' . $rulename . '`');
 }
 
+/**
+ * Creates new NAS in database
+ * 
+ * @param int $netid
+ * @param string $nasip
+ * @param string $nasname
+ * @param string $nastype
+ * @param string $bandw
+ * 
+ * @return void
+ */
 function zb_NasAdd($netid, $nasip, $nasname, $nastype, $bandw) {
-    $netid = vf($netid);
+    $netid = vf($netid, 3);
     $nasname = mysql_real_escape_string($nasname);
     $nastype = vf($nastype);
     $bandw = mysql_real_escape_string($bandw);
     $nasip = mysql_real_escape_string($nasip);
-    $query = "
-            INSERT INTO `nas` (
-            `id` ,
-            `netid` ,
-            `nasip` ,
-            `nasname` ,
-            `nastype` ,
-            `bandw`
-            )
-            VALUES (
-            NULL ,
-            '" . $netid . "',
-            '" . $nasip . "',
-            '" . $nasname . "',
-            '" . $nastype . "',
-            '" . $bandw . "'
-           );";
+    $query = "INSERT INTO `nas` (`id` ,`netid` , `nasip` , `nasname` , `nastype` , `bandw`) VALUES
+              (NULL , '" . $netid . "', '" . $nasip . "', '" . $nasname . "',  '" . $nastype . "', '" . $bandw . "' );";
     nr_query($query);
-    log_register("NAS ADD" . $nasip);
+    log_register('NAS ADD `' . $nasip . '`');
 }
 
+/**
+ * Returns all available NAS data
+ * 
+ * @return array
+ */
 function zb_NasGetAllData() {
     $query = "SELECT * from `nas`";
     $allnas = simple_queryall($query);
     return($allnas);
 }
 
+/**
+ * Returns some existing NAS parameters
+ * 
+ * @param int $nasid
+ * 
+ * @return array
+ */
 function zb_NasGetData($nasid) {
-    $nasid = vf($nasid);
+    $nasid = vf($nasid, 3);
     $query = "SELECT * from `nas` WHERE `id`='" . $nasid . "'";
     $result = simple_query($query);
     return($result);
 }
 
 /**
- * Gets NAS'es IP-address, using id:
+ * Gets NAS IP-address, using its id
  * 
- * @param  integer $nasid  NAS'es id
+ * @param int $nasid
+ * 
  * @return string  
  */
 function zb_NasGetIpById($nasid) {
@@ -1025,13 +1319,12 @@ function zb_NasGetIpById($nasid) {
 }
 
 /**
- * 
  * Decodes and unserializes data from base64 encoding
  * 
  * @param   int     $nasid  NAS'es id to update options
  * @param   array   $data   Options
- * @return  array           Options
  * 
+ * @return  array           Options
  */
 function zb_NasOptionsGet($nasid) {
     $result = array();
@@ -1048,13 +1341,25 @@ function zb_NasOptionsGet($nasid) {
     return $result;
 }
 
+/**
+ * Deletes NAS from database
+ * 
+ * @param int $nasid
+ * 
+ * @return void
+ */
 function zb_NasDelete($nasid) {
-    $nasid = vf($nasid);
+    $nasid = vf($nasid, 3);
     $query = "DELETE from `nas` WHERE `id`='" . $nasid . "'";
     nr_query($query);
-    log_register("NAS DELETE" . $nasid);
+    log_register('NAS DELETE [' . $nasid . ']');
 }
 
+/**
+ * Saves rscriptd NAS servers config and sends HUP signal to stargazer
+ * 
+ * @return void
+ */
 function zb_NasConfigSave() {
     $ub_conf = rcms_parse_ini_file(CONFIG_PATH . "billing.ini");
     $query = "SELECT * from `nas` WHERE `nastype`='rscriptd'";
@@ -1076,6 +1381,11 @@ function zb_NasConfigSave() {
     }
 }
 
+/**
+ * Restarts ISC-DHCPD server
+ * 
+ * @return void
+ */
 function multinet_RestartDhcp() {
     $config = rcms_parse_ini_file(CONFIG_PATH . 'billing.ini');
     $sudo = $config['SUDO'];
@@ -1085,14 +1395,28 @@ function multinet_RestartDhcp() {
     log_register("RESTART DHCPD");
 }
 
+/**
+ * Returns NAS id by associated network ID
+ * 
+ * @param int $netid
+ * 
+ * @return int
+ */
 function zb_NasGetByNet($netid) {
-    $netid = vf($netid);
+    $netid = vf($netid, 3);
     $query = "SELECT `id` from `nas` WHERE `netid`='" . $netid . "'";
     $nasid = simple_query($query);
     $nasid = $nasid['id'];
     return($nasid);
 }
 
+/**
+ * Returns network ID by some IP address
+ * 
+ * @param string $ip
+ * 
+ * @return int
+ */
 function zb_NetworkGetByIp($ip) {
     $allnets = multinet_get_all_networks();
     if (!empty($allnets)) {
@@ -1113,8 +1437,9 @@ function zb_NetworkGetByIp($ip) {
 /**
  * Gets the Bandwidthd URL by user's IP address from database
  * 
- * @param   str     $ip     User's IP address
- * @return  str             Bandwidthd URL
+ * @param   string     $ip     User's IP address
+ * 
+ * @return  string    Bandwidthd URL
  */
 function zb_BandwidthdGetUrl($ip) {
     $netid = zb_NetworkGetByIp($ip);
@@ -1131,8 +1456,9 @@ function zb_BandwidthdGetUrl($ip) {
 /**
  * Generates ghaph images links:
  * 
- * @param   str    $ip      User's IP address, for whitch links are generated
- * @return  array           Graph links
+ * @param   string      $ip      User's IP address, for whitch links are generated
+ * 
+ * @return  array       Graph links
  */
 function zb_BandwidthdGenLinks($ip) {
     $bandwidthd_url = zb_BandwidthdGetUrl($ip);
@@ -1171,11 +1497,25 @@ function zb_BandwidthdGenLinks($ip) {
     return($urls);
 }
 
+/**
+ * Returns exploded array of some multi-lined strings
+ * 
+ * @param string $data
+ * 
+ * @return array
+ */
 function explodeRows($data) {
     $result = explode("\n", $data);
     return ($result);
 }
 
+/**
+ * Returns new unknown MAC addresses parsed from NMLEASES in some table-view
+ * 
+ * @global object $ubillingConfig
+ * 
+ * @return string
+ */
 function zb_NewMacShow() {
     global $ubillingConfig;
     $billing_config = $ubillingConfig->getBilling();
@@ -1185,9 +1525,8 @@ function zb_NewMacShow() {
     $cat = $billing_config['CAT'];
     $grep = $billing_config['GREP'];
     $tail = $billing_config['TAIL'];
-    $alter_conf = parse_ini_file(CONFIG_PATH . 'alter.ini');
-    $leases = $alter_conf['NMLEASES'];
-    $leasemark = $alter_conf['NMLEASEMARK'];
+    $leases = $alter_config['NMLEASES'];
+    $leasemark = $alter_config['NMLEASEMARK'];
     $command = $sudo . ' ' . $cat . ' ' . $leases . ' | ' . $grep . ' "' . $leasemark . '" | ' . $tail . ' -n 200';
     $rawdata = shell_exec($command);
     $allusedMacs = zb_getAllUsedMac();
@@ -1251,7 +1590,13 @@ function zb_NewMacShow() {
     return($result);
 }
 
-//check is mac unused?
+/**
+ * Checks is MAC unused by someone?
+ * 
+ * @param string $mac
+ * 
+ * @return bool 
+ */
 function multinet_mac_free($mac) {
     $query = "SELECT `id` from `nethosts` WHERE `mac`='" . $mac . "'";
     $res = simple_query($query);
@@ -1262,7 +1607,11 @@ function multinet_mac_free($mac) {
     }
 }
 
-//get all used MAC addresses from database
+/**
+ * Returns all used MAC addresses from database
+ * 
+ * @return array
+ */
 function zb_getAllUsedMac() {
     $query = "SELECT `ip`,`mac` from `nethosts`";
     $all = simple_queryall($query);
@@ -1275,7 +1624,14 @@ function zb_getAllUsedMac() {
     return ($result);
 }
 
-//check is mac unused by full list
+/**
+ * Checks is MAC unused by full list of used MACs
+ * 
+ * @param string $mac
+ * @param array $allused
+ * 
+ * @return bool
+ */
 function zb_checkMacFree($mac, $allused) {
     $mac = strtolower($mac);
     if (isset($allused[$mac])) {
@@ -1285,7 +1641,13 @@ function zb_checkMacFree($mac, $allused) {
     }
 }
 
-//check mac for valid format   
+/**
+ * Check mac for valid format
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
 function check_mac_format($mac) {
     $mask = '/^[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}:[a-f0-9]{2}$/i';
 //really shitty mac
@@ -1300,7 +1662,11 @@ function check_mac_format($mac) {
     }
 }
 
-//get all userips and netids
+/**
+ * Returns list of all network hosts networks as IPs => netid
+ * 
+ * @return array
+ */
 function zb_UserGetNetidsAll() {
     $query = "SELECT * from `nethosts`";
     $result = array();
@@ -1313,6 +1679,11 @@ function zb_UserGetNetidsAll() {
     return ($result);
 }
 
+/**
+ * Sends SIGHUP signal to stargazer
+ * 
+ * @return void
+ */
 function zb_StargazerSIGHUP() {
     $ub_conf = rcms_parse_ini_file(CONFIG_PATH . "billing.ini");
     if ($ub_conf['STGNASHUP']) {
@@ -1353,6 +1724,81 @@ function zb_ExtractMacAddress($data) {
         $result = $matches[0];
     }
     return ($result);
+}
+
+/**
+ * Converts IP to integer value
+ * 
+ * @param string $src
+ * 
+ * @return int
+ */
+function ip2int($src) {
+    $t = explode('.', $src);
+    return count($t) != 4 ? 0 : 256 * (256 * ((float) $t[0] * 256 + (float) $t[1]) + (float) $t[2]) + (float) $t[3];
+}
+
+/**
+ * Converts integer into IP
+ * 
+ * @param int $src
+ * 
+ * @return string
+ */
+function int2ip($src) {
+    $s1 = (int) ($src / 256);
+    $i1 = $src - 256 * $s1;
+    $src = (int) ($s1 / 256);
+    $i2 = $s1 - 256 * $src;
+    $s1 = (int) ($src / 256);
+    return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
+}
+
+/**
+ * Removes some separator from MAC address
+ * 
+ * @param string $mac
+ * @param string $separator
+ * 
+ * @return string
+ */
+function RemoveMacAddressSeparator($mac, $separator = array(':', '-', '.')) {
+    return str_replace($separator, '', $mac);
+}
+
+/**
+ * Adds some MAC separator into MAC
+ * 
+ * @param string $mac
+ * @param string $separator
+ * 
+ * @return string
+ */
+function AddMacSeparator($mac, $separator = ':') {
+    return join($separator, str_split($mac, 2));
+}
+
+/**
+ * Yet another MAC format validator. Use check_mac_format() in real life.
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
+function IsMacValid($mac) {
+    return (preg_match('/([a-fA-F0-9]{2}[:|\-]?){6}/', $mac) == 1);
+}
+
+/**
+ * And Another MAC format validator. I rly dont know what for. Use check_mac_format() in real life. 
+ * 
+ * @param string $mac
+ * 
+ * @return bool
+ */
+function IsMacAddressValid($mac) {
+    $validator = new Zend_Validate_Regex('/([a-fA-F0-9]{2}[:|\-]?){6}/');
+    return $validator->isValid($mac);
 }
 
 ?>

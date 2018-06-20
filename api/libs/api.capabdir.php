@@ -166,6 +166,66 @@ class CapabilitiesDirectory {
     }
 
     /**
+     * Returns all capabs states color styles
+     * 
+     * @return string
+     */
+    protected function getColorStyles() {
+        $result = wf_tag('style', false);
+        if (!empty($this->capabstates)) {
+            foreach ($this->capabstates as $io => $each) {
+                $customColorStyleName = 'capabcolorcustom_' . $io;
+                $result.='.' . $customColorStyleName . ',
+                                                   .' . $customColorStyleName . ' div,
+                                                   .' . $customColorStyleName . ' span {
+                                                        background-color: #' . $each['color'] . '; 
+                                                        border-color: #' . $each['color'] . '; 
+                                                        color: #FFFFFF;           
+                                                    }';
+            }
+        }
+        $result.=wf_tag('style', true);
+        return ($result);
+    }
+
+    /**
+     * Renders capabs as calendar
+     * 
+     * @return string
+     */
+    public function renderCalendar() {
+        $result = '';
+        $result.=$this->panel();
+        $result.=$this->getColorStyles();
+        $data = '';
+        if (!empty($this->allcapab)) {
+            foreach ($this->allcapab as $io => $each) {
+                $stateName = @$this->capabstates[$each['stateid']]['state'];
+                $employeeName = @$this->employees[$each['employeeid']]['name'];
+                $coloring = "className : 'capabcolorcustom_" . $each['stateid'] . "',";
+                $timestamp = strtotime($each['date']);
+                $startDate = date("Y, n-1, j", $timestamp);
+
+                $doneTimestamp = (!empty($each['donedate'])) ? strtotime($each['donedate']) : time();
+                $doneDate = date("Y, n-1, j", $doneTimestamp);
+                $daysSpent = zb_formatTime($doneTimestamp - $timestamp);
+                $data.="
+                      {
+                        title: '" . $each['address'] . ' - ' . $stateName . ' (' . $daysSpent . ')' . "',
+                        start: new Date(" . $startDate . "),
+                        end: new Date(" . $doneDate . "),
+                        " . $coloring . "
+                        url: '" . self::URL_ME . "&edit=" . $each['id'] . "'
+                      },";
+            }
+
+            $data = zb_CutEnd($data);
+        }
+        $result.=wf_FullCalendar($data);
+        return ($result);
+    }
+
+    /**
      * Renders capab json data
      * 
      * 
@@ -550,7 +610,12 @@ class CapabilitiesDirectory {
             $result.= wf_Link("?module=capabilities&states=true", wf_img('skins/settings.png', __('Modify states')), false, '') . '&nbsp;';
         }
         $result.= wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create'), __('Create'), $this->createForm(), 'ubButton', '400', '300');
-        $result.= wf_modalAuto(wf_img_sized('skins/icon_stats.gif','','16','16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
+        $result.= wf_modalAuto(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), __('Stats'), $this->renderStatesStats(), 'ubButton');
+        if (wf_CheckGet(array('calendar'))) {
+            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'),false,'ubButton');
+        } else {
+            $result.= wf_Link(self::URL_ME . '&calendar=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'),false,'ubButton');
+        }
         $result.=wf_tag('br') . wf_tag('br');
 
         return ($result);

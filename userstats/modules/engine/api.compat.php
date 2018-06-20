@@ -299,4 +299,32 @@ function zbs_DownloadFile($filePath, $contentType = '') {
     }
 }
 
+/**
+ * Converts IP to integer value
+ * 
+ * @param string $src
+ * 
+ * @return int
+ */
+function ip2int($src) {
+    $t = explode('.', $src);
+    return count($t) != 4 ? 0 : 256 * (256 * ((float) $t[0] * 256 + (float) $t[1]) + (float) $t[2]) + (float) $t[3];
+}
+
+/**
+ * Converts integer into IP
+ * 
+ * @param int $src
+ * 
+ * @return string
+ */
+function int2ip($src) {
+    $s1 = (int) ($src / 256);
+    $i1 = $src - 256 * $s1;
+    $src = (int) ($s1 / 256);
+    $i2 = $s1 - 256 * $src;
+    $s1 = (int) ($src / 256);
+    return sprintf('%d.%d.%d.%d', $s1, $src - 256 * $s1, $i2, $i1);
+}
+
 ?>

@@ -37,6 +37,6 @@ if (cfr('UHW')) {
         show_window(__('Brute attempts') . ' ' . $cleanupLink, $uhw->renderBruteAttempts());
     }
 } else {
-    show_error(__('You cant control this module'));
+    show_error(__('Permission denied'));
 }
 ?>

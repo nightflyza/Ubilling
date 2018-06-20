@@ -8,8 +8,10 @@ include('modules/engine/api.lightastral.php');
 include('modules/engine/api.userstats.php');
 include('modules/engine/api.agents.php');
 include('modules/engine/api.megogo.php');
+include('modules/engine/api.polls.php');
+include('modules/engine/api.extmobiles.php');
 
-// ACTIONS HANDER:
+// ACTIONS HANDLING:
 $user_ip = zbs_UserDetectIp('debug');
 $user_login = zbs_UserGetLoginByIp($user_ip);
 $us_config = zbs_LoadConfig();
@@ -54,6 +56,14 @@ if ($user_ip) {
         }
         //shows user profile by default
         show_window(__('User profile'), zbs_UserShowProfile($user_login));
+        // load poll form
+        if ($us_config['POLLS_ENABLED']) {
+            $poll = new Polls($user_login);
+            if (la_CheckPost(array('vote', 'poll_id'))) {
+                $poll->createUserVoteOnDB(vf($_POST['vote'], 3), vf($_POST['poll_id'], 3));
+            }
+            show_window('', $poll->renderVotingForm());
+        }
         //bottom intro
         if (isset($us_config['INTRO_MODE'])) {
             if ($us_config['INTRO_MODE'] == '1') {

@@ -106,7 +106,7 @@ function web_trigger($value) {
  * @param string $olddata
  * @return string
  */
-function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '') {
+function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $pattern = '') {
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
 
@@ -119,7 +119,7 @@ function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata
     $rows.= wf_TableRow($cells);
 
     $cells = wf_TableCell($field2, '', 'row2');
-    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, ''), '', 'row3');
+    $cells.= wf_TableCell(wf_TextInput($fieldkey, '', '', false, '', $pattern), '', 'row3');
     $rows.= wf_TableRow($cells);
     $form = wf_TableBody($rows, '100%', 0);
     $form.= wf_Submit(__('Change'));
@@ -439,7 +439,7 @@ function web_EditorDateDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
  * 
  * @return string
  */
-function web_CashTypeSelector() {
+function web_CashTypeSelector($CashType = '') {
     $allcashtypes = zb_CashGetAlltypes();
     $cashtypes = array();
     if (!empty($allcashtypes)) {
@@ -453,7 +453,9 @@ function web_CashTypeSelector() {
             $defaultCashtype = 'NOP';
         }
 
-        $selector = wf_Selector('cashtype', $cashtypes, '', $defaultCashtype, false);
+        $selectCashType = (!empty($CashType)) ? $CashType : $defaultCashtype;
+
+        $selector = wf_Selector('cashtype', $cashtypes, '', $selectCashType, false);
     }
 
     return($selector);
@@ -482,7 +484,7 @@ function zb_CheckTableExists($tablename) {
  * @param float   $tariff_price
  * @return string
  */
-function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $tariff_price = '') {
+function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $tariff_price = '', $userrealname = '') {
     global $ubillingConfig;
     $field1 = $fieldnames['fieldname1'];
     $field2 = $fieldnames['fieldname2'];
@@ -523,6 +525,12 @@ function web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $olddata =
     $cells = wf_TableCell(__('User'), '', 'row2');
     $cells.= wf_TableCell($useraddress, '', 'row3');
     $rows = wf_TableRow($cells);
+
+    if (!empty($userrealname)) {
+        $cells = wf_TableCell('', '', 'row2');
+        $cells.= wf_TableCell($userrealname, '', 'row3');
+        $rows.= wf_TableRow($cells);
+    }
 
     $cells = wf_TableCell($field1, '', 'row2');
     $cells.= wf_TableCell(wf_tag('b') . $olddata . wf_tag('b', true), '', 'row3');
@@ -1227,17 +1235,38 @@ function web_PaymentEditForm($paymentData) {
     if (!empty($paymentData)) {
         $paymentTimestamp = strtotime($paymentData['date']);
         $paymentDate = date("Y-m-d", $paymentTimestamp);
-        $paymentTime = date("H:i:s", $paymentTimestamp);
+        $paymentDataBase = serialize($paymentData);
+        $paymentDataBase = base64_encode($paymentDataBase);
 
-        $inputs = __('New date') . ' ';
-        $inputs.='<!--ugly hack to prevent datepicker autoopen -->';
+        $inputs = '<!--ugly hack to prevent datepicker autoopen -->';
         $inputs.= wf_tag('input', false, '', 'type="text" name="shittyhack" style="width: 0; height: 0; top: -100px; position: absolute;"');
         $inputs.= wf_HiddenInput('editpaymentid', $paymentData['id']);
-        $inputs.= wf_DatePickerPreset('newpaymentdate', $paymentDate);
-        $inputs.= wf_HiddenInput('oldpaymentdate', $paymentDate);
-        $inputs.= wf_HiddenInput('oldpaymenttime', $paymentTime);
-        $inputs.= wf_Submit(__('Save'));
-        $result = wf_Form('', 'POST', $inputs, 'glamour');
+        $inputs.= wf_HiddenInput('paymentdata', $paymentDataBase);
+
+        $cells = wf_TableCell(__('New date'), '', 'row2');
+        $cells.= wf_TableCell(wf_DatePickerPreset('newpaymentdate', $paymentDate), '', 'row3');
+        $rows = wf_TableRow($cells);
+
+        if ($paymentData['admin'] != 'external' AND $paymentData['admin'] != 'openpayz' AND $paymentData['admin'] != 'guest') {
+            $cells = wf_TableCell(__('Payment type'), '', 'row2');
+            $cells.= wf_TableCell(web_CashTypeSelector($paymentData['cashtypeid']), '', 'row3');
+            $rows.= wf_TableRow($cells);
+            $cells = wf_TableCell(__('Payment notes'), '', 'row2');
+            $cells.= wf_TableCell(wf_TextInput('paymentnote', '', $paymentData['note'], false, 40), '', 'row3');
+            $rows.= wf_TableRow($cells);
+        } else {
+            $inputs.= wf_HiddenInput('cashtype', $paymentData['cashtypeid']);
+            $inputs.= wf_HiddenInput('paymentnote', $paymentData['note']);
+        }
+
+        $table = wf_TableBody($rows, '100%', 0, '');
+        $table.= wf_Submit(__('Save'));
+
+        $form = $inputs;
+        $form.= wf_Form('', 'POST', $table, '');
+        $form.= wf_delimiter();
+
+        $result = wf_Form('', 'POST', $form, 'glamour');
     }
     return ($result);
 }
@@ -1292,10 +1321,6 @@ function web_PaymentsByUser($login) {
 
     if (!empty($allpayments)) {
         foreach ($allpayments as $eachpayment) {
-            if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
-                $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
-            }
-
             //hightlight of today payments
             if ($alter_conf['HIGHLIGHT_TODAY_PAYMENTS']) {
                 if (ispos($eachpayment['date'], $curdate)) {
@@ -1327,6 +1352,10 @@ function web_PaymentsByUser($login) {
                 $editControls = wf_modalAuto(wf_img_sized('skins/icon_edit.gif', __('Edit'), '10'), __('Edit'), web_PaymentEditForm($eachpayment), '') . ' &nbsp; ';
             } else {
                 $editControls = '';
+            }
+
+            if ($alter_conf['TRANSLATE_PAYMENTS_NOTES']) {
+                $eachpayment['note'] = zb_TranslatePaymentNote($eachpayment['note'], $allservicenames);
             }
 
             $cells = wf_TableCell($eachpayment['id']);
@@ -1904,6 +1933,10 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                                     $actions .= wf_Link('?module=freeradius&nasid=' . $data['id'], web_icon_freeradius('Set RADIUS-attributes'));
                                 }
                             }
+
+                            if ($altCfg['MULTIGEN_ENABLED']) {
+                                $actions .= wf_Link('?module=multigen&editnasoptions=' . $data['id'], web_icon_settings(__('Configure Multigen NAS')));
+                            }
                             $cells .= wf_TableCell($data[$key]);
                             break;
                         default:
@@ -1952,9 +1985,13 @@ function web_GridEditorVservices($titles, $keys, $alldata, $module, $delete = tr
                 if (array_key_exists($eachkey, $eachdata)) {
                     if ($eachkey == 'tagid') {
                         @$tagname = $alltagnames[$eachdata['tagid']];
-                        $cells.=wf_TableCell($tagname);
+                        $cells.= wf_TableCell($tagname);
                     } else {
-                        $cells.=wf_TableCell($eachdata[$eachkey]);
+                        if ($eachkey == 'fee_charge_always') {
+                            $cells.= wf_TableCell(web_bool_led($eachdata[$eachkey]));
+                        } else {
+                            $cells.= wf_TableCell($eachdata[$eachkey]);
+                        }
                     }
                 }
             }
@@ -1997,7 +2034,7 @@ function web_NasAddForm() {
 
     $inputs = multinet_network_selector() . wf_tag('label', false, '', 'for="networkselect"') . __('Network') . wf_tag('label', true) . wf_tag('br');
     $inputs.= wf_Selector('newnastype', $nastypes, __('NAS type'), '', true);
-    $inputs.= wf_TextInput('newnasip', __('IP'), '', true);
+    $inputs.= wf_TextInput('newnasip', __('IP'), '', true, '15', 'ip');
     $inputs.= wf_TextInput('newnasname', __('NAS name'), '', true);
     $inputs.= wf_TextInput('newbandw', __('Bandwidthd URL'), '', true);
     $inputs.= wf_Submit(__('Create'));
@@ -2228,10 +2265,10 @@ function web_UserTraffStats($login) {
         $result .= wf_delimiter();
         $result .= wf_tag('h3') . __('Graphs') . wf_tag('h3', true);
 
-        $bwcells = wf_TableCell(wf_modal(__('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton', $width, $heidht));
-        $bwcells .= wf_TableCell(wf_modal(__('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton', $width, $heidht));
+        $bwcells = wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by day'), __('Graph by day'), $daybw . $graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by week'), __('Graph by week'), $weekbw . $graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by month'), __('Graph by month'), $monthbw . $graphLegend, 'ubButton', $width, $heidht));
+        $bwcells .= wf_TableCell(wf_modal(wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Graph by year'), __('Graph by year'), $yearbw . $graphLegend, 'ubButton', $width, $heidht));
         $bwrows = wf_TableRow($bwcells);
 
         // Adding graphs buttons to result:
@@ -2255,8 +2292,11 @@ function web_UserTraffStats($login) {
 
     if (!empty($dirs)) {
         foreach ($dirs as $dir) {
-            $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`, `month`";
+            $query_prev = "SELECT `D" . $dir['rulenumber'] . "`, `U" . $dir['rulenumber'] . "`, `month`, `year`, `cash` FROM `stat` WHERE `login` = '" . $login . "' ORDER BY `year`,`month`;";
             $prevmonths = simple_queryall($query_prev);
+            if (!empty($prevmonths)) {
+                $prevmonths = array_reverse($prevmonths);
+            }
             if (!empty($prevmonths)) {
                 foreach ($prevmonths as $prevmonth) {
                     $cells = wf_TableCell($prevmonth['year']);
@@ -2758,7 +2798,7 @@ function web_UserArrayShower($usersarr) {
             $tablecells = wf_TableCell($profilelink);
             $tablecells.=wf_TableCell(@$alladdress[$eachlogin]);
             $tablecells.=wf_TableCell(@$allrealnames[$eachlogin]);
-            $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2long(@$alluserips[$eachlogin]) . '"');
+            $tablecells.=wf_TableCell(@$alluserips[$eachlogin], '', '', 'sorttable_customkey="' . ip2int(@$alluserips[$eachlogin]) . '"');
             $tablecells.=wf_TableCell(@$alltariffs[$eachlogin]);
             if ($alterconf['ONLINE_LAT']) {
                 if (isset($alluserlat[$eachlogin])) {
@@ -3462,10 +3502,11 @@ function zb_DBStatsRenderContainer() {
     $messages = new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', __('Database stats'), 'dbscontainer', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', __('Check database'), 'dbscontainer', true, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Database stats'), 'dbscontainer', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxdbcheck=true', wf_img_sized('skins/icon_repair.gif', '', 16, 16) . ' ' . __('Check database'), 'dbscontainer', true, 'ubButton');
     $result.= $messages->getStyledMessage(__('Using MySQL PHP extension') . ': ' . $ubillingDatabaseDriver, 'info');
     $result.=wf_tag('br');
+    $result.=wf_AjaxContainer('dbrepaircontainer');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="dbscontainer"') . zb_DBStatsRender() . wf_tag('table', true);
     return ($result);
 }
@@ -3488,6 +3529,26 @@ function zb_DBCheckTable($tablename) {
 }
 
 /**
+ * Trys to repair corrupted database table
+ * 
+ * @param string $tableName
+ * 
+ * @return string 
+ */
+function zb_DBRepairTable($tableName) {
+    $tableNameF = mysql_real_escape_string($tableName);
+    $query = "REPAIR TABLE `" . $tableNameF . "`;";
+    nr_query($query);
+    log_register('DATABASE TABLE `' . $tableName . '` REPAIRED');
+
+    $messages = new UbillingMessageHelper();
+    $repairResult_q = "CHECK TABLE `" . $tableNameF . "`";
+    $repairResult = simple_query($repairResult_q);
+    $result = $messages->getStyledMessage(__('Database table') . ' `' . $tableName . '` ' . __('was repaired') . '. ' . __('Now table status is') . ' "' . $repairResult['Msg_text'] . '"', 'success');
+    return ($result);
+}
+
+/**
  * Returns current database info in human readable view and table check
  * 
  * @return string
@@ -3500,7 +3561,12 @@ function zb_DBCheckRender() {
         $rows = wf_TableRow($cells, 'row1');
         foreach ($all as $io => $each) {
             $cells = wf_TableCell($each['name']);
-            $cells.= wf_TableCell(zb_DBCheckTable($each['name']));
+            $tableStatus = zb_DBCheckTable($each['name']);
+            $fixControl = '';
+            if ($tableStatus != 'OK') {
+                $fixControl = ' ' . wf_AjaxLink('?module=report_sysload&dbrepairtable=' . $each['name'], wf_img('skins/icon_repair.gif', __('Fix')), 'dbrepaircontainer');
+            }
+            $cells.= wf_TableCell($tableStatus . $fixControl);
             $rows.= wf_TableRow($cells, 'row3');
         }
     }
@@ -3586,48 +3652,93 @@ function zb_DBCleanupAutoClean() {
  * UTF8-safe translit function
  * 
  * @param $string  string to be transliterated
+ * @param $bool Save case state
+ * 
  * @return string
  */
-function zb_TranslitString($string) {
-    $replace = array(
-        "'" => "",
-        "`" => "",
-        "а" => "a", "А" => "a",
-        "б" => "b", "Б" => "b",
-        "в" => "v", "В" => "v",
-        "г" => "g", "Г" => "g",
-        "д" => "d", "Д" => "d",
-        "е" => "e", "Е" => "e",
-        "ж" => "zh", "Ж" => "zh",
-        "з" => "z", "З" => "z",
-        "и" => "i", "И" => "i",
-        "й" => "y", "Й" => "y",
-        "к" => "k", "К" => "k",
-        "л" => "l", "Л" => "l",
-        "м" => "m", "М" => "m",
-        "н" => "n", "Н" => "n",
-        "о" => "o", "О" => "o",
-        "п" => "p", "П" => "p",
-        "р" => "r", "Р" => "r",
-        "с" => "s", "С" => "s",
-        "т" => "t", "Т" => "t",
-        "у" => "u", "У" => "u",
-        "ф" => "f", "Ф" => "f",
-        "х" => "h", "Х" => "h",
-        "ц" => "c", "Ц" => "c",
-        "ч" => "ch", "Ч" => "ch",
-        "ш" => "sh", "Ш" => "sh",
-        "щ" => "sch", "Щ" => "sch",
-        "ъ" => "", "Ъ" => "",
-        "ы" => "y", "Ы" => "y",
-        "ь" => "", "Ь" => "",
-        "э" => "e", "Э" => "e",
-        "ю" => "yu", "Ю" => "yu",
-        "я" => "ya", "Я" => "ya",
-        "і" => "i", "І" => "i",
-        "ї" => "yi", "Ї" => "yi",
-        "є" => "e", "Є" => "e"
-    );
+function zb_TranslitString($string, $caseSensetive = false) {
+
+    if ($caseSensetive) {
+        $replace = array(
+            "'" => "",
+            "`" => "",
+            "а" => "a", "А" => "A",
+            "б" => "b", "Б" => "B",
+            "в" => "v", "В" => "V",
+            "г" => "g", "Г" => "G",
+            "д" => "d", "Д" => "D",
+            "е" => "e", "Е" => "E",
+            "ж" => "zh", "Ж" => "Zh",
+            "з" => "z", "З" => "Z",
+            "и" => "i", "И" => "I",
+            "й" => "y", "Й" => "Y",
+            "к" => "k", "К" => "K",
+            "л" => "l", "Л" => "L",
+            "м" => "m", "М" => "M",
+            "н" => "n", "Н" => "N",
+            "о" => "o", "О" => "O",
+            "п" => "p", "П" => "P",
+            "р" => "r", "Р" => "R",
+            "с" => "s", "С" => "S",
+            "т" => "t", "Т" => "T",
+            "у" => "u", "У" => "U",
+            "ф" => "f", "Ф" => "F",
+            "х" => "h", "Х" => "H",
+            "ц" => "c", "Ц" => "C",
+            "ч" => "ch", "Ч" => "Ch",
+            "ш" => "sh", "Ш" => "Sh",
+            "щ" => "sch", "Щ" => "Sch",
+            "ъ" => "", "Ъ" => "",
+            "ы" => "y", "Ы" => "Y",
+            "ь" => "", "Ь" => "",
+            "э" => "e", "Э" => "E",
+            "ю" => "yu", "Ю" => "Yu",
+            "я" => "ya", "Я" => "Ya",
+            "і" => "i", "І" => "I",
+            "ї" => "yi", "Ї" => "Yi",
+            "є" => "e", "Є" => "E"
+        );
+    } else {
+        $replace = array(
+            "'" => "",
+            "`" => "",
+            "а" => "a", "А" => "a",
+            "б" => "b", "Б" => "b",
+            "в" => "v", "В" => "v",
+            "г" => "g", "Г" => "g",
+            "д" => "d", "Д" => "d",
+            "е" => "e", "Е" => "e",
+            "ж" => "zh", "Ж" => "zh",
+            "з" => "z", "З" => "z",
+            "и" => "i", "И" => "i",
+            "й" => "y", "Й" => "y",
+            "к" => "k", "К" => "k",
+            "л" => "l", "Л" => "l",
+            "м" => "m", "М" => "m",
+            "н" => "n", "Н" => "n",
+            "о" => "o", "О" => "o",
+            "п" => "p", "П" => "p",
+            "р" => "r", "Р" => "r",
+            "с" => "s", "С" => "s",
+            "т" => "t", "Т" => "t",
+            "у" => "u", "У" => "u",
+            "ф" => "f", "Ф" => "f",
+            "х" => "h", "Х" => "h",
+            "ц" => "c", "Ц" => "c",
+            "ч" => "ch", "Ч" => "ch",
+            "ш" => "sh", "Ш" => "sh",
+            "щ" => "sch", "Щ" => "sch",
+            "ъ" => "", "Ъ" => "",
+            "ы" => "y", "Ы" => "y",
+            "ь" => "", "Ь" => "",
+            "э" => "e", "Э" => "e",
+            "ю" => "yu", "Ю" => "yu",
+            "я" => "ya", "Я" => "ya",
+            "і" => "i", "І" => "i",
+            "ї" => "yi", "Ї" => "yi",
+            "є" => "e", "Є" => "e"
+        );
+    }
     return $str = iconv("UTF-8", "UTF-8//IGNORE", strtr($string, $replace));
 }
 
@@ -3715,18 +3826,19 @@ function zb_AnalyticsSigReqGetCountYear($year) {
 }
 
 /**
- * Returns array of tickets recieved during the year
+ * Returns array of tickets recieved during the year or month, or something else
  * 
- * @param int $year
- * @return array
+ * @param int $datefilter - format like "year" or "year-month" or "year-month-day"
+ * 
+ * @return array as month=>count
  */
-function zb_AnalyticsTicketingGetCountYear($year) {
-    $year = vf($year, 3);
+function zb_AnalyticsTicketingGetCountYear($datefilter) {
+    $datefilter = mysql_real_escape_string($datefilter);
     $months = months_array();
     $result = array();
     $tmpArr = array();
 
-    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $year . "-%' AND `from` != 'NULL';";
+    $query = "SELECT * from `ticketing` WHERE `date` LIKE '" . $datefilter . "-%' AND `from` != 'NULL';";
 
     $all = simple_queryall($query);
     if (!empty($all)) {
@@ -4359,7 +4471,7 @@ function web_EasyCreditForm($login, $cash, $credit, $userTariff, $easycreditopti
     $inputs.= wf_DatePickerPreset('easycreditexpire', $creditExpireDate);
     $inputs.= wf_Submit(__('Save'));
 
-    $form = wf_Form("", 'POST', $inputs, 'glamour');
+    $form = wf_Form('?module=userprofile&username=' . $login, 'POST', $inputs, 'glamour');
     $form.=$creditNote;
 
     $result = wf_modal($controlIcon, __('Change') . ' ' . __('credit limit'), $form, '', '500', '180');
@@ -4626,6 +4738,8 @@ function web_MemCachedRenderStats() {
     $result = '';
     $memcachedHost = 'localhost';
     $memcachedPort = 11211;
+    $cacheEfficiency = '';
+
     if (isset($altCfg['MEMCACHED_SERVER'])) {
         $memcachedHost = $altCfg['MEMCACHED_SERVER'];
     }
@@ -4647,10 +4761,21 @@ function web_MemCachedRenderStats() {
                 $cells.= wf_TableCell($each);
                 $rows.= wf_TableRow($cells, 'row3');
             }
+
+
+            //cache efficiency calc
+            if ((isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'])) AND ( isset($rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses']))) {
+                $cacheHits = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_hits'];
+                $cacheMisses = $rawStats[$memcachedHost . ':' . $memcachedPort]['get_misses'];
+                $cacheTotal = $cacheHits + $cacheMisses;
+                $messages = new UbillingMessageHelper();
+                $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
+            }
         }
     }
 
-    $result = wf_TableBody($rows, '100%', 0, '');
+    $result.= wf_TableBody($rows, '100%', 0, '');
+    $result.=$cacheEfficiency;
     return ($result);
 }
 
@@ -4664,6 +4789,7 @@ function web_RedisRenderStats() {
     global $ubillingConfig;
     $altCfg = $ubillingConfig->getAlter();
     $result = '';
+    $cacheEfficiency = '';
     $redisHost = 'localhost';
     $redisdPort = 6379;
     if (isset($altCfg['REDIS_SERVER'])) {
@@ -4684,8 +4810,18 @@ function web_RedisRenderStats() {
             $cells.= wf_TableCell($value);
             $rows.= wf_TableRow($cells, 'row3');
         }
+
+        //cache efficiency calc
+        if ((isset($rawStats['keyspace_hits'])) AND ( isset($rawStats['keyspace_misses']))) {
+            $cacheHits = $rawStats['keyspace_hits'];
+            $cacheMisses = $rawStats['keyspace_misses'];
+            $cacheTotal = $cacheHits + $cacheMisses;
+            $messages = new UbillingMessageHelper();
+            $cacheEfficiency = $messages->getStyledMessage(__('Cache efficiency') . ': ' . zb_PercentValue($cacheTotal, $cacheHits) . '%', 'success');
+        }
     }
-    $result = wf_TableBody($rows, '100%', 0, '');
+    $result.= wf_TableBody($rows, '100%', 0, '');
+    $result.= $cacheEfficiency;
     return ($result);
 }
 
@@ -4755,6 +4891,7 @@ function zb_isTimeBetween($fromTime, $toTime, $checkTime, $seconds = false) {
  */
 function zb_formatTime($seconds) {
     $init = $seconds;
+    $days = floor($seconds / 86400);
     $hours = floor($seconds / 3600);
     $minutes = floor(($seconds / 60) % 60);
     $seconds = $seconds % 60;
@@ -4769,8 +4906,13 @@ function zb_formatTime($seconds) {
             $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
         }
     } else {
-        //more than hour
-        $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        if ($init < 86400) {
+            //more than hour
+            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        } else {
+            $hoursLeft = $hours - ($days * 24);
+            $result = $days . ' ' . __('days') . ' ' . $hoursLeft . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
+        }
     }
     return ($result);
 }
@@ -4826,15 +4968,15 @@ function zb_ListCacheInformRenderContainer() {
     $messages = new UbillingMessageHelper();
     $result = '';
     $result.= wf_AjaxLoader();
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', __('Cache information'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheinfo=true', wf_img('skins/icon_cache.png') . ' ' . __('Cache information'), 'cachconteiner', false, 'ubButton');
     if ($alterconf['UBCACHE_STORAGE'] == 'memcached') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxmemcachedstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Memcached'), 'cachconteiner', false, 'ubButton');
     }
     if ($alterconf['UBCACHE_STORAGE'] == 'redis') {
-        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
+        $result.= wf_AjaxLink('?module=report_sysload&ajaxredisstats=true', wf_img_sized('skins/icon_stats.gif', '', 16, 16) . ' ' . __('Stats') . ' ' . __('Redis'), 'cachconteiner', false, 'ubButton');
     }
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', __('Cache data'), 'cachconteiner', false, 'ubButton');
-    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', __('Clear all cache'), 'cachconteiner', true, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcachedata=true', wf_img('skins/shovel.png') . ' ' . __('Cache data'), 'cachconteiner', false, 'ubButton');
+    $result.= wf_AjaxLink('?module=report_sysload&ajaxcacheclear=true', wf_img('skins/icon_cleanup.png') . ' ' . __('Clear all cache'), 'cachconteiner', true, 'ubButton');
     $result.= $messages->getStyledMessage(__('Using system caching engine storage') . ': ' . wf_tag('b') . $alterconf['UBCACHE_STORAGE'] . wf_tag('b', true), 'info');
     $result.=wf_tag('br');
     $result.= wf_tag('table', false, 'sortable', 'width="100%" border="0" id="cachconteiner"') . zb_ListCacheInform() . wf_tag('table', true);
@@ -4856,8 +4998,10 @@ function zb_ListCacheInform($param = '') {
     $result = '';
     if (!empty($data) and $param != 'clear') {
         $cells = wf_TableCell(__('ID'));
-        $cells.= wf_TableCell(__('KEY'));
+        $cells.= wf_TableCell(__('Key'));
+
         if ($param == 'data') {
+            $cells.= wf_TableCell(__('Entries'));
             $cells.= wf_TableCell(__('Data'));
         }
         $rows = wf_TableRow($cells, 'row1');
@@ -4866,8 +5010,11 @@ function zb_ListCacheInform($param = '') {
             $cells = wf_TableCell($id);
             if ($param == 'data') {
                 $cells.= wf_TableCell($key['key'], '', '', 'sorttable_customkey="' . $id . '"');
-                //$value = (is_array($key['value'])) ? serialize($key['value']) : $key['value'];
-                $value = wf_tag('pre') . print_r($key['value'], true) . wf_tag('pre', true);
+                $dataCount = sizeof($key['value']);
+                $readableData = print_r($key['value'], true);
+                $dataSize = stg_convert_size(strlen($readableData));
+                $value = wf_tag('pre') . $readableData . wf_tag('pre', true);
+                $cells.= wf_TableCell($dataCount . ' ~ ' . $dataSize);
                 $cells.= wf_TableCell(wf_modal(__('Cache data'), __('Cache information') . ': ' . $key['key'], $value, 'ubButton', '800', '600'));
             } else {
                 $cells.= wf_TableCell($key, '', '', 'sorttable_customkey="' . $id . '"');

@@ -67,9 +67,16 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
                     $contents = $this->form->text_box(self::FORM_NAME . '[' . $input . ']', $this->options[$input], 0, 0, $_hide, null);
                     $this->form->addrow(__($input), $contents);
                 }
+
+                $ConnTypeCheckBox = 'use_new_conn_mode';
+                $name = self::FORM_NAME . '[' . $ConnTypeCheckBox . ']';
+                $UseNewConnMode = ( isset($this->options[$ConnTypeCheckBox]) ) ? true : false;
+                $contents = $this->form->checkbox($name, true, null, $UseNewConnMode, null);
+                $this->form->addrow(__('Use new connection mode (for RouterOS 6.43 and higher)'), $contents);
+
                 unset($inputs);
                 // Connection-sensetive options:
-                if ($this->api->connect($this->_ip, $this->options['username'], $this->options['password'])) {
+                if ($this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode)) {
                     // Block 2: Interface settings
                     $this->form->addmessage(__('Interface settings'));
                     $this->get_ifaces();

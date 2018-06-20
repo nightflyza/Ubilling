@@ -24,10 +24,14 @@ function wf_InputId() {
  * @param  string $inputs inputs string to include
  * @param  string $class  class for form
  * @param  string $legend form legend
+ * @param  string $CtrlID
+ *
  * @return  string
  *
  */
-function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
+function wf_Form($action, $method, $inputs, $class = '', $legend = '', $CtrlID = '') {
+    $FrmID = ( (empty($CtrlID)) ? 'Form_' . wf_InputId() : $CtrlID );
+
     if ($class != '') {
         $form_class = ' class="' . $class . '" ';
     } else {
@@ -40,7 +44,7 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
     }
 
     $form = '
-        <form action="' . $action . '" method="' . $method . '" ' . $form_class . '>
+        <form action="' . $action . '" method="' . $method . '" ' . $form_class . 'id="' . $FrmID . '">
          ' . $form_legend . '
         ' . $inputs . '
         </form>
@@ -57,10 +61,13 @@ function wf_Form($action, $method, $inputs, $class = '', $legend = '') {
  * @param  string $value current value
  * @param  bool   $br append new line
  * @param  string $size input size
+ * @param  string $pattern input check pattern. Avaible: geo, mobile, finance, ip, net-cidr, digits, email
+ * @param  string $class class of the element
+ *
  * @return string
  *
  */
-function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '') {
+function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', $pattern = '', $class = '') {
     $inputid = wf_InputId();
     //set size
     if ($size != '') {
@@ -74,10 +81,17 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
         $newline = '';
     }
     // We will verify that we correctly enter data by input type
-    if ($pattern == 'geo') {
-        $pattern = 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000"';
-    }
-    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" ' . $pattern . '>' . "\n";
+    $pattern = ($pattern == 'geo') ? 'pattern="-?\d{1,2}(\.\d+)\s?,\s?-?\d{1,3}(\.\d+)" placeholder="0.00000,0.00000" title="' . __('The format of geographic data can be') . ': 40.7143528,-74.0059731 ; 41.40338, 2.17403 ; -14.235004 , 51.92528"' : $pattern;
+    $pattern = ($pattern == 'mobile') ? 'pattern="\+?(\d{1,3})?\d{2,3}\d{7}" placeholder="(+)(38)0500000000" title="' . __('The mobile number format can be') . ': +78126121104, 0506430501, 375295431122"' : $pattern;
+    $pattern = ($pattern == 'finance') ? 'pattern="\d+(\.\d+)?" placeholder="0(.00)" title="' . __('The financial input format can be') . ': 1 ; 4.01 ; 2 ; 0.001"' : $pattern;
+    // For this pattern IP adress also can be 0.0.0.0
+    $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
+    // For this pattern exclude cidr /31
+    $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"'  : $pattern;
+    $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
+    $pattern = ($pattern == 'email') ? 'pattern="^([\w\._]+)@([\w\._]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
+
+    $result = '<input type="text" name="' . $name . '" value="' . $value . '" ' . $input_size . ' id="' . $inputid . '" class="' . $class . '" ' . $pattern . '>' . "\n";
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
@@ -210,11 +224,16 @@ function wf_RadioInput($name, $label = '', $value = '', $br = false, $checked = 
  * @param string  $label text label for input
  * @param bool    $br append new line
  * @param bool    $checked is checked?
+ * @param string  $CtrlID
+ * @param string  $CtrlClass
+ *
  * @return  string
  *
  */
-function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
-    $inputid = wf_InputId();
+function wf_CheckInput($name, $label = '', $br = false, $checked = false, $CtrlID = '', $CtrlClass = '') {
+    $inputid = ( (empty($CtrlID)) ? 'ChkBox_' . wf_InputId() : $CtrlID );
+    $inputClass = ( (empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
+
     if ($br) {
         $newline = '<br>';
     } else {
@@ -225,7 +244,7 @@ function wf_CheckInput($name, $label = '', $br = false, $checked = false) {
     } else {
         $check = '';
     }
-    $result = '<input type="checkbox" id="' . $inputid . '" name="' . $name . '" ' . $check . ' />';
+    $result = '<input type="checkbox" id="' . $inputid . '" ' . $inputClass . 'name="' . $name . '" ' . $check . ' />';
     if ($label != '') {
         $result.=' <label for="' . $inputid . '">' . __($label) . '</label>' . "\n";
         ;
@@ -273,11 +292,23 @@ function wf_TextArea($name, $label = '', $value = '', $br = false, $size = '') {
  *
  * @param string  $name name of element
  * @param string  $value value for input
+ * @param string  $CtrlID
+ * @param string  $CtrlClass
+ *
  * @return  string
  *
  */
-function wf_HiddenInput($name, $value = '') {
-    $result = '<input type="hidden" name="' . $name . '" value="' . $value . '">';
+function wf_HiddenInput($name, $value = '', $CtrlID = '', $CtrlClass = '') {
+    $HiddenID = ( (empty($CtrlID)) ? 'Hidden_' . wf_InputId() : $CtrlID );
+    $Hiddenclass = ( (empty($CtrlClass)) ? '' : ' class="' . $CtrlClass . '" ');
+    /**
+     * Call me by my astral name
+     * Breeding fear through wordless tounge
+     * Heavenly thirst - unspeakable pain
+     * Emptied from all human motion
+     * Confront the faceless wrath
+     */
+    $result = '<input type="hidden" name="' . $name . '" value="' . $value . '" id="' . $HiddenID . '"' . $Hiddenclass . '>';
     return ($result);
 }
 
@@ -285,16 +316,20 @@ function wf_HiddenInput($name, $value = '') {
  * Return submit web form element
  *
  * @param string  $value text label for button
+ * @param  string $CtrlID
+ *
  * @return string
  *
  */
-function wf_Submit($value) {
-    $result = '<input type="submit" value="' . __($value) . '">';
+function wf_Submit($value, $CtrlID = '') {
+    $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
+    $result = '<input type="submit" value="' . __($value) . '" id="' . $SubmitID . '">';
     return ($result);
 }
 
-function wf_SubmitClassed($value, $class = '', $name = '', $caption = '') {
-    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '">';
+function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '') {
+    $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
+    $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '">';
     $result.= $caption;
     $result.= '</button>';
     return ($result);
@@ -548,7 +583,7 @@ function wf_MonthSelector($name, $label, $selected = '', $br = false) {
 function wf_YearSelector($name, $label = '', $br = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 10;
+    $count = 11;
     if ($br) {
         $newline = '<br>';
     } else {
@@ -581,7 +616,7 @@ function wf_YearSelector($name, $label = '', $br = false) {
 function wf_YearSelectorPreset($name, $label = '', $br = false, $year = '', $allTime = false) {
     $curyear = curyear();
     $inputid = wf_InputId();
-    $count = 10;
+    $count = 11;
     $selected = '';
 
     if ($br) {
@@ -650,6 +685,38 @@ function wf_CheckGet($params) {
         }
     }
     return ($result);
+}
+
+/**
+ * Returns boolean representation of variable like boolval() in PHP 5.5+
+ * but also can check if variable contains strings 'true' and 'false'
+ * and return appropriate value
+ *
+ * @param mixed $Variable
+ * @param bool $CheckAsTrueFalseStr
+ *
+ * @return bool
+ */
+function wf_getBoolFromVar($Variable, $CheckAsTrueFalseStr = false) {
+    if (isset($Variable)) {
+        if (empty($Variable)) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    if ($CheckAsTrueFalseStr) {
+        if (strtolower($Variable) === 'true' || strtolower($Variable) === '1') {
+            return true;
+        }
+
+        if (strtolower($Variable) === 'false' || strtolower($Variable) === '0') {
+            return false;
+        }
+    } else {
+        return !!$Variable;
+    }
 }
 
 /**
@@ -725,10 +792,11 @@ function wf_TableCell($data, $width = '', $class = '', $customkey = '') {
  * @param string $width width of cell element
  * @param string $border table border width
  * @param string $class table cell class
+ * @param string $options table additional options
  * @return string
  *  
  */
-function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
+function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options = '') {
     if ($width != '') {
         $tablewidth = 'width="' . $width . '"';
     } else {
@@ -747,7 +815,7 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
     }
 
     $result = '
-        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' >
+        <table ' . $tablewidth . ' ' . $tableborder . ' ' . $tableclass . ' ' . $options . ' >
             ' . $rows . '
         </table>
         ';
@@ -760,11 +828,17 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '') {
  * @param string $url URL if confirmed
  * @param string $title link title
  * @param string $alerttext alert text
+ * @param string $functiontorun function name with parameters which must exist on a page
+ *
  * @return string
  *  
  */
-function wf_JSAlert($url, $title, $alerttext) {
-    $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+function wf_JSAlert($url, $title, $alerttext, $functiontorun = '') {
+    if ( empty($functiontorun) ) {
+        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
+    } else {
+        $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; return false; }" href="' . $url . '">' . $title . '</a>';
+    }
     return ($result);
 }
 
@@ -774,12 +848,20 @@ function wf_JSAlert($url, $title, $alerttext) {
  * @param string $url URL if confirmed
  * @param string $title link title
  * @param string $alerttext alert text
+ * @param string $functiontorun function name with parameters which must exist on a page
+ *
  * @return string
  *  
  */
-function wf_JSAlertStyled($url, $title, $alerttext, $class = '') {
+function wf_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun = '') {
     $class = (!empty($class)) ? 'class="' . $class . '"' : '';
-    $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+
+    if ( empty($functiontorun) ) {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    } else {
+        $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; }" href="' . $url . '" ' . $class . '>' . $title . '</a>';
+    }
+
     return ($result);
 }
 
@@ -882,7 +964,7 @@ function wf_modal($link, $title, $content, $linkclass = '', $width = '', $height
         $width = '600';
     }
 
-//setting auto width if not specified
+//setting auto height if not specified
     if ($height == '') {
         $height = '400';
     }
@@ -971,6 +1053,62 @@ $(function() {
 ';
 
     return($dialog);
+}
+
+/**
+ * Returns link that calls new modal window with automatic dimensions by inner content and without "opener" object
+ *
+ * @param string $Title
+ * @param string $Content
+ * @param string $WindowID
+ * @param string $WindowBodyID
+ * @param bool $DestroyOnClose
+ * @param string $AutoOpen
+ * @param string $Width
+ * @param string $Height
+ *
+ * @return string
+ */
+function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', $DestroyOnClose = false, $AutoOpen = 'false', $Width = '', $Height = '') {
+    $WID = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
+    $WBID = (empty($WindowBodyID)) ? 'body_dialog-modal_' . wf_inputid() : $WindowBodyID;
+
+    if ( empty($Width) ) { $Width = "'auto'"; }
+
+    if ( empty($Height) ) { $Height = "'auto'"; }
+
+    $DestroyParams = '';
+    if ($DestroyOnClose) {
+        $DestroyParams = ', 
+                            close: function(event, ui) { 
+                                $(\'#' . $WID . '\').dialog("destroy");
+                                $(\'#' . $WID . '\').remove();
+                                $(\'#script_' . $WID . '\').remove();
+                          }
+                         ';
+    }
+
+    $Dialog = wf_tag('script', false, '', 'type="text/javascript" id="script_' . $WID . '"');
+    $Dialog .= ' 
+                $(function() {   
+                    $(\'#' . $WID . '\').dialog({
+                        autoOpen: ' . $AutoOpen . ',
+                        width: ' . $Width . ',
+                        height: ' . $Height . ',
+                        modal: true,
+                        show: "drop",
+                        hide: "fold"' . $DestroyParams . '
+                    });
+                });
+                ';
+    $Dialog .= wf_tag('script', true);
+    $Dialog .= '
+                <div id="' . $WID . '" title="' . $Title . '" style="display:none; width:1px; height:1px;">
+	                <p id="' . $WBID . '">' . $Content . '</p>                
+                </div>
+                ';
+
+    return $Dialog;
 }
 
 /**
@@ -1176,7 +1314,7 @@ function wf_DatePickerPreset($field, $date, $extControls = false) {
  * @return string
  *  
  */
-function wf_FullCalendar($data) {
+function wf_FullCalendar($data, $options = '') {
 
     $elementid = wf_InputId();
 
@@ -1203,7 +1341,7 @@ function wf_FullCalendar($data) {
                         displayEventTime: false,
                         height: 'auto',
                         contentHeight: 'auto',
-                        
+                        " . $options . "
                         monthNamesShort: [
                         '" . rcms_date_localise('Jan') . "',
                         '" . rcms_date_localise('Feb') . "',
@@ -1520,7 +1658,7 @@ $(function() {
  * 
  * @return string
  */
-function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
+function wf_Graph($data, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
     $data = trim($data);
@@ -1537,14 +1675,19 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
         }
         $cleandata = mb_substr($cleandata, 0, -2, 'utf-8');
     }
-
+    //style="width: 98%; "
     $result = wf_tag('div', false, '', 'id="' . $randomId . '" style="width:' . $width . 'px; height:' . $height . 'px;"') . wf_tag('div', true);
     $result.= wf_tag('script', false, '', 'type="text/javascript"');
     $result.= $objectId . ' = new Dygraph(';
     $result.= 'document.getElementById("' . $randomId . '"),' . "\n";
     $result.= $cleandata;
 
-    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+    $result.= ', {  errorBars: ' . $errorbars;
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
+    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result.= ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -1562,7 +1705,7 @@ function wf_Graph($data, $width = '500', $height = '300', $errorbars = false) {
  * 
  * @return string
  */
-function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false) {
+function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = false, $GraphTitle = '', $XLabel = '', $YLabel = '', $RangeSelector = false) {
     $randomId = wf_InputId();
     $objectId = 'graph_' . $randomId;
 
@@ -1578,7 +1721,12 @@ function wf_GraphCSV($datafile, $width = '500', $height = '300', $errorbars = fa
     $result.= 'document.getElementById("' . $randomId . '"), "' . $datafile . '" ' . "\n";
 
 
-    $result.=', {  errorBars: ' . $errorbars . ' }' . "\n";
+    $result.= ', {  errorBars: ' . $errorbars;
+    $result.= (!empty($GraphTitle)) ? ', title: \'' . $GraphTitle . '\'' : '';
+    $result.= (!empty($XLabel)) ? ', xlabel: \'' . $XLabel . '\'' : '';
+    $result.= (!empty($YLabel)) ? ', ylabel: \'' . $YLabel . '\'' : '';
+    $result.= (!empty($RangeSelector)) ? ', showRangeSelector: true' : '';
+    $result.= ' }' . "\n";
 
     $result.=');';
     $result.= wf_tag('script', true);
@@ -1963,42 +2111,42 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
 
     $jq_dt = wf_tag('script', false, '', ' type="text/javascript" charset="utf-8"');
     $jq_dt.= '
- 		$(document).ready(function() {
-                 
-		$(\'#' . $tableId . '\').dataTable( {
- 	       "oLanguage": {
-			"sLengthMenu": "' . __('Show') . ' _MENU_",
-			"sZeroRecords": "' . __('Nothing found') . '",
-			"sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __($objects) . '",
-			"sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __($objects) . '",
-			"sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
+ 		$(document).ready(function() {                 
+            
+            $(\'#' . $tableId . '\').dataTable( {
+                "oLanguage": {
+                        "sLengthMenu": "' . __('Show') . ' _MENU_",
+                        "sZeroRecords": "' . __('Nothing found') . '",
+                        "sInfo": "' . __('Showing') . ' _START_ ' . __('to') . ' _END_ ' . __('of') . ' _TOTAL_ ' . __($objects) . '",
+                        "sInfoEmpty": "' . __('Showing') . ' 0 ' . __('to') . ' 0 ' . __('of') . ' 0 ' . __($objects) . '",
+                        "sInfoFiltered": "(' . __('Filtered') . ' ' . __('from') . ' _MAX_ ' . __('Total') . ')",
                         "sSearch":       "' . __('Search') . '",
                         "sProcessing":   "' . __('Processing') . '...",
                         "oPaginate": {
-                        "sFirst": "' . __('First') . '",
-                        "sPrevious": "' . __('Previous') . '",
-                        "sNext": "' . __('Next') . '",
-                        "sLast": "' . __('Last') . '"
-                    },
-		},
-        
-        "bPaginate": true,
-        "bLengthChange": true,
-        "bFilter": true,
-        "bSort": true,
-        "bInfo": true,
-        "bAutoWidth": false,
-        "bProcessing": true,
-        "bStateSave": ' . $saveState . ',
-        "iDisplayLength": ' . $rowsCount . ',
-        "sAjaxSource": \'' . $ajaxUrl . '\',
-	"bDeferRender": true,
-        
-        ' . $opts . '
-        "bJQueryUI": true
-                } );
+                            "sFirst": "' . __('First') . '",
+                            "sPrevious": "' . __('Previous') . '",
+                            "sNext": "' . __('Next') . '",
+                            "sLast": "' . __('Last') . '"
+                        },
+                },
+            
+                "bPaginate": true,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bSort": true,
+                "bInfo": true,
+                "bAutoWidth": false,
+                "bProcessing": true,
+                "bStateSave": ' . $saveState . ',
+                "iDisplayLength": ' . $rowsCount . ',
+                "sAjaxSource": \'' . $ajaxUrl . '\',
+                "bDeferRender": true,
+                "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
+                ' . $opts . '
+                "bJQueryUI": true
+            } );
               
-		}  );
+		} );
                 
           ';
     $jq_dt.=wf_tag('script', true);
@@ -2197,6 +2345,104 @@ function wf_FormDisabler() {
 }
 
 /**
+ * Returns spoiler control with specified options
+ *
+ * @param string $Content
+ * @param string $Title
+ * @param bool $Closed
+ * @param string $SpoilerID
+ * @param string $OuterDivClass
+ * @param string $OuterDivOptions
+ * @param string $InnerDivClass
+ * @param string $InnerDivOptions
+ *
+ * @return string
+ */
+function wf_Spoiler($Content, $Title = '', $Closed = false, $SpoilerID = '', $OuterDivClass = '', $OuterDivOptions = '', $InnerDivClass = '', $InnerDivOptions = '') {
+    if (empty($SpoilerID)) {
+        $SpoilerID = 'spoiler_' . wf_InputId();
+    }
+    $SpoilerLnkID = 'lnk_' . wf_InputId();
+    $SpoilerBodyID = 'spbody_' . wf_InputId();
+    $SpoilerStateID = 'spstate_' . wf_InputId();
+    $SpoilerState = ($Closed) ? '▼' : '▲';
+
+    //$ubngStrPos = strpos(CUR_SKIN_PATH, 'ubng');
+
+    $OuterDivClass = 'spoiler clearfix ' . $OuterDivClass;
+    $OuterDivOptions = ' id="' . $SpoilerID . '" ' . $OuterDivOptions;
+
+    $InnerDivClass = 'spoiler_body ' . $InnerDivClass;
+    $InnerDivOptions = ' id="' . $SpoilerBodyID . '" ' . $InnerDivOptions;
+
+    $Result = wf_tag('div', false, $OuterDivClass, $OuterDivOptions);
+    $Result .= wf_tag('div', false, 'spoiler_title clearfix');
+    //$Result .= '<a id="' . $SpoilerLnkID . '" class="spoiler_link" href="#">';
+    $Result .= '<span id="' . $SpoilerLnkID . '" class="spoiler_link">';
+    $Result .= wf_tag('h3', false, '', '');
+    $Result .= $Title;
+    $Result .= wf_tag('h3', true);
+    //$Result .= $SpoilerState . '</a>' . "\n";
+    $Result .= '<span id="' . $SpoilerStateID . '">' . $SpoilerState . '</span>';
+    $Result .= '</span>' . "\n";
+    $Result .= wf_tag('div', true);
+    $Result .= wf_tag('div', false, $InnerDivClass, $InnerDivOptions);
+    $Result .= $Content;
+    $Result .= wf_tag('div', true);
+    $Result .= wf_tag('div', true);
+
+    $Result .= wf_tag('script', false, '', 'type="text/javascript"');
+    $Result .= '$(\'#' . $SpoilerLnkID . '\').click(function() {
+                    $(\'#' . $SpoilerBodyID . '\').toggleClass("spoiler_closed");
+                    
+                    if ( $(\'#' . $SpoilerBodyID . '\').hasClass("spoiler_closed") ) {
+                        $(\'#' . $SpoilerBodyID . '\').slideUp(\'50\');
+                        $(\'#' . $SpoilerStateID . '\').html(\'▼\');                        
+                    } else {
+                        $(\'#' . $SpoilerBodyID . '\').slideDown(\'50\');
+                        $(\'#' . $SpoilerStateID . '\').html(\'▲\');
+                    }
+                    
+                    return false;
+                });';
+
+    //$Result .= ($Closed) ? '$(\'#' . $SpoilerBodyID . '\').css("display", "none").toggleClass("spoiler_closed");' : '';
+    $Result .= ($Closed) ? '$(\'#' . $SpoilerBodyID . '\').slideUp(\'50\').toggleClass("spoiler_closed");' : '';
+    $Result .= wf_tag('script', true);
+
+    return $Result;
+}
+
+/**
+ * Returns plain JS-code of 'empty' function to use for checking an empty value in JS code
+ *
+ * @return string
+ */
+function wf_JSEmptyFunc() {
+    $Result = '
+                function empty (mixed_var) {
+                    // version: 909.322
+                    // discuss at: http://phpjs.org/functions/empty
+                    
+                    var key;
+                    if (mixed_var === "" || mixed_var === 0 || mixed_var === "0" || mixed_var === null || mixed_var === false || mixed_var === undefined ) {
+                        return true;
+                    }
+                    
+                    if (typeof mixed_var == \'object\') {
+                        for (key in mixed_var) {
+                            return false;
+                        }                        
+                        return true;
+                    }                    
+                    return false;
+                }
+              ';
+
+    return ($Result);
+}
+
+/**
  * Jqeury Data tables JSON formatting class
  */
 class wf_JqDtHelper {
@@ -2243,6 +2489,15 @@ class wf_JqDtHelper {
      */
     public function getJson() {
         die($this->renderJson());
+    }
+
+    /**
+     * Extracts rendered JSON data from object
+     * 
+     * @return string
+     */
+    public function extractJson() {
+        return ($this->renderJson());
     }
 
     /**

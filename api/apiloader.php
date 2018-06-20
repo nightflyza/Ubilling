@@ -89,7 +89,6 @@ include('api/libs/api.email.php');
 include('api/libs/api.exhorse.php');
 include('api/libs/api.telegram.php');
 include('api/libs/api.senddog.php');
-include('api/libs/api.smszilla.php');
 include('api/libs/api.tsupport.php');
 include('api/libs/api.asterisk.php');
 include('api/libs/api.policedog.php');
@@ -110,6 +109,14 @@ include('api/libs/api.messagesqueue.php');
 include('api/libs/api.wcpe.php');
 include('api/libs/api.mtsigmon.php');
 include('api/libs/api.taskbar.php');
+include('api/libs/api.onuregister.php');
+include('api/libs/api.onureboot.php');
+include('api/libs/api.onudescribe.php');
+include('api/libs/api.onumaster.php');
+include('api/libs/api.smszilla.php');
+include('api/libs/api.ldap.php');
+include('api/libs/api.districts.php');
+include('api/libs/api.multigen.php');
 
 /*
  * Initial class creation
@@ -126,5 +133,5 @@ if (@$globalAlter['BRANCHES_ENABLED']) {
     $branchControl = new UbillingBranches();
     $branchControl->accessControl();
 }
-    
 
+include('api/api.autolader.php');

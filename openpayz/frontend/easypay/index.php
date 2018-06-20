@@ -140,7 +140,9 @@ function ep_CheckTransactionUnique($hash) {
 }
 
 //catch POST request
-$xml = $HTTP_RAW_POST_DATA;
+//deprecated in PHP 5.6
+//$xml = $HTTP_RAW_POST_DATA;
+$xml = file_get_contents('php://input');
 
 $rawXml = xml2array($xml);
 

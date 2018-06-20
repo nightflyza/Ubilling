@@ -24,7 +24,7 @@ if (cfr('OPENPAYZ')) {
                         show_error(__('Already processed'));
                     }
                 } else {
-                    show_error(__('Customer unknown'));
+                    show_error(__('Selected user is absent in database!'));
                 }
             }
         }

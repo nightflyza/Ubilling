@@ -271,6 +271,14 @@ class ExistentialHorse {
         $this->storeTmp['e_switches'] = 0;
         $this->storeTmp['e_pononu'] = 0;
         $this->storeTmp['e_docsis'] = 0;
+        $this->storeTmp['a_recallunsuccess'] = 0;
+        $this->storeTmp['a_recalltrytime'] = 0;
+        $this->storeTmp['e_deadswintervals'] = 0;
+        $this->storeTmp['t_sigreq'] = 0;
+        $this->storeTmp['t_tickets'] = 0;
+        $this->storeTmp['t_tasks'] = 0;
+        $this->storeTmp['t_capabtotal'] = 0;
+        $this->storeTmp['t_capabundone'] = 0;
     }
 
     /**
@@ -590,9 +598,24 @@ class ExistentialHorse {
      */
     protected function preprocessEquipmentData() {
         //collecting switches
-        $qeurySwitches = "SELECT COUNT(`id`) AS `count` from `switches` WHERE `desc` NOT LIKE '%NP%'";
-        $switchesCount = simple_query($qeurySwitches);
+        $querySwitches = "SELECT COUNT(`id`) AS `count` from `switches` WHERE `desc` NOT LIKE '%NP%'";
+        $switchesCount = simple_query($querySwitches);
         $this->storeTmp['e_switches'] = $switchesCount['count'];
+
+        //collecting dead switches intervals count
+        $queryDeadSwitches = "SELECT * from `switchdeadlog` WHERE `date` LIKE '" . $this->curmonth . "-%'";
+        $allDead = simple_queryall($queryDeadSwitches);
+        $deadSwitchesCount = 0;
+        if (!empty($allDead)) {
+            foreach ($allDead as $io => $each) {
+                if (!empty($each['swdead'])) {
+                    $deadTmp = unserialize($each['swdead']);
+                    $deadSwitchesCount = $deadSwitchesCount + sizeof($deadTmp);
+                }
+            }
+        }
+        $this->storeTmp['e_deadswintervals'] = $deadSwitchesCount;
+
 
         //collecting PON
         if ($this->ponFlag) {
@@ -659,7 +682,11 @@ class ExistentialHorse {
                     if (!empty($normalCalls)) {
                         unset($normalCalls[0]);
                         foreach ($normalCalls as $io => $each) {
-                            if ($each[16] != 'outbound') {
+                            //Askozia CFE fix
+                            if (sizeof($each) > 25) {
+                                array_splice($each, 3, 1);
+                            }
+                            if (!ispos($each[16], 'out')) {
                                 $startTime = explode(' ', $each[9]);
                                 @$startTime = $startTime[1];
                                 //only working time
@@ -681,7 +708,68 @@ class ExistentialHorse {
                         $this->storeTmp['a_averagecallduration'] = $this->storeTmp['a_totalcallsduration'] / $this->storeTmp['a_totalanswered'];
                     }
                 }
+
+                //why do you call stats saving if Askozia enabled and configured
+                $totalMissed = 0;
+                $totalRecalls = 0;
+                $totalUnsucc = 0;
+                $totalCalls = 0;
+                $totalReactTime = 0;
+                $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $this->curmonth . "-%';";
+                $allWdycStat = simple_queryall($query);
+                if (!empty($allWdycStat)) {
+                    foreach ($allWdycStat as $io => $each) {
+                        $totalMissed += $each['missedcount'];
+                        $totalRecalls += $each['recallscount'];
+                        $totalUnsucc += $each['unsucccount'];
+                        $totalReactTime+=$each['totaltrytime'];
+                    }
+                }
+                $totalCalls = $totalRecalls + $totalMissed;
+                $this->storeTmp['a_recallunsuccess'] = zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc));
+                $this->storeTmp['a_recalltrytime'] = round(($totalReactTime / ($totalRecalls + $totalUnsucc)));
             }
+        }
+    }
+
+    /**
+     * Preprocessing tickets, sigreqs, capabs and other single data inputs
+     * 
+     * @return void
+     */
+    protected function preprocessMisc() {
+        //signup requests count per month
+        if ($this->altCfg['SIGREQ_ENABLED']) {
+            $querySigreq = "SELECT COUNT(`id`) from `sigreq` WHERE `date` LIKE '" . $this->curmonth . "-%';";
+            $sigreqCount = simple_query($querySigreq);
+
+            $sigreqCount = $sigreqCount['COUNT(`id`)'];
+            $this->storeTmp['t_sigreq'] = $sigreqCount;
+        }
+
+        //tickets per month count
+        $ticketsTmp = zb_AnalyticsTicketingGetCountYear($this->curmonth);
+        $this->storeTmp['t_tickets'] = $ticketsTmp[date("m")];
+
+        //tasks in taskmanager for current month
+        $taskTmp = zb_AnalyticsTaskmanGetCountYear(curyear());
+        $this->storeTmp['t_tasks'] = $taskTmp[date("m")];
+
+        //capabdir stats
+        if ($this->altCfg['CAPABDIR_ENABLED']) {
+            $queryCapab = "SELECT * from `capab` WHERE `date` LIKE '" . $this->curmonth . "-%';";
+            $capabTmp = simple_queryall($queryCapab);
+            $capabTotal = sizeof($capabTmp);
+            $capabUndone = 0;
+            if (!empty($capabTmp)) {
+                foreach ($capabTmp as $io => $each) {
+                    if ($each['stateid'] == 0) {
+                        $capabUndone++;
+                    }
+                }
+            }
+            $this->storeTmp['t_capabtotal'] = $capabTotal;
+            $this->storeTmp['t_capabundone'] = $capabUndone;
         }
     }
 
@@ -692,7 +780,52 @@ class ExistentialHorse {
      */
     protected function saveHorseData() {
         $curTime = curdatetime();
-        $query = "INSERT INTO `exhorse` (`id`, `date`, `u_totalusers`, `u_activeusers`, `u_inactiveusers`, `u_frozenusers`, `u_complextotal`, `u_complexactive`, `u_complexinactive`, `u_signups`, `u_citysignups`, `f_totalmoney`, `f_paymentscount`, `f_cashmoney`, `f_cashcount`, `f_arpu`, `f_arpau`, `c_totalusers`, `c_activeusers`, `c_inactiveusers`, `c_illegal`, `c_complex`, `c_social`, `c_totalmoney`, `c_paymentscount`, `c_arpu`, `c_arpau`, `c_totaldebt`, `c_signups`, `a_totalcalls`, `a_totalanswered`, `a_totalcallsduration`, `a_averagecallduration`, `e_switches`, `e_pononu`, `e_docsis`) "
+        //shittiest query ever
+        $query = "INSERT INTO `exhorse` (
+            `id`,
+            `date`,
+            `u_totalusers`,
+            `u_activeusers`,
+            `u_inactiveusers`,
+            `u_frozenusers`,
+            `u_complextotal`,
+            `u_complexactive`,
+            `u_complexinactive`,
+            `u_signups`,
+            `u_citysignups`,
+            `f_totalmoney`,
+            `f_paymentscount`, 
+            `f_cashmoney`,
+            `f_cashcount`,
+            `f_arpu`, 
+            `f_arpau`, 
+            `c_totalusers`,
+            `c_activeusers`, 
+            `c_inactiveusers`,
+            `c_illegal`, 
+            `c_complex`,
+            `c_social`, 
+            `c_totalmoney`,
+            `c_paymentscount`,
+            `c_arpu`,
+            `c_arpau`, 
+            `c_totaldebt`, 
+            `c_signups`,
+            `a_totalcalls`, 
+            `a_totalanswered`,
+            `a_totalcallsduration`,
+            `a_averagecallduration`,
+            `e_switches`, 
+            `e_pononu`, 
+            `e_docsis`,
+            `a_recallunsuccess`,
+            `a_recalltrytime`,
+            `e_deadswintervals`,
+            `t_sigreq`,
+            `t_tickets`,
+            `t_tasks`,
+            `t_capabtotal`,
+            `t_capabundone`) "
                 . "VALUES (
              NULL,
               '" . $curTime . "',
@@ -729,7 +862,16 @@ class ExistentialHorse {
                '" . $this->storeTmp['a_averagecallduration'] . "',
                '" . $this->storeTmp['e_switches'] . "',
                '" . $this->storeTmp['e_pononu'] . "',
-               '" . $this->storeTmp['e_docsis'] . "');";
+               '" . $this->storeTmp['e_docsis'] . "',
+               '" . $this->storeTmp['a_recallunsuccess'] . "',
+               '" . $this->storeTmp['a_recalltrytime'] . "',
+               '" . $this->storeTmp['e_deadswintervals'] . "',
+               '" . $this->storeTmp['t_sigreq'] . "',
+               '" . $this->storeTmp['t_tickets'] . "',
+               '" . $this->storeTmp['t_tasks'] . "',
+               '" . $this->storeTmp['t_capabtotal'] . "',
+               '" . $this->storeTmp['t_capabundone'] . "'"
+                . ");";
         nr_query($query);
         log_register('EXHORSE SAVE DATA');
     }
@@ -745,6 +887,7 @@ class ExistentialHorse {
         $this->preprocessUkvData();
         $this->preprocessEquipmentData();
         $this->preprocessAskoziaData();
+        $this->preprocessMisc();
         $this->saveHorseData();
         $this->cleanupDb();
 
@@ -798,32 +941,14 @@ class ExistentialHorse {
     }
 
     /**
-     * Formats time from seconds to human readable string
+     * Formats time from seconds to human readable string. Placeholder.
      * 
      * @param int $seconds
      * 
      * @return string
      */
     protected function formatTime($seconds) {
-        $init = $seconds;
-        $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds / 60) % 60);
-        $seconds = $seconds % 60;
-
-        if ($init < 3600) {
-            //less than 1 hour
-            if ($init < 60) {
-                //less than minute
-                $result = $seconds . ' ' . __('sec.');
-            } else {
-                //more than one minute
-                $result = $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
-            }
-        } else {
-            //more than hour
-            $result = $hours . ' ' . __('hour') . ' ' . $minutes . ' ' . __('minutes') . ' ' . $seconds . ' ' . __('seconds');
-        }
-        return ($result);
+        return (zb_formatTime($seconds));
     }
 
     /**
@@ -885,6 +1010,7 @@ class ExistentialHorse {
         $financeChartsData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU')));
         $ukvChartData = array(0 => array(__('Month'), __('Total'), __('Active'), __('Inactive'), __('Illegal'), __('Complex'), __('Social'), __('Signups')));
         $ukvfChartData = array(0 => array(__('Month'), __('Money'), __('Payments count'), __('ARPU'), __('ARPAU'), __('Debt')));
+        $universeChartData = array(0 => array(__('Month'), __('Signup requests'), __('Tickets'), __('Tasks'), __('Signup capabilities'), __('Undone')));
         $askoziaChartData = array(0 => array(__('Month'), __('Total calls'), __('Total answered'), __('No answer')));
         $equipChartData = array(0 => array(__('Month'), __('Switches'), __('PON ONU'), __('DOCSIS modems')));
 
@@ -1088,6 +1214,8 @@ class ExistentialHorse {
                 $cells.= wf_TableCell(__('Total duration'));
                 $cells.= wf_TableCell(__('Average duration'));
                 $cells.= wf_TableCell(__('Answers percent'));
+                $cells.= wf_TableCell(__('No reaction percent'));
+                $cells.= wf_TableCell(__('Reaction time'));
 
                 $rows = wf_TableRow($cells, 'row1');
                 foreach ($yearData as $yearNum => $monthArr) {
@@ -1100,6 +1228,9 @@ class ExistentialHorse {
                         $cells.= wf_TableCell($this->formatTime($each['a_totalcallsduration']));
                         $cells.= wf_TableCell($this->formatTime($each['a_averagecallduration']));
                         $cells.= wf_TableCell($this->percentValue($each['a_totalcalls'], $each['a_totalanswered']) . '%');
+                        $reactionPercent = ($each['a_recallunsuccess'] != NULL) ? $each['a_recallunsuccess'] . '%' : '';
+                        $cells.= wf_TableCell($reactionPercent);
+                        $cells.= wf_TableCell($this->formatTime($each['a_recalltrytime']));
                         $rows.= wf_TableRow($cells, 'row3');
                         //chart data
                         $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
@@ -1112,10 +1243,62 @@ class ExistentialHorse {
                 }
             }
 
+            //Users relationship
+            $result.=wf_tag('h2') . __('Relationships with the universe') . wf_tag('h2', true);
+            $cells = wf_TableCell(__('Month'));
+            if ($this->altCfg['SIGREQ_ENABLED']) {
+                $cells.= wf_TableCell(__('Signup requests'));
+            }
+            $cells.= wf_TableCell(__('Helpdesk tickets'));
+            $cells.= wf_TableCell(__('Tasks'));
+            if ($this->altCfg['CAPABDIR_ENABLED']) {
+                $cells.= wf_TableCell(__('Signup capabilities'));
+                $cells.= wf_TableCell(__('Undone') . ' ' . __('Signup capabilities'));
+            }
+
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($yearData as $yearNum => $monthArr) {
+                foreach ($monthArr as $monthNum => $each) {
+                    $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
+                    $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                    if ($this->altCfg['SIGREQ_ENABLED']) {
+                        $cells.= wf_TableCell($each['t_sigreq']);
+                    }
+                    $cells.= wf_TableCell($each['t_tickets']);
+                    $cells.= wf_TableCell($each['t_tasks']);
+                    if ($this->altCfg['CAPABDIR_ENABLED']) {
+                        $cells.= wf_TableCell($each['t_capabtotal']);
+                        $cells.= wf_TableCell($each['t_capabundone']);
+                    }
+                    $rows.= wf_TableRow($cells, 'row3');
+                    //chart data
+                    $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
+                    $universeChartData[] = array($yearDisplay . $months[$monthNum], $each['t_sigreq'], $each['t_tickets'], $each['t_tasks'], $each['t_capabtotal'], $each['t_capabundone']);
+                }
+            }
+            $result.=wf_TableBody($rows, '100%', 0, '');
+            if ($chartsFlag) {
+                //deleting NULL values ugly hack
+                if (!empty($universeChartData)) {
+                    foreach ($universeChartData as $io => $each) {
+                        if (!empty($each)) {
+                            foreach ($each as $ia => $val) {
+                                if ($val == NULL) {
+                                    $universeChartData[$io][$ia] = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                $result.=wf_gchartsLine($universeChartData, __('Relationships with the universe'), '100%', '300px', $chartsOptions);
+            }
+
             //Equipment
             $result.=wf_tag('h2') . __('Equipment') . wf_tag('h2', true);
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Switches'));
+            $cells.= wf_TableCell(__('Time') . ' ☠ ');
+
             if ($this->ponFlag) {
                 $cells.= wf_TableCell(__('PON ONU'));
             }
@@ -1129,6 +1312,9 @@ class ExistentialHorse {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
                     $cells.= wf_TableCell($each['e_switches']);
+                    $switchesRepingInterval = (@$this->altCfg['SWITCH_PING_INTERVAL']) ? $this->altCfg['SWITCH_PING_INTERVAL'] : 20;
+                    $deadSwitchTime = ($switchesRepingInterval * $each['e_deadswintervals']) * 60;
+                    $cells.= wf_TableCell(zb_formatTime($deadSwitchTime));
                     if ($this->ponFlag) {
                         $cells.= wf_TableCell($each['e_pononu']);
                     }

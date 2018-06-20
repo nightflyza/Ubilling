@@ -131,7 +131,7 @@ if ($us_config['OPENPAYZ_ENABLED']) {
                 $this->userLogin = zbs_UserGetLoginByIp($this->userIp);
                 $this->paymentId = zbs_PaymentIDGet($this->userLogin);
             } else {
-                $this->paymentId = ip2long($this->userIp);
+                $this->paymentId = ip2int($this->userIp);
             }
         }
 

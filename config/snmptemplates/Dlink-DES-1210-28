@@ -3,6 +3,8 @@ DEVICE=Dlink-DES-1210-28
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="28"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

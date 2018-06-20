@@ -98,15 +98,20 @@ if ($altcfg['ASKOZIA_ENABLED']) {
      * 
      * @global array $numAliases
      * @param string $number
+     * @param bool $brief
      * 
      * @return string
      */
-    function zb_AskoziaGetNumAlias($number) {
+    function zb_AskoziaGetNumAlias($number, $brief = false) {
         global $numAliases;
 
         if (!empty($numAliases)) {
             if (isset($numAliases[$number])) {
-                return($number . ' - ' . $numAliases[$number]);
+                if ($brief) {
+                    return($numAliases[$number]);
+                } else {
+                    return($number . ' - ' . $numAliases[$number]);
+                }
             } else {
                 return ($number);
             }
@@ -140,6 +145,16 @@ if ($altcfg['ASKOZIA_ENABLED']) {
      * @return void
      */
     function zb_AskoziaParseCallHistory($data) {
+        /**
+         *  D            A
+         * Жизнь дерьмо
+         * F#        G
+         * Возненавидь любя
+         * D           A
+         * Всем смертям назло
+         * F#        G
+         * Убей себя сам
+         */
         global $altcfg;
         $debugFlag = false;
         $answeredFlag = true;
@@ -147,6 +162,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         $prevTimeEnd = '';
         $controlGroups = array();
         $controlStats = array();
+        $providerStats = array();
 
         if (isset($altcfg['ASKOZIA_DEBUG'])) {
             if ($altcfg['ASKOZIA_DEBUG']) {
@@ -220,6 +236,10 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             foreach ($normalData as $io => $each) {
                 //fix parsing for askozia 2.2.8
                 if ($each[0] != 'accountcode') {
+                    //Askozia CFE fix
+                    if (sizeof($each) > 25) {
+                        array_splice($each, 3, 1);
+                    }
                     $callsCounter++;
                     $debugData = wf_tag('pre') . print_r($each, true) . wf_tag('pre', true);
 
@@ -238,14 +258,25 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $sessionTimeStats.=$startTime;
                     $sessionTimeStats.=wf_tag('abbr', true);
                     $callDirection = '';
-                    if ($each[16] == 'outbound') {
+                    if (ispos($each[4], 'SIP-PROVIDER')) {
+                        $providerId = explode('-', $each[4]);
+                        $providerId = $providerId[0] . $providerId[1] . $providerId[2];
+                    } else {
+                        $providerId = '';
+                    }
+
+                    //setting call direction icon
+                    if (ispos($each['16'], 'out')) {
                         $toNumber = $each[2];
                         $callDirection = wf_img('skins/calls/outgoing.png') . ' ';
+                        $directionFlag = 'out';
                     } else {
                         $toNumber = $each[18];
                         $callDirection = wf_img('skins/calls/incoming.png') . ' ';
+                        $directionFlag = 'in';
                     }
 
+                    //showing debug info
                     if ($debugFlag) {
                         $callIdData = wf_modal($callsCounter, $callsCounter, $debugData, '', '500', '600');
                     } else {
@@ -305,6 +336,20 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                         } else {
                             $chartData[$startDate . ' ' . $startHour]['answered'] = 1;
                         }
+
+                        //filling provider stats for answered calls
+                        if (!empty($providerId)) {
+                            if ($directionFlag == 'in') {
+                                if (isset($providerStats[$providerId])) {
+                                    $providerStats[$providerId]['answered'] ++;
+                                    $providerStats[$providerId]['time'] +=$each[13];
+                                } else {
+                                    $providerStats[$providerId]['answered'] = 1;
+                                    $providerStats[$providerId]['unanswered'] = 0;
+                                    $providerStats[$providerId]['time'] = $each[13];
+                                }
+                            }
+                        }
                     }
 
                     if ((ispos($each[14], 'NO ANSWER')) OR ( ispos($each[7], 'VoiceMail'))) {
@@ -322,6 +367,19 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                                         $controlStats[$toNumber]['noanswer'] ++;
                                     } else {
                                         $controlStats[$toNumber]['noanswer'] = 1;
+                                    }
+                                }
+                            }
+
+                            //filling provider stats for not answered calls
+                            if (!empty($providerId)) {
+                                if ($directionFlag == 'in') {
+                                    if (isset($providerStats[$providerId])) {
+                                        $providerStats[$providerId]['unanswered'] ++;
+                                    } else {
+                                        $providerStats[$providerId]['answered'] = 0;
+                                        $providerStats[$providerId]['unanswered'] = 1;
+                                        $providerStats[$providerId]['time'] = 0;
                                     }
                                 }
                             }
@@ -349,7 +407,6 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                     $speekTime = zb_AskoziaFormatTime($speekTimeRaw);
 
                     //current caller stats
-
                     if (isset($callersData[$each[1]])) {
                         $callersData[$each[1]]['calls'] = $callersData[$each[1]]['calls'] + 1;
                         $callersData[$each[1]]['time'] = $callersData[$each[1]]['time'] + $speekTimeRaw;
@@ -435,9 +492,9 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                 $crows = wf_TableRow($ccells, 'row1');
                 foreach ($controlStats as $io => $each) {
                     $ccells = wf_TableCell(zb_AskoziaGetNumAlias($io));
-                    $ccells.= wf_TableCell($each['answered'] + $each['noanswer']);
+                    $ccells.= wf_TableCell(@$each['answered'] + $each['noanswer']);
                     $ccells.= wf_TableCell(zb_AskoziaFormatTime($each['time']));
-                    $ccells.= wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
+                    $ccells.= @wf_TableCell($each['answered'] . ' (' . zb_PercentValue(($each['answered'] + $each['noanswer']), $each['answered']) . '%)');
                     $crows.= wf_TableRow($ccells, 'row3');
                 }
             }
@@ -485,7 +542,26 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             $result.=__('Not working hours') . ': ' . __('Answered') . ' / ' . __('No answer') . ': ' . ($answerCounter - $WorkHoursAnswerCounter) . ' / ' . ($noAnswerCounter - $WorkHoursNoAnswerCounter) . ' (' . zb_PercentValue(($answerCounter - $WorkHoursAnswerCounter) + ($noAnswerCounter - $WorkHoursNoAnswerCounter), ($answerCounter - $WorkHoursAnswerCounter)) . '%)' . wf_tag('br');
             $result.= __('Missing calls because of overlap with the previous by time') . ' (' . __('Working hours') . '): ' . $busycount . wf_tag('br');
             $result.=__('Total calls') . ': ' . $callsCounter;
-
+            //rendering provider stats
+            if (!empty($providerStats)) {
+                $cellsp = wf_TableCell(__('SIP trunk'));
+                $cellsp.= wf_TableCell(__('Answered'));
+                $cellsp.= wf_TableCell(__('No answer'));
+                $cellsp.= wf_TableCell(__('Total calls'));
+                $cellsp.= wf_TableCell(__('Talk time'));
+                $rowsp = wf_TableRow($cellsp, 'row1');
+                foreach ($providerStats as $ioz => $eachz) {
+                    $cellsp = wf_TableCell(zb_AskoziaGetNumAlias($ioz, true));
+                    $cellsp.= wf_TableCell($eachz['answered']);
+                    $cellsp.= wf_TableCell($eachz['unanswered']);
+                    $cellsp.= wf_TableCell($eachz['unanswered'] + $eachz['answered']);
+                    $cellsp.= wf_TableCell(zb_AskoziaFormatTime($eachz['time']));
+                    $rowsp.= wf_TableRow($cellsp, 'row3');
+                }
+                $result.=wf_delimiter();
+                $result.=wf_TableBody($rowsp, '100%', 0, 'sortable');
+                $result.=wf_delimiter();
+            }
 
             if (!empty($controlStats)) {
                 $result.=wf_tag('h3') . __('Contol groups stats') . wf_tag('h3', true);
@@ -753,6 +829,83 @@ if ($altcfg['ASKOZIA_ENABLED']) {
         }
     }
 
+    /**
+     * Renders numlog stats if it exists
+     * 
+     * @return void
+     */
+    function zb_AskoziaRenderNumLog() {
+        global $ubillingConfig;
+        $billCfg = $ubillingConfig->getBilling();
+        $logPath = AskoziaNum::LOG_PATH;
+        $catPath = $billCfg['CAT'];
+        $grepPath = $billCfg['GREP'];
+        $replyOffset = 5;
+        $numberOffset = 2;
+        $loginOffset = 7;
+        $replyCount = 0;
+        $replyStats = array();
+        $replyNames = array(
+            0 => __('Not found'),
+            1 => __('Active'),
+            2 => __('Debt'),
+            3 => __('Frozen')
+        );
+
+        $result = '';
+        if (file_exists($logPath)) {
+            if (!wf_CheckPost(array('numyear', 'nummonth'))) {
+                $curYear = curyear();
+                $curMonth = date("m");
+            } else {
+                $curYear = vf($_POST['numyear'], 3);
+                $curMonth = vf($_POST['nummonth'], 3);
+            }
+            $parseDate = $curYear . '-' . $curMonth;
+
+            $dateInputs = wf_YearSelectorPreset('numyear', __('Year'), false, $curYear) . ' ';
+            $dateInputs.= wf_MonthSelector('nummonth', __('Month'), $curMonth, false) . ' ';
+            $dateInputs.= wf_Submit(__('Show'));
+            $result.=wf_Form('', 'POST', $dateInputs, 'glamour');
+
+            $rawLog = shell_exec($catPath . ' ' . $logPath . ' | ' . $grepPath . ' ' . $parseDate . '-');
+            if (!empty($rawLog)) {
+                $rawLog = explodeRows($rawLog);
+                if (!empty($rawLog)) {
+                    foreach ($rawLog as $io => $each) {
+                        if (!empty($each)) {
+                            $line = explode(' ', $each);
+                            $callReply = $line[$replyOffset];
+                            if (isset($replyStats[$callReply])) {
+                                $replyStats[$callReply] ++;
+                            } else {
+                                $replyStats[$callReply] = 1;
+                            }
+                            $replyCount++;
+                        }
+                    }
+
+                    if (!empty($replyStats)) {
+                        $cells = wf_TableCell(__('Reply'));
+                        $cells.=wf_TableCell(__('Count'));
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($replyStats as $replyCode => $callsCount) {
+                            $cells = wf_TableCell($replyNames[$replyCode]);
+                            $cells.=wf_TableCell($callsCount);
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                        $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                        $result.=__('Total') . ': ' . $replyCount;
+                    }
+                }
+            }
+
+            if (filesize($logPath) > 10) {
+                show_window(__('Stats') . ' AskoziaNum ' . $curYear . '-' . $curMonth, $result);
+            }
+        }
+    }
+
     if (cfr('ASKOZIA')) {
 
 //loading askozia config
@@ -820,6 +973,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
     } else {
         if (!wf_CheckGet(array('config'))) {
             zb_AskoziaGetCurrentStatus();
+            zb_AskoziaRenderNumLog();
         }
     }
 } else {

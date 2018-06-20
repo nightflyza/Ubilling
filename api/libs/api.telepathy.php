@@ -6,13 +6,101 @@
 
 class Telepathy {
 
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
+     * Contains all available user address
+     *
+     * @var array
+     */
     protected $alladdress = array();
+
+    /**
+     * Contains all available users realnames
+     *
+     * @var array
+     */
     protected $allrealnames = array();
+
+    /**
+     * Contains preprocessed users surnames
+     *
+     * @var array
+     */
     protected $allsurnames = array();
+
+    /**
+     * Contains all available user mobiles
+     *
+     * @var array
+     */
+    protected $allMobiles = array();
+
+    /**
+     * Contains all available additional user mobiles
+     *
+     * @var array
+     */
+    protected $allExtMobiles = array();
+
+    /**
+     * Contains all available user phones
+     *
+     * @var array
+     */
+    protected $allPhones = array();
+
+    /**
+     * Case sensitivity flag
+     *
+     * @var bool
+     */
     protected $caseSensitive = false;
+
+    /**
+     * Cached address usage flag
+     *
+     * @var bool
+     */
     protected $cachedAddress = true;
+
+    /**
+     * Use phones caching or not?
+     *
+     * @var bool
+     */
+    protected $cachedPhones = false;
+
+    /**
+     * City display flag
+     *
+     * @var array
+     */
     protected $citiesAddress = false;
-    protected $useraddress = '';
+
+    /**
+     * System caching object placeholder
+     *
+     * @var object
+     */
+    protected $cache = '';
+
+    /**
+     * Contains users previously detected by phone number as number=>login
+     *
+     * @var array
+     */
+    protected $phoneTelepathyCache = array();
+
+    /**
+     * Contains phone data caching time in seconds
+     */
+    const PHONE_CACHE_TIME = 86400;
 
     /**
      * Creates new telepathy instance
@@ -20,13 +108,17 @@ class Telepathy {
      * @param bool $caseSensitive
      * @param bool $cachedAddress
      * @param bool $citiesAddress
+     * @param bool $cachedPhones
      * 
      * @return void
      */
-    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false) {
+    public function __construct($caseSensitive = false, $cachedAddress = true, $citiesAddress = false, $cachedPhones = false) {
         $this->caseSensitive = $caseSensitive;
         $this->cachedAddress = $cachedAddress;
         $this->citiesAddress = $citiesAddress;
+        $this->cachedPhones = $cachedPhones;
+        $this->loadConfig();
+        $this->initCache();
         $this->loadAddress();
 
         if (!$this->caseSensitive) {
@@ -35,6 +127,27 @@ class Telepathy {
         if (!empty($this->alladdress)) {
             $this->alladdress = array_flip($this->alladdress);
         }
+    }
+
+    /**
+     * Loads system alter.ini config into protected property for further usage
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadConfig() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
+    }
+
+    /**
+     * Inits system cache
+     * 
+     * @return void
+     */
+    protected function initCache() {
+        $this->cache = new UbillingCache();
     }
 
     /**
@@ -61,6 +174,98 @@ class Telepathy {
      */
     protected function loadRealnames() {
         $this->allrealnames = zb_UserGetAllRealnames();
+    }
+
+    /**
+     * Normalizes mobile number to +380 format. 
+     * May be not acceptable for countries other than Ukraine.
+     * 
+     * @param string $mobile
+     * 
+     * @return string/void on error
+     */
+    protected function normalizePhoneFormat($mobile) {
+        $mobile = vf($mobile, 3);
+        $len = strlen($mobile);
+//all is ok
+        if ($len != 12) {
+            switch ($len) {
+                case 11:
+                    $mobile = '3' . $mobile;
+                    break;
+                case 10:
+                    $mobile = '38' . $mobile;
+                    break;
+                case 9:
+                    $mobile = '380' . $mobile;
+                    break;
+            }
+        }
+
+        $newLen = strlen($mobile);
+        if ($newLen == 12) {
+            $mobile = '+' . $mobile;
+        } else {
+            $mobile = '';
+        }
+
+
+        return ($mobile);
+    }
+
+    /**
+     * Loads all existing phone data into protected props for further usage
+     * 
+     * @return void
+     */
+    public function usePhones() {
+        //init previously detected phones cache
+        $this->phoneTelepathyCache = $this->cache->get('PHONETELEPATHY', self::PHONE_CACHE_TIME);
+        //loading user phones data
+        if ($this->cachedPhones) {
+            $allPhoneData = $this->cache->get('PHONEDATA', self::PHONE_CACHE_TIME);
+            if (empty($allPhoneData)) {
+                $allPhoneData = zb_UserGetAllPhoneData();
+                $this->cache->set('PHONEDATA', $allPhoneData, self::PHONE_CACHE_TIME);
+            }
+        } else {
+            $allPhoneData = zb_UserGetAllPhoneData();
+        }
+        if (!empty($allPhoneData)) {
+            foreach ($allPhoneData as $login => $each) {
+                $cleanMobile = vf($each['mobile'], 3);
+                if (!empty($cleanMobile)) {
+                    $this->allMobiles[$cleanMobile] = $login;
+                }
+
+                $cleanPhone = vf($each['phone'], 3);
+                if (!empty($cleanPhone)) {
+                    $this->allPhones[$cleanPhone] = $login;
+                }
+            }
+        }
+        //additional mobiles loading if enabled
+        if ($this->altCfg['MOBILES_EXT']) {
+
+            if ($this->cachedPhones) {
+                $allExtTmp = $this->cache->get('EXTMOBILES', self::PHONE_CACHE_TIME);
+                if (empty($allExtTmp)) {
+                    $extMob = new MobilesExt();
+                    $allExtTmp = $extMob->getAllMobilesUsers();
+                    $this->cache->set('EXTMOBILES', $allExtTmp, self::PHONE_CACHE_TIME);
+                }
+            } else {
+                $extMob = new MobilesExt();
+                $allExtTmp = $extMob->getAllMobilesUsers();
+            }
+
+            if (!empty($allExtTmp)) {
+                foreach ($allExtTmp as $eachExtMobile => $login) {
+                    $cleanExtMobile = vf($eachExtMobile, 3);
+                    $this->allExtMobiles[$cleanExtMobile] = $login;
+                }
+            }
+        }
     }
 
     /**
@@ -189,6 +394,95 @@ class Telepathy {
         } else {
             return(false);
         }
+    }
+
+    /**
+     * Get user login by some phone number
+     * 
+     * @param string $phoneNumber
+     * @param bool $onlyMobile
+     * @param bool $normalizeMobile
+     * 
+     * @return string
+     */
+    public function getByPhone($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
+        $result = '';
+        /**
+         * Come with us speeding through the night
+         * As fast as any bird in flight
+         * Silhouettes against the Mother Moon
+         * We will be there
+         */
+        $phoneNumber = ($normalizeMobile) ? $this->normalizePhoneFormat($phoneNumber) : $phoneNumber;
+        if (!empty($phoneNumber)) {
+            if (!$onlyMobile) {
+                if (!empty($this->allPhones)) {
+                    foreach ($this->allPhones as $baseNumber => $userLogin) {
+                        if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                            $result = $userLogin;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($this->allExtMobiles)) {
+                foreach ($this->allExtMobiles as $baseNumber => $userLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                        $result = $userLogin;
+                    }
+                }
+            }
+
+            if (!empty($this->allMobiles)) {
+                foreach ($this->allMobiles as $baseNumber => $userLogin) {
+                    if (ispos((string) $phoneNumber, (string) $baseNumber)) {
+                        $result = $userLogin;
+                        return ($result);
+                    }
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Get user login by some phone number. After all calls you must finalize cache with savePhoneTelepathyCache().
+     * 
+     * @param string $phoneNumber
+     * @param bool $onlyMobile
+     * @param bool $normalizeMobile
+     * 
+     * @return string
+     */
+    public function getByPhoneFast($phoneNumber, $onlyMobile = false, $normalizeMobile = false) {
+        $result = '';
+        if (isset($this->phoneTelepathyCache[$phoneNumber])) {
+            $result = $this->phoneTelepathyCache[$phoneNumber];
+        } else {
+            $detectedLogin = $this->getByPhone($phoneNumber, $onlyMobile, $normalizeMobile);
+            $result=$detectedLogin;
+                $this->phoneTelepathyCache[$phoneNumber] = $detectedLogin;
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves previously detected by phone logins cache
+     * 
+     * @return void
+     */
+    public function savePhoneTelepathyCache() {
+        $this->cache->set('PHONETELEPATHY', $this->phoneTelepathyCache, self::PHONE_CACHE_TIME);
+    }
+    
+    /**
+     * Cleans phone telepathy cache
+     * 
+     * @return void
+     */
+    public function flushPhoneTelepathyCache() {
+        $this->cache->delete('PHONETELEPATHY');
+        
     }
 
 }

@@ -160,6 +160,12 @@ if (cfr('PLDETAILS')) {
          */
         function web_DSShowDayStats($login, $day, $page = 0) {
             $traffclasse_raw = zb_DirectionsGetAll();
+            $resolveFlag = (wf_CheckGet(array('fastresolve'))) ? true : false;
+            if ($resolveFlag) {
+                $cache = new UbillingCache();
+                $cacheTime = 2592000;
+                $cachedData = $cache->get('RESOLVE', $cacheTime);
+            }
             $tc = array();
             if (!empty($traffclasse_raw)) {
                 foreach ($traffclasse_raw as $io => $eachtc) {
@@ -175,6 +181,9 @@ if (cfr('PLDETAILS')) {
             $cells = wf_TableCell(__('Session start'));
             $cells.= wf_TableCell(__('Session end'));
             $cells.= wf_TableCell(__('IP'));
+            if ($resolveFlag) {
+                $cells.= wf_TableCell(__('Host'));
+            }
             $cells.= wf_TableCell(__('Traffic classes'));
             $cells.= wf_TableCell(__('Downloaded') . '/' . __('Uploaded'));
             $cells.= wf_TableCell(__('Cash'));
@@ -182,17 +191,35 @@ if (cfr('PLDETAILS')) {
 
             if (!empty($daystats)) {
                 foreach ($daystats as $io => $eachtraff) {
-
-
                     $cells = wf_TableCell($eachtraff['startTime']);
                     $cells.= wf_TableCell($eachtraff['endTime']);
                     $whoisLink = wf_Link('?module=whois&ip=' . $eachtraff['IP'], wf_img('skins/icon_whois_small.png', __('Whois')));
                     $webLink = wf_Link('http://' . $eachtraff['IP'], $eachtraff['IP']);
                     $cells.= wf_TableCell($whoisLink . ' ' . $webLink);
+                    if ($resolveFlag) {
+                        if (!empty($cachedData)) {
+                            if (isset($cachedData[$eachtraff['IP']])) {
+                                $resolvedHostname = $cachedData[$eachtraff['IP']];
+                            } else {
+                                $resolvedHostname = gethostbyaddr($eachtraff['IP']);
+                                $cachedData[$eachtraff['IP']] = $resolvedHostname;
+                            }
+                        } else {
+                            $resolvedHostname = gethostbyaddr($eachtraff['IP']);
+                            $cachedData[$eachtraff['IP']] = $resolvedHostname;
+                        }
+
+                        $cells.= wf_TableCell($resolvedHostname);
+                    }
                     $cells.= wf_TableCell(@$tc[$eachtraff['dir']]);
                     $cells.= wf_TableCell(stg_convert_size($eachtraff['down']) . ' / ' . stg_convert_size($eachtraff['up']), '', '', 'sorttable_customkey="' . ($eachtraff['down'] + $eachtraff['up']) . '"');
                     $cells.= wf_TableCell(round($eachtraff['cash'], 3));
                     $rows.= wf_TableRow($cells, 'row3');
+                }
+
+                //saving data to cache
+                if ($resolveFlag) {
+                    $cache->set('RESOLVE', $cachedData, $cacheTime);
                 }
             }
 
@@ -208,7 +235,8 @@ if (cfr('PLDETAILS')) {
 
         if (isset($_GET['day'])) {
             $day = $_GET['day'];
-            show_window(__('Detailed stats by day'), web_DSShowDayStats($login, $day));
+            $resolveControl = wf_Link('?module=pl_traffdetails&username=' . $login . '&day=' . $day . '&fastresolve=true', wf_img('skins/icon_whois_small.png', __('Resolve hostnames')));
+            show_window(__('Detailed stats by day') . ' ' . $resolveControl, web_DSShowDayStats($login, $day));
         }
 
         show_window('', web_UserControls($login));

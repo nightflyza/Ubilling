@@ -20,6 +20,13 @@ if ($system->checkForRight('ONLINE')) {
             }
         }
 
+        $hp_mode = $alter_conf['ONLINE_HP_MODE'];
+
+        $ShowContractField = false;
+        if (isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) {
+            $ShowContractField = true;
+        }
+
         //alternate center styling
         $alternateStyle = '';
         if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
@@ -30,8 +37,9 @@ if ($system->checkForRight('ONLINE')) {
 
         if ($alter_conf['DN_ONLINE_DETECT']) {
             $columnFilters = '
-             null,
-                null,
+             null, ' .
+                    ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                    ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -42,8 +50,9 @@ if ($system->checkForRight('ONLINE')) {
             ';
         } else {
             $columnFilters = '
-             null,
-                null,
+             null, ' .
+                    ( ($hp_mode == 1 && $ShowContractField) ? 'null,' : '' ) .
+                    ' null,
                 { "sType": "ip-address" },
                 null,
                 null,
@@ -52,6 +61,7 @@ if ($system->checkForRight('ONLINE')) {
                 null
             ';
         }
+
         $dtcode = '
        		<script type="text/javascript" charset="utf-8">
                 
@@ -173,6 +183,7 @@ if ($system->checkForRight('ONLINE')) {
 	"bDeferRender": true,
         "bJQueryUI": true,
         "pagingType": "full_numbers",
+        "lengthMenu": [[10, 25, 50, 100, 200, -1], [10, 25, 50, 100, 200, "' . __('All') . '"]],
         "bStateSave": ' . $saveState . '
 
                 } );
@@ -193,6 +204,7 @@ if ($system->checkForRight('ONLINE')) {
         $result.= wf_tag('thead', false);
         $result.= wf_tag('tr', false, 'row2');
         $result.= wf_TableCell(__('Full address'));
+        $result.= ( ($hp_mode == 1 && $ShowContractField) ? wf_TableCell(__('Contract')) : '' );
         $result.= wf_TableCell(__('Real Name'));
         $result.= wf_TableCell(__('IP'));
         $result.= wf_TableCell(__('Tariff'));
@@ -211,159 +223,51 @@ if ($system->checkForRight('ONLINE')) {
     }
 
     /**
-     * Renders json data for large databases. Not using json_encode & manual json assembly to minimaze execution time.
-     * 
+     * Renders json data for user list. Manual HTML assebly instead of astral calls - for performance reasons.
+     *
      * @global array $alter_conf
-     * 
-     * @return string
-     */
-    function zb_AjaxOnlineDataSourceFast() {
-        global $alter_conf;
-
-        $query = "SELECT * from `users`";
-        $query_fio = "SELECT * from `realname`";
-        $allusers = simple_queryall($query);
-        $allfioz = simple_queryall($query_fio);
-        $fioz = zb_UserGetAllRealnames();
-        $detect_address = zb_AddressGetFulladdresslistCached();
-        $ucount = 0;
-        $deadUsers = array();
-        $displayFreezeFlag = (@$alter_conf['ONLINE_SHOW_FREEZE']) ? true : false;
-
-        //alternate view of online module
-        $addrDelimiter = '';
-        if (isset($alter_conf['ONLINE_ALTERNATE_VIEW'])) {
-            if ($alter_conf['ONLINE_ALTERNATE_VIEW']) {
-                $addrDelimiter = wf_tag('br');
-            }
-        }
-
-        //hide dead users array
-        if ($alter_conf['DEAD_HIDE']) {
-            if (!empty($alter_conf['DEAD_TAGID'])) {
-                $tagDead = vf($alter_conf['DEAD_TAGID'], 3);
-                $query_dead = "SELECT `login`,`tagid` from `tags` WHERE `tagid`='" . $tagDead . "'";
-                $alldead = simple_queryall($query_dead);
-                if (!empty($alldead)) {
-                    foreach ($alldead as $idead => $eachDead) {
-                        $deadUsers[$eachDead['login']] = $eachDead['tagid'];
-                    }
-                }
-            }
-        }
-
-
-
-
-        $result = '{';
-        $result.='
-       "aaData": [
-  ';
-        if (!empty($allusers)) {
-            $totalusers = sizeof($allusers);
-            foreach ($allusers as $io => $eachuser) {
-                $tinet = 0;
-                $ucount++;
-                $cash = $eachuser['Cash'];
-                $credit = $eachuser['Credit'];
-
-                for ($classcounter = 0; $classcounter <= 9; $classcounter++) {
-                    $dc = 'D' . $classcounter . '';
-                    $uc = 'U' . $classcounter . '';
-                    $tinet = $tinet + ($eachuser[$dc] + $eachuser[$uc]);
-                }
-
-                $act = '<img src=skins/icon_active.gif>' . __('Yes');
-                //finance check
-                if ($cash < '-' . $credit) {
-                    $act = '<img src=skins/icon_inactive.gif>' . __('No');
-                }
-                if ($displayFreezeFlag) {
-                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
-                }
-                //online activity check
-                if ($alter_conf['DN_ONLINE_DETECT']) {
-                    $onlineFlag = '"<img src=skins/icon_nostar.gif> ' . __('No') . '",';
-                    if (file_exists(DATA_PATH . 'dn/' . $eachuser['login'])) {
-                        $onlineFlag = '"<img src=skins/icon_star.gif> ' . __('Yes') . '",';
-                    }
-                } else {
-                    $onlineFlag = '';
-                }
-
-                @$clearuseraddress = $detect_address[$eachuser['login']];
-                $clearuseraddress = trim($clearuseraddress);
-                $clearuseraddress = str_replace("'", '`', $clearuseraddress);
-                $clearuseraddress = mysql_real_escape_string($clearuseraddress);
-
-                //additional finance links
-                if ($alter_conf['FAST_CASH_LINK']) {
-                    $fastcashlink = ' <a href=?module=addcash&username=' . $eachuser['login'] . '#profileending><img src=skins/icon_dollar.gif border=0></a> ';
-                } else {
-                    $fastcashlink = '';
-                }
-
-                if (!$alter_conf['DEAD_HIDE']) {
-                    $result.='
-     [
-     "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress . '",
-     
-         "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
-         "' . $eachuser['IP'] . '",
-         "' . $eachuser['Tariff'] . '",
-         "' . $act . '",
-         ' . $onlineFlag . '    
-         "' . zb_TraffToGb($tinet) . '",
-         "' . round($eachuser['Cash'], 2) . '",
-         "' . round($eachuser['Credit'], 2) . '"
-         ],';
-                } else {
-                    if (!isset($deadUsers[$eachuser['login']])) {
-                        $result.='
-                 [
-                 "<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress . '",
-
-                     "' . @mysql_real_escape_string(trim($fioz[$eachuser['login']])) . '",
-                     "' . $eachuser['IP'] . '",
-                     "' . $eachuser['Tariff'] . '",
-                     "' . $act . '",
-                     ' . $onlineFlag . '   
-                     "' . zb_TraffToGb($tinet) . '",
-                     "' . round($eachuser['Cash'], 2) . '",
-                     "' . round($eachuser['Credit'], 2) . '"
-                     ],';
-                    }
-                }
-            }
-        }
-
-        $result = substr($result, 0, -1);
-
-
-        $result.='
-    
-    ]
-    }
-        ';
-        return($result);
-    }
-
-    /**
-      Мир тебя не полюбил и не полюбит никогда
-      И что бы ты не делал, ведь будет так всегда
-     */
-
-    /**
-     * Renders json data for user list
-     * 
-     * @global array $alter_conf
-     * 
+     *
      * @return string
      */
     function zb_AjaxOnlineDataSourceSafe() {
-
         global $alter_conf;
-        $query = "SELECT * from `users`";
+        $allcontracts = array();
+        $allcontractdates = array();
+
+        $ShowContractField = false;
+        $ShowContractDate = false;
+        if (isset($alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) && $alter_conf['ONLINE_SHOW_CONTRACT_FIELD']) {
+            $ShowContractField = true;
+
+            if (isset($alter_conf['ONLINE_SHOW_CONTRACT_DATE']) && $alter_conf['ONLINE_SHOW_CONTRACT_DATE']) {
+                $ShowContractDate = true;
+            }
+        }
+
+        if ($ShowContractField) {
+            if ($ShowContractDate) {
+                $query = "SELECT `contracts`.*, `contractdates`.`date` AS `contractdate` 
+                                        FROM `contracts`                                     
+                                        LEFT JOIN `contractdates` ON `contractdates`.`contract` = `contracts`.`contract`;   
+                          ";
+            } else {
+                $query = "SELECT * FROM `contracts`;";
+            }
+
+            $tmpContracts = simple_queryall($query);
+
+            if (!empty($tmpContracts)) {
+                foreach ($tmpContracts as $io => $eachcontract) {
+                    $allcontracts[$eachcontract['login']] = $eachcontract['contract'];
+
+                    if ($ShowContractDate) {
+                        $allcontractdates[$eachcontract['login']] = $eachcontract['contractdate'];
+                    }
+                }
+            }
+        }
+
+        $query = "SELECT * FROM `users`";
         $query_fio = "SELECT * from `realname`";
         $allusers = simple_queryall($query);
         $allfioz = simple_queryall($query_fio);
@@ -436,6 +340,11 @@ if ($system->checkForRight('ONLINE')) {
                 if (!$alter_conf['DEAD_HIDE']) {
                     $jsonItem = array();
                     $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $addrDelimiter . $clearuseraddress;
+
+                    if ($ShowContractField) {
+                        $jsonItem[] = @$allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . @$allcontractdates[$eachuser['login']] : '' );
+                    }
+
                     $jsonItem[] = @$fioz[$eachuser['login']];
                     $jsonItem[] = $eachuser['IP'];
                     $jsonItem[] = $eachuser['Tariff'];
@@ -451,6 +360,11 @@ if ($system->checkForRight('ONLINE')) {
                     if (!isset($deadUsers[$eachuser['login']])) {
                         $jsonItem = array();
                         $jsonItem[] = '<a href=?module=traffstats&username=' . $eachuser['login'] . '><img src=skins/icon_stats.gif border=0 title=' . __('Stats') . '></a> <a href=?module=userprofile&username=' . $eachuser['login'] . '><img src=skins/icon_user.gif border=0 title=' . __('Profile') . '></a> ' . $fastcashlink . $clearuseraddress;
+
+                        if ($ShowContractField) {
+                            $jsonItem[] = $allcontracts[$eachuser['login']] . ( ($ShowContractDate) ? wf_tag('br') . $allcontractdates[$eachuser['login']] : '' );
+                        }
+
                         $jsonItem[] = @$fioz[$eachuser['login']];
                         $jsonItem[] = $eachuser['IP'];
                         $jsonItem[] = $eachuser['Tariff'];
@@ -466,6 +380,15 @@ if ($system->checkForRight('ONLINE')) {
                 }
             }
         }
+        /**
+          Prevail, the time has come
+          Crush the enemy, one by one
+          Prevail, like a venomous snake
+          Ready to strike and dominate
+          Prevail, we conquer as one
+          Pound the enemy, 'till it's done
+          Prevail!
+         */
         $result = array("aaData" => $jsonAAData);
         return(json_encode($result));
     }
@@ -483,7 +406,7 @@ if ($system->checkForRight('ONLINE')) {
                 $defaultJsonCacheTime = 600;
                 $onlineJsonCache = new UbillingCache();
                 $fastJsonReply = $onlineJsonCache->getCallback('HPONLINEJSON', function () {
-                    return (zb_AjaxOnlineDataSourceFast());
+                    return (zb_AjaxOnlineDataSourceSafe());
                 }, $defaultJsonCacheTime);
                 die($fastJsonReply);
             }
@@ -496,6 +419,7 @@ if ($system->checkForRight('ONLINE')) {
     } else {
         show_window(__('Users online'), renderUserListContainer());
     }
-} else
+} else {
     show_error(__('Access denied'));
+}
 ?>

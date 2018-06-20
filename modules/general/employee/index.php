@@ -62,7 +62,7 @@ if (cfr('EMPLOYEEDIR')) {
             simple_update_field('employee', 'mobile', $_POST['editmobile'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'telegram', $_POST['edittelegram'], "WHERE `id`='" . $editemployee . "'");
             simple_update_field('employee', 'admlogin', $_POST['editadmlogin'], "WHERE `id`='" . $editemployee . "'");
-            simple_update_field('employee', 'tagid', $_POST['editadtagid'], "WHERE `id`='" . $editemployee . "'");
+            simple_update_field('employee', 'tagid', $_POST['editadtagid'], "WHERE `id`='" . $editemployee . "'", true);
 
             if (wf_CheckPost(array('editactive'))) {
                 simple_update_field('employee', 'active', '1', "WHERE `id`='" . $editemployee . "'");

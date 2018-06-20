@@ -242,7 +242,12 @@ function zbs_LangSelector() {
             $inputs = la_tag('select', false, '', 'name="changelang" onChange="this.form.submit();"');
             $inputs.= la_tag('option', false, '', 'value="-"') . __('Language') . la_tag('option', true);
             foreach ($allangs as $eachlang) {
-                $eachlangid = file_get_contents("languages/" . $eachlang . "/langid.txt");
+                $langIdPath = 'languages/' . $eachlang . '/langid.txt';
+                if (file_exists($langIdPath)) {
+                    $eachlangid = file_get_contents($langIdPath);
+                } else {
+                    $eachlangid = $eachlang;
+                }
                 $inputs.= la_tag('option', false, '', 'value="' . $eachlang . '"') . $eachlangid . la_tag('option', true);
             }
             $inputs.=la_tag('select', true);
@@ -535,7 +540,7 @@ function zbs_UserShowAgentData($login) {
     $result.='email=' . $email . "\n";
     $result.='credit=' . @$userdata['Credit'] . "\n";
     $result.='creditexpire=' . $credexpire . "\n";
-    $result.='payid=' . ip2long($userdata['IP']) . "\n";
+    $result.='payid=' . ip2int($userdata['IP']) . "\n";
     $result.='contract=' . $contract . "\n";
     $result.='tariff=' . $userdata['Tariff'] . "\n";
     $result.='tariffnm=' . $userdata['TariffChange'] . "\n";
@@ -632,7 +637,7 @@ function zbs_UserShowXmlAgentData($login) {
     if ($us_config['OPENPAYZ_REALID']) {
         $paymentid = zbs_PaymentIDGet($login);
     } else {
-        $paymentid = ip2long($userdata['IP']);
+        $paymentid = ip2int($userdata['IP']);
     }
 
     if ($userdata['CreditExpire'] != 0) {
@@ -881,6 +886,7 @@ function zbs_getUserTags($login) {
  * 
  * @param string $login
  * @param string $currency
+ * 
  * @return string
  */
 function zbs_vservicesShow($login, $currency) {
@@ -902,12 +908,18 @@ function zbs_vservicesShow($login, $currency) {
                 $tagnames = zbs_getTagNames(); //tagid => name
 
                 $cells = la_TableCell(__('Service'));
-                $cells.= la_TableCell(__('Price'));
+                $cells.= la_TableCell(__('Terms'));
                 $rows = la_TableRow($cells, 'row1');
 
                 foreach ($userservices as $eachservicetagid => $dbid) {
+
+                    if ($allservices[$eachservicetagid] >= 0) {
+                        $servicePrice = __('Price').' '.@$allservices[$eachservicetagid] . ' ' . $currency;
+                    } else {
+                        $servicePrice = __('Bonus').' '.abs(@$allservices[$eachservicetagid]) . ' ' . $currency;
+                    }
                     $cells = la_TableCell(@$tagnames[$eachservicetagid]);
-                    $cells.= la_TableCell(@$allservices[$eachservicetagid] . ' ' . $currency);
+                    $cells.= la_TableCell($servicePrice);
                     $rows.= la_TableRow($cells, 'row3');
                 }
 
@@ -964,6 +976,7 @@ function zbs_UserShowProfile($login) {
     $phone = zbs_UserGetPhone($login);
     $passive = $userdata['Passive'];
     $down = $userdata['Down'];
+    $userpassword = $userdata['Password'];
     $skinPath = zbs_GetCurrentSkinPath($us_config);
     $iconsPath = $skinPath . 'iconz/';
 
@@ -1006,18 +1019,11 @@ function zbs_UserShowProfile($login) {
         $down_state = '';
     }
 
-    //hiding passwords
-    if ($us_config['PASSWORDSHIDE']) {
-        $userpassword = str_repeat('*', 8);
-    } else {
-        $userpassword = $userdata['Password'];
-    }
-
     //payment id handling
     if ($us_config['OPENPAYZ_REALID']) {
         $paymentid = zbs_PaymentIDGet($login);
     } else {
-        $paymentid = ip2long($userdata['IP']);
+        $paymentid = ip2int($userdata['IP']);
     }
 
     //payment id qr dialog
@@ -1071,16 +1077,19 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell(@$allrealnames[$login]);
     $profile.= la_tag('tr', true);
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Login'), '', 'row1');
-    $profile.= la_TableCell($login);
-    $profile.= la_tag('tr', true);
+    if (!@$us_config['LOGINHIDE']) {
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Login'), '', 'row1');
+        $profile.= la_TableCell($login);
+        $profile.= la_tag('tr', true);
+    }
 
-    $profile.= la_tag('tr');
-    $profile.= la_TableCell(__('Password'), '', 'row1');
-    $profile.= la_TableCell($userpassword);
-    $profile.= la_tag('tr', true);
-
+    if (!@$us_config['PASSWORDSHIDE']) {
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Password'), '', 'row1');
+        $profile.= la_TableCell($userpassword);
+        $profile.= la_tag('tr', true);
+    }
     $profile.= la_tag('tr');
     $profile.= la_TableCell(__('IP'), '', 'row1');
     $profile.= la_TableCell($userdata['IP']);
@@ -1095,6 +1104,14 @@ function zbs_UserShowProfile($login) {
     $profile.= la_TableCell(__('Mobile'), '', 'row1');
     $profile.= la_TableCell($mobile);
     $profile.= la_tag('tr', true);
+
+    if (@$us_config['SHOW_EXT_MOBILES']) {
+        $mobilesExt = new UserstatsMobilesExt($login);
+        $profile.= la_tag('tr');
+        $profile.= la_TableCell(__('Additional mobile'), '', 'row1');
+        $profile.= la_TableCell($mobilesExt->renderUserMobiles());
+        $profile.= la_tag('tr', true);
+    }
 
     $profile.= la_tag('tr');
     $profile.= la_TableCell(__('Email'), '', 'row1');
@@ -1221,6 +1238,7 @@ function zbs_UserTraffStats($login) {
     /*
      * traffic stats by previous months
      */
+    $prevStatsTmp = array();
     $result.=la_tag('h3') . __('Previous month traffic stats') . la_tag('h3', true);
 
 
@@ -1236,8 +1254,12 @@ function zbs_UserTraffStats($login) {
 
     if (!empty($alldirs)) {
         foreach ($alldirs as $io => $eachdir) {
-            $query_prev = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "`,`month`,`year`,`cash` from `stat` WHERE `login`='" . $login . "'  ORDER BY `year`,`month`";
+            $query_prev = "SELECT `D" . $eachdir['rulenumber'] . "`,`U" . $eachdir['rulenumber'] . "`,`month`,`year`,`cash` from `stat` WHERE `login`='" . $login . "' ORDER BY `year`,`month`";
             $allprevmonth = simple_queryall($query_prev);
+            if (!empty($allprevmonth)) {
+                $allprevmonth = array_reverse($allprevmonth);
+            }
+
             if (!empty($allprevmonth)) {
                 foreach ($allprevmonth as $io2 => $eachprevmonth) {
                     $cells = la_TableCell($eachprevmonth['year']);
@@ -1866,6 +1888,20 @@ function zbs_AnnouncementsNotice() {
 function zbs_IntroLoadText() {
     $result = zbs_StorageGet('ZBS_INTRO');
     return ($result);
+}
+
+/**
+ * Loads current freeze days charge data for user
+ *
+ * @param $login
+ *
+ * @return array
+ */
+function zbs_getFreezeDaysChargeData($login) {
+    $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $login . "';";
+    $FrozenAll = simple_queryall($FrozenAllQuery);
+
+    return $FrozenAll;
 }
 
 ?>

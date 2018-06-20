@@ -33,6 +33,57 @@ function sm_MapIsLinked($alllinks, $traceid, $checkid) {
 }
 
 /**
+ * Returns array of switch parent switches with himself
+ * 
+ * @param array $alllinks all switches links
+ * @param int $traceid switch name to trace
+ * 
+ * @return array
+ */
+function zb_SwitchGetParents($alllinks, $traceid) {
+    $road = array();
+    $road[] = $traceid;
+    $x = $traceid;
+
+
+    while (!empty($x)) {
+        foreach ($alllinks as $id => $parentid) {
+            if ($x == $id) {
+                $road[] = $parentid;
+                $x = $parentid;
+            }
+        }
+    }
+
+    $result = $road;
+    return ($result);
+}
+
+/**
+ * Checks is loop possible after setting for switchId something as parent device
+ * 
+ * @param array $alllinks
+ * @param int $switchId
+ * @param int $setParent
+ * 
+ * @return bool
+ */
+function sm_CheckLoop($alllinks, $switchId, $setParent) {
+    $result = false;
+    $tmpArr = array();
+    if (!empty($switchId)) {
+        if (sm_MapIsLinked($alllinks, $setParent, $switchId)) {
+            $result = false;
+        } else {
+            $result = true;
+        }
+    } else {
+        $result = true;
+    }
+    return ($result);
+}
+
+/**
  * Returns full map of switch links
  * 
  * @param int $traceid switch ID to trace uplinks
@@ -306,7 +357,7 @@ function um_MapDrawBuilds() {
         foreach ($allbuilds as $io => $each) {
             $geo = mysql_real_escape_string($each['geo']);
             @$streetname = $streetData[$each['streetid']];
-            $title = wf_Link("?module=builds&action=editbuild&streetid=" . $each['streetid'] . "&buildid=" . $each['id'], $streetname . ' ' . $each['buildnum'], false);
+            $title = wf_Link("?module=builds&action=editbuild&frommaps=true&streetid=" . $each['streetid'] . "&buildid=" . $each['id'], $streetname . ' ' . $each['buildnum'], false);
 
             $content = '';
             $cells = wf_TableCell(__('apt.'));

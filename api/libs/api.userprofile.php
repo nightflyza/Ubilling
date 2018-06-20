@@ -424,7 +424,7 @@ class UserProfile {
         if ($this->alterCfg['OPENPAYZ_REALID']) {
             $this->paymentid = zb_PaymentIDGet($this->login);
         } else {
-            $this->paymentid = ip2long($this->userdata['IP']);
+            $this->paymentid = ip2int($this->userdata['IP']);
         }
     }
 
@@ -447,6 +447,24 @@ class UserProfile {
     }
 
     /**
+     * returns private realname property to external scope
+     *
+     * @return array
+     */
+    public function extractUserRealName() {
+        return ($this->realname);
+    }
+
+    /**
+     * returns private contract property to external scope
+     *
+     * @return array
+     */
+    public function extractUserContract() {
+        return ($this->contract);
+    }
+
+    /**
      * returns prepared main profile body row with two data cells
      * 
      * @param string $header Header cell data that will be displayed left
@@ -455,12 +473,12 @@ class UserProfile {
      * 
      * @return string
      */
-    protected function addRow($header, $data, $highlight = false) {
+    protected function addRow($header, $data, $highlight = false, $cellwidth = self::MAIN_ROW_HEADER_WIDTH) {
         if ($highlight) {
-            $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, self::MAIN_ROW_HEADER_WIDTH, 'row2');
+            $cells = wf_TableCell($this->highlightStart . $header . $this->highlightEnd, $cellwidth, 'row2');
             $cells.= wf_TableCell($this->highlightStart . $data . $this->highlightEnd, '', 'row3');
         } else {
-            $cells = wf_TableCell($header, self::MAIN_ROW_HEADER_WIDTH, 'row2');
+            $cells = wf_TableCell($header, $cellwidth, 'row2');
             $cells.= wf_TableCell($data, '', 'row3');
         }
         $result = wf_TableRow($cells);
@@ -534,9 +552,9 @@ class UserProfile {
      */
     protected function getUserPassword() {
         if ($this->alterCfg['PASSWORDSHIDE']) {
-            $result = __('Hidden');
+            $result = '';
         } else {
-            $result = $this->userdata['Password'];
+            $result = $this->addRow(__('Password'), $this->userdata['Password'], true);
         }
         return ($result);
     }
@@ -972,11 +990,11 @@ class UserProfile {
                                 $userMobile = str_replace($prefix, '', $userMobile);
                                 $userMobile = $prefix . $userMobile;
                             }
-
-                            $sendInputs = wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15');
+                            $sendInputs = '';
+                            $sendInputs.= wf_TextInput('neweasysmsnumber', __('Mobile'), $userMobile, true, '15', 'mobile');
                             $sendInputs.= wf_TextArea('neweasysmstext', '', '', true, '40x5');
                             $sendInputs.= wf_CheckInput('neweasysmstranslit', __('Forced transliteration'), true, true);
-                            $sendInputs.=wf_tag('br');
+                            $sendInputs.= wf_tag('br');
                             $sendInputs.= wf_Submit(__('Send SMS'));
                             $sendingForm = wf_Form('', 'POST', $sendInputs, 'glamour');
 
@@ -1155,6 +1173,7 @@ class UserProfile {
      */
     protected function getUserCpeControls() {
         $result = '';
+
         if ($this->alterCfg['WIFICPE_ENABLED']) {
             $wcpeFlag = true;
             if (isset($this->alterCfg['WIFICPE_TARIFFMASK'])) {
@@ -1168,6 +1187,82 @@ class UserProfile {
             if ($wcpeFlag) {
                 $wcpe = new WifiCPE();
                 $result.=$wcpe->renderCpeUserControls($this->login, $this->AllUserData);
+            }
+        }
+
+        return ($result);
+    }
+
+    /**
+     * Renders additional user mobile numbers
+     * 
+     * @return string
+     */
+    protected function getMobilesExtControl() {
+        $result = '';
+        if (isset($this->alterCfg['MOBILES_EXT'])) {
+            if ($this->alterCfg['MOBILES_EXT']) {
+                $extMob = new MobilesExt();
+                $allExtRaw = $extMob->getUserMobiles($this->login);
+                $allExt = array();
+                if (!empty($allExtRaw)) {
+                    foreach ($allExtRaw as $io => $each) {
+                        $allExt[] = $each['mobile'];
+                    }
+                }
+
+                if (!empty($allExt)) {
+                    $additionalNumbers = implode(', ', $allExt);
+                } else {
+                    $additionalNumbers = '';
+                }
+                $fastLinkControl = (cfr('MOBILE')) ? wf_Link('?module=mobileedit&username=' . $this->login, wf_img_sized('skins/add_icon.png', __('Add new'), '10', '10'), false) : '';
+                $result.=$this->addRow(__('Additional mobile') . ' ' . $fastLinkControl, $additionalNumbers);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns cached user districts list row
+     * 
+     * @return string
+     */
+    protected function getDistrictControls() {
+        $result = '';
+        if ((isset($this->alterCfg['DISTRICTS_ENABLED'])) AND ( $this->alterCfg['DISTRICTS_ENABLED'])) {
+            if ((isset($this->alterCfg['DISRTICTS_IN_PROFILE'])) AND ( $this->alterCfg['DISRTICTS_IN_PROFILE'])) {
+                $districts = new Districts(false);
+                $result.=$this->addRow(__('Districts'), $districts->getUserDistrictsListFast($this->login), false);
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns user contracts row
+     * 
+     * @return string
+     */
+    protected function getContractControls() {
+        if (isset($this->alterCfg['CONTRACT_PROFILE_HIDE']) AND $this->alterCfg['CONTRACT_PROFILE_HIDE']) {
+            $result = '';
+        } else {
+            $result = $this->addRow(__('Contract'), $this->contract, false);
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns FreeMb profile row
+     * 
+     * @return string
+     */
+    protected function getFreeMbControls() {
+        $result = '';
+        if (isset($this->alterCfg['FREEMB_IN_PROFILE'])) {
+            if ($this->alterCfg['FREEMB_IN_PROFILE']) {
+                $result = $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
             }
         }
         return ($result);
@@ -1203,7 +1298,6 @@ class UserProfile {
         $profile.= wf_tag('table', false, '', self::MAIN_TABLE_STYLE); //main profile data
         $profile.= wf_tag('tbody', false);
 
-
 //address row and controls
         if (!$this->alterCfg['CITY_DISPLAY']) {
             $renderAddress = $this->AllUserData[$this->login]['cityname'] . ' ' . $this->useraddress;
@@ -1213,10 +1307,12 @@ class UserProfile {
         $profile.= $this->addRow(__('Full address') . $this->getTaskCreateControl(), $renderAddress . $this->getBuildControls());
 //apt data like floor and entrance row
         $profile.= $this->addRow(__('Entrance') . ', ' . __('Floor'), @$this->aptdata['entrance'] . ' ' . @$this->aptdata['floor']);
+//user districts row
+        $profile.=$this->getDistrictControls();
 //realname row
         $profile.= $this->addRow(__('Real name') . $this->getPhotostorageControls() . $this->getPassportDataControl(), $this->realname, true);
 //contract row
-        $profile.= $this->addRow(__('Contract'), $this->contract, false);
+        $profile.= $this->getContractControls();
 //contract date row
         $profile.= $this->getContractDate();
 //assigned agents row
@@ -1229,6 +1325,8 @@ class UserProfile {
         $profile.= $this->addRow(__('Phone'), $this->phone);
 //and mobile data rows
         $profile.= $this->addRow(__('Mobile') . $this->getMobileControls(), $this->mobile);
+//additional mobile data
+        $profile.= $this->getMobilesExtControl();
 //Email data row
         $profile.= $this->addRow(__('Email'), $this->mail);
 //payment ID data
@@ -1238,7 +1336,7 @@ class UserProfile {
 //login row
         $profile.= $this->addRow(__('Login'), $this->userdata['login'], true);
 //password row
-        $profile.= $this->addRow(__('Password'), $this->getUserPassword(), true);
+        $profile.= $this->getUserPassword();
 //User IP data and extended networks controls if available
         $profile.= $this->addRow(__('IP'), $this->userdata['IP'] . $this->getExtNetsControls(), true);
 //MAC address row
@@ -1260,7 +1358,7 @@ class UserProfile {
 //credit expire row
         $profile.= $this->addRow(__('Credit expire'), $this->getUserCreditExpire());
 //Prepayed traffic
-        $profile.= $this->addRow(__('Prepayed traffic'), $this->userdata['FreeMb']);
+        $profile.= $this->getFreeMbControls();
 //finance activity row
         $profile.=$this->addRow(__('Active') . $this->getCemeteryControls(), $activity);
 //DN online detection row
@@ -1270,7 +1368,29 @@ class UserProfile {
 //Detail stats flag row
         $profile.=$this->addRow(__('Disable detailed stats'), web_trigger($this->userdata['DisabledDetailStat']));
 //Frozen aka passive flag row
-        $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']), true);
+        //passive time detection
+        $passiveTimeLabel = '';
+        if ($this->userdata['Passive']) {
+            $passiveTimeLabel = ($this->userdata['PassiveTime']) ? ' (' . zb_formatTime($this->userdata['PassiveTime']) . ')' : '';
+        }
+        $profile.=$this->addRow(__('Freezed'), $passiveicon . web_trigger($this->userdata['Passive']) . $passiveTimeLabel, true);
+
+        if (isset($this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) && $this->alterCfg['FREEZE_DAYS_CHARGE_ENABLED']) {
+            $FrozenAllQuery = "SELECT * FROM `frozen_charge_days` WHERE `login` = '" . $this->userdata['login'] . "';";
+            $FrozenAll = simple_queryall($FrozenAllQuery);
+
+            if (!empty($FrozenAll)) {
+                foreach ($FrozenAll as $usr => $usrlogin) {
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days total amount'), $usrlogin['freeze_days_amount'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days used'), $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Freeze days available'), $usrlogin['freeze_days_amount'] - $usrlogin['freeze_days_used'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays amount to restore freeze days'), $usrlogin['work_days_restore'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Days worked after freeze days used up'), $usrlogin['days_worked'], false, '50%');
+                    $profile .= $this->addRow("&nbsp&nbsp&nbsp&nbsp" . __('Workdays left to restore'), $usrlogin['work_days_restore'] - $usrlogin['days_worked'], false, '50%');
+                }
+            }
+        }
+
 //Disable aka Down flag row
         $profile.=$this->addRow(__('Disabled'), $downicon . web_trigger($this->userdata['Down']), true);
 //Deal with it available tasks notification
@@ -1279,7 +1399,6 @@ class UserProfile {
         $profile.= $this->getUserConnectionDetails();
 //User notes row
         $profile.=$this->addRow(__('Notes'), zb_UserGetNotes($this->login) . $this->getAdcommentsIndicator());
-
 
         $profile.= wf_tag('tbody', true);
         $profile.= wf_tag('table', true);
@@ -1318,7 +1437,6 @@ class UserProfile {
 
 //Profile ending anchor for addcash links scroll
         $profile.= wf_tag('a', false, '', 'id="profileending"') . wf_tag('a', true);
-
 
         return($profile);
     }

@@ -8,6 +8,11 @@ if ($altCfg['SENDDOG_ENABLED']) {
         $messagesQueue = new MessagesQueue();
         show_window('', $messagesQueue->renderPanel());
 
+        //rendering json data with queue list
+        if (wf_CheckGet(array('ajaxsms'))) {
+            $messagesQueue->renderSMSAjaxQueue();
+        }
+
         //SMS messages queue management
         if (!wf_CheckGet(array('showqueue'))) {
             if (wf_CheckPost(array('newsmsnumber', 'newsmsmessage'))) {
@@ -18,7 +23,7 @@ if ($altCfg['SENDDOG_ENABLED']) {
                     show_error($smsSendResult);
                 }
             }
-
+            //deleting SMS from queue
             if (wf_CheckGet(array('deletesms'))) {
                 $deletionResult = $messagesQueue->deleteSms($_GET['deletesms']);
                 if ($deletionResult == 0) {
@@ -37,9 +42,16 @@ if ($altCfg['SENDDOG_ENABLED']) {
                 }
             }
 
+
             //render sms queue
             show_window(__('SMS in queue') . ' ' . $messagesQueue->smsCreateForm(), $messagesQueue->renderSmsQueue());
         } else {
+            //rendering email queue json
+            if (wf_CheckGet(array('ajaxmail'))) {
+                $messagesQueue->renderEmailAjaxQueue();
+            }
+
+            //creating new email in queue
             if ($_GET['showqueue'] == 'email') {
                 if (wf_CheckPost(array('newemailaddress', 'newemailmessage'))) {
                     $emailSendResult = $messagesQueue->createEmail($_POST['newemailaddress'], $_POST['newemailsubj'], $_POST['newemailmessage']);
@@ -50,6 +62,7 @@ if ($altCfg['SENDDOG_ENABLED']) {
                     }
                 }
 
+                //delete some email from queue
                 if (wf_CheckGet(array('deleteemail'))) {
                     $deletionResult = $messagesQueue->deleteEmail($_GET['deleteemail']);
                     if ($deletionResult == 0) {
@@ -71,6 +84,12 @@ if ($altCfg['SENDDOG_ENABLED']) {
             }
 
             if ($_GET['showqueue'] == 'telegram') {
+                //rendering telegram queue json data
+                if (wf_CheckGet(array('ajaxtelegram'))) {
+                    $messagesQueue->renderTelegramAjaxQueue();
+                }
+
+                //creating new telegram message in queue
                 if (wf_CheckPost(array('newtelegramchatid'))) {
                     $telegramSendResult = $messagesQueue->createTelegram($_POST['newtelegramchatid'], $_POST['newtelegrammessage']);
                     if (empty($telegramSendResult)) {
@@ -80,6 +99,7 @@ if ($altCfg['SENDDOG_ENABLED']) {
                     }
                 }
 
+                //delete some telegram message from queue
                 if (wf_CheckGet(array('deletetelegram'))) {
                     $deletionResult = $messagesQueue->deleteTelegram($_GET['deletetelegram']);
                     if ($deletionResult == 0) {

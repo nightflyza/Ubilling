@@ -255,6 +255,17 @@ function web_icon_freeradius($title = NULL) {
 }
 
 /**
+ * Returns default dollar icon
+ * 
+ * @param string $title
+ * @return string
+ */
+function web_cash_icon($title = 'Cash') {
+    $icon = wf_img('skins/icon_dollar.gif', __($title));
+    return $icon;
+}
+
+/**
  * Returns boolean led indicator
  * 
  * @param bool/string $flag

@@ -39,6 +39,7 @@ if (cfr('CASH')) {
         $user_data = $profile->extractUserData();
         $current_balance = $user_data['Cash'];
         $useraddress = $profile->extractUserAddress() . ' (' . $login . ')';
+        $userrealname = $profile->extractUserRealName() . ' (' . $profile->extractUserContract() . ')';
 
         // Edit money form construct:
         $user_tariff = $user_data['Tariff'];
@@ -48,7 +49,7 @@ if (cfr('CASH')) {
 
         $form = '';
         $form.= wf_FormDisabler();
-        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price);
+        $form .= web_EditorCashDataForm($fieldnames, $fieldkey, $useraddress, $current_balance, $tariff_price, $userrealname);
         
 
 
@@ -94,11 +95,24 @@ if (cfr('CASH')) {
         }
 
         //payments date editing
-        if (wf_CheckPost(array('editpaymentid', 'newpaymentdate', 'oldpaymentdate', 'oldpaymenttime'))) {
+        if (wf_CheckPost(array('editpaymentid', 'newpaymentdate', 'cashtype', 'paymentdata'))) {
             $editPaymentId = vf($_POST['editpaymentid'], 3);
             $newPaymentDate = $_POST['newpaymentdate'];
-            $oldPaymentDate = $_POST['oldpaymentdate'];
-            $oldPaymentTime = $_POST['oldpaymenttime'];
+            $cachTypeId = vf($_POST['cashtype'], 3);
+            $PaymentNote = trim(@$_POST['paymentnote']);
+
+            $paymentDataBase = $_POST['paymentdata'];
+            $paymentData = base64_decode($paymentDataBase);
+            $paymentData = unserialize($paymentData);
+
+            $PaymentTimestamp = strtotime($paymentData['date']);
+            $oldPaymentDate = date("Y-m-d", $PaymentTimestamp);
+            $oldPaymentTime = date("H:i:s", $PaymentTimestamp);
+
+            $oldPaymentCacheTypeID = $paymentData['cashtypeid'];
+
+            $oldPaymentNote = $paymentData['note'];
+
             $newPaymentDateTime = $newPaymentDate . ' ' . $oldPaymentTime;
             $editingAdmins = array();
             $iCanEditPayments = false;
@@ -112,13 +126,31 @@ if (cfr('CASH')) {
             $iCanEditPayments = (isset($editingAdmins[$currentAdminLogin])) ? true : false;
             //right check
             if ($iCanEditPayments) {
-                if (zb_checkDate($newPaymentDate)) {
-                    simple_update_field('payments', 'date', $newPaymentDateTime, "WHERE `id`='" . $editPaymentId . "'");
-                    log_register("PAYMENT EDIT DATE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentDate . "` ON `" . $newPaymentDate . "`");
-                    rcms_redirect('?module=addcash&username=' . $login);
-                } else {
-                    show_error(__('Wrong date format'));
-                    log_register("PAYMENT EDIT DATE FAIL [" . $editPaymentId . "] (" . $login . ")");
+                // Check what need update
+                if ($newPaymentDate != $oldPaymentDate) {
+                    if (zb_checkDate($newPaymentDate)) {
+                        simple_update_field('payments', 'date', $newPaymentDateTime, "WHERE `id`='" . $editPaymentId . "'");
+                        log_register("PAYMENT EDIT DATE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentDate . "` ON `" . $newPaymentDate . "`");
+                        rcms_redirect('?module=addcash&username=' . $login);
+                    } else {
+                        show_error(__('Wrong date format'));
+                        log_register("PAYMENT EDIT DATE FAIL [" . $editPaymentId . "] (" . $login . ")");
+                    }
+                }
+                if ($cachTypeId != $oldPaymentCacheTypeID) {
+                    if ($cachTypeId) {
+                        simple_update_field('payments', 'cashtypeid', $cachTypeId, "WHERE `id`='" . $editPaymentId . "'");
+                        log_register("PAYMENT EDIT CACHTYPEID [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentCacheTypeID . "` ON `" . $cachTypeId . "`");
+                        rcms_redirect('?module=addcash&username=' . $login);
+                    } else {
+                        show_error(__('Something went wrong'));
+                        log_register("PAYMENT EDIT CACHTYPEID FAIL [" . $editPaymentId . "] (" . $login . ")");
+                    }
+                }
+                if ($PaymentNote != $oldPaymentNote) {
+                        simple_update_field('payments', 'note', $PaymentNote, "WHERE `id`='" . $editPaymentId . "'");
+                        log_register("PAYMENT EDIT NOTE [" . $editPaymentId . "] (" . $login . ") FROM `" . $oldPaymentNote . "` ON `" . $PaymentNote . "`");
+                        rcms_redirect('?module=addcash&username=' . $login);
                 }
             } else {
                 log_register("PAYMENT UNAUTH EDITING ATTEMPT [" . $editPaymentId . "] (" . $login . ")");

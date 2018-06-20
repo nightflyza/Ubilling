@@ -62,13 +62,13 @@ if (!empty($_POST['logout_form'])) {
 //additional get-request user auto logout sub
 if (!empty($_GET['idleTimerAutoLogout'])) {
     $system->logOutUser();
-    rcms_redirect('index.php');
+    rcms_redirect('index.php', true);
 }
 
 //normal get-request user logout
 if (!empty($_GET['forceLogout'])) {
     $system->logOutUser();
-    rcms_redirect('index.php');
+    rcms_redirect('index.php', true);
 }
 
 define('LOGGED_IN', $system->logged_in);

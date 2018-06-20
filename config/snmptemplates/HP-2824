@@ -4,6 +4,8 @@ DEVICE=HP-2824
 FDB=true
 FDB_MODE=default
 FDB_IGNORE_PORTS="21,22,23,24"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

@@ -27,6 +27,9 @@ if (cfr('SENDDOG')) {
                 case 'redsmsbalance':
                     show_window(__('RED-SMS') . ' ' . __('Balance'), $sendDog->renderRedsmsBalance());
                     break;
+                case 'smspilotbalance':
+                    show_window(__('SMSPILOT') . ' ' . __('Balance'), $sendDog->renderSMSPILOTBalance());
+                    break;
                 case 'telegramcontacts':
                     show_window(__('Telegram bot contacts'), $sendDog->renderTelegramContacts());
                     break;

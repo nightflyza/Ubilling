@@ -1,64 +1,5 @@
 <?php
 
-// replace for content output
-if (!function_exists('show_window')) {
-
-    function show_window($title, $data, $align = "left") {
-        $result = '
-        <table width="100%" border="0" id="window">
-        <tr>
-            <td align="center">
-            <b>' . $title . '</b>
-            </td>
-        </tr>
-        <tr>
-            <td align="' . $align . '">
-            ' . $data . '
-            </td>
-        </tr>
-        </table>
-        ';
-        print($result);
-    }
-
-}
-
-//show error
-if (!function_exists('show_error')) {
-
-    function show_error($data) {
-        show_window('Error', $data);
-    }
-
-}
-
-
-/**
- * Fast debug output
- * 
- * @param string $data
- * 
- * @return void
- */
-function deb($data) {
-    show_window('DEBUG', $data);
-}
-
-
-/**
- * Fast debug output of array
- * 
- * @param array $data
- * 
- * @return void
- */
-
-function debarr($data) {
-    $result = print_r($data, true);
-    $result = '<pre>' . $result . '</pre>';
-    show_window('DEBUG', $result);
-}
-
 /**
  * Returns current date and time in mysql DATETIME view Y-m-d H:i:s
  * 
@@ -99,22 +40,101 @@ function curyear() {
     return($currentyear);
 }
 
-//dummy lang function
 if (!function_exists('__')) {
 
+    /**
+     * Dummy i18n function. Yep in this case it returns the same string.
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
     function __($str) {
         return($str);
     }
 
 }
 
+if (!function_exists('show_window')) {
+
+    /**
+     * Dummy replacement function for content output
+     * 
+     * @param string $title
+     * @param sting $data
+     * @param string $align
+     * 
+     * @return void
+     */
+    function show_window($title, $data, $align = "left") {
+        $result = '
+        <table width="100%" border="0" id="window">
+        <tr>
+            <td align="center">
+            <b>' . $title . '</b>
+            </td>
+        </tr>
+        <tr>
+            <td align="' . $align . '">
+            ' . $data . '
+            </td>
+        </tr>
+        </table>
+        ';
+        print($result);
+    }
+
+}
+
+if (!function_exists('show_error')) {
+
+    /**
+     * Dummy replacement for error notices
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    function show_error($data) {
+        show_window('Error', $data);
+    }
+
+}
+
 /**
- * Shows redirection javascript. 
+ * Fast debug output
  * 
- * @param string $url
+ * @param string $data
+ * 
+ * @return void
  */
+function deb($data) {
+    show_window('DEBUG', $data);
+}
+
+/**
+ * Fast debug output of array
+ * 
+ * @param array $data
+ * 
+ * @return void
+ */
+function debarr($data) {
+    $result = print_r($data, true);
+    $result = '<pre>' . $result . '</pre>';
+    show_window('DEBUG', $result);
+}
+
 if (!function_exists('rcms_redirect')) {
 
+    /**
+     * Dummy redirect function
+     * 
+     * @param string $url
+     * @param bool $header
+     * 
+     * @return void
+     */
     function rcms_redirect($url, $header = false) {
         if ($header) {
             @header('Location: ' . $url);
@@ -124,6 +144,4 @@ if (!function_exists('rcms_redirect')) {
     }
 
 }
-
-
 ?>

@@ -131,6 +131,7 @@ class UbillingBranches {
     const URL_ME = '?module=branches';
     const URL_USERPROFILE = '?module=userprofile&username=';
     const URL_TRAFFSTATS = '?module=traffstats&username=';
+    const URL_ADDCASH = '?module=addcash&username=';
     const EX_NO_BRANCH = 'EX_BRANCHID_NOT_EXISTS';
     const EX_NO_NAME = 'EX_EMPTY_BRANCH_NAME';
     const EX_NO_USER = 'EX_EMPTY_LOGIN';
@@ -906,6 +907,21 @@ class UbillingBranches {
     }
 
     /**
+     * Returns array of available branches as branchid=>branchname
+     * 
+     * @return array
+     */
+    public function getBranchesAvailable() {
+        $result = array();
+        if (!empty($this->branches)) {
+            foreach ($this->branches as $io => $each) {
+                $result[$each['id']] = $each['name'];
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Builds and renders users list JSON data
      * 
      * @return void
@@ -921,7 +937,10 @@ class UbillingBranches {
                 if ($this->isMyUser($login)) {
                     if (isset($allUserData[$login])) {
                         $userLinks = wf_Link(self::URL_TRAFFSTATS . $login, web_stats_icon()) . ' ';
-                        $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon());
+                        $userLinks.=wf_Link(self::URL_USERPROFILE . $login, web_profile_icon()) . ' ';
+                        if ($this->altCfg['FAST_CASH_LINK']) {
+                            $userLinks.=wf_Link(self::URL_ADDCASH . $login . '#profileending', web_cash_icon()) . ' ';
+                        }
                         @$userAddress = $allAddress[$login];
                         @$userRealName = $allRealNames[$login];
                         $activeFlag = ($allUserData[$login]['Cash'] >= -$allUserData[$login]['Credit']) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');

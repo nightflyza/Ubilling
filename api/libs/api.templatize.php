@@ -103,6 +103,16 @@ function zb_TemplateGetAllUserData() {
     $allnasdata = zb_NasGetAllData();
     $allcfdata = cf_FieldsGetAll();
     $allpdata = zb_UserPassportDataGetAll();
+    $phoneDataRaw = zb_UserGetAllPhoneData();
+    $allMobileData = array();
+    $allPhoneData = array();
+    if (!empty($phoneDataRaw)) {
+        foreach ($phoneDataRaw as $io => $each) {
+            $allMobileData[$io] = $each['mobile'];
+            $allPhoneData[$io] = $each['phone'];
+        }
+    }
+
 
     if ($altcfg['OPENPAYZ_REALID']) {
         $allopcustomers = zb_TemplateGetAllOPCustomers();
@@ -124,11 +134,14 @@ function zb_TemplateGetAllUserData() {
             @$userdata[$eachuser['login']]['realname'] = $allrealnames[$eachuser['login']];
             @$userdata[$eachuser['login']]['address'] = $alladdress[$eachuser['login']];
             @$userdata[$eachuser['login']]['email'] = $allemails[$eachuser['login']];
+            @$userdata[$eachuser['login']]['mobile'] = $allMobileData[$eachuser['login']];
+            @$userdata[$eachuser['login']]['phone'] = $allPhoneData[$eachuser['login']];
+
             //openpayz payment ID
             if ($altcfg['OPENPAYZ_REALID']) {
                 @$userdata[$eachuser['login']]['payid'] = $allopcustomers[$eachuser['login']];
             } else {
-                @$userdata[$eachuser['login']]['payid'] = ip2long($eachuser['IP']);
+                @$userdata[$eachuser['login']]['payid'] = ip2int($eachuser['IP']);
             }
             //traffic params
             $userdata[$eachuser['login']]['traffic'] = $eachuser['D0'] + $eachuser['U0'];
@@ -272,6 +285,8 @@ function zb_TemplateReplace($login, $template, $alluserdata) {
         $result = str_ireplace('{REALNAME}', $alluserdata[$login]['realname'], $result);
         $result = str_ireplace('{ADDRESS}', $alluserdata[$login]['address'], $result);
         $result = str_ireplace('{EMAIL}', $alluserdata[$login]['email'], $result);
+        $result = str_ireplace('{MOBILE}', $alluserdata[$login]['mobile'], $result);
+        $result = str_ireplace('{PHONE}', $alluserdata[$login]['phone'], $result);
         $result = str_ireplace('{PAYID}', $alluserdata[$login]['payid'], $result);
         $result = str_ireplace('{TRAFFIC}', $alluserdata[$login]['traffic'], $result);
         $result = str_ireplace('{TRAFFICDOWN}', $alluserdata[$login]['trafficdown'], $result);

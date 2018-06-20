@@ -289,8 +289,10 @@ div.dhtml_menu div.vert_menu a.active:hover
 }
 
 .ubButton:active {
-    position:relative;
-    top:1px;
+    /* commented due android FF issues */
+    /* position:relative;  
+    top:1px; */
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .ubButton:visited {
@@ -785,3 +787,57 @@ div.dhtml_menu div.vert_menu a.active:hover
     background-color: #ee1515;
     color: #fafafa;
 }
+
+.spoiler {
+    border: 1px solid #9BA0AF;
+    width: 98%;
+    margin: 15px auto;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #ffffff;
+}
+
+.spoiler_title {
+    background: #F1F1F4 url(../images/secondary_bar.png) repeat-x;
+    -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px; -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px; border-top-right-radius: 5px;
+    cursor: pointer;
+}
+
+.spoiler_title h3 {
+    color: #1F1F20 !important;
+    font-size: 13px !important;
+    margin: 0 20px !important;
+    float: left;
+}
+
+.spoiler_link, .spoiler_link:hover {
+    color: #000 !important;
+    font-size: 13px;
+    text-decoration: none;
+    margin-right: 1%;
+    margin-top: 8px;
+    margin-bottom: 11px;
+    text-align: right;
+    width: 100%;
+    float: right;
+}
+
+.clearfix::after {
+    content: " ";
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+.image_rotate {
+    -webkit-animation:spin 2s linear infinite;
+    -moz-animation:spin 2s linear infinite;
+    animation:spin 2s linear infinite;
+}
+
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }

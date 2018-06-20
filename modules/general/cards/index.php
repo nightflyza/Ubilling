@@ -7,8 +7,7 @@ if (cfr('CARDS')) {
 
         if (isset($_POST['card_create'])) {
             $cards = zb_CardGenerate($_POST['card_create']);
-            $generated = '<textarea cols="80" rows="20">' . $cards . '</textarea>';
-            show_window(__('Cards generated'), $generated);
+            show_window('', wf_modalOpened(__('Cards generated'), $cards, '500', '600'));
         }
 
         //cards print

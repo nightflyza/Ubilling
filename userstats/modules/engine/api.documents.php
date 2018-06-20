@@ -206,7 +206,7 @@ class UsProfileDocuments {
             if ($this->altcfg['OPENPAYZ_REALID']) {
                 @$userdata[$alluserdata['login']]['PAYID'] = $allopcustomer;
             } else {
-                @$userdata[$alluserdata['login']]['PAYID'] = ip2long($alluserdata['IP']);
+                @$userdata[$alluserdata['login']]['PAYID'] = ip2int($alluserdata['IP']);
             }
             //traffic params
             $userdata[$alluserdata['login']]['TRAFFIC'] = $alluserdata['D0'] + $alluserdata['U0'];
@@ -234,6 +234,19 @@ class UsProfileDocuments {
      */
     public function getTemplates() {
         return ($this->templates);
+    }
+
+    /**
+     * Returns list of public document templates
+     * 
+     * @return int
+     */
+    public function getPublicTemplatesCount() {
+        $result = 0;
+        if (!empty($this->templates)) {
+            $result = sizeof($this->templates);
+        }
+        return ($result);
     }
 
     /**

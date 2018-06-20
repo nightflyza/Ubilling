@@ -913,9 +913,12 @@ class MegogoInterface {
                 $userLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . @$allAddress[$each['login']], false);
                 $userLink = $this->jqDtFilter($userLink);
                 @$userRealName = $this->jqDtFilter($allRealNames[$each['login']]);
-                $actFlag = $this->jqDtFilter(web_bool_led($each['active'], false));
-                $primFlag = $this->jqDtFilter(web_bool_led($each['primary'], false));
-                $freeperiodFlag = $this->jqDtFilter(web_bool_led($each['freeperiod'], false));
+                $actFlag = ($each['active']) ? web_bool_led(true, false) . ' ' . __('Yes') : web_bool_led(false, false) . ' ' . __('No');
+                $actFlag = $this->jqDtFilter($actFlag);
+                $primFlag = ($each['primary']) ? web_bool_led(true, false) . ' ' . __('Yes') : web_bool_led(false, false) . ' ' . __('No');
+                $primFlag = $this->jqDtFilter($primFlag);
+                $freeperiodFlag = ($each['freeperiod']) ? web_bool_led(true, false) . ' ' . __('Yes') : web_bool_led(false, false) . ' ' . __('No');
+                $freeperiodFlag = $this->jqDtFilter($freeperiodFlag);
                 $actLinks = wf_Link(self::URL_ME . '&' . self::URL_SUBVIEW . '&subid=' . $each['id'], wf_img('skins/icon_edit.gif'));
                 $actLinks = $this->jqDtFilter($actLinks);
                 @$userCash = $this->jqDtFilter($allBalance[$each['login']]);

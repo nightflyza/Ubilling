@@ -171,7 +171,7 @@ function sp_parse_cable_tester($ip, $community, $currentTemplate) {
                 }
                 $cells.= wf_TableCell($cells_data);
                 $rows = wf_TableRow($cells, 'row3');
-                $result .= wf_TableBody($rows, '100%', 0, '');
+                $result.= wf_TableBody($rows, '100%', 0, '');
             }
         }
         return ($result);
@@ -581,6 +581,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
         if (!empty($currentTemplate)) {
             $deviceDescription = $currentTemplate['define']['DEVICE'];
             $deviceFdb = $currentTemplate['define']['FDB'];
+            $deviceMAC = (isset($currentTemplate['define']['MAC'])) ? $currentTemplate['define']['MAC'] : 'false';
             $sectionResult = '';
             $sectionName = '';
             $finalResult = '';
@@ -593,6 +594,13 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                 $deviceFdbMode = $currentTemplate['define']['FDB_MODE'];
             } else {
                 $deviceFdbMode = 'default';
+            }
+
+            //selecting Device MAC processing mode
+            if (isset($currentTemplate['define']['MAC_MODE'])) {
+                $deviceMACMode = $currentTemplate['define']['MAC_MODE'];
+            } else {
+                $deviceMACMode = 'default';
             }
 
             //selecting FDB ignored port for skipping MAC-s on it
@@ -662,15 +670,15 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
 
                     if (!$quiet) {
                         if (!empty($sectionResult)) {
-                            $finalResult.=wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
-                            $finalResult.=$sectionResult . wf_tag('div', true);
+                            $finalResult.= wf_tag('div', false, 'dashtask', '') . wf_tag('strong') . __($sectionName) . wf_tag('strong', true) . '<br>';
+                            $finalResult.= $sectionResult . wf_tag('div', true);
                         }
                     }
                 }
             }
-            $finalResult.=wf_tag('div', true);
-            $finalResult.=wf_tag('div', false, '', 'style="clear:both;"');
-            $finalResult.=wf_tag('div', true);
+            $finalResult.= wf_tag('div', true);
+            $finalResult.= wf_tag('div', false, '', 'style="clear:both;"');
+            $finalResult.= wf_tag('div', true);
             if (!$quiet) {
                 show_window('', $finalResult);
             }
@@ -701,6 +709,11 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         $portTable = $snmp->walk($ip, $community, $tlpOid, true);
                     }
 
+                    if ($deviceFdbMode == 'tlp2210') {
+                        $tlpOid = '.1.3.6.1.4.1.11863.1.1.19.2.3.2.2.1.3';
+                        $portTable = $snmp->walk($ip, $community, $tlpOid, true);
+                    }
+
                     //foxgate lazy parsing
                     if ($deviceFdbMode == 'flp') {
                         $flpOid = '.1.3.6.1.2.1.17.7.1.2.3.1.2';
@@ -717,7 +730,7 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                             $portData = sp_SnmpParseFdbDl($portTable);
                         }
 
-                        if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428')) {
+                        if (($deviceFdbMode == 'tlp5428ev2') OR ( $deviceFdbMode == 'tlp2428') OR ( $deviceFdbMode == 'tlp2210')) {
                             //more exotic tplink parser
                             $portData = sp_SnmpParseFdbTlp($portTable, $tlpOid);
                         }
@@ -794,6 +807,76 @@ function sp_SnmpPollDevice($ip, $community, $alltemplates, $deviceTemplate, $all
                         show_window(__('FDB'), wf_TableBody($rows, '100%', '0', 'sortable'));
                     }
                 }
+            }
+            //
+            //parsing data of DEVICE MAC
+            //
+            if ($alterCfg['SWITCHES_SNMP_MAC_EXORCISM'] and $deviceMAC == 'true') {
+                $MacOfDevice = '';
+                $snmp->setBackground(false); // need to process data with system + background
+
+                if ($deviceMACMode == 'default') {
+                    //default for many D-link HP JunOS
+                    $MacOfDevice = $snmp->walk($ip, $community, '.1.0.8802.1.1.2.1.3.2.0', true);
+                } else {
+                    /* Need Tests
+                    if ($deviceMACMode == 'dlp') {
+                        //custom dlink mac
+                        $tmpOid = '';
+                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                    }
+
+                    if ($deviceMACMode == 'tlp5428ev2') {
+                        $tmpOid = '';
+                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                    }
+
+                    if ($deviceMACMode == 'tlp2428') {
+                        $tmpOid = '';
+                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                    }
+
+                    if ($deviceMACMode == 'tlp2210') {
+                        $tmpOid = '';
+                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                    }
+
+                    //foxgate lazy parsing
+                    if ($deviceMACMode == 'flp') {
+                        $tmpOid = '';
+                        $MacOfDevice = $snmp->walk($ip, $community, $tmpOid, true);
+                    }
+                    */
+                }
+                if (!empty($MacOfDevice)) {
+                    if ($deviceMACMode == 'default') {
+                        //default M parser
+                        $MACData = sn_SnmpParseDeviceMAC($MacOfDevice);
+                    } else {
+                        /* Need test
+                        if ($deviceMACMode == 'dlp') {
+                            //exotic dlink parser
+                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice);
+                        }
+
+                        if (($deviceMACMode == 'tlp5428ev2') OR ( $deviceMACMode == 'tlp2428') OR ( $deviceMACMode == 'tlp2210')) {
+                            //more exotic tplink parser
+                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
+                        }
+
+                        // foxgate - its you again? Oo
+                        if ($deviceMACMode == 'flp') {
+                            $MACData = sn_SnmpParseDeviceMAC($MacOfDevice, $tmpOid);
+                        }
+                        */
+                    }
+
+                    // Write Device MAC address to file
+                        if (!empty($MACData)) {
+                            file_put_contents('exports/' . $ip . '_MAC', $MACData);
+                        }
+                }
+
             }
         }
     }
@@ -958,6 +1041,31 @@ function sn_SnmpParseFdbExtract($data) {
                 $modalContent.=$each . wf_tag('br');
             }
             $result.=$each . ' ' . wf_modal(wf_img_sized('skins/menuicons/switches.png', __('Switches'), '12', '12'), __('Switches'), $modalContent, '', '600', '400');
+        }
+    }
+    return ($result);
+}
+
+/**
+ * Extracts MAC of device
+ *
+ * @param raw data $data
+ *
+ * @return string
+ */
+function sn_SnmpParseDeviceMAC($data) {
+    $result = '';
+
+    if (!empty($data)) {
+        $data = explode('=', $data);
+        $device_mac_raw = str_replace('Hex-STRING:', '', @$data[1]);
+        $device_mac_t = trim($device_mac_raw);
+        if (!empty($device_mac_t)) {
+            $device_mac = str_replace(" ", ":", $device_mac_t);
+            $result_temp = strtolower($device_mac);
+            if(check_mac_format($result_temp)) {
+                $result = $result_temp;
+            }
         }
     }
     return ($result);

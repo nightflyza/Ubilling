@@ -31,12 +31,20 @@ class MessagesQueue {
     protected $telegram = '';
 
     /**
+     * System json helper object placeholder
+     *
+     * @var object
+     */
+    protected $json = '';
+
+    /**
      * Base module url
      */
     const URL_ME = '?module=tsmsqueue';
 
     public function __construct() {
         $this->initMessages();
+        $this->initJson();
         $this->initSystemQueues();
     }
 
@@ -58,6 +66,15 @@ class MessagesQueue {
         $this->sms = new UbillingSMS();
         $this->email = new UbillingMail();
         $this->telegram = new UbillingTelegram();
+    }
+
+    /**
+     * Inits json datatables helper object
+     * 
+     * @return void
+     */
+    protected function initJson() {
+        $this->json = new wf_JqDtHelper();
     }
 
     /**
@@ -115,11 +132,12 @@ class MessagesQueue {
     protected function telegramPreview($data) {
         $result = '';
         if (!empty($data)) {
+            $messageText = nl2br($data['message']);
             $dataCells = wf_TableCell(__('Chat ID'), '', 'row2');
             $dataCells.= wf_TableCell($data['chatid']);
             $dataRows = wf_TableRow($dataCells, 'row3');
-            $dataCells = wf_TableCell(__('Message'), '', 'row2');
-            $dataCells.= wf_TableCell($data['message']);
+            $dataCells = wf_TableCell(__('Message'), '', 'row2','valign="top"');
+            $dataCells.= wf_TableCell($messageText);
             $dataRows.= wf_TableRow($dataCells, 'row3');
             $result = wf_TableBody($dataRows, '100%', '0', 'glamour');
         }
@@ -127,29 +145,16 @@ class MessagesQueue {
     }
 
     /**
-     * Renders list of available SMS in queue with some controls
+     * Renders list of available SMS in queue container
      * 
      * @return string
      */
     public function renderSmsQueue() {
         $result = '';
-        $smsQueue = $this->sms->getQueueData();
-        if (!empty($smsQueue)) {
-            $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Mobile'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-
-            foreach ($smsQueue as $io => $each) {
-                $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['number']);
-                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->smsPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&deletesms=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
-            }
-
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $smsQueueCount = $this->sms->getQueueCount();
+        if ($smsQueueCount > 0) {
+            $columns = array('Date', 'Mobile', 'Actions');
+            $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajaxsms=true', false, __('SMS'), 100, '"order": [[ 0, "desc" ]]');
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
@@ -157,29 +162,43 @@ class MessagesQueue {
     }
 
     /**
-     * Renders list of available emails in queue with some controls
+     * Renders JSON list of available SMS in queue with some controls
+     * 
+     * @return void
+     */
+    public function renderSMSAjaxQueue() {
+        $smsQueue = $this->sms->getQueueData();
+        if (!empty($smsQueue)) {
+            /**
+             * dakara ima ichibyou goto ni sekaisen wo koete
+             * kimi no sono egao  mamoritai no sa
+             * soshite mata kanashimi no nai jikan no RUUPU e to
+             * nomikomarete yuku  kodoku no kansokusha
+             */
+            foreach ($smsQueue as $io => $each) {
+                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->smsPreview($each), '');
+                $actLinks.= wf_JSAlert(self::URL_ME . '&deletesms=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $each['date'];
+                $data[] = $each['number'];
+                $data[] = $actLinks;
+                $this->json->addRow($data);
+                unset($data);
+            }
+        }
+        $this->json->getJson();
+    }
+
+    /**
+     * Renders list of available emails in queue container
      * 
      * @return string
      */
     public function renderEmailQueue() {
         $result = '';
-        $queue = $this->email->getQueueData();
-        if (!empty($queue)) {
-            $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Email'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-
-            foreach ($queue as $io => $each) {
-                $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['email']);
-                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->emailPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=email&deleteemail=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
-            }
-
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $queueCount = $this->email->getQueueCount();
+        if ($queueCount > 0) {
+            $columns = array('Date', 'Email', 'Actions');
+            $result.=wf_JqDtLoader($columns, self::URL_ME . '&showqueue=email&ajaxmail=true', false, __('Email'), 100, '"order": [[ 0, "desc" ]]');
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
@@ -187,33 +206,62 @@ class MessagesQueue {
     }
 
     /**
-     * Renders list of available telegram messages in queue with some controls
+     * Renders JSON list of available emails in queue with some control
+     * 
+     * @return void
+     */
+    public function renderEmailAjaxQueue() {
+        $queue = $this->email->getQueueData();
+        if (!empty($queue)) {
+            foreach ($queue as $io => $each) {
+                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->emailPreview($each), '');
+                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=email&deleteemail=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $each['date'];
+                $data[] = $each['email'];
+                $data[] = $actLinks;
+                $this->json->addRow($data);
+                unset($data);
+            }
+        }
+        $this->json->getJson();
+    }
+
+    /**
+     * Renders list of available telegram messages in queue container
      * 
      * @return string
      */
     public function renderTelegramQueue() {
         $result = '';
-        $queue = $this->telegram->getQueueData();
-        if (!empty($queue)) {
-            $cells = wf_TableCell(__('Date'));
-            $cells.= wf_TableCell(__('Chat ID'));
-            $cells.= wf_TableCell(__('Actions'));
-            $rows = wf_TableRow($cells, 'row1');
-
-            foreach ($queue as $io => $each) {
-                $cells = wf_TableCell($each['date']);
-                $cells.= wf_TableCell($each['chatid']);
-                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->telegramPreview($each), '');
-                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=telegram&deletetelegram=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
-                $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row5');
-            }
-
-            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $queueCount = $this->telegram->getQueueCount();
+        if ($queueCount > 0) {
+            $columns = array('Date', 'Chat ID', 'Actions');
+            $result.=wf_JqDtLoader($columns, self::URL_ME . '&showqueue=telegram&ajaxtelegram=true', false, __('Message'), 100, '"order": [[ 0, "desc" ]]');
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing found'), 'info');
         }
         return ($result);
+    }
+
+    /**
+     * Renders JSON list of available telegram messages in queue with some controls
+     * 
+     * @return void
+     */
+    public function renderTelegramAjaxQueue() {
+        $queue = $this->telegram->getQueueData();
+        if (!empty($queue)) {
+            foreach ($queue as $io => $each) {
+                $actLinks = wf_modalAuto(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $this->telegramPreview($each), '');
+                $actLinks.= wf_JSAlert(self::URL_ME . '&showqueue=telegram&deletetelegram=' . $each['filename'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $data[] = $each['date'];
+                $data[] = $each['chatid'];
+                $data[] = $actLinks;
+                $this->json->addRow($data);
+                unset($data);
+            }
+        }
+        $this->json->getJson();
     }
 
     /**

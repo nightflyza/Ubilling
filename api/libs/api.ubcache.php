@@ -276,6 +276,10 @@ class UbillingCache {
             // If not have result from class get function
             // return $callback data function and set new cache
             $result = $callback();
+            /**
+             * Intensity - I feel the lava rushing through my veins
+             * Stars are reforming - to enter the fourth dimension
+             */
             $this->set($key, $result, $expiration);
         }
         return ($result);

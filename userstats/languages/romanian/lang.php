@@ -288,4 +288,8 @@ $lang['def']['at once'] = 'instant';
 $lang['def']['Create new help request'] = 'Cerere ajutor tehnic';
 $lang['def']['User'] = 'Utilizator';
 $lang['def']['Support'] = 'Suport';
+
+$lang['def']['Terms'] = 'Condiţii';
+$lang['def']['Bonus'] = 'bonus';
+
 ?>

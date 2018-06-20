@@ -1,7 +1,7 @@
 <?php
 
 if (cfr('PLDOCS')) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    $altercfg = $ubillingConfig->getAlter();
 
     //old html templates
     if (!$altercfg['DOCX_SUPPORT']) {
@@ -38,7 +38,7 @@ if (cfr('PLDOCS')) {
             if (!isset($_GET['printtemplate'])) {
                 //showing document templates list by default
                 if ((!isset($_GET['addtemplate'])) AND ( !isset($_GET['edittemplate']))) {
-                    show_window('', wf_Link('?module=pl_documents&username=' . $login . '&addtemplate', 'Create new document template', true, 'ubButton'));
+                    show_window('', wf_Link('?module=pl_documents&username=' . $login . '&addtemplate', web_icon_create() . ' ' . __('Create new document template'), true, 'ubButton'));
                 } else {
                     show_window('', wf_BackLink('?module=pl_documents&username=' . $login, '', true));
                 }
@@ -126,7 +126,7 @@ if (cfr('PLDOCS')) {
 
             //uploading new templates
 
-            $uploadControl = wf_modal(__('Upload template'), __('Upload template'), $documents->uploadForm(), 'ubButton', '600', '300');
+            $uploadControl = wf_modal(wf_img('skins/photostorage_upload.png') . ' ' . __('Upload template'), __('Upload template'), $documents->uploadForm(), 'ubButton', '600', '300');
             show_window(__('Settings'), $uploadControl);
             //template upload subroutine
             if (wf_CheckPost(array('uploadtemplate'))) {
@@ -134,8 +134,16 @@ if (cfr('PLDOCS')) {
                 rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
             }
 
-            //showing user personal documents
+
+
+            //loading current user documents data
             $documents->loadUserDocuments($documents->getLogin());
+            //document visibility editing
+            if (wf_CheckPost(array('chvisdocumentid'))) {
+                $documents->saveDocumentVisibility();
+                rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
+            }
+            //showing user personal documents
             show_window(__('Previously generated documents for this user'), $documents->renderUserDocuments());
         }
 

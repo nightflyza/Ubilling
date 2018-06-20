@@ -6,21 +6,69 @@
 
 class ProfileDocuments {
 
+    /**
+     * Contains available document templates as id=>data
+     *
+     * @var array
+     */
     protected $templates = array();
+
+    /**
+     * Contains current instance user login
+     *
+     * @var string
+     */
     protected $userLogin = '';
+
+    /**
+     * Contains available users data
+     *
+     * @var array
+     */
     protected $userData = array();
+
+    /**
+     * Conteins associated agents data for current user  as key=>value
+     *
+     * @var array
+     */
     protected $userAgentData = array();
+
+    /**
+     * Contains some custom fields data
+     *
+     * @var array
+     */
     protected $customFields = array();
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altcfg = array();
+
+    /**
+     * Contains user documents as id=>data
+     *
+     * @var array
+     */
     protected $userDocuments = array();
+
+    /**
+     * Contains all users documents array as id=>data
+     *
+     * @var array
+     */
     protected $allUserDocuments = array();
 
     const TEMPLATES_PATH = 'content/documents/pl_docx/';
     const DOCUMENTS_PATH = 'content/documents/pl_cache/';
 
     public function __construct() {
+        global $ubillingConfig;
         $this->loadTemplates();
-        $this->altcfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+        $this->altcfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -40,7 +88,8 @@ class ProfileDocuments {
 
     /**
      * Sets user login
-     * @param $login existing users login
+     * 
+     * @param string $login existing users login
      * 
      * @return void
      */
@@ -214,7 +263,7 @@ class ProfileDocuments {
                 if ($this->altcfg['OPENPAYZ_REALID']) {
                     @$userdata[$eachuser['login']]['PAYID'] = $allopcustomers[$eachuser['login']];
                 } else {
-                    @$userdata[$eachuser['login']]['PAYID'] = ip2long($eachuser['IP']);
+                    @$userdata[$eachuser['login']]['PAYID'] = ip2int($eachuser['IP']);
                 }
                 //traffic params
                 $userdata[$eachuser['login']]['TRAFFIC'] = $eachuser['D0'] + $eachuser['U0'];
@@ -327,9 +376,9 @@ class ProfileDocuments {
     /**
      * register uploaded template into database
      * 
-     * @param $path string            path to template file
-     * @param $displayname string     template display name
-     * @param $public      int        is template accesible from userstats
+     * @param string $path             path to template file
+     * @param string $displayname      template display name
+     * @param int $public         is template accesible from userstats
      * 
      * @return void
      */
@@ -348,7 +397,7 @@ class ProfileDocuments {
     /**
      * unregister existing document template
      * 
-     * @param $id int   existing template id
+     * @param int $id  existing template id
      * 
      * @return void
      */
@@ -471,6 +520,8 @@ class ProfileDocuments {
             }
         }
         $inputs.= wf_HiddenInput('customfields', 'true');
+        $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
+        $inputs.= wf_CheckInput('savedocaspublic', $publicLabel, true, false);
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
@@ -537,9 +588,9 @@ class ProfileDocuments {
     /**
      * register generated document in database
      * 
-     * @param $login - current user login
-     * @param $templateid - existing template ID
-     * @param $path path to file in storage
+     * @param string $login - current user login
+     * @param int $templateid - existing template ID
+     * @param string $path path to file in storage
      * 
      * @return void
      */
@@ -548,6 +599,7 @@ class ProfileDocuments {
         $templateid = vf($templateid, 3);
         $path = mysql_real_escape_string($path);
         $date = date("Y-m-d H:i:s");
+        $publicState = wf_CheckPost(array('savedocaspublic')) ? 1 : 0;
 
         $query = "
             INSERT INTO `docxdocuments` (
@@ -559,7 +611,7 @@ class ProfileDocuments {
                 `path`
                 )
                 VALUES (
-                NULL , '" . $date . "', '" . $login . "', '0', '" . $templateid . "', '" . $path . "'
+                NULL , '" . $date . "', '" . $login . "', '" . $publicState . "', '" . $templateid . "', '" . $path . "'
                 );
             ";
         nr_query($query);
@@ -568,7 +620,7 @@ class ProfileDocuments {
     /**
      * kills document in database
      * 
-     * @param $documentid - existing document ID
+     * @param int $documentid - existing document ID
      * 
      * @return void
      */
@@ -583,7 +635,7 @@ class ProfileDocuments {
     /**
      * loads user documents from database
      * 
-     * @param $login user login to search public docs
+     * @param string $login user login to search public docs
      * 
      * @return void
      */
@@ -599,6 +651,8 @@ class ProfileDocuments {
 
     /**
      * loads all user generated documents from database
+     * 
+     * @param string $date
      * 
      * @return void
      */
@@ -618,11 +672,13 @@ class ProfileDocuments {
     /**
      * gets all user generated documents from database by this year
      * 
+     * $param bool $currentYear
+     * 
      * @return array
      */
-    public function getAllUsersDocumentsThisYear() {
+    public function getAllUsersDocuments($currentYear = false) {
         $result = array();
-        $where = "WHERE `date` LIKE '" . date("Y-") . "%'";
+        $where = ($currentYear) ? "WHERE `date` LIKE '" . date("Y-") . "%'" : '';
         $query = "SELECT * from `docxdocuments` " . $where . " ORDER BY `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -631,6 +687,44 @@ class ProfileDocuments {
             }
         }
         return ($result);
+    }
+
+    /**
+     * Renders document edit form, which allows to change document public visibility
+     * 
+     * @param int $documentId
+     * 
+     * @return string
+     */
+    protected function renderDocumentEditForm($documentId) {
+        $result = '';
+        if (isset($this->userDocuments[$documentId])) {
+            $currentDocumentData = $this->userDocuments[$documentId];
+            $inputs = wf_HiddenInput('chvisdocumentid', $documentId);
+            $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
+            $inputs.= wf_CheckInput('chdocumentpublic', $publicLabel, true, $currentDocumentData['public']);
+            $inputs.=wf_tag('br');
+            $inputs.=wf_Submit(__('Save'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves document visibility if this required
+     * 
+     * @return void
+     */
+    public function saveDocumentVisibility() {
+        if (wf_CheckPost(array('chvisdocumentid'))) {
+            $documentId = $_POST['chvisdocumentid'];
+            if (isset($this->userDocuments[$documentId])) {
+                $newPublicState = (wf_CheckPost(array('chdocumentpublic'))) ? 1 : 0;
+                $where = "WHERE `id`='" . $documentId . "';";
+                simple_update_field('docxdocuments', 'public', $newPublicState, $where);
+                log_register('PLDOCS CHANGE DOCUMENT [' . $documentId . '] PUBLIC `' . $newPublicState . '`');
+            }
+        }
     }
 
     /**
@@ -656,7 +750,8 @@ class ProfileDocuments {
                 $cells.= wf_TableCell(wf_tag('abbr', false, '', 'title="' . $each['templateid'] . '"') . $templateName . wf_tag('abbr', true));
                 $downloadLink = wf_Link('?module=pl_documents&username=' . $this->userLogin . '&documentdownload=' . $each['path'], $each['path'], false, '');
                 $cells.= wf_TableCell($downloadLink);
-                $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious'));
+                $actionLinks = wf_JSAlert('?module=pl_documents&username=' . $this->userLogin . '&deletedocument=' . $each['id'], web_delete_icon(), __('Are you serious')) . ' ';
+                $actionLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderDocumentEditForm($each['id']));
                 $cells.= wf_TableCell($actionLinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -718,7 +813,7 @@ class ProfileDocuments {
         $allAddress = zb_AddressGetFulladdresslistCached();
 
         $calendarData = '';
-        $yearDocuments = $this->getAllUsersDocumentsThisYear();
+        $yearDocuments = $this->getAllUsersDocuments();
         if (!empty($yearDocuments)) {
             foreach ($yearDocuments as $io => $each) {
                 $timestamp = strtotime($each['date']);

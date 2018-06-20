@@ -99,12 +99,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         } else {
                             $vservicesChargeFrozen = true;
                         }
-                        /* debug flags:
-                         * 0 - silent
-                         * 1 - with debug output
-                         * 2 - don`t touch any cash, just testing run
-                         */
-                        zb_VservicesProcessAll(1, true, $vservicesChargeFrozen);
+
+                        zb_VservicesProcessAll(true, $vservicesChargeFrozen);
                         log_register("REMOTEAPI VSERVICE_CHARGE_FEE");
                         die('OK:SERVICE_CHARGE_FEE');
                     }
@@ -407,8 +403,6 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             }
                             if (!empty($allUsersToFreeze)) {
                                 foreach ($allUsersToFreeze as $efuidx => $eachfreezeuser) {
-
-
                                     $freezeLogin = $eachfreezeuser['login'];
                                     $freezeCash = $eachfreezeuser['Cash'];
                                     //zbs credit check
@@ -436,6 +430,82 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:NO_AUTOFREEZE_CASH_LIMIT');
                         }
                     }
+
+
+                    /*
+                     * running freeze days charge if FREEZE_DAYS_CHARGE_ENABLED
+                     */
+                    if ($_GET['action'] == 'freezedayscharge') {
+                        if (isset($alterconf['FREEZE_DAYS_CHARGE_ENABLED']) && $alterconf['FREEZE_DAYS_CHARGE_ENABLED']) {
+                            $FreezeDaysInitAmnt = $alterconf['FREEZE_DAYS_INITIAL_AMOUNT'];
+                            $WrkDaysToRestoreFrzDaysInitAmnt = $alterconf['FREEZE_DAYS_WORK_TO_RESTORE'];
+
+                            $TmpQuery = "SELECT `users`.`login` FROM `users` 
+                                              LEFT JOIN `frozen_charge_days` ON `frozen_charge_days`.`login` = `users`.`login`
+                                            WHERE `users`.`Passive`='1' AND `frozen_charge_days`.`login` IS NULL;";
+                            $AllFrozenNotInCountTab = simple_queryall($TmpQuery);
+
+                            if (!empty($AllFrozenNotInCountTab)) {
+                                foreach ($AllFrozenNotInCountTab as $usr => $eachlogin) {
+                                    $TmpQuery = "INSERT INTO `frozen_charge_days` (`login`, `freeze_days_amount`, `work_days_restore`)
+                                                              VALUES  ('" . $eachlogin['login'] . "', '" . $FreezeDaysInitAmnt . "', '" . $WrkDaysToRestoreFrzDaysInitAmnt . "');";
+                                    nr_query($TmpQuery);
+                                }
+                            }
+
+                            $FrozenAllQuery = "SELECT `frozen_charge_days`.`*`, `users`.`Passive`, `users`.`Down`, `users`.`Credit`, `users`.`Cash` 
+                                                  FROM `frozen_charge_days`
+                                                    LEFT JOIN `users` ON `frozen_charge_days`.`login` = `users`.`login`;";
+                            $FrozenAll = simple_queryall($FrozenAllQuery);
+
+                            if (!empty($FrozenAll)) {
+                                $UsrPassive = 0;
+                                $FrozenToPocess = count($FrozenAll);
+
+                                foreach ($FrozenAll as $usr => $eachlogin) {
+                                    $UsrLogin = $eachlogin['login'];
+                                    $UsrPassive = $eachlogin['Passive'];
+                                    $UsrDown = $eachlogin['Down'];
+                                    $UsrCredit = $eachlogin['Credit'];
+                                    $UsrCash = $eachlogin['Cash'];
+
+                                    $FrzDaysAmount = $eachlogin['freeze_days_amount'];
+                                    $FrzDaysUsed = $eachlogin['freeze_days_used'];
+                                    $DaysWorked = $eachlogin['days_worked'];
+                                    $WrkDaysToRestoreFrzDays = $eachlogin['work_days_restore'];
+
+                                    if ($UsrPassive) {
+                                        $FrzDaysUsed++;
+
+                                        if ($FrzDaysUsed >= $FrzDaysAmount) {
+                                            $billing->setpassive($UsrLogin, '0');
+                                        }
+
+                                        simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
+                                    } else {
+                                        if (($FrzDaysUsed >= $FrzDaysAmount) && ($UsrCash < '-' . $UsrCredit) && !$UsrDown) {
+                                            $DaysWorked++;
+
+                                            if ($DaysWorked >= $WrkDaysToRestoreFrzDays) {
+                                                $DaysWorked = 0;
+                                                $FrzDaysUsed = 0;
+
+                                                simple_update_field('frozen_charge_days', 'freeze_days_used', $FrzDaysUsed, "WHERE `login`='" . $UsrLogin . "' ");
+                                            }
+
+                                            simple_update_field('frozen_charge_days', 'days_worked', $DaysWorked, "WHERE `login`='" . $UsrLogin . "' ");
+                                        }
+                                    }
+                                }
+
+                                log_register('FREEZE DAYS CHARGE done to `' . $FrozenToPocess . '` users');
+                                die('OK:FREEZE_DAYS_CHARGE');
+                            } else {
+                                die('OK:FREEZE_DAYS_CHARGE_NO_USERS');
+                            }
+                        }
+                    }
+
 
                     /*
                      * auto freezing call which use AUTOFREEZE_CASH_LIMIT as month count
@@ -496,6 +566,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR:NO_AUTOFREEZE_CASH_LIMIT');
                         }
                     }
+
+
 
 
                     /*
@@ -763,6 +835,22 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //askozia number telepathy
+                    if ($_GET['action'] == 'askozianum') {
+                        if ($alterconf['ASKOZIA_ENABLED']) {
+                            if (isset($_GET['param'])) {
+                                $number = $_GET['param'];
+                                $askNum = new AskoziaNum();
+                                $askNum->setNumber($number);
+                                $askNum->renderReply();
+                            } else {
+                                die('ERROR: EMPTY PARAM');
+                            }
+                        } else {
+                            die('ERROR: ASKOIZA DISABLED');
+                        }
+                    }
+
                     //why do you call stats collecting
                     if ($_GET['action'] == 'whydoyoucallstats') {
                         if ($alterconf['ASKOZIA_ENABLED']) {
@@ -782,6 +870,17 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('OK: JUNGEN');
                         } else {
                             die('ERROR: JUNGEN DISABLED');
+                        }
+                    }
+
+                    // multigen attributes regeneration
+                    if ($_GET['action'] == 'multigen') {
+                        if ($alterconf['MULTIGEN_ENABLED']) {
+                            $multigen = new MultiGen();
+                            $multigen->generateNasAttributes();
+                            die('OK: MULTIGEN');
+                        } else {
+                            die('ERROR: MULTIGEN DISABLED');
                         }
                     }
 
@@ -813,6 +912,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
+                    //NAS monitoring periodic polling
                     if ($_GET['action'] == 'nasmon') {
                         if ($alterconf['NASMON_ENABLED']) {
                             $nasMon = new NasMon();
@@ -822,6 +922,32 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('ERROR: NASMON DISABLED');
                         }
                     }
+
+                    //LDAP Mgr users export
+                    if ($_GET['action'] == 'ldapmgr') {
+                        if ($alterconf['LDAPMGR_ENABLED']) {
+                            $ldapMgr = new UbillingLDAPManager();
+                            if (isset($_GET['param'])) {
+                                if ($_GET['param'] == 'queue') {
+                                    $ldapMgr->getQueue();
+                                }
+                            }
+                        } else {
+                            die('ERROR: LDAPMGR DISABLED');
+                        }
+                    }
+
+                    //districts cache update
+                    if ($_GET['action'] == 'districtscache') {
+                        if ($alterconf['DISTRICTS_ENABLED']) {
+                            $districts = new Districts(true);
+                            $districts->fillDistrictsCache();
+                            die('OK: DISTRICTSCACHE');
+                        } else {
+                            die('ERROR: DISTRICTS DISABLED');
+                        }
+                    }
+
 
                     /*
                      * Ubilling remote API for Asterisk and other CRM
@@ -858,6 +984,98 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                             die('OK:MTPOLL');
                         } else {
                             die('ERROR:MTSIGMON_DISABLED');
+                        }
+                    }
+
+                    //SORM Yahont csv data regeneration
+                    if ($_GET['action'] == 'sormcast') {
+                        if ($alterconf['SORM_ENABLED']) {
+                            $sorm = new SormYahont();
+                            $sorm->saveAllDataCsv();
+                            die('OK:SORMCAST');
+                        } else {
+                            die('ERROR:SORM_DISABLED');
+                        }
+                    }
+
+                    //MikroTik dynamic shaper
+                    if ($_GET['action'] == 'mikrotikdnshaper') {
+                        if ($alterconf['DSHAPER_ENABLED']) {
+                            $Now = date('H:i:s');
+
+                            $DNDataQuery = "SELECT  `usr_nh`.*, `nas`.`nasip`, `nas`.`options`, 
+                                                    `speeds`.`speeddown`, `speeds`.`speedup`,  `speeds`.`burstdownload`, `speeds`.`burstupload`, `speeds`.`bursttimedownload`, `speeds`.`burstimetupload`, 
+                                                    `dshpt`.`threshold1`, `dshpt`.`threshold2`, `dshpt`.`speed` 
+                                              FROM  (
+                                                      SELECT `users`.`login`, `users`.`ip`, `users`.`Tariff`, `nh`.`netid` 
+                                                          FROM `users` 
+                                                            LEFT JOIN `nethosts` AS `nh` ON `users`.`ip` = `nh`.`ip`
+                                                          WHERE !`users`.`Down` AND !( `users`.`Cash` < -(`users`.`Credit`) )
+                                                    ) AS `usr_nh` 
+                                                LEFT JOIN `nas` ON `usr_nh`.`netid` = `nas`.`netid`
+                                                LEFT JOIN `dshape_time` AS `dshpt` ON `usr_nh`.`Tariff` = `dshpt`.`tariff`
+                                                LEFT JOIN `speeds` ON `usr_nh`.`Tariff` = `speeds`.`tariff`
+                                              WHERE `nas`.`nastype` = 'mikrotik' AND `dshpt`.`speed` IS NOT NULL AND '" . $Now . "' BETWEEN `dshpt`.`threshold1` AND `dshpt`.`threshold2`;";
+
+                            $DNData = simple_queryall($DNDataQuery);
+
+                            if (!empty($DNData)) {
+                                $UsersCnt = count($DNData);
+                                $RouterOSAPI = new RouterOS();
+
+                                foreach ($DNData as $eachrow => $eachlogin) {
+                                    $MTikNasOpts = base64_decode($eachlogin['options']);
+                                    $MTikNasOpts = unserialize($MTikNasOpts);
+                                    $UseNewConnType = ( isset($MTikNasOpts['use_new_conn_mode']) && $MTikNasOpts['use_new_conn_mode'] ) ? true : false;
+
+                                    $RouterOSAPI->connect($eachlogin['nasip'], $MTikNasOpts['username'], $MTikNasOpts['password'], $UseNewConnType);
+
+                                    if ($RouterOSAPI->connected) {
+                                        if (isset($_GET['param']) && ($_GET['param'] == 'downshift')) {
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speeddown'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['burstdownload'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speeddown'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
+                                        } else {
+                                            $Template = array('.id' => '',
+                                                'max-limit' => $eachlogin['speedup'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-limit' => $eachlogin['burstupload'] . 'k/' . $eachlogin['speed'] . 'k',
+                                                'burst-threshold' => ($eachlogin['speedup'] * 0.8) . 'k/' . ($eachlogin['speed'] * 0.8) . 'k',
+                                                'burst-time' => $eachlogin['burstimetupload'] . '/' . $eachlogin['bursttimedownload']
+                                            );
+                                        }
+
+                                        $Entries = $RouterOSAPI->command('/queue/simple/print', array('.proplist' => '.id', '?name' => '' . trim($eachlogin['login']) . ''));
+
+                                        if (!empty($Entries)) {
+                                            foreach ($Entries as $Entry) {
+                                                $Template['.id'] = $Entry['.id'];
+                                                $MTikReply = $RouterOSAPI->command('/queue/simple/set', $Template);
+                                            }
+                                        }
+
+                                        log_register('MT_DN_SHAPER done to `' . $UsersCnt . '` users');
+                                        die('OK:MT_DN_SHAPER');
+                                    }
+                                }
+                            } else {
+                                die('OK:MT_DN_SHAPER_NO_USERS_TO_PROCESS');
+                            }
+                        }
+                    }
+
+                    //associated agent data
+                    if ($_GET['action'] == 'getagentdata') {
+                        if (isset($_GET['param'])) {
+                            $userLogin = $_GET['param'];
+                            $allUserAddress = zb_AddressGetFulladdresslistCached();
+                            $userAddress = @$allUserAddress[$userLogin];
+                            $agentData = zb_AgentAssignedGetDataFast($userLogin, $userAddress);
+                            die(json_encode($agentData));
+                        } else {
+                            die('ERROR:NO_LOGIN_PARAM');
                         }
                     }
 

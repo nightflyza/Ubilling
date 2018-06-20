@@ -3,6 +3,8 @@ DEVICE=Dlink-DGS-3024
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="23.24"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

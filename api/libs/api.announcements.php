@@ -33,18 +33,46 @@ class ZbsAnnouncements {
      */
     protected $adminData = array();
 
+    /**
+     * Contains acquainted users history log as id=>data
+     *
+     * @var array
+     */
+    protected $history = array();
+
+    /**
+     * Contains all users address data
+     *
+     * @var array
+     */
+    protected $allAddress = array();
+
+    /**
+     * Contains all users realname data
+     *
+     * @var array
+     */
+    protected $allRealNames = array();
+
     const EX_ID_NO_EXIST = 'NO_EXISTING_ID_RECEIVED';
 
+    /**
+     * Creates new object instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadData();
+        $this->loadUsersData();
     }
 
     /**
-     * loads all existing announcements into private data property
+     * loads all existing announcements/history into private data property
      * 
      * @return void
      */
     protected function loadData() {
+        //loading announcements data
         $query = "SELECT * from `zbsannouncements` ORDER by `id` DESC;";
         $all = simple_queryall($query);
         if (!empty($all)) {
@@ -52,6 +80,24 @@ class ZbsAnnouncements {
                 $this->data[$each['id']] = $each;
             }
         }
+        //loading acquainted data
+        $query = "SELECT * from `zbsannhist`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->history[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads users address and realname data for further usage
+     * 
+     * @return void
+     */
+    protected function loadUsersData() {
+        $this->allAddress = zb_AddressGetFulladdresslistCached();
+        $this->allRealNames = zb_UserGetAllRealnames();
     }
 
     /**
@@ -67,6 +113,8 @@ class ZbsAnnouncements {
             $query = "DELETE from `zbsannouncements` WHERE `id`='" . $id . "';";
             nr_query($query);
             log_register("ANNOUNCEMENT DELETE [" . $id . "]");
+            $queryHistory = "DELETE from `zbsannhist` WHERE `annid`='" . $id . "';";
+            nr_query($queryHistory);
         } else {
             throw new Exception(self::EX_ID_NO_EXIST);
         }
@@ -142,6 +190,72 @@ class ZbsAnnouncements {
     }
 
     /**
+     * Returns users count which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return int
+     */
+    protected function getAcquaintedUsersCount($id) {
+        $result = 0;
+        if (!empty($this->history)) {
+            foreach ($this->history as $io => $each) {
+                if ($each['annid'] == $id) {
+                    $result++;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns users data which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return array
+     */
+    protected function getAcquaintedUsersData($id) {
+        $result = array();
+        if (!empty($this->history)) {
+            foreach ($this->history as $io => $each) {
+                if ($each['annid'] == $id) {
+                    $result[] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders list of users which acquainted with some announcement
+     * 
+     * @param int $id
+     * 
+     * @return string
+     */
+    protected function renderAcquaintedUsers($id) {
+        $result = '';
+        $viewsData = $this->getAcquaintedUsersData($id);
+        if (!empty($viewsData)) {
+            $cells = wf_TableCell(__('Login'));
+            $cells.= wf_TableCell(__('Address'));
+            $cells.= wf_TableCell(__('Real Name'));
+            $cells.= wf_TableCell(__('Date'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($viewsData as $io => $each) {
+                $cells = wf_TableCell(wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login']));
+                $cells.= wf_TableCell(@$this->allAddress[$each['login']]);
+                $cells.= wf_TableCell(@$this->allRealNames[$each['login']]);
+                $cells.= wf_TableCell($each['date']);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        }
+        return ($result);
+    }
+
+    /**
      * renders list of existing announcements by private data prop
      * 
      * @return string
@@ -150,6 +264,7 @@ class ZbsAnnouncements {
         $cells = wf_TableCell(__('ID'));
         $cells.= wf_TableCell(__('Public'));
         $cells.= wf_TableCell(__('Type'));
+        $cells.= wf_TableCell(__('Acquainted'));
         $cells.= wf_TableCell(__('Title'));
         $cells.= wf_TableCell(__('Text'));
         $cells.= wf_TableCell(__('Actions'));
@@ -157,9 +272,18 @@ class ZbsAnnouncements {
 
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
+                $viewsCount = $this->getAcquaintedUsersCount($each['id']);
+                $viewsData = '';
+                //announcement view stats
+                if ($viewsCount > 0) {
+                    $viewsData = wf_modalAuto($viewsCount, __('Acquainted'), $this->renderAcquaintedUsers($each['id']));
+                } else {
+                    $viewsData = '0';
+                }
                 $cells = wf_TableCell($each['id']);
                 $cells.= wf_TableCell(web_bool_led($each['public']));
                 $cells.= wf_TableCell($each['type']);
+                $cells.= wf_TableCell($viewsData);
                 $cells.= wf_TableCell(strip_tags($each['title']));
                 if (strlen($each['text']) > 100) {
                     $textPreview = mb_substr(strip_tags($each['text']), 0, 100, 'utf-8') . '...';
@@ -422,7 +546,7 @@ class AdminAnnouncements {
             if (!empty($this->data[$id]['title'])) {
                 $result = wf_tag('h3', false, 'row2', '') . $this->data[$id]['title'] . '&nbsp;' . wf_tag('h3', true);
             }
-            $previewtext = strip_tags($this->data[$id]['text']);
+            $previewtext = $this->data[$id]['text'];
             $result.= nl2br($previewtext);
             $result.=wf_delimiter();
         }
@@ -442,6 +566,9 @@ class AdminAnnouncements {
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
         $this->loadAcquaintedStats();
+        $adminNames = ts_GetAllEmployeeLoginsCached();
+        $adminNames = unserialize($adminNames);
+
         if (!empty($this->data)) {
             foreach ($this->data as $io => $each) {
                 $cells = wf_TableCell($each['id']);
@@ -454,7 +581,8 @@ class AdminAnnouncements {
                         $acCells.= wf_TableCell(__('Date'));
                         $acRows = wf_TableRow($acCells, 'row1');
                         foreach ($this->acStats[$each['id']] as $eachAdmLogin => $eachAc) {
-                            $acCells = wf_TableCell($eachAdmLogin);
+                            $adminLabel = (isset($adminNames[$eachAdmLogin])) ? $adminNames[$eachAdmLogin] : $eachAdmLogin;
+                            $acCells = wf_TableCell($adminLabel);
                             $acCells.= wf_TableCell($eachAc);
                             $acRows.= wf_TableRow($acCells, 'row3');
                         }
@@ -492,7 +620,7 @@ class AdminAnnouncements {
     public function createForm() {
         $inputs = wf_TextInput('newtitle', __('Title'), '', true, 40);
         $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-        $inputs.= __('Text') . $sup . wf_tag('br');
+        $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
         $inputs.= wf_TextArea('newtext', '', '', true, '60x10');
         $inputs.= wf_delimiter();
         $inputs.= wf_Submit(__('Create'));
@@ -515,7 +643,7 @@ class AdminAnnouncements {
         if (isset($this->data[$id])) {
             $inputs = wf_TextInput('edittitle', __('Title'), $this->data[$id]['title'], true, 40);
             $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
-            $inputs.= __('Text') . $sup . wf_tag('br');
+            $inputs.= __('Text').' (HTML)' . $sup . wf_tag('br');
             $inputs.= wf_TextArea('edittext', '', $this->data[$id]['text'], true, '60x10');
             $inputs.= wf_delimiter();
             $inputs.= wf_Submit(__('Save'));

@@ -20,6 +20,9 @@ function web_UserSearchFieldsForm() {
     $fieldinputs.=wf_RadioInput('searchtype', 'Payment ID', 'payid', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'IP', 'ip', true);
     $fieldinputs.=wf_RadioInput('searchtype', 'MAC', 'mac', true);
+    if ($altCf['PON_ENABLED']) {
+        $fieldinputs.=wf_RadioInput('searchtype', 'ONU MAC', 'onumac', true);
+    }
     if ($altCf['SWITCHES_EXTENDED']) {
         $fieldinputs.=wf_RadioInput('searchtype', 'Switch ID', 'swid', true);
     }
@@ -95,11 +98,18 @@ function zb_UserSearchFields($query, $searchtype) {
         $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
         $query = "SELECT `login` from `users` WHERE `ip` IN (SELECT `ip` FROM `nethosts` WHERE `option` LIKE '" . $mask . $query . $mask . "')";
     }
+    if ($altercfg['PON_ENABLED'] AND $searchtype == 'onumac') {
+        $mask = (isset($strictsearch[$searchtype]) ? '' : '%');
+        $query = "SELECT `login` from `pononu` WHERE `mac` LIKE '" . $mask . $query . $mask . "'";
+    }
     //mac-address search
     if ($searchtype == 'mac') {
         $allfoundlogins = array();
         $allMacs = zb_UserGetAllMACs();
         $searchMacPart = strtolower($query);
+        $searchMacPart = RemoveMacAddressSeparator($searchMacPart);
+        $searchMacPart = AddMacSeparator($searchMacPart);
+
         if (!empty($allMacs)) {
             $allMacs = array_flip($allMacs);
             foreach ($allMacs as $eachMac => $macLogin) {
@@ -117,7 +127,7 @@ function zb_UserSearchFields($query, $searchtype) {
         if ($altercfg['OPENPAYZ_REALID']) {
             $query = "SELECT `realid` AS `login` from `op_customers` WHERE `virtualid`='" . $query . "'";
         } else {
-            $query = "SELECT `login` from `users` WHERE `IP` = '" . long2ip($query) . "'";
+            $query = "SELECT `login` from `users` WHERE `IP` = '" . int2ip($query) . "'";
         }
     }
 
@@ -143,10 +153,10 @@ function zb_UserSearchFields($query, $searchtype) {
 /**
  * Returns user profile search results by all fields
  * 
- * @param string $query
+ * @param string $query, $render
  * @return string
  */
-function zb_UserSearchAllFields($query) {
+function zb_UserSearchAllFields($query, $render = true) {
     $allfoundlogins = array();
     if (strlen($query) >= 3) {
         $searh_data_array = zb_UserGetAllDataCache();
@@ -158,7 +168,11 @@ function zb_UserSearchAllFields($query) {
                 $allfoundlogins[] = $login;
             }
         }
-        $result = web_UserArrayShower($allfoundlogins);
+        if ($render) {
+            $result = web_UserArrayShower($allfoundlogins);
+        } else {
+            $result = $allfoundlogins;
+        }
     } else {
         $messages = new UbillingMessageHelper();
         $result = $messages->getStyledMessage(__('At least 3 characters are required for search'), 'info');

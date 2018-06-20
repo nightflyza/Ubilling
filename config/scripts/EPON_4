@@ -1,0 +1,142 @@
+set timeout 20
+set IP [lindex $argv 0]
+set LOGIN [lindex $argv 1]
+set PASSWORD [lindex $argv 2]
+set METHOD [lindex $argv 3]
+set PON_INT [lindex $argv 4]
+set ONU_INT [lindex $argv 5]
+set ONU_NUM [lindex $argv 6]
+set VLAN [lindex $argv 7]
+set MAC [lindex $argv 8]
+
+if {[string match "TELNET" $METHOD]} {
+    spawn telnet $IP
+    expect "Username:*"
+    send "$LOGIN\r"
+} elseif {[string match "SSH" $METHOD]} {
+    spawn ssh $LOGIN@$IP
+    expect {
+	"(yes/no)?*" {
+		send "yes\r"
+		}
+    }
+}
+
+expect "Password:*"
+send "$PASSWORD\r"
+expect "*#"
+send "configure terminal\r"
+
+expect "*(config)#"
+send "interface $PON_INT\r"
+expect "*(config-if)#"
+send "onu $ONU_NUM type 4GE mac $MAC\r"
+expect "*(config-if)#"
+send "exit\r"
+
+expect "*(config)#"
+send "interface $ONU_INT:$ONU_NUM\r"
+expect "*(config-if)#"
+send "switchport mode trunk vport 1\r"
+expect "*(config-if)#"
+send "switchport vlan $VLAN tag vport 1\r"
+expect "*(config-if)#"
+send "admin enable\r"
+expect "*(config-if)#"
+send "sla-profile 1G\r"
+expect "*(config-if)#"
+send "exit\r"
+
+expect "*(config)#"
+send "pon-onu-mng $ONU_INT:$ONU_NUM\r"
+expect "*(epon-onu-mng)#"
+sleep 2
+send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+expect {
+        "%Code*" {
+                sleep 1
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 2
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 3
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 4
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}

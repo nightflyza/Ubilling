@@ -333,4 +333,10 @@ $lang['def']['User'] = 'მომხმარებელი';
 $lang['def']['Support'] = 'მხარდაჭერა'; // ტექნიკური მხარდაჭერა
 $lang['def']['Create new help request'] = 'ტექნიკური დახმარების მოთხოვნა';
 
+$lang['def']['Additional mobile'] = 'სურვილისამებრ მობილური';
+
+$lang['def']['Terms'] = 'ვადები';
+$lang['def']['Bonus'] = 'ბონუსი';
+
+
 ?>

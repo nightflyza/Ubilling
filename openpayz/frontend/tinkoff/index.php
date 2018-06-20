@@ -14,12 +14,12 @@ function CheckIpClient() {
         $client=$_SERVER['REMOTE_ADDR'];
 
         // Проверка разрешенности удаленного адреса
-        $client_long = ip2long($client);
+        $client_long = ip2int($client);
         foreach ($servers as $server) {
                 $ip_arr = explode('/' , $server);
-                $network_long = ip2long($ip_arr[0]);
-                $mask_long = ip2long($ip_arr[1]);
-                $mask = long2ip($mask_long) == $ip_arr[1] ? $mask_long : 0xffffffff << ( 32 - $ip_arr[1] );
+                $network_long = ip2int($ip_arr[0]);
+                $mask_long = ip2int($ip_arr[1]);
+                $mask = int2ip($mask_long) == $ip_arr[1] ? $mask_long : 0xffffffff << ( 32 - $ip_arr[1] );
                 if (( $client_long & $mask ) == ( $network_long & $mask )) return true;
         }
         return false;

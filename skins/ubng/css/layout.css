@@ -197,10 +197,16 @@ text-decoration: none;
 color: #44474F;
 text-decoration: none;
 text-shadow: 0 1px 0 #fff;
-font-weight: bold;}
+font-weight: bold;
+}
 
 .breadcrumbs a:hover {
 color: #222222;
+
+}
+
+.breadcrumbs a:active {
+     
 }
 
 .breadcrumb_divider {

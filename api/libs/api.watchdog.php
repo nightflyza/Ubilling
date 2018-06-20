@@ -73,7 +73,7 @@ class WatchDog {
 
         //init mail class
         $this->initEmail();
-        
+
         //init telegram class
         $this->initTelegram();
     }
@@ -256,6 +256,17 @@ class WatchDog {
                     }
 
                     break;
+                //do the system icmp ping three times with hope of some result
+                case 'hopeping':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $result = zb_PingICMPHope($this->taskData[$taskID]['param']);
+                        $storeValue = ($result) ? 'true' : 'false';
+                        $this->setOldValue($taskID, $storeValue);
+                        $this->setCurValue($taskID, $storeValue);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "HOPEPING");
+                    }
+                    break;
                 //run some script    
                 case 'script':
                     if (!empty($this->taskData[$taskID]['param'])) {
@@ -314,6 +325,16 @@ class WatchDog {
                         $this->setCurValue($taskID, $storeValue);
                     } else {
                         throw new Exception(self::PARAM_EX . "FILEEXISTS");
+                    }
+                    break;
+                //open helpdesk tickets count check    
+                case 'opentickets':
+                    if (!empty($this->taskData[$taskID]['param'])) {
+                        $result = zb_TicketsGetAllNewCount();
+                        $this->setOldValue($taskID, $result);
+                        $this->setCurValue($taskID, $result);
+                    } else {
+                        throw new Exception(self::PARAM_EX . "OPENTICKETS");
                     }
                     break;
             }
@@ -400,7 +421,26 @@ class WatchDog {
                     } else {
                         return (false);
                     }
-
+                    break;
+                //boolean gt or equal
+                case '>=':
+                    $currentValue = $this->doAction($taskID);
+                    $currentValue = trim($currentValue);
+                    if ($currentValue >= $this->taskData[$taskID]['condition']) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
+                //boolean lt or equal   
+                case '<=':
+                    $currentValue = $this->doAction($taskID);
+                    $currentValue = trim($currentValue);
+                    if ($currentValue <= $this->taskData[$taskID]['condition']) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
                     break;
                 //changes against previous results    
                 case 'changed':
@@ -434,6 +474,16 @@ class WatchDog {
                     $emptyCheck = $this->doAction($taskID);
                     $emptyCheck = trim($emptyCheck);
                     if (empty($emptyCheck)) {
+                        return (true);
+                    } else {
+                        return (false);
+                    }
+                    break;
+                //not empty check
+                case 'notempty':
+                    $emptyCheck = $this->doAction($taskID);
+                    $emptyCheck = trim($emptyCheck);
+                    if (!empty($emptyCheck)) {
                         return (true);
                     } else {
                         return (false);
@@ -627,6 +677,20 @@ class WatchDogInterface {
      */
     protected $previousAlerts = array();
 
+    /**
+     * Contains available checktypes
+     *
+     * @var array
+     */
+    protected $checktypes = array();
+
+    /**
+     * Contains available operators
+     *
+     * @var array
+     */
+    protected $operators = array();
+
     const TASKID_EX = 'NO_REQUIRED_TASK_ID';
     const TASKADD_EX = 'MISSING_REQUIRED_OPTION';
 
@@ -717,6 +781,33 @@ class WatchDogInterface {
         $this->settings['WATCHDOG_PHONES'] = $phones;
         $this->settings['WATCHDOG_EMAILS'] = $emails;
         $this->settings['WATCHDOG_TELEGRAM'] = $telegramchats;
+
+        $this->checktypes = array(
+            'icmpping' => 'icmpping',
+            'tcpping' => 'tcpping',
+            'hopeping' => 'hopeping',
+            'script' => 'script',
+            'getusertraff' => 'getusertraff',
+            'fileexists' => 'fileexists',
+            'opentickets' => 'opentickets'
+        );
+
+        $this->operators = array(
+            '=true' => '=true',
+            '=false' => '=false',
+            '==' => '==',
+            '!=' => '!=',
+            '>' => '>',
+            '<' => '<',
+            '>=' => '>=',
+            '<=' => '<=',
+            'empty' => 'empty',
+            'notempty' => 'notempty',
+            'changed' => 'changed',
+            'notchanged' => 'notchanged',
+            'like' => 'like',
+            'notlike' => 'notlike'
+        );
     }
 
     /**
@@ -745,7 +836,6 @@ class WatchDogInterface {
         $cells.= wf_TableCell(__('Actions'));
         $cells.= wf_TableCell(__('Manage'));
         $rows = wf_TableRow($cells, 'row1');
-        $lighter = 'onmouseover="this.className = \'row2\';" onmouseout="this.className = \'row3\';" ';
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $eachtask) {
@@ -764,7 +854,7 @@ class WatchDogInterface {
                 $controls.= wf_JSAlert('?module=watchdog&edit=' . $eachtask['id'], web_edit_icon(), __('Are you serious'));
 
                 $cells.= wf_TableCell($controls);
-                $rows.=wf_tag('tr', false, 'row3', $lighter);
+                $rows.=wf_tag('tr', false, 'row5');
                 $rows.=$cells;
                 $rows.=wf_tag('tr', true);
             }
@@ -780,33 +870,10 @@ class WatchDogInterface {
      * @return string
      */
     public function newTaskForm() {
-
-        $checktypes = array(
-            'icmpping' => 'icmpping',
-            'tcpping' => 'tcpping',
-            'script' => 'script',
-            'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists'
-        );
-
-        $operators = array(
-            '=true' => '=true',
-            '=false' => '=false',
-            '==' => '==',
-            '!=' => '!=',
-            '>' => '>',
-            '<' => '<',
-            'empty' => 'empty',
-            'changed' => 'changed',
-            'notchanged' => 'notchanged',
-            'like' => 'like',
-            'notlike' => 'notlike',
-        );
-
         $inputs = wf_TextInput('newname', __('Name'), '', true);
-        $inputs.= wf_Selector('newchecktype', $checktypes, __('Check type'), '', true);
+        $inputs.= wf_Selector('newchecktype', $this->checktypes, __('Check type'), '', true);
         $inputs.= wf_TextInput('newparam', __('Parameter'), '', true);
-        $inputs.= wf_Selector('newoperator', $operators, __('Operator'), '', true);
+        $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', true);
         $inputs.= wf_TextInput('newcondition', __('Condition'), '', true);
         $inputs.= wf_TextInput('newaction', __('Actions'), '', true);
         $inputs.=wf_CheckInput('newactive', __('Active'), true, true);
@@ -830,32 +897,10 @@ class WatchDogInterface {
             throw new Exception(self::TASKID_EX);
         }
 
-        $checktypes = array(
-            'icmpping' => 'icmpping',
-            'tcpping' => 'tcpping',
-            'script' => 'script',
-            'getusertraff' => 'getusertraff',
-            'fileexists' => 'fileexists'
-        );
-
-        $operators = array(
-            '=true' => '=true',
-            '=false' => '=false',
-            '==' => '==',
-            '!=' => '!=',
-            '>' => '>',
-            '<' => '<',
-            'empty' => 'empty',
-            'changed' => 'changed',
-            'notchanged' => 'notchanged',
-            'like' => 'like',
-            'notlike' => 'notlike'
-        );
-
         $inputs = wf_TextInput('editname', __('Name'), $this->allTasks[$taskID]['name'], true);
-        $inputs.= wf_Selector('editchecktype', $checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
+        $inputs.= wf_Selector('editchecktype', $this->checktypes, __('Check type'), $this->allTasks[$taskID]['checktype'], true);
         $inputs.= wf_TextInput('editparam', __('Parameter'), $this->allTasks[$taskID]['param'], true);
-        $inputs.= wf_Selector('editoperator', $operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
+        $inputs.= wf_Selector('editoperator', $this->operators, __('Operator'), $this->allTasks[$taskID]['operator'], true);
         $inputs.= wf_TextInput('editcondition', __('Condition'), $this->allTasks[$taskID]['condition'], true);
         $inputs.= wf_TextInput('editaction', __('Actions'), $this->allTasks[$taskID]['action'], true);
         $inputs.= wf_CheckInput('editactive', __('Active'), true, $this->allTasks[$taskID]['active']);
@@ -940,21 +985,8 @@ class WatchDogInterface {
             throw new Exception(self::TASKADD_EX);
         }
 
-
-        $query = "INSERT INTO `watchdog` (
-                `id` ,
-                `active` ,
-                `name` ,
-                `checktype` ,
-                `param` ,
-                `operator` ,
-                `condition` ,
-                `action` ,
-                `oldresult`
-                )
-                VALUES (
-                NULL , '" . $active . "', '" . $name . "', '" . $checktype . "', '" . $param . "', '" . $operator . "', '" . $condition . "', '" . $action . "', NULL
-                );";
+        $query = "INSERT INTO `watchdog` (`id` , `active` , `name` , `checktype` , `param` ,`operator` ,  `condition` ,`action` ,`oldresult`)
+                VALUES (NULL , '" . $active . "', '" . $name . "', '" . $checktype . "', '" . $param . "', '" . $operator . "', '" . $condition . "', '" . $action . "', NULL);";
         nr_query($query);
         log_register("WATCHDOG CREATE TASK `" . $name . "`");
     }
@@ -967,7 +999,7 @@ class WatchDogInterface {
     public function panel() {
         $createWindow = $this->newTaskForm();
         $settingsWindow = $this->settingsForm();
-        $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton', '400', '300');
+        $result = wf_modalAuto(wf_img('skins/add_icon.png') . ' ' . __('Create new task'), __('Create new task'), $createWindow, 'ubButton');
         $result.= wf_Link("?module=watchdog", wf_img('skins/icon_search_small.gif') . ' ' . __('Show all tasks'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&manual=true", wf_img('skins/refresh.gif') . ' ' . __('Manual run'), false, 'ubButton');
         $result.= wf_Link("?module=watchdog&previousalerts=true", wf_img('skins/time_machine.png') . ' ' . __('Previous alerts'), false, 'ubButton');

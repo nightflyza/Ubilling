@@ -8,11 +8,13 @@ if (cfr('POLICEDOG')) {
         if (!empty($avidity)) {
             $policedog = new $avidity['O']['INIT']();
             //render interface
-            show_window('', $policedog->$avidity['M']['FACE']());
+            $avidity_m_face = $avidity['M']['FACE'];
+            show_window('', $policedog->$avidity_m_face());
 
             //create new MAC records
             if (wf_CheckPost(array($avidity['P']['PULL']))) {
-                $createResult = $policedog->$avidity['M']['SAVE']();
+                $avidity_m_save = $avidity['M']['SAVE'];
+                $createResult = $policedog->$avidity_m_save();
                 if (empty($createResult)) {
                     rcms_redirect($policedog::URL_ME);
                 } else {
@@ -30,7 +32,8 @@ if (cfr('POLICEDOG')) {
              */
             //mac deletion
             if (wf_CheckGet(array($avidity['P']['MDEL']))) {
-                $policedog->$avidity['M']['KILL']($_GET[$avidity['P']['MDEL']]);
+                $avidity_m_kill = $avidity['M']['KILL'];
+                $policedog->$avidity_m_kill($_GET[$avidity['P']['MDEL']]);
                 rcms_redirect($policedog::URL_ME);
             }
 
@@ -38,7 +41,8 @@ if (cfr('POLICEDOG')) {
             if (wf_CheckGet(array($avidity['P']['ADEL']))) {
                 $dVoid = new DarkVoid();
                 $dVoid->flushCache();
-                $policedog->$avidity['M']['KILLA']($_GET[$avidity['P']['ADEL']]);
+                $avidity_m_killa = $avidity['M']['KILLA'];
+                $policedog->$avidity_m_killa($_GET[$avidity['P']['ADEL']]);
                 rcms_redirect($policedog::URL_ME . '&show=fastscan');
             }
 
@@ -57,10 +61,12 @@ if (cfr('POLICEDOG')) {
                             $policedog->fastScan();
                             rcms_redirect($policedog::URL_ME . '&show=fastscan');
                         }
-                        show_window(__('Fast scan'), $policedog->$avidity['L']['RUN']());
+                        $avidity_l_run = $avidity['L']['RUN'];
+                        show_window(__('Fast scan'), $policedog->$avidity_l_run());
                         break;
                     case 'deepscan':
-                        show_window(__('Deep scan'), $policedog->$avidity['M']['SLOW']());
+                        $avidity_m_slow = $avidity['M']['SLOW'];
+                        show_window(__('Deep scan'), $policedog->$avidity_m_slow());
                         break;
                 }
             }

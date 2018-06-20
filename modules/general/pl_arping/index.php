@@ -19,7 +19,7 @@ if (cfr('PLARPING')) {
             die($raw_result);
         }
         $ping_result=  wf_AjaxLoader();
-        $ping_result.= wf_AjaxLink('?module=pl_arping&username='.$login.'&ajax=true', __('Renew'), 'ajaxarping', true, 'ubButton');
+        $ping_result.= wf_AjaxLink('?module=pl_arping&username='.$login.'&ajax=true', wf_img('skins/refresh.gif') . ' ' .__('Renew'), 'ajaxarping', true, 'ubButton');
         $ping_result.=  wf_tag('pre',false,'','id="ajaxarping"').$raw_result.  wf_tag('pre',true);
         //detecting duplicate MAC
         $rawArray=  explodeRows($raw_result);

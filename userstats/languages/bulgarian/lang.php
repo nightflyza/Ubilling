@@ -244,4 +244,8 @@ $lang['def']['billions']='милиард';
 $lang['def']['trillion']='трилион';
 $lang['def']['trillionx']='трилион';
 $lang['def']['trillions']='трилион';
+
+$lang['def']['Terms'] = 'Условия';
+$lang['def']['Bonus'] = 'Премия';
+
 ?>

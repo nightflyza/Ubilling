@@ -343,6 +343,30 @@ $lang['def']['Ping'] = 'Пинг';
 $lang['def']['Jitter'] = 'Джиттер';
 $lang['def']['Start'] = 'Начать';
 $lang['def']['Abort'] = 'Прервать';
+$lang['def']['Polls'] = 'Опросы';
+$lang['def']['My answers to polls'] = 'Мои ответы на опросы';
+$lang['def']['Start date poll'] = 'Дата начала опроса';
+$lang['def']['End date poll'] = 'Дата завершения опроса';
+$lang['def']['Title'] = 'Заголовок';
+$lang['def']['Answer'] = 'Ответ';
+$lang['def']['Voting date'] = 'Дата голосования';
+$lang['def']['You have not yet responded to polls'] = 'Вы еще не ответчали на опросы';
+$lang['def']['Vote'] = 'Голосовать';
 
+$lang['def']['Additional mobile'] = 'Дополнительный мобильный';
+
+$lang['def']['Freeze days charge enabled'] = 'Ограничение количества дней заморозки включено';
+$lang['def']['Freeze days initial amount'] = 'Начальное количество дней заморозки';
+$lang['def']['Workdays initial amount to restore freeze days amount'] = 'Начальное количество дней которые нужно отработать для восстановления дней заморозки';
+$lang['def']['Freeze days total amount'] = 'Общее количество дней заморозки';
+$lang['def']['Freeze days used'] = 'Количество использованных дней заморозки';
+$lang['def']['Freeze days available'] = 'Количество имеющихся для использования дней заморозки';
+$lang['def']['Workdays amount to restore freeze days'] = 'Количество дней которые нужно отработать для восстановления дней заморозки';
+$lang['def']['Days worked after freeze days used up'] = 'Количество уже отработаных дней после исчерпания дней заморозки';
+$lang['def']['Workdays left to restore'] = 'Количество дней которое осталось отработать для восстановления дней заморозки';
+$lang['def']['Changing freeze status is unavailable: total amount of freeze days used up'] = 'Изменение статуса заморозки недоступно: количество имеющихся дней заморозки исчерпано';
+
+$lang['def']['Terms'] = 'Условия';
+$lang['def']['Bonus'] = 'Бонус';
 
 ?>

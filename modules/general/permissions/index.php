@@ -4,7 +4,7 @@ if (cfr('PERMISSIONS')) {
 
     /**
      * Performs replication of administrators rights to existing user
-     * 
+     *
      * @global object $system
      * @param string $sourceUser
      * @param string $targetUser
@@ -36,7 +36,7 @@ if (cfr('PERMISSIONS')) {
 
     /**
      * Returns login selector with all of administrator users
-     * 
+     *
      * @param string $excludeuser
      * @return string
      */
@@ -57,7 +57,7 @@ if (cfr('PERMISSIONS')) {
 
     /**
      * Returns available administrators list
-     * 
+     *
      * @return string
      */
     function web_list_admins() {
@@ -84,7 +84,7 @@ if (cfr('PERMISSIONS')) {
 
     /**
      * Returns available permissions groups
-     * 
+     *
      * @param string $groupname
      * @return array
      */
@@ -102,7 +102,7 @@ if (cfr('PERMISSIONS')) {
 
     /**
      * Shows permissions editor for some user
-     * 
+     *
      * @global object $system
      * @param string $login
      */
@@ -125,49 +125,157 @@ if (cfr('PERMISSIONS')) {
         $branchesinputs = '';
         $miscinputs = '';
 
+        $reginputsnames = '';
+        $eginputsnames = '';
+        $geoinputsnames = '';
+        $sysinputsnames = '';
+        $fininputsnames = '';
+        $repinputsnames = '';
+        $catvinputsnames = '';
+        $branchesinputsnames = '';
+        $miscinputsnames = '';
+
+        $reginputsallchecked = true;
+        $eginputsallchecked = true;
+        $geoinputsallchecked = true;
+        $sysinputsallchecked = true;
+        $fininputsallchecked = true;
+        $repinputsallchecked = true;
+        $catvinputsallchecked = true;
+        $branchesinputsallchecked = true;
+        $miscinputsallchecked = true;
 
         $inputs = wf_BackLink('?module=permissions') . wf_delimiter();
 
-        $inputs.=wf_HiddenInput('save', '1');
+        //$root = false;
+
+        $inputs .= wf_HiddenInput('save', '1');
         if ($system->getRightsForUser($login, $rights, $root, $level)) {
             if ($root) {
-                $inputs.=wf_tag('p', false, 'glamour') . wf_CheckInput('rootuser', __('Root administrator'), true, true) . wf_tag('p', true) . wf_CleanDiv();
+                $inputs .= wf_tag('p', false, 'glamour') . wf_CheckInput('rootuser', __('Root administrator'), true, true) . wf_tag('p', true) . wf_CleanDiv();
             } else {
-                $inputs.=wf_tag('p', false, 'glamour') . wf_CheckInput('rootuser', __('Root administrator'), true, false) . wf_tag('p', true) . wf_CleanDiv();
+                $inputs .= wf_tag('p', false, 'glamour') . wf_CheckInput('rootuser', __('Root administrator'), true, false) . wf_tag('p', true) . wf_CleanDiv();
                 foreach ($system->rights_database as $right_id => $right_desc) {
+                    $InputName = '_rights[' . $right_id . ']';
+
                     //sorting inputs
                     if ((!isset($regperms[$right_id])) AND ( !isset($geoperms[$right_id])) AND ( !isset($sysperms[$right_id])) AND ( !isset($finperms[$right_id])) AND ( !isset($repperms[$right_id])) AND ( !isset($catvperms[$right_id])) AND ( !isset($branchesperms[$right_id]))) {
-                        $miscinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $miscinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $miscinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $miscinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=miscinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=miscinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $miscinputs .= wf_tag('script', true);
+
+                        $miscinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $miscinputsallchecked = false;
                     }
+
                     //user register rights
                     if (isset($regperms[$right_id])) {
-                        $reginputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $reginputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $reginputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $reginputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=reginputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=reginputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $reginputs .= wf_tag('script', true);
+
+                        $reginputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $reginputsallchecked = false;
                     }
-                    //geo rights     
+
+                    //geo rights
                     if (isset($geoperms[$right_id])) {
-                        $geoinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $geoinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $geoinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $geoinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=geoinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=geoinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $geoinputs .= wf_tag('script', true);
+
+                        $geoinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $geoinputsallchecked = false;
                     }
-                    //system config perms     
+
+                    //system config perms
                     if (isset($sysperms[$right_id])) {
-                        $sysinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $sysinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $sysinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $sysinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=sysinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=sysinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $sysinputs .= wf_tag('script', true);
+
+                        $sysinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $sysinputsallchecked = false;
                     }
-                    //financial inputs     
+
+                    //financial inputs
                     if (isset($finperms[$right_id])) {
-                        $fininputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $fininputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $fininputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $fininputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=fininputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=fininputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $fininputs .= wf_tag('script', true);
+
+                        $fininputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $fininputsallchecked = false;
                     }
 
-                    //reports rights     
+                    //reports rights
                     if (isset($repperms[$right_id])) {
-                        $repinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $repinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $repinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $repinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=repinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=repinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $repinputs .= wf_tag('script', true);
+
+                        $repinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $repinputsallchecked = false;
                     }
 
-                    //catv rights     
+                    //catv rights
                     if (isset($catvperms[$right_id])) {
-                        $catvinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $catvinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $catvinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $catvinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=catvinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=catvinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $catvinputs .= wf_tag('script', true);
+
+                        $catvinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $catvinputsallchecked = false;
                     }
+
                     //branches inputs
                     if (isset($branchesperms[$right_id])) {
-                        $branchesinputs.=wf_CheckInput('_rights[' . $right_id . ']', $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $branchesinputs .= wf_CheckInput($InputName, $right_desc . ' - ' . $right_id, true, user_check_right($login, $right_id));
+                        $branchesinputs .= wf_tag('script', false, '', 'type="text/javascript"');
+                        $branchesinputs .= '$(\'[name="' . $InputName . '"]\').change( {InputNamesList : $(\'input[name=branchesinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkIfAllChecked($(\'[name=branchesinputscheck]\').attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+                        $branchesinputs .= wf_tag('script', true);
+
+                        $branchesinputsnames .= $InputName . ',';
+
+                        if ( !user_check_right($login, $right_id) ) $branchesinputsallchecked = false;
                     }
                 }
             }
@@ -175,37 +283,204 @@ if (cfr('PERMISSIONS')) {
 
 
         //rights grid
-        $label = wf_tag('h3') . __('Users registration') . wf_tag('h3', true);
+        $CheckLabelCaption = ($reginputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('reginputsnames', $reginputsnames);
+        $label = wf_tag('h3') . __('Users registration') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('reginputscheck', __($CheckLabelCaption), true, $reginputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        /*if ($root) {
+            $label .= '$(\'[name=reginputscheck]\').css(\'visibility\', \'hidden\');
+                      $("label[for=\'"+$(\'[name=reginputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+        }*/
+        $label .= '$(\'[name=reginputscheck]\').change( {InputNamesList : $(\'input[name=reginputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
         $tablecells = wf_TableCell($label . $reginputs, '', '', 'valign="top"');
-        $label = wf_tag('h3') . __('System settings') . wf_tag('h3', true);
-        $tablecells.=wf_TableCell($label . $sysinputs, '', '', 'valign="top"');
+
+
+        $CheckLabelCaption = ($sysinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('sysinputsnames', $sysinputsnames);
+        $label = wf_tag('h3') . __('System settings') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('sysinputscheck', __($CheckLabelCaption), true, $sysinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        /*if ($root) {
+            $label .= '$(\'[name=sysinputscheck]\').css(\'visibility\', \'hidden\');
+                      $("label[for=\'"+$(\'[name=sysinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+        }*/
+        $label .= '$(\'[name=sysinputscheck]\').change( {InputNamesList : $(\'input[name=sysinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
+        $tablecells .=wf_TableCell($label . $sysinputs, '', '', 'valign="top"');
         $tablerows = wf_TableRow($tablecells);
 
-        $label = wf_tag('h3') . __('Reports') . wf_tag('h3', true);
+
+        $CheckLabelCaption = ($repinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('repinputsnames', $repinputsnames);
+        $label = wf_tag('h3') . __('Reports') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('repinputscheck', __($CheckLabelCaption), true, $repinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        /*if ($root) {
+            $label .= '$(\'[name=repinputscheck]\').css(\'visibility\', \'hidden\');
+                      $("label[for=\'"+$(\'[name=repinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+        }*/
+        $label .= '$(\'[name=repinputscheck]\').change( {InputNamesList : $(\'input[name=repinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
         $tablecells = wf_TableCell($label . $repinputs, '', '', 'valign="top"');
-        $label = wf_tag('h3') . __('Financial management') . wf_tag('h3', true);
-        $tablecells.=wf_TableCell($label . $fininputs, '', '', 'valign="top"');
-        $tablerows.= wf_TableRow($tablecells);
 
 
-        $label = wf_tag('h3') . __('CaTV') . wf_tag('h3', true);
+        $CheckLabelCaption = ($fininputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('fininputsnames', $fininputsnames);
+        $label = wf_tag('h3') . __('Financial management') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('fininputscheck', __($CheckLabelCaption), true, $fininputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        /*if ($root) {
+            $label .= '$(\'[name=fininputsnames]\').css(\'visibility\', \'hidden\');
+                      $("label[for=\'"+$(\'[name=fininputsnames]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+        }*/
+        $label .= '$(\'[name=fininputscheck]\').change( {InputNamesList : $(\'input[name=fininputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
+        $tablecells .=wf_TableCell($label . $fininputs, '', '', 'valign="top"');
+        $tablerows .= wf_TableRow($tablecells);
+
+
+        $CheckLabelCaption = ($catvinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('catvinputsnames', $catvinputsnames);
+        $label = wf_tag('h3') . __('CaTV') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('catvinputscheck', __($CheckLabelCaption), true, $catvinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        /*if ($root) {
+            $label .= '$(\'[name=catvinputscheck]\').css(\'visibility\', \'hidden\');
+                      $("label[for=\'"+$(\'[name=catvinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+        }*/
+        $label .= '$(\'[name=catvinputscheck]\').change( {InputNamesList : $(\'input[name=catvinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
         $tablecells = wf_TableCell($label . $catvinputs, '', '', 'valign="top"');
-        $label = wf_tag('h3') . __('Geography') . wf_tag('h3', true);
-        $tablecells.=wf_TableCell($label . $geoinputs, '', '', 'valign="top"');
-        $tablerows.= wf_TableRow($tablecells);
 
-        $label = wf_tag('h3') . __('Misc rights') . wf_tag('h3', true);
+
+        $CheckLabelCaption = ($geoinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('geoinputsnames', $geoinputsnames);
+        $label = wf_tag('h3') . __('Geography') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('geoinputscheck', __($CheckLabelCaption), true, $geoinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        $label .= '$(\'[name=geoinputscheck]\').change( {InputNamesList : $(\'input[name=geoinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
+        $tablecells .=wf_TableCell($label . $geoinputs, '', '', 'valign="top"');
+        $tablerows .= wf_TableRow($tablecells);
+
+
+        $CheckLabelCaption = ($miscinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('miscinputsnames', $miscinputsnames);
+        $label = wf_tag('h3') . __('Misc rights') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('miscinputscheck', __($CheckLabelCaption), true, $miscinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        $label .= '$(\'[name=miscinputscheck]\').change( {InputNamesList : $(\'input[name=miscinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
         $tablecells = wf_TableCell($label . $miscinputs, '', '', 'valign="top"');
-        $label = wf_tag('h3') . __('Branches') . wf_tag('h3', true);
-        $tablecells.= wf_TableCell($label . $branchesinputs, '', '', 'valign="top"');
-        $tablerows.= wf_TableRow($tablecells);
 
+
+        $CheckLabelCaption = ($branchesinputsallchecked) ? __('Uncheck all') : __('Check all');
+        $inputs .= wf_HiddenInput('branchesinputsnames', $branchesinputsnames);
+        $label = wf_tag('h3') . __('Branches') . '&emsp;&emsp;&emsp;&emsp;';
+        $label .= wf_CheckInput('branchesinputscheck', __($CheckLabelCaption), true, $branchesinputsallchecked);
+        $label .= wf_tag('h3', true);
+        $label .= wf_tag('script', false, '', 'type="text/javascript"');
+        $label .= '$(\'[name=branchesinputscheck]\').change( {InputNamesList : $(\'input[name=branchesinputsnames]\').val()},
+                                                          function(EventObject) {
+                                                                checkThemAll($(this).attr("id"), EventObject.data.InputNamesList); 
+                                                          } );';
+        $label .= wf_tag('script', true);
+        $tablecells .= wf_TableCell($label . $branchesinputs, '', '', 'valign="top"');
+        $tablerows .= wf_TableRow($tablecells);
+
+
+        $inputs .= wf_tag('script', false, '', 'type="text/javascript"');
+        $inputs .= 'function checkIfAllChecked(CheckObjectID, InputNamesList) {
+                        var AllChecked = true;
+                        InputNamesList = InputNamesList.substring(0, InputNamesList.length - 1);                        
+                        var ElemArray = InputNamesList.split(",");                        
+                        ElemArray.forEach( function(Item, Index) { 
+                            if ( !$(\'[name="\'+Item+\'"]\').is(\':checked\') ) {
+                                AllChecked = false;                                  
+                            }
+                        } );
+                        
+                        var LabelText = (AllChecked) ? \'' . __('Uncheck all') . '\' : \'' . __('Check all') . '\';                        
+                        $("label[for=\'"+CheckObjectID+"\']").html(LabelText);
+                        $("#"+CheckObjectID).prop(\'checked\', AllChecked);                        
+                    } 
+                    
+                    function checkThemAll(CheckObjectID, InputNamesList) {                        
+                        var CheckVal = $("#"+CheckObjectID).is(\':checked\');                        
+                        var LabelText = (CheckVal) ? \'' . __('Uncheck all') . '\' : \'' . __('Check all') . '\';                        
+                        $("label[for=\'"+CheckObjectID+"\']").html(LabelText);
+                        
+                        InputNamesList = InputNamesList.substring(0, InputNamesList.length - 1);                        
+                        var ElemArray = InputNamesList.split(",");                        
+                        ElemArray.forEach( function(Item, Index) { $(\'[name="\'+Item+\'"]\').prop(\'checked\', CheckVal); } );                        
+                    }
+                    ';
+
+        $inputs .= wf_tag('script', true);
 
         $rightsgrid = $inputs;
-        $rightsgrid.=wf_Submit('Save') . wf_delimiter();
+        $rightsgrid .=wf_Submit('Save') . wf_delimiter();
 
+        $rightsgrid .= wf_TableBody($tablerows, '100%', 0, 'glamour');
 
-        $rightsgrid.= wf_TableBody($tablerows, '100%', 0, 'glamour');
+        if ($root) {
+            $rightsgrid .= wf_tag('script', false, '', 'type="text/javascript"');
+            $rightsgrid .= '$(\'[name=reginputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=reginputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                        
+                            $(\'[name=sysinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=sysinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                          
+                            $(\'[name=repinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=repinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                          
+                            $(\'[name=fininputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=fininputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                          
+                            $(\'[name=catvinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=catvinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                          
+                            $(\'[name=geoinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=geoinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                            
+                            $(\'[name=miscinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=miscinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');
+                            
+                            $(\'[name=branchesinputscheck]\').css(\'visibility\', \'hidden\');
+                            $("label[for=\'"+$(\'[name=branchesinputscheck]\').attr("id")+"\']").css(\'visibility\', \'hidden\');';
+
+            $rightsgrid .= wf_tag('script', true);
+        }
 
         $permission_forms = wf_Form("", 'POST', $rightsgrid, '');
         $permission_forms.=wf_CleanDiv();
@@ -225,9 +500,10 @@ if (cfr('PERMISSIONS')) {
         show_window(__('Rights for') . ' ' . $login, $permission_forms);
     }
 
+
     /**
      * Shows administrator editing form
-     * 
+     *
      * @param string $login
      */
     function web_admineditform($login) {

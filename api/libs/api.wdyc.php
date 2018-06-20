@@ -10,11 +10,18 @@ class WhyDoYouCall {
     protected $altCfg = array();
 
     /**
-     * Contains array of available user phones as phonenumber=>login
+     * Telepathy object placeholder
      *
-     * @var array
+     * @var object
      */
-    protected $phoneBase = array();
+    protected $telepathy = array();
+
+    /**
+     * Contains only mobile flag mapped from WDYC_ONLY_MOBILE config option
+     *
+     * @var bool
+     */
+    protected $onlyMobileFlag = false;
 
     /**
      * Askozia PBX web-interface URL
@@ -81,6 +88,7 @@ class WhyDoYouCall {
     public function __construct() {
         $this->loadConfig();
         $this->initMessages();
+        $this->initTelepathy();
     }
 
     /**
@@ -98,6 +106,12 @@ class WhyDoYouCall {
             $this->askoziaLogin = zb_StorageGet('ASKOZIAPBX_LOGIN');
             $this->askoziaPassword = zb_StorageGet('ASKOZIAPBX_PASSWORD');
         }
+
+        if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
+            $this->onlyMobileFlag = false;
+        } else {
+            $this->onlyMobileFlag = true;
+        }
     }
 
     /**
@@ -107,6 +121,11 @@ class WhyDoYouCall {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    protected function initTelepathy() {
+        $this->telepathy = new Telepathy();
+        $this->telepathy->usePhones();
     }
 
     /**
@@ -121,7 +140,7 @@ class WhyDoYouCall {
         if ((!empty($this->askoziaUrl)) AND ( !empty($this->askoziaLogin)) AND ( !empty($this->askoziaPassword))) {
             $callsTmp = array();
             $normalCalls = array();
-
+            $incomeTimes = array();
             $fields = array(
                 'extension_number' => 'all',
                 'cdr_filter' => 'incomingoutgoing',
@@ -156,15 +175,20 @@ class WhyDoYouCall {
                 if (!empty($normalCalls)) {
                     unset($normalCalls[0]);
                     foreach ($normalCalls as $io => $each) {
+                        //Askozia CFE fix
+                        if (sizeof($each) > 25) {
+                            array_splice($each, 3, 1);
+                        }
                         $startTime = explode(' ', $each[9]);
                         @$startTime = $startTime[1];
                         $incomingNumber = $each[1];
                         $destinationNumber = $each[2];
+                        $incomeTimes[$incomingNumber] = $each[9];
                         //calls with less then 24 hours duration
                         if ($each['13'] < 86400) {
                             //not answered call
                             if (ispos($each[14], 'NO ANSWER') OR ( ispos($each[7], 'VoiceMail'))) {
-                                if (!ispos($each[16], 'outbound')) {
+                                if (!ispos($each[16], 'out')) {
                                     //excluding internal numbers
                                     if (strlen((string) $incomingNumber) > 3) {
                                         $unansweredCalls[$incomingNumber] = $each;
@@ -190,8 +214,14 @@ class WhyDoYouCall {
                                 }
                             }
 
+                            //Unknown numbers not require recall
+                            if (ispos($incomingNumber, 'Unknown')) {
+                                unset($unansweredCalls[$incomingNumber]);
+                            }
+
                             //outcoming call success - deleting form unanswered, adding it to recalled cache
-                            if (ispos($each[16], 'outbound')) {
+                            if (ispos($each[16], 'out')) {
+                                $reactionTime=0;
                                 if (ispos($each[14], 'ANSWERED')) {
                                     if ((isset($unansweredCalls[$destinationNumber]))) {
                                         unset($unansweredCalls[$destinationNumber]);
@@ -201,6 +231,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
                                             $recalledCalls[$destinationNumber]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$destinationNumber]);
+                                            }
+                                            $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
                                         }
                                     }
                                     $uglyHack = '38' . $destinationNumber; //lol
@@ -212,6 +246,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
                                             $recalledCalls[$uglyHack]['count'] = 1;
+                                            if (isset($incomeTimes[$uglyHack])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$uglyHack]);
+                                            }
+                                            $recalledCalls[$uglyHack]['trytime'] = $reactionTime;
                                         }
                                     }
                                 } else {
@@ -223,6 +261,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$destinationNumber]['time'] = $each[13];
                                             $recalledCalls[$destinationNumber]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$destinationNumber]);
+                                            }
+                                            $recalledCalls[$destinationNumber]['trytime'] = $reactionTime;
                                         }
                                     }
                                     $uglyHack = '38' . $destinationNumber;
@@ -233,6 +275,10 @@ class WhyDoYouCall {
                                         } else {
                                             $recalledCalls[$uglyHack]['time'] = $each[13];
                                             $recalledCalls[$uglyHack]['count'] = 1;
+                                            if (isset($incomeTimes[$destinationNumber])) {
+                                                $reactionTime = strtotime($each[9]) - strtotime($incomeTimes[$uglyHack]);
+                                            }
+                                            $recalledCalls[$uglyHack]['trytime'] = $reactionTime;
                                         }
                                     }
                                 }
@@ -269,31 +315,6 @@ class WhyDoYouCall {
     }
 
     /**
-     * Loads and prepares all existing users phones
-     * 
-     * @return void
-     */
-    protected function loadPhonebase() {
-        $query = "SELECT * from `phones`";
-        $all = simple_queryall($query);
-        if (!empty($all)) {
-            foreach ($all as $io => $each) {
-                $cleanMobile = vf($each['mobile'], 3);
-                $cleanPhone = vf($each['phone'], 3);
-                if (!empty($cleanMobile)) {
-                    $this->phoneBase[$cleanMobile] = $each['login'];
-                }
-
-                if ((!isset($this->altCfg['WDYC_ONLY_MOBILE'])) OR ( !@$this->altCfg['WDYC_ONLY_MOBILE'])) {
-                    if (!empty($cleanPhone)) {
-                        $this->phoneBase[$cleanPhone] = $each['login'];
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Trys to detect user login by phone number
      * 
      * @param string $phoneNumber
@@ -301,15 +322,7 @@ class WhyDoYouCall {
      * @return string
      */
     protected function userLoginTelepathy($phoneNumber) {
-        $result = '';
-        if (!empty($this->phoneBase)) {
-            foreach ($this->phoneBase as $baseNumber => $userLogin) {
-                if (ispos((string) $phoneNumber, (string) $baseNumber)) {
-                    $result = $userLogin;
-                    return ($result);
-                }
-            }
-        }
+        $result = $this->telepathy->getByPhone($phoneNumber, $this->onlyMobileFlag, $this->onlyMobileFlag); //here only mobile flag is used for number normalization
         return ($result);
     }
 
@@ -336,7 +349,6 @@ class WhyDoYouCall {
      */
     public function renderMissedCallsReport() {
         $result = '';
-        $this->loadPhonebase();
         $this->allUserNames = zb_UserGetAllRealnames();
         $this->allUserAddress = zb_AddressGetFulladdresslistCached();
 
@@ -397,6 +409,7 @@ class WhyDoYouCall {
                     $totalCount = 0;
                     $cells = wf_TableCell(__('Number'));
                     $cells.= wf_TableCell(__('Number of attempts to call'));
+                    $cells.= wf_TableCell(__('Reaction time'));
                     $cells.= wf_TableCell(__('Talk time'));
                     $cells.= wf_TableCell(__('Status'));
                     $cells.= wf_TableCell(__('User'));
@@ -418,6 +431,7 @@ class WhyDoYouCall {
                         $callStatusFlag = ($callTime > 0) ? 1 : 0;
                         $cells = wf_TableCell(wf_tag('strong') . $number . wf_tag('strong', true));
                         $cells.= wf_TableCell($callData['count']);
+                        $cells.= wf_TableCell(zb_formatTime($callData['trytime']));
                         $cells.= wf_TableCell($callTimeFormated, '', '', 'sorttable_customkey="' . $callTime . '"');
                         $cells.= wf_TableCell($callStatus, '', '', 'sorttable_customkey="' . $callStatusFlag . '"');
                         $cells.= wf_TableCell($profileLink);
@@ -446,6 +460,7 @@ class WhyDoYouCall {
         $missedCallsCount = 0;
         $recallsCount = 0;
         $unsuccCount = 0;
+        $totalTryTime = 0;
         $missedCallsNumbers = '';
         //missed calls stats
         if (file_exists(self::CACHE_FILE)) {
@@ -472,13 +487,17 @@ class WhyDoYouCall {
                         if ($callData['time'] == 0) {
                             $unsuccCount++;
                         }
+
+                        if (isset($callData['trytime'])) {
+                            $totalTryTime = $totalTryTime + $callData['trytime'];
+                        }
                     }
                 }
             }
         }
         $missedCallsNumbers = mysql_real_escape_string($missedCallsNumbers);
-        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`) VALUES "
-                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "');";
+        $query = "INSERT INTO `wdycinfo` (`id`, `date`, `missedcount`, `recallscount`, `unsucccount`, `missednumbers`,`totaltrytime`) VALUES "
+                . "(NULL, '" . $date . "', '" . $missedCallsCount . "', '" . $recallsCount . "', '" . $unsuccCount . "', '" . $missedCallsNumbers . "','" . $totalTryTime . "');";
         nr_query($query);
     }
 
@@ -518,6 +537,7 @@ class WhyDoYouCall {
         $totalRecalls = 0;
         $totalUnsucc = 0;
         $totalCalls = 0;
+        $totalReactTime = 0;
 
         $result.= $this->statsDateForm($year, $month);
 
@@ -540,7 +560,7 @@ class WhyDoYouCall {
                     },";
 
         $jqDtOpts = '"order": [[ 0, "desc" ]]';
-        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Phones');
+        $columns = array('ID', 'Date', 'Missed calls', 'Recalled calls', 'Unsuccessful recalls', 'Reaction time', 'Phones');
 
         $query = "SELECT * from `wdycinfo` WHERE `date` LIKE '" . $year . "-" . $month . "-%';";
         $all = simple_queryall($query);
@@ -550,15 +570,18 @@ class WhyDoYouCall {
                 $totalMissed += $each['missedcount'];
                 $totalRecalls += $each['recallscount'];
                 $totalUnsucc += $each['unsucccount'];
+                $totalReactTime+=$each['totaltrytime'];
             }
 
-            $totalCalls+=$totalMissed + $totalRecalls + $totalUnsucc;
+            $totalCalls+=$totalMissed + $totalRecalls;
             $result.=wf_gchartsLine($gchartsData, __('Calls'), '100%', '300px;', $chartsOptions);
             $result.= wf_tag('strong') . __('Total') . ': ' . wf_tag('strong', true) . wf_tag('br');
             $result.= __('Missed calls') . ' - ' . $totalMissed . wf_tag('br');
             $result.= __('Recalled calls') . ' - ' . $totalRecalls . wf_tag('br');
             $result.= __('Unsuccessful recalls') . ' - ' . $totalUnsucc . wf_tag('br');
-            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%';
+            $result.= __('Percent') . ' ' . __('Missed calls') . ' - ' . zb_PercentValue($totalCalls, abs($totalMissed - $totalUnsucc)) . '%' . wf_tag('br');
+            $reactTimeStat = (!empty($totalReactTime)) ? zb_formatTime($totalReactTime / ($totalRecalls + $totalUnsucc)) : __('No');
+            $result.= __('Reaction time') . ' - ' . $reactTimeStat;
             $result.= wf_tag('br');
             $result.= wf_tag('br');
             $result.= wf_JqDtLoader($columns, self::URL_ME . '&renderstats=true&ajaxlist=true&year=' . $year . '&month=' . $month, false, __('Calls'), 25, $jqDtOpts);
@@ -624,6 +647,8 @@ class WhyDoYouCall {
                 $data[] = $this->colorMissed($each['missedcount']);
                 $data[] = $each['recallscount'];
                 $data[] = $each['unsucccount'];
+                $reactTime = (!empty($each['totaltrytime'])) ? zb_formatTime(($each['totaltrytime'] / ($each['recallscount'] + $each['unsucccount']))) : '-';
+                $data[] = $reactTime;
                 $data[] = $this->cutString($each['missednumbers'], 45);
                 $json->addRow($data);
                 unset($data);

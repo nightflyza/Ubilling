@@ -30,30 +30,42 @@ function zb_CardGenerate(array $cardCreate) {
     $price = vf($cardCreate['price']);
     $part = $cardCreate['part'];
     $selling = vf($cardCreate['selling'], 3);
+    $messages = new UbillingMessageHelper();
 
-    if ((empty($count)) or (empty($price))) {
-        die('No count or price');
-    }
+    $result = '';
     $reported = '';
-    $reported_arr = array();
-    for ($cardcount = 0; $cardcount < $count; $cardcount++) {
-        if ($cardCreate['length'] == 16) {
-            $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
-        } elseif ($cardCreate['length'] == 8) {
-            $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999);
-        }
-        $reported_arr[] = $serial;
-    }
-    // Delete duplicat serial number cards
-    array_unique($reported_arr);
-    $count = count($reported_arr);
+    $message_warn = '';
 
-    foreach ($reported_arr as $serial) {
-        $reported.= $serial . "\n";
-        zb_CardCreate($serial, $price, $part, $selling);
+    $message_warn.= (empty($count)) ? $messages->getStyledMessage(__('Count of cards cannot be empty'), 'warning') : '';
+    $message_warn.= (empty($price)) ? $messages->getStyledMessage(__('Price of cards cannot be empty'), 'warning') : '';
+
+    // Check that we dont have warning
+    if ( empty($message_warn)) {
+        $reported_arr = array();
+        for ($cardcount = 0; $cardcount < $count; $cardcount++) {
+            if ($cardCreate['length'] == 16) {
+                $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999) . mt_rand(1111, 9999);
+            } elseif ($cardCreate['length'] == 8) {
+                $serial = mt_rand(1111, 9999) . mt_rand(1111, 9999);
+            }
+            $reported_arr[] = $serial;
+        }
+        // Delete duplicat serial number cards
+        array_unique($reported_arr);
+        $count = count($reported_arr);
+
+        foreach ($reported_arr as $serial) {
+            $reported.= $serial . "\n";
+            zb_CardCreate($serial, $price, $part, $selling);
+        }
+
+        $result.= wf_tag('pre', false) . $reported . wf_tag('pre', true);
+        log_register("CARDS CREATED `".$count."` PART `".$part."` SERIAL `".$serial."` PRICE `".$price."` SELLING_ID [".$selling."]");
+
+    } else {
+        $result = $message_warn;
     }
-    log_register("CARDS CREATED `".$count."` PART `".$part."` SERIAL `".$serial."` PRICE `".$price."` SELLING_ID [".$selling."]");
-    return ($reported);
+    return ($result);
 }
 
 /**
@@ -161,7 +173,7 @@ function web_CardsGenerateForm() {
     $cells = wf_TableCell(wf_Selector('card_create[selling]', zb_BuilderSelectSellingData(), '', '', false));
     $cells.= wf_TableCell(wf_TextInput('card_create[part]', '', '', false, '5'));
     $cells.= wf_TableCell(wf_TextInput('card_create[count]', '', '', false, '5'));
-    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5'));
+    $cells.= wf_TableCell(wf_TextInput('card_create[price]', '', '', false, '5', 'finance'));
     $cells.= wf_TableCell(wf_Selector('card_create[length]', array('16' => 16, '8' => 8), '', ''));
     $rows.= wf_TableRow($cells, 'row1');
 

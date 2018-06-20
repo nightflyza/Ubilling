@@ -229,6 +229,7 @@ class UserSideApi {
             'get_user_tags' => __('Returns available users tags'),
             'get_services_list' => __('Returns available user services'),
             'get_user_history' => __('Returns user financial operations history'),
+            'get_user_messages' => __('Previous user tickets'),
             'change_user_data' => __('Do some changes with user data'),
             'get_supported_change_user_data_list' => __('Returns list of supported change user data methods'),
             'get_supported_change_user_state' => __('Returns list of supported change user states'),
@@ -789,14 +790,9 @@ class UserSideApi {
                 }
             }
             foreach ($this->allSwitches as $io => $each) {
-                $deviceType = 1; //switch by default
-                if (ispos($each['desc'], 'OLT')) {
-                    $deviceType = 3;
-                }
+                //setting device type
+                $deviceType = $this->getDeviceType($each['id']);
 
-                if ((ispos($each['desc'], 'MTSIGMON')) OR ( ispos($each['desc'], 'AP')) OR ( ispos($each['desc'], 'ssid:'))) {
-                    $deviceType = 2;
-                }
                 //applying filters if required
                 if (empty($typesFilter)) {
                     $filteredFlag = true;
@@ -835,6 +831,63 @@ class UserSideApi {
                     $result[$each['id']]['snmp_port'] = '161';
                     $result[$each['id']]['snmp_read_community'] = $each['snmp'];
                     $result[$each['id']]['software_version'] = '';
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns device type id
+     * 
+     * @param int $deviceId
+     * 
+     * @return int
+     */
+    protected function getDeviceType($deviceId) {
+        //switch by default
+        $result = 1;
+        if (isset($this->allSwitches[$deviceId])) {
+            if (ispos($this->allSwitches[$deviceId]['desc'], 'OLT')) {
+                $result = 3;
+            }
+
+            if ((ispos($this->allSwitches[$deviceId]['desc'], 'MTSIGMON')) OR ( ispos($this->allSwitches[$deviceId]['desc'], 'AP')) OR ( ispos($this->allSwitches[$deviceId]['desc'], 'ssid:'))) {
+                $result = 2;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns array of devices connection topology
+     * 
+     * @return array
+     */
+    protected function getDeviceConnectionsList() {
+        $result = array();
+        if (!empty($this->allSwitches)) {
+            foreach ($this->allSwitches as $io => $each) {
+                //setting device type
+                $deviceType = $this->getDeviceType($each['id']);
+                // We dont know anyting about is. Like John Snow, yeah.
+                $uplinkPort = 1;
+                //detecting, have device uplinks or not?
+                if (!empty($each['parentid'])) {
+                    //uplinks description
+                    $result[$this->allDeviceTypes[$deviceType]][$each['id']][1][$uplinkPort][] = array(
+                        'type' => $this->allDeviceTypes[$this->getDeviceType($each['parentid'])],
+                        'id' => $each['parentid'],
+                        'direction' => 1,
+                        'interface' => $uplinkPort);
+
+                    //downlinks description
+                    $result[$this->allDeviceTypes[$this->getDeviceType($each['parentid'])]][$each['parentid']][1][$uplinkPort][] = array(
+                        'type' => $this->allDeviceTypes[$deviceType],
+                        'id' => $each['id'],
+                        'direction' => 1,
+                        'interface' => 2
+                    );
                 }
             }
         }
@@ -907,7 +960,7 @@ class UserSideApi {
         } else {
             if (!empty($this->allUserData)) {
                 foreach (@$this->allUserData as $io => $each) {
-                    $result[$each['login']] = ip2long($each['IP']);
+                    $result[$each['login']] = ip2int($each['IP']);
                 }
             }
         }
@@ -977,6 +1030,38 @@ class UserSideApi {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $result[$each['id']] = $each;
+            }
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns all users support tickets
+     * 
+     * @return array
+     */
+    protected function getUsersMessages() {
+        $result = array();
+        $query = "SELECT * from `ticketing` ORDER BY `id` ASC;";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                if (($each['from'] != 'NULL') AND ( empty($each['replyid']))) {
+                    //original ticket body
+                    $result[$each['id']]['id'] = $each['id'];
+                    $result[$each['id']]['user_id'] = $each['from'];
+                    $result[$each['id']]['msg_date'] = $each['date'];
+                    $result[$each['id']]['subject'] = __('Ticket') . ' ' . $each['date'];
+                    $result[$each['id']]['text'] = $each['text'];
+                } else {
+                    //thats replies for a ticket
+                    if ((isset($result[$each['replyid']]))) {
+                        $replyAuthor = (!empty($each['admin'])) ? $each['admin'] : $each['from'];
+                        $result[$each['replyid']]['text'].=PHP_EOL . '=========' . PHP_EOL;
+                        $result[$each['replyid']]['text'].=PHP_EOL . __('Message') . ' ' . $each['date'] . ' (' . $replyAuthor . ')';
+                        $result[$each['replyid']]['text'].=': ' . PHP_EOL . $each['text'] . PHP_EOL;
+                    }
+                }
             }
         }
         return ($result);
@@ -1147,7 +1232,7 @@ class UserSideApi {
                 }
 
                 $userIp = $userData['IP'];
-                $userIp = ip2long($userIp);
+                $userIp = ip2int($userIp);
                 $result[$userLogin]['ip_mac'][0]['ip'] = $userIp;
                 $nethostsData = @$allNethosts[$userData['IP']];
                 if (!empty($nethostsData)) {
@@ -1527,6 +1612,9 @@ class UserSideApi {
                             $this->renderReply($this->getUsersList($customerId));
                         }
                         break;
+                    case 'get_user_messages':
+                        $this->renderReply($this->getUsersMessages());
+                        break;
                     case 'get_user_history':
                         if (!empty($customerId)) {
                             $this->renderReply($this->getUserFinanceHistory($customerId));
@@ -1559,6 +1647,10 @@ class UserSideApi {
                     case 'get_device_list':
                         $devTypeFilters = (wf_CheckGet(array('device_type'))) ? $_GET['device_type'] : '';
                         $this->renderReply($this->getDevicesList($devTypeFilters));
+                        break;
+
+                    case 'get_connect_list':
+                        $this->renderReply($this->getDeviceConnectionsList());
                         break;
 
                     case 'change_user_data':

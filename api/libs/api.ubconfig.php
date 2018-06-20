@@ -36,6 +36,16 @@ class UbillingConfig {
     }
 
     /**
+     * getter some parameter from alterCfg
+     *
+     * @return parametr from alter.ini or FALSE if parameter not defined
+     */
+    public function getAlterParam($param = false) {
+        return ($param and isset($this->alterCfg[$param]))
+            ? $this->alterCfg[$param] : false ;
+    }
+
+    /**
      * loads system wide billing.ini to private alterCfg prop
      * 
      * @return void
@@ -147,12 +157,13 @@ class UbillingMessageHelper {
      * 
      * @param string $data text message for styling
      * @param string $style error, warning, info, success
+     * @param string $opts
      * 
      * @return string
      */
-    public function getStyledMessage($data, $style) {
+    public function getStyledMessage($data, $style, $opts = '') {
         $class = 'alert_' . $style;
-        $result = wf_tag('span', false, $class) . $data . wf_tag('span', true);
+        $result = wf_tag('span', false, $class, $opts) . $data . wf_tag('span', true);
         return ($result);
     }
 

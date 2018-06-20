@@ -135,8 +135,16 @@ class Warehouse {
     const URL_RESERVE = 'reserve=true';
     const PHOTOSTORAGE_SCOPE = 'WAREHOUSEITEMTYPE';
 
-    public function __construct() {
+    /**
+     * Creates new warehouse instance
+     * 
+     * @param type $taskid
+     * 
+     * @return void
+     */
+    public function __construct($taskid = '') {
         $this->loadAltCfg();
+        $this->loadOutOperations($taskid);
         $this->setUnitTypes();
         $this->setOutDests();
         $this->setSup();
@@ -147,10 +155,11 @@ class Warehouse {
         $this->loadItemTypes();
         $this->loadStorages();
         $this->loadContractors();
-        $this->loadInOperations();
-        $this->loadOutOperations();
-        $this->loadReserve();
-        $this->loadReserveHistory();
+        if (empty($taskid)) {
+            $this->loadReserve();
+            $this->loadReserveHistory();
+            $this->loadInOperations();
+        }
     }
 
     /**
@@ -312,10 +321,14 @@ class Warehouse {
     /**
      * Loads existing outcoming operations from database
      * 
+     * @param int $taskid existing taskId
+     * 
      * @return void
      */
-    protected function loadOutOperations() {
-        $query = "SELECT * from `wh_out`";
+    protected function loadOutOperations($taskid = '') {
+        $taskid = vf($taskid, 3);
+        $where = (!empty($taskid)) ? "WHERE `desttype`='task' AND `destparam`='" . $taskid . "'" : '';
+        $query = "SELECT * from `wh_out` " . $where . ";";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -656,7 +669,7 @@ class Warehouse {
                 $data[] = $operationType;
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = @$this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], @$this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = @$this->allEmployee[$each['employeeid']];
                 $data[] = $administratorName;
@@ -1056,6 +1069,34 @@ class Warehouse {
         if (isset($this->allItemTypeNames[$itemtypeId])) {
             $result = $this->allItemTypeNames[$itemtypeId];
         }
+        return ($result);
+    }
+
+    /**
+     * Returns item type count unit
+     * 
+     * @param int $itemtypeId
+     * 
+     * @return string
+     */
+    public function itemtypeGetUnit($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        $result = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
+        return ($result);
+    }
+    
+     /**
+     * Returns item type count unit
+     * 
+     * @param int $itemtypeId
+     * 
+     * @return string
+     */
+    public function itemtypeGetCategory($itemtypeId) {
+        $itemtypeId = vf($itemtypeId, 3);
+        $result = '';
+        $result = @$this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
         return ($result);
     }
 
@@ -1503,7 +1544,7 @@ class Warehouse {
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
@@ -1728,7 +1769,7 @@ class Warehouse {
                     }
 
                     $data[] = @$this->allCategories[$this->allItemTypes[$itemtypeid]['categoryid']];
-                    $data[] = @$this->allItemTypeNames[$itemtypeid];
+                    $data[] = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeid, @$this->allItemTypeNames[$itemtypeid]);
                     $data[] = $count . ' ' . @$this->unitTypes[$this->allItemTypes[$itemtypeid]['unit']];
                     $data[] = $actLink;
                     $json->addRow($data);
@@ -1836,7 +1877,7 @@ class Warehouse {
                 $data[] = $this->outDests[$each['desttype']] . $this->outDestControl($each['desttype'], $each['destparam']);
                 $data[] = @$this->allStorages[$each['storageid']];
                 $data[] = @$this->allCategories[$this->allItemTypes[$each['itemtypeid']]['categoryid']];
-                $data[] = $this->allItemTypeNames[$each['itemtypeid']];
+                $data[] = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $each['itemtypeid'], $this->allItemTypeNames[$each['itemtypeid']]);
                 $data[] = $each['count'] . ' ' . @$this->unitTypes[$this->allItemTypes[$each['itemtypeid']]['unit']];
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
@@ -2162,7 +2203,7 @@ class Warehouse {
                 if ($count > 0) {
                     $actLink = wf_Link(self::URL_ME . '&' . self::URL_VIEWERS . '&showremains=' . $itemtypeId, wf_img_sized('skins/icon_search_small.gif', '', '10', '10') . ' ' . __('Show'));
                     $data[] = $this->allCategories[$this->allItemTypes[$itemtypeId]['categoryid']];
-                    $data[] = $this->allItemTypeNames[$itemtypeId];
+                    $data[] = wf_link(self::URL_ME . '&' . self::URL_VIEWERS . '&itemhistory=' . $itemtypeId, $this->allItemTypeNames[$itemtypeId]);
                     $data[] = $count . ' ' . $this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
                     $data[] = $actLink;
                     $json->addRow($data);
@@ -2425,12 +2466,7 @@ class Warehouse {
         $tmpArr = array();
         $sum = 0;
         if (!empty($this->allOutcoming)) {
-            foreach ($this->allOutcoming as $io => $each) {
-                if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
-                    $tmpArr[$each['id']] = $each;
-                }
-            }
-
+            $tmpArr = $this->allOutcoming;
             if (!empty($tmpArr)) {
                 $cells = wf_TableCell(__('Date'));
                 $cells.= wf_TableCell(__('Warehouse storage'));
@@ -2482,27 +2518,28 @@ class Warehouse {
      * 
      * @param int $taskid
      * 
-     * @return float
+     * @return array sum=>float & items=>data
      */
     public function taskMaterialsSpentPrice($taskid) {
         $taskid = vf($taskid, 3);
-        $result = '';
-        $tmpArr = array();
+        $result = array();
         $sum = 0;
         if (!empty($this->allOutcoming)) {
             foreach ($this->allOutcoming as $io => $each) {
                 if (($each['desttype'] == 'task') AND ( $each['destparam'] == $taskid)) {
-                    $tmpArr[$each['id']] = $each;
+                    $sum = $sum + ($each['price'] * $each['count']);
+                    $result['items'][] = $each;
                 }
             }
 
             if (!empty($tmpArr)) {
                 foreach ($tmpArr as $io => $each) {
-                    $sum = $sum + ($each['price'] * $each['count']);
+                    
                 }
             }
         }
-        $result = $sum;
+        $result['sum'] = $sum;
+
         return ($result);
     }
 

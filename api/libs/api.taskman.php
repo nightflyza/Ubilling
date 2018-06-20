@@ -9,7 +9,7 @@
  */
 function em_TagSelector($name, $label = '', $selected = '', $br = false) {
     $alltypes = stg_get_alltagnames();
-    $allltags = array('' => '-');
+    $allltags = array('NULL' => '-');
     if (!empty($alltypes)) {
         foreach ($alltypes as $io => $eachtype) {
             $allltags[$io] = $eachtype . " (" . $io . ")";
@@ -147,7 +147,7 @@ function em_EmployeeAdd($name, $job, $mobile = '', $telegram = '', $admlogin = '
     $admlogin = mysql_real_escape_string($admlogin);
     $tagid = mysql_real_escape_string($tagid);
     $query = "INSERT INTO `employee` (`id` , `name` , `appointment`, `mobile`, `telegram`, `admlogin`, `active`, `tagid`)
-              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', '" . $tagid . "'); ";
+              VALUES (NULL , '" . $name . "', '" . $job . "','" . $mobile . "','" . $telegram . "' ,'" . $admlogin . "' , '1', " . $tagid . "); ";
     nr_query($query);
     log_register('EMPLOYEE ADD `' . $name . '` JOB `' . $job . '`');
 }
@@ -948,7 +948,8 @@ function ts_TaskCreateForm() {
         $inputs.= wf_TextInput('newtaskaddress', __('Address') . '<sup>*</sup>', '', true, '30');
     } else {
         $allAddress = zb_AddressGetFulladdresslistCached();
-        natsort($allAddress);
+        //Commented because significantly reduces performance. Waiting for feedback.
+        //natsort($allAddress);
         $inputs.= wf_AutocompleteTextInput('newtaskaddress', $allAddress, __('Address') . '<sup>*</sup>', '', true, '30');
     }
     $inputs.= wf_tag('br');
@@ -1038,7 +1039,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $inputs.= wf_Submit(__('Create new task'));
     if (!empty($login)) {
         $inputs.= wf_AjaxLoader();
-        $inputs.= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')),                             'taskshistorycontainer', false, '');
+        $inputs.= ' ' . wf_AjaxLink('?module=prevtasks&username=' . $login, wf_img_sized('skins/icon_search_small.gif', __('Previous user tasks')), 'taskshistorycontainer', false, '');
         $inputs.= wf_tag('br');
         $inputs.= wf_tag('div', false, '', 'id="taskshistorycontainer"') . wf_tag('div', true);
     }
@@ -1315,7 +1316,8 @@ function ts_FlushSMSData($taskid) {
  * @return void
  */
 function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+    $altercfg = $ubillingConfig->getAlter();
     $curdate = curdatetime();
     $admin = whoami();
     $address = str_replace('\'', '`', $address);
@@ -1324,11 +1326,13 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $login = mysql_real_escape_string($login);
     $phone = mysql_real_escape_string($phone);
     $startdate = mysql_real_escape_string($startdate);
-    $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
+    $jobSendTime = date("H:i", strtotime($curdate));
 
     if (!empty($starttime)) {
+        $starttimeRaw = $starttime;
         $starttime = "'" . mysql_real_escape_string($starttime) . "'";
     } else {
+        $starttimeRaw = '';
         $starttime = 'NULL';
     }
     $jobtypeid = vf($jobtypeid, 3);
@@ -1340,7 +1344,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     if ($altercfg['SENDDOG_ENABLED']) {
         //SMS sending
         if (isset($_POST['newtasksendsms'])) {
-            $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+            $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttimeRaw;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
             if (!empty($smsDataRaw)) {
                 $smsData = serialize($smsDataRaw);
@@ -1355,6 +1359,7 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
             $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
+            $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
             $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
             if (!empty($login)) {
                 $UserIpMAC = zb_UserGetAllData($login);
@@ -1432,7 +1437,8 @@ function ts_TaskModifyForm($taskid) {
         $inputs.= wf_tag('br');
         if ($altercfg['SEARCHADDR_AUTOCOMPLETE']) {
             $alladdress = zb_AddressGetFulladdresslistCached();
-            natsort($alladdress);
+            //Commented because significantly reduces performance. Waiting for feedback.
+            //natsort($alladdress);
             $inputs.= wf_AutocompleteTextInput('modifytaskaddress', $alladdress, __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
         } else {
             $inputs.= wf_TextInput('modifytaskaddress', __('Address') . '<sup>*</sup>', $taskdata['address'], true, '30');
@@ -1477,7 +1483,8 @@ function ts_TaskModifyForm($taskid) {
 function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     $taskid = vf($taskid, 3);
     $startdate = mysql_real_escape_string($startdate);
-    $starttime = (!empty($starttime)) ? "'".date("H:i:s" , strtotime(mysql_real_escape_string($starttime)))."'" : 'NULL';
+    $starttimeRaw = (!empty($starttime)) ? $starttime : '';
+    $starttime = (!empty($starttime)) ? "'" . date("H:i:s", strtotime(mysql_real_escape_string($starttime))) . "'" : 'NULL';
 
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
@@ -1486,7 +1493,6 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
     $org_taskdata = ts_GetTaskData($taskid);
-    $jobSendTime = (!empty($starttime)) ? ' ' . date("H:i", strtotime($starttime)) : '';
 
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
     nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //That shit for preventing quotes. Dont touch this.
@@ -1500,7 +1506,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $smsData = 'NULL';
     //SMS sending
     if (isset($_POST['changetasksendsms'])) {
-        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $jobSendTime;
+        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttimeRaw;
         $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
         if (!empty($smsDataRaw)) {
             $smsData = serialize($smsDataRaw);
@@ -1515,7 +1521,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
         $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
         $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
-        $newTelegramText.= __('Create date') . ': ' . $jobSendTime . '\r\n';
+        $newTelegramText.= __('Target date') . ': ' . $startdate . ' ' . $starttimeRaw . '\r\n';
         if (!empty($login)) {
             $UserIpMAC = zb_UserGetAllData($login);
 
@@ -1528,18 +1534,18 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     }
 
     // Unset parametr, that we dont diff
-    unset ($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
+    unset($org_taskdata['date'], $org_taskdata['employeedone'], $org_taskdata['donenote'], $org_taskdata['enddate'], $org_taskdata['admin'], $org_taskdata['status'], $org_taskdata['change_admin'], $org_taskdata['smsdata']);
     $new_taskdata = array(
-                            'id' => $taskid,
-                            'address' => $address,
-                            'login' => $login,
-                            'jobtype' => $jobtypeid,
-                            'jobnote' => $jobnote,
-                            'phone' => $phone,
-                            'employee' => $employeeid,
-                            'startdate' => $startdate,
-                            'starttime' => $starttime
-                        );
+        'id' => $taskid,
+        'address' => $address,
+        'login' => $login,
+        'jobtype' => $jobtypeid,
+        'jobnote' => $jobnote,
+        'phone' => $phone,
+        'employee' => $employeeid,
+        'startdate' => $startdate,
+        'starttime' => $starttime
+    );
     $cahged_taskdata = (array_diff_assoc($org_taskdata, $new_taskdata));
     $log_data = '';
     foreach ($cahged_taskdata as $par => $value) {
@@ -1754,16 +1760,16 @@ function ts_TaskChangeForm($taskid) {
         //Salary accounting
         if ($altercfg['SALARY_ENABLED']) {
             if (cfr('SALARYTASKSVIEW')) {
-                $salary = new Salary();
-                show_window(__('Additional jobs done'), $salary->taskJobCreateForm($_GET['edittask']));
+                $salary = new Salary($taskid);
+                show_window(__('Additional jobs done'), $salary->taskJobCreateForm($taskid));
             }
         }
 
         //warehouse integration
         if ($altercfg['WAREHOUSE_ENABLED']) {
             if (cfr('WAREHOUSE')) {
-                $warehouse = new Warehouse();
-                show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($_GET['edittask']));
+                $warehouse = new Warehouse($taskid);
+                show_window(__('Additionally spent materials'), $warehouse->taskMaterialsReport($taskid));
             }
         }
 
@@ -1772,7 +1778,12 @@ function ts_TaskChangeForm($taskid) {
             $sup = wf_tag('sup') . '*' . wf_tag('sup', false);
             $inputs = wf_HiddenInput('changetask', $taskid);
             $inputs.= wf_HiddenInput('change_admin', whoami());
-            $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
+            if ((cfr('TASKMANNODONDATE')) AND ( !cfr('ROOT'))) {
+                //manual done date selection forbidden
+                $inputs.=wf_HiddenInput('editenddate', curdate());
+            } else {
+                $inputs.= wf_DatePicker('editenddate') . wf_tag('label', false) . __('Finish date') . $sup . wf_tag('label', true) . wf_tag('br');
+            }
             $inputs.= wf_tag('br');
             $inputs.= wf_Selector('editemployeedone', $activeemployee, __('Worker done'), $taskdata['employee'], true);
             $inputs.= wf_tag('br');

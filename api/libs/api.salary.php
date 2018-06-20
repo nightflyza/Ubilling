@@ -103,16 +103,25 @@ class Salary {
     const URL_LTR = 'ltreport=true';
     const URL_TSHEETS = 'timesheets=true';
 
-    public function __construct() {
+    /**
+     * Creates new Salary instance
+     * 
+     * @param int $taskid Existing taskId for jobs loading
+     * 
+     * @return void
+     */
+    public function __construct($taskid = '') {
         $this->setUnitTypes();
         $this->loadEmployee();
         $this->loadEmployeeRaw();
         $this->loadJobtypes();
         $this->loadJobprices();
         $this->loadWages();
-        $this->loadSalaryJobs();
+        $this->loadSalaryJobs($taskid);
         $this->loadPaid();
-        $this->loadTimesheets();
+        if (empty($taskid)) {
+            $this->loadTimesheets();
+        }
     }
 
     /**
@@ -451,10 +460,14 @@ class Salary {
     /**
      * Loads all available salary jobs from database
      * 
+     * @param int $taskid existing task ID for jobs loading
+     * 
      * @return void
      */
-    protected function loadSalaryJobs() {
-        $query = "SELECT * from `salary_jobs` ORDER BY `id` ASC";
+    protected function loadSalaryJobs($taskid = '') {
+        $taskid = vf($taskid, 3);
+        $where = (!empty($taskid)) ? "WHERE `taskid`='" . $taskid . "'" : '';
+        $query = "SELECT * from `salary_jobs` " . $where . " ORDER BY `id` ASC";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -896,13 +909,18 @@ class Salary {
             }
         }
 
+        $jobtypeParams = array('' => __('Any'));
+        $jobtypeParams+=$this->allJobtypes;
+
         $fromDate = (wf_CheckPost(array('prdatefrom'))) ? $_POST['prdatefrom'] : curdate();
         $toDate = (wf_CheckPost(array('prdateto'))) ? $_POST['prdateto'] : curdate();
         $currentEmployee = (wf_CheckPost(array('premployeeid'))) ? $_POST['premployeeid'] : '';
+        $currentJobTypeId = (wf_CheckPost(array('prjobtypeid'))) ? $_POST['prjobtypeid'] : '';
 
         $inputs = wf_DatePickerPreset('prdatefrom', $fromDate, true) . ' ';
         $inputs.= wf_DatePickerPreset('prdateto', $toDate, true) . ' ';
         $inputs.= wf_Selector('premployeeid', $empParams, __('Worker'), $currentEmployee, false);
+        $inputs.= wf_Selector('prjobtypeid', $jobtypeParams, __('Job type'), $currentJobTypeId, false, false);
         $inputs.= wf_Submit(__('Show'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
         return ($result);
@@ -916,9 +934,10 @@ class Salary {
      * @param int $employeeid
      * @return string
      */
-    public function payrollRenderSearch($datefrom, $dateto, $employeeid) {
+    public function payrollRenderSearch($datefrom, $dateto, $employeeid, $jobtypeid = '') {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
+        $jobtypeid = vf($jobtypeid, 3);
         $employeeid = vf($employeeid, 3);
         $allTasks = ts_GetAllTasks();
         $totalTimeSpent = 0; //in minutes
@@ -933,8 +952,8 @@ class Salary {
         $totalSum = 0;
         $payedSum = 0;
         $jobCount = 0;
-
-        $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "';";
+        $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
+        $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
 
         $cells = wf_TableCell(__('Date'));
@@ -956,10 +975,10 @@ class Salary {
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
-                        $chartData[$jobName] ++;
+                        $chartData[$jobName] +=$each['factor'];
                         $chartDataCash[$jobName] = $chartDataCash[$jobName] + $jobPrice;
                     } else {
-                        $chartData[$jobName] = 1;
+                        $chartData[$jobName] = $each['factor'];
                         $chartDataCash[$jobName] = $jobPrice;
                     }
                 }
@@ -1039,11 +1058,32 @@ class Salary {
 
         if (!empty($chartData)) {
             $result.= wf_CleanDiv();
+            //chart data postprocessing
+            if (!empty($timeChartData)) {
+                foreach ($timeChartData as $io => $each) {
+                    $timeChartData[$io . ' ' . $each] = $each;
+                    unset($timeChartData[$io]);
+                }
+            }
 
-            $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'}, ";
-            $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time'), '400px', '400px', $chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types'), '400px', '400px', $chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money'), '400px', '400px', $chartOpts));
+            if (!empty($chartData)) {
+                foreach ($chartData as $io => $each) {
+                    $chartData[$io . ' ' . $each] = $each;
+                    unset($chartData[$io]);
+                }
+            }
+
+            if (!empty($chartDataCash)) {
+                foreach ($chartDataCash as $io => $each) {
+                    $chartDataCash[$io . ' ' . $each] = $each;
+                    unset($chartDataCash[$io]);
+                }
+            }
+
+            $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},  pieSliceText: 'value-and-percentage',";
+            $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('quantity') . ')', '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('money') . ')', '400px', '400px', $chartOpts));
             $chartRows = wf_TableRow($chartCells);
             $result.= wf_TableBody($chartRows, '100%', 0, '');
         }
@@ -1080,9 +1120,10 @@ class Salary {
      * @param string $dateto
      * @return string
      */
-    public function payrollRenderSearchDate($datefrom, $dateto) {
+    public function payrollRenderSearchDate($datefrom, $dateto, $jobtypeid = '') {
         $datefrom = mysql_real_escape_string($datefrom);
         $dateto = mysql_real_escape_string($dateto);
+        $jobtypeid = vf($jobtypeid, 3);
 
         $result = '';
         $totalSum = 0;
@@ -1109,7 +1150,8 @@ class Salary {
         }
 
 
-        $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "';";
+        $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
+        $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
 
 

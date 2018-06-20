@@ -28,10 +28,21 @@ if (cfr('ROOT')) {
         }
     }
 
-    zb_BillingStats(true);
+    //displaying Ubilling serial for license offering
+    $hostid_q = "SELECT `value` from `ubstats` WHERE `key`='ubid'";
+    $hostid = simple_query($hostid_q);
+    if (empty($hostid)) {
+        //on second refresh, key will be generated
+        rcms_redirect('?module=licensekeys');
+    } else {
+        //render current Ubilling serial info
+        show_info(__('Use this Ubilling serial for license keys purchase') . ': ' . wf_tag('b') . $hostid['value'] . wf_tag('b', true));
+    }
 
     //show available license keys
     zb_LicenseLister();
+
+    zb_BillingStats(true);
 } else {
     show_error(__('Access denied'));
 }

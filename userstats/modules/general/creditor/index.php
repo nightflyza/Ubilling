@@ -160,7 +160,7 @@ if ($us_config['SC_ENABLED']) {
         if ($us_config['SC_VSCREDIT']) {
             $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ".";
         } else {
-            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . "." . __('Additional services are not subject to credit') . ".";
+            $wmess.= __('Also you promise to pay for the current month, in accordance with your service plan') . ". " . __('Additional services are not subject to credit') . ".";
         }
     }
     show_window(__('Credits'), $wmess);

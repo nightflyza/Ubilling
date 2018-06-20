@@ -4,6 +4,8 @@ DEVICE=DES-3200-26
 FDB=true
 FDB_MODE=dlp
 FDB_IGNORE_PORTS="25,26"
+MAC=true
+MAC_MODE=default
 
 [PORTSTATE]
 NAME="Port states"

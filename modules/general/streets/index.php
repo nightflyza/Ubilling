@@ -8,6 +8,7 @@ if (cfr('STREETS')) {
         $newstreetname = trim($_POST['newstreetname']);
         $newstreetname = zb_AddressFilterStreet($newstreetname);
         $newstreetcityid = $_POST['citysel'];
+
         if (isset($_POST['newstreetalias'])) {
             $newstreetalias = trim($_POST['newstreetalias']);
         } else {
@@ -15,15 +16,9 @@ if (cfr('STREETS')) {
         }
 
         if (!empty($newstreetname)) {
-            //check for existing same street in city
-            $existingStreets_raw = zb_AddressGetStreetAllDataByCity($newstreetcityid);
-            $existingStreets = array();
-            if (!empty($existingStreets_raw)) {
-                foreach ($existingStreets_raw as $ix => $eachstreetdata) {
-                    $existingStreets[] = strtolower_utf8($eachstreetdata['streetname']);
-                }
-            }
-            if (!in_array(strtolower_utf8($newstreetname), $existingStreets)) {
+            $FoundStreetID = checkStreetInCityExists($newstreetname, $newstreetcityid);
+
+            if ( empty($FoundStreetID) ) {
                 //alias autogeneration
                 if (empty($newstreetalias)) {
                     if (isset($altCfg['STREETS_ALIAS_AUTOGEN'])) {
@@ -39,14 +34,17 @@ if (cfr('STREETS')) {
                         }
                     }
                 }
+
                 zb_AddressCreateStreet($newstreetcityid, $newstreetname, $newstreetalias);
+                die();
             } else {
-                show_error(__('The same street already exists'));
+                $messages = new UbillingMessageHelper();
+                $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
             }
-        } else {
-            show_error(__('Empty street name'));
         }
     }
+
     if (isset($_GET['action'])) {
         if (isset($_GET['streetid'])) {
             $streetid = $_GET['streetid'];
@@ -54,28 +52,44 @@ if (cfr('STREETS')) {
             if ($_GET['action'] == 'delete') {
                 if (!zb_AddressStreetProtected($streetid)) {
                     zb_AddressDeleteStreet($streetid);
-                    rcms_redirect('?module=streets');
+                    die();
                 } else {
-                    show_error(__('You can not delete the street if it has existing buildings'));
+                    $messages = new UbillingMessageHelper();
+                    $errormes = $messages->getStyledMessage(__('You can not delete the street if it has existing buildings'), 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                    die(wf_modalAutoForm(__('Error'), $errormes, $_GET['errfrmid'], '', true));
                 }
             }
+
             if ($_GET['action'] == 'edit') {
                 if (isset($_POST['editstreetname'])) {
                     if (!empty($_POST['editstreetname'])) {
-                        zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
+                        $FoundStreetID = checkStreetInCityExists($_POST['editstreetname'], $_GET['cityid'], $streetid);
+
+                        if ( empty($FoundStreetID) ) {
+                            zb_AddressChangeStreetName($streetid, $_POST['editstreetname']);
+                        } else {
+                            $messages = new UbillingMessageHelper();
+                            $errormes = $messages->getStyledMessage(__('Street with such name already exists in this city with ID: ') . $FoundStreetID, 'error', 'style="margin: auto 0; padding: 10px 3px; width: 100%;"');
+                            die(wf_modalAutoForm(__('Error'), $errormes, $_POST['errfrmid'], '', true));
+                        }
                     }
 
                     zb_AddressChangeStreetAlias($streetid, $_POST['editstreetalias']);
-                    rcms_redirect('?module=streets');
+                    die();
                 }
-                show_window(__('Edit Street'), web_StreetEditForm($streetid));
-                show_window('', wf_BackLink("?module=streets", 'Back', true, 'ubButton'));
+
+                die(wf_modalAutoForm(__('Edit Street'), web_StreetEditForm($streetid, $_GET['ModalWID']), $_GET['ModalWID'], $_GET['ModalWBID'], true));
             }
         }
     }
-    ///// forms
-    show_window(__('Create new street'), web_StreetCreateForm());
-    show_window(__('Available streets'), web_StreetLister());
+
+    $FilterByCityID = ( wf_CheckGet(array('filterbycityid')) ) ? $_GET['filterbycityid'] : '';
+
+    if ( wf_CheckGet(array('ajax')) ) {
+        renderStreetJSON($FilterByCityID);
+    }
+
+    show_window(__('Available streets'), web_StreetLister($FilterByCityID));
 } else {
     show_error(__('You cant control this module'));
 }

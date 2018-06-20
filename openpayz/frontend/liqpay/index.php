@@ -2,7 +2,7 @@
 
 /*
  * Фронтенд платежной системы LiqPay получающий ответы в виде POST XML 
- * согласно протокола: https://docs.google.com/presentation/d/1hCmlmxnIurq1tpd3JJ-8VfntBoJ4ZdDJmMx_xiNmkhs/present?slide=id.p
+ * согласно протокола: https://www.liqpay.ua/documentation/api/aquiring/checkout/
  */
 
 //достаем конфиг
@@ -55,43 +55,48 @@ function lq_CheckTransaction($hash) {
 }
 
 //пытаемся ловить объязательные параметры от LiqPay
-if (lq_CheckPost(array('operation_xml', 'signature'))) {
-    $xml = $_POST['operation_xml'];
+if (lq_CheckPost(array('data', 'signature'))) {
+    $data = $_POST['data'];
     $reqSig = $_POST['signature'];
+    $private_key = $liqConf['SIGNATURE'];
+    $signature = base64_encode( sha1($private_key . $data . $private_key , 1 ));
+    if ($reqSig == $signature) {
+        $data_decoded = base64_decode($data);
 
-    $xml_decoded = base64_decode($xml);
-
-    if (!empty($xml_decoded)) {
-
-        //разбираем на куски пойманный XML
-        $xml_arr = xml2array($xml_decoded);
-        if (isset($xml_arr['response'])) {
-            $hash = $xml_arr['response']['order_id'];
-            $customerid = $xml_arr['response']['description'];
-            $summ = $xml_arr['response']['amount'];
-            $status = $xml_arr['response']['status'];
-            $paysys = 'LIQPAY';
-            $note = 'some debug data here';
-            if ($status == 'success') {
-                if (lq_CheckTransaction($hash)) {
-                    $allcustomers = op_CustomersGetAll();
-                    if (isset($allcustomers[$customerid])) {
-                        //регистрируем новую транзакцию
-                        op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
-                        //вызываем обработчики необработанных транзакций
-                        op_ProcessHandlers();
-                        //тихонько помираем
-                        die('TRANSACTION_OK');
+        if (!empty($data_decoded)) {
+            $data_js = json_decode($data_decoded); 
+            if ( ! json_last_error()) {
+                if ($data_js->status == 'success') {
+                    $hash = $data_js->order_id;
+                    $customerid = $data_js->description;
+                    $summ = $data_js->amount;
+                    //$summ = round($summ*0.9725, 2); //Зачисляем сумму без процентов
+                    $paysys = "LIQPAY";
+                    $note = "TRANSACTION ID: " . $data_js->transaction_id;
+                    if (lq_CheckTransaction($hash)) {
+                        $allcustomers = op_CustomersGetAll();
+                        if (isset($allcustomers[$customerid])) {
+                            //регистрируем новую транзакцию
+                            op_TransactionAdd($hash, $summ, $customerid, $paysys, $note);
+                            //вызываем обработчики необработанных транзакций
+                            op_ProcessHandlers();
+                            //тихонько помираем
+                            die('TRANSACTION_OK');
+                        } else {
+                            die('ERROR_NO_SUCH_USER');
+                        }
                     } else {
-                        die('ERROR_NO_SUCH_USER');
+                        die('DOUBLE_PAYMENT');
                     }
                 }
+            } else {
+                die('ERROR_INVALID_JSON_DATA');
             }
         } else {
-            die('ERROR_INVALID_XML');
+            die('ERROR_EMPTY_DATA');
         }
     } else {
-        die('ERROR_EMPTY_XML');
+        die('MISSING_SIGNATURE');
     }
 } else {
     die('ERROR_NO_POST_DATA');
