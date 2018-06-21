@@ -19,7 +19,7 @@ if (cfr('MULTINET')) {
             multinet_add_network($desc, $firstip, $lastip, $nettype, $use_radius);
             rcms_redirect('?module=multinet');
         } else {
-            show_window(__('Error'), __('No all of required fields is filled'));
+            show_error(__('No all of required fields is filled'));
         }
     }
 
@@ -48,7 +48,7 @@ if (cfr('MULTINET')) {
             multinet_add_service($net, $desc);
             rcms_redirect('?module=multinet');
         } else {
-            show_window(__('Error'), __('No all of required fields is filled'));
+            show_error(__('No all of required fields is filled'));
         }
     }
 
@@ -83,7 +83,7 @@ if (cfr('MULTINET')) {
                     log_register('MODIFY MultiNetNet [' . $editnet . ']');
                     rcms_redirect("?module=multinet");
                 } else {
-                    show_window(__('Error'), __('No all of required fields is filled'));
+                    show_error(__('No all of required fields is filled'));
                 }
             }
             multinet_show_neteditform($editnet);
@@ -100,7 +100,7 @@ if (cfr('MULTINET')) {
                     log_register('MODIFY MultiNetService [' . $editservice . ']');
                     rcms_redirect("?module=multinet");
                 } else {
-                    show_window(__('Error'), __('No all of required fields is filled'));
+                    show_error(__('No all of required fields is filled'));
                 }
             }
             multinet_show_serviceeditform($editservice);
