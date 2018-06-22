@@ -210,9 +210,12 @@ class DealWithIt {
         $id = vf($id, 3);
         $admin = whoami();
         $mtime = curdatetime();
-        $doneFlag = ($done) ? 1 : 0;
-        $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
-        $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "','" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','" . $doneFlag . "');";
+        if ($done) {
+            $query = "UPDATE `dealwithithist` SET `done` = '1' WHERE `dealwithithist`.`originalid` = '" . $id . "'";
+        } else {
+            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
+            $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "','" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0');";
+        }
         nr_query($query);
     }
 
