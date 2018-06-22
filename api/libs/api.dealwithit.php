@@ -822,7 +822,7 @@ class DealWithIt {
 
         if (!empty($this->allTasks)) {
             foreach ($this->allTasks as $io => $each) {
-                if ($each['date'] == $curdate) {
+                if ($each['date'] <= $curdate) {
                     if (isset($allUsers[$each['login']])) {
                         $login = $each['login'];
                         $param = $each['param'];
