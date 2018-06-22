@@ -24,52 +24,56 @@ if ($us_config['DOCX_SUPPORT']) {
 
 
     if (la_CheckGet(array('print'))) {
-        $templateId = vf($_GET['print'], 3);
-        if (!empty($templateId)) {
-            $ctemplateData = $documents->getTemplates();
-            if (isset($ctemplateData[$templateId])) {
-                $templatePublicType = $ctemplateData[$templateId]['public'];
-                if ($templatePublicType) {
-                    //template is ok
-                    show_window(__('Document creation'), $documents->customDocumentFieldsForm());
-                    //try to parse template
-                    if (la_CheckPost(array('customfields'))) {
+        if (!@$us_config['DOCX_DENY_SELFGEN']) {
+            $templateId = vf($_GET['print'], 3);
+            if (!empty($templateId)) {
+                $ctemplateData = $documents->getTemplates();
+                if (isset($ctemplateData[$templateId])) {
+                    $templatePublicType = $ctemplateData[$templateId]['public'];
+                    if ($templatePublicType) {
+                        //template is ok
+                        show_window(__('Document creation'), $documents->customDocumentFieldsForm());
+                        //try to parse template
+                        if (la_CheckPost(array('customfields'))) {
 
-                        $templatePath = $documents->tEMPLATES_PATH;
-                        $documentsSavePath = $documents->dOCUMENTS_PATH;
+                            $templatePath = $documents->tEMPLATES_PATH;
+                            $documentsSavePath = $documents->dOCUMENTS_PATH;
 
-                        $templateFile = $ctemplateData[$templateId]['path'];
-                        $templateName = $ctemplateData[$templateId]['name'];
-                        $fullPath = $templatePath . $templateFile;
-                        $saveFileName = $documents->getLogin() . '_' . $templateId . '_' . zbs_rand_string(8) . '.docx';
-                        $saveFullPath = $documentsSavePath . $saveFileName;
+                            $templateFile = $ctemplateData[$templateId]['path'];
+                            $templateName = $ctemplateData[$templateId]['name'];
+                            $fullPath = $templatePath . $templateFile;
+                            $saveFileName = $documents->getLogin() . '_' . $templateId . '_' . zbs_rand_string(8) . '.docx';
+                            $saveFullPath = $documentsSavePath . $saveFileName;
 
-                        $templateData = $documents->getUserData();
-                        if (isset($us_config['AGENTS_ASSIGN'])) {
-                            $userAgentData = $documents->getUserAgentData();
-                        } else {
-                            $userAgentData = array();
+                            $templateData = $documents->getUserData();
+                            if (isset($us_config['AGENTS_ASSIGN'])) {
+                                $userAgentData = $documents->getUserAgentData();
+                            } else {
+                                $userAgentData = array();
+                            }
+                            $documents->setCustomFields();
+
+                            $templateData = array_merge($templateData, $documents->getCustomFields(), $userAgentData);
+
+                            //parse document template
+                            $docx = new DOCXTemplate($fullPath);
+                            $docx->set($templateData);
+                            $docx->saveAs($saveFullPath);
+                            //register document
+                            $documents->registerDocument($user_login, $templateId, $saveFileName);
+
+                            //output
+                            zbs_DownloadFile($saveFullPath, 'docx');
                         }
-                        $documents->setCustomFields();
-
-                        $templateData = array_merge($templateData, $documents->getCustomFields(), $userAgentData);
-
-                        //parse document template
-                        $docx = new DOCXTemplate($fullPath);
-                        $docx->set($templateData);
-                        $docx->saveAs($saveFullPath);
-                        //register document
-                        $documents->registerDocument($user_login, $templateId, $saveFileName);
-
-                        //output
-                        zbs_DownloadFile($saveFullPath, 'docx');
+                    } else {
+                        show_window(__('Sorry'), __('This template is not accessible'));
                     }
                 } else {
-                    show_window(__('Sorry'), __('This template is not accessible'));
+                    show_window(__('Sorry'), __('Not existing template'));
                 }
-            } else {
-                show_window(__('Sorry'), __('Not existing template'));
             }
+        } else {
+            show_window(__('Sorry'), __('This template is not accessible'));
         }
     }
 

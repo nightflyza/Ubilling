@@ -121,6 +121,12 @@ if (cfr('PLDOCS')) {
                 rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
             }
 
+            //template editing
+            if (wf_CheckPost(array('editsometemplateid'))) {
+                $documents->saveTemplate();
+                rcms_redirect('?module=pl_documents&username=' . $documents->getLogin());
+            }
+
             //showing available templates
             show_window(__('Available document templates'), $documents->renderTemplatesList());
 

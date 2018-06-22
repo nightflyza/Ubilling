@@ -321,7 +321,54 @@ class ProfileDocuments {
     }
 
     /**
-     * returns available templates list
+     * Renders existing document template edit form
+     * 
+     * @param int $templateId
+     * 
+     * @return string
+     */
+    protected function renderTemplateEditForm($templateId) {
+        $result = '';
+        $templateId = vf($templateId, 3);
+        if (isset($this->templates[$templateId])) {
+            $templateData = $this->templates[$templateId];
+            $inputs = wf_HiddenInput('editsometemplateid', $templateId);
+            $inputs.= wf_TextInput('editsometemplatename', __('Template display name'), $templateData['name'], true, 20);
+            $inputs.= wf_CheckInput('editsometemplatepublic', __('Template is public'), true, $templateData['public']);
+            $inputs.= wf_Submit(__('Save'));
+
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        }
+        return ($result);
+    }
+
+    /**
+     * Saves changes to existing document template
+     * 
+     * @return void
+     */
+    public function saveTemplate() {
+        if (wf_CheckPost(array('editsometemplateid', 'editsometemplatename'))) {
+            $templateId = vf($_POST['editsometemplateid'], 3);
+            if (isset($this->templates[$templateId])) {
+                $templateData = $this->templates[$templateId];
+                $where = "WHERE `id`='" . $templateId . "';";
+                $newTemplateName = $_POST['editsometemplatename'];
+                $newTemplatePublic = (wf_CheckPost(array('editsometemplatepublic'))) ? 1 : 0;
+                if ($templateData['name'] != $newTemplateName) {
+                    simple_update_field('docxtemplates', 'name', $newTemplateName, $where);
+                    log_register('PLDOCS CHANGE TEMPLATE [' . $templateId . '] NAME `' . $newTemplateName . '`');
+                }
+                if ($templateData['public'] != $newTemplatePublic) {
+                    simple_update_field('docxtemplates', 'public', $newTemplatePublic, $where);
+                    log_register('PLDOCS CHANGE TEMPLATE [' . $templateId . '] PUBLIC `' . $newTemplatePublic . '`');
+                }
+            }
+        }
+    }
+
+    /**
+     * returns available templates list with some controls
      * 
      * @return string
      */
@@ -344,10 +391,9 @@ class ProfileDocuments {
                 $cells.= wf_TableCell($each['name']);
                 $cells.= wf_TableCell($each['path']);
                 $actlinks = wf_JSAlert('?module=pl_documents&deletetemplate=' . $each['id'] . '&username=' . $this->userLogin, web_delete_icon(), 'Removing this may lead to irreparable results') . ' ';
+                $actlinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->renderTemplateEditForm($each['id'])) . ' ';
                 $actlinks.= wf_Link('?module=pl_documents&download=' . $each['path'] . '&username=' . $this->userLogin, wf_img('skins/icon_download.png', __('Download'))) . ' ';
                 $actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print.png') . ' ' . __('Print'), false, 'ubButton');
-                //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&custom=true&username=' . $this->userLogin, wf_img('skins/icon_print_options.png', __('Custom options')));
-                //$actlinks.= wf_Link('?module=pl_documents&print=' . $each['id'] . '&username=' . $this->userLogin, wf_img('skins/icon_print.png', __('Print')));
                 $cells.= wf_TableCell($actlinks);
                 $rows.= wf_TableRow($cells, 'row3');
             }
@@ -363,7 +409,7 @@ class ProfileDocuments {
      */
     public function uploadForm() {
         $uploadinputs = wf_HiddenInput('uploadtemplate', 'true');
-        $uploadinputs.= wf_TextInput('templatedisplayname', __('Template display name'), '', true, '15');
+        $uploadinputs.= wf_TextInput('templatedisplayname', __('Template display name'), '', true, 20);
         $uploadinputs.= wf_CheckInput('publictemplate', __('Template is public'), true, false);
         $uploadinputs.=__('Upload new document template from HDD') . wf_tag('br');
         $uploadinputs.=wf_tag('input', false, '', 'id="fileselector" type="file" name="uldocxtempplate"') . wf_tag('br');
@@ -482,6 +528,17 @@ class ProfileDocuments {
             }
         }
 
+        //public flag state detection
+        $publicFlag = false;
+        if (wf_CheckGet(array('print'))) {
+            $templateId = vf($_GET['print'], 3);
+            if (isset($this->templates[$templateId])) {
+                if ($this->templates[$templateId]['public'] == 1) {
+                    $publicFlag = true;
+                }
+            }
+        }
+
         $inputs = wf_DatePickerPreset('customdate', curdate());
         $inputs.= wf_tag('br');
         $inputs.= wf_TextInput('customrealname', __('Real Name'), @$this->userData[$this->userLogin]['REALNAME'], true, '20');
@@ -521,7 +578,7 @@ class ProfileDocuments {
         }
         $inputs.= wf_HiddenInput('customfields', 'true');
         $publicLabel = wf_tag('abbr', false, '', 'title="' . __('users can download it themselves') . '"') . __('Save this document as public') . wf_tag('abbr', true);
-        $inputs.= wf_CheckInput('savedocaspublic', $publicLabel, true, false);
+        $inputs.= wf_CheckInput('savedocaspublic', $publicLabel, true, $publicFlag);
         $inputs.= wf_tag('br');
         $inputs.= wf_Submit(__('Create'));
         $result = wf_Form('', 'POST', $inputs, 'glamour');
