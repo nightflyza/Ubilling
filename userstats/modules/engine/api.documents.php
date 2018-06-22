@@ -29,7 +29,7 @@ class UsProfileDocuments {
      * @return void
      */
     protected function loadTemplates() {
-        $query = "SELECT * from `docxtemplates` WHERE `public`='1';";
+        $query = "SELECT * from `docxtemplates`;";
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -244,7 +244,11 @@ class UsProfileDocuments {
     public function getPublicTemplatesCount() {
         $result = 0;
         if (!empty($this->templates)) {
-            $result = sizeof($this->templates);
+            foreach ($this->templates as $io => $each) {
+                if ($each['public'] == 1) {
+                    $result++;
+                }
+            }
         }
         return ($result);
     }
@@ -261,10 +265,12 @@ class UsProfileDocuments {
 
         if (!empty($this->templates)) {
             foreach ($this->templates as $io => $each) {
-                $cells = '';
-                $actlinks = la_Link('?module=zdocs&print=' . $each['id'], $each['name'], false, '');
-                $cells.= la_TableCell($actlinks);
-                $rows.= la_TableRow($cells, 'row3');
+                if ($each['public'] == 1) {
+                    $cells = '';
+                    $actlinks = la_Link('?module=zdocs&print=' . $each['id'], $each['name'], false, '');
+                    $cells.= la_TableCell($actlinks);
+                    $rows.= la_TableRow($cells, 'row3');
+                }
             }
         }
         $result = la_TableBody($rows, '100%', '0', '');

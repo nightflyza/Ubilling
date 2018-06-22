@@ -18,7 +18,7 @@ if ($us_config['DOCX_SUPPORT']) {
     $documents->loadUserDocuments($user_login);
     $templatesCount = $documents->getPublicTemplatesCount();
 
-    if ($templatesCount > 0) {
+    if (($templatesCount > 0) AND ( !@$us_config['DOCX_DENY_SELFGEN'])) {
         show_window(__('Available document templates'), $documents->renderTemplatesList());
     }
 
