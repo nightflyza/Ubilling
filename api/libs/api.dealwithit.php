@@ -725,7 +725,7 @@ class DealWithIt {
      */
     public function renderTasksListAjax($login = '') {
         $result = '';
-        $columns = array('ID', 'Date', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Actions');
+        $columns = array('ID', 'Target date', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Actions');
         $opts = '"order": [[ 0, "desc" ]]';
         $module_link = (empty($login)) ? '?module=report_dealwithit&ajax=true' : '?module=pl_dealwithit&ajax=true&username=' . $login;
         $result = wf_JqDtLoader($columns, $module_link, false, 'Tasks', 100, $opts);
@@ -784,7 +784,7 @@ class DealWithIt {
      */
     public function renderTasksHistoryAjax() {
         $result = '';
-        $columns = array('ID', 'Date', 'Create date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
+        $columns = array('ID', 'Target date', 'Create date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=report_dealwithit&history=true&ajax=true', false, 'Tasks', 100, $opts);
         return ($result);
