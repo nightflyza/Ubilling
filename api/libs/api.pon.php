@@ -912,6 +912,8 @@ class PONizer {
             foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
 
+                if ( empty($line[0]) || empty($line[1])) { continue; }
+
                 $tmpONUPortLLID = trim($line[0]);
 
                 if ($snmpTemplate['misc']['GETACTIVEONUMACONLY']) {
@@ -1032,10 +1034,12 @@ class PONizer {
         $ONUDistances = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND ! empty($DistIndex)) {
+        if (!empty($macIndexProcessed) AND !empty($DistIndex)) {
             //last dereg index preprocessing
             foreach ($DistIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
+
+                if ( empty($line[0]) || empty($line[1])) { continue; }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONUDistance = trim($line[1]);
@@ -1066,7 +1070,7 @@ class PONizer {
         $ONUIfaces = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND ! empty($IfaceIndex)) {
+        if (!empty($macIndexProcessed) AND !empty($IfaceIndex)) {
             //last dereg index preprocessing
             foreach ($IfaceIndex as $io => $eachRow) {
                 if (empty($eachRow)) {
@@ -1074,6 +1078,8 @@ class PONizer {
                 }
 
                 $line = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $eachRow));
+
+                if ( empty($line[0]) || empty($line[1])) { continue; }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONUIface = trim($line[1]);
@@ -1111,10 +1117,12 @@ class PONizer {
         $ONUDeRegs = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND ! empty($LastDeregIndex)) {
+        if (!empty($macIndexProcessed) AND !empty($LastDeregIndex)) {
             //last dereg index preprocessing
             foreach ($LastDeregIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
+
+                if ( empty($line[0]) || empty($line[1])) { continue; }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONULastDeregReason = intval(trim($line[1]));
