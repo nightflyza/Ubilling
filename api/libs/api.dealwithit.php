@@ -213,8 +213,8 @@ class DealWithIt {
         if ($done) {
             $query = "UPDATE `dealwithithist` SET `done` = '1', `datetimedone` = '" . $mtime . "' WHERE `dealwithithist`.`originalid` = '" . $id . "'";
         } else {
-            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`, `datetimedone`, `login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
-            $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '0000-00-00 00:00:00', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0');";
+            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`, `login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
+            $query.= "(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0')";
         }
         nr_query($query);
     }
