@@ -210,9 +210,12 @@ class DealWithIt {
         $id = vf($id, 3);
         $admin = whoami();
         $mtime = curdatetime();
-        $doneFlag = ($done) ? 1 : 0;
-        $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
-        $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "','" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','" . $doneFlag . "');";
+        if ($done) {
+            $query = "UPDATE `dealwithithist` SET `done` = '1', `datetimedone` = '" . $mtime . "' WHERE `dealwithithist`.`originalid` = '" . $id . "'";
+        } else {
+            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`, `datetimedone`, `login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
+            $query.="(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '0000-00-00 00:00:00', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0');";
+        }
         nr_query($query);
     }
 
@@ -756,6 +759,7 @@ class DealWithIt {
                 $data[] = $each['originalid'];
                 $data[] = $each['date'];
                 $data[] = $each['mtime'];
+                $data[] = $each['datetimedone'];
                 $data[] = $profileLink;
                 $data[] = @$allAddress[$each['login']];
                 $data[] = @$allRealNames[$each['login']];
@@ -780,7 +784,7 @@ class DealWithIt {
      */
     public function renderTasksHistoryAjax() {
         $result = '';
-        $columns = array('ID', 'Date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
+        $columns = array('ID', 'Date', 'Create date', 'Changed', 'Login', 'Address', 'Real name', 'Task', 'Parameter', 'Notes', 'Done', 'Admin');
         $opts = '"order": [[ 0, "desc" ]]';
         $result = wf_JqDtLoader($columns, '?module=report_dealwithit&history=true&ajax=true', false, 'Tasks', 100, $opts);
         return ($result);
