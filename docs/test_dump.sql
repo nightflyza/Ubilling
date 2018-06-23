@@ -2107,3 +2107,5 @@ CREATE TABLE IF NOT EXISTS `districtdata` (
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 ALTER TABLE `userreg` ADD INDEX `login` (`login`);
+
+ALTER TABLE `dealwithithist` ADD `datetimedone` DATETIME NOT NULL AFTER `date`;
