@@ -2108,4 +2108,4 @@ CREATE TABLE IF NOT EXISTS `districtdata` (
 
 ALTER TABLE `userreg` ADD INDEX `login` (`login`);
 
-ALTER TABLE `dealwithithist` ADD `datetimedone` DATETIME NOT NULL AFTER `date`;
+ALTER TABLE `dealwithithist` ADD `datetimedone` DATETIME NULL DEFAULT NULL AFTER `date`;
