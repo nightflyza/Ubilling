@@ -213,7 +213,7 @@ class DealWithIt {
         if ($done) {
             $query = "UPDATE `dealwithithist` SET `done` = '1', `datetimedone` = '" . $mtime . "' WHERE `dealwithithist`.`originalid` = '" . $id . "'";
         } else {
-            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`, `login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
+            $query = "INSERT INTO `dealwithithist` (`id`,`originalid`,`mtime`,`date`,`login`,`action`,`param`,`note`,`admin`,`done`) VALUES";
             $query.= "(NULL,'" . $id . "','" . $mtime . "','" . $date . "', '" . $login . "','" . $action . "','" . $param . "','" . $note . "','" . $admin . "','0')";
         }
         nr_query($query);
@@ -369,8 +369,7 @@ class DealWithIt {
             }
 
             $result.= wf_TextInput('newschednote', __('Notes'), '', true, 30);
-            $result.=wf_Submit(__('Create'));
-
+            $result.= wf_Submit(__('Create'));
 
             if ($request == 'noaction') {
                 $result = __('Please select action');
