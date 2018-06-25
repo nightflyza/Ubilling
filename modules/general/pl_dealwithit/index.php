@@ -1,7 +1,5 @@
 <?php
-
-$altCfg = $ubillingConfig->getAlter();
-if ($altCfg['DEALWITHIT_ENABLED']) {
+if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
     if (cfr('DEALWITHIT')) {
         $dealWithIt = new DealWithIt();
 
