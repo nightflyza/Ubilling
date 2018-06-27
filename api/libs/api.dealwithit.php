@@ -291,7 +291,6 @@ class DealWithIt {
                 case 'addcash':
                     $result.= wf_HiddenInput('newschedaction', 'addcash');
                     $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
-                    $allCashTypesRaw = zb_CashGetAlltypes();
                     $allCashTypes = zb_CashGetTypesNamed();
                     $result.=wf_Selector('newschedcashtype', $allCashTypes, __('Cash type'), '', true);
                     break;
