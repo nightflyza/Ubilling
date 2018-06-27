@@ -1,4 +1,5 @@
 <?php
+
 if ($ubillingConfig->getAlterParam('DEALWITHIT_ENABLED')) {
     if (cfr('DEALWITHIT')) {
         $dealWithIt = new DealWithIt();

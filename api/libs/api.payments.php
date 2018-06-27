@@ -144,6 +144,22 @@ function zb_CashGetAlltypes() {
 }
 
 /**
+ * Returns array of available cashtypes as id=>localized name
+ * 
+ * @return array
+ */
+function zb_CashGetTypesNamed() {
+    $result = array();
+    $allCashTypesRaw = zb_CashGetAlltypes();
+    if (!empty($allCashTypesRaw)) {
+        foreach ($allCashTypesRaw as $io => $each) {
+            $result[$each['id']] = __($each['cashtype']);
+        }
+    }
+    return ($result);
+}
+
+/**
  * Returns name of some existing cashtype by its DB id
  * 
  * @param int $typeid Existing cashtype ID

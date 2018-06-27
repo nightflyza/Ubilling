@@ -92,23 +92,23 @@ class DealWithIt {
      */
     protected function setActionNames() {
         $this->actionNames = array(
-            'noaction'    => '-',
-            'addcash'      => __('Add cash'),
-            'corrcash'     => __('Correct saldo'),
-            'setcash'      => __('Set cash'),
-            'credit'       => __('Change') . ' ' . __('credit'),
+            'noaction' => '-',
+            'addcash' => __('Add cash'),
+            'corrcash' => __('Correct saldo'),
+            'setcash' => __('Set cash'),
+            'credit' => __('Change') . ' ' . __('credit'),
             'creditexpire' => __('Change') . ' ' . __('credit expire date'),
             'tariffchange' => __('Change') . ' ' . __('tariff'),
-            'tagadd'       => __('Add tag'),
-            'tagdel'       => __('Delete tag'),
-            'freeze'       => __('Freeze user'),
-            'unfreeze'     => __('Unfreeze user'),
-            'reset'        => __('User reset'),
-            'setspeed'     => __('Change speed override'),
-            'down'         => __('Set user down'),
-            'undown'       => __('Enable user'),
-            'ao'           => __('Enable AlwaysOnline'),
-            'unao'         => __('Disable AlwaysOnline')
+            'tagadd' => __('Add tag'),
+            'tagdel' => __('Delete tag'),
+            'freeze' => __('Freeze user'),
+            'unfreeze' => __('Unfreeze user'),
+            'reset' => __('User reset'),
+            'setspeed' => __('Change speed override'),
+            'down' => __('Set user down'),
+            'undown' => __('Enable user'),
+            'ao' => __('Enable AlwaysOnline'),
+            'unao' => __('Disable AlwaysOnline')
         );
     }
 
@@ -119,22 +119,22 @@ class DealWithIt {
      */
     protected function setActionIcons() {
         $this->actionIcons = array(
-            'addcash'      => 'skins/icon_dollar.gif',
-            'corrcash'     => 'skins/icon_dollar.gif',
-            'setcash'      => 'skins/icon_dollar.gif',
-            'credit'       => 'skins/icon_credit.gif',
+            'addcash' => 'skins/icon_dollar.gif',
+            'corrcash' => 'skins/icon_dollar.gif',
+            'setcash' => 'skins/icon_dollar.gif',
+            'credit' => 'skins/icon_credit.gif',
             'creditexpire' => 'skins/icon_calendar.gif',
             'tariffchange' => 'skins/icon_tariff.gif',
-            'tagadd'       => 'skins/tagiconsmall.png',
-            'tagdel'       => 'skins/tagiconsmall.png',
-            'freeze'       => 'skins/icon_passive.gif',
-            'unfreeze'     => 'skins/icon_passive.gif',
-            'reset'        => 'skins/refresh.gif',
-            'setspeed'     => 'skins/icon_speed.gif',
-            'down'         => 'skins/icon_down.gif',
-            'undown'       => 'skins/icon_down.gif',
-            'ao'           => 'skins/icon_online.gif',
-            'unao'         => 'skins/icon_online.gif'
+            'tagadd' => 'skins/tagiconsmall.png',
+            'tagdel' => 'skins/tagiconsmall.png',
+            'freeze' => 'skins/icon_passive.gif',
+            'unfreeze' => 'skins/icon_passive.gif',
+            'reset' => 'skins/refresh.gif',
+            'setspeed' => 'skins/icon_speed.gif',
+            'down' => 'skins/icon_down.gif',
+            'undown' => 'skins/icon_down.gif',
+            'ao' => 'skins/icon_online.gif',
+            'unao' => 'skins/icon_online.gif'
         );
     }
 
@@ -145,23 +145,23 @@ class DealWithIt {
      */
     protected function setActionsURL() {
         $this->actions = array(
-            self::URL_ME . '&ajinput=noaction'     => $this->actionNames['noaction'],
-            self::URL_ME . '&ajinput=addcash'      => $this->actionNames['addcash'],
-            self::URL_ME . '&ajinput=corrcash'     => $this->actionNames['corrcash'],
-            self::URL_ME . '&ajinput=setcash'      => $this->actionNames['setcash'],
-            self::URL_ME . '&ajinput=credit'       => $this->actionNames['credit'],
+            self::URL_ME . '&ajinput=noaction' => $this->actionNames['noaction'],
+            self::URL_ME . '&ajinput=addcash' => $this->actionNames['addcash'],
+            self::URL_ME . '&ajinput=corrcash' => $this->actionNames['corrcash'],
+            self::URL_ME . '&ajinput=setcash' => $this->actionNames['setcash'],
+            self::URL_ME . '&ajinput=credit' => $this->actionNames['credit'],
             self::URL_ME . '&ajinput=creditexpire' => $this->actionNames['creditexpire'],
             self::URL_ME . '&ajinput=tariffchange' => $this->actionNames['tariffchange'],
-            self::URL_ME . '&ajinput=tagadd'       => $this->actionNames['tagadd'],
-            self::URL_ME . '&ajinput=tagdel'       => $this->actionNames['tagdel'],
-            self::URL_ME . '&ajinput=freeze'       => $this->actionNames['freeze'],
-            self::URL_ME . '&ajinput=unfreeze'     => $this->actionNames['unfreeze'],
-            self::URL_ME . '&ajinput=reset'        => $this->actionNames['reset'],
-            self::URL_ME . '&ajinput=setspeed'     => $this->actionNames['setspeed'],
-            self::URL_ME . '&ajinput=down'         => $this->actionNames['down'],
-            self::URL_ME . '&ajinput=undown'       => $this->actionNames['undown'],
-            self::URL_ME . '&ajinput=ao'           => $this->actionNames['ao'],
-            self::URL_ME . '&ajinput=unao'         => $this->actionNames['unao']
+            self::URL_ME . '&ajinput=tagadd' => $this->actionNames['tagadd'],
+            self::URL_ME . '&ajinput=tagdel' => $this->actionNames['tagdel'],
+            self::URL_ME . '&ajinput=freeze' => $this->actionNames['freeze'],
+            self::URL_ME . '&ajinput=unfreeze' => $this->actionNames['unfreeze'],
+            self::URL_ME . '&ajinput=reset' => $this->actionNames['reset'],
+            self::URL_ME . '&ajinput=setspeed' => $this->actionNames['setspeed'],
+            self::URL_ME . '&ajinput=down' => $this->actionNames['down'],
+            self::URL_ME . '&ajinput=undown' => $this->actionNames['undown'],
+            self::URL_ME . '&ajinput=ao' => $this->actionNames['ao'],
+            self::URL_ME . '&ajinput=unao' => $this->actionNames['unao']
         );
     }
 
@@ -172,8 +172,8 @@ class DealWithIt {
      */
     protected function loadAdminsName() {
         @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
-        if ( ! empty($employeeLogins)) {
-            foreach ($employeeLogins as $login => $name){
+        if (!empty($employeeLogins)) {
+            foreach ($employeeLogins as $login => $name) {
                 $this->adminsName[$login] = $name;
             }
         }
@@ -187,7 +187,7 @@ class DealWithIt {
      */
     protected function initAdminName($admin) {
         $result = '';
-        if ( ! empty($admin)) {
+        if (!empty($admin)) {
             $result = (isset($this->adminsName[$admin])) ? $this->adminsName[$admin] : $admin;
         }
         return ($result);
@@ -291,6 +291,9 @@ class DealWithIt {
                 case 'addcash':
                     $result.= wf_HiddenInput('newschedaction', 'addcash');
                     $result.= wf_TextInput('newschedparam', __('Sum'), '', true, 5);
+                    $allCashTypesRaw = zb_CashGetAlltypes();
+                    $allCashTypes = zb_CashGetTypesNamed();
+                    $result.=wf_Selector('newschedcashtype', $allCashTypes, __('Cash type'), '', true);
                     break;
                 case 'corrcash':
                     $result.= wf_HiddenInput('newschedaction', 'corrcash');
@@ -396,6 +399,10 @@ class DealWithIt {
                     case 'addcash':
                         if ($param) {
                             if (zb_checkMoney($param)) {
+                                $cashType = (wf_CheckPost(array('newschedcashtype'))) ? vf($_POST['newschedcashtype']) : 1;
+                                if ($cashType != 1) {
+                                    $param.='|' . $cashType;
+                                }
                                 $this->createTask($date, $login, $action, $param, $note);
                             } else {
                                 $result = __('Wrong format of a sum of money to pay');
@@ -512,11 +519,11 @@ class DealWithIt {
         $result = '';
         if (wf_CheckPost(array('newschedloginsarr', 'newschedaction', 'newscheddate'))) {
             if (!empty($_POST['_logins'])) {
-            $date = $_POST['newscheddate'];
-            $action = $_POST['newschedaction'];
-            $param = $_POST['newschedparam'];
-            $note = $_POST['newschednote'];
-            $logins = array_keys($_POST['_logins']);
+                $date = $_POST['newscheddate'];
+                $action = $_POST['newschedaction'];
+                $param = $_POST['newschedparam'];
+                $note = $_POST['newschednote'];
+                $logins = array_keys($_POST['_logins']);
                 if (zb_checkDate($date)) {
                     switch ($action) {
                         //this action types requires non empty parameter
@@ -699,14 +706,18 @@ class DealWithIt {
                 $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
                 $taskControls = wf_JSAlert(self::URL_ME . '&username=' . $each['login'] . '&deletetaskid=' . $each['id'], web_delete_icon(), $messages->getDeleteAlert());
-
+                if (ispos($each['param'], '|')) {
+                    $paramFiltered = strstr($each['param'], '|', true);
+                } else {
+                    $paramFiltered = $each['param'];
+                }
                 $data[] = $each['id'];
                 $data[] = $each['date'];
                 $data[] = $profileLink;
                 $data[] = @$allAddress[$each['login']];
                 $data[] = @$allRealNames[$each['login']];
                 $data[] = $actionIcon . $this->actionNames[$each['action']];
-                $data[] = $each['param'];
+                $data[] = $paramFiltered;
                 $data[] = $each['note'];
                 $data[] = $taskControls;
                 $json->addRow($data);
@@ -754,7 +765,11 @@ class DealWithIt {
             foreach ($tmpArr as $io => $each) {
                 $actionIcon = (isset($this->actionIcons[$each['action']])) ? wf_img_sized($this->actionIcons[$each['action']], $this->actionNames[$each['action']], '12', '12') . ' ' : '';
                 $profileLink = wf_Link('?module=userprofile&username=' . $each['login'], web_profile_icon() . ' ' . $each['login'], false, '');
-
+                if (ispos($each['param'], '|')) {
+                    $paramFiltered = strstr($each['param'], '|', true);
+                } else {
+                    $paramFiltered = $each['param'];
+                }
                 $data[] = $each['originalid'];
                 $data[] = $each['date'];
                 $data[] = $each['mtime'];
@@ -763,14 +778,13 @@ class DealWithIt {
                 $data[] = @$allAddress[$each['login']];
                 $data[] = @$allRealNames[$each['login']];
                 $data[] = $actionIcon . $this->actionNames[$each['action']];
-                $data[] = $each['param'];
+                $data[] = $paramFiltered;
                 $data[] = $each['note'];
                 $data[] = web_bool_led($each['done']);
                 $data[] = $this->initAdminName($each['admin']);
                 $json->addRow($data);
                 unset($data);
             }
-
         }
 
         $json->getJson();
@@ -832,7 +846,15 @@ class DealWithIt {
 
                         switch ($each['action']) {
                             case 'addcash':
-                                zb_CashAdd($login, $param, 'add', 1, 'SCHEDULED');
+                                if (ispos($param, '|')) {
+                                    $dataRaw = explode('|', $param);
+                                    $summ = $dataRaw[0];
+                                    $cashType = $dataRaw[1];
+                                } else {
+                                    $summ = $param;
+                                    $cashType = 1;
+                                }
+                                zb_CashAdd($login, $summ, 'add', $cashType, 'SCHEDULED');
                                 break;
                             case 'corrcash':
                                 zb_CashAdd($login, $param, 'correct', 1, 'SCHEDULED');
@@ -910,12 +932,12 @@ class DealWithIt {
         }
     }
 
-     /**
+    /**
      * Returns user profile fileds search form
      * 
      * @return string
      */
-     public function renderDealWithItControl() {
+    public function renderDealWithItControl() {
         $messages = new UbillingMessageHelper();
         $controls = wf_Link('?module=report_dealwithit', wf_img('skins/dealwithitsmall.png') . ' ' . __('Available Held jobs for all users'), false, 'ubButton');
         $controls.= wf_Link('?module=report_dealwithit&history=true', wf_img('skins/icon_calendar.gif') . ' ' . __('History'), false, 'ubButton');
@@ -930,22 +952,21 @@ class DealWithIt {
             } else {
                 show_window('', $messages->getStyledMessage(__('Query returned empty result'), 'info'));
             }
-
-        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by']) and isset($_POST['dealwithit_search']['exclude'])) {
+        } elseif (wf_CheckPost(array('dealwithit_search')) and ! isset($_POST['dealwithit_search']['search_by']) and isset($_POST['dealwithit_search']['exclude'])) {
             show_error(__('The search parameter is not selected. No, what to exclude from the request'));
-        } elseif (wf_CheckPost(array('dealwithit_search')) and !isset($_POST['dealwithit_search']['search_by']) and !isset($_POST['dealwithit_search']['exclude'])) {
+        } elseif (wf_CheckPost(array('dealwithit_search')) and ! isset($_POST['dealwithit_search']['search_by']) and ! isset($_POST['dealwithit_search']['exclude'])) {
             show_error(__('No request parameters set'));
         }
 
         return($result);
     }
 
-     /**
+    /**
      * Returns user profile fileds search form
      * 
      * @return string
      */
-     protected function renderUsersSearchResults($logins) {
+    protected function renderUsersSearchResults($logins) {
         $result = '';
 
         if (!empty($logins)) {
@@ -985,11 +1006,11 @@ class DealWithIt {
                 $tmpArr = array();
                 foreach ($this->allTasks as $io => $each) {
                     $login = $each['login'];
-                        $tmpArr[$login][] = $each['action'];
+                    $tmpArr[$login][] = $each['action'];
                 }
             }
 
-             foreach ($logins as $login) {
+            foreach ($logins as $login) {
                 //finance check
                 $cash = $user_data_arr[$login]['Cash'];
                 $credit = $user_data_arr[$login]['Credit'];
@@ -1025,7 +1046,7 @@ class DealWithIt {
                 $cells.= wf_TableCell(wf_CheckInput('_logins[' . $login . ']', '', false, false));
                 $rows.= wf_TableRow($cells, 'row3');
                 $id++;
-             }
+            }
 
             $result.= wf_AjaxLoader();
 
@@ -1037,7 +1058,6 @@ class DealWithIt {
             $inputs.= wf_TableBody($rows, '100%', 0, 'sortable');
 
             $result.= wf_Form('', 'POST', $inputs, '');
-
         }
 
         return ($result);
@@ -1059,12 +1079,12 @@ class DealWithIt {
             }
         }
         $param_selector_status = array(
-                                        '',
-                                        'active'       => __('Active'),
-                                        'AlwaysOnline' => __('Always Online'),
-                                        'inactive'     => __('Inactive'),
-                                        'frozen'       => __('Frozen'),
-                                        );
+            '',
+            'active' => __('Active'),
+            'AlwaysOnline' => __('Always Online'),
+            'inactive' => __('Inactive'),
+            'frozen' => __('Frozen'),
+        );
         // Load tariffs
         $alltariffs = zb_TariffsGetAll();
         $tariffs_options = array();
@@ -1110,22 +1130,22 @@ class DealWithIt {
 
         $cells = wf_TableCell(__('Tariff'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tariff]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '',  false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tariff]', $tariffs_options, '', '', false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Status'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][user_status]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '',  false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[user_status]', $param_selector_status, '', '', false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Services'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][services]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '',  false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[services]', $services_options, '', '', false));
         $rows.= wf_TableRow($cells, 'row2');
 
         $cells = wf_TableCell(__('Tags'));
         $cells.= wf_TableCell(wf_CheckInput('dealwithit_search[search_by][tags]', '', false));
-        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '',  false));
+        $cells.= wf_TableCell(wf_Selector('dealwithit_search[tags]', $tags_options, '', '', false));
         $rows.= wf_TableRow($cells, 'row2');
 
         // Рисуем форму, которая исключает из запроса пользователей
@@ -1144,22 +1164,22 @@ class DealWithIt {
 
         $cells_ex = wf_TableCell(__('Tariff'));
         $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tariff]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '',  false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tariff]', $tariffs_options, '', '', false));
         $rows_ex.= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Status'));
         $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_user_status]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_user_status]', $param_selector_status, '', '',  false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_user_status]', $param_selector_status, '', '', false));
         $rows_ex.= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Services'));
         $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_services]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_services]', $services_options, '', '',  false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_services]', $services_options, '', '', false));
         $rows_ex.= wf_TableRow($cells_ex, 'row2');
 
         $cells_ex = wf_TableCell(__('Tags'));
         $cells_ex.= wf_TableCell(wf_CheckInput('dealwithit_search[exclude][ex_tags]', '', false));
-        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '',  false));
+        $cells_ex.= wf_TableCell(wf_Selector('dealwithit_search[ex_tags]', $tags_options, '', '', false));
         $rows_ex.= wf_TableRow($cells_ex, 'row2');
 
         $rows_ex.= wf_TableRow(wf_TableCell(wf_Submit('Search')));
@@ -1171,7 +1191,7 @@ class DealWithIt {
         return ($result);
     }
 
-     /**
+    /**
      * Returns search form
      * 
      * @return array 
@@ -1382,14 +1402,13 @@ class DealWithIt {
         }
 
         // Сам прцоцесс исключения пользователей из результатов поиска
-        if (!empty($result) and !empty($result_exclude)) {
+        if (!empty($result) and ! empty($result_exclude)) {
             $result = array_diff($result, $result_exclude);
         }
 
         // Delete duplicates that come from more that one selected options
         if (!empty($result)) {
             $result = array_unique($result);
-
         }
 
         return ($result);
