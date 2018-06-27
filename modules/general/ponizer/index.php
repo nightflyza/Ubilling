@@ -65,12 +65,12 @@ if ($altCfg['PON_ENABLED']) {
                 rcms_redirect('?module=ponizer');
             }
         }
-        
+
         //force single OLT polling
         if (wf_CheckGet(array('forceoltidpoll'))) {
             $pon->pollOltSignal($_GET['forceoltidpoll']);
 
-            if ( !wf_CheckGet(array('IndividualRefresh')) OR !wf_getBoolFromVar($_GET['IndividualRefresh'], true) ) {
+            if (!wf_CheckGet(array('IndividualRefresh')) OR ! wf_getBoolFromVar($_GET['IndividualRefresh'], true)) {
                 rcms_redirect('?module=ponizer');
             }
         }
@@ -119,18 +119,12 @@ if ($altCfg['PON_ENABLED']) {
 
         if (wf_CheckGet(array('renderCreateForm'))) {
             if (wf_CheckGet(array('renderDynamically')) && wf_getBoolFromVar($_GET['renderDynamically'], true)) {
-                $CPECreateForm = $pon->onuRegisterForm( $_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'],
-                                                        wf_getBoolFromVar($_GET['renderedOutside'], true),
-                                                        wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
-                                                        $_GET['ActionCtrlID'], $_GET['ModalWID']
-                                                       );
+                $CPECreateForm = $pon->onuRegisterForm($_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'], wf_getBoolFromVar($_GET['renderedOutside'], true), wf_getBoolFromVar($_GET['reloadPageAfterDone'], true), $_GET['ActionCtrlID'], $_GET['ModalWID']
+                );
                 die(wf_modalAutoForm(__('Register new ONU'), $CPECreateForm, $_GET['ModalWID'], $_GET['ModalWBID'], true));
             } else {
-                die($pon->onuRegisterForm(  $_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'],
-                                            wf_getBoolFromVar($_GET['renderedOutside'], true),
-                                            wf_getBoolFromVar($_GET['reloadPageAfterDone'], true),
-                                            $_GET['ActionCtrlID'], $_GET['ModalWID']
-                                         )
+                die($pon->onuRegisterForm($_GET['oltid'], $_GET['onumac'], $_GET['userLogin'], $_GET['userIP'], wf_getBoolFromVar($_GET['renderedOutside'], true), wf_getBoolFromVar($_GET['reloadPageAfterDone'], true), $_GET['ActionCtrlID'], $_GET['ModalWID']
+                        )
                 );
             }
         }

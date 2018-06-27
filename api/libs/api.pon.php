@@ -912,7 +912,9 @@ class PONizer {
             foreach ($macIndex as $io => $eachmac) {
                 $line = explode('=', $eachmac);
 
-                if ( empty($line[0]) || empty($line[1])) { continue; }
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
 
                 $tmpONUPortLLID = trim($line[0]);
 
@@ -1034,12 +1036,14 @@ class PONizer {
         $ONUDistances = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND !empty($DistIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($DistIndex)) {
             //last dereg index preprocessing
             foreach ($DistIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
 
-                if ( empty($line[0]) || empty($line[1])) { continue; }
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONUDistance = trim($line[1]);
@@ -1070,7 +1074,7 @@ class PONizer {
         $ONUIfaces = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND !empty($IfaceIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($IfaceIndex)) {
             //last dereg index preprocessing
             foreach ($IfaceIndex as $io => $eachRow) {
                 if (empty($eachRow)) {
@@ -1079,7 +1083,9 @@ class PONizer {
 
                 $line = explode('=', str_replace(array(" ", "\t", "\n", "\r", "\0", "\x0B"), '', $eachRow));
 
-                if ( empty($line[0]) || empty($line[1])) { continue; }
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONUIface = trim($line[1]);
@@ -1117,12 +1123,14 @@ class PONizer {
         $ONUDeRegs = array();
         $result = array();
 
-        if (!empty($macIndexProcessed) AND !empty($LastDeregIndex)) {
+        if (!empty($macIndexProcessed) AND ! empty($LastDeregIndex)) {
             //last dereg index preprocessing
             foreach ($LastDeregIndex as $io => $eachRow) {
                 $line = explode('=', $eachRow);
 
-                if ( empty($line[0]) || empty($line[1])) { continue; }
+                if (empty($line[0]) || empty($line[1])) {
+                    continue;
+                }
 
                 $tmpONUPortLLID = trim($line[0]);
                 $tmpONULastDeregReason = intval(trim($line[1]));
@@ -1661,6 +1669,25 @@ class PONizer {
     }
 
     /**
+     * Returns Available OLT devices ONU counts
+     * 
+     * @return string
+     */
+    public function getOltOnuCounts() {
+        $result = array();
+        if (!empty($this->allOnu)) {
+            foreach ($this->allOnu as $io => $each) {
+                if (isset($result[$each['oltid']])) {
+                    $result[$each['oltid']] ++;
+                } else {
+                    $result[$each['oltid']] = 1;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Returns int for ONU has or has not some of subscribers login assignment
      * 0 - has no assignment
      * 1 - has assignment, but login does not exist
@@ -2123,7 +2150,7 @@ class PONizer {
         } else {
             $result = wf_tag('div', false, 'alert_error') . __('Strange exeption') . ': ONUID_NOT_EXISTS' . wf_tag('div', true);
         }
-   
+
         //additional comments handling
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $adcomments = new ADcomments('PONONU');
