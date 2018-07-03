@@ -1,6 +1,9 @@
 <?php
 $liqConf = parse_ini_file('config/liqpay.ini');
 
+// подключаем API MySQL
+include ("../../libs/api.mysql.php");
+
 //вытаскиваем из конфига все что нам нужно в будущем
 $ispUrl = $liqConf['TEMPLATE_ISP_URL'];
 $ispName = $liqConf['TEMPLATE_ISP'];
@@ -59,14 +62,48 @@ function lq_PaymentForm($customer_id) {
     global $liqConf;
     include('LiqPay.php');
 
-    $merchant_id = $liqConf['MERCHANT_ID'];
-    $signature = $liqConf['SIGNATURE'];
     $method = $liqConf['METHOD'];
     $currency = $liqConf['CURRENCY'];
     $summ = trim($_POST['amount']);
     $resultUrl = $liqConf['RESULT_URL'];
-    $serverUrl = $liqConf['SERVER_URL'];
     $session = lq_SessionGen();
+
+    if (isset($liqConf['MERCHANT_ID']['default']) AND isset($liqConf['SIGNATURE']['default']) AND isset($liqConf['SERVER_URL']['default']) ) {
+        $avaibleTagsRaw = explode(',', $liqConf['AVAIBLE_TAGS_ID']);
+        if (!empty($avaibleTagsRaw)) {
+            $where = '';
+            foreach ($avaibleTagsRaw as $tag) {
+                if($tag != end($avaibleTagsRaw)) {
+                    $where.= "`tagid` = '" . trim($tag) . "' OR ";
+                } else {
+                    $where.= "`tagid` = '" . trim($tag) . "'";
+                }
+
+            }
+
+            $customer_id_m = mysql_real_escape_string($customer_id);
+            $query = "SELECT `tagid` FROM `tags` WHERE `login` = '" . $customer_id_m . "' AND (" . $where . ")";
+            $data = simple_query($query);
+            if (!empty($data)) {
+                $tag_id = $data['tagid'];
+                $merchant_id = $liqConf['MERCHANT_ID'][$tag_id];
+                $signature = $liqConf['SIGNATURE'][$tag_id];
+                $serverUrl = $liqConf['SERVER_URL'][$tag_id];
+            } else {
+                $merchant_id = $liqConf['MERCHANT_ID']['default'];
+                $signature = $liqConf['SIGNATURE']['default'];
+                $serverUrl = $liqConf['SERVER_URL']['default'];
+            }
+        } else {
+            $merchant_id = $liqConf['MERCHANT_ID']['default'];
+            $signature = $liqConf['SIGNATURE']['default'];
+            $serverUrl = $liqConf['SERVER_URL']['default'];
+        }
+    } else {
+        $merchant_id = $liqConf['MERCHANT_ID'];
+        $signature = $liqConf['SIGNATURE'];
+        $serverUrl = $liqConf['SERVER_URL'];
+    }
 
     $result = "<h2>" . $liqConf['TEMPLATE_ISP_SERVICE'] . " " . $customer_id . "</h2>";
     $liqpay = new LiqPay($merchant_id, $signature);
@@ -76,8 +113,8 @@ function lq_PaymentForm($customer_id) {
                 'currency'       => $currency,
                 'description'    => $customer_id,
                 'order_id'       => $session,
-                'result_url'       => $resultUrl,
-                'server_url'       => $serverUrl,
+                'result_url'     => $resultUrl,
+                'server_url'     => $serverUrl,
                 'paytypes'       => $method,
                 'version'        => '3'
                 ));
