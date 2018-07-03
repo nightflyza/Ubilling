@@ -529,6 +529,10 @@ class DealWithIt {
                         case 'addcash':
                             if ($param) {
                                 if (zb_checkMoney($param)) {
+                                    $cashType = (wf_CheckPost(array('newschedcashtype'))) ? vf($_POST['newschedcashtype']) : 1;
+                                    if ($cashType != 1) {
+                                        $param.='|' . $cashType;
+                                    }
                                     foreach ($logins as $login) {
                                         $this->createTask($date, $login, $action, $param, $note);
                                     }
