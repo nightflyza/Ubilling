@@ -39,12 +39,26 @@ function lq_PricesForm() {
         if (!empty($pricesRaw)) {
            $i=0;
             foreach ($pricesRaw as $eachPrice) {
-             $selected = ($i==0) ?'CHECKED' : '' ;
+             $selected = ($i==0) ? 'CHECKED' : '';
              $result.= '<input type="radio" name="amount" value="' . trim($eachPrice) . '" ' . $selected . '> ' . trim($eachPrice) . ' ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
              $i++;
             }
         }
     }
+
+    if (isset($liqConf['CUSTOM_PRICE']) AND ! empty($liqConf['CUSTOM_PRICE'])) {
+        // Script for change custom amount value
+        $result.= '<script>
+                    function change_custom_amount(){
+                        var custom_amount = document.getElementById("radio_custom_amount");
+                        custom_amount.value = document.getElementById("input_custom_amount").value;
+                    }
+                </script>
+        ';
+        $result.= '<input type="radio" name="amount" value="custom_amount" id="radio_custom_amount" onClick="change_custom_amount()">';
+        $result.= '<input onchange="change_custom_amount()" id="input_custom_amount" type="number" style="width: 4em;" value="' . $liqConf['CUSTOM_PRICE'] . '" min="' . $liqConf['CUSTOM_PRICE'] . '" step="any" /> ' . $liqConf['TEMPLATE_CURRENCY'] . '<br>';
+    }
+
     $result.= '<input type="submit" value="' . $liqConf['TEMPLATE_NEXT'] . '">';
     $result.= '</form>';
 
