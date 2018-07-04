@@ -31,7 +31,7 @@ class PONizer {
     protected $allOltSnmp = array();
 
     /**
-     * Available OLT models as id=>modelname + snmptemplate
+     * Available OLT models as id=>modelname + snmptemplate + ports
      *
      * @var array
      */
@@ -217,6 +217,7 @@ class PONizer {
             foreach ($rawModels as $io => $each) {
                 $this->allOltModels[$each['id']]['modelname'] = $each['modelname'];
                 $this->allOltModels[$each['id']]['snmptemplate'] = $each['snmptemplate'];
+                $this->allOltModels[$each['id']]['ports'] = $each['ports'];
             }
         }
     }
@@ -1001,12 +1002,6 @@ class PONizer {
                 if (isset($ONUsSignals[$devId])) {
                     //signal history filling
                     $historyFile = self::ONUSIG_PATH . md5($eachMac);
-
-                    /* $signal = $ONUsSignals[$devId]['SignalTXdBm'] . ',' . $ONUsSignals[$devId]['SignalRXdBm'];
-                      if ($signal == ',') {
-                      $signal = 'Offline';
-                      } */
-
                     $signal = $ONUsSignals[$devId]['SignalRXdBm'];
                     $result[$eachMac] = $signal;
 
@@ -1789,6 +1784,21 @@ class PONizer {
     }
 
     /**
+     * Returns model ports count by its id
+     *
+     * @param int $id
+     * 
+     * @return string
+     */
+    protected function getModelPorts($id) {
+        $result = '';
+        if (isset($this->allModelsData[$id])) {
+            $result = $this->allModelsData[$id]['ports'];
+        }
+        return ($result);
+    }
+
+    /**
      * Check ONU MAC address unique or not?
      *
      * @param string $mac
@@ -2389,6 +2399,7 @@ class PONizer {
         $distCacheAvail = !empty($distCacheAvail) ? true : false;
         $intCacheAvail = !empty($intCacheAvail) ? true : false;
         $lastDeregCacheAvail = !empty($lastDeregCacheAvail) ? true : false;
+        $oltOnuCounters = $this->getOltOnuCounts();
 
         $columns = array('ID');
 
@@ -2467,7 +2478,23 @@ class PONizer {
                 $refresh_button = wf_Link(self::URL_ME . '&forceoltidpoll=' . $oltId, wf_img('skins/refresh.gif', __('Refresh data for this OLT')));
             }
 
-            $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickOLTLink . '&nbsp&nbsp' . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
+            if (@$this->altCfg['PON_ONU_PORT_MAX']) {
+                $oltOnuStats = ' ';
+                if (isset($oltOnuCounters[$oltId])) {
+                    $onuCount = $oltOnuCounters[$oltId];
+                    $onuMaxCount = $this->altCfg['PON_ONU_PORT_MAX'];
+                    $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
+                    $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
+                    if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
+                        $maxOnuPerOlt = $oltPorts * $onuMaxCount;
+                        $oltOnuStats.=__('filled on') . ' ' . zb_PercentValue($maxOnuPerOlt, $onuCount) . '%';
+                    }
+                }
+            } else {
+                $oltOnuStats = '';
+            }
+
+            $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickOLTLink . '&nbsp&nbsp' . @$eachOltData . $oltOnuStats, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
                     $QuickOLTLinkInput
             );
         }
