@@ -104,9 +104,14 @@ if ($altCfg['PON_ENABLED']) {
                         }
                         show_window(__('Current FDB cache'), $pon->renderOnuFdbCache());
                     } else {
-                        //rendering availavle onu LIST
-                        show_window(__('ONU directory'), $pon->controls());
-                        $pon->renderOnuList();
+                        if (wf_CheckGet(array('oltstats'))) {
+                            //rendering OLT stats
+                            show_window(__('Stats'), $pon->renderOltStats());
+                        } else {
+                            //rendering availavle onu LIST
+                            show_window(__('ONU directory'), $pon->controls());
+                            $pon->renderOnuList();
+                        }
                     }
                 }
             }

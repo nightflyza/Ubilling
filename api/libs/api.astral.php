@@ -87,7 +87,7 @@ function wf_TextInput($name, $label = '', $value = '', $br = false, $size = '', 
     // For this pattern IP adress also can be 0.0.0.0
     $pattern = ($pattern == 'ip') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$" placeholder="0.0.0.0" title="' . __('The IP address format can be') . ': 192.1.1.1"' : $pattern;
     // For this pattern exclude cidr /31
-    $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"'  : $pattern;
+    $pattern = ($pattern == 'net-cidr') ? 'pattern="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([0-9]|[1-2][0-9]|30|32)$" placeholder="0.0.0.0/0" title="' . __('The format of IP address with mask can be') . ': 192.1.1.1/32 ' . __('and the mask can not be /31') . '"' : $pattern;
     $pattern = ($pattern == 'digits') ? 'pattern="^\d+$" placeholder="0" title="' . __('This field can only contain digits') . '"' : $pattern;
     $pattern = ($pattern == 'email') ? 'pattern="^([\w\._]+)@([\w\._]+)\.([a-z]{2,6}\.?)$" placeholder="bobrik@bobrik.com" title="' . __('This field can only contain email address') . '"' : $pattern;
 
@@ -834,7 +834,7 @@ function wf_TableBody($rows, $width = '', $border = '0', $class = '', $options =
  *  
  */
 function wf_JSAlert($url, $title, $alerttext, $functiontorun = '') {
-    if ( empty($functiontorun) ) {
+    if (empty($functiontorun)) {
         $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '">' . $title . '</a>';
     } else {
         $result = '<a  onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; return false; }" href="' . $url . '">' . $title . '</a>';
@@ -856,7 +856,7 @@ function wf_JSAlert($url, $title, $alerttext, $functiontorun = '') {
 function wf_JSAlertStyled($url, $title, $alerttext, $class = '', $functiontorun = '') {
     $class = (!empty($class)) ? 'class="' . $class . '"' : '';
 
-    if ( empty($functiontorun) ) {
+    if (empty($functiontorun)) {
         $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;}" href="' . $url . '" ' . $class . '>' . $title . '</a>';
     } else {
         $result = '<a onclick="if(!confirm(\'' . __($alerttext) . '\')) { return false;} else { ' . $functiontorun . '; }" href="' . $url . '" ' . $class . '>' . $title . '</a>';
@@ -1073,9 +1073,13 @@ function wf_modalAutoForm($Title, $Content, $WindowID = '', $WindowBodyID = '', 
     $WID = (empty($WindowID)) ? 'dialog-modal_' . wf_inputid() : $WindowID;
     $WBID = (empty($WindowBodyID)) ? 'body_dialog-modal_' . wf_inputid() : $WindowBodyID;
 
-    if ( empty($Width) ) { $Width = "'auto'"; }
+    if (empty($Width)) {
+        $Width = "'auto'";
+    }
 
-    if ( empty($Height) ) { $Height = "'auto'"; }
+    if (empty($Height)) {
+        $Height = "'auto'";
+    }
 
     $DestroyParams = '';
     if ($DestroyOnClose) {
@@ -2440,6 +2444,21 @@ function wf_JSEmptyFunc() {
               ';
 
     return ($Result);
+}
+
+/**
+ * Returns some count of non-breaking space symbols
+ * 
+ * @param int $count
+ * 
+ * @return string
+ */
+function wf_nbsp($count = 1) {
+    $result = '';
+    for ($i = 0; $i < $count; $i++) {
+        $result.='&nbsp;';
+    }
+    return ($result);
 }
 
 /**

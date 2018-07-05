@@ -2272,6 +2272,10 @@ class PONizer {
             if (!empty($availOnuFdbCache)) {
                 $result .= wf_Link(self::URL_ME . '&fdbcachelist=true', wf_img('skins/fdbmacsearch.png') . ' ' . __('Current FDB cache'), false, 'ubButton');
             }
+
+            if (@$this->altCfg['PON_ONU_PORT_MAX']) {
+                $result.=wf_Link(self::URL_ME . '&oltstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), true, 'ubButton');
+            }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
                 if (cfr('ONUREGZTE')) {
@@ -2450,7 +2454,7 @@ class PONizer {
             if ($this->EnableQuickOLTLinks) {
                 $QuickOLTLinkInput = wf_tag('div', false, '', 'style="width: 100%; text-align: right; margin-top: 15px; margin-bottom: 20px"') .
                         wf_tag('font', false, '', 'style="font-weight: 600"') . __('Go to OLT') . wf_tag('font', true) .
-                        '&nbsp&nbsp' . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
+                        wf_nbsp(2) . wf_Selector($QuickOLTDDLName, $QickOLTsArray, '', '', true) .
                         wf_tag('script', false, '', 'type="text/javascript"') .
                         '$(\'[name="' . $QuickOLTDDLName . '"]\').change(function(evt) {   
                                             var LinkIDObjFromVal = $(\'#QuickOLTLinkID_\'+$(this).val());
@@ -2478,25 +2482,79 @@ class PONizer {
                 $refresh_button = wf_Link(self::URL_ME . '&forceoltidpoll=' . $oltId, wf_img('skins/refresh.gif', __('Refresh data for this OLT')));
             }
 
-            if (@$this->altCfg['PON_ONU_PORT_MAX']) {
-                $oltOnuStats = ' ';
-                if (isset($oltOnuCounters[$oltId])) {
-                    $onuCount = $oltOnuCounters[$oltId];
-                    $onuMaxCount = $this->altCfg['PON_ONU_PORT_MAX'];
-                    $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
-                    $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
-                    if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
-                        $maxOnuPerOlt = $oltPorts * $onuMaxCount;
-                        $oltOnuStats.=__('filled on') . ' ' . zb_PercentValue($maxOnuPerOlt, $onuCount) . '%';
-                    }
-                }
-            } else {
-                $oltOnuStats = '';
-            }
 
-            $result .= show_window($refresh_button . '&nbsp&nbsp&nbsp&nbsp' . $QuickOLTLink . '&nbsp&nbsp' . @$eachOltData . $oltOnuStats, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
+            $result .= show_window($refresh_button . wf_nbsp(4) . $QuickOLTLink . wf_nbsp(2) . @$eachOltData, wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts) .
                     $QuickOLTLinkInput
             );
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders OLT stats
+     *
+     * @return string
+     */
+    public function renderOltStats() {
+        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+        $oltOnuCounters = $this->getOltOnuCounts();
+        $onuMaxCount = @$this->altCfg['PON_ONU_PORT_MAX'];
+        $oltOnuFilled = array();
+        $oltInterfacesFilled = array();
+        $result = '';
+        $result.=wf_BackLink(self::URL_ME);
+        $result.=wf_tag('br');
+
+        foreach ($this->allOltDevices as $oltId => $eachOltData) {
+            if (isset($oltOnuCounters[$oltId])) {
+                $onuCount = $oltOnuCounters[$oltId];
+                $oltModelId = @$this->allOltSnmp[$oltId]['modelid'];
+                $oltPorts = @$this->allOltModels[$oltModelId]['ports'];
+                if ((!empty($oltModelId)) AND ( !empty($oltPorts)) AND ( !empty($onuMaxCount))) {
+                    $maxOnuPerOlt = $oltPorts * $onuMaxCount;
+                    $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
+                    $onuInterfacesCache = self::INTCACHE_PATH . $oltId . '_' . self::INTCACHE_EXT;
+                    if (file_exists($onuInterfacesCache)) {
+                        $interfaces = file_get_contents($onuInterfacesCache);
+                        $interfaces = unserialize($interfaces);
+                        if (!empty($interfaces)) {
+                            foreach ($interfaces as $eachMac => $eachInterface) {
+                                $cleanInterface = strstr($eachInterface, ':', true);
+                                if (isset($oltInterfacesFilled[$oltId][$cleanInterface])) {
+                                    $oltInterfacesFilled[$oltId][$cleanInterface] ++;
+                                } else {
+                                    $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if ((!empty($oltInterfacesFilled)) AND ( !empty($oltOnuFilled))) {
+            foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
+                $result.=wf_tag('h3');
+                $result.= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
+                $result.= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
+                $result.=wf_tag('h3', true);
+                if (isset($oltInterfacesFilled[$oltId])) {
+                    $cells = wf_TableCell(__('Interface'));
+                    $cells.=wf_TableCell(__('Count'));
+                    $cells.=wf_TableCell(__('Visual'));
+                    $rows = wf_TableRow($cells, 'row1');
+                    foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
+                        $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
+                        $cells = wf_TableCell($eachInterface);
+                        $cells.=wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $cells.=wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $rows.= wf_TableRow($cells, 'row3');
+                    }
+                    $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                }
+            }
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result.=$messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
     }
