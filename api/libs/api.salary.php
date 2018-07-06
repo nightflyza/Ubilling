@@ -2295,7 +2295,7 @@ class Salary {
 
                 foreach ($employeSummaryArr as $employeeId => $each) {
                     $employeeSalaryTotal = 0;
-                    $cells = wf_TableCell(@$this->allEmployee[$employeeId]);
+                    $cells = wf_TableCell(@$this->allEmployeeRaw[$employeeId]);
                     foreach ($monthArr as $ia => $mn) {
                         $cells.=wf_TableCell($each[$ia]);
                         $employeeSalaryTotal+=$each[$ia];
