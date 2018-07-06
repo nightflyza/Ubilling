@@ -2928,4 +2928,6 @@ $lang['def']['was repaired'] = 'була відрихтована';
 $lang['def']['Now table status is'] = 'Тепер стан таблиці';
 $lang['def']['Use new connection mode (for RouterOS 6.43 and higher)'] = 'Використовувати новий метод підключення (для RouterOS 6.43 і вище)';
 $lang['def']['filled on'] = 'заповнено на';
+$lang['def']['Year salary reports'] = 'Річний звіт по зарплатах';
+$lang['def']['Unpaid'] = 'Не выплачено';
 ?>

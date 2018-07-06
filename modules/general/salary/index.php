@@ -213,6 +213,11 @@ if (cfr('SALARY')) {
                 show_window(__('Labor time'), $salary->ltReportRenderResults());
                 show_window('', wf_BackLink($salary::URL_ME));
             }
+            
+            if (wf_CheckGet(array('yearreport'))) {
+                show_window(__('Year salary reports'), $salary->renderYearReport());
+                show_window('', wf_BackLink($salary::URL_ME));
+            }
 
             //module summary stats
             $salary->summaryReport();

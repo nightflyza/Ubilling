@@ -2912,8 +2912,8 @@ $lang['def']['was repaired'] = 'была починена';
 $lang['def']['Now table status is'] = 'Теперь состояние таблицы';
 $lang['def']['Use new connection mode (for RouterOS 6.43 and higher)'] = 'Использовать новый метод подключения (для RouterOS 6.43 и выше)';
 $lang['def']['filled on'] = 'заполнено на';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Year salary reports'] = 'Годовой отчет по зарплатам';
+$lang['def']['Unpaid'] = 'Не выплачено';
 $lang['def'][''] = '';
 
 

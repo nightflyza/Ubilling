@@ -102,6 +102,7 @@ class Salary {
     const URL_TWJ = 'twjreport=true';
     const URL_LTR = 'ltreport=true';
     const URL_TSHEETS = 'timesheets=true';
+    const URL_YRREP = 'yearreport=true';
 
     /**
      * Creates new Salary instance
@@ -384,17 +385,18 @@ class Salary {
      */
     public function renderControls() {
         $result = '';
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/report.png') . ' ' . __('Payroll'), false, 'ubButton');
+        $result.= wf_Link(self::URL_ME . '&' . self::URL_PAYROLL, wf_img('skins/ukv/dollar.png') . ' ' . __('Payroll'), false, 'ubButton');
         $result.= wf_Link(self::URL_ME . '&' . self::URL_TSHEETS, wf_img('skins/icon_calendar.gif') . ' ' . __('Timesheet'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
-        $result.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/clock.png') . ' ' . __('Labor time'), false, 'ubButton');
 
         $directoriesControls = wf_Link(self::URL_ME . '&' . self::URL_JOBPRICES, wf_img('skins/shovel.png') . ' ' . __('Job types'), false, 'ubButton');
         $directoriesControls.= wf_Link(self::URL_ME . '&' . self::URL_WAGES, wf_img('skins/icon_user.gif') . ' ' . __('Employee wages'), false, 'ubButton');
         $result.= wf_modalAuto(web_icon_extended() . ' ' . __('Directories'), __('Directories'), $directoriesControls, 'ubButton');
 
-
+        $reports = wf_Link(self::URL_ME . '&' . self::URL_FACONTROL, wf_img('skins/factorcontrol.png') . ' ' . __('Factor control'), false, 'ubButton');
+        $reports.= wf_Link(self::URL_ME . '&' . self::URL_TWJ, wf_img('skins/question.png') . ' ' . __('Tasks without jobs'), false, 'ubButton');
+        $reports.= wf_Link(self::URL_ME . '&' . self::URL_LTR, wf_img('skins/clock.png') . ' ' . __('Labor time'), false, 'ubButton');
+        $reports.= wf_Link(self::URL_ME . '&' . self::URL_YRREP, wf_img('skins/icon_table.png') . ' ' . __('Year salary reports'), false, 'ubButton');
+        $result.=wf_modalAuto(wf_img('skins/ukv/report.png') . ' ' . __('Reports'), __('Reports'), $reports, 'ubButton');
         return ($result);
     }
 
@@ -2197,6 +2199,117 @@ class Salary {
             }
         }
 
+        return ($result);
+    }
+
+    /**
+     * Renders per year salary report
+     * 
+     * @return string
+     */
+    public function renderYearReport() {
+        $result = '';
+        $monthArr = months_array_localized();
+        $showYear = (wf_CheckPost(array('showyear'))) ? vf($_POST['showyear'], 3) : curyear();
+        $yearSummaryArr = array();
+        $employeSummaryArr = array();
+
+        $totalJobPrices = 0;
+
+        foreach ($monthArr as $monthNum => $monthName) {
+            $yearSummaryArr[$monthNum]['monthname'] = $monthName;
+            $yearSummaryArr[$monthNum]['paid'] = 0;
+            $yearSummaryArr[$monthNum]['unpaid'] = 0;
+            $yearSummaryArr[$monthNum]['total'] = 0;
+            $yearSummaryArr[$monthNum]['jobscount'] = 0;
+        }
+
+        $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $showYear).' ';
+        $inputs.= wf_Submit(__('Show'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        $result.=wf_delimiter();
+
+        if (!empty($this->allJobs)) {
+            //debarr($this->allJobs);
+            foreach ($this->allJobs as $io => $each) {
+                $timestamp = strtotime($each['date']);
+                $year = date("Y", $timestamp);
+                if ($year == $showYear) {
+                    $month = date("m", $timestamp);
+                    $jobPrice = $this->getJobPrice($each['id']);
+                    ///filling year summary report
+                    $jobPaid = ($each['state']) ? true : false;
+                    if ($jobPaid) {
+                        $yearSummaryArr[$month]['paid']+=$jobPrice;
+                    } else {
+                        $yearSummaryArr[$month]['unpaid']+=$jobPrice;
+                    }
+                    $yearSummaryArr[$month]['total']+=$jobPrice;
+                    $yearSummaryArr[$month]['jobscount'] ++;
+                    $totalJobPrices+=$jobPrice;
+                    //filling employee summary
+                    if (isset($employeSummaryArr[$each['employeeid']])) {
+                        $employeSummaryArr[$each['employeeid']][$month] += $jobPrice;
+                    } else {
+                        foreach ($monthArr as $monthNum => $monthName) {
+                            $employeSummaryArr[$each['employeeid']][$monthNum] = 0;
+                        }
+                        $employeSummaryArr[$each['employeeid']][$month] += $jobPrice;
+                    }
+                }
+            }
+
+            //rendering year summary report
+            if (!empty($yearSummaryArr)) {
+                $cells = wf_TableCell('');
+                $cells.= wf_TableCell(__('Month'));
+                $cells.= wf_TableCell(__('Jobs'));
+                $cells.= wf_TableCell(__('Paid'));
+                $cells.= wf_TableCell(__('Unpaid'));
+                $cells.= wf_TableCell(__('Total money'));
+                $cells.= wf_TableCell(__('Visual'), '50%');
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($yearSummaryArr as $io => $each) {
+                    $cells = wf_TableCell($io);
+                    $cells.= wf_TableCell($each['monthname']);
+                    $cells.= wf_TableCell($each['jobscount']);
+                    $cells.= wf_TableCell($each['paid']);
+                    $cells.= wf_TableCell($each['unpaid']);
+                    $cells.= wf_TableCell($each['total']);
+                    $cells.= wf_TableCell(web_bar($each['total'], $totalJobPrices), '', '', 'sorttable_customkey="' . $each['total'] . '"');
+                    $rows.= wf_TableRow($cells, 'row3');
+                }
+
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+
+            //rendering per employee year report
+            if (!empty($employeSummaryArr)) {
+                $cells = wf_TableCell('');
+                foreach ($monthArr as $monthNum => $monthName) {
+                    $cells.=wf_TableCell($monthName);
+                }
+                $cells.= wf_TableCell(__('Total'));
+                $rows = wf_TableRow($cells, 'row1');
+
+                foreach ($employeSummaryArr as $employeeId => $each) {
+                    $employeeSalaryTotal = 0;
+                    $cells = wf_TableCell(@$this->allEmployee[$employeeId]);
+                    foreach ($monthArr as $ia => $mn) {
+                        $cells.=wf_TableCell($each[$ia]);
+                        $employeeSalaryTotal+=$each[$ia];
+                    }
+                    $cells.= wf_TableCell($employeeSalaryTotal);
+                    $rows.= wf_TableRow($cells, 'row5');
+                }
+                $result.=wf_tag('h3') . __('Employee') . wf_tag('h3', true);
+                $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+            }
+        } else {
+            $messages = new UbillingMessageHelper();
+            $result.=$messages->getStyledMessage(__('Nothing to show'), 'warning');
+        }
         return ($result);
     }
 
