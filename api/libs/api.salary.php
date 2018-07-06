@@ -2261,6 +2261,7 @@ class Salary {
 
             //rendering year summary report
             if (!empty($yearSummaryArr)) {
+                $result.=wf_tag('h3') .__('Employee wages').' '.$showYear.  wf_tag('h3', true);
                 $cells = wf_TableCell('');
                 $cells.= wf_TableCell(__('Month'));
                 $cells.= wf_TableCell(__('Jobs'));
