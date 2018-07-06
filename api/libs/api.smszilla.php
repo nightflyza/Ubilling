@@ -2013,6 +2013,14 @@ class SMSZilla {
         $data = array();
         $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
         $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
+        if (!$realSending) {
+            //Remote API background call
+            $realSending = (wf_CheckGet(array('key', 'action', 'filterid', 'templateid'))) ? true : false;
+        }
+        if (!$forceTranslit) {
+            //Remote API translit option instead
+            $forceTranslit = (wf_CheckGet(array('translit'))) ? true : false;
+        }
         $sendCounter = 0;
         //changing nearest SMS bytes limit
         if ($forceTranslit) {
@@ -2802,7 +2810,7 @@ class SMSZilla {
                 switch ($direction) {
                     case 'numlist':
                         $this->extMobiles = new MobilesExt();
-                        
+
                         foreach ($this->filteredEntities as $io => $entity) {
                             $numlistMobile = $this->normalizePhoneFormat($entity['mobile']);
                             if (!empty($this->allUserData)) {
