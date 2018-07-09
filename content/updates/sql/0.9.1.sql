@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS `sms_history` (
   KEY `login` (`login`) USING BTREE,
   KEY `phone` (`phone`) USING BTREE,
   KEY `date_send` (`date_send`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
