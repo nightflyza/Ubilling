@@ -305,6 +305,8 @@ LDAPMGR_ENABLED=TRIGGER|Is LDAP manager enabled
 FREEZE_DAYS_CHARGE_ENABLED=TRIGGER|Freeze days charge enabled
 FREEZE_DAYS_INITIAL_AMOUNT=VARCHAR|Freeze days initial amount
 FREEZE_DAYS_WORK_TO_RESTORE=VARCHAR|Workdays initial amount to restore freeze days amount
+SMS_HISTORY_ON=TRIGGER|SMS history enabled
+SMS_CHECKSTATUS_EXPIRE_DAYS=VARCHAR|Days amount from send date after which no status check performed
 CHAPTEREND_BEH=true
 
 

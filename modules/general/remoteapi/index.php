@@ -589,6 +589,16 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     if ($_GET['action'] == 'senddog') {
                         if ($alterconf['SENDDOG_ENABLED']) {
                             $runSendDog = new SendDog();
+
+                            if ( isset($_GET['param']) && ($_GET['param'] == 'chkmsgstatuses') ) {
+                                if ( isset($alterconf['SMS_HISTORY_ON']) && $alterconf['SMS_HISTORY_ON']) {
+                                    $runSendDog->smsHistoryProcessing();
+                                    die('OK:SENDDOG SMS STATUS CHECK PROCESSED');
+                                } else {
+                                    die('OK:SENDDOG SMS HISTORY DISABLED');
+                                }
+                            }
+
                             $sendDogTelegram = $runSendDog->telegramProcessing();
                             $sendDogEmail = $runSendDog->emailProcessing();
                             $sendDogSms = $runSendDog->smsProcessing();

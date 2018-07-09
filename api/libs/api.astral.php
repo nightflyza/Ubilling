@@ -140,10 +140,11 @@ function wf_PasswordInput($name, $label = '', $value = '', $br = false, $size = 
  * @param string  $title text title of URL
  * @param bool    $br append new line
  * @param string  $class class for link
+ * @param string  $options for link
  * @return  string
  *
  */
-function wf_Link($url, $title, $br = false, $class = '') {
+function wf_Link($url, $title, $br = false, $class = '', $options = '') {
     if ($class != '') {
         $link_class = 'class="' . $class . '"';
     } else {
@@ -154,7 +155,9 @@ function wf_Link($url, $title, $br = false, $class = '') {
     } else {
         $newline = '';
     }
-    $result = '<a href="' . $url . '" ' . $link_class . '>' . __($title) . '</a>' . "\n";
+    $opts = ( empty($options) ) ? '' : ' ' . $options;
+
+    $result = '<a href="' . $url . '" ' . $link_class . $opts . '>' . __($title) . '</a>' . "\n";
     $result.=$newline . "\n";
     return ($result);
 }
@@ -327,6 +330,17 @@ function wf_Submit($value, $CtrlID = '') {
     return ($result);
 }
 
+/**
+ * Return submit web form element for which you can specify class and other options
+ *
+ * @param $value
+ * @param string $class
+ * @param string $name
+ * @param string $caption
+ * @param string $CtrlID
+ *
+ * @return string
+ */
 function wf_SubmitClassed($value, $class = '', $name = '', $caption = '', $CtrlID = '') {
     $SubmitID = ( (empty($CtrlID)) ? 'Submit_' . wf_InputId() : $CtrlID );
     $result = '<button type="submit" value="' . $value . '" name="' . $name . '" class= "' . $class . '" id="' . $SubmitID . '">';
@@ -380,12 +394,14 @@ function wf_Trigger($name, $label = '', $state = '', $br = false) {
  * @param string  $selected selected $value for selector
  * @param bool    $br append new line
  * @param bool    $sort alphabetical sorting of params array by value
+ * @param string  $CtrlID
  * 
  * @return  string
  *
  */
-function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false) {
-    $inputid = wf_InputId();
+function wf_Selector($name, $params, $label, $selected = '', $br = false, $sort = false, $CtrlID = '') {
+
+    $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
     if ($br) {
         $newline = '<br>';
     } else {
@@ -1218,11 +1234,15 @@ function wf_DatePicker($field, $extControls = false) {
  * Returns calendar widget with preset date
  * 
  * @param string $field field name to insert calendar
+ * @param string $date to set the calendar's value to
+ * @param bool $extControls extended year and month controls
+ * @param string $CtrlID
+ *
  * @return string
  *  
  */
-function wf_DatePickerPreset($field, $date, $extControls = false) {
-    $inputid = wf_InputId();
+function wf_DatePickerPreset($field, $date, $extControls = false, $CtrlID = '') {
+    $inputid = ( empty($CtrlID) ) ? wf_InputId() : $CtrlID;
     $curlang = curlang();
     if ($extControls) {
         $extControls = ',
@@ -2172,6 +2192,28 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
 
 
     return ($result);
+}
+
+/**
+ * Returns a JS snippet to control the visibility of JQDT column
+ *
+ * @param string $CallerObjID
+ * @param string $CallerObjEvent
+ * @param string $JQDTID
+ * @param int $ColIndex
+ *
+ * @return string
+ */
+function wf_JQDTColumnHideShow($CallerObjID, $CallerObjEvent, $JQDTID, $ColIndex) {
+    $JSCode =   '$(\'#' . $CallerObjID . '\').on("' . $CallerObjEvent . '", function() {
+                    // Get the column API object
+                    var column = $(\'#' . $JQDTID . '\').DataTable().column(' . $ColIndex . '); 
+                    // Toggle the visibility
+                    column.visible( !column.visible() );
+                 }); 
+                ';
+
+    return $JSCode;
 }
 
 /**
