@@ -538,6 +538,10 @@ class UserProfile {
                 $result.= $this->getControl('?module=asterisk&username=' . $this->login . '#profileending', 'skins/asterisk_small.png', 'Asterisk logging', 'Asterisk', 'ASTERISK');
             }
         }
+
+        //sms history button
+        $result.= $this->getSMSHistoryControls();
+
         $result.= wf_tag('td', true);
         $result.= wf_tag('tbody', true);
         $result.= wf_tag('table', true);
@@ -1266,6 +1270,23 @@ class UserProfile {
             }
         }
         return ($result);
+    }
+
+    protected function getSMSHistoryControls() {
+        $result = '';
+
+        if ( isset($this->alterCfg['SMS_HISTORY_ON']) AND $this->alterCfg['SMS_HISTORY_ON'] ) {
+            $SMSHist = new SMSHistory();
+            $JQDT = $SMSHist->renderJQDT($this->login);
+
+            $result = wf_tag('div', false, 'dashtask', 'style="height:' . self::MAIN_CONTROLS_SIZE . '; width:' . self::MAIN_CONTROLS_SIZE . ';"');
+            $result.= wf_modal(wf_img_sized('skins/taskbar/sms_hist_big.png', __('SMS messages history'), '', self::MAIN_PLUGINS_SIZE), __('SMS messages history for current user') . '  ' . $this->login, $JQDT, '', '1000', '400');
+            $result.= wf_tag('br');
+            $result.= __('SMS messages history');
+            $result.= wf_tag('div', true);
+        }
+
+        return $result;
     }
 
     /**

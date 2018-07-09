@@ -2930,4 +2930,8 @@ $lang['def']['Use new connection mode (for RouterOS 6.43 and higher)'] = 'Вик
 $lang['def']['filled on'] = 'заповнено на';
 $lang['def']['Year salary reports'] = 'Річний звіт по зарплатах';
 $lang['def']['Unpaid'] = 'Не виплачено';
+$lang['def']['Skyriver API address'] = 'Адреса API Skyriver';
+$lang['def']['User login to access Skyriver API (this is sign also)'] = 'Логін для доступу до Skyriver API(альфа-им\'я за сумісництвом)';
+$lang['def']['User password for access Skyriver API'] = 'Пароль для доступу до Skyriver API';
+$lang['def']['Use Skyriver as default SMS service'] = 'Вкиристовувати Skyriver як службу SMS за замовчуванням';
 ?>

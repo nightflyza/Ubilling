@@ -2914,7 +2914,10 @@ $lang['def']['Use new connection mode (for RouterOS 6.43 and higher)'] = 'Исп
 $lang['def']['filled on'] = 'заполнено на';
 $lang['def']['Year salary reports'] = 'Годовой отчет по зарплатам';
 $lang['def']['Unpaid'] = 'Не выплачено';
-$lang['def'][''] = '';
+$lang['def']['Skyriver API address'] = 'Адрес API Skyriver';
+$lang['def']['User login to access Skyriver API (this is sign also)'] = 'Логин для доступа к Skyriver API(альфа-имя по совместительству)';
+$lang['def']['User password for access Skyriver API'] = 'Пароль для доступа к Skyriver API';
+$lang['def']['Use Skyriver as default SMS service'] = 'Использовать Skyriver как службу SMS по-умолчанию';
 
 
 

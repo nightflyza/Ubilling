@@ -45,6 +45,7 @@ class SendDog {
         $this->loadSmsflyConfig();
         $this->loadRedsmsConfig();
         $this->loadSmsPilotConfig();
+        $this->loadSkyriverConfig();
     }
 
     /**
@@ -256,6 +257,35 @@ class SendDog {
         $smssign = zb_StorageGet('SENDDOG_SMSPILOT_SIGN');
         $this->settings['SMSPILOT_APIKEY'] = $smsapikey;
         $this->settings['SMSPILOT_SIGN'] = $smssign;
+    }
+
+    /**
+     * Loads Skyriver service config
+     *
+     * @return void
+     */
+    protected function loadSkyriverConfig() {
+        $smsgateway = zb_StorageGet('SENDDOG_SKYSMS_GATEWAY');
+        if (empty($smsgateway)) {
+            $smsgateway = 'http://sms.skysms.net/api/bulk_sm';
+            zb_StorageSet('SENDDOG_SKYSMS_GATEWAY', $smsgateway);
+        }
+
+        $smslogin = zb_StorageGet('SENDDOG_SKYSMS_LOGIN');
+        if (empty($smslogin)) {
+            $smslogin = 'InfoCentr';
+            zb_StorageSet('SENDDOG_SKYSMS_LOGIN', $smslogin);
+        }
+
+        $smspassword = zb_StorageGet('SENDDOG_SKYSMS_PASSWORD');
+        if (empty($smspassword)) {
+            $smspassword = 'MySecretPassword';
+            zb_StorageSet('SENDDOG_SKYSMS_PASSWORD', $smspassword);
+        }
+
+        $this->settings['SKYSMS_GATEWAY'] = $smsgateway;
+        $this->settings['SKYSMS_LOGIN'] = $smslogin;
+        $this->settings['SKYSMS_PASSWORD'] = $smspassword;
     }
 
     /**
@@ -516,6 +546,21 @@ class SendDog {
     }
 
     /**
+     * Returns set of inputs, required for Skyriver service configuration
+     *
+     * @return string
+     */
+    protected function renderSkyriverConfigInputs() {
+        $inputs = wf_tag('h2') . 'Skyriver' . wf_tag('h2', true);
+        $inputs.= wf_TextInput('editskysmsgateway', __('Skyriver API address'), $this->settings['SKYSMS_GATEWAY'], true, 30);
+        $inputs.= wf_TextInput('editskysmslogin', __('User login to access Skyriver API (this is sign also)'), $this->settings['SKYSMS_LOGIN'], true, 20);
+        $inputs.= wf_TextInput('editskysmspassword', __('User password for access Skyriver API'), $this->settings['SKYSMS_PASSWORD'], true, 20);
+        $smsServiceFlag = ($this->settings['SMS_SERVICE'] == 'skysms') ? true : false;
+        $inputs.= wf_RadioInput('defaultsmsservice', __('Use Skyriver as default SMS service'), 'skysms', true, $smsServiceFlag);
+        return ($inputs);
+    }
+
+    /**
      * Returns set of inputs, required for SMS-Fly service configuration
      * 
      * @return string
@@ -538,6 +583,7 @@ class SendDog {
         $inputs.= $this->renderSmsflyConfigInputs();
         $inputs.= $this->renderRedsmsConfigInputs();
         $inputs.= $this->renderSmsPilotConfigInputs();
+        $inputs.= $this->renderSkyriverConfigInputs();
         $inputs.= $this->renderTelegramConfigInputs();
 
         $inputs.= wf_Submit(__('Save'));
@@ -618,6 +664,21 @@ class SendDog {
         if ($_POST['editsmspilotsign'] != $this->settings['SMSPILOT_SIGN']) {
             zb_StorageSet('SENDDOG_SMSPILOT_SIGN', $_POST['editsmspilotsign']);
             log_register('SENDDOG CONFIG SET SMSPILOT_SIGN `' . $_POST['editsmspilotsign'] . '`');
+        }
+
+
+        //Skyriver configuration
+        if ($_POST['editskysmsgateway'] != $this->settings['SKYSMS_GATEWAY']) {
+            zb_StorageSet('SENDDOG_SKYSMS_GATEWAY', $_POST['editskysmsgateway']);
+            log_register('SENDDOG CONFIG SET SKYSMSGATEWAY `' . $_POST['editskysmsgateway'] . '`');
+        }
+        if ($_POST['editskysmslogin'] != $this->settings['SKYSMS_LOGIN']) {
+            zb_StorageSet('SENDDOG_SKYSMS_LOGIN', $_POST['editskysmslogin']);
+            log_register('SENDDOG CONFIG SET SKYSMSLOGIN `' . $_POST['editskysmslogin'] . '`');
+        }
+        if ($_POST['editskysmspassword'] != $this->settings['SKYSMS_PASSWORD']) {
+            zb_StorageSet('SENDDOG_SKYSMS_PASSWORD', $_POST['editskysmspassword']);
+            log_register('SENDDOG CONFIG SET SKYSMSPASSWORD `' . $_POST['editskysmspassword'] . '`');
         }
 
 
@@ -715,7 +776,7 @@ class SendDog {
         }
     }
 
-    /**
+     /**
      * Sends all sms storage via redsms.ru service
      * 
      * @return void
@@ -803,6 +864,305 @@ class SendDog {
     }
 
     /**
+     * Sends all sms storage via SKYSMS service
+     *
+     * @return void
+     */
+    protected function skysmsPushMessages() {
+        $Result         = '';
+        $SkySMSAPIURL   = $this->settings['SKYSMS_GATEWAY'];
+        $SkySMSAPILogin = $this->settings['SKYSMS_LOGIN'];
+        $SkySMSAPIPassw = $this->settings['SKYSMS_PASSWORD'];
+
+        $allSmsQueue = $this->smsQueue->getQueueData();
+        if (!empty($allSmsQueue)) {
+            $i = 0;
+            $SMSHistoryEnabled = $this->altCfg['SMS_HISTORY_ON'];
+            $SMSHistoryTabFreshIDs = array();
+            $PreSendStatus = __('Perparing for delivery');
+
+            $XMLPacket = '<?xml version="1.0" encoding="utf-8"?>
+                          <packet version="1.0">
+                          <auth login="' . $SkySMSAPILogin . '" password="' . $SkySMSAPIPassw . '"/>
+                          <command name="sendmessage">
+                          <message id="0" type="sms">
+                          <data charset="lat"></data>
+                          <recipients>
+                         ';
+
+            foreach ($allSmsQueue as $io => $eachsms) {
+                if ($SMSHistoryEnabled) {
+                    $PhoneToSearch = $this->cutInternationalsFromPhoneNum($eachsms['number']);
+                    $Login = zb_getUserLoginByPhone($PhoneToSearch);
+                    $tQuery = "INSERT INTO `sms_history` (`login`, `phone`, `send_status`, `msg_text`) 
+                                                  VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $PreSendStatus . "', '" . $eachsms['message'] . "');";
+                    nr_query($tQuery);
+
+                    $RecID = simple_get_lastid('sms_history');
+                    $SMSHistoryTabFreshIDs[] = $RecID;
+
+                    $XMLPacket .= '<recipient id="' . $RecID . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
+                } else {
+                    $XMLPacket .= '<recipient id="' . ++$i . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
+                }
+            }
+
+            $XMLPacket .= '</recipients>
+                            </message>
+                            </command>
+                            </packet>
+                          ';
+
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_URL, $SkySMSAPIURL);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", "Accept: text/xml", "Cache-Control: no-cache"));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $XMLPacket);
+            $Result = curl_exec($curl);
+            curl_close($curl);
+
+            $ParsedResult = zb_xml2array($Result);
+
+            if ( !empty($ParsedResult) ) {
+                $ServerAnswerCode = (isset($ParsedResult['packet']['result_attr']['type'])) ? $ParsedResult['packet']['result_attr']['type'] : '42';
+
+                if ($ServerAnswerCode == '00') {
+                    $SMSPacketID = $ParsedResult['packet']['result']['message_attr']['smsmsgid'];
+                    log_register('SENDDOG SKYSMS packet ' . $SMSPacketID . ' sent successfully');
+
+                    if ($SMSHistoryEnabled) {
+                        $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+
+                        foreach ($Recipients as $each => $Recipient) {
+                            if ( isset($Recipient['id']) ) {
+                                $tQuery = "UPDATE `sms_history` SET `srvmsgself_id` = '" . $Recipient['smsid'] . "', 
+                                                                    `srvmsgpack_id` = '" . $SMSPacketID . "',                                                            
+                                                                    `date_send` = '" . curdatetime() . "', 
+                                                                    `send_status` = '" . __('Message queued') . "' 
+                                                WHERE `id` = '" . $Recipient['id'] . "';";
+                                nr_query($tQuery);
+                            }
+                        }
+                    }
+                } else {
+                    $ServerErrorMsg = $this->decodeSkySMSErrorMsg($ServerAnswerCode);
+                    log_register('SENDDOG SKYSMS failed to sent SMS packet. Server answer: ' . $ServerErrorMsg . ( ($ServerAnswerCode == '42') ? $Result : '') );
+
+                    if ($SMSHistoryEnabled) {
+                        $IDsAsStr = implode(',', $SMSHistoryTabFreshIDs);
+                        $tQuery = "UPDATE `sms_history` SET `date_send` = '" . curdatetime() . "',
+                                                            `date_statuschk` = '" . curdatetime() . "',
+                                                            `no_statuschk` = '1', 
+                                                            `send_status` = '" . __('Failed to send message') . ': ' . $ServerErrorMsg ."' 
+                                        WHERE `id` IN (" . $IDsAsStr . ");";
+                        nr_query($tQuery);
+                    }
+                }
+            }
+
+            //remove old sent message
+            foreach ($allSmsQueue as $io => $eachsms) {
+                $this->smsQueue->deleteSms($eachsms['filename']);
+            }
+        }
+    }
+
+    /**
+     * Checks messages status for SKYSMS service
+     *
+     * @return void
+     */
+    protected function skysmsChkMsgStatus() {
+        $SMSCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
+        $tQuery = "UPDATE `sms_history` SET `no_statuschk` = 1,
+                                            `send_status` = __('SMS status check period expired')
+                        WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $SMSCheckStatusExpireDays . " AND no_statuschk < 1;";
+        nr_query($tQuery);
+
+        $tQuery = "SELECT DISTINCT `srvmsgpack_id` FROM `sms_history` WHERE `no_statuschk` < 1 AND `delivered` < 1;";
+        $ChkMessages = simple_queryall($tQuery);
+
+        if ( !empty($ChkMessages) ) {
+            $SkySMSAPIURL   = $this->settings['SKYSMS_GATEWAY'];
+            $SkySMSAPILogin = $this->settings['SKYSMS_LOGIN'];
+            $SkySMSAPIPassw = $this->settings['SKYSMS_PASSWORD'];
+
+            foreach ($ChkMessages as $io => $EachMSg) {
+                $SMSPAcketID = $EachMSg['srvmsgpack_id'];
+
+                if ( empty($SMSPAcketID) ) { continue; }
+
+                $XMLPacket = '<?xml version="1.0" encoding="utf-8"?>
+                              <packet version="1.0">
+                              <auth login="' . $SkySMSAPILogin . '" password="' . $SkySMSAPIPassw . '"/>
+                              <command name="querymessage">
+                              <message smsmsgid="' . $SMSPAcketID . '"/>
+                              </command>
+                              </packet>
+                             ';
+
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_POST, true);
+                curl_setopt($curl, CURLOPT_URL, $SkySMSAPIURL);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: text/xml; charset=utf-8", "Accept: text/xml", "Cache-Control: no-cache"));
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $XMLPacket);
+                $Result = curl_exec($curl);
+                curl_close($curl);
+
+                $ParsedResult = zb_xml2array($Result);
+
+                if ( !empty($ParsedResult) ) {
+                    $ServerAnswerCode = (isset($ParsedResult['packet']['result_attr']['type'])) ? $ParsedResult['packet']['result_attr']['type'] : '42';
+
+                    if ($ServerAnswerCode == '00') {
+                        $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+
+                        foreach ($Recipients as $each => $Recipient) {
+                            if (isset($Recipient['smsid'])) {
+                                $MsgSelfID         = $Recipient['smsid'];
+                                $MsgStatus         = $Recipient['status'];
+                                $DecodedMsgStatus  = $this->decodeSkySMSStatusMsg($MsgStatus);
+
+                                $tQuery = "UPDATE `sms_history` SET `date_statuschk` = '". curdatetime() . "', 
+                                                                    `delivered` = '" . $DecodedMsgStatus['DeliveredStatus'] . "', 
+                                                                    `no_statuschk` = '" . $DecodedMsgStatus['NoStatusCheck'] . "', 
+                                                                    `send_status` = '" . $DecodedMsgStatus['StatusMsg'] . "' 
+                                                WHERE `srvmsgself_id` = '" . $MsgSelfID . "';";
+                                nr_query($tQuery);
+                            }
+                        }
+
+                        log_register('SENDDOG SKYSMS checked SMS packet ' . $SMSPAcketID . ' send status');
+                    } else {
+                        $ServerErrorMsg = $this->decodeSkySMSErrorMsg($ServerAnswerCode);
+                        log_register('SENDDOG SKYSMS failed to get SMS packet ' . $SMSPAcketID . ' send status. Server answer: ' . $ServerErrorMsg . ( ($ServerAnswerCode == '42') ? $Result : '') );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the error message code as a parameter and returns appropriate message string
+     *
+     * @param string $ErrorMsgCode
+     * @return string
+     */
+    protected function decodeSkySMSErrorMsg($ErrorMsgCode) {
+        switch ($ErrorMsgCode) {
+            case '01':
+                $Message = __('Incorrect parameters value or insufficient parameters count');
+                break;
+            case '02':
+                $Message = __('Database server connection error');
+                break;
+            case '03':
+                $Message = __('Database was not found');
+                break;
+            case '04':
+                $Message = __('Authorization procedure error');
+                break;
+            case '05':
+                $Message = __('Login or password is incorrect');
+                break;
+            case '06':
+                $Message = __('Malfunction in user\'s configuration');
+                break;
+            default:
+                $Message = __('Error code is unknown. Servers answer:') . '  ' . $ErrorMsgCode;
+        }
+
+        return $Message;
+    }
+
+    /**
+     * Gets the status message code as a parameter and returns appropriate message string
+     *
+     * @param  string $StatusMsgCode
+     * @return array
+     */
+    protected function decodeSkySMSStatusMsg($StatusMsgCode) {
+        $StatusArray = array('StatusMsg' => '', 'DeliveredStatus' => 0, 'NoStatusCheck' => 0);
+
+        switch ($StatusMsgCode) {
+            case 'DELIVERED':
+                $StatusArray['StatusMsg'] = __('Message is delivered to recipient');
+                $StatusArray['DeliveredStatus'] = 1;
+                $StatusArray['NoStatusCheck'] = 0;
+                break;
+
+            case 'TOSEND':
+                $StatusArray['StatusMsg'] = __('Message is queued for delivering');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 0;
+                break;
+
+            case 'ENROUTE':
+                $StatusArray['StatusMsg'] = __('Message is sent but not yet delivered to recipient');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 0;
+                break;
+
+            case 'PAUSED':
+                $StatusArray['StatusMsg'] = __('Message delivering is paused');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 0;
+                break;
+
+            case 'CANCELED':
+                $StatusArray['StatusMsg'] = __('Message delivering is canceled');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'FAILED':
+                $StatusArray['StatusMsg'] = __('Failed to send message');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'EXPIRED':
+                $StatusArray['StatusMsg'] = __('Failed to deliver message - delivery term is expired');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'UNDELIVERABLE':
+                $StatusArray['StatusMsg'] = __('Message can not be delivered to recipient');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'REJECTED':
+                $StatusArray['StatusMsg'] = __('Message is rejected by server');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'BADCOST':
+                $StatusArray['StatusMsg'] = __('Message is not delivered to recipient - can not determine message cost');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+                break;
+
+            case 'UNKNOWN':
+                $StatusArray['StatusMsg'] = __('Message status is unknown');
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 0;
+                break;
+
+            default:
+                $StatusArray['StatusMsg'] = __('Sending status code is unknown:') . '  ' . $StatusMsgCode;
+                $StatusArray['DeliveredStatus'] = 0;
+                $StatusArray['NoStatusCheck'] = 1;
+        }
+
+        return $StatusArray;
+    }
+
+    /**
      * Loads and sends all email messages from system queue
      * 
      * @return int
@@ -843,9 +1203,33 @@ class SendDog {
                 case 'smspilot':
                     $this->smspilotPushMessages();
                     break;
+                case 'skysms':
+                    $this->skysmsPushMessages();
+                    break;
             }
         }
         return ($smsCount);
+    }
+
+    /**
+     * Goes through sms_history table and checks statuses for messages
+     *
+     * @return void
+     */
+    public function smsHistoryProcessing() {
+        switch ($this->settings['SMS_SERVICE']) {
+            case 'tsms':
+                break;
+            case 'smsfly':
+                break;
+            case 'redsms':
+                break;
+            case 'smspilot':
+                break;
+            case 'skysms':
+                $this->skysmsChkMsgStatus();
+                break;
+        }
     }
 
     /**
@@ -868,6 +1252,34 @@ class SendDog {
         return ($messagesCount);
     }
 
+    /**
+     * Cuts international codes like "+38", "+7" from phone number
+     * This function might be supplemented with new country codes and refactored
+     *
+     * @param $PhoneNumber
+     *
+     * @return bool|mixed|string
+     */
+    public function cutInternationalsFromPhoneNum($PhoneNumber) {
+        // if we have users phones in DB like "0991234567" and some function/module
+        // appended "+38" or "+7" to the beginning of it - we need to remove that prefix
+        // for MYSQL "LIKE" to search properly
+        $PhoneNumber = str_replace(array('+7', '+38', '+'), '', $PhoneNumber);
+
+        // sometimes phone number may be stored without leading "+"
+        // and we still need to remove international codes
+        $Prefix = '38';
+        if (substr($PhoneNumber, 0, strlen($Prefix)) == $Prefix) {
+            $PhoneNumber = substr($PhoneNumber, strlen($Prefix));
+        }
+
+        $Prefix = '7';
+        if (substr($PhoneNumber, 0, strlen($Prefix)) == $Prefix) {
+            $PhoneNumber = substr($PhoneNumber, strlen($Prefix));
+        }
+
+        return $PhoneNumber;
+    }
 }
 
 ?>
