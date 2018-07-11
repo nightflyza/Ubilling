@@ -2,6 +2,39 @@
 
 if (cfr('SYSCONF')) {
 
+    /**
+     * Renders list with some controls of available editable config presets
+     * 
+     * @param array $editableConfigs
+     * 
+     * @return string
+     */
+    function web_RenderEditableConfigPresetsForm($editableConfigs) {
+        $result = '';
+        $messages = new UbillingMessageHelper();
+        if (!empty($editableConfigs)) {
+            $cells = wf_TableCell(__('Path'));
+            $cells.= wf_TableCell(__('Name'));
+            $cells.= wf_TableCell(__('Actions'));
+            $rows = wf_TableRow($cells, 'row1');
+            foreach ($editableConfigs as $eachPath => $eachName) {
+                $cells = wf_TableCell($eachPath);
+                $cells.= wf_TableCell($eachName);
+                $actLinks = wf_JSAlert('?module=sysconf&delconfpath=' . base64_encode($eachPath), web_delete_icon(), $messages->getDeleteAlert());
+                $cells.= wf_TableCell($actLinks);
+                $rows.= wf_TableRow($cells, 'row3');
+            }
+            $result.=wf_TableBody($rows, '100%', 0, '');
+        }
+
+        $inputs = wf_TextInput('newconfpath', __('Path'), '', false, 10) . ' ';
+        $inputs.= wf_TextInput('newconfname', __('Name'), '', false, 10) . ' ';
+        $inputs.= wf_Submit(__('Create'));
+        $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        return ($result);
+    }
+
+    //getting some editable configs presets
     $editableConfigsPresetsPath = DATA_PATH . '/documents/editableconfigs/settings.dat';
     if (file_exists($editableConfigsPresetsPath)) {
         //loading presets
@@ -18,6 +51,32 @@ if (cfr('SYSCONF')) {
         file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
     }
 
+    //deleting presets if required
+    if (wf_CheckGet(array('delconfpath'))) {
+        $pathToDelete = base64_decode($_GET['delconfpath']);
+        if (isset($editableConfigs[$pathToDelete])) {
+            unset($editableConfigs[$pathToDelete]);
+            file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
+            log_register('SYSCONF DELETE PRESET `' . $pathToDelete . '`');
+            rcms_redirect('?module=sysconf');
+        }
+    }
+
+    //creating some new presets
+    if (wf_CheckPost(array('newconfpath', 'newconfname'))) {
+        $createConfPath = $_POST['newconfpath'];
+        $createConfName = $_POST['newconfname'];
+        if (!isset($editableConfigs[$createConfPath])) {
+            if (file_exists($createConfPath)) {
+                $editableConfigs[$createConfPath] = $createConfName;
+                file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
+                rcms_redirect('?module=sysconf');
+            } else {
+                show_error(__('File not exist') . ': ' . $createConfPath);
+            }
+        }
+    }
+
     $configsList = '';
     if (!empty($editableConfigs)) {
         foreach ($editableConfigs as $eachConfigPath => $eachConfigName) {
@@ -25,7 +84,7 @@ if (cfr('SYSCONF')) {
         }
     }
     //appending presets controls
-    $configsList.=wf_modalAuto(web_icon_extended().' '.__('Settings'), __('Settings'), 'TODO', 'ubButton');
+    $configsList.=wf_modalAuto(web_icon_extended() . ' ' . __('Settings'), __('Settings'), web_RenderEditableConfigPresetsForm($editableConfigs), 'ubButton');
 
     show_window(__('Edit'), $configsList);
 
