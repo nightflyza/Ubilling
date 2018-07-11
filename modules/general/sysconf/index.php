@@ -2,13 +2,21 @@
 
 if (cfr('SYSCONF')) {
 
-    $editableConfigs = array(
-        CONFIG_PATH . 'alter.ini' => 'alter.ini',
-        CONFIG_PATH . 'mysql.ini' => 'mysql.ini',
-        CONFIG_PATH . 'billing.ini' => 'billing.ini',
-        CONFIG_PATH . 'ymaps.ini' => 'ymaps.ini',
-        'test_config' => 'test_config'
-    );
+    $editableConfigsPresetsPath = DATA_PATH . '/documents/editableconfigs/settings.dat';
+    if (file_exists($editableConfigsPresetsPath)) {
+        //loading presets
+        $editableConfigs = file_get_contents($editableConfigsPresetsPath);
+        $editableConfigs = json_decode($editableConfigs, true);
+    } else {
+        //creating new default presets
+        $editableConfigs = array(
+            CONFIG_PATH . 'alter.ini' => 'alter.ini',
+            CONFIG_PATH . 'mysql.ini' => 'mysql.ini',
+            CONFIG_PATH . 'billing.ini' => 'billing.ini',
+            CONFIG_PATH . 'ymaps.ini' => 'ymaps.ini',
+        );
+        file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
+    }
 
     $configsList = '';
     if (!empty($editableConfigs)) {
@@ -16,6 +24,8 @@ if (cfr('SYSCONF')) {
             $configsList.=wf_Link('?module=sysconf&editconfig=' . base64_encode($eachConfigPath), web_edit_icon() . ' ' . $eachConfigName, false, 'ubButton') . ' ';
         }
     }
+    //appending presets controls
+    $configsList.=wf_modalAuto(web_icon_extended().' '.__('Settings'), __('Settings'), 'TODO', 'ubButton');
 
     show_window(__('Edit'), $configsList);
 
