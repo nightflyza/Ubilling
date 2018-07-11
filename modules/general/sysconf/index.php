@@ -70,7 +70,7 @@ if (cfr('SYSCONF')) {
             if (file_exists($createConfPath)) {
                 $editableConfigs[$createConfPath] = $createConfName;
                 file_put_contents($editableConfigsPresetsPath, json_encode($editableConfigs));
-                log_register('SYSCONF CREATE PRESET `' . $pathToDelete . '`');
+                log_register('SYSCONF CREATE PRESET `' . $createConfPath . '`');
                 rcms_redirect('?module=sysconf');
             } else {
                 show_error(__('File not exist') . ': ' . $createConfPath);
