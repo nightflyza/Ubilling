@@ -43,6 +43,7 @@ if (cfr('SYSCONF')) {
                     //saving results into file
                     if ($canUpdate) {
                         $newFileContent = $_POST['editfilecontent'];
+                        $newFileContent = str_replace("\r\n", PHP_EOL, $newFileContent); // setting unix-line EOL.
                         file_put_contents($changedFilePath, $newFileContent);
                         log_register('SYSCONF UPDATE FILE `' . $changedFilePath . '`');
                     } else {
