@@ -45,6 +45,8 @@ if (cfr('SYSCONF')) {
                         $newFileContent = $_POST['editfilecontent'];
                         file_put_contents($changedFilePath, $newFileContent);
                         log_register('SYSCONF UPDATE FILE `' . $changedFilePath . '`');
+                    } else {
+                        log_register('SYSCONF UPDATE FAIL `' . $changedFilePath . '`');
                     }
                 }
             }
@@ -95,18 +97,8 @@ if (cfr('SYSCONF')) {
   });';
         $grid.=wf_tag('script', true);
         $grid.=wf_tag('style');
-        $grid.='
-  .ui-tabs-vertical { width: auto;}
-  .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; }
-  .ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
-  .ui-tabs-vertical .ui-tabs-nav li a { display:block; }
-  .ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; }
-  .ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: left; width: 40em;}
-  ';
-
+        $grid.=file_get_contents('skins/tabs_v.css');
         $grid.=wf_tag('style', true);
-
-
         $grid.=wf_tag('div', false, '', 'id="tabs"');
         $grid.=wf_tag('ul');
         $grid.=web_ConfigGetTabsControls($dbopts) . web_ConfigGetTabsControls($billopts) . web_ConfigGetTabsControls($alteropts);
