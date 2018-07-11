@@ -1103,3 +1103,15 @@ table.sortable.id tbody tr::before {
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+.fileeditorarea {
+    background-color: #000000;
+    color: #DEE3E7;
+    font-size: larger;
+}
+
+.fileeditorarea:hover {
+    background-color: #000000;
+    color: #DEE3E7;
+    font-size: larger;
+}

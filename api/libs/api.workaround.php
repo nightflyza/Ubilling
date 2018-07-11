@@ -3246,6 +3246,41 @@ function web_ConfigEditorShow($prefix, $configdata, $optsdata) {
 }
 
 /**
+ * Returns simple text editing form
+ * 
+ * @param string $path
+ * @param string $content
+ * 
+ * @return string
+ */
+function web_FileEditorForm($path, $content) {
+    $result = '';
+    $inputs = wf_HiddenInput('editfilepath', $path);
+    $inputs.=wf_tag('textarea', false, 'fileeditorarea', 'name="editfilecontent" cols="145" rows="30"');
+    $inputs.=$content;
+    $inputs.=wf_tag('textarea', true);
+    $inputs.=wf_tag('br');
+    $inputs.=wf_Submit(__('Save'));
+    $result.=wf_Form('', 'POST', $inputs, 'glamour');
+    return ($result);
+}
+
+/**
+ * Changes access rights for some path to be writable
+ * 
+ * @param string $path
+ *
+ * @return void
+ */
+function zb_fixAccessRights($path) {
+    global $ubillingConfig;
+    $billCfg = $ubillingConfig->getBilling();
+    $sudoPath = $billCfg['SUDO'];
+    $command = $sudoPath . ' chmod -R 777 ' . $path;
+    shell_exec($command);
+}
+
+/**
  * Returns tabs list to display in sysconf module
  * 
  * @param array $optsdata

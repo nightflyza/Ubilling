@@ -2918,7 +2918,11 @@ $lang['def']['Skyriver API address'] = 'Адрес API Skyriver';
 $lang['def']['User login to access Skyriver API (this is sign also)'] = 'Логин для доступа к Skyriver API(альфа-имя по совместительству)';
 $lang['def']['User password for access Skyriver API'] = 'Пароль для доступа к Skyriver API';
 $lang['def']['Use Skyriver as default SMS service'] = 'Использовать Skyriver как службу SMS по-умолчанию';
-
+$lang['def']['File is not writable'] = 'Файл не доступен для записи';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 
 
 
