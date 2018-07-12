@@ -881,6 +881,12 @@ class SendDog {
             $SMSHistoryTabFreshIDs = array();
             $PreSendStatus = __('Perparing for delivery');
 
+            if ($SMSHistoryEnabled) {
+                $Telepatia = new Telepathy(false);
+                $Telepatia->flushPhoneTelepathyCache();
+                $Telepatia->usePhones();
+            }
+
             $XMLPacket = '<?xml version="1.0" encoding="utf-8"?>
                           <packet version="1.0">
                           <auth login="' . $SkySMSAPILogin . '" password="' . $SkySMSAPIPassw . '"/>
@@ -893,11 +899,7 @@ class SendDog {
             foreach ($allSmsQueue as $io => $eachsms) {
                 if ($SMSHistoryEnabled) {
                     $PhoneToSearch = $this->cutInternationalsFromPhoneNum($eachsms['number']);
-
-                    $Telepatia = new Telepathy(false, false, false, true);
-                    $Telepatia->usePhones();
                     $Login = $Telepatia->getByPhoneFast($PhoneToSearch);
-                    $Telepatia->savePhoneTelepathyCache();
 
                     $tQuery = "INSERT INTO `sms_history` (`login`, `phone`, `send_status`, `msg_text`) 
                                                   VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $PreSendStatus . "', '" . $eachsms['message'] . "');";
@@ -913,6 +915,8 @@ class SendDog {
 
                 $this->smsQueue->deleteSms($eachsms['filename']);
             }
+
+            $Telepatia->savePhoneTelepathyCache();
 
             $XMLPacket .= '</recipients>
                             </message>
@@ -940,6 +944,8 @@ class SendDog {
 
                     if ($SMSHistoryEnabled) {
                         $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+
+                        if ( empty($Recipients) ) { $Recipients = $ParsedResult['packet']['result']['message']['recipients']; }
 
                         foreach ($Recipients as $each => $Recipient) {
                             if ( isset($Recipient['id']) ) {
@@ -983,7 +989,7 @@ class SendDog {
     protected function skysmsChkMsgStatus() {
         $SMSCheckStatusExpireDays = $this->altCfg['SMS_CHECKSTATUS_EXPIRE_DAYS'];
         $tQuery = "UPDATE `sms_history` SET `no_statuschk` = 1,
-                                            `send_status` = __('SMS status check period expired')
+                                            `send_status` = '" . __('SMS status check period expired') . "'
                         WHERE ABS( DATEDIFF(NOW(), `date_send`) ) > " . $SMSCheckStatusExpireDays . " AND no_statuschk < 1;";
         nr_query($tQuery);
 
@@ -1025,6 +1031,8 @@ class SendDog {
 
                     if ($ServerAnswerCode == '00') {
                         $Recipients = $ParsedResult['packet']['result']['message']['recipients']['recipient'];
+
+                        if ( empty($Recipients) ) { $Recipients = $ParsedResult['packet']['result']['message']['recipients']; }
 
                         foreach ($Recipients as $each => $Recipient) {
                             if (isset($Recipient['smsid'])) {
