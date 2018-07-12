@@ -1209,18 +1209,25 @@ function ts_TaskCreateFormSigreq($address, $phone) {
  */
 function ts_ShowPanel() {
     $createform = ts_TaskCreateForm();
+    $tools = '';
     $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
     $result.= wf_Link('?module=taskman&show=undone', wf_img('skins/undone_icon.png') . ' ' . __('Undone tasks'), false, 'ubButton');
     $result.= wf_Link('?module=taskman&show=done', wf_img('skins/done_icon.png') . ' ' . __('Done tasks'), false, 'ubButton');
     $result.= wf_Link('?module=taskman&show=all', wf_img('skins/icon_calendar.gif') . ' ' . __('All tasks'), false, 'ubButton');
     if (cfr('TASKMANSEARCH')) {
-        $result.= wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
+        $tools.= wf_Link('?module=tasksearch', web_icon_search() . ' ' . __('Tasks search'), false, 'ubButton');
     }
 
     if (cfr('TASKMANTRACK')) {
-        $result.= wf_Link('?module=taskmantrack', wf_img('skins/track_icon.png') . ' ' . __('Tracking'), false, 'ubButton');
+        $tools.= wf_Link('?module=taskmantrack', wf_img('skins/track_icon.png') . ' ' . __('Tracking'), false, 'ubButton');
     }
-    $result.= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
+
+    if (cfr('TASKMANTIMING')) {
+        $tools.= wf_Link('?module=taskmantiming', wf_img('skins/clock.png') . ' ' . __('Task timing report'), false, 'ubButton');
+    }
+    $tools.= wf_Link('?module=taskman&print=true', wf_img('skins/icon_print.png') . ' ' . __('Tasks printing'), false, 'ubButton');
+
+    $result.=wf_modalAuto(web_icon_extended() . ' ' . __('Tools'), __('Tools'), $tools, 'ubButton');
 
     //show type selector
     $whoami = whoami();
@@ -1262,6 +1269,24 @@ function ts_SendSMS($employeeid, $message) {
         }
     }
     return ($result);
+}
+
+/**
+ * Marks some task as done
+ * 
+ * @return void
+ */
+function ts_TaskIsDone() {
+    $editid = vf($_POST['changetask']);
+    simple_update_field('taskman', 'enddate', $_POST['editenddate'], "WHERE `id`='" . $editid . "'");
+    simple_update_field('taskman', 'employeedone', $_POST['editemployeedone'], "WHERE `id`='" . $editid . "'");
+    simple_update_field('taskman', 'donenote', $_POST['editdonenote'], "WHERE `id`='" . $editid . "'");
+    simple_update_field('taskman', 'change_admin', $_POST['change_admin'], "WHERE `id`='" . $editid . "'");
+    simple_update_field('taskman', 'status', '1', "WHERE `id`='" . $editid . "'");
+    $logQuery = "INSERT INTO `taskmandone` (`id`,`taskid`,`date`) VALUES ";
+    $logQuery.="(NULL,'" . $editid . "','" . curdatetime() . "');";
+    nr_query($logQuery);
+    log_register('TASKMAN DONE [' . $editid . ']');
 }
 
 /**

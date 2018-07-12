@@ -2474,7 +2474,7 @@ $lang['def']['Create print card'] = 'Зробити шаблон для друк
 $lang['def']['Font size'] = 'Размір шрифта';
 $lang['def']['Top'] = 'По верхньому краю';
 $lang['def']['right to control printcard'] = 'Право друкувати картки';
-$lang['def']['right to control selling'] = 'Право використовувати пункты пункти продажу';
+$lang['def']['right to control selling'] = 'Право використовувати пункти продажу';
 $lang['def']['Burst Download speed'] = 'Burst - швидкість завантаження';
 $lang['def']['Burst Upload speed'] = 'Burst - швидкість віддачі';
 $lang['def']['Burst Download Time speed'] = 'Burst - час завантаження';
@@ -2935,5 +2935,8 @@ $lang['def']['User login to access Skyriver API (this is sign also)'] = 'Лог�
 $lang['def']['User password for access Skyriver API'] = 'Пароль для доступу до Skyriver API';
 $lang['def']['Use Skyriver as default SMS service'] = 'Вкиристовувати Skyriver як службу SMS за замовчуванням';
 $lang['def']['File is not writable'] = 'Файл не доступний для запису';
+$lang['def']['Task timing report'] = 'Терміни виконання задач';
+$lang['def']['Reality'] = 'Реальність';
+$lang['def']['From creation'] = 'Від створення';
 
 ?>

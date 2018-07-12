@@ -2919,8 +2919,9 @@ $lang['def']['User login to access Skyriver API (this is sign also)'] = 'Лог�
 $lang['def']['User password for access Skyriver API'] = 'Пароль для доступа к Skyriver API';
 $lang['def']['Use Skyriver as default SMS service'] = 'Использовать Skyriver как службу SMS по-умолчанию';
 $lang['def']['File is not writable'] = 'Файл не доступен для записи';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Task timing report'] = 'Сроки выполнения задач';
+$lang['def']['Reality'] = 'Реальность';
+$lang['def']['From creation'] = 'От создания';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

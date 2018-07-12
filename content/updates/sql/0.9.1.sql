@@ -19,3 +19,11 @@ CREATE TABLE IF NOT EXISTS `sms_history` (
   KEY `phone` (`phone`) USING BTREE,
   KEY `date_send` (`date_send`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `taskmandone` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `taskid` int(11) DEFAULT NULL,
+  `date` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

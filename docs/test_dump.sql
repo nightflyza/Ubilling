@@ -2109,3 +2109,10 @@ CREATE TABLE IF NOT EXISTS `districtdata` (
 ALTER TABLE `userreg` ADD INDEX `login` (`login`);
 
 ALTER TABLE `dealwithithist` ADD `datetimedone` DATETIME NULL DEFAULT NULL AFTER `date`;
+
+CREATE TABLE IF NOT EXISTS `taskmandone` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `taskid` int(11) DEFAULT NULL,
+  `date` datetime NOT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

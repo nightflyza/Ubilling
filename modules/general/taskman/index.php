@@ -58,18 +58,11 @@ if (cfr('TASKMAN')) {
         if (wf_CheckPost(array('editenddate', 'editemployeedone'))) {
             if (zb_checkDate($_POST['editenddate'])) {
                 //editing task sub
-                $editid = vf($_POST['changetask']);
-                simple_update_field('taskman', 'enddate', $_POST['editenddate'], "WHERE `id`='" . $editid . "'");
-                simple_update_field('taskman', 'employeedone', $_POST['editemployeedone'], "WHERE `id`='" . $editid . "'");
-                simple_update_field('taskman', 'donenote', $_POST['editdonenote'], "WHERE `id`='" . $editid . "'");
-                simple_update_field('taskman', 'change_admin', $_POST['change_admin'], "WHERE `id`='" . $editid . "'");
-                simple_update_field('taskman', 'status', '1', "WHERE `id`='" . $editid . "'");
+                ts_TaskIsDone();
 
                 //flushing darkvoid after changing task
                 $darkVoid = new DarkVoid();
                 $darkVoid->flushCache();
-
-                log_register('TASKMAN DONE [' . $editid . ']');
 
                 //generate job for some user
                 if (wf_CheckPost(array('generatejob', 'generatelogin', 'generatejobid'))) {
