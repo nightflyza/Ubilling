@@ -834,6 +834,8 @@ function zb_UserResurrect($login) {
  * Gets user's login by phone number. To avoid mismatch - the whole phone number should be passed as a parameter.
  * If only a part of the number passed as parameter - multiple queue results possible, but only the very first one will be returned.
  *
+ * DEPRECATED yet from birth. USE api.telepathy functions instead, like getByPhoneFast()
+ *
  * @param $Phone
  *
  * @return string

@@ -893,7 +893,12 @@ class SendDog {
             foreach ($allSmsQueue as $io => $eachsms) {
                 if ($SMSHistoryEnabled) {
                     $PhoneToSearch = $this->cutInternationalsFromPhoneNum($eachsms['number']);
-                    $Login = zb_getUserLoginByPhone($PhoneToSearch);
+
+                    $Telepatia = new Telepathy(false, false, false, true);
+                    $Telepatia->usePhones();
+                    $Login = $Telepatia->getByPhoneFast($PhoneToSearch);
+                    $Telepatia->savePhoneTelepathyCache();
+
                     $tQuery = "INSERT INTO `sms_history` (`login`, `phone`, `send_status`, `msg_text`) 
                                                   VALUES ('" . $Login . "', '" . $eachsms['number'] . "', '" . $PreSendStatus . "', '" . $eachsms['message'] . "');";
                     nr_query($tQuery);
@@ -905,6 +910,8 @@ class SendDog {
                 } else {
                     $XMLPacket .= '<recipient id="' . ++$i . '" address="' . $eachsms['number'] . '">' . $eachsms['message'] . '</recipient>';
                 }
+
+                $this->smsQueue->deleteSms($eachsms['filename']);
             }
 
             $XMLPacket .= '</recipients>
@@ -961,10 +968,10 @@ class SendDog {
                 }
             }
 
-            //remove old sent message
+            /*//remove old sent message
             foreach ($allSmsQueue as $io => $eachsms) {
                 $this->smsQueue->deleteSms($eachsms['filename']);
-            }
+            }*/
         }
     }
 
