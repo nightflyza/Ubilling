@@ -68,7 +68,11 @@ if (cfr('TASKMANTIMING')) {
             $dateFrom = (wf_CheckPost(array('datefrom'))) ? $_POST['datefrom'] : date("Y-m-") . '01';
             $dateTo = (wf_CheckPost(array('dateto'))) ? $_POST['dateto'] : curdate();
             $result = '';
-            $columns = array('ID', 'Task address', 'Task creation date', 'Target date', 'Finish date', 'Time', 'From creation', 'Reality');
+            /**
+             * Shizukesa ga shimikomu you de iki wo tometa gozen goji
+             * Hijou kaidan de tsume wo kamu  asu wa docchi da? THE DAY HAS COME
+             */
+            $columns = array('ID', 'Task address', 'Job type', 'Task creation date', 'Target date', 'Finish date', 'Time', 'From creation', 'Reality');
             $opts = '"order": [[ 0, "desc" ]]';
             $result.=wf_JqDtLoader($columns, self::URL_ME . '&ajax=true&datefrom=' . $dateFrom . '&dateto=' . $dateTo, false, __('Tasks'), 100, $opts);
             return ($result);
@@ -128,6 +132,8 @@ if (cfr('TASKMANTIMING')) {
             $json = new wf_JqDtHelper();
             $allTasks = $this->getDoneTasks($dateFrom, $dateTo);
             if (!empty($allTasks)) {
+                $allJobTypes = ts_GetAllJobtypes();
+
                 foreach ($allTasks as $io => $each) {
                     $startTimestamp = strtotime($each['startdate']);
                     $endTimestamp = strtotime($each['enddate']);
@@ -147,6 +153,7 @@ if (cfr('TASKMANTIMING')) {
                     }
                     $data[] = wf_Link(self::URL_TASK . $each['id'], $each['id']);
                     $data[] = $each['address'];
+                    $data[] = $allJobTypes[$each['jobtype']];
                     $data[] = $each['date'];
                     $data[] = $each['startdate'];
                     $data[] = $each['enddate'];
