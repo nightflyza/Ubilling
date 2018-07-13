@@ -1139,7 +1139,7 @@ class WifiCPE {
                     if ($this->SigmonEnabled) {
                         $SigMon = new MTsigmon();
                         $CtrlID = wf_InputId();
-                        $APID = ( empty($this->allAP) ) ? 0 : $this->allAP[$assignedCpeData['uplinkapid']]['id'];
+                        $APID = ( empty($this->allAP) OR empty($assignedCpeData['uplinkapid']) ) ? 0 : $this->allAP[$assignedCpeData['uplinkapid']]['id'];
 
                         $APSignalContainerID = 'APSignal_' . $CtrlID;
                         $APPollDTContainerID = 'APSignalPollDT_' . $CtrlID;
