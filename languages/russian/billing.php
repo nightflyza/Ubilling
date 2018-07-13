@@ -2922,6 +2922,8 @@ $lang['def']['File is not writable'] = 'Файл не доступен для з
 $lang['def']['Task timing report'] = 'Сроки выполнения задач';
 $lang['def']['Reality'] = 'Реальность';
 $lang['def']['From creation'] = 'От создания';
+$lang['def']['Network not found'] = 'Сеть не найдена';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 

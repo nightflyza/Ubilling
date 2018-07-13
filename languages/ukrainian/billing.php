@@ -2938,5 +2938,6 @@ $lang['def']['File is not writable'] = 'Файл не доступний для 
 $lang['def']['Task timing report'] = 'Терміни виконання задач';
 $lang['def']['Reality'] = 'Реальність';
 $lang['def']['From creation'] = 'Від створення';
+$lang['def']['Network not found'] = 'Мережу не знайдено';
 
 ?>
