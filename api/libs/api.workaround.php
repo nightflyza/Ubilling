@@ -1920,7 +1920,7 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                 if (array_key_exists($key, $data)) {
                     switch ($key) {
                         case 'netid':
-                            $cells .= wf_TableCell($data[$key] . ': ' . $cidrs[$data[$key]]);
+                            $cells .= wf_TableCell($data[$key] . ': ' . ( ( array_key_exists($data[$key], $cidrs) ) ? $cidrs[$data[$key]] : __('Network not found')) );
                             break;
                         case 'nastype':
                             if ($data[$key] == 'mikrotik') {
