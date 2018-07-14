@@ -143,6 +143,13 @@ class MultiGen {
     protected $operators = array();
 
     /**
+     * Contains default NAS attributes modifiers as id=>name
+     *
+     * @var array
+     */
+    protected $attrModifiers = array();
+
+    /**
      * Contains available reply scenarios as stringid=>name
      *
      * @var array
@@ -338,6 +345,12 @@ class MultiGen {
         $this->scenarios = array(
             'check' => 'check',
             'reply' => 'reply'
+        );
+
+        $this->attrModifiers = array(
+            'all' => __('All'),
+            'active' => __('Active'),
+            'inactive' => __('Inactive')
         );
 
         $this->operators = array(
@@ -862,7 +875,8 @@ class MultiGen {
         if (isset($this->allNas[$nasId])) {
             $currentAtrributes = $this->getNasAttributes($nasId);
             if (!empty($currentAtrributes)) {
-                $cells = wf_TableCell(__('Scenario'));
+                $cells = wf_TableCell(__('Users'));
+                $cells.= wf_TableCell(__('Scenario'));
                 $cells.= wf_TableCell(__('Attribute'));
                 $cells.=wf_TableCell(__('Operator'));
                 $cells.= wf_TableCell(__('Value'));
@@ -870,7 +884,8 @@ class MultiGen {
                 $rows = wf_TableRow($cells, 'row1');
 
                 foreach ($currentAtrributes as $io => $each) {
-                    $cells = wf_TableCell($each['scenario']);
+                    $cells = wf_TableCell($this->attrModifiers[$each['modifier']]);
+                    $cells.= wf_TableCell($each['scenario']);
                     $cells.= wf_TableCell($each['attribute']);
                     $cells.=wf_TableCell($each['operator']);
                     $cells.= wf_TableCell($each['content']);
@@ -901,7 +916,9 @@ class MultiGen {
         $result = '';
         $nasId = vf($nasId, 3);
         if (isset($this->allNas[$nasId])) {
-            $inputs = wf_Selector('newscenario', $this->scenarios, __('Scenario'), '', false) . ' ';
+            $inputs = '';
+            $inputs.= wf_Selector('newmodifier', $this->attrModifiers, __('Users'), '', false) . ' ';
+            $inputs.= wf_Selector('newscenario', $this->scenarios, __('Scenario'), '', false) . ' ';
             $inputs.= wf_TextInput('newattribute', __('Attribute'), '', false, 20) . ' ';
             $inputs.= wf_Selector('newoperator', $this->operators, __('Operator'), '', false) . ' ';
             $inputs.= wf_TextInput('newcontent', __('Value'), '', false, 20) . ' ';
@@ -928,7 +945,9 @@ class MultiGen {
         if (isset($this->nasAttributes[$attributeId])) {
             $attributeData = $this->nasAttributes[$attributeId];
             $nasId = $attributeData['nasid'];
-            $inputs = wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
+            $inputs='';
+            $inputs.= wf_Selector('chmodifier', $this->attrModifiers, __('Users'), $attributeData['modifier'], false) . ' ';
+            $inputs.= wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
             $inputs.= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
             $inputs.= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
             $inputs.= wf_TextInput('chcontent', __('Value'), $attributeData['content'], false, 20) . ' ';
@@ -954,9 +973,11 @@ class MultiGen {
         if (wf_CheckPost(array('newattributenasid'))) {
             $nasId = vf($_POST['newattributenasid'], 3);
             if (isset($this->allNas[$nasId])) {
-                if (wf_CheckPost(array('newscenario', 'newattribute', 'newoperator', 'newcontent'))) {
+                if (wf_CheckPost(array('newscenario', 'newattribute', 'newoperator', 'newcontent', 'newmodifier'))) {
                     $newScenario = $_POST['newscenario'];
                     $newScenario_f = mysql_real_escape_string($newScenario);
+                    $newModifier = $_POST['newmodifier'];
+                    $newModifier_f = mysql_real_escape_string($newModifier);
                     $newAttribute = $_POST['newattribute'];
                     $newAttribute_f = mysql_real_escape_string($newAttribute);
                     $newOperator = $_POST['newoperator'];
@@ -964,8 +985,9 @@ class MultiGen {
                     $newContent = $_POST['newcontent'];
                     $newContent_f = mysql_real_escape_string($newContent);
 
-                    $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`attribute`,`operator`,`content`) VALUES "
-                            . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
+
+                    $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
+                            . "(NULL,'" . $nasId . "','" . $newScenario_f . "','" . $newModifier_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
                     nr_query($query);
                     $newId = simple_get_lastid(self::NAS_ATTRIBUTES);
                     log_register('MULTIGEN NAS [' . $nasId . '] CREATE ATTRIBUTE `' . $newAttribute . '` ID [' . $newId . ']');
@@ -988,11 +1010,12 @@ class MultiGen {
         if (wf_CheckPost(array('chattributenasid'))) {
             $nasId = vf($_POST['chattributenasid'], 3);
             if (isset($this->allNas[$nasId])) {
-                if (wf_CheckPost(array('chscenario', 'chattribute', 'choperator', 'chcontent'))) {
+                if (wf_CheckPost(array('chscenario', 'chattribute', 'choperator', 'chcontent','chmodifier'))) {
                     $attributeId = vf($_POST['chattributeid'], 3);
                     if (isset($this->nasAttributes[$attributeId])) {
                         $where = "WHERE `id`='" . $attributeId . "';";
                         simple_update_field(self::NAS_ATTRIBUTES, 'scenario', $_POST['chscenario'], $where);
+                        simple_update_field(self::NAS_ATTRIBUTES, 'modifier', $_POST['chmodifier'], $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'attribute', $_POST['chattribute'], $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'operator', $_POST['choperator'], $where);
                         simple_update_field(self::NAS_ATTRIBUTES, 'content', $_POST['chcontent'], $where);
@@ -1526,6 +1549,152 @@ class MultiGen {
      * 
      * @return void
      */
+    public function generateNasAttributes_OLD() {
+        $this->writePerformanceTimers('genstart');
+        //loading huge amount of required data
+        $this->loadHugeRegenData();
+        $this->writePerformanceTimers('dataloaded');
+        if (!empty($this->allUserData)) {
+            foreach ($this->allUserData as $io => $eachUser) {
+                $userLogin = $eachUser['login'];
+                if (isset($this->userNases[$userLogin])) {
+                    $userNases = $this->userNases[$userLogin];
+                    //for debug only
+                    //$userNases = array(1 => 1);
+                    if (!empty($userNases)) {
+                        foreach ($userNases as $eachNasId) {
+                            @$nasOptions = $this->nasOptions[$eachNasId];
+                            $userNameType = $nasOptions['usernametype'];
+                            //getting previous user state
+                            if (isset($this->userStates[$userLogin])) {
+                                $userPreviousState = $this->userStates[$userLogin]['previous'];
+                            } else {
+                                $userPreviousState = 3;
+                                $this->userStates[$userLogin]['previous'] = $userPreviousState;
+                                $this->userStates[$userLogin]['current'] = '';
+                                $this->userStates[$userLogin]['changed'] = '';
+                            }
+                            //overriding username type if required
+                            switch ($userNameType) {
+                                case 'login':
+                                    $userName = $userLogin;
+                                    break;
+                                case 'ip':
+                                    $userName = $eachUser['ip'];
+                                    break;
+                                case 'mac':
+                                    $userName = $eachUser['mac'];
+                                    break;
+                                case 'macju':
+                                    $userName = $this->transformMacDotted($eachUser['mac']);
+                                    break;
+                            }
+
+                            if (!empty($nasOptions)) {
+                                $nasAttributes = $this->getNasAttributes($eachNasId);
+                                if (!empty($nasAttributes)) {
+                                    foreach ($nasAttributes as $eachAttributeId => $eachAttributeData) {
+                                        $scenario = $eachAttributeData['scenario'];
+                                        $onlyActive = $nasOptions['onlyactive'];
+                                        $attribute = $eachAttributeData['attribute'];
+                                        if ($this->isUserActive($userLogin, $onlyActive)) {
+                                            //user is active as detected
+                                            $this->userStates[$userLogin]['current'] = 1;
+                                            $op = $eachAttributeData['operator'];
+                                            $template = $eachAttributeData['content'];
+                                            $value = $this->getAttributeValue($userLogin, $userName, $template);
+
+                                            $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                            if ($attributeCheck == -2) {
+                                                //dropping already changed attribute from this scenario
+                                                $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                                                //setting current user state as changed
+                                                $this->userStates[$userLogin]['changed'] = -2;
+                                            }
+                                            if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
+                                                //creating new attribute with actual data
+                                                $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
+                                                $this->writeScenarioStats($eachNasId, $scenario, 'generated');
+                                            }
+
+                                            if ($attributeCheck == 1) {
+                                                //attribute exists and not changed
+                                                $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
+                                            }
+                                        } else {
+                                            //flush some not-active user attributes if required
+                                            $this->flushBuriedUser($eachNasId, $scenario, $userLogin, $userName, $attribute);
+                                            //user current state is not active
+                                            $this->userStates[$userLogin]['current'] = 0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            //processing Per-NAS services
+                            if ($nasOptions['service'] != 'none') {
+                                $nasServices = @$this->services[$eachNasId];
+                                if (!empty($nasServices)) {
+                                    if ($nasOptions['service'] == 'pod') {
+                                        if (!empty($nasServices['pod'])) {
+                                            if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
+                                                $this->savePodQueue($newPodContent);
+                                            }
+                                        }
+                                    }
+
+                                    if ($nasOptions['service'] == 'coa') {
+                                        //sending some disconnect
+                                        if (!empty($nasServices['coadisconnect'])) {
+                                            if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                //user out of money
+                                                $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoADisconnectContent);
+                                            }
+                                        }
+                                        //and connect services
+                                        if (!empty($nasServices['coaconnect'])) {
+                                            if (($userPreviousState == 0) AND ( $this->userStates[$userLogin]['current'] == 1)) {
+                                                //user now restores his activity
+                                                $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoAConnectContent);
+                                            }
+                                        }
+
+                                        //emulating reset action if something changed in user attributes
+                                        if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
+                                            if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
+                                                $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoADisconnectContent);
+                                                $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoAConnectContent);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //run PoD queue
+            $this->runPodQueue();
+
+            //run CoA queue
+            $this->runCoaQueue();
+
+            //saving user states
+            $this->saveUserStates();
+        }
+        $this->writePerformanceTimers('genend');
+    }
+    
+      /**
+     * Performs generation of user attributes if their NAS requires it.
+     * 
+     * @return void
+     */
     public function generateNasAttributes() {
         $this->writePerformanceTimers('genstart');
         //loading huge amount of required data
@@ -1604,7 +1773,6 @@ class MultiGen {
                                             //user current state is not active
                                             $this->userStates[$userLogin]['current'] = 0;
                                         }
-                                        
                                     }
                                 }
                             }
