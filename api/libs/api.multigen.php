@@ -1604,6 +1604,7 @@ class MultiGen {
                                             //user current state is not active
                                             $this->userStates[$userLogin]['current'] = 0;
                                         }
+                                        
                                     }
                                 }
                             }
@@ -1612,42 +1613,40 @@ class MultiGen {
                             if ($nasOptions['service'] != 'none') {
                                 $nasServices = @$this->services[$eachNasId];
                                 if (!empty($nasServices)) {
-                                    if ($nasOptions['onlyactive'] == 1) {
-                                        if ($nasOptions['service'] == 'pod') {
-                                            if (!empty($nasServices['pod'])) {
-                                                if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
-                                                    $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
-                                                    $this->savePodQueue($newPodContent);
-                                                }
+                                    if ($nasOptions['service'] == 'pod') {
+                                        if (!empty($nasServices['pod'])) {
+                                            if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
+                                                $this->savePodQueue($newPodContent);
+                                            }
+                                        }
+                                    }
+
+                                    if ($nasOptions['service'] == 'coa') {
+                                        //sending some disconnect
+                                        if (!empty($nasServices['coadisconnect'])) {
+                                            if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                //user out of money
+                                                $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoADisconnectContent);
+                                            }
+                                        }
+                                        //and connect services
+                                        if (!empty($nasServices['coaconnect'])) {
+                                            if (($userPreviousState == 0) AND ( $this->userStates[$userLogin]['current'] == 1)) {
+                                                //user now restores his activity
+                                                $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoAConnectContent);
                                             }
                                         }
 
-                                        if ($nasOptions['service'] == 'coa') {
-                                            //sending some disconnect
-                                            if (!empty($nasServices['coadisconnect'])) {
-                                                if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
-                                                    //user out of money
-                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
-                                                    $this->saveCoaQueue($newCoADisconnectContent);
-                                                }
-                                            }
-                                            //and connect services
-                                            if (!empty($nasServices['coaconnect'])) {
-                                                if (($userPreviousState == 0) AND ( $this->userStates[$userLogin]['current'] == 1)) {
-                                                    //user now restores his activity
-                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
-                                                    $this->saveCoaQueue($newCoAConnectContent);
-                                                }
-                                            }
-
-                                            //emulating reset action if something changed in user attributes
-                                            if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
-                                                if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
-                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
-                                                    $this->saveCoaQueue($newCoADisconnectContent);
-                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
-                                                    $this->saveCoaQueue($newCoAConnectContent);
-                                                }
+                                        //emulating reset action if something changed in user attributes
+                                        if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
+                                            if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
+                                                $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoADisconnectContent);
+                                                $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                $this->saveCoaQueue($newCoAConnectContent);
                                             }
                                         }
                                     }
