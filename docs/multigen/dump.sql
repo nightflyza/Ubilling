@@ -134,3 +134,11 @@ CREATE TABLE IF NOT EXISTS `mlg_services` (
   PRIMARY KEY (`id`),
   KEY `nasid` (`nasid`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+
+CREATE TABLE IF NOT EXISTS `mlg_userstates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(64) NOT NULL,
+  `state` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+  ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;

@@ -108,6 +108,13 @@ class MultiGen {
     protected $currentAttributes = array();
 
     /**
+     * Contains previous user states as login=>previous/current/changed state
+     *
+     * @var array
+     */
+    protected $userStates = array();
+
+    /**
      * System message helper object placeholder
      *
      * @var object
@@ -229,6 +236,11 @@ class MultiGen {
     const NAS_ACCT = 'mlg_acct';
 
     /**
+     * Default user states database table name
+     */
+    const USER_STATES = 'mlg_userstates';
+
+    /**
      * Default scenario tables prefix
      */
     const SCENARIO_PREFIX = 'mlg_';
@@ -247,6 +259,11 @@ class MultiGen {
      * Contains default path to PoD scripts queue
      */
     const POD_PATH = 'content/documents/pod_queue';
+
+    /**
+     * Contains default path to CoA scripts queue
+     */
+    const COA_PATH = 'content/documents/coa_queue';
 
     /**
      * Creates new MultiGen instance
@@ -278,6 +295,7 @@ class MultiGen {
         $this->loadSwitches();
         $this->loadSwithchAssigns();
         $this->loadScenarios();
+        $this->loadUserStates();
     }
 
     /**
@@ -481,6 +499,23 @@ class MultiGen {
         if (!empty($all)) {
             foreach ($all as $io => $each) {
                 $this->nasAttributes[$each['id']] = $each;
+            }
+        }
+    }
+
+    /**
+     * Loads previous user states from database
+     * 
+     * @return void
+     */
+    protected function loadUserStates() {
+        $query = "SELECT * from `" . self::USER_STATES . "`";
+        $all = simple_queryall($query);
+        if (!empty($all)) {
+            foreach ($all as $io => $each) {
+                $this->userStates[$each['login']]['previous'] = $each['state'];
+                $this->userStates[$each['login']]['current'] = '';
+                $this->userStates[$each['login']]['changed'] = '';
             }
         }
     }
@@ -974,6 +1009,69 @@ class MultiGen {
     }
 
     /**
+     * Creates user state if its not exists
+     * 
+     * @param string $login
+     * @param int $state
+     * 
+     * @return void
+     */
+    protected function createUserState($login, $state) {
+        $login = mysql_real_escape_string($login);
+        $state = mysql_real_escape_string($state);
+        $query = "INSERT INTO `" . self::USER_STATES . "` (`id`,`login`,`state`) VALUES ";
+        $query.="(NULL,'" . $login . "'," . $state . ");";
+        nr_query($query);
+    }
+
+    /**
+     * Deletes some user state from states table
+     * 
+     * @param string $login
+     * 
+     * @return void
+     */
+    protected function deleteUserState($login) {
+        $login = mysql_real_escape_string($login);
+        $query = "DELETE FROM `" . self::USER_STATES . "` WHERE `login`='" . $login . "';";
+        nr_query($query);
+    }
+
+    /**
+     * Changes user state in database
+     * 
+     * @param string $login
+     * @param int $state
+     * 
+     * @return void
+     */
+    protected function changeUserState($login, $state) {
+        $where = "WHERE `login`='" . $login . "'";
+        simple_update_field(self::USER_STATES, 'state', $state, $where);
+    }
+
+    /**
+     * Saves user states into database if something changed
+     * 
+     * @return void
+     */
+    protected function saveUserStates() {
+        if (!empty($this->userStates)) {
+            foreach ($this->userStates as $login => $state) {
+                if ($state['previous'] == 3) {
+                    //new user state appeared
+                    $this->createUserState($login, $state['current']);
+                } else {
+                    //user state changed
+                    if ($state['current'] != $state['previous']) {
+                        $this->changeUserState($login, $state['current']);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Checks is user active or not
      * 
      * @param string $userLogin
@@ -1444,7 +1542,15 @@ class MultiGen {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
                             $userNameType = $nasOptions['usernametype'];
-                            $userConnectedState = 0; //fast workaround for testing PoD
+                            //getting previous user state
+                            if (isset($this->userStates[$userLogin])) {
+                                $userPreviousState = $this->userStates[$userLogin]['previous'];
+                            } else {
+                                $userPreviousState = 3;
+                                $this->userStates[$userLogin]['previous'] = $userPreviousState;
+                                $this->userStates[$userLogin]['current'] = '';
+                                $this->userStates[$userLogin]['changed'] = '';
+                            }
                             //overriding username type if required
                             switch ($userNameType) {
                                 case 'login':
@@ -1469,6 +1575,8 @@ class MultiGen {
                                         $onlyActive = $nasOptions['onlyactive'];
                                         $attribute = $eachAttributeData['attribute'];
                                         if ($this->isUserActive($userLogin, $onlyActive)) {
+                                            //user is active as detected
+                                            $this->userStates[$userLogin]['current'] = 1;
                                             $op = $eachAttributeData['operator'];
                                             $template = $eachAttributeData['content'];
                                             $value = $this->getAttributeValue($userLogin, $userName, $template);
@@ -1477,23 +1585,24 @@ class MultiGen {
                                             if ($attributeCheck == -2) {
                                                 //dropping already changed attribute from this scenario
                                                 $this->deleteScenarioAttribute($scenario, $userLogin, $userName, $attribute);
+                                                //setting current user state as changed
+                                                $this->userStates[$userLogin]['changed'] = -2;
                                             }
                                             if (($attributeCheck == 0) OR ( $attributeCheck == -2)) {
                                                 //creating new attribute with actual data
                                                 $this->createScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                 $this->writeScenarioStats($eachNasId, $scenario, 'generated');
-                                                $userConnectedState = 1;
                                             }
 
                                             if ($attributeCheck == 1) {
                                                 //attribute exists and not changed
                                                 $this->writeScenarioStats($eachNasId, $scenario, 'skipped');
-                                                $userConnectedState = 1;
                                             }
                                         } else {
                                             //flush some not-active user attributes if required
                                             $this->flushBuriedUser($eachNasId, $scenario, $userLogin, $userName, $attribute);
-                                            $userConnectedState = 0;
+                                            //user current state is not active
+                                            $this->userStates[$userLogin]['current'] = 0;
                                         }
                                     }
                                 }
@@ -1503,11 +1612,42 @@ class MultiGen {
                             if ($nasOptions['service'] != 'none') {
                                 $nasServices = @$this->services[$eachNasId];
                                 if (!empty($nasServices)) {
-                                    if ($nasOptions['service'] == 'pod') {
-                                        if (!empty($nasServices['pod'])) {
-                                            if (!$userConnectedState) {
-                                                $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
-                                                $this->savePodQueue($newPodContent);
+                                    if ($nasOptions['onlyactive'] == 1) {
+                                        if ($nasOptions['service'] == 'pod') {
+                                            if (!empty($nasServices['pod'])) {
+                                                if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                    $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
+                                                    $this->savePodQueue($newPodContent);
+                                                }
+                                            }
+                                        }
+
+                                        if ($nasOptions['service'] == 'coa') {
+                                            //sending some disconnect
+                                            if (!empty($nasServices['coadisconnect'])) {
+                                                if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
+                                                    //user out of money
+                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                    $this->saveCoaQueue($newCoADisconnectContent);
+                                                }
+                                            }
+                                            //and connect services
+                                            if (!empty($nasServices['coaconnect'])) {
+                                                if (($userPreviousState == 0) AND ( $this->userStates[$userLogin]['current'] == 1)) {
+                                                    //user now restores his activity
+                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                    $this->saveCoaQueue($newCoAConnectContent);
+                                                }
+                                            }
+
+                                            //emulating reset action if something changed in user attributes
+                                            if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
+                                                if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
+                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                    $this->saveCoaQueue($newCoADisconnectContent);
+                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                    $this->saveCoaQueue($newCoAConnectContent);
+                                                }
                                             }
                                         }
                                     }
@@ -1519,6 +1659,12 @@ class MultiGen {
             }
             //run PoD queue
             $this->runPodQueue();
+
+            //run CoA queue
+            $this->runCoaQueue();
+
+            //saving user states
+            $this->saveUserStates();
         }
         $this->writePerformanceTimers('genend');
     }
@@ -1535,6 +1681,17 @@ class MultiGen {
     }
 
     /**
+     * Saves data to CoA queue for furtner run
+     * 
+     * @param string $data
+     * 
+     * @return void
+     */
+    protected function saveCoaQueue($data) {
+        file_put_contents(self::COA_PATH, $data, FILE_APPEND);
+    }
+
+    /**
      * Runs PoD queue if not empty and flushes after it
      * 
      * @return void
@@ -1545,6 +1702,20 @@ class MultiGen {
             $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
             $this->savePodQueue($podQueueCleanup);
             shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
+        }
+    }
+
+    /**
+     * Runs CoA queue if not empty and flushes after it
+     * 
+     * @return void
+     */
+    protected function runCoaQueue() {
+        if (file_exists(self::COA_PATH)) {
+            chmod(self::COA_PATH, 0755);
+            $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . "\n";
+            $this->saveCoaQueue($coaQueueCleanup);
+            shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
         }
     }
 
