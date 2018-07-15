@@ -10,6 +10,13 @@ class MultiGen {
     protected $altCfg = array();
 
     /**
+     * Contains system billing.ini config as key=>value
+     *
+     * @var array
+     */
+    protected $billCfg = array();
+
+    /**
      * Contains all stargazer user data
      *
      * @var array
@@ -220,6 +227,34 @@ class MultiGen {
     protected $echoPath = '/bin/echo';
 
     /**
+     * Contains default path and options for radclient
+     *
+     * @var string
+     */
+    protected $radclienPath = '/usr/local/bin/radclient -r 3 -t 1';
+
+    /**
+     * Contains default path to sudo
+     *
+     * @var string
+     */
+    protected $sudoPath = '/usr/local/bin/sudo';
+
+    /**
+     * Contains default path to printf
+     *
+     * @var string
+     */
+    protected $printfPath = '/usr/bin/printf';
+
+    /**
+     * Default remote radclient port
+     *
+     * @var int
+     */
+    protected $remotePort = 3799;
+
+    /**
      * Contains basic module path
      */
     const URL_ME = '?module=multigen';
@@ -263,6 +298,16 @@ class MultiGen {
      * Attributes generation logging option name
      */
     const OPTION_LOGGING = 'MULTIGEN_LOGGING';
+
+    /**
+     * RADIUS client option name
+     */
+    const OPTION_RADCLIENT = 'MULTIGEN_RADCLIENT';
+
+    /**
+     * sudo path option name
+     */
+    const OPTION_SUDO = 'SUDO';
 
     /**
      * log path
@@ -322,6 +367,7 @@ class MultiGen {
     protected function loadConfigs() {
         global $ubillingConfig;
         $this->altCfg = $ubillingConfig->getAlter();
+        $this->billCfg = $ubillingConfig->getBilling();
     }
 
     /**
@@ -334,6 +380,14 @@ class MultiGen {
             if ($this->altCfg[self::OPTION_LOGGING]) {
                 $this->logging = $this->altCfg[self::OPTION_LOGGING];
             }
+        }
+
+        if (isset($this->altCfg[self::OPTION_RADCLIENT])) {
+            $this->radclienPath = $this->altCfg[self::OPTION_RADCLIENT];
+        }
+
+        if (isset($this->billCfg[self::OPTION_SUDO])) {
+            $this->sudoPath = $this->billCfg[self::OPTION_SUDO];
         }
 
         $this->usernameTypes = array(
@@ -1544,6 +1598,22 @@ class MultiGen {
 
             if (strpos($template, '{STATE}') !== false) {
                 $template = str_replace('{STATE}', $this->getUserStateString($userLogin), $template);
+            }
+
+            if (strpos($template, '{RADCLIENT}') !== false) {
+                $template = str_replace('{RADCLIENT}', $this->radclienPath, $template);
+            }
+
+            if (strpos($template, '{SUDO}') !== false) {
+                $template = str_replace('{SUDO}', $this->sudoPath, $template);
+            }
+
+            if (strpos($template, '{PRINTF}') !== false) {
+                $template = str_replace('{PRINTF}', $this->printfPath, $template);
+            }
+
+            if (strpos($template, '{NASPORT}') !== false) {
+                $template = str_replace('{NASPORT}', $this->remotePort, $template);
             }
         }
 
