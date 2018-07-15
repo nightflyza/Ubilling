@@ -1437,11 +1437,12 @@ class MultiGen {
      * 
      * @param string $userLogin
      * @param string $userName
+     * @param int    $nasId
      * @param string $template
      * 
      * @return string
      */
-    public function getAttributeValue($userLogin, $userName, $template) {
+    public function getAttributeValue($userLogin, $userName, $nasId, $template) {
         if (strpos($template, '{') !== false) {
             //skipping templates with no macro inside
             if (isset($this->allUserData[$userLogin])) {
@@ -1596,6 +1597,19 @@ class MultiGen {
                 }
             }
 
+            if (isset($this->allNas[$nasId])) {
+                $nasIp = $this->allNas[$nasId]['nasip'];
+                if (strpos($template, '{NASIP}') !== false) {
+                    $template = str_replace('{NASIP}', $nasIp, $template);
+                }
+
+                if (strpos($template, '{NASSECRET}') !== false) {
+                    $nasSecret = md5(ip2int($nasIp));
+                    $nasSecret = substr($nasSecret, 0, 12);
+                    $template = str_replace('{NASSECRET}', $nasSecret, $template);
+                }
+            }
+
             if (strpos($template, '{STATE}') !== false) {
                 $template = str_replace('{STATE}', $this->getUserStateString($userLogin), $template);
             }
@@ -1684,7 +1698,7 @@ class MultiGen {
                                             $op = $eachAttributeData['operator'];
                                             $template = $eachAttributeData['content'];
                                             if ($userRealState) {
-                                                $value = $this->getAttributeValue($userLogin, $userName, $template);
+                                                $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
                                                 $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                 if ($attributeCheck == -2) {
                                                     //dropping already changed attribute from this scenario
@@ -1720,7 +1734,7 @@ class MultiGen {
                                             $template = $eachAttributeData['content'];
                                             //this attribute template is actual for all users
                                             if ($modifier == 'all') {
-                                                $value = $this->getAttributeValue($userLogin, $userName, $template);
+                                                $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
                                                 $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                 if ($attributeCheck == -2) {
                                                     //dropping already changed attribute from this scenario
@@ -1742,7 +1756,7 @@ class MultiGen {
                                             //this attribute is actual only for active users
                                             if ($modifier == 'active') {
                                                 if ($userRealState) {
-                                                    $value = $this->getAttributeValue($userLogin, $userName, $template);
+                                                    $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
                                                     $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                     if ($attributeCheck == -2) {
                                                         //dropping already changed attribute from this scenario
@@ -1768,7 +1782,7 @@ class MultiGen {
                                             //this attribute is actual only for inactive users
                                             if ($modifier == 'inactive') {
                                                 if (!$userRealState) {
-                                                    $value = $this->getAttributeValue($userLogin, $userName, $template);
+                                                    $value = $this->getAttributeValue($userLogin, $userName, $eachNasId, $template);
                                                     $attributeCheck = $this->checkScenarioAttribute($scenario, $userLogin, $userName, $attribute, $op, $value);
                                                     if ($attributeCheck == -2) {
                                                         //dropping already changed attribute from this scenario
@@ -1802,7 +1816,7 @@ class MultiGen {
                                         if (strpos($nasOptions['service'], 'pod') !== false) {
                                             if (!empty($nasServices['pod'])) {
                                                 if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
-                                                    $newPodContent = $this->getAttributeValue($userLogin, $userName, $nasServices['pod']) . "\n";
+                                                    $newPodContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['pod']) . "\n";
                                                     $this->savePodQueue($newPodContent);
                                                 }
                                             }
@@ -1813,7 +1827,7 @@ class MultiGen {
                                             if (!empty($nasServices['coadisconnect'])) {
                                                 if (($userPreviousState == 1) AND ( $this->userStates[$userLogin]['current'] == 0)) {
                                                     //user out of money
-                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coadisconnect']) . "\n";
                                                     $this->saveCoaQueue($newCoADisconnectContent);
                                                 }
                                             }
@@ -1821,7 +1835,7 @@ class MultiGen {
                                             if (!empty($nasServices['coaconnect'])) {
                                                 if (($userPreviousState == 0) AND ( $this->userStates[$userLogin]['current'] == 1)) {
                                                     //user now restores his activity
-                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coaconnect']) . "\n";
                                                     $this->saveCoaQueue($newCoAConnectContent);
                                                 }
                                             }
@@ -1829,9 +1843,9 @@ class MultiGen {
                                             //emulating reset action if something changed in user attributes
                                             if ((!empty($nasServices['coadisconnect'])) AND ( !empty($nasServices['coaconnect']))) {
                                                 if (($this->userStates[$userLogin]['changed'] == -2) AND ( $this->userStates[$userLogin]['current'] == 1) AND ( $this->userStates[$userLogin]['previous'] == 1)) {
-                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coadisconnect']) . "\n";
+                                                    $newCoADisconnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coadisconnect']) . "\n";
                                                     $this->saveCoaQueue($newCoADisconnectContent);
-                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $nasServices['coaconnect']) . "\n";
+                                                    $newCoAConnectContent = $this->getAttributeValue($userLogin, $userName, $eachNasId, $nasServices['coaconnect']) . "\n";
                                                     $this->saveCoaQueue($newCoAConnectContent);
                                                 }
                                             }
