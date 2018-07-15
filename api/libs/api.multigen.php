@@ -726,6 +726,9 @@ class MultiGen {
             $inputs = wf_Selector('editnasusername', $this->usernameTypes, __('Username override'), @$this->nasOptions[$nasId]['usernametype'], false) . ' ';
             $inputs.= wf_Selector('editnasservice', $this->serviceTypes, __('Service'), @$this->nasOptions[$nasId]['service'], false) . ' ';
             $inputs.=wf_Selector('editnasonlyactive', $onlyActiveParams, __('Only active users'), @$this->nasOptions[$nasId]['onlyactive'], false) . ' ';
+            $nasPort = @$this->nasOptions[$nasId]['port'];
+            $nasPort = (!empty($nasPort)) ? $nasPort : $this->remotePort;
+            $inputs.= wf_TextInput('editnasport', __('Port'), $nasPort, false, 6, 'digits') . ' ';
             $inputs.= wf_HiddenInput('editnasid', $nasId);
             $inputs.=wf_Submit(__('Save'));
 
@@ -761,12 +764,13 @@ class MultiGen {
      */
     public function saveNasOptions() {
         $result = '';
-        if (wf_CheckPost(array('editnasid', 'editnasusername', 'editnasservice'))) {
+        if (wf_CheckPost(array('editnasid', 'editnasusername', 'editnasservice', 'editnasport'))) {
             $nasId = vf($_POST['editnasid'], 3);
             if (isset($this->allNas[$nasId])) {
                 $newUserName = $_POST['editnasusername'];
                 $newService = $_POST['editnasservice'];
                 $newOnlyActive = $_POST['editnasonlyactive'];
+                $newPort = $_POST['editnasport'];
                 //some NAS options already exists
                 if (isset($this->nasOptions[$nasId])) {
                     $currentNasOptions = $this->nasOptions[$nasId];
@@ -786,15 +790,21 @@ class MultiGen {
                         simple_update_field(self::NAS_OPTIONS, 'onlyactive', $newOnlyActive, $where);
                         log_register('MULTIGEN NAS [' . $nasId . '] CHANGE ONLYACTIVE `' . $newOnlyActive . '`');
                     }
+
+                    if ($currentNasOptions['port'] != $newPort) {
+                        simple_update_field(self::NAS_OPTIONS, 'port', $newPort, $where);
+                        log_register('MULTIGEN NAS [' . $nasId . '] CHANGE PORT `' . $newPort . '`');
+                    }
                 } else {
                     //new NAS options creation
                     $newUserName_f = mysql_real_escape_string($newUserName);
                     $newService_f = mysql_real_escape_string($newService);
                     $newOnlyActive_f = mysql_real_escape_string($newOnlyActive);
-                    $quyery = "INSERT INTO `" . self::NAS_OPTIONS . "` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`) VALUES "
-                            . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "');";
+                    $newPort_f = vf($newPort, 3);
+                    $quyery = "INSERT INTO `" . self::NAS_OPTIONS . "` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`,`port`) VALUES "
+                            . "(NULL,'" . $nasId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "','" . $newPort_f . "');";
                     nr_query($quyery);
-                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '`');
+                    log_register('MULTIGEN NAS [' . $nasId . '] CREATE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '` PORT `' . $newPort . '`');
                 }
             } else {
                 $result.=__('Something went wrong') . ': ' . __('NAS not exists');
@@ -1607,6 +1617,11 @@ class MultiGen {
                     $nasSecret = substr(md5(ip2int($nasIp)), 0, 12);
                     $template = str_replace('{NASSECRET}', $nasSecret, $template);
                 }
+
+                if (strpos($template, '{NASPORT}') !== false) {
+                    $nasPort=  $this->nasOptions[$nasId]['port'];
+                    $template = str_replace('{NASPORT}', $nasPort, $template);
+                }
             }
 
             if (strpos($template, '{STATE}') !== false) {
@@ -1623,10 +1638,6 @@ class MultiGen {
 
             if (strpos($template, '{PRINTF}') !== false) {
                 $template = str_replace('{PRINTF}', $this->printfPath, $template);
-            }
-
-            if (strpos($template, '{NASPORT}') !== false) {
-                $template = str_replace('{NASPORT}', $this->remotePort, $template);
             }
         }
 

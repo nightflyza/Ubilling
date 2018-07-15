@@ -144,3 +144,5 @@ CREATE TABLE IF NOT EXISTS `mlg_userstates` (
   ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 ALTER TABLE `mlg_nasattributes` ADD `modifier` VARCHAR(15) NOT NULL DEFAULT 'all' AFTER `scenario`; 
+
+ALTER TABLE `mlg_nasoptions` ADD `port` INT(11) NOT NULL DEFAULT '3799' AFTER `onlyactive`; 
