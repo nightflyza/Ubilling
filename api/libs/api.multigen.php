@@ -1911,7 +1911,11 @@ class MultiGen {
             chmod(self::POD_PATH, 0755);
             $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
             $this->savePodQueue($podQueueCleanup);
-            shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
+            if ($this->logging >= 4) {
+                shell_exec(self::POD_PATH . ' >' . self::LOG_PATH . ' 2> ' . self::LOG_PATH);
+            } else {
+                shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
+            }
             $this->logEvent('POD_QUEUE_RUN', 3); //nani?
         }
     }
@@ -1926,7 +1930,11 @@ class MultiGen {
             chmod(self::COA_PATH, 0755);
             $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . "\n";
             $this->saveCoaQueue($coaQueueCleanup);
-            shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
+            if ($this->logging >= 4) {
+                shell_exec(self::COA_PATH . ' >' . self::LOG_PATH . ' 2> ' . self::LOG_PATH);
+            } else {
+                shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
+            }
             $this->logEvent('COA_QUEUE_RUN', 3);
         }
     }
