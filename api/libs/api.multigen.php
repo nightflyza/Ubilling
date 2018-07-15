@@ -1604,8 +1604,7 @@ class MultiGen {
                 }
 
                 if (strpos($template, '{NASSECRET}') !== false) {
-                    $nasSecret = md5(ip2int($nasIp));
-                    $nasSecret = substr($nasSecret, 0, 12);
+                    $nasSecret = substr(md5(ip2int($nasIp)), 0, 12);
                     $template = str_replace('{NASSECRET}', $nasSecret, $template);
                 }
             }
