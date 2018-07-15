@@ -1872,6 +1872,7 @@ class MultiGen {
     protected function savePodQueue($data) {
         $this->runServices['pod'] = 1;
         file_put_contents(self::POD_PATH, $data, FILE_APPEND);
+        $this->logEvent('POD_QUEUE_ADD: ' . trim($data), 3); //Omae wa mou shindeiru
     }
 
     /**
@@ -1884,6 +1885,7 @@ class MultiGen {
     protected function saveCoaQueue($data) {
         $this->runServices['coa'] = 1;
         file_put_contents(self::COA_PATH, $data, FILE_APPEND);
+        $this->logEvent('COA_QUEUE_ADD: ' . trim($data), 3);
     }
 
     /**
@@ -1897,6 +1899,7 @@ class MultiGen {
             $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
             $this->savePodQueue($podQueueCleanup);
             shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
+            $this->logEvent('POD_QUEUE_RUN', 3); //nani?
         }
     }
 
@@ -1911,6 +1914,7 @@ class MultiGen {
             $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . "\n";
             $this->saveCoaQueue($coaQueueCleanup);
             shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
+            $this->logEvent('COA_QUEUE_RUN', 3);
         }
     }
 
