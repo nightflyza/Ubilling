@@ -1022,7 +1022,8 @@ class MultiGen {
             $inputs.= wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
             $inputs.= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
             $inputs.= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
-            $inputs.= wf_TextInput('chcontent', __('Value'), $attributeData['content'], false, 20) . ' ';
+            $currentContent= htmlspecialchars($attributeData['content']);
+            $inputs.= wf_TextInput('chcontent', __('Value'), $currentContent, false, 20) . ' ';
             $inputs.= wf_HiddenInput('chattributenasid', $nasId);
             $inputs.= wf_HiddenInput('chattributeid', $attributeId);
             $inputs.= wf_Submit(__('Save'));
