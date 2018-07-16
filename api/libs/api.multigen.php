@@ -406,7 +406,8 @@ class MultiGen {
 
         $this->scenarios = array(
             'check' => 'check',
-            'reply' => 'reply'
+            'reply' => 'reply',
+            'groupreply'=>'groupreply'
         );
 
         $this->attrModifiers = array(
