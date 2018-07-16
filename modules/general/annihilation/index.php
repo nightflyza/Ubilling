@@ -20,6 +20,12 @@ if (cfr('ANNIHILATION')) {
         //disable user before deletion - for proper OnDisconnect
         $billing->setdown($login, 1);
         $billing->setao($login, 0);
+        //Multigen workaround. Must be performed before real user deletion, and after its disconnected.
+        if (@$alter_conf['MULTIGEN_ENABLED']) {
+            $multigen = new MultiGen();
+            $multigen->generateNasAttributes();
+        }
+        //start user deletion
         zb_AddressDeleteApartment($user_aptid);
         zb_AddressOrphanUser($login);
         zb_UserDeleteEmail($login);

@@ -407,7 +407,7 @@ class MultiGen {
         $this->scenarios = array(
             'check' => 'check',
             'reply' => 'reply',
-            'groupreply'=>'groupreply'
+            'groupreply' => 'groupreply'
         );
 
         $this->attrModifiers = array(
@@ -1023,7 +1023,7 @@ class MultiGen {
             $inputs.= wf_Selector('chscenario', $this->scenarios, __('Scenario'), $attributeData['scenario'], false) . ' ';
             $inputs.= wf_TextInput('chattribute', __('Attribute'), $attributeData['attribute'], false, 20) . ' ';
             $inputs.= wf_Selector('choperator', $this->operators, __('Operator'), $attributeData['operator'], false) . ' ';
-            $currentContent= htmlspecialchars($attributeData['content']);
+            $currentContent = htmlspecialchars($attributeData['content']);
             $inputs.= wf_TextInput('chcontent', __('Value'), $currentContent, false, 20) . ' ';
             $inputs.= wf_HiddenInput('chattributenasid', $nasId);
             $inputs.= wf_HiddenInput('chattributeid', $attributeId);
@@ -1621,7 +1621,7 @@ class MultiGen {
                 }
 
                 if (strpos($template, '{NASPORT}') !== false) {
-                    $nasPort=  $this->nasOptions[$nasId]['port'];
+                    $nasPort = $this->nasOptions[$nasId]['port'];
                     $template = str_replace('{NASPORT}', $nasPort, $template);
                 }
             }
