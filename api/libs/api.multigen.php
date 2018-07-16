@@ -1925,7 +1925,7 @@ class MultiGen {
             $podQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::POD_PATH . "\n";
             $this->savePodQueue($podQueueCleanup);
             if ($this->logging >= 4) {
-                shell_exec(self::POD_PATH . ' >' . self::LOG_PATH . ' 2> ' . self::LOG_PATH);
+                shell_exec(self::POD_PATH . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
             } else {
                 shell_exec(self::POD_PATH . ' >/dev/null 2>/dev/null &');
             }
@@ -1944,7 +1944,7 @@ class MultiGen {
             $coaQueueCleanup = $this->echoPath . ' "" > ' . getcwd() . '/' . self::COA_PATH . "\n";
             $this->saveCoaQueue($coaQueueCleanup);
             if ($this->logging >= 4) {
-                shell_exec(self::COA_PATH . ' >' . self::LOG_PATH . ' 2> ' . self::LOG_PATH);
+                shell_exec(self::COA_PATH . ' >>' . self::LOG_PATH . ' 2>> ' . self::LOG_PATH);
             } else {
                 shell_exec(self::COA_PATH . ' >/dev/null 2>/dev/null &');
             }
