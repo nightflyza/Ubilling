@@ -70,6 +70,11 @@ class WifiCPE {
      */
     const URL_ME = '?module=wcpe';
 
+    /**
+     * MTSIGMON module URL
+     */
+    const URL_SIGMON = '?module=mtsigmon';
+
     public function __construct() {
         $this->loadConfigs();
         $this->initMessages();
@@ -1209,7 +1214,7 @@ class WifiCPE {
                         $SignalGraphsBlock .= $this->getGraphRefreshJS();
                         $SignalGraphsBlock .= wf_tag('script', true);
 
-                        $APSysInfo = $SigMon->getAPEssentialData($APID, true, true, true);
+                        $APSysInfo = $this->renderAPEssentialData($APID, $SigMon);
                     }
 
                     $bridgeLabel = ($cpeBridge) ? web_bool_led(true) . ' ' . __('Yes') : web_bool_led(false) . ' ' . __('No');
@@ -1417,9 +1422,10 @@ class WifiCPE {
         $RefreshButton .= wf_img('skins/refresh.gif');
         $RefreshButton .= wf_tag('a', true);
         $RefreshButton .= wf_tag('script', false, '', 'type="text/javascript"');
-        $RefreshButton .= '$(\'#' . $LnkID . '\').click(function(evt) {                                                   
+        $RefreshButton .= '$(\'#' . $LnkID . '\').click(function(evt) {
+                                        $(this).find(\'img\').toggleClass("image_rotate");
                                         APCPESignalRefresh("' . $CPEMAC . '", "' . $SignalContainerSelector . '", "' . $PollDateContainerSelector . '", "'
-                                                            . $UplinkAPID . '", "' . $CPEIP . '", "' . $CPESNMPCommunity . '");                                        
+                                                            . $UplinkAPID . '", "' . $CPEIP . '", "' . $CPESNMPCommunity . '", "#' . $LnkID . '");                                        
                                         evt.preventDefault();
                                         return false;
                                     });';
@@ -1462,9 +1468,10 @@ class WifiCPE {
         $GraphRefreshButton .= wf_tag('a', true);
         $GraphRefreshButton .= wf_tag('script', false, '', 'type="text/javascript"');
         $GraphRefreshButton .= '$(\'#' . $LnkID . '\').click(function(evt) {
-                                            evt.stopImmediatePropagation();                                                 
+                                            evt.stopImmediatePropagation();            
+                                            $(this).find(\'img\').toggleClass("image_rotate");
                                             SignalGraphRefresh("' . $CPEMAC . '", "' . $GraphContainerSelector . '", ' . var_export($GraphFromAP, true) . ', true, false, true, true, '
-                                                                . var_export($ReturnGraphInSpoiler, true) . ', ' . var_export($ReplaceContainerWithGraph, true) . ');                                                                                            
+                                                                . var_export($ReturnGraphInSpoiler, true) . ', ' . var_export($ReplaceContainerWithGraph, true) . ', "#' . $LnkID . '");                                                                                            
                                             evt.preventDefault();
                                             return false;                
                                         });';
@@ -1485,7 +1492,7 @@ class WifiCPE {
     public function getSignalRefreshJS($PutInsideScriptTag = false) {
         $SignalRefreshJS  = ($PutInsideScriptTag) ? wf_tag('script', false, '', 'type="text/javascript"') : '';
         $SignalRefreshJS .= '
-                            function APCPESignalRefresh(MACCPE, SignalContainerSelector, PollDateContainerSelector, APID = \'\', IPCPE = \'\', SNMPCCPE = \'public\') {
+                            function APCPESignalRefresh(MACCPE, SignalContainerSelector, PollDateContainerSelector, APID = \'\', IPCPE = \'\', SNMPCCPE = \'public\', RefreshButtonID = \'\') {
                                 var SignalContainerObj = $(SignalContainerSelector);                        
                                 if ( !SignalContainerObj.length || !(SignalContainerObj instanceof jQuery)) {return false;}
                                 
@@ -1494,16 +1501,21 @@ class WifiCPE {
                                 
                                 $.ajax({
                                     type: "GET",
-                                    url: "?module=mtsigmon",
+                                    url: "' . self::URL_SIGMON . '",
                                     data: {IndividualRefresh:true, cpeMAC:MACCPE, apid:APID, cpeIP:IPCPE, cpeCommunity:SNMPCCPE},
                                     success: function(result) {
+                                        var RefreshButtonObj = $(RefreshButtonID);
+                                        if ( RefreshButtonObj.length && (RefreshButtonObj instanceof jQuery)) {
+                                            RefreshButtonObj.find(\'img\').toggleClass("image_rotate");
+                                        }
+                                        
                                         try {                                            
                                             var jsonObj = $.parseJSON(result);                                            
                                             SignalContainerObj.html(jsonObj.SignalLevel);
                                             PollDateContainerObj.html("' . __('Cache state at time') . ':  " + ' . 'jsonObj.LastPollDate);                                                
                                         } catch (e) {
                                            return false;
-                                        }
+                                        }                                      
                                     }
                                 });
                             }
@@ -1524,13 +1536,13 @@ class WifiCPE {
     public function getGraphRefreshJS($PutInsideScriptTag = false) {
         $GraphRefreshJS  = ($PutInsideScriptTag) ? wf_tag('script', false, '', 'type="text/javascript"') : '';
         $GraphRefreshJS .= '
-                            function SignalGraphRefresh(CPEMAC, GraphContainerSelector, FromAP = false, ShowTitle = false, ShowXLabel = false, ShowYLabel = false, ShowRangeSelector = false, ReturnInSpoiler = false, ReplaceContainerWithGraph = false) {                               
+                            function SignalGraphRefresh(CPEMAC, GraphContainerSelector, FromAP = false, ShowTitle = false, ShowXLabel = false, ShowYLabel = false, ShowRangeSelector = false, ReturnInSpoiler = false, ReplaceContainerWithGraph = false, RefreshButtonID = \'\') {                               
                                 var GraphContainerObj = $(GraphContainerSelector);                                
                                 if ( !GraphContainerObj.length || !(GraphContainerObj instanceof jQuery)) {return false;}                 
                                                                                                                                 
                                 $.ajax({
                                     type: "GET",
-                                    url: "?module=mtsigmon",
+                                    url: "' . self::URL_SIGMON . '",
                                     data: { IndividualRefresh:true, 
                                             getGraphs:true,
                                             cpeMAC:CPEMAC,
@@ -1541,7 +1553,12 @@ class WifiCPE {
                                             showRangeSelector:ShowRangeSelector,
                                             returnInSpoiler:ReturnInSpoiler
                                           },
-                                    success: function(result) {                                            
+                                    success: function(result) {
+                                        var RefreshButtonObj = $(RefreshButtonID);
+                                        if ( RefreshButtonObj.length && (RefreshButtonObj instanceof jQuery)) {
+                                            RefreshButtonObj.find(\'img\').toggleClass("image_rotate");
+                                        }
+                                                                                
                                         if (empty(result)) {return false;}
                                         
                                         if (ReplaceContainerWithGraph) {
@@ -1571,6 +1588,59 @@ class WifiCPE {
                           ';
         $GraphRefreshJS .= ($PutInsideScriptTag) ? wf_tag('script', true) : '';
         return $GraphRefreshJS;
+    }
+
+    private function renderAPEssentialData($APID, $SigMonObj) {
+        $InfoButtonID = 'InfID_' . $APID;
+        $InfoBlockID  = 'InfBlck_' . $APID;
+
+        $APInfoBlock  = wf_tag('div', false, '', 'id="' . $InfoBlockID . '"');
+        $APInfoBlock .= ( isset($this->altCfg['USERPROFILE_APINFO_AUTOLOAD']) and $this->altCfg['USERPROFILE_APINFO_AUTOLOAD'] ) ? $SigMonObj->getAPEssentialData($APID, true, false, false) : '';
+        $APInfoBlock .= wf_tag('div', true);
+
+        $APInfoButton  = wf_tag('a', false, '', 'href="#" id="' . $InfoButtonID . '" title="' . __('Get system info for this AP') . '"');
+        $APInfoButton .= wf_tag('img', false, '', 'src="skins/icn_alert_info.png" border="0" style="vertical-align: bottom;"');
+        $APInfoButton .= wf_tag('a', true);
+        $APInfoButton .= wf_tag('script', false, '', 'type="text/javascript"');
+        $APInfoButton .= '$(\'#' . $InfoButtonID . '\').click(function(evt) {
+                                        $(\'img\', this).toggleClass("image_rotate");
+                                        getAPInfo(' . $APID . ', "#' . $InfoBlockID . '", true, false, ' . $InfoButtonID . ');                                        
+                                        evt.preventDefault();
+                                        return false;                
+                                    });';
+        $APInfoButton .= wf_tag('script', true);
+
+
+        $Result  = wf_Spoiler($APInfoBlock, $APInfoButton . '&nbsp&nbsp' . __('System AP info'), true, '', '', '', '', 'style="margin: 10px auto;"');
+        $Result .= wf_tag('script', false, '', 'type="text/javascript"');
+        $Result .= 'function getAPInfo(APID, InfoBlckSelector, ReturnHTML = false, InSpoiler = false, RefreshButtonSelector) {                        
+                        $.ajax({
+                            type: "GET",
+                            url: "' . self::URL_SIGMON . '",
+                            data: { IndividualRefresh:true, 
+                                    GetAPInfo:true, 
+                                    apid:APID,
+                                    returnAsHTML:ReturnHTML,
+                                    returnInSpoiler:InSpoiler
+                                  },
+                            success: function(result) {                       
+                                        if ($.type(RefreshButtonSelector) === \'string\') {
+                                            $("#"+RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        } else {
+                                            $(RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        }
+                                        
+                                        var InfoBlck = $(InfoBlckSelector);                                        
+                                        if ( !InfoBlck.length || !(InfoBlck instanceof jQuery)) {return false;}
+                                              
+                                        $(InfoBlck).html(result);
+                                     }
+                        });
+                    }
+                    ';
+        $Result .= wf_tag('script', true);
+
+        return $Result;
     }
 }
 
