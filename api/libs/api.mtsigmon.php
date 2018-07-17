@@ -176,7 +176,7 @@ class MTsigmon {
      * @return array
      */
     protected function getMTDevices() {
-        $query_where = ($this->userLogin and ! empty($this->userSwitch)) ? "AND `id` ='" . $this->userSwitch . "'" : '';
+        $query_where = ($this->userLogin and !empty($this->userSwitch)) ? " AND `id` = '" . $this->userSwitch . "'" : '';
         $query = "SELECT `id`,`ip`,`location`,`snmp` from `switches` WHERE `desc` LIKE '%MTSIGMON%'" . $query_where;
         $alldevices = simple_queryall($query);
         if (!empty($alldevices)) {
@@ -897,7 +897,7 @@ class MTsigmon {
                         });
                     };
 
-                    function getAPInfo(APID, InfoBlckSelector, ReturnHTML = false, InSpoiler = false) {                        
+                    function getAPInfo(APID, InfoBlckSelector, ReturnHTML = false, InSpoiler = false, RefreshButtonSelector) {                        
                         $.ajax({
                             type: "GET",
                             url: "' . self::URL_ME . '",
@@ -907,7 +907,13 @@ class MTsigmon {
                                     returnAsHTML:ReturnHTML,
                                     returnInSpoiler:InSpoiler
                                   },
-                            success: function(result) {                                        
+                            success: function(result) {                       
+                                        if ($.type(RefreshButtonSelector) === \'string\') {
+                                            $("#"+RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        } else {
+                                            $(RefreshButtonSelector).find(\'img\').toggleClass("image_rotate");
+                                        }
+                                        
                                         var InfoBlck = $(InfoBlckSelector);                                        
                                         if ( !InfoBlck.length || !(InfoBlck instanceof jQuery)) {return false;}
                                               
@@ -1025,7 +1031,8 @@ class MTsigmon {
                 $APInfoButton .= wf_tag('a', true);
                 $APInfoButton .= wf_tag('script', false, '', 'type="text/javascript"');
                 $APInfoButton .= '$(\'#' . $InfoButtonID . '\').click(function(evt) {
-                                        getAPInfo(' . $MTId . ', "#' . $InfoBlockID . '", true, true);                                        
+                                        $(\'img\', this).toggleClass("image_rotate");
+                                        getAPInfo(' . $MTId . ', "#' . $InfoBlockID . '", true, true, ' . $InfoButtonID . ');                                        
                                         evt.preventDefault();
                                         return false;                
                                     });';
@@ -1036,7 +1043,7 @@ class MTsigmon {
                 $refresh_button .= wf_tag('a', true);
                 $refresh_button .= wf_tag('script', false, '', 'type="text/javascript"');
                 $refresh_button .= '$(\'#' . $APIDStr . '\').click(function(evt) {
-                                        $(\'img\', this).addClass("image_rotate");
+                                        $(\'img\', this).toggleClass("image_rotate");
                                         APIndividualRefresh(' . $MTId . ', ' . $JQDTId . ', ' . $APIDStr . ');                                        
                                         evt.preventDefault();
                                         return false;                
