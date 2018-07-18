@@ -1159,11 +1159,15 @@ class MultiGen {
                     //new user state appeared
                     if ($state != '') {
                         $this->createUserState($login, $state['current']);
+                        $this->logEvent('USERSTATE CREATED ' . $login . ' STATE ' . $state['current'], 3);
                     }
                 } else {
                     //user state changed
                     if ($state['current'] != $state['previous']) {
-                        $this->changeUserState($login, $state['current']);
+                        if (isset($this->allUserData[$login])) {
+                            $this->changeUserState($login, $state['current']);
+                            $this->logEvent('USERSTATE CHANGED ' . $login . ' STATE ' . $state['previous'] . ' ON ' . $state['current'], 3);
+                        }
                     }
                 }
             }
