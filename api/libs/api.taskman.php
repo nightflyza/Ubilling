@@ -1955,8 +1955,9 @@ function ts_TaskProblemsEditForm() {
  * @return string
  */
 function ts_PrintDialogue() {
-    $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From');
-    $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To');
+    $inputs = wf_DatePickerPreset('printdatefrom', curdate()) . ' ' . __('From') . ' ';
+    $inputs.= wf_DatePickerPreset('printdateto', curdate()) . ' ' . __('To') . ' ';
+    $inputs.= wf_CheckInput('tableview', __('Grid view'), false, true) . ' ';
     $inputs.= wf_Submit(__('Print'));
     $result = wf_Form("", 'POST', $inputs, 'glamour');
     return ($result);
@@ -2038,6 +2039,89 @@ function ts_PrintTasks($datefrom, $dateto) {
             $result.= wf_tag('div', false, '', 'style="width: 300px; height: 250px; float: left; border: dashed; border-width:1px; margin:5px; page-break-inside: avoid;"');
             $result.= $tasktable;
             $result.= wf_tag('div', true);
+        }
+        $result.='<script language="javascript"> 
+                        window.print();
+                    </script>';
+        die($result);
+    }
+}
+
+/**
+ * Renders printable tasks filtered by dates
+ * 
+ * @param string $datefrom
+ * @param string $dateto
+ * 
+ * @return void
+ */
+function ts_PrintTasksTable($datefrom, $dateto) {
+    $datefrom = mysql_real_escape_string($datefrom);
+    $dateto = mysql_real_escape_string($dateto);
+    $allemployee = ts_GetAllEmployee();
+    $alljobtypes = ts_GetAllJobtypes();
+    $tmpArr = array();
+    $result = wf_tag('style');
+    $result.= '
+        table.gridtable {
+            font-family: verdana,arial,sans-serif;
+            font-size:9pt;
+            color:#333333;
+            border-width: 1px;
+            border-color: #666666;
+            border-collapse: collapse;
+            page-break-after: always;
+        }
+        
+       .row1 {
+          background-color: #000000;
+          color: #FFFFFF;
+          font-weight: bolder;
+          font-size: larger;
+        }
+        
+        table.gridtable td {
+            border-width: 1px;
+            padding: 3px;
+            border-style: solid;
+            border-color: #666666;
+        }
+      
+        ';
+    $result.= wf_tag('style', true);
+
+    $query = "select * from `taskman` where `startdate` BETWEEN '" . $datefrom . " 00:00:00' AND '" . $dateto . " 23:59:59' AND `status`='0' ORDER BY `address`";
+    $alltasks = simple_queryall($query);
+    if (!empty($alltasks)) {
+        foreach ($alltasks as $io => $each) {
+            $tmpArr[$each['employee']][] = $each;
+        }
+
+        if (!empty($tmpArr)) {
+            foreach ($tmpArr as $eachEmployeeId => $eachEmployeeTasks) {
+                if (!empty($eachEmployeeId)) {
+                    $result.=wf_tag('h2') . @$allemployee[$eachEmployeeId] . wf_tag('h2', true);
+                    if (!empty($eachEmployeeTasks)) {
+                        $cells = wf_TableCell(__('Target date'));
+                        $cells.= wf_TableCell(__('Task address'));
+                        $cells.= wf_TableCell(__('Phone'));
+                        $cells.= wf_TableCell(__('Job type'));
+                        $cells.= wf_TableCell(__('Job note'));
+                        $cells.= wf_TableCell(__('Additional comments'));
+                        $rows = wf_TableRow($cells, 'row1');
+                        foreach ($eachEmployeeTasks as $io => $each) {
+                            $cells = wf_TableCell($each['startdate'] . ' ' . wf_tag('b') . @$each['starttime'] . wf_tag('b', true));
+                            $cells.= wf_TableCell($each['address']);
+                            $cells.= wf_TableCell($each['phone']);
+                            $cells.= wf_TableCell(@$alljobtypes[$each['jobtype']]);
+                            $cells.= wf_TableCell(nl2br($each['jobnote']));
+                            $cells.= wf_TableCell('');
+                            $rows.= wf_TableRow($cells, 'row3');
+                        }
+                        $result.=wf_TableBody($rows, '100%', 0, 'gridtable');
+                    }
+                }
+            }
         }
         $result.='<script language="javascript"> 
                         window.print();

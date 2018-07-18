@@ -136,7 +136,11 @@ if (cfr('TASKMAN')) {
             } else {
                 //printable result
                 if (wf_CheckPost(array('printdatefrom', 'printdateto'))) {
-                    ts_PrintTasks($_POST['printdatefrom'], $_POST['printdateto']);
+                    if (!wf_CheckPost(array('tableview'))) {
+                        ts_PrintTasks($_POST['printdatefrom'], $_POST['printdateto']);
+                    } else {
+                        ts_PrintTasksTable($_POST['printdatefrom'], $_POST['printdateto']);
+                    }
                 }
                 //show printing form
                 show_window(__('Tasks printing'), ts_PrintDialogue());
