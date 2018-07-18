@@ -220,6 +220,13 @@ class MultiGen {
     protected $logging = 0;
 
     /**
+     * Contains innodb usage/optimization flag from OPTION_INNO
+     *
+     * @var int
+     */
+    protected $inno = 0;
+
+    /**
      * Contains default echo path
      *
      * @var string
@@ -310,6 +317,11 @@ class MultiGen {
     const OPTION_SUDO = 'SUDO';
 
     /**
+     * Default inno-db performance fix option name
+     */
+    const OPTION_INNO = 'MULTIGEN_MAKE_INNODB_GREAT_AGAIN';
+
+    /**
      * log path
      */
     const LOG_PATH = 'exports/multigen.log';
@@ -388,6 +400,10 @@ class MultiGen {
 
         if (isset($this->billCfg[self::OPTION_SUDO])) {
             $this->sudoPath = $this->billCfg[self::OPTION_SUDO];
+        }
+
+        if (isset($this->altCfg[self::OPTION_INNO])) {
+            $this->inno = $this->altCfg[self::OPTION_INNO];
         }
 
         $this->usernameTypes = array(
@@ -1661,6 +1677,10 @@ class MultiGen {
         $this->loadHugeRegenData();
         $this->writePerformanceTimers('dataloaded');
         if (!empty($this->allUserData)) {
+            //starting regeneration transaction if required
+            if ($this->inno) {
+                nr_query("START TRANSACTION;");
+            }
             foreach ($this->allUserData as $io => $eachUser) {
                 $userLogin = $eachUser['login'];
                 //user actual state right now
@@ -1678,8 +1698,6 @@ class MultiGen {
 
                 if (isset($this->userNases[$userLogin])) {
                     $userNases = $this->userNases[$userLogin];
-                    //for debug only
-                    //$userNases = array(1 => 1);
                     if (!empty($userNases)) {
                         foreach ($userNases as $eachNasId) {
                             @$nasOptions = $this->nasOptions[$eachNasId];
@@ -1887,6 +1905,11 @@ class MultiGen {
 
             //saving user states
             $this->saveUserStates();
+
+            //commiting changes to database if required
+            if ($this->inno) {
+                nr_query("COMMIT;");
+            }
         }
 
         $this->writePerformanceTimers('genend');
