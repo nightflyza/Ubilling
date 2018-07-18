@@ -1085,8 +1085,8 @@ class Warehouse {
         $result = @$this->unitTypes[$this->allItemTypes[$itemtypeId]['unit']];
         return ($result);
     }
-    
-     /**
+
+    /**
      * Returns item type count unit
      * 
      * @param int $itemtypeId
@@ -1522,7 +1522,7 @@ class Warehouse {
         $result = '';
         if (!empty($this->allIncoming)) {
             $opts = '"order": [[ 0, "desc" ]]';
-            $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Warehouse storage', 'Actions');
+            $columns = array('ID', 'Date', 'Category', 'Warehouse item types', 'Count', 'Price per unit', 'Sum', 'Warehouse storage', 'Notes', 'Actions');
             $result = wf_JqDtLoader($columns, self::URL_ME . '&' . self::URL_IN . '&' . self::URL_INAJLIST, false, 'Incoming operations', 50, $opts);
         } else {
             $result = $this->messages->getStyledMessage(__('Nothing found'), 'warning');
@@ -1549,6 +1549,7 @@ class Warehouse {
                 $data[] = $each['price'];
                 $data[] = ($each['price'] * $each['count']);
                 $data[] = @$this->allStorages[$each['storageid']];
+                $data[] = $each['notes'];
                 $data[] = $actLink;
                 $json->addRow($data);
                 unset($data);
