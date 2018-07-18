@@ -587,10 +587,18 @@ function ts_JGetUndoneTasks() {
         $appendQuery = '';
     }
 
+    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+        $appendQuery .= ts_AdvFiltersQuery();
+    }
+
     if (($curmonth != 1) AND ( $curmonth != 12)) {
-        $query = "SELECT * from `taskman` WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+                    WHERE `status`='0' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
-        $query = "SELECT * from `taskman` WHERE `status`='0' " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman`  
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+                    WHERE `status`='0' " . $appendQuery . " ORDER BY `date` ASC";
     }
 
     $allundone = simple_queryall($query);
@@ -698,10 +706,18 @@ function ts_JGetDoneTasks() {
         $appendQuery = '';
     }
 
+    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+        $appendQuery .= ts_AdvFiltersQuery();
+    }
+
     if (($curmonth != 1) AND ( $curmonth != 12)) {
-        $query = "SELECT * from `taskman` WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+                    WHERE `status`='1' AND `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
-        $query = "SELECT * from `taskman` WHERE `status`='1' " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+                    WHERE `status`='1' " . $appendQuery . " ORDER BY `date` ASC";
     }
 
     $allundone = simple_queryall($query);
@@ -786,13 +802,21 @@ function ts_JGetAllTasks() {
         $appendQuery = '';
     }
 
+    if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+        $appendQuery .= ts_AdvFiltersQuery();
+    }
+
     if (($curmonth != 1) AND ( $curmonth != 12)) {
-        $query = "SELECT * from `taskman` WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` 
+                    WHERE `startdate` LIKE '" . $curyear . "-%' " . $appendQuery . " ORDER BY `date` ASC";
     } else {
         if ($appendQuery) {
-            $appendQuery = str_replace('AND', 'WHERE', $appendQuery);
+            //$appendQuery = str_replace('AND', 'WHERE', $appendQuery);
+            $appendQuery = preg_replace('AND', 'WHERE', $appendQuery, 1);
         }
-        $query = "SELECT * from `taskman` " . $appendQuery . " ORDER BY `date` ASC";
+        $query = "SELECT `taskman`.*, `jobtypes`.`jobname` FROM `taskman` 
+                      LEFT JOIN `jobtypes` ON `taskman`.`jobtype` = `jobtypes`.`id` " . $appendQuery . " ORDER BY `date` ASC";
     }
 
     $allundone = simple_queryall($query);
@@ -1208,6 +1232,9 @@ function ts_TaskCreateFormSigreq($address, $phone) {
  * @return string
  */
 function ts_ShowPanel() {
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+
     $createform = ts_TaskCreateForm();
     $tools = '';
     $result = wf_modal(wf_img('skins/add_icon.png') . ' ' . __('Create task'), __('Create task'), $createform, 'ubButton', '450', '550');
@@ -1233,10 +1260,15 @@ function ts_ShowPanel() {
     $whoami = whoami();
     $employeeid = ts_GetEmployeeByLogin($whoami);
     if ($employeeid) {
-        $result.= wf_delimiter();
+        $result .= wf_delimiter();
         $curselected = (isset($_POST['displaytype'])) ? $_POST['displaytype'] : '';
         $displayTypes = array('all' => __('Show tasks for all users'), 'onlyme' => __('Show only mine tasks'));
         $inputs = wf_Selector('displaytype', $displayTypes, '', $curselected, false);
+
+        if (isset($altCfg['TASKMAN_ADV_FILTERS']) and $altCfg['TASKMAN_ADV_FILTERS']) {
+            $inputs .= ts_AdvFiltersControls();
+        }
+
         $inputs.= wf_Submit('Show');
         $showTypeForm = wf_Form('', 'POST', $inputs, 'glamour');
         $result.= $showTypeForm;
@@ -2269,4 +2301,57 @@ function ts_GetAllTasks() {
     return ($result);
 }
 
+
+function ts_AdvFiltersControls () {
+    $alljobtypes     = ts_GetAllJobtypes();
+    $alljobtypes     = array('0' => __('Any')) + $alljobtypes;
+    $selectedjobtype = ( wf_CheckPost(array('filtertaskjobtypeexact')) ) ? $_POST['filtertaskjobtypeexact'] : '';
+    $jobtypecontains = ( wf_CheckPost(array('filtertaskjobtype')) ) ? $_POST['filtertaskjobtype'] : '';
+    $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
+    $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
+
+    $inputs  = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= __('Job type');
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_Selector('filtertaskjobtypeexact', $alljobtypes, '', $selectedjobtype);
+
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= __('Job type contains');
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_TextInput('filtertaskjobtype', '', $jobtypecontains, true);
+    $inputs .= wf_tag('br');
+
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 1px; display: inline-block"');
+    $inputs .= __('Address contains');
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_TextInput('filtertaskaddr', '', $addresscontains);
+
+    $inputs .= wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs .= __('Job note contains');
+    $inputs .= wf_tag('h3', true);
+    $inputs .= wf_TextInput('filtertaskjobnote', '', $jobnotecontains);
+    $inputs .= '&nbsp&nbsp&nbsp';
+
+    return($inputs);
+}
+
+function ts_AdvFiltersQuery() {
+    $AppendQuery = '';
+
+    if ( wf_CheckPost(array('filtertaskjobtypeexact')) ) {
+        $AppendQuery .= " AND `jobtype` = " . $_POST['filtertaskjobtypeexact'];
+    } elseif ( wf_CheckPost(array('filtertaskjobtype')) ) {
+        $AppendQuery .= " AND `jobname` LIKE '%" . $_POST['filtertaskjobtype'] . "%'";
+    }
+
+    if ( wf_CheckPost(array('filtertaskaddr')) ) {
+        $AppendQuery .= " AND `address` LIKE '%" . $_POST['filtertaskaddr'] . "%'";
+    }
+
+    if ( wf_CheckPost(array('filtertaskjobnote')) ) {
+        $AppendQuery .= " AND `jobnote` LIKE '%" . $_POST['filtertaskjobnote'] . "%'";
+    }
+
+    return ($AppendQuery);
+}
 ?>

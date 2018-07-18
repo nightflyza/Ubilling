@@ -2923,8 +2923,8 @@ $lang['def']['Task timing report'] = 'Сроки выполнения задач
 $lang['def']['Reality'] = 'Реальность';
 $lang['def']['From creation'] = 'От создания';
 $lang['def']['Network not found'] = 'Сеть не найдена';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Job type contains'] = 'Тип работы содержит';
+$lang['def']['Job note contains'] = 'Примечение к задаче содержит';
 $lang['def'][''] = '';
 
 
