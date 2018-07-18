@@ -2040,9 +2040,9 @@ function ts_PrintTasks($datefrom, $dateto) {
             $result.= $tasktable;
             $result.= wf_tag('div', true);
         }
-        $result.='<script language="javascript"> 
-                        window.print();
-                    </script>';
+        $result.= wf_tag('script', false, '', 'language="javascript"');
+        $result.= 'window.print();';
+        $result.= wf_tag('script', true);
         die($result);
     }
 }
@@ -2123,9 +2123,10 @@ function ts_PrintTasksTable($datefrom, $dateto) {
                 }
             }
         }
-        $result.='<script language="javascript"> 
-                        window.print();
-                    </script>';
+
+        $result.= wf_tag('script', false, '', 'language="javascript"');
+        $result.= 'window.print();';
+        $result.= wf_tag('script', true);
         die($result);
     }
 }
