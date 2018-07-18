@@ -590,8 +590,8 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         if ($alterconf['SENDDOG_ENABLED']) {
                             $runSendDog = new SendDog();
 
-                            if ( isset($_GET['param']) && ($_GET['param'] == 'chkmsgstatuses') ) {
-                                if ( isset($alterconf['SMS_HISTORY_ON']) && $alterconf['SMS_HISTORY_ON']) {
+                            if (isset($_GET['param']) && ($_GET['param'] == 'chkmsgstatuses')) {
+                                if (isset($alterconf['SMS_HISTORY_ON']) && $alterconf['SMS_HISTORY_ON']) {
                                     $runSendDog->smsHistoryProcessing();
                                     die('OK:SENDDOG SMS STATUS CHECK PROCESSED');
                                 } else {
@@ -884,11 +884,19 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                     }
 
                     // multigen attributes regeneration
-                    if ($_GET['action'] == 'multigen') {
+                    if (($_GET['action'] == 'multigen') OR ( $_GET['action'] == 'multigentotal')) {
                         if ($alterconf['MULTIGEN_ENABLED']) {
                             $multigen = new MultiGen();
-                            $multigen->generateNasAttributes();
-                            die('OK: MULTIGEN');
+                            if ($_GET['action'] == 'multigen') {
+                                $multigen->generateNasAttributes();
+                                die('OK: MULTIGEN');
+                            }
+
+                            if ($_GET['action'] == 'multigentotal') {
+                                $multigen->flushAllScenarios();
+                                $multigen->generateNasAttributes();
+                                die('OK: MULTIGEN_TOTAL');
+                            }
                         } else {
                             die('ERROR: MULTIGEN DISABLED');
                         }
