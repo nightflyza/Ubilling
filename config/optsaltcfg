@@ -211,6 +211,7 @@ MTSIGMON_CPE_AUTOPOLL=TRIGGER|CPEs autopolling is enabled
 SIGREQ_ENABLED=TRIGGER|Signup requests service enabled
 SW_PINGTIMEOUT=VARCHAR|Switches ping cache timeout
 REMOTEAPI_ENABLED=TRIGGER|Remote API calls enabled
+ONEPUNCH_ENABLED=TRIGGER|One-Punch scripts RemoteAPI calls enabled
 SWYMAP_ENABLED=TRIGGER|Switch map enabled
 CUSTMAP_ENABLED=TRIGGER|Custom maps enabled
 FREERADIUS_ENABLED=TRIGGER|Support of Free Radius is enabled

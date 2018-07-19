@@ -970,7 +970,7 @@ $lang['def']['Financial management'] = 'Керування фінансами';
 $lang['def']['CaTV'] = 'КТБ';
 $lang['def']['Geography'] = 'Географія';
 $lang['def']['Misc rights'] = 'Інші привілегії';
-$lang['def']['Available code templates'] = 'Шаблони коду в наявності';
+$lang['def']['Import old code templates if available'] = 'Імпортувати старі шаблони коду якщо вони є';
 $lang['def']['Template name'] = 'Назва шаблону';
 $lang['def']['Create template'] = 'Створити шаблон';
 $lang['def']['Insert this template into PHP console'] = 'Вставити цей шаблон коду в PHP консоль?';
@@ -2944,5 +2944,7 @@ $lang['def']['Job note contains'] = 'Примітка до задачі міст
 $lang['def']['Script with this alias already exists'] = 'Скрипт з цим аліасом вже існує';
 $lang['def']['Script with this alias not exists'] ='Скрипта з цим аліасом не існує';
 $lang['def']['No available code templates'] = 'Немає існуючих шаблонів коду';
+$lang['def']['One-Punch scripts RemoteAPI calls enabled'] = 'Виклик One-Punch Скриптів з RemoteAPI увімкнено';
+$lang['def']['Script'] = 'Скрипт';
 
 ?>

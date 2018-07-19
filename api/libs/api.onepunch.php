@@ -23,10 +23,12 @@ class OnePunch {
 
     /**
      * Creates new object instance
+     * 
+     * @param string alias only one alias to load
      */
-    public function __construct() {
+    public function __construct($alias = '') {
         $this->initMessages();
-        $this->loadScripts();
+        $this->loadScripts($alias);
     }
 
     /**
@@ -41,10 +43,14 @@ class OnePunch {
     /**
      * Loads existing punch scripts from database
      * 
+     * @param string $alias
+     * 
      * @return void
      */
-    protected function loadScripts() {
-        $query = "SELECT * from `punchscripts`";
+    protected function loadScripts($alias = '') {
+        $alias = vf($alias);
+        $where = (!empty($alias)) ? "WHERE `alias`='" . $alias . "';" : '';
+        $query = "SELECT * from `punchscripts` " . $where;
         $all = simple_queryall($query);
         if (!empty($all)) {
             foreach ($all as $io => $each) {
@@ -80,10 +86,8 @@ class OnePunch {
         $namePreset = (wf_CheckPost(array('newscriptname'))) ? $_POST['newscriptname'] : '';
         $aliasPreset = (wf_CheckPost(array('newscriptalias'))) ? $_POST['newscriptalias'] : '';
         $contentPreset = (wf_CheckPost(array('newscriptcontent'))) ? $_POST['newscriptcontent'] : '';
-        /**
-         * sanjou!   hisshou!   shijou saikyou
-         * nan dattenda?   FURASUTOREESHON   ore wa tomaranai
-         */
+        // sanjou! hisshou! shijou saikyou
+        // nan dattenda? FURASUTOREESHON ore wa tomaranai
         $inputs.= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
         $inputs.= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15);
         $inputs.= wf_TextArea('newscriptcontent', '', $contentPreset, true, '80x15');
@@ -206,6 +210,34 @@ class OnePunch {
     }
 
     /**
+     * Performs old dev console code templates
+     * 
+     * @return void
+     */
+    public function importOldTemplates() {
+        $keyMask = 'PHPCONSOLETEMPLATE:';
+        $allTemplateKeys = zb_StorageFindKeys($keyMask);
+
+        if (!empty($allTemplateKeys)) {
+            foreach ($allTemplateKeys as $eachTemplateKey) {
+                $newAlias = str_replace($keyMask, '', $eachTemplateKey['key']);
+                $templateRaw = zb_StorageGet($eachTemplateKey['key']);
+                @$templateData = unserialize($templateRaw);
+                if (!empty($templateData)) {
+                    if ((isset($templateData['name'])) AND ( isset($templateData['body']))) {
+                        if ($this->checkAlias($newAlias)) {
+                            //alias not exists yet
+                            $this->createScript($newAlias, $templateData['name'], $templateData['body']);
+                            //flush old code template
+                            zb_StorageDelete($eachTemplateKey['key']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Renders list of available punch scripts with some controls
      * 
      * @return string
@@ -227,9 +259,12 @@ class OnePunch {
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
-            $result.=wf_TableBody($rows, '100%', 0);
+            $result.=wf_TableBody($rows, '100%', 0, 'sortable');
         } else {
             $result.=$this->messages->getStyledMessage(__('No available code templates'), 'warning');
+            $result.=wf_tag('br');
+            $result.=wf_JSAlertStyled(self::URL_DEVCON . '&importoldcodetemplates=true', wf_img('skins/shovel.png') . ' ' . __('Import old code templates if available'), $this->messages->getEditAlert(), 'ubButton');
+            $result.=wf_tag('br');
         }
         return ($result);
     }

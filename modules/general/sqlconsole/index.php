@@ -30,19 +30,31 @@ if ($system->checkForRight('SQLCONSOLE')) {
         $onePunch->saveScript();
         rcms_redirect($onePunch::URL_DEVCON . '&editscript=' . $_POST['editscriptalias']);
     }
-
-//construct query forms
-    $sqlinputs = wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
-    $sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
     
+    //migrating old code templates from storage
+    if (wf_CheckGet(array('importoldcodetemplates'))) {
+        $onePunch->importOldTemplates();
+        rcms_redirect($onePunch::URL_DEVCON);
+    }
+    
+    //module controls
+    $devConControls = '';
+    $devConControls.=wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
+    $devConControls.=wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
+    $migrationControls = '';
     if (cfr('ROOT')) {
-        $sqlinputs.=wf_Link("?module=migration", __('Migration'), false, 'ubButton');
-        $sqlinputs.=wf_Link("?module=migration2", __('Migration') . ' 2', false, 'ubButton');
+        $migrationControls.=wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' .__('Migration'), false, 'ubButton');
+        $migrationControls.=wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' .__('Migration') . ' 2', false, 'ubButton');
     }
     if (cfr('MIKMIGR')) {
-        $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') . ' MikBiLL', true, 'ubButton');
+        $migrationControls.=wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' .__('Migration') . ' MikBiLL', false, 'ubButton');
     }
-    
+
+    $devConControls.=wf_modalAuto(wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), __('Migration'), $migrationControls, 'ubButton');
+    $devConControls.=wf_tag('br');
+
+//construct query forms
+    $sqlinputs = $devConControls;
     if (wf_CheckPost(array('sqlq'))) {
         if ($alterconf['DEVCON_SQL_KEEP']) {
             $startQuery = trim($_POST['sqlq']);
@@ -57,15 +69,8 @@ if ($system->checkForRight('SQLCONSOLE')) {
     $sqlinputs.=wf_Submit('Process query');
     $sqlform = wf_Form('', 'POST', $sqlinputs, 'glamour');
 
-    $phpinputs = wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
-    $phpinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
-    if (cfr('ROOT')) {
-        $phpinputs.=wf_Link("?module=migration", 'Migration', false, 'ubButton');
-        $phpinputs.=wf_Link("?module=migration2", __('Migration') . ' 2', false, 'ubButton');
-    }
-    if (cfr('MIKMIGR')) {
-        $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') . ' mikbill', true, 'ubButton');
-    }
+    $phpinputs = $devConControls;
+
 //is template run or clear area?
     if (wf_CheckGet(array('runscript'))) {
         $runcode = $onePunch->getScriptContent($_GET['runscript']);
@@ -97,7 +102,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             //show scripts list
             $punchScriptsList = $onePunch->renderScriptsList();
             $punchScriptsList.=wf_tag('br');
-            $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create'), true, 'ubButton');
+            $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create').' '.__('One-Punch').' '.__('Script'), true, 'ubButton');
             $phpcells.= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
         }
     }
