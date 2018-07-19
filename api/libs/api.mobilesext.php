@@ -3,6 +3,13 @@
 class MobilesExt {
 
     /**
+     * Contains system alter.ini config as key=>value
+     *
+     * @var array
+     */
+    protected $altCfg = array();
+
+    /**
      * Contains all additiona mobile numbers as id=>data
      *
      * @var array
@@ -29,6 +36,7 @@ class MobilesExt {
      */
     public function __construct() {
         $this->initMessages();
+        $this->loadAlter();
         $this->loadAllMobiles();
     }
 
@@ -39,6 +47,18 @@ class MobilesExt {
      */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
+    }
+
+    /**
+     * Loads system alter config
+     * 
+     * @global object $ubillingConfig
+     * 
+     * @return void
+     */
+    protected function loadAlter() {
+        global $ubillingConfig;
+        $this->altCfg = $ubillingConfig->getAlter();
     }
 
     /**
@@ -154,8 +174,9 @@ class MobilesExt {
     public function renderCreateForm($login) {
         $result = '';
         if (!empty($login)) {
+            $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $inputs = wf_HiddenInput('newmobileextlogin', $login);
-            $inputs.= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', 'mobile');
+            $inputs.= wf_TextInput('newmobileextnumber', __('New mobile'), '', false, '20', $formFilter);
             $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
             $inputs.= wf_Submit(__('Create'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
@@ -175,9 +196,10 @@ class MobilesExt {
         $result = '';
         $mobileId = vf($mobileId, 3);
         if (isset($this->allMobiles[$mobileId])) {
+            $formFilter = (@$this->altCfg['MOBILE_FILTERS_DISABLED']) ? '' : 'mobile';
             $mobileData = $this->allMobiles[$mobileId];
             $inputs = wf_HiddenInput('editmobileextid', $mobileId);
-            $inputs.= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', 'mobile');
+            $inputs.= wf_TextInput('editmobileextnumber', __('Mobile'), $mobileData['mobile'], true, '20', $formFilter);
             $inputs.= wf_TextInput('editmobileextnotes', __('Notes'), $mobileData['notes'], true, '40');
             $inputs.= wf_Submit(__('Save'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
@@ -261,7 +283,7 @@ class MobilesExt {
                             //is this really unknown number?
                             $detectedLogin = $telepathy->getByPhone($each['number'], true, true);
                             if (empty($detectedLogin)) {
-                                $numsTmp[$each['number']] = $each['time'].' - '.$each['number'];
+                                $numsTmp[$each['number']] = $each['time'] . ' - ' . $each['number'];
                             }
                         }
                     }
@@ -272,7 +294,7 @@ class MobilesExt {
             if (!empty($numsTmp)) {
                 if (!empty($login)) {
                     $inputs = wf_HiddenInput('newmobileextlogin', $login);
-                    $inputs.= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '',false);
+                    $inputs.= wf_Selector('newmobileextnumber', $numsTmp, __('New mobile'), '', false);
                     $inputs.= wf_TextInput('newmobileextnotes', __('New notes'), '', false, '40');
                     $inputs.= wf_Submit(__('Create'));
                     $result.= wf_Form('', 'POST', $inputs, 'glamour');

@@ -20,7 +20,12 @@ if (cfr('MOBILE')) {
         // Edit form construct
         $fieldnames = array('fieldname1' => __('Current mobile'), 'fieldname2' => __('New mobile'));
         $fieldkey = 'newmobile';
-        $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile, 'mobile');
+        if (@$altCfg['MOBILE_FILTERS_DISABLED']) {
+            $formFilters='';
+        } else {
+            $formFilters='mobile';
+        }
+        $form = web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $current_mobile, $formFilters);
         // Edit form display        
         show_window(__('Edit mobile'), $form);
 

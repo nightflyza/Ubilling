@@ -104,6 +104,8 @@ function web_trigger($value) {
  * @param string $fieldkey
  * @param string $useraddress
  * @param string $olddata
+ * @param string $pattern
+ * 
  * @return string
  */
 function web_EditorStringDataForm($fieldnames, $fieldkey, $useraddress, $olddata = '', $pattern = '') {
