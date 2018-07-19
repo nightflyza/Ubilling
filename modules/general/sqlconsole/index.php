@@ -32,15 +32,17 @@ if ($system->checkForRight('SQLCONSOLE')) {
     }
 
 //construct query forms
-    $sqlinputs = wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
-    $sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", 'PHP Console', false, 'ubButton');
+    $sqlinputs = wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
+    $sqlinputs.=wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
+    
     if (cfr('ROOT')) {
         $sqlinputs.=wf_Link("?module=migration", __('Migration'), false, 'ubButton');
         $sqlinputs.=wf_Link("?module=migration2", __('Migration') . ' 2', false, 'ubButton');
-        if (cfr('MIKMIGR')) {
-            $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') . ' mikbill', true, 'ubButton');
-        }
     }
+    if (cfr('MIKMIGR')) {
+        $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') . ' MikBiLL', true, 'ubButton');
+    }
+    
     if (wf_CheckPost(array('sqlq'))) {
         if ($alterconf['DEVCON_SQL_KEEP']) {
             $startQuery = trim($_POST['sqlq']);
@@ -93,7 +95,7 @@ if ($system->checkForRight('SQLCONSOLE')) {
             $phpcells.=wf_TableCell($onePunch->renderEditForm($_GET['editscript']), '50%', '', 'valign="top"');
         } else {
             //show scripts list
-            $punchScriptsList=$onePunch->renderScriptsList();
+            $punchScriptsList = $onePunch->renderScriptsList();
             $punchScriptsList.=wf_tag('br');
             $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create'), true, 'ubButton');
             $phpcells.= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
