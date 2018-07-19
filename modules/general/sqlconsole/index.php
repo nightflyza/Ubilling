@@ -3,51 +3,54 @@
 if ($system->checkForRight('SQLCONSOLE')) {
 
     $alterconf = $ubillingConfig->getAlter();
-    $onePunch = new OnePunch();
+    $punchScriptsAvail = zb_CheckTableExists('punchscripts');
+    if ($punchScriptsAvail) {
+        $onePunch = new OnePunch();
 
-    //new script creation
-    if (wf_CheckPost(array('newscriptalias', 'newscriptname', 'newscriptcontent'))) {
-        $punchCreateResult = $onePunch->createScript($_POST['newscriptalias'], $_POST['newscriptname'], $_POST['newscriptcontent']);
-        if (!empty($punchCreateResult)) {
-            show_error($punchCreateResult);
-        } else {
+        //new script creation
+        if (wf_CheckPost(array('newscriptalias', 'newscriptname', 'newscriptcontent'))) {
+            $punchCreateResult = $onePunch->createScript($_POST['newscriptalias'], $_POST['newscriptname'], $_POST['newscriptcontent']);
+            if (!empty($punchCreateResult)) {
+                show_error($punchCreateResult);
+            } else {
+                rcms_redirect($onePunch::URL_DEVCON);
+            }
+        }
+
+        //existing script deletion
+        if (wf_CheckGet(array('delscript'))) {
+            $punchDeleteResult = $onePunch->deleteScript($_GET['delscript']);
+            if (!empty($punchDeleteResult)) {
+                show_error($punchDeleteResult);
+            } else {
+                rcms_redirect($onePunch::URL_DEVCON);
+            }
+        }
+
+        //editing existing script
+        if (wf_CheckPost(array('editscriptid', 'editscriptoldalias', 'editscriptname', 'editscriptalias', 'editscriptcontent'))) {
+            $onePunch->saveScript();
+            rcms_redirect($onePunch::URL_DEVCON . '&editscript=' . $_POST['editscriptalias']);
+        }
+
+        //migrating old code templates from storage
+        if (wf_CheckGet(array('importoldcodetemplates'))) {
+            $onePunch->importOldTemplates();
             rcms_redirect($onePunch::URL_DEVCON);
         }
     }
 
-    //existing script deletion
-    if (wf_CheckGet(array('delscript'))) {
-        $punchDeleteResult = $onePunch->deleteScript($_GET['delscript']);
-        if (!empty($punchDeleteResult)) {
-            show_error($punchDeleteResult);
-        } else {
-            rcms_redirect($onePunch::URL_DEVCON);
-        }
-    }
-
-    //editing existing script
-    if (wf_CheckPost(array('editscriptid', 'editscriptoldalias', 'editscriptname', 'editscriptalias', 'editscriptcontent'))) {
-        $onePunch->saveScript();
-        rcms_redirect($onePunch::URL_DEVCON . '&editscript=' . $_POST['editscriptalias']);
-    }
-    
-    //migrating old code templates from storage
-    if (wf_CheckGet(array('importoldcodetemplates'))) {
-        $onePunch->importOldTemplates();
-        rcms_redirect($onePunch::URL_DEVCON);
-    }
-    
     //module controls
     $devConControls = '';
     $devConControls.=wf_Link("?module=sqlconsole", wf_img('skins/icon_restoredb.png') . ' ' . __('SQL Console'), false, 'ubButton');
     $devConControls.=wf_Link("?module=sqlconsole&devconsole=true", wf_img('skins/icon_php.png') . ' ' . __('PHP Console'), false, 'ubButton');
     $migrationControls = '';
     if (cfr('ROOT')) {
-        $migrationControls.=wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' .__('Migration'), false, 'ubButton');
-        $migrationControls.=wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' .__('Migration') . ' 2', false, 'ubButton');
+        $migrationControls.=wf_Link("?module=migration", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), false, 'ubButton');
+        $migrationControls.=wf_Link("?module=migration2", wf_img('skins/icon_puzzle.png') . ' ' . __('Migration') . ' 2', false, 'ubButton');
     }
     if (cfr('MIKMIGR')) {
-        $migrationControls.=wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' .__('Migration') . ' MikBiLL', false, 'ubButton');
+        $migrationControls.=wf_Link("?module=mikbill_migration", wf_img('skins/ukv/dollar.png') . ' ' . __('Migration') . ' MikBiLL', false, 'ubButton');
     }
 
     $devConControls.=wf_modalAuto(wf_img('skins/icon_puzzle.png') . ' ' . __('Migration'), __('Migration'), $migrationControls, 'ubButton');
@@ -73,7 +76,11 @@ if ($system->checkForRight('SQLCONSOLE')) {
 
 //is template run or clear area?
     if (wf_CheckGet(array('runscript'))) {
-        $runcode = $onePunch->getScriptContent($_GET['runscript']);
+        if ($punchScriptsAvail) {
+            $runcode = $onePunch->getScriptContent($_GET['runscript']);
+        } else {
+            $runcode = '';
+        }
     } else {
         $runcode = '';
         if ($alterconf['DEVCON_SQL_KEEP']) {
@@ -93,16 +100,31 @@ if ($system->checkForRight('SQLCONSOLE')) {
     $phpcells = wf_TableCell($phpform, '50%', '', 'valign="top"');
     if (wf_CheckGet(array('scriptadd'))) {
         //show script creation form
-        $phpcells.= wf_TableCell($onePunch->renderCreateForm(), '50%', '', 'valign="top"');
+        if ($punchScriptsAvail) {
+            $punchCreateForm = $onePunch->renderCreateForm();
+        } else {
+            $punchCreateForm = '';
+        }
+        $phpcells.= wf_TableCell($punchCreateForm, '50%', '', 'valign="top"');
     } else {
         if (wf_CheckGet(array('editscript'))) {
             //show scripts edit form
-            $phpcells.=wf_TableCell($onePunch->renderEditForm($_GET['editscript']), '50%', '', 'valign="top"');
+            if ($punchScriptsAvail) {
+                $punchEditForm = $onePunch->renderEditForm($_GET['editscript']);
+            } else {
+                $punchEditForm = '';
+            }
+            $phpcells.=wf_TableCell($punchEditForm, '50%', '', 'valign="top"');
         } else {
             //show scripts list
-            $punchScriptsList = $onePunch->renderScriptsList();
-            $punchScriptsList.=wf_tag('br');
-            $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create').' '.__('One-Punch').' '.__('Script'), true, 'ubButton');
+            if ($punchScriptsAvail) {
+                $punchScriptsList = $onePunch->renderScriptsList();
+                $punchScriptsList.=wf_tag('br');
+                $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create') . ' ' . __('One-Punch') . ' ' . __('Script'), true, 'ubButton');
+            } else {
+                $punchScriptsList = '';
+            }
+
             $phpcells.= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
         }
     }
