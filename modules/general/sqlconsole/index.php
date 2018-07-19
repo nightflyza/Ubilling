@@ -176,7 +176,15 @@ if ($system->checkForRight('SQLCONSOLE')) {
     $phpinputs.=wf_CheckInput('phphightlight', 'Hightlight this PHP code', true, true);
     $phpinputs.=wf_Submit('Run this code inside framework');
     $phpform = wf_Form('?module=sqlconsole&devconsole=true', 'POST', $phpinputs, 'glamour');
-
+    $onePunch = new OnePunch();
+    if (wf_CheckPost(array('newscriptname', 'newscriptcontent'))) {
+        $punchCreateResult = $onePunch->createScript($_POST['newscriptalias'],$_POST['newscriptname'], $_POST['newscriptcontent']);
+        if (!empty($punchCreateResult)) {
+            show_error($punchCreateResult);
+        } else {
+            rcms_redirect($onePunch::URL_DEVCON);
+        }
+    }
 //php console grid assemble
     $phpcells = wf_TableCell($phpform, '50%', '', 'valign="top"');
     if (wf_CheckGet(array('templateadd'))) {
@@ -188,7 +196,8 @@ if ($system->checkForRight('SQLCONSOLE')) {
             $phpcells.=wf_TableCell(web_PhpConsoleTemplateEditForm($_GET['edittemplate']), '50%', '', 'valign="top"');
         } else {
             //show template list
-            $phpcells.= wf_TableCell(web_PhpConsoleShowTemplates(), '50%', '', 'valign="top"');
+            //$phpcells.= wf_TableCell(web_PhpConsoleShowTemplates(), '50%', '', 'valign="top"');
+            $phpcells.= wf_TableCell($onePunch->renderCreateForm(), '50%', '', 'valign="top"');
         }
     }
 

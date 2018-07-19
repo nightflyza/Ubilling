@@ -2941,5 +2941,6 @@ $lang['def']['From creation'] = 'Від створення';
 $lang['def']['Network not found'] = 'Мережу не знайдено';
 $lang['def']['Job type contains'] = 'Тип роботи містить';
 $lang['def']['Job note contains'] = 'Примітка до задачі містить';
+$lang['def']['Script with this alias already exists'] = 'Скрипт з цим аліасом вже існує';
 
 ?>
