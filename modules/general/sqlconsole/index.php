@@ -3,127 +3,33 @@
 if ($system->checkForRight('SQLCONSOLE')) {
 
     $alterconf = $ubillingConfig->getAlter();
+    $onePunch = new OnePunch();
 
-    /**
-     * Returns PHP code template by key name
-     * 
-     * @param string $templatekey
-     * @return array
-     */
-    function zb_PhpConsoleGetTemplate($templatekey) {
-        $templatedata = zb_StorageGet($templatekey);
-        $result = unserialize($templatedata);
-        return ($result);
-    }
-
-    /**
-     * Creates new PHP code template
-     * 
-     * @param string $name
-     * @param string $body
-     * 
-     * @return void
-     */
-    function zb_PhpConsoleCreateTemplate($name, $body) {
-        $key = 'PHPCONSOLETEMPLATE:' . zb_rand_string(16);
-        $newtemplatedata = array();
-        $newtemplatedata['name'] = $name;
-        $newtemplatedata['body'] = $body;
-        $value = serialize($newtemplatedata);
-        zb_StorageSet($key, $value);
-    }
-
-    /**
-     * Renders code template creation form
-     * 
-     * @return string
-     */
-    function web_PhpConsoleTemplateCreateForm() {
-        $inputs = wf_TextInput('newtemplatename', __('Template name'), '', true, "30");
-        $inputs.= wf_TextArea('newtemplatebody', '', '', true, '80x10');
-        $inputs.=wf_Submit('Create template');
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.=wf_BackLink("?module=sqlconsole&devconsole=true", '', true);
-        return ($result);
-    }
-
-    /**
-     * Renders code template editing form
-     * 
-     * @param string $templatekey
-     * 
-     * @return string
-     */
-    function web_PhpConsoleTemplateEditForm($templatekey) {
-        $rawtemplate = zb_PhpConsoleGetTemplate($templatekey);
-        $templatename = $rawtemplate['name'];
-        $templatebody = $rawtemplate['body'];
-        $inputs = wf_TextInput('edittemplatename', __('Template name'), $templatename, true, "30");
-        $inputs.= wf_TextArea('edittemplatebody', '', $templatebody, true, '80x10');
-        $inputs.=wf_Submit('Edit');
-        $result = wf_Form("", 'POST', $inputs, 'glamour');
-        $result.=wf_BackLink("?module=sqlconsole&devconsole=true", '', true);
-        return ($result);
-    }
-
-    /**
-     * Returns list of available PHP code templates
-     * 
-     * @return string
-     */
-    function web_PhpConsoleShowTemplates() {
-        $alltemplatekeys = zb_StorageFindKeys('PHPCONSOLETEMPLATE:');
-
-        $tablecells = wf_TableCell(__('Template'), '80%');
-        $tablecells.=wf_TableCell(__('Actions'));
-        $tablerows = wf_TableRow($tablecells, 'row1');
-
-        if (!empty($alltemplatekeys)) {
-            foreach ($alltemplatekeys as $eachtemplatekey) {
-                $templatearray = zb_PhpConsoleGetTemplate($eachtemplatekey['key']);
-                $templatename = $templatearray['name'];
-                $templatebody = $templatearray['body'];
-                //show code template
-                $runlink = wf_JSAlert('?module=sqlconsole&devconsole=true&runtpl=' . $eachtemplatekey['key'], $templatename, 'Insert this template into PHP console');
-                $tablecells = wf_TableCell($runlink);
-                $actionlinks = wf_JSAlert('?module=sqlconsole&devconsole=true&deltemplate=' . $eachtemplatekey['key'], web_delete_icon(), 'Are you serious');
-                $actionlinks.=wf_Link('?module=sqlconsole&devconsole=true&edittemplate=' . $eachtemplatekey['key'], web_edit_icon());
-                $tablecells.=wf_TableCell($actionlinks);
-                $tablerows.=wf_TableRow($tablecells, 'row3');
-            }
+    //new script creation
+    if (wf_CheckPost(array('newscriptalias', 'newscriptname', 'newscriptcontent'))) {
+        $punchCreateResult = $onePunch->createScript($_POST['newscriptalias'], $_POST['newscriptname'], $_POST['newscriptcontent']);
+        if (!empty($punchCreateResult)) {
+            show_error($punchCreateResult);
+        } else {
+            rcms_redirect($onePunch::URL_DEVCON);
         }
-
-
-        $createlink = __('Available code templates') . ' ' . wf_Link("?module=sqlconsole&devconsole=true&templateadd=true", wf_img("skins/icon_add.gif", __('Create')), false);
-        $result = $createlink . ' ' . wf_TableBody($tablerows, '100%', '0', 'sortable');
-        return ($result);
     }
 
-    /**
-     * Code templates management
-     */
-    // creating template 
-    if (wf_CheckPost(array('newtemplatename', 'newtemplatebody'))) {
-        zb_PhpConsoleCreateTemplate($_POST['newtemplatename'], $_POST['newtemplatebody']);
-        log_register("DEVCONSOLE TEMPLATE CREATE");
-        rcms_redirect("?module=sqlconsole&devconsole=true");
+    //existing script deletion
+    if (wf_CheckGet(array('delscript'))) {
+        $punchDeleteResult = $onePunch->deleteScript($_GET['delscript']);
+        if (!empty($punchDeleteResult)) {
+            show_error($punchDeleteResult);
+        } else {
+            rcms_redirect($onePunch::URL_DEVCON);
+        }
     }
 
-    // deleting template 
-    if (wf_CheckGet(array('deltemplate'))) {
-        zb_StorageDelete($_GET['deltemplate']);
-        log_register("DEVCONSOLE TEMPLATE DELETE");
-        rcms_redirect("?module=sqlconsole&devconsole=true");
+    //editing existing script
+    if (wf_CheckPost(array('editscriptid', 'editscriptoldalias', 'editscriptname', 'editscriptalias', 'editscriptcontent'))) {
+        $onePunch->saveScript();
+        rcms_redirect($onePunch::URL_DEVCON . '&editscript=' . $_POST['editscriptalias']);
     }
-
-    // editing template
-    if (wf_CheckPost(array('edittemplatename', 'edittemplatebody'))) {
-        zb_StorageDelete($_GET['edittemplate']);
-        zb_PhpConsoleCreateTemplate($_POST['edittemplatename'], $_POST['edittemplatebody']);
-        log_register("DEVCONSOLE TEMPLATE EDIT");
-        rcms_redirect("?module=sqlconsole&devconsole=true");
-    }
-
 
 //construct query forms
     $sqlinputs = wf_Link("?module=sqlconsole", 'SQL Console', false, 'ubButton');
@@ -159,9 +65,8 @@ if ($system->checkForRight('SQLCONSOLE')) {
         $sqlinputs.=wf_Link("?module=mikbill_migration", __('Migration') . ' mikbill', true, 'ubButton');
     }
 //is template run or clear area?
-    if (wf_CheckGet(array('runtpl'))) {
-        $rawtemplate = zb_PhpConsoleGetTemplate($_GET['runtpl']);
-        $runcode = $rawtemplate['body'];
+    if (wf_CheckGet(array('runscript'))) {
+        $runcode = $onePunch->getScriptContent($_GET['runscript']);
     } else {
         $runcode = '';
         if ($alterconf['DEVCON_SQL_KEEP']) {
@@ -176,28 +81,22 @@ if ($system->checkForRight('SQLCONSOLE')) {
     $phpinputs.=wf_CheckInput('phphightlight', 'Hightlight this PHP code', true, true);
     $phpinputs.=wf_Submit('Run this code inside framework');
     $phpform = wf_Form('?module=sqlconsole&devconsole=true', 'POST', $phpinputs, 'glamour');
-    $onePunch = new OnePunch();
-    if (wf_CheckPost(array('newscriptname', 'newscriptcontent'))) {
-        $punchCreateResult = $onePunch->createScript($_POST['newscriptalias'],$_POST['newscriptname'], $_POST['newscriptcontent']);
-        if (!empty($punchCreateResult)) {
-            show_error($punchCreateResult);
-        } else {
-            rcms_redirect($onePunch::URL_DEVCON);
-        }
-    }
+
 //php console grid assemble
     $phpcells = wf_TableCell($phpform, '50%', '', 'valign="top"');
-    if (wf_CheckGet(array('templateadd'))) {
-        //show template creation form
-        $phpcells.= wf_TableCell(web_PhpConsoleTemplateCreateForm(), '50%', '', 'valign="top"');
+    if (wf_CheckGet(array('scriptadd'))) {
+        //show script creation form
+        $phpcells.= wf_TableCell($onePunch->renderCreateForm(), '50%', '', 'valign="top"');
     } else {
-        if (wf_CheckGet(array('edittemplate'))) {
-            //show template edit form
-            $phpcells.=wf_TableCell(web_PhpConsoleTemplateEditForm($_GET['edittemplate']), '50%', '', 'valign="top"');
+        if (wf_CheckGet(array('editscript'))) {
+            //show scripts edit form
+            $phpcells.=wf_TableCell($onePunch->renderEditForm($_GET['editscript']), '50%', '', 'valign="top"');
         } else {
-            //show template list
-            //$phpcells.= wf_TableCell(web_PhpConsoleShowTemplates(), '50%', '', 'valign="top"');
-            $phpcells.= wf_TableCell($onePunch->renderCreateForm(), '50%', '', 'valign="top"');
+            //show scripts list
+            $punchScriptsList=$onePunch->renderScriptsList();
+            $punchScriptsList.=wf_tag('br');
+            $punchScriptsList.= wf_Link($onePunch::URL_DEVCON . '&scriptadd=true', web_icon_create() . ' ' . __('Create'), true, 'ubButton');
+            $phpcells.= wf_TableCell($punchScriptsList, '50%', '', 'valign="top"');
         }
     }
 

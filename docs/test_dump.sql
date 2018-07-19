@@ -2122,8 +2122,7 @@ CREATE TABLE IF NOT EXISTS `punchscripts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `alias` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `content` int(11) NOT NULL,
-  `value` text,
+  `content` text,
   PRIMARY KEY  (`id`),
   KEY `alias` (`alias`)
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

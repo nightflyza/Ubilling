@@ -2942,5 +2942,7 @@ $lang['def']['Network not found'] = 'Мережу не знайдено';
 $lang['def']['Job type contains'] = 'Тип роботи містить';
 $lang['def']['Job note contains'] = 'Примітка до задачі містить';
 $lang['def']['Script with this alias already exists'] = 'Скрипт з цим аліасом вже існує';
+$lang['def']['Script with this alias not exists'] ='Скрипта з цим аліасом не існує';
+$lang['def']['No available code templates'] = 'Немає існуючих шаблонів коду';
 
 ?>
