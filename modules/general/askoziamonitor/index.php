@@ -35,6 +35,13 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             protected $onlyMobileFlag = true;
 
             /**
+             * Contains user assigned tags as login=>usertags
+             *
+             * @var array
+             */
+            protected $userTags = array();
+
+            /**
              * Default icons path
              */
             const ICON_PATH = 'skins/calls/';
@@ -67,6 +74,15 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
             /**
+             * Loads existing tagtypes and usertags into protected props for further usage
+             * 
+             * @return void
+             */
+            protected function loadUserTags() {
+                $this->userTags = zb_UserGetAllTags();
+            }
+
+            /**
              * Catches file download
              * 
              * @return void
@@ -95,13 +111,32 @@ if ($altcfg['ASKOZIA_ENABLED']) {
              */
             public function renderCallsList() {
                 $opts = '"order": [[ 0, "desc" ]]';
-                $columns = array(__('Date'), __('Number'), __('User'), __('File'));
+                $columns = array(__('Date'), __('Number'), __('User'), __('Tags'), __('File'));
                 if (wf_CheckGet(array('username'))) {
                     $loginFilter = '&loginfilter=' . $_GET['username'];
                 } else {
                     $loginFilter = '';
                 }
                 $result = wf_JqDtLoader($columns, self::URL_ME . '&ajax=true' . $loginFilter, false, __('Calls records'), 100, $opts);
+                return ($result);
+            }
+
+            /**
+             * Renders user tags if available
+             * 
+             * @param string $userLogin
+             * 
+             * @return string
+             */
+            protected function renderUserTags($userLogin) {
+                $result = '';
+                if (!empty($userLogin)) {
+                    if (isset($this->userTags[$userLogin])) {
+                        if (!empty($this->userTags[$userLogin])) {
+                            $result.=implode(', ', $this->userTags[$userLogin]);
+                        }
+                    }
+                }
                 return ($result);
             }
 
@@ -115,6 +150,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             public function jsonCallsList($filterLogin = '') {
                 $allAddress = zb_AddressGetFulladdresslistCached();
                 $allRealnames = zb_UserGetAllRealnames();
+                $this->loadUserTags();
                 $json = new wf_JqDtHelper();
                 $allVoiceFiles = $this->getCallsDir();
                 $telepathy = new Telepathy(false, true);
@@ -145,6 +181,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
                                 $data[] = wf_img($callDirection) . ' ' . $cleanDate;
                                 $data[] = $callingNumber;
                                 $data[] = $userLink;
+                                $data[] = $this->renderUserTags($userLogin);
                                 $data[] = $this->getSoundcontrols($fileUrl);
                                 $json->addRow($data);
                             }
@@ -189,7 +226,7 @@ if ($altcfg['ASKOZIA_ENABLED']) {
             }
 
         }
-        
+
         set_time_limit(0);
         $askMon = new AskoziaMonitor();
 
