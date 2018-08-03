@@ -13,14 +13,12 @@ imap
 json
 libxml
 mbstring
-memcache
 memcached
 mysql
 mysqli
 mysqlnd
 openssl
 pcre
-PDFlib
 PDO
 pdo_sqlite
 Phar
