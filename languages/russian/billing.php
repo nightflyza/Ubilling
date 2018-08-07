@@ -2930,7 +2930,7 @@ $lang['def']['Script with this alias not exists'] = 'Скрипт с этим а
 $lang['def']['No available code templates'] = 'Нету существующих шаблонов кода';
 $lang['def']['One-Punch scripts RemoteAPI calls enabled'] = 'Вызов One-Punch Скриптов из RemoteAPI включен';
 $lang['def']['Script'] = 'Скрипт';
-$lang['def'][''] = '';
+$lang['def']['Movement'] = 'Движение';
 $lang['def'][''] = '';
 
 ?>

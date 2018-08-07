@@ -983,6 +983,10 @@ class ExistentialHorse {
         $yearForm = wf_Form('', 'POST', $inputs, 'glamour');
         $yearForm.=wf_CleanDiv();
         $result.=$yearForm;
+        $riseOfTheNorthStar = array(); //userbase rise and drain stats
+        $riseOfTheNorthStar['total'] = 0;
+        $riseOfTheNorthStar['active'] = 0;
+        $riseOfTheNorthStar['signups'] = 0;
         //data loading
         $yearData = $this->loadStoredData($allTimeFlag);
 
@@ -1019,16 +1023,56 @@ class ExistentialHorse {
             //internet users
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Total'));
+            $cells.= wf_TableCell(__('Movement') . ' (' . __('Total') . '/' . __('Active') . ')');
             $cells.= wf_TableCell(__('Active'));
             $cells.= wf_TableCell(__('Inactive'));
             $cells.= wf_TableCell(__('Frozen'));
             $cells.= wf_TableCell(__('Signups'));
             $rows = wf_TableRow($cells, 'row1');
+
             foreach ($yearData as $yearNum => $monthArr) {
                 foreach ($monthArr as $monthNum => $each) {
                     $yearDisplay = ($allTimeFlag) ? $yearNum . ' ' : '';
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
+                    $fontEnd = wf_tag('font', true);
+
+                    if (!empty($riseOfTheNorthStar['total'])) {
+                        $starDelimiter=' / ';
+                        $riseTotal = $each['u_totalusers'] - $riseOfTheNorthStar['total'];
+                        if ($riseTotal > 0) {
+                            $fontColor = wf_tag('font', false, '', 'color="#009f04"');
+                            $riseUsersIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
+                        } else {
+                            $fontColor = wf_tag('font', false, '', 'color="#b50000"');
+                            $riseUsersIcon = wf_img_sized('skins/drain_icon.png', '', '10', '10');
+                        }
+                    } else {
+                        $fontColor = '';
+                        $riseUsersIcon = '';
+                        $riseTotal = '';
+                        $fontEnd = '';
+                        $starDelimiter='';
+                    }
+
+
+                    if (!empty($riseOfTheNorthStar['active'])) {
+                        $riseActive = $each['u_activeusers'] - $riseOfTheNorthStar['active'];
+                        if ($riseActive > 0) {
+                            $fontColorActive = wf_tag('font', false, '', 'color="#009f04"');
+                            $riseActiveIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
+                        } else {
+                            $fontColorActive = wf_tag('font', false, '', 'color="#b50000"');
+                            $riseActiveIcon = wf_img_sized('skins/drain_icon.png', '', '10', '10');
+                        }
+                    } else {
+                        $fontColorActive = '';
+                        $riseActiveIcon = '';
+                        $riseActive = '';
+                        $fontEnd = '';
+                    }
+
                     $cells.= wf_TableCell($each['u_totalusers']);
+                    $cells.= wf_TableCell($riseUsersIcon . ' ' . $fontColor . $riseTotal . $fontEnd . $starDelimiter . $riseActiveIcon . ' ' . $fontColorActive . $riseActive . $fontEnd);
                     $cells.= wf_TableCell($each['u_activeusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_activeusers']) . '%)');
                     $cells.= wf_TableCell($each['u_inactiveusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_inactiveusers']) . '%)');
                     $cells.= wf_TableCell($each['u_frozenusers'] . ' (' . $this->percentValue($each['u_totalusers'], $each['u_frozenusers']) . '%)');
@@ -1060,6 +1104,10 @@ class ExistentialHorse {
                     $yearDisplay = ($monthNum == '01') ? $yearDisplay : '';
                     $usersChartData[] = array($yearDisplay . $months[$monthNum], $each['u_totalusers'], $each['u_activeusers'], $each['u_inactiveusers'], $each['u_frozenusers']);
                     $usersSignupsChartData[] = array($yearDisplay . $months[$monthNum], $each['u_signups']);
+                    //rise and drain stats
+                    $riseOfTheNorthStar['total'] = $each['u_totalusers'];
+                    $riseOfTheNorthStar['active'] = $each['u_activeusers'];
+                    $riseOfTheNorthStar['signups'] = $each['u_signups'];
                 }
             }
 
@@ -1069,7 +1117,6 @@ class ExistentialHorse {
                 $result.=wf_gchartsLine($usersChartData, __('Internets users'), '100%', '300px', $chartsOptions);
                 $result.=wf_gchartsLine($usersSignupsChartData, __('Signups'), '100%', '300px', $chartsOptions);
             }
-
 
 
             //complex data
