@@ -1399,9 +1399,10 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $smsData = 'NULL';
     //store messages for backround processing via senddog
     if ($altercfg['SENDDOG_ENABLED']) {
+        $jobtype = ts_GetAllJobtypes();
         //SMS sending
         if (isset($_POST['newtasksendsms'])) {
-            $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttimeRaw;
+            $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
             $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
             if (!empty($smsDataRaw)) {
                 $smsData = serialize($smsDataRaw);
@@ -1411,7 +1412,6 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
 
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $jobtype = ts_GetAllJobtypes();
             $newTelegramText = __('Address') . ': ' . $address . '\r\n';
             $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
@@ -1542,7 +1542,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $startdate = mysql_real_escape_string($startdate);
     $starttimeRaw = (!empty($starttime)) ? $starttime : '';
     $starttime = (!empty($starttime)) ? "'" . date("H:i:s", strtotime(mysql_real_escape_string($starttime))) . "'" : 'NULL';
-
+    
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
     $login = mysql_real_escape_string($login);
@@ -1550,7 +1550,8 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $jobtypeid = vf($jobtypeid, 3);
     $employeeid = vf($employeeid, 3);
     $org_taskdata = ts_GetTaskData($taskid);
-
+    $jobtype = ts_GetAllJobtypes();
+    
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
     nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //That shit for preventing quotes. Dont touch this.
     simple_update_field('taskman', 'address', $address, "WHERE `id`='" . $taskid . "'");
@@ -1563,7 +1564,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $smsData = 'NULL';
     //SMS sending
     if (isset($_POST['changetasksendsms'])) {
-        $newSmsText = $address . ' ' . $phone . ' ' . $jobnote . $starttimeRaw;
+        $newSmsText = $address . ' ' . $phone . ' ' . @$jobtype[$jobtypeid] . ' ' . $jobnote . $starttimeRaw;
         $smsDataRaw = ts_SendSMS($employeeid, $newSmsText);
         if (!empty($smsDataRaw)) {
             $smsData = serialize($smsDataRaw);
@@ -1573,7 +1574,6 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
-        $jobtype = ts_GetAllJobtypes();
         $newTelegramText = __('Address') . ': ' . $address . '\r\n';
         $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
         $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
@@ -1737,8 +1737,9 @@ function ts_TaskChangeForm($taskid) {
                 $smsJobTime = (!empty($taskdata['starttime'])) ? ' ' . date("H:i", strtotime($taskdata['starttime'])) : '';
                 $smsJobNote = mysql_real_escape_string($taskdata['jobnote']);
                 $smsEmployee = vf($taskdata['employee']);
-
-                $newSmsText = $smsAddress . ' ' . $smsPhone . ' ' . $smsJobNote . $smsJobTime;
+                $taskJobTypeId=$taskdata['jobtype'];
+                $taskJobTypeName=@$alljobtypes[$taskJobTypeId];
+                $newSmsText = $smsAddress . ' ' . $smsPhone.' '.$taskJobTypeName . ' ' . $smsJobNote . $smsJobTime;
 
                 $smsDataCells = wf_TableCell(__('Employee'), '', 'row2');
                 $smsDataCells.= wf_TableCell(@$allemployee[$taskdata['employee']]);
@@ -2301,16 +2302,15 @@ function ts_GetAllTasks() {
     return ($result);
 }
 
-
-function ts_AdvFiltersControls () {
-    $alljobtypes     = ts_GetAllJobtypes();
-    $alljobtypes     = array('0' => __('Any')) + $alljobtypes;
+function ts_AdvFiltersControls() {
+    $alljobtypes = ts_GetAllJobtypes();
+    $alljobtypes = array('0' => __('Any')) + $alljobtypes;
     $selectedjobtype = ( wf_CheckPost(array('filtertaskjobtypeexact')) ) ? $_POST['filtertaskjobtypeexact'] : '';
     $jobtypecontains = ( wf_CheckPost(array('filtertaskjobtype')) ) ? $_POST['filtertaskjobtype'] : '';
     $addresscontains = ( wf_CheckPost(array('filtertaskaddr')) ) ? $_POST['filtertaskaddr'] : '';
     $jobnotecontains = ( wf_CheckPost(array('filtertaskjobnote')) ) ? $_POST['filtertaskjobnote'] : '';
 
-    $inputs  = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
+    $inputs = wf_tag('h3', false, '', 'style="margin: 1px 5px 1px 10px; display: inline-block"');
     $inputs .= __('Job type');
     $inputs .= wf_tag('h3', true);
     $inputs .= wf_Selector('filtertaskjobtypeexact', $alljobtypes, '', $selectedjobtype);
@@ -2338,20 +2338,21 @@ function ts_AdvFiltersControls () {
 function ts_AdvFiltersQuery() {
     $AppendQuery = '';
 
-    if ( wf_CheckPost(array('filtertaskjobtypeexact')) ) {
+    if (wf_CheckPost(array('filtertaskjobtypeexact'))) {
         $AppendQuery .= " AND `jobtype` = " . $_POST['filtertaskjobtypeexact'];
-    } elseif ( wf_CheckPost(array('filtertaskjobtype')) ) {
+    } elseif (wf_CheckPost(array('filtertaskjobtype'))) {
         $AppendQuery .= " AND `jobname` LIKE '%" . $_POST['filtertaskjobtype'] . "%'";
     }
 
-    if ( wf_CheckPost(array('filtertaskaddr')) ) {
+    if (wf_CheckPost(array('filtertaskaddr'))) {
         $AppendQuery .= " AND `address` LIKE '%" . $_POST['filtertaskaddr'] . "%'";
     }
 
-    if ( wf_CheckPost(array('filtertaskjobnote')) ) {
+    if (wf_CheckPost(array('filtertaskjobnote'))) {
         $AppendQuery .= " AND `jobnote` LIKE '%" . $_POST['filtertaskjobnote'] . "%'";
     }
 
     return ($AppendQuery);
 }
+
 ?>
