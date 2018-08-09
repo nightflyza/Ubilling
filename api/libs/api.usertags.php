@@ -660,7 +660,6 @@ function web_VservicesSelector() {
 /**
  * Performs an virtual services payments processing
  * 
- * @param int $debug
  * @param bool $log_payment
  * @param bool $charge_frozen
  * 
@@ -672,6 +671,13 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
     $frozenUsers = array();
     $query_services = "SELECT * from `vservices` ORDER by `priority` DESC";
     $allUserData = zb_UserGetAllStargazerDataAssoc();
+    $paymentTypeId = 1;
+    //custom payment type ID optional option
+    if (isset($alterconf['VSERVICES_CASHTYPEID'])) {
+        if (!empty($alterconf['VSERVICES_CASHTYPEID'])) {
+            $paymentTypeId = $alterconf['VSERVICES_CASHTYPEID'];
+        }
+    }
 
     $allservices = simple_queryall($query_services);
     if (!empty($allservices)) {
@@ -720,11 +726,11 @@ function zb_VservicesProcessAll($log_payment = true, $charge_frozen = true) {
                                 $method = 'correct';
                             }
                             if ($charge_frozen) {
-                                zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
+                                zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
                                 $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                             } else {
                                 if (!isset($frozenUsers[$eachuser['login']])) {
-                                    zb_CashAdd($eachuser['login'], $fee, $method, '1', 'Service:' . $eachservice['id']);
+                                    zb_CashAdd($eachuser['login'], $fee, $method, $paymentTypeId, 'Service:' . $eachservice['id']);
                                     $allUserData[$eachuser['login']]['Cash']+=$fee; //updating preloaded cash values
                                 }
                             }
