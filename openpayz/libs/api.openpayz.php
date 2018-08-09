@@ -254,9 +254,15 @@ function op_HandleStg($virtualid, $cash, $paysys = '') {
     $stg_port = $opconfig['STG_PORT'];
     $stg_login = $opconfig['STG_LOGIN'];
     $stg_passwd = $opconfig['STG_PASSWD'];
+    $customPrefix = 'CASHTYPEID_';
 
     if (isset($opconfig['UB_CASHTYPE'])) {
+        //normal cashtypes handling
         $ub_cashtype = $opconfig['UB_CASHTYPE'];
+        //custom per payment system cashtypes
+        if (isset($opconfig[$customPrefix . $paysys])) {
+            $ub_cashtype=$opconfig[$customPrefix . $paysys];
+        }
     } else {
         //cash money by default
         $ub_cashtype = 1;
