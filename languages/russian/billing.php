@@ -2931,6 +2931,8 @@ $lang['def']['No available code templates'] = 'Нету существующих
 $lang['def']['One-Punch scripts RemoteAPI calls enabled'] = 'Вызов One-Punch Скриптов из RemoteAPI включен';
 $lang['def']['Script'] = 'Скрипт';
 $lang['def']['Movement'] = 'Движение';
+$lang['def']['Dirty'] = 'Грязными';
+$lang['def']['Clean'] = 'Чистыми';
 $lang['def'][''] = '';
 
 ?>

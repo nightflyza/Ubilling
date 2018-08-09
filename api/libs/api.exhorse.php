@@ -1023,7 +1023,7 @@ class ExistentialHorse {
             //internet users
             $cells = wf_TableCell(__('Month'));
             $cells.= wf_TableCell(__('Total'));
-            $cells.= wf_TableCell(__('Movement') . ' (' . __('Total') . '/' . __('Active') . ')');
+            $cells.= wf_TableCell(__('Movement') . ' (' . __('Clean') . '/' . __('Dirty') . ')');
             $cells.= wf_TableCell(__('Active'));
             $cells.= wf_TableCell(__('Inactive'));
             $cells.= wf_TableCell(__('Frozen'));
@@ -1036,9 +1036,9 @@ class ExistentialHorse {
                     $cells = wf_TableCell($yearDisplay . $months[$monthNum]);
                     $fontEnd = wf_tag('font', true);
 
-                    if (!empty($riseOfTheNorthStar['total'])) {
+                    if (!empty($riseOfTheNorthStar['active'])) {
                         $starDelimiter=' / ';
-                        $riseTotal = $each['u_totalusers'] - $riseOfTheNorthStar['total'];
+                        $riseTotal = $each['u_activeusers'] - $riseOfTheNorthStar['active'];
                         if ($riseTotal > 0) {
                             $fontColor = wf_tag('font', false, '', 'color="#009f04"');
                             $riseUsersIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
@@ -1056,7 +1056,7 @@ class ExistentialHorse {
 
 
                     if (!empty($riseOfTheNorthStar['active'])) {
-                        $riseActive = $each['u_activeusers'] - $riseOfTheNorthStar['active'];
+                        $riseActive = ($each['u_activeusers'] - ($riseOfTheNorthStar['active']+$each['u_signups']));
                         if ($riseActive > 0) {
                             $fontColorActive = wf_tag('font', false, '', 'color="#009f04"');
                             $riseActiveIcon = wf_img_sized('skins/rise_icon.png', '', '10', '10');
