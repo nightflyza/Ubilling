@@ -138,10 +138,17 @@ if (cfr('SWITCHES')) {
                 }
                 $timeMachineCleanupControl = wf_JSAlert('?module=switches&timemachine=true&flushalldead=true', wf_img('skins/icon_cleanup.png', __('Cleanup')), __('Are you serious'));
                 //here some searchform
-                show_window('', wf_BackLink('?module=switches', __('Back')));
+                
                 $timeMachineSearchForm = web_SwitchTimeMachineSearchForm() . wf_tag('br');
-                show_window(__('Dead switches top'), web_DeadSwitchesTop());
-                show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);
+                if (wf_CheckGet(array('deadtop'))) {
+                    $tmControls=wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true', wf_img('skins/time_machine.png') . ' ' . __('Time machine'), false, 'ubButton');
+                    show_window('', $tmControls);
+                    show_window(__('Dead switches top') . ' ' . curmonth(), web_DeadSwitchesTop());
+                } else {
+                    $tmControls=wf_BackLink('?module=switches', __('Back')) . ' ' . wf_Link('?module=switches&timemachine=true&deadtop=true', wf_img('skins/skull.png') . ' ' . __('Dead switches top'), false, 'ubButton');
+                    show_window('', $tmControls);
+                    show_window(__('Dead switches time machine') . ' ' . $timeMachineCleanupControl, $timeMachineSearchForm . $timeMachine);
+                }
             } else {
                 //showing dead switches snapshot
                 ub_SwitchesTimeMachineShowSnapshot($_GET['snapshot']);

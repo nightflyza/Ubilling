@@ -1326,8 +1326,9 @@ function web_DeadSwitchesTop() {
     }
     $topThreshold = 10;
     $result = '';
-    $cyear = curyear();
-    $query = "SELECT `id`,`date`,`timestamp`,`swdead` from `switchdeadlog` WHERE `date` LIKE '" . $cyear . "-%' ORDER BY `id` ASC";
+
+    $cmonth = curmonth();
+    $query = "SELECT `id`,`date`,`timestamp`,`swdead` from `switchdeadlog` WHERE `date` LIKE '" . $cmonth . "-%' ORDER BY `id` ASC";
     $rawData = simple_queryall($query);
     $topTmp = array();
     $totalCount = 0;
@@ -1372,7 +1373,7 @@ function web_DeadSwitchesTop() {
                     $cells.= wf_TableCell(zb_formatTime($deadTime));
                     $totaldeadTime+=$deadTime;
                 }
-                $cells.= wf_TableCell(web_bar($each['count'], $totalCount));
+                $cells.= wf_TableCell(web_bar($each['count'], $totalCount), '', '', 'sorttable_customkey="' . $each['count'] . '"');
                 $rows.= wf_TableRow($cells, 'row3');
             }
         }
@@ -1386,7 +1387,7 @@ function web_DeadSwitchesTop() {
             $rows.= wf_TableRow($cells, 'row2');
         }
 
-        $result = wf_TableBody($rows, '100%', 0, '');
+        $result = wf_TableBody($rows, '100%', 0, 'sortable');
     }
 
     return ($result);
