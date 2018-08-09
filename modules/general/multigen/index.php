@@ -1,4 +1,5 @@
 <?php
+
 if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
     if (cfr('MULTIGEN')) {
 
@@ -66,6 +67,20 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
             if (wf_CheckGet(array('ajscenarioflush'))) {
                 $multigen->flushAllScenarios();
                 die($multigen->renderFlushAllScenariosNotice());
+            }
+
+            //cloning NAS options
+            if (wf_CheckPost(array('clonenasfromid', 'clonenastoid'))) {
+                if (wf_CheckPost(array('clonenasagree'))) {
+                    $nasCloneResult = $multigen->cloneNasConfiguration($_POST['clonenasfromid'], $_POST['clonenastoid']);
+                    if (empty($nasCloneResult)) {
+                        rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                    } else {
+                        show_error($nasCloneResult);
+                    }
+                } else {
+                    show_error(__('You are not mentally prepared for this'));
+                }
             }
             //rendering basic options form
             show_window(__('NAS options') . ': ' . $multigen->getNaslabel($editNasId), $multigen->renderNasOptionsEditForm($editNasId));

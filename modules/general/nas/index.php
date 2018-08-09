@@ -1,10 +1,16 @@
 <?php
 
 if (cfr('NAS')) {
+    $altCfg = $ubillingConfig->getAlter();
+
     if (isset($_GET['delete'])) {
         $deletenas = $_GET['delete'];
         zb_NasDelete($deletenas);
         zb_NasConfigSave();
+        if (@$altCfg['MULTIGEN_ENABLED']) {
+            $multigen = new MultiGen();
+            $multigen->deleteAllNasConfiguration($deletenas);
+        }
         rcms_redirect("?module=nas");
     }
 
@@ -43,7 +49,6 @@ if (cfr('NAS')) {
     );
 
     if (!wf_CheckGet(array('edit'))) {
-        $altCfg = $ubillingConfig->getAlter();
         $radiusControls = '';
         if ($altCfg['FREERADIUS_ENABLED']) {
             $freeRadiusClientsData = web_FreeRadiusListClients();

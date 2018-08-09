@@ -901,6 +901,25 @@ class MultiGen {
     }
 
     /**
+     * Returns list of services for some NAS
+     * 
+     * @param int $nasId
+     * 
+     * @return array
+     */
+    protected function getNasServices($nasId) {
+        $result = array();
+        if (!empty($this->services)) {
+            foreach ($this->services as $io => $each) {
+                if ($each['nasid'] == $nasId) {
+                    $result[$io] = $each;
+                }
+            }
+        }
+        return ($result);
+    }
+
+    /**
      * Deletes some attribute preset
      * 
      * @param int $attributeId
@@ -2073,7 +2092,7 @@ class MultiGen {
     public function nasControlPanel($nasId) {
         $result = '';
         $result.=wf_BackLink('?module=nas') . ' ';
-        $result.= wf_modalAuto(wf_img('skins/icon_clone.png') . ' ' . __('Clone NAS configuration'), __('Clone NAS configuration'), $this->renderNasCloneForm($nasId), 'ubButton');
+        $result.= wf_modal(wf_img('skins/icon_clone.png') . ' ' . __('Clone NAS configuration'), __('Clone NAS configuration'), $this->renderNasCloneForm($nasId), 'ubButton', '750', '250');
         if ($this->nasHaveOptions($nasId)) {
             $result.=wf_AjaxLoader();
             $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
@@ -2125,14 +2144,138 @@ class MultiGen {
     protected function renderNasCloneForm($nasId) {
         $result = '';
         $nasId = vf($nasId, 3);
+        $nasParamsTmp = array();
         if (isset($this->allNas[$nasId])) {
-            if (!empty($this->nasOptions)) {
-                
+            if ((!empty($this->nasOptions)) AND ( !empty($this->allNas))) {
+                foreach ($this->nasOptions as $io => $each) {
+                    if (($io != $nasId) AND ( isset($this->allNas[$io]))) {
+                        $nasBasicData = $this->allNas[$io];
+                        $nasExtendedOptions = $each;
+                        $nasUsernameType = $this->usernameTypes[$nasExtendedOptions['usernametype']];
+                        $nasService = $this->serviceTypes[$nasExtendedOptions['service']];
+                        $attributeTemplates = $this->getNasAttributes($io);
+                        $attributeTemplatesCount = sizeof($attributeTemplates);
+                        $nasLabel = $nasBasicData['nasip'] . ' - ' . $nasBasicData['nasname'] . ' (' . $nasUsernameType . ' / ' . $nasService . ' / ' . $attributeTemplatesCount . ' ' . __('NAS attributes') . ')';
+                        $nasParamsTmp[$nasBasicData['id']] = $nasLabel;
+                    }
+                }
+
+                if (!empty($nasParamsTmp)) {
+                    $inputs = wf_Selector('clonenasfromid', $nasParamsTmp, __('Clone') . ' ' . __('NAS'), '', true);
+                    $inputs.= wf_HiddenInput('clonenastoid', $nasId);
+                    $inputs.= wf_CheckInput('clonenasagree', __('I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'), true, false);
+                    $inputs.=wf_delimiter();
+                    $inputs.=wf_Submit(__('Clone'));
+                    $result.=wf_Form('', 'POST', $inputs, 'glamour');
+                }
             } else {
                 $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
             }
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
+        }
+        return ($result);
+    }
+
+    /**
+     * Flushes all NAS configuration from database
+     * 
+     * @param int $nasId
+     * 
+     * @return void
+     */
+    public function deleteAllNasConfiguration($nasId) {
+        $nasId = vf($nasId, 3);
+        $query = "DELETE FROM `" . self::NAS_OPTIONS . "` WHERE `nasid`='" . $nasId . "';";
+        nr_query($query);
+        log_register('MULTIGEN NAS [' . $nasId . '] FLUSH OPTIONS');
+
+        $query = "DELETE FROM `" . self::NAS_ATTRIBUTES . "` WHERE `nasid`='" . $nasId . "';";
+        nr_query($query);
+        log_register('MULTIGEN NAS [' . $nasId . '] FLUSH ATTRIBUTES');
+
+        $query = "DELETE FROM `" . self::NAS_SERVICES . "` WHERE `nasid`='" . $nasId . "';";
+        nr_query($query);
+        log_register('MULTIGEN NAS [' . $nasId . '] FLUSH SERVICES');
+    }
+
+    /**
+     * Clones all NAS options, attributes and services
+     * 
+     * @param int $fromId
+     * @param int $toId
+     * 
+     * @return void/string on error
+     */
+    public function cloneNasConfiguration($fromId, $toId) {
+        $result = '';
+        $fromId = vf($fromId, 3);
+        $toId = vf($toId, 3);
+        if ((isset($this->allNas[$fromId])) AND ( $this->allNas[$toId])) {
+            if (isset($this->nasOptions[$fromId])) {
+                $sourceNasOptions = $this->nasOptions[$fromId];
+                $sourceNasAttributes = $this->getNasAttributes($fromId);
+                $sourceNasServices = $this->getNasServices($fromId);
+                //deleting all old NAS setup
+                $this->deleteAllNasConfiguration($toId);
+                //Creating new NAS options
+                if (!empty($sourceNasOptions)) {
+                    log_register('MULTIGEN NAS [' . $toId . '] CLONE CONFIGURATION FROM [' . $fromId . ']');
+                    $newUserName = $sourceNasOptions['nasid'];
+                    $newUserName = $sourceNasOptions['usernametype'];
+                    $newService = $sourceNasOptions['service'];
+                    $newOnlyActive = $sourceNasOptions['onlyactive'];
+                    $newPort = $sourceNasOptions['port'];
+
+                    //new NAS options creation
+                    $newUserName_f = mysql_real_escape_string($newUserName);
+                    $newService_f = mysql_real_escape_string($newService);
+                    $newOnlyActive_f = mysql_real_escape_string($newOnlyActive);
+                    $newPort_f = vf($newPort, 3);
+                    $query = "INSERT INTO `" . self::NAS_OPTIONS . "` (`id`,`nasid`,`usernametype`,`service`,`onlyactive`,`port`) VALUES "
+                            . "(NULL,'" . $toId . "','" . $newUserName_f . "','" . $newService_f . "','" . $newOnlyActive_f . "','" . $newPort_f . "');";
+                    nr_query($query);
+                    log_register('MULTIGEN NAS [' . $toId . '] CLONE USERNAME `' . $newUserName . '` SERVICE `' . $newService . '` ONLYAACTIVE `' . $newOnlyActive . '` PORT `' . $newPort . '` FROM NAS [' . $fromId . ']');
+                }
+                //Creating new NAS attribute templates
+                if (!empty($sourceNasAttributes)) {
+                    foreach ($sourceNasAttributes as $io => $each) {
+                        $newScenario = $each['scenario'];
+                        $newScenario_f = mysql_real_escape_string($newScenario);
+                        $newModifier = $each['modifier'];
+                        $newModifier_f = mysql_real_escape_string($newModifier);
+                        $newAttribute = $each['attribute'];
+                        $newAttribute_f = mysql_real_escape_string($newAttribute);
+                        $newOperator = $each['operator'];
+                        $newOperator_f = mysql_real_escape_string($newOperator);
+                        $newContent = $each['content'];
+                        $newContent_f = mysql_real_escape_string($newContent);
+                        $query = "INSERT INTO `" . self::NAS_ATTRIBUTES . "` (`id`,`nasid`,`scenario`,`modifier`,`attribute`,`operator`,`content`) VALUES "
+                                . "(NULL,'" . $toId . "','" . $newScenario_f . "','" . $newModifier_f . "','" . $newAttribute_f . "','" . $newOperator_f . "','" . $newContent_f . "');";
+                        nr_query($query);
+                        $newId = simple_get_lastid(self::NAS_ATTRIBUTES);
+                        log_register('MULTIGEN NAS [' . $toId . '] CLONE ATTRIBUTE `' . $newAttribute . '` ID [' . $newId . '] FROM NAS [' . $fromId . ']');
+                    }
+                }
+
+                //Creating new NAS services 
+                if (!empty($sourceNasServices)) {
+                    $newPod = $sourceNasServices[$fromId]['pod'];
+                    $newPod_f = mysql_real_escape_string($newPod);
+                    $newCoaConnect = $sourceNasServices[$fromId]['coaconnect'];
+                    $newCoaConnect_f = mysql_real_escape_string($newCoaConnect);
+                    $newCoaDisconnect = $sourceNasServices[$fromId]['coadisconnect'];
+                    $newCoaDisconnect_f = mysql_real_escape_string($newCoaDisconnect);
+                    $query = "INSERT INTO `" . self::NAS_SERVICES . "` (`id`,`nasid`,`pod`,`coaconnect`,`coadisconnect`) VALUES "
+                            . "(NULL,'" . $toId . "','" . $newPod_f . "','" . $newCoaConnect_f . "','" . $newCoaDisconnect_f . "');";
+                    nr_query($query);
+                    log_register('MULTIGEN NAS [' . $toId . '] CLONE SERVICES FROM NAS [' . $fromId . ']');
+                }
+            } else {
+                $result.=__('Something went wrong') . ': ' . __('Configuration') . ' ' . __('NAS not exists');
+            }
+        } else {
+            $result.=__('Something went wrong') . ': ' . __('NAS not exists');
         }
         return ($result);
     }
