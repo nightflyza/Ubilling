@@ -2933,6 +2933,10 @@ $lang['def']['Script'] = 'Скрипт';
 $lang['def']['Movement'] = 'Движение';
 $lang['def']['Dirty'] = 'Грязными';
 $lang['def']['Clean'] = 'Чистыми';
+$lang['def']['Clone NAS configuration'] = 'Клонировать конфигурацию NAS';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>

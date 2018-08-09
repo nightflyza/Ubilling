@@ -2073,6 +2073,7 @@ class MultiGen {
     public function nasControlPanel($nasId) {
         $result = '';
         $result.=wf_BackLink('?module=nas') . ' ';
+        $result.= wf_modalAuto(wf_img('skins/icon_clone.png') . ' ' . __('Clone NAS configuration'), __('Clone NAS configuration'), $this->renderNasCloneForm($nasId), 'ubButton');
         if ($this->nasHaveOptions($nasId)) {
             $result.=wf_AjaxLoader();
             $result.= wf_AjaxLink(self::URL_ME . '&ajnasregen=true&editnasoptions=' . $nasId, wf_img('skins/refresh.gif') . ' ' . __('Base regeneration'), 'nascontrolajaxcontainer', false, 'ubButton');
@@ -2109,6 +2110,29 @@ class MultiGen {
                 $inputs.= wf_Submit(__('Save'));
                 $result.= wf_Form(self::URL_ME . '&editnasoptions=' . $nasId, 'POST', $inputs, 'glamour');
             }
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders nas options/atributes/services cloning form
+     * 
+     * @param int $nasId
+     *
+     * @return string
+     * 
+     */
+    protected function renderNasCloneForm($nasId) {
+        $result = '';
+        $nasId = vf($nasId, 3);
+        if (isset($this->allNas[$nasId])) {
+            if (!empty($this->nasOptions)) {
+                
+            } else {
+                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+            }
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');
         }
         return ($result);
     }

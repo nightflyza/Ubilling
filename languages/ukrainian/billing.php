@@ -2949,5 +2949,6 @@ $lang['def']['Script'] = 'Скрипт';
 $lang['def']['Movement'] = 'Рух';
 $lang['def']['Dirty'] = 'Брудними';
 $lang['def']['Clean'] = 'Чистими';
+$lang['def']['Clone NAS configuration'] = 'Клонувати конфігурацію NAS';
 
 ?>
