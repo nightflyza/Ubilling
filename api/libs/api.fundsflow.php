@@ -31,6 +31,11 @@ class FundsFlow {
     protected $allTariffsData = array();
     protected $fundsTmp = array();
 
+    /**
+     * Creates new FundsFlow instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadConfigs();
         $this->initTmp();
@@ -74,6 +79,11 @@ class FundsFlow {
         }
     }
 
+    /**
+     * Loads tariffs data from database into protected property
+     * 
+     * @return void
+     */
     protected function loadAllTariffsData() {
         $query = "SELECT * from `tariffs`";
         $all = simple_queryall($query);
@@ -255,7 +265,9 @@ class FundsFlow {
 
         if (!empty($fundsflow)) {
             foreach ($fundsflow as $io => $each) {
-                //cashtype
+                //default operation type
+                $operation=$each['operation'];
+                //cashtype setting
                 if ($each['cashtype'] != 'z') {
                     @$cashtype = $allcashtypes[$each['cashtype']];
                 } else {
@@ -284,7 +296,17 @@ class FundsFlow {
                 if (ispos($each['note'], 'BALANCESET:')) {
                     $fc = wf_tag('font', false, '', 'color="##000000"');
                 }
-
+                //virtual services fees
+                if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] < 0)) {
+                    $fc = wf_tag('font', false, '', 'color="#a90000"');
+                    $operation=__('Service');
+                }
+                
+                //virtual services bonuses
+                if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] >= 0)) {
+                    $fc = wf_tag('font', false, '', 'color="#005304"');
+                    $operation=__('Bonus');
+                }
 
                 //notes translation
                 if ($this->alterConf['TRANSLATE_PAYMENTS_NOTES']) {
@@ -300,7 +322,7 @@ class FundsFlow {
                 $tablecells.=wf_TableCell($fc . $each['summ'] . $efc);
                 $tablecells.=wf_TableCell($fc . $each['from'] . $efc);
                 $tablecells.=wf_TableCell($fc . $each['to'] . $efc);
-                $tablecells.=wf_TableCell($fc . __($each['operation']) . $efc);
+                $tablecells.=wf_TableCell($fc . __($operation) . $efc);
                 $tablecells.=wf_TableCell($cashtype);
                 $tablecells.=wf_TableCell($displaynote);
                 $tablecells.=wf_TableCell($adminName);
@@ -327,9 +349,10 @@ class FundsFlow {
     }
 
     /**
-     *  transforms array for normal output
+     *  Transforms array for normal output
      * 
      * @param array $fundsflow
+     * 
      * @return array
      */
     public function transformArray($fundsflow) {
@@ -520,12 +543,11 @@ class FundsFlow {
                 $tmpArr[$eachagent['id']] = $eachagent['contrname'];
             }
         }
-
         /**
-         * Again and again we're drowning in this web
-         * Again and again we make the same mistake
-         * Always hunting the same lamb
-         * All we get is the same crap....
+         * Again and again and again and again
+         * We Smash the Game BUHA!!
+         * And again and again and again and again
+         * Remember our name / Furyo 'til I Die
          */
         $inputs = wf_YearSelector('yearsel', __('Year'), false) . ' ';
         $inputs.= wf_MonthSelector('monthsel', __('Month'), '', false) . ' ';

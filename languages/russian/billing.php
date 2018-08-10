@@ -2935,7 +2935,7 @@ $lang['def']['Dirty'] = 'Грязными';
 $lang['def']['Clean'] = 'Чистыми';
 $lang['def']['Clone NAS configuration'] = 'Клонировать конфигурацию NAS';
 $lang['def']['I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'] = 'Я понимаю, что клонирование полностью уничтожит все текущие настройки NAS если они существуют, и заменит их конфигурацией другого NAS';
-$lang['def'][''] = '';
+$lang['def']['Bonus'] = 'Бонус';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
