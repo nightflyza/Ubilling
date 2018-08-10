@@ -2,14 +2,38 @@
 
 class StickyNotes {
 
+    /**
+     * Contains available user notes
+     *
+     * @var array
+     */
     protected $allnotes = array();
+
+    /**
+     * Contains active user notes which may require notification
+     *
+     * @var array
+     */
     protected $activenotes = array();
+
+    /**
+     * Contains current instance user login
+     *
+     * @var string
+     */
     protected $myLogin = '';
 
     /**
-     * Preloads all needed data for sticky notes entity
+     * Default notes management module URL
+     */
+    const URL_ME = '?module=stickynotes';
+
+    /**
+     * Creates new sticky notes instance
      * 
-     * @param boolean $onlyActive
+     * @param bool $onlyActive
+     * 
+     * @return void
      */
     public function __construct($onlyActive) {
         $this->setLogin();
@@ -20,6 +44,11 @@ class StickyNotes {
         }
     }
 
+    /**
+     * Sets current instance user login into protected property
+     * 
+     * @return void
+     */
     protected function setLogin() {
         $this->myLogin = whoami();
     }
@@ -93,6 +122,8 @@ class StickyNotes {
      * @return string
      */
     public function renderListGrid() {
+        $result = '';
+        $result.=wf_AjaxLoader();
         $cells = wf_TableCell(__('Creation date'));
         $cells.= wf_TableCell(__('Remind date'));
         $cells.= wf_TableCell(__('Time'));
@@ -100,7 +131,11 @@ class StickyNotes {
         $cells.= wf_TableCell(__('Text'));
         $cells.= wf_TableCell(__('Actions'));
         $rows = wf_TableRow($cells, 'row1');
-
+        /**
+         * Amadare wa chi no shizuku to natte hoho wo
+         * Tsutaiochiru
+         * Mou doko ni mo kaeru basho ga nai nara
+         */
         if (!empty($this->allnotes)) {
             foreach ($this->allnotes as $io => $each) {
                 $cells = wf_TableCell($each['createdate']);
@@ -111,13 +146,14 @@ class StickyNotes {
                 $cells.= wf_TableCell($viewLink);
                 $actLinks = wf_JSAlert('?module=stickynotes&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each['id']), '') . ' ';
+                //$actLinks.= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), __('Edit')) . ' ';
                 $actLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), nl2br(strip_tags($each['text'])), '', '640', '480');
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
         }
 
-        $result = wf_TableBody($rows, '100%', 0, 'sortable');
+        $result.= wf_TableBody($rows, '100%', 0, 'sortable');
         return ($result);
     }
 
@@ -173,6 +209,7 @@ class StickyNotes {
     }
 
     /**
+     * Creates new note in database
      * 
      * @param string  $owner
      * @param string  $createDate
@@ -267,7 +304,7 @@ class StickyNotes {
      * 
      * @return string
      */
-    protected function editForm($noteId) {
+    public function editForm($noteId) {
         $noteData = $this->getNoteData($noteId);
         if (!empty($noteData)) {
             $inputs = wf_HiddenInput('editnoteid', $noteId);
@@ -341,7 +378,7 @@ class StickyNotes {
                     nr_query($query);
                     log_register("STICKY CHANGED REMINDDATE [" . $noteId . "] ON " . $remindDate . "");
                 }
-                
+
                 //remind time 
                 $remindTime = $_POST['editremindtime'];
                 $oldRemindTime = $noteData['remindtime'];
@@ -355,7 +392,7 @@ class StickyNotes {
                     nr_query($query);
                     log_register("STICKY CHANGED REMINDTIME [" . $noteId . "] ON " . $remindTime . "");
                 }
-                
+
                 //activity flag
                 $activity = (isset($_POST['editactive'])) ? 1 : 0;
                 $oldActivity = $noteData['active'];
@@ -401,7 +438,7 @@ class StickyNotes {
                 $result = nl2br($result);
                 $result.= wf_delimiter(2);
                 $result.= wf_BackLink('?module=stickynotes');
-                $result.= wf_modalAuto(web_edit_icon().' '.__('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
+                $result.= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
             } else {
                 $result = __('Access denied');
             }
