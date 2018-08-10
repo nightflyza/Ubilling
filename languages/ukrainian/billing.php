@@ -2958,5 +2958,7 @@ $lang['def']['Virtual service'] = 'Віртуальний сервіс';
 $lang['def']['freezing'] = 'заморожування';
 $lang['def']['change tariff'] = 'заміна тарифу';
 $lang['def']['SMS reminder'] = 'SMS інформування';
+$lang['def']['This field can only contain Latin letters'] = 'Це поле може містити лише латинські літери';
+$lang['def']['This field can only contain Latin letters and numbers'] = 'Це поле може містити тільки латинські літери та цифри';
 
 ?>
