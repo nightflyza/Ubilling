@@ -89,7 +89,7 @@ class OnePunch {
         // sanjou! hisshou! shijou saikyou
         // nan dattenda? FURASUTOREESHON ore wa tomaranai
         $inputs.= wf_TextInput('newscriptname', __('Name'), $namePreset, true, 30);
-        $inputs.= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15);
+        $inputs.= wf_TextInput('newscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
         $inputs.= wf_TextArea('newscriptcontent', '', $contentPreset, true, '80x15');
         $inputs.= wf_Submit(__('Create'));
         $result.= wf_Form('', 'POST', $inputs, 'glamour');
@@ -117,7 +117,7 @@ class OnePunch {
             $inputs.= wf_HiddenInput('editscriptid', $scriptId);
             $inputs.= wf_HiddenInput('editscriptoldalias', $aliasPreset);
             $inputs.= wf_TextInput('editscriptname', __('Name'), $namePreset, true, 30);
-            $inputs.= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15);
+            $inputs.= wf_TextInput('editscriptalias', __('Alias'), $aliasPreset, true, 15, 'alphanumeric');
             $inputs.= wf_TextArea('editscriptcontent', '', $contentPreset, true, '80x15');
             $inputs.= wf_Submit(__('Save'));
             $result.= wf_Form('', 'POST', $inputs, 'glamour');
