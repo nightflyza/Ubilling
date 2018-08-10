@@ -29,7 +29,24 @@ class FundsFlow {
      * @var array
      */
     protected $allTariffsData = array();
+
+    /**
+     * Storage os some temporary data
+     * 
+     * @var array
+     */
     protected $fundsTmp = array();
+
+    /**
+     * Rendering coloring settings
+     */
+    protected $colorPayment = '005304';
+    protected $colorFee = 'a90000';
+    protected $colorBonus = '007706';
+    protected $colorAdditionalFee = 'd50000';
+    protected $colorCorrecting = 'ff6600';
+    protected $colorMock = '006699';
+    protected $colorSet = '000000';
 
     /**
      * Creates new FundsFlow instance
@@ -266,7 +283,7 @@ class FundsFlow {
         if (!empty($fundsflow)) {
             foreach ($fundsflow as $io => $each) {
                 //default operation type
-                $operation=$each['operation'];
+                $operation = $each['operation'];
                 //cashtype setting
                 if ($each['cashtype'] != 'z') {
                     @$cashtype = $allcashtypes[$each['cashtype']];
@@ -278,34 +295,83 @@ class FundsFlow {
                 $efc = wf_tag('font', true);
 
                 if ($each['operation'] == 'Fee') {
-                    $fc = wf_tag('font', false, '', 'color="#a90000"');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorFee . '"');
                 }
 
                 if ($each['operation'] == 'Payment') {
-                    $fc = wf_tag('font', false, '', 'color="#005304"');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorPayment . '"');
                 }
 
                 if ($each['operation'] == 'Correcting') {
-                    $fc = wf_tag('font', false, '', 'color="#ff6600"');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorCorrecting . '"');
                 }
 
                 if (ispos($each['note'], 'MOCK:')) {
-                    $fc = wf_tag('font', false, '', 'color="#006699"');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorMock . '"');
                 }
 
                 if (ispos($each['note'], 'BALANCESET:')) {
-                    $fc = wf_tag('font', false, '', 'color="##000000"');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorSet . '"');
                 }
+
                 //virtual services fees
                 if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] < 0)) {
-                    $fc = wf_tag('font', false, '', 'color="#a90000"');
-                    $operation=__('Service');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Virtual service');
                 }
-                
+
                 //virtual services bonuses
                 if ((ispos($each['note'], 'Service:')) AND ( $each['summ'] >= 0)) {
-                    $fc = wf_tag('font', false, '', 'color="#005304"');
-                    $operation=__('Bonus');
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
+                    $operation = __('Bonus');
+                }
+
+                //Megogo fees
+                if (ispos($each['note'], 'MEGOGO:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('Megogo');
+                }
+
+                //Self crediting fees
+                if (ispos($each['note'], 'SCFEE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('credit');
+                }
+
+                //Self freezing fees
+                if (ispos($each['note'], 'AFFEE')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('freezing');
+                }
+
+                //Tariff changing fee
+                if (ispos($each['note'], 'TCHANGE:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('change tariff');
+                }
+                
+                //Penalty fees
+                if (ispos($each['note'], 'PENALTY')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Penalty');
+                }
+                
+                 //SMS reminder service activation
+                if (ispos($each['note'], 'REMINDER')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
+                    $operation = __('Service') . ' ' . __('SMS reminder');
+                }
+
+                //discount bonuses
+                if (ispos($each['note'], 'DISCOUNT:')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
+                    $operation = __('Discount');
+                }
+                
+                 //friendship bonuses
+                if (ispos($each['note'], 'FRIENDSHIP')) {
+                    $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
+                    $operation = __('Friendship');
                 }
 
                 //notes translation
@@ -330,14 +396,16 @@ class FundsFlow {
             }
 
             $legendcells = wf_TableCell(__('Legend') . ':');
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#005304"') . __('Payment') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#a90000"') . __('Fee') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#ff6600"') . __('Correct saldo') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#006699"') . __('Mock payment') . $efc);
-            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="##000000"') . __('Set cash') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorPayment . '"') . __('Payment') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorFee . '"') . __('Fee') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"') . __('Bonuses') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"') . __('Additional fees') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorCorrecting . '"') . __('Correct saldo') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorMock . '"') . __('Mock payment') . $efc);
+            $legendcells.= wf_TableCell(wf_tag('font', false, '', 'color="#' . $this->colorSet . '"') . __('Set cash') . $efc);
             $legendrows = wf_TableRow($legendcells, 'row3');
 
-            $legend = wf_TableBody($legendrows, '50%', 0, 'glamour');
+            $legend = wf_TableBody($legendrows, '60%', 0, 'glamour');
             $legend.=wf_tag('div', false, '', 'style="clear:both;"') . wf_tag('div', true);
             $legend.=wf_delimiter();
 

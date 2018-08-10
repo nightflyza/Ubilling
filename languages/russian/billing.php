@@ -2936,6 +2936,13 @@ $lang['def']['Clean'] = 'Чистыми';
 $lang['def']['Clone NAS configuration'] = 'Клонировать конфигурацию NAS';
 $lang['def']['I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'] = 'Я понимаю, что клонирование полностью уничтожит все текущие настройки NAS если они существуют, и заменит их конфигурацией другого NAS';
 $lang['def']['Bonus'] = 'Бонус';
+$lang['def']['Bonuses'] = 'Бонусы';
+$lang['def']['Additional fees'] = 'Дополнительные начисления';
+$lang['def']['Virtual service'] = 'Виртуальный сервис';
+$lang['def']['freezing'] = 'заморозка';
+$lang['def']['change tariff'] = 'смена тарифа';
+$lang['def']['SMS reminder'] = 'SMS информирование';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
