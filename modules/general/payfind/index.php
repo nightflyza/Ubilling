@@ -244,6 +244,8 @@ if (cfr('PAYFIND')) {
         $inputs.= wf_TextInput('payidenc', __('IDENC'), '', true, '10');
         $inputs.= wf_CheckInput('type_summgreater', '', false, false);
         $inputs.= wf_TextInput('paysummgreater', __('Payment summ greater then'), '', true, '10');
+        $inputs.= wf_CheckInput('type_notescontains', '', false, false);
+        $inputs.= wf_TextInput('paynotescontains', __('Notes contains'), '', true, '10');
         $inputs.= wf_CheckInput('type_cashtype', '', false, false);
         $inputs.= web_CashTypeSelector() . wf_tag('label', false, '', 'for="cashtype"') . __('Search by cash type') . wf_tag('label', true) . wf_tag('br');
         $inputs.= wf_CheckInput('type_cashier', '', false, false);
@@ -545,6 +547,12 @@ if (cfr('PAYFIND')) {
     //summ is greater search
     if (wf_CheckPost(array('type_summgreater', 'paysummgreater'))) {
         $markers.="AND `summ` > " . mysql_real_escape_string($_POST['paysummgreater']) . " ";
+    }
+
+    //payment notes contains search
+    if (wf_CheckPost(array('type_notescontains', 'paynotescontains'))) {
+        $notesMask = mysql_real_escape_string($_POST['paynotescontains']);
+        $markers.="AND `note` LIKE '%" . $notesMask . "%' ";
     }
 
     //executing search

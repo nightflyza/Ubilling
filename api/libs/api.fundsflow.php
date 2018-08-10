@@ -349,14 +349,14 @@ class FundsFlow {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Service') . ' ' . __('change tariff');
                 }
-                
+
                 //Penalty fees
                 if (ispos($each['note'], 'PENALTY')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Penalty');
                 }
-                
-                 //SMS reminder service activation
+
+                //SMS reminder service activation
                 if (ispos($each['note'], 'REMINDER')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorAdditionalFee . '"');
                     $operation = __('Service') . ' ' . __('SMS reminder');
@@ -367,8 +367,8 @@ class FundsFlow {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
                     $operation = __('Discount');
                 }
-                
-                 //friendship bonuses
+
+                //friendship bonuses
                 if (ispos($each['note'], 'FRIENDSHIP')) {
                     $fc = wf_tag('font', false, '', 'color="#' . $this->colorBonus . '"');
                     $operation = __('Friendship');
