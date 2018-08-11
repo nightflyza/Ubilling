@@ -49,8 +49,8 @@ class ReportSelling {
                 $cells = wf_TableCell($report['name']);
                 $cells .= wf_TableCell($report['count_total']);
                 $cells .= wf_TableCell($report['cash_total']);
-                $cells .= wf_TableCell($report['cash_sel']);
                 $cells .= wf_TableCell($report['count_sel']);
+                $cells .= wf_TableCell($report['cash_sel']);
                 $cells .= wf_TableCell($report['count_balance']);
                 $cells .= wf_TableCell($report['cash_balabce']);
                 $rows .= wf_TableRow($cells, 'row3');
