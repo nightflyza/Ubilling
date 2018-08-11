@@ -1,23 +1,24 @@
 <?php
 
-///////////////////////////////////////
-//                                   //
-//    CONFIG SECTION                 //
-//                                   //
-///////////////////////////////////////          
+/* * **********************
+ * Config section
+ * *********************** */
+
+////MySQL database settings
+$db_host = 'localhost';
+$db_database = 'stg';
+$db_login = 'mylogin';
+$db_password = 'newpassword';
+
 // DN switcher files path
 $dn_path = "/etc/stargazer/dn/";
 
 //speed size
 $speed_size = 'Kbit/s';
 
-//mysql settings
-$db_host = 'localhost';
-$db_database = 'stg';
-$db_login = 'mylogin';
-$db_password = 'newpassword';
-
-////////////// Main code section ///////////
+/* * **********************
+ * End of config section
+ * *********************** */
 
 /**
  * Advanced php5 scandir analog with some filters
@@ -69,11 +70,9 @@ function simple_queryall($query) {
 
     if (!extension_loaded('mysql')) {
         // init mysql link
-        $dblink = mysqli_connect($db_host, $db_login, $db_password);
-        //selecting stargazer database
-        mysqli_select_db($db_database, $dblink);
+        $dblink = mysqli_connect($db_host, $db_login, $db_password, $db_database);
         //executing query
-        $queried = mysqli_query($query);
+        $queried = mysqli_query($dblink, $query);
         //getting result as array
         while ($row = mysqli_fetch_assoc($queried)) {
             $result[] = $row;
@@ -134,7 +133,7 @@ function dshape_GetTimeRules() {
 }
 
 /**
- * Switches speed directly
+ * Switches speed directly with dummynet
  * 
  * @param int $speed
  * @param int $mark
@@ -144,7 +143,6 @@ function dshape_GetTimeRules() {
  */
 function dshape_SwitchSpeed($speed, $mark, $speed_size = 'Kbit/s') {
     $shape_command = '/sbin/ipfw -q pipe ' . trim($mark) . ' config bw ' . $speed . '' . $speed_size . ' queue 32Kbytes' . "\n";
-    //print($shape_command);
     shell_exec($shape_command);
 }
 
