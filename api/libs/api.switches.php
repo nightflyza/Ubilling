@@ -1324,7 +1324,7 @@ function web_DeadSwitchesTop() {
     } else {
         $repingInterval = 0;
     }
-    $topThreshold = 10;
+    $topThreshold = 0;
     $result = '';
 
     $cmonth = curmonth();
