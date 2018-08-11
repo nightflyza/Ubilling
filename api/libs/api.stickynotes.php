@@ -29,6 +29,11 @@ class StickyNotes {
     const URL_ME = '?module=stickynotes';
 
     /**
+     * Sets max uncutted note text size
+     */
+    const PREVIEW_LEN = 190;
+
+    /**
      * Creates new sticky notes instance
      * 
      * @param bool $onlyActive
@@ -107,6 +112,7 @@ class StickyNotes {
      * 
      * @param string $string
      * @param int $size
+     * 
      * @return string
      */
     protected function cutString($string, $size) {
@@ -123,7 +129,6 @@ class StickyNotes {
      */
     public function renderListGrid() {
         $result = '';
-        $result.=wf_AjaxLoader();
         $cells = wf_TableCell(__('Creation date'));
         $cells.= wf_TableCell(__('Remind date'));
         $cells.= wf_TableCell(__('Time'));
@@ -142,12 +147,12 @@ class StickyNotes {
                 $cells.= wf_TableCell($each['reminddate']);
                 $cells.= wf_TableCell($each['remindtime']);
                 $cells.= wf_TableCell(web_bool_led($each['active']), '', '', 'sorttable_customkey="' . $each['active'] . '"');
-                $viewLink = wf_Link('?module=stickynotes&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
+                $viewLink = wf_Link(self::URL_ME . '&shownote=' . $each['id'], $this->cutString($each['text'], 100), false, '');
                 $cells.= wf_TableCell($viewLink);
-                $actLinks = wf_JSAlert('?module=stickynotes&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
-                $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit'), $this->editForm($each['id']), '') . ' ';
-                //$actLinks.= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), __('Edit')) . ' ';
-                $actLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), nl2br(strip_tags($each['text'])), '', '640', '480');
+                $actLinks = wf_JSAlert(self::URL_ME . '&delete=' . $each['id'], web_delete_icon(), __('Removing this may lead to irreparable results')) . ' ';
+                $actLinks.= wf_Link(self::URL_ME . '&editform=' . $each['id'], web_edit_icon(), false) . ' ';
+                $previewContent = nl2br($this->makeFullNoteLink($this->cutString(strip_tags($each['text']), self::PREVIEW_LEN), $each['id']));
+                $actLinks.= wf_modal(wf_img('skins/icon_search_small.gif', __('Preview')), __('Preview'), $previewContent, '', '640', '480');
                 $cells.= wf_TableCell($actLinks);
                 $rows.= wf_TableRow($cells, 'row5');
             }
@@ -302,14 +307,18 @@ class StickyNotes {
     /**
      * Returns edit form
      * 
+     * @param int  $noteId
+     * @param bool $wideForm
+     * 
      * @return string
      */
-    public function editForm($noteId) {
+    public function editForm($noteId, $wideForm = false) {
         $noteData = $this->getNoteData($noteId);
         if (!empty($noteData)) {
+            $textAreaDimensions = ($wideForm) ? '80x25' : '50x15';
             $inputs = wf_HiddenInput('editnoteid', $noteId);
             $inputs.= wf_tag('label') . __('Text') . ': ' . wf_tag('br') . wf_tag('label', true);
-            $inputs.= wf_TextArea('edittext', '', $noteData['text'], true, '50x15');
+            $inputs.= wf_TextArea('edittext', '', $noteData['text'], true, $textAreaDimensions);
             $checkState = ($noteData['active'] == 1) ? true : false;
             $inputs.= wf_CheckInput('editactive', __('Personal note active'), true, $checkState);
             $inputs.= wf_DatePickerPreset('editreminddate', $noteData['reminddate']);
@@ -437,13 +446,34 @@ class StickyNotes {
                 $result = strip_tags($noteData['text']);
                 $result = nl2br($result);
                 $result.= wf_delimiter(2);
-                $result.= wf_BackLink('?module=stickynotes');
+                $result.= wf_BackLink(self::URL_ME);
                 $result.= wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->editForm($noteId), 'ubButton') . ' ';
             } else {
                 $result = __('Access denied');
             }
         } else {
             $result = __('Strange exeption');
+        }
+        return ($result);
+    }
+
+    /**
+     * Returns note text with link to full note view if required
+     * 
+     * @param int $text
+     * @param int $noteId
+     * 
+     * @return string
+     */
+    protected function makeFullNoteLink($text, $noteId) {
+        $ending = substr($text, -3);
+        $result = $text;
+        if ($ending == '...') {
+            $noteId = vf($noteId, 3);
+            if (!empty($noteId)) {
+                $noteViewLink = wf_link(self::URL_ME . '&shownote=' . $noteId, '...', false, '', 'title="' . __('View full note') . '"');
+                $result = substr_replace($text, $noteViewLink, -3, 3);
+            }
         }
         return ($result);
     }
@@ -478,7 +508,8 @@ class StickyNotes {
                     $output.=$delimiterId;
 
                     $output = str_replace($delimiterId, $delimiterCode, $output);
-                    $output = $this->cutString($output, 190);
+                    $output = $this->cutString($output, self::PREVIEW_LEN);
+                    $output = $this->makeFullNoteLink($output, $each['id']);
                     $output = nl2br($output);
 
 

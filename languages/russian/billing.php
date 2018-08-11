@@ -2944,7 +2944,7 @@ $lang['def']['change tariff'] = 'смена тарифа';
 $lang['def']['SMS reminder'] = 'SMS информирование';
 $lang['def']['This field can only contain Latin letters'] = 'Это поле может содержать только латинские буквы';
 $lang['def']['This field can only contain Latin letters and numbers'] = 'Это поле может содержать только латинские буквы и цифры';
-$lang['def'][''] = '';
+$lang['def']['View full note'] = 'Просмотреть заметку полностью';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
 
