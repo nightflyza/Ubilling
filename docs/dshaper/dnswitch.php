@@ -53,6 +53,7 @@ function rcms_scandir($directory, $exp = '', $type = 'all', $do_not_filter = fal
 }
 
 /**
+ * Returns result as some query to database
  * 
  * @global string $db_host
  * @global string $db_database
@@ -65,18 +66,34 @@ function rcms_scandir($directory, $exp = '', $type = 'all', $do_not_filter = fal
 function simple_queryall($query) {
     global $db_host, $db_database, $db_login, $db_password;
     $result = array();
-    // init mysql link
-    $dblink = mysql_connect($db_host, $db_login, $db_password);
-    //selecting stargazer database
-    mysql_select_db($db_database, $dblink);
-    //executing query
-    $queried = mysql_query($query);
-    //getting result as array
-    while ($row = mysql_fetch_assoc($queried)) {
-        $result[] = $row;
+
+    if (!extension_loaded('mysql')) {
+        // init mysql link
+        $dblink = mysqli_connect($db_host, $db_login, $db_password);
+        //selecting stargazer database
+        mysqli_select_db($db_database, $dblink);
+        //executing query
+        $queried = mysqli_query($query);
+        //getting result as array
+        while ($row = mysqli_fetch_assoc($queried)) {
+            $result[] = $row;
+        }
+        //closing link
+        mysqli_close($dblink);
+    } else {
+        // init mysql link
+        $dblink = mysql_connect($db_host, $db_login, $db_password);
+        //selecting stargazer database
+        mysql_select_db($db_database, $dblink);
+        //executing query
+        $queried = mysql_query($query);
+        //getting result as array
+        while ($row = mysql_fetch_assoc($queried)) {
+            $result[] = $row;
+        }
+        //closing link
+        mysql_close($dblink);
     }
-    //closing link
-    mysql_close($dblink);
     //return result of query as array
     return($result);
 }
@@ -127,8 +144,8 @@ function dshape_GetTimeRules() {
  */
 function dshape_SwitchSpeed($speed, $mark, $speed_size = 'Kbit/s') {
     $shape_command = '/sbin/ipfw -q pipe ' . trim($mark) . ' config bw ' . $speed . '' . $speed_size . ' queue 32Kbytes' . "\n";
-    print($shape_command);
-    //shell_exec($shape_command);
+    //print($shape_command);
+    shell_exec($shape_command);
 }
 
 //parse all online users speed data
