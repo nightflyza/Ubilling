@@ -200,7 +200,7 @@ class StickyNotes {
                 $calendarData.="
                       {
                         title: '" . $rawTime . " " . $shortText . " ',
-                        url: '?module=stickynotes&shownote=" . $each['id'] . "',
+                        url: '" . self::URL_ME . "&shownote=" . $each['id'] . "',
                         start: new Date(" . $date . "),
                         end: new Date(" . $reminddate . "),
                        " . $coloring . "     
@@ -261,7 +261,7 @@ class StickyNotes {
             }
 
             $result.= wf_tag('div', false, 'stickynote', 'style="margin:' . $offsetTop . ' ' . $offsetLeft . ' 20px 20px;"');
-            $result.= wf_Link('?module=stickynotes', wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
+            $result.= wf_Link(self::URL_ME, wf_img('skins/pushpin.png'), false, '') . wf_tag('br');
             $result.= $text;
             $result.= wf_tag('div', true);
         }
@@ -276,8 +276,11 @@ class StickyNotes {
     public function panel() {
         $result = '';
         $result.= wf_modalAuto(wf_img('skins/pushpin.png') . ' ' . __('Create new personal note'), __('Create new personal note'), $this->createForm(), 'ubButton');
-        $result.= wf_Link('?module=stickynotes', wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
-        $result.= wf_Link('?module=stickynotes&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+        if (wf_CheckGet(array('calendarview'))) {
+            $result.= wf_Link(self::URL_ME, wf_img('skins/icon_table.png') . ' ' . __('Grid view'), false, 'ubButton');
+        } else {
+            $result.= wf_Link(self::URL_ME . '&calendarview=true', wf_img('skins/icon_calendar.gif') . ' ' . __('As calendar'), false, 'ubButton');
+        }
 
         return ($result);
     }

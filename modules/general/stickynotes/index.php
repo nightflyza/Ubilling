@@ -10,19 +10,19 @@ if (cfr('STICKYNOTES')) {
         // new note creation
         if (wf_CheckPost(array('newtext'))) {
             $stickyNotes->addMyNote();
-            rcms_redirect('?module=stickynotes');
+            rcms_redirect($stickyNotes::URL_ME);
         }
 
         //note deletion
         if (wf_CheckGet(array('delete'))) {
             $stickyNotes->deleteNote($_GET['delete']);
-            rcms_redirect('?module=stickynotes');
+            rcms_redirect($stickyNotes::URL_ME);
         }
 
         //note editing
         if (wf_CheckPost(array('edittext', 'editnoteid'))) {
             $stickyNotes->saveMyNote();
-            rcms_redirect('?module=stickynotes');
+            rcms_redirect($stickyNotes::URL_ME);
         }
 
         //control panel display
@@ -40,10 +40,10 @@ if (cfr('STICKYNOTES')) {
             if (wf_CheckGet(array('shownote'))) {
                 show_window(__('Sticky note'), $stickyNotes->renderNote($_GET['shownote']));
             }
-            
+
             //note editing interface
             if (wf_CheckGet(array('editform'))) {
-                show_window(__('Edit'), $stickyNotes->editForm($_GET['editform'],true));
+                show_window(__('Edit'), $stickyNotes->editForm($_GET['editform'], true));
                 show_window('', wf_BackLink($stickyNotes::URL_ME));
             }
         }
