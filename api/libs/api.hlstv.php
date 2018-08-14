@@ -83,22 +83,23 @@ class HlsTV {
     /**
      * Pushes some request to remote API and returns decoded array or raw JSON reply.
      * 
-     * @param array $request
+     * @param string $request
+     * @param array  $data
      * @param bool $raw
      * 
      * @return array/json
      */
-    public function pushApiRequest($request, $raw = false) {
-        $curl = curl_init(self::URL_API);
+    public function pushApiRequest($request, $data, $raw = false) {
+        $curl = curl_init(self::URL_API . $request);
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
             'API_ID: ' . $this->publicKey,
             'API_TIME: ' . $this->currentTimeStamp,
-            'API_HASH:' . $this->generateApiHash($request)
+            'API_HASH:' . $this->generateApiHash($data)
         ));
         curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         $jsonResponse = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if ($status != 200) {

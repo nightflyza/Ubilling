@@ -4,6 +4,6 @@
 error_reporting(E_ALL);
 
 $hls=new HlsTV();
-debarr($hls->pushApiRequest(array(), false));
+debarr($hls->pushApiRequest('tariff/promo/list',array(), false));
 
 ?>
