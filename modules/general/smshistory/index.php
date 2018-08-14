@@ -1,8 +1,7 @@
 <?php
 if (cfr('SMSHIST')) {
-    $altCfg = $ubillingConfig->getAlter();
 
-    if ($altCfg['SMS_HISTORY_ON']) {
+    if ($ubillingConfig->getAlterParam('SMS_HISTORY_ON')) {
         $SMSHist = new SMSHistory();
         $inputs  = $SMSHist->renderControls();
 
