@@ -78,7 +78,8 @@ class HlsTV {
      * @return string
      */
     protected function generateApiHash($message = array()) {
-        $result = hash_hmac('sha256', $this->currentTimeStamp . $this->publicKey, http_build_query($message, '', '&'), $this->privateKey);
+        $message = $this->currentTimeStamp . $this->publicKey . http_build_query($message, '', '&');
+        $result = hash_hmac('sha256', $message, $this->privateKey);
         return ($result);
     }
 
