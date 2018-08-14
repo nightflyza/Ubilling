@@ -92,7 +92,7 @@ class HlsTV {
      * 
      * @return array/json
      */
-    public function pushApiRequest($request, $data, $raw = false) {
+    public function pushApiRequest($request, $data = array(), $raw = false) {
         $curl = curl_init(self::URL_API . $request);
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -114,6 +114,129 @@ class HlsTV {
         } else {
             $result = $jsonResponse;
         }
+        return ($result);
+    }
+
+    /**
+     * Returns list of promo tariffs
+     * 
+     * @return array
+     */
+    public function getTariffsPromo() {
+        $result = $this->pushApiRequest('tariff/promo/list');
+        return ($result);
+    }
+
+    /**
+     * Returns list of main tariffs
+     * 
+     * @return array
+     */
+    public function getTariffsBase() {
+        $result = $this->pushApiRequest('tariff/base/list');
+        return ($result);
+    }
+
+    /**
+     * Returns list of bundle tariffs
+     * 
+     * @return array
+     */
+    public function getTariffsBundle() {
+        $result = $this->pushApiRequest('tariff/bundle/list');
+        return ($result);
+    }
+
+    /**
+     * Get all user info.
+     * 
+     * @param int $customerId Unique user ID
+     * 
+     * @return array
+     */
+    public function getUserInfo($customerId) {
+        $result = $this->pushApiRequest('customer/get', array('customer_id' => $customerId));
+        return ($result);
+    }
+
+    /**
+     * Sets base tariff or some additional tariffs
+     * 
+     * @param int $customerId unique user ID
+     * @param array $tariffs example: array('base' =>1036, 'bundle' => 1046)
+     * 
+     * @return array
+     */
+    public function setUserTariff($customerId, $tariffs) {
+        $data = array('customer_id' => $customerId);
+        if (!empty($tariffs)) {
+            foreach ($tariffs as $io => $each) {
+                $data[$io] = $each;
+            }
+        }
+        $result = $this->pushApiRequest('customer/tariff/set', $data);
+        return ($result);
+    }
+
+    /**
+     * Sets user as blocked
+     * 
+     * @param int $customerId
+     * 
+     * @return array
+     */
+    public function setUserBlock($customerId) {
+        $result = $this->pushApiRequest('customer/block', array('customer_id' => $customerId));
+        return ($result);
+    }
+
+    /**
+     * Sets user as unblocked
+     * 
+     * @param int $customerId
+     * 
+     * @return array
+     */
+    public function setUserActivate($customerId) {
+        $result = $this->pushApiRequest('customer/activate', array('customer_id' => $customerId));
+        return ($result);
+    }
+
+    /**
+     * Returns user device activation code
+     * 
+     * @param int $customerId
+     *      
+     * @return array
+     */
+    public function getDeviceCode($customerId) {
+        $result = $this->pushApiRequest('customer/device/get_code', array('customer_id' => $customerId));
+        return ($result);
+    }
+
+    /**
+     * Removes user device
+     * 
+     * @param int $customerId
+     * @param string $deviceId
+     * 
+     * @return array
+     */
+    public function deleteDevice($customerId, $deviceId) {
+        $result = $this->pushApiRequest('customer/device/remove', array('customer_id' => $customerId, 'uniq' => $deviceId));
+        return ($result);
+    }
+
+    /**
+     * Adds user device
+     * 
+     * @param int $customerId
+     * @param string $deviceId
+     * 
+     * @return array
+     */
+    public function addDevice($customerId, $deviceId) {
+        $result = $this->pushApiRequest('customer/device/add', array('uniq' => $deviceId, 'customer_id' => $customerId));
         return ($result);
     }
 
