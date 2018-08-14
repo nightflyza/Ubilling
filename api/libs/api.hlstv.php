@@ -63,8 +63,10 @@ class HlsTV {
      * @return void
      */
     protected function setOptions() {
-        $this->publicKey = 'xxxxxxxx';
-        $this->publicKey = 'yyyyyyyy';
+        if ((isset($this->altCfg['HLS_PUBLIC_KEY'])) AND ( (isset($this->altCfg['HLS_PRIVATE_KEY'])))) {
+            $this->publicKey = $this->altCfg['HLS_PUBLIC_KEY'];
+            $this->privateKey = $this->altCfg['HLS_PRIVATE_KEY'];
+        }
         $this->currentTimeStamp = time();
     }
 
@@ -103,7 +105,7 @@ class HlsTV {
         $jsonResponse = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         if ($status != 200) {
-            die('Error: call to URL ' . self::URL_API . ' failed with status ' . $status . ', response ' . $jsonResponse . ', curl_error ' . curl_error($curl) . ', curl_errno ' . curl_errno($curl));
+            show_error('Error: call to URL ' . self::URL_API . ' failed with status ' . $status . ', response ' . $jsonResponse . ', curl_error ' . curl_error($curl) . ', curl_errno ' . curl_errno($curl));
         }
         curl_close($curl);
         if (!$raw) {
