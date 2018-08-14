@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 $hls = new HlsTV();
 debarr($hls->getUserInfo(1));
 
-//debarr($hls->getTariffsBase()); // 1036 avail
+debarr($hls->getTariffsBase()); // 1036 avail
 //debarr($hls->getTariffsBundle()); // 1046 avail
 //debarr($hls->setUserTariff(1,array('base' =>1036, 'bundle' => 1046)));
 //debarr($hls->setUserBlock(1));
