@@ -243,4 +243,14 @@ class HlsTV {
         return ($result);
     }
 
+    /**
+     * Returns list of all devices of company
+     * 
+     * @return array
+     */
+    public function getDeviceList() {
+        $result = $this->pushApiRequest('device/list');
+        return ($result);
+    }
+
 }

@@ -11,7 +11,8 @@ debarr($hls->getUserInfo(1));
 //debarr($hls->setUserTariff(1,array('base' =>1036, 'bundle' => 1046)));
 //debarr($hls->setUserBlock(1));
 //debarr($hls->setUserActivate(1));
-debarr($hls->getDeviceCode(1));
-debarr($hls->addDevice(1, '1BF499EDA3E0C588')); //here is some shit
+//debarr($hls->getDeviceCode(1));
+//debarr($hls->addDevice(1, '1BF499EDA3E0C588')); //here is some shit
+debarr($hls->getDeviceList());
 
 ?>
