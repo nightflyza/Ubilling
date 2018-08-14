@@ -6,9 +6,9 @@ if ($system->checkForRight('ONLINE')) {
 
     /**
      * Renders user list JQuery DataTables container
-     * 
+     *
      * @global array $alter_conf
-     * 
+     *
      * @return string
      */
     function renderUserListContainer() {
@@ -64,37 +64,37 @@ if ($system->checkForRight('ONLINE')) {
 
         $dtcode = '
        		<script type="text/javascript" charset="utf-8">
-                
+
                 jQuery.fn.dataTableExt.oSort[\'file-size-asc\']  = function(a,b) {
                 var x = a.substring(0,a.length - 2);
                 var y = b.substring(0,b.length - 2);
-                
+
                 var x_unit = (a.substring(a.length - 2, a.length) == "Mb" ?
                 1000 : (a.substring(a.length - 2, a.length) == "Gb" ? 1000000 : 1));
                 var y_unit = (b.substring(b.length - 2, b.length) == "Mb" ?
                 1000 : (b.substring(b.length - 2, b.length) == "Gb" ? 1000000 : 1));
-     
+
                 x = parseInt( x * x_unit );
                 y = parseInt( y * y_unit );
-     
+
                 return ((x < y) ? -1 : ((x > y) ?  1 : 0));
                 };
- 
+
                 jQuery.fn.dataTableExt.oSort[\'file-size-desc\'] = function(a,b) {
                 var x = a.substring(0,a.length - 2);
                 var y = b.substring(0,b.length - 2);
-                
+
                 var x_unit = (a.substring(a.length - 2, a.length) == "Mb" ?
                 1000 : (a.substring(a.length - 2, a.length) == "Gb" ? 1000000 : 1));
                 var y_unit = (b.substring(b.length - 2, b.length) == "Mb" ?
                 1000 : (b.substring(b.length - 2, b.length) == "Gb" ? 1000000 : 1));
- 
+
                 x = parseInt( x * x_unit);
                 y = parseInt( y * y_unit);
- 
+
                 return ((x < y) ?  1 : ((x > y) ? -1 : 0));
                 };
-                
+
                 jQuery.fn.dataTableExt.oSort[\'ip-address-asc\']  = function(a,b) {
                 var m = a.split("."), x = "";
                 var n = b.split("."), y = "";
@@ -120,7 +120,7 @@ if ($system->checkForRight('ONLINE')) {
         }
         return ((x < y) ? -1 : ((x > y) ? 1 : 0));
         };
- 
+
         jQuery.fn.dataTableExt.oSort[\'ip-address-desc\']  = function(a,b) {
             var m = a.split("."), x = "";
             var n = b.split("."), y = "";
@@ -146,8 +146,8 @@ if ($system->checkForRight('ONLINE')) {
         }
         return ((x < y) ? 1 : ((x > y) ? -1 : 0));
     };
-    
-          
+
+
 
 		$(document).ready(function() {
 		$(\'#onlineusershp\').dataTable( {
@@ -168,9 +168,9 @@ if ($system->checkForRight('ONLINE')) {
 		},
             "aoColumns": [
                   ' . $columnFilters . '
-            ],      
-        
-                
+            ],
+
+
         "bPaginate": true,
         "bLengthChange": true,
         "bFilter": true,
@@ -188,7 +188,7 @@ if ($system->checkForRight('ONLINE')) {
 
                 } );
 		} );
-       
+
 		</script>
 
        ';
@@ -246,9 +246,9 @@ if ($system->checkForRight('ONLINE')) {
 
         if ($ShowContractField) {
             if ($ShowContractDate) {
-                $query = "SELECT `contracts`.*, `contractdates`.`date` AS `contractdate` 
-                                        FROM `contracts`                                     
-                                        LEFT JOIN `contractdates` ON `contractdates`.`contract` = `contracts`.`contract`;   
+                $query = "SELECT `contracts`.*, `contractdates`.`date` AS `contractdate`
+                                        FROM `contracts`
+                                        LEFT JOIN `contractdates` ON `contractdates`.`contract` = `contracts`.`contract`;
                           ";
             } else {
                 $query = "SELECT * FROM `contracts`;";
@@ -317,7 +317,7 @@ if ($system->checkForRight('ONLINE')) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
                 if ($displayFreezeFlag) {
-                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
+                    $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
                 }
                 //online activity check
                 if ($alter_conf['DN_ONLINE_DETECT']) {
