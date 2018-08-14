@@ -317,7 +317,7 @@ if ($system->checkForRight('ONLINE')) {
                     $act = '<img src=skins/icon_inactive.gif>' . __('No');
                 }
                 if ($displayFreezeFlag) {
-                    if ($alter_conf['ONLINE_SHOW_FREEZE_LAT']) {
+                    if (@$alter_conf['ONLINE_SHOW_FREEZE_LAT']) {
                       $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . date('Y-m-d', $eachuser['LastActivityTime']) : '';
                     } else {
                         $act .= $eachuser['Passive'] ? ' <img src=skins/icon_passive.gif>' . __('Freezed') : '';
