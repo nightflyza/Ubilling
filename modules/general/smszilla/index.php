@@ -1,10 +1,8 @@
 <?php
-
 if (cfr('SMSZILLA')) {
-    $altCfg = $ubillingConfig->getAlter();
 
-    if ($altCfg['SMSZILLA_ENABLED']) {
-        if ($altCfg['SENDDOG_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('SMSZILLA_ENABLED')) {
+        if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
             //may be to slow :(
             set_time_limit(0);
 
