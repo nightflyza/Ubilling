@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * OmegaTV low-level API implementation
+ */
 class HlsTV {
 
     /**
