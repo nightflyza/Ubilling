@@ -1275,7 +1275,7 @@ class UserProfile {
     protected function getSMSHistoryControls() {
         $result = '';
 
-        if ( isset($this->alterCfg['SMS_HISTORY_ON']) AND $this->alterCfg['SMS_HISTORY_ON'] ) {
+        if (isset($this->alterCfg['SMS_HISTORY_ON']) AND $this->alterCfg['SMS_HISTORY_ON'] AND cfr('SMSHIST')) {
             $SMSHist = new SMSHistory();
             $JQDT = $SMSHist->renderJQDT($this->login);
 
