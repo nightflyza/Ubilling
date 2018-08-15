@@ -153,7 +153,7 @@ if (cfr('WAREHOUSE')) {
                 }
 
                 if (wf_CheckPost(array('newoutdate', 'newoutdesttype', 'newoutdestparam', 'newoutitemtypeid', 'newoutstorageid', 'newoutcount'))) {
-                    $outCreateResult = $warehouse->outcomingCreate($_POST['newoutdate'], $_POST['newoutdesttype'], $_POST['newoutdestparam'], $_POST['newoutstorageid'], $_POST['newoutitemtypeid'], $_POST['newoutcount'], @$_POST['newoutprice'], @$_POST['newoutnotes']);
+                    $outCreateResult = $warehouse->outcomingCreate($_POST['newoutdate'], $_POST['newoutdesttype'], $_POST['newoutdestparam'], $_POST['newoutstorageid'], $_POST['newoutitemtypeid'], $_POST['newoutcount'], @$_POST['newoutprice'], @$_POST['newoutnotes'], @$_POST['newoutfromreserve']);
                     if (!empty($outCreateResult)) {
                         show_window(__('Something went wrong'), $outCreateResult);
                     } else {
@@ -178,7 +178,7 @@ if (cfr('WAREHOUSE')) {
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     } else {
-                        show_window(__('New outcoming operation') . ' ' . $warehouse->itemtypeGetName($_GET['outitemid']), $warehouse->outcomingCreateForm($_GET['storageid'], $_GET['outitemid']));
+                        show_window(__('New outcoming operation') . ' ' . $warehouse->itemtypeGetName($_GET['outitemid']), $warehouse->outcomingCreateForm($_GET['storageid'], $_GET['outitemid'], @$_GET['reserveid']));
                         $avidity_m = $avidity['M']['FALL'];
                         $warehouse->$avidity_m($warehouse::URL_ME . '&' . $warehouse::URL_OUT);
                     }

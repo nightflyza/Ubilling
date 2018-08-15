@@ -2800,8 +2800,8 @@ $lang['def']['LDAP manager'] = 'Управление LDAP';
 $lang['def']['Groups'] = 'Группы';
 $lang['def']['No existing groups available'] = 'Нету существующих групп';
 $lang['def']['right control LDAP users'] = 'Право управлять пользователями LDAP';
-$lang['def']['Is LDAP manager enabled']='Включено ли управление пользователями LDAP';
-$lang['def']['Is SMSZilla enabled']='Включена ли SMSZilla';
+$lang['def']['Is LDAP manager enabled'] = 'Включено ли управление пользователями LDAP';
+$lang['def']['Is SMSZilla enabled'] = 'Включена ли SMSZilla';
 $lang['def']['Do not redirect anywhere: just add & close'] = 'Не перенаправлять на другую страницу. Закрыть форму по завершению операции.';
 $lang['def']['Reload page after action'] = 'Обновить страницу по завершению операции';
 $lang['def']['System AP info'] = 'Системная информация о БС';
@@ -2945,7 +2945,8 @@ $lang['def']['SMS reminder'] = 'SMS информирование';
 $lang['def']['This field can only contain Latin letters'] = 'Это поле может содержать только латинские буквы';
 $lang['def']['This field can only contain Latin letters and numbers'] = 'Это поле может содержать только латинские буквы и цифры';
 $lang['def']['View full note'] = 'Просмотреть заметку полностью';
+$lang['def']['from reserved on'] = 'с забронированных на';
+$lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Остаток забронированных ТМЦ меньше указанного количества';
 $lang['def'][''] = '';
 $lang['def'][''] = '';
-
 ?>

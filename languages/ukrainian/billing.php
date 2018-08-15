@@ -2942,7 +2942,7 @@ $lang['def']['Network not found'] = 'Мережу не знайдено';
 $lang['def']['Job type contains'] = 'Тип роботи містить';
 $lang['def']['Job note contains'] = 'Примітка до задачі містить';
 $lang['def']['Script with this alias already exists'] = 'Скрипт з цим аліасом вже існує';
-$lang['def']['Script with this alias not exists'] ='Скрипта з цим аліасом не існує';
+$lang['def']['Script with this alias not exists'] = 'Скрипта з цим аліасом не існує';
 $lang['def']['No available code templates'] = 'Немає існуючих шаблонів коду';
 $lang['def']['One-Punch scripts RemoteAPI calls enabled'] = 'Виклик One-Punch Скриптів з RemoteAPI увімкнено';
 $lang['def']['Script'] = 'Скрипт';
@@ -2961,5 +2961,7 @@ $lang['def']['SMS reminder'] = 'SMS інформування';
 $lang['def']['This field can only contain Latin letters'] = 'Це поле може містити лише латинські літери';
 $lang['def']['This field can only contain Latin letters and numbers'] = 'Це поле може містити тільки латинські літери та цифри';
 $lang['def']['View full note'] = 'Переглянути нотатку повністю';
+$lang['def']['from reserved on'] = 'з заброньованих на';
+$lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Залишок заброньованих ТМЦ меньший вказаної кількості';
 
 ?>
