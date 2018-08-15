@@ -3005,7 +3005,7 @@ class Warehouse {
                 $firstColumnTotal+=$firstColumnPrice;
                 $secondColumnTotal+=$secondColumnPrice;
                 $thirdColumnTotal+=$thirdColumnPrice;
-                $fourthColumnTotal+=$firstColumnPrice;
+                $fourthColumnTotal+=$fourthColumnPrice;
             }
 
             $result.=$this->reportDateRemainsAddRow('', array('', $firstColumnTotal, '', $secondColumnTotal, '', $thirdColumnTotal, '', $fourthColumnTotal));
