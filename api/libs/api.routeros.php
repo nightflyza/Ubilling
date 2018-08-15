@@ -283,4 +283,42 @@ class RouterOS {
         $this->connected = ( !fclose($this->socket) ) ? true : false;
         return !$this->connected;
     }
+
+    /**
+     * Tries to get RouterOS version via SNMP or from login WEB page
+     *
+     * @param $Hostname
+     * @param int $WEBPort
+     * @param string $SNMPCommunity
+     * @return float
+     */
+    public function determineVersion($Hostname, $WEBPort = 80, $SNMPCommunity = 'public') {
+        $Version = '';
+
+        // trying to get version via SNMP
+        $SNMP = new SNMPHelper();
+        $SNMP->setMode('native');
+        $OID = '.1.3.6.1.4.1.14988.1.1.4.4.0';
+        $tmpSNMP = $SNMP->walk($Hostname, $SNMPCommunity, $OID, false);
+        $Version = ( empty($tmpSNMP) && $tmpSNMP === "$OID = " ) ? '' : str_replace('"', '', trim( substr($tmpSNMP, stripos($tmpSNMP, ':') + 1) ));
+
+        // if first option failed - trying to parse login WEB page
+        if ( empty($Version) ) {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $Hostname);
+            curl_setopt($curl, CURLOPT_PORT, $WEBPort);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $Result = curl_exec($curl);
+            curl_close($curl);
+
+            if ( !empty($Result) ) {
+                preg_match('/RouterOS v(.*?)</', $Result, $Match);
+
+                if ( isset($Match[1]) && !empty($Match[1]) ) { $Version = $Match[1]; }
+            }
+        }
+
+        return floatval($Version);
+    }
 }
