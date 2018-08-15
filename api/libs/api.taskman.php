@@ -1542,7 +1542,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $startdate = mysql_real_escape_string($startdate);
     $starttimeRaw = (!empty($starttime)) ? $starttime : '';
     $starttime = (!empty($starttime)) ? "'" . date("H:i:s", strtotime(mysql_real_escape_string($starttime))) . "'" : 'NULL';
-    
+
     $address = str_replace('\'', '`', $address);
     $address = mysql_real_escape_string($address);
     $login = mysql_real_escape_string($login);
@@ -1551,7 +1551,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
     $employeeid = vf($employeeid, 3);
     $org_taskdata = ts_GetTaskData($taskid);
     $jobtype = ts_GetAllJobtypes();
-    
+
     simple_update_field('taskman', 'startdate', $startdate, "WHERE `id`='" . $taskid . "'");
     nr_query("UPDATE `taskman` SET `starttime` = " . $starttime . " WHERE `id`='" . $taskid . "'"); //That shit for preventing quotes. Dont touch this.
     simple_update_field('taskman', 'address', $address, "WHERE `id`='" . $taskid . "'");
@@ -1737,9 +1737,9 @@ function ts_TaskChangeForm($taskid) {
                 $smsJobTime = (!empty($taskdata['starttime'])) ? ' ' . date("H:i", strtotime($taskdata['starttime'])) : '';
                 $smsJobNote = mysql_real_escape_string($taskdata['jobnote']);
                 $smsEmployee = vf($taskdata['employee']);
-                $taskJobTypeId=$taskdata['jobtype'];
-                $taskJobTypeName=@$alljobtypes[$taskJobTypeId];
-                $newSmsText = $smsAddress . ' ' . $smsPhone.' '.$taskJobTypeName . ' ' . $smsJobNote . $smsJobTime;
+                $taskJobTypeId = $taskdata['jobtype'];
+                $taskJobTypeName = @$alljobtypes[$taskJobTypeId];
+                $newSmsText = $smsAddress . ' ' . $smsPhone . ' ' . $taskJobTypeName . ' ' . $smsJobNote . $smsJobTime;
 
                 $smsDataCells = wf_TableCell(__('Employee'), '', 'row2');
                 $smsDataCells.= wf_TableCell(@$allemployee[$taskdata['employee']]);
@@ -2244,15 +2244,15 @@ function ts_GetUndoneCountersAll() {
 }
 
 /**
- * Returns count of undone tasks - used by DarkVoid
+ * Returns count of undone tasks - used by Warehouse and another weird things
  * 
  * @return array
  */
-function ts_GetUndoneTasksArray($year = '') {
+function ts_GetUndoneTasksArray() {
     $result = array();
     $curdate = curdate();
-    $curyear = (!empty($year)) ? $year : curyear();
-    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "'";
+    $filters = "ORDER BY `address`,`jobtype` ASC";
+    $query = "SELECT * from `taskman` WHERE `status` = '0' AND `startdate` <= '" . $curdate . "' " . $filters;
     $all = simple_queryall($query);
     if (!empty($all)) {
         foreach ($all as $io => $each) {

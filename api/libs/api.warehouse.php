@@ -2062,7 +2062,7 @@ class Warehouse {
             } else {
                 $notesPreset = '';
             }
-            $inputs.= wf_TextInput('newoutnotes', __('Notes'), $notesPreset, true, 25);
+            $inputs.= wf_TextInput('newoutnotes', __('Notes'), $notesPreset, true, 45);
 
             $inputs.= wf_tag('br');
             $inputs.=wf_Submit(__('Create'));
