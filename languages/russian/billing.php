@@ -2947,6 +2947,7 @@ $lang['def']['This field can only contain Latin letters and numbers'] = 'Это 
 $lang['def']['View full note'] = 'Просмотреть заметку полностью';
 $lang['def']['from reserved on'] = 'с забронированных на';
 $lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Остаток забронированных ТМЦ меньше указанного количества';
-$lang['def'][''] = '';
+$lang['def']['right to control warehouse reserve outcome operations'] = 'Право управлять расходными операциями из брони склада';
+$lang['def']['right to use tasks timing module'] = 'Право использовать отчет по времени задач';
 $lang['def'][''] = '';
 ?>

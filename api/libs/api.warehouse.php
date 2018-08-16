@@ -673,13 +673,13 @@ class Warehouse {
                 $actLinks = wf_JSAlert(self::URL_ME . '&' . self::URL_RESERVE . '&deletereserve=' . $each['id'], web_delete_icon(), $this->messages->getEditAlert()) . ' ';
                 $actLinks.= wf_modalAuto(web_edit_icon(), __('Edit') . ' ' . __('Reservation'), $this->reserveEditForm($each['id']), '') . ' ';
                 if ($each['count'] > 0) {
-                    if (cfr('WAREHOUSEOUT')) {
+                    if (cfr('WAREHOUSEOUTRESERVE')) {
                         $outcomeUrl = self::URL_ME . '&' . self::URL_OUT . '&storageid=' . $each['storageid'] . '&outitemid=' . $each['itemtypeid'] . '&reserveid=' . $each['id'];
                         $actLinks.=wf_Link($outcomeUrl, wf_img('skins/whoutcoming_icon.png') . ' ' . __('Outcoming'), false, '');
                     }
                 }
                 $cells.= wf_TableCell($actLinks);
-                $rows.= wf_TableRow($cells, 'row3');
+                $rows.= wf_TableRow($cells, 'row5');
             }
             $result = wf_TableBody($rows, '100%', 0, 'sortable');
         } else {

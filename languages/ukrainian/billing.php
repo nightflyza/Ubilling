@@ -2963,5 +2963,7 @@ $lang['def']['This field can only contain Latin letters and numbers'] = 'Це п
 $lang['def']['View full note'] = 'Переглянути нотатку повністю';
 $lang['def']['from reserved on'] = 'з заброньованих на';
 $lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Залишок заброньованих ТМЦ меньший вказаної кількості';
+$lang['def']['right to control warehouse reserve outcome operations'] = 'Право керувати розхідними операціями з броні складу';
+$lang['def']['right to use tasks timing module'] = 'Право використовувати звіт по часу задач';
 
 ?>
