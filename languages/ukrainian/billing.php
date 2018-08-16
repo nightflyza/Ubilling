@@ -2965,5 +2965,6 @@ $lang['def']['from reserved on'] = 'з заброньованих на';
 $lang['def']['The balance of goods and materials in stock is less than the reserved'] = 'Залишок заброньованих ТМЦ меньший вказаної кількості';
 $lang['def']['right to control warehouse reserve outcome operations'] = 'Право керувати розхідними операціями з броні складу';
 $lang['def']['right to use tasks timing module'] = 'Право використовувати звіт по часу задач';
+$lang['def']['right to control SMS history'] = 'Право керувати історією SMS';
 
 ?>
