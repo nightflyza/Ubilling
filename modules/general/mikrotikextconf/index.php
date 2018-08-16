@@ -105,7 +105,9 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
                 unset($inputs);
 
                 // Connection-sensetive options:
-                if ($this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode)) {
+                if ( isset($this->options['username'])
+                     && isset($this->options['password'])
+                     && $this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode) ) {
                     // Block 2: Interface settings
                     $this->form->addmessage(__('Interface settings'));
                     $this->get_ifaces();
