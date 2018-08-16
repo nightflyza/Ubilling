@@ -444,6 +444,10 @@ function web_TicketReplyForm($ticketid) {
     } else {
         $replyform = __('Ticket is closed');
     }
+
+    $TicketEvents = getTicketEvents($ticketid, true);
+    if ( !empty($TicketEvents) ) { $replyform .= wf_delimiter() . wf_modalAuto(__('Show ticket events'), __('Events for ticket') . '  ' . $ticketid, $TicketEvents, 'ubButton'); }
+
     return ($replyform);
 }
 
@@ -660,4 +664,35 @@ function web_TicketsCalendar() {
     return ($result);
 }
 
+function getTicketEvents($TicketID, $ReturnHTML = false) {
+    $QResult = array();
+    $HTMLStr = '';
+
+    $tQuery = "SELECT * FROM `weblogs` WHERE `event` LIKE 'TICKET%[" . $TicketID . "]'  ORDER BY `date` DESC";
+    $QResult = simple_queryall($tQuery);
+
+    if ($ReturnHTML and !empty($QResult) ) {
+        $TableCells = wf_TableCell(__('ID'));
+        $TableCells.= wf_TableCell(__('Date'));
+        $TableCells.= wf_TableCell(__('Admin'));
+        $TableCells.= wf_TableCell(__('IP'));
+        $TableCells.= wf_TableCell(__('Event'));
+        $TableRows  = wf_TableRow($TableCells, 'row1');
+
+        foreach ($QResult as $Rec) {
+            $Event = htmlspecialchars($Rec['event']);
+
+            $TableCells = wf_TableCell($Rec['id']);
+            $TableCells.= wf_TableCell($Rec['date']);
+            $TableCells.= wf_TableCell($Rec['admin']);
+            $TableCells.= wf_TableCell($Rec['ip']);
+            $TableCells.= wf_TableCell($Event);
+            $TableRows .= wf_TableRow($TableCells, 'row3');
+        }
+
+        $HTMLStr.= wf_TableBody($TableRows, '100%', 0, 'sortable');
+    }
+
+    return ( ($ReturnHTML) ? $HTMLStr : $QResult );
+}
 ?>
