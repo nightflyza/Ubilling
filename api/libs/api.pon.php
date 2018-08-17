@@ -2690,13 +2690,13 @@ class PONizer {
     }
 
     /**
-     * Renders json formatted data about unregistered ONU
+     * Fills onuIndexCache array
      *
      * @return void
      */
-    public function ajaxOnuUnknownData() {
-        $json = new wf_JqDtHelper();
+    protected function fillONUIndexCache() {
         $availCacheData = rcms_scandir(self::ONUCACHE_PATH, '*_' . self::ONUCACHE_EXT);
+
         if (!empty($availCacheData)) {
             foreach ($availCacheData as $io => $each) {
                 $raw = file_get_contents(self::ONUCACHE_PATH . $each);
@@ -2708,6 +2708,61 @@ class PONizer {
                 }
             }
         }
+    }
+
+
+    /**
+     * Returns array of unknown ONUs MACs which can be filtered by OLT ID and returned just like simple array
+     * or formed HTML selector ready to use on web page
+     *
+     * @param int $FilterByOLTID
+     * @param bool $ReturnAsHTMLSelector
+     * @param bool $AddEmptyFirsSelectorItem
+     * @param string $HTMLSelectorID
+     * @param string $HTMLSelectorName
+     * @param string $HTMLSelectorLabel
+     * @param string $HTMLSelectorSelectedItem
+     * @param bool $HTMLSelectorBR
+     * @param bool $HTMLSelectorSort
+     *
+     * @return array|string
+     */
+    public function getUnknownONUMACList($FilterByOLTID = 0, $ReturnAsHTMLSelector = false, $AddEmptyFirsSelectorItem = false,
+                                         $HTMLSelectorID = 'nonameselectorid', $HTMLSelectorName = 'nonameselector',
+                                         $HTMLSelectorLabel = '', $HTMLSelectorSelectedItem = '',
+                                         $HTMLSelectorBR = false, $HTMLSelectorSort = false) {
+        $UnknownONUList = ($ReturnAsHTMLSelector and $AddEmptyFirsSelectorItem) ? array('' => '-') : array();
+        $this->fillONUIndexCache();
+
+        if (!empty($this->onuIndexCache)) {
+            foreach ($this->onuIndexCache as $onuMac => $oltId) {
+                if ( !empty($FilterByOLTID) and $oltId != $FilterByOLTID) { continue; }
+
+                //not registered?
+                if ($this->checkMacUnique($onuMac)) {
+                    $UnknownONUList[$onuMac] = $onuMac;
+                }
+            }
+        }
+
+        return ( ($ReturnAsHTMLSelector) ? wf_Selector( $HTMLSelectorName,
+                                                        $UnknownONUList,
+                                                        $HTMLSelectorLabel,
+                                                        $HTMLSelectorSelectedItem,
+                                                        $HTMLSelectorBR,
+                                                        $HTMLSelectorSort,
+                                                        $HTMLSelectorID) : $UnknownONUList );
+    }
+
+
+    /**
+     * Renders json formatted data about unregistered ONU
+     *
+     * @return void
+     */
+    public function ajaxOnuUnknownData() {
+        $json = new wf_JqDtHelper();
+        $this->fillONUIndexCache();
 
         if (!empty($this->onuIndexCache)) {
             $allUsermacs = zb_UserGetAllMACs();
