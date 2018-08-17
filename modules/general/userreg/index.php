@@ -83,6 +83,34 @@ if (cfr('USERREG')) {
                 $newuser_data['onumac'] = $_POST['onumac'];
                 $newuser_data['onuserial'] = $_POST['onuserial'];
             }
+
+            if ( isset($alter_conf['USERREG_MAC_INPUT_ENABLED']) and $alter_conf['USERREG_MAC_INPUT_ENABLED'] ) {
+                if ( isset($_POST['userMAC']) and !empty($_POST['userMAC']) ) {
+                    //check mac for free
+                    $allUsedMacs = zb_getAllUsedMac();
+                    if ( !zb_checkMacFree($_POST['userMAC'], $allUsedMacs) ) {
+                        $alert = wf_tag('script', false, '', 'type="text/javascript"');
+                        $alert.='alert("' . __('Error') . ': ' . __('This MAC is currently used') . '");';
+                        $alert.=wf_tag('script', true);
+                        print($alert);
+                        rcms_redirect("?module=userreg");
+                        die();
+                    }
+
+                    //validate mac format
+                    if ( !check_mac_format($_POST['userMAC']) ) {
+                        $alert = wf_tag('script', false, '', 'type="text/javascript"');
+                        $alert.='alert("' . __('Error') . ': ' . __('This MAC have wrong format') . '");';
+                        $alert.=wf_tag('script', true);
+                        print($alert);
+                        rcms_redirect("?module=userreg");
+                        die();
+                    }
+                }
+
+                $newuser_data['userMAC'] = $_POST['userMAC'];
+            }
+
             zb_UserRegister($newuser_data);
             //release db lock
             if ($dbLockEnabled) {
