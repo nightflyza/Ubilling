@@ -2966,5 +2966,5 @@ $lang['def']['The balance of goods and materials in stock is less than the reser
 $lang['def']['right to control warehouse reserve outcome operations'] = 'Право керувати розхідними операціями з броні складу';
 $lang['def']['right to use tasks timing module'] = 'Право використовувати звіт по часу задач';
 $lang['def']['right to control SMS history'] = 'Право керувати історією SMS';
-
+$lang['def']['or choose MAC from unknown ONU\'s list on chosen OLT'] = 'або виберіть МАС зі списку невідомих ОНУ на вказаному ОЛТ';
 ?>

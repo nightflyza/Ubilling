@@ -12,6 +12,9 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
             private $_if = array();
             private $api = null;
             private $form = null;
+            private $UseVersionTelepathy = false;
+            private $WEBPort = 80;
+            private $SNMPCommunity = 'public';
             private $options = array();
             private $config = array();
 
@@ -32,7 +35,10 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
 
                 /* Get configurtion: */
                 $alter = rcms_parse_ini_file(CONFIG_PATH . 'alter.ini');
-                $this->config['PASSWORDSHIDE'] = (!empty($alter['PASSWORDSHIDE']) ) ? true : false;
+                $this->config['PASSWORDSHIDE'] = ( !empty($alter['PASSWORDSHIDE']) ) ? true : false;
+                $this->UseVersionTelepathy = ( !empty($alter['ROUTEROS_VERSION_TELEPATHY']) ) ? true : false;
+                $this->WEBPort = ( !empty($alter['ROUTEROS_VERSION_GET_WEB_PORT']) ) ? $alter['ROUTEROS_VERSION_GET_WEB_PORT'] : '80';
+                $this->SNMPCommunity = ( !empty($alter['ROUTEROS_VERSION_GET_SNMP_COMMUNITY']) ) ? $alter['ROUTEROS_VERSION_GET_SNMP_COMMUNITY'] : 'public';
                 unset($alter);
             }
 
@@ -68,15 +74,40 @@ if ($altCfg['MIKROTIK_SUPPORT']) {
                     $this->form->addrow(__($input), $contents);
                 }
 
+                $TelepathySup = '';
                 $ConnTypeCheckBox = 'use_new_conn_mode';
+                $ConnTypeCheckBoxDisabled = '';
                 $name = self::FORM_NAME . '[' . $ConnTypeCheckBox . ']';
-                $UseNewConnMode = ( isset($this->options[$ConnTypeCheckBox]) ) ? true : false;
-                $contents = $this->form->checkbox($name, true, null, $UseNewConnMode, null);
-                $this->form->addrow(__('Use new connection mode (for RouterOS 6.43 and higher)'), $contents);
 
+                if ($this->UseVersionTelepathy) {
+                    $Version = $this->api->determineVersion($this->_ip, $this->WEBPort, $this->SNMPCommunity);
+
+                    if ( !empty($Version) ) {
+                        if ($Version >= 6.43) {
+                            $tmpStr = __('Yes');
+                            $this->options[$ConnTypeCheckBox] = 1;
+                            $this->form->hidden($name, '1');
+                        } else {
+                            $tmpStr = __('No');
+                            $this->options[$ConnTypeCheckBox] = null;
+                        }
+
+                        //$ConnTypeCheckBoxDisabled = 'disabled';
+                        //$TelepathySup = wf_tag('sup') . ' (' . __('telepathically guessed') . ')' . wf_tag('sup', true);
+                        $ConnTypeCheckBoxDisabled = 'hidden';
+                        $TelepathySup = $tmpStr . ' (' . __('telepathically guessed') . ')';
+                    }
+                }
+
+                $UseNewConnMode = ( isset($this->options[$ConnTypeCheckBox]) ) ? true : false;
+                $contents = $this->form->checkbox($name, true, $TelepathySup, $UseNewConnMode, $ConnTypeCheckBoxDisabled);
+                $this->form->addrow(__('Use new connection mode (for RouterOS 6.43 and higher)'), $contents);
                 unset($inputs);
+
                 // Connection-sensetive options:
-                if ($this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode)) {
+                if ( isset($this->options['username'])
+                     && isset($this->options['password'])
+                     && $this->api->connect($this->_ip, $this->options['username'], $this->options['password'], $UseNewConnMode) ) {
                     // Block 2: Interface settings
                     $this->form->addmessage(__('Interface settings'));
                     $this->get_ifaces();

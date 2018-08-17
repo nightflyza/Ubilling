@@ -481,7 +481,7 @@ function web_UserRegFormNetData($newuser_data) {
     $form.= wf_tag('form', false, '', ' action="" method="POST"');
 
     $form.= wf_tag('tr', false, 'row3');
-    $form.= wf_tag('td', false, '', 'width="50%"');
+    $form.= wf_tag('td', false, '', 'width="65%"');
     $form.= wf_tag('input', false, '', 'type="text" name="login" value="' . $login_proposal . '" ' . $modifier);
     $form.= wf_tag('td', true);
     $form.= wf_tag('td', false);
@@ -507,6 +507,17 @@ function web_UserRegFormNetData($newuser_data) {
     $form.=__('IP');
     $form.= wf_tag('td', true);
     $form.= wf_tag('tr', true);
+
+    if ( isset($alterconf['USERREG_MAC_INPUT_ENABLED']) and $alterconf['USERREG_MAC_INPUT_ENABLED'] ) {
+        $form .= wf_tag('tr', false, 'row3');
+        $form .= wf_tag('td', false);
+        $form .= wf_tag('input', false, '', 'type="text" name="userMAC"');
+        $form .= wf_tag('td', true);
+        $form .= wf_tag('td', false);
+        $form .= __('MAC');
+        $form .= wf_tag('td', true);
+        $form .= wf_tag('tr', true);
+    }
 
     if ($alterconf['BRANCHES_ENABLED']) {
         $form.= wf_tag('tr', false, 'row3');
@@ -550,7 +561,34 @@ function web_UserRegFormNetData($newuser_data) {
 
         $form.= wf_tag('tr', false, 'row3');
         $form.= wf_tag('td', false);
-        $form.= wf_Selector('oltid', $PONAPIObject->getAllOltDevices(), '', '', true);
+        $form.= wf_Selector('oltid', $PONAPIObject->getAllOltDevices(), '', '', true, false, 'OLTSelector');
+        $form.= wf_tag('script', false, '', 'type="text/javascript"');
+        $form.= '
+                $(document).ready(function() {
+                    getUnknownONUList($(\'#OLTSelector\').val());
+                });
+        
+                $(\'#OLTSelector\').change(function(){
+                    getUnknownONUList($(this).val());
+                });
+                
+                function getUnknownONUList(OLTID) {
+                    $.ajax({
+                        type: "GET",
+                        url: "?module=ponizer",
+                        data: {
+                                getunknownlist:true, 
+                                oltid:OLTID,
+                                selectorid:"UnknonwnsSelectorID",
+                                selectorname:"UnknonwnsSelector"
+                              },
+                        success: function(result) {
+                                    $(\'#UnknonwnsSelBlock\').html(result);
+                                 }
+                    });     
+                }
+                ';
+        $form.= wf_tag('script', true);
         $form.= wf_tag('td', true);
         $form.= wf_tag('td', false);
         $form.= __('OLT device') . wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -589,7 +627,16 @@ function web_UserRegFormNetData($newuser_data) {
 
         $form.= wf_tag('tr', false, 'row3');
         $form.= wf_tag('td', false);
-        $form.= wf_tag('input', false, '', 'type="text" name="onumac" value="" ');
+        $form.= wf_tag('input', false, '', 'type="text" name="onumac" id="onumacid" value="" ');
+        //$form.= wf_delimiter();
+        $form.= '&nbsp&nbsp' . __('or choose MAC from unknown ONU\'s list on chosen OLT') . '&nbsp&nbsp';
+        $form.= wf_tag('div', false, '', 'id="UnknonwnsSelBlock" style="display:inline-block"');
+        $form.= wf_tag('div', true);
+        $form.= wf_tag('script', false, '', 'type="text/javascript"');
+        $form.= '$(document).on("change", "#UnknonwnsSelectorID", function(){
+                    $(\'#onumacid\').val($(this).val());                    
+                });';
+        $form.= wf_tag('script', true);
         $form.= wf_tag('td', true);
         $form.= wf_tag('td', false);
         $form.=__('ONU MAC') . wf_tag('sup') . '*' . wf_tag('sup', true);
@@ -601,7 +648,7 @@ function web_UserRegFormNetData($newuser_data) {
         $form.= wf_tag('input', false, '', 'type="text" name="onuserial" value="" ');
         $form.= wf_tag('td', true);
         $form.= wf_tag('td', false);
-        $form.=__('ONU serial') . wf_tag('sup') . '*' . wf_tag('sup', true);
+        $form.=__('ONU serial');
         $form.= wf_tag('td', true);
         $form.= wf_tag('tr', true);
 
@@ -733,6 +780,14 @@ function zb_UserRegister($user_data, $goprofile = true) {
         $NeedONUAssignment = !empty($ONUMAC);
     }
 
+    if ( isset($user_data['userMAC']) and !empty($user_data['userMAC']) ) {
+        $mac = $user_data['userMAC'];
+    } elseif ($billingconf['REGRANDOM_MAC']) {
+        // if random mac needed
+        // funny random mac, yeah? :)
+        $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
+    } else { $mac = null; }
+
     $netid = multinet_get_service_networkid($serviceid);
     $busylogins = zb_AllBusyLogins();
     //check login lenght
@@ -765,7 +820,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         die();
     }
 
-    //last check
+    //last checks
     if (!zb_ip_unique($ip)) {
         $alert = wf_tag('script', false, '', 'type="text/javascript"');
         $alert.='alert("' . __('Error') . ': ' . __('This IP is already used by another user') . '");';
@@ -774,6 +829,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
         rcms_redirect("?module=userreg");
         die();
     }
+
 
     // registration subroutine
     $billing->createuser($login);
@@ -784,7 +840,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     log_register("StgUser (" . $login . ") IP `" . $ip . "`");
     zb_AddressCreateApartment($buildid, $entrance, $floor, $apt);
     zb_AddressCreateAddress($login, zb_AddressGetLastid());
-    multinet_add_host($netid, $ip);
+    multinet_add_host($netid, $ip, $mac);
     zb_UserCreateRealName($login, '');
     zb_UserCreatePhone($login, '', '');
     zb_UserCreateContract($login, '');
@@ -792,13 +848,7 @@ function zb_UserRegister($user_data, $goprofile = true) {
     zb_UserCreateSpeedOverride($login, 0);
     zb_UserRegisterLog($login);
 
-    // if random mac needed
-    if ($billingconf['REGRANDOM_MAC']) {
-        // funny random mac, yeah? :)
-        $mac = '14:' . '88' . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99) . ':' . rand(10, 99);
-        multinet_change_mac($ip, $mac);
-        multinet_rebuild_all_handlers();
-    }
+
     // if AlwaysOnline to new user needed
     if ($billingconf['REGALWONLINE']) {
         $alwaysonline = 1;

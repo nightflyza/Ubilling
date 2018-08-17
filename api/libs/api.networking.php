@@ -237,7 +237,14 @@ function multinet_show_available_services() {
  * @return array
  */
 function multinet_get_services() {
-    $query = "SELECT * from `services` ORDER BY `id`";
+    global $ubillingConfig;
+    $altCfg = $ubillingConfig->getAlter();
+
+    if ($altCfg['DROPDOWN_LISTS_IPSERVICE_ORDER_BY_DESCR']) {
+        $query = "SELECT * FROM `services` ORDER BY `desc`";
+    } else {
+        $query = "SELECT * FROM `services` ORDER BY `id`";
+    }
     $result = simple_queryall($query);
     return ($result);
 }
