@@ -35,8 +35,13 @@ class GlobalSearch {
      * @return void
      */
     protected function setJsRuntime() {
-        $this->jsRuntime = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/glsearch.js"');
-        $this->jsRuntime.= wf_tag('script', true);
+        if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+            $searchLib = 'sphinxsearch.js';
+        } else {
+            $searchLib = 'glsearch.js';
+        }
+        $this->jsRuntime = wf_tag('script', false, '', 'type="text/javascript" language="javascript" src="modules/jsc/' . $searchLib . '"');
+        $this->jsRuntime .= wf_tag('script', true);
     }
 
     /**
@@ -45,8 +50,14 @@ class GlobalSearch {
      * @return void
      */
     protected function setStyles() {
-        $this->styles = wf_tag('link', false, '', 'rel="stylesheet" href="skins/glsearch.css" type="text/css" media="screen""');
-        $this->styles.= wf_tag('link', true);
+        if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+            $searchCss = 'sphinxsearch.css';
+        } else {
+            $searchCss = 'glsearch.css';
+        }
+
+        $this->styles = wf_tag('link', false, '', 'rel="stylesheet" href="skins/' . $searchCss . '" type="text/css" media="screen""');
+        $this->styles .= wf_tag('link', true);
     }
 
     /**
@@ -66,15 +77,23 @@ class GlobalSearch {
     public function renderSearchInput() {
         $result = '';
         if ($this->alterConf['GLOBALSEARCH_ENABLED']) {
-            $result.=$this->styles;
-            $result.=$this->jsRuntime;
-            $result.= wf_tag('input', false, '.ui-autocomplete', 'type="text" id="globalsearch" name="globalsearchquery"' . $this->placeholder);
-            $result.= wf_tag('input', false, '', 'type="hidden" id="globalsearch_type" name="globalsearch_type" value="" ');
+            $result .= $this->styles;
+            $result .= $this->jsRuntime;
+            if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+                //render SphinxSearch input
+                $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="search" autocomplete="off" oninput="querySearch(this.value)"');
+                $result .= wf_tag('ul', false, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front', 'id="search" style="top: 133px;left: 20.8906px;width: 394px; text-align: left;"');
+                $result .= wf_tag('ul', true);
+            } else {
+                //render standard GlobalSearch input                               
+                $result .= wf_tag('input', false, '.ui-autocomplete', 'type="text" id="globalsearch" name="globalsearchquery"' . $this->placeholder);
+                $result .= wf_tag('input', false, '', 'type="hidden" id="globalsearch_type" name="globalsearch_type" value="" ');
+            }
         } else {
             $result = wf_tag('input', false, '', 'type="text" name="partialaddr"' . $this->placeholder);
         }
 
-        $result.='';
+        $result .= '';
         return ($result);
     }
 
