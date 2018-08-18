@@ -35,7 +35,7 @@ class GlobalSearch {
      * @return void
      */
     protected function setJsRuntime() {
-        if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+        if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
             $searchLib = 'sphinxsearch.js';
         } else {
             $searchLib = 'glsearch.js';
@@ -50,7 +50,7 @@ class GlobalSearch {
      * @return void
      */
     protected function setStyles() {
-        if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+        if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
             $searchCss = 'sphinxsearch.css';
         } else {
             $searchCss = 'glsearch.css';
@@ -79,7 +79,7 @@ class GlobalSearch {
         if ($this->alterConf['GLOBALSEARCH_ENABLED']) {
             $result .= $this->styles;
             $result .= $this->jsRuntime;
-            if ($this->alterConf['SPHINX_SEARCH_ENABLED']) {
+            if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
                 //render SphinxSearch input
                 $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="search" autocomplete="off" oninput="querySearch(this.value)"');
                 $result .= wf_tag('ul', false, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front', 'id="search" style="top: 133px;left: 20.8906px;width: 394px; text-align: left;"');
