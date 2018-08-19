@@ -28,7 +28,7 @@ Class SphinxDB {
      * 
      * @var string
      */
-    protected $searchIndexes = 'ip,mac,realname,login,fulladdress,mobile,phone,contract,paymentid';
+    protected $searchIndexes = 'ip,mac,realname,login,fulladdress,mobile,phone';
 
     /**
      * Limit number of search results
