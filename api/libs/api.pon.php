@@ -2278,7 +2278,7 @@ class PONizer {
             }
 
             if (@$this->altCfg['PON_ONU_PORT_MAX']) {
-                $result.=wf_Link(self::URL_ME . '&oltstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), true, 'ubButton');
+                $result .= wf_Link(self::URL_ME . '&oltstats=true', wf_img_sized('skins/icon_stats.gif', '', '16', '16') . ' ' . __('Stats'), true, 'ubButton');
             }
             if ($this->altCfg['ONUREG_ZTE']) {
                 $zteControls = '';
@@ -2506,8 +2506,8 @@ class PONizer {
         $oltOnuFilled = array();
         $oltInterfacesFilled = array();
         $result = '';
-        $result.=wf_BackLink(self::URL_ME);
-        $result.=wf_tag('br');
+        $result .= wf_BackLink(self::URL_ME);
+        $result .= wf_tag('br');
 
         foreach ($this->allOltDevices as $oltId => $eachOltData) {
             if (isset($oltOnuCounters[$oltId])) {
@@ -2537,28 +2537,28 @@ class PONizer {
         }
         if ((!empty($oltInterfacesFilled)) AND ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
-                $result.=wf_tag('h3');
-                $result.= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
-                $result.= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
-                $result.=wf_tag('h3', true);
+                $result .= wf_tag('h3');
+                $result .= $this->allOltDevices[$oltId] . ' ' . __('filled on') . ' ' . $oltFilledPercent . '%';
+                $result .= ' (' . $oltOnuCounters[$oltId] . ' ' . __('ONU') . ' ' . __('Registered') . ')';
+                $result .= wf_tag('h3', true);
                 if (isset($oltInterfacesFilled[$oltId])) {
                     $cells = wf_TableCell(__('Interface'));
-                    $cells.=wf_TableCell(__('Count'));
-                    $cells.=wf_TableCell(__('Visual'));
+                    $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
                         $cells = wf_TableCell($eachInterface);
-                        $cells.=wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
-                        $cells.=wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
-                        $rows.= wf_TableRow($cells, 'row3');
+                        $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $cells .= wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $rows .= wf_TableRow($cells, 'row3');
                     }
-                    $result.=wf_TableBody($rows, '100%', 0, 'sortable');
+                    $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
             }
         } else {
             $messages = new UbillingMessageHelper();
-            $result.=$messages->getStyledMessage(__('Nothing to show'), 'warning');
+            $result .= $messages->getStyledMessage(__('Nothing to show'), 'warning');
         }
         return ($result);
     }
@@ -2714,7 +2714,6 @@ class PONizer {
         }
     }
 
-
     /**
      * Returns array of unknown ONUs MACs which can be filtered by OLT ID and returned just like simple array
      * or formed HTML selector ready to use on web page
@@ -2731,16 +2730,15 @@ class PONizer {
      *
      * @return array|string
      */
-    public function getUnknownONUMACList($FilterByOLTID = 0, $ReturnAsHTMLSelector = false, $AddEmptyFirsSelectorItem = false,
-                                         $HTMLSelectorID = 'nonameselectorid', $HTMLSelectorName = 'nonameselector',
-                                         $HTMLSelectorLabel = '', $HTMLSelectorSelectedItem = '',
-                                         $HTMLSelectorBR = false, $HTMLSelectorSort = false) {
+    public function getUnknownONUMACList($FilterByOLTID = 0, $ReturnAsHTMLSelector = false, $AddEmptyFirsSelectorItem = false, $HTMLSelectorID = 'nonameselectorid', $HTMLSelectorName = 'nonameselector', $HTMLSelectorLabel = '', $HTMLSelectorSelectedItem = '', $HTMLSelectorBR = false, $HTMLSelectorSort = false) {
         $UnknownONUList = ($ReturnAsHTMLSelector and $AddEmptyFirsSelectorItem) ? array('' => '-') : array();
         $this->fillONUIndexCache();
 
         if (!empty($this->onuIndexCache)) {
             foreach ($this->onuIndexCache as $onuMac => $oltId) {
-                if ( !empty($FilterByOLTID) and $oltId != $FilterByOLTID) { continue; }
+                if (!empty($FilterByOLTID) and $oltId != $FilterByOLTID) {
+                    continue;
+                }
 
                 //not registered?
                 if ($this->checkMacUnique($onuMac)) {
@@ -2749,15 +2747,8 @@ class PONizer {
             }
         }
 
-        return ( ($ReturnAsHTMLSelector) ? wf_Selector( $HTMLSelectorName,
-                                                        $UnknownONUList,
-                                                        $HTMLSelectorLabel,
-                                                        $HTMLSelectorSelectedItem,
-                                                        $HTMLSelectorBR,
-                                                        $HTMLSelectorSort,
-                                                        $HTMLSelectorID) : $UnknownONUList );
+        return ( ($ReturnAsHTMLSelector) ? wf_Selector($HTMLSelectorName, $UnknownONUList, $HTMLSelectorLabel, $HTMLSelectorSelectedItem, $HTMLSelectorBR, $HTMLSelectorSort, $HTMLSelectorID) : $UnknownONUList );
     }
-
 
     /**
      * Renders json formatted data about unregistered ONU
@@ -3132,6 +3123,208 @@ class PONizer {
             }
         }
         $json->getJson();
+    }
+
+}
+
+class PONizerLegacy extends PONizer {
+
+    protected $json = '';
+
+    public function __construct() {
+        parent::__construct();
+        $this->json = new wf_JqDtHelper();
+    }
+
+    /**
+     * Renders json formatted data for jquery data tables list
+     *     
+     * @return void
+     */
+    public function ajaxOnuData($OltId = '') {
+
+        foreach ($this->allOltDevices as $OltId => $eachOltData) {
+
+
+            $OnuByOLT = $this->getOnuArrayByOltID($OltId);
+
+            $allRealnames = zb_UserGetAllRealnames();
+            $allAddress = zb_AddressGetFulladdresslistCached();
+            $allTariffs = zb_TariffsGetAllUsers();
+
+            if ($this->altCfg['ADCOMMENTS_ENABLED']) {
+                $adcomments = new ADcomments('PONONU');
+                $adc = true;
+            } else {
+                $adc = false;
+            }
+
+            $this->loadSignalsCache();
+
+            $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+            if (!empty($distCacheAvail)) {
+                $distCacheAvail = true;
+                $this->loadDistanceCache();
+            } else {
+                $distCacheAvail = false;
+            }
+
+            $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+            if (!empty($intCacheAvail)) {
+                $intCacheAvail = true;
+                $this->loadInterfaceCache();
+            } else {
+                $intCacheAvail = false;
+            }
+
+            $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
+            if (!empty($lastDeregCacheAvail)) {
+                $lastDeregCacheAvail = true;
+                $this->loadLastDeregCache();
+            } else {
+                $lastDeregCacheAvail = false;
+            }
+
+            if (!empty($OnuByOLT)) {
+                foreach ($OnuByOLT as $io => $each) {
+                    $userTariff = '';
+                    $ONUIsOffline = false;
+
+                    if (!empty($each['login'])) {
+                        $userLogin = trim($each['login']);
+                        $userLink = wf_Link('?module=userprofile&username=' . $userLogin, web_profile_icon() . ' ' . @$allAddress[$userLogin], false);
+                        @$userRealName = $allRealnames[$userLogin];
+
+                        //tariff data
+                        if (isset($allTariffs[$userLogin])) {
+                            $userTariff = $allTariffs[$userLogin];
+                        }
+                    } else {
+                        $userLink = '';
+                        $userRealName = '';
+                    }
+                    //checking adcomments availability
+                    if ($adc) {
+                        $indicatorIcon = $adcomments->getCommentsIndicator($each['id']);
+                    } else {
+                        $indicatorIcon = '';
+                    }
+
+                    $actLinks = wf_Link('?module=ponizer&editonu=' . $each['id'], web_edit_icon(), false);
+
+                    $actLinks .= ' ' . $indicatorIcon;
+
+
+                    //coloring signal
+                    if (isset($this->signalCache[$each['mac']])) {
+                        $signal = $this->signalCache[$each['mac']];
+                        if (($signal > 0) OR ( $signal < -25)) {
+                            $sigColor = '#ab0000';
+                        } else {
+                            $sigColor = '#005502';
+                        }
+                    } elseif (isset($this->signalCache[$each['serial']])) {
+                        $signal = $this->signalCache[$each['serial']];
+                        if (($signal > 0) OR ( $signal < -25)) {
+                            $sigColor = '#ab0000';
+                        } else {
+                            $sigColor = '#005502';
+                        }
+                    } else {
+                        $ONUIsOffline = true;
+                        $signal = __('No');
+                        $sigColor = '#000000';
+                    }
+
+                    $data[] = $each['id'];
+                    if ($intCacheAvail) {
+                        $data[] = @$this->interfaceCache[$each['mac']];
+                    }
+                    $data[] = $this->getModelName($each['onumodelid']);
+                    $data[] = $each['ip'];
+                    $data[] = $each['mac'];
+                    $data[] = wf_tag('font', false, '', 'color=' . $sigColor . '') . $signal . wf_tag('font', true);
+
+                    if ($distCacheAvail) {
+                        if (isset($this->distanceCache[$each['mac']])) {
+                            $data[] = @$this->distanceCache[$each['mac']];
+                        } else {
+                            $data[] = @$this->distanceCache[$each['serial']];
+                        }
+                    }
+
+                    if ($lastDeregCacheAvail) {
+                        if ($ONUIsOffline) {
+                            $data[] = @$this->lastDeregCache[$each['mac']];
+                        } else {
+                            $data[] = '';
+                        }
+                    }
+
+                    $data[] = $userLink;
+                    $data[] = $userRealName;
+                    $data[] = $userTariff;
+                    $data[] = $actLinks;
+
+                    $this->json->addRow($data);
+                    unset($data);
+                }
+            }
+        }
+        $this->json->getJson();
+    }
+
+    /**
+     * Renders available ONU JQDT list container
+     *
+     * @return string
+     */
+    public function renderOnuList() {
+        $distCacheAvail = rcms_scandir(self::DISTCACHE_PATH, '*_' . self::DISTCACHE_EXT);
+        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
+        $lastDeregCacheAvail = rcms_scandir(self::DEREGCACHE_PATH, '*_' . self::DEREGCACHE_EXT);
+
+        $distCacheAvail = !empty($distCacheAvail) ? true : false;
+        $intCacheAvail = !empty($intCacheAvail) ? true : false;
+        $lastDeregCacheAvail = !empty($lastDeregCacheAvail) ? true : false;
+        $oltOnuCounters = $this->getOltOnuCounts();
+
+        $columns = array('ID');
+
+        if ($intCacheAvail) {
+            $columns[] = __('Interface');
+        }
+
+        $columns[] = 'Model';
+        if (@$this->altCfg['PON_ONUIPASIF']) {
+            $columns[] = 'Interface';
+        } else {
+            $columns[] = 'IP';
+        }
+        $columns[] = 'MAC';
+        $columns[] = 'Signal';
+
+        if ($distCacheAvail) {
+            $columns[] = __('Distance') . ' (' . __('m') . ')';
+        }
+
+        if ($lastDeregCacheAvail) {
+            $columns[] = __('Last dereg reason');
+        }
+
+        $columns[] = 'Address';
+        $columns[] = 'Real Name';
+        $columns[] = 'Tariff';
+        $columns[] = 'Actions';
+
+        $opts = '"order": [[ 0, "desc" ]]';
+
+        $result = '';
+
+        $AjaxURLStr = '' . self::URL_ME . '&ajaxonu=true&legacyView=true';
+
+        $result .= show_window('',wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
+        return ($result);
     }
 
 }
