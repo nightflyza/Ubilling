@@ -126,6 +126,13 @@ class OnuRegister {
     protected $messages = '';
 
     /**
+     * SNMPHelper object instance
+     *
+     * @var array
+     */
+    protected $snmp = '';
+
+    /**
      * Base class construction.
      * 
      * @return void
@@ -138,7 +145,17 @@ class OnuRegister {
         $this->loadZTECards();
         $this->loadOnuModels();
         $this->loadConfig();
+        $this->initSNMP();
         snmp_set_oid_output_format(SNMP_OID_OUTPUT_NUMERIC);
+    }
+
+    /**
+     * Creates single instance of SNMPHelper object
+     * 
+     * @return void
+     */
+    protected function initSNMP() {
+        $this->snmp = new SNMPHelper();
     }
 
     /**
@@ -470,16 +487,19 @@ class OnuRegister {
                 $value = trim($value);
                 if ($value > 0) {
                     $interfaceID = str_replace($AllUncfgOid . '.', '', $eachUncfgPort);
-                    $UncfgSN = snmp2_real_walk($ip, $snmp, $GetUncfgSn . $interfaceID);
+                    $UncfgSN = $this->snmp->walk($ip, $snmp, $GetUncfgSn . $interfaceID, false);
                     if (empty($UncfgSN)) {
-                        $UncfgSN = snmp2_real_walk($ip, $snmp, $GetUncfgSn . $interfaceID);
+                        $UncfgSN = $this->snmp->walk($ip, $snmp, $GetUncfgSn . $interfaceID, false);
                         if (empty($UncfgSN)) {
-                            $UncfgSN = snmp2_real_walk($ip, $snmp, $GetUncfgSn . $interfaceID);
+                            $UncfgSN = $this->snmp->walk($ip, $snmp, $GetUncfgSn . $interfaceID, false);
                         }
                     }
+                    $UncfgSN = explodeRows(trim($UncfgSN));
                     foreach ($UncfgSN as $eachIndex => $rawValue) {
-                        $rawValue = trim(str_replace("Hex-STRING:", '', $rawValue));
-                        $tmp = explode(" ", $rawValue);
+                        $rawValue = explode('=', $rawValue);
+                        $rawMac = trim($rawValue[1]);
+                        $rawMac = trim(str_replace("Hex-STRING:", '', $rawMac));
+                        $tmp = explode(" ", $rawMac);
                         $sn = $this->hexToString($tmp[0]) . $this->hexToString($tmp[1]) . $this->hexToString($tmp[2]) . $this->hexToString($tmp[3]);
                         $sn .= $tmp[4] . $tmp[5] . $tmp[6] . $tmp[7];
                         foreach ($this->ponArray as $slot => $each_id) {
@@ -678,7 +698,7 @@ class OnuRegister {
                 $tablecells .= wf_TableCell($eachCard['slot_number']);
                 $tablecells .= wf_TableCell($eachCard['card_name']);
                 $actionLinks = wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&edit=true&slot_number=' . $eachCard['slot_number'] . '&card_name=' . $eachCard['card_name'], web_edit_icon(), $this->messages->getEditAlert());
-                $actionLinks.= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
+                $actionLinks .= wf_JSAlert(self::MODULE_URL_EDIT_CARD . $swid . '&delete=true&slot_number=' . $eachCard['slot_number'], web_delete_icon(), $this->messages->getDeleteAlert());
                 $tablecells .= wf_TableCell($actionLinks);
                 $tablerows .= wf_TableRow($tablecells, 'row3');
             }
@@ -1012,7 +1032,7 @@ class OnuRegister {
                 if ($type == 'EPON') {
                     $add_mac = $onuIdentifier;
                     $onuIdentifierRaw = explode(":", $onuIdentifier);
-                    $onuIdentifier = $onuIdentifierRaw[0] . $onuIdentifierRaw[1] . '.' . $onuIdentifierRaw[2] . $onuIdentifierRaw[3] . '.' . $onuIdentifierRaw[4] . $onuIdentifierRaw[5];                    
+                    $onuIdentifier = $onuIdentifierRaw[0] . $onuIdentifierRaw[1] . '.' . $onuIdentifierRaw[2] . $onuIdentifierRaw[3] . '.' . $onuIdentifierRaw[4] . $onuIdentifierRaw[5];
                     foreach ($this->onuArray[$ponInterface] as $eachOnuNumber => $eachOnuID) {
                         $check = @snmp2_real_walk($oltip, $snmp, $snmpTemplate['onu_reg']['EACHLLID'] . $eachOnuID);
                         if (!empty($check)) {
