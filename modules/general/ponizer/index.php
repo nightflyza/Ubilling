@@ -1,21 +1,34 @@
 <?php
 
 $altCfg = $ubillingConfig->getAlter();
+$legacy = 0;
 set_time_limit(0);
 
 if ($altCfg['PON_ENABLED']) {
     if (cfr('PON')) {
 
         $pon = new PONizer();
+        if (isset($altCfg['PONIZER_LEGACY_VIEW'])) {
+            if ($altCfg['PONIZER_LEGACY_VIEW']) {
+                $legacy = 1;
+                $pon2 = new PONizerLegacy();
+            }
+        }
 
         //getting UnknonwsSelector for userreg
         if (wf_CheckGet(array('getunknownlist', 'oltid'))) {
-            die( $pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']) );
+            die($pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']));
         }
 
         //getting ONU json data for list
         if (wf_CheckGet(array('ajaxonu', 'oltid'))) {
             $pon->ajaxOnuData(vf($_GET['oltid'], 3));
+        }
+
+        if ($legacy) {
+            if (wf_CheckGet(array('ajaxonu', 'legacyView'))) {
+                $pon2->ajaxOnuData();
+            }
         }
 
         //getting unregistered ONU list
@@ -115,7 +128,11 @@ if ($altCfg['PON_ENABLED']) {
                         } else {
                             //rendering availavle onu LIST
                             show_window(__('ONU directory'), $pon->controls());
-                            $pon->renderOnuList();
+                            if (!$legacy) {
+                                $pon->renderOnuList();
+                            } else {
+                                $pon2->renderOnuList();
+                            }
                         }
                     }
                 }
