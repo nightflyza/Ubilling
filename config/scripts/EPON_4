@@ -140,3 +140,167 @@ expect {
 		send "exit\r"
 	}
 }
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
+expect {
+        "%Code*" {
+                sleep 5
+                send "vlan port eth_0/1-4 mode tag vlan $VLAN priority 0\r"
+        }
+	"*(epon-onu-mng)#" {
+		send "end\r"
+		expect "*#"
+		send "exit\r"
+	}
+}
