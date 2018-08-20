@@ -474,6 +474,7 @@ class PONizer {
     protected function interfaceParseZTE($oltid, $intIndex, $macIndex) {
         $oltid = vf($oltid, 3);
         $result = array();
+        $macTmp = array();
 
 //storing results
 
@@ -484,10 +485,13 @@ class PONizer {
                 $eachMac = implode(":", $eachMac);
                 $inteface = $intIndex[$ioIndex];
                 $result[$eachMac] = $inteface;
+                $macTmp[$ioIndex] = $eachMac;
             }
         }
         $result = serialize($result);
         file_put_contents(self::INTCACHE_PATH . $oltid . '_' . self::INTCACHE_EXT, $result);
+        $macTmp = serialize($macTmp);
+        file_put_contents(self::ONUCACHE_PATH . $oltid . '_' . self::ONUCACHE_EXT, $macTmp);
     }
 
     /**
