@@ -2951,5 +2951,6 @@ $lang['def']['right to control warehouse reserve outcome operations'] = 'Пра�
 $lang['def']['right to use tasks timing module'] = 'Право использовать отчет по времени задач';
 $lang['def']['right to control SMS history'] = 'Право управлять историей SMS';
 $lang['def']['or choose MAC from unknown ONU\'s list on chosen OLT'] = 'или выберите МАС из списка неизвестных ОНУ на выбранном ОЛТ';
-$lang['def'][''] = '';
+$lang['def']['Show ticket events'] = 'Показать события связанные с тикетом';
+$lang['def']['Events for ticket'] = 'События для тикета';
 ?>
