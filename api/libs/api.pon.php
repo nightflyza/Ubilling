@@ -17,11 +17,18 @@ class PONizer {
     protected $allModelsData = array();
 
     /**
-     * All available OLT devices
+     * All available OLT devices as id=>ip - location
      *
      * @var array
      */
     protected $allOltDevices = array();
+
+    /**
+     * All available OLT devices locations as id=>location
+     *
+     * @var array
+     */
+    protected $allOltNames = array();
 
     /**
      * OLT devices snmp data as id=>snmp data array
@@ -188,6 +195,7 @@ class PONizer {
         if (!empty($raw)) {
             foreach ($raw as $io => $each) {
                 $this->allOltDevices[$each['id']] = $each['ip'] . ' - ' . $each['location'];
+                $this->allOltNames[$each['id']] = $each['location'];
                 if (!empty($each['snmp'])) {
                     $this->allOltSnmp[$each['id']]['community'] = $each['snmp'];
                     $this->allOltSnmp[$each['id']]['modelid'] = $each['modelid'];
@@ -3237,6 +3245,9 @@ class PONizerLegacy extends PONizer {
                     }
 
                     $data[] = $each['id'];
+                    if ($this->altCfg['PONIZER_LEGACY_VIEW'] == 2) {
+                        $data[] = $this->allOltNames[$each['oltid']];
+                    }
                     if ($intCacheAvail) {
                         $data[] = @$this->interfaceCache[$each['mac']];
                     }
@@ -3290,6 +3301,9 @@ class PONizerLegacy extends PONizer {
         $oltOnuCounters = $this->getOltOnuCounts();
 
         $columns = array('ID');
+        if (@$this->altCfg['PONIZER_LEGACY_VIEW'] == 2) {
+            $columns[] = __('OLT');
+        }
 
         if ($intCacheAvail) {
             $columns[] = __('Interface');
@@ -3323,7 +3337,7 @@ class PONizerLegacy extends PONizer {
 
         $AjaxURLStr = '' . self::URL_ME . '&ajaxonu=true&legacyView=true';
 
-        $result .= show_window('',wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
+        $result .= show_window('', wf_JqDtLoader($columns, $AjaxURLStr, false, 'ONU', 100, $opts));
         return ($result);
     }
 
