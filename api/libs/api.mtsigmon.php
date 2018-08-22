@@ -724,7 +724,14 @@ class MTsigmon {
                 $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
             }
 
-            /*// For Deliberant APC Series clients. Won't work for APs, cause there is no ability to monitor
+            // For Ligowave DLB 2-90 after 7.59 firmware version
+            if ($tmpSnmp === "$oid = ") {
+                $oid = '.1.3.6.1.4.1.32750.3.10.1.3.2.1.5.7';
+                $tmpSnmp = $this->snmp->walk($ip, $community, $oid, false);
+            }
+
+            /*
+            // For Deliberant APC Series clients. Won't work for APs, cause there is no ability to monitor
             // Deliberant APC Series APs clients signal level via SNMP. Only on clients itself
             if ($tmpSnmp === "$oid = ") {
                 $DeliberantClient = true;
