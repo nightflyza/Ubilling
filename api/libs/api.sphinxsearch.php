@@ -31,11 +31,16 @@ Class SphinxDB {
     protected $searchIndexes = 'ip,mac,realname,login,fulladdress,mobile,phone';
 
     /**
-     * Limit number of search results
+     * Contains additional sorting parameters
      * 
-     * @var int
+     * @var string
      */
-    protected $searchLimit = 100;
+    protected $queryOptions = ' ';
+
+    /**
+     * Limit number of search results
+     */
+    CONST SEARCHLIMIT = 100;
 
     public function __construct() {
         $this->LoadAlter();
@@ -121,9 +126,16 @@ Class SphinxDB {
             $this->searchIndexes = $this->altCfg['SPHINX_SEARCH_INDEXES'];
         }
 
-        if (isset($this->altCfg['SPHINX_SEARCH_LIMIT'])) {
-            $this->searchLimit = $this->altCfg['SPHINX_SEARCH_LIMIT'];
+        if (isset($this->altCfg['SPHINX_SEARCH_SORT'])) {
+            $this->queryOptions .= $this->altCfg['SPHINX_SEARCH_SORT'];
         }
+
+        if (isset($this->altCfg['SPHINX_SEARCH_LIMIT'])) {
+            $this->queryOptions .= ' LIMIT ' . $this->altCfg['SPHINX_SEARCH_LIMIT'];
+        } else {
+            $this->queryOptions .= ' LIMIT ' . self::SEARCHLIMIT;
+        }
+
 
         if (!empty($searchString)) {
 
@@ -131,7 +143,7 @@ Class SphinxDB {
                 return $search;
             }
 
-            $query = "SELECT * FROM " . $this->searchIndexes . " WHERE MATCH ('" . $searchString . "') GROUP BY `id`,`title` LIMIT " . $this->searchLimit;
+            $query = "SELECT * FROM " . $this->searchIndexes . " WHERE MATCH ('" . $searchString . "') " . $this->queryOptions;
 
 
             if ($this->dbDriver == 'mysqli') {

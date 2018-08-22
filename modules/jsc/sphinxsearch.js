@@ -26,8 +26,7 @@ function querySearch(value) {
         xhr.open('POST', '?module=usersearch&sphinxsearch=true', true);
         xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         xhr.onload = function () {
-            searchList.innerHTML = "";
-            console.log(value);
+            searchList.innerHTML = "";            
             var JSONresponse = JSON.parse(this.responseText);
             JSONresponse.forEach(function (object) {
                 if (object.value !== undefined) {
