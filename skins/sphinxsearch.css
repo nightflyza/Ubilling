@@ -2,6 +2,15 @@
     margin: 0 !important;
 }
 
+.sphinxsearch-input {
+
+}
+
+.sphinxsearch-input-loading {
+    background: white url("ui-anim_basic_16x16.gif") left center no-repeat ! important;
+    background-position: 10px 6px ! important;
+}
+
 .sphinxsearchcontainer {
     background-color: #fefefe;
     opacity: 1;
@@ -23,7 +32,7 @@
     display : block !important;
     position: relative !important;
     padding: 5px  !important;
-    margin-right: 0 !important;
+    margin: 0 !important;
 }
 
 .sphinxsearchcontainer a:hover {
