@@ -2,16 +2,63 @@
 
 class GlobalSearch {
 
+    /**
+     * Contains requred javascripts code
+     *
+     * @var string
+     */
     protected $jsRuntime = '';
+
+    /**
+     * Contains some styles for search controls
+     *
+     * @var string
+     */
     protected $styles = '';
+
+    /**
+     * Contains default search input placeholder
+     *
+     * @var string
+     */
     protected $placeholder = '';
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $alterConf = array();
+
+    /**
+     * Contains raw user data for further usage
+     *
+     * @var array
+     */
     protected $rawData = array();
+
+    /**
+     * Contains configurable search fields list
+     *
+     * @var array
+     */
     protected $fields = array();
 
+    /**
+     * Path to globalsearch cache file
+     */
     const CACHE_NAME = 'exports/globalsearchcache.dat';
+
+    /**
+     * Some exceptions here
+     */
     const EX_NO_SEARCHTYPE = 'SEARCHTYPE_NOT_DETECTED';
 
+    /**
+     * Creates new globalsearch instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->setPlaceholder();
@@ -23,6 +70,8 @@ class GlobalSearch {
      * Loads system alter config into protected prop
      * 
      * @global type $ubillingConfig
+     * 
+     * @return void
      */
     protected function loadAlter() {
         global $ubillingConfig;
@@ -82,7 +131,7 @@ class GlobalSearch {
             if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
                 //render SphinxSearch input
                 $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="search" autocomplete="off" oninput="querySearch(this.value)"');
-                $result .= wf_tag('ul', false, 'ui-menu ui-widget ui-widget-content ui-autocomplete ui-front', 'id="search" style="top: 133px;left: 20.8906px;width: 394px; text-align: left;"');
+                $result .= wf_tag('ul', false, 'ui-menu ui-widget  ui-autocomplete ui-front sphinxpanel', 'id="search" style=" top: 133px;left: 20.8906px;width: 394px; text-align: left;"');
                 $result .= wf_tag('ul', true);
             } else {
                 //render standard GlobalSearch input                               

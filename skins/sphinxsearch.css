@@ -1,3 +1,8 @@
 .ui-menu .ui-menu-item {
     margin: 0 !important;
 }
+
+.sphinxpanel {
+    background-color: #fefefe;
+    opacity: 1;
+}
