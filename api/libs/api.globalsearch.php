@@ -130,13 +130,13 @@ class GlobalSearch {
             $result .= $this->jsRuntime;
             if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
                 //render SphinxSearch input
-                $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="search" autocomplete="off" oninput="querySearch(this.value)"');
-                $result .= wf_tag('ul', false, 'ui-menu ui-widget  ui-autocomplete ui-front sphinxpanel', 'id="search" style=" top: 133px;left: 20.8906px;width: 394px; text-align: left;"');
+                $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="globalsearchquery" autocomplete="off" oninput="querySearch(this.value)"' . $this->placeholder);
+                $result .= wf_tag('ul', false, 'ui-menu ui-widget  ui-autocomplete ui-front sphinxsearchcontainer', 'id="ssearchcontainer" style="display: none;"');
                 $result .= wf_tag('ul', true);
             } else {
                 //render standard GlobalSearch input                               
                 $result .= wf_tag('input', false, '.ui-autocomplete', 'type="text" id="globalsearch" name="globalsearchquery"' . $this->placeholder);
-                $result .= wf_tag('input', false, '', 'type="hidden" id="globalsearch_type" name="globalsearch_type" value="" ');
+                $result .= wf_tag('input', false, '', 'type="hidden" id="globalsearch_type" name="globalsearch_type" value=""');
             }
         } else {
             $result = wf_tag('input', false, '', 'type="text" name="partialaddr"' . $this->placeholder);
