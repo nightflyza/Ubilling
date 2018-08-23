@@ -9,7 +9,6 @@
  */
 function multinet_show_available_networks() {
     global $ubillingConfig;
-    $alter = $ubillingConfig->getAlter();
     $query = "SELECT * from `networks`";
     $networks = simple_queryall($query);
     $cells = wf_TableCell(__('ID'));
@@ -17,7 +16,7 @@ function multinet_show_available_networks() {
     $cells .= wf_TableCell(__('Last IP'));
     $cells .= wf_TableCell(__('Network/CIDR'));
     $cells .= wf_TableCell(__('Network type'));
-    if ($alter['FREERADIUS_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
         $cells .= wf_TableCell(__('Use Radius'));
     }
     $cells .= wf_TableCell(__('Actions'));
@@ -29,12 +28,12 @@ function multinet_show_available_networks() {
             $cells .= wf_TableCell($network['endip']);
             $cells .= wf_TableCell($network['desc']);
             $cells .= wf_TableCell($network['nettype']);
-            if ($alter['FREERADIUS_ENABLED']) {
+            if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
                 $cells .= wf_TableCell(web_bool_led($network['use_radius']));
             }
             $actions = wf_JSAlert('?module=multinet&deletenet=' . $network['id'], web_delete_icon(), 'Removing this may lead to irreparable results');
             $actions .= wf_JSAlert('?module=multinet&editnet=' . $network['id'], web_edit_icon(), 'Are you serious');
-            if ($alter['FREERADIUS_ENABLED'] && $network['use_radius']) {
+            if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED') && $network['use_radius']) {
                 $actions .= wf_Link('?module=freeradius&netid=' . $network['id'], web_icon_freeradius('Set RADIUS-attributes'));
             }
             $cells .= wf_TableCell($actions);
@@ -57,7 +56,6 @@ function multinet_show_available_networks() {
 function multinet_show_neteditform($netid) {
     global $ubillingConfig;
     $netid = vf($netid, 3);
-    $altcfg = $ubillingConfig->getAlter();
     $netdata = multinet_get_network_params($netid);
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
@@ -68,7 +66,7 @@ function multinet_show_neteditform($netid) {
     $inputs.= wf_TextInput('editendip', __('Last IP') . $sup, $netdata['endip'], true, '20', 'ip');
     $inputs.= multinet_nettype_selector($netdata['nettype']) . ' ' . __('Network type') . wf_tag('br');
     $inputs.= wf_TextInput('editdesc', __('Network/CIDR') . $sup, $netdata['desc'], true, '20', 'net-cidr');
-    if ($altcfg['FREERADIUS_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
         $inputs.= wf_Selector('edituse_radius', $useRadArr, __('Use Radius'), $netdata['use_radius'], true);
     } else {
         $inputs.=wf_HiddenInput('edituse_radius', '0');
@@ -178,7 +176,6 @@ function multinet_nettype_selector($curnettype = '') {
  */
 function multinet_show_networks_create_form() {
     global $ubillingConfig;
-    $altcfg = $ubillingConfig->getAlter();
 
     $useRadArr = array('0' => __('No'), '1' => __('Yes'));
 
@@ -188,7 +185,7 @@ function multinet_show_networks_create_form() {
     $inputs.= wf_TextInput('lastip', __('Last IP') . $sup, '', true, '20', 'ip');
     $inputs.= multinet_nettype_selector() . ' ' . __('Network type') . wf_tag('br');
     $inputs.= wf_TextInput('desc', __('Network/CIDR') . $sup, '', true, '20', 'net-cidr');
-    if ($altcfg['FREERADIUS_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('FREERADIUS_ENABLED')) {
         $inputs.= wf_Selector('use_radius', $useRadArr, __('Use Radius'), '', true);
         $inputs.= wf_tag('br');
     } else {
@@ -238,9 +235,8 @@ function multinet_show_available_services() {
  */
 function multinet_get_services() {
     global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
 
-    if ($altCfg['DROPDOWN_LISTS_IPSERVICE_ORDER_BY_DESCR']) {
+    if ($ubillingConfig->getAlterParam('DROPDOWN_LISTS_IPSERVICE_ORDER_BY_DESCR')) {
         $query = "SELECT * FROM `services` ORDER BY `desc`";
     } else {
         $query = "SELECT * FROM `services` ORDER BY `id`";
@@ -259,9 +255,8 @@ function multinet_get_services() {
  */
 function multinet_service_selector() {
     global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
     $tmpArr = array();
-    if ($altCfg['BRANCHES_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
         global $branchControl;
         $branchControl->loadServices();
     }
@@ -269,7 +264,7 @@ function multinet_service_selector() {
     $allservices = multinet_get_services();
     if (!empty($allservices)) {
         foreach ($allservices as $io => $eachservice) {
-            if ($altCfg['BRANCHES_ENABLED']) {
+            if ($ubillingConfig->getAlterParam('BRANCHES_ENABLED')) {
                 if ($branchControl->isMyService($eachservice['id'])) {
                     $tmpArr[$eachservice['id']] = $eachservice['desc'];
                 }
@@ -536,7 +531,7 @@ function handle_dhcp_rebuild_option82_vpu($netid, $confname) {
             foreach ($allhosts as $io => $eachhost) {
                 $login = $allIps[$eachhost['ip']];
                 if (isset($allVlans[$login])) {
-                    //$netid		 = GetNetidByIp($eachhost['ip']);
+                    //$netid         = GetNetidByIp($eachhost['ip']);
                     $remote = GetTermRemoteByNetid($netid);
                     $vlan = $allVlans[$login];
                     $dhcphostname = 'm' . str_replace('.', 'x', $eachhost['ip']);
@@ -755,7 +750,6 @@ function multinet_cidr2mask($mask_bits) {
  */
 function multinet_rebuild_globalconf() {
     global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
     $global_template = file_get_contents("config/dhcp/global.template");
     $subnets_template = file_get_contents("config/dhcp/subnets.template");
     $alldhcpsubnets_q = "SELECT `id`,`netid` from `dhcp` ORDER BY `id` ASC";
@@ -774,15 +768,13 @@ function multinet_rebuild_globalconf() {
         }
     }
 
-    if (isset($altCfg['VLANGEN_SUPPORT'])) {
-        if ($altCfg['VLANGEN_SUPPORT']) {
-            $vlanMembers_q = "SELECT `ip` FROM `users` WHERE `login` IN(SELECT `login` FROM `vlanhosts`);";
-            $allVlanMembers = simple_queryall($vlanMembers_q);
-            if (!empty($allVlanMembers)) {
-                foreach ($allVlanMembers as $ivl => $eachVlanMember) {
-                    $memberVlanClass = 'm' . str_replace('.', 'x', $eachVlanMember['ip']);
-                    $vlanMembersMacroContent.='deny members of "' . $memberVlanClass . '";' . "\n";
-                }
+    if ($ubillingConfig->getAlterParam('VLANGEN_SUPPORT')) {
+        $vlanMembers_q = "SELECT `ip` FROM `users` WHERE `login` IN(SELECT `login` FROM `vlanhosts`);";
+        $allVlanMembers = simple_queryall($vlanMembers_q);
+        if (!empty($allVlanMembers)) {
+            foreach ($allVlanMembers as $ivl => $eachVlanMember) {
+                $memberVlanClass = 'm' . str_replace('.', 'x', $eachVlanMember['ip']);
+                $vlanMembersMacroContent.='deny members of "' . $memberVlanClass . '";' . "\n";
             }
         }
     }
@@ -866,11 +858,11 @@ function multinet_rebuild_all_handlers() {
             }
         }
     }
-//rebuilding global conf 
+    //rebuilding global conf 
     multinet_rebuild_globalconf();
-//restarting dhcpd
+    //restarting dhcpd
     multinet_RestartDhcp();
-//debarr(dhcp_get_data_by_netid(5));
+    //debarr(dhcp_get_data_by_netid(5));
 }
 
 /**
@@ -1075,7 +1067,6 @@ function zb_TraffToGb($fs) {
  */
 function zb_TariffGetAllSpeeds() {
     global $ubillingConfig;
-    $altCfg = $ubillingConfig->getAlter();
     $query = "SELECT * from `speeds`";
     $allspeeds = simple_queryall($query);
     $result = array();
@@ -1083,7 +1074,7 @@ function zb_TariffGetAllSpeeds() {
         foreach ($allspeeds as $io => $eachspeed) {
             $result[$eachspeed['tariff']]['speeddown'] = $eachspeed['speeddown'];
             $result[$eachspeed['tariff']]['speedup'] = $eachspeed['speedup'];
-            if ($altCfg['BURST_ENABLED']) {
+            if ($ubillingConfig->getAlterParam('BURST_ENABLED')) {
                 $result[$eachspeed['tariff']]['burstdownload'] = $eachspeed['burstdownload'];
                 $result[$eachspeed['tariff']]['burstupload'] = $eachspeed['burstupload'];
                 $result[$eachspeed['tariff']]['bursttimedownload'] = $eachspeed['bursttimedownload'];
@@ -1553,7 +1544,7 @@ function zb_NewMacShow() {
     if (!empty($fdbColumn)) {
         $cells.= wf_TableCell(__('Switch'));
     }
-    if ($alter_config['MACVEN_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
         $cells.= wf_TableCell(__('Manufacturer'));
     }
     $rows = wf_TableRow($cells, 'row1');
@@ -1568,8 +1559,8 @@ function zb_NewMacShow() {
         }
         $un_arr = array_unique($allarp);
         if (!empty($un_arr)) {
-            if ($alter_config['MACVEN_ENABLED']) {
-//adding ajax loader
+            if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
+                //adding ajax loader
                 $result.=wf_AjaxLoader();
             }
             foreach ($un_arr as $io => $eachmac) {
@@ -1579,7 +1570,7 @@ function zb_NewMacShow() {
                         $cells.= wf_TableCell(sn_SnmpParseFdbExtract(@$fdbArr[$eachmac]));
                     }
 
-                    if ($alter_config['MACVEN_ENABLED']) {
+                    if ($ubillingConfig->getAlterParam('MACVEN_ENABLED')) {
                         $containerName = 'NMRSMCNT_' . zb_rand_string(8);
                         $lookupVendorLink = wf_AjaxLink('?module=macvendor&mac=' . @$eachmac . '&raw=true', wf_img('skins/macven.gif', __('Device vendor')), $containerName, false, '');
                         $lookupVendorLink.= wf_tag('span', false, '', 'id="' . $containerName . '"') . '' . wf_tag('span', true);
