@@ -575,7 +575,7 @@ function web_UserRegFormNetData($newuser_data) {
                 function getUnknownONUList(OLTID) {
                     $.ajax({
                         type: "GET",
-                        url: "?module=ponizer",
+                        url: "?module=userreg",
                         data: {
                                 getunknownlist:true, 
                                 oltid:OLTID,

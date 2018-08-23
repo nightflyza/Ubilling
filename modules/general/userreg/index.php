@@ -10,6 +10,12 @@ if (cfr('USERREG')) {
         }
     }
 
+    //getting UnknonwsSelector for userreg
+    if (wf_CheckGet(array('getunknownlist', 'oltid'))) {
+        $Pon = new PONizer();
+        die($Pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']));
+    }
+
     //ONU assigment check
     if (@$alter_conf['ONUAUTO_USERREG']) {
         if ($_GET['action'] = 'checkONUAssignment' and isset($_GET['onumac'])) {

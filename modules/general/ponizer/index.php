@@ -15,11 +15,6 @@ if ($altCfg['PON_ENABLED']) {
             }
         }
 
-        //getting UnknonwsSelector for userreg
-        if (wf_CheckGet(array('getunknownlist', 'oltid'))) {
-            die($pon->getUnknownONUMACList(vf($_GET['oltid'], 3), true, true, $_GET['selectorid'], $_GET['selectorname']));
-        }
-
         //getting ONU json data for list
         if (wf_CheckGet(array('ajaxonu', 'oltid'))) {
             $pon->ajaxOnuData(vf($_GET['oltid'], 3));
