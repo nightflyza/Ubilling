@@ -1796,11 +1796,14 @@ function web_PaymentsShowGraph($year) {
         foreach ($months as $eachmonth => $monthname) {
             $month_summ = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['summ'] : 0;
             $paycount = (isset($yearStats[$eachmonth])) ? $yearStats[$eachmonth]['count'] : 0;
-
+            $monthArpu = @round($month_summ / $paycount, 2);
+            if (is_nan($monthArpu)) {
+                $monthArpu = 0;
+            }
             $cells = wf_TableCell($eachmonth);
             $cells.= wf_TableCell(wf_Link('?module=report_finance&month=' . $year . '-' . $eachmonth, rcms_date_localise($monthname)));
             $cells.= wf_TableCell($paycount);
-            $cells.= wf_TableCell(@round($month_summ / $paycount, 2));
+            $cells.= wf_TableCell($monthArpu);
             $cells.= wf_TableCell(web_roundValue($month_summ, 2));
             $cells.= wf_TableCell(web_bar($month_summ, $year_summ));
             $rows.= wf_TableRow($cells, 'row3');
@@ -1922,7 +1925,7 @@ function web_GridEditorNas($titles, $keys, $alldata, $module, $delete = true, $e
                 if (array_key_exists($key, $data)) {
                     switch ($key) {
                         case 'netid':
-                            $cells .= wf_TableCell($data[$key] . ': ' . ( ( array_key_exists($data[$key], $cidrs) ) ? $cidrs[$data[$key]] : __('Network not found')) );
+                            $cells .= wf_TableCell($data[$key] . ': ' . ( ( array_key_exists($data[$key], $cidrs) ) ? $cidrs[$data[$key]] : __('Network not found')));
                             break;
                         case 'nastype':
                             if ($data[$key] == 'mikrotik') {
@@ -4953,7 +4956,6 @@ function zb_formatTime($seconds) {
     }
     return ($result);
 }
-
 
 /**
  * Renders list of loaded modules
