@@ -1722,6 +1722,7 @@ function web_PaymentsShowGraph($year) {
     $curtime = time();
     $yearPayData = array();
     $yearStats = array();
+    $cache = new UbillingCache();
     $cacheTime = 3600; //sec intervall to cache
 
     $cells = wf_TableCell('');
@@ -1733,11 +1734,12 @@ function web_PaymentsShowGraph($year) {
     $rows = wf_TableRow($cells, 'row1');
 
     //caching subroutine
-    $renewTime = zb_StorageGet('YPD_LAST');
+
+    $renewTime = $cache->get('YPD_LAST', $cacheTime);
     if (empty($renewTime)) {
         //first usage
         $renewTime = $curtime;
-        zb_StorageSet('YPD_LAST', $renewTime);
+        $cache->set('YPD_LAST', $renewTime, $cacheTime);
         $updateCache = true;
     } else {
         //cache time already set
@@ -1747,13 +1749,13 @@ function web_PaymentsShowGraph($year) {
             $updateCache = true;
         } else {
             //load data from cache or init new cache
-            $yearPayData_raw = zb_StorageGet('YPD_CACHE');
+            $yearPayData_raw = $cache->get('YPD_CACHE', $cacheTime);
             if (empty($yearPayData_raw)) {
                 //first usage
                 $emptyCache = array();
                 $emptyCache = serialize($emptyCache);
                 $emptyCache = base64_encode($emptyCache);
-                zb_StorageSet('YPD_CACHE', $emptyCache);
+                $cache->set('YPD_CACHE', $emptyCache, $cacheTime);
                 $updateCache = true;
             } else {
                 // data loaded from cache
@@ -1811,10 +1813,10 @@ function web_PaymentsShowGraph($year) {
         $result = wf_TableBody($rows, '100%', '0', 'sortable');
         $yearPayData[$year]['graphs'] = $result;
         //write to cache
-        zb_StorageSet('YPD_LAST', $curtime);
+        $cache->set('YPD_LAST', $curtime, $cacheTime);
         $newCache = serialize($yearPayData);
         $newCache = base64_encode($newCache);
-        zb_StorageSet('YPD_CACHE', $newCache);
+        $cache->set('YPD_CACHE', $newCache, $cacheTime);
     } else {
         //take data from cache
         if (isset($yearPayData[$year]['graphs'])) {
