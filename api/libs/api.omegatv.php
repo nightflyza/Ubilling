@@ -86,6 +86,23 @@ class OmegaTV {
         return ($result);
     }
 
+    /**
+     * Renders some user profile info
+     * 
+     * @param int $customerId
+     * 
+     * @return string
+     */
+    public function renderUserInfo($customerId) {
+        $result = '';
+        $userInfo = $this->hls->getUserInfo($customerId);
+        if (isset($userInfo['result'])) {
+            $userInfo=$userInfo['result'];
+            debarr($userInfo);
+        }
+        return ($result);
+    }
+
 }
 
 ?>

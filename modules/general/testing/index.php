@@ -3,8 +3,8 @@
 //just dummy module for testing purposes
 error_reporting(E_ALL);
 
-//$hls = new HlsTV();
-//debarr($hls->getUserInfo(1));
+$hls = new HlsTV();
+//debarr($hls->getUserInfo(14));
 //debarr($hls->getTariffsBase()); // 1036 avail
 //debarr($hls->getTariffsBundle()); // 1046 avail
 //debarr($hls->setUserTariff(1,array('base' =>1036, 'bundle' => 1046)));
@@ -15,5 +15,7 @@ error_reporting(E_ALL);
 //debarr($hls->getDeviceList());
 
 $omega = new OmegaTV();
-deb($omega->renderTariffs('bundle', true, true));
+//deb($omega->renderTariffs('bundle', true, true));
+deb($omega->renderUserInfo(1));
+
 ?>
