@@ -83,9 +83,14 @@ if (cfr('USERSEARCH')) {
                 $found_users = zb_UserSearchAddressPartial($globalSearchQuery);
                 show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize('partialaddr', $globalSearchQuery), web_UserArrayShower($found_users));
             } else {
-                //other fields search
-                if (!empty($globalSearchQuery)) {
-                    show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize($globalSearchType, $globalSearchQuery), zb_UserSearchFields($globalSearchQuery, $globalSearchType));
+                if ($globalSearchType != 'full') {
+                    //other fields search
+                    if (!empty($globalSearchQuery)) {
+                        show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize($globalSearchType, $globalSearchQuery), zb_UserSearchFields($globalSearchQuery, $globalSearchType));
+                    }
+                } else {
+                    //all fields search for sphinx
+                    show_window(__('Search results') . ' - ' . zb_UserSearchTypeLocalize($globalSearchType, $globalSearchQuery), zb_UserSearchAllFields($globalSearchQuery));
                 }
             }
         } else {

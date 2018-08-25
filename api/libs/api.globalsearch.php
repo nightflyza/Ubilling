@@ -131,6 +131,7 @@ class GlobalSearch {
             if (@$this->alterConf['SPHINX_SEARCH_ENABLED']) {
                 //render SphinxSearch input
                 $result .= wf_tag('input', false, 'sphinxsearch-input', 'type="text" name="globalsearchquery" autocomplete="off" id="sphinxsearchinput" oninput="querySearch(this.value)"' . $this->placeholder);
+                $result.= wf_HiddenInput('globalsearch_type', 'full');
                 $result .= wf_tag('ul', false, 'ui-menu ui-widget  ui-autocomplete ui-front sphinxsearchcontainer', 'id="ssearchcontainer" style="display: none;"');
                 $result .= wf_tag('ul', true);
             } else {
