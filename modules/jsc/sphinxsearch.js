@@ -18,6 +18,7 @@ function appendToList(value, login, title) {
     document.getElementById("ssearchcontainer").appendChild(node);
     showSearchContainer();
 }
+
 function querySearch(value) {
     var searchList = document.getElementById('ssearchcontainer');
     if (value !== "") {
