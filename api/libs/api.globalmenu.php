@@ -2,20 +2,82 @@
 
 class GlobalMenu {
 
+    /**
+     * Contains globalmenu config as key=>value with sections
+     *
+     * @var array
+     */
     protected $rawData = array();
+
+    /**
+     * Contains some preprocessed menu data
+     *
+     * @var array
+     */
     protected $menuData = array();
+
+    /**
+     * Contains available menu categories
+     *
+     * @var array
+     */
     protected $categories = array();
+
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * Contains disabled menu items
+     *
+     * @var array
+     */
     protected $disabled = array();
+
+    /**
+     * Contains fast access menu items
+     *
+     * @var array
+     */
     protected $fastAccess = array();
+
+    /**
+     * Contains default menu icons path
+     *
+     * @var string
+     */
     protected $iconsPath = 'skins/menuicons/';
+
+    /**
+     * Pre-rendered menu code
+     *
+     * @var string
+     */
     protected $menuCode = '';
+
+    /**
+     * Pre-rendered fast access menu code
+     *
+     * @var string
+     */
     protected $menuCodeFA = '';
+
+    /**
+     * Current user`s login
+     *
+     * @var string
+     */
     protected $myLogin = '';
 
     const DEFAULT_ICON = 'defaulticon.png';
     const CUSTOMS_PATH = 'content/documents/glmcustoms/';
 
+    /**
+     * Creates new GlobalMenu instance
+     */
     public function __construct() {
         $this->setLogin();
         $this->loadCustoms();
@@ -253,7 +315,7 @@ class GlobalMenu {
         } else {
             file_put_contents($fastaccFilename, '');
         }
-  }
+    }
 
     /**
      * Rebuilds fast access menu data with newly saved config
