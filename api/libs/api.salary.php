@@ -954,6 +954,8 @@ class Salary {
         $totalSum = 0;
         $payedSum = 0;
         $jobCount = 0;
+        $litreCountUnpaid = 0;
+        $litreCountPaid = 0;
         $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
@@ -974,6 +976,7 @@ class Salary {
             foreach ($all as $io => $each) {
                 $jobName = @$this->allJobtypes[$each['jobtypeid']];
                 $jobPrice = $this->getJobPrice($each['id']);
+                $unitType = $this->allJobUnits[$each['jobtypeid']];
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
@@ -986,7 +989,7 @@ class Salary {
                 }
 
                 if (isset($this->allJobUnits[$each['jobtypeid']])) {
-                    $unit = $this->unitTypes[$this->allJobUnits[$each['jobtypeid']]];
+                    $unit = $this->unitTypes[$unitType];
                 } else {
                     $unit = __('No');
                 }
@@ -1027,10 +1030,18 @@ class Salary {
                 $rows.= wf_TableRow($cells, 'row3');
 
                 if ($each['state'] == 0) {
-                    $totalSum = $totalSum + $jobPrice;
+                    if ($unitType != 'litre') {
+                        $totalSum = $totalSum + $jobPrice;
+                    } else {
+                        $litreCountUnpaid += $jobPrice;
+                    }
                     $jobCount++;
                 } else {
-                    $payedSum = $payedSum + $jobPrice;
+                    if ($unitType != 'litre') {
+                        $payedSum = $payedSum + $jobPrice;
+                    } else {
+                        $litreCountPaid += $jobPrice;
+                    }
                 }
             }
         }
@@ -1053,7 +1064,9 @@ class Salary {
         $result = wf_Form('', 'POST', $result, '');
 
         $result.= __('Not paid money') . ': ' . $totalSum . wf_tag('br');
+        $result.= __('Not paid fuel') . ': ' . $litreCountUnpaid . ' ' . __('litre') . wf_tag('br');
         $result.= __('Paid money') . ': ' . $payedSum . wf_tag('br');
+        $result.= __('Paid fuel') . ': ' . $litreCountPaid . ' ' . __('litre') . wf_tag('br');
         $result.= __('Total money') . ': ' . ($payedSum + $totalSum) . wf_tag('br');
         $result.= __('Total') . ' ' . __('time') . ': ' . $this->formatTime($totalTimeSpent * 60) . wf_tag('br');
         $result.= __('Total') . ' ' . __('Work hours') . ': ' . $this->formatTime($timeSheetsTimeSpent * 60);
@@ -2224,7 +2237,7 @@ class Salary {
             $yearSummaryArr[$monthNum]['jobscount'] = 0;
         }
 
-        $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $showYear).' ';
+        $inputs = wf_YearSelectorPreset('showyear', __('Year'), false, $showYear) . ' ';
         $inputs.= wf_Submit(__('Show'));
         $result.=wf_Form('', 'POST', $inputs, 'glamour');
         $result.=wf_delimiter();
@@ -2261,7 +2274,7 @@ class Salary {
 
             //rendering year summary report
             if (!empty($yearSummaryArr)) {
-                $result.=wf_tag('h3') .__('Employee wages').' '.$showYear.  wf_tag('h3', true);
+                $result.=wf_tag('h3') . __('Employee wages') . ' ' . $showYear . wf_tag('h3', true);
                 $cells = wf_TableCell('');
                 $cells.= wf_TableCell(__('Month'));
                 $cells.= wf_TableCell(__('Jobs'));

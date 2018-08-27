@@ -2953,4 +2953,10 @@ $lang['def']['right to control SMS history'] = 'Право управлять и
 $lang['def']['or choose MAC from unknown ONU\'s list on chosen OLT'] = 'или выберите МАС из списка неизвестных ОНУ на выбранном ОЛТ';
 $lang['def']['Show ticket events'] = 'Показать события связанные с тикетом';
 $lang['def']['Events for ticket'] = 'События для тикета';
+$lang['def']['Not paid fuel'] = 'Не выплачено топлива';
+$lang['def']['Paid fuel'] = 'Выплачено топлива';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+
 ?>

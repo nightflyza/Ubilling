@@ -16,7 +16,7 @@ $hls = new HlsTV();
 //debarr($hls->getDeviceList());
 
 $omega = new OmegaTV();
-deb($omega->renderTariffs('base', true, true));
+//deb($omega->renderTariffs('base', true, true));
 deb($omega->renderUserInfo(1));
 
 ?>
