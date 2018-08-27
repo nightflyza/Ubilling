@@ -57,7 +57,11 @@ class OmegaTV {
         }
         if (!empty($allTariffs)) {
             if (isset($allTariffs['result'])) {
-                $allTariffs = $allTariffs['result'];
+                if ($list != 'promo') {
+                    $allTariffs = $allTariffs['result'];
+                } else {
+                    $allTariffs = $allTariffs['result']['promo_limited'];
+                }
                 if (!empty($allTariffs)) {
                     foreach ($allTariffs as $io => $each) {
                         $tariffTitle = ($withIds) ? $each['tariff_id'] . ': ' . $each['tariff_name'] : $each['tariff_name'];
@@ -97,7 +101,7 @@ class OmegaTV {
         $result = '';
         $userInfo = $this->hls->getUserInfo($customerId);
         if (isset($userInfo['result'])) {
-            $userInfo=$userInfo['result'];
+            $userInfo = $userInfo['result'];
             debarr($userInfo);
         }
         return ($result);
