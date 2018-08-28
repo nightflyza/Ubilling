@@ -956,6 +956,7 @@ class Salary {
         $jobCount = 0;
         $litreCountUnpaid = 0;
         $litreCountPaid = 0;
+
         $jobtypeFilter = (!empty($jobtypeid)) ? "AND `jobtypeid`='" . $jobtypeid . "'" : '';
         $query = "SELECT * from `salary_jobs` WHERE CAST(`date` AS DATE) BETWEEN '" . $datefrom . "' AND  '" . $dateto . "' AND `employeeid`='" . $employeeid . "' " . $jobtypeFilter . ";";
         $all = simple_queryall($query);
@@ -980,11 +981,36 @@ class Salary {
 
                 if (!empty($jobName)) {
                     if (isset($chartData[$jobName])) {
-                        $chartData[$jobName] +=$each['factor'];
-                        $chartDataCash[$jobName] = $chartDataCash[$jobName] + $jobPrice;
+                        $chartData[$jobName]['count'] +=$each['factor'];
+                        if ($each['state'] == 0) {
+                            $chartData[$jobName]['unpaid'] +=$each['factor'];
+                        } else {
+                            $chartData[$jobName]['paid'] +=$each['factor'];
+                        }
+
+                        $chartDataCash[$jobName]['cash'] = $chartDataCash[$jobName]['cash'] + $jobPrice;
+                        if ($each['state'] == 0) {
+                            $chartDataCash[$jobName]['unpaid'] +=$each['factor'];
+                        } else {
+                            $chartDataCash[$jobName]['paid'] +=$each['factor'];
+                        }
                     } else {
-                        $chartData[$jobName] = $each['factor'];
-                        $chartDataCash[$jobName] = $jobPrice;
+                        $chartData[$jobName]['count'] = $each['factor'];
+                        if ($each['state'] == 0) {
+                            $chartData[$jobName]['unpaid'] = $each['factor'];
+                            $chartData[$jobName]['paid'] = 0;
+                        } else {
+                            $chartData[$jobName]['unpaid'] = 0;
+                            $chartData[$jobName]['paid'] = $each['factor'];
+                        }
+                        $chartDataCash[$jobName]['cash'] = $jobPrice;
+                        if ($each['state'] == 0) {
+                            $chartDataCash[$jobName]['unpaid'] = $jobPrice;
+                            $chartDataCash[$jobName]['paid'] = 0;
+                        } else {
+                            $chartDataCash[$jobName]['unpaid'] = 0;
+                            $chartDataCash[$jobName]['paid'] = $jobPrice;
+                        }
                     }
                 }
 
@@ -1083,22 +1109,23 @@ class Salary {
 
             if (!empty($chartData)) {
                 foreach ($chartData as $io => $each) {
-                    $chartData[$io . ' ' . $each] = $each;
+                    $chartData[$io . ' ' . $each['count'] . ' (' . $each['paid'] . '/' . $each['unpaid'] . ')'] = $each['count'];
                     unset($chartData[$io]);
                 }
             }
 
+
             if (!empty($chartDataCash)) {
                 foreach ($chartDataCash as $io => $each) {
-                    $chartDataCash[$io . ' ' . $each] = $each;
+                    $chartDataCash[$io . ' ' . $each['cash'] . ' (' . $each['paid'] . '/' . $each['unpaid'] . ')'] = $each['cash'];
                     unset($chartDataCash[$io]);
                 }
             }
 
             $chartOpts = "chartArea: {  width: '90%', height: '90%' }, legend : {position: 'right'},  pieSliceText: 'value-and-percentage',";
             $chartCells = wf_TableCell(wf_gcharts3DPie($timeChartData, __('Time') . ' (' . __('hours') . ')', '400px', '400px', $chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('quantity') . ')', '400px', '400px', $chartOpts));
-            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('money') . ')', '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartData, __('Job types') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '400px', '400px', $chartOpts));
+            $chartCells.= wf_TableCell(wf_gcharts3DPie($chartDataCash, __('Money') . ' (' . __('Paid') . '/' . __('Unpaid') . ')', '400px', '400px', $chartOpts));
             $chartRows = wf_TableRow($chartCells);
             $result.= wf_TableBody($chartRows, '100%', 0, '');
         }
