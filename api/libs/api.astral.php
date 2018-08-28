@@ -2161,6 +2161,7 @@ function wf_JqDtLoader($columns, $ajaxUrl, $saveState = false, $objects = 'users
                 "bLengthChange": true,
                 "bFilter": true,
                 "bSort": true,
+                "responsive": true,
                 "bInfo": true,
                 "bAutoWidth": false,
                 "bProcessing": true,

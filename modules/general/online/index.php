@@ -169,12 +169,11 @@ if ($system->checkForRight('ONLINE')) {
             "aoColumns": [
                   ' . $columnFilters . '
             ],
-
-
         "bPaginate": true,
         "bLengthChange": true,
         "bFilter": true,
         "bSort": true,
+        "responsive": true,
         "bInfo": true,
         "bAutoWidth": false,
         "bProcessing": true,
