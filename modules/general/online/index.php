@@ -173,7 +173,6 @@ if ($system->checkForRight('ONLINE')) {
         "bLengthChange": true,
         "bFilter": true,
         "bSort": true,
-        "responsive": true,
         "bInfo": true,
         "bAutoWidth": false,
         "bProcessing": true,
