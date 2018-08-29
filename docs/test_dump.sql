@@ -2117,6 +2117,24 @@ CREATE TABLE IF NOT EXISTS `taskmandone` (
     PRIMARY KEY (`id`)
   ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+CREATE TABLE IF NOT EXISTS `sms_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(255) NOT NULL,
+  `phone` varchar(255) NOT NULL,
+  `srvmsgself_id` varchar(255) NOT NULL,
+  `srvmsgpack_id` varchar(255) NOT NULL,
+  `date_send` datetime NOT NULL,
+  `date_statuschk` datetime NOT NULL,
+  `delivered` tinyint(1) UNSIGNED DEFAULT 0,
+  `no_statuschk` tinyint(1) UNSIGNED DEFAULT 0,
+  `send_status` varchar(255) NOT NULL DEFAULT '',
+  `msg_text` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `login` (`login`) USING BTREE,
+  KEY `phone` (`phone`) USING BTREE,
+  KEY `date_send` (`date_send`) USING BTREE
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
 
 CREATE TABLE IF NOT EXISTS `punchscripts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
