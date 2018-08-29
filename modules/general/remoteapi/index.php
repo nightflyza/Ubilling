@@ -635,15 +635,7 @@ if ($alterconf['REMOTEAPI_ENABLED']) {
                         }
                     }
 
-                    /**
-                     * Registry of banned sites processing
-                     */
-                    if ($_GET['action'] == 'rbs') {
-                        $object = new RosKomNadzor();
-                        $object->run();
-                        die(0);
-                    }
-
+                 
                     /*
                      * Switches coverage map
                      */
