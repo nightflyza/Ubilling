@@ -3096,6 +3096,8 @@ class UkvSystem {
         $year_summ = $this->paymentsGetYearSumm($year);
         $curtime = time();
         $yearPayData = array();
+        $cacheTime = 3600; //sec intervall to cache
+        $cache = new UbillingCache();
 
         $cells = wf_TableCell('');
         $cells.= wf_TableCell(__('Month'));
@@ -3106,27 +3108,27 @@ class UkvSystem {
         $rows = wf_TableRow($cells, 'row1');
 
 //caching subroutine
-        $renewTime = zb_StorageGet('UKVYPD_LAST');
+        $renewTime = $cache->get('UKVYPD_LAST', $cacheTime);
         if (empty($renewTime)) {
 //first usage
             $renewTime = $curtime;
-            zb_StorageSet('UKVYPD_LAST', $renewTime);
+            $cache->set('UKVYPD_LAST', $renewTime, $cacheTime);
             $updateCache = true;
         } else {
 //cache time already set
             $timeShift = $curtime - $renewTime;
-            if ($timeShift > 3600) {
+            if ($timeShift > $cacheTime) {
 //cache update needed
                 $updateCache = true;
             } else {
 //load data from cache or init new cache
-                $yearPayData_raw = zb_StorageGet('UKVYPD_CACHE');
+                $yearPayData_raw = $cache->get('UKVYPD_CACHE', $cacheTime);
                 if (empty($yearPayData_raw)) {
 //first usage
                     $emptyCache = array();
                     $emptyCache = serialize($emptyCache);
                     $emptyCache = base64_encode($emptyCache);
-                    zb_StorageSet('UKVYPD_CACHE', $emptyCache);
+                    $cache->set('UKVYPD_CACHE', $emptyCache, $cacheTime);
                     $updateCache = true;
                 } else {
 // data loaded from cache
@@ -3163,10 +3165,10 @@ class UkvSystem {
             $result = wf_TableBody($rows, '100%', '0', 'sortable');
             $yearPayData[$year]['graphs'] = $result;
 //write to cache
-            zb_StorageSet('UKVYPD_LAST', $curtime);
+            $cache->set('UKVYPD_LAST', $curtime, $cacheTime);
             $newCache = serialize($yearPayData);
             $newCache = base64_encode($newCache);
-            zb_StorageSet('UKVYPD_CACHE', $newCache);
+            $cache->set('UKVYPD_CACHE', $newCache, $cacheTime);
         } else {
 //take data from cache
             if (isset($yearPayData[$year]['graphs'])) {
