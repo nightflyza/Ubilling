@@ -255,14 +255,14 @@ class SMSZilla {
     protected $normalizerDebug = false;
 
     /**
-     * Contains all numbers lists names
+     * Contains all numbers lists names as id=>name
      *
      * @var array
      */
     protected $allNumListsNames = array();
 
     /**
-     * Contains all numbers lists numbers
+     * Contains all numbers lists numbers records ad id=>numlistdata
      *
      * @var array
      */
@@ -669,7 +669,7 @@ class SMSZilla {
         );
 
         if ((isset($this->altCfg['SMSZILLA_MOBILE_LEN'])) AND ( $this->altCfg['SMSZILLA_COUNTRY_CODE'])) {
-            //custom countries number settings
+//custom countries number settings
             $this->countryCode = vf($this->altCfg['SMSZILLA_COUNTRY_CODE'], 3);
             $this->mobileLen = $this->altCfg['SMSZILLA_MOBILE_LEN'];
         }
@@ -1087,6 +1087,80 @@ class SMSZilla {
             log_register('SMSZILLA NUMLISTNUM CREATE [' . $numlistId . '] MOBILE  `' . $mobile . '`');
         } else {
             $result.=__('Oh no') . ': EX_NUMLISTID_NOT_EXISTS';
+        }
+        return ($result);
+    }
+
+    /**
+     * Cleanups numlist from existing users phones
+     * 
+     * @param int $numlistId
+     * 
+     * @return void/string on error
+     */
+    public function cleanupNumlist($numlistId) {
+        $result = '';
+        $numlistId = vf($numlistId, 3);
+        $cleanupUserMobiles = array(); // contains temp array for deletion as mobile=>login
+        $extMobilesFlag = ($this->altCfg['MOBILES_EXT']) ? true : false;
+        if (wf_CheckPost(array('cleanupnumlistid', 'cleanupagree'))) {
+            if (!empty($this->allUserData)) {
+                if ($extMobilesFlag) {
+                    $this->extMobiles = new MobilesExt();
+                }
+
+                foreach ($this->allUserData as $io => $each) {
+                    $userLogin = $each['login'];
+                    $primaryMobile = $this->normalizePhoneFormat($each['mobile']);
+                    if (!empty($primaryMobile)) {
+                        $cleanupUserMobiles[$primaryMobile] = $userLogin;
+                    }
+
+                    if ($this->extMobiles) {
+                        $userExtMobiles = $this->extMobiles->getUserMobiles($userLogin);
+                        if (!empty($userExtMobiles)) {
+                            foreach ($userExtMobiles as $ia => $eachExt) {
+                                $additionalMobile = $this->normalizePhoneFormat($eachExt['mobile']);
+                                if (!empty($additionalMobile)) {
+                                    $cleanupUserMobiles[$additionalMobile] = $userLogin;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ((!empty($cleanupUserMobiles)) AND ( !empty($this->allNumListsNumbers))) {
+                foreach ($this->allNumListsNumbers as $io => $each) {
+                    if ($each['numid']==$numlistId) {
+                        $numlistNumber=$each['mobile'];
+                        $numlistNumber=  $this->normalizePhoneFormat($numlistNumber);
+                        if (isset($cleanupUserMobiles[$numlistNumber])) {
+                            $this->deleteNumlistNumber($each['id']);
+                        }
+                    }
+                }
+            }
+        } else {
+            $result.=__('You are not mentally prepared for this');
+        }
+        return ($result);
+    }
+
+    /**
+     * Renders numlist cleanup form 
+     * 
+     * @return string
+     */
+    public function renderCleanupNumlistForm() {
+        $result = '';
+        if (!empty($this->allNumListsNames)) {
+            $inputs = wf_Selector('cleanupnumlistid', $this->allNumListsNames, __('Numbers list'), '', false) . ' ';
+            $inputs.= wf_CheckInput('cleanupagree', __('I`m ready'), false, false) . ' ';
+            $inputs.= wf_Submit(__('Cleanup'));
+            $result.=wf_Form('', 'POST', $inputs, 'glamour');
+        } else {
+            $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'info');
         }
         return ($result);
     }
@@ -1664,7 +1738,7 @@ class SMSZilla {
             $codeLen = strlen($this->countryCode);
 
             if ($inputLen < $this->mobileLen) {
-                //trying to append country code if number is not ok by default or too short
+//trying to append country code if number is not ok by default or too short
                 $mobileTmp = $mobile;
                 for ($i = 1; $i <= $codeLen; $i++) {
                     $appendedLen = strlen($mobileTmp);
@@ -1694,7 +1768,7 @@ class SMSZilla {
                 }
             }
 
-            //checking is number starting from full country code?
+//checking is number starting from full country code?
             if (strpos($mobile, $this->countryCode) === false) {
                 if ($this->normalizerDebug) {
                     show_error('Number doesnt start with ' . $this->countryCode . ': ' . $mobile);
@@ -1703,7 +1777,7 @@ class SMSZilla {
             }
 
 
-            //appending plus symbol due E164 standard
+//appending plus symbol due E164 standard
             $newLen = strlen($mobile);
             if ($newLen == $this->mobileLen) {
                 $mobile = '+' . $mobile;
@@ -2014,15 +2088,15 @@ class SMSZilla {
         $realSending = (wf_CheckPost(array('sendingperform'))) ? true : false;
         $forceTranslit = (wf_CheckPost(array('forcetranslit'))) ? true : false;
         if (!$realSending) {
-            //Remote API background call
+//Remote API background call
             $realSending = (wf_CheckGet(array('key', 'action', 'filterid', 'templateid'))) ? true : false;
         }
         if (!$forceTranslit) {
-            //Remote API translit option instead
+//Remote API translit option instead
             $forceTranslit = (wf_CheckGet(array('translit'))) ? true : false;
         }
         $sendCounter = 0;
-        //changing nearest SMS bytes limit
+//changing nearest SMS bytes limit
         if ($forceTranslit) {
             $this->smsLenLimit = 160;
         } else {
@@ -2141,7 +2215,7 @@ class SMSZilla {
                 log_register('SMSZILLA SENDING TEMPLATE [' . $templateId . '] FILTER [' . $filterId . '] COUNT `' . $sendCounter . '`');
             }
         }
-        //saving preview data
+//saving preview data
         file_put_contents(self::POOL_PATH . 'SMZ_PREVIEW_' . $filterId . '_' . $templateId, $json->extractJson());
     }
 
@@ -2815,12 +2889,12 @@ class SMSZilla {
                             $numlistMobile = $this->normalizePhoneFormat($entity['mobile']);
                             if (!empty($this->allUserData)) {
                                 foreach ($this->allUserData as $eachUserLogin => $eachUserData) {
-                                    //base numbers comparison
+//base numbers comparison
                                     if (ispos($this->normalizePhoneFormat($eachUserData['mobile']), $numlistMobile)) {
                                         unset($this->filteredEntities[$entity['id']]);
                                         break;
                                     }
-                                    //check for additional mobile
+//check for additional mobile
                                     $userExtMobiles = $this->extMobiles->getUserMobiles($eachUserLogin);
                                     if (!empty($userExtMobiles)) {
                                         foreach ($userExtMobiles as $ia => $eachExt) {

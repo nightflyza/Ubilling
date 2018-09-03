@@ -2956,7 +2956,7 @@ $lang['def']['Events for ticket'] = 'События для тикета';
 $lang['def']['Not paid fuel'] = 'Не выплачено топлива';
 $lang['def']['Paid fuel'] = 'Выплачено топлива';
 $lang['def']['Bad signal'] = 'Плохой сигнал';
-$lang['def'][''] = '';
+$lang['def']['from numbers assigned to users'] = 'от номеров присвоенных абонентам';
 $lang['def'][''] = '';
 
 ?>

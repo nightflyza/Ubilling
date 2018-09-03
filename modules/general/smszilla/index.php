@@ -1,4 +1,5 @@
 <?php
+
 if (cfr('SMSZILLA')) {
 
     if ($ubillingConfig->getAlterParam('SMSZILLA_ENABLED')) {
@@ -143,6 +144,16 @@ if (cfr('SMSZILLA')) {
                     }
                 }
 
+                //numlist cleanup
+                if (wf_CheckPost(array('cleanupnumlistid'))) {
+                    $numlistCleanupResult = $smszilla->cleanupNumlist($_POST['cleanupnumlistid']);
+                    if (empty($numlistCleanupResult)) {
+                        //rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                    } else {
+                        show_error($numlistCleanupResult);
+                    }
+                }
+
                 if (wf_CheckGet(array('editnumlistid'))) {
                     //existing numlist edit forms
                     show_window('', wf_BackLink($smszilla::URL_ME . '&numlists=true'));
@@ -152,6 +163,7 @@ if (cfr('SMSZILLA')) {
                     show_window(__('Numbers lists'), $smszilla->renderNumListsList());
                     show_window(__('Upload'), $smszilla->uploadNumListNumbersForm());
                     show_window(__('Add'), $smszilla->createNumListNumberForm());
+                    show_window(__('Cleanup').' '.__('from numbers assigned to users'), $smszilla->renderCleanupNumlistForm());
                     show_window(__('Available numbers database'), $smszilla->renderNumsContainer());
                 }
             }

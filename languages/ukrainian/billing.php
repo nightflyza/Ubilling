@@ -2972,5 +2972,6 @@ $lang['def']['Events for ticket'] = 'Події для тікету';
 $lang['def']['Not paid fuel'] = 'Не виплачено палива';
 $lang['def']['Paid fuel'] = 'Виплачено палива';
 $lang['def']['Bad signal'] = 'Поганий сигнал';
+$lang['def']['from numbers assigned to users'] = 'від номерів призначених абонентам';
 
 ?>
