@@ -2508,11 +2508,12 @@ class PONizer {
      * @return string
      */
     public function renderOltStats() {
-        $intCacheAvail = rcms_scandir(self::INTCACHE_PATH, '*_' . self::INTCACHE_EXT);
         $oltOnuCounters = $this->getOltOnuCounts();
         $onuMaxCount = @$this->altCfg['PON_ONU_PORT_MAX'];
         $oltOnuFilled = array();
         $oltInterfacesFilled = array();
+        $signals = array();
+        $badSignals = array();
         $result = '';
         $result .= wf_BackLink(self::URL_ME);
         $result .= wf_tag('br');
@@ -2526,9 +2527,15 @@ class PONizer {
                     $maxOnuPerOlt = $oltPorts * $onuMaxCount;
                     $oltOnuFilled[$oltId] = zb_PercentValue($maxOnuPerOlt, $onuCount);
                     $onuInterfacesCache = self::INTCACHE_PATH . $oltId . '_' . self::INTCACHE_EXT;
+                    $onuSignalsCache = self::SIGCACHE_PATH . $oltId . '_' . self::SIGCACHE_EXT;
                     if (file_exists($onuInterfacesCache)) {
                         $interfaces = file_get_contents($onuInterfacesCache);
                         $interfaces = unserialize($interfaces);
+                        if (file_exists($onuSignalsCache)) {
+                            $signals = file_get_contents($onuSignalsCache);
+                            $signals = unserialize($signals);
+                        }
+
                         if (!empty($interfaces)) {
                             foreach ($interfaces as $eachMac => $eachInterface) {
                                 $cleanInterface = strstr($eachInterface, ':', true);
@@ -2537,12 +2544,24 @@ class PONizer {
                                 } else {
                                     $oltInterfacesFilled[$oltId][$cleanInterface] = 1;
                                 }
+
+                                if (isset($signals[$eachMac])) {
+                                    $macSignal = $signals[$eachMac];
+                                    if ((($macSignal > 0) OR ( $macSignal < -25))) {
+                                        if (isset($badSignals[$oltId][$cleanInterface])) {
+                                            $badSignals[$oltId][$cleanInterface] ++;
+                                        } else {
+                                            $badSignals[$oltId][$cleanInterface] = 1;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        
         if ((!empty($oltInterfacesFilled)) AND ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $result .= wf_tag('h3');
@@ -2552,12 +2571,14 @@ class PONizer {
                 if (isset($oltInterfacesFilled[$oltId])) {
                     $cells = wf_TableCell(__('Interface'));
                     $cells .= wf_TableCell(__('Count'));
+                    $cells .= wf_TableCell(__('Bad signal'));
                     $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
                         $cells = wf_TableCell($eachInterface);
                         $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
+                        $cells .= wf_TableCell(@$badSignals[$oltId][$eachInterface]);
                         $cells .= wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
                         $rows .= wf_TableRow($cells, 'row3');
                     }
