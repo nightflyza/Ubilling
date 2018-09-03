@@ -148,7 +148,7 @@ if (cfr('SMSZILLA')) {
                 if (wf_CheckPost(array('cleanupnumlistid'))) {
                     $numlistCleanupResult = $smszilla->cleanupNumlist($_POST['cleanupnumlistid']);
                     if (empty($numlistCleanupResult)) {
-                        //rcms_redirect($smszilla::URL_ME . '&numlists=true');
+                        rcms_redirect($smszilla::URL_ME . '&numlists=true');
                     } else {
                         show_error($numlistCleanupResult);
                     }
