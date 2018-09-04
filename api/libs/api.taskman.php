@@ -1029,8 +1029,10 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
 
     //new task creation data/time generation
     if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME')) {
-        $newTaskDate = date("Y-m-d");
-        $newTaskTime = date("H:i", strtotime("+1 hour"));
+        $TaskDate =  new DateTime();
+        $newTaskDate = $TaskDate->format('Y-m-d');
+        $TaskDate->add(new DateInterval('PT1H'));
+        $newTaskTime = $TaskDate->format('H:i');
     } else {
         $newTaskDate = '';
         $newTaskTime = '';
