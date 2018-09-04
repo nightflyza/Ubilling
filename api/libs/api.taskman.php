@@ -1012,7 +1012,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
-    // telepaticheskoe ugadivanie po tegu, kot dolzhen vipolnit rabotu
+    // telepaticheskoe ugadivanie po tegu, kto dolzhen vipolnit rabotu
     $query = "SELECT `employee`.`id` FROM `tags` INNER JOIN employee USING (tagid) WHERE `login` = '" . $login . "'";
     $telepat_who_should_do = simple_query($query);
 
@@ -1028,10 +1028,20 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     }
 
     //new task creation data/time generation
-    if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME')) {
+    if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 1) {
         $TaskDate =  new DateTime();
-        $newTaskDate = $TaskDate->format('Y-m-d');
         $TaskDate->add(new DateInterval('PT1H'));
+        $newTaskDate = $TaskDate->format('Y-m-d');
+        $newTaskTime = $TaskDate->format('H:i');
+    } elseif ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME') == 2) {
+        $TaskDate =  new DateTime();
+        $TaskDate->add(new DateInterval('P1D'));
+        $TaskDate->setTime(8, 00);
+        // В воскресенье работать работать не хочу
+        if ($newTaskDate = $TaskDate->format('w') == 0) {
+            $TaskDate->add(new DateInterval('P1D'));
+        }
+        $newTaskDate = $TaskDate->format('Y-m-d');
         $newTaskTime = $TaskDate->format('H:i');
     } else {
         $newTaskDate = '';
