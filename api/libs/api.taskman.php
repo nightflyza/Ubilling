@@ -1007,7 +1007,8 @@ function ts_TaskCreateForm() {
  * @return  string
  */
 function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
-    $altercfg = rcms_parse_ini_file(CONFIG_PATH . "alter.ini");
+    global $ubillingConfig;
+
     $alljobtypes = ts_GetAllJobtypes();
     $allemployee = ts_GetActiveEmployee();
 
@@ -1016,10 +1017,10 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     $telepat_who_should_do = simple_query($query);
 
     //construct sms sending inputs
-    if ($altercfg['SENDDOG_ENABLED']) {
+    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         $smsInputs = wf_CheckInput('newtasksendsms', __('Send SMS'), false, false);
         // SET checkbed TELEGRAM for creating task from Userprofile if TASKMAN_TELEGRAM_PROFILE_CHECK == 1
-        $telegramInputsCheck = (isset($altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) && $altercfg['TASKMAN_TELEGRAM_PROFILE_CHECK']) ? TRUE : FALSE;
+        $telegramInputsCheck = ($ubillingConfig->getAlterParam('TASKMAN_TELEGRAM_PROFILE_CHECK')) ? TRUE : FALSE;
         $telegramInputs = wf_CheckInput('newtasksendtelegram', __('Telegram'), false, $telegramInputsCheck);
     } else {
         $smsInputs = '';
@@ -1027,7 +1028,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
     }
 
     //new task creation data/time generation
-    if ($altercfg['TASKMAN_NEWTASK_AUTOTIME']) {
+    if ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_AUTOTIME')) {
         $newTaskDate = date("Y-m-d");
         $newTaskTime = date("H:i", strtotime("+1 hour"));
     } else {
@@ -1035,7 +1036,7 @@ function ts_TaskCreateFormProfile($address, $mobile, $phone, $login) {
         $newTaskTime = '';
     }
 
-    $employeeSorting = (@$altercfg['TASKMAN_NEWTASK_EMPSORT']) ? true : false;
+    $employeeSorting = ($ubillingConfig->getAlterParam('TASKMAN_NEWTASK_EMPSORT')) ? true : false;
 
     $sup = wf_tag('sup', false) . '*' . wf_tag('sup', true);
 
