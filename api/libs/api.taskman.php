@@ -1387,7 +1387,7 @@ function ts_FlushSMSData($taskid) {
  */
 function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtypeid, $employeeid, $jobnote) {
     global $ubillingConfig;
-    $altercfg = $ubillingConfig->getAlter();
+
     $curdate = curdatetime();
     $admin = whoami();
     $address = str_replace('\'', '`', $address);
@@ -1410,8 +1410,8 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
     $jobnote = mysql_real_escape_string($jobnote);
 
     $smsData = 'NULL';
-    //store messages for backround processing via senddog
-    if ($altercfg['SENDDOG_ENABLED']) {
+    //store messages for backround processing via senddog for SMS
+    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         $jobtype = ts_GetAllJobtypes();
         //SMS sending
         if (isset($_POST['newtasksendsms'])) {
@@ -1422,10 +1422,21 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
                 $smsData = "'" . base64_encode($smsData) . "'";
             }
         }
+    }
 
+    $query = "INSERT INTO `taskman` (`id` , `date` , `address` , `login` , `jobtype` , `jobnote` , `phone` , `employee` , `employeedone` ,`donenote` , `startdate` ,`starttime`, `enddate` , `admin` , `status`,`smsdata`)
+              VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "',NULL, NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
+    nr_query($query);
+
+    $taskman_id = simple_query("SELECT LAST_INSERT_ID() as id");
+    $taskman_id = $taskman_id['id'];
+
+    //store messages for backround processing via senddog for Telegramm
+    if ($ubillingConfig->getAlterParam('SENDDOG_ENABLED')) {
         //Telegram sending
         if (isset($_POST['newtasksendtelegram'])) {
-            $newTelegramText = __('Address') . ': ' . $address . '\r\n';
+            $newTelegramText = __('ID') . ': ' . $taskman_id . '\r\n';
+            $newTelegramText.= __('Address') . ': ' . $address . '\r\n';
             $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
             $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
             $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
@@ -1442,10 +1453,6 @@ function ts_CreateTask($startdate, $starttime, $address, $login, $phone, $jobtyp
             ts_SendTelegram($employeeid, $newTelegramText);
         }
     }
-
-    $query = "INSERT INTO `taskman` (`id` , `date` , `address` , `login` , `jobtype` , `jobnote` , `phone` , `employee` , `employeedone` ,`donenote` , `startdate` ,`starttime`, `enddate` , `admin` , `status`,`smsdata`)
-              VALUES (NULL , '" . $curdate . "', '" . $address . "', '" . $login . "', '" . $jobtypeid . "', '" . $jobnote . "', '" . $phone . "', '" . $employeeid . "',NULL, NULL , '" . $startdate . "'," . $starttime . ",NULL , '" . $admin . "', '0'," . $smsData . ");";
-    nr_query($query);
 
     //flushing darkvoid
     $darkVoid = new DarkVoid();
@@ -1587,7 +1594,8 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
 
     //Telegram sending
     if (isset($_POST['changetasksendtelegram'])) {
-        $newTelegramText = __('Address') . ': ' . $address . '\r\n';
+        $newTelegramText = __('ID') . ': ' . $taskid . '\r\n';
+        $newTelegramText.= __('Address') . ': ' . $address . '\r\n';
         $newTelegramText.= __('Job type') . ': ' . @$jobtype[$jobtypeid] . '\r\n';
         $newTelegramText.= __('Phone') . ': ' . $phone . '\r\n';
         $newTelegramText.= __('Job note') . ': ' . $jobnote . '\r\n';
@@ -1614,7 +1622,7 @@ function ts_ModifyTask($taskid, $startdate, $starttime, $address, $login, $phone
         'phone' => $phone,
         'employee' => $employeeid,
         'startdate' => $startdate,
-        'starttime' => $starttime
+        'starttime' => date("H:i:s", strtotime($starttimeRaw))
     );
     $cahged_taskdata = (array_diff_assoc($org_taskdata, $new_taskdata));
     $log_data = '';
