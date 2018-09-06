@@ -2587,15 +2587,33 @@ class PONizer {
                     $cells = wf_TableCell(__('Interface'));
                     $cells .= wf_TableCell(__('Count'));
                     $cells .= wf_TableCell(__('Bad signal'));
+                    $cells .= wf_TableCell(__('Bad signal').' %');
                     $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
                         $eachInterfacePercent = zb_PercentValue($onuMaxCount, $eachInterfaceCount);
                         $cells = wf_TableCell($eachInterface);
                         $cells .= wf_TableCell($eachInterfaceCount . ' (' . $eachInterfacePercent . '%)', '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
-                        $cells .= wf_TableCell(@$badSignals[$oltId][$eachInterface]);
+                        $badSignalCount = @$badSignals[$oltId][$eachInterface];
+                        $signalColor = '';
+                        $signalColorEnd = '';
+                        $badSignalPercent='';
+                        if (!empty($badSignalCount)) {
+                            if ($badSignalCount >= 3) {
+                                $signalColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
+                                $signalColorEnd = wf_tag('b', true) . wf_tag('font', true);
+                            } else {
+                                $signalColor = '';
+                                $signalColorEnd = '';
+                            }
+                            $badSignalPercent=  zb_PercentValue($eachInterfaceCount, $badSignalCount).'%';
+                        } else {
+                            $badSignalCount = '';
+                        }
+                        $cells .= wf_TableCell($signalColor . $badSignalCount . $signalColorEnd);
+                        $cells .= wf_TableCell($badSignalPercent);
                         $cells .= wf_TableCell(web_bar($eachInterfaceCount, $onuMaxCount), '', '', 'sorttable_customkey="' . $eachInterfaceCount . '"');
-                        $rows .= wf_TableRow($cells, 'row3');
+                        $rows .= wf_TableRow($cells, 'row5');
                     }
                     $result .= wf_TableBody($rows, '100%', 0, 'sortable');
                 }
