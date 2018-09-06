@@ -2157,6 +2157,8 @@ class MultiGen {
                         $attributeTemplatesCount = sizeof($attributeTemplates);
                         $nasLabel = $nasBasicData['nasip'] . ' - ' . $nasBasicData['nasname'] . ' (' . $nasUsernameType . ' / ' . $nasService . ' / ' . $attributeTemplatesCount . ' ' . __('NAS attributes') . ')';
                         $nasParamsTmp[$nasBasicData['id']] = $nasLabel;
+                    } else {
+                        $result.=$this->messages->getStyledMessage(__('No other configured NAS to cloning'), 'warning');
                     }
                 }
 
@@ -2169,7 +2171,7 @@ class MultiGen {
                     $result.=wf_Form('', 'POST', $inputs, 'glamour');
                 }
             } else {
-                $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
+                $result.=$this->messages->getStyledMessage(__('No other configured NAS to cloning'), 'warning');
             }
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': ' . __('NAS not exists'), 'error');

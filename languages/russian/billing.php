@@ -2957,6 +2957,10 @@ $lang['def']['Not paid fuel'] = 'Не выплачено топлива';
 $lang['def']['Paid fuel'] = 'Выплачено топлива';
 $lang['def']['Bad signal'] = 'Плохой сигнал';
 $lang['def']['from numbers assigned to users'] = 'от номеров присвоенных абонентам';
+$lang['def']['No other configured NAS to cloning'] = 'Нету других сконфигурированных NAS для клонирования. Джанго Фетт негодует.';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
+$lang['def'][''] = '';
 $lang['def'][''] = '';
 
 ?>
