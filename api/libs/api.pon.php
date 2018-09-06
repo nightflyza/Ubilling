@@ -1354,14 +1354,6 @@ class PONizer {
                             $sigIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['SIGVALUE'], '', $sigIndex);
                             $sigIndex = explodeRows($sigIndex);
 
-                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
-                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
-                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
-                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
-                            $macIndex = explodeRows($macIndex);
-                            $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
-
-
                             //ONU distance polling for bdcom devices
                             if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
                                 if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
@@ -1377,7 +1369,7 @@ class PONizer {
                                         $onuIndex = str_replace($onuIndexOid . '.', '', $onuIndex);
                                         $onuIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['ONUVALUE'], '', $onuIndex);
                                         $onuIndex = explodeRows($onuIndex);
-                                        $this->distanceParseBd($oltid, $distIndex, $onuIndex);
+
 
 
                                         if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
@@ -1386,7 +1378,6 @@ class PONizer {
                                             $deregIndex = str_replace($deregIndexOid . '.', '', $deregIndex);
                                             $deregIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['DEREGVALUE'], '', $deregIndex);
                                             $deregIndex = explodeRows($deregIndex);
-                                            $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
                                         }
 
                                         $intIndexOid = $this->snmpTemplates[$oltModelId]['misc']['INTERFACEINDEX'];
@@ -1394,13 +1385,37 @@ class PONizer {
                                         $intIndex = str_replace($intIndexOid . '.', '', $intIndex);
                                         $intIndex = str_replace($this->snmpTemplates[$oltModelId]['misc']['INTERFACEVALUE'], '', $intIndex);
                                         $intIndex = explodeRows($intIndex);
-                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex);
+
 
                                         $FDBIndexOid = $this->snmpTemplates[$oltModelId]['misc']['FDBINDEX'];
                                         $FDBIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $FDBIndexOid, self::SNMPCACHE);
                                         $FDBIndex = str_replace($FDBIndexOid . '.', '', $FDBIndex);
                                         $FDBIndex = explodeRows($FDBIndex);
+                                    }
+                                }
+                            }
+
+                            //getting MAC index. 
+                            $macIndexOID = $this->snmpTemplates[$oltModelId]['signal']['MACINDEX'];
+                            $macIndex = $this->snmp->walk($oltIp . ':' . self::SNMPPORT, $oltCommunity, $macIndexOID, self::SNMPCACHE);
+                            $macIndex = str_replace($macIndexOID . '.', '', $macIndex);
+                            $macIndex = str_replace($this->snmpTemplates[$oltModelId]['signal']['MACVALUE'], '', $macIndex);
+                            $macIndex = explodeRows($macIndex);
+                            $this->signalParseBd($oltid, $sigIndex, $macIndex, $this->snmpTemplates[$oltModelId]['signal']);
+                            //This is here because BDCOM is BDCOM and another snmp queries cant be processed after MACINDEX query in some cases.
+                            if (isset($this->snmpTemplates[$oltModelId]['misc'])) {
+                                if (isset($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                    if (!empty($this->snmpTemplates[$oltModelId]['misc']['DISTINDEX'])) {
+                                        // processing distance data
+                                        $this->distanceParseBd($oltid, $distIndex, $onuIndex);
+                                        //processing interfaces data
+                                        $this->interfaceParseBd($oltid, $intIndex, $macIndex);
+                                        //processing FDB data
                                         $this->FDBParseBd($oltid, $FDBIndex, $macIndex, $oltModelId);
+                                        if (isset($this->snmpTemplates[$oltModelId]['misc']['DEREGREASON'])) {
+                                            //processing last dereg reason data
+                                            $this->lastDeregParseBd($oltid, $deregIndex, $onuIndex);
+                                        }
                                     }
                                 }
                             }
@@ -2561,7 +2576,7 @@ class PONizer {
                 }
             }
         }
-        
+
         if ((!empty($oltInterfacesFilled)) AND ( !empty($oltOnuFilled))) {
             foreach ($oltOnuFilled as $oltId => $oltFilledPercent) {
                 $result .= wf_tag('h3');
