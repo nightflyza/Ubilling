@@ -10,7 +10,7 @@ class WhiteBoard {
     protected $activeEmployee = array();
     protected $allEmployee = array();
     protected $messages = '';
-    protected $adcomments = '';
+    public $adcomments = '';
 
     const SCOPE = 'WHITEBOARD';
     const URL_ME = '?module=whiteboard';
@@ -80,7 +80,7 @@ class WhiteBoard {
     }
 
     protected function loadEmployeeData() {
-        $this->activeEmployee[''] = '-';
+        $this->activeEmployee[0] = '-';
         $this->allEmployee = ts_GetAllEmployee();
         $this->activeEmployee += ts_GetActiveEmployee();
     }
@@ -127,6 +127,68 @@ class WhiteBoard {
             $result.=wf_Form('', 'POST', $inputs, 'glamour');
         }
         return ($result);
+    }
+
+    protected function renderEditForm($recordId) {
+        $recordId = vf($recordId, 3);
+        $result = '';
+        if ((!empty($this->categories)) AND ( $this->priorities)) {
+            if ($this->records[$recordId]) {
+                $recordData = $this->records[$recordId];
+                $sup = wf_tag('sup') . '*' . wf_tag('sup', true);
+                $inputs = wf_HiddenInput('editrecord', $recordId);
+                $inputs.= wf_Selector('editcategory', $this->categories, __('Category') . $sup, $recordData['categoryid'], true);
+                $inputs.= wf_Selector('editpriority', $this->priorities, __('Priority') . $sup, $recordData['priority'], true);
+                $inputs.= wf_TextInput('editname', __('Name') . $sup, $recordData['name'], true, 40);
+                $inputs.=__('Text') . wf_tag('br');
+                $inputs.= wf_TextArea('edittext', '', $recordData['text'], true, '60x20');
+                $inputs.= wf_Selector('editemployeeid', $this->activeEmployee, __('Who should do'), $recordData['employeeid'], true);
+                $doneFlag = ($recordData['donedate']) ? true : false;
+                $inputs.= wf_CheckInput('editdone', __('This task is done'), true, $doneFlag);
+                $inputs.= wf_delimiter();
+
+                if (cfr('ROOT')) {
+                    $inputs.=wf_tag('div', false, '', 'style="float:right;"');
+                    $inputs.=wf_JSAlertStyled(self::URL_ME . '&deleterecord=' . $recordId, web_delete_icon() . ' ' . __('Remove this task - it is an mistake'), $this->messages->getDeleteAlert(), '');
+                    $inputs.=wf_tag('div', true);
+                }
+                $inputs.=wf_Submit(__('Save'));
+                $result.=wf_Form('', 'POST', $inputs, 'glamour');
+                $result.=wf_delimiter();
+            }
+        }
+        return ($result);
+    }
+
+    public function saveRecord() {
+        if (wf_CheckPost(array('editrecord', 'editcategory', 'editpriority', 'editname'))) {
+            $recordId = vf($_POST['editrecord']);
+            if ($this->isMyRecord($recordId)) {
+                $where = "WHERE `id`='" . $recordId . "'";
+                simple_update_field(self::REC_TABLE, 'categoryid', $_POST['editcategory'], $where);
+                simple_update_field(self::REC_TABLE, 'priority', $_POST['editpriority'], $where);
+                simple_update_field(self::REC_TABLE, 'name', $_POST['editname'], $where);
+                simple_update_field(self::REC_TABLE, 'text', $_POST['edittext'], $where);
+                simple_update_field(self::REC_TABLE, 'employeeid', $_POST['editemployeeid'], $where);
+                if (wf_CheckPost(array('editdone'))) {
+                    simple_update_field(self::REC_TABLE, 'donedate', curdatetime(), $where);
+                } else {
+                    simple_update_field(self::REC_TABLE, 'donedate', 'NULL', $where, true);
+                }
+                log_register('WHITEBOARD EDIT RECORD [' . $recordId . ']');
+            }
+        }
+    }
+
+    public function delete($recordId) {
+        $recordId = vf($recordId, 3);
+        if (isset($this->records[$recordId])) {
+            if (cfr('ROOT')) {
+                $query = "DELETE FROM `whiteboard` WHERE `id`='" . $recordId . "';";
+                nr_query($query);
+                log_register('WHITEBOARD DELETE RECORD [' . $recordId . ']');
+            }
+        }
     }
 
     protected function getStyles() {
@@ -184,7 +246,9 @@ class WhiteBoard {
                     if (!empty($records)) {
                         $rows = '';
                         foreach ($records as $io => $recordData) {
-                            $cells = wf_TableCell(wf_Link(self::URL_ME . '&showrecord=' . $recordData['id'], $recordData['name']), '', 'wbpriority_' . $recordData['priority']);
+                            $commentsCount = $this->adcomments->getCommentsCount($recordData['id']);
+                            $commentsLabel = ($commentsCount > 0) ? ' (' . $commentsCount . ')' : '';
+                            $cells = wf_TableCell(wf_Link(self::URL_ME . '&showrecord=' . $recordData['id'], $recordData['name'] . $commentsLabel), '', 'wbpriority_' . $recordData['priority']);
                             $rows.=wf_TableRow($cells);
                         }
                         $result.=wf_TableBody($rows, '100%', 0, '');
@@ -199,11 +263,26 @@ class WhiteBoard {
         return ($result);
     }
 
-    public function renderRecord($id) {
+    protected function isMyRecord($recordId) {
+        $result = false;
+        if (isset($this->records[$recordId])) {
+            $myLogin = whoami();
+            if (($this->records[$recordId]['admin'] == $myLogin) OR ( crf('ROOT'))) {
+                $result = true;
+            }
+        }
+
+        return ($result);
+    }
+
+    public function renderRecord($recordId) {
         $result = '';
-        if (isset($this->records[$id])) {
-            $recordData = $this->records[$id];
-            $cells = wf_TableCell(__('Category'), '20%', 'row2');
+        if (isset($this->records[$recordId])) {
+            $recordData = $this->records[$recordId];
+
+            $taskCreateForm = ' ' . wf_modal(wf_img('skins/createtask.gif', __('Create task')), __('Create task'), ts_TaskCreateFormUnified($recordData['name'], '', ''), '', '450', '540');
+
+            $cells = wf_TableCell(__('Category') . $taskCreateForm, '20%', 'row2');
             $cells.= wf_TableCell($this->categories[$recordData['categoryid']]);
             $rows = wf_TableRow($cells, 'row3');
 
@@ -211,11 +290,30 @@ class WhiteBoard {
             $cells.= wf_TableCell($this->priorities[$recordData['priority']]);
             $rows.= wf_TableRow($cells, 'row3');
 
+
             $cells = wf_TableCell(__('Name'), '', 'row2');
             $cells.= wf_TableCell($recordData['name']);
             $rows.= wf_TableRow($cells, 'row3');
 
+            $cells = wf_TableCell(__('Who should do'), '', 'row2');
+            $cells.= wf_TableCell(@$this->allEmployee[$recordData['employeeid']]);
+            $rows.= wf_TableRow($cells, 'row3');
+
+            $cells = wf_TableCell(__('Creation date') . ' / ' . __('Finish date'), '', 'row2');
+            $doneDate = ($recordData['donedate']) ? $recordData['donedate'] : __('Undone');
+            $cells.= wf_TableCell($recordData['createdate'] . ' / ' . $doneDate);
+            $rows.= wf_TableRow($cells, 'row3');
+
+
+            $cells = wf_TableCell(__('Text'), '', 'row2');
+            $cells.= wf_TableCell($recordData['text']);
+            $rows.= wf_TableRow($cells, 'row3');
+
             $result.=wf_TableBody($rows, '100%', 0, '');
+            if ($this->isMyRecord($recordId)) {
+                $result.=wf_tag('br');
+                $result.=wf_modalAuto(web_edit_icon() . ' ' . __('Edit'), __('Edit'), $this->renderEditForm($recordId), 'ubButton');
+            }
         } else {
             $result.=$this->messages->getStyledMessage(__('Something went wrong') . ': EX_RECORD_ID_NOT_EXIST', 'error');
         }
