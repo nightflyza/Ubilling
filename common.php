@@ -24,7 +24,7 @@ unset($global);
 ////////////////////////////////////////////////////////////////////////////////
 define('RCMS_VERSION_A', '1');
 define('RCMS_VERSION_B', '2');
-define('RCMS_VERSION_C', '13');
+define('RCMS_VERSION_C', '14');
 if(is_file(RCMS_ROOT_PATH . 'CURRENT')) define('RCMS_VERSION_SUFFIX', '-git'); else define('RCMS_VERSION_SUFFIX', '');
 define('RCMS_LINK', 'http://reloadcms.com/main/');
 define('RCMS_COPYRIGHT', '&copy; 2018');

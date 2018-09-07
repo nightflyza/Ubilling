@@ -243,8 +243,12 @@ class PONizer {
                     if ($oltModelid) {
                         if (isset($this->allOltModels[$oltModelid])) {
                             $templateFile = 'config/snmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
+                            $privateTemplateFile = DATA_PATH . 'documents/mysnmptemplates/' . $this->allOltModels[$oltModelid]['snmptemplate'];
                             if (file_exists($templateFile)) {
                                 $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($templateFile, true);
+                                if (file_exists($privateTemplateFile)) {
+                                    $this->snmpTemplates[$oltModelid] = rcms_parse_ini_file($privateTemplateFile, true);
+                                }
                             }
                         }
                     }
@@ -2587,7 +2591,7 @@ class PONizer {
                     $cells = wf_TableCell(__('Interface'));
                     $cells .= wf_TableCell(__('Count'));
                     $cells .= wf_TableCell(__('Bad signal'));
-                    $cells .= wf_TableCell(__('Bad signal').' %');
+                    $cells .= wf_TableCell(__('Bad signal') . ' %');
                     $cells .= wf_TableCell(__('Visual'));
                     $rows = wf_TableRow($cells, 'row1');
                     foreach ($oltInterfacesFilled[$oltId] as $eachInterface => $eachInterfaceCount) {
@@ -2597,7 +2601,7 @@ class PONizer {
                         $badSignalCount = @$badSignals[$oltId][$eachInterface];
                         $signalColor = '';
                         $signalColorEnd = '';
-                        $badSignalPercent='';
+                        $badSignalPercent = '';
                         if (!empty($badSignalCount)) {
                             if ($badSignalCount >= 3) {
                                 $signalColor = wf_tag('font', false, '', 'color="#FF0000"') . wf_tag('b', false);
@@ -2606,7 +2610,7 @@ class PONizer {
                                 $signalColor = '';
                                 $signalColorEnd = '';
                             }
-                            $badSignalPercent=  zb_PercentValue($eachInterfaceCount, $badSignalCount).'%';
+                            $badSignalPercent = zb_PercentValue($eachInterfaceCount, $badSignalCount) . '%';
                         } else {
                             $badSignalCount = '';
                         }
