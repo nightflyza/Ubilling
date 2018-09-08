@@ -25,7 +25,8 @@ if ($altcfg['WHITEBOARD_ENABLED']) {
         if (!wf_CheckGet(array('showrecord'))) {
             show_window(__('Whiteboard'), $whiteboard->renderRecordsList());
         } else {
-            show_window(__('Task'), $whiteboard->renderRecord($_GET['showrecord']));
+            $taskFromLabel=' '.__('created by').' '.$whiteboard->getCreator($_GET['showrecord']);
+            show_window(__('Task').$taskFromLabel, $whiteboard->renderRecord($_GET['showrecord']));
             show_window(__('Additional comments'), $whiteboard->adcomments->renderComments($_GET['showrecord']));
         }
     } else {

@@ -11,3 +11,4 @@ $lang['def']['You need to do'] = 'Треба би зробити';
 $lang['def']['The faster the better'] = 'Чим швидше тим краще';
 $lang['def']['Urgently'] = 'Терміново';
 $lang['def']['Matter of life and death'] = 'Питання життя і смерті';
+$lang['def']['created by'] = 'створено';

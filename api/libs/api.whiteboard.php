@@ -302,6 +302,24 @@ class WhiteBoard {
     }
 
     /**
+     * Returns administrator realname or login
+     * 
+     * @param int $recordId
+     * 
+     * @return string
+     */
+    public function getCreator($recordId) {
+        $result = '';
+        if (isset($this->records[$recordId])) {
+            $creatorLogin = $this->records[$recordId]['admin'];
+            @$employeeLogins = unserialize(ts_GetAllEmployeeLoginsCached());
+            $authorRealname = (isset($employeeLogins[$creatorLogin])) ? $employeeLogins[$creatorLogin] : $creatorLogin;
+            $result = $authorRealname;
+        }
+        return ($result);
+    }
+
+    /**
      * Deletes record from database
      * 
      * @param int $recordId
@@ -433,7 +451,7 @@ class WhiteBoard {
         $result = false;
         if (isset($this->records[$recordId])) {
             $myLogin = whoami();
-            if (($this->records[$recordId]['admin'] == $myLogin) OR ( crf('ROOT'))) {
+            if (($this->records[$recordId]['admin'] == $myLogin) OR ( cfr('ROOT'))) {
                 $result = true;
             }
         }
