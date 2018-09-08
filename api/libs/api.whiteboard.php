@@ -332,6 +332,7 @@ class WhiteBoard {
                 $result.='.wbpriority_' . $io . ' { background-color:#' . $each . '; padding: 10px; }';
             }
             $result.=wf_tag('style', true);
+
             $result.=wf_tag('script');
             $result.='$( function() { $( ".whiteboard" ).draggable(); } );';
             $result.=wf_tag('script', true);

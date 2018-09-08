@@ -520,6 +520,10 @@ class StickyNotes {
                     $offsetLeft = $offsetLeft + 10;
                 }
             }
+
+            $result.=wf_tag('script');
+            $result.='$( function() { $( ".stickynote" ).draggable(); } );';
+            $result.=wf_tag('script', true);
         }
         return ($result);
     }
