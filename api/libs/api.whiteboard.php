@@ -334,7 +334,7 @@ class WhiteBoard {
             $result.=wf_tag('style', true);
 
             $result.=wf_tag('script');
-            $result.='$( function() { $( ".whiteboard" ).draggable(); } );';
+            $result.='$( function() { $( ".whiteboard" ).draggable({ scroll: false }); } );';
             $result.=wf_tag('script', true);
         }
         return ($result);

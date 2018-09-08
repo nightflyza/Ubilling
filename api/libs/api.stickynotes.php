@@ -522,7 +522,7 @@ class StickyNotes {
             }
 
             $result.=wf_tag('script');
-            $result.='$( function() { $( ".stickynote" ).draggable(); } );';
+            $result.='$( function() { $( ".stickynote" ).draggable({ scroll: false }); } );';
             $result.=wf_tag('script', true);
         }
         return ($result);
