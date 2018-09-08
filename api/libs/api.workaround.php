@@ -4969,6 +4969,7 @@ function zb_formatTime($seconds) {
 function zb_ListLoadedModules() {
     $result = '';
     $moduleCount = 0;
+    $rightsCount=0;
     global $system;
     $cells = wf_TableCell(__('Module'));
     $cells.= wf_TableCell(__('Author'));
@@ -4982,6 +4983,7 @@ function zb_ListLoadedModules() {
                 if (!empty($moduledata['rights'])) {
                     foreach ($moduledata['rights'] as $right => $rightdesc) {
                         $moduleRights.=' ' . wf_tag('abbr', false, '', 'title="' . $rightdesc . '"') . $right . wf_tag('abbr', true) . ',';
+                        $rightsCount++;
                     }
                     $moduleRights = zb_CutEnd($moduleRights);
                 }
@@ -4995,7 +4997,8 @@ function zb_ListLoadedModules() {
     }
 
     $result = wf_TableBody($rows, '100%', 0, 'sortable');
-    $result.=__('Total') . ': ' . $moduleCount;
+    $result.=__('Total') . ': ' . $moduleCount.  wf_tag('br');
+    $result.=__('Rights generated').': '.$rightsCount;
     return ($result);
 }
 

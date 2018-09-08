@@ -29,9 +29,11 @@ $lang['def']['Memory used'] = 'Памяти использовано';
 $lang['def']['default'] = 'по-умолчанию';
 $lang['def']['JunOS like'] = 'аля JunOS';
 $lang['def']['Multigen NAS sessions stats'] = 'Статистика сессий NAS КучаГен';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
-$lang['def'][''] = '';
+$lang['def']['Clone NAS configuration'] = 'Клонировать конфигурацию NAS';
+$lang['def']['No other configured NAS to cloning'] = 'Нету других сконфигурированных NAS для клонирования. Джанго Фетт негодует.';
+$lang['def']['I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'] = 'Я понимаю, что клонирование полностью уничтожит все текущие настройки NAS если они существуют, и заменит их конфигурацией другого NAS';
+$lang['def']['I understand that changing that completely destroys all current NAS settings if they exist and will replace them with the another configuration'] = 'Я понимаю, что изменение этого полностью уничтожит все текущие настройки NAS если они существуют, и заменит их другими настройками';
+$lang['def']['You can copy&paste current NAS configuration as text'] = 'Вы можете копипастить конфигурацию вашего NAS в виде текста';
 
 
 

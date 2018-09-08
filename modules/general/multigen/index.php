@@ -82,6 +82,20 @@ if ($ubillingConfig->getAlterParam('MULTIGEN_ENABLED')) {
                     show_error(__('You are not mentally prepared for this'));
                 }
             }
+
+            //copypasting NAS options
+            if (wf_CheckPost(array('nascopypastetext'))) {
+                if (wf_CheckPost(array('nascopypasteagree'))) {
+                    $nasCopyPasteResult = $multigen->pasteNasConfiguration($editNasId, $_POST['nascopypastetext']);
+                    if (empty($nasCopyPasteResult)) {
+                        rcms_redirect($multigen::URL_ME . '&editnasoptions=' . $editNasId);
+                    } else {
+                        show_error($nasCopyPasteResult);
+                    }
+                } else {
+                    show_error(__('You are not mentally prepared for this'));
+                }
+            }
             //rendering basic options form
             show_window(__('NAS options') . ': ' . $multigen->getNaslabel($editNasId), $multigen->renderNasOptionsEditForm($editNasId));
             if ($multigen->nasHaveOptions($editNasId)) {

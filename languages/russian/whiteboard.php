@@ -12,4 +12,3 @@ $lang['def']['The faster the better'] = 'Чем быстрее тем лучше
 $lang['def']['Urgently'] = 'Срочно';
 $lang['def']['Matter of life and death'] = 'Вопрос жизни и смерти';
 $lang['def']['created by'] = 'создано';
-$lang['def'][''] = '';

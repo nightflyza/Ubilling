@@ -2933,8 +2933,6 @@ $lang['def']['Script'] = 'Скрипт';
 $lang['def']['Movement'] = 'Движение';
 $lang['def']['Dirty'] = 'Грязными';
 $lang['def']['Clean'] = 'Чистыми';
-$lang['def']['Clone NAS configuration'] = 'Клонировать конфигурацию NAS';
-$lang['def']['I understand that cloning completely destroys all current NAS settings if they exist and will replace them with the configuration of another NAS'] = 'Я понимаю, что клонирование полностью уничтожит все текущие настройки NAS если они существуют, и заменит их конфигурацией другого NAS';
 $lang['def']['Bonus'] = 'Бонус';
 $lang['def']['Bonuses'] = 'Бонусы';
 $lang['def']['Additional fees'] = 'Дополнительные начисления';
@@ -2957,7 +2955,6 @@ $lang['def']['Not paid fuel'] = 'Не выплачено топлива';
 $lang['def']['Paid fuel'] = 'Выплачено топлива';
 $lang['def']['Bad signal'] = 'Плохой сигнал';
 $lang['def']['from numbers assigned to users'] = 'от номеров присвоенных абонентам';
-$lang['def']['No other configured NAS to cloning'] = 'Нету других сконфигурированных NAS для клонирования. Джанго Фетт негодует.';
 $lang['def'][''] = '';
 
 
