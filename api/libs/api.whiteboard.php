@@ -2,20 +2,89 @@
 
 class WhiteBoard {
 
+    /**
+     * Contains system alter config as key=>value
+     *
+     * @var array
+     */
     protected $altCfg = array();
+
+    /**
+     * Contains available record categories as id=>name
+     *
+     * @var array
+     */
     protected $categories = array();
+
+    /**
+     * Contains available whiteboard records as id=>recorddata
+     *
+     * @var array
+     */
     protected $records = array();
+
+    /**
+     * Contains record priorities as id=>name
+     *
+     * @var array
+     */
     protected $priorities = array();
+
+    /**
+     * Contains priority colors as priorityid=>color
+     *
+     * @var array
+     */
     protected $prioColors = array();
+
+    /**
+     * Contains active employee as id=>employeename
+     *
+     * @var array
+     */
     protected $activeEmployee = array();
+
+    /**
+     * Contains all employee as id=>employeename
+     *
+     * @var array
+     */
     protected $allEmployee = array();
+
+    /**
+     * System message helper object placeholder
+     *
+     * @var object
+     */
     protected $messages = '';
+
+    /**
+     * Additional comments object placeholder
+     *
+     * @var object
+     */
     public $adcomments = '';
 
+    /**
+     * Additional comments scope
+     */
     const SCOPE = 'WHITEBOARD';
+
+    /**
+     * Default control module URL
+     */
     const URL_ME = '?module=whiteboard';
+
+    /**
+     * Table name to store whiteboard records
+     */
     const REC_TABLE = 'whiteboard';
 
+    /**
+     * Creates new whiteboard instance
+     * 
+     * @return void
+     */
     public function __construct() {
         $this->loadAlter();
         $this->initMessages();
@@ -38,12 +107,22 @@ class WhiteBoard {
         $this->altCfg = $ubillingConfig->getAlter();
     }
 
+    /**
+     * Inits adcomments obj for further usage
+     * 
+     * @return void
+     */
     protected function initAdcomments() {
         if ($this->altCfg['ADCOMMENTS_ENABLED']) {
             $this->adcomments = new ADcomments(self::SCOPE);
         }
     }
 
+    /**
+     * Loads/Sets categories
+     * 
+     * @return void
+     */
     protected function loadCategories() {
         $this->categories = array(
             1 => __('Signups'),
@@ -55,6 +134,11 @@ class WhiteBoard {
         );
     }
 
+    /**
+     * Sets available records priorities
+     * 
+     * @return void
+     */
     protected function setPriorities() {
         $this->priorities = array(
             1 => __('Indifferently'),
@@ -75,16 +159,31 @@ class WhiteBoard {
         );
     }
 
+    /**
+     * Inits system message helper obj for further usage
+     * 
+     * @return void
+     */
     protected function initMessages() {
         $this->messages = new UbillingMessageHelper();
     }
 
+    /**
+     * Loads all and active employee into protected props
+     * 
+     * @return void
+     */
     protected function loadEmployeeData() {
         $this->activeEmployee[0] = '-';
         $this->allEmployee = ts_GetAllEmployee();
         $this->activeEmployee += ts_GetActiveEmployee();
     }
 
+    /**
+     * Loads whiteboard records data from database
+     * 
+     * @return void
+     */
     protected function loadWhiteboardRecords() {
         $query = "SELECT * from `" . self::REC_TABLE . "` ORDER BY `priority` DESC";
         $all = simple_queryall($query);
@@ -95,6 +194,11 @@ class WhiteBoard {
         }
     }
 
+    /**
+     * Renders module controls
+     * 
+     * @return string
+     */
     public function renderControls() {
         $result = '';
         if (wf_CheckGet(array('showrecord'))) {
@@ -111,6 +215,11 @@ class WhiteBoard {
         return ($result);
     }
 
+    /**
+     * Renders record creation form
+     * 
+     * @return string
+     */
     protected function renderCreateForm() {
         $result = '';
         if ((!empty($this->categories)) AND ( $this->priorities)) {
@@ -129,6 +238,13 @@ class WhiteBoard {
         return ($result);
     }
 
+    /**
+     * Renders record editing form
+     * 
+     * @param int $recordId
+     * 
+     * @return string
+     */
     protected function renderEditForm($recordId) {
         $recordId = vf($recordId, 3);
         $result = '';
@@ -160,6 +276,11 @@ class WhiteBoard {
         return ($result);
     }
 
+    /**
+     * Saves record if editing required 
+     * 
+     * @return void
+     */
     public function saveRecord() {
         if (wf_CheckPost(array('editrecord', 'editcategory', 'editpriority', 'editname'))) {
             $recordId = vf($_POST['editrecord']);
@@ -180,6 +301,13 @@ class WhiteBoard {
         }
     }
 
+    /**
+     * Deletes record from database
+     * 
+     * @param int $recordId
+     * 
+     * @return void
+     */
     public function delete($recordId) {
         $recordId = vf($recordId, 3);
         if (isset($this->records[$recordId])) {
@@ -191,6 +319,11 @@ class WhiteBoard {
         }
     }
 
+    /**
+     * Renders custom records styles by their priority colors
+     * 
+     * @return string
+     */
     protected function getStyles() {
         $result = '';
         if (!empty($this->prioColors)) {
@@ -199,10 +332,18 @@ class WhiteBoard {
                 $result.='.wbpriority_' . $io . ' { background-color:#' . $each . '; padding: 10px; }';
             }
             $result.=wf_tag('style', true);
+            $result.=wf_tag('script');
+            $result.='$( function() { $( ".whiteboard" ).draggable(); } );';
+            $result.=wf_tag('script', true);
         }
         return ($result);
     }
 
+    /**
+     * Creates new record in database
+     * 
+     * @return void
+     */
     public function createRecord() {
         if (wf_CheckPost(array('createnewrecord', 'newcategory', 'newpriority', 'newname'))) {
             $category = vf($_POST['newcategory'], 3);
@@ -220,6 +361,11 @@ class WhiteBoard {
         }
     }
 
+    /**
+     * Renders available records as default whiteboard view
+     * 
+     * @return string
+     */
     public function renderRecordsList() {
         $result = '';
         $result.=$this->getStyles();
@@ -238,8 +384,18 @@ class WhiteBoard {
                     }
                 }
             }
-
+            /**
+             * Вареники, борщ,
+             * Позаторішнє сало,
+             * Півметра ковбаси -
+             * Усе попропадало!
+             * То що мені робити?
+             * Не з'їм, то будуть тапки...
+             * І хто мене врятує?..
+             * Капітан Канапка-а-а!
+             */
             if (!empty($tmpArr)) {
+                $result.=wf_tag('div', false, 'whiteboardbg');
                 foreach ($tmpArr as $categoryId => $records) {
                     $result.=wf_tag('div', false, 'whiteboard');
                     $result.=wf_tag('h2') . $this->categories[$categoryId] . wf_tag('h2', true);
@@ -255,7 +411,9 @@ class WhiteBoard {
                     }
                     $result.=wf_tag('div', true);
                 }
+
                 $result.=wf_CleanDiv();
+                $result.=wf_tag('div', true);
             }
         } else {
             $result.=$this->messages->getStyledMessage(__('Nothing to show'), 'warning');
@@ -263,6 +421,13 @@ class WhiteBoard {
         return ($result);
     }
 
+    /**
+     * Checks is some record editable by current user
+     * 
+     * @param int $recordId
+     * 
+     * @return bool
+     */
     protected function isMyRecord($recordId) {
         $result = false;
         if (isset($this->records[$recordId])) {
@@ -275,6 +440,13 @@ class WhiteBoard {
         return ($result);
     }
 
+    /**
+     * Renders record view form with some edit controls if record is created by current user
+     * 
+     * @param int $recordId
+     * 
+     * @return string
+     */
     public function renderRecord($recordId) {
         $result = '';
         if (isset($this->records[$recordId])) {

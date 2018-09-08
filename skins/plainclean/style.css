@@ -1116,6 +1116,7 @@ table.sortable.id tbody tr::before {
     font-size: larger;
 }
 
+
 @-webkit-keyframes swing-in-top-fwd {
     0% {
         -webkit-transform: rotateX(-100deg);
@@ -1159,6 +1160,7 @@ table.sortable.id tbody tr::before {
     border-radius:5px;
     text-align: center;
     overflow: hidden;
+    font-size: 12pt;
     box-shadow: 3px 3px 4px rgba(0,0,0,0);
     line-height: 100%;
     -webkit-animation: swing-in-top-fwd 0.8s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
@@ -1173,4 +1175,5 @@ table.sortable.id tbody tr::before {
 
 .whiteboard a {
     color: #FFFFFF;
+    padding: 20px;
 }

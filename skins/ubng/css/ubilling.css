@@ -892,6 +892,7 @@ div.dhtml_menu div.vert_menu a.active:hover
 
 .whiteboard {
     float: left;
+    background-color: #ffffff;
     display: block;
     padding: 10px;
     margin: 5px;
@@ -916,3 +917,23 @@ div.dhtml_menu div.vert_menu a.active:hover
     color: #FFFFFF;
     padding: 20px;
 }
+
+/**
+.whiteboardbg {
+    background-image: url('../../whiteboardbg.jpg');
+    background-size: 100%;
+    background-repeat: no-repeat;
+    min-height: 1123px;
+    padding: 40px;
+   
+}
+
+
+@media only screen and (max-width: 800px) {
+.whiteboardbg {
+    background-color: #FFFFFF;
+}
+}
+
+
+**/
